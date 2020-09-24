@@ -421,6 +421,11 @@ cdef class DenseGraph(CGraph):
         return num_nbrs
 
     cdef inline int next_out_neighbor_unsafe(self, int u, int v):
+        """
+        Return the next out-neighbor of ``u`` that is greater or equal to ``v``.
+
+        Return ``-1`` in case there does not exist such a out-neighbor.
+        """
         cdef int place = (u * self.num_longs)
         cdef size_t i
         cdef unsigned long word, data
@@ -463,17 +468,30 @@ cdef class DenseGraph(CGraph):
           there were more
 
         """
+        cdef int num_nbrs = 0
+        cdef int u = self.next_in_neighbor_unsafe(v, 0)
+        while u != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = u
+            num_nbrs += 1
+            u = self.next_in_neighbor_unsafe(v, u+1)
+
+        return num_nbrs
+
+    cdef inline int next_in_neighbor_unsafe(self, int v, int u):
+        """
+        Return the next in-neighbor of ``v`` that is greater or equal to ``u``.
+
+        Return ``-1`` in case there does not exist such a in-neighbor.
+        """
         cdef int place = v / radix
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         cdef size_t i
-        cdef int num_nbrs = 0
-        for i in range(self.active_vertices.size):
+        for i in range(u, self.active_vertices.size):
             if self.edges[place + i * self.num_longs] & word:
-                if num_nbrs == size:
-                    return -1
-                neighbors[num_nbrs] = i
-                num_nbrs += 1
-        return num_nbrs
+                return i
+        return -1
 
 ##############################
 # Further tests. Unit tests for methods, functions, classes defined with cdef.
@@ -819,7 +837,7 @@ cdef class DenseGraphBackend(CGraphBackend):
                                 pass
                             yield (v, u, None)
                             v = v_copy
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int+1)
         else:
             for v_int in vertices:
                 if v_int != -1:
@@ -836,7 +854,7 @@ cdef class DenseGraphBackend(CGraphBackend):
                                 pass
                             yield (v, u)
                             v = v_copy
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int+1)
 
     def iterator_in_edges(self, object vertices, bint labels):
         """
@@ -862,20 +880,27 @@ cdef class DenseGraphBackend(CGraphBackend):
 
         """
         cdef object v
-        vertices = [self.get_vertex_checked(v) for v in vertices]
         cdef int u_int, v_int
+        cdef DenseGraph cg = self.cg()
+
+        vertices = [self.get_vertex_checked(v) for v in vertices]
+
         if labels:
             for v_int in vertices:
                 if v_int != -1:
                     v = self.vertex_label(v_int)
-                    for u_int in self._cg.in_neighbors(v_int):
+                    u_int = cg.next_in_neighbor_unsafe(v_int, 0)
+                    while u_int != -1:
                         yield (self.vertex_label(u_int), v, None)
+                        u_int = cg.next_in_neighbor_unsafe(v_int, u_int+1)
         else:
             for v_int in vertices:
                 if v_int != -1:
                     v = self.vertex_label(v_int)
-                    for u_int in self._cg.in_neighbors(v_int):
+                    u_int = cg.next_in_neighbor_unsafe(v_int, 0)
+                    while u_int != -1:
                         yield (self.vertex_label(u_int), v)
+                        u_int = cg.next_in_neighbor_unsafe(v_int, u_int+1)
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -913,7 +938,7 @@ cdef class DenseGraphBackend(CGraphBackend):
                     u_int = cg.next_out_neighbor_unsafe(v_int, 0)
                     while u_int != -1:
                         yield (v, self.vertex_label(u_int), None)
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int+1)
         else:
             for v_int in vertices:
                 if v_int != -1:
@@ -921,7 +946,7 @@ cdef class DenseGraphBackend(CGraphBackend):
                     u_int = cg.next_out_neighbor_unsafe(v_int, 0)
                     while u_int != -1:
                         yield (v, self.vertex_label(u_int))
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int+1)
 
     def multiple_edges(self, new):
         """

@@ -797,7 +797,7 @@ cdef class DenseGraphBackend(CGraphBackend):
             [(1, 2, None)]
 
         """
-        cdef object v, u
+        cdef object v, v_copy, u
         cdef int u_int, v_int
         cdef DenseGraph cg = self.cg()
 
@@ -811,12 +811,14 @@ cdef class DenseGraphBackend(CGraphBackend):
                     while u_int != -1:
                         if u_int >= v_int or u_int not in vertices:
                             u = self.vertex_label(u_int)
+                            v_copy = v
                             try:
                                 if u < v:
                                     v, u = u, v
                             except TypeError:
                                 pass
                             yield (v, u, None)
+                            v = v_copy
                         u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
         else:
             for v_int in vertices:
@@ -826,12 +828,14 @@ cdef class DenseGraphBackend(CGraphBackend):
                     while u_int != -1:
                         if u_int >= v_int or u_int not in vertices:
                             u = self.vertex_label(u_int)
+                            v_copy = v
                             try:
                                 if u < v:
                                     v, u = u, v
                             except TypeError:
                                 pass
                             yield (v, u)
+                            v = v_copy
                         u_int = cg.next_out_neighbor_unsafe(v_int, u_int + 1)
 
     def iterator_in_edges(self, object vertices, bint labels):

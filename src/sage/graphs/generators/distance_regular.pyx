@@ -2198,9 +2198,9 @@ def is_pseudo_partition_graph(list arr):
         sage: from sage.graphs.generators.distance_regular import *
         sage: is_pseudo_partition_graph([36, 25, 16, 1, 4, 18])
         (6, 1)
-        sage: pseudo_partition_graph(6, 1)
+        sage: pseudo_partition_graph(6, 1)  # long time
         Folded Johnson graph with parameters 12,6: Graph on 462 vertices
-        sage: _.is_distance_regular(True)
+        sage: _.is_distance_regular(True)  # long time
         ([36, 25, 16, None], [None, 1, 4, 18])
 
     REFERENCE:
@@ -2277,7 +2277,7 @@ def pseudo_partition_graph(int m, int a):
         sage: pseudo_partition_graph(6, 1)
         Folded Johnson graph with parameters 12,6: Graph on 462 vertices
 
-    Not all graphs built with this function are psuedo partition graphs as
+    Not all graphs built with this function are pseudo partition graphs as
     intended by
     :func:`sage.graphs.generators.distance_regular.is_pseudo_partition_graph`,
     since that function requires the diameter to be at least 3::

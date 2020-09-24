@@ -74,7 +74,9 @@ jobs:
            param($path)
            @(Get-Content $path | Where-Object { !$_.StartsWith("#") })
         }
-        $packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | sort -Unique
+        $packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt
+        echo "Install the following packages:" @packages
+        $packages = $packages | foreach-object { ExtractPackages $_.FullName } | sort -Unique
         # Add tox which is use to build
         $packages += 'tox'
         echo "Install the following packages:" @packages

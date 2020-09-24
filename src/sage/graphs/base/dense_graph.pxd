@@ -16,8 +16,6 @@ cdef class DenseGraph(CGraph):
     cdef int radix_mod_mask
     cdef size_t num_longs
     cdef unsigned long *edges
-    cdef inline int next_out_neighbor_unsafe(self, int u, int v)
-    cdef inline int next_in_neighbor_unsafe(self, int v, int u)
 
 cdef class DenseGraphBackend(CGraphBackend):
     cdef DenseGraph _cg

@@ -726,9 +726,83 @@ cdef class CGraph:
         raise NotImplementedError()
 
     cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
+        """
+        Feed array ``neighbors`` with the out-neighbors of ``u``.
+
+        This function will put at most ``size`` out-neighbors of ``u`` in array
+        ``neighbors``. If ``u`` has more than ``size`` out-neighbors, ``size``
+        of them are put in array ``neighbors`` and the function returns value
+        ``-1``.  Otherwise the function returns the number of out-neighbors that
+        have been put in array ``neighbors``.
+
+        INPUT:
+
+        - ``u`` -- non-negative integer; must be in self
+
+        - ``neighbors`` -- pointer to an (allocated) integer array
+
+        - ``size`` -- the length of the array
+
+        OUTPUT:
+
+        - nonnegative integer -- the out-degree of ``u``
+
+        - ``-1`` -- indicates that the array has been filled with neighbors, but
+          there were more
+
+        """
+        cdef int num_nbrs = 0
+        cdef int v = self.next_out_neighbor_unsafe(u, -1)
+        while v != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = v
+            num_nbrs += 1
+            v = self.next_out_neighbor_unsafe(u, v)
+
+        return num_nbrs
+
+    cdef int next_out_neighbor_unsafe(self, int u, int v):
         raise NotImplementedError()
 
     cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
+        """
+        Feed array ``neighbors`` with the in-neighbors of ``v``.
+
+        This function will put at most ``size`` in-neighbors of ``v`` in array
+        ``neighbors``. If ``v`` has more than ``size`` in-neighbors, ``size`` of
+        them are put in array ``neighbors`` and the function returns value
+        ``-1``.  Otherwise the function returns the number of in-neighbors that
+        have been put in array ``neighbors``.
+
+        INPUT:
+
+        - ``v`` -- non-negative integer; must be in self
+
+        - ``neighbors`` -- pointer to an (allocated) integer array
+
+        - ``size`` -- the length of the array
+
+        OUTPUT:
+
+        - nonnegative integer -- the in-degree of ``v``
+
+        - ``-1`` -- indicates that the array has been filled with neighbors, but
+          there were more
+
+        """
+        cdef int num_nbrs = 0
+        cdef int v = self.next_in_neighbor_unsafe(u, -1)
+        while v != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = v
+            num_nbrs += 1
+            v = self.next_in_neighbor_unsafe(u, v)
+
+        return num_nbrs
+
+    cdef int next_in_neighbor_unsafe(self, int v, int u):
         raise NotImplementedError()
 
     cpdef add_arc(self, int u, int v):

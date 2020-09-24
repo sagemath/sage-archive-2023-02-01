@@ -680,34 +680,6 @@ cdef class SparseGraph(CGraph):
     # Neighbor functions
     ###################################
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
-        """
-        Gives all v such that (u, v) is an arc of the graph.
-
-        INPUT:
-
-        - ``u`` -- non-negative integer, must be in self neighbors -- must be a
-            pointer to an (allocated) integer array size -- the length of the
-            array
-
-        OUTPUT:
-
-            nonnegative integer -- the number of v such that (u, v) is an arc -1
-            -- indicates that the array has been filled with neighbors, but
-            there were more
-
-        """
-        cdef int num_nbrs = 0
-        cdef int v = self.next_out_neighbor_unsafe(u, -1)
-        while v != -1:
-            if num_nbrs == size:
-                return -1
-            neighbors[num_nbrs] = v
-            num_nbrs += 1
-            v = self.next_out_neighbor_unsafe(u, v)
-
-        return num_nbrs
-
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers):
         """
         List the out-neighbors of a vertex as BTNodes
@@ -745,7 +717,7 @@ cdef class SparseGraph(CGraph):
 
         return num_nbrs
 
-    cdef int next_out_neighbor_unsafe(self, int u, int v):
+    cdef inline int next_out_neighbor_unsafe(self, int u, int v):
         """
         Return the next out-neighbor of ``u`` that is greater than ``v``.
 
@@ -882,39 +854,6 @@ cdef class SparseGraph(CGraph):
 
         return l
 
-    cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size) except -2:
-        """
-        Gives all u such that (u, v) is an arc of the graph.
-
-        INPUT:
-
-        - ``v`` -- non-negative integer, must be in self
-          neighbors -- must be a pointer to an (allocated) integer array
-          size -- the length of the array
-
-        OUTPUT:
-
-        - nonnegative integer -- the number of u such that (u, v) is an arc
-          -1 -- indicates that the array has been filled with neighbors, but
-          there were more
-
-        .. NOTE::
-
-            Due to the implementation of SparseGraph, this method is much more
-            expensive than out_neighbors_unsafe.
-
-        """
-        cdef int num_nbrs = 0
-        cdef int u = self.next_in_neighbor_unsafe(v, -1)
-        while u != -1:
-            if num_nbrs == size:
-                return -1
-            neighbors[num_nbrs] = u
-            num_nbrs += 1
-            u = self.next_in_neighbor_unsafe(v, u)
-
-        return num_nbrs
-
     cdef int in_neighbors_BTNode_unsafe(self, int v, SparseGraphBTNode *** p_pointers):
         """
         List the in-neighbors of a vertex as BTNodes
@@ -952,7 +891,7 @@ cdef class SparseGraph(CGraph):
 
         return num_nbrs
 
-    cdef int next_in_neighbor_unsafe(self, int v, int u):
+    cdef inline int next_in_neighbor_unsafe(self, int v, int u):
         """
         Return the next in-neighbor of ``v`` that is greater than ``u``.
 

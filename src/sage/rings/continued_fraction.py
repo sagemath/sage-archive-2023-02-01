@@ -1325,7 +1325,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
 
     def preperiod_length(self):
         r"""
-        Returns the number of partial quotients of the preperiodic part of ``self``.
+        Return the number of partial quotients of the preperiodic part of ``self``.
 
         EXAMPLES::
 

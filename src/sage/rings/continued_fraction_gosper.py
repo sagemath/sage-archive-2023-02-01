@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """
 Gosper iterator for homographic transformations
 

@@ -1194,9 +1194,7 @@ class ContinuedFraction_base(SageObject):
         - [Knu1998]_ Exercise 4.5.3.15
         - [LS1998]_
         """
-        from .rational_field import QQ
         from .continued_fraction_gosper import gosper_iterator
-        from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 
         if not all(isinstance(x, numbers.Integral) for x in (a, b, c, d)):
             raise TypeError("a, b, c and d must be integral")

@@ -3631,7 +3631,7 @@ REFERENCES:
 .. [Lew2000] Robert Edward Lewand. *Cryptological Mathematics*. The
              Mathematical Association of America, 2000.
 
-.. [LS1998] Pierre Liardet, Pierre Stambul, P.  *Algebraic Computation
+.. [LS1998] Pierre Liardet, Pierre Stambul *Algebraic Computation
             with Continued Fractions.* J. Number Th. 73, 92-121, 1998.
 
 .. [Li1995] Peter Littelmann, Crystal graphs and Young

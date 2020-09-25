@@ -307,8 +307,8 @@ class AffineGroupElement(MultiplicativeGroupElement):
 
         INPUT:
 
-        - ``v`` -- a multivariate polynomial, a vector, or anything
-          that can be converted into a vector.
+        - ``v`` -- a polynomial, a multivariate polynomial, a polyhedron, a
+          vector, or anything that can be converted into a vector.
 
         OUTPUT:
 
@@ -345,18 +345,41 @@ class AffineGroupElement(MultiplicativeGroupElement):
             sage: R.<z> = QQ[]
             sage: h(z+1)
             3*z + 2
+
+        The action on a polyhedron is defined (see :trac:`30327`)::
+
+            sage: F = AffineGroup(3, QQ)
+            sage: M = matrix(3, [-1, -2, 0, 0, 0, 1, -2, 1, -1])
+            sage: v = vector(QQ,(1,2,3))
+            sage: f = F(M, v)
+            sage: cube = polytopes.cube()
+            sage: f(cube)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+
         """
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
-        from sage.rings.polynomial.multi_polynomial import is_MPolynomial
         parent = self.parent()
+
+        # start with the most probable case, i.e., v is in the vector space
+        if v in parent.vector_space():
+            return self._A*v + self._b
+
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         if is_Polynomial(v) and parent.degree() == 1:
             ring = v.parent()
             return ring([self._A[0,0], self._b[0]])
+
+        from sage.rings.polynomial.multi_polynomial import is_MPolynomial
         if is_MPolynomial(v) and parent.degree() == v.parent().ngens():
             ring = v.parent()
             from sage.modules.all import vector
             image_coords = self._A * vector(ring, ring.gens()) + self._b
             return v(*image_coords)
+
+        from sage.geometry.polyhedron.base import is_Polyhedron
+        if is_Polyhedron(v):
+            return self._A*v + self._b
+
+        # otherwise, coerce v into the vector space
         v = parent.vector_space()(v)
         return self._A*v + self._b
 

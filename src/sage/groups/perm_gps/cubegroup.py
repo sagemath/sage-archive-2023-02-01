@@ -92,7 +92,6 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 import random
@@ -725,7 +724,7 @@ class CubeGroup(PermutationGroup_generic):
                 mv = mv.strip().replace(" ","*").replace("**", "*").replace("'", "-1").replace('^','').replace('(','').replace(')','')
                 M = mv.split("*")
                 for m in M:
-                    if len(m) == 0:
+                    if not m:
                         pass
                     elif len(m) == 1:
                         g *= map[m[0]]
@@ -838,7 +837,7 @@ class CubeGroup(PermutationGroup_generic):
         g = self.parse(mv)
         return g, self.facets(g)
 
-    def display2d(self,mv):
+    def display2d(self, mv):
         r"""
         Print the 2d representation of ``self``.
 
@@ -951,7 +950,7 @@ class CubeGroup(PermutationGroup_generic):
             return P
         return clrs
 
-    def plot3d_cube(self,mv,title=True):
+    def plot3d_cube(self, mv, title=True):
         r"""
         Displays `F,U,R` faces of the cube after the given move ``mv``. Mostly
         included for the purpose of drawing pictures and checking moves.
@@ -994,7 +993,7 @@ class CubeGroup(PermutationGroup_generic):
             return P
         return P
 
-    def legal(self,state,mode="quiet"):
+    def legal(self, state, mode="quiet"):
         r"""
         Return 1 (true) if the dictionary ``state`` (in the
         same format as returned by the faces method) represents a legal
@@ -1024,9 +1023,9 @@ class CubeGroup(PermutationGroup_generic):
         else:
             return res
 
-    def solve(self,state, algorithm='default'):
+    def solve(self, state, algorithm='default'):
         r"""
-        Solves the cube in the ``state``, given as a dictionary
+        Solve the cube in the ``state``, given as a dictionary
         as in ``legal``. See the ``solve`` method
         of the RubiksCube class for more details.
 
@@ -1083,7 +1082,7 @@ class CubeGroup(PermutationGroup_generic):
             return C.solve(algorithm)
 
         hom = self._gap_().EpimorphismFromFreeGroup()
-        soln = hom.PreImagesRepresentative(gap(str(g)))
+        soln = hom.PreImagesRepresentative(str(g))
         sol = str(soln)
         names = self.gen_names()
         for i in range(6):
@@ -1191,7 +1190,7 @@ class RubiksCube(SageObject):
                      +--------------+
         sage: C.show()
         sage: C.solve(algorithm='gap')  # long time
-        'L R'
+        'L*R'
         sage: C == RubiksCube("L*R")
         True
     """
@@ -1242,7 +1241,7 @@ class RubiksCube(SageObject):
             sage: D.undo() == C
             True
         """
-        if len(self._history) == 0:
+        if not self._history:
             raise ValueError("no moves to undo")
         g = self._history[-1]
         return RubiksCube(self._state * ~g, self._history[:-1], self.colors)
@@ -1308,7 +1307,7 @@ class RubiksCube(SageObject):
         """
         self.plot().show()
 
-    def cubie(self, size, gap, x,y,z, colors, stickers=True):
+    def cubie(self, size, gap, x, y, z, colors, stickers=True):
         """
         Return the cubie at `(x,y,z)`.
 
@@ -1414,22 +1413,30 @@ class RubiksCube(SageObject):
             (may take a long time)
           - ``gap`` - Use GAP word solution (can be slow)
 
+        Any choice other than ``gap`` requires the optional package
+        ``rubiks``. Otherwise, the ``gap`` algorithm is used.
+
         EXAMPLES::
 
             sage: C = RubiksCube("R U F L B D")
-            sage: C.solve()
+            sage: C.solve()           # optional - rubiks
             'R U F L B D'
 
         Dietz's program is much faster, but may give highly non-optimal
         solutions::
 
-            sage: s = C.solve('dietz'); s
+            sage: s = C.solve('dietz'); s   # optional - rubiks
             "U' L' L' U L U' L U D L L D' L' D L' D' L D L' U' L D' L' U L' B' U' L' U B L D L D' U' L' U L B L B' L' U L U' L' F' L' F L' F L F' L' D' L' D D L D' B L B' L B' L B F' L F F B' L F' B D' D' L D B' B' L' D' B U' U' L' B' D' F' F' L D F'"
-            sage: C2 = RubiksCube(s)
-            sage: C == C2
+            sage: C2 = RubiksCube(s)  # optional - rubiks
+            sage: C == C2             # optional - rubiks
             True
         """
-        import sage.interfaces.rubik # here to avoid circular referencing
+        from sage.features.rubiks import Rubiks
+        if Rubiks().is_present():
+            import sage.interfaces.rubik  # here to avoid circular referencing
+        else:
+            algorithm = 'gap'
+
         if algorithm == "default":
             algorithm = "hybrid"
 
@@ -1456,7 +1463,7 @@ class RubiksCube(SageObject):
 
         elif algorithm == "gap":
             solver = CubeGroup()
-            return solver.solve(self._state)
+            return solver.solve(self._state, algorithm="gap")
 
         else:
             raise ValueError("Unrecognized algorithm: %s" % algorithm)
@@ -1492,4 +1499,3 @@ class RubiksCube(SageObject):
             last_move = move
             all.append(move)
         return self.move(' '.join(all))
-

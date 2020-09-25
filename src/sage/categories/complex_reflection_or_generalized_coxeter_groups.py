@@ -339,7 +339,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             """
             one = self.one()
             s = self.simple_reflections()
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
 
             def mult_order(x):
                 ct = ZZ.one()

@@ -17,8 +17,6 @@ Cartesian Products
 # ****************************************************************************
 from __future__ import absolute_import
 
-from six.moves import range
-
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.set_from_iterator import EnumeratedSetFromIterator
 
@@ -330,7 +328,8 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         EXAMPLES::
 
             sage: from sage.combinat.cartesian_product import CartesianProduct_iters
-            sage: CartesianProduct_iters('dog', 'cat').random_element()
-            ['d', 'a']
+            sage: c = CartesianProduct_iters('dog', 'cat').random_element()
+            sage: c in CartesianProduct_iters('dog', 'cat')
+            True
         """
         return [rnd.choice(_) for _ in self.iters]

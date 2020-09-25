@@ -29,6 +29,8 @@ docstrings.
 
 -  Stirling numbers, :func:`stirling_number1`,
    :func:`stirling_number2`.
+   
+-  Polygonal numbers, :func:`polygonal_number`
 
 **Set-theoretic constructions:**
 
@@ -89,7 +91,7 @@ combinatorial functions:
 
 .. MATH::
 
-             \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
+    \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}{(1-q)(1-q^2)\cdots (1-q^r)}.
 
 The ``sage.groups.perm_gps.permgroup_elements``
 contains the following combinatorial functions:
@@ -147,8 +149,6 @@ Functions and classes
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from six import iteritems, add_metaclass
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -502,7 +502,7 @@ def narayana_number(n, k):
 
     REFERENCES:
 
-    - wikipedia:`Narayana_number`
+    - :wikipedia:`Narayana_number`
     """
     n = ZZ(n)
     if n <= 0:
@@ -634,7 +634,7 @@ def eulerian_polynomial(n, algorithm='derivative'):
     TESTS::
 
         sage: eulerian_polynomial(7)(1) == factorial(7)
-        True 
+        True
 
         sage: eulerian_polynomial(6, algorithm='coeffs')
         t^5 + 57*t^4 + 302*t^3 + 302*t^2 + 57*t + 1
@@ -672,7 +672,7 @@ def fibonacci(n, algorithm="pari"):
     - ``algorithm`` -- a string:
 
       * ``"pari"`` - (default) use the PARI C library's
-        fibo function
+        :pari:`fibo` function
 
       * ``"gap"`` - use GAP's Fibonacci function
 
@@ -993,6 +993,84 @@ def stirling_number2(n, k, algorithm=None):
         raise ValueError("unknown algorithm: %s" % algorithm)
 
 
+def polygonal_number(s, n):
+    r"""
+    Return the `n`-th `s`-gonal number.
+
+    Polygonal sequences are represented by dots forming a regular polygon.
+    Two famous sequences are the triangular numbers (3rd column of Pascal's
+    Triangle) and the square numbers. The `n`-th term in a polygonal sequence
+    is defined by
+
+    .. MATH::
+
+        P(s, n) = \frac{n^2(s-2) - n(s-4)}{2},
+
+    where `s` is the number of sides of the polygon.
+
+    INPUT:
+
+    - ``s`` -- integer greater than 1; the number of sides of the polygon
+
+    - ``n`` -- integer; the index of the returned `s`-gonal number
+
+    OUTPUT: an integer
+
+    EXAMPLES:
+
+    The triangular numbers::
+
+        sage: [polygonal_number(3, n) for n in range(10)]
+        [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
+
+        sage: [polygonal_number(3, n) for n in range(-10, 0)]
+        [45, 36, 28, 21, 15, 10, 6, 3, 1, 0]
+
+    The square numbers::
+
+        sage: [polygonal_number(4, n) for n in range(10)]
+        [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+    The pentagonal numbers::
+
+        sage: [polygonal_number(5, n) for n in range(10)]
+        [0, 1, 5, 12, 22, 35, 51, 70, 92, 117]
+
+    The hexagonal numbers::
+
+        sage: [polygonal_number(6, n) for n in range(10)]
+        [0, 1, 6, 15, 28, 45, 66, 91, 120, 153]
+
+    The input is converted into an integer::
+
+        sage: polygonal_number(3.0, 2.0)
+        3
+
+    A non-integer input returns an error::
+
+        sage: polygonal_number(3.5, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral RealNumber to Integer
+
+    `s` must be greater than 1::
+
+        sage: polygonal_number(1, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: s (=1) must be greater than 1
+
+    REFERENCES:
+
+    - :wikipedia:`Polygonal_number`
+    """
+    s = ZZ(s)
+    n = ZZ(n)
+    if s < 2:
+        raise ValueError("s (=%s) must be greater than 1" % s)
+    return (((n**2) * (s-2)) - (n * (s-4))) // 2
+
+
 class CombinatorialObject(SageObject):
     def __init__(self, l, copy=True):
         """
@@ -1116,7 +1194,7 @@ class CombinatorialObject(SageObject):
                 sage: sorted(L)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: comparison not implemented for <class '__main__.Bar'>
+                TypeError: '<' not supported between instances of 'Bar' and 'Bar'
         """
         if isinstance(other, CombinatorialObject):
             return self._list == other._list
@@ -1368,8 +1446,8 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class CombinatorialElement(CombinatorialObject, Element):
+class CombinatorialElement(CombinatorialObject, Element,
+        metaclass=InheritComparisonClasscallMetaclass):
     """
     ``CombinatorialElement`` is both a :class:`CombinatorialObject`
     and an :class:`Element`. So it represents a list which is an
@@ -1456,8 +1534,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         super(CombinatorialObject, self).__init__(parent)
 
 
-@add_metaclass(ClasscallMetaclass)
-class CombinatorialClass(Parent):
+class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
     """
     This class is deprecated, and will disappear as soon as all derived
     classes in Sage's library will have been fixed. Please derive
@@ -1882,7 +1959,7 @@ class CombinatorialClass(Parent):
 
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.random_element()       # indirect doctest
+            sage: C.random_element()       # random  # indirect doctest
             1
         """
         c = self.cardinality()
@@ -2858,7 +2935,7 @@ def bell_polynomial(n, k):
     for p in Partitions(n, length=k):
         factorial_product = 1
         power_factorial_product = 1
-        for part, count in iteritems(p.to_exp_dict()):
+        for part, count in p.to_exp_dict().items():
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
         coefficient = factorial(n) // (factorial_product * power_factorial_product)

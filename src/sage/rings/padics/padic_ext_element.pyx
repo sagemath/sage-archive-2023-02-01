@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
 """
 p-Adic Extension Element
 

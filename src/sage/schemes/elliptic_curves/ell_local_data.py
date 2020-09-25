@@ -86,10 +86,9 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six import integer_types
 
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 from sage.rings.all import PolynomialRing, QQ, ZZ, Integer
 from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal
@@ -1132,7 +1131,7 @@ def check_prime(K, P):
         TypeError: No compatible natural embeddings found for Number Field in a with defining polynomial x^2 - 5 and Number Field in b with defining polynomial x^2 + 3
     """
     if K is QQ:
-        if P in ZZ or isinstance(P, integer_types + (Integer,)):
+        if P in ZZ or isinstance(P, (Integer, int)):
             P = Integer(P)
             if P.is_prime():
                 return P

@@ -24,7 +24,7 @@ see :trac:`12849`::
     ....:     for line in fobj:
     ....:         if "#sage.symbolic.expression.Expression.numerical_approx" in line:
     ....:             print(line)
-    <code class="descname">numerical_approx</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
+    <code class="sig-name descname">numerical_approx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">digits</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">algorithm</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
 
@@ -40,8 +40,8 @@ Check that sphinx is not imported at Sage start-up::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
-from six import string_types, text_type
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import re
@@ -682,7 +682,7 @@ def format(s, embedded=False):
         sage: format(r'inline code ``\\\\.``')
         'inline code "\\\\\\\\."\n'
     """
-    if not isinstance(s, string_types):
+    if not isinstance(s, str):
         raise TypeError("s must be a string")
 
     # Leading empty lines must be removed, since we search for directives
@@ -766,7 +766,7 @@ def format_src(s):
         sage: format_src('<<<Sq>>>')[5:15]
         'Sq(*nums):'
     """
-    if not isinstance(s, string_types):
+    if not isinstance(s, str):
         raise TypeError("s must be a string")
     docs = set([])
     import sage.all
@@ -953,7 +953,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     else:
         # Pass through the IPython pager in a mime bundle
         from IPython.core.page import page
-        if not isinstance(text_results, text_type):
+        if not isinstance(text_results, str):
             text_results = text_results.decode('utf-8', 'replace')
 
         page({
@@ -1064,7 +1064,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         sage: print(search_src(" fetch(", "def", interact=False)) # py3
         Traceback (most recent call last):
         ...
-        re.error: missing ), unterminated subpattern at position 6
+        error: missing ), unterminated subpattern at position 6
 
     To fix this, *escape* the parenthesis with a backslash::
 

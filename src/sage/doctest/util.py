@@ -19,7 +19,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six import iteritems
 
 from sage.misc.misc import walltime, cputime
 
@@ -81,7 +80,7 @@ def dict_difference(self, other):
         {'foobar': 'hello', 'timeout': 100}
     """
     D = dict()
-    for k, v in iteritems(self):
+    for k, v in self.items():
         try:
             if other[k] == v:
                 continue
@@ -128,7 +127,7 @@ class Timer:
             sage: from sage.doctest.util import Timer
             sage: import time
             sage: timer = Timer().start()
-            sage: time.sleep(0.5)
+            sage: time.sleep(float(0.5))
             sage: timer.stop()
             {'cputime': ..., 'walltime': ...}
         """

@@ -18,9 +18,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import builtins
-from six import iteritems, PY2
 
+import builtins
 import os
 import sys
 import shutil
@@ -42,7 +41,7 @@ cblas_library_dirs = list(cblas_pc['library_dirs'])
 cblas_include_dirs = list(cblas_pc['include_dirs'])
 
 standard_libs = [
-    'mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm',
+    'mpfr', 'gmp', 'gmpxx', 'pari', 'm',
     'ec', 'gsl',
 ] + cblas_libs + [
     'ntl']
@@ -194,6 +193,12 @@ def cython(filename, verbose=0, compile_message=False,
         Traceback (most recent call last):
         ...
         RuntimeError: ...
+
+    As of :trac:`29139` the default is ``cdivision=True``::
+
+        sage: cython('''
+        ....: cdef size_t foo = 3/2
+        ....: ''')
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -315,7 +320,7 @@ def cython(filename, verbose=0, compile_message=False,
                     libraries=standard_libs,
                     library_dirs=standard_libdirs)
 
-    directives = dict(language_level=sys.version_info[0])
+    directives = dict(language_level=sys.version_info[0], cdivision=True)
 
     try:
         # Change directories to target_dir so that Cython produces the correct
@@ -522,7 +527,7 @@ def cython_import_all(filename, globals, **kwds):
       code
     """
     m = cython_import(filename, **kwds)
-    for k, x in iteritems(m.__dict__):
+    for k, x in m.__dict__.items():
         if k[0] != '_':
             globals[k] = x
 
@@ -659,9 +664,6 @@ def _strhash(s):
     l = len(s)
 
     for c in s:
-        if PY2:
-            c = ord(c)
-
         h += c + (c << 17)
         h ^= h >> 2
 

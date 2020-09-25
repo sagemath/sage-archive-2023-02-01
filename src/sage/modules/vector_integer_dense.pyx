@@ -58,19 +58,13 @@ from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.structure.richcmp cimport rich_to_bool
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, _Integer_from_mpz
 
 cimport sage.modules.free_module_element as free_module_element
 
 from .free_module_element import vector
 
 from sage.libs.gmp.mpz cimport *
-
-
-cdef inline _Integer_from_mpz(mpz_t e):
-    cdef Integer z = Integer.__new__(Integer)
-    mpz_set(z.value, e)
-    return z
 
 cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
     cdef bint is_dense_c(self):

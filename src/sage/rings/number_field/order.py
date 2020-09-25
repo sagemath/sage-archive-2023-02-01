@@ -44,8 +44,6 @@ We compute a suborder, which has index a power of 17 in the maximal order::
 # ****************************************************************************
 from __future__ import absolute_import
 
-import six
-
 from sage.misc.cachefunc import cached_method
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
@@ -250,7 +248,7 @@ class Order(IntegralDomain):
             sage: Ok.has_coerce_map_from(ZZ)
             True
         """
-        return R is ZZ or R in six.integer_types
+        return R is ZZ or R is int
 
     def __mul__(self, right):
         """

@@ -80,4 +80,4 @@ from .db_class_polynomials import \
 
 lazy_import('sage.databases.cunningham_tables', 'cunningham_prime_factors')
 
-lazy_import('sage.databases.findstat', 'findstat')
+lazy_import('sage.databases.findstat', ['findstat', 'findmap'])

@@ -907,7 +907,7 @@ cdef class CachedFunction(object):
 
             sage: from sage.misc.sageinspect import sage_getsource
             sage: g = CachedFunction(number_of_partitions)
-            sage: 'bober' in sage_getsource(g)  # indirect doctest
+            sage: 'flint' in sage_getsource(g)  # indirect doctest
             True
 
         """

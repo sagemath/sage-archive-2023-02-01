@@ -21,7 +21,7 @@ from sage.structure.element cimport parent
 from sage.structure.richcmp cimport richcmp, rich_to_bool
 from cpython.object cimport Py_NE, Py_EQ
 
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art, ascii_art
@@ -307,7 +307,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: ascii_art(M.zero())
             0
         """
-        from sage.misc.misc import coeff_repr
+        from sage.misc.repr import coeff_repr
         terms = self._sorted_items_for_printing()
         scalar_mult = self._parent._print_options['scalar_mult']
         repr_monomial = self._parent._ascii_art_term
@@ -371,12 +371,12 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                ├┤      └┘       └┘       └┴┘
                └┘
 
-        The following test failed before :trac:`26850` ::
+        The following test failed before :trac:`26850`::
 
             sage: unicode_art([M.zero()])  # indirect doctest
             [ 0 ]
         """
-        from sage.misc.misc import coeff_repr
+        from sage.misc.repr import coeff_repr
         terms = self._sorted_items_for_printing()
         scalar_mult = self._parent._print_options['scalar_mult']
         repr_monomial = self._parent._unicode_art_term
@@ -664,13 +664,14 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             return self.base_ring().zero()
         return res
 
-    def _vector_(self, new_base_ring=None):
+    def _vector_(self, new_base_ring=None, order=None):
         """
         Returns ``self`` as a dense vector
 
         INPUT:
 
         - ``new_base_ring`` -- a ring (default: ``None``)
+        - ``order`` -- (optional) an ordering of the support of ``self``
 
         OUTPUT: a dense :func:`FreeModule` vector
 
@@ -735,8 +736,10 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         dense_free_module = self._parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
         zero = dense_free_module.base_ring().zero()
+        if order is None:
+            order = self._parent.get_order()
         return dense_free_module.element_class(dense_free_module,
-                                               [d.get(m, zero) for m in self._parent.get_order()],
+                                               [d.get(m, zero) for m in order],
                                                coerce=True, copy=False)
 
     to_vector = _vector_
@@ -882,20 +885,6 @@ cdef class IndexedFreeModuleElement(ModuleElement):
 
         x_inv = B(x) ** -1
         return type(self)(F, scal(x_inv, D))
-
-    def __div__(left, right):
-        """
-        Forward old-style division to true division.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, [1,2,3])
-            sage: x = F._from_dict({1:2, 2:3})
-            sage: x/2
-            B[1] + 3/2*B[2]
-        """
-        return left / right
-
 
 def _unpickle_element(C, d):
     """

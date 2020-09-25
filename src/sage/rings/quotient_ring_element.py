@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-
 from sage.structure.element import RingElement
 from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.interfaces.singular import singular as singular_default
@@ -155,28 +154,32 @@ class QuotientRingElement(RingElement):
         """
         Return True if self is a unit in the quotient ring.
 
-        TODO: This is not fully implemented, as illustrated in the
-        example below.  So far, self is determined to be unit only if
-        its representation in the cover ring `R` is also a unit.
-
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(1 - x*y); type(a)
             <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category.element_class'>
             sage: a*b
             1
-            sage: a.is_unit()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-            sage: S(1).is_unit()
+            sage: S(2).is_unit()
             True
+
+        Check that :trac:`29469` is fixed::
+
+            sage: a.is_unit()
+            True
+            sage: (a+b).is_unit()
+            False
         """
         if self.__rep.is_unit():
             return True
         from sage.categories.fields import Fields
         if self.parent() in Fields:
             return not self.is_zero()
+        try:
+            self.__invert__()
+            return True
+        except ArithmeticError:
+            return False
         raise NotImplementedError
 
     def _repr_(self):
@@ -511,17 +514,6 @@ class QuotientRingElement(RingElement):
             return self.lift()._rational_()
         except AttributeError:
             raise NotImplementedError
-
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
-            <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category.element_class'>
-            sage: long(S(-3))            # indirect doctest
-            -3L
-        """
-        return long(self.lift())
 
     def __neg__(self):
         """

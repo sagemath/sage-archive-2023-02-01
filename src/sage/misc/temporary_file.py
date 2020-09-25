@@ -25,7 +25,6 @@ import io
 import os
 import tempfile
 import atexit
-import six
 
 
 def delete_tmpfiles():
@@ -343,7 +342,7 @@ class atomic_write(object):
         # 'binary' mode is the default on Python 2, whereas 'text' mode is the
         # default on Python 3--this reflects consistent handling of the default
         # str type on the two platforms
-        self.binary = six.PY2 if binary is None else binary
+        self.binary = False if binary is None else binary
         self.kwargs = kwargs
 
     def __enter__(self):

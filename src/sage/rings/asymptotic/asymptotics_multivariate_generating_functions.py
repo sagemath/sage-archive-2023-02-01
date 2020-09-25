@@ -196,7 +196,6 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from functools import total_ordering
 from itertools import combinations_with_replacement
@@ -3600,7 +3599,7 @@ class FractionWithFactoredDenominatorSum(list):
             factors.extend([q for (q, e) in f.denominator_factored()])
 
         # Eliminate repeats from factors and sort.
-        factors = sorted(list(set(factors)))
+        factors = sorted(set(factors))
 
         # The irreducible factors of denom lie in factors.
         # Use this fact to build df.

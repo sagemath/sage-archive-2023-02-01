@@ -60,7 +60,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element

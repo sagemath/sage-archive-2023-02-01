@@ -719,7 +719,7 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         TESTS::
 
-            sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
+            sage: 1.0 - ZZ(1) - int(1) - 1 - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
             -6.00000000000000
             sage: R = RR['x']   # Hold reference to avoid garbage collection, see Trac #24709
             sage: R.get_action(ZZ)
@@ -1629,6 +1629,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self.str(10, no_sci=True)
 
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(3.5e-15)           # optional - mathematica
+            3.5*^-15
+            sage: mathematica.Log(3.5e6).sage()  # optional - mathematica
+            15.06827352645964
+        """
+        return self.str(10, e='*^')
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.
@@ -1978,7 +1991,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: x.str(digits=-10)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to size_t
+            OverflowError: can...t convert negative value to size_t
             sage: x.str(base=16, truncate=True)
             Traceback (most recent call last):
             ...
@@ -3115,22 +3128,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, MPFR_RNDZ)
         return z.__int__()
-
-    def __long__(self):
-        """
-        Returns Python long integer truncation of this real number.
-
-        EXAMPLES::
-
-            sage: long(RR(pi))
-            3L
-        """
-        if not mpfr_number_p(self.value):
-            raise ValueError('Cannot convert infinity or NaN to Python long')
-
-        cdef Integer z = Integer()
-        mpfr_get_z(z.value, self.value, MPFR_RNDZ)
-        return z.__long__()
 
     def __complex__(self):
         """

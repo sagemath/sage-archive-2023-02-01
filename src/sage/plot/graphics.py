@@ -35,12 +35,10 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import zip
-from six import integer_types
 
 import os
 from math import isnan
-import sage.misc.misc
+import sage.misc.verbose
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -1121,7 +1119,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
-        if isinstance(other, integer_types) and other == 0:
+        if isinstance(other, int) and other == 0:
             return self
         raise TypeError
 
@@ -1406,15 +1404,15 @@ class Graphics(WithEqualityById, SageObject):
         if scale == 'linear':
             basex = basey = 10
         elif scale == 'loglog':
-            subplot.set_xscale('log', basex=basex)
-            subplot.set_yscale('log', basey=basey)
+            subplot.set_xscale('log', base=basex)
+            subplot.set_yscale('log', base=basey)
             xscale = yscale = 'log'
         elif scale == 'semilogx':
-            subplot.set_xscale('log', basex=basex)
+            subplot.set_xscale('log', base=basex)
             basey = 10
             xscale = 'log'
         elif scale == 'semilogy':
-            subplot.set_yscale('log', basey=basey)
+            subplot.set_yscale('log', base=basey)
             basex = 10
             yscale = 'log'
 
@@ -2261,16 +2259,16 @@ class Graphics(WithEqualityById, SageObject):
             ymax = max(d['ymax'] for d in minmax_data)
             if isnan(xmin):
                 xmin=0
-                sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("xmin was NaN (setting to 0)", level=0)
             if isnan(xmax):
                 xmax=0
-                sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("xmax was NaN (setting to 0)", level=0)
             if isnan(ymin):
                 ymin=0
-                sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("ymin was NaN (setting to 0)", level=0)
             if isnan(ymax):
                 ymax=0
-                sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
+                sage.misc.verbose.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
 
@@ -2351,17 +2349,17 @@ class Graphics(WithEqualityById, SageObject):
             sage: subplot = Figure().add_subplot(111)
             sage: p._objects[0]._render_on_subplot(subplot)
             sage: p._matplotlib_tick_formatter(subplot, **d)
-            (<matplotlib.axes._subplots.AxesSubplot object at ...>,
+            (<AxesSubplot:>,
             <matplotlib.ticker.MaxNLocator object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
-            <matplotlib.ticker.OldScalarFormatter object at ...>,
-            <matplotlib.ticker.OldScalarFormatter object at ...>)
+            <matplotlib.ticker.ScalarFormatter object at ...>,
+            <matplotlib.ticker.ScalarFormatter object at ...>)
         """
         # This function is created to refactor some code that is repeated
         # in the matplotlib function
         from matplotlib.ticker import (FixedLocator, Locator,
                 LogFormatterMathtext, LogLocator, MaxNLocator,
-                MultipleLocator, NullLocator, OldScalarFormatter)
+                MultipleLocator, NullLocator, ScalarFormatter)
 
         x_locator, y_locator = ticks
         #---------------------- Location of x-ticks ---------------------#
@@ -2417,7 +2415,7 @@ class Graphics(WithEqualityById, SageObject):
             if scale[0] == 'log':
                 x_formatter = LogFormatterMathtext(base=base[0])
             else:
-                x_formatter = OldScalarFormatter()
+                x_formatter = ScalarFormatter()
         elif x_formatter in SR:
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
@@ -2442,7 +2440,7 @@ class Graphics(WithEqualityById, SageObject):
             if scale[1] == 'log':
                 y_formatter = LogFormatterMathtext(base=base[1])
             else:
-                y_formatter = OldScalarFormatter()
+                y_formatter = ScalarFormatter()
         elif y_formatter in SR:
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:
@@ -2840,7 +2838,8 @@ class Graphics(WithEqualityById, SageObject):
             color = lopts.pop('back_color', 'white')
             leg = subplot.legend(prop=prop, **lopts)
             if leg is None:
-                sage.misc.misc.warn("legend requested but no items are labeled")
+                from warnings import warn
+                warn("legend requested but no items are labeled")
             else:
                 # color
                 lframe = leg.get_frame()

@@ -28,7 +28,7 @@ AUTHORS:
 
 -  David Zureick-Brown (2017-09): Added is_weil_polynomial.
 
--  Sebastian Oehms (2018-10): made :meth:`roots` and  :meth:`factor` work over more 
+-  Sebastian Oehms (2018-10): made :meth:`roots` and  :meth:`factor` work over more
    cases of proper integral domains (see :trac:`26421`)
 
 TESTS::
@@ -106,6 +106,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
+from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.structure.category_object cimport normalize_names
 
@@ -1634,26 +1635,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError("only implemented for certain base rings")
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: f = x - 902384
-            sage: long(f) # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to long
-            sage: long(R(939392920202)) # py2
-            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
-            See https://trac.sagemath.org/27675 for details.
-            939392920202L
-        """
-        if self.degree() > 0:
-            raise TypeError("cannot coerce nonconstant polynomial to long")
-        deprecation(27675, "converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3")
-        return long(self.get_coeff_c(0))
-
     cpdef _mul_(self, right):
         """
         EXAMPLES::
@@ -2247,9 +2228,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return wrapperdescr_fastcall(RingElement.__truediv__,
                 left, (right,), <object>NULL)
 
-    def __div__(left, right):
-        return PyNumber_TrueDivide(left, right)
-
     def __pow__(left, right, modulus):
         """
         EXAMPLES::
@@ -2547,10 +2525,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x + 0
 
         """
+        if name is None:
+            name = self._parent._names[0]
+        # p-adic polynomials like (1 + O(p^20))*x have _is_gen set to True but
+        # want their coefficient printed with its O() term
+        if self._is_gen and not isinstance(self._parent._base, pAdicGeneric):
+            return name
         s = " "
         m = self.degree() + 1
-        if name is None:
-            name = self._parent.variable_name()
         atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         coeffs = self.list(copy=False)
         for n in reversed(xrange(m)):
@@ -4407,14 +4389,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     try:
                         F = R.fraction_field()
                         PF = F[self.variable_name()]
-                        pol_frac = PF(self) 
+                        pol_frac = PF(self)
                         pol_frac_fact = pol_frac.factor(**kwargs)
                         if R(pol_frac_fact.unit()).is_unit():
                             # Note: :meth:`base_change` may convert the unit to a non unit
                             return pol_frac_fact.base_change(self.parent())
                     except (TypeError, AttributeError, NotImplementedError):
                         raise NotImplementedError
-                    
+
                 raise NotImplementedError
 
         return self._factor_pari_helper(G, n)
@@ -6406,6 +6388,83 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
+    @coerce_binop
+    def subresultants(self, other):
+        r"""
+        Return the nonzero subresultant polynomials of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a polynomial
+
+        OUTPUT: a list of polynomials in the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: f = x^8 + x^6 -3*x^4 -3*x^3 +8*x^2 +2*x -5
+            sage: g = 3*x^6 +5*x^4 -4*x^2 -9*x +21
+            sage: f.subresultants(g)
+            [260708,
+             9326*x - 12300,
+             169*x^2 + 325*x - 637,
+             65*x^2 + 125*x - 245,
+             25*x^4 - 5*x^2 + 15,
+             15*x^4 - 3*x^2 + 9]
+
+        ALGORITHM:
+
+        We use the schoolbook algorithm with Lazard's optimization described in [Duc1998]_
+
+        REFERENCES:
+
+        :wikipedia:`Polynomial_greatest_common_divisor#Subresultants`
+
+        """
+        P, Q = self, other
+        if P.degree() < Q.degree():
+            P, Q = Q, P
+        S = []
+        s = Q.leading_coefficient()**(P.degree()-Q.degree())
+        A = Q
+        B = P.pseudo_quo_rem(-Q)[1]
+        ring = self.parent()
+        while True:
+            d = A.degree()
+            e = B.degree()
+            if B.is_zero():
+                return S
+            S = [ring(B)] + S
+            delta = d - e
+            if delta > 1:
+                if len(S) > 1:
+                    n = S[1].degree() - S[0].degree() - 1
+                    if n == 0:
+                        C = S[0]
+                    else:
+                        x = S[0].leading_coefficient()
+                        y = S[1].leading_coefficient()
+                        a = 1 << (int(n).bit_length()-1)
+                        c = x
+                        n = n - a
+                        while a > 1:
+                            a /= 2
+                            c = c**2 / y
+                            if n >= a:
+                                c = c * x / y
+                                n = n - a
+                        C = c * S[0] / y
+                else:
+                    C = B.leading_coefficient()**(delta-1) * B / s**(delta-1)
+                S = [ring(C)] + S
+            else:
+                C = B
+            if e == 0:
+                return S
+            B = A.pseudo_quo_rem(-B)[1] / (s**delta * A.leading_coefficient())
+            A = C
+            s = A.leading_coefficient()
+
     def composed_op(p1, p2, op, algorithm=None, monic=False):
         r"""
         Return the composed sum, difference, product or quotient of this
@@ -6514,13 +6573,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         TESTS:
-
-        In Python 2, ``operator.div`` still works::
-
-            sage: from six import PY2
-            sage: div = getattr(operator, "div" if PY2 else "truediv")
-            sage: p1.composed_op(p2, div)
-            x^6 + x^5 + x^4 + x^2 + 1
 
         ::
 
@@ -7883,7 +7935,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         # integer
                         c = self.content_ideal().gen()
                         self = self//c
-                    except (AttributeError, NotImplementedError):
+                    except (AttributeError, NotImplementedError, TypeError):
                         pass
                 return self._roots_from_factorization(self.factor(), multiplicities)
             else:

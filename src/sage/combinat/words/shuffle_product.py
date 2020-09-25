@@ -57,18 +57,18 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
             sage: W = Words([1,2,3,4])
             sage: s = ShuffleProduct_w1w2(W([1,2]),W([3,4]))
-            sage: sorted(list(s))
+            sage: sorted(s)
             [word: 1234, word: 1324, word: 1342, word: 3124,
              word: 3142, word: 3412]
             sage: s == loads(dumps(s))
             True
 
             sage: s = ShuffleProduct_w1w2(W([1,4,3]),W([2]))
-            sage: sorted(list(s))
+            sage: sorted(s)
             [word: 1243, word: 1423, word: 1432, word: 2143]
 
             sage: s = ShuffleProduct_w1w2(W([1,4,3]),W([]))
-            sage: sorted(list(s))
+            sage: sorted(s)
             [word: 143]
         """
         self._w1 = w1

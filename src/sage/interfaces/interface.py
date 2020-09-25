@@ -38,7 +38,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems, integer_types, string_types
 
 import operator
 
@@ -293,7 +292,7 @@ class Interface(WithEqualityById, ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, string_types):
+        if isinstance(x, str):
             return cls(self, x, name=name)
         try:
             # Special methods do not and should not have an option to
@@ -336,7 +335,7 @@ class Interface(WithEqualityById, ParentWithBase):
     def _coerce_impl(self, x, use_special=True):
         if isinstance(x, bool):
             return self(self._true_symbol() if x else self._false_symbol())
-        elif isinstance(x, integer_types):
+        elif isinstance(x, int):
             import sage.rings.all
             return self(sage.rings.all.Integer(x))
         elif isinstance(x, float):
@@ -556,7 +555,7 @@ class Interface(WithEqualityById, ParentWithBase):
         for i, arg in enumerate(args):
             if not isinstance(arg, InterfaceElement) or arg.parent() is not self:
                 args[i] = self(arg)
-        for key, value in iteritems(kwds):
+        for key, value in kwds.items():
             if not isinstance(value, InterfaceElement) or value.parent() is not self:
                 kwds[key] = self(value)
 
@@ -590,9 +589,9 @@ class Interface(WithEqualityById, ParentWithBase):
         EXAMPLES::
 
             sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
-            [0.5,0.55511151231257...e-14,21,0]
+            [0.5,5.5511151231257...e-15,21,0]
             sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
-            [0.5,0.55511151231257...e-14,21,0]
+            [0.5,5.5511151231257...e-15,21,0]
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -707,7 +706,8 @@ class InterfaceElement(Element):
     def __init__(self, parent, value, is_name=False, name=None):
         Element.__init__(self, parent)
         self._create = value
-        if parent is None: return     # means "invalid element"
+        if parent is None:
+            return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
@@ -1026,17 +1026,22 @@ class InterfaceElement(Element):
         string = repr(self).replace('\n',' ').replace('\r', '')
         # Translate the external program's function notation to Sage's
         lfd = self.parent()._left_func_delim()
-        if '(' != lfd:  string = string.replace(lfd, '(')
+        if '(' != lfd:
+            string = string.replace(lfd, '(')
         rfd = self.parent()._right_func_delim()
-        if ')' != rfd:  string = string.replace(rfd, ')')
+        if ')' != rfd:
+            string = string.replace(rfd, ')')
         # Translate the external program's list formatting to Sage's
         lld = self.parent()._left_list_delim()
-        if '[' != lld:      string = string.replace(lld, '[')
+        if '[' != lld:
+            string = string.replace(lld, '[')
         rld = self.parent()._right_list_delim()
-        if ']' != rld:      string = string.replace(rld, ']')
+        if ']' != rld:
+            string = string.replace(rld, ']')
         # Translate the external program's exponent formatting
         expl = self.parent()._exponent_symbol()
-        if 'e' != expl: string = string.replace(expl, 'e')
+        if 'e' != expl:
+            string = string.replace(expl, 'e')
         return string
 
     def _sage_(self):
@@ -1100,7 +1105,7 @@ class InterfaceElement(Element):
         To implement a custom string representation, override the method
         ``_repr_``, but do not override this double underscore method.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Here is one example showing that the string representation will
         be cached when requested::
@@ -1131,7 +1136,7 @@ class InterfaceElement(Element):
         except ValueError as msg:
             return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         cr = getattr(self, '_cached_repr', None)
-        if isinstance(cr, string_types):
+        if isinstance(cr, str):
             s = cr
         else:
             s = self._repr_()
@@ -1320,16 +1325,6 @@ class InterfaceElement(Element):
 
     __nonzero__ = __bool__
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: m = maxima('1')
-            sage: long(m)
-            1L
-        """
-        return long(repr(self))
-
     def __float__(self):
         """
         EXAMPLES::
@@ -1400,7 +1395,7 @@ class InterfaceElement(Element):
             's5'
         """
         if new_name is not None:
-            if not isinstance(new_name, string_types):
+            if not isinstance(new_name, str):
                 raise TypeError("new_name must be a string")
             p = self.parent()
             p.set(new_name, self._name)

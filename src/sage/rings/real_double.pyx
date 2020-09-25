@@ -974,6 +974,20 @@ cdef class RealDoubleElement(FieldElement):
         """
         return repr(self._value)
 
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(RDF(1e25))   # optional - mathematica
+            1.*^25
+            sage: mathematica(RDF(1e-25))  # optional - mathematica
+            1.*^-25
+        """
+        from .real_mpfr import RR
+        return RR(self._value)._mathematica_init_()
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.
@@ -1083,6 +1097,19 @@ cdef class RealDoubleElement(FieldElement):
             -infinity
         """
         return double_repr(self._value)
+
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this real number.
+
+        EXAMPLES::
+
+            sage: format(RDF(32/3), '.4f')
+            '10.6667'
+            sage: '{:.4e}'.format(RDF(2/3))
+            '6.6667e-01'
+        """
+        return format(float(self), format_spec)
 
     def _latex_(self):
         r"""
@@ -1587,20 +1614,6 @@ cdef class RealDoubleElement(FieldElement):
             -2
         """
         return int(self._value)
-
-    def __long__(self):
-        """
-        Returns long integer truncation of this real number.
-
-        EXAMPLES::
-
-            sage: int(RDF(10e15))
-            10000000000000000L                   # 32-bit
-            10000000000000000                    # 64-bit
-            sage: long(RDF(2^100)) == 2^100
-            True
-        """
-        return long(self._value)
 
     def _complex_mpfr_field_(self, CC):
         """

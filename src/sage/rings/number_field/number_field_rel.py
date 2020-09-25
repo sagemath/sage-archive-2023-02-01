@@ -71,7 +71,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import, print_function
-from six import integer_types
 
 import sage.libs.ntl.all as ntl
 
@@ -793,8 +792,9 @@ class NumberField_relative(NumberField_generic):
             sage: K.extension(t^2+t+a, 'b')._latex_()
             '( \\Bold{Q}[a]/(a^{3} - 2) )[b]/(b^{2} + b + a)'
         """
-        return "( %s )[%s]/(%s)"%(latex(self.base_field()), self.latex_variable_name(),
-                              self.relative_polynomial()._latex_(self.latex_variable_name()))
+        latex_name = self.latex_variable_names()[0]
+        return "( %s )[%s]/(%s)"%(latex(self.base_field()), latex_name,
+                              self.relative_polynomial()._latex_(latex_name))
 
     def _coerce_from_other_number_field(self, x):
         """
@@ -999,7 +999,7 @@ class NumberField_relative(NumberField_generic):
             2/3
             sage: c = a + b # no output
         """
-        if R in integer_types:
+        if R is int:
             return self._generic_coerce_map(R)
         elif R in (ZZ, QQ, self.base_field()):
             return self._generic_coerce_map(R)

@@ -586,7 +586,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: (x^2 + 1)._power_trunc(-1, 0)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned long
+            OverflowError: can...t convert negative value to unsigned long
         """
         cdef Polynomial_complex_arb res = self._new()
         if n < 0:

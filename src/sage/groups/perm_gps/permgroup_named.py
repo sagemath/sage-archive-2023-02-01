@@ -86,7 +86,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 import os
 
@@ -2089,7 +2088,7 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
             try:
                 return Integer(libgap.NrTransitiveGroups(libgap(self._degree)))
             except RuntimeError:
-                from sage.misc.misc import verbose
+                from sage.misc.verbose import verbose
                 verbose("Error: TransitiveGroups should come with GAP.", level=0)
             except TypeError:
                 raise NotImplementedError("Only the transitive groups of degree at most 31 are available in GAP's database")
@@ -2494,7 +2493,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
             try:
                 return Integer(libgap.NrPrimitiveGroups(self._degree))
             except RuntimeError:
-                from sage.misc.misc import verbose
+                from sage.misc.verbose import verbose
                 verbose("Error: PrimitiveGroups should be in GAP already.", level=0)
 
 

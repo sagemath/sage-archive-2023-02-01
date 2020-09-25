@@ -156,7 +156,7 @@ a minimum the following files:
     |-- dependencies
     |-- package-version.txt
     |-- spkg-install.in
-    |-- SPKG.txt
+    |-- SPKG.rst
     `-- type
 
 The following are some additional files which can be added:
@@ -164,10 +164,14 @@ The following are some additional files which can be added:
 .. CODE-BLOCK:: text
 
     SAGE_ROOT/build/pkgs/foo
+    |-- distros
+    |   |-- platform1.txt
+    |   `-- platform2.txt
     |-- patches
     |   |-- bar.patch
     |   `-- baz.patch
     |-- spkg-check.in
+    |-- spkg-configure.m4
     `-- spkg-src
 
 We discuss the individual files in the following sections.
@@ -307,8 +311,9 @@ A script package has a single install script named ``spkg-install``.
 It needs to be an executable shell script; it is not subject to the templating
 described in the previous section.
 
-Sage runs ``spkg-install`` from the ``$SAGE_ROOT`` directory in the environment
-obtained by sourcing the files ``src/bin/sage-env`` and ``build/bin/sage-build-env-config``.
+Sage runs ``spkg-install`` from the directory ``$SAGE_ROOT/build/pkgs/<package>``
+in the environment obtained by sourcing the files ``src/bin/sage-env`` and
+``build/bin/sage-build-env-config``.
 
 .. _section-sdh-helpers:
 
@@ -409,6 +414,57 @@ The following are also available, but rarely used.
    See :trac:`24885`.
 
 
+.. _spkg-configure.m4:
+
+Allowing for the use of system packages
+---------------------------------------
+
+For a number of Sage packages, an already installed system version can
+be used instead, and Sage's top-level ``./configure`` script
+determines when this is possible. To enable this, a package needs to
+have a script called ``spkg-configure.m4``, which can, for example,
+determines whether the installed software is recent enough (and
+sometimes not too recent) to be usable by Sage. This script is
+processed by the `GNU M4 macro processor
+<https://www.gnu.org/savannah-checkouts/gnu/m4/manual/m4-1.4.18/m4.html>`_.
+
+Also, if the software for a Sage package is provided by a system
+package, the ``./configure`` script can provide that information. To
+do this, there must be a directory ``build/pkgs/PACKAGE/distros``
+containing files with names like ::
+
+    arch.txt
+    conda.txt
+    cygwin.txt
+    debian.txt
+    homebrew.txt
+    ...
+
+corresponding to different packaging systems.
+
+For example, if ``./configure`` detects that the Homebrew packaging
+system is in use, and if the current package can be provided by a
+Homebrew package called "foo", then the file
+``build/pkgs/PACKAGE/distros/homebrew.txt`` should contain the single
+line "foo". If ``foo`` is currently uninstalled, then ``./configure``
+will print a message suggesting that the user should run ``brew install
+foo``. See :ref:`section-equiv-distro-packages` for more on this.
+
+.. IMPORTANT::
+
+    All new standard packages should, when possible, include a
+    ``spkg-configure.m4`` script and a populated ``distros``
+    directory. There are many examples in ``build/pkgs``, including
+    ``build/pkgs/python3`` and ``build/pkgs/suitesparse``, to name a few.
+
+Note that this may not be possible (as of this writing) for some
+packages, for example packages installed via pip for use while running
+Sage, like ``matplotlib`` or ``scipy``. If a package is installed via
+pip for use in a separate process, like ``tox``, then this should be
+possible.
+
+
+
 .. _section-spkg-check:
 
 Self-Tests
@@ -459,8 +515,8 @@ example, the ``scipy`` ``spkg-check.in`` file contains the line
 
 .. _section-spkg-SPKG-txt:
 
-The SPKG.txt File
------------------
+The SPKG.rst or SPKG.txt File
+-----------------------------
 
 The ``SPKG.txt`` file should follow this pattern:
 
@@ -497,6 +553,8 @@ with ``PACKAGE_NAME`` replaced by the package name. Legacy
 ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
 
+It is now also possible to use an ``SPKG.rst`` file instead, with the same
+sections.
 
 .. _section-dependencies:
 
@@ -519,7 +577,7 @@ for ``eclib``:
 For Python packages, common dependencies include ``pip``,
 ``setuptools``, and ``future``. If your package depends on any of
 these, use ``$(PYTHON_TOOLCHAIN)`` instead. For example, here is the
-``dependencies`` file for ``configparser``::
+``dependencies`` file for ``configparser``:
 
 .. CODE-BLOCK:: text
 
@@ -880,7 +938,7 @@ License Information
 
 If you are patching a standard Sage spkg, then you should make sure that
 the license information for that package is up-to-date, both in its
-``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
+``SPKG.rst`` or ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
 
@@ -895,18 +953,8 @@ must meet the following requirements:
   Foundation maintains a long list of `licenses and comments about
   them <http://www.gnu.org/licenses/license-list.html>`_.
 
-- **Build Support**. The code must build on all the `fully supported
-  platforms
-  <http://wiki.sagemath.org/SupportedPlatforms#Fully_supported>`_.
-
-  A standard package should also work on all the platforms where Sage
-  is `expected to work
-  <http://wiki.sagemath.org/SupportedPlatforms#Expected_to_work>`_ and
-  on which Sage `almost works
-  <http://wiki.sagemath.org/SupportedPlatforms#Almost_works>`_ but
-  since we don't fully support these platforms and often lack the
-  resources to test on them, you are not expected to confirm your
-  packages works on those platforms.
+- **Build Support**. The code must build on all the fully supported
+  platforms (Linux, macOS, Cygwin); see :ref:`chapter-portability_testing`.
 
 - **Quality**. The code should be "better" than any other available
   code (that passes the two above criteria), and the authors need to

@@ -55,12 +55,6 @@ AUTHORS:
 """
 from __future__ import print_function, absolute_import
 
-import six
-if six.PY2:
-    _long_type = long
-else:
-    _long_type = int
-
 from .rational import Rational
 from .integer import Integer
 
@@ -78,7 +72,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     EXAMPLES::
 
-        sage: a = long(901824309821093821093812093810928309183091832091)
+        sage: a = 901824309821093821093812093810928309183091832091
         sage: b = QQ(a); b
         901824309821093821093812093810928309183091832091
         sage: QQ(b)
@@ -369,13 +363,6 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         ::
 
-            sage: QQ.coerce_map_from(long) # indirect doctest py2
-            Native morphism:
-              From: Set of Python objects of class 'long'
-              To:   Rational Field
-
-        ::
-
             sage: L = Localization(ZZ, (3,5))
             sage: 1/45 in L  # indirect doctest
             True
@@ -389,10 +376,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
-        elif S is _long_type:
-            return rational.long_to_Q()
         elif S is int:
-            return rational.int_to_Q()
+            return rational.long_to_Q()
         elif ZZ.has_coerce_map_from(S):
             return rational.Z_to_Q() * ZZ._internal_coerce_map_from(S)
         from sage.rings.localization import Localization

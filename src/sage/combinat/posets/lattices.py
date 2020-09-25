@@ -146,8 +146,6 @@ List of (semi)lattice methods
 #
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from six.moves import range
-from six import iteritems
 
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.posets.posets import Poset, FinitePoset
@@ -199,13 +197,18 @@ def MeetSemilattice(data=None, *args, **options):
     """
     if isinstance(data, FiniteMeetSemilattice) and not args and not options:
         return data
+    if "check" in options:
+        check = options.pop('check')
+    else:
+        check = True
     P = Poset(data, *args, **options)
-    try:
-        P._hasse_diagram.meet_matrix()
-    except LatticeError as error:
-        error.x = P._vertex_to_element(error.x)
-        error.y = P._vertex_to_element(error.y)
-        raise
+    if check:
+        try:
+            P._hasse_diagram.meet_matrix()
+        except LatticeError as error:
+            error.x = P._vertex_to_element(error.x)
+            error.y = P._vertex_to_element(error.y)
+            raise
     return FiniteMeetSemilattice(P)
 
 
@@ -228,26 +231,7 @@ class FiniteMeetSemilattice(FinitePoset):
         sage: TestSuite(M).run()
     """
     Element = MeetSemilatticeElement
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: M = MeetSemilattice([[1,2],[3],[3]])
-            sage: M._repr_()
-            'Finite meet-semilattice containing 3 elements'
-
-        ::
-
-            sage: P = Poset([[1,2],[3],[3]])
-            sage: M = MeetSemilattice(P)
-            sage: M._repr_()
-            'Finite meet-semilattice containing 3 elements'
-        """
-        s = "Finite meet-semilattice containing %s elements" % self._hasse_diagram.order()
-        if self._with_linear_extension:
-            s += " with distinguished linear extension"
-        return s
+    _desc = 'Finite meet-semilattice'
 
     def meet_matrix(self):
         """
@@ -538,14 +522,18 @@ def JoinSemilattice(data=None, *args, **options):
     """
     if isinstance(data, FiniteJoinSemilattice) and not args and not options:
         return data
+    if "check" in options:
+        check = options.pop('check')
+    else:
+        check = True
     P = Poset(data, *args, **options)
-    try:
-        P._hasse_diagram.join_matrix()
-    except LatticeError as error:
-        error.x = P._vertex_to_element(error.x)
-        error.y = P._vertex_to_element(error.y)
-        raise
-
+    if check:
+        try:
+            P._hasse_diagram.join_matrix()
+        except LatticeError as error:
+            error.x = P._vertex_to_element(error.x)
+            error.y = P._vertex_to_element(error.y)
+            raise
     return FiniteJoinSemilattice(P)
 
 
@@ -568,26 +556,7 @@ class FiniteJoinSemilattice(FinitePoset):
 
     """
     Element = JoinSemilatticeElement
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: J = JoinSemilattice([[1,2],[3],[3]])
-            sage: J._repr_()
-            'Finite join-semilattice containing 3 elements'
-
-        ::
-
-            sage: P = Poset([[1,2],[3],[3]])
-            sage: J = JoinSemilattice(P)
-            sage: J._repr_()
-            'Finite join-semilattice containing 3 elements'
-        """
-        s = "Finite join-semilattice containing %s elements" % self._hasse_diagram.order()
-        if self._with_linear_extension:
-            s += " with distinguished linear extension"
-        return s
+    _desc = 'Finite join-semilattice'
 
     def join_matrix(self):
         """
@@ -751,16 +720,21 @@ def LatticePoset(data=None, *args, **options):
     """
     if isinstance(data, FiniteLatticePoset) and not args and not options:
         return data
+    if "check" in options:
+        check = options.pop('check')
+    else:
+        check = True
     P = Poset(data, *args, **options)
     if P.cardinality() != 0:
         if not P.has_bottom():
             raise ValueError("not a meet-semilattice: no bottom element")
-        try:
-            P._hasse_diagram.join_matrix()
-        except LatticeError as error:
-            error.x = P._vertex_to_element(error.x)
-            error.y = P._vertex_to_element(error.y)
-            raise
+        if check:
+            try:
+                P._hasse_diagram.join_matrix()
+            except LatticeError as error:
+                error.x = P._vertex_to_element(error.x)
+                error.y = P._vertex_to_element(error.y)
+                raise
     return FiniteLatticePoset(P, category=FiniteLatticePosets(), facade=P._is_facade)
 
 
@@ -1830,7 +1804,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n - 1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in iteritems(C):
+            for e3, c in C.items():
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False
@@ -4742,8 +4716,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``S``, a list of lists -- list of element blocks that the congruence
-          will contain.
+        - ``S`` -- a list of lists; list of element blocks that the congruence
+          will contain
 
         OUTPUT:
 

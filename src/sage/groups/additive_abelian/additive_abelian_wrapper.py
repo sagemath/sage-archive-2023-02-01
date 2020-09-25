@@ -29,6 +29,7 @@ We create a toy example based on the Mordell-Weil group of an elliptic curve ove
 
 We check that ridiculous operations are being avoided::
 
+    sage: from sage.misc.verbose import set_verbose
     sage: set_verbose(2, 'additive_abelian_wrapper.py')
     sage: 300001 * M.0
     verbose 1 (...: additive_abelian_wrapper.py, _discrete_exp) Calling discrete exp on (1, 0, 0)
@@ -51,7 +52,6 @@ from __future__ import absolute_import
 
 from . import additive_abelian_group as addgp
 from sage.rings.all import ZZ
-from sage.misc.misc import verbose
 from sage.categories.morphism import Morphism
 from sage.structure.element import parent
 
@@ -223,7 +223,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: v.parent() is QQbar
             True
         """
-        from six.moves import range
+        from sage.misc.verbose import verbose
         v = self.V()(v)
         verbose("Calling discrete exp on %s" % v)
         # DUMB IMPLEMENTATION!

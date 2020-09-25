@@ -5,7 +5,7 @@ AUTHORS:
 
 - Jon Hanke (2007-06-19)
 - Anna Haensch (2010-07-01): Formatting and ReSTification
-- Simon Brandhorst (2019-10-15): :meth:``quadratic_form_from_invariants``
+- Simon Brandhorst (2019-10-15): :meth:`quadratic_form_from_invariants`
 """
 
 # ****************************************************************************
@@ -17,7 +17,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six.moves import range
 
 from warnings import warn
 from copy import deepcopy

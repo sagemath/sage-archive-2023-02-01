@@ -32,8 +32,6 @@ Pickling test::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import zip
-from six import integer_types
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, kronecker_symbol, valuation)
@@ -221,7 +219,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
             for a in [arg0,arg1]:
                 if is_RingElement(a):
                     L.append(a)
-                elif isinstance(a, integer_types):
+                elif isinstance(a, int):
                     L.append(Integer(a))
                 elif isinstance(a, float):
                     L.append(RR(a))
@@ -524,17 +522,27 @@ class QuaternionAlgebra_abstract(Algebra):
 
         EXAMPLES::
 
-            sage: QuaternionAlgebra(QQ[sqrt(2)],-3,7).random_element()
-            (sqrt2 + 2)*i + (-12*sqrt2 - 2)*j + (-sqrt2 + 1)*k
-            sage: QuaternionAlgebra(-3,19).random_element()
-            -1 + 2*i - j - 6/5*k
-            sage: QuaternionAlgebra(GF(17)(2),3).random_element()
-            14 + 10*i + 4*j + 7*k
+            sage: g = QuaternionAlgebra(QQ[sqrt(2)], -3, 7).random_element()
+            sage: g.parent() is QuaternionAlgebra(QQ[sqrt(2)], -3, 7)
+            True
+            sage: g = QuaternionAlgebra(-3, 19).random_element()
+            sage: g.parent() is QuaternionAlgebra(-3, 19)
+            True
+            sage: g = QuaternionAlgebra(GF(17)(2), 3).random_element()
+            sage: g.parent() is QuaternionAlgebra(GF(17)(2), 3)
+            True
 
         Specify the numerator and denominator bounds::
 
-            sage: QuaternionAlgebra(-3,19).random_element(10^6,10^6)
-            -979933/553629 + 255525/657688*i - 3511/6929*j - 700105/258683*k
+            sage: g = QuaternionAlgebra(-3,19).random_element(10^6, 10^6)
+            sage: for h in g:
+            ....:     assert h.numerator() in range(-10^6, 10^6 + 1)
+            ....:     assert h.denominator() in range(10^6 + 1)
+
+            sage: g = QuaternionAlgebra(-3,19).random_element(5, 4)
+            sage: for h in g:
+            ....:     assert h.numerator() in range(-5, 5 + 1)
+            ....:     assert h.denominator() in range(4 + 1)
         """
         K = self.base_ring()
         return self([K.random_element(*args, **kwds) for _ in range(4)])
@@ -1528,9 +1536,9 @@ class QuaternionOrder(Algebra):
 
         EXAMPLES::
 
-            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element()
+            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element()  # random
             -4 - 4*i + j - k
-            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element(-10,10)
+            sage: QuaternionAlgebra(-11,-1).maximal_order().random_element(-10,10)  # random
             -9/2 - 7/2*i - 7/2*j - 3/2*k
         """
         return sum(ZZ.random_element(*args, **kwds) * b for b in self.basis())

@@ -345,7 +345,7 @@ http://fricas.sourceforge.net.
 
     def _quit_string(self):
         """
-        Returns the string used to quit FriCAS.
+        Return the string used to quit FriCAS.
 
         EXAMPLES::
 
@@ -365,7 +365,7 @@ http://fricas.sourceforge.net.
 
             sage: import psutil                                                 # optional - fricas
             sage: p = fricas.pid(); pr = psutil.Process(p); pr                  # optional - fricas
-            <psutil.Process(pid=..., name='AXIOMsys') at ...>
+            <psutil.Process(pid=..., name='FRICASsys') at ...>
             sage: pr.children()                                                 # optional - fricas
             []
         """
@@ -373,7 +373,7 @@ http://fricas.sourceforge.net.
 
     def _commands(self):
         """
-        Returns a list of commands available. This is done by parsing the
+        Return a list of commands available. This is done by parsing the
         result of the first section of the output of ')what things'.
 
         EXAMPLES::
@@ -394,7 +394,7 @@ http://fricas.sourceforge.net.
 
     def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
-        Returns a list of all the commands defined in Fricas and optionally
+        Return a list of all the commands defined in Fricas and optionally
         (per default) store them to disk.
 
         EXAMPLES::
@@ -888,7 +888,7 @@ http://fricas.sourceforge.net.
 
     def _function_element_class(self):
         """
-        Returns the FriCAS function element class.
+        Return the FriCAS function element class.
 
         EXAMPLES::
 
@@ -934,13 +934,43 @@ class FriCASElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: v = fricas('[x^i for i in 0..5]')                             # optional - fricas
-            sage: len(v)                                                        # optional - fricas
+            sage: v = fricas('[x^i for i in 0..5]')    # optional - fricas
+            sage: len(v)                               # optional - fricas
             6
+
+        TESTS:
+
+        Streams are not handled yet::
+
+            sage: oh = fricas('[i for i in 1..]')    # optional - fricas
+            sage: len(oh)                            # optional - fricas
+            Traceback (most recent call last):
+            ...
+            TypeError: ...
         """
         P = self._check_valid()
         l = P('#(%s)' % self._name)
         return l.sage()
+
+    def __iter__(self):
+        """
+        Return an iterator over ``self``.
+
+        EXAMPLES::
+
+            sage: L = fricas([4,5,6])   # optional - fricas
+            sage: list(L)               # optional - fricas
+            [4, 5, 6]
+
+        TESTS:
+
+        Streams are not handled yet::
+
+            sage: oh = fricas('[i for i in 1..]')    # optional - fricas
+            sage: next(iter(oh))       # known bug
+        """
+        for i in range(len(self)):
+            yield self[i]
 
     def __getitem__(self, n):
         """
@@ -949,30 +979,51 @@ class FriCASElement(ExpectElement):
         We do not check validity, since many objects in FriCAS are
         iterable, in particular Streams
 
-        .. TODO::
-
-            - can we somehow implement negative arguments?
-
         TESTS::
 
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
 
-            sage: fricas("[1,2,3]")[3]                                          # optional - fricas
+        Negative indices do work::
+
+            sage: fricas("[1,2,3]")[-1]    # optional - fricas
+            3
+
+            sage: fricas("[1,2,3]")[-2]    # optional - fricas
+            2
+
+        Invalid indices raise exceptions::
+
+            sage: fricas("[1,2,3]")[3]     # optional - fricas
             Traceback (most recent call last):
             ...
             TypeError: An error occurred when FriCAS evaluated 'elt(...,...)':
             <BLANKLINE>
             >> Error detected within library code:
             index out of range
+
+        And streams are ok too::
+
+            sage: oh = fricas('[i for i in 1..]')    # optional - fricas
+            sage: oh[4]                              # optional - fricas
+            5
         """
         n = int(n)
-        if n < 0:
-            raise IndexError("index out of range")
         P = self._check_valid()
+        if n < -1:
+            try:
+                l = len(self)
+            except TypeError:
+                raise
+            else:
+                n += l
+                if not(0 <= n < l):
+                    raise IndexError("index out of range")
         # use "elt" instead of "." here because then the error
         # message is clearer
-        return P.new("elt(%s,%s)" % (self._name, n+1))
+        if n == -1:
+            return P.new("elt(%s,last)" % (self._name))
+        return P.new("elt(%s,%s)" % (self._name, n + 1))
 
     def __int__(self):
         """
@@ -1010,15 +1061,6 @@ class FriCASElement(ExpectElement):
         return not P.new("zero?(%s)" % self._name).sage()
 
     __nonzero__ = __bool__
-
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: long(fricas('1'))                                             # optional - fricas
-            1L
-        """
-        return long(self.sage())
 
     def __float__(self):
         """
@@ -1977,7 +2019,7 @@ fricas = FriCAS()
 
 def reduce_load_fricas():
     """
-    Returns the FriCAS interface object defined in
+    Return the FriCAS interface object defined in
     :sage.interfaces.fricas.
 
     EXAMPLES::

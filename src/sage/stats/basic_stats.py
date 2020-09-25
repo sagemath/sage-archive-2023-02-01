@@ -37,8 +37,7 @@ AUTHOR:
 #
 #            The full text of the GPL is available at:
 #                  https://www.gnu.org/licenses/
-# ***********************************************************************
-from six import integer_types
+######################################################################
 
 from sage.rings.integer_ring import ZZ
 from sage.symbolic.constants import NaN
@@ -81,7 +80,7 @@ def mean(v):
     if not v:
         return NaN
     s = sum(v)
-    if isinstance(s, integer_types):
+    if isinstance(s, int):
         # python integers are stupid.
         return s / ZZ(len(v))
     return s / len(v)
@@ -316,12 +315,12 @@ def variance(v, bias=False):
         x += (vi - mu)**2
     if bias:
         # population variance
-        if isinstance(x, integer_types):
+        if isinstance(x, int):
             return x / ZZ(len(v))
         return x / len(v)
     else:
         # sample variance
-        if isinstance(x, integer_types):
+        if isinstance(x, int):
             return x / ZZ(len(v)-1)
         return x / (len(v)-1)
 

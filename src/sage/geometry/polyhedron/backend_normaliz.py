@@ -4,7 +4,7 @@ The Normaliz backend for polyhedral computations
 
 .. NOTE::
 
-    This backend requires `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_.
+    This backend requires `PyNormaliz <https://pypi.org/project/PyNormaliz>`_.
     To install PyNormaliz, type :code:`sage -i pynormaliz` in the terminal.
 
 AUTHORS:
@@ -20,13 +20,13 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
-from sage.misc.all import prod
+from sage.misc.all import cached_method, prod
 from sage.features import PythonModule
 
 from sage.rings.all import ZZ, QQ
@@ -256,7 +256,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz
             [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
             sage: sorted(p._nmz_result(p._normaliz_cone, 'Generators')) # optional - pynormaliz
-            [[-1, a^2, 1], [-1/3*a^2, -1, 0], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
+            [[-a^2, -3, 0], [-1, a^2, 1], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
             sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz
             True
             sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') == 3 # optional - pynormaliz
@@ -332,12 +332,20 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[7, 2], [1, 1]]
             sage: Pn._convert_to_pynormaliz([[1, 2], (3, 4)])
             [[1, 2], [3, 4]]
+
+        Check that :trac:`29836` is fixed::
+
+            sage: P = polytopes.simplex(backend='normaliz')  # optional - pynormaliz
+            sage: K.<sqrt2> = QuadraticField(2)              # optional - pynormaliz
+            sage: P.dilation(sqrt2)                          # optional - pynormaliz
+            A 3-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.41...)^4 defined as the convex hull of 4 vertices
         """
         def _QQ_pair(x):
             x = QQ(x)
             return [ int(x.numerator()), int(x.denominator())]
         from sage.rings.rational import Rational
-        if isinstance(x, list) or isinstance(x, tuple):
+        from types import GeneratorType
+        if isinstance(x, (list, tuple, GeneratorType)):
             return [ Polyhedron_normaliz._convert_to_pynormaliz(y) for y in x ]
         try:
             return int(ZZ(x))
@@ -393,8 +401,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]
         """
         if verbose:
-            import six
-            if isinstance(verbose, six.string_types):
+            if isinstance(verbose, str):
                 print("# Wrote equivalent Normaliz input file to {}".format(verbose))
                 self._normaliz_format(data, file_output=verbose)
             else:
@@ -588,6 +595,18 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz
             sage: p & p == p                                                  # optional - pynormaliz
             True
+
+        Check that :trac:`30248` is fixed, that maps as input works::
+
+            sage: q = Polyhedron(backend='normaliz', base_ring=AA,            # optional - pynormaliz
+            ....:                rays=[(0, 0, 1), (0, 1, -1), (1, 0, -1)])
+            sage: make_new_Hrep = lambda h: tuple(x if i == 0 else -1*x for i, x in enumerate(h._vector))
+            sage: new_inequalities = map(make_new_Hrep, q.inequality_generator())  # optional - pynormaliz
+            sage: new_equations = map(make_new_Hrep, q.equation_generator())  # optional - pynormaliz
+            sage: parent = q.parent()                                         # optional - pynormaliz
+            sage: new_q = parent.element_class(parent,None,[new_inequalities,new_equations])  # optional - pynormaliz
+            sage: new_q                                                       # optional - pynormaliz
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
 
         def nmz_ieqs_eqns_NF(ieqs, eqns):
@@ -641,7 +660,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             data["number_field"] = number_field_data
         self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
 
-    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, ieqs, eqns, verbose=False):
+    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False):
         r"""
         Construct cone from V-representation data and H-representation data.
 
@@ -672,24 +691,44 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P                                                                                                               # optional - pynormaliz
             A 6-dimensional polyhedron in ZZ^8 defined as the convex hull of 16 vertices, 1 ray, 1 line
 
-            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(P.vertices(),P.rays(),P.inequalities(),P.equations())   # optional - pynormaliz
+            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(      # optional - pynormaliz
+            ....:     P.vertices(), P.rays(), P.lines(),
+            ....:     P.inequalities(), P.equations())
             sage: import PyNormaliz                                             # optional - pynormaliz
             sage: PyNormaliz.NmzIsComputed(cone, "VerticesOfPolyhedron")        # optional - pynormaliz
             True
             sage: PyNormaliz.NmzIsComputed(cone, "ExtremeRays")                 # optional - pynormaliz
             True
             sage: PyNormaliz.NmzIsComputed(cone, "MaximalSubspace")             # optional - pynormaliz
-            False
+            True
             sage: PyNormaliz.NmzIsComputed(cone, "SupportHyperplanes")          # optional - pynormaliz
             True
             sage: PyNormaliz.NmzIsComputed(cone, "Equations")                   # optional - pynormaliz
             False
 
+        All values must be specified::
+
+            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(      # optional - pynormaliz
+            ....:     P.vertices(), None, P.lines(),
+            ....:     P.inequalities(), P.equations())
+            Traceback (most recent call last):
+            ...
+            ValueError: please specify vertices, rays, lines, inequalities and equations completely
+
+        This method cannot be used for the empty cone::
+
+            sage: P = Polyhedron(backend='normaliz')                            # optional - pynormaliz
+            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(      # optional - pynormaliz
+            ....:     P.vertices(), P.rays(), P.lines(),
+            ....:     P.inequalities(), P.equations())
+            Traceback (most recent call last):
+            ...
+            ValueError: this method cannot be used to initialize the empty cone
 
         TESTS::
 
             sage: def test_poly(P):
-            ....:     cone = P._cone_from_Vrepresentation_and_Hrepresentation(P.vertices(),P.rays(),P.inequalities(),P.equations())
+            ....:     cone = P._cone_from_Vrepresentation_and_Hrepresentation(P.vertices(),P.rays(),P.lines(),P.inequalities(),P.equations())
             ....:     cone2 = P._normaliz_cone
             ....:     args = ['Equations','VerticesOfPolyhedron','ExtremeRays','SupportHyperplanes','MaximalSubspace']
             ....:     return all(P._nmz_result(cone,arg) == P._nmz_result(cone2,arg) for arg in args)
@@ -699,12 +738,43 @@ class Polyhedron_normaliz(Polyhedron_base):
             True
             sage: test_poly(Polyhedron(vertices=[[1,0],[0,1]],rays=[[1,1]], backend='normaliz'))    # optional - pynormaliz
             True
-            sage: test_poly(Polyhedron(vertices=[[0,0,0],[0,1,1],[1,0,1],[-1,-1,1]],rays=[[0,0,1]], backend='normaliz')) # optional - pynormaliz
-            True
             sage: test_poly(Polyhedron(vertices=[[-1,0],[1,0]],lines=[[0,1]], backend='normaliz'))  # optional - pynormaliz
             True
+            sage: test_poly(Polyhedron(rays=[[1,0,0],[0,1,0]], backend='normaliz'))                 # optional - pynormaliz
+            True
+            sage: test_poly(Polyhedron(vertices=[[1,0,0],[0,1,0]], rays=[[1,0,0],[0,1,0]], backend='normaliz'))          # optional - pynormaliz
+            True
+            sage: test_poly(Polyhedron(vertices=[[0,0,0],[0,1,1],[1,0,1],[-1,-1,1]],rays=[[0,0,1]], backend='normaliz')) # optional - pynormaliz
+            True
+
+        Old input format will give a meaningful error message::
+
+            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(      # optional - pynormaliz
+            ....:     P.vertices(), P.rays(),
+            ....:     P.inequalities(), P.equations())
+            Traceback (most recent call last):
+            ...
+            ValueError: the specification of this method has changed; please specify the lines as well
+
+            sage: cone = P._cone_from_Vrepresentation_and_Hrepresentation(      # optional - pynormaliz
+            ....:     P.vertices(), P.rays(),
+            ....:     P.inequalities(), P.equations(), True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the specification of this method has changed; please specify the lines as well
         """
-        def vert_ray_QQ(vertices, rays):
+        if eqns in (True, False, None):
+            # Previously, the method had input ``vertices, rays, ieqs, eqns`` (optionally ``verbose``).
+            # Now it requires ``vertices, rays, lines, ieqs, eqns``.
+            # Actually, ``eqns`` wouldn't be required, but we keep it to catch deprecated calls.
+            # (And it's more stable against changes of normaliz now.)
+            raise ValueError("the specification of this method has changed; please specify the lines as well")
+        if None in (vertices, rays, lines, ieqs, eqns):
+            raise ValueError("please specify vertices, rays, lines, inequalities and equations completely")
+        if not vertices:
+            raise ValueError("this method cannot be used to initialize the empty cone")
+
+        def rays_subspace_lattice_ieqs_QQ(vertices, rays, lines, ieqs):
             nmz_vertices = []
             for v in vertices:
                 d = LCM_list([denominator(v_i) for v_i in v])
@@ -715,9 +785,12 @@ class Polyhedron_normaliz(Polyhedron_base):
                 d = LCM_list([denominator(r_i) for r_i in r])
                 dr = [ d*r_i for r_i in r ]
                 nmz_rays.append(dr + [0])
-            return nmz_vertices, nmz_rays
+            nmz_lines = []
+            for l in lines:
+                d = LCM_list([denominator(l_i) for l_i in l])
+                dl = [ d*l_i for l_i in l ]
+                nmz_lines.append(dl + [0])
 
-        def nmz_ieqs_eqns_QQ(ieqs, eqns):
             nmz_ieqs = []
             for ieq in ieqs:
                 d = LCM_list([denominator(ieq_i) for ieq_i in ieq])
@@ -725,69 +798,107 @@ class Polyhedron_normaliz(Polyhedron_base):
                 b = dieq[0]
                 A = dieq[1:]
                 nmz_ieqs.append(A + [b])
-            nmz_eqns = []
-            for eqn in eqns:
-                d = LCM_list([denominator(eqn_i) for eqn_i in eqn])
-                deqn = [ ZZ(d*eqn_i) for eqn_i in eqn ]
-                b = deqn[0]
-                A = deqn[1:]
-                nmz_eqns.append(A + [b])
-            return nmz_ieqs, nmz_eqns
 
-        def vert_ray_NF(vertices, rays):
-            h_vertices = [ list(v) + [1] for v in vertices ]
-            h_rays = [ list(r) + [0] for r in rays ]
-            return h_vertices, h_rays
+            from sage.matrix.constructor import Matrix
+            lattice = Matrix(ZZ, nmz_vertices + nmz_rays + nmz_lines).row_space().basis()
+            nmz_lattice = [[x for x in y] for y in lattice]
 
-        def nmz_ieqs_eqns_NF(ieqs, eqns):
+            if Matrix(ZZ, nmz_vertices + nmz_rays).rank() == Matrix(ZZ, nmz_rays).rank() + 1:
+                # The recession cone is full-dimensional.
+                # In this case the homogenized inequalities
+                # do not ensure nonnegativy in the last coordinate.
+                # In the homogeneous cone the far face is a facet.
+                pos_ieq = [ZZ.zero()]*len(nmz_vertices[0])
+                pos_ieq[-1] = ZZ.one()
+                nmz_ieqs.append(pos_ieq)
+
+            return nmz_vertices + nmz_rays, nmz_lines, nmz_lattice, nmz_ieqs
+
+        def rays_subspace_lattice_ieqs_NF(vertices, rays, lines, ieqs):
+            nmz_vertices = [ list(v) + [1] for v in vertices ]
+            nmz_rays = [ list(r) + [0] for r in rays ]
+            nmz_lines = [ list(l) + [1] for l in lines ]
+
             nmz_ieqs = []
             for ieq in ieqs:
                 b = ieq[0]
                 A = ieq[1:]
                 nmz_ieqs.append(list(A) + [b])
-            nmz_eqns = []
-            for eqn in eqns:
-                b = eqn[0]
-                A = eqn[1:]
-                nmz_eqns.append(list(A) + [b])
-            return nmz_ieqs, nmz_eqns
 
-        if vertices is None:
-                vertices = []
-        if rays is None:
-                rays = []
-        if ieqs is None:
-            ieqs = []
-        if eqns is None:
-            eqns = []
+            from sage.matrix.constructor import Matrix
+            lattice = Matrix(nmz_vertices + nmz_rays + nmz_lines).row_space().basis()
+            nmz_lattice = [[x for x in y] for y in lattice]
 
-        (nmz_vertices, nmz_rays), normaliz_field \
-            = self._compute_nmz_data_lists_and_field((vertices, rays),
-                                                     vert_ray_QQ,
-                                                     vert_ray_NF)
+            if Matrix(nmz_vertices + nmz_rays).rank() == Matrix(nmz_rays).rank() + 1:
+                # The recession cone is full-dimensional.
+                # In this case the homogenized inequalities
+                # do not ensure nonnegativy in the last coordinate.
+                # In the homogeneous cone the far face is a facet.
+                pos_ieq = [0]*len(nmz_vertices[0])
+                pos_ieq[-1] = 1
+                nmz_ieqs.append(pos_ieq)
 
-        (nmz_ieqs, nmz_eqns), normaliz_field \
-            = self._compute_nmz_data_lists_and_field((ieqs, eqns),
-                                                     nmz_ieqs_eqns_QQ,
-                                                     nmz_ieqs_eqns_NF)
+            return nmz_vertices + nmz_rays, nmz_lines, nmz_lattice, nmz_ieqs
 
-        if not nmz_vertices and not nmz_rays:
-            # Special case to avoid:
-            #   error: Some error in the normaliz input data detected:
-            #   All input matrices empty!
-            return None
-        else:
-            data = {"extreme_rays": nmz_vertices + nmz_rays,
-                    "equations": nmz_eqns,
-                    "support_hyperplanes": nmz_ieqs}
 
-            ambient_dim = len(data["extreme_rays"][0])
-            data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
+        (nmz_extreme_rays, nmz_subspace, nmz_lattice, nmz_ieqs), normaliz_field \
+            = self._compute_nmz_data_lists_and_field((vertices, rays, lines, ieqs),
+                                                     rays_subspace_lattice_ieqs_QQ,
+                                                     rays_subspace_lattice_ieqs_NF)
 
-            number_field_data = self._number_field_triple(normaliz_field)
-            if number_field_data:
-                data["number_field"] = number_field_data
-            return self._cone_from_normaliz_data(data, verbose=verbose)
+        data = {"extreme_rays": nmz_extreme_rays,
+                "maximal_subspace": nmz_subspace,
+                "generated_lattice": nmz_lattice,
+                "support_hyperplanes": nmz_ieqs}
+
+        ambient_dim = len(data["extreme_rays"][0])
+        data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
+
+        number_field_data = self._number_field_triple(normaliz_field)
+        if number_field_data:
+            data["number_field"] = number_field_data
+        return self._cone_from_normaliz_data(data, verbose=verbose)
+
+    def _test_far_facet_condition(self, tester=None, **options):
+        """
+        Test that we add an extra inequality in the correct cases.
+
+        TESTS::
+
+            sage: P = Polyhedron(rays=[[1,1]], backend='normaliz')     # optional - pynormaliz
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+
+            sage: P = Polyhedron(vertices=[[1,0], [0,1]],              # optional - pynormaliz
+            ....:                rays=[[1,1]], backend='normaliz')
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+
+            sage: P = Polyhedron(rays=[[1,1,0]],                       # optional - pynormaliz
+            ....:                lines=[[0,0,1]], backend='normaliz')
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+
+            sage: P = Polyhedron(vertices=[[1,0,0], [0,1,0]],          # optional - pynormaliz
+            ....:                rays=[[1,1,0]],
+            ....:                lines=[[0,0,1]], backend='normaliz')
+            sage: P._test_far_facet_condition()                        # optional - pynormaliz
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if self.is_empty():
+            return
+
+        nmz_vertices = self._nmz_result(self._normaliz_cone, "VerticesOfPolyhedron")
+        nmz_rays = self._nmz_result(self._normaliz_cone, "ExtremeRays")
+        nmz_ieqs = self._nmz_result(self._normaliz_cone, "SupportHyperplanes")
+
+        from sage.matrix.constructor import Matrix
+        far_facet_condition = Matrix(nmz_vertices + nmz_rays).rank() == Matrix(nmz_rays).rank() + 1
+
+        tester.assertEqual(far_facet_condition, self.n_inequalities() != len(nmz_ieqs))
+
+        if far_facet_condition:
+            tester.assertEqual(self.n_inequalities() + 1, len(nmz_ieqs))
+            tester.assertTrue(any(ieq == [0]*self.ambient_dim() + [1] for ieq in nmz_ieqs))
 
     def _compute_nmz_data_lists_and_field(self, data_lists, convert_QQ, convert_NF):
         r"""
@@ -822,7 +933,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             ...
             ValueError: invalid base ring: Number Field in a ... is not real embedded
 
+        Checks that :trac:`30248` is fixed::
 
+            sage: q = Polyhedron(backend='normaliz', base_ring=AA,   # indirect doctest # optional - pynormaliz
+            ....:                rays=[(0, 0, 1), (0, 1, -1), (1, 0, -1)]); q
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
+            sage: -q                                                                    # optional - pynormaliz
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
         from sage.categories.number_fields import NumberFields
         from sage.rings.all import RDF
@@ -831,6 +948,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             normaliz_field = QQ
             nmz_data_lists = convert_QQ(*data_lists)
         else:
+            # Allows to re-iterate if K is QQ below when data_lists contain
+            # iterators:
+            data_lists = [tuple(_) for _ in data_lists]
             nmz_data_lists = convert_NF(*data_lists)
             if self.base_ring() in NumberFields:
                 if not RDF.has_coerce_map_from(self.base_ring()):
@@ -1105,6 +1225,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return '{}'.format(QQ(x))
             except (ValueError, TypeError):
                 return '({})'.format(x.polynomial('a'))
+
         def format_field(key, value):
             if isinstance(value, list) or isinstance(value, tuple):
                 s = '{} {}\n'.format(key, len(value))
@@ -1115,6 +1236,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return s
             else:
                 return '{} {}\n'.format(key, value)
+
         def format_number_field_data(nf_triple):
             min_poly, gen, emb = nf_triple
             return 'min_poly ({}) embedding {}'.format(min_poly, emb)
@@ -1229,19 +1351,14 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         super(Polyhedron_normaliz, self).__setstate__(state)
 
-        if not self.inequalities():
-            # If there are no inequalites, we must initialize the cone from scratch.
-            P = Polyhedron_normaliz(self.parent(), [self.vertices(), self.rays(), self.lines()], None)
-            self._normaliz_cone = P._normaliz_cone
-            return
-
         if self.is_empty():
             # Special case to avoid.
             self._normaliz_cone = None
+            return
 
         self._normaliz_cone = \
             self._cone_from_Vrepresentation_and_Hrepresentation(
-                    self.vertices(), self.rays(), self.inequalities(), self.equations())
+                    self.vertices(), self.rays(), self.lines(), self.inequalities(), self.equations())
 
     def integral_hull(self):
         r"""
@@ -1489,6 +1606,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return triangulation
 
+
 #########################################################################
 class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
     r"""
@@ -1507,6 +1625,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         sage: TestSuite(p).run()                                           # optional - pynormaliz
     """
 
+    @cached_method(do_pickle=True)
     def ehrhart_series(self, variable='t'):
         r"""
         Return the Ehrhart series of a compact rational polyhedron.
@@ -1560,6 +1679,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         .. SEEALSO::
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+
+        TESTS:
+
+        Check that the Ehrhart series is pickled::
+
+            sage: new_poly = loads(dumps(rat_poly))      # optional - pynormaliz
+            sage: new_poly.ehrhart_series.is_in_cache()  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0
@@ -1663,6 +1790,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
     _ehrhart_polynomial_normaliz = _ehrhart_quasipolynomial_normaliz
 
+    @cached_method(do_pickle=True, key=lambda self, g, v: (tuple(g), v))
     def hilbert_series(self, grading, variable='t'):
         r"""
         Return the Hilbert series of the polyhedron with respect to ``grading``.
@@ -1724,6 +1852,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         .. SEEALSO::
 
             :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
+
+        TESTS:
+
+        Check that the Hilbert series is pickled::
+
+            sage: new_magic = loads(dumps(magic_square))  # optional - pynormaliz
+            sage: new_magic.hilbert_series.is_in_cache(grading)  # optional - pynormaliz
+            True
         """
         if self.is_empty():
             return 0

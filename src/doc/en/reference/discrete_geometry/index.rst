@@ -33,6 +33,7 @@ Polyhedra
    sage/geometry/polyhedron/plot
    sage/geometry/polyhedron/face
    sage/geometry/polyhedron/cdd_file_format
+   sage/geometry/polyhedron/modules/formal_polyhedra_module
 
 Lattice polyhedra
 ~~~~~~~~~~~~~~~~~

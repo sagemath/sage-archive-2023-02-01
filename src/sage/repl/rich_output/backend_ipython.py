@@ -544,6 +544,7 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/plain': rich_output.unicode_art.get_unicode()}, {})
         elif isinstance(rich_output, OutputLatex):
             return ({u'text/html':  rich_output.mathjax(),
+                     u'text/latex': rich_output.inline_equation(),
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
         elif isinstance(rich_output, OutputHtml):

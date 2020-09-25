@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Rank Two Heisenberg-Virasoro Algebras
 
@@ -160,6 +161,29 @@ class RankTwoHeisenbergVirasoro(InfinitelyGeneratedLieAlgebra, IndexedGenerators
         if m[0] == 't':
             return 't^{{({},{})}}'.format(m[1][0], m[1][1])
         return 'E({},{})'.format(m[1][0], m[1][1])
+
+    def _unicode_art_term(self, m):
+        r"""
+        Return a unicode art representation of the term indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.RankTwoHeisenbergVirasoro(QQ)
+            sage: L = lie_algebras.RankTwoHeisenbergVirasoro(QQ)
+            sage: L._unicode_art_term(('K', 2))
+            K₂
+            sage: L._unicode_art_term(('t', (2,-4)))
+            t⁽²˴⁻⁴⁾
+            sage: L._unicode_art_term(('E', (2,-4)))
+            E(2,-4)
+        """
+        from sage.typeset.unicode_art import unicode_art, unicode_subscript, unicode_superscript
+        if m[0] == 'K':
+            return unicode_art('K' + unicode_subscript(m[1]))
+        if m[0] == 't':
+            return unicode_art('t⁽{}˴{}⁾'.format(unicode_superscript(m[1][0]),
+                                                unicode_superscript(m[1][1])))
+        return unicode_art('E({},{})'.format(m[1][0], m[1][1]))
 
     def _repr_(self):
         """

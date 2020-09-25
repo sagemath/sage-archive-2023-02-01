@@ -22,8 +22,10 @@ Obtain the facets of a polyhedron as :class:`~sage.geometry.polyhedron.combinato
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
     ....:         import incidence_matrix_to_bit_rep_of_facets
     sage: P = polytopes.simplex(4)
-    sage: face_list = incidence_matrix_to_bit_rep_of_facets(P.incidence_matrix())
-    sage: face_list = incidence_matrix_to_bit_rep_of_facets(P.incidence_matrix())
+    sage: inc = P.incidence_matrix()
+    sage: mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
+    sage: face_list = incidence_matrix_to_bit_rep_of_facets(mod_inc)
+    sage: face_list = incidence_matrix_to_bit_rep_of_facets(mod_inc)
     sage: face_list.compute_dimension()
     4
 
@@ -68,9 +70,10 @@ AUTHOR:
 
 from sage.structure.element import is_Matrix
 
-from libc.string            cimport memset
-from .list_of_faces         cimport ListOfFaces
-from sage.misc.superseded    import deprecated_function_alias
+from libc.string                      cimport memset
+from .list_of_faces                   cimport ListOfFaces
+from sage.misc.superseded              import deprecated_function_alias
+from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -137,7 +140,7 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
         sage: Vrep_list_to_bit_rep_wrapper((-1, 12))  # long time
         Traceback (most recent call last):
         ...
-        OverflowError: can't convert negative value to size_t
+        OverflowError: can...t convert negative value to size_t
         sage: Vrep_list_to_bit_rep_wrapper((0, 0))  # long time
         Traceback (most recent call last):
         ...
@@ -230,7 +233,7 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
             position = entry//64
             output[position] += vertex_to_bit_dictionary(value)
 
-def incidence_matrix_to_bit_rep_of_facets(matrix):
+def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
     r"""
     Initialize facets in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
@@ -238,6 +241,8 @@ def incidence_matrix_to_bit_rep_of_facets(matrix):
 
     - ``matrix`` -- an incidence matrix as in
       :meth:`sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
+      with columns corresponding to equations deleted
+      of type :class:`sage.matrix.matrix_integer_dense.Matrix_integer_dense`
 
     OUTPUT:
 
@@ -254,10 +259,9 @@ def incidence_matrix_to_bit_rep_of_facets(matrix):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]
@@ -269,7 +273,9 @@ def incidence_matrix_to_bit_rep_of_facets(matrix):
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
         ....:     import incidence_matrix_to_bit_rep_of_facets
         sage: P = polytopes.permutahedron(4)
-        sage: facets = incidence_matrix_to_bit_rep_of_facets(P.incidence_matrix())
+        sage: inc = P.incidence_matrix()
+        sage: mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
+        sage: facets = incidence_matrix_to_bit_rep_of_facets(mod_inc)
         sage: facets.n_faces
         14
         sage: facets.n_atoms
@@ -277,46 +283,49 @@ def incidence_matrix_to_bit_rep_of_facets(matrix):
         sage: for i in range(facets.n_faces):  # long time
         ....:     print(bit_rep_to_Vrep_list_wrapper(facets, i))
         (18, 19, 20, 21, 22, 23)
-        (9, 11, 15, 17, 21, 23)
-        (16, 17, 22, 23)
-        (0, 1, 2, 3, 4, 5)
-        (2, 4, 8, 10)
-        (0, 1, 6, 7)
-        (6, 7, 12, 13, 18, 19)
-        (3, 5, 9, 11)
-        (1, 3, 7, 9, 13, 15)
-        (0, 2, 6, 8, 12, 14)
-        (12, 14, 18, 20)
-        (4, 5, 10, 11, 16, 17)
-        (8, 10, 14, 16, 20, 22)
-        (13, 15, 19, 21)
+        (3, 5, 8, 10, 12, 17)
+        (2, 7, 11, 13, 20, 21)
+        (2, 5, 12, 13)
+        (4, 6, 14, 15, 19, 23)
+        (3, 4, 8, 14)
+        (6, 7, 21, 23)
+        (2, 3, 4, 5, 6, 7)
+        (0, 1, 9, 16, 18, 22)
+        (0, 9, 10, 17)
+        (1, 11, 20, 22)
+        (0, 1, 10, 11, 12, 13)
+        (15, 16, 18, 19)
+        (8, 9, 14, 15, 16, 17)
     """
-
-    if unlikely(not is_Matrix(matrix)):
-        raise ValueError("input must be matrix")
-
-    # The incidence-matrix of a polyhedron, might contain columns with all 1's.
-    # Those correspond to hyperplanes, the polyhedron lies in, not facets.
-    # We delete those from the matrix. Also we transpose.
-    matrix = matrix.transpose()
-    rg = range(matrix.nrows())
-    matrix = matrix[list(i for i in rg if not all(j for j in matrix[i]))]
-
-    # Output will be a ``ListOfFaces`` with ``matrix.nrows()`` faces and
-    # ``matrix.ncols()`` Vrep.
-    cdef size_t length = matrix.nrows()
-    cdef ListOfFaces facets = ListOfFaces(length, matrix.ncols())
+    # Output will be a ``ListOfFaces`` with ``matrix.ncols()`` faces and
+    # ``matrix.nrows()`` Vrep.
+    cdef size_t nrows = matrix._nrows
+    cdef size_t ncols = matrix._ncols
+    cdef ListOfFaces facets = ListOfFaces(ncols, nrows)
     cdef uint64_t **facets_data = facets.data
+    cdef uint64_t *output
+    cdef size_t face_length = facets.face_length
+    cdef size_t entry       # index for the entries in tup
+    cdef size_t position    # determines the position in output of entry
+    cdef size_t value       # determines which bit will be set in output[position]
 
     cdef size_t i
-    for i in range(length):
+    for i in range(ncols):
+        output = facets_data[i]
+        memset(output, 0, face_length*8)  #initialize
+
         # Filling each facet with its Vrep-incidences, which "is" the
         # "i-th column" of the original matrix (but we have transposed).
-        incidences_to_bit_rep(tuple(matrix[i]), facets_data[i], facets.face_length)
+        for entry in range(nrows):
+            if not matrix.get_is_zero_unsafe(entry, i):
+                # Vrep ``entry`` is contained in the face, so set the corresponding bit
+                value = entry % 64
+                position = entry//64
+                output[position] += vertex_to_bit_dictionary(value)
     return facets
 incidence_matrix_to_bit_repr_of_facets = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_facets)
 
-def incidence_matrix_to_bit_rep_of_Vrep(matrix):
+def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
     r"""
     Initialize Vrepresentatives in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
@@ -327,6 +336,8 @@ def incidence_matrix_to_bit_rep_of_Vrep(matrix):
 
     - ``matrix`` -- an incidence matrix as in
       :meth:`sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix`
+      with columns corresponding to equations deleted
+      of type :class:`sage.matrix.matrix_integer_dense.Matrix_integer_dense`
 
     OUTPUT:
 
@@ -343,10 +354,9 @@ def incidence_matrix_to_bit_rep_of_Vrep(matrix):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]
@@ -358,60 +368,41 @@ def incidence_matrix_to_bit_rep_of_Vrep(matrix):
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
         ....:     import incidence_matrix_to_bit_rep_of_Vrep
         sage: P = polytopes.permutahedron(4)
-        sage: vertices = incidence_matrix_to_bit_rep_of_Vrep(P.incidence_matrix())
+        sage: inc = P.incidence_matrix()
+        sage: mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
+        sage: vertices = incidence_matrix_to_bit_rep_of_Vrep(mod_inc)
         sage: vertices.n_faces
         24
         sage: vertices.n_atoms
         14
         sage: for i in range(vertices.n_faces):
         ....:     print(bit_rep_to_Vrep_list_wrapper(vertices, i))
-        (3, 5, 9)
-        (3, 5, 8)
-        (3, 4, 9)
-        (3, 7, 8)
-        (3, 4, 11)
-        (3, 7, 11)
-        (5, 6, 9)
-        (5, 6, 8)
-        (4, 9, 12)
-        (1, 7, 8)
-        (4, 11, 12)
-        (1, 7, 11)
-        (6, 9, 10)
-        (6, 8, 13)
-        (9, 10, 12)
-        (1, 8, 13)
-        (2, 11, 12)
-        (1, 2, 11)
-        (0, 6, 10)
-        (0, 6, 13)
-        (0, 10, 12)
-        (0, 1, 13)
-        (0, 2, 12)
-        (0, 1, 2)
+        (8, 9, 11)
+        (8, 10, 11)
+        (2, 3, 7)
+        (1, 5, 7)
+        (4, 5, 7)
+        (1, 3, 7)
+        (4, 6, 7)
+        (2, 6, 7)
+        (1, 5, 13)
+        (8, 9, 13)
+        (1, 9, 11)
+        (2, 10, 11)
+        (1, 3, 11)
+        (2, 3, 11)
+        (4, 5, 13)
+        (4, 12, 13)
+        (8, 12, 13)
+        (1, 9, 13)
+        (0, 8, 12)
+        (0, 4, 12)
+        (0, 2, 10)
+        (0, 2, 6)
+        (0, 8, 10)
+        (0, 4, 6)
     """
-    if unlikely(not is_Matrix(matrix)):
-        raise ValueError("input must be matrix")
-
-    # The incidence-matrix of a polyhedron, might contain columns with all 1's.
-    # Those correspond to hyperplanes, the polyhedron lies in, not facets.
-    # We delete those from the matrix. Also we transpose.
-    matrix = matrix.transpose()
-    rg = range(matrix.nrows())
-    matrix = matrix[list(i for i in rg if not all(j for j in matrix[i]))]
-
-    # Output will be a ``ListOfFaces`` with ``matrix.ncols()`` faces and
-    # ``matrix.nrows()`` Vrep.
-    cdef size_t length = matrix.ncols()
-    cdef ListOfFaces Vrep = ListOfFaces(length, matrix.nrows())
-    cdef uint64_t **Vrep_data = Vrep.data
-
-    cdef size_t i
-    for i in range(length):
-        # Filling each facet with its Vrep-incidences, which "is" the
-        # "i-th row" of the original matrix (but we have transposed).
-        incidences_to_bit_rep(tuple(matrix.column(i)), Vrep_data[i], Vrep.face_length)
-    return Vrep
+    return incidence_matrix_to_bit_rep_of_facets(matrix.transpose())
 incidence_matrix_to_bit_repr_of_Vrepr = deprecated_function_alias(28608, incidence_matrix_to_bit_rep_of_Vrep)
 
 def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
@@ -439,10 +430,9 @@ def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]
@@ -506,10 +496,9 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
         ....: from sage.ext.memory_allocator cimport MemoryAllocator
         ....: from libc.stdint cimport uint64_t
         ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(list_of_faces, index):
+        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
         ....:     cdef MemoryAllocator mem = MemoryAllocator()
         ....:     cdef size_t *output
-        ....:     cdef ListOfFaces faces = list_of_faces
         ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
         ....:                                        sizeof(size_t))
         ....:     cdef uint64_t * data = faces.data[index]

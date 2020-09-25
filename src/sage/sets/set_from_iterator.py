@@ -61,7 +61,6 @@ The module also provides decorator for functions and methods::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -188,9 +187,8 @@ class EnumeratedSetFromIterator(Parent):
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: E = EnumeratedSetFromIterator(xsrange, (1,200))
-            sage: hash(E)
-            4600916458883504074 # 64-bit
-            -2063607862         # 32-bit
+            sage: hash(E) == hash(tuple(range(1, 14)))
+            True
         """
         try:
             return hash(self._cache[:13])
@@ -576,7 +574,6 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     EXAMPLES::
 
         sage: from sage.sets.set_from_iterator import set_from_function
-        sage: from six.moves import range
         sage: @set_from_function
         ....: def f(n):
         ....:     for i in range(n):

@@ -27,7 +27,6 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import AlgebraElement
 from sage.rings.integer import Integer
-from sage.structure.richcmp import richcmp
 
 class MixedForm(AlgebraElement):
     r"""
@@ -195,12 +194,12 @@ class MixedForm(AlgebraElement):
         sage: z[0] = 1
         Traceback (most recent call last):
         ...
-        AssertionError: the components of the element zero cannot be changed
+        ValueError: the components of the element zero cannot be changed
         sage: one = M.mixed_form_algebra().one()
         sage: one[0] = 0
         Traceback (most recent call last):
         ...
-        AssertionError: the components of the element one cannot be changed
+        ValueError: the components of the element one cannot be changed
 
     """
     def __init__(self, parent, name=None, latex_name=None):
@@ -582,15 +581,21 @@ class MixedForm(AlgebraElement):
             sage: G.set_restriction(F.restrict(V))
             sage: F == G  # True now
             True
+            sage: H = M.mixed_form([f, 0, 0])
+            sage: F != H  # this is fixed by ticket #30108
+            True
             sage: F.parent().zero() == 0
             True
 
         """
-        # Compare all elements separately:
-        for j in self.irange():
-            if not richcmp(self[j], other[j], op):
-                return False
-        return True
+        from sage.structure.richcmp import op_NE, op_EQ
+        if op == op_NE:
+            return not self == other
+        elif op == op_EQ:
+            # Compare all elements separately:
+            return all(self[j] == other[j] for j in self.irange())
+        # Fall back on default implementation:
+        return super()._richcmp_(self, other, op)
 
     def _add_(self, other):
         r"""
@@ -896,11 +901,17 @@ class MixedForm(AlgebraElement):
             y/\(x/\F) = [0] + [x^2*y^2 dx] + [0]
 
         """
-        # Simple checks:
-        if other.is_trivial_zero():
-            return self.parent().zero()
-        elif (other - 1).is_trivial_zero():
-            return self
+        try:
+            if other.is_trivial_zero():
+                return self.parent().zero()
+            if (other - 1).is_trivial_zero():
+                return self
+        except AttributeError:
+            # in case base ring is not SR:
+            if other == 0:
+                return self.parent().zero()
+            if other == 1:
+                return self
         resu = self._new_instance()
         resu[:] = [other * form for form in self._comp]
         # Compose name:
@@ -1080,8 +1091,8 @@ class MixedForm(AlgebraElement):
 
         """
         if self is self.parent().one() or self is self.parent().zero():
-            raise AssertionError("the components of the element "
-                                 "{} cannot be changed".format(self._name))
+            raise ValueError("the components of the element "
+                             "{} cannot be changed".format(self._name))
         if isinstance(index, (int, Integer)):
             start = index
             stop = index + 1

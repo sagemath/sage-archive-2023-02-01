@@ -12,10 +12,9 @@ Root lattice realizations
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import LazyImport
@@ -1098,7 +1097,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             REFERENCES:
 
             .. [Reiner97] Victor Reiner. *Non-crossing partitions for
-               classical reflection groups*. Discrete Mathematics 177 (1997) 
+               classical reflection groups*. Discrete Mathematics 177 (1997)
             .. [Arm06] Drew Armstrong. *Generalized Noncrossing Partitions and
                Combinatorics of Coxeter Groups*. :arxiv:`math/0611106`
             """
@@ -1284,7 +1283,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             .. todo:: add a non simply laced example
 
-            Finaly, here is an affine example::
+            Finally, here is an affine example::
 
                 sage: RootSystem(["A",2,1]).weight_space().alphacheck()
                 Finite family {0: alphacheck[0], 1: alphacheck[1], 2: alphacheck[2]}
@@ -3131,8 +3130,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['A',2]).ambient_space()
                 sage: C = crystals.Tableaux(['A',2], shape=[2,1])
-                sage: L.plot_crystal(C)
-                Graphics object consisting of 16 graphics primitives
+                sage: L.plot_crystal(C, plot_labels='multiplicities')
+                Graphics object consisting of 15 graphics primitives
                 sage: C = crystals.Tableaux(['A',2], shape=[8,4])
                 sage: p = L.plot_crystal(C, plot_labels='circles')
                 sage: p.show(figsize=15)

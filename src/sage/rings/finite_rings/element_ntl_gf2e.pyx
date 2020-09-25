@@ -1,3 +1,5 @@
+# distutils: libraries = ntl
+# distutils: language = c++
 r"""
 Finite Fields of characteristic 2.
 

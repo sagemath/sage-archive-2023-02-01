@@ -22,8 +22,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.tensor import TensorProductsCategory
-from sage.combinat.subset import Subsets
-from sage.graphs.dot2tex_utils import have_dot2tex
 
 class RegularCrystals(Category_singleton):
     r"""
@@ -261,7 +259,7 @@ class RegularCrystals(Category_singleton):
                  ([[2, 2]], [[1, 2]], 0)]
             """
             from sage.combinat.free_module import CombinatorialFreeModule
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             C = CombinatorialFreeModule(QQ, self)
             D = self.demazure_operator(C(element), reduced_word)
             if only_support:
@@ -450,6 +448,7 @@ class RegularCrystals(Category_singleton):
                             edges.append([x, y, i])
             from sage.graphs.all import DiGraph
             G = DiGraph([X, edges], format="vertices_and_edges", immutable=True)
+            from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex", edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)
@@ -747,6 +746,8 @@ class RegularCrystals(Category_singleton):
             goodness=True
             if index_set is None: index_set=self.index_set()
 
+            from sage.combinat.subset import Subsets
+
             for (i,j) in Subsets(index_set, 2):
                 if self.e(i) is not None and self.e(j) is not None:
                     triple=self.stembridgeTriple(i,j)
@@ -867,6 +868,7 @@ class RegularCrystals(Category_singleton):
             from sage.graphs.graph import Graph
             G = Graph([visited, edges], format="vertices_and_edges",
                       immutable=True, multiedges=True)
+            from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex", edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)

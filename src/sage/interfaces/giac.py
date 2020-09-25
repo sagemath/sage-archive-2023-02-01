@@ -580,7 +580,6 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         else:
             return float(self('time() - %s'%float(t)))
 
-
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES::
@@ -588,16 +587,23 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             sage: giac._eval_line('2+2')
             '4'
 
-            sage: A=matrix([range(280)])
-            sage: GA=giac(A)
+            sage: A = matrix([range(280)])
+            sage: GA = giac(A)
+
+        TESTS::
+
+            sage: h='int(1/x*((-2*x^(1/3)+1)^(1/4))^3,x)'
+            sage: giac(h)
+            12*(...)
         """
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
                     wait_for_prompt=wait_for_prompt)
             if z.lower().find("error") != -1:
                 raise RuntimeError("An error occurred running a Giac command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z))
-        return z
-
+        lines = (line for line in z.splitlines()
+                 if not line.startswith('Evaluation time:'))
+        return "\n".join(lines)
 
     def eval(self, code, strip=True, **kwds):
         r"""
@@ -986,11 +992,27 @@ class GiacElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: print(latex(giac('(x^4 - y)/(y^2-3*x)')))
-            "\frac{(x^{4}-y)}{(y^{2}-3\cdot x)}"
+            sage: M = matrix(QQ, [[1, 2], [3, 4]])
+            sage: latex(M)
+            \left(\begin{array}{rr}
+            1 & 2 \\
+            3 & 4
+            \end{array}\right)
+            sage: gM = giac(M)
+            sage: latex(gM)
+            \left...\begin{array}{cc}...1...&...2...\\...3...&...4...\end{array}\right...
+            sage: gf = giac('(x^4 - y)/(y^2-3*x)')
+            sage: latex(gf)          # output changed slightly from 1.5.0-63 to 1.5.0-87
+            \frac{...x^{4}...-...y...}{...y^{2}-3...x...}
 
         """
-        return self.parent().eval('latex(%s)'%self.name())
+        s = self.parent().eval('latex(%s)'%self.name())
+        if s.startswith('"'):
+            s = s[1:]
+        if s.endswith('"'):
+            s = s[:-1]
+        s = s.strip()
+        return s
 
     def _matrix_(self, R):
         r"""

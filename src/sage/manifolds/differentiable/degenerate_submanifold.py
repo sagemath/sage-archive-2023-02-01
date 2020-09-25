@@ -425,7 +425,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     def set_transverse(self, rigging=None, normal=None):
         r"""
-        For setting a transversal disttribution of the degenerate submanifold.
+        For setting a transversal distribution of the degenerate submanifold.
         according to the type of the submanifold amoung the 4 possible types,
         one must enter a list of normal transversal vector fields and/or a
         list of transversal and not normal vector fields spanning a transverse

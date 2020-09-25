@@ -17,20 +17,21 @@ AUTHORS:
   ComplexNumber constructor support gmpy2.mpc parameter.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import math
 import operator
 
 from sage.libs.mpfr cimport *
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.map cimport Map
 
 from .complex_double cimport ComplexDoubleElement
@@ -42,6 +43,8 @@ import sage.rings.infinity as infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
+
+from sage.misc.superseded import deprecated_function_alias
 
 cimport gmpy2
 gmpy2.import_gmpy2()
@@ -233,6 +236,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             True
         """
         return self.str()
+
+    def _mathematica_init_(self):
+        """
+        EXAMPLES::
+
+            sage: mathematica(CC(3.5e-15, 2.3e15))  # indirect doctest, optional - mathematica
+            3.5*^-15 + 2.3*^15*I
+        """
+        return self.str(e='*^')
 
     def _maxima_init_(self, I=None):
         """
@@ -836,7 +848,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(right_nm)
         return x
 
-    def __rdiv__(self, left):
+    def __rtruediv__(self, left):
         r"""
         Returns the quotient of left with ``self``, that is:
 
@@ -851,7 +863,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: a = ComplexNumber(2,0)
-            sage: a.__rdiv__(CC(1))
+            sage: a.__rtruediv__(CC(1))
             0.500000000000000
             sage: CC(1)/a
             0.500000000000000
@@ -1111,35 +1123,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
             sage: a.__int__()
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
-
-    def __long__(self):
-        r"""
-        Method for converting ``self`` to type ``long``.
-
-        Called by the ``long`` function. Note that calling this method
-        returns an error since, in general, complex numbers cannot be
-        coerced into integers.
-
-        EXAMPLES::
-
-            sage: a = ComplexNumber(2,1)
-            sage: long(a)   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
 
     def __float__(self):
         r"""
@@ -1189,7 +1179,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return complex(mpfr_get_d(self.__re, rnd),
                        mpfr_get_d(self.__im, rnd))
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -1204,20 +1194,20 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         a = mpfr_nan_p(left.__re)
         b = mpfr_nan_p((<ComplexNumber>right).__re)
         if a != b:
-            return -1
+            return rich_to_bool(op, -1)
 
         cdef int i
         i = mpfr_cmp(left.__re, (<ComplexNumber>right).__re)
         if i < 0:
-            return -1
+            return rich_to_bool(op, -1)
         elif i > 0:
-            return 1
+            return rich_to_bool(op, 1)
         i = mpfr_cmp(left.__im, (<ComplexNumber>right).__im)
         if i < 0:
-            return -1
+            return rich_to_bool(op, -1)
         elif i > 0:
-            return 1
-        return 0
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     def multiplicative_order(self):
         """
@@ -1461,8 +1451,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: (1+CC(I)).cot()
             0.217621561854403 - 0.868014142895925*I
-            sage: (1+CC(I)).cotan()
-            0.217621561854403 - 0.868014142895925*I
             sage: i = ComplexField(200).0
             sage: (1+i).cot()
             0.21762156185440268136513424360523807352075436916785404091068 - 0.86801414289592494863584920891627388827343874994609327121115*I
@@ -1479,7 +1467,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return ~(self.tan())
 
-    cotan = cot # provide this alias for backward compatibility in #29409
+    cotan = deprecated_function_alias(29412, cot)
 
     def cos(self):
         """

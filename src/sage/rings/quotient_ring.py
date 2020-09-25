@@ -108,7 +108,6 @@ easily::
 #*****************************************************************************
 
 from __future__ import absolute_import
-from six.moves import range
 
 import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element

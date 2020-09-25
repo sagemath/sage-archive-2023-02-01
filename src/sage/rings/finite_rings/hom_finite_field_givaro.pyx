@@ -1,3 +1,5 @@
+# distutils: libraries = givaro ntl gmp m
+# distutils: language = c++
 """
 Finite field morphisms using Givaro
 

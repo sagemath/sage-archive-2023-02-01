@@ -213,6 +213,8 @@ Let's just follow this helpful hint::
   ...
 
 
+.. _section-equiv-distro-packages:
+
 Using Sage's database of equivalent distribution packages
 ---------------------------------------------------------
 
@@ -346,10 +348,8 @@ Then, to bootstrap and configure...::
   ADD src/doc/bootstrap src/doc/bootstrap
   ADD m4 ./m4
   ADD build ./build
-  ADD src/bin/sage-version.sh src/bin/sage-version.sh
   RUN ./bootstrap
   ADD src/bin src/bin
-  ADD src/Makefile.in src/Makefile.in
   ARG EXTRA_CONFIGURE_ARGS=""
   RUN ./configure --enable-build-as-root ${EXTRA_CONFIGURE_ARGS} || (cat config.log; exit 1)
 

@@ -38,9 +38,6 @@ TESTS::
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-from six import iteritems
-from six.moves import range
-
 from collections import defaultdict
 
 from .generic_graph import GenericGraph
@@ -464,7 +461,7 @@ class BipartiteGraph(Graph):
         if not ans:
             raise ValueError("input graph is not bipartite")
         cols = defaultdict(set)
-        for k, v in iteritems(certif):
+        for k, v in certif.items():
             cols[v].add(k)
         self.left = cols[1]
         self.right = cols[0]
@@ -1556,14 +1553,14 @@ class BipartiteGraph(Graph):
 
             sage: B = BipartiteGraph()
             sage: algorithms = ["Hopcroft-Karp", "Eppstein", "Edmonds", "LP"]
-            sage: all(B.matching(algorithm=algo) == [] for algo in algorithms)
+            sage: not any(B.matching(algorithm=algo) for algo in algorithms)
             True
             sage: all(B.matching(algorithm=algo, value_only=True) == 0 for algo in algorithms)
             True
             sage: B.add_vertex(1, left=True)
             sage: B.add_vertex(2, left=True)
             sage: B.add_vertex(3, right=True)
-            sage: all(B.matching(algorithm=algo) == [] for algo in algorithms)
+            sage: not any(B.matching(algorithm=algo) for algo in algorithms)
             True
             sage: all(B.matching(algorithm=algo, value_only=True) == 0 for algo in algorithms)
             True
@@ -1591,7 +1588,7 @@ class BipartiteGraph(Graph):
                         m = networkx.bipartite.hopcroft_karp_matching(h)
                     else:
                         m = networkx.bipartite.eppstein_matching(h)
-                    d.extend((u, v, g.edge_label(u,v)) for u,v in iteritems(m) if v2int[u] < v2int[v])
+                    d.extend((u, v, g.edge_label(u,v)) for u,v in m.items() if v2int[u] < v2int[v])
 
             if value_only:
                 return Integer(len(d))
@@ -1634,7 +1631,7 @@ class BipartiteGraph(Graph):
           among:
 
           - ``"Konig"`` will compute a minimum vertex cover using Konig's
-            algorithm (:wikipedia:`Kőnig's_theorem_(graph_theory)`)
+            algorithm (:wikipedia:`Kőnig%27s_theorem_(graph_theory)`)
 
           - ``"Cliquer"`` will compute a minimum vertex cover
             using the Cliquer package

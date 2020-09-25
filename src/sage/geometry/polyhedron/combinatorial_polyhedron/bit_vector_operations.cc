@@ -38,36 +38,36 @@ inline int is_subset(uint64_t *A, uint64_t *B, size_t face_length){
     return 1;
 }
 
-inline void intersection(uint64_t *A, uint64_t *B, uint64_t *C, \
+inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
                          size_t face_length){
     /*
-    Set ``C = A & B``, i.e. C is the intersection of A and B.
-    ``face_length`` is the length of A, B and C in terms of uint64_t.
+    Set ``dest = A & B``, i.e. dest is the intersection of A and B.
+    ``face_length`` is the length of A, B and dest in terms of uint64_t.
     */
     for (size_t i = 0; i < face_length; i++){
-        C[i] = A[i] & B[i];
+        dest[i] = A[i] & B[i];
     }
 }
 
-inline size_t count_atoms(uint64_t* A, size_t face_length){
+inline size_t count_atoms(const uint64_t* A, size_t face_length){
     /*
     Return the number of atoms/vertices in A.
     This is the number of set bits in A.
     ``face_length`` is the length of A in terms of uint64_t.
     */
+    size_t i;
     unsigned int count = 0;
-    for (size_t i=0; i<face_length; i++){
+    for (i=0; i<face_length; i++){
         uint64_t a = A[i];
-        while (a){
-            count += a & 1;
-            a >>= 1;
-        }
+        a = a - ((a >> 1) & 0x5555555555555555ULL);
+        a = (a & 0x3333333333333333ULL) + ((a >> 2) & 0x3333333333333333ULL);
+        count += ( ((a + (a >> 4)) & 0x0f0f0f0f0f0f0f0fULL) * 0x0101010101010101ULL ) >> 56;
     }
     return count;
 }
 
 size_t get_next_level(\
-        uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
         uint64_t **newfaces, uint64_t **visited_all, \
         size_t n_visited_all, size_t face_length){
     /*
@@ -110,7 +110,7 @@ size_t get_next_level(\
 
     // Step 1:
     for (size_t j = 0; j < n_faces - 1; j++){
-        intersection(faces[j], faces[n_faces - 1], maybe_newfaces[j], face_length);
+        intersection(maybe_newfaces[j], faces[j], faces[n_faces - 1], face_length);
         is_not_newface[j] = 0;
     }
 

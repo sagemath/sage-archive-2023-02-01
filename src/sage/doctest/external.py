@@ -25,7 +25,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from multiprocessing import Array
+import multiprocessing
+import os
+
+# With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork' in
+# multiprocessing, and Sage doctesting doesn't work with 'spawn'. See
+# trac #27754.
+if os.uname().sysname == 'Darwin':
+    multiprocessing.set_start_method('fork', force=True)
+Array = multiprocessing.Array
+
+import urllib.error
+from urllib.request import Request, urlopen
 
 # Functions in this module whose name is of the form 'has_xxx' tests if the
 # software xxx is available to Sage.
@@ -44,8 +55,6 @@ def has_internet():
         sage: has_internet() # random, optional -- internet
         True
     """
-    from six.moves import urllib
-    from six.moves.urllib.request import Request, urlopen
     req = Request("http://www.sagemath.org",headers={"User-Agent":"sage-doctest"})
     try:
         urlopen(req,timeout=1)
@@ -67,10 +76,10 @@ def has_latex():
     from sage.misc.temporary_file import tmp_filename
     try:
         f = tmp_filename(ext='.tex')
-        O = open(f, 'w') 
+        O = open(f, 'w')
         O.write(_latex_file_('2+3'))
-        O.close() 
-        _run_latex_(f) 
+        O.close()
+        _run_latex_(f)
         return True
     except Exception:
         return False
@@ -280,6 +289,20 @@ def has_imagemagick():
     from sage.features.imagemagick import ImageMagick
     return ImageMagick().is_present()
 
+def has_rubiks():
+    """
+    Test if the rubiks package (``cu2``, ``cubex``, ``dikcube``,
+    ``mcube``, ``optimal``, and ``size222``) is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_rubiks
+        sage: has_rubiks()   # optional -- rubiks
+        FeatureTestResult('Rubiks', True)
+    """
+    from sage.features.rubiks import Rubiks
+    return Rubiks().is_present()
+
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
@@ -301,7 +324,7 @@ external_software = external_software()
 def _lookup(software):
     """
     Test if the software is available on the system.
-    
+
     EXAMPLES::
 
         sage: sage.doctest.external._lookup('internet') # random, optional - internet
@@ -336,6 +359,7 @@ class AvailableSoftware(object):
          'matlab',
          'octave',
          'pandoc',
+         'rubiks',
          'scilab']
         sage: 'internet' in available_software # random, optional - internet
         True
@@ -353,8 +377,8 @@ class AvailableSoftware(object):
             sage: S.seen() # random
             []
         """
-        # For multiprocessing of doctests, the data self._seen should be 
-        # shared among subprocesses. Thus we use Array class from the 
+        # For multiprocessing of doctests, the data self._seen should be
+        # shared among subprocesses. Thus we use Array class from the
         # multiprocessing module.
         self._seen = Array('i', len(external_software)) # initialized to zeroes
 
@@ -402,7 +426,7 @@ class AvailableSoftware(object):
     def seen(self):
         """
         Return the list of detected external software.
-        
+
         EXAMPLES::
 
             sage: from sage.doctest.external import available_software

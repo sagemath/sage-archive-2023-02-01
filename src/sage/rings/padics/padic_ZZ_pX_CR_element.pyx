@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
 """
 `p`-Adic ``ZZ_pX`` CR Element
 
@@ -2522,10 +2524,26 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             [1 + O(5^4), 1 + O(5^4)]
             sage: (1 + w + O(w^11))._polynomial_list(pad=True)
             [1 + O(5^4), 1 + O(5^4), O(5^3)]
+            sage: W(0)._polynomial_list()
+            []
+            sage: W(0)._polynomial_list(pad=True)
+            [0, 0, 0]
+            sage: W(O(w^7))._polynomial_list()
+            []
+            sage: W(O(w^7))._polynomial_list(pad=True)
+            [O(5^3), O(5^2), O(5^2)]
+            sage: T.<a> = Qp(5).extension(x^2-5)
+            sage: T(1/5)._polynomial_list()
+            [5^-1 + O(5^19)]
+            sage: T(a^-800)._polynomial_list()
+            [5^-400 + O(5^-380)]
+            sage: T(O(a^-2))._polynomial_list()
+            []
         """
         R = self.base_ring()
         if self.is_zero():
             L = []
+            k = 0
         else:
             f, k = self._ntl_rep_abs()
             L = [Integer(c) for c in f.list()]
@@ -2537,9 +2555,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         prec = self.relprec + self.ordp
         e = self.parent().e()
         if e == 1:
-            return [R(c, prec) >> k for c in L]
+            return [R(c, prec-k) << k for c in L]
         else:
-            return [R(c, (prec - i - 1) // e + 1) >> k for i, c in enumerate(L)]
+            return [R(c, (((prec - i - 1) // e) + 1) - k) << k for i, c in enumerate(L)]
 
     def polynomial(self, var='x'):
         """

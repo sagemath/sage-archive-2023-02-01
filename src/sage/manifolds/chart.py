@@ -1649,8 +1649,10 @@ class RealChart(Chart):
             coord_symb = coord_properties[0].strip() # the coordinate symbol
             # default values, possibly redefined below:
             coord_latex = None
-            xmin = -Infinity; xmin_included = False
-            xmax = +Infinity; xmax_included = False
+            xmin = -Infinity
+            xmin_included = False
+            xmax = +Infinity
+            xmax_included = False
             # scan of the properties other than the symbol:
             is_periodic = False
             for prop in coord_properties[1:]:
@@ -2912,7 +2914,7 @@ class RealChart(Chart):
                             first_invalid = False # next invalid point will not
                                                   # be the first one
                         xc += dx
-                if curve != []:
+                if curve:
                     resu += line(curve, color=color_c,
                                  linestyle=style_c,
                                  thickness=thickness_c)

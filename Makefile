@@ -35,21 +35,25 @@ sageruntime: base-toolchain
 
 # CONFIG_FILES lists all files that appear in AC_CONFIG_FILES in configure.ac;
 # except for build/make/Makefile-auto, which is unused by the build system
-CONFIG_FILES = build/make/Makefile src/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
+CONFIG_FILES = build/make/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
 
 # SPKG_COLLECT_FILES contains all files that influence the SAGE_SPKG_COLLECT macro
 SPKG_COLLECT_FILES = build/pkgs/*/type build/pkgs/*/package-version.txt build/pkgs/*/dependencies build/pkgs/*/requirements.txt build/pkgs/*/checksums.ini build/pkgs/*/spkg-install
 
 # If configure was run before, rerun it with the old arguments.
 # Otherwise, run configure with argument $PREREQ_OPTIONS.
-build/make/Makefile: configure build/make/deps $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
+build/make/Makefile: configure $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 	rm -f config.log
 	mkdir -p logs/pkgs
 	ln -s logs/pkgs/config.log config.log
 	@if [ -x config.status ]; then \
 		./config.status --recheck && ./config.status; \
 	else \
-		./configure $$PREREQ_OPTIONS; \
+		echo >&2 '****************************************************************************'; \
+		echo >&2 'error: Sage source tree is unconfigured. Please run "./configure" first.'; \
+		echo >&2 'note:  Type "./configure --help" to see the available configuration options.'; \
+		echo >&2 '****************************************************************************'; \
+	        exit 1; \
 	fi
 
 # This is used to monitor progress towards Python 3 and prevent
@@ -105,6 +109,8 @@ distclean: build-clean
 bootstrap-clean:
 	rm -rf config configure build/make/Makefile-auto.in
 	rm -f src/doc/en/installation/*.txt
+	rm -rf src/doc/en/reference/spkg/*.rst
+	rm -f src/doc/en/reference/repl/*.txt
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
@@ -112,7 +118,9 @@ maintainer-clean: distclean bootstrap-clean
 
 # Remove everything that is not necessary to run Sage and pass all its
 # doctests.
-micro_release: sagelib-clean misc-clean
+micro_release:
+	$(MAKE) sagelib-clean
+	$(MAKE) misc-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 	@echo "Removing sphinx artifacts..."
@@ -212,7 +220,7 @@ list:
 	@$(MAKE) --silent build/make/Makefile >&2
 	@$(MAKE) --silent -f build/make/Makefile SAGE_SPKG_INST=local $@
 
-.PHONY: default build install micro_release \
+.PHONY: default build dist install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \

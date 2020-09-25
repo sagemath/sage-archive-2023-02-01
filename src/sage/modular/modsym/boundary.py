@@ -89,9 +89,8 @@ REFERENCES:
 # ****************************************************************************
 
 from __future__ import absolute_import
-from six.moves import range
 
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.structure.richcmp import richcmp_method, richcmp
 
 import sage.modules.free_module as free_module

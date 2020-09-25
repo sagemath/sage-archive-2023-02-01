@@ -90,9 +90,8 @@ class PolyhedronRepresentation(SageObject):
 
             sage: from sage.geometry.polyhedron.representation import Hrepresentation
             sage: pr = Hrepresentation(Polyhedron(vertices = [[1,2,3]]).parent())
-            sage: hash(pr)
-            1647257843           # 32-bit
-            4686581268940269811  # 64-bit
+            sage: hash(pr) == hash(tuple([0,0,0,0]))
+            True
         """
         # TODO: ideally the argument self._vector of self should be immutable.
         # So that we could change the line below by hash(self._vector). The

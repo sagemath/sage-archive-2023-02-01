@@ -848,6 +848,18 @@ class Point(PrimitiveObject):
         point = dict(point=center, size=size, color=color, opacity=opacity)
         return [('point', point)]
 
+    def stl_binary_repr(self, render_params):
+        """
+        Return an empty list, as this is not useful for STL export.
+
+        EXAMPLES::
+
+            sage: P = point3d((1,2,3)).translate(-1, -2, -3)
+            sage: P.stl_binary_repr(P.default_render_params())
+            []
+        """
+        return []
+
 
 class Line(PrimitiveObject):
     r"""
@@ -1214,6 +1226,18 @@ class Line(PrimitiveObject):
             line = dict(points=points, color=color, opacity=opacity, linewidth=thickness)
             reprs.append(('line', line))
         return reprs
+
+    def stl_binary_repr(self, render_params):
+        """
+        Return an empty list, as this is not useful for STL export.
+
+        EXAMPLES::
+
+            sage: L = line3d([(1,2,3), (4,5,6)]).translate(-1, -2, -3)
+            sage: L.stl_binary_repr(L.default_render_params())
+            []
+        """
+        return []
 
 
 @rename_keyword(alpha='opacity')

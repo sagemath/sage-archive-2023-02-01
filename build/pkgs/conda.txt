@@ -5,3 +5,4 @@ perl
 "python<3.9"
 tar
 bc
+pkg-config

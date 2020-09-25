@@ -197,13 +197,18 @@ def MeetSemilattice(data=None, *args, **options):
     """
     if isinstance(data, FiniteMeetSemilattice) and not args and not options:
         return data
+    if "check" in options:
+        check = options.pop('check')
+    else:
+        check = True
     P = Poset(data, *args, **options)
-    try:
-        P._hasse_diagram.meet_matrix()
-    except LatticeError as error:
-        error.x = P._vertex_to_element(error.x)
-        error.y = P._vertex_to_element(error.y)
-        raise
+    if check:
+        try:
+            P._hasse_diagram.meet_matrix()
+        except LatticeError as error:
+            error.x = P._vertex_to_element(error.x)
+            error.y = P._vertex_to_element(error.y)
+            raise
     return FiniteMeetSemilattice(P)
 
 
@@ -517,14 +522,18 @@ def JoinSemilattice(data=None, *args, **options):
     """
     if isinstance(data, FiniteJoinSemilattice) and not args and not options:
         return data
+    if "check" in options:
+        check = options.pop('check')
+    else:
+        check = True
     P = Poset(data, *args, **options)
-    try:
-        P._hasse_diagram.join_matrix()
-    except LatticeError as error:
-        error.x = P._vertex_to_element(error.x)
-        error.y = P._vertex_to_element(error.y)
-        raise
-
+    if check:
+        try:
+            P._hasse_diagram.join_matrix()
+        except LatticeError as error:
+            error.x = P._vertex_to_element(error.x)
+            error.y = P._vertex_to_element(error.y)
+            raise
     return FiniteJoinSemilattice(P)
 
 
@@ -711,16 +720,21 @@ def LatticePoset(data=None, *args, **options):
     """
     if isinstance(data, FiniteLatticePoset) and not args and not options:
         return data
+    if "check" in options:
+        check = options.pop('check')
+    else:
+        check = True
     P = Poset(data, *args, **options)
     if P.cardinality() != 0:
         if not P.has_bottom():
             raise ValueError("not a meet-semilattice: no bottom element")
-        try:
-            P._hasse_diagram.join_matrix()
-        except LatticeError as error:
-            error.x = P._vertex_to_element(error.x)
-            error.y = P._vertex_to_element(error.y)
-            raise
+        if check:
+            try:
+                P._hasse_diagram.join_matrix()
+            except LatticeError as error:
+                error.x = P._vertex_to_element(error.x)
+                error.y = P._vertex_to_element(error.y)
+                raise
     return FiniteLatticePoset(P, category=FiniteLatticePosets(), facade=P._is_facade)
 
 

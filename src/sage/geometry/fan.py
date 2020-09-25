@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Rational polyhedral fans
 
@@ -225,15 +226,16 @@ inclusion!)
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
-import collections
-import warnings
-import copy
+from collections.abc import Callable, Container
+from copy import copy
+from warnings import warn
 
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.combinat.combination import Combinations
@@ -1065,9 +1067,7 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
 
 
 @richcmp_method
-class RationalPolyhedralFan(IntegralRayCollection,
-                            collections.Callable,
-                            collections.Container):
+class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
     r"""
     Create a rational polyhedral fan.
 
@@ -1492,9 +1492,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
             return False
         except ValueError:  # cone is a cone, but wrong
             if not cone.lattice().is_submodule(self.lattice()):
-                warnings.warn("you have checked if a fan contains a cone "
-                              "from another lattice, this is always False!",
-                              stacklevel=3)
+                warn("you have checked if a fan contains a cone "
+                     "from another lattice, this is always False!",
+                     stacklevel=3)
             return False
 
     def support_contains(self, *args):
@@ -1556,9 +1556,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
             point = _ambient_space_point(self, point)
         except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
-                warnings.warn("you have checked if a fan contains a point "
-                              "from an incompatible lattice, this is False!",
-                              stacklevel=3)
+                warn("you have checked if a fan contains a point "
+                     "from an incompatible lattice, this is False!",
+                     stacklevel=3)
             return False
         if self.is_complete():
             return True
@@ -2085,7 +2085,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             Finite poset containing 6 elements with distinguished linear extension
             sage: fan._test_pickling()
         """
-        state = copy.copy(self.__dict__)
+        state = copy(self.__dict__)
         # TODO: do we want to keep the cone lattice in the pickle?
         # Currently there is an unpickling loop if do.
         # See Cone.__getstate__ for a similar problem and discussion.

@@ -344,7 +344,7 @@ class AffineConnection(SageObject):
         sage: nab.set_coef(eU)
         Traceback (most recent call last):
         ...
-        AssertionError: the coefficients of an immutable element cannot be
+        ValueError: the coefficients of an immutable element cannot be
          changed
 
     However, they can now be used as keys for dictionaries::
@@ -782,8 +782,8 @@ class AffineConnection(SageObject):
 
         """
         if self.is_immutable():
-            raise AssertionError("the coefficients of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the coefficients of an immutable element "
+                             "cannot be changed")
         if frame is None:
             frame = self._domain._def_frame
         if frame not in self._coefficients:
@@ -874,8 +874,8 @@ class AffineConnection(SageObject):
 
         """
         if self.is_immutable():
-            raise AssertionError("the coefficients of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the coefficients of an immutable element "
+                             "cannot be changed")
         if frame is None:
             frame = self._domain._def_frame
         if frame not in self._coefficients:
@@ -965,7 +965,7 @@ class AffineConnection(SageObject):
             sage: nab.add_coef(eX)[2,1,1] = x+y
             Traceback (most recent call last):
             ...
-            AssertionError: the coefficients of an immutable element cannot
+            ValueError: the coefficients of an immutable element cannot
              be changed
 
         The restriction are set immutable as well::

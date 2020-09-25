@@ -119,6 +119,8 @@ Advanced Programming
 Documentation
 =============
 
+* :ref:`sws2rst`
+
 .. Sage development
 .. ----------------
 

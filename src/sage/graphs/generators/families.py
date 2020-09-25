@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Families of graphs
+Various families of graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """

@@ -2345,7 +2345,7 @@ def _find_func(name, create_when_missing = True):
             return None
 
 SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
-                   make_float    = lambda x: SR(RealDoubleElement(x)),
+                   make_float    = lambda x: SR(create_RealNumber(x)),
                    make_var      = _find_var,
                    make_function = _find_func)
 
@@ -2371,6 +2371,15 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         sage: y = var('y')
         sage: sage.calculus.calculus.symbolic_expression_from_string('[sin(0)*x^2,3*spam+e^pi]',syms={'spam':y},accept_sequence=True)
         [0, 3*y + e^pi]
+
+    TESTS:
+
+    Check that the precision is preserved (:trac:`28814`)::
+
+        sage: sage.calculus.calculus.symbolic_expression_from_string(str(RealField(100)(1/3)))
+        0.3333333333333333333333333333
+        sage: sage.calculus.calculus.symbolic_expression_from_string(str(RealField(100)(10^-500/3)))
+        3.333333333333333333333333333e-501
     """
     global _syms
     _syms = symbol_table['functions'].copy()

@@ -201,17 +201,7 @@ dnl Exit autoconf with exit code 16 in this case. This will be
 dnl caught by the bootstrap script.
 m4_exit(16)])
 
-PKG_PROG_PKG_CONFIG
-AC_CACHE_CHECK([for pkg-config >= 0.29], [ac_cv_path_PKGCONF], [
-        AC_PATH_PROGS_FEATURE_CHECK([PKGCONF], [pkg-config], [
-            pkgconf_version=`$ac_path_PKGCONF --version 2>&1`
-            AS_IF([test -n "$pkgconf_version"], [
-                AX_COMPARE_VERSION([$pkgconf_version], [ge], [0.29], [
-                    ac_cv_path_PKGCONF="$ac_path_PKGCONF"
-                ])
-            ])
-        ])
-])
+PKG_PROG_PKG_CONFIG([0.29])
 
 AC_CHECK_PROG(found_ranlib, ranlib, yes, no)
 if test x$found_ranlib != xyes

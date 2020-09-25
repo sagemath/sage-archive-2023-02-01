@@ -257,10 +257,11 @@ $MAKE ${MAKE_SILENT} bootstrap-clean 2>/dev/null
 mkdir config 2>/dev/null
 
 # If Sage has not been built yet, this will fail due to a missing
-# sage-env-config. We just ignore that error.
-source src/bin/sage-env-config 2>/dev/null
-source src/bin/sage-env 2>/dev/null
-
+# sage-env-config.
+if [ -f src/bin/sage-env-config ]; then
+    . src/bin/sage-env-config
+    . src/bin/sage-env
+fi
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
     if [ -n "$CONFTARBALL_URL" ]; then

@@ -717,16 +717,22 @@ cdef class SparseGraph(CGraph):
 
         return num_nbrs
 
-    cdef inline int next_out_neighbor_unsafe(self, int u, int v):
+    cdef inline int next_out_neighbor_unsafe(self, int u, int v, int* l):
         """
         Return the next out-neighbor of ``u`` that is greater than ``v``.
 
         If ``v`` is ``-1`` return the first neighbor of ``u``.
 
         Return ``-1`` in case there does not exist such an out-neighbor.
+
+        Set ``l`` to be the label of the first arc.
         """
         cdef SparseGraphBTNode* next_bt = self.next_out_neighbor_BTNode_unsafe(u, v)
         if next_bt:
+            if next_bt.number:
+                l[0] = 0
+            else:
+                l[0] = next_bt.labels.label
             return next_bt.vertex
         else:
             return -1
@@ -951,16 +957,22 @@ cdef class SparseGraph(CGraph):
 
         return num_nbrs
 
-    cdef inline int next_in_neighbor_unsafe(self, int v, int u):
+    cdef inline int next_in_neighbor_unsafe(self, int v, int u, int* l):
         """
         Return the next in-neighbor of ``v`` that is greater than ``u``.
 
         If ``u`` is ``-1`` return the first neighbor of ``v``.
 
         Return ``-1`` in case there does not exist such an in-neighbor.
+
+        Set ``l`` to be the label of the first arc.
         """
         cdef SparseGraphBTNode* next_bt = self.next_in_neighbor_BTNode_unsafe(v, u)
         if next_bt:
+            if next_bt.number:
+                l[0] = 0
+            else:
+                l[0] = next_bt.labels.label
             return next_bt.vertex
         else:
             return -1

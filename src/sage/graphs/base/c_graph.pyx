@@ -752,17 +752,18 @@ cdef class CGraph:
 
         """
         cdef int num_nbrs = 0
-        cdef int v = self.next_out_neighbor_unsafe(u, -1)
+        cdef int l
+        cdef int v = self.next_out_neighbor_unsafe(u, -1, &l)
         while v != -1:
             if num_nbrs == size:
                 return -1
             neighbors[num_nbrs] = v
             num_nbrs += 1
-            v = self.next_out_neighbor_unsafe(u, v)
+            v = self.next_out_neighbor_unsafe(u, v, &l)
 
         return num_nbrs
 
-    cdef int next_out_neighbor_unsafe(self, int u, int v):
+    cdef int next_out_neighbor_unsafe(self, int u, int v, int* l):
         raise NotImplementedError()
 
     cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
@@ -792,17 +793,18 @@ cdef class CGraph:
 
         """
         cdef int num_nbrs = 0
-        cdef int v = self.next_in_neighbor_unsafe(u, -1)
+        cdef int l
+        cdef int v = self.next_in_neighbor_unsafe(u, -1, &l)
         while v != -1:
             if num_nbrs == size:
                 return -1
             neighbors[num_nbrs] = v
             num_nbrs += 1
-            v = self.next_in_neighbor_unsafe(u, v)
+            v = self.next_in_neighbor_unsafe(u, v, &l)
 
         return num_nbrs
 
-    cdef int next_in_neighbor_unsafe(self, int v, int u):
+    cdef int next_in_neighbor_unsafe(self, int v, int u, int*l ):
         raise NotImplementedError()
 
     cpdef add_arc(self, int u, int v):

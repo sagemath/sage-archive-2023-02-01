@@ -3486,6 +3486,61 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             return True
 
+    def iterator_edges(self, object vertices, bint labels):
+        """
+        Iterate over the edges incident to a sequence of vertices.
+
+        Edges are assumed to be undirected.
+
+        .. WARNING::
+
+            This will try to sort the two ends of every edge.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertex labels
+
+        - ``labels`` -- boolean, whether to return labels as well
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.add_edge(1,2,3,False)
+            sage: list(G.iterator_edges(range(9), False))
+            [(1, 2)]
+            sage: list(G.iterator_edges(range(9), True))
+            [(1, 2, 3)]
+
+        TESTS::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.edges_incident([0,1,2])
+            [(0, 1, None),
+             (0, 4, None),
+             (0, 5, None),
+             (1, 2, None),
+             (1, 6, None),
+             (2, 3, None),
+             (2, 7, None)]
+        """
+        if labels:
+            for (u, v, l) in self.iterator_unsorted_edges(vertices, labels):
+                try:
+                    if v <= u:
+                        v, u = u, v
+                except TypeError:
+                    pass
+                yield (u, v, l)
+        else:
+            for u, v in self.iterator_unsorted_edges(vertices, labels):
+                try:
+                    if v <= u:
+                        v, u = u, v
+                except TypeError:
+                    pass
+                yield (u, v)
+
+
 
 cdef class Search_iterator:
     r"""

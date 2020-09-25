@@ -725,7 +725,7 @@ cdef class DenseGraphBackend(CGraphBackend):
             return False
         return 1 == self.cg().has_arc_unsafe(u_int, v_int)
 
-    def iterator_edges(self, object vertices, bint labels):
+    def iterator_unsorted_edges(self, object vertices, bint labels):
         """
         Return an iterator over the edges incident to a sequence of vertices.
 
@@ -741,13 +741,13 @@ cdef class DenseGraphBackend(CGraphBackend):
 
             sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: G.add_edge(1, 2, None, False)
-            sage: list(G.iterator_edges(range(9), False))
+            sage: list(G.iterator_unsorted_edges(range(9), False))
             [(1, 2)]
-            sage: list(G.iterator_edges(range(9), True))
+            sage: list(G.iterator_unsorted_edges(range(9), True))
             [(1, 2, None)]
 
         """
-        cdef object v, v_copy, u
+        cdef object v, u
         cdef int u_int, v_int
         cdef DenseGraph cg = self.cg()
 
@@ -761,14 +761,7 @@ cdef class DenseGraphBackend(CGraphBackend):
                     while u_int != -1:
                         if u_int >= v_int or u_int not in vertices:
                             u = self.vertex_label(u_int)
-                            v_copy = v
-                            try:
-                                if u < v:
-                                    v, u = u, v
-                            except TypeError:
-                                pass
                             yield (v, u, None)
-                            v = v_copy
                         u_int = cg.next_out_neighbor_unsafe(v_int, u_int)
         else:
             for v_int in vertices:
@@ -778,14 +771,7 @@ cdef class DenseGraphBackend(CGraphBackend):
                     while u_int != -1:
                         if u_int >= v_int or u_int not in vertices:
                             u = self.vertex_label(u_int)
-                            v_copy = v
-                            try:
-                                if u < v:
-                                    v, u = u, v
-                            except TypeError:
-                                pass
                             yield (v, u)
-                            v = v_copy
                         u_int = cg.next_out_neighbor_unsafe(v_int, u_int)
 
     def iterator_in_edges(self, object vertices, bint labels):

@@ -15,7 +15,7 @@ at least one of the environment variables CC, CXX, FC is not set"])
             AS_VAR_APPEND([need_pkgs],
                           [" c-compiler cxx-compiler fortran-compiler"])
         ])
-        AS_IF([test "$CONDA_PREFIX/bin/pkg-config" != "$ac_cv_path_PKGCONF"], [
+        AS_IF([test "$CONDA_PREFIX/bin/pkg-config" != "$PKG_CONFIG"], [
             AS_IF([test -z "$reasons"],
                   [AS_VAR_APPEND([reasons], [", but"])],
                   [AS_VAR_APPEND([reasons], [" and"])])

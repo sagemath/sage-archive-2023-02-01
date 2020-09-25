@@ -33,6 +33,10 @@ def find_primitive_p_divisible_vector__random(self, p):
         (3, 3)
         sage: 5.divides(Q(v))
         True
+        sage: Q = QuadraticForm(QQ,matrix.diagonal([1,1,1,1]))
+        sage: v = Q.find_primitive_p_divisible_vector__random(2)
+        sage: Q(v)
+        2
     """
     n = self.dim()
     v = vector([ZZ.random_element(p) for _ in range(n)])
@@ -42,7 +46,8 @@ def find_primitive_p_divisible_vector__random(self, p):
     k = 0
     while k < 1000:
         k = k + 1
-        if (self(v) % p == 0) and (v != 0):
+        a = self(v)
+        if a in ZZ and (a % p == 0) and (v != 0):
             return v
         else:
             v[ZZ.random_element(n)] = ZZ.random_element(p)
@@ -74,6 +79,10 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
         sage: v = Q.find_primitive_p_divisible_vector__next(5, v); v
         (1, 0)
         sage: v = Q.find_primitive_p_divisible_vector__next(5, v); v
+        sage: Q = QuadraticForm(QQ,matrix.diagonal([1,1,1,1]))
+        sage: v = Q.find_primitive_p_divisible_vector__next(2)
+        sage: Q(v)
+        2
     """
     # Initialize
     n = self.dim()
@@ -123,7 +132,8 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
             return None
 
         # Test for p-divisibility
-        if (self(w) % p == 0):
+        a = self(w)
+        if a in ZZ and (a % p == 0):
             return w
 
 def find_p_neighbor_from_vec(self, p, y):

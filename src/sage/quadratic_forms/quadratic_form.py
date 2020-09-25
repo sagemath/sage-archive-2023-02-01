@@ -409,7 +409,8 @@ class QuadraticForm(SageObject):
             find_primitive_p_divisible_vector__random, \
             find_primitive_p_divisible_vector__next, \
             find_p_neighbor_from_vec, \
-            neighbor_method
+            neighbor_iteration, \
+            orbits_lines_mod_p
 
     ## Routines to reduce a given quadratic form
     from sage.quadratic_forms.quadratic_form__reduction_theory import \

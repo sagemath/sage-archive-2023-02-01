@@ -1932,7 +1932,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             False
             sage: G.add_edge(0,1,0,True)
             sage: G.add_edge(0,1,0,True)
-            sage: list(G.iterator_edges(range(9), True))
+            sage: list(G.iterator_out_edges(range(9), True))
             [(0, 1, 0)]
 
         """
@@ -1957,13 +1957,13 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,None,True)
             sage: G.set_edge_label(1,2,'a',True)
-            sage: list(G.iterator_edges(range(9), True))
+            sage: list(G.iterator_out_edges(range(9), True))
             [(1, 2, 'a')]
 
         Note that it fails silently if there is no edge there::
 
             sage: G.set_edge_label(2,1,'b',True)
-            sage: list(G.iterator_edges(range(9), True))
+            sage: list(G.iterator_out_edges(range(9), True))
             [(1, 2, 'a')]
 
         """

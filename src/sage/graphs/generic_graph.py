@@ -621,7 +621,7 @@ class GenericGraph(GenericGraph_pyx):
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
             return all(other.has_edge(*edge)
-                       for edge in self.edge_iterator(labels=self._weighted))
+                       for edge in self.edge_iterator(labels=self._weighted, unsorted=True))
         # The problem with multiple edges is that labels may not have total
         # ordering, which makes it difficult to compare lists of labels.
         seen = set()
@@ -11791,7 +11791,7 @@ class GenericGraph(GenericGraph_pyx):
             output.sort()
         return output
 
-    def edge_iterator(self, vertices=None, labels=True, ignore_direction=False):
+    def edge_iterator(self, vertices=None, labels=True, ignore_direction=False, unsorted=False):
         r"""
         Return an iterator over edges.
 
@@ -11812,6 +11812,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``ignore_direction`` -- boolean (defaul: ``False``); only applies to
            directed graphs. If ``True``, searches across edges in either
            direction.
+
+        - ``unsorted`` -- boolean (default: ``False``); only applies to
+          undirected graphs. If ``True``, do not sort the ends of the edge.
+          This is faster.
 
         EXAMPLES::
 
@@ -11834,6 +11838,12 @@ class GenericGraph(GenericGraph_pyx):
 
         ::
 
+            sage: G = graphs.TetrahedralGraph()
+            sage: list(G.edge_iterator(labels=False, unsorted=True))
+            [(1, 0), (2, 0), (3, 0), (2, 1), (3, 1), (3, 2)]
+
+        ::
+
             sage: D = DiGraph({1: [0], 2: [0]})
             sage: list(D.edge_iterator(0))
             []
@@ -11853,6 +11863,8 @@ class GenericGraph(GenericGraph_pyx):
                          self._backend.iterator_in_edges(vertices, labels))
         elif self._directed:
             return self._backend.iterator_out_edges(vertices, labels)
+        elif unsorted:
+            return self._backend.iterator_unsorted_edges(vertices, labels)
         else:
             return self._backend.iterator_edges(vertices, labels)
 

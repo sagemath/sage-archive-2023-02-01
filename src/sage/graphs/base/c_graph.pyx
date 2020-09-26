@@ -4000,6 +4000,11 @@ cdef class Search_iterator:
 
         return value
 
+
+##############################
+# Functions to simplify edge iterator.
+##############################
+
 cdef inline bint _reorganize_edge(object v, object u, int modus):
     """
     Return ``True`` if ``v`` and ``u`` should be exchanged according to the modus.

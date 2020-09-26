@@ -70,7 +70,7 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: assume(b > 0)
             sage: f = (exp((x-a)/b) + 1)**(-1)
             sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
-            -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
+            -b*log(e^(a/b) + e^(x/b)) + x + b/(e^(-(a - x)/b) + 1)
         """
         # The automatic evaluation routine will try these integrators
         # in the given order. This is an attribute of the class instead of

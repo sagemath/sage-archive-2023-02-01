@@ -34,7 +34,6 @@ For more information on the underlying algorithm, see [Gos1972]_.
 
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
-from sage.rings.real_mpfr import RR
 
 class gosper_iterator(object):
     r"""

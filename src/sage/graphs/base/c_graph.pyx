@@ -3655,7 +3655,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef object u, v, l, v_copy
         cdef int u_int, v_int, l_int
         cdef CGraph cg = self.cg()
-        cdef list b_vertices
+        cdef list b_vertices, all_arc_labels
         cdef bint out = modus == 0
 
         cdef int vertices_case
@@ -3730,7 +3730,12 @@ cdef class CGraphBackend(GenericGraphBackend):
                         else:
                             yield (v, u)
                     else:
-                        for l_int in cg.all_arcs(v_int, u_int):
+                        if out:
+                            all_arc_labels = cg.all_arcs(v_int, u_int)
+                        else:
+                            all_arc_labels = cg.all_arcs(u_int, v_int)
+
+                        for l_int in all_arc_labels:
                             if labels:
                                 l = self.edge_labels[l_int] if l_int else None
                                 yield (v, u, l)

@@ -383,7 +383,7 @@ cdef class DenseGraph(CGraph):
     # Neighbor functions
     ###################################
 
-    cdef inline int next_out_neighbor_unsafe(self, int u, int v, int* l):
+    cdef inline int next_out_neighbor_unsafe(self, int u, int v, int* l) except -2:
         """
         Return the next out-neighbor of ``u`` that is greater than ``v``.
 
@@ -393,7 +393,7 @@ cdef class DenseGraph(CGraph):
 
         Set ``l`` to be the label of the first arc.
         """
-        u = u+1
+        v = v+1
         l[0] = 0
         cdef int place = (u * self.num_longs)
         cdef size_t i
@@ -411,7 +411,7 @@ cdef class DenseGraph(CGraph):
                     v += 1
         return -1
 
-    cdef inline int next_in_neighbor_unsafe(self, int v, int u, int* l):
+    cdef inline int next_in_neighbor_unsafe(self, int v, int u, int* l) except -2:
         """
         Return the next in-neighbor of ``v`` that is greater or equal to ``u``.
 
@@ -730,147 +730,6 @@ cdef class DenseGraphBackend(CGraphBackend):
         if u_int == -1 or v_int == -1:
             return False
         return 1 == self.cg().has_arc_unsafe(u_int, v_int)
-
-    def iterator_unsorted_edges(self, object vertices, bint labels):
-        """
-        Return an iterator over the edges incident to a sequence of vertices.
-
-        Edges are assumed to be undirected.
-
-        INPUT:
-
-        - ``vertices`` -- a list of vertex labels
-
-        - ``labels`` -- boolean; whether to return edge labels as well
-
-        EXAMPLES::
-
-            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
-            sage: G.add_edge(1, 2, None, False)
-            sage: list(G.iterator_unsorted_edges(range(9), False))
-            [(1, 2)]
-            sage: list(G.iterator_unsorted_edges(range(9), True))
-            [(1, 2, None)]
-
-        """
-        cdef object v, u
-        cdef int u_int, v_int, l_int
-        cdef DenseGraph cg = self.cg()
-
-        vertices = [self.get_vertex_checked(v) for v in vertices]
-
-        if labels:
-            for v_int in vertices:
-                if v_int != -1:
-                    v = self.vertex_label(v_int)
-                    u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
-                    while u_int != -1:
-                        if u_int >= v_int or u_int not in vertices:
-                            u = self.vertex_label(u_int)
-                            yield (v, u, None)
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
-        else:
-            for v_int in vertices:
-                if v_int != -1:
-                    v = self.vertex_label(v_int)
-                    u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
-                    while u_int != -1:
-                        if u_int >= v_int or u_int not in vertices:
-                            u = self.vertex_label(u_int)
-                            yield (v, u)
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
-
-    def iterator_in_edges(self, object vertices, bint labels):
-        """
-        Return an iterator over the incoming edges incident to a sequence of
-        vertices.
-
-        INPUT:
-
-        - ``vertices`` -- a list of vertex labels
-
-        - ``labels`` -- boolean; whether to return labels as well
-
-        EXAMPLES::
-
-            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
-            sage: G.add_edge(1, 2, None, True)
-            sage: list(G.iterator_in_edges([1], False))
-            []
-            sage: list(G.iterator_in_edges([2], False))
-            [(1, 2)]
-            sage: list(G.iterator_in_edges([2], True))
-            [(1, 2, None)]
-
-        """
-        cdef object v
-        cdef int u_int, v_int, l_int
-        cdef DenseGraph cg = self.cg()
-
-        vertices = [self.get_vertex_checked(v) for v in vertices]
-
-        if labels:
-            for v_int in vertices:
-                if v_int != -1:
-                    v = self.vertex_label(v_int)
-                    u_int = cg.next_in_neighbor_unsafe(v_int, -1, &l_int)
-                    while u_int != -1:
-                        yield (self.vertex_label(u_int), v, None)
-                        u_int = cg.next_in_neighbor_unsafe(v_int, u_int, &l_int)
-        else:
-            for v_int in vertices:
-                if v_int != -1:
-                    v = self.vertex_label(v_int)
-                    u_int = cg.next_in_neighbor_unsafe(v_int, -1, &l_int)
-                    while u_int != -1:
-                        yield (self.vertex_label(u_int), v)
-                        u_int = cg.next_in_neighbor_unsafe(v_int, u_int, &l_int)
-
-    def iterator_out_edges(self, object vertices, bint labels):
-        """
-        Return an iterator over the outbound edges incident to a sequence of
-        vertices.
-
-        INPUT:
-
-        - ``vertices`` -- a list of vertex labels
-
-        - ``labels`` -- boolean; whether to return labels as well
-
-        EXAMPLES::
-
-            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
-            sage: G.add_edge(1, 2, None, True)
-            sage: list(G.iterator_out_edges([2], False))
-            []
-            sage: list(G.iterator_out_edges([1], False))
-            [(1, 2)]
-            sage: list(G.iterator_out_edges([1], True))
-            [(1, 2, None)]
-
-        """
-        cdef object v
-        cdef int u_int, v_int, l_int
-        cdef DenseGraph cg = self.cg()
-
-        vertices = [self.get_vertex_checked(v) for v in vertices]
-
-        if labels:
-            for v_int in vertices:
-                if v_int != -1:
-                    v = self.vertex_label(v_int)
-                    u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
-                    while u_int != -1:
-                        yield (v, self.vertex_label(u_int), None)
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
-        else:
-            for v_int in vertices:
-                if v_int != -1:
-                    v = self.vertex_label(v_int)
-                    u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
-                    while u_int != -1:
-                        yield (v, self.vertex_label(u_int))
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
 
     def multiple_edges(self, new):
         """

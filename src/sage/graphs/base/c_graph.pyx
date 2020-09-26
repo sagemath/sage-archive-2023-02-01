@@ -763,7 +763,7 @@ cdef class CGraph:
 
         return num_nbrs
 
-    cdef int next_out_neighbor_unsafe(self, int u, int v, int* l):
+    cdef int next_out_neighbor_unsafe(self, int u, int v, int* l) except -2:
         raise NotImplementedError()
 
     cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
@@ -804,7 +804,7 @@ cdef class CGraph:
 
         return num_nbrs
 
-    cdef int next_in_neighbor_unsafe(self, int v, int u, int*l ):
+    cdef int next_in_neighbor_unsafe(self, int v, int u, int* l) except -2:
         raise NotImplementedError()
 
     cpdef add_arc(self, int u, int v):
@@ -3542,6 +3542,233 @@ cdef class CGraphBackend(GenericGraphBackend):
                     pass
                 yield (u, v)
 
+    def iterator_unsorted_edges(self, object vertices, bint labels):
+        """
+        Iterate over the edges incident to a sequence of vertices.
+
+        Edges are assumed to be undirected.
+
+        This does not sort the ends of each edge.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertex labels
+
+        - ``labels`` -- boolean, whether to return labels as well
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.add_edge(1,2,3,False)
+            sage: list(G.iterator_unsorted_edges(range(9), False))
+            [(2, 1)]
+            sage: list(G.iterator_unsorted_edges(range(9), True))
+            [(2, 1, 3)]
+
+        TESTS::
+
+            sage: G = Graph(sparse=True)
+            sage: G.add_edge((1,'a'))
+            sage: list(G._backend.iterator_unsorted_edges([1, 'a'],False))
+            [(1, 'a')]
+        """
+        return self._iterator_edges(vertices, labels, out=False, ignore_duplicates=False)
+
+    def iterator_out_edges(self, object vertices, bint labels):
+        """
+        Iterate over the outbound edges incident to a sequence of vertices.
+
+        INPUT:
+         - ``vertices`` -- a list of vertex labels
+         - ``labels`` -- boolean, whether to return labels as well
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.add_edge(1,2,3,True)
+            sage: list(G.iterator_out_edges([2], False))
+            []
+            sage: list(G.iterator_out_edges([1], False))
+            [(1, 2)]
+            sage: list(G.iterator_out_edges([1], True))
+            [(1, 2, 3)]
+        """
+        return self._iterator_edges(vertices, labels, out=True, ignore_duplicates=True)
+
+    def iterator_in_edges(self, object vertices, bint labels):
+        """
+        Iterate over the incoming edges incident to a sequence of vertices.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertex labels
+        - ``labels`` -- boolean, whether to return labels as well
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: G.add_edge(1,2,3,True)
+            sage: list(G.iterator_in_edges([1], False))
+            []
+            sage: list(G.iterator_in_edges([2], False))
+            [(1, 2)]
+            sage: list(G.iterator_in_edges([2], True))
+            [(1, 2, 3)]
+        """
+        return self._iterator_edges(vertices, labels, out=False, ignore_duplicates=True)
+
+    def _iterator_edges(self, object vertices, bint labels, bint out=True, bint ignore_duplicates=False, bint ignore_multiple_edges=False):
+        """
+        Iterate over the edges incident to a sequence of vertices.
+
+        INPUT:
+         - ``vertices`` -- a list of vertex labels
+         - ``labels`` -- boolean, whether to return labels as well
+         - ``out`` -- boolean, whether to consider outgoing edges (otherwise ingoing)
+         - ``ignore_duplicates`` -- if ``False`` do not return any duplicates
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.add_edge(1, 2, None, False)
+            sage: list(G._iterator_edges(range(9), False, True, False))
+            [(1, 2)]
+            sage: list(G._iterator_edges(range(9), True, True, False))
+            [(1, 2, None)]
+
+        ::
+
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.add_edge(1, 2, None, True)
+            sage: list(G.iterator_in_edges([1], False))
+            []
+            sage: list(G.iterator_in_edges([2], False))
+            [(1, 2)]
+            sage: list(G.iterator_in_edges([2], True))
+            [(1, 2, None)]
+
+        ::
+
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: G.add_edge(1, 2, None, True)
+            sage: list(G.iterator_out_edges([2], False))
+            []
+            sage: list(G.iterator_out_edges([1], False))
+            [(1, 2)]
+            sage: list(G.iterator_out_edges([1], True))
+            [(1, 2, None)]
+        """
+        cdef object u, v, l
+        cdef int u_int, v_int, l_int
+        cdef CGraph cg = self.cg()
+        cdef list b_vertices
+        #print('hello', self._multiple_edges, labels, out, ignore_duplicates, type(vertices), len(vertices), type(self))
+
+        if not self._multiple_edges or ignore_multiple_edges:
+            # The easy case.
+
+            # ALL edges
+            if not isinstance(vertices, list):
+                if labels:
+                    for v in self.iterator_verts():
+                        v_int = self.get_vertex(v)
+                        u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
+                        while u_int != -1:
+                            if ignore_duplicates or u_int >= v_int:
+                                u = self.vertex_label(u_int)
+                                l = self.edge_labels[l_int] if l_int else None
+                                if out:
+                                    yield (v, u, l)
+                                else:
+                                    yield (u, v, l)
+                            u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+
+                else:
+                    for v in self.iterator_verts():
+                        v_int = self.get_vertex(v)
+                        #print(v_int)
+                        #print('hi')
+                        u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
+                        while u_int != -1:
+                            #print('hi2')
+                            if ignore_duplicates or u_int >= v_int:
+                                u = self.vertex_label(u_int)
+                                #print(u_int, v_int)
+                                if out:
+                                    yield (v, u)
+                                else:
+                                    yield (u, v)
+                            #print('hi3')
+                            u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+                            #print('hi34')
+
+            # One vertex
+            elif len(vertices) == 1:
+                v = vertices[0]
+                v_int = self.get_vertex_checked(v)
+                if v_int == -1:
+                    return
+
+                if labels:
+                    u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
+                    while u_int != -1:
+                        u = self.vertex_label(u_int)
+                        l = self.edge_labels[l_int] if l_int else None
+                        if out:
+                            yield (v, u, l)
+                        else:
+                            yield (u, v, l)
+                        u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+                else:
+                    u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
+                    while u_int != -1:
+                        u = self.vertex_label(u_int)
+                        if out:
+                            yield (v, u)
+                        else:
+                            yield (u, v)
+                        u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+
+            # Several vertices (nonempty list)
+            elif vertices:
+                b_vertices = [self.get_vertex_checked(v) for v in vertices]
+                if labels:
+                    for v_int in b_vertices:
+                        v = self.vertex_label(v_int)
+                        if v_int != -1:
+                            u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
+                            while u_int != -1:
+                                if ignore_duplicates or u_int >= v_int or u_int not in b_vertices:
+                                    u = self.vertex_label(u_int)
+                                    l = self.edge_labels[l_int] if l_int else None
+                                    if out:
+                                        yield (v, u, l)
+                                    else:
+                                        yield (u, v, l)
+                                u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+                else:
+                    for v_int in b_vertices:
+                        if v_int != -1:
+                            v = self.vertex_label(v_int)
+                            u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
+                            while u_int != -1:
+                                if ignore_duplicates or u_int >= v_int or u_int not in b_vertices:
+                                    u = self.vertex_label(u_int)
+                                    if out:
+                                        yield (v, u)
+                                    else:
+                                        yield (u, v)
+                                u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+        else:
+            if labels:
+                for u, v in self._iterator_edges(vertices, False, out, ignore_duplicates, True):
+                    for l_int in cg.all_arcs(self.get_vertex(u), self.get_vertex(v)):
+                        l = self.edge_labels[l_int] if l_int else None
+                        yield (u, v, l)
+            else:
+                for u, v in self._iterator_edges(vertices, False, out, ignore_duplicates, True):
+                    for l_int in cg.all_arcs(self.get_vertex(u), self.get_vertex(v)):
+                        yield (u, v)
 
 
 cdef class Search_iterator:

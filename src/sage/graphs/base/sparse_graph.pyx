@@ -737,76 +737,6 @@ cdef class SparseGraph(CGraph):
         else:
             return -1
 
-    cdef inline int _next_arc_unsafe(self, SparseGraphBTNode** vertices, int u, ArcIterator* arc_iter):
-        if not arc_iter.v_bt:
-            # Go to the first neighbor.
-
-            arc_iter.v_bt = self.next_neighbor_BTNode_unsafe(vertices, u, -1)
-
-            arc_iter.label_counter = 0
-            arc_iter.labels = NULL
-            arc_iter.unlabeled_left = 1
-            if arc_iter.v_bt:
-                arc_iter.labels = arc_iter.v_bt.labels
-                arc_iter.v = arc_iter.v_bt.vertex
-
-        while arc_iter.v_bt:
-
-            if arc_iter.unlabeled_left:
-                # First give the unlabeled arcs.
-                if arc_iter.label_counter < arc_iter.v_bt.number:
-                    arc_iter.l = 0
-                    arc_iter.label_counter += 1
-
-                    if arc_iter.label_counter == arc_iter.v_bt.number:
-                        arc_iter.unlabeled_left = 0
-                        arc_iter.label_counter = 0
-
-                    return 1
-
-                # There are no more unlabeled arcs.
-                arc_iter.unlabeled_left = 0
-                arc_iter.label_counter = 0
-
-            if not arc_iter.labels:
-                # Next neighbor.
-                arc_iter.v_bt = self.next_neighbor_BTNode_unsafe(vertices, u, arc_iter.v)
-
-                arc_iter.unlabeled_left = 1
-                arc_iter.label_counter = 0
-                if arc_iter.v_bt:
-                    arc_iter.labels = arc_iter.v_bt.labels
-                    arc_iter.v = arc_iter.v_bt.vertex
-
-            else:
-                if arc_iter.label_counter < arc_iter.labels.number:
-                    # Yield all arcs with this label.
-                    arc_iter.l = arc_iter.labels.label
-                    arc_iter.label_counter += 1
-
-                    if arc_iter.label_counter == arc_iter.labels.number:
-                        # Already set the next label.
-                        arc_iter.labels = arc_iter.labels.next
-                        arc_iter.label_counter = 0
-
-                    return 1
-
-                else:
-                    # Next label.
-                    arc_iter.labels = arc_iter.labels.next
-                    arc_iter.label_counter = 0
-
-                if not arc_iter.labels:
-                    # Next neighbor.
-                    arc_iter.v_bt = self.next_neighbor_BTNode_unsafe(vertices, u, arc_iter.v)
-                    arc_iter.unlabeled_left = 1
-                    arc_iter.label_counter = 0
-                    if arc_iter.v_bt:
-                        arc_iter.labels = arc_iter.v_bt.labels
-                        arc_iter.v = arc_iter.v_bt.vertex
-
-        return 0
-
     cdef inline SparseGraphBTNode* next_neighbor_BTNode_unsafe(self, SparseGraphBTNode** vertices, int u, int v):
         """
         Return the next neighbor of ``u`` that is greater than ``v``.
@@ -871,54 +801,6 @@ cdef class SparseGraph(CGraph):
             2
         """
         return self.out_degrees[u]
-
-    cdef list out_arcs_unsafe(self, int u, bint labels):
-        r"""
-        Build the list of arcs leaving a vertex.
-
-        Note that the source of each edge is *NOT* returned.
-
-        INPUT:
-
-        - ``u`` -- the vertex to consider
-
-        - ``labels`` -- whether to return the labels alors with the outneighbor.
-          If set to ``True``, the function returns a list of pairs
-          ``(destination, label)`` for each arc leaving `u`. If set to
-          ``False``, it returns a list of outneighbors (with multiplicity if
-          several edges link two vertices).
-        """
-        cdef SparseGraphBTNode ** pointers[1]
-        cdef SparseGraphBTNode * node
-        cdef int neighbors = self.out_neighbors_BTNode_unsafe(u, pointers)
-        cdef SparseGraphLLNode *label
-        cdef int i,j
-        cdef list l = []
-        if labels:
-            for i in range(neighbors):
-                node = pointers[0][i]
-                for j in range(node.number):
-                    l.append((node.vertex, 0))
-                label = node.labels
-                while label:
-                    for k in range(label.number):
-                        l.append((node.vertex, label.label))
-                    label = label.next
-        else:
-            for i in range(neighbors):
-                node = pointers[0][i]
-                for j in range(node.number):
-                    l.append(node.vertex)
-                label = node.labels
-                while label:
-                    for k in range(label.number):
-                        l.append(node.vertex)
-                    label = label.next
-
-        if pointers[0]:
-            sig_free(pointers[0])
-
-        return l
 
     cdef int in_neighbors_BTNode_unsafe(self, int v, SparseGraphBTNode *** p_pointers):
         """
@@ -998,54 +880,6 @@ cdef class SparseGraph(CGraph):
             1
         """
         return self.in_degrees[v]
-
-    cdef list in_arcs_unsafe(self, int v, bint labels):
-        r"""
-        Build the list of arcs into a vertex.
-
-        Note that the source of each edge is *NOT* returned.
-
-        INPUT:
-
-        - ``v`` -- the vertex to consider
-
-        - ``labels`` -- whether to return the labels alors with the outneighbor.
-          If set to ``True``, the function returns a list of pairs
-          ``(destination, label)`` for each arc leaving `u`. If set to
-          ``False``, it returns a list of outneighbors (with multiplicity if
-          several edges link two vertices).
-        """
-        cdef SparseGraphBTNode ** pointers[1]
-        cdef SparseGraphBTNode * node
-        cdef int neighbors = self.in_neighbors_BTNode_unsafe(v, pointers)
-        cdef SparseGraphLLNode *label
-        cdef int i,j
-        cdef list l = []
-        if labels:
-            for i in range(neighbors):
-                node = pointers[0][i]
-                for j in range(node.number):
-                    l.append((node.vertex, 0))
-                label = node.labels
-                while label:
-                    for k in range(label.number):
-                        l.append((node.vertex, label.label))
-                    label = label.next
-        else:
-            for i in range(neighbors):
-                node = pointers[0][i]
-                for j in range(node.number):
-                    l.append(node.vertex)
-                label = node.labels
-                while label:
-                    for k in range(label.number):
-                        l.append(node.vertex)
-                    label = label.next
-
-        if pointers[0]:
-            sig_free(pointers[0])
-
-        return l
 
     ###################################
     # Labeled arc functions

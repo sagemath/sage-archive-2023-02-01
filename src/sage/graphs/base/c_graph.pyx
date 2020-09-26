@@ -3662,7 +3662,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int u_int, v_int, l_int
         cdef CGraph cg = self.cg()
         cdef list b_vertices
-        #print('hello', self._multiple_edges, labels, out, ignore_duplicates, type(vertices), len(vertices), type(self))
 
         if not self._multiple_edges or ignore_multiple_edges:
             # The easy case.
@@ -3686,21 +3685,15 @@ cdef class CGraphBackend(GenericGraphBackend):
                 else:
                     for v in self.iterator_verts():
                         v_int = self.get_vertex(v)
-                        #print(v_int)
-                        #print('hi')
                         u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
                         while u_int != -1:
-                            #print('hi2')
                             if ignore_duplicates or u_int >= v_int:
                                 u = self.vertex_label(u_int)
-                                #print(u_int, v_int)
                                 if out:
                                     yield (v, u)
                                 else:
                                     yield (u, v)
-                            #print('hi3')
                             u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
-                            #print('hi34')
 
             # One vertex
             elif len(vertices) == 1:

@@ -23,14 +23,6 @@ cdef struct SparseGraphBTNode:
     SparseGraphBTNode *left
     SparseGraphBTNode *right
 
-cdef struct ArcIterator:
-    SparseGraphBTNode *v_bt
-    SparseGraphLLNode *labels
-    int label_counter
-    int v
-    int l
-    int unlabeled_left
-
 @cython.final
 cdef class SparseGraph(CGraph):
     cdef int hash_length
@@ -55,7 +47,6 @@ cdef class SparseGraph(CGraph):
     cpdef bint has_arc_label(self, int u, int v, int l)
     cpdef int out_degree(self, int u)
     cpdef int in_degree(self, int u)
-    cdef list out_arcs_unsafe(self, int u, bint labels)
 
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
     cdef int in_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
@@ -82,16 +73,6 @@ cdef class SparseGraph(CGraph):
 
     cdef inline SparseGraphBTNode* next_neighbor_BTNode_unsafe(self, SparseGraphBTNode** vertices, int u, int v)
 
-    cdef inline int next_out_arc_unsafe(self, int u, ArcIterator* arc_iter):
-        return self._next_arc_unsafe(self.vertices, u, arc_iter)
-
-    cdef inline int next_in_arc_unsafe(self, int u, ArcIterator* arc_iter):
-        return self._next_arc_unsafe(self.vertices_rev, u, arc_iter)
-
-    cdef inline int _next_arc_unsafe(self, SparseGraphBTNode** vertices, int u, ArcIterator* arc_iter)
-
-
-    cdef list in_arcs_unsafe(self, int u, bint labels)
 
 cdef class SparseGraphBackend(CGraphBackend):
     cdef int edge_labels_max

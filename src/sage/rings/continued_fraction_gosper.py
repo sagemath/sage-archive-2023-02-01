@@ -62,6 +62,12 @@ class gosper_iterator(object):
             sage: period = l[preperiod_length:]
             sage: continued_fraction((preperiod, period), x.value()) == continued_fraction((a*x.value()+b)/(c*x.value()+d))
             True
+
+        Infinity::
+
+            sage: cf = continued_fraction(2/3)
+            sage: list(gosper_iterator(0, 1, 3, -2, cf))
+            []
         """
         from sage.rings.continued_fraction import ContinuedFraction_periodic
         self.a = a

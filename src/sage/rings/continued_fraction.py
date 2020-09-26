@@ -1142,7 +1142,7 @@ class ContinuedFraction_base(SageObject):
 
     n = numerical_approx
 
-    def apply_homography(self, a, b, c, d):
+    def apply_homography(self, a, b, c, d, forward_value=False):
         """
         Return the continued fraction of `(ax + b)/(cx + d)`.
 
@@ -1153,12 +1153,31 @@ class ContinuedFraction_base(SageObject):
 
         - ``a, b, c, d`` -- integers
 
+        - ``forward_value`` -- boolean (default: ``False``) whether the returned continued
+          fraction is given the symbolic value of `(a x + b)/(cx + d)` and not only the
+          list of partial quotients obtained from Gosper's algorithm.
+
         EXAMPLES::
 
             sage: (5 * 13/6 - 2) / (3 * 13/6 - 4)
             53/15
             sage: continued_fraction(13/6).apply_homography(5, -2,  3, -4).value()
             53/15
+
+        We demonstrate now the effect of the optional argument ``forward_value``::
+
+            sage: cf = continued_fraction(pi)
+            sage: h1 = cf.apply_homography(35, -27, 12, -5)
+            sage: h1
+            [2; 1, 1, 6, 3, 1, 2, 1, 5, 3, 1, 1, 1, 1, 9, 12, 1, 1, 1, 3...]
+            sage: h1.value()
+            2.536941776086946?
+
+            sage: h2 = cf.apply_homography(35, -27, 12, -5, forward_value=True)
+            sage: h2
+            [2; 1, 1, 6, 3, 1, 2, 1, 5, 3, 1, 1, 1, 1, 9, 12, 1, 1, 1, 3...]
+            sage: h2.value()
+            (35*pi - 27)/(12*pi - 5)
 
         TESTS::
 
@@ -1167,13 +1186,14 @@ class ContinuedFraction_base(SageObject):
             ....:       [3,1,2,2], words.FibonacciWord([1,3])]]
             sage: for _ in range(100):
             ....:     cf = choice(CF)
+            ....:     forward_value = choice([True, False])
             ....:     a = ZZ.random_element(-30, 30)
             ....:     b = ZZ.random_element(-30, 30)
             ....:     c = ZZ.random_element(-30, 30)
             ....:     d = ZZ.random_element(-30, 30)
             ....:     if not c and not d:
             ....:         continue
-            ....:     cf_gosper = cf.apply_homography(a,b,c,d)
+            ....:     cf_gosper = cf.apply_homography(a, b, c, d, forward_value)
             ....:     x = cf.value()
             ....:     cf_hom = continued_fraction((a*x + b) / (c*x + d))
             ....:     assert cf_gosper[:30] == cf_hom[:30]
@@ -1181,7 +1201,7 @@ class ContinuedFraction_base(SageObject):
             sage: continued_fraction(13/25).apply_homography(0, 1, 25, -13)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: rational division by zero
+            ValueError: continued fraction can not represent infinity
 
             sage: continued_fraction(pi).apply_homography(0, 1, 0, 0)
             Traceback (most recent call last):
@@ -1206,18 +1226,27 @@ class ContinuedFraction_base(SageObject):
         if not c and not d:
             raise ZeroDivisionError("division by zero")
 
-        x = self.value()
-        z = (a * x + b) / (c * x + d)
         _i = iter(gosper_iterator(a, b, c, d, self))
+        value = None
         if isinstance(self, ContinuedFraction_periodic):
             l = list(_i)
             preperiod_length = _i.output_preperiod_length
             preperiod = l[:preperiod_length]
             period = l[preperiod_length:]
-            return continued_fraction((preperiod, period), z)
+            return continued_fraction((preperiod, period), value)
         else:
+            if forward_value:
+                if isinstance(self, ContinuedFraction_real):
+                    # self._x0 is an exact number, ie with infinite precision
+                    x = self._x0
+                    value = (a * x + b) / (c * x + d)
+                elif isinstance(self, ContinuedFraction_infinite) and self._value is not None:
+                    # if present, self._value is an exact number, ie with infinite precision
+                    x = self._value
+                    value = (a * x + b) / (c * x + d)
+
             from sage.misc.lazy_list import lazy_list
-            return continued_fraction(lazy_list(_i), z)
+            return continued_fraction(lazy_list(_i), value)
 
 class ContinuedFraction_periodic(ContinuedFraction_base):
     r"""
@@ -2198,7 +2227,9 @@ def check_and_reduce_pair(x1, x2=None):
 
         sage: from sage.rings.continued_fraction import check_and_reduce_pair
         sage: check_and_reduce_pair([])
-        ((0,), (+Infinity,))
+        Traceback (most recent call last):
+        ...
+        ValueError: continued fraction can not represent infinity
         sage: check_and_reduce_pair([-1,1])
         ((0,), (+Infinity,))
         sage: check_and_reduce_pair([1,1,1])
@@ -2215,7 +2246,7 @@ def check_and_reduce_pair(x1, x2=None):
     if x2 is None or not x2 or x2[0] is Infinity:
         y2 = [Infinity]
         if not y1:
-            y1 = [ZZ_0]
+            raise ValueError("continued fraction can not represent infinity")
         elif len(y1) > 1 and y1[-1] == 1:
             y1.pop()
             y1[-1] += 1
@@ -2245,7 +2276,7 @@ def check_and_reduce_pair(x1, x2=None):
             y2 = y2[:i]
             break
 
-    # check that at then end y1 has no zeros in it
+    # check that at the end y1 has no zeros in it
     for i in range(1, len(y1)):
         if y1[i] <= 0:
             raise ValueError("all quotient except the first must be positive")

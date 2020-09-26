@@ -3709,6 +3709,11 @@ cdef class CGraphBackend(GenericGraphBackend):
                 except StopIteration:
                     return
 
+            # WARNING
+            # If you modify this, you must keep in mind the documentation in the
+            # corresponding method in `generic_graph.py` in the method `edge_iterator`.
+            # E.g. code assumes that you can use an iterator to relabel or delete arcs.
+
             u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
             while u_int != -1:
                 if (modus < 2 or                                            # Do not delete duplicates.

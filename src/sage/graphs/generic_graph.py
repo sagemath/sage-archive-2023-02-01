@@ -11817,6 +11817,18 @@ class GenericGraph(GenericGraph_pyx):
           undirected graphs. If ``True``, do not sort the ends of the edge.
           This is faster.
 
+        .. NOTE::
+
+            It is somewhat safe to modify the graph during iterating.
+            Without multiedges, you can safely use this graph to relabel
+            edges or delete some edges. If you add edges, they might later
+            appear in the iterator or not
+            (depending on the internal order of vertices).
+
+            In case of multiedges, all arcs from one vertex to another are
+            internally cached. So the iterator will yield them, even if you delete
+            them all after seeing the first one.
+
         EXAMPLES::
 
             sage: for i in graphs.PetersenGraph().edge_iterator([0]):

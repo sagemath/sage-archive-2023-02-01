@@ -421,14 +421,15 @@ cdef class DenseGraph(CGraph):
 
         Set ``l`` to be the label of the first arc.
         """
-        u = u+1
         l[0] = 0
         cdef int place = v / radix
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         cdef size_t i
-        for i in range(u, self.active_vertices.size):
+        i = bitset_next(self.active_vertices, u+1)
+        while i != -1:
             if self.edges[place + i * self.num_longs] & word:
                 return i
+            i = bitset_next(self.active_vertices, i+1)
         return -1
 
 ##############################

@@ -446,6 +446,25 @@ def _get_json(url, **kwargs):
         return(result)
     raise ConnectionError(response.text)
 
+def _post_json(url, data, **kwargs):
+    """
+    Return the json response or raise an error.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import _post_json, FINDSTAT_API_MAPS
+    """
+    response = requests.post(url, data=data)
+    if response.ok:
+        try:
+            result = response.json(**kwargs)
+        except JSONDecodeError:
+            raise ValueError(response.text)
+        if "error" in result:
+            raise ValueError(result["error"])
+        return(result)
+    raise ConnectionError(response.text)
+
 def _submit(args, url):
     """
     Open a post form containing fields for each of the arguments,
@@ -2563,7 +2582,7 @@ class FindStatStatisticQuery(FindStatStatistic):
         if debug:
             print(query)
         verbose("querying FindStat %s" % query, caller_name='FindStatStatisticQuery')
-        response = requests.post(FINDSTAT_API_STATISTICS, data=query).json()
+        response = _post_json(FINDSTAT_API_STATISTICS, query)
 
         if debug:
             print(response)
@@ -3442,7 +3461,7 @@ class FindStatMapQuery(FindStatMap):
         if debug:
             print(query)
         verbose("querying FindStat %s" % query, caller_name='FindStatMapQuery')
-        response = requests.post(FINDSTAT_API_MAPS, data=query).json()
+        response = _post_json(FINDSTAT_API_MAPS, query)
 
         if debug:
             print(response)

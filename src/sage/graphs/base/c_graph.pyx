@@ -3652,7 +3652,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(G.iterator_out_edges([1], True))
             [(1, 2, None)]
         """
-        cdef object u, v, l
+        cdef object u, v, l, v_copy
         cdef int u_int, v_int, l_int
         cdef CGraph cg = self.cg()
         cdef list b_vertices
@@ -3720,32 +3720,23 @@ cdef class CGraphBackend(GenericGraphBackend):
                         l = self.edge_labels[l_int] if l_int else None
 
                     # Yield the arc/arcs.
+                    v_copy = v
                     if _reorganize_edge(v, u, modus):
-                        if not self._multiple_edges:
-                            if labels:
-                                yield (u, v, l)
-                            else:
-                                yield (u, v)
+                        u,v = v,u
+
+                    if not self._multiple_edges:
+                        if labels:
+                            yield (v, u, l)
                         else:
-                            for l_int in cg.all_arcs(u_int, v_int):
-                                if labels:
-                                    l = self.edge_labels[l_int] if l_int else None
-                                    yield (u, v, l)
-                                else:
-                                    yield (u, v)
+                            yield (v, u)
                     else:
-                        if not self._multiple_edges:
+                        for l_int in cg.all_arcs(v_int, u_int):
                             if labels:
+                                l = self.edge_labels[l_int] if l_int else None
                                 yield (v, u, l)
                             else:
                                 yield (v, u)
-                        else:
-                            for l_int in cg.all_arcs(v_int, u_int):
-                                if labels:
-                                    l = self.edge_labels[l_int] if l_int else None
-                                    yield (v, u, l)
-                                else:
-                                    yield (v, u)
+                    v = v_copy
 
                 u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
 

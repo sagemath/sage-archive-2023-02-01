@@ -980,6 +980,8 @@ cdef class StaticSparseBackend(CGraphBackend):
                 else:
                     yield vi, self._vertex_to_labels[j]
 
+    iterator_unsorted_edges = iterator_edges
+
     def degree(self, v, directed):
         r"""
         Return the degree of a vertex

@@ -621,11 +621,11 @@ class GenericGraph(GenericGraph_pyx):
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
             return all(other.has_edge(*edge)
-                       for edge in self.edge_iterator(labels=self._weighted))
+                       for edge in self.edge_iterator(labels=self._weighted, unsorted=True))
         # The problem with multiple edges is that labels may not have total
         # ordering, which makes it difficult to compare lists of labels.
         seen = set()
-        for e in self.edge_iterator(labels=False):
+        for e in self.edge_iterator(labels=False, unsorted=True):
             if e in seen:
                 continue
             seen.add(e)

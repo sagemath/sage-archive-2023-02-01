@@ -3605,7 +3605,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         return self._iterator_edges(vertices, labels, modus=1)
 
-    def _iterator_edges(self, object vertices, bint labels, int modus=0):
+    def _iterator_edges(self, object vertices, const bint labels, const int modus=0):
         """
         Iterate over the edges incident to a sequence of vertices.
 
@@ -3658,163 +3658,96 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef list b_vertices
         cdef bint out = modus == 0
 
-        # ALL edges
-        if not isinstance(vertices, list):
-            if labels:
-                for v in self.iterator_verts():
-                    v_int = self.get_vertex(v)
-                    u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
-                    while u_int != -1:
-                        if modus < 2 or u_int >= v_int:
-                            u = self.vertex_label(u_int)
-                            l = self.edge_labels[l_int] if l_int else None
+        cdef int vertices_case
+        cdef object it
 
-                            # Yield the arc/arcs.
-                            if _reorganize_edge(v, u, modus):
-                                if not self._multiple_edges:
+        if not isinstance(vertices, list):
+            # ALL edges
+            it = self.iterator_verts(None)
+            vertices_case = 0
+
+        elif len(vertices) == 1:
+            # One vertex
+            vertices_case = 1
+            v_int = -1
+
+        else:
+            # Several vertices (nonempty list)
+            vertices_case = 2
+            b_vertices = [self.get_vertex_checked(v) for v in vertices]
+            it = iter(b_vertices)
+
+        while True:
+            # Think of this as a loop through ``vertices``.
+            # We pick the next vertex according to three cases.
+
+            if vertices_case == 0:
+                # ALL edges
+                try:
+                    v = next(it)
+                    v_int = self.get_vertex(v)
+                except StopIteration:
+                    return
+
+            elif vertices_case == 1:
+                # One vertex
+                if v_int != -1:
+                    # Only visit one vertex once.
+                    return
+                v = vertices[0]
+                v_int = self.get_vertex_checked(v)
+                if v_int == -1:
+                    return
+
+            else:
+                # Several vertices (nonempty list)
+                try:
+                    v_int = -1
+                    while v_int == -1:
+                        v_int = next(it)
+                    v = self.vertex_label(v_int)
+                except StopIteration:
+                    return
+
+            u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
+            while u_int != -1:
+                if (modus < 2 or                                            # Do not delete duplicates.
+                        vertices_case == 1 or                               # Only one vertex, so no duplicates.
+                        u_int >= v_int or                                   # We visit if u_int >= v_int ...
+                        (vertices_case == 2 and u_int not in b_vertices)):  # ... or if u_int is not in ``vertices``.
+                    u = self.vertex_label(u_int)
+                    if labels:
+                        l = self.edge_labels[l_int] if l_int else None
+
+                    # Yield the arc/arcs.
+                    if _reorganize_edge(v, u, modus):
+                        if not self._multiple_edges:
+                            if labels:
+                                yield (u, v, l)
+                            else:
+                                yield (u, v)
+                        else:
+                            for l_int in cg.all_arcs(u_int, v_int):
+                                if labels:
+                                    l = self.edge_labels[l_int] if l_int else None
                                     yield (u, v, l)
                                 else:
-                                    for l_int in cg.all_arcs(u_int, v_int):
-                                        l = self.edge_labels[l_int] if l_int else None
-                                        yield (u, v, l)
+                                    yield (u, v)
+                    else:
+                        if not self._multiple_edges:
+                            if labels:
+                                yield (v, u, l)
                             else:
-                                if not self._multiple_edges:
+                                yield (v, u)
+                        else:
+                            for l_int in cg.all_arcs(v_int, u_int):
+                                if labels:
+                                    l = self.edge_labels[l_int] if l_int else None
                                     yield (v, u, l)
                                 else:
-                                    for l_int in cg.all_arcs(v_int, u_int):
-                                        l = self.edge_labels[l_int] if l_int else None
-                                        yield (v, u, l)
-
-                        u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
-
-            else:
-                for v in self.iterator_verts():
-                    v_int = self.get_vertex(v)
-                    u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
-                    while u_int != -1:
-                        if modus < 2 or u_int >= v_int:
-                            u = self.vertex_label(u_int)
-
-                            # Yield the arc/arcs.
-                            if _reorganize_edge(v, u, modus):
-                                if not self._multiple_edges:
-                                    yield (u, v)
-                                else:
-                                    for l_int in cg.all_arcs(u_int, v_int):
-                                        yield (u, v)
-                            else:
-                                if not self._multiple_edges:
                                     yield (v, u)
-                                else:
-                                    for l_int in cg.all_arcs(v_int, u_int):
-                                        yield (v, u)
 
-                        u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
-
-        # One vertex
-        elif len(vertices) == 1:
-            v = vertices[0]
-            v_int = self.get_vertex_checked(v)
-            if v_int == -1:
-                return
-
-            if labels:
-                u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
-                while u_int != -1:
-                    u = self.vertex_label(u_int)
-                    l = self.edge_labels[l_int] if l_int else None
-
-                    # Yield the arc/arcs.
-                    if _reorganize_edge(v, u, modus):
-                        if not self._multiple_edges:
-                            yield (u, v, l)
-                        else:
-                            for l_int in cg.all_arcs(u_int, v_int):
-                                l = self.edge_labels[l_int] if l_int else None
-                                yield (u, v, l)
-                    else:
-                        if not self._multiple_edges:
-                            yield (v, u, l)
-                        else:
-                            for l_int in cg.all_arcs(v_int, u_int):
-                                l = self.edge_labels[l_int] if l_int else None
-                                yield (v, u, l)
-
-                    u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
-            else:
-                u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
-                while u_int != -1:
-                    u = self.vertex_label(u_int)
-
-                    # Yield the arc/arcs.
-                    if _reorganize_edge(v, u, modus):
-                        if not self._multiple_edges:
-                            yield (u, v)
-                        else:
-                            for l_int in cg.all_arcs(u_int, v_int):
-                                yield (u, v)
-                    else:
-                        if not self._multiple_edges:
-                            yield (v, u)
-                        else:
-                            for l_int in cg.all_arcs(v_int, u_int):
-                                yield (v, u)
-
-                    u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
-
-        # Several vertices (nonempty list)
-        elif vertices:
-            b_vertices = [self.get_vertex_checked(v) for v in vertices]
-            if labels:
-                for v_int in b_vertices:
-                    v = self.vertex_label(v_int)
-                    if v_int != -1:
-                        u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
-                        while u_int != -1:
-                            if modus < 2 or u_int >= v_int or u_int not in b_vertices:
-                                u = self.vertex_label(u_int)
-                                l = self.edge_labels[l_int] if l_int else None
-
-                                # Yield the arc/arcs.
-                                if _reorganize_edge(v, u, modus):
-                                    if not self._multiple_edges:
-                                        yield (u, v, l)
-                                    else:
-                                        for l_int in cg.all_arcs(u_int, v_int):
-                                            l = self.edge_labels[l_int] if l_int else None
-                                            yield (u, v, l)
-                                else:
-                                    if not self._multiple_edges:
-                                        yield (v, u, l)
-                                    else:
-                                        for l_int in cg.all_arcs(v_int, u_int):
-                                            l = self.edge_labels[l_int] if l_int else None
-                                            yield (v, u, l)
-                            u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
-            else:
-                for v_int in b_vertices:
-                    if v_int != -1:
-                        v = self.vertex_label(v_int)
-                        u_int = cg._next_neighbor_unsafe(v_int, -1, out, &l_int)
-                        while u_int != -1:
-                            if modus < 2 or u_int >= v_int or u_int not in b_vertices:
-                                u = self.vertex_label(u_int)
-
-                                # Yield the arc/arcs.
-                                if _reorganize_edge(v, u, modus):
-                                    if not self._multiple_edges:
-                                        yield (u, v)
-                                    else:
-                                        for l_int in cg.all_arcs(u_int, v_int):
-                                            yield (u, v)
-                                else:
-                                    if not self._multiple_edges:
-                                        yield (v, u)
-                                    else:
-                                        for l_int in cg.all_arcs(v_int, u_int):
-                                            yield (v, u)
-
-                            u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+                u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
 
 
 cdef class Search_iterator:
@@ -4005,7 +3938,7 @@ cdef class Search_iterator:
 # Functions to simplify edge iterator.
 ##############################
 
-cdef inline bint _reorganize_edge(object v, object u, int modus):
+cdef inline bint _reorganize_edge(object v, object u, const int modus):
     """
     Return ``True`` if ``v`` and ``u`` should be exchanged according to the modus.
 

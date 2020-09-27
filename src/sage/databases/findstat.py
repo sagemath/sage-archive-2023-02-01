@@ -443,7 +443,7 @@ def _get_json(url, **kwargs):
             raise ValueError(response.text)
         if "error" in result:
             raise ValueError(result["error"])
-        return(result)
+        return result
     raise ConnectionError(response.text)
 
 def _post_json(url, data, **kwargs):
@@ -452,7 +452,11 @@ def _post_json(url, data, **kwargs):
 
     EXAMPLES::
 
-        sage: from sage.databases.findstat import _post_json, FINDSTAT_API_MAPS
+        sage: from sage.databases.findstat import _post_json, FINDSTAT_API_STATISTICS
+        sage: _post_json(FINDSTAT_API_STATISTICS, {"xxx": "yyy"})               # optional -- internet
+        Traceback (most recent call last):
+        ...
+        ValueError: E005: On filtering statistics, the following parameters are not allowed: ['xxx'].
     """
     response = requests.post(url, data=data)
     if response.ok:
@@ -462,7 +466,7 @@ def _post_json(url, data, **kwargs):
             raise ValueError(response.text)
         if "error" in result:
             raise ValueError(result["error"])
-        return(result)
+        return result
     raise ConnectionError(response.text)
 
 def _submit(args, url):
@@ -780,19 +784,18 @@ def _distribution_from_data(data, domain, max_values, generating_functions=False
             break
         if total < len(elts):
             break
-        else:
-            lvl = domain.element_level(elts[0])
-            if generating_functions and lvl not in levels_with_sizes:
-                continue
-            if levels_with_sizes[lvl] > total:
-                # we assume that from now on levels become even larger
-                break
-            if not all(domain.element_level(elt) == lvl for elt in elts[1:]):
-                raise ValueError("cannot combine %s into a distribution" % elts)
-            lvl_elts, lvl_vals = lvl_dict.get(lvl, [[], []])
-            lvl_dict[lvl] = (lvl_elts + elts, lvl_vals + vals)
-            if levels_with_sizes[lvl] == len(lvl_dict[lvl][0]):
-                total -= levels_with_sizes[lvl]
+        lvl = domain.element_level(elts[0])
+        if generating_functions and lvl not in levels_with_sizes:
+            continue
+        if levels_with_sizes[lvl] > total:
+            # we assume that from now on levels become even larger
+            break
+        if not all(domain.element_level(elt) == lvl for elt in elts[1:]):
+            raise ValueError("cannot combine %s into a distribution" % elts)
+        lvl_elts, lvl_vals = lvl_dict.get(lvl, [[], []])
+        lvl_dict[lvl] = (lvl_elts + elts, lvl_vals + vals)
+        if levels_with_sizes[lvl] == len(lvl_dict[lvl][0]):
+            total -= levels_with_sizes[lvl]
 
     if generating_functions:
         return {lvl: {val: vals.count(val) for val in set(vals)}
@@ -834,21 +837,21 @@ def _generating_functions_from_dict(gfs, style):
     """
     if style == "dictionary":
         return gfs
-    elif style == "list":
+    if style == "list":
         return {level: [gen_dict.get(deg, 0)
                         for deg in range(min(gen_dict),
                                          max(gen_dict)+1)]
                 for level, gen_dict in gfs.items() if gen_dict}
-    elif style == "polynomial":
+    if style == "polynomial":
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.integer_ring import ZZ
-        P = PolynomialRing(ZZ,"q")
+        P = PolynomialRing(ZZ, "q")
         q = P.gen()
         return {level: sum(coefficient * q**exponent
                            for exponent, coefficient in gen_dict.items())
                 for level, gen_dict in gfs.items()}
-    else:
-        raise ValueError("the argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'" % style)
+
+    raise ValueError("the argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'" % style)
 
 
 def _get_code_from_callable(function):
@@ -1052,21 +1055,14 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
-    def get_data(raw, domain=None):
-        known_terms, domain = _data_from_iterable(raw, domain=domain,
-                                               mapping=False,
-                                               check=check_collection)
-        data = _data_from_data(known_terms, max_values)
-        return known_terms, data, domain, None
-
     def get_values(raw, domain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)
             function = raw
         else:
             known_terms, domain = _data_from_iterable(raw, domain=domain,
-                                                   mapping=False,
-                                                   check=check_collection)
+                                                      mapping=False,
+                                                      check=check_collection)
             function = None
         data = _data_from_data(known_terms, max_values)
         return known_terms, data, domain, function
@@ -1077,8 +1073,8 @@ def findstat(query=None, values=None, distribution=None, domain=None,
             function = raw
         else:
             known_terms, domain = _data_from_iterable(raw, domain=domain,
-                                                   mapping=False,
-                                                   check=check_collection)
+                                                      mapping=False,
+                                                      check=check_collection)
             function = None
         data = _distribution_from_data(known_terms, domain, max_values)
         return known_terms, data, domain, function
@@ -1248,7 +1244,7 @@ def findmap(*args, **kwargs):
         0: Mp00146 (quality [100])
 
         sage: findmap("Dyck paths", "Set partitions", lambda D: [(a+1, b) for a,b in D.tunnels()]) # optional -- internet
-        0: Mp00092oMp00146 (quality [83])
+        0: Mp00092oMp00146 (quality [50])
 
     Finally, we can also retrieve all maps with a given domain or codomain::
 
@@ -1287,14 +1283,6 @@ def findmap(*args, **kwargs):
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
-    def get_data(raw, domain=None, codomain=None):
-        known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
-                                                         codomain=codomain,
-                                                         mapping=True,
-                                                         check=check_collection)
-        data = _data_from_data(known_terms, max_values)
-        return known_terms, data, domain, codomain, None
-
     def get_values(raw, domain=None, codomain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)
@@ -1303,9 +1291,9 @@ def findmap(*args, **kwargs):
             function = raw
         else:
             known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
-                                                             codomain=codomain,
-                                                             mapping=True,
-                                                             check=check_collection)
+                                                                codomain=codomain,
+                                                                mapping=True,
+                                                                check=check_collection)
             function = None
         data = _data_from_data(known_terms, max_values)
         return known_terms, data, domain, codomain, function
@@ -1357,8 +1345,8 @@ def findmap(*args, **kwargs):
                      and not is_collection(args[0])))):
             return FindStatMap(args[0])
 
-        elif (isinstance(args[0], str) and
-              is_collection(args[0])):
+        if (isinstance(args[0], str) and
+            is_collection(args[0])):
             domain = check_domain(args[0], domain)
 
         else:
@@ -1732,7 +1720,7 @@ class FindStatFunction(SageObject):
                                              if e)
                     result.append(comment + author_title + " " + "".join(parts[1:]))
 
-        return FancyTuple([ref for ref in result])
+        return FancyTuple(result)
 
     def references_raw(self):
         r"""
@@ -2072,10 +2060,9 @@ class FindStatCombinatorialStatistic(SageObject):
             if verbose:
                 print('Searching the OEIS for "%s"' % OEIS_string)
             return oeis(str(OEIS_string)) # in python 2.7, oeis does not like unicode
-        else:
-            if verbose:
-                print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
-            return
+
+        if verbose:
+            print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
 
 
 class FindStatStatistic(Element,
@@ -3089,7 +3076,7 @@ class FindStatMap(Element,
         verbose("fetching map data %s" % url, caller_name='FindStatMap')
         included = _get_json(url)["included"]
         # slightly simplify the representation
-        data = {key: val for key, val in included["Maps"][self.id_str()].items()}
+        data = included["Maps"][self.id_str()]
         # we replace the list of identifiers in Bibliography with the dictionary
         data["Bibliography"] = included["References"]
         return data
@@ -4027,6 +4014,8 @@ class FindStatCollection(Element,
         """
         Return whether the element belongs to the collection.
 
+        If the collection is not yet supported, return whether element is a string.
+
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
@@ -4037,7 +4026,10 @@ class FindStatCollection(Element,
             sage: cc.is_element(SetPartition([[1,2],[3,4],[5,6]]))              # optional -- internet
             False
         """
-        return self._data["Code"].is_element(element)
+        if self.is_supported():
+            return self._data["Code"].is_element(element)
+
+        return isinstance(element, str)
 
     def levels_with_sizes(self):
         """
@@ -4206,6 +4198,8 @@ class FindStatCollection(Element,
         Return a function that returns a FindStat representation given an
         object.
 
+        If the collection is not yet supported, return the identity.
+
         OUTPUT:
 
         The function that produces the string representation as
@@ -4219,7 +4213,9 @@ class FindStatCollection(Element,
             sage: c.to_string()(p)                                              # optional -- internet
             '([(0, 1), (1, 2)], 3)'
         """
-        return self._data["Code"].element_to_string
+        if self.is_supported():
+            return self._data["Code"].element_to_string
+        return lambda x: x
 
     def from_string(self):
         r"""
@@ -4288,10 +4284,9 @@ class FindStatCollection(Element,
         """
         if style == "singular":
             return self._data["Name"]
-        elif style == "plural":
+        if style == "plural":
             return self._data["NamePlural"]
-        else:
-            raise ValueError("argument 'style' (=%s) must be 'singular' or 'plural'"%style)
+        raise ValueError("argument 'style' (=%s) must be 'singular' or 'plural'"%style)
 
 from collections import namedtuple
 _SupportedFindStatCollection = namedtuple("SupportedFindStatCollection",
@@ -4384,7 +4379,7 @@ _SupportedFindStatCollections = {
     _SupportedFindStatCollection(lambda x: ParkingFunction(literal_eval(x)),
                                  str,
                                  ParkingFunctions,
-                                 lambda x: len(x),
+                                 len,
                                  lambda x: isinstance(x, ParkingFunction_class)),
     "PerfectMatchings":
     _SupportedFindStatCollection(lambda x: PerfectMatching(literal_eval(x)),
@@ -4458,7 +4453,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatCollections
-        sage: sorted(c for c in FindStatCollections())                          # optional -- internet
+        sage: sorted(c for c in FindStatCollections() if c.is_supported())      # optional -- internet
         [Cc0001: Permutations,
          Cc0002: Integer partitions,
          Cc0005: Dyck paths,

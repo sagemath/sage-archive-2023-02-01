@@ -44,7 +44,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.misc.superseded import deprecated_function_alias
 
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 # for details about the implementation of hamming_weight_int,
 # walsh_hadamard transform, reed_muller transform, and a lot

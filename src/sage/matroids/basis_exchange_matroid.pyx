@@ -38,14 +38,13 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/data_structures/bitset.pxi'
-
 from .matroid cimport Matroid
 from .set_system cimport SetSystem
 
 from copy import copy
 from itertools import combinations, permutations
 
+from sage.data_structures.bitset_base cimport *
 
 cdef class BasisExchangeMatroid(Matroid):
     r"""

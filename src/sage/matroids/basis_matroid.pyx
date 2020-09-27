@@ -72,8 +72,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/data_structures/bitset.pxi'
-
+from sage.data_structures.bitset_base cimport *
 from sage.structure.richcmp cimport rich_to_bool
 from .matroid cimport Matroid
 from .basis_exchange_matroid cimport BasisExchangeMatroid

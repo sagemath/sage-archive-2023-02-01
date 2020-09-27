@@ -1,6 +1,6 @@
 #include "gmp.h"
 
-// This file contains functions of ``bitset.pxi``
+// This file contains functions of ``bitset_base.pxd``
 // that can be optimized using intrinsics.
 
 /*

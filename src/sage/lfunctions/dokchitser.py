@@ -193,7 +193,7 @@ class Dokchitser(SageObject):
         return inst
 
     def __init__(self, conductor, gammaV, weight, eps,
-                 poles=[], residues='automatic', prec=53,
+                 poles=None, residues='automatic', prec=53,
                  init=None):
         """
         Initialization of Dokchitser calculator EXAMPLES::
@@ -206,7 +206,7 @@ class Dokchitser(SageObject):
         self.gammaV = gammaV
         self.weight = weight
         self.eps = eps
-        self.poles = poles
+        self.poles = poles if poles is not None else []
         self.residues = residues
         self.prec = prec
         self.__CC = ComplexField(self.prec)

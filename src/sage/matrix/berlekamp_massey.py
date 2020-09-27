@@ -44,6 +44,12 @@ def berlekamp_massey(a):
     the minimal polynomial of the sequence, as a polynomial over the
     field in which the entries of `a` live
 
+    .. WARNING::
+
+         The result is only guaranteed to be correct on the full
+         sequence if there exists a linear recurrence of length less
+         than half the length of `a`.
+
     EXAMPLES::
 
         sage: from sage.matrix.berlekamp_massey import berlekamp_massey

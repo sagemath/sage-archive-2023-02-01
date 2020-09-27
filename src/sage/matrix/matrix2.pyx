@@ -9491,6 +9491,10 @@ cdef class Matrix(Matrix1):
         Note that one can use the Python inverse operator to obtain the
         inverse as well.
 
+        .. SEEALSO::
+
+              :meth:`inverse_positive_definite`
+
         EXAMPLES::
 
             sage: m = matrix([[1,2],[3,4]])

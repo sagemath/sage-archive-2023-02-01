@@ -1,2 +1,1 @@
-# needs rectificatation from conda people
-# libgc
+bdw-gc

@@ -11820,6 +11820,9 @@ class GenericGraph(GenericGraph_pyx):
         .. NOTE::
 
             It is somewhat safe to modify the graph during iterating.
+
+            ``vertices`` must be specified if modifying the vertices.
+
             Without multiedges, you can safely use this graph to relabel
             edges or delete some edges. If you add edges, they might later
             appear in the iterator or not

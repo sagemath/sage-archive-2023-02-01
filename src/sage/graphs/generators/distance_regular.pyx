@@ -1588,7 +1588,7 @@ def GeneralisedHexagonGraph(const int s, const int t):
             # now group is our permutation representation
             G = Graph(libgap.Orbit(group, [1, 52], libgap.OnSets),
                       format='list_of_edges')
-            G.name("Generealised hexagon of order (%d, %d)"%(q, q))
+            G.name("Generalised hexagon of order (%d, %d)"%(q, q))
             return G
 
         elif q <= 5:

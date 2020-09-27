@@ -245,6 +245,7 @@ from sage.combinat.parking_functions import ParkingFunction, ParkingFunction_cla
 from sage.combinat.perfect_matching import PerfectMatching, PerfectMatchings
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.posets.posets import Poset, FinitePoset
+from sage.combinat.posets.lattices import FiniteLatticePoset
 from sage.combinat.posets.poset_examples import Posets
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux, StandardTableau, StandardTableaux
 from sage.combinat.set_partition import SetPartition, SetPartitions
@@ -3812,6 +3813,18 @@ def _plane_partitions_by_size(n):
     for pp in _plane_partitions_by_size_aux(n):
         yield PlanePartition(pp[:-1])
 
+def _finite_lattices(n):
+    if n <= 2:
+        for P in Posets(n):
+            if P.is_lattice():
+                yield LatticePoset(P)
+    else:
+        for P in Posets(n-2):
+            Q = P.with_bounds()
+            if Q.is_lattice():
+                yield LatticePoset(Q)
+
+
 class FindStatCollection(Element,
                          metaclass=InheritComparisonClasscallMetaclass):
     r"""
@@ -4438,7 +4451,14 @@ _SupportedFindStatCollections = {
                                                            for i, v in enumerate(x, 1)]) + "]",
                                  DecoratedPermutations,
                                  lambda x: x.size(),
-                                 lambda x: isinstance(x, DecoratedPermutation))}
+                                 lambda x: isinstance(x, DecoratedPermutation)),
+    "Lattices":
+    _SupportedFindStatCollection(lambda x: (lambda R, E: LatticePoset((list(range(E)), R)))(*literal_eval(x)),
+                                 lambda X: str((sorted(X._hasse_diagram.cover_relations()),
+                                                len(X._hasse_diagram.vertices()))),
+                                 _finite_lattices,
+                                 lambda x: x.cardinality(),
+                                 lambda x: isinstance(x, FiniteLatticePoset))}
 
 
 class FindStatCollections(UniqueRepresentation, Parent):

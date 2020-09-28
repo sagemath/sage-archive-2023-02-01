@@ -163,8 +163,9 @@ def find_p_neighbor_from_vec(self, p, y):
         [ * * 5 12 ]
         [ * * * 9 ]
 
-    Since the base ring and the domain are not yet separate, for
-    rational forms we just pretend the base ring is ZZ::
+    Since the base ring and the domain are not yet separate,
+    for rational, half integral forms we just pretend
+    the base ring is `ZZ`::
 
         sage: Q = QuadraticForm(QQ,matrix.diagonal([1,1,1,1]))
         sage: v = vector([1,1,1,1])
@@ -179,40 +180,43 @@ def find_p_neighbor_from_vec(self, p, y):
     if not p.divides(self(y)):
         raise ValueError("y=%s must be of square divisible by p=%s"%(y,p))
     if self.base_ring() not in [ZZ, QQ]:
-        raise NotImplementedError("the base ring of this form must be the integers")
+        raise NotImplementedError("the base ring of this form must be the integers or the rationals")
     n = self.dim()
     G = self.Hessian_matrix()
     R = self.base_ring()
     odd = False
     if R is QQ:
       odd = True
-      if G.denominator()!=1:
+      if G.denominator() != 1:
         raise ValueError("the associated bilinear form q(x+y)-q(x)-q(y) must be integral.")
-
     b = y*G*y
     if not b % p == 0:
         raise ValueError("y^2 must be divisible by p=%s"%p)
     y_dual = y*G
-    if p!=2 and b % p**2 != 0:
+    if p != 2 and b % p**2 != 0:
         for k in range(n):
             if y_dual[k] % p != 0:
                 z = (ZZ**n).gen(k)
                 break
+        else:
+            raise ValueError("either y is not primitive or self is not maximal at %s"%p)
         z *= (2*y*G*z).inverse_mod(p)
         y = y - b*z
-        # now y^2 is divisible by p^2
+        # assert y*G*y % p^2 == 0
     if p == 2:
         val = b.valuation(p)
         if val <= 1:
-            raise ValueError("v=%s must be of square divisible by 4"%v)
+            raise ValueError("v=%s must be of square divisible by 2"%v)
         if val == 2 and not odd:
-            # modify it to have square 8
+            # modify it to have square 4
             for k in range(n):
                 if y_dual[k] % p != 0:
                     z = (ZZ**n).gen(k)
                     break
+            else:
+                raise ValueError("either y is not primitive or self is not even, maximal at 2")
             y += 2*z
-            assert y*G*y % 8 == 0, (y, G)
+            # assert y*G*y % 8 == 0
 
     y_dual = G*y
     Ly = y_dual.change_ring(GF(p)).column().kernel().matrix().lift()
@@ -222,8 +226,8 @@ def find_p_neighbor_from_vec(self, p, y):
     B = B.hermite_form()[:n, :] / p
     # the rows of B generate ZZ * y/p + L_y
     # by definition this is the p-neighbor of L at y
+    # assert B.det().abs() == 1
 
-    assert B.det().abs() == 1
     QF = self.parent()
     Gnew = (B*G*B.T).change_ring(R)
     return QF(Gnew)
@@ -289,8 +293,9 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
 
     if algorithm == 'orbits':
         def p_divisible_vectors(Q, max_neighbors):
-            return iter([v.lift() for v in Q.orbits_lines_mod_p(p)
-                        if v!=0 and Q(v.lift()).valuation(p) > 0])
+            yield from iter(v.lift() for v in Q.orbits_lines_mod_p(p)
+                            if v != 0 and Q(v.lift()).valuation(p) > 0)
+            return
     elif algorithm == 'exaustion':
         def p_divisible_vectors(Q, max_neighbors):
             k = 0
@@ -309,8 +314,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
                 yield v
     else:
         raise ValueError("unknown algorithm")
-    from copy import copy
-    waiting_list = copy(seeds)
+    waiting_list = list(seeds)
     isom_classes = []
     mass_count = QQ(0)
     n_isom_classes = ZZ(0)
@@ -371,16 +375,17 @@ def orbits_lines_mod_p(self, p):
     # but in gap we act from the right!! --> transpose
     gens = self.automorphism_group().gens()
     gens = [g.matrix().transpose().change_ring(GF(p)) for g in gens]
-    orbs = libgap.function_factory("""function(gens, p)
-    local one, G, reps, V, n, orb;
-    one:= One(GF(p));
-    G:=Group(List(gens, g -> g*one));
-    n:= Size(gens[1]);
-    V:= GF(p)^n;
-    orb:= OrbitsDomain(G, V, OnLines);
-    reps:= List(orb, g->g[1]);
-    return reps;
-    end;""")
+    orbs = libgap.function_factory(
+    """function(gens, p)
+        local one, G, reps, V, n, orb;
+        one:= One(GF(p));
+        G:=Group(List(gens, g -> g*one));
+        n:= Size(gens[1]);
+        V:= GF(p)^n;
+        orb:= OrbitsDomain(G, V, OnLines);
+        reps:= List(orb, g->g[1]);
+        return reps;
+        end;""")
     # run this at startup if you need more memory...
     #from sage.interfaces.gap import get_gap_memory_pool_size, set_gap_memory_pool_size
     #memory_gap = get_gap_memory_pool_size()

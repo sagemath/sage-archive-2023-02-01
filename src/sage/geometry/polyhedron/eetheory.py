@@ -408,56 +408,57 @@ def _express_phi_as_polynomial_in_t(initial_phi):
     return new_result
 
 
-def eval_chi(polytope, col_numb, acting_group=None):
-    r"""
-    Returns the evaluation of `\phi` for the ``restricted_automorphism_group``
-    of ``polytope`` at a given conjugacy class.
-
-    `\Phi` is a polynomial in `t` over the ring of class functions of ``polytope``'s
-    ``restricted_automorphism_group``. This function evaluates the coefficients of `t`
-    at a certain conjugacy class and returns a polynomial in `t` with
-    coefficients in `\mathbb Z`.
-
-    INPUT:
-
-    - ``polytope`` -- polyhedron object. A full lattice polytope.
-
-    - ``col_numb`` -- integer. The column index of the character table at
-      which to evaluate `\phi`.
-
-    - ``acting_group`` -- (default: ``None``) an acting group. A subgroup of
-      ``polytope``'s `restricted_automorphism_group` output as a permutation.
-      If ``None``, it is set to the full ``restricted_automorphism_group``
-      of ``polytope``.
-
-    OUTPUT:
-
-    A rational function in `t` with coefficients in `\mathbb{Z}`.
-
-    EXAMPLES:
-
-
-    """
-    # get phi
-    final_phi = phi_function(polytope, acting_group)
-
-    # set the group
-    if acting_group is not None:
-        G = acting_group
-    else:
-        G = polytope.restricted_automorphism_group(output='permutation')
-
-    char_table = G.character_table()
-
-    chi_vars = var(','.join('chi_{}'.format(i) for i in range(char_table.dimensions()[0])))
-    my_dict = {}
-    column = iter(char_table.column(col_numb))
-    for v in chi_vars:
-        my_dict[v] = column.next()
-    my_vect = [my_dict[v] for v in chi_vars]
-    evaluation_res = sum([c(my_vect)*m for c, m in zip(final_phi.numerator().coefficients(), final_phi.numerator().monomials())])/final_phi.denominator()
-    return evaluation_res.factor()
-
+# def eval_chi(polytope, col_numb, acting_group=None):
+#     r"""
+#     Returns the evaluation of `\phi` for the ``restricted_automorphism_group``
+#     of ``polytope`` at a given conjugacy class.
+# 
+#     `\Phi` is a polynomial in `t` over the ring of class functions of ``polytope``'s
+#     ``restricted_automorphism_group``. This function evaluates the coefficients of `t`
+#     at a certain conjugacy class and returns a polynomial in `t` with
+#     coefficients in `\mathbb Z`.
+# 
+#     INPUT:
+# 
+#     - ``polytope`` -- polyhedron object. A full lattice polytope.
+# 
+#     - ``col_numb`` -- integer. The column index of the character table at
+#       which to evaluate `\phi`.
+# 
+#     - ``acting_group`` -- (default: ``None``) an acting group. A subgroup of
+#       ``polytope``'s `restricted_automorphism_group` output as a permutation.
+#       If ``None``, it is set to the full ``restricted_automorphism_group``
+#       of ``polytope``.
+# 
+#     OUTPUT:
+# 
+#     A rational function in `t` with coefficients in `\mathbb{Z}`.
+# 
+#     EXAMPLES:
+# 
+# 
+#     """
+#     # get phi
+#     final_phi = phi_function(polytope, acting_group)
+# 
+#     # set the group
+#     if acting_group is not None:
+#         G = acting_group
+#     else:
+#         G = polytope.restricted_automorphism_group(output='permutation')
+# 
+#     char_table = G.character_table()
+# 
+#     chi_vars = var(','.join('chi_{}'.format(i) for i in range(char_table.dimensions()[0])))
+#     my_dict = {}
+#     column = iter(char_table.column(col_numb))
+#     for v in chi_vars:
+#         my_dict[v] = next(column)
+#     my_vect = [my_dict[v] for v in chi_vars]
+#     print(final_phi.numerator().coefficients())
+#     evaluation_res = sum([c(my_vect)*m for c, m in zip(final_phi.numerator().coefficients(), final_phi.numerator().monomials())])/final_phi.denominator()
+#     return evaluation_res.factor()
+# 
 
 def match_perms_to_mats(polytope, conj_class_reps, acting_group=None, additional_elts=None):
     r"""

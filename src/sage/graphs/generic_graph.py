@@ -621,11 +621,11 @@ class GenericGraph(GenericGraph_pyx):
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
             return all(other.has_edge(*edge)
-                       for edge in self.edge_iterator(labels=self._weighted, unsorted=True))
+                       for edge in self.edge_iterator(labels=self._weighted, sort_vertices=False))
         # The problem with multiple edges is that labels may not have total
         # ordering, which makes it difficult to compare lists of labels.
         seen = set()
-        for e in self.edge_iterator(labels=False, unsorted=True):
+        for e in self.edge_iterator(labels=False, sort_vertices=False):
             if e in seen:
                 continue
             seen.add(e)
@@ -11573,7 +11573,7 @@ class GenericGraph(GenericGraph_pyx):
                     label = None
         return self._backend.has_edge(u, v, label)
 
-    def edges(self, vertices=None, labels=True, sort=True, key=None, ignore_direction=False):
+    def edges(self, vertices=None, labels=True, sort=True, key=None, ignore_direction=False, sort_vertices=True):
         r"""
         Return a :class:`~EdgesView` of edges.
 
@@ -11607,6 +11607,11 @@ class GenericGraph(GenericGraph_pyx):
         - ``ignore_direction`` -- boolean (default: ``False``); only applies to
            directed graphs. If ``True``, searches across edges in either
            direction.
+
+        - ``sort_vertices`` -- boolean (default: ``True``); only applies to
+          undirected graphs. If ``True``, sort the ends of the edges.
+          Not sorting the ends is faster.
+
 
         OUTPUT: A :class:`~EdgesView`.
 
@@ -11681,6 +11686,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges(vertices=[0], ignore_direction=True)
             [(1, 0, None), (2, 0, None)]
 
+        Not sorting the ends of the edges::
+
+            sage: G = Graph()
+            sage: G = Graph()
+            sage: G.add_edges([[1,2], [2,3], [0,3]])
+            sage: list(G.edge_iterator(sort_vertices=False))
+            [(3, 0, None), (2, 1, None), (3, 2, None)]
+
         TESTS:
 
         It is an error to turn off sorting while providing a key function for
@@ -11715,7 +11728,7 @@ class GenericGraph(GenericGraph_pyx):
             vertices = [vertices]
 
         return EdgesView(self, vertices=vertices, labels=labels, sort=sort, key=key,
-                             ignore_direction=ignore_direction)
+                             ignore_direction=ignore_direction, sort_vertices=sort_vertices)
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=False):
         r"""
@@ -11791,7 +11804,7 @@ class GenericGraph(GenericGraph_pyx):
             output.sort()
         return output
 
-    def edge_iterator(self, vertices=None, labels=True, ignore_direction=False, unsorted=False):
+    def edge_iterator(self, vertices=None, labels=True, ignore_direction=False, sort_vertices=True):
         r"""
         Return an iterator over edges.
 
@@ -11813,9 +11826,9 @@ class GenericGraph(GenericGraph_pyx):
            directed graphs. If ``True``, searches across edges in either
            direction.
 
-        - ``unsorted`` -- boolean (default: ``False``); only applies to
-          undirected graphs. If ``True``, do not sort the ends of the edge.
-          This is faster.
+        - ``sort_vertices`` -- boolean (default: ``True``); only applies to
+          undirected graphs. If ``True``, sort the ends of the edges.
+          Not sorting the ends is faster.
 
         .. NOTE::
 
@@ -11854,7 +11867,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: G = graphs.TetrahedralGraph()
-            sage: list(G.edge_iterator(labels=False, unsorted=True))
+            sage: list(G.edge_iterator(labels=False, sort_vertices=False))
             [(1, 0), (2, 0), (3, 0), (2, 1), (3, 1), (3, 2)]
 
         ::
@@ -11878,7 +11891,7 @@ class GenericGraph(GenericGraph_pyx):
                          self._backend.iterator_in_edges(vertices, labels))
         elif self._directed:
             return self._backend.iterator_out_edges(vertices, labels)
-        elif unsorted:
+        elif not sort_vertices:
             return self._backend.iterator_unsorted_edges(vertices, labels)
         else:
             return self._backend.iterator_edges(vertices, labels)

@@ -245,7 +245,7 @@ from sage.combinat.parking_functions import ParkingFunction, ParkingFunction_cla
 from sage.combinat.perfect_matching import PerfectMatching, PerfectMatchings
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.posets.posets import Poset, FinitePoset
-from sage.combinat.posets.lattices import FiniteLatticePoset
+from sage.combinat.posets.lattices import LatticePoset, FiniteLatticePoset
 from sage.combinat.posets.poset_examples import Posets
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux, StandardTableau, StandardTableaux
 from sage.combinat.set_partition import SetPartition, SetPartitions
@@ -3750,33 +3750,47 @@ def _finite_irreducible_cartan_types_by_rank(n):
         sage: _finite_irreducible_cartan_types_by_rank(2)
         [['A', 2], ['B', 2], ['G', 2]]
     """
-    cartan_types      = [ CartanType(['A',n]) ]
+    cartan_types      = [CartanType(['A',n])]
     if n >= 2:
-        cartan_types += [ CartanType(['B',n]) ]
+        cartan_types += [CartanType(['B',n])]
     if n >= 3:
-        cartan_types += [ CartanType(['C',n]) ]
+        cartan_types += [CartanType(['C',n])]
     if n >= 4:
-        cartan_types += [ CartanType(['D',n]) ]
-    if n in [6,7,8]:
-        cartan_types += [ CartanType(['E',n]) ]
+        cartan_types += [CartanType(['D',n])]
+    if 6 <= n <= 8:
+        cartan_types += [CartanType(['E',n])]
     if n == 4:
-        cartan_types += [ CartanType(['F',n]) ]
+        cartan_types += [CartanType(['F',n])]
     if n == 2:
-        cartan_types += [ CartanType(['G',n]) ]
+        cartan_types += [CartanType(['G',n])]
     return cartan_types
 
 # helper for generation of PlanePartitions
 def _plane_partitions_by_size_aux(n, outer=None):
-    empty = [[]]
+    """
+    Iterate over the plane partitions with `n` boxes, as lists.
+
+    INPUT:
+
+    - n -- an integer.
+
+    OUTPUT:
+
+    The plane partitions with `n` boxes as lists.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _plane_partitions_by_size_aux
+        sage: list(_plane_partitions_by_size_aux(3))
+        [[[1], [1], [1]], [[2], [1]], [[1, 1], [1]], [[3]], [[2, 1]], [[1, 1, 1]]]
+
+    """
     if n == 0:
-        yield [empty]
-        return
-    if outer == empty:
         yield []
         return
     if outer is None:
         outer = [n]*n
-    for k in range(1,n+1):
+    for k in range(1, n+1):
         for la in Partitions(k, outer=outer):
             for pp in _plane_partitions_by_size_aux(n-k, outer=la):
                 pp = [la] + pp
@@ -3811,9 +3825,29 @@ def _plane_partitions_by_size(n):
 
     """
     for pp in _plane_partitions_by_size_aux(n):
-        yield PlanePartition(pp[:-1])
+        yield PlanePartition(pp)
 
+# helper for generation of Lattices
 def _finite_lattices(n):
+    """
+    Iterate over the lattices with `n` elements.
+
+    INPUT:
+
+    - n -- an integer.
+
+    OUTPUT:
+
+    The lattices with `n` elements.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _finite_lattices
+        sage: [L.cover_relations() for L in _finite_lattices(4)]
+        [[['bottom', 0], ['bottom', 1], [0, 'top'], [1, 'top']],
+         [['bottom', 0], [0, 1], [1, 'top']]]
+
+    """
     if n <= 2:
         for P in Posets(n):
             if P.is_lattice():
@@ -4111,6 +4145,7 @@ class FindStatCollection(Element,
             Cc0026: Decorated permutations 2371 True
             Cc0027: Signed permutations 4282 True
             Cc0028: Skew partitions 1250 True
+            Cc0029: Lattices 1378 True
         """
         return self._data["Code"].element_level(element) in self._data["LevelsWithSizes"]
 
@@ -4495,7 +4530,8 @@ class FindStatCollections(UniqueRepresentation, Parent):
          Cc0025: Plane partitions,
          Cc0026: Decorated permutations,
          Cc0027: Signed permutations,
-         Cc0028: Skew partitions]
+         Cc0028: Skew partitions,
+         Cc0029: Lattices]
     """
     def __init__(self):
         """
@@ -4552,6 +4588,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
              Cc0010: Binary trees,
              Cc0012: Perfect matchings,
              Cc0013: Cores,
+             Cc0014: Posets,
              Cc0014: Posets,
              Cc0017: Alternating sign matrices,
              Cc0018: Gelfand-Tsetlin patterns,

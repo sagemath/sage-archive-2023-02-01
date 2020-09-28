@@ -361,6 +361,9 @@ REFERENCES:
 
 **B**
 
+.. [Baer2020] Christian Bär. *The Faddeev-LeVerrier algorithm and the Pfaffian*.
+              :arxiv:`2008.04247`, 2020.
+
 .. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
             AMS (2001).
 

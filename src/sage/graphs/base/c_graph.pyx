@@ -51,6 +51,9 @@ from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
 from cysignals.memory cimport check_allocarray, sig_free
 
+cdef extern from "Python.h":
+    int unlikely(int) nogil  # Defined by Cython
+
 cdef class CGraph:
     """
     Compiled sparse and dense graphs.
@@ -3747,6 +3750,9 @@ cdef class CGraphBackend(GenericGraphBackend):
                             else:
                                 yield (v, u)
                     v = v_copy
+
+                if unlikely(not bitset_in(self.cg().active_vertices, v_int)):
+                    raise IndexError("the vertices were modified while iterating the edges")
 
                 u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
 

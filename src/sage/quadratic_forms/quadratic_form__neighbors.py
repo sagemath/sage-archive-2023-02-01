@@ -7,7 +7,6 @@ from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 from sage.rings.all import GF, QQ
 from copy import deepcopy
-from sage.quadratic_forms.extras import extend_to_primitive
 from sage.matrix.constructor import matrix
 
 
@@ -206,7 +205,7 @@ def find_p_neighbor_from_vec(self, p, y):
     if p == 2:
         val = b.valuation(p)
         if val <= 1:
-            raise ValueError("v=%s must be of square divisible by 2"%v)
+            raise ValueError("y=%s must be of square divisible by 2"%y)
         if val == 2 and not odd:
             # modify it to have square 4
             for k in range(n):

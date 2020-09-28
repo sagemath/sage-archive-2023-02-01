@@ -44,7 +44,7 @@ static inline int _bitset_issubset(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs
     return 1;
 }
 
-inline int _bitset_are_disjoint(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+static inline int _bitset_are_disjoint(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Tests whether ``a`` and ``b`` have an empty intersection.
     */
@@ -61,7 +61,7 @@ inline int _bitset_are_disjoint(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
 #############################################################################
 */
 
-inline long _bitset_first_in_limb(mp_limb_t limb){
+static inline long _bitset_first_in_limb(mp_limb_t limb){
     /*
     Given a limb of a bitset, return the index of the first nonzero
     bit. If there are no bits set in the limb, return -1.
@@ -71,7 +71,7 @@ inline long _bitset_first_in_limb(mp_limb_t limb){
     return mpn_scan1(&limb, 0);
 }
 
-inline long _bitset_first_in_limb_nonzero(mp_limb_t limb){
+static inline long _bitset_first_in_limb_nonzero(mp_limb_t limb){
     /*
     Given a non-zero limb of a bitset, return the index of the first
     nonzero bit.
@@ -79,7 +79,7 @@ inline long _bitset_first_in_limb_nonzero(mp_limb_t limb){
     return mpn_scan1(&limb, 0);
 }
 
-inline long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs){
+static inline long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs){
     /*
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     */
@@ -92,21 +92,21 @@ inline long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs){
 #############################################################################
 */
 
-inline void _bitset_intersection(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+static inline void _bitset_intersection(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Set dst to the intersection of a and b, overwriting dst.
     */
     mpn_and_n(dst, a, b, limbs);
 }
 
-inline void _bitset_union(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+static inline void _bitset_union(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Set dst to the union of a and b, overwriting dst.
     */
     mpn_ior_n(dst, a, b, limbs);
 }
 
-inline void _bitset_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+static inline void _bitset_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Set dst to the difference of a and b (i.e., things in a that are not
     in b), overwriting dst.
@@ -114,7 +114,7 @@ inline void _bitset_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bi
     mpn_andn_n(dst, a, b, limbs);
 }
 
-inline void _bitset_symmetric_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+static inline void _bitset_symmetric_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Set dst to the symmetric difference of a and b, overwriting dst.
     */

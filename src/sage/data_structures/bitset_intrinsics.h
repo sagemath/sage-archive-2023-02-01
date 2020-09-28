@@ -9,7 +9,7 @@
 #############################################################################
 */
 
-inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
+static inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
     /*
     Test whether bits is empty.  Return True (i.e., 1) if the set is
     empty, False (i.e., 0) otherwise.
@@ -24,7 +24,7 @@ inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
     return mpn_cmp(bits+1, bits, limbs-1) == 0;
 }
 
-inline int _bitset_eq(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+static inline int _bitset_eq(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Compare bitset a and b.  Return True (i.e., 1) if the sets are
     equal, and False (i.e., 0) otherwise.
@@ -32,7 +32,7 @@ inline int _bitset_eq(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     return mpn_cmp(a, b, limbs) == 0;
 }
 
-inline int _bitset_issubset(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+static inline int _bitset_issubset(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Test whether a is a subset of b (i.e., every element in a is also
     in b).

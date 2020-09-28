@@ -2527,6 +2527,11 @@ class RuleStar(Rule):
         sage: line1,line2 = RSK_inverse(p,q,insertion='Star')
         sage: line1,line2
         ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])
+        
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization 
+        sage: h = DecreasingHeckeFactorization([[3, 1],[], [4, 2], [3, 1]])
+        sage: p, q = RSK(h, insertion=RSK.rules.Star); p,q
+        ([[1, 2, 3], [1, 4], [3]], [[1, 1, 2], [2, 4], [4]])
     """
     def forward_rule(self, obj1, obj2=None, check_braid=True):
         r"""
@@ -2545,6 +2550,9 @@ class RuleStar(Rule):
           - a word ``obj1`` in an ordered alphabet, to be interpreted as the
             bottom row of the biword (in this case, ``obj2`` is ``None``; the
             top row of the biword is understood to be `(1,2,\ldots,n)` by default).
+            
+          - a DecreasingHeckeFactorization ``obj1``, the reverse of whose Hecke
+           biword will be interpreted as the top row and the bottom row.
 
         EXAMPLES::
 
@@ -2555,7 +2563,12 @@ class RuleStar(Rule):
             ([[1, 3], [2, 3], [2]], [[1, 2], [3, 5], [4]])
             sage: P,Q = RSK([1,1,2,3,3],[2,3,3,1,3],insertion=RSK.rules.Star); P,Q
             ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
-
+            
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization 
+            sage: h = DecreasingHeckeFactorization([[3, 1], [3], [3, 2]])
+            sage: p, q = RSK(h, insertion=RSK.rules.Star); p,q
+            ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
+            
         TESTS::
 
             sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3])
@@ -2570,8 +2583,16 @@ class RuleStar(Rule):
         if not obj1:
             return None, None
         if obj2 is None:
-            obj2 = obj1
-            obj1 = [i+1 for i in range(len(obj1))]
+            from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            if not isinstance(obj1,DecreasingHeckeFactorization):
+                obj2 = obj1
+                obj1 = [i+1 for i in range(len(obj1))]
+            else:
+                h = obj1
+                obj1 = [h.factors-i for i in range(h.factors) for j in range(len(h.value[i]))] 
+                obj1.reverse()
+                obj2 = [i for f in h.value for i in f]
+                obj2.reverse()
         if len(obj1) != len(obj2):
             raise ValueError(f"{obj1} and {obj2} have different number of elements")
         for i in range(len(obj1)-1):

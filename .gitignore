@@ -38,12 +38,6 @@
 
 # VSCode
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-.history
 
 # XCode
 xcuserdata/
@@ -99,6 +93,26 @@ __pycache__/
 src/sage/**/*.c
 src/sage/**/*.cpp
 src/sage/modular/arithgroup/farey_symbol.h
+!src/sage/cpython/debugimpl.c
+!src/sage/graphs/base/boost_interface.cpp
+!src/sage/graphs/cliquer/cl.c
+!src/sage/graphs/graph_decompositions/tdlib/sage_tdlib.cpp
+!src/sage/libs/eclib/wrap.cpp
+!src/sage/misc/inherit_comparison_impl.c
+!src/sage/modular/arithgroup/farey.cpp
+!src/sage/modular/arithgroup/sl2z.cpp
+!src/sage/rings/bernmm/bern_modp.cpp
+!src/sage/rings/bernmm/bern_modp_util.cpp
+!src/sage/rings/bernmm/bern_rat.cpp
+!src/sage/rings/bernmm/bernmm-test.cpp
+!src/sage/rings/padics/transcendantal.c
+!src/sage/rings/polynomial/weil/power_sums.c
+!src/sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp
+!src/sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp
+!src/sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp
+!src/sage/stats/distributions/dgs_bern.c
+!src/sage/stats/distributions/dgs_gauss_dp.c
+!src/sage/stats/distributions/dgs_gauss_mp.c
 
 # Temporary build files
 build/temp.*/

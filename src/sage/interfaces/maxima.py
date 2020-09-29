@@ -468,6 +468,7 @@ from __future__ import print_function, absolute_import
 import os
 import re
 import pexpect
+import shlex
 
 from random import randrange
 

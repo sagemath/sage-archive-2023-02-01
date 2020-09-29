@@ -2526,8 +2526,8 @@ class RuleStar(Rule):
           3        4
         sage: RSK_inverse(p,q,output='DecreasingHeckeFactorization', insertion='Star')
         (4, 2)(4, 2)(3, 1)
-        
-        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization 
+
+        sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
         sage: h = DecreasingHeckeFactorization([[3, 1],[], [4, 2], [3, 1]])
         sage: p, q = RSK(h, insertion=RSK.rules.Star); p,q
         ([[1, 2, 3], [1, 4], [3]], [[1, 1, 2], [2, 4], [4]])
@@ -2549,7 +2549,7 @@ class RuleStar(Rule):
           - a word ``obj1`` in an ordered alphabet, to be interpreted as the
             bottom row of the biword (in this case, ``obj2`` is ``None``; the
             top row of the biword is understood to be `(1,2,\ldots,n)` by default).
-            
+
           - a DecreasingHeckeFactorization ``obj1``, the reverse of whose Hecke
            biword will be interpreted as the top row and the bottom row.
 
@@ -2562,12 +2562,12 @@ class RuleStar(Rule):
             ([[1, 3], [2, 3], [2]], [[1, 2], [3, 5], [4]])
             sage: P,Q = RSK([1,1,2,3,3],[2,3,3,1,3],insertion=RSK.rules.Star); P,Q
             ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
-            
-            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization 
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             sage: h = DecreasingHeckeFactorization([[3, 1], [3], [3, 2]])
             sage: p, q = RSK(h, insertion=RSK.rules.Star); p,q
             ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
-            
+
         TESTS::
 
             sage: P,Q = RuleStar().forward_rule([1,1,2,3,3],[2,2,3,1,3])
@@ -2588,7 +2588,7 @@ class RuleStar(Rule):
                 obj1 = [i+1 for i in range(len(obj1))]
             else:
                 h = obj1
-                obj1 = [h.factors-i for i in range(h.factors) for j in range(len(h.value[i]))] 
+                obj1 = [h.factors-i for i in range(h.factors) for j in range(len(h.value[i]))]
                 obj1.reverse()
                 obj2 = [i for f in h.value for i in f]
                 obj2.reverse()
@@ -2759,13 +2759,13 @@ class RuleStar(Rule):
             r[y_pos] = x
         x = y
         return x
-    
+
     def _backward_format_output(self,obj1,obj2, output):
         r"""
         Return the final output of the ``RSK_inverse`` correspondence from the output of the corresponding ``backward_rule``.
-        
+
         Examples::
-        
+
         sage: from sage.combinat.rsk import RuleStar
         sage: RuleStar()._backward_format_output([1, 1, 2, 2, 4, 4],[1, 3, 2, 4, 2, 4],'array')
         [[1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4]]
@@ -2794,7 +2794,6 @@ class RuleStar(Rule):
                     df.append([])
                 df[-1].append(obj2[j])
             return DecreasingHeckeFactorization(df)
-    
 
 class InsertionRules(object):
     r"""

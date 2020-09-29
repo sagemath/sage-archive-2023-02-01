@@ -2524,9 +2524,8 @@ class RuleStar(Rule):
           1  2  4  1  1  2
           1  4     2  4
           3        4
-        sage: line1,line2 = RSK_inverse(p,q,insertion='Star')
-        sage: line1,line2
-        ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])
+        sage: RSK_inverse(p,q,output='DecreasingHeckeFactorization', insertion='Star')
+        (4, 2)(4, 2)(3, 1)
         
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization 
         sage: h = DecreasingHeckeFactorization([[3, 1],[], [4, 2], [3, 1]])
@@ -2633,7 +2632,7 @@ class RuleStar(Rule):
             raise ValueError(f"The insertion tableau {p} is not semistandard")
         return [p, q]
 
-    def backward_rule(self, p, q, output=None):
+    def backward_rule(self, p, q, output='array'):
         """
         Return the increasing Hecke biword obtained by applying reverse *-insertion to a pair of tableaux ``(p, q)``.
 
@@ -2651,9 +2650,10 @@ class RuleStar(Rule):
               1  2  4  1  1  2
               1  4     2  4
               3        4
-            sage: line1,line2 = RuleStar().backward_rule(P,Q)
-            sage: print(line1,line2)
-            [1, 1, 2, 2, 4, 4] [1, 3, 2, 4, 2, 4]
+            sage: line1,line2 = RuleStar().backward_rule(P,Q);line1,line2
+            ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])
+            sage: RuleStar().backward_rule(P,Q,output = 'DecreasingHeckeFactorization')
+            (4, 2)(4, 2)(3, 1)
         """
         from sage.combinat.tableau import Tableau, SemistandardTableau, SemistandardTableaux
         if p.shape() != q.shape():
@@ -2698,7 +2698,7 @@ class RuleStar(Rule):
                     x = self.reverse_insertion(x, row)
                 line2.append(x)
                 line1.append(value)
-        return line1[::-1], line2[::-1]
+        return self._backward_format_output(line1[::-1],line2[::-1],output)
 
     def insertion(self, b, r):
         """
@@ -2759,6 +2759,42 @@ class RuleStar(Rule):
             r[y_pos] = x
         x = y
         return x
+    
+    def _backward_format_output(self,obj1,obj2, output):
+        r"""
+        Return the final output of the ``RSK_inverse`` correspondence from the output of the corresponding ``backward_rule``.
+        
+        Examples::
+        
+        sage: from sage.combinat.rsk import RuleStar
+        sage: RuleStar()._backward_format_output([1, 1, 2, 2, 4, 4],[1, 3, 2, 4, 2, 4],'array')
+        [[1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4]]
+        sage: RuleStar()._backward_format_output([1, 1, 2, 2, 4, 4],[1, 3, 2, 4, 2, 4],'DecreasingHeckeFactorization')
+        (4, 2)(4, 2)(3, 1)
+        sage: RuleStar()._backward_format_output([6, 5, 4, 3, 2, 1], [4, 2, 4, 2, 3, 1],'word')
+        word: 424231
+        """
+        if len(obj1) != len(obj2):
+            raise ValueError(f"{obj1} and {obj2} are of different lengths")
+        if output == 'array':
+            return [list(obj1),list(obj2)]
+        if output == 'word':
+            if obj1 == [i for i in range(len(obj1),0,-1)]:
+                from sage.combinat.words.word import Word
+                return Word(obj2)
+            else:
+                raise TypeError("upper_row must be standard")
+        if output == 'DecreasingHeckeFactorization':
+            from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            obj1.reverse()
+            obj2.reverse()
+            df = [[]]
+            for j in range(len(obj1)):
+                if j and obj1[j]< obj1[j-1]:
+                    df.append([])
+                df[-1].append(obj2[j])
+            return DecreasingHeckeFactorization(df)
+    
 
 class InsertionRules(object):
     r"""

@@ -59,7 +59,7 @@ available:
   [GR2018v5sol]_.
 - Super RSK insertion (:class:`~sage.combinat.rsk.RuleSuperRSK`), a
   combination of row and column insertions defined in [Muth2019]_.
--Star insertion (:class:`~sage.combinat.RuleStar`), defined in [MPPS2020]_.
+- Star insertion (:class:`~sage.combinat.RuleStar`), defined in [MPPS2020]_.
 
 Implementing your own insertion rule
 ------------------------------------
@@ -2499,7 +2499,7 @@ class RuleStar(Rule):
             `y > x`. Bump `y` with `x` and insert `y` into the next row.
 
     Case 3: Otherwise, if `x` is in `R`, locate the smallest `y` in `R` with
-            `y <= x` and interval `[y,x]` contained in `R`. Row `R` remains
+            `y \leq x` and interval `[y,x]` contained in `R`. Row `R` remains
             unchanged and `y` is to be inserted into the next row.
 
     The *-insertion algorithm returns a pair of a conjugate of a semistandard
@@ -2507,7 +2507,7 @@ class RuleStar(Rule):
 
     EXAMPLES:
 
-    As an example of *-insertion, we reproduce Example 3.9 :arxiv:`1911.08732`::
+    As an example of *-insertion, we reproduce Example 3.9 [MPPS2020]_::
 
         sage: from sage.combinat.rsk import RuleStar
         sage: p,q = RuleStar().forward_rule([1,1,2,2,4,4],[1,3,2,4,2,4])

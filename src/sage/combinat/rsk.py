@@ -2535,16 +2535,16 @@ class RuleStar(Rule):
         sage: t = DecreasingHeckeFactorization([[3, 1], [], [4, 2], [3, 1]])
         sage: p,q = RSK(t, insertion=RSK.rules.Star); p,q
         ([[1, 2, 3], [1, 4], [3]], [[1, 1, 2], [2, 4], [4]])
-        sage: h = DecreasingHeckeFactorization([[4,2],[],[4,2],[3,1]])
-        sage: p,q=RSK(h,insertion='Star')
-        sage: ascii_art(p,q)
+        sage: h = DecreasingHeckeFactorization([[4, 2], [], [4, 2], [3, 1]])
+        sage: p,q = RSK(h, insertion='Star')
+        sage: ascii_art(p, q)
         1  2  4  1  1  2
-        1  4     2  4   
-        3        4 
-        sage: RSK_inverse(p,q,insertion='Star')                                         
+        1  4     2  4
+        3        4
+        sage: RSK_inverse(p, q, insertion='Star')
         [[1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4]]
-        sage: f=RSK_inverse(p,q,output='DecreasingHeckeFactorization',insertion='Star')
-        sage: f == h                                                                    
+        sage: f = RSK_inverse(p, q, output='DecreasingHeckeFactorization', insertion='Star')
+        sage: f == h
         True
     """
     def forward_rule(self, obj1, obj2=None, check_braid=True):
@@ -2798,7 +2798,8 @@ class RuleStar(Rule):
 
         .. WARNING::
 
-            When output is 'DecreasingHeckeFactorization', the number of factors in the output is the maximum number in ``obj1``.
+            When output is 'DecreasingHeckeFactorization', the number of factors
+            in the output is the largest number in ``obj1``.
         """
         if len(obj1) != len(obj2):
             raise ValueError(f"{obj1} and {obj2} are of different lengths")
@@ -2818,7 +2819,7 @@ class RuleStar(Rule):
             for j in range(len(obj1)):
                 if j == 0:
                     df.append([])
-                if j>0 and obj1[j] < obj1[j-1]:
+                if j > 0 and obj1[j] < obj1[j-1]:
                     for a in range(obj1[j-1]-obj1[j]):
                         df.append([])
                 df[-1].append(obj2[j])

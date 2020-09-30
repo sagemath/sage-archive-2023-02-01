@@ -2529,12 +2529,23 @@ class RuleStar(Rule):
           1  4     2  4
           3        4
         sage: RSK_inverse(p, q, output='DecreasingHeckeFactorization', insertion='Star')
-        (4, 2)(4, 2)(3, 1)
+        (4, 2)()(4, 2)(3, 1)
 
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
-        sage: h = DecreasingHeckeFactorization([[3, 1], [], [4, 2], [3, 1]])
-        sage: p,q = RSK(h, insertion=RSK.rules.Star); p,q
+        sage: t = DecreasingHeckeFactorization([[3, 1], [], [4, 2], [3, 1]])
+        sage: p,q = RSK(t, insertion=RSK.rules.Star); p,q
         ([[1, 2, 3], [1, 4], [3]], [[1, 1, 2], [2, 4], [4]])
+        sage: h = DecreasingHeckeFactorization([[4,2],[],[4,2],[3,1]])
+        sage: p,q=RSK(h,insertion='Star')
+        sage: ascii_art(p,q)
+        1  2  4  1  1  2
+        1  4     2  4   
+        3        4 
+        sage: RSK_inverse(p,q,insertion='Star')                                         
+        [[1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4]]
+        sage: f=RSK_inverse(p,q,output='DecreasingHeckeFactorization',insertion='Star')
+        sage: f == h                                                                    
+        True
     """
     def forward_rule(self, obj1, obj2=None, check_braid=True):
         r"""
@@ -2664,7 +2675,7 @@ class RuleStar(Rule):
             sage: line1,line2 = RuleStar().backward_rule(p, q); line1,line2
             ([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4])
             sage: RuleStar().backward_rule(p, q, output = 'DecreasingHeckeFactorization')
-            (4, 2)(4, 2)(3, 1)
+            (4, 2)()(4, 2)(3, 1)
         """
         from sage.combinat.tableau import Tableau, SemistandardTableau, SemistandardTableaux
         if p.shape() != q.shape():
@@ -2781,7 +2792,7 @@ class RuleStar(Rule):
             sage: RuleStar()._backward_format_output([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4], 'array')
             [[1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4]]
             sage: RuleStar()._backward_format_output([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4], 'DecreasingHeckeFactorization')
-            (4, 2)(4, 2)(3, 1)
+            (4, 2)()(4, 2)(3, 1)
             sage: RuleStar()._backward_format_output([6, 5, 4, 3, 2, 1], [4, 2, 4, 2, 3, 1], 'word')
             word: 424231
         """
@@ -2801,8 +2812,9 @@ class RuleStar(Rule):
             obj2.reverse()
             df = [[]]
             for j in range(len(obj1)):
-                if j and obj1[j] < obj1[j-1]:
-                    df.append([])
+                if j>0 and obj1[j] < obj1[j-1]:
+                    for _ in range(obj1[j-1]-obj1[j]):
+                        df.append([])
                 df[-1].append(obj2[j])
             return DecreasingHeckeFactorization(df)
 

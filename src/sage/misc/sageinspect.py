@@ -2273,7 +2273,7 @@ def sage_getsourcelines(obj):
           '    def __cinit__(self):\n',
         ...)
         sage: sage_getsourcelines(I)
-        (...['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...)
         sage: x = var('x')
         sage: sage_getsourcelines(x)

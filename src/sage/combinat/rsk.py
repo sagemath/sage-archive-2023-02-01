@@ -2582,6 +2582,9 @@ class RuleStar(Rule):
 
         TESTS::
 
+            sage: from sage.combinat.rsk import RuleStar
+            sage: p,q = RuleStar().forward_rule([]); p,q
+            ([], [])
             sage: p,q = RuleStar().forward_rule([1,1,2,3,3], [2,2,3,1,3])
             Traceback (most recent call last):
             ...
@@ -2591,34 +2594,31 @@ class RuleStar(Rule):
             ...
             ValueError: the Star insertion is not defined for non-fully commutative words
         """
-        if not obj1:
-            return None, None
-        if obj2 is None:
+        if obj2 is None and obj1 is not None:
             from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             if not isinstance(obj1, DecreasingHeckeFactorization):
                 obj2 = obj1
-                obj1 = [i+1 for i in range(len(obj1))]
+                obj1 = list(range(1, len(obj1)+1))
             else:
                 h = obj1
-                obj1 = [h.factors-i for i in range(h.factors) for j in range(len(h.value[i]))]
+                obj1 = sum([[h.factors-i]*len(h.value[i]) for i in range(h.factors)],[])
                 obj1.reverse()
                 obj2 = [i for f in h.value for i in f]
                 obj2.reverse()
         if len(obj1) != len(obj2):
             raise ValueError(f"{obj1} and {obj2} have different number of elements")
         for i in range(len(obj1)-1):
-            if obj1[i]>obj1[i+1] or (obj1[i]==obj1[i+1] and obj2[i] >= obj2[i+1]):
+            if obj1[i] > obj1[i+1] or (obj1[i] == obj1[i+1] and obj2[i] >= obj2[i+1]):
                 raise ValueError(f"{obj1}, {obj2} is not an increasing factorization")
         if check_braid:
-            N = max(obj2) +1
+            N = max(obj2)+1 if obj2 else 1
             from sage.monoids.hecke_monoid import HeckeMonoid
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             H = HeckeMonoid(SymmetricGroup(N))
             h = H.from_reduced_word(obj2)
-            from sage.combinat.permutation import Permutations
-            P = Permutations(N)
-            w = P.from_reduced_word(h.reduced_word())
-            if w.has_pattern([3,2,1]):
+            from sage.combinat import permutation
+            p = permutation.from_reduced_word(h.reduced_word())
+            if p.has_pattern([3,2,1]):
                 raise ValueError("the Star insertion is not defined for non-fully commutative words")
 
         p = []  # the "insertion" tableau
@@ -2640,13 +2640,12 @@ class RuleStar(Rule):
         from sage.combinat.tableau import Tableau, SemistandardTableau
         p = Tableau(p)
         q = SemistandardTableau(q)
-        if not (p.conjugate()).is_semistandard():
-            raise ValueError(f"The insertion tableau {p} is not semistandard")
         return [p, q]
 
     def backward_rule(self, p, q, output='array'):
         r"""
-        Return the increasing Hecke biword obtained by applying reverse `\star`-insertion to a pair of tableaux ``(p, q)``.
+        Return the increasing Hecke biword obtained by applying reverse
+        `\star`-insertion to a pair of tableaux ``(p, q)``.
 
         INPUT:
 
@@ -2675,20 +2674,19 @@ class RuleStar(Rule):
         if p.conjugate() not in SemistandardTableaux():
             raise ValueError("p.conjugate(=%s) must be a semistandard tableau" % p.conjugate())
 
-        row_reading = [ele for row in p[::-1] for ele in row]
+        row_reading = [ele for row in reversed(p) for ele in row]
         N = max(row_reading) + 1
         from sage.monoids.hecke_monoid import HeckeMonoid
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         H = HeckeMonoid(SymmetricGroup(N))
         h = H.from_reduced_word(row_reading)
-        from sage.combinat.permutation import Permutations
-        P = Permutations(N)
-        w = P.from_reduced_word(h.reduced_word())
+        from sage.combinat import permutation
+        w = permutation.from_reduced_word(h.reduced_word())
         if w.has_pattern([3,2,1]):
-            raise ValueError(f"The row reading of the insertion tableau {p} is not fully-commutative")
+            raise ValueError(f"The row reading word of the insertion tableau {p} is not fully-commutative")
 
-        p_copy = [list(row) for row in p]
-        q_copy = [list(row) for row in q]
+        p_copy = p.to_list()
+        q_copy = q.to_list()
         line1 = []
         line2 = []
         d = {}
@@ -2790,14 +2788,14 @@ class RuleStar(Rule):
         if len(obj1) != len(obj2):
             raise ValueError(f"{obj1} and {obj2} are of different lengths")
         if output == 'array':
-            return [list(obj1), list(obj2)]
-        if output == 'word':
-            if obj1 == [i for i in range(len(obj1),0,-1)]:
+            return [obj1, obj2]
+        elif output == 'word':
+            if obj1 == list(range(len(obj1), 0, -1)):
                 from sage.combinat.words.word import Word
                 return Word(obj2)
             else:
-                raise TypeError("upper_row must be standard")
-        if output == 'DecreasingHeckeFactorization':
+                raise TypeError("upper row must be standard")
+        elif output == 'DecreasingHeckeFactorization':
             from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             obj1.reverse()
             obj2.reverse()

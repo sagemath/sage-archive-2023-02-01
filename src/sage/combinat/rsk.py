@@ -2795,6 +2795,10 @@ class RuleStar(Rule):
             (4, 2)()(4, 2)(3, 1)
             sage: RuleStar()._backward_format_output([6, 5, 4, 3, 2, 1], [4, 2, 4, 2, 3, 1], 'word')
             word: 424231
+
+        .. WARNING::
+
+            When output is 'DecreasingHeckeFactorization', the number of factors in the output is the maximum number in ``obj1``.
         """
         if len(obj1) != len(obj2):
             raise ValueError(f"{obj1} and {obj2} are of different lengths")
@@ -2810,12 +2814,16 @@ class RuleStar(Rule):
             from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
             obj1.reverse()
             obj2.reverse()
-            df = [[]]
+            df = []
             for j in range(len(obj1)):
+                if j == 0:
+                    df.append([])
                 if j>0 and obj1[j] < obj1[j-1]:
                     for _ in range(obj1[j-1]-obj1[j]):
                         df.append([])
                 df[-1].append(obj2[j])
+            if _ in range(obj1[-1]-1):
+                df.append([])
             return DecreasingHeckeFactorization(df)
 
 class InsertionRules(object):

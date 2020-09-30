@@ -2664,6 +2664,23 @@ class RuleStar(Rule):
           conjugate of a semistandard tableau, whose reading word is fully
           commutative and ``q`` is a semistandard tableau.
 
+        - ``output`` -- (default: ``'array'``) if ``q`` is semi-standard:
+
+          - ``'array'`` -- as a two-line array (i.e. generalized permutation
+            or biword) that is an increasing Hecke biword
+          - ``'DecreasingHeckeFactorization'`` -- as a decreasing
+            factorization in the 0-Hecke monoid
+
+          and if ``q`` is standard:
+
+          - ``'word'`` -- as a (possibly non-reduced) word in the 0-Hecke
+            monoid
+
+        .. WARNING::
+
+            When output is 'DecreasingHeckeFactorization', the number of factors
+            in the output is the largest number in ``obj1``.
+
         EXAMPLES::
 
             sage: from sage.combinat.rsk import RuleStar
@@ -2795,11 +2812,6 @@ class RuleStar(Rule):
             (4, 2)()(4, 2)(3, 1)
             sage: RuleStar()._backward_format_output([6, 5, 4, 3, 2, 1], [4, 2, 4, 2, 3, 1], 'word')
             word: 424231
-
-        .. WARNING::
-
-            When output is 'DecreasingHeckeFactorization', the number of factors
-            in the output is the largest number in ``obj1``.
         """
         if len(obj1) != len(obj2):
             raise ValueError(f"{obj1} and {obj2} are of different lengths")

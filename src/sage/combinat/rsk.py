@@ -2819,10 +2819,10 @@ class RuleStar(Rule):
                 if j == 0:
                     df.append([])
                 if j>0 and obj1[j] < obj1[j-1]:
-                    for _ in range(obj1[j-1]-obj1[j]):
+                    for a in range(obj1[j-1]-obj1[j]):
                         df.append([])
                 df[-1].append(obj2[j])
-            if _ in range(obj1[-1]-1):
+            for a in range(obj1[-1]-1):
                 df.append([])
             return DecreasingHeckeFactorization(df)
 

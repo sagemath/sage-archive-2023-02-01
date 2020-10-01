@@ -16,7 +16,7 @@ SAGE_SPKG_CONFIGURE([python3], [
       dnl instead of building our own copy.
       check_modules="sqlite3, ctypes, math, hashlib, crypt, readline, socket, zlib, distutils.core"
       m4_pushdef([MIN_VERSION], [3.6.0])
-      m4_pushdef([LT_VERSION],  [3.9.0])
+      m4_pushdef([LT_VERSION],  [3.10.0])
       AC_CACHE_CHECK([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules], [ac_cv_path_PYTHON3], [
         AS_IF([test x"$ac_path_PYTHON3" != x], [dnl checking explicitly specified $with_python
            AC_MSG_RESULT([])

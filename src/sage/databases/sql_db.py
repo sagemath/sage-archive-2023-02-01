@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Relational (sqlite) Databases Module
 
 INFO:
@@ -49,8 +50,10 @@ AUTHORS:
   merged the Generic classes into the non-Generic versions; changed the
   skeleton format to include a boolean indicating whether the column stores
   unique keys; changed the index names so as to avoid potential ambiguity
+
 - Emily A. Kirkman (2008-09-20): added functionality to generate plots and
   reformat output in show
+
 - Emily A. Kirkman and Robert L. Miller (2007-06-17): initial version
 
 """
@@ -62,17 +65,17 @@ AUTHORS:
 #    - create query interface (with interact)
 #    - allow kwds arguments to SQLQuery (like GraphQuery)
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 R. Andrew Ohana <andrew.ohana@gmail.com>
 #       Copyright (C) 2007 Emily A. Kirkman
 #                          Robert L. Miller
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import sqlite3 as sqlite
 import os
@@ -1127,7 +1130,7 @@ class SQLDatabase(SageObject):
 
             sage: from collections import OrderedDict
             sage: DB = SQLDatabase()
-            sage: DB.create_table('lucy',OrderedDict([
+            sage: DB.create_table('lucy', OrderedDict([
             ....: ('id', {'sql':'INTEGER', 'primary_key':True, 'index':True}),
             ....: ('a1', {'sql':'bool'}),
             ....: ('b2', {'sql':'int', 'primary_key':False})

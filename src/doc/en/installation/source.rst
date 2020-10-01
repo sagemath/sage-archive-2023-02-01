@@ -88,7 +88,7 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python 3, 3.3 or later, or Python 2 (deprecated), 2.6 or later.
+- **python**: Python 3, 3.6 or later, or Python 2.7 (deprecated).
 
 Other versions of these may work, but they are untested.
 
@@ -167,6 +167,20 @@ that your assembler understands all instructions for your
 processor. On Linux, this means you need a recent version of
 ``binutils``; on macOS you need a recent version of Xcode.
 
+Python for venv
+^^^^^^^^^^^^^^^
+
+By default, Sage will try to use system's `python3` to set up a virtual
+environment, a.k.a. `venv <https://docs.python.org/3.7/library/venv.html>`_
+rather than building a Python 3 installation from scratch.
+Use the configure option ``--without-system-python3`` in case you want Python 3
+built from scratch.
+
+You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
+``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
+a number of Python modules to be availabe within the Python in question. Currently,
+for Sage 9.2, these modules are as follows: sqlite3, ctypes, math, hashlib, crypt,
+readline, socket, zlib, distutils.core - they will be checked for by configure.
 
 Other notes
 ^^^^^^^^^^^

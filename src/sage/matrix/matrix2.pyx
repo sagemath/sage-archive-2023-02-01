@@ -54,6 +54,10 @@ AUTHORS:
 - Mario Pernici (2014-07-01): modified ``rook_vector`` method
 
 - Rob Beezer (2015-05-25): modified ``is_similar`` method
+
+- Samuel Lelièvre (2020-09-18): improved method ``LLL_gram`` based on a patch
+  by William Stein posted at :trac:`5178`, moving the method from its initial
+  location in ``sage.matrix.integer_matrix_dense``
 """
 
 # ****************************************************************************
@@ -16157,6 +16161,127 @@ cdef class Matrix(Matrix1):
         # about to check.
         return all(s * (self * x) == 0
                    for (x, s) in K.discrete_complementarity_set())
+
+    def LLL_gram(self, flag=0):
+        """
+        Return the LLL transformation matrix for this Gram matrix.
+
+        That is, the transformation matrix U over ZZ of determinant 1
+        that transforms the lattice with this matrix as Gram matrix
+        to a lattice that is LLL-reduced.
+
+        Always works when ``self`` is positive definite,
+        might work in some semidefinite and indefinite cases.
+
+        INPUT:
+
+        - ``self`` -- the Gram matrix of a quadratic form or of
+          a lattice equipped with a bilinear form
+
+        - ``flag`` -- an optional flag passed to ``qflllgram``.
+          According  to :pari:`qflllgram`'s documentation the options are:
+
+            - ``0`` -- (default), assume that ``self`` has either exact
+              (integral or rational) or real floating point entries.
+              The matrix is rescaled, converted to integers and the
+              behavior is then as in ``flag=1``.
+
+            - ``1`` -- assume that G is integral.
+              Computations involving Gram-Schmidt vectors are
+              approximate, with precision varying as needed.
+
+        OUTPUT:
+
+        A dense matrix ``U`` over the integers with determinant 1
+        such that ``U.T * M * U`` is LLL-reduced.
+
+        ALGORITHM:
+
+        Calls PARI's :pari:`qflllgram`.
+
+        EXAMPLES:
+
+        Create a Gram matrix and LLL-reduce it::
+
+            sage: M = Matrix(ZZ, 2, 2, [5, 3, 3, 2])
+            sage: U = M.LLL_gram()
+            sage: MM = U.transpose() * M * U
+            sage: M, U, MM
+            (
+            [5 3]  [-1  1]  [1 0]
+            [3 2], [ 1 -2], [0 1]
+            )
+
+        For a Gram matrix over RR with a length one first vector and
+        a very short second vector, the LLL-reduced basis is obtained
+        by swapping the two basis vectors (and changing sign to
+        preserve orientation). ::
+
+            sage: M = Matrix(RDF, 2, 2, [1, 0, 0, 1e-5])
+            sage: M.LLL_gram()
+            [ 0 -1]
+            [ 1  0]
+
+        The algorithm might work for some semidefinite and indefinite forms::
+
+            sage: Matrix(ZZ, 2, 2, [2, 6, 6, 3]).LLL_gram()
+            [-3 -1]
+            [ 1  0]
+            sage: Matrix(ZZ, 2, 2, [1, 0, 0, -1]).LLL_gram()
+            [ 0 -1]
+            [ 1  0]
+
+        However, it might fail for others, either raising a ``ValueError``::
+
+            sage: Matrix(ZZ, 1, 1, [0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+            sage: Matrix(ZZ, 2, 2, [0, 1, 1, 0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+        or running forever::
+
+            sage: Matrix(ZZ, 2, 2, [-5, -1, -1, -5]).LLL_gram()  # not tested
+            Traceback (most recent call last):
+            ...
+            RuntimeError: infinite loop while calling qflllgram
+
+        Nonreal input leads to a value error::
+
+           sage: Matrix(2, 2, [CDF(1, 1), 0, 0, 1]).LLL_gram()
+           Traceback (most recent call last):
+           ...
+           ValueError: qflllgram failed, perhaps the matrix is not positive definite
+        """
+        if self._nrows != self._ncols:
+            raise ArithmeticError("self must be a square matrix")
+        n = self.nrows()
+        P = self.__pari__()
+        try:
+            if self.base_ring() == ZZ:
+                U = P.lllgramint()
+            else:
+                U = P.qflllgram(flag)
+        except (RuntimeError, ArithmeticError) as msg:
+            raise ValueError("qflllgram failed, "
+                             "perhaps the matrix is not positive definite")
+        if U.matsize() != [n, n]:
+            raise ValueError("qflllgram did not return a square matrix, "
+                             "perhaps the matrix is not positive definite")
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(ZZ, n)
+        U = MS(U.sage())
+        # Fix last column so that det = +1
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        if U.change_ring(FiniteField(3)).det() != 1:  # p = 3 is enough to decide
+            U.rescale_col(n - 1, -1)
+        return U
 
     # a limited number of access-only properties are provided for matrices
     @property

@@ -1335,18 +1335,32 @@ cdef class FiniteField(Field):
             3
             sage: v = GF(2^1000, 'a').construction(); v[0].polys[0]
             a^1000 + a^5 + a^4 + a^3 + 1
+
+        The implementation is taken into account, by :trac:`15223`::
+
+            sage: k = FiniteField(9, 'a', impl='pari_ffelt')
+            sage: F, R = k.construction()
+            sage: F(R) is k
+            True
+
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor
+        try:
+            kwds = {'impl': self._factory_data[2][3]}
+        except (AttributeError, IndexError, TypeError):
+            kwds = {}
         if self.degree() == 1:
             # this is not of type FiniteField_prime_modn
             from sage.rings.integer import Integer
-            return AlgebraicExtensionFunctor([self.polynomial()], [None], [None]), self.base_ring()
+            return AlgebraicExtensionFunctor([self.polynomial()], [None], [None], **kwds), self.base_ring()
         elif hasattr(self, '_prefix'):
             return (AlgebraicExtensionFunctor([self.degree()], [self.variable_name()], [None],
-                                              prefix=self._prefix),
+                                              prefix=self._prefix, **kwds),
                     self.base_ring())
         else:
-            return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None]),
+            return (AlgebraicExtensionFunctor([self.polynomial()],
+                                              [self.variable_name()], [None],
+                                              **kwds),
                     self.base_ring())
 
     def extension(self, modulus, name=None, names=None, map=False, embedding=None,

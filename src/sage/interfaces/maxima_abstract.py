@@ -56,7 +56,7 @@ import re
 import sys
 import subprocess
 
-from sage.env import DOT_SAGE
+from sage.env import DOT_SAGE, MAXIMA
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj' % DOT_SAGE
 
 from sage.cpython.string import bytes_to_str
@@ -167,7 +167,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             -- Function: gcd (<p_1>, <p_2>, <x_1>, ...)
             ...
         """
-        cmd = 'maxima --very-quiet --batch-string="%s(%s);" '%(command, s)
+        cmd = '{} --very-quiet --batch-string="{}({});" '.format(MAXIMA, command, s)
         if sage.server.support.EMBEDDED_MODE:
             cmd += '< /dev/null'
 
@@ -2218,7 +2218,7 @@ def maxima_version():
         sage: maxima_version()  # random
         '5.41.0'
     """
-    with os.popen('maxima --version') as p:
+    with os.popen('{} --version'.format(MAXIMA)) as p:
         return p.read().split()[-1]
 
 
@@ -2236,4 +2236,4 @@ def maxima_console():
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%maxima magics instead.')
-    os.system('maxima')
+    os.system('{}'.format(MAXIMA))

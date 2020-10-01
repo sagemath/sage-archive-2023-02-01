@@ -2350,7 +2350,7 @@ cdef class ModularSymbolNumerical:
 
         - ``rr`` - another rational number
 
-        - ``eps`` - a postive real number
+        - ``eps`` - a positive real number
 
         OUTPUT: a complex number
 

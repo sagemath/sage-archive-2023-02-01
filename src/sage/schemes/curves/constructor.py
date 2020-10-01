@@ -104,8 +104,8 @@ def Curve(F, A=None):
 
     Also not specifying an ambient space will cause the curve to be defined in
     either affine or projective space based on properties of ``F``. In
-    particular, if ``F`` contains a nonhomogenous polynomial, the curve is
-    affine, and if ``F`` consists of homogenous polynomials, then the curve is
+    particular, if ``F`` contains a nonhomogeneous polynomial, the curve is
+    affine, and if ``F`` consists of homogeneous polynomials, then the curve is
     projective.
 
     INPUT:

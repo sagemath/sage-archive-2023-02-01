@@ -38,14 +38,13 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/data_structures/bitset.pxi'
-
 from .matroid cimport Matroid
 from .set_system cimport SetSystem
 
 from copy import copy
 from itertools import combinations, permutations
 
+from sage.data_structures.bitset_base cimport *
 
 cdef class BasisExchangeMatroid(Matroid):
     r"""
@@ -241,7 +240,7 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         bitset_clear(I)
         for f in F:
-            bitset_add(I, self._idx[f])
+            bitset_add(I, <mp_bitcnt_t> self._idx[f])
 
     cdef __unpack(self, bitset_t I):
         """
@@ -1042,6 +1041,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: setprint(M.components())
             [{0, 1, 3, 4}, {2, 5}]
         """
+        cdef long i,j,e
         if not self._E:
             return SetSystem(self._E)
         cdef bitset_t *comp
@@ -1056,7 +1056,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
         cdef bitset_t active_rows
         bitset_init(active_rows,self.full_rank()+1)
-        bitset_set_first_n(active_rows, self.full_rank())
+        bitset_set_first_n(active_rows, <mp_bitcnt_t> self.full_rank())
         i=0
         while i>=0:
             j = bitset_first(active_rows)
@@ -2174,7 +2174,7 @@ cdef class BasisExchangeMatroid(Matroid):
             bitset_clear(other._input)
             i = bitset_first(self._input)
             while i != -1:
-                bitset_add(other._input, morph[i])
+                bitset_add(other._input, <mp_bitcnt_t> morph[i])
                 i = bitset_next(self._input, i + 1)
             if self.__is_independent(self._input) != other.__is_independent(other._input):
                 return False

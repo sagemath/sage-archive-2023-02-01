@@ -122,14 +122,23 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: WIV = WeightedIntegerVectors(3, [2,1,1])
-            sage: elt = WIV([1, 2, 0]); elt
-            [1, 2, 0]
+            sage: elt = WIV([1, 1, 0]); elt
+            [1, 1, 0]
             sage: elt.parent() is WIV
             True
+            sage: WIV([1, 1, 0])
+            [1, 1, 0]
+            sage: WIV([1, 2, 0])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert [1, 2, 0] into Integer vectors of 3
+             weighted by [2, 1, 1]
+
         """
         if isinstance(lst, IntegerVector):
             if lst.parent() is self:
                 return lst
+        if lst not in self:
             raise ValueError("cannot convert %s into %s" % (lst, self))
         return self.element_class(self, lst)
 

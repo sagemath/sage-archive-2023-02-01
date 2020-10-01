@@ -2,7 +2,7 @@
 r"""
 C-Finite Sequences
 
-C-finite infinite sequences satisfy homogenous linear recurrences with constant coefficients:
+C-finite infinite sequences satisfy homogeneous linear recurrences with constant coefficients:
 
 .. MATH::
 
@@ -721,17 +721,17 @@ class CFiniteSequence(FieldElement,
 
             sage: C.<x> = CFiniteSequences(QQ)
             sage: C((2-x)/(1-x-x^2)).recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(0...) = [2, 1]'
+            'homogeneous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(0...) = [2, 1]'
             sage: C(x/(1-x)^3).recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 3: a(n+3) = 3*a(n+2) - 3*a(n+1) + a(n), starting a(1...) = [1, 3, 6]'
+            'homogeneous linear recurrence with constant coefficients of degree 3: a(n+3) = 3*a(n+2) - 3*a(n+1) + a(n), starting a(1...) = [1, 3, 6]'
             sage: C(1).recurrence_repr()
             'Finite sequence [1], offset 0'
             sage: r = C((-2*x^3 + x^2 - x + 1)/(2*x^2 - 3*x + 1))
             sage: r.recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = 3*a(n+1) - 2*a(n), starting a(0...) = [1, 2, 5, 9]'
+            'homogeneous linear recurrence with constant coefficients of degree 2: a(n+2) = 3*a(n+1) - 2*a(n), starting a(0...) = [1, 2, 5, 9]'
             sage: r = CFiniteSequence(x^3/(1-x-x^2))
             sage: r.recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(3...) = [1, 1, 2, 3]'
+            'homogeneous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(3...) = [1, 1, 2, 3]'
         """
         if self._deg == 0:
             return 'Finite sequence %s, offset %d' % (str(self._a), self._off)
@@ -760,7 +760,7 @@ class CFiniteSequence(FieldElement,
         for i in range(maxwexp + self._deg):
             astr = astr + str(self[self._off + i]) + ', '
         astr = astr[:-2] + ']'
-        return 'Homogenous linear recurrence with constant coefficients of degree ' + str(self._deg) + ': ' + cstr + astr
+        return 'homogeneous linear recurrence with constant coefficients of degree ' + str(self._deg) + ': ' + cstr + astr
 
     def series(self, n):
         """
@@ -1094,7 +1094,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
     def from_recurrence(self, coefficients, values):
         r"""
         Create a C-finite sequence given the coefficients $c$ and
-        starting values $a$ of a homogenous linear recurrence.
+        starting values $a$ of a homogeneous linear recurrence.
 
         .. MATH::
 

@@ -1,6 +1,6 @@
 #include "gmp.h"
 
-// This file contains functions of ``bitset.pxi``
+// This file contains functions of ``bitset_base.pxd``
 // that can be optimized using intrinsics.
 
 /*
@@ -8,6 +8,9 @@
 # Bitset Comparison
 #############################################################################
 */
+
+const mp_bitcnt_t LIMB_SIZE = sizeof(mp_limb_t);
+const mp_bitcnt_t ALIGNMENT = sizeof(mp_limb_t);
 
 static inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
     /*

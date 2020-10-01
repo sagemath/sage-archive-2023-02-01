@@ -746,7 +746,9 @@ class DisplayManager(SageObject):
             offline threejs graphics
         """
         if online:
-            import sage.env, re, os
+            import sage.env
+            import re
+            import os
             with open(os.path.join(sage.env.THREEJS_DIR, 'build', 'three.min.js')) as f:
                 text = f.read().replace('\n','')
             version = re.search(r'REVISION="(\d+)"', text).group(1)

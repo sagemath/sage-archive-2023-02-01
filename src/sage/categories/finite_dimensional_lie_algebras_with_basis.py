@@ -834,7 +834,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  with basis matrix:
                 []
             """
-            return self.product_space(self)
+            if self.is_semisimple():
+                return self
+            else:
+                return self.product_space(self)
 
         @cached_method
         def derived_series(self):

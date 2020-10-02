@@ -1179,7 +1179,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
-
+        from sage.rings.rational_field import QQ
         # The next few lines are a very crude excuse for a maple "parser"
         maple_type = repr(self.whattype())
         result = repr(self)

@@ -1082,13 +1082,16 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             \pi-{{\rm e}^{3}}
             sage: print(maple(pi - e^3)._latex_())              # optional - maple
             \pi-{{\rm e}^{3}}
- 
+
         .. note::
 
            Some expressions might require the Maple style file
            ``maple2e.sty`` in order to latex correctly.
         """
-        return self.parent().eval('latex(%s)'%self.name())
+        return self.parent().eval('latex(%s)' % self.name())
+
+    def op(self, i):
+        return self.parent().eval("op")(i, self)
 
     def _sage_(self):
         r"""
@@ -1129,24 +1132,42 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
 
+        # The next few lines are a very crude excuse for a maple "parser"
+        maple_type = repr(self.whattype())
         result = repr(self)
-        # The next few lines are a very crude excuse for a maple "parser".
         result = result.replace("Pi", "pi")
-
-        if result[:6] == "Matrix":
-            content = result[7:-1]
-            m, n = content.split(',')[:2]
-            m = ZZ(m.strip())
-            n = ZZ(n.strip())
+        if maple_type == 'symbol':       # pi
+            return SR(result)
+        elif maple_type == 'string':     # "banane"
+            return result
+        elif maple_type == 'expr_seq':   # 2, 2
+            pass
+        elif maple_type == 'set':        # {(1, 1) = 1, (1, 2) = 2}
+            pass
+        elif maple_type == "Matrix":     # Matrix(2, 2, [[1,2],[3,4]])
+            m, n = self.op(1)._sage_()
+            coeffs = self.op(2)._sage_()
             coeffs = [self[i + 1, j + 1].sage()
                       for i in range(m) for j in range(n)]
             return matrix(m, n, coeffs)
-        elif result[:6] == "Vector":
-            start = result.index('(')
-            content = result[start + 1:-1]
-            m = ZZ(content.split(',')[0].strip())
-            return vector([self[i + 1].sage() for i in range(m)])
-
+        elif maple_type[:6] == "Vector": # Vector[row](3, [4,5,6])
+            n = self.op(1)._sage_()
+            coeffs = self.op(2)._sage_()
+            return vector([self[i + 1].sage() for i in range(n)])
+        elif maple_type = 'integer':
+            return ZZ(result)
+        elif maple_type = 'rational':
+            return QQ(result)
+        elif maple_type = 'fraction':
+            a, b = self.op(1), self.op(2)
+            return a._sage_() / b._sage_()
+        elif maple_type = "function":
+            pass
+        elif maple_type = "float":
+            return RR(result)
+        elif maple_type = "numeric":
+            return CC(result)
+        # remain to handle types "+", "*" and "^"
         try:
             from sage.symbolic.all import SR
             return SR(result)

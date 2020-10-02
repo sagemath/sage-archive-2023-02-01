@@ -7,11 +7,6 @@ if __name__ == '__main__':
 from .PyPolyBoRi import Ring, VariableBlock, Polynomial
 from .PyPolyBoRi import VariableFactory, MonomialFactory
 from itertools import chain, islice
-#class BlockEndException(object):
-  #pass
-  #def __init__(self, arg):
-  # self.arg = arg
-  # pass
 
 
 class Block(object):
@@ -61,7 +56,7 @@ class AlternatingBlock(object):
     a(0),b(0),a(1),b(1),a(2),b(2)
     """
     def __init__(self, var_names, size_per_variable, start_index=0,
-        reverse=False):
+                 reverse=False):
         self.var_names = var_names
         self.size_per_variable = size_per_variable
         self.reverse = reverse
@@ -120,7 +115,7 @@ def shift(f, i):
 
 class AdderBlock(AlternatingBlock):
     def __init__(self, adder_bits, sums="s", carries="c", input1="a",
-        input2="b", start_index=0):
+                 input2="b", start_index=0):
         AlternatingBlock.__init__(self, (sums, carries, input1, input2),
             adder_bits, start_index=start_index, reverse=True)
         self.input1 = input1
@@ -140,7 +135,6 @@ class AdderBlock(AlternatingBlock):
         b = shift(b, self.start_index)
         carries = [Polynomial(a(0).ring().zero())]
         for i in range(self.adder_bits):
-            #print i, ":"
             c = 1 + (1 + a(i) * b(i)) * (1 + carries[-1] * a(i)) * (1 +
                 carries[-1] * b(i))
             carries.append(c)
@@ -159,7 +153,6 @@ class AdderBlock(AlternatingBlock):
         for i in range(self.adder_bits):
             equations.append(self.s(i) + self.add_results[i])
             equations.append(self.c(i) + self.carries_polys[i])
-        pass
 
 
 class HigherOrderBlock(object):
@@ -172,7 +165,7 @@ class HigherOrderBlock(object):
     """
 
     def __init__(self, var_name, size_tuple, start_index_tuple=None,
-        reverse=False):
+                 reverse=False):
         if start_index_tuple is None:
             start_index_tuple = len(size_tuple) * (0, )
         cart = [()]
@@ -181,7 +174,6 @@ class HigherOrderBlock(object):
         for i in outer_indices:
             s_i = start_index_tuple[i]
             s = size_tuple[i]
-      #print "cart", cart
             cart = [(j, ) + c for j in range(s_i, s_i + s) for c in cart]
         if reverse:
             cart.reverse()
@@ -189,7 +181,6 @@ class HigherOrderBlock(object):
         self.cart2index = dict([(v, k) for (k, v) in enumerate(cart)])
         self.var_name = var_name
         self.names = [var_name + str(c) for c in cart]
-        pass
 
     def __getitem__(self, i):
         return self.names[i]
@@ -209,8 +200,8 @@ class HigherOrderBlock(object):
 
 class InOutBlock(object):
     def __init__(self, out_size, in_size, output="out", input="in",
-               in_start_index=0, out_start_index=0,
-               out_reverse=False, in_reverse=False):
+                 in_start_index=0, out_start_index=0,
+                 out_reverse=False, in_reverse=False):
         self.output = Block(var_name=output, start_index=out_start_index,
                         size=out_size, reverse=out_reverse)
         self.input = Block(var_name=input, start_index=in_start_index,
@@ -237,12 +228,11 @@ class InOutBlock(object):
         self.out_vars = shift(context[self.output.var_name], self.
             out_start_index)
         self.in_vars = shift(context[self.input.var_name], self.in_start_index)
-        pass
 
 
 class MultiBlock(object):
-    def __init__(self, sizes=[], var_names=["v"], start_indices=[], reverses=[
-        ]):
+    def __init__(self, sizes=[], var_names=["v"],
+                 start_indices=[], reverses=[]):
 
         self.start_indices = start_indices + [0] * (len(var_names) - len(
             start_indices))

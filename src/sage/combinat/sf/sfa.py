@@ -2273,7 +2273,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
              ([2, 1], [([1, 1, 1], 2), ([2, 1], 1)]),
              ([3], [([1, 1, 1], 1), ([2, 1], 1), ([3], 1)])]
         """
-        BR = self.base_ring(); one = BR.one()
+        BR = self.base_ring()
+        one = BR.one()
         p = self.realization_of().p()
 
         # Create a function which converts x and y to the power-sum basis and applies

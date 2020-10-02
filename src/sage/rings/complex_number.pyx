@@ -237,6 +237,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.str()
 
+    def _mathematica_init_(self):
+        """
+        EXAMPLES::
+
+            sage: mathematica(CC(3.5e-15, 2.3e15))  # indirect doctest, optional - mathematica
+            3.5*^-15 + 2.3*^15*I
+        """
+        return self.str(e='*^')
+
     def _maxima_init_(self, I=None):
         """
         Return a string representation of this complex number in the syntax of
@@ -525,6 +534,53 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if not s:
             s = self.real().str(base, **kwds)
         return s
+
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this complex number.
+
+        INPUT:
+
+        - ``format_spec`` -- string; a floating point format specificier as
+          defined by :python:`the format specification mini-language
+          <library/string.html#formatspec>` in Python
+
+        EXAMPLES::
+
+            sage: format(CC(32/3, 0), ' .4f')
+            ' 10.6667 + 0.0000*I'
+            sage: format(CC(-2/3, -2/3), '.4e')
+            '-6.6667e-1 - 6.6667e-1*I'
+
+        If the representation type character is absent, the output matches the
+        string representation of the complex number. This has the effect that
+        real and imaginary part are only shown if they are not zero::
+
+            sage: format(CC(0, 2/3), '.4')
+            '0.6667*I'
+            sage: format(CC(2, 0), '.4')
+            '2.000'
+            sage: format(ComplexField(240)(0, 1/7), '.60')
+            '0.142857142857142857142857142857142857142857142857142857142857*I'
+            sage: format(ComplexField(240)(0, 1/7), '.60f')
+            '0.000000000000000000000000000000000000000000000000000000000000
+            + 0.142857142857142857142857142857142857142857142857142857142857*I'
+
+        Note that the general format does not exactly match the behaviour of
+        ``float``::
+
+            sage: format(CC(3, 0), '.4g')
+            '3.000 + 0e-15*I'
+            sage: format(CC(3, 0), '#.4g')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid format string
+            sage: format(CC(0, 0), '+#.4')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid format string
+        """
+        return _format_complex_number(self.real(), self.imag(), format_spec)
 
     def _latex_(self):
         r"""
@@ -2731,3 +2787,66 @@ cpdef int cmp_abs(ComplexNumber a, ComplexNumber b):
     mpfr_clear(tmp)
 
     return res
+
+def _format_complex_number(real, imag, format_spec):
+    """
+    Construct a formatted string from real and imaginary parts.
+
+    TESTS::
+
+        sage: s = format(CDF(1/80, -1/2), '25'); s
+        '           0.0125 - 0.5*I'
+        sage: len(s) == 25
+        True
+        sage: '{:=^ 25}'.format(CDF(1/80, -1/2))
+        '===== 0.0125 - 0.5*I====='
+        sage: format(float(3), '#.4') == format(CDF(3, 0), '#.4')
+        True
+        sage: format(CDF(1, 2), '=+20')
+        Traceback (most recent call last):
+        ...
+        ValueError: '=' alignment not allowed in complex format specifier
+
+    ::
+
+        sage: format(CC(1/80, -1/2), '55') == format(str(CC(1/80, -1/2)), '>55')
+        True
+        sage: '{:=^ 55}'.format(CC(1/80, -1/2))
+        '======= 0.0125000000000000 - 0.500000000000000*I======='
+        sage: format(CC(1, 2), '=+20')
+        Traceback (most recent call last):
+        ...
+        ValueError: '=' alignment not allowed in complex format specifier
+    """
+    import re
+    match = re.match(r'^(.?[><=^])?'         # 1: fill and align
+                     r'([ +-]?)'             # 2: sign
+                     r'[^\d\.]*?0?(\d*)'     # 3: width
+                     r'.*?([eEfFgGn%])?$',   # 4: type
+                     format_spec)
+    if not match:
+        raise ValueError("invalid format specifier %s" % format_spec)
+
+    # format floats without align and width
+    float_format = (format_spec[match.start(2):match.start(3)]
+                    + format_spec[match.end(3):])
+
+    use_str_format = not match.group(4)
+    if use_str_format and imag == 0:
+        result = format(real, float_format)
+    elif use_str_format and real == 0:
+        result = format(imag, float_format) + '*I'
+    else:
+        x = format(real, float_format)
+        y = format(imag, '+' + format_spec[match.end(2):match.start(3)]
+                         + format_spec[match.end(3):])
+        result = f"{x} {y[:1]} {y[1:]}*I"
+
+    width = match.group(3)
+    if width:
+        align = match.group(1) or '>'
+        if align.endswith('='):
+            raise ValueError("'=' alignment not allowed in "
+                             "complex format specifier")
+        result = format(result, align + width)
+    return result

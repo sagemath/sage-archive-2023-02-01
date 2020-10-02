@@ -4574,7 +4574,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(2,3).elliptic_pi(CBF(1,1))
-            [0.27029997361983 +/- ...e-15] + [0.715676058329095 +/- ...e-16]*I
+            [0.2702999736198...] + [0.715676058329...]*I
 
         """
         cdef ComplexBall result = self._new()
@@ -4681,17 +4681,21 @@ cdef class ComplexBall(RingElement):
 
             sage: n = CBF(1,1)
             sage: m = CBF(-2/3, 3/5)
-            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb216
             [0.8934793755173 +/- ...e-14] + [0.95707868710750 +/- ...e-15]*I
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb218 - this is a regression, see :trac:28623
+            nan + nan*I
             sage: n.elliptic_pi(m)
-            [0.89347937551733 +/- ...e-15] + [0.95707868710750 +/- ...e-15]*I
+            [0.8934793755173...] + [0.957078687107...]*I
 
             sage: n = CBF(2, 3/7)
             sage: m = CBF(-1/3, 2/9)
-            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb216
             [0.2969588746419 +/- ...e-14] + [1.3188795332738 +/- ...e-14]*I
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb218 -  this is a regression, see :trac:28623
+            nan + nan*I
             sage: n.elliptic_pi(m)
-            [0.29695887464189 +/- ...e-15] + [1.31887953327376 +/- ...e-15]*I
+            [0.296958874641...] + [1.318879533273...]*I
         """
         cdef ComplexBall result = self._new()
         cdef ComplexBall my_phi = self._parent.coerce(phi)
@@ -4767,7 +4771,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(0,1).elliptic_rj(CBF(-1/2,1), CBF(-1,-1), CBF(2))
-            [1.004386756285733 +/- ...e-16] + [-0.2451626834391645 +/- ...e-17]*I
+            [1.00438675628573...] + [-0.24516268343916...]*I
 
         """
         cdef ComplexBall result = self._new()

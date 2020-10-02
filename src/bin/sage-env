@@ -229,10 +229,6 @@ if [ "$UNAME" = "Darwin" ]; then
     export OBJC OBJCXX
 fi
 
-if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
-    export SAGE_PYTHON3=yes
-fi
-
 # Set other Fortran-related compiler variables
 export F77="$FC"
 export F90="$FC"   # Needed for SciPy

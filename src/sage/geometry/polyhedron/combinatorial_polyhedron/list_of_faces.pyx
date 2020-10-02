@@ -55,7 +55,7 @@ Obtain the facets of a polyhedron as :class:`ListOfFaces` from a facet list::
     sage: facets = ((0,1,2), (0,1,3), (0,2,3), (1,2,3))
     sage: face_list = facets_tuple_to_bit_rep_of_facets(facets, 4)
 
-Likewise for the Vrepresenatives as facet-incidences::
+Likewise for the Vrepresentatives as facet-incidences::
 
     sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
     ....:         import facets_tuple_to_bit_rep_of_Vrep
@@ -186,26 +186,7 @@ cdef class ListOfFaces:
 
         See :class:`ListOfFaces`.
 
-        TESTS:
-
-        Checking for correct alignment of the data::
-
-            sage: cython('''
-            ....: from libc.stdint cimport uint64_t
-            ....: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-            ....: cimport ListOfFaces
-            ....:
-            ....: cdef ListOfFaces facets
-            ....: cdef size_t address
-            ....: cdef size_t required_alignment
-            ....:
-            ....: facets = ListOfFaces(10, 13)
-            ....: required_alignment = facets.face_length*8
-            ....: for i in range(10):
-            ....:     address = <size_t> facets.data[i]
-            ....:     if not address == address & ~(required_alignment - 1):
-            ....:         print('Alignment not correct')
-            ....: ''')
+        TESTS::
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces).run()
         """
@@ -230,6 +211,26 @@ cdef class ListOfFaces:
             # - must be 32-byte aligned if chunksize = 256
             self.data[i] = <uint64_t *> \
                 self._mem.aligned_malloc(chunksize//8, self.face_length*8)
+
+    def _test_alignment(self):
+        r"""
+        Check the correct alignment.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
+            ....:         import ListOfFaces
+            sage: facets = ListOfFaces(10, 13)
+            sage: facets._test_alignment()
+        """
+        cdef size_t address
+        cdef size_t required_alignment
+        cdef size_t i
+
+        required_alignment = chunksize/8
+        for i in range(self.n_faces):
+            address = <size_t> self.data[i]
+            assert address == address & ~(required_alignment - 1)
 
     def __copy__(self):
         r"""

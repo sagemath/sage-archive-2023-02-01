@@ -1,9 +1,11 @@
-# distutils: libraries = arb
+# distutils: libraries = gmp flint ARB_LIBRARY
+# distutils: depends = acb.h
 
 from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 
-cdef extern from "acb.h":
+# acb.h
+cdef extern from "arb_wrap.h":
 
     arb_t acb_realref(acb_t x)
     arb_t acb_imagref(acb_t x)
@@ -45,6 +47,7 @@ cdef extern from "acb.h":
     bint acb_eq(const acb_t x, const acb_t y)
     bint acb_ne(const acb_t x, const acb_t y)
     bint acb_overlaps(const acb_t x, const acb_t y)
+    void acb_union(acb_t z, const acb_t x, const acb_t y, long prec)
     void acb_get_abs_ubound_arf(arf_t u, const acb_t z, long prec)
     void acb_get_abs_lbound_arf(arf_t u, const acb_t z, long prec)
     void acb_get_rad_ubound_arf(arf_t u, const acb_t z, long prec)
@@ -124,6 +127,8 @@ cdef extern from "acb.h":
     void acb_sin_cos(arb_t s, arb_t c, const acb_t z, long prec)
     void acb_tan(acb_t s, const acb_t z, long prec)
     void acb_cot(acb_t s, const acb_t z, long prec)
+    void acb_sec(acb_t s, const acb_t z, long prec)
+    void acb_csc(acb_t c, const acb_t z, long prec)
     void acb_sin_pi(acb_t s, const acb_t z, long prec)
     void acb_cos_pi(acb_t s, const acb_t z, long prec)
     void acb_sin_cos_pi(acb_t s, acb_t c, const acb_t z, long prec)
@@ -137,11 +142,15 @@ cdef extern from "acb.h":
     void acb_acosh(acb_t s, const acb_t z, long prec)
     void acb_atanh(acb_t s, const acb_t z, long prec)
 
+    void acb_lambertw(acb_t res, const acb_t z, const fmpz_t k, int flags, long prec)
+
     void acb_sinh(acb_t s, const acb_t z, long prec)
     void acb_cosh(acb_t c, const acb_t z, long prec)
     void acb_sinh_cosh(acb_t s, acb_t c, const acb_t z, long prec)
     void acb_tanh(acb_t s, const acb_t z, long prec)
     void acb_coth(acb_t s, const acb_t z, long prec)
+    void acb_sech(acb_t s, const acb_t z, long prec)
+    void acb_csch(acb_t c, const acb_t z, long prec)
 
     void acb_rising_ui_bs(acb_t z, const acb_t x, unsigned long n, long prec)
     void acb_rising_ui_rs(acb_t z, const acb_t x, unsigned long n, unsigned long step, long prec)
@@ -168,4 +177,5 @@ cdef extern from "acb.h":
     void acb_agm1_cpx(acb_ptr m, const acb_t z, long len, long prec)
 
     acb_ptr _acb_vec_init(long n)
+    void _acb_vec_sort_pretty(acb_ptr vec, long len)
     void _acb_vec_clear(acb_ptr v, long n)

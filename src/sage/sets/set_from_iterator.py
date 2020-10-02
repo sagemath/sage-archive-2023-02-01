@@ -8,10 +8,10 @@ representative for each isomorphism class of graphs::
 
     sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
     sage: E = EnumeratedSetFromIterator(
-    ...     graphs,
-    ...     name = "Graphs",
-    ...     category = InfiniteEnumeratedSets(),
-    ...     cache = True)
+    ....:   graphs,
+    ....:   name = "Graphs",
+    ....:   category = InfiniteEnumeratedSets(),
+    ....:   cache = True)
     sage: E
     Graphs
     sage: E.unrank(0)
@@ -27,7 +27,7 @@ The module also provides decorator for functions and methods::
 
     sage: from sage.sets.set_from_iterator import set_from_function
     sage: @set_from_function
-    ... def f(n): return xsrange(n)
+    ....: def f(n): return xsrange(n)
     sage: f(3)
     {0, 1, 2}
     sage: f(5)
@@ -37,9 +37,9 @@ The module also provides decorator for functions and methods::
 
     sage: from sage.sets.set_from_iterator import set_from_method
     sage: class A:
-    ...    @set_from_method
-    ...    def f(self,n):
-    ...        return xsrange(n)
+    ....:  @set_from_method
+    ....:  def f(self,n):
+    ....:      return xsrange(n)
     sage: a = A()
     sage: a.f(3)
     {0, 1, 2}
@@ -65,12 +65,10 @@ from __future__ import print_function
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.sets_cat import EmptySetError
-from itertools import izip_longest
-import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
+from sage.docs.instancedoc import instancedoc
+
 
 class EnumeratedSetFromIterator(Parent):
     """
@@ -88,7 +86,7 @@ class EnumeratedSetFromIterator(Parent):
 
     - ``category`` -- (default: ``None``) an optional category for that
       enumerated set. If you know that your iterator will stop after a finite
-      number of steps you should set it as :class:`FiniteEnumeratedSets`, conversly if
+      number of steps you should set it as :class:`FiniteEnumeratedSets`, conversely if
       you know that your iterator will run over and over you should set it as
       :class:`InfiniteEnumeratedSets`.
 
@@ -109,11 +107,11 @@ class EnumeratedSetFromIterator(Parent):
     The same example with a cache and a custom name::
 
         sage: E = EnumeratedSetFromIterator(
-        ...      graphs,
-        ...      args = (8,),
-        ...      category = FiniteEnumeratedSets(),
-        ...      name = "Graphs with 8 vertices",
-        ...      cache = True)
+        ....:    graphs,
+        ....:    args = (8,),
+        ....:    category = FiniteEnumeratedSets(),
+        ....:    name = "Graphs with 8 vertices",
+        ....:    cache = True)
         sage: E
         Graphs with 8 vertices
         sage: E.unrank(3)
@@ -189,9 +187,8 @@ class EnumeratedSetFromIterator(Parent):
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: E = EnumeratedSetFromIterator(xsrange, (1,200))
-            sage: hash(E)
-            4600916458883504074 # 64-bit
-            -2063607862         # 32-bit
+            sage: hash(E) == hash(tuple(range(1, 14)))
+            True
         """
         try:
             return hash(self._cache[:13])
@@ -208,9 +205,9 @@ class EnumeratedSetFromIterator(Parent):
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: from sage.graphs.graph_generators import graphs
             sage: E = EnumeratedSetFromIterator(graphs,
-            ...      args=(3,),
-            ...      category=FiniteEnumeratedSets(),
-            ...      name="Graphs on 3 vertices")
+            ....:    args=(3,),
+            ....:    category=FiniteEnumeratedSets(),
+            ....:    name="Graphs on 3 vertices")
             sage: E
             Graphs on 3 vertices
             sage: F = loads(dumps(E)); F
@@ -246,7 +243,7 @@ class EnumeratedSetFromIterator(Parent):
         """
         l = []
         i = iter(self)
-        for _ in xrange(6):
+        for _ in range(6):
             try:
                 l.append(next(i))
             except StopIteration:
@@ -402,8 +399,12 @@ class EnumeratedSetFromIterator(Parent):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
-            sage: S = EnumeratedSetFromIterator(xrange, args=(1,4))
-            sage: S(1)  # indirect doctest
+            sage: S = EnumeratedSetFromIterator(range, args=(1,4))
+            sage: S(1)  # py2
+            1
+
+            sage: S(1)  # py3
+            doctest:...: UserWarning: Testing equality of infinite sets which will not end in case of equality
             1
             sage: S(0)  # indirect doctest
             Traceback (most recent call last):
@@ -443,13 +444,14 @@ class EnumeratedSetFromIterator(Parent):
 #
 
 #TODO: move it in sage.misc ?
-class Decorator:
+@instancedoc
+class Decorator(object):
     r"""
     Abstract class that manage documentation and sources of the wrapped object.
 
     The method needs to be stored in the attribute ``self.f``
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Provide documentation for the wrapped function.
 
@@ -517,7 +519,7 @@ class Decorator:
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][18]
+            sage: S[0][25]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines
@@ -545,7 +547,7 @@ class Decorator:
 
         Needs to be implemented in derived subclass.
 
-        TEST::
+        TESTS::
 
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()
@@ -556,6 +558,8 @@ class Decorator:
         """
         raise NotImplementedError
 
+
+@instancedoc
 class EnumeratedSetFromIterator_function_decorator(Decorator):
     r"""
     Decorator for :class:`EnumeratedSetFromIterator`.
@@ -571,9 +575,9 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
 
         sage: from sage.sets.set_from_iterator import set_from_function
         sage: @set_from_function
-        ... def f(n):
-        ...    for i in xrange(n):
-        ...        yield i**2 + i + 1
+        ....: def f(n):
+        ....:     for i in range(n):
+        ....:         yield i**2 + i + 1
         sage: f(3)
         {1, 3, 7}
         sage: f(100)
@@ -584,11 +588,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     :class:`EnumeratedSetFromIterator`::
 
         sage: @set_from_function(category=InfiniteEnumeratedSets())
-        ... def Fibonacci():
-        ...    a = 1; b = 2
-        ...    while True:
-        ...       yield a
-        ...       a,b = b,a+b
+        ....: def Fibonacci():
+        ....:     a = 1; b = 2
+        ....:     while True:
+        ....:         yield a
+        ....:         a, b = b, a + b
         sage: F = Fibonacci()
         sage: F
         {1, 2, 3, 5, 8, ...}
@@ -598,9 +602,9 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     A simple example with many options::
 
         sage: @set_from_function(
-        ...        name = "From %(m)d to %(n)d",
-        ...        category = FiniteEnumeratedSets())
-        ... def f(m,n): return xsrange(m,n+1)
+        ....:      name = "From %(m)d to %(n)d",
+        ....:      category = FiniteEnumeratedSets())
+        ....: def f(m, n): return xsrange(m,n+1)
         sage: E = f(3,10); E
         From 3 to 10
         sage: E.list()
@@ -616,11 +620,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     ``cached_method``::
 
         sage: @cached_function
-        ... @set_from_function(
-        ...    name = "Graphs on %(n)d vertices",
-        ...    category = FiniteEnumeratedSets(),
-        ...    cache = True)
-        ... def Graphs(n): return graphs(n)
+        ....: @set_from_function(
+        ....:  name = "Graphs on %(n)d vertices",
+        ....:  category = FiniteEnumeratedSets(),
+        ....:  cache = True)
+        ....: def Graphs(n): return graphs(n)
         sage: Graphs(10)
         Graphs on 10 vertices
         sage: Graphs(10).unrank(0)
@@ -631,11 +635,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     The ``cached_function`` must go first::
 
         sage: @set_from_function(
-        ...    name = "Graphs on %(n)d vertices",
-        ...    category = FiniteEnumeratedSets(),
-        ...    cache = True)
-        ... @cached_function
-        ... def Graphs(n): return graphs(n)
+        ....:  name = "Graphs on %(n)d vertices",
+        ....:  category = FiniteEnumeratedSets(),
+        ....:  cache = True)
+        ....: @cached_function
+        ....: def Graphs(n): return graphs(n)
         sage: Graphs(10)
         Graphs on 10 vertices
         sage: Graphs(10).unrank(0)
@@ -670,7 +674,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     def __call__(self, *args, **kwds):
         r"""
         Build a new :class:`EnumeratedSet` by calling ``self.f`` with
-        apropriate argument. If ``f`` is ``None``, then returns a new instance
+        appropriate argument. If ``f`` is ``None``, then returns a new instance
         of :class:`EnumeratedSetFromIterator`.
 
         EXAMPLES::
@@ -684,25 +688,22 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
             sage: F(10).cardinality()
             10
         """
-        options = self.options
-
         if hasattr(self, 'f'): # yet initialized
             if hasattr(self,'name'):
-                if isinstance(self.name,str):
+                if isinstance(self.name, str):
                     if args or kwds:
-                        _,kk = self.af.fix_to_named(*args,**kwds)
-                        name = self.name%dict(kk)
+                        _, kk = self.af.fix_to_named(*args,**kwds)
+                        name = self.name % dict(kk)
                     else:
                         name = self.name
                 else:
-                    name = self.name(*args,**kwds)
+                    name = self.name(*args, **kwds)
                 return EnumeratedSetFromIterator(self.f, args, kwds, name=name, **self.options)
             return EnumeratedSetFromIterator(self.f, args, kwds, **self.options)
 
         else: # potential global options
             if args == ():
-                assert len(kwds.keys()) == 1
-                f = kwds.values()[0]
+                f, = kwds.values()
             else:
                 assert len(args) == 1
                 f = args[0]
@@ -713,6 +714,8 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
 
 set_from_function = EnumeratedSetFromIterator_function_decorator
 
+
+@instancedoc
 class EnumeratedSetFromIterator_method_caller(Decorator):
     r"""
     Caller for decorated method in class.
@@ -748,10 +751,14 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
 
         But not the enumerated set::
 
-            sage: loads(dumps(d.f()))
+            sage: loads(dumps(d.f())) # py2
             Traceback (most recent call last):
             ...
-            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+            PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
+            sage: loads(dumps(d.f())) # py3
+            Traceback (most recent call last):
+            ...
+            _pickle.PicklingError: Can't pickle <function DummyExampleForPicklingTest.f at ...>: it's not the same object as sage.sets.set_from_iterator.DummyExampleForPicklingTest.f
         """
         self.inst = inst
         self.f = f
@@ -774,11 +781,11 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
 
             sage: from sage.sets.set_from_iterator import set_from_method
             sage: class A:
-            ...    @set_from_method(name = lambda self,n: str(self)*n)
-            ...    def f(self,n):
-            ...        return xsrange(n)
-            ...    def __repr__(self):
-            ...        return "A"
+            ....:  @set_from_method(name = lambda self,n: str(self)*n)
+            ....:  def f(self,n):
+            ....:      return xsrange(n)
+            ....:  def __repr__(self):
+            ....:      return "A"
             sage: a = A()
             sage: a.f(3)                         # indirect doctest
             AAA
@@ -854,12 +861,12 @@ class EnumeratedSetFromIterator_method_decorator(object):
 
         sage: from sage.sets.set_from_iterator import set_from_method
         sage: class A():
-        ...    def n(self): return 12
-        ...    @set_from_method
-        ...    def f(self): return xsrange(self.n())
+        ....:  def n(self): return 12
+        ....:  @set_from_method
+        ....:  def f(self): return xsrange(self.n())
         sage: a = A()
         sage: print(a.f.__class__)
-        sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+        <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
         sage: a.f()
         {0, 1, 2, 3, 4, ...}
         sage: A.f(a)
@@ -868,10 +875,10 @@ class EnumeratedSetFromIterator_method_decorator(object):
     A more complicated example with a parametrized name::
 
         sage: class B():
-        ...    @set_from_method(
-        ...        name = "Graphs(%(n)d)",
-        ...        category = FiniteEnumeratedSets())
-        ...    def graphs(self, n): return graphs(n)
+        ....:  @set_from_method(
+        ....:      name = "Graphs(%(n)d)",
+        ....:      category = FiniteEnumeratedSets())
+        ....:  def graphs(self, n): return graphs(n)
         sage: b = B()
         sage: G3 = b.graphs(3)
         sage: G3
@@ -886,13 +893,13 @@ class EnumeratedSetFromIterator_method_decorator(object):
     And a last example with a name parametrized by a function::
 
         sage: class D():
-        ...    def __init__(self, name): self.name = str(name)
-        ...    def __str__(self): return self.name
-        ...    @set_from_method(
-        ...        name = lambda self,n: str(self)*n,
-        ...        category = FiniteEnumeratedSets())
-        ...    def subset(self, n):
-        ...        return xsrange(n)
+        ....:  def __init__(self, name): self.name = str(name)
+        ....:  def __str__(self): return self.name
+        ....:  @set_from_method(
+        ....:      name = lambda self,n: str(self)*n,
+        ....:      category = FiniteEnumeratedSets())
+        ....:  def subset(self, n):
+        ....:      return xsrange(n)
         sage: d = D('a')
         sage: E = d.subset(3); E
         aaa
@@ -926,12 +933,10 @@ class EnumeratedSetFromIterator_method_decorator(object):
             True
         """
         if f is not None:
-            import types
             self.f = f
             if hasattr(f,"__name__"):
                 self.__name__ = f.__name__
                 self.__module__ = f.__module__
-
             else:
                 if hasattr(f, '__module__'):
                     self.__module__ = f.__module__
@@ -954,9 +959,9 @@ class EnumeratedSetFromIterator_method_decorator(object):
 
             sage: from sage.sets.set_from_iterator import set_from_method
             sage: class A:
-            ...    @set_from_method()    # indirect doctest
-            ...    def f(self):
-            ...        return xsrange(3)
+            ....:  @set_from_method()    # indirect doctest
+            ....:  def f(self):
+            ....:      return xsrange(3)
             sage: a = A()
             sage: a.f()
             {0, 1, 2}
@@ -969,14 +974,14 @@ class EnumeratedSetFromIterator_method_decorator(object):
 
             sage: from sage.sets.set_from_iterator import set_from_method
             sage: class A():
-            ...    def n(self): return 12
-            ...    @set_from_method
-            ...    def f(self): return xsrange(self.n())
+            ....:  def n(self): return 12
+            ....:  @set_from_method
+            ....:  def f(self): return xsrange(self.n())
             sage: a = A()
             sage: print(A.f.__class__)
-            sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+            <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
             sage: print(a.f.__class__)
-            sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+            <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
         """
         # You would hardly ever see an instance of this class alive.
         return EnumeratedSetFromIterator_method_caller(inst, self.f, **self.options)

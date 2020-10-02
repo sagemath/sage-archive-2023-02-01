@@ -5,15 +5,24 @@ Implements mpf and mpc types, with binary operations and support
 for interaction with other types. Also implements the main
 context class, and related utilities.
 """
-from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from cpython.int cimport *
 from cpython.long cimport *
 from cpython.float cimport *
 from cpython.complex cimport *
 from cpython.number cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
@@ -30,7 +39,7 @@ DEF S_INF = 3
 DEF S_NINF = 4
 DEF S_NAN = 5
 
-from ext_impl cimport *
+from .ext_impl cimport *
 
 import mpmath.rational as rationallib
 import mpmath.libmp as libmp
@@ -842,9 +851,9 @@ cdef class Context:
 
     def fdot(ctx, A, B=None, bint conjugate=False):
         r"""
-        Computes the dot product of the iterables `A` and `B`,
+        Compute the dot product of the iterables `A` and `B`,
 
-        .. math ::
+        .. MATH::
 
             \sum_{k=0} A_k B_k.
 
@@ -853,7 +862,7 @@ cdef class Context:
 
         The elements are automatically converted to mpmath numbers.
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import mp, fdot
             sage: mp.dps = 15; mp.pretty = False
@@ -861,7 +870,7 @@ cdef class Context:
             sage: B = [1, -1, 2]
             sage: fdot(A, B)
             mpf('6.5')
-            sage: zip(A, B)
+            sage: list(zip(A, B))
             [(2, 1), (1.5, -1), (3, 2)]
             sage: fdot(_)
             mpf('6.5')
@@ -1055,13 +1064,11 @@ cdef class Context:
         ::
 
             sage: class MyInt(int):
-            ...       pass
-            sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: class MyFloat(float):
-            ...       pass
-            sage: mag(MyInt(10)), mag(MyLong(10))
-            (4, 4)
+            ....:     pass
+            sage: mag(MyInt(10))
+            4
 
         """
         cdef int typ
@@ -1579,19 +1586,6 @@ cdef class mpnumber:
         """
         return binop(OP_MUL, self, other, global_opts)
 
-    def __div__(self, other):
-        """
-        Division of mpmath numbers. Compatible numerical types
-        are automatically converted to mpmath numbers ::
-
-            sage: from mpmath import mpf, mpc
-            sage: mpf(10) / mpc(5)
-            mpc(real='2.0', imag='0.0')
-            sage: float(9) / mpf(3)
-            mpf('3.0')
-        """
-        return binop(OP_DIV, self, other, global_opts)
-
     def __truediv__(self, other):
         """
         Division of mpmath numbers. Compatible numerical types
@@ -1644,10 +1638,11 @@ cdef class mpnumber:
         """
         return global_context.almosteq(s, t, rel_eps, abs_eps)
 
+
 cdef class mpf_base(mpnumber):
 
     # Shared methods for mpf, constant. However, somehow some methods
-    # (hash?, __richcmp__?) aren't inerited, so they have to
+    # (hash?, __richcmp__?) are not inherited, so they have to
     # be defined multiple times. TODO: fix this.
 
     def __hash__(self):
@@ -1778,18 +1773,6 @@ cdef class mpf_base(mpnumber):
             3
         """
         return int(libmp.to_int(self._mpf_))
-
-    def __long__(self):
-        """
-        Support long conversion for derived classes ::
-
-            sage: from mpmath import mpf
-            sage: from sage.libs.mpmath.ext_main import mpf_base
-            sage: class X(mpf_base): _mpf_ = mpf(3.25)._mpf_
-            sage: long(X())
-            3L
-        """
-        return long(self.__int__())
 
     def __float__(self):
         """
@@ -2035,30 +2018,10 @@ cdef class mpf(mpf_base):
             sage: int(mpf(2.5))
             2
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         MPF_to_fixed(tmp_mpz, &self.value, 0, True)
         return mpzi(tmp_mpz)
-
-    def __long__(self):
-        r"""
-        Convert this mpf value to a long.
-
-        (Due to http://bugs.python.org/issue9869, to allow NZMATH to use
-        this Sage-modified version of mpmath, it is vital that we
-        return a long, not an int.)
-
-        TESTS::
-
-            sage: import mpmath
-            sage: v = mpmath.mpf(2)
-            sage: class MyLong(long):
-            ...       pass
-            sage: MyLong(v)
-            2L
-        """
-        MPF_to_fixed(tmp_mpz, &self.value, 0, True)
-        return mpzl(tmp_mpz)
 
     def __float__(self):
         """
@@ -2068,7 +2031,7 @@ cdef class mpf(mpf_base):
             sage: float(mpf(2.5))
             2.5
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
         """
         return MPF_to_double(&self.value, False)
 

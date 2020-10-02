@@ -189,7 +189,7 @@ class ToricVarietyFactory(SageObject):
     _check = True
 
     def _make_ToricVariety(self, name, coordinate_names, base_ring):
-        """
+        r"""
         Construct a toric variety and cache the result.
 
         INPUT:
@@ -229,7 +229,7 @@ class ToricVarietyFactory(SageObject):
         return self.__dict__[dict_key]
 
     def _make_CPRFanoToricVariety(self, name, coordinate_names, base_ring):
-        """
+        r"""
         Construct a (crepant partially resolved) Fano toric variety
         and cache the result.
 
@@ -424,7 +424,7 @@ class ToricVarietyFactory(SageObject):
 
     def P1xP1_Z2(self, names='s t x y', base_ring=QQ):
         r"""
-        Construct the toric `\mathbb{Z}_2`-orbifold of the del Pezzo
+        Construct the toric `\ZZ_2`-orbifold of the del Pezzo
         surface `\mathbb{P}^1 \times \mathbb{P}^1` as a toric variety.
 
         INPUT:
@@ -575,7 +575,8 @@ class ToricVarietyFactory(SageObject):
             raise ValueError("only projective spaces of positive dimension "
                              "can be constructed!\nGot: %s" % n)
         m = identity_matrix(n).augment(matrix(n, 1, [-1]*n))
-        charts = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
+        charts = [list(range(i)) + list(range(i + 1, n + 1))
+                  for i in range(n + 1)]
         return CPRFanoToricVariety(
             Delta_polar=LatticePolytope(m.columns(), lattice=ToricLattice(n)),
             charts=charts, check=self._check, coordinate_names=names,
@@ -691,7 +692,7 @@ class ToricVarietyFactory(SageObject):
             raise ValueError("only affine spaces of positive dimension can "
                              "be constructed!\nGot: %s" % n)
         rays = identity_matrix(n).columns()
-        cones = [ range(0,n) ]
+        cones = [list(range(n))]
         fan = Fan(cones, rays, check=self._check)
         return ToricVariety(fan, coordinate_names=names)
 
@@ -890,9 +891,9 @@ class ToricVarietyFactory(SageObject):
         r"""
         Construct the toric variety defined by a face fan over a
         3-dimensional cube, but not the unit cube in the
-        N-lattice. See [FultonP65]_.
+        N-lattice. See p. 65 of [Ful1993]_.
 
-        Its Chow group is `A_2(X)=\mathbb{Z}^5`, which distinguishes
+        Its Chow group is `A_2(X)=\ZZ^5`, which distinguishes
         it from the face fan of the unit cube.
 
         INPUT:
@@ -927,13 +928,6 @@ class ToricVarietyFactory(SageObject):
             in 3-d lattice N
             sage: Cube_sublattice.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
-
-        REFERENCES:
-
-        ..  [FultonP65]
-            Page 65, 3rd exercise (Section 3.4) of Wiliam Fulton,
-            "Introduction to Toric Varieties", Princeton University
-            Press
         """
         return self._make_CPRFanoToricVariety('Cube_sublattice', names, base_ring)
 
@@ -961,11 +955,11 @@ class ToricVarietyFactory(SageObject):
         A :class:`toric variety
         <sage.schemes.toric.variety.ToricVariety_field>`.
 
-        NOTES:
+        .. NOTE::
 
-        * This is an example of an non-polyhedral fan.
+            * This is an example of an non-polyhedral fan.
 
-        * Its Chow group has torsion: `A_2(X)=\ZZ^5 \oplus \ZZ_2`
+            * Its Chow group has torsion: `A_2(X)=\ZZ^5 \oplus \ZZ_2`
 
         EXAMPLES::
 
@@ -995,7 +989,7 @@ class ToricVarietyFactory(SageObject):
         The fans of this sequence of toric varieties all equal the
         face fan of a unit cube topologically, but the
         ``(1,1,1)``-vertex is moved to ``(1,1,2k+1)``. This example
-        was studied in [FS]_.
+        was studied in [FS1994]_.
 
         INPUT:
 
@@ -1033,12 +1027,6 @@ class ToricVarietyFactory(SageObject):
             in 3-d lattice N
             sage: X_2.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
-
-        REFERENCES:
-
-        ..  [FS]
-            William Fulton, Bernd Sturmfels, "Intersection Theory on
-            Toric Varieties", http://arxiv.org/abs/alg-geom/9403002
         """
         # We are going to eventually switch off consistency checks, so we need
         # to be sure that the input is acceptable.
@@ -1059,7 +1047,7 @@ class ToricVarietyFactory(SageObject):
     def BCdlOG(self, names='v1 v2 c1 c2 v4 v5 b e1 e2 e3 f g v6', base_ring=QQ):
         r"""
         Construct the 5-dimensional toric variety studied in
-        [BCdlOG]_, [HLY]_
+        [BCdlOG2000]_, [HLY2002]_
 
         INPUT:
 
@@ -1098,19 +1086,6 @@ class ToricVarietyFactory(SageObject):
             in 5-d lattice N
             sage: X.gens()
             (v1, v2, c1, c2, v4, v5, b, e1, e2, e3, f, g, v6)
-
-        REFERENCES:
-
-        ..  [BCdlOG]
-            Volker Braun, Philip Candelas, Xendia de la Ossa,
-            Antonella Grassi, "Toric Calabi-Yau Fourfolds, Duality
-            Between N=1 Theories and Divisors that Contribute to the
-            Superpotential", http://arxiv.org/abs/hep-th/0001208
-
-        ..  [HLY]
-            Yi Hu, Chien-Hao Liu, Shing-Tung Yau, "Toric morphisms and
-            fibrations of toric Calabi-Yau hypersurfaces",
-            http://arxiv.org/abs/math/0010082
         """
         return self._make_CPRFanoToricVariety('BCdlOG', names, base_ring)
 
@@ -1300,7 +1275,7 @@ class ToricVarietyFactory(SageObject):
         return self._make_CPRFanoToricVariety('P4_11169_resolved', names, base_ring)
 
     def P4_11133(self, names='z+', base_ring=QQ):
-        """
+        r"""
         Construct the weighted projective space
         `\mathbb{P}^4(1,1,1,3,3)`.
 
@@ -1337,7 +1312,7 @@ class ToricVarietyFactory(SageObject):
         return self._make_CPRFanoToricVariety('P4_11133', names, base_ring)
 
     def P4_11133_resolved(self, names='z+', base_ring=QQ):
-        """
+        r"""
         Construct the weighted projective space
         `\mathbb{P}^4(1,1,1,3,3)`.
 
@@ -1455,7 +1430,7 @@ class ToricVarietyFactory(SageObject):
         Q = L/L_sub
         rays = []
         cones = []
-        w = range(m)
+        w = list(range(m))
         L_basis = L.basis()
         for i in w:
             b = L_basis[i]
@@ -1502,7 +1477,7 @@ class ToricVarietyFactory(SageObject):
             sage: T3.gens()
             (z0, z1, z2)
             sage: sorted(T3.change_ring(GF(3)).point_set().list())
-            [[1 : 1 : 1], [1 : 1 : 2], [1 : 2 : 1], [1 : 2 : 2], 
+            [[1 : 1 : 1], [1 : 1 : 2], [1 : 2 : 1], [1 : 2 : 2],
              [2 : 1 : 1], [2 : 1 : 2], [2 : 2 : 1], [2 : 2 : 2]]
         """
         try:

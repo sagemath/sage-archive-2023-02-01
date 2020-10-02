@@ -1,4 +1,4 @@
-zlib readline sqlite libpng | bzip2
+zlib readline sqlite libpng bzip2 xz libffi $(findstring openssl,$(OPTIONAL_INSTALLED_PACKAGES))
 
 ----------
 All lines of this file are ignored except the first.

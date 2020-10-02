@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -13,7 +16,9 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -21,7 +26,7 @@ from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from cpython.object cimport PyObject_RichCompare
 
-from ntl_ZZ import unpickle_class_args
+from .ntl_ZZ import unpickle_class_args
 
 cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
@@ -67,7 +72,8 @@ cdef class ntl_mat_ZZ(object):
         """
         The \class{mat_ZZ} class implements arithmetic with matrices over $\Z$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(3,3) ; M
             [
             [0 0 0]
@@ -99,7 +105,8 @@ cdef class ntl_mat_ZZ(object):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: m = ntl.mat_ZZ(3, 2, range(6)); m
             [
             [0 1]
@@ -121,17 +128,19 @@ cdef class ntl_mat_ZZ(object):
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(2,3,[5..10]) ; M.__repr__()
             '[\n[5 6 7]\n[8 9 10]\n]'
         """
-        return mat_ZZ_to_PyString(&self.x).replace('[[','[\n[',1)
+        return ccrepr(self.x).replace('[[','[\n[',1)
 
     def __mul__(ntl_mat_ZZ self, other):
         """
         Multiply two matrices.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(2,2,[8..11]) ; N = ntl.mat_ZZ(2,2,[-1..2])
             sage: M*N
             [
@@ -153,7 +162,8 @@ cdef class ntl_mat_ZZ(object):
         """
         Return self - other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(2,2,[8..11]) ; N = ntl.mat_ZZ(2,2,[-1..2])
             sage: M-N
             [
@@ -175,7 +185,8 @@ cdef class ntl_mat_ZZ(object):
         """
         Return self + other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(2,2,[8..11]) ; N = ntl.mat_ZZ(2,2,[-1..2])
             sage: M+N
             [
@@ -225,7 +236,8 @@ cdef class ntl_mat_ZZ(object):
         """
         Return self to the e power.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(2,2,[8..11])
             sage: M**4
             [
@@ -256,7 +268,8 @@ cdef class ntl_mat_ZZ(object):
         """
         Return the number of rows in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(5,5,range(25))
             sage: M.nrows()
             5
@@ -267,7 +280,8 @@ cdef class ntl_mat_ZZ(object):
         """
         Return the number of columns in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(5,8,range(40))
             sage: M.ncols()
             8
@@ -278,7 +292,8 @@ cdef class ntl_mat_ZZ(object):
         """
         Given a tuple (i, j), return self[i,j].
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(2,9,[3..20])
             sage: M[1,7] ## indirect doctest
             19
@@ -321,7 +336,8 @@ cdef class ntl_mat_ZZ(object):
 
     def list(self):
         """
-        EXAMPLE:
+        EXAMPLES::
+
             sage: m = ntl.mat_ZZ(3, 4, range(12)); m
             [
             [0 1 2 3]
@@ -343,7 +359,8 @@ cdef class ntl_mat_ZZ(object):
         """
         Return the determinant of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.mat_ZZ(8,8,[3..66]).determinant()
             0
             sage: ntl.mat_ZZ(2,5,range(10)).determinant()
@@ -378,14 +395,14 @@ cdef class ntl_mat_ZZ(object):
         1987].
 
         TIMINGS:
-        NTL isn't very good compared to MAGMA, unfortunately:
+
+        NTL is not very good compared to MAGMA, unfortunately::
 
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = ntl.mat_ZZ(200,200)
-            sage: for i in xrange(a.nrows()):
-            ...     for j in xrange(a.ncols()):
-            ...         A[i,j] = a[i,j]
-            ...
+            sage: for i in range(a.nrows()):
+            ....:     for j in range(a.ncols()):
+            ....:         A[i,j] = a[i,j]
             sage: t = cputime(); d = A.determinant()
             sage: cputime(t)          # random
             0.33201999999999998
@@ -405,7 +422,8 @@ cdef class ntl_mat_ZZ(object):
         Also, PARI is also faster than NTL if one uses the flag 1 to
         the mathnf routine.  The above takes 16 seconds in PARI.
 
-        TESTS:
+        TESTS::
+
             sage: ntl.mat_ZZ(2,2,[1..4]).HNF()
             [
             [1 0]
@@ -425,7 +443,8 @@ cdef class ntl_mat_ZZ(object):
         Find the characteristic polynomial of self, and return it
         as an NTL ZZX.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ntl.mat_ZZ(2,2,[1,2,3,4])
             sage: M.charpoly()
             [-2 -5 1]
@@ -473,7 +492,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_FP(); a
@@ -542,7 +562,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_QP(); a
@@ -611,7 +632,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_QP1(); a
@@ -680,7 +702,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_XD(); a
@@ -749,7 +772,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_RR(); a
@@ -818,7 +842,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_FP(); a
@@ -887,7 +912,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_QP(); a
@@ -956,7 +982,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_QP1(); a
@@ -1025,7 +1052,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_XD(); a
@@ -1094,7 +1122,8 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_RR(); a
@@ -1182,7 +1211,8 @@ cdef class ntl_mat_ZZ(object):
             above and U is an optional return value if return_U is
             True.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL()
             (2, 54)
@@ -1267,7 +1297,8 @@ cdef class ntl_mat_ZZ(object):
             (rank,[U]) where rank and U are as described above and U
             is an optional return value if return_U is True.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_FP()
             2
@@ -1315,7 +1346,8 @@ cdef class ntl_mat_ZZ(object):
         Performs the same reduction as \code{self.LLL_FP} using the
         same calling conventions but with quad float precision.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_QP(delta=0.75)
             2
@@ -1339,7 +1371,8 @@ cdef class ntl_mat_ZZ(object):
         same calling conventions but with extended exponent double
         precision.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_XD(delta=0.75)
             2
@@ -1363,7 +1396,8 @@ cdef class ntl_mat_ZZ(object):
         same calling conventions but with arbitrary precision floating
         point numbers.
 
-        EXAMPLE:
+        EXAMPLES::
+
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_RR(delta=0.75)
             2

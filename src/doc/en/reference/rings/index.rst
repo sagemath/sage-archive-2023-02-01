@@ -8,12 +8,6 @@ Base Classes for Rings, Algebras and Fields
    :maxdepth: 2
 
    sage/rings/ring
-   sage/rings/commutative_ring
-   sage/rings/commutative_algebra
-   sage/rings/dedekind_domain
-   sage/rings/euclidean_domain
-   sage/rings/integral_domain
-   sage/rings/principal_ideal_domain
 
 Ideals
 ------
@@ -52,6 +46,25 @@ Fraction Fields
    sage/rings/fraction_field
    sage/rings/fraction_field_element
 
+Localization
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/rings/localization
+
+Ring Extensions
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/rings/ring_extension
+   sage/rings/ring_extension_element
+   sage/rings/ring_extension_morphism
+
+
 Utilities
 ---------
 
@@ -61,6 +74,13 @@ Utilities
    sage/rings/big_oh
    sage/rings/infinity
    sage/rings/numbers_abc
-   sage/rings/misc
+
+Derivation
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/rings/derivation
 
 .. include:: ../footer.txt

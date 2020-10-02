@@ -1,4 +1,4 @@
-"""
+r"""
 Species structures
 
 We will illustrate the use of the structure classes using the
@@ -47,7 +47,7 @@ class GenericSpeciesStructure(CombinatorialObject):
         This is a base class from which the classes for the structures inherit.
 
         EXAMPLES::
-        
+
             sage: from sage.combinat.species.structure import GenericSpeciesStructure
             sage: a = GenericSpeciesStructure(None, [2,3,4], [1,2,3])
             sage: a
@@ -90,6 +90,8 @@ class GenericSpeciesStructure(CombinatorialObject):
 
     def __eq__(self, other):
         """
+        Check whether ``self`` is equal to ``other``.
+
         EXAMPLES::
 
             sage: T = species.BinaryTreeSpecies()
@@ -100,9 +102,25 @@ class GenericSpeciesStructure(CombinatorialObject):
             sage: t[0] == t[1][0]
             False
         """
-        if type(self) is not type(other):
+        if not isinstance(other, GenericSpeciesStructure):
             return False
         return self._list == other._list and self.labels() == other.labels()
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: T = species.BinaryTreeSpecies()
+            sage: t = T.structures([1,2,3])[0]; t
+            1*(2*3)
+            sage: t[0], t[1][0]
+            (1, 2)
+            sage: t[0] != t[1][0]
+            True
+        """
+        return not (self == other)
 
     def labels(self):
         """
@@ -210,7 +228,7 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
             sage: from sage.combinat.species.structure import SpeciesStructureWrapper
             sage: issubclass(type(s), SpeciesStructureWrapper)
             True
-        
+
         EXAMPLES::
 
             sage: E = species.SetSpecies(); B = E+E
@@ -256,7 +274,7 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
         EXAMPLES::
 
             sage: P = species.PartitionSpecies()
-            sage: s = (P+P).structures([1,2,3]).random_element(); s
+            sage: s = (P+P).structures([1,2,3])[1]; s
             {{1, 3}, {2}}
             sage: s.transport(PermutationGroupElement((2,3)))
             {{1, 2}, {3}}
@@ -268,7 +286,7 @@ class SpeciesStructureWrapper(GenericSpeciesStructure):
         EXAMPLES::
 
             sage: P = species.PartitionSpecies()
-            sage: s = (P+P).structures([1,2,3]).random_element(); s
+            sage: s = (P+P).structures([1,2,3])[1]; s
             {{1, 3}, {2}}
             sage: s.canonical_label()
             {{1, 2}, {3}}
@@ -310,13 +328,13 @@ class SpeciesWrapper(CombinatorialClass):
         """
         This is a abstract base class for the set of structures of a
         species as well as the set of isotypes of the species.
-        
+
         .. note::
 
             One typically does not use :class:`SpeciesWrapper`
             directly, but instead instantiates one of its subclasses:
             :class:`StructuresWrapper` or :class:`IsotypesWrapper`.
-           
+
         EXAMPLES::
 
             sage: from sage.combinat.species.structure import SpeciesWrapper
@@ -333,7 +351,7 @@ class SpeciesWrapper(CombinatorialClass):
         self._labels = labels
         self._iterator = iterator
         self._generating_series = generating_series
-        self._name = "%s for %s with labels %s"%(name, species, labels)
+        self._name = "%s for %s with labels %s" % (name, species, labels)
         self._structure_class = structure_class if structure_class is not None else species._default_structure_class
 
     def labels(self):
@@ -343,10 +361,10 @@ class SpeciesWrapper(CombinatorialClass):
         structures under the functor `X`.
 
         EXAMPLES::
-        
+
             sage: F = species.SetSpecies()
             sage: F.structures([1,2,3]).labels()
-            [1, 2, 3]            
+            [1, 2, 3]
         """
         return copy(self._labels)
 
@@ -380,7 +398,7 @@ class SpeciesWrapper(CombinatorialClass):
     def cardinality(self):
         """
         Returns the number of structures in this set.
-        
+
         EXAMPLES::
 
             sage: F = species.SetSpecies()
@@ -415,7 +433,7 @@ class IsotypesWrapper(SpeciesWrapper):
         A base class for the set of isotypes of a species with given
         set of labels.  An object of this type is returned when you
         call the :meth:`isotypes` method of a species.
-        
+
         EXAMPLES::
 
             sage: F = species.SetSpecies()

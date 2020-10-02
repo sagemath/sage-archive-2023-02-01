@@ -3,8 +3,6 @@ This module contains Cython code for a backtracking algorithm to solve Sudoku pu
 
 Once Cython implements closures and the ``yield`` keyword is possible, this can be moved into the ``sage.games.sudoku`` module, as part of the ``Sudoku.backtrack`` method, and this module can be banned.
 """
-from __future__ import print_function
-
 
 def backtrack_all(n, puzzle):
     r"""
@@ -20,7 +18,7 @@ def backtrack_all(n, puzzle):
 
         A list of solutions, where each solution is a (1-based) list similar to ``puzzle``.
 
-    TEST:
+    TESTS:
 
     This is just a cursory test here, since eventually this code will move.
     See the `backtrack` method of the `Sudoku` class in the
@@ -40,10 +38,6 @@ def backtrack_all(n, puzzle):
     So at each new level of the search tree, we propagate as many fixed symbols as we can, placing them into a two-ended queue (``fixed`` and ``fixed_symbol``) that we process until it is empty or we need to prune.  All this recording of ineligible symbols and numbers of eligible symbols has to be unwound as we backup the tree, though.
 
     The notion of propagating singleton cells forward comes from an essay by Peter Norvig [sudoku:norvig]_.
-
-    .. rubric:: Citations
-
-    .. [sudoku:norvig] Perter Norvig, "Solving Every Sudoku Puzzle", http://norvig.com/sudoku.html
     """
     cdef:
         # Arrays sizes are n^4, and n^2, with 3n^2-2n-1 for second slot of peers, n = 4

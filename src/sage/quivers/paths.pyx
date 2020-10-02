@@ -2,7 +2,7 @@
 Quiver Paths
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2012    Jim Stark <jstarx@gmail.com>
 #                2013/14 Simon King <simon.king@uni-jena.de>
 #
@@ -15,14 +15,16 @@ Quiver Paths
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+cimport cython
+from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_GetIndicesEx
+from sage.structure.richcmp cimport rich_to_bool
 
-include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 cdef class QuiverPath(MonoidElement):
@@ -261,11 +263,11 @@ cdef class QuiverPath(MonoidElement):
         """
         return self._path.length != 0
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Comparison for :class:`QuiverPaths`.
 
-        The following data (listed in order of preferance) is used for
+        The following data (listed in order of preference) is used for
         comparison:
 
         - **Negative** length of the paths
@@ -332,20 +334,20 @@ cdef class QuiverPath(MonoidElement):
         other = right
         # we want *negative* degree reverse lexicographical order
         if other._path.length < cself._path.length:
-            return -1
+            return rich_to_bool(op, -1)
         if other._path.length > cself._path.length:
-            return 1
+            return rich_to_bool(op, 1)
         if cself._start < other._start:
-            return -1
+            return rich_to_bool(op, -1)
         if cself._start > other._start:
-            return 1
+            return rich_to_bool(op, 1)
         if cself._end < other._end:
-            return -1
+            return rich_to_bool(op, -1)
         if cself._end > other._end:
-            return 1
-        if cself._path.length==0:
-            return 0
-        return biseq_cmp(cself._path, other._path)
+            return rich_to_bool(op, 1)
+        if cself._path.length == 0:
+            return rich_to_bool(op, 0)
+        return biseq_richcmp(cself._path, other._path, op)
 
     def __getitem__(self, index):
         """
@@ -374,6 +376,38 @@ cdef class QuiverPath(MonoidElement):
 
             sage: p[4:1:-1]
             b*a*d
+
+        If the start index is greater than the terminal index and the step
+        -1 is not explicitly given, then a path of length zero is returned,
+        which is compatible with Python lists::
+
+            sage: list(range(6))[4:1]
+            []
+
+        The following was fixed in :trac:`22278`. A path slice of length
+        zero of course has a specific start- and endpoint. It is always
+        the startpoint of the arrow corresponding to the first item of
+        the range::
+
+            sage: p[4:1]
+            e_2
+            sage: p[4:1].initial_vertex() == p[4].initial_vertex()
+            True
+
+        If the slice boundaries are out of bound, then no error is raised,
+        which is compatible with Python lists::
+
+            sage: list(range(6))[20:40]
+            []
+
+        In that case, the startpoint of the slice of length zero is the
+        endpoint of the path::
+
+            sage: p[20:40]
+            e_4
+            sage: p[20:40].initial_vertex() == p.terminal_vertex()
+            True
+
         """
         cdef tuple E
         cdef Py_ssize_t start, stop, step, slicelength
@@ -390,9 +424,17 @@ cdef class QuiverPath(MonoidElement):
                 return self.reversal()[self._path.length-1-start:self._path.length-1-stop]
             if start==0 and stop==self._path.length:
                 return self
+            if start>stop:
+                stop=start
             E = self._parent._sorted_edges
-            init = E[biseq_getitem(self._path, start)][0]
-            end   = E[biseq_getitem(self._path, stop)][0]
+            if start < self._path.length:
+                init = E[biseq_getitem(self._path, start)][0]
+            else:
+                init = self._end
+            if start<stop:
+                end = E[biseq_getitem(self._path, stop-1)][1]
+            else: # the result will be a path of length 0
+                end = init
             OUT = self._new_(init, end)
             biseq_init_slice(OUT._path, self._path, start, stop, step)
             return OUT
@@ -424,7 +466,7 @@ cdef class QuiverPath(MonoidElement):
         # return an iterator for _path as a list
         cdef mp_size_t i
         cdef tuple E = self._parent._sorted_edges
-        for i in range(0,self._path.length):
+        for i in range(self._path.length):
             yield E[biseq_getitem(self._path, i)]
 
     cpdef _mul_(self, other):
@@ -452,7 +494,7 @@ cdef class QuiverPath(MonoidElement):
             sage: x*6
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*':
+            TypeError: unsupported operand parent(s) for *:
              'Partial semigroup formed by the directed paths of Multi-digraph on 5 vertices'
              and 'Integer Ring'
         """
@@ -564,7 +606,7 @@ cdef class QuiverPath(MonoidElement):
         sig_on()
         i = biseq_startswith_tail(P._path, self._path, 0)
         sig_off()
-        if i==-1:
+        if i == <size_t>-1:
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
 
@@ -573,9 +615,9 @@ cdef class QuiverPath(MonoidElement):
         Return a pair ``(a,b)`` of paths s.t. ``self==a*subpath*b``,
         or ``(None, None)`` if ``subpath`` is not a subpath of this path.
 
-        NOTE:
+        .. NOTE::
 
-        ``a`` is chosen of minimal length.
+            ``a`` is chosen of minimal length.
 
         EXAMPLES::
 
@@ -586,7 +628,7 @@ cdef class QuiverPath(MonoidElement):
             (b*c, b*a*d*d)
             sage: (b*c*a*d*b).complement(a*c)
             (None, None)
-            
+
         """
         cdef mp_size_t i = biseq_contains(self._path, subpath._path, 0)
         if i == -1:
@@ -745,7 +787,9 @@ cdef class QuiverPath(MonoidElement):
             biseq_inititem(out._path, i, biseq_getitem(self._path, l-i))
         return out
 
-cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):
+
+@cython.binding(True)
+def NewQuiverPath(Q, start, end, biseq_data):
     """
     Return a new quiver path for given defining data.
 
@@ -770,7 +814,7 @@ cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):
         sage: loads(dumps(p)) == p   # indirect doctest
         True
         sage: p.__reduce__()
-        (<...NewQuiverPath>,
+        (<cyfunction NewQuiverPath at ...>,
          (Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices,
           1,
           3,

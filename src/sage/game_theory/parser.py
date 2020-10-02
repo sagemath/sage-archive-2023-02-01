@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+
 class Parser():
     r"""
     A class for parsing the outputs of different algorithms called in other
@@ -134,6 +135,7 @@ class Parser():
 
         TESTS::
 
+            sage: from sage.cpython.string import bytes_to_str
             sage: from sage.game_theory.parser import Parser
             sage: from subprocess import Popen, PIPE
             sage: A = matrix([[1, 2], [3, 2]])
@@ -141,14 +143,14 @@ class Parser():
             sage: game1_str, game2_str = g._Hrepresentation(A, -A)
             sage: g1_name = tmp_filename()
             sage: g2_name = tmp_filename()
-            sage: g1_file = file(g1_name, 'w')
-            sage: g2_file = file(g2_name, 'w')
-            sage: g1_file.write(game1_str)
+            sage: g1_file = open(g1_name, 'w')
+            sage: g2_file = open(g2_name, 'w')
+            sage: _ = g1_file.write(game1_str)
             sage: g1_file.close()
-            sage: g2_file.write(game2_str)
+            sage: _ = g2_file.write(game2_str)
             sage: g2_file.close()
             sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
-            sage: lrs_output = [row for row in process.stdout]  # optional - lrslib
+            sage: lrs_output = [bytes_to_str(row) for row in process.stdout]  # optional - lrslib
 
         The above creates a game, writes the H representation to
         temporary files, calls lrs and stores the output in `lrs_output`
@@ -186,14 +188,14 @@ class Parser():
             sage: game1_str, game2_str = g._Hrepresentation(A, B)
             sage: g1_name = tmp_filename()
             sage: g2_name = tmp_filename()
-            sage: g1_file = file(g1_name, 'w')
-            sage: g2_file = file(g2_name, 'w')
-            sage: g1_file.write(game1_str)
+            sage: g1_file = open(g1_name, 'w')
+            sage: g2_file = open(g2_name, 'w')
+            sage: _ = g1_file.write(game1_str)
             sage: g1_file.close()
-            sage: g2_file.write(game2_str)
+            sage: _ = g2_file.write(game2_str)
             sage: g2_file.close()
             sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
-            sage: lrs_output = [row for row in process.stdout]  # optional - lrslib
+            sage: lrs_output = [bytes_to_str(row) for row in process.stdout]  # optional - lrslib
             sage: print(lrs_output[5:20])  # optional - lrslib
             ['\n',
              '***** 5 5 rational\n',
@@ -256,9 +258,9 @@ class Parser():
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
-            [<NashProfile for '': [1.0, 0.0, 1.0, 0.0]>,
-             <NashProfile for '': [0.6666666667, 0.3333333333, 0.3333333333, 0.6666666667]>,
-             <NashProfile for '': [0.0, 1.0, 0.0, 1.0]>]
+            [<NashProfile for '': [[1.0, 0.0], [1.0, 0.0]]>,
+             <NashProfile for '': [[0.6666666667, 0.3333333333], [0.3333333333, 0.6666666667]]>,
+             <NashProfile for '': [[0.0, 1.0], [0.0, 1.0]]>]
 
         The Parser class outputs the equilibrium::
 
@@ -283,7 +285,7 @@ class Parser():
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
-            [<NashProfile for '': [1.0, 0.0, 1.0, 0.0]>]
+            [<NashProfile for '': [[1.0, 0.0], [1.0, 0.0]]>]
 
         The corresponding parsed equilibrium::
 
@@ -318,9 +320,9 @@ class Parser():
 
             sage: LCP_output = solver.solve(g)  # optional - gambit
             sage: LCP_output  # optional - gambit
-            [<NashProfile for '': [1.0, 0.0, 0.0, 0.0, 0.0, 1.0]>,
-             <NashProfile for '': [0.3333333333, 0.6666666667, 0.0, 0.1428571429, 0.0, 0.8571428571]>,
-             <NashProfile for '': [0.0, 1.0, 0.0, 1.0, 0.0, 0.0]>]
+            [<NashProfile for '': [[1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]>,
+             <NashProfile for '': [[0.3333333333, 0.6666666667, 0.0], [0.1428571429, 0.0, 0.8571428571]]>,
+             <NashProfile for '': [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0]]>]
 
         The corresponding parsed equilibrium::
 

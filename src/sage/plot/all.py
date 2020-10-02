@@ -1,8 +1,9 @@
 from __future__ import absolute_import
-from .graphics import show_default, Graphics
-from .plot import plot, graphics_array, list_plot, parametric_plot, polar_plot
-from .plot import plot_loglog, plot_semilogx, plot_semilogy
-from .plot import list_plot_loglog, list_plot_semilogx, list_plot_semilogy
+from .graphics import Graphics
+from .plot import (plot, graphics_array, multi_graphics, list_plot,
+                   parametric_plot, polar_plot, plot_loglog, plot_semilogx,
+                   plot_semilogy, list_plot_loglog, list_plot_semilogx,
+                   list_plot_semilogy)
 from .line import line, line2d
 from .arrow import arrow, arrow2d
 from .bar_chart import bar_chart
@@ -19,6 +20,7 @@ from .circle import circle
 from .ellipse import ellipse
 from .contour_plot import contour_plot, implicit_plot, region_plot
 from .density_plot import density_plot
+from .streamline_plot import streamline_plot
 
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.complex_plot",["complex_plot"])

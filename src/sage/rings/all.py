@@ -1,17 +1,16 @@
 """
 Rings
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from sage.misc.lazy_import import lazy_import
 
 # Ring base classes
 from .ring import (Ring, Field, CommutativeRing, IntegralDomain,
@@ -62,6 +61,9 @@ from .finite_rings.residue_field import ResidueField
 # p-adic field
 from .padics.all import *
 from .padics.padic_printing import _printer_defaults as padic_printing
+
+# valuations
+from .valuation.all import *
 
 # Semirings
 from .semirings.all import *
@@ -115,6 +117,16 @@ from .power_series_ring_element import PowerSeries
 from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
+# Lazy Laurent series ring
+lazy_import('sage.rings.lazy_laurent_series_ring', 'LazyLaurentSeriesRing')
+
+# Tate algebras
+from .tate_algebra import TateAlgebra
+
+# Puiseux series ring
+from .puiseux_series_ring import PuiseuxSeriesRing
+from .puiseux_series_ring_element import PuiseuxSeries
+
 # Pseudo-ring of PARI objects.
 from .pari_ring import PariRing, Pari
 
@@ -124,6 +136,9 @@ from .big_oh import O
 # Fraction field
 from .fraction_field import FractionField
 Frac = FractionField
+
+# Localization
+from .localization import Localization
 
 # c-finite sequences
 from .cfinite_sequence import CFiniteSequence, CFiniteSequences
@@ -135,20 +150,14 @@ from .monomials import monomials
 CC = ComplexField()
 CIF = ComplexIntervalField()
 
-from .misc import composite_field
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.invariant_theory', 'invariant_theory')
-lazy_import('sage.arith.all', '*', deprecation=19879)
+# invariant theory
+from .invariants.all import *
 
 from .fast_arith import prime_range
 
 # continued fractions
-from sage.rings.continued_fraction import (farey, convergents,
-  continued_fraction, continued_fraction_list,
-   Hirzebruch_Jung_continued_fraction_list)
-# and deprecated continued fractions
-from sage.rings.contfrac import (CFF, ContinuedFractionField)
+from sage.rings.continued_fraction import (continued_fraction,
+                                           continued_fraction_list)
 
 # asymptotic ring
 from .asymptotic.all import *

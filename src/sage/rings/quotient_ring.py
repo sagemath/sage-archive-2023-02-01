@@ -13,7 +13,7 @@ TESTS::
 
     sage: R.<x> = PolynomialRing(ZZ)
     sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
-    sage: S = R.quotient_ring(I);
+    sage: S = R.quotient_ring(I)
 
 .. todo::
 
@@ -38,7 +38,6 @@ form of an element `x` with respect to `I` (i.e., we have
     ....:     def reduce(self,x):
     ....:         R = self.ring()
     ....:         return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
-    ....:
     sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
     sage: I3 = PowerIdeal(F,3); I3
     Twosided Ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y,
@@ -98,8 +97,6 @@ easily::
     True
 
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -110,11 +107,13 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import
 
 import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element
 import sage.rings.polynomial.multi_polynomial_ideal
 from sage.structure.category_object import normalize_names
+from sage.structure.richcmp import richcmp_method, richcmp
 import sage.structure.parent_gens
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
@@ -170,7 +169,9 @@ def QuotientRing(R, I, names=None):
     With polynomial rings (note that the variable name of the quotient
     ring can be specified as shown below)::
 
-        sage: R.<xx> = QuotientRing(QQ[x], QQ[x].ideal(x^2 + 1)); R
+        sage: P.<x> = QQ[]
+        sage: R.<xx> = QuotientRing(P, P.ideal(x^2 + 1))
+        sage: R
         Univariate Quotient Polynomial Ring in xx over Rational Field with modulus x^2 + 1
         sage: R.gens(); R.gen()
         (xx,)
@@ -183,7 +184,9 @@ def QuotientRing(R, I, names=None):
 
     ::
 
-        sage: S = QuotientRing(QQ[x], QQ[x].ideal(x^2 - 2)); S
+        sage: P.<x> = QQ[]
+        sage: S = QuotientRing(P, P.ideal(x^2 - 2))
+        sage: S
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 - 2
         sage: xbar = S.gen(); S.gen()
@@ -195,7 +198,8 @@ def QuotientRing(R, I, names=None):
 
     Sage coerces objects into ideals when possible::
 
-        sage: R = QuotientRing(QQ[x], x^2 + 1); R
+        sage: P.<x> = QQ[]
+        sage: R = QuotientRing(P, x^2 + 1); R
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 + 1
 
@@ -335,13 +339,14 @@ def is_QuotientRing(x):
     """
     return isinstance(x, QuotientRing_nc)
 
-from sage.categories.rings import Rings
+
 _Rings = Rings()
 _RingsQuotients = Rings().Quotients()
-from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRingsQuotients = CommutativeRings().Quotients()
 from sage.structure.category_object import check_default_category
 
+
+@richcmp_method
 class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
     """
     The quotient ring of `R` by a twosided ideal `I`.
@@ -570,11 +575,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         from sage.all import Infinity
         if self.ngens() == Infinity:
             raise NotImplementedError("This quotient ring has an infinite number of generators.")
-        for i in xrange(self.ngens()):
+        for i in range(self.ngens()):
             gi = self.gen(i)
-            for j in xrange(i+1,self.ngens()):
+            for j in range(i + 1, self.ngens()):
                 gj = self.gen(j)
-                if gi*gj!=gj*gi:
+                if gi * gj != gj * gi:
                     return False
         return True
 
@@ -731,7 +736,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         The image of the given element in ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S = R.quotient(x^2 + y^2)
@@ -861,7 +866,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: R.is_noetherian()
             True
 
-            sage: R = QuotientRing(QQ[x], x^2+1)
+            sage: P.<x> = QQ[]
+            sage: R = QuotientRing(P, x^2+1)
             sage: R.is_noetherian()
             True
 
@@ -899,7 +905,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         ::
 
-            sage: Q = QuotientRing(QQ[x], x^2 + 1)
+            sage: P.<x> = QQ[]
+            sage: Q = QuotientRing(P, x^2 + 1)
             sage: Q.cover_ring()
             Univariate Polynomial Ring in x over Rational Field
         """
@@ -936,10 +943,9 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         if not isinstance(self.__R, MPolynomialRing_libsingular) and \
                (not hasattr(self.__R, '_has_singular') or not self.__R._has_singular):
             # pass through
-            return ring.CommutativeRing.ideal(self, gens, **kwds)
+            return super(QuotientRing_nc, self).ideal(gens, **kwds)
         if is_SingularElement(gens):
             gens = list(gens)
-            coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
         if 'coerce' in kwds and kwds['coerce']:
@@ -980,6 +986,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+
+        TESTS::
+
+            sage: S(x, coerce=False)
+            a
         """
         if isinstance(x, quotient_ring_element.QuotientRingElement):
             if x.parent() is self:
@@ -1059,7 +1070,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
                     pass
         return C.has_coerce_map_from(R)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Only quotients by the *same* ring and same ideal (with the same
         generators!!) are considered equal.
@@ -1081,9 +1092,9 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             False
         """
         if not isinstance(other, QuotientRing_nc):
-            return cmp(type(self), type(other))
-        return cmp((self.cover_ring(), self.defining_ideal().gens()),
-                   (other.cover_ring(), other.defining_ideal().gens()))
+            return NotImplemented
+        return richcmp((self.cover_ring(), self.defining_ideal().gens()),
+                       (other.cover_ring(), other.defining_ideal().gens()), op)
 
     def ngens(self):
         r"""
@@ -1174,7 +1185,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
             sage: S._singular_()
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -1257,7 +1269,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
     r"""
     Creates a quotient ring of a *commutative* ring `R` by the ideal `I`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = PolynomialRing(ZZ)
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
@@ -1287,3 +1299,61 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
         if not self._is_category_initialized():
             category = check_default_category(_CommutativeRingsQuotients,category)
         QuotientRing_nc.__init__(self, R, I, names, category=category)
+
+    def _macaulay2_init_(self, macaulay2=None):
+        r"""
+        EXAMPLES:
+
+        Quotients of multivariate polynomial rings over `\QQ`, `\ZZ` and
+        a finite field::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: I = R.ideal([x^2 - y])
+            sage: Q = R.quotient_ring(I); Q
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 - y)
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
+            QQ[x, y]
+            --------
+              2
+             x  - y
+
+            sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
+            sage: I = R.ideal([x*y-z^2, y^2-w^2])
+            sage: Q = R.quotient(I); Q
+            Quotient of Multivariate Polynomial Ring in x, y, z, w over Integer Ring by the ideal (x*y - z^2, y^2 - w^2)
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
+               ZZ[x, y, z, w]
+            -------------------
+                    2   2    2
+            (x*y - z , y  - w )
+
+            sage: R.<x,y> = PolynomialRing(GF(101), 2)
+            sage: I = R.ideal([x^2 + x, y^2 + y])
+            sage: Q = R.quotient_ring(I); Q
+            Quotient of Multivariate Polynomial Ring in x, y over Finite Field of size 101 by the ideal (x^2 + x, y^2 + y)
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
+                 ZZ
+                ---[x, y]
+                101
+            ----------------
+              2       2
+            (x  + x, y  + y)
+
+        Quotients of univariate polynomial rings::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+            sage: Q = R.quotient_ring(I); Q
+            Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
+            sage: Q._macaulay2_init_()                      # optional - macaulay2
+                    ZZ[x]
+            ---------------------
+              2            2
+            (x  + 3x + 4, x  + 1)
+
+        """
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        I = self.defining_ideal()._macaulay2_(macaulay2)
+        return I.ring()._operator('/', I)

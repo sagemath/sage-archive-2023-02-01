@@ -9,7 +9,7 @@ restrictive class of (weak) Fano toric varieties.
 
 An **excellent reference on toric varieties** is the book "Toric
 Varieties" by David A. Cox, John B. Little, and Hal Schenck
-[CLS]_.
+[CLS2011]_.
 
 The interface to this module is provided through functions
 :func:`AffineToricVariety` and :func:`ToricVariety`, although you may
@@ -22,13 +22,6 @@ also be interested in :func:`normalize_names`.
     the homogeneous coordinate ring (a.k.a. Cox's ring or the total coordinate
     ring). This description works best for simplicial fans of the full
     dimension.
-
-REFERENCES:
-
-..  [CLS]
-    David A. Cox, John B. Little,  Hal Schenck,
-    "Toric Varieties", Graduate Studies in Mathematics,
-    Amer. Math. Soc., Providence, RI, 2011
 
 AUTHORS:
 
@@ -177,10 +170,10 @@ quotient singularities::
     True
     sage: TV = ToricVariety(NormalFan(diamond))
     sage: TV.fan().rays()
-    N(-1,  1),
     N( 1,  1),
+    N( 1, -1),
     N(-1, -1),
-    N( 1, -1)
+    N(-1,  1)
     in 2-d lattice N
     sage: TV.is_orbifold()
     True
@@ -191,14 +184,14 @@ In higher dimensions worse things can happen::
 
     sage: TV3 = ToricVariety(NormalFan(lattice_polytope.cross_polytope(3)))
     sage: TV3.fan().rays()
-    N(-1, -1,  1),
-    N( 1, -1,  1),
-    N(-1,  1,  1),
-    N( 1,  1,  1),
-    N(-1, -1, -1),
     N( 1, -1, -1),
+    N( 1,  1, -1),
+    N( 1,  1,  1),
+    N( 1, -1,  1),
+    N(-1, -1,  1),
+    N(-1, -1, -1),
     N(-1,  1, -1),
-    N( 1,  1, -1)
+    N(-1,  1,  1)
     in 3-d lattice N
     sage: TV3.is_orbifold()
     False
@@ -235,7 +228,7 @@ cohomology ring `H^*(X,\QQ)` and the rational Chow ring `A^*(X,\QQ) =
 A_{d-*}(X)\otimes \QQ` are isomorphic except for a doubling in
 degree. More precisely, the Chow group has the same rank
 
-  .. math::
+  .. MATH::
 
        A_{d-k}(X) \otimes \QQ \simeq H^{2k}(X,\QQ)
 
@@ -261,9 +254,9 @@ Every cone defines a torus orbit closure, and hence a (co)homology class::
 
     sage: HH.gens()
     ([3*z4], [3*z4], [z4], [z4], [z4])
-    sage: map(HH, P4_11133.fan(1))
+    sage: list(map(HH, P4_11133.fan(1)))
     [[3*z4], [3*z4], [z4], [z4], [z4]]
-    sage: map(HH, P4_11133.fan(4) )
+    sage: list(map(HH, P4_11133.fan(4)))
     [[9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4]]
     sage: HH(cone)
     [3*z4^3]
@@ -283,9 +276,9 @@ Although computationally less efficient, we can do the same
 computations with the rational Chow group::
 
     sage: AA = P4_11133.Chow_group(QQ)
-    sage: map(AA, P4_11133.fan(1))  # long time (5s on sage.math, 2012)
+    sage: list(map(AA, P4_11133.fan(1)))  # long time (5s on sage.math, 2012)
     [( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 )]
-    sage: map(AA, P4_11133.fan(4))  # long time (5s on sage.math, 2012)
+    sage: list(map(AA, P4_11133.fan(4)))  # long time (5s on sage.math, 2012)
     [( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 )]
     sage: AA(cone).intersection_with_divisor(D)  # long time (4s on sage.math, 2013)
     ( 1 | 0 | 0 | 0 | 0 )
@@ -585,19 +578,21 @@ class ToricVariety_field(AmbientSpace):
         self._coordinate_prefix = coordinate_names.pop()
         self._assign_names(names=coordinate_names, normalize=False)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         r"""
-        Compare ``self`` and ``right``.
+        Check equality of ``self`` and ``right``.
 
         INPUT:
 
-        - ``right`` -- anything.
+        - ``right`` -- anything
 
         OUTPUT:
 
-        - 0 if ``right`` is of the same type as ``self``, their fans are the
-          same, names of variables are the same and stored in the same order,
-          and base fields are the same. 1 or -1 otherwise.
+        boolean
+
+        ``True`` if and only if ``right`` is of the same type as ``self``,
+        their fans are the same, names of variables are the same and
+        stored in the same order, and base fields are the same.
 
         TESTS::
 
@@ -605,26 +600,69 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = ToricVariety(fan)
             sage: P1xP1a = ToricVariety(fan, "x s y t")
             sage: P1xP1b = ToricVariety(fan)
-            sage: cmp(P1xP1, P1xP1a)
-            1
-            sage: cmp(P1xP1a, P1xP1)
-            -1
-            sage: cmp(P1xP1, P1xP1b)
-            0
+
+            sage: P1xP1 == P1xP1a
+            False
+            sage: P1xP1a == P1xP1
+            False
+            sage: P1xP1 == P1xP1b
+            True
             sage: P1xP1 is P1xP1b
             False
-            sage: cmp(P1xP1, 1) * cmp(1, P1xP1)
-            -1
         """
-        c = cmp(type(self), type(right))
-        if c:
-            return c
-        return cmp([self.fan(),
-                    self.variable_names(),
-                    self.base_ring()],
-                   [right.fan(),
-                    right.variable_names(),
-                    right.base_ring()])
+        if not isinstance(right, ToricVariety_field):
+            return False
+        return (self.fan() == right.fan() and
+                self.variable_names() == right.variable_names() and
+                self.base_ring() == right.base_ring())
+
+    def __ne__(self, other):
+        """
+        Check not-equality of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- anything
+
+        OUTPUT:
+
+        boolean
+
+        ``True`` if and only if ``other`` is of the same type as ``self``,
+        their fans are the same, names of variables are the same and
+        stored in the same order, and base fields are the same.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.cross_polytope(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1a = ToricVariety(fan, "x s y t")
+            sage: P1xP1b = ToricVariety(fan)
+
+            sage: P1xP1 != P1xP1a
+            True
+            sage: P1xP1a != P1xP1
+            True
+            sage: P1xP1 != P1xP1b
+            False
+        """
+        return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: fan = FaceFan(lattice_polytope.cross_polytope(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: h1 = hash(P1xP1)
+            sage: h2 = hash(P1xP1)
+            sage: h3 = hash(toric_varieties.P(2))
+            sage: h1 == h2 and h1 != h3
+            True
+        """
+        return hash((self.fan(), self.variable_names(), self.base_ring()))
 
     def _an_element_(self):
         r"""
@@ -642,7 +680,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._an_element_()
             [1 : 2 : 3 : 4]
         """
-        return self(range(1, self.ngens() + 1))
+        return self(list(range(1, self.ngens() + 1)))
 
     def _check_satisfies_equations(self, coordinates):
         r"""
@@ -758,7 +796,7 @@ class ToricVariety_field(AmbientSpace):
         return r"\mathbb{X}_{%s}" % latex(self.fan())
 
     def _latex_generic_point(self, coordinates=None):
-        """
+        r"""
         Return a LaTeX representation of a point of ``self``.
 
         INPUT:
@@ -768,7 +806,7 @@ class ToricVariety_field(AmbientSpace):
 
         OUTPUT:
 
-        - string.
+        string.
 
         EXAMPLES::
 
@@ -970,15 +1008,15 @@ class ToricVariety_field(AmbientSpace):
             Scheme morphism:
               From: 2-d affine toric variety
               To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [x : t] to
-                    [x : 1 : 1 : t]
+              Defn: Defined on coordinates by sending [y : t] to
+                    [1 : 1 : y : t]
             sage: patch1 = P1xP1.affine_patch(1)
             sage: patch1.embedding_morphism()
             Scheme morphism:
               From: 2-d affine toric variety
               To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : y : t]
+              Defn: Defined on coordinates by sending [s : y] to
+                    [1 : s : y : 1]
             sage: patch1 is P1xP1.affine_patch(1)
             True
         """
@@ -1081,7 +1119,7 @@ class ToricVariety_field(AmbientSpace):
             sage: R = toric_varieties.A1().coordinate_ring();  R
             Multivariate Polynomial Ring in z over Rational Field
             sage: type(R)
-            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
+            <... 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
         """
         if "_coordinate_ring" not in self.__dict__:
             names = self.variable_names()
@@ -1118,8 +1156,8 @@ class ToricVariety_field(AmbientSpace):
             Scheme morphism:
               From: 2-d affine toric variety
               To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [x : t] to
-                    [x : 1 : 1 : t]
+              Defn: Defined on coordinates by sending [y : t] to
+                    [1 : 1 : y : t]
         """
         try:
             return self._embedding_morphism
@@ -1184,7 +1222,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1.inject_coefficients()
             Defining a, b
 
-        We check that we can use names ``a`` and ``b``, Trac #10498 is fixed::
+        We check that we can use names ``a`` and ``b``, :trac:`10498` is fixed::
 
             sage: a + b
             a + b
@@ -1229,7 +1267,7 @@ class ToricVariety_field(AmbientSpace):
             sage: toric_varieties.P2().dimension_singularities()
             -1
         """
-        for codim in range(0,self.dimension()+1):
+        for codim in range(self.dimension()+1):
             if any(not cone.is_smooth() for cone in self.fan(codim)):
                 return self.dimension() - codim
         return -1
@@ -1504,7 +1542,7 @@ class ToricVariety_field(AmbientSpace):
             * The ``i``-th entry in each Mori vector is the intersection
               number of the curve corresponding to the generator of the
               ``i``-th ray of the fan with the corresponding divisor class.
-              The very last entry is associated to the orgin of the fan
+              The very last entry is associated to the origin of the fan
               lattice.
 
             * The Mori vectors are also known as the gauged linear sigma model
@@ -1736,7 +1774,7 @@ class ToricVariety_field(AmbientSpace):
             sage: TV_res.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
             sage: TV_res = TV.resolve(coordinate_names="x+",
-            ...                       make_simplicial=True)
+            ....:                     make_simplicial=True)
             sage: TV_res.gens()
             (x0, x1, x2, x3, x4, x5, x6, x7)
         """
@@ -1757,7 +1795,7 @@ class ToricVariety_field(AmbientSpace):
         if coordinate_names is None:
             coordinate_names = list(self.variable_names())
             if coordinate_indices is None:
-                coordinate_indices = range(fan.nrays(), rfan.nrays())
+                coordinate_indices = list(range(fan.nrays(), rfan.nrays()))
             else:
                 coordinate_indices = coordinate_indices[fan.nrays():]
             coordinate_names.extend(normalize_names(
@@ -1826,7 +1864,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         - :class:`subscheme of a toric variety
-          <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_toric>`.
+          <sage.schemes.toric.toric_subscheme.AlgebraicScheme_subscheme_toric>`.
 
         EXAMPLES:
 
@@ -1859,7 +1897,7 @@ class ToricVariety_field(AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
         """
-        from sage.schemes.generic.algebraic_scheme import \
+        from sage.schemes.toric.toric_subscheme import\
             AlgebraicScheme_subscheme_toric, AlgebraicScheme_subscheme_affine_toric
         if self.is_affine():
             return AlgebraicScheme_subscheme_affine_toric(self, polynomials)
@@ -1867,7 +1905,7 @@ class ToricVariety_field(AmbientSpace):
             return AlgebraicScheme_subscheme_toric(self, polynomials)
 
     def Stanley_Reisner_ideal(self):
-        """
+        r"""
         Return the Stanley-Reisner ideal.
 
         OUTPUT:
@@ -1888,7 +1926,7 @@ class ToricVariety_field(AmbientSpace):
         return self._SR
 
     def linear_equivalence_ideal(self):
-        """
+        r"""
         Return the ideal generated by linear relations
 
         OUTPUT:
@@ -1997,7 +2035,7 @@ class ToricVariety_field(AmbientSpace):
 
         H = self.cohomology_ring()
         # Make an empty list for each d-piece
-        basis = [[] for d in range(self.dimension() + 1)]
+        basis = [[] for _ in range(self.dimension() + 1)]
         # Distribute basis elements into d-pieces
         for x in H.defining_ideal().normal_basis():
             basis[x.total_degree()].append(x)
@@ -2022,7 +2060,7 @@ class ToricVariety_field(AmbientSpace):
 
         A :class:`CohomologyClass`. If it exists, it is the class of
         the (properly normalized) volume form, that is, it is the
-        Poincare dual of a single point. If it does not exist, a
+        Poincaré dual of a single point. If it does not exist, a
         ``ValueError`` is raised.
 
         EXAMPLES::
@@ -2049,7 +2087,7 @@ class ToricVariety_field(AmbientSpace):
         means that the cohomology class `[t] \cap [y]` should be
         `\frac{1}{2}` times the volume class. Note that this is
         different from the volume normalization chosen in
-        [Schubert]_::
+        [KS]_::
 
             sage: P1xP1_Z2 = toric_varieties.P1xP1_Z2()
             sage: Dt = P1xP1_Z2.divisor(1);  Dt
@@ -2070,12 +2108,6 @@ class ToricVariety_field(AmbientSpace):
             sage: A = P1xP1_Z2.Chow_group(QQ)
             sage: A(Dt).intersection_with_divisor(Dy).count_points()
             1/2
-
-        REFERENCES:
-
-        ..  [Schubert]
-            Sheldon Katz and Stein Arild Stromme,
-            A Maple package for intersection theory and enumerative geometry.
         """
         if not self.is_orbifold():
             raise NotImplementedError('Cohomology computations are only '
@@ -2135,8 +2167,8 @@ class ToricVariety_field(AmbientSpace):
             [1/3 1/2 1/6]
             sage: A = P2_123.Chow_group(QQ)
             sage: matrix([ [ A(P2_123.divisor(i))
-            ...              .intersection_with_divisor(P2_123.divisor(j))
-            ...              .count_points() for i in range(0,3) ] for j in range(0,3) ])
+            ....:            .intersection_with_divisor(P2_123.divisor(j))
+            ....:            .count_points() for i in range(0,3) ] for j in range(0,3) ])
             [2/3   1 1/3]
             [  1 3/2 1/2]
             [1/3 1/2 1/6]
@@ -2155,7 +2187,7 @@ class ToricVariety_field(AmbientSpace):
         for details.
 
         EXAMPLES::
-        
+
             sage: dP6 = toric_varieties.dP6()
             sage: dP6.sheaves
             Sheaf constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
@@ -2182,9 +2214,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Chern_class
+        - :wikipedia:`Chern_class`
 
         EXAMPLES::
 
@@ -2203,7 +2233,7 @@ class ToricVariety_field(AmbientSpace):
             True
         """
         assert self.is_orbifold(), "Requires the toric variety to be an orbifold."
-        c = prod([ 1+self.cohomology_ring().gen(i) for i in range(0,self._fan.nrays()) ])
+        c = prod([ 1+self.cohomology_ring().gen(i) for i in range(self._fan.nrays()) ])
         if deg is None:
             return c
         else:
@@ -2229,9 +2259,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Chern_character#The_Chern_character
+        - :wikipedia:`Chern_character#The_Chern_character`
 
         EXAMPLES::
 
@@ -2246,7 +2274,7 @@ class ToricVariety_field(AmbientSpace):
         assert self.is_orbifold(), "Requires the toric variety to be an orbifold."
         n_rels = self._fan.nrays() - self.dimension()
         ch = sum([ self.cohomology_ring().gen(i).exp()
-                   for i in range(0,self._fan.nrays()) ]) - n_rels
+                   for i in range(self._fan.nrays()) ]) - n_rels
         if deg is None:
             return ch
         else:
@@ -2270,9 +2298,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Todd_class
+        - :wikipedia:`Todd_class`
 
         EXAMPLES::
 
@@ -2318,9 +2344,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Euler_characteristic
+        - :wikipedia:`Euler_characteristic`
 
         EXAMPLES::
 
@@ -2336,7 +2360,7 @@ class ToricVariety_field(AmbientSpace):
             else:
                 chi=0
                 H = self.cohomology_basis()
-                for d in range(0, self.dimension()+1):
+                for d in range(self.dimension()+1):
                     chi += (-1)**d * len(H[d])
             self._chi = chi
         return self._chi
@@ -2382,7 +2406,7 @@ class ToricVariety_field(AmbientSpace):
             sage: dP6.coordinate_ring()
             Multivariate Polynomial Ring in x, u, y, v, z, w
             over Rational Field
-            sage: dP6.divisor(range(6))
+            sage: dP6.divisor(list(range(6)))
             V(u) + 2*V(y) + 3*V(v) + 4*V(z) + 5*V(w)
             sage: dP6.inject_variables()
             Defining x, u, y, v, z, w
@@ -2620,7 +2644,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         A :class:`affine algebraic subscheme
-        <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_affine>`
+        <sage.schemes.affine.affine_subscheme.AlgebraicScheme_subscheme_affine>`
         corresponding to the patch `\mathop{Spec}(\sigma^\vee \cap M)`
         associated to the cone `\sigma`.
 
@@ -2713,7 +2737,7 @@ class ToricVariety_field(AmbientSpace):
         `V(\sigma)` of the torus orbit `O(\sigma)` in the ambient toric
         variety `X_\Sigma`, which is again a toric variety.
 
-        See Proposition 3.2.7 of [CLS]_ for more details.
+        See Proposition 3.2.7 of [CLS2011]_ for more details.
 
         INPUT:
 
@@ -2790,7 +2814,7 @@ class ToricVariety_field(AmbientSpace):
 
     @cached_method
     def Demazure_roots(self):
-        """
+        r"""
         Return the Demazure roots.
 
         OUTPUT:
@@ -2799,24 +2823,16 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..  [Demazure]
-            \M. Demazure
-            Sous-groupes algébriques de rang maximum du groupe de Cremona.
-            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507--588.
+        - [De1970]_
+        - [Baz2011]_
 
-        ..  [Bazhov]
-            Ivan Bazhov:
-            On orbits of the automorphism group on a complete toric variety.
-            :arxiv:`1110.4275`,
-            :doi:`10.1007/s13366-011-0084-0`.
-
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
             sage: P2.Demazure_roots()
             (M(-1, 0), M(-1, 1), M(0, -1), M(0, 1), M(1, -1), M(1, 0))
 
-        Here are the remaining three examples listed in [Bazhov]_, Example 2.1 and 2.3::
+        Here are the remaining three examples listed in [Baz2011]_, Example 2.1 and 2.3::
 
             sage: s = 3
             sage: cones = [(0,1),(1,2),(2,3),(3,0)]
@@ -2952,7 +2968,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     Now suppose that you want to enumerate your variables starting with one
     instead of zero::
 
-        sage: normalize_names("x+", 4, indices=range(1,5))
+        sage: normalize_names("x+", 4, indices=list(range(1,5)))
         ['x1', 'x2', 'x3', 'x4']
 
     You may actually have an arbitrary enumeration scheme::
@@ -2987,7 +3003,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
     Let's now use all parameters at once::
 
         sage: normalize_names("x, y, s+", 4, prefix="t",
-        ....:     indices=range(1,5), return_prefix=True)
+        ....:     indices=list(range(1,5)), return_prefix=True)
         ['x', 'y', 's3', 's4', 's']
 
     Note that you still need to give indices for all names, even if some of
@@ -3037,7 +3053,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
             raise IndexError("need %d names but only %d are given!"
                              % (ngens, len(names)))
         if indices is None:
-            indices = range(ngens)
+            indices = list(range(ngens))
         elif len(indices) != ngens:
             raise ValueError("need exactly %d indices, but got %d!"
                              % (ngens, len(indices)))
@@ -3174,7 +3190,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: print(cohomology_ring._latex_())
             H^\ast\left(\mathbb{P}_{\Delta^{2}_{15}},\QQ\right)
         """
-        return 'H^\\ast\\left('+self._variety._latex_()+',\QQ\\right)'
+        return 'H^\\ast\\left('+self._variety._latex_()+',\\QQ\\right)'
 
     def _element_constructor_(self,x):
         r"""
@@ -3208,7 +3224,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         intersection of the divisors corresponding to the rays is
         still proportional to the product of the variables, but the
         coefficient is a multiple depending on the orbifold
-        singularity. See also [CLS]_, Lemma 12.5.2::
+        singularity. See also [CLS2011]_, Lemma 12.5.2::
 
             sage: P2_123 = toric_varieties.P2_123()
             sage: HH = P2_123.cohomology_ring()
@@ -3295,7 +3311,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             ([z], [z], [z])
         """
         if "_gens" not in self.__dict__:
-            self._gens = tuple( self.gen(i) for i in range(0,self._variety.fan().nrays()) )
+            self._gens = tuple( self.gen(i) for i in range(self._variety.fan().nrays()) )
         return self._gens
 
     def gen(self, i):
@@ -3481,13 +3497,13 @@ class CohomologyClass(QuotientRingElement):
         Q = self.parent()
         # We iterate over monomials of self.lift()
         p = [x for x in self.lift() if x[1].total_degree() == d]
-        if len(p)==0:
+        if not p:
             return Q.zero()
         else:
-            return Q(sum(x[0]*x[1] for x in p))
+            return Q.sum(x[0] * x[1] for x in p)
 
     def exp(self):
-        """
+        r"""
         Exponentiate ``self``.
 
         .. NOTE::
@@ -3499,7 +3515,7 @@ class CohomologyClass(QuotientRingElement):
             cohomology class without constant term can be
             exponentiated.
 
-        OUTPUT
+        OUTPUT:
 
         The cohomology class `\exp(` ``self`` `)` if the constant part
         vanishes, otherwise a ``ValueError`` is raised.
@@ -3516,7 +3532,6 @@ class CohomologyClass(QuotientRingElement):
         if not self.part_of_degree(0).is_zero():
             raise ValueError('Must not have a constant part.')
         exp_x = self.parent().one()
-        for d in range(1,self.parent()._variety.dimension()+1):
+        for d in range(1, self.parent()._variety.dimension()+1):
             exp_x += self**d / factorial(d)
         return exp_x
-

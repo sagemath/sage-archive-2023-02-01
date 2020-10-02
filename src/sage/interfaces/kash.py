@@ -4,17 +4,14 @@ Interface to KASH
 Sage provides an interface to the KASH computer algebra system,
 which is a *free* (as in beer!) but *closed source* program for
 algebraic number theory that shares much common code with Magma. To
-use KASH, you must install the appropriate optional Sage package by
-typing something like "sage -i kash3-linux-2005.11.22" or "sage -i
-kash3_osx-2005.11.22". For a list of optional packages type "sage
--optional". If you type one of the above commands, the (about 16MB)
-package will be downloaded automatically (you don't have to do
-that).
+use KASH, you must first install it. Visit its web page:
+http://page.math.tu-berlin.de/~kant/kash.html
 
-It is not enough to just have KASH installed on your computer. Note
-that the KASH Sage package is currently only available for Linux
-and OSX. If you need Windows, support contact me
-(wstein@gmail.com).
+.. TODO::
+
+    Update the following sentence.
+
+It is not enough to just have KASH installed on your computer.
 
 The KASH interface offers three pieces of functionality:
 
@@ -47,8 +44,8 @@ doesn't work correctly. (TODO)
 Tutorial
 --------
 
-The examples in this tutorial require that the optional kash
-package be installed.
+The examples in this tutorial require that kash
+be installed.
 
 Basics
 ~~~~~~
@@ -250,9 +247,8 @@ version.
     [ 1, 2, 3, 5, 6, 5 ]
 
 The ``Apply`` command applies a function to each
-element of a list.
+element of a list::
 
-::
     sage: L = kash([1,2,3,4])                    # optional -- kash
     sage: L.Apply('i -> 3*i')                    # optional -- kash
     [ 3, 6, 9, 12 ]
@@ -433,7 +429,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .expect import Expect, ExpectElement
+from sage.docs.instancedoc import instancedoc
 import os
+
 
 class Kash(Expect):
     r"""
@@ -518,7 +516,9 @@ class Kash(Expect):
         try:
             Expect._start(self)
         except RuntimeError:
-            raise RuntimeError("You must install the optional Kash package to use Kash from Sage.")
+            # TODO: replace this error with something more accurate.
+            from sage.misc.package import PackageNotFoundError
+            raise PackageNotFoundError("kash")
         # Turn off the annoying timer.
         self.eval('Time(false);')
 
@@ -558,7 +558,8 @@ class Kash(Expect):
 ##         """
 ##         Return help on KASH commands.
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: X = kash.help('IntegerRing')   # optional - kash
 
 ##         """
@@ -665,6 +666,8 @@ class Kash(Expect):
     def version(self):
         return kash_version()
 
+
+@instancedoc
 class KashElement(ExpectElement):
     def __mod__(self, other):
         self._check_valid()

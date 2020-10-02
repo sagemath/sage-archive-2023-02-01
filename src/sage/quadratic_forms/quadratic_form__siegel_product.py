@@ -16,7 +16,8 @@ from sage.arith.all import kronecker_symbol, bernoulli, prime_divisors, fundamen
 from sage.functions.all import sqrt
 from sage.quadratic_forms.special_values import QuadraticBernoulliNumber
 
-from sage.misc.misc import verbose
+
+from sage.misc.verbose import verbose
 
 
 
@@ -85,15 +86,14 @@ def siegel_product(self, u):
     ## DIAGNOSTIC
     verbose("n = " + str(n))
     verbose("d = " + str(d))
-    verbose("In siegel_product:  d = ", d, "\n");
-
+    verbose("In siegel_product:  d = " + str(d) + "\n");
 
     ## Product of "bad" places to omit
     S = 2 * d * u
 
     ## DIAGNOSTIC
     verbose("siegel_product Break 1. \n")
-    verbose(" u = ", u, "\n")
+    verbose(" u = " + str(u) + "\n")
 
 
     ## Make the odd generic factors
@@ -152,7 +152,6 @@ def siegel_product(self, u):
     #cout << " The Prime divisors of S are :";
     #PrintV(S_divisors);
 
-
     for p in S_divisors:
         Q_normal = self.local_normal_form(p)
 
@@ -171,18 +170,13 @@ def siegel_product(self, u):
         verbose(" u = " +str(u) + "\n")
         verbose(" include = " + str(include) + "\n")
 
-
         include *= Q_normal.local_density(p, u)
-
 
         ## DIAGNOSTIC
         #cout << " Including the p = " << p << " factor: " << local_density(Q_normal, p, u) << endl;
 
-        ## DIAGNSOTIC
+        ## DIAGNOSTIC
         verbose("    ---  Exiting loop \n")
-
-
-
 
     #// ****************  Important *******************
     #// Additional fix (only included for n=4) to deal
@@ -194,27 +188,18 @@ def siegel_product(self, u):
     #  genericfactor = 4 * genericfactor;
     #*/
 
-
-    ## DIAGNSOTIC
+    ## DIAGNOSTIC
     #cout << endl;
     #cout << " generic factor = " << genericfactor << endl;
     #cout << " omit = " << omit << endl;
     #cout << " include = " << include << endl;
     #cout << endl;
 
-
-    ## DIAGNSOTIC
+    ## DIAGNOSTIC
     #//  cout << "siegel_product Break 3. " << endl;
 
-
     ## Return the final factor (and divide by 2 if n=2)
-    if (n == 2):
-        return (genericfactor * omit * include / 2)
+    if n == 2:
+        return genericfactor * omit * include / 2
     else:
-        return (genericfactor * omit * include)
-
-
-
-
-
-
+        return genericfactor * omit * include

@@ -14,8 +14,8 @@ AUTHORS:
 
 REFERENCES:
 
-- [Lee11]_ J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
-  Springer (New York) (2011)
+- [Lee2011]_
+
 
 EXAMPLES:
 
@@ -98,7 +98,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
     - ``name`` -- string; name (symbol) given to the subset
     - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
       denote the subset; if none are provided, it is set to ``name``
-    - ``category`` -- (default: ``None``) to specify the categeory;
+    - ``category`` -- (default: ``None``) to specify the category;
       if ``None``, the category for generic subsets is used
 
     EXAMPLES:
@@ -205,7 +205,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         self._unions = {}  # dict. of unions with other subsets (key: subset
                            # name)
         self._open_covers = []  # list of open covers of self
-        self._is_open = False   # a priori (may be redifined by subclasses)
+        self._is_open = False   # a priori (may be redefined by subclasses)
         self._manifold = manifold  # the ambient manifold
 
     def _repr_(self):
@@ -341,7 +341,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             if point in self:
                 resu = self.element_class(self, name=point._name,
                                           latex_name=point._latex_name)
-                for chart, coords in point._coordinates.iteritems():
+                for chart, coords in point._coordinates.items():
                     resu._coordinates[chart] = coords
                 return resu
             else:
@@ -570,7 +570,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
               Open subset V of the 2-dimensional topological manifold M]]
 
         """
-        return self._open_covers
+        return list(self._open_covers)
 
     def subsets(self):
         r"""
@@ -599,7 +599,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              2-dimensional topological manifold M,
              Open subset U of the 2-dimensional topological manifold M}
             sage: type(M.subsets())
-            <type 'frozenset'>
+            <... 'frozenset'>
             sage: U in M.subsets()
             True
 
@@ -1095,6 +1095,15 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: M.union(a) is M
             True
 
+        TESTS:
+
+        Check that :trac:`30401` is fixed::
+
+            sage: d = a.subset('D')
+            sage: e = a.subset('E')
+            sage: d.union(e).is_subset(a)
+            True
+
         """
         if other._manifold != self._manifold:
             raise ValueError("the two subsets do not belong to the same manifold")
@@ -1125,6 +1134,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res._top_subsets.add(other)
             for sd in other._subsets:
                 sd._supersets.add(res)
+            for sp in self._supersets:
+                if sp in other._supersets:
+                    sp._subsets.add(res)
+                    res._supersets.add(sp)
             if res._is_open:
                 for chart in other._atlas:
                     if chart not in res._atlas:

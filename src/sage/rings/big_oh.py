@@ -12,6 +12,7 @@ from __future__ import absolute_import
 
 import sage.arith.all as arith
 from . import laurent_series_ring_element
+from sage.rings.puiseux_series_ring_element import PuiseuxSeries
 import sage.rings.padics.factory as padics_factory
 import sage.rings.padics.padic_generic_element as padic_generic_element
 from . import power_series_ring_element
@@ -82,11 +83,18 @@ def O(*x, **kwds):
     We can also work with `asymptotic expansions`_::
 
         sage: A.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ * log(n)^QQ', coefficient_ring=QQ); A
-        doctest:...: FutureWarning:
-        This class/method/function is marked as experimental. ...
-        Asymptotic Ring <QQ^n * n^QQ * log(n)^QQ> over Rational Field
+        Asymptotic Ring <QQ^n * n^QQ * log(n)^QQ * Signs^n> over Rational Field
         sage: O(n)
         O(n)
+
+    Application with Puiseux series::
+
+        sage: P.<y> = PuiseuxSeriesRing(ZZ)
+        sage: y^(1/5) + O(y^(1/3))
+        y^(1/5) + O(y^(1/3))
+        sage: y^(1/3) + O(y^(1/5))
+        O(y^(1/5))
+
 
     TESTS::
 
@@ -134,7 +142,10 @@ def O(*x, **kwds):
         return laurent_series_ring_element.LaurentSeries(x.parent(), 0).\
             add_bigoh(x.valuation(), **kwds)
 
-    elif isinstance(x, (int, long, integer.Integer, rational.Rational)):
+    elif isinstance(x, PuiseuxSeries):
+        return x.add_bigoh(x.valuation(), **kwds)
+
+    elif isinstance(x, (int, integer.Integer, rational.Rational)):
         # p-adic number
         if x <= 0:
             raise ArithmeticError("x must be a prime power >= 2")

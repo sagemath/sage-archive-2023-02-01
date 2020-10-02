@@ -20,8 +20,8 @@ from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 from .generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
+
 
 class LinearOrderSpeciesStructure(GenericSpeciesStructure):
     def canonical_label(self):
@@ -43,7 +43,7 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
         EXAMPLES::
 
             sage: F = species.LinearOrderSpecies()
-            sage: a = F.structures(["a", "b", "c"]).random_element(); a
+            sage: a = F.structures(["a", "b", "c"])[0]; a
             ['a', 'b', 'c']
             sage: p = PermutationGroupElement((1,2))
             sage: a.transport(p)
@@ -60,7 +60,7 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
         EXAMPLES::
 
             sage: F = species.LinearOrderSpecies()
-            sage: a = F.structures(["a", "b", "c"]).random_element(); a
+            sage: a = F.structures(["a", "b", "c"])[0]; a
             ['a', 'b', 'c']
             sage: a.automorphism_group()
             Symmetric group of order 1! as a permutation group

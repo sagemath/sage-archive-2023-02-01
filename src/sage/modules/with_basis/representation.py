@@ -4,6 +4,7 @@ Representations Of A Semigroup
 AUTHORS:
 
 - Travis Scrimshaw (2015-11-21): Initial version
+- Siddharth Singh  (2020-03-21): Signed Representation
 """
 
 ####################################################################################
@@ -17,10 +18,8 @@ AUTHORS:
 from sage.misc.abstract_method import abstract_method
 from sage.structure.element import Element
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.categories.groups import Groups
-from sage.categories.semigroups import Semigroups
 from sage.categories.modules import Modules
-from sage.algebras.group_algebra import GroupAlgebra
+
 
 class Representation_abstract(CombinatorialFreeModule):
     """
@@ -266,9 +265,9 @@ class Representation(Representation_abstract):
             sage: A = G.algebra(ZZ)
             sage: R = A.regular_representation()
             sage: x = A.an_element(); x
-            B[()] + 4*B[(1,2,3,4)] + 2*B[(1,4)(2,3)]
+            () + (1,3) + 2*(1,3)(2,4) + 3*(1,4,3,2)
             sage: R(x)
-            B[()] + 4*B[(1,2,3,4)] + 2*B[(1,4)(2,3)]
+            () + (1,3) + 2*(1,3)(2,4) + 3*(1,4,3,2)
         """
         if isinstance(x, Element) and x.parent() is self._module:
             return self._from_dict(x.monomial_coefficients(copy=False), remove_zeros=False)
@@ -305,23 +304,23 @@ class Representation(Representation_abstract):
                 sage: R = G.regular_representation()
                 sage: s1,s2 = G.gens()
                 sage: x = R.an_element(); x
-                2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
+                2*s2*s1*s2 + s1*s2 + 3*s2 + 1
                 sage: 2 * x
-                4*B[s2*s1*s2] + 2*B[s1*s2] + 6*B[s2] + 2*B[1]
+                4*s2*s1*s2 + 2*s1*s2 + 6*s2 + 2
                 sage: s1 * x
-                2*B[s2*s1*s2*s1] + 3*B[s1*s2] + B[s1] + B[s2]
+                2*s2*s1*s2*s1 + 3*s1*s2 + s1 + s2
                 sage: s2 * x
-                B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
+                s2*s1*s2 + 2*s1*s2 + s2 + 3
 
                 sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
                 sage: R = G.regular_representation(side="right")
                 sage: s1,s2 = G.gens()
                 sage: x = R.an_element(); x
-                2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
+                2*s2*s1*s2 + s1*s2 + 3*s2 + 1
                 sage: x * s1
-                2*B[s2*s1*s2*s1] + B[s1*s2*s1] + 3*B[s2*s1] + B[s1]
+                2*s2*s1*s2*s1 + s1*s2*s1 + 3*s2*s1 + s1
                 sage: x * s2
-                2*B[s2*s1] + B[s1] + B[s2] + 3*B[1]
+                2*s2*s1 + s1 + s2 + 3
 
                 sage: G = groups.misc.WeylGroup(['B',2], prefix='s')
                 sage: R = G.regular_representation()
@@ -330,14 +329,13 @@ class Representation(Representation_abstract):
                 sage: A = G.algebra(ZZ)
                 sage: s1,s2 = A.algebra_generators()
                 sage: x = R.an_element(); x
-                2*B[s2*s1*s2] + B[s1*s2] + 3*B[s2] + B[1]
+                2*s2*s1*s2 + s1*s2 + 3*s2 + 1
                 sage: s1 * x
-                2*B[s2*s1*s2*s1] + 3*B[s1*s2] + B[s1] + B[s2]
+                2*s2*s1*s2*s1 + 3*s1*s2 + s1 + s2
                 sage: s2 * x
-                B[s2*s1*s2] + 2*B[s1*s2] + B[s2] + 3*B[1]
+                s2*s1*s2 + 2*s1*s2 + s2 + 3
                 sage: (2*s1 - s2) * x
-                4*B[s2*s1*s2*s1] - B[s2*s1*s2] + 4*B[s1*s2]
-                 + 2*B[s1] + B[s2] - 3*B[1]
+                4*s2*s1*s2*s1 - s2*s1*s2 + 4*s1*s2 + 2*s1 + s2 - 3
                 sage: (3*s1 + s2) * R.zero()
                 0
 
@@ -347,8 +345,8 @@ class Representation(Representation_abstract):
                 sage: a * x
                 Traceback (most recent call last):
                 ...
-                TypeError: unsupported operand parent(s) for '*':
-                 'Group algebra of Weyl Group of type ['B', 2] ... over Rational Field'
+                TypeError: unsupported operand parent(s) for *:
+                 'Algebra of Weyl Group of type ['B', 2] ... over Rational Field'
                  and 'Left Regular Representation of Weyl Group of type ['B', 2] ... over Integer Ring'
             """
             if isinstance(scalar, Element):
@@ -552,3 +550,230 @@ class TrivialRepresentation(Representation_abstract):
 
         _rmul_ = _lmul_ = _acted_upon_
 
+
+class SignRepresentation_abstract(Representation_abstract):
+    """
+    Generic implementation of a sign representation.
+
+    The sign representation of a semigroup `S` over a commutative ring
+    `R` is the `1`-dimensional `R`-module on which every element of `S`
+    acts by 1 if order of element is even (including 0) or -1 if order of element if odd.
+
+    This is simultaneously a left and right representation.
+
+    INPUT:
+
+    - ``permgroup`` -- a permgroup
+    - ``base_ring`` -- the base ring for the representation
+    - ``sign_function`` -- a function which returns 1 or -1 depending on the elements sign
+
+    REFERENCES:
+
+    - :wikipedia:`Representation_theory_of_the_symmetric_group`
+    """
+
+    def __init__(self, group, base_ring, sign_function=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.PGL(2, 3)
+            sage: V = G.sign_representation()
+            sage: TestSuite(V).run()
+        """
+        self.sign_function = sign_function
+        if sign_function is None:
+            try:
+                self.sign_function = self._default_sign
+            except AttributeError:
+                raise TypeError("a sign function must be given")
+
+        cat = Modules(base_ring).WithBasis().FiniteDimensional()
+
+        Representation_abstract.__init__(self, group, base_ring, ["v"], category=cat)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: G.sign_representation()
+            Sign representation of Dihedral group of order 8
+             as a permutation group over Integer Ring
+        """
+        return "Sign representation of {} over {}".format(
+            self._semigroup, self.base_ring()
+        )
+
+    def side(self):
+        """
+        Return that ``self`` is a two-sided representation.
+
+        OUTPUT:
+
+        - the string ``"twosided"``
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Dihedral(4)
+            sage: R = G.sign_representation()
+            sage: R.side()
+            'twosided'
+        """
+        return "twosided"
+
+    class Element(CombinatorialFreeModule.Element):
+        def _acted_upon_(self, scalar, self_on_left=False):
+            """
+            Return the action of ``scalar`` on ``self``.
+
+            EXAMPLES::
+
+                sage: G = PermutationGroup(gens=[(1,2,3), (1,2)])
+                sage: S = G.sign_representation()
+                sage: x = S.an_element(); x
+                2*B['v']
+                sage: s,c = G.gens(); c
+                (1,2,3)
+                sage: s*x
+                -2*B['v']
+                sage: s*x*s
+                2*B['v']
+                sage: s*x*s*s*c
+                -2*B['v']
+                sage: A = G.algebra(ZZ)
+                sage: s,c = A.algebra_generators()
+                sage: c
+                (1,2,3)
+                sage: s
+                (1,2)
+                sage: c*x
+                2*B['v']
+                sage: c*c*x
+                2*B['v']
+                sage: c*x*s
+                -2*B['v']
+                sage: c*x*s*s
+                2*B['v']
+                sage: (c+s)*x
+                0
+                sage: (c-s)*x
+                4*B['v']
+            """
+            if isinstance(scalar, Element):
+                P = self.parent()
+                if not self:
+                    return self
+                if scalar.parent() is P._semigroup:
+                    return self if P.sign_function(scalar) > 0 else -self
+
+                if scalar.parent() is P._semigroup_algebra:
+                    sum_scalar_coeff = 0
+                    for ms, cs in scalar:
+                        sum_scalar_coeff += P.sign_function(ms) * cs
+                    return sum_scalar_coeff * self
+
+            return CombinatorialFreeModule.Element._acted_upon_(
+                self, scalar, self_on_left
+            )
+
+        _rmul_ = _lmul_ = _acted_upon_
+
+
+class SignRepresentationPermgroup(SignRepresentation_abstract):
+    """
+    The sign representation for a permutation group.
+
+    EXAMPLES::
+
+        sage: G = groups.permutation.PGL(2, 3)
+        sage: V = G.sign_representation()
+        sage: TestSuite(V).run()
+    """
+
+    def _default_sign(self, elem):
+        """
+        Return the sign of the element
+        
+        INPUT:
+      
+        - ``elem`` -- the element of the group
+
+        EXAMPLES::
+        
+            sage: G = groups.permutation.PGL(2, 3)
+            sage: V = G.sign_representation()
+            sage: elem = G.an_element()
+            sage: elem
+            (1,2,4,3)
+            sage: V._default_sign(elem)
+            -1
+        """
+
+        return elem.sign()
+
+
+class SignRepresentationMatrixGroup(SignRepresentation_abstract):
+    """
+    The sign representation for a matrix group.
+
+    EXAMPLES::
+
+        sage: G = groups.permutation.PGL(2, 3)
+        sage: V = G.sign_representation()
+        sage: TestSuite(V).run()
+    """
+
+    def _default_sign(self, elem):
+        """
+        Return the sign of the element
+
+        INPUT:
+
+        - ``elem`` -- the element of the group
+
+        EXAMPLES::
+
+            sage: G = GL(2, QQ)
+            sage: V = G.sign_representation()
+            sage: m = G.an_element()
+            sage: m
+            [1 0]
+            [0 1]
+            sage: V._default_sign(m)
+            1
+        """
+        return 1 if elem.matrix().det() > 0 else -1
+
+
+class SignRepresentationCoxeterGroup(SignRepresentation_abstract):
+    """
+    The sign representation for a Coxeter group.
+
+    EXAMPLES::
+
+        sage: G = WeylGroup(["A", 1, 1])
+        sage: V = G.sign_representation()
+        sage: TestSuite(V).run()
+    """
+
+    def _default_sign(self, elem):
+        """
+        Return the sign of the element
+        
+        INPUT:
+
+        - ``elem`` -- the element of the group
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(["A", 1, 1])
+            sage: elem = G.an_element()
+            sage: V = G.sign_representation()
+            sage: V._default_sign(elem)
+            1
+        """
+        return -1 if elem.length() % 2 == 1 else 1

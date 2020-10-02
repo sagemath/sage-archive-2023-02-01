@@ -67,7 +67,11 @@
 
     // Start the sage server, or check if it's running
     if ( [defaults boolForKey:@"startServerOnLaunch"] ) {
-        [self startServer:self];
+        if ( [defaults boolForKey:@"preferSageNB"]) {
+            [self startServer:self];
+        } else {
+            [self startJupyter:self];
+        }
     } else {
         [self serverIsRunning:NO];
     }
@@ -118,7 +122,11 @@
 
     // Get any default options they might have for this session
     [defaults synchronize];
-    NSString *jupyterPath = [defaults objectForKey:@"defaultJupyterPath"];
+    NSString *jupyterPath = [[defaults objectForKey:@"defaultJupyterPath"]
+                             stringByExpandingTildeInPath];
+    NSFileManager *fileMgr = [NSFileManager defaultManager];
+    [fileMgr createDirectoryAtPath:jupyterPath withIntermediateDirectories:YES attributes:nil error:nil];
+
     NSString *defArgs = [[defaults dictionaryForKey:@"DefaultArguments"]
                          objectForKey:@"jupyter"];
 
@@ -139,7 +147,7 @@
     // We have to run it through a shell so that the default arguments are parsed properly
     NSString *command = [NSString stringWithFormat:
                          @"'%@' --notebook=jupyter %@ 2>&1 | tee -a '%@' |"
-                         " grep --line-buffered -i 'ipython notebook is running at' |"
+                         " grep -i --line-buffered --context=1 'Notebook is running at' |"
                          " grep --line-buffered -o http://.*",
                          escSageBin,
                          // default args are ready to be
@@ -165,6 +173,10 @@
     [jupyterTask launch];
 
     if (haveStatusItem)  [statusItem setImage:statusImageBlue];
+
+    // Open loading page since it can take a while to start
+    [self browseRemoteURL:[[NSBundle mainBundle] pathForResource:@"loading-page" ofType:@"html"]];
+
 }
 
 
@@ -465,7 +477,7 @@ You can change it later in Preferences."];
                 [defaults setBool:YES forKey:@"useAltSageBinary"];
                 [defaults setObject:sageBinary forKey:@"SageBinary"];
                 [sageBinary retain];
-                return;
+                break;
             }
             [openDlg setMessage:@"That does not appear to be a valid sage executable.\nPlease choose another, or cancel to assume sage is in PATH."];
         }
@@ -476,6 +488,30 @@ You can change it later in Preferences."];
         NSLog(@"WARNING: Could not find a good sage executable, falling back to sage and hoping it's in PATH.");
         sageBinary = @"sage";
     }
+
+    // Where to save Jupyter Notebooks
+    NSString *jupyterPath = [[defaults objectForKey:@"defaultJupyterPath"]
+                             stringByExpandingTildeInPath];
+    NSLog(@"defaultJupyterPath: %@",jupyterPath);
+    if ( ![fileMgr fileExistsAtPath:jupyterPath isDirectory:&isDir] || !isDir ) {
+
+        // Create a File Open Dialog class
+        NSOpenPanel *openDlg = [NSOpenPanel openPanel];
+        [openDlg setTitle:@"Please choose a Jupyter Directory"];
+        [openDlg setMessage:@"Where do you want to save Jupyter Notebooks?\n\
+(You can create a new directory with Command-shift N)\n\
+You can change it later in Preferences."];
+        [openDlg setCanChooseFiles:NO];
+        [openDlg setCanChooseDirectories:YES];
+
+        // Display the dialog.  If the OK button was pressed,
+        // process the files.
+        if ( [openDlg runModalForDirectory:nil file:nil] == NSOKButton ) {
+            jupyterPath = [[openDlg filenames] objectAtIndex:0];
+        }
+    }
+    [defaults setObject:jupyterPath forKey:@"defaultJupyterPath"];
+
 }
 
 -(void)ensureReadWrite {
@@ -507,9 +543,11 @@ You can change it later in Preferences."];
 
 -(void)offerNotebookUpgrade {
     NSFileManager *filemgr = [NSFileManager defaultManager];
-    NSLog(@"Checking if sagenb exists %d.", [defaults boolForKey:@"askToUpgradeNB"]);
-    if ( ! [filemgr fileExistsAtPath:@"~/.sage/sage_notebook.sagenb/users.pickle"]
-        && [defaults boolForKey:@"askToUpgradeNB"]) {
+    [defaults setBool:[filemgr fileExistsAtPath:[@"~/.sage/sage_notebook.sagenb/users.pickle"
+                                                 stringByExpandingTildeInPath]]
+               forKey:@"hasNBToUpgrade"];
+    NSLog(@"Checking if sagenb exists %d.", [defaults boolForKey:@"hasNBToUpgrade"]);
+    if ( [defaults boolForKey:@"hasNBToUpgrade"] && [defaults boolForKey:@"askToUpgradeNB"]) {
 
         NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Notebook Upgrade"
                                          defaultButton:@"Upgrade"
@@ -557,8 +595,10 @@ You can change it later in Preferences."];
 -(IBAction)openNotebook:(id)sender{
     if ( jupyterURL != nil ) {
         [self browseRemoteURL:jupyterURL];
-    } else {
+    } else if ( port != 0 || (defaults && [defaults boolForKey:@"preferSageNB"]) ) {
         [self browseLocalSageURL:@""];
+    } else {
+        [self startJupyter:sender];
     }
 }
 
@@ -566,8 +606,10 @@ You can change it later in Preferences."];
     if ( jupyterURL != nil ) {
         // AFAICT you can't create a new worksheet via curl
         [self browseRemoteURL:jupyterURL];
-    } else {
+    } else if ( port != 0 || (defaults && [defaults boolForKey:@"preferSageNB"]) ) {
         [self browseLocalSageURL:@"new_worksheet"];
+    } else {
+        [self startJupyter:sender];
     }
 }
 
@@ -810,9 +852,9 @@ You can change it later in Preferences."];
 
 // TODO: make installing packages easy -- stringByLaunchingPath:withArguments:error:
 // TODO: maybe this should be written in py-objc so that we can call into sage directly (but then we would have to worry about environment etc.)
-// TODO: make some services (search for NSSendTypes) -- pack/unpack spkg, extract sws from pdf, crap/fixdoctests/preparse/Test/coverage/pkg/pkg_nc/etc.
+// TODO: make some services (search for NSSendTypes) -- pack/unpack spkg, crap/fixdoctests/preparse/Test/coverage/pkg/pkg_nc/etc.
 
-// TODO: open files such as .sws, .sage, .py, .spkg, -- .pdf (and extract sws from them), .htm, whatever else I can handle
+// TODO: open files such as .sage, .py, .spkg, -- .pdf, .htm, whatever else I can handle
 // TODO: quicklook generator, spotlight importer -- use UTI
 // NOTE: http://developer.apple.com/mac/library/documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html
 // TODO: icons for files -- they need some help with the alpha channel.  I clearly don't know what I'm doing.  I should really make them all from by script...

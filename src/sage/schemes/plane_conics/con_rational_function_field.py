@@ -71,10 +71,8 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
 
     REFERENCES:
 
-    .. [HC2006] Mark van Hoeij and John Cremona, Solving Conics over
-       function fields. J. Théor. Nombres Bordeaux, 2006.
-    .. [ACKERMANS2016] Lennart Ackermans, Oplosbaarheid van Kegelsneden.
-       http://www.math.leidenuniv.nl/nl/theses/Bachelor/.
+    - [HC2006]_
+    - [Ack2016]_
     """
     def __init__(self, A, f):
         r"""
@@ -142,8 +140,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: R.<t> = F[]
             sage: C = Conic([1,i*t,-t^2+4])
             sage: C.has_rational_point(point = True)
-            verbose 0 (3369: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
-            ...
             (True, (-t - 2*i : -2*i : 1))
 
         It works on non-diagonal conics as well::
@@ -173,7 +169,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: c = -3*t2^4-4*t1*t2^3+8*t1^2*t2^2+16*t1^3-t2-48*t1^4
             sage: C = Conic([a,b,c])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             NotImplementedError: is_square() not implemented for elements of
@@ -193,7 +188,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: K = R.fraction_field()
             sage: C = Conic(K, [u, v, 1])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             NotImplementedError: has_rational_point not implemented for conics
@@ -207,7 +201,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: K.<t> = PolynomialRing(GF(7))
             sage: C = Conic([5*t^2+4, t^2+3*t+3, 6*t^2+3*t+2, 5*t^2+5, 4*t+3, 4*t^2+t+5])
             sage: C.has_rational_point()
-            ...
             Traceback (most recent call last):
             ...
             TypeError: self (=Scheme morphism:
@@ -426,7 +419,7 @@ for function field of characteristic 2.")
     def find_point(self, supports, roots, case, solution = 0):
         r"""
         Given a solubility certificate like in [HC2006]_, find a point on
-        ``self``. Assumes ``self`` is in reduced form (see [HC2006] for a
+        ``self``. Assumes ``self`` is in reduced form (see [HC2006]_ for a
         definition).
 
         If you don't have a solubility certificate and just want to find a
@@ -451,7 +444,7 @@ for function field of characteristic 2.")
         ALGORITHM:
         
         The algorithm used is the algorithm FindPoint in [HC2006]_, with
-        a simplification from [ACKERMANS2016]_.
+        a simplification from [Ack2016]_.
         
         EXAMPLES::
             
@@ -482,13 +475,13 @@ for function field of characteristic 2.")
             Ft(self.coefficients()[5])]
         deg = [coefficients[0].degree(), coefficients[1].degree(),
                 coefficients[2].degree()]
-        # definitions as in [HC2006] and [ACKERMANS2016]
+        # definitions as in [HC2006] and [Ack2016]
         A = ((deg[1] + deg[2]) / 2).ceil() - case
         B = ((deg[2] + deg[0]) / 2).ceil() - case
         C = ((deg[0] + deg[1]) / 2).ceil() - case
         
         # For all roots as calculated by has_rational_point(), we create
-        # a system of linear equations. As in [ACKERMANS2016], we do this
+        # a system of linear equations. As in [Ack2016], we do this
         # by calculating the matrices for all phi_p, with basis consisting
         # of monomials of x, y and z in the space V of potential solutions:
         # t^0, ..., t^A, t^0, ..., t^B and t^0, ..., t^C.

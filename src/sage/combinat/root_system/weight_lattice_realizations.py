@@ -2,7 +2,7 @@
 Weight lattice realizations
 """
 from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #       (with contributions of many others)
@@ -16,8 +16,8 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -26,6 +26,7 @@ from sage.misc.all import prod
 from sage.categories.category_types import Category_over_base_ring
 from sage.combinat.family import Family
 from .root_lattice_realizations import RootLatticeRealizations
+
 
 class WeightLatticeRealizations(Category_over_base_ring):
     r"""
@@ -52,7 +53,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
     lattice; on the other hand, the embedding of the simple roots is
     given for free.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :class:`~sage.combinat.root_system.root_system.RootSystem`
         - :class:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations`
@@ -129,7 +130,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
         @abstract_method
         def fundamental_weight(self, i):
-            """
+            r"""
             Returns the `i^{th}` fundamental weight
 
             INPUT:
@@ -168,7 +169,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
           """
           Returns whether this is a realization of the extended weight lattice
 
-          .. seealso:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
+          .. SEEALSO:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
 
           EXAMPLES::
 
@@ -188,7 +189,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
           return False
 
         def __init_extra__(self):
-            """
+            r"""
             Registers the embedding of the weight lattice into ``self``
 
             Also registers the embedding of the weight space over the same
@@ -241,7 +242,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             - embeddings from the weight lattice and weight space
             - rho, highest_root, ...
 
-            .. seealso:: :class:`TestSuite`
+            .. SEEALSO:: :class:`TestSuite`
 
             EXAMPLES::
 
@@ -268,7 +269,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                        for base_ring in set([ZZ, self.base_ring()])
                        for extended  in set([self.cartan_type().is_affine(), self.is_extended()])]
             for domain in domains:
-                tester.assert_(self._internal_coerce_map_from(domain) is not None)
+                tester.assertIsNot(self._internal_coerce_map_from(domain), None)
                 for i in self.index_set():
                     # This embedding maps fundamental weights to fundamental weights
                     tester.assertEqual(self(domain.fundamental_weight(i)), Lambda[i])
@@ -291,9 +292,9 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 for j in self.index_set():
                     tester.assertEqual(Lambda[j].scalar(alphacheck[i]), (1 if i==j else 0))
 
-            tester.assert_(self.rho().is_dominant())
+            tester.assertTrue(self.rho().is_dominant())
             if self.root_system.is_finite() and self.root_system.is_irreducible():
-                tester.assert_(self.highest_root().is_dominant())
+                tester.assertTrue(self.highest_root().is_dominant())
 
         @cached_method
         def fundamental_weights(self):
@@ -367,15 +368,17 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
         def reduced_word_of_alcove_morphism(self, f):
             r"""
+            Return the reduced word of an alcove morphism.
+
             INPUT:
 
-            - `f` -- a linear map from ``self`` to ``self`` which
-              preserves alcoves.
+            - ``f`` -- a linear map from ``self`` to ``self`` which
+              preserves alcoves
 
             Let `A` be the fundamental alcove. This returns a reduced word
-            `i_1,...,i_k` such that the affine Weyl group element `w =
-            s_{i_1} \circ \dots \circ s_{i_k}` maps the alcove `f(A)` back
-            to `A`. In other words, the alcove walk `i_1,...,i_k` brings
+            `i_1, \ldots, i_k` such that the affine Weyl group element `w =
+            s_{i_1} \circ \cdots \circ s_{i_k}` maps the alcove `f(A)` back
+            to `A`. In other words, the alcove walk `i_1, \ldots, i_k` brings
             the fundamental alcove to the corresponding translated alcove.
 
             Let us throw in a bit of context to explain the main use
@@ -391,7 +394,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             of the extended affine Weyl group admits a unique
             decomposition of the form:
 
-            .. math:: f = d w ,
+            .. MATH:: f = d w ,
 
             where `w` is in the Weyl group, and `d` is a function which
             maps the fundamental alcove to itself. As `d` permutes the
@@ -511,8 +514,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
             return f(self.rho()).reduced_word()
 
         def dynkin_diagram_automorphism_of_alcove_morphism(self, f):
-            """
-            Returns the Dynkin diagram automorphism induced by an alcove morphism
+            r"""
+            Return the Dynkin diagram automorphism induced by an alcove morphism
 
             INPUT:
 
@@ -582,16 +585,18 @@ class WeightLatticeRealizations(Category_over_base_ring):
             return permutation
 
         def reduced_word_of_translation(self, t):
-            """
+            r"""
             Given an element of the root lattice, this returns a reduced
-            word `i_1,...,i_k` such that the Weyl group element `s_{i_1}
-            \circ \dots \circ s_{i_k}` implements the "translation"
+            word `i_1, \ldots, i_k` such that the Weyl group element `s_{i_1}
+            \circ \cdots \circ s_{i_k}` implements the "translation"
             where `x` maps to `x + level(x)*t`. In other words, the alcove walk
-            `i_1,...,i_k` brings the fundamental alcove to the
+            `i_1, \ldots, i_k` brings the fundamental alcove to the
             corresponding translated alcove.
 
-            Note: there are some technical conditions for `t` to actually
-            be a translation; those are not tested (TODO: detail).
+            .. NOTE::
+
+                There are some technical conditions for `t` to actually
+                be a translation; those are not tested (TODO: detail).
 
             EXAMPLES::
 
@@ -627,11 +632,11 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             See also :meth:`_test_reduced_word_of_translation`.
 
-            TODO:
+            .. TODO::
 
-             - Add a picture in the doc
-             - Add a method which, given an element of the classical
-               weight lattice, constructs the appropriate value for t
+                 - Add a picture in the doc
+                 - Add a method which, given an element of the classical
+                   weight lattice, constructs the appropriate value for t
             """
             return self.reduced_word_of_alcove_morphism(t.translation)
 
@@ -681,21 +686,21 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 w = self.weyl_group().from_reduced_word(self.reduced_word_of_translation(t))
                 if self.null_root().is_zero():
                     # The following formula is only valid when the null root is zero
-                    tester.assertEquals(w.action(rho), rho + rho.level()*t)
+                    tester.assertEqual(w.action(rho), rho + rho.level()*t)
                     # TODO: fix this formula to take delta into account,
                     # and remove the above condition
                 if test_automorphism:
                     permutation = [None for i in self.index_set()]
                     for i in self.index_set():
                         root = w.action(alpha[i])
-                        tester.assert_(root in rank_simple_roots)
+                        tester.assertIn(root, rank_simple_roots)
                         permutation[i] = rank_simple_roots[root]
-                    tester.assertEquals(set(permutation), set(self.index_set()))
+                    tester.assertEqual(set(permutation), set(self.index_set()))
                     #print permutation
                     # It could be nicer to test equality of G and its relabelling
                     for i in self.index_set():
                         for j in self.index_set():
-                            tester.assertEquals(G[permutation[i],permutation[j]], G[i,j])
+                            tester.assertEqual(G[permutation[i],permutation[j]], G[i,j])
                     permutations.append(permutation)
 
             if test_automorphism and elements is None: # note: the test on elements is broken
@@ -706,12 +711,12 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 #from sage.groups.perm_gps.permgroup import PermutationGroup
                 #P = PermutationGroup([[i+1 for i in permutation] for permutation in permutations])
                 #print P, len(P)
-                #tester.assertEquals(P, G.automorphism_group())
+                #tester.assertEqual(P, G.automorphism_group())
                 pass
 
         def signs_of_alcovewalk(self, walk):
             r"""
-            Let walk = `[i_1,\dots,i_n]` denote an alcove walk starting
+            Let walk = `[i_1,\ldots,i_n]` denote an alcove walk starting
             from the fundamental alcove `y_0`, crossing at step 1 the
             wall `i_1`, and so on.
 
@@ -720,9 +725,9 @@ class WeightLatticeRealizations(Category_over_base_ring):
             `y_k` is obtained recursively from `y_{k-1}` by applying the
             following reflection:
 
-            .. math::
+            .. MATH::
 
-                  y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}
+                  y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}.
 
             The step is said positive if `w_{k-1} \alpha_{i_k}` is a
             negative root (considering `w_{k-1}` as element of the
@@ -741,7 +746,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             where the `k^{th}` entry denotes whether the `k^{th}` step was
             positive or negative.
 
-            See equation 3.4, of Ram: Alcove walks ..., arxiv:math/0601343v1 [math.RT]
+            See equation 3.4, of Ram: Alcove walks ..., :arxiv:`math/0601343v1`
 
             EXAMPLES::
 
@@ -864,7 +869,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 16
 
                 sage: type(RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0]))
-                <type 'sage.rings.integer.Integer'>
+                <... 'sage.rings.integer.Integer'>
             """
             highest_weight = self(highest_weight)
             if not highest_weight.is_dominant():

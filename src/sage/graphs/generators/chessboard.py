@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Chessboard Graphs
+Chessboard graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
@@ -35,7 +35,7 @@ def ChessboardGraphGenerator(dim_list,
     This function allows to generate many kinds of graphs corresponding to legal
     movements on a `d`-dimensional chessboard: Queen Graph, King Graph, Knight
     Graphs, Bishop Graph, and many generalizations. It also allows to avoid
-    redondant code.
+    redundant code.
 
     INPUT:
 
@@ -83,7 +83,7 @@ def ChessboardGraphGenerator(dim_list,
         sage: G.is_isomorphic( graphs.CompleteGraph(4) )
         True
 
-    A Rook's Graph in 2 dimensions is isomporphic to the Cartesian product of 2
+    A Rook's Graph in 2 dimensions is isomorphic to the Cartesian product of 2
     complete graphs::
 
         sage: G, _ = graphs.ChessboardGraphGenerator( [3,4], rook=True, rook_radius=None, bishop=False, knight=False )
@@ -163,12 +163,12 @@ def ChessboardGraphGenerator(dim_list,
     if knight and ( not knight_x in ZZ or not knight_y in ZZ or knight_x < 1 or knight_y < 1 ):
         raise ValueError('The knight_x and knight_y values must be integers of value >= 1.')
 
-    # We build the set of vertices of the d-dimensionnal chessboard
+    # We build the set of vertices of the d-dimensional chessboard
     from itertools import product
     V = [list(x) for x in list(product(*[range(_) for _ in dim]))]
 
     from sage.combinat.combination import Combinations
-    combin = Combinations(range(nb_dim),2)
+    combin = Combinations(range(nb_dim), 2)
 
     from sage.graphs.graph import Graph
     G = Graph()
@@ -178,9 +178,9 @@ def ChessboardGraphGenerator(dim_list,
 
         if rook:
             # We add edges to vertices we can reach when moving in one dimension
-            for d in xrange(nb_dim):
+            for d in range(nb_dim):
                 v = u[:]
-                for k in xrange(v[d]+1, min(dim[d],v[d]+1+rook_radius)):
+                for k in range(v[d]+1, min(dim[d],v[d]+1+rook_radius)):
                     v[d] = k
                     G.add_edge( uu, tuple(v) )
 
@@ -195,13 +195,13 @@ def ChessboardGraphGenerator(dim_list,
 
                 if bishop:
                     # Diagonal
-                    for k in xrange(1, min(n-i,m-j,bishop_radius+1)):
+                    for k in range(1, min(n-i,m-j,bishop_radius+1)):
                         v[dx] = i+k
                         v[dy] = j+k
                         G.add_edge( uu, tuple(v) )
 
                     # Anti-diagonal
-                    for k in xrange(min(i, m-j-1, bishop_radius)):
+                    for k in range(min(i, m-j-1, bishop_radius)):
                         v[dx] = i-k-1
                         v[dy] = j+k+1
                         G.add_edge( uu, tuple(v) )
@@ -285,8 +285,8 @@ def QueenGraph(dim_list, radius=None, relabel=False):
 
     The Queen Graph can be obtained from the Rook Graph and the Bishop Graph::
 
-        sage: for d in xrange(3,12):   # long time
-        ....:     for r in xrange(1,d+1):
+        sage: for d in range(3,12):   # long time
+        ....:     for r in range(1,d+1):
         ....:         G = graphs.QueenGraph([d,d],radius=r)
         ....:         H = graphs.RookGraph([d,d],radius=r)
         ....:         B = graphs.BishopGraph([d,d],radius=r)
@@ -520,9 +520,9 @@ def BishopGraph(dim_list, radius=None, relabel=False):
 
     The Bishop Graph can be obtained from Knight Graphs::
 
-        sage: for d in xrange(3,12):   # long time
+        sage: for d in range(3,12):   # long time
         ....:     H = Graph()
-        ....:     for r in xrange(1,d+1):
+        ....:     for r in range(1,d+1):
         ....:         B = graphs.BishopGraph([d,d],radius=r)
         ....:         H.add_edges( graphs.KnightGraph([d,d],one=r,two=r).edges() )
         ....:         if not B.is_isomorphic(H):

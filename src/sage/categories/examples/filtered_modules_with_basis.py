@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
 r"""
 Examples of filtered modules with basis
 """
-#*****************************************************************************
-#  Copyright (C) 2013 Frederic Chapoton <fchapoton2@gmail.com>
+# ****************************************************************************
+#  Copyright (C) 2013 Frédéric Chapoton <fchapoton2@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.filtered_modules_with_basis import FilteredModulesWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -63,10 +64,10 @@ class FilteredPartitionModule(CombinatorialFreeModule):
           'P[4, 3]'
 
     - There is a class for elements, which inherits from
-      :class:`CombinatorialFreeModuleElement
-      <sage.combinat.free_module.CombinatorialFreeModuleElement>`.  An
-      element is determined by a dictionary whose keys are partitions and whose
-      corresponding values are the coefficients.  The class implements
+      :class:`IndexedFreeModuleElement
+      <sage.modules.with_basis.indexed_element.IndexedFreeModuleElement>`.
+      An element is determined by a dictionary whose keys are partitions and
+      whose corresponding values are the coefficients.  The class implements
       two things: an :meth:`is_homogeneous
       <FilteredModules.Element.is_homogeneous>` method and a
       :meth:`degree <FilteredModules.Element.degree>` method.

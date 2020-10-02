@@ -1,11 +1,11 @@
 r"""
 Subfield subcode
 
-Let `C` be a `[n, k]` code over `\GF(q^t)`.
-Let `Cs = \{c \in C | \forall i, c_i \in \GF(q)\}`, `c_i` being the `i`-th
+Let `C` be a `[n, k]` code over `\GF{q^t}`.
+Let `Cs = \{c \in C | \forall i, c_i \in \GF{q}\}`, `c_i` being the `i`-th
 coordinate of `c`.
 
-`Cs` is called the subfield subcode of `C` over `\GF(q)`
+`Cs` is called the subfield subcode of `C` over `\GF{q}`
 """
 
 #*****************************************************************************
@@ -17,20 +17,17 @@ coordinate of `c`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from linear_code import (AbstractLinearCode,
-                         LinearCodeParityCheckEncoder,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
+from .linear_code import AbstractLinearCode
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.categories.homset import Hom
-from relative_finite_field_extension import RelativeFiniteFieldExtension
+from .relative_finite_field_extension import RelativeFiniteFieldExtension
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from decoder import Decoder, DecodingError
+from .decoder import Decoder, DecodingError
 from copy import copy
+
 
 class SubfieldSubcode(AbstractLinearCode):
     r"""
@@ -48,11 +45,11 @@ class SubfieldSubcode(AbstractLinearCode):
 
     EXAMPLES::
 
-        sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+        sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
         sage: codes.SubfieldSubcode(C, GF(4, 'a'))
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/20284 for details.
-        Subfield subcode over Finite Field in a of size 2^2 coming from Linear code of length 7, dimension 3 over Finite Field in aa of size 2^4
+        Subfield subcode of [7, 3] linear code over GF(16) down to GF(4)
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -63,7 +60,7 @@ class SubfieldSubcode(AbstractLinearCode):
 
         ``subfield`` has to be a finite field, otherwise an error is raised::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, RR)
             Traceback (most recent call last):
             ...
@@ -72,7 +69,7 @@ class SubfieldSubcode(AbstractLinearCode):
         ``subfield`` has to be a subfield of ``original_code``'s base field,
         otherwise an error is raised::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, GF(8, 'a'))
             Traceback (most recent call last):
             ...
@@ -83,7 +80,6 @@ class SubfieldSubcode(AbstractLinearCode):
             raise ValueError("original_code must be a linear code")
         if not subfield.is_finite():
             raise ValueError("subfield has to be a finite field")
-        p = subfield.characteristic()
         F = original_code.base_field()
         s = subfield.degree()
         sm = F.degree()
@@ -97,7 +93,7 @@ class SubfieldSubcode(AbstractLinearCode):
             self._embedding = RelativeFiniteFieldExtension(F, subfield, embedding)
         else:
             self._embedding = RelativeFiniteFieldExtension(F, subfield, H[0])
-        super(SubfieldSubcode, self).__init__(subfield, original_code.length(), "ParityCheck", "Syndrome")
+        super(SubfieldSubcode, self).__init__(subfield, original_code.length(), "Systematic", "Syndrome")
 
     def __eq__(self, other):
         r"""
@@ -105,7 +101,7 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs1 = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs2 = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs1 == Cs2
@@ -121,13 +117,13 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs
-            Subfield subcode over Finite Field in a of size 2^2 coming from Linear code of length 7, dimension 3 over Finite Field in aa of size 2^4
+            Subfield subcode of [7, 3] linear code over GF(16) down to GF(4)
         """
-        return "Subfield subcode over %s coming from %s"\
-                % (self.base_field(), self.original_code())
+        return "Subfield subcode of %s down to GF(%s)"\
+                % (self.original_code(), self.base_field().cardinality())
 
     def _latex_(self):
         r"""
@@ -135,18 +131,24 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: latex(Cs)
-            \textnormal{Subfield subcode over \Bold{F}_{2^{2}} coming from }[7, 3]\textnormal{ Linear code over }\Bold{F}_{2^{4}}
+            \textnormal{Subfield subcode of }[7, 3]\textnormal{ Linear code over }\Bold{F}_{2^{4}}\textnormal{ down to }\Bold{F}_{2^{2}}
         """
-        return "\\textnormal{Subfield subcode over %s coming from }%s"\
-                % (self.base_field()._latex_(), self.original_code()._latex_())
+        return "\\textnormal{Subfield subcode of }%s\\textnormal{ down to }%s"\
+                % (self.original_code()._latex_(), self.base_field()._latex_())
 
     def dimension(self):
         r"""
         Returns the dimension of ``self``.
 
+        EXAMPLES::
+
+            sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
+            sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
+            sage: Cs.dimension()
+            3
         """
         return self.generator_matrix().nrows()
 
@@ -156,7 +158,7 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.dimension_upper_bound()
             3
@@ -169,7 +171,7 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.dimension_lower_bound()
             -1
@@ -186,10 +188,10 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.original_code()
-            Linear code of length 7, dimension 3 over Finite Field in aa of size 2^4
+            [7, 3] linear code over GF(16)
         """
         return self._original_code
 
@@ -200,7 +202,7 @@ class SubfieldSubcode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(7, 3, GF(16, 'aa'))
+            sage: C = codes.random_linear_code(GF(16, 'aa'), 7, 3)
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: Cs.embedding()
             Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
@@ -229,7 +231,6 @@ class SubfieldSubcode(AbstractLinearCode):
             [    0     0     0     0     0     0     0     0     0     1     a     0 a + 1]
         """
         C = self.original_code()
-        Fqm = C.base_field()
         Fq = self.base_field()
         H_original = C.parity_check_matrix()
         n = self.length()
@@ -250,7 +251,9 @@ class SubfieldSubcode(AbstractLinearCode):
         for i in range(H.nrows()):
             if H.row(i) == 0:
                 delete.append(i)
-        return H.delete_rows(delete)
+        M = H.delete_rows(delete)
+        M.set_immutable()
+        return M
 
 
 
@@ -281,7 +284,7 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
         sage: C = codes.GeneralizedReedSolomonCode(GF(16, 'aa').list()[:13], 5)
         sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
         sage: codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
-        Decoder of Subfield subcode over Finite Field in a of size 2^2 coming from [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4 through Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
+        Decoder of Subfield subcode of [13, 5, 9] Reed-Solomon Code over GF(16) down to GF(4) through Gao decoder for [13, 5, 9] Reed-Solomon Code over GF(16)
     """
 
     def __init__(self, code, original_decoder = None, **kwargs):
@@ -323,7 +326,7 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: D
-            Decoder of Subfield subcode over Finite Field in a of size 2^2 coming from [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4 through Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
+            Decoder of Subfield subcode of [13, 5, 9] Reed-Solomon Code over GF(16) down to GF(4) through Gao decoder for [13, 5, 9] Reed-Solomon Code over GF(16)
         """
         return "Decoder of %s through %s" % (self.code(), self.original_decoder())
 
@@ -337,7 +340,7 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: latex(D)
-            \textnormal{Decoder of Subfield subcode over Finite Field in a of size 2^2 coming from [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4 through } Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
+            \textnormal{Decoder of Subfield subcode of [13, 5, 9] Reed-Solomon Code over GF(16) down to GF(4) through } Gao decoder for [13, 5, 9] Reed-Solomon Code over GF(16)
         """
         return "\\textnormal{Decoder of %s through } %s" % (self.code(), self.original_decoder())
 
@@ -352,7 +355,7 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
             sage: Cs = codes.SubfieldSubcode(C, GF(4, 'a'))
             sage: D = codes.decoders.SubfieldSubcodeOriginalCodeDecoder(Cs)
             sage: D.original_decoder()
-            Gao decoder for [13, 5, 9] Generalized Reed-Solomon Code over Finite Field in aa of size 2^4
+            Gao decoder for [13, 5, 9] Reed-Solomon Code over GF(16)
         """
         return self._original_decoder
 
@@ -412,6 +415,5 @@ class SubfieldSubcodeOriginalCodeDecoder(Decoder):
 
 ####################### registration ###############################
 
-SubfieldSubcode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder
 SubfieldSubcode._registered_decoders["OriginalCode"] = SubfieldSubcodeOriginalCodeDecoder
 SubfieldSubcodeOriginalCodeDecoder._decoder_type = {"dynamic"}

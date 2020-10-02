@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
 """
 PowComputer_ext
 
@@ -48,11 +50,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/libs/ntl/decl.pxi"
 from cpython.list cimport *
 from cpython.dict cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
+include "sage/libs/ntl/decl.pxi"
 
 import weakref
 from sage.misc.misc import cputime
@@ -562,11 +565,11 @@ cdef class PowComputer_ext(PowComputer_class):
             PowComputer_ext for 5, with polynomial [9765620 0 1]
         """
         cdef Integer cache_limit, prec_cap, ram_prec_cap
-        cache_limit = PY_NEW(Integer)
+        cache_limit = Integer.__new__(Integer)
         mpz_set_si(cache_limit.value, self.cache_limit)
-        prec_cap = PY_NEW(Integer)
+        prec_cap = Integer.__new__(Integer)
         mpz_set_si(prec_cap.value, self.prec_cap)
-        ram_prec_cap = PY_NEW(Integer)
+        ram_prec_cap = Integer.__new__(Integer)
         mpz_set_si(ram_prec_cap.value, self.ram_prec_cap)
         return PowComputer_ext_maker, (self.prime, cache_limit, prec_cap, ram_prec_cap, self.in_field, self._poly, self._prec_type, self._ext_type, self._shift_seed)
 
@@ -583,7 +586,7 @@ cdef class PowComputer_ext(PowComputer_class):
         mpz_clear(self.temp_m)
         mpz_clear(self.temp_m2)
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n) except NULL:
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 
@@ -606,19 +609,25 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC._pow_mpz_t_tmp_test(4) #indirect doctest
             625
         """
-        # READ THE DOCSTRING
         if n < 0:
-            # Exception will be ignored by Cython
-            raise ValueError("n must be positive")
+            raise ValueError("n must be non-negative")
         if n <= self.cache_limit:
             ZZ_to_mpz(self.temp_m, &(self.small_powers[n]))
         elif n == self.prec_cap:
             ZZ_to_mpz(self.temp_m, &self.top_power)
         else:
+            sig_on()
+            # n may exceed self.prec_cap. Very large values can, however, lead to
+            # out-of-memory situations in the following computation. This
+            # sig_on()/sig_off() prevents sage from crashing in such cases.
+            # It does not have a significant impact on performance. For small
+            # values of n the powers are taken from self.small_powers, for large
+            # values, the computation dominates the cost of the sig_on()/sig_off().
             mpz_pow_ui(self.temp_m, self.prime.value, n)
+            sig_off()
         return self.temp_m
 
-    cdef ZZ_c* pow_ZZ_tmp(self, long n):
+    cdef ZZ_c* pow_ZZ_tmp(self, long n) except NULL:
         """
         Provides fast access to a ZZ_c* pointing to self.prime^n.
 
@@ -638,8 +647,7 @@ cdef class PowComputer_ext(PowComputer_class):
             625
         """
         if n < 0:
-            # Exception will be ignored by Cython
-            raise ValueError("n must be positive")
+            raise ValueError("n must be non-negative")
         if n <= self.cache_limit:
             return &(self.small_powers[n])
         if n == self.prec_cap:
@@ -1103,7 +1111,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             4
         """
         cdef Integer _n = Integer(n)
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.capdiv(mpz_get_si(_n.value)))
         return ans
 
@@ -1409,7 +1417,8 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
             sage: A._high_shifter(0)
             [263296 51990 228 3465]
 
-            If we take this and multiply by x^4, and reduce modulo x^4 + 15*x^2 + 75*x - 5, we should get 5.
+        If we take this and multiply by x^4, and reduce modulo x^4 + 15*x^2 + 75*x - 5, we should get 5.::
+
             sage: R.<x> = ZZ[]
             sage: f = 263296 + 51990*x + 228*x^2 + 3465*x^3
             sage: g = x^4 + 15*x^2 + 75*x - 5
@@ -1419,12 +1428,14 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
             sage: A._high_shifter(1)
             [1420786 9298230 2217816 6212495]
 
-            Similarly:
+        Similarly::
+
             sage: f = 1420786 + 9298230*x + 2217816*x^2 + 6212495*x^3
             sage: h = f*x^8 % g; h
             -1328125000000*x^3 + 2962646484375*x^2 + 22094970703125*x - 1466308593725
 
-            Here, we need to remember that we're working modulo 5^10:
+        Here, we need to remember that we're working modulo 5^10::
+
             sage: h[0].valuation(5), h[1].valuation(5), h[2].valuation(5), h[3].valuation(5)
             (2, 12, 13, 13)
             sage: (h[0] - 25).valuation(5)
@@ -1858,7 +1869,8 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
             sage: A._high_shifter(0)
             [263296 51990 228 3465]
 
-            If we take this and multiply by x^4, and reduce modulo x^4 + 15*x^2 + 75*x - 5, we should get 5.
+        If we take this and multiply by x^4, and reduce modulo x^4 + 15*x^2 + 75*x - 5, we should get 5. ::
+
             sage: R.<x> = ZZ[]
             sage: f = 263296 + 51990*x + 228*x^2 + 3465*x^3
             sage: g = x^4 + 15*x^2 + 75*x - 5
@@ -1868,12 +1880,14 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
             sage: A._high_shifter(1)
             [1420786 9298230 2217816 6212495]
 
-            Similarly:
+        Similarly::
+
             sage: f = 1420786 + 9298230*x + 2217816*x^2 + 6212495*x^3
             sage: h = f*x^8 % g; h
             -1328125000000*x^3 + 2962646484375*x^2 + 22094970703125*x - 1466308593725
 
-            Here, we need to remember that we're working modulo 5^10:
+        Here, we need to remember that we're working modulo 5^10::
+
             sage: h[0].valuation(5), h[1].valuation(5), h[2].valuation(5), h[3].valuation(5)
             (2, 12, 13, 13)
             sage: (h[0] - 25).valuation(5)
@@ -2286,7 +2300,8 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
             sage: A._high_shifter(0)
             [263296 51990 228 3465]
 
-            If we take this and multiply by x^4, and reduce modulo x^4 + 15*x^2 + 75*x - 5, we should get 5.
+        If we take this and multiply by x^4, and reduce modulo x^4 + 15*x^2 + 75*x - 5, we should get 5. ::
+
             sage: R.<x> = ZZ[]
             sage: f = 263296 + 51990*x + 228*x^2 + 3465*x^3
             sage: g = x^4 + 15*x^2 + 75*x - 5
@@ -2296,12 +2311,14 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
             sage: A._high_shifter(1)
             [1420786 9298230 2217816 6212495]
 
-            Similarly:
+        Similarly::
+
             sage: f = 1420786 + 9298230*x + 2217816*x^2 + 6212495*x^3
             sage: h = f*x^8 % g; h
             -1328125000000*x^3 + 2962646484375*x^2 + 22094970703125*x - 1466308593725
 
-            Here, we need to remember that we're working modulo 5^10:
+        Here, we need to remember that we're working modulo 5^10::
+
             sage: h[0].valuation(5), h[1].valuation(5), h[2].valuation(5), h[3].valuation(5)
             (2, 12, 13, 13)
             sage: (h[0] - 25).valuation(5)

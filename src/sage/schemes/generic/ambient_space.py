@@ -1,5 +1,5 @@
 """
-Ambient Spaces
+Ambient spaces
 """
 
 #*****************************************************************************
@@ -46,45 +46,25 @@ class AmbientSpace(Scheme):
     """
     def __init__(self, n, R=ZZ):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
             sage: TestSuite(A).run() # not tested (abstract scheme with no elements?)
         """
         if not isinstance(R, CommutativeRing):
-            raise TypeError("R (=%s) must be a commutative ring"%R)
-        n = Integer(n)
+            raise TypeError("R (={}) must be a commutative ring".format(R))
         if n < 0:
-            raise ValueError("n (=%s) must be nonnegative"%n)
-        self._dimension_relative = n
+            raise ValueError("n (={}) must be nonnegative".format(n))
+        self._dimension_relative = Integer(n)
         Scheme.__init__(self, R)
-
-        # NT: this seems to set improperly self._base_scheme to X instead of Spec(X)????
-        # scheme.Scheme.__init__(self, R)
-        # This should be cleaned up by someone who knows about schemes (not me!)
-        #from sage.categories.schemes import Schemes
-        #Parent.__init__(self, R, category = Schemes(self.base_scheme()))
 
     #######################################################################
     # Derived classes must overload all of the following functions
     #######################################################################
-    def __cmp__(self, right):
-        """
-        TEST::
-
-            sage: from sage.schemes.generic.ambient_space import AmbientSpace
-            sage: A = AmbientSpace(5, ZZ)
-            sage: A.__cmp__(ProjectiveSpace(2, QQ))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def _latex_(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -97,7 +77,7 @@ class AmbientSpace(Scheme):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -110,7 +90,7 @@ class AmbientSpace(Scheme):
 
     def _repr_generic_point(self, coords=None):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -123,7 +103,7 @@ class AmbientSpace(Scheme):
 
     def _latex_generic_point(self, coords=None):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -139,7 +119,7 @@ class AmbientSpace(Scheme):
         Verify that the coordinates of v define a point on this scheme, or
         raise a TypeError.
 
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -347,7 +327,8 @@ class AmbientSpace(Scheme):
 
 ##     def assign_names(self, names=None):
 ##         """
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: A = AffineSpace(2, QQ, 'ab'); A
 ##             Affine Space of dimension 2 over Rational Field
 ##             sage: A.coordinate_ring()

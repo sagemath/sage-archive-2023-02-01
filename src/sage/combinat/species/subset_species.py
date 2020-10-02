@@ -1,7 +1,7 @@
 """
 Subset Species
 """
-from __future__ import absolute_import
+
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -21,8 +21,6 @@ from .species import GenericCombinatorialSpecies
 from .set_species import SetSpecies
 from .generating_series import _integers_from, factorial_stream
 from .structure import GenericSpeciesStructure
-from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -31,8 +29,9 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         """
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: S = species.SubsetSpecies()
-            sage: a = S.structures(["a","b","c"]).random_element(); a
+            sage: a = S.structures(["a","b","c"])[0]; a
             {}
         """
         s = GenericSpeciesStructure.__repr__(self)
@@ -40,6 +39,8 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
 
     def canonical_label(self):
         """
+        Return the canonical label of ``self``.
+
         EXAMPLES::
 
             sage: P = species.SubsetSpecies()
@@ -47,14 +48,13 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: [s.canonical_label() for s in S]
             [{}, {'a'}, {'a'}, {'a'}, {'a', 'b'}, {'a', 'b'}, {'a', 'b'}, {'a', 'b', 'c'}]
         """
-        rng = range(1, len(self._list)+1)
+        rng = list(range(1, len(self._list) + 1))
         return self.__class__(self.parent(), self._labels, rng)
 
 
     def label_subset(self):
-        """
-        Returns a subset of the labels that "appear" in this
-        structure.
+        r"""
+        Return a subset of the labels that "appear" in this structure.
 
         EXAMPLES::
 
@@ -66,8 +66,8 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         return [self._relabel(i) for i in self._list]
 
     def transport(self, perm):
-        """
-        Returns the transport of this subset along the permutation perm.
+        r"""
+        Return the transport of this subset along the permutation perm.
 
         EXAMPLES::
 
@@ -85,8 +85,8 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         return SubsetSpeciesStructure(self.parent(), self._labels, l)
 
     def automorphism_group(self):
-        """
-        Returns the group of permutations whose action on this subset leave
+        r"""
+        Return the group of permutations whose action on this subset leave
         it fixed.
 
         EXAMPLES::
@@ -103,13 +103,14 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             [{1, 3}, {1, 3}, {1, 3}, {1, 3}]
         """
         from sage.groups.all import SymmetricGroup, PermutationGroup
-        from sage.misc.all import uniq
         a = SymmetricGroup(self._list)
         b = SymmetricGroup(self.complement()._list)
-        return PermutationGroup(a.gens()+b.gens())
+        return PermutationGroup(a.gens() + b.gens())
 
     def complement(self):
-        """
+        r"""
+        Return the complement of ``self``.
+
         EXAMPLES::
 
             sage: F = species.SubsetSpecies()
@@ -135,7 +136,7 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     def __init__(self, min=None, max=None, weight=None):
         """
-        Returns the species of subsets.
+        Return the species of subsets.
 
         EXAMPLES::
 
@@ -199,7 +200,7 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             yield  base_ring(2)**n/base_ring(factorial_stream[n])
 
     def _itgs_iterator(self, base_ring):
-        """
+        r"""
         The generating series for the species of subsets is
         `e^{2x}`.
 
@@ -216,10 +217,9 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         r"""
         The cycle index series for the species of subsets satisfies
 
-        .. math::
+        .. MATH::
 
-             Z_{\mathfrak{p}} = Z_{\mathcal{E}} \cdot Z_{\mathcal{E}}
-
+             Z_{\mathfrak{p}} = Z_{\mathcal{E}} \cdot Z_{\mathcal{E}}.
 
         EXAMPLES::
 

@@ -153,7 +153,7 @@ class DensityPlot(GraphicPrimitive):
 def density_plot(f, xrange, yrange, **options):
     r"""
     ``density_plot`` takes a function of two variables, `f(x,y)`
-    and plots the height of of the function over the specified
+    and plots the height of the function over the specified
     ``xrange`` and ``yrange`` as demonstrated below.
 
     ``density_plot(f, (xmin,xmax), (ymin,ymax), ...)``
@@ -173,7 +173,10 @@ def density_plot(f, xrange, yrange, **options):
     - ``plot_points`` -- integer (default: 25); number of points to plot
       in each direction of the grid
 
-    - ``cmap`` -- a colormap (type ``cmap_help()`` for more information).
+    - ``cmap`` -- a colormap (default: ``'gray'``), the name of
+      a predefined colormap, a list of colors or an instance of a matplotlib
+      Colormap. Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
+      for available colormap names.
 
     - ``interpolation`` -- string (default: ``'catrom'``), the interpolation
       method to use: ``'bilinear'``, ``'bicubic'``, ``'spline16'``,

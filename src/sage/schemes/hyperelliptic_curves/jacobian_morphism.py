@@ -76,7 +76,7 @@ respectively::
 
 Frobenius satisfies
 
-.. math::
+.. MATH::
 
     x^4 + 12*x^3 + 78*x^2 + 444*x + 1369
 
@@ -116,7 +116,9 @@ from __future__ import print_function
 from sage.misc.all import latex
 
 from sage.structure.element import AdditiveGroupElement
+from sage.structure.richcmp import richcmp, op_NE
 from sage.schemes.generic.morphism import SchemeMorphism
+
 
 def cantor_reduction_simple(a, b, f, genus):
     r"""
@@ -319,12 +321,12 @@ def cantor_composition(D1,D2,f,h,genus):
     if a1 == a2 and b1 == b2:
         # Duplication law:
         d, h1, h3 = a1.xgcd(2*b1 + h)
-        a = (a1 // d)**2;
+        a = (a1 // d)**2
         b = (b1 + h3*((f-h*b1-b1**2) // d)) % (a)
     else:
         d0, _, h2 = a1.xgcd(a2)
         if d0 == 1:
-            a = a1*a2;
+            a = a1 * a2
             b = (b2 + h2*a2*(b1-b2)) % (a)
         else:
             e0 = b1+b2+h
@@ -578,7 +580,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         """
         return list(self.__polys)[n]
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare self and other.
 
@@ -630,20 +632,15 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             sage: P1 == P2
             False
         """
-        if not isinstance(other, JacobianMorphism_divisor_class_field):
-            try:
-                other = self.parent()(other)
-            except TypeError:
-                return -1
         if self.scheme() != other.scheme():
-            return -1
+            return op == op_NE
         # since divisors are internally represented as Mumford divisors,
         # comparing polynomials is well-defined
-        return cmp(self.__polys, other.__polys)
+        return richcmp(self.__polys, other.__polys, op)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
-        Return True if this divisor is not the additive identity element.
+        Return ``True`` if this divisor is not the additive identity element.
 
         EXAMPLES::
 
@@ -661,6 +658,8 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             True
         """
         return self.__polys[0] != 1
+
+    __nonzero__ = __bool__
 
     def __neg__(self):
         r"""

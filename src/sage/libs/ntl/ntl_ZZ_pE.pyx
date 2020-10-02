@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -12,14 +15,15 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
+
 include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from cpython.string cimport PyString_AsString
+
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -28,7 +32,7 @@ from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
 
-from sage.libs.ntl.convert cimport PyLong_to_ZZ
+from sage.libs.ntl.convert cimport PyLong_to_ZZ, mpz_to_ZZ
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
@@ -63,18 +67,18 @@ cdef class ntl_ZZ_pE(object):
     This class takes care of making sure that the C++ library NTL global
     variable is set correctly before performing any arithmetic.
     """
+
     def __init__(self, v=None, modulus=None):
         r"""
         Initializes an ntl ZZ_pE.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
             sage: c.ZZ_pE([13,4,1])
             [1 3]
             sage: c.ZZ_pE(Integer(95413094))
             [7]
-            sage: c.ZZ_pE(long(223895239852389582988))
-            [5]
             sage: c.ZZ_pE('[1]')
             [1]
 
@@ -97,7 +101,6 @@ cdef class ntl_ZZ_pE(object):
         cdef ZZ_c temp
         cdef ntl_ZZ_pX tmp_zzpx
         if v is not None:
-            sig_on()
             if isinstance(v, ntl_ZZ_pE):
                 if (<ntl_ZZ_pE>v).c is not self.c:
                     raise ValueError("You cannot cast between rings with different moduli")
@@ -108,26 +111,24 @@ cdef class ntl_ZZ_pE(object):
                 self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>v).x)
             elif isinstance(v, list) or isinstance(v, tuple):
                 tmp_zzpx = <ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)
-                # random values without the following restore call
-                # surely because the above call restore things and breaks the modulus
-                self.c.restore_c()
+                self.c.restore_c()   # allocating tmp_zzpx can change the current modulus trac #25790
                 self.x = ZZ_pX_to_ZZ_pE(tmp_zzpx.x)
+            elif isinstance(v, long):
+                PyLong_to_ZZ(&temp, v)
+                self.x = ZZ_to_ZZ_pE(temp)
             elif isinstance(v, int):
                 self.x = long_to_ZZ_pE(v)
             elif isinstance(v, ntl_ZZ_p):
                 self.x = ZZ_p_to_ZZ_pE((<ntl_ZZ_p>v).x)
-            elif isinstance(v, long):
-                PyLong_to_ZZ(&temp, v)
-                self.x = ZZ_to_ZZ_pE(temp)
             elif isinstance(v, ntl_ZZ):
                 self.x = ZZ_to_ZZ_pE((<ntl_ZZ>v).x)
             elif isinstance(v, Integer):
-                (<Integer>v)._to_ZZ(&temp)
+                mpz_to_ZZ(&temp, (<Integer>v).value)
                 self.x = ZZ_to_ZZ_pE(temp)
             else:
-                v = str(v)
-                ZZ_pE_from_str(&self.x, PyString_AsString(v))
-            sig_off()
+                str_v = str(v)  # can cause modulus to change  trac #25790
+                self.c.restore_c()
+                ccreadstr(self.x, str_v)
 
     def __cinit__(ntl_ZZ_pE self, v=None, modulus=None):
         #################### WARNING ###################
@@ -171,11 +172,8 @@ cdef class ntl_ZZ_pE(object):
         return self.c
 
     def __repr__(self):
-        #return self.get_as_ZZ_pX().__repr__()
         self.c.restore_c()
-        #sig_on()
-        return ZZ_pE_to_PyString(&self.x)
-        #return string_delete(ans)
+        return ccrepr(self.x)
 
     def __richcmp__(ntl_ZZ_pE self, other, int op):
         r"""
@@ -206,7 +204,8 @@ cdef class ntl_ZZ_pE(object):
 
     def __invert__(ntl_ZZ_pE self):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([2,7,1],11))
             sage: ~ntl.ZZ_pE([1,1],modulus=c)
             [7 3]
@@ -336,15 +335,17 @@ cdef class ntl_ZZ_pE(object):
         r.x = (<ntl_ZZ_pX>self.c.f).x
         return r
 
+
 def make_ZZ_pE(x, c):
     """
     Here for unpickling.
 
-    EXAMPLES:
-    sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
-    sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
-    [4 3]
-    sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
-    <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
+    EXAMPLES::
+
+        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
+        sage: sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c)
+        [4 3]
+        sage: type(sage.libs.ntl.ntl_ZZ_pE.make_ZZ_pE([4,3], c))
+        <type 'sage.libs.ntl.ntl_ZZ_pE.ntl_ZZ_pE'>
     """
     return ntl_ZZ_pE(x, c)

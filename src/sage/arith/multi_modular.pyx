@@ -9,16 +9,17 @@ Utility classes for multi-modular algorithms
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer, smallInteger
 from sage.arith.all import random_prime
 from types import GeneratorType
 from sage.ext.stdsage cimport PY_NEW
+from cpython.object cimport PyObject_RichCompare
 
 # should I have mod_int versions of these functions?
 # c_inverse_mod_longlong modular inverse used exactly once in _refresh_precomputations
@@ -54,14 +55,14 @@ cdef class MultiModularBasis_base(object):
 
         sage: height = 52348798724
         sage: mm = MultiModularBasis_base(height); mm
-        MultiModularBasis with moduli [4561, 17351, 28499]
+        MultiModularBasis with moduli [31051, 16981, 6007]
         sage: mm = MultiModularBasis_base(height); mm
-        MultiModularBasis with moduli [32573, 4339, 30859]
+        MultiModularBasis with moduli [21419, 13751, 15901]
         sage: mm = MultiModularBasis_base(height); mm
-        MultiModularBasis with moduli [16451, 14323, 28631]
+        MultiModularBasis with moduli [14369, 31379, 10067]
 
         sage: mm.prod()//height
-        128
+        86
 
     TESTS::
 
@@ -115,7 +116,7 @@ cdef class MultiModularBasis_base(object):
 
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base(1099511627791); mm
-            MultiModularBasis with moduli [4561, 17351, 28499]
+            MultiModularBasis with moduli [31051, 16981, 6007]
             sage: del mm
         """
         sig_free(self.moduli)
@@ -163,7 +164,7 @@ cdef class MultiModularBasis_base(object):
             OverflowError: given modulus 1000000000000000000000000000057 is larger than 3037000498
 
             sage: mm = MultiModularBasis_base(0); mm
-            MultiModularBasis with moduli [28499]
+            MultiModularBasis with moduli [6007]
 
             sage: mm = MultiModularBasis_base([6, 10])
             Traceback (most recent call last):
@@ -252,7 +253,7 @@ cdef class MultiModularBasis_base(object):
         self._refresh_precomputations(old_count)
         return self.n
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         EXAMPLES::
 
@@ -261,15 +262,12 @@ cdef class MultiModularBasis_base(object):
             sage: nn = MultiModularBasis_base([10007])
             sage: mm == nn
             True
-
-            sage: mm == 1
-            False
         """
         if not isinstance(other, MultiModularBasis_base):
-            return cmp(type(other), MultiModularBasis_base)
-        return cmp((self.list(), self._u_bound, self._l_bound),
-                (other.list(), (<MultiModularBasis_base>other)._u_bound,
-                    (<MultiModularBasis_base>other)._l_bound))
+            return NotImplemented
+        left = self.__getstate__()
+        right = other.__getstate__()
+        return PyObject_RichCompare(left, right, op)
 
     def __setstate__(self, state):
         """
@@ -314,17 +312,17 @@ cdef class MultiModularBasis_base(object):
 
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base(0); mm
-            MultiModularBasis with moduli [4561]
+            MultiModularBasis with moduli [31051]
 
-            sage: mm._extend_moduli_to_height(10000)
+            sage: mm._extend_moduli_to_height(70000)
             sage: mm
-            MultiModularBasis with moduli [4561, 17351]
+            MultiModularBasis with moduli [31051, 16981]
 
             sage: mm = MultiModularBasis_base([46307]); mm
             MultiModularBasis with moduli [46307]
 
             sage: mm._extend_moduli_to_height(10^30); mm
-            MultiModularBasis with moduli [46307, 28499, 32573, 4339, 30859, 16451, 14323, 28631]
+            MultiModularBasis with moduli [46307, 6007, 21419, 13751, 15901, 14369, 31379, 10067]
 
         TESTS:
 
@@ -345,7 +343,7 @@ cdef class MultiModularBasis_base(object):
             sage: len(set(m)) == len(m)
             True
             sage: len(m)
-            2438
+            2440
         """
         cdef Integer h = Integer(height)
         if h < self._l_bound:
@@ -410,7 +408,7 @@ cdef class MultiModularBasis_base(object):
             sage: mm._extend_moduli_to_count(3)
             3
             sage: mm
-            MultiModularBasis with moduli [46307, 4561, 17351]
+            MultiModularBasis with moduli [46307, 31051, 16981]
         """
         if count <= self.n:
             return self.n
@@ -436,7 +434,7 @@ cdef class MultiModularBasis_base(object):
             sage: mm = MultiModularBasis_base([46307]); mm
             MultiModularBasis with moduli [46307]
             sage: mm._extend_moduli(2); mm
-            MultiModularBasis with moduli [46307, 4561, 17351]
+            MultiModularBasis with moduli [46307, 31051, 16981]
         """
         self._extend_moduli_to_count(self.n + count)
 
@@ -777,7 +775,7 @@ cdef class MultiModularBasis_base(object):
 
     def __len__(self):
         """
-        Returns the number of moduli stored.
+        Return the number of moduli stored.
 
         EXAMPLES::
 
@@ -801,7 +799,7 @@ cdef class MultiModularBasis_base(object):
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: t = iter(mm); t
-            <listiterator object at ...>
+            <list...iterator object at ...>
             sage: list(mm.__iter__())
             [10007, 10009]
         """
@@ -933,10 +931,10 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: from sage.arith.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007])
             sage: mm.next_prime()
-            4561             # 64-bit
-            4561L            # 32-bit
+            31051             # 64-bit
+            31051L            # 32-bit
             sage: mm
-            MultiModularBasis with moduli [10007, 4561]
+            MultiModularBasis with moduli [10007, 31051]
         """
         self._extend_moduli(1)
         return self.moduli[self.n-1]
@@ -965,16 +963,16 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: mm.partial_product(2)
             1005306552331
             sage: mm.replace_prime(1)
-            4561             # 64-bit
-            4561L            # 32-bit
+            31051             # 64-bit
+            31051L            # 32-bit
             sage: mm
-            MultiModularBasis with moduli [10007, 4561, 10037, 10039]
+            MultiModularBasis with moduli [10007, 31051, 10037, 10039]
             sage: mm.prod()
-            4598946425820661
+            31309336870896151
             sage: mm.precomputation_list()
-            [1, 2314, 3274, 3013]
+            [1, 17274, 1770, 2170]
             sage: mm.partial_product(2)
-            458108021299
+            3118770482209
         """
         cdef mod_int new_p
 

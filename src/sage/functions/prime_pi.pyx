@@ -18,19 +18,19 @@ EXAMPLES::
     True
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009,2011 R. Andrew Ohana <andrew.ohana@gmail.com>
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-from sage.libs.pari.paridecl cimport *
+from cypari2.paridecl cimport *
+from cysignals.signals cimport *
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 
 from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t
 from sage.rings.integer cimport Integer
@@ -41,7 +41,7 @@ from sage.libs.gmp.mpz cimport *
 
 cdef uint64_t arg_to_uint64(x, str s1, str s2) except -1:
     if not isinstance(x, Integer):
-        from other import floor
+        from .other import floor
         x = Integer(floor(x))
     if mpz_sgn((<Integer>x).value) <= 0:
         return 0ull
@@ -99,7 +99,9 @@ cdef class PrimePi(BuiltinFunction):
             sage: prime_pi(sqrt(2357))
             15
             sage: prime_pi(mod(30957, 9750979))
-            3337
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce arguments: positive characteristic not allowed in symbolic computations
 
         We test non-trivial ``prime_bound`` values::
 
@@ -122,19 +124,15 @@ cdef class PrimePi(BuiltinFunction):
         NOTES:
 
         Uses a recursive implementation, using the optimizations described in
-        [RAO2011]_.
-
-        REFERENCES:
-
-        .. [RAO2011] \R.A. Ohana. On Prime Counting in Abelian Number Fields.
-           http://wstein.org/home/ohanar/papers/abelian_prime_counting/main.pdf.
+        [Oha2011]_.
 
         AUTHOR:
 
         - \R. Andrew Ohana (2011)
         """
         super(PrimePi, self).__init__('prime_pi', latex_name=r"\pi",
-                conversions={'mathematica':'PrimePi', 'pari':'primepi'})
+                conversions={'mathematica':'PrimePi', 'pari':'primepi',
+                    'sympy':'primepi'})
 
     cdef uint32_t *__primes
     cdef uint32_t __numPrimes, __maxSieve, __primeBound
@@ -276,7 +274,7 @@ cdef class PrimePi(BuiltinFunction):
     cdef uint32_t _cached_count(self, uint32_t p):
         r"""
         For p < 65536, returns the value stored in ``self.__smallPi[p]``. For
-        p <= ``self.__maxSieve``, uses a binary seach on ``self.__primes`` to
+        p <= ``self.__maxSieve``, uses a binary search on ``self.__primes`` to
         compute pi(p).
         """
         # inspired by Yann Laigle-Chapuy's suggestion
@@ -509,7 +507,7 @@ cpdef Integer legendre_phi(x, a):
     NOTES:
 
     Uses a recursive implementation, using the optimizations described in
-    [RAO2011]_.
+    [Oha2011]_.
 
     AUTHOR:
 

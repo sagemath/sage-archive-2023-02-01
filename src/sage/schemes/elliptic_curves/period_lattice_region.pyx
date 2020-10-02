@@ -6,20 +6,13 @@ of the period lattice of an elliptic curve, used in computing minimum height
 bounds.
 
 In particular, these are the approximating sets ``S^{(v)}`` in section 3.2 of
-Thotsaphon Thongjunthug's Ph.D. Thesis and paper [TT]_.
+Thotsaphon Thongjunthug's Ph.D. Thesis and paper [Tho2010]_.
 
 AUTHORS:
 
 - Robert Bradshaw (2010): initial version
 
 - John Cremona (2014): added some docstrings and doctests
-
-REFERENCES:
-
-.. [T] \T. Thongjunthug, Computing a lower bound for the canonical
-   height on elliptic curves over number fields, Math. Comp. 79
-   (2010), pages 2431-2449.
-
 """
 
 #*****************************************************************************
@@ -32,12 +25,12 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
-
 import numpy as np
 cimport numpy as np
 
 from sage.rings.all import CIF
+from cpython.object cimport Py_EQ, Py_NE
+
 
 cdef class PeriodicRegion:
 
@@ -56,7 +49,7 @@ cdef class PeriodicRegion:
 
     def __init__(self, w1, w2, data, full=True):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import numpy as np
             sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
@@ -420,7 +413,7 @@ cdef class PeriodicRegion:
             sage: S / (-1)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned int
+            OverflowError: can...t convert negative value to unsigned int
         """
         cdef unsigned int i, j, a, b, rows, cols
         if n <= 1:
@@ -440,9 +433,6 @@ cdef class PeriodicRegion:
                         for b in range(n):
                             new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
         return PeriodicRegion(self.w1, self.w2, new_data)
-
-    def __div__(self, other):
-        return self / other
 
     def __invert__(self):
         """
@@ -520,11 +510,11 @@ cdef class PeriodicRegion:
             right._ensure_full()
         return PeriodicRegion(left.w1, left.w2, left.data ^ right.data, left.full)
 
-    def __cmp__(left, right):
+    def __richcmp__(left, right, op):
         """
-        Compares to regions.
+        Compare two regions.
 
-        Note: this is good for equality but not an ordering relation.
+        .. NOTE:: This is good for equality but not an ordering relation.
 
         TESTS::
 
@@ -544,17 +534,20 @@ cdef class PeriodicRegion:
             sage: S2 == S3
             False
         """
-        c = cmp(type(left), type(right))
-        if c: return c
-        c = cmp((left.w1, left.w2), (right.w1, right.w2))
-        if c: return c
-        if left.full ^ right.full:
-            left._ensure_full()
-            right._ensure_full()
-        if (left.data == right.data).all():
-            return 0
+        if type(left) is not type(right) or op not in [Py_EQ, Py_NE]:
+            return NotImplemented
+
+        if (left.w1, left.w2) != (right.w1, right.w2):
+            equal = False
         else:
-            return 1
+            if left.full ^ right.full:
+                left._ensure_full()
+                right._ensure_full()
+            equal = (left.data == right.data).all()
+
+        if op is Py_EQ:
+            return equal
+        return not equal
 
     def border(self, raw=True):
         """
@@ -657,10 +650,11 @@ cdef class PeriodicRegion:
             sage: plot(S) + plot(S.expand(), rgbcolor=(1, 0, 1), thickness=2)
             Graphics object consisting of 46 graphics primitives
         """
-        from sage.all import line
+        from sage.plot.line import line
         dw1, dw2 = self.ds()
         L = []
-        F = line([(0,0), tuple(self.w1), tuple(self.w1+self.w2), tuple(self.w2), (0,0)])
+        F = line([(0,0), tuple(self.w1),
+                  tuple(self.w1+self.w2), tuple(self.w2), (0,0)])
         if not self.full:
             F += line([tuple(self.w2/2), tuple(self.w1+self.w2/2)])
         if 'rgbcolor' not in kwds:

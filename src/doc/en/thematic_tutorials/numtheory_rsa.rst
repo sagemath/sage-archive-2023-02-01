@@ -113,10 +113,12 @@ little bit of Sage programming::
 
 The above programming statements can be saved to a text file called,
 say, ``/home/mvngu/totient.sage``, organizing it as follows to enhance
-readability. ::
+readability.
+
+.. CODE-BLOCK:: python
 
     L = []
-    for n in xrange(1, 21):
+    for n in range(1, 21):
         if gcd(n, 20) == 1:
             L.append(n)
     L
@@ -135,7 +137,9 @@ file, have Sage execute those statements::
 
 From the latter list, there are 8 integers in the closed interval
 `[1, 20]` that are coprime to 20.  Without explicitly generating the
-list ::
+list
+
+.. CODE-BLOCK:: text
 
     1  3  7  9  11  13  17  19
 
@@ -178,7 +182,9 @@ After encrypting our message, the scrambled version is called
 unscrambled message via *decryption*. The following figure
 illustrates the processes of encryption and decryption.  A
 *cryptosystem* is comprised of a pair of related encryption and
-decryption processes. ::
+decryption processes.
+
+.. CODE-BLOCK:: text
 
    + ---------+   encrypt    +------------+   decrypt    +-----------+
    | plaintext| -----------> | ciphertext | -----------> | plaintext |
@@ -187,7 +193,9 @@ decryption processes. ::
 
 The following table provides a very simple method of scrambling a
 message written in English and using only upper case letters,
-excluding punctuation characters. ::
+excluding punctuation characters.
+
+.. CODE-BLOCK:: text
 
    +----------------------------------------------------+
    | A   B   C   D   E   F   G   H   I   J   K   L   M  |
@@ -379,7 +387,9 @@ Encryption and decryption
 
 Suppose we want to scramble the message ``HELLOWORLD`` using RSA
 encryption.  From the above ASCII table, our message maps to integers
-of the ASCII encodings as given below. ::
+of the ASCII encodings as given below.
+
+.. CODE-BLOCK:: text
 
     +----------------------------------------+
     | H   E   L   L   O   W   O   R   L   D  |
@@ -400,7 +410,7 @@ practice. In Sage, we can obtain an integer representation of our
 message as follows::
 
     sage: m = "HELLOWORLD"
-    sage: m = map(ord, m); m
+    sage: m = [ord(x) for x in m]; m
     [72, 69, 76, 76, 79, 87, 79, 82, 76, 68]
     sage: m = ZZ(list(reversed(m)), 100) ; m
     72697676798779827668

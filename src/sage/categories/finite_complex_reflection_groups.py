@@ -1,21 +1,23 @@
 r"""
 Finite Complex Reflection Groups
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+
 
 class FiniteComplexReflectionGroups(CategoryWithAxiom):
     r"""
@@ -92,7 +94,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                :meth:`ComplexRelfectionGroups.Finite.ParentMethods.is_well_generated`
+                :meth:`ComplexReflectionGroups.Finite.ParentMethods.is_well_generated`
 
             EXAMPLES::
 
@@ -190,7 +192,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().Finite().example(); W   # optional - gap3
@@ -234,7 +236,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                               "the degrees should be larger than 2")
             tester.assertEqual(len(degrees), self.rank(),
                                "the number of degrees should coincide with the rank")
-            tester.assertEqual(sum(d-1 for d in degrees), self.number_of_reflections(),
+            tester.assertEqual(sum(d - 1 for d in degrees), self.number_of_reflections(),
                                "the sum of the degrees should be consistent with the number of reflections")
 
         def _test_codegrees(self, **options):
@@ -245,7 +247,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: from sage.categories.complex_reflection_groups import ComplexReflectionGroups
                 sage: W = ComplexReflectionGroups().Finite().example(); W   # optional - gap3
@@ -289,7 +291,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                               "the codegrees should be nonnegative")
             tester.assertEqual(len(codegrees), self.rank(),
                                "the number of codegrees should coincide with the rank")
-            tester.assertEqual(sum(d+1 for d in codegrees),
+            tester.assertEqual(sum(d + 1 for d in codegrees),
                                self.number_of_reflection_hyperplanes(),
                                "the sum of the codegrees should be consistent with the number of reflection hyperplanes")
 
@@ -322,8 +324,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.number_of_reflection_hyperplanes()  # optional - gap3
                 15
             """
-            from sage.rings.all import ZZ
-            return ZZ.sum(codeg+1 for codeg in self.codegrees())
+            from sage.rings.integer_ring import ZZ
+            return ZZ.sum(codeg + 1 for codeg in self.codegrees())
 
         @cached_method
         def number_of_reflections(self):
@@ -356,8 +358,8 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.number_of_reflections()            # optional - gap3
                 15
             """
-            from sage.rings.all import ZZ
-            return ZZ.sum(deg-1 for deg in self.degrees())
+            from sage.rings.integer_ring import ZZ
+            return ZZ.sum(deg - 1 for deg in self.degrees())
 
         @cached_method
         def rank(self):
@@ -411,7 +413,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.cardinality()                      # optional - gap3
                 192
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.prod(self.degrees())
 
         def is_well_generated(self):
@@ -466,7 +468,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             irreducible complex reflection group is real if and only
             if `2` is a degree of ``self`` with multiplicity one.
             Hence, in general we just need to compare the number of
-            occurences of `2` as degree of ``self`` and the number of
+            occurrences of `2` as degree of ``self`` and the number of
             irreducible components.
 
             EXAMPLES::
@@ -485,6 +487,44 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                  group that is generated by order 2 reflections.
             """
             return self.degrees().count(2) == self.number_of_irreducible_components()
+
+        @cached_method
+        def base_change_matrix(self):
+            r"""
+            Return the base change from the standard basis of the vector
+            space of ``self`` to the basis given by the independent roots of
+            ``self``.
+
+            .. TODO::
+
+                For non-well-generated groups there is a conflict with
+                construction of the matrix for an element.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
+                sage: W.base_change_matrix()                                # optional - gap3
+                [1 0]
+                [0 1]
+
+                sage: W = ReflectionGroup(23)                               # optional - gap3
+                sage: W.base_change_matrix()                                # optional - gap3
+                [1 0 0]
+                [0 1 0]
+                [0 0 1]
+
+                sage: W = ReflectionGroup((3,1,2))                          # optional - gap3
+                sage: W.base_change_matrix()                                # optional - gap3
+                [1 0]
+                [1 1]
+
+                sage: W = ReflectionGroup((4,2,2))                          # optional - gap3
+                sage: W.base_change_matrix()                                # optional - gap3
+                [   1    0]
+                [E(4)    1]
+            """
+            from sage.matrix.all import Matrix
+            return Matrix(list(self.independent_roots())).inverse()
 
     class ElementMethods:
 
@@ -567,6 +607,46 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             """
             return self.to_matrix().trace()
 
+        # @cached_in_parent_method
+        def reflection_length(self, in_unitary_group=False):
+            r"""
+            Return the reflection length of ``self``.
+
+            This is the minimal numbers of reflections needed to
+            obtain ``self``.
+
+            INPUT:
+
+            - ``in_unitary_group`` -- (default: ``False``) if ``True``,
+              the reflection length is computed in the unitary group
+              which is the dimension of the move space of ``self``
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
+                [0, 1, 1, 1, 2, 2]
+
+                sage: W = ReflectionGroup((2,1,2))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
+                [0, 1, 1, 1, 1, 2, 2, 2]
+
+                sage: W = ReflectionGroup((2,2,2))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
+                [0, 1, 1, 2]
+
+                sage: W = ReflectionGroup((3,1,2))                      # optional - gap3
+                sage: sorted([t.reflection_length() for t in W])        # optional - gap3
+                [0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+            """
+            W = self.parent()
+            if in_unitary_group or W.is_real():
+                from sage.matrix.special import identity_matrix
+                I = identity_matrix(self.parent().rank())
+                return W.rank() - (self.canonical_matrix() - I).right_nullity()
+            else:
+                return len(self.reduced_word_in_reflections())
+
     class Irreducible(CategoryWithAxiom):
 
         def example(self):
@@ -601,6 +681,321 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 """
                 return (self.number_of_reflection_hyperplanes()
                         + self.number_of_reflections()) // self.rank()
+
+            def absolute_order_ideal(self, gens=None,
+                                     in_unitary_group=True,
+                                     return_lengths=False):
+                r"""
+                Return all elements in ``self`` below given elements in the
+                absolute order of ``self``.
+
+                This order is defined by
+
+                .. MATH::
+
+                    \omega \leq_R \tau \Leftrightarrow \ell_R(\omega) +
+                    \ell_R(\omega^{-1} \tau) = \ell_R(\tau),
+
+                where `\ell_R` denotes the reflection length.
+
+                This is, if ``in_unitary_group`` is ``False``, then
+
+                .. MATH::
+
+                    \ell_R(w) = \min\{ \ell: w = r_1\cdots r_\ell, r_i \in R \},
+
+                and otherwise
+
+                .. MATH::
+
+                    \ell_R(w) = \dim\operatorname{im}(w - 1).
+
+                .. NOTE::
+
+                    If ``gens`` are not given, ``self`` is assumed to be
+                    well-generated.
+
+                INPUT:
+
+                - ``gens`` -- (default: ``None``) if one or more elements
+                  are given, the order ideal in the absolute order generated
+                  by ``gens`` is returned.
+                  Otherwise, the standard Coxeter element is used as unique
+                  maximal element.
+
+                - ``in_unitary_group`` (default:``True``) determines the
+                  length function used to compute the order.
+                  For real groups, both possible orders coincide, and for
+                  complex non-real groups, the order in the unitary group
+                  is much faster to compute.
+
+                - ``return_lengths`` (default:``False``) whether or not
+                  to also return the lengths of the elements.
+
+                EXAMPLES::
+
+                    sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
+
+                    sage: sorted( w.reduced_word() for w in W.absolute_order_ideal() )    # optional - gap3
+                    [[], [1], [1, 2], [1, 2, 1], [2]]
+
+                    sage: sorted( w.reduced_word() for w in W.absolute_order_ideal(W.from_reduced_word([2,1])) )  # optional - gap3
+                    [[], [1], [1, 2, 1], [2], [2, 1]]
+
+                    sage: sorted( w.reduced_word() for w in W.absolute_order_ideal(W.from_reduced_word([2])) )    # optional - gap3
+                    [[], [2]]
+
+                    sage: W = CoxeterGroup(['A', 3])
+                    sage: len(list(W.absolute_order_ideal()))
+                    14
+
+                    sage: W = CoxeterGroup(['A', 2])
+                    sage: for (w, l) in W.absolute_order_ideal(return_lengths=True):
+                    ....:     print(w.reduced_word(), l)
+                    [1, 2] 2
+                    [1, 2, 1] 1
+                    [2] 1
+                    [1] 1
+                    [] 0
+                """
+                if gens is None:
+                    seeds = [(self.coxeter_element(), self.rank())]
+                else:
+                    if gens in self:
+                        gens = [gens]
+                    seeds = [(gen, gen.reflection_length(in_unitary_group=in_unitary_group)) for gen in gens]
+
+                R = self.reflections()
+
+                def succ(seed):
+                    w, w_len = seed
+                    w_len -= 1
+                    resu = []
+                    for t in R:
+                        u = w * t
+                        if u.reflection_length(in_unitary_group=in_unitary_group) == w_len:
+                            resu.append((u, w_len))
+                    return resu
+                step = RecursivelyEnumeratedSet(seeds, succ,
+                                                structure='graded',
+                                                enumeration='breadth')
+                if return_lengths:
+                    return (x for x in step)
+                else:
+                    return (x[0] for x in step)
+
+            def elements_below_coxeter_element(self, c=None):
+                r"""
+                Deprecated method.
+
+                Superseded by :meth:`absolute_order_ideal`
+
+                TESTS::
+
+                    sage: W = CoxeterGroup(['A', 3])
+                    sage: len(list(W.elements_below_coxeter_element()))
+                    doctest:...: DeprecationWarning: The method elements_below_coxeter_element is deprecated. Please use absolute_order_ideal instead.
+                    See https://trac.sagemath.org/27924 for details.
+                    14
+                """
+                from sage.misc.superseded import deprecation
+                deprecation(27924, "The method elements_below_coxeter_element is deprecated. Please use absolute_order_ideal instead.")
+                return self.absolute_order_ideal(gens=c)
+
+            # TODO: have a cached and an uncached version
+            @cached_method
+            def noncrossing_partition_lattice(self, c=None, L=None,
+                                              in_unitary_group=True):
+                r"""
+                Return the interval `[1,c]` in the absolute order of
+                ``self`` as a finite lattice.
+
+                .. SEEALSO:: :meth:`absolute_order_ideal`
+
+                INPUT:
+
+                - ``c`` -- (default: ``None``) if an element ``c`` in ``self`` is
+                  given, it is used as the maximal element in the interval
+
+                - ``L`` -- (default: ``None``) if a subset ``L`` (must be hashable!)
+                  of ``self`` is given, it is used as the underlying set (only
+                  cover relations are checked).
+
+                - ``in_unitary_group`` -- (default: ``False``) if ``False``, the
+                  relation is given by `\sigma \leq \tau` if
+                  `l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)`;
+                  if ``True``, the relation is given by `\sigma \leq \tau` if
+                  `\dim(\mathrm{Fix}(\sigma)) + \dim(\mathrm{Fix}(\sigma^{-1}\tau))
+                  = \dim(\mathrm{Fix}(\tau))`
+
+                .. NOTE::
+
+                    If ``L`` is given, the parameter ``c`` is ignored.
+
+                EXAMPLES::
+
+                    sage: W = SymmetricGroup(4)
+                    sage: W.noncrossing_partition_lattice()
+                    Finite lattice containing 14 elements
+
+                    sage: W = WeylGroup(['G', 2])
+                    sage: W.noncrossing_partition_lattice()
+                    Finite lattice containing 8 elements
+
+                    sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
+
+                    sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice() ) # optional - gap3
+                    [[], [1], [1, 2], [1, 2, 1], [2]]
+
+                    sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_reduced_word([2,1])) )   # optional - gap3
+                    [[], [1], [1, 2, 1], [2], [2, 1]]
+
+                    sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice(W.from_reduced_word([2])) ) # optional - gap3
+                    [[], [2]]
+                """
+                from sage.combinat.posets.all import Poset, LatticePoset
+
+                R = self.reflections()
+                if L is None:
+                    L = list(self.absolute_order_ideal(gens=c,
+                                                       in_unitary_group=in_unitary_group,
+                                                       return_lengths=True))
+                else:
+                    L = [(pi, pi.reflection_length()) for pi in L]
+                rels = []
+                ref_lens = {pi:l for (pi, l) in L}
+                for (pi, l) in L:
+                    for t in R:
+                        tau = pi * t
+                        if tau in ref_lens and l+1 == ref_lens[tau]:
+                            rels.append((pi, tau))
+
+                P = Poset(([], rels), cover_relations=True, facade=True)
+                if P.is_lattice():
+                    P = LatticePoset(P)
+                return P
+
+            def generalized_noncrossing_partitions(self, m, c=None, positive=False):
+                r"""
+                Return the set of all chains of length ``m`` in the
+                noncrossing partition lattice of ``self``, see
+                :meth:`noncrossing_partition_lattice`.
+
+                .. NOTE::
+
+                    ``self`` is assumed to be well-generated.
+
+                INPUT:
+
+                - ``c`` -- (default: ``None``) if an element ``c`` in ``self``
+                  is given, it is used as the maximal element in the interval
+
+                - ``positive`` -- (default: ``False``) if ``True``, only those
+                  generalized noncrossing partitions of full support are returned
+
+                EXAMPLES::
+
+                    sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
+
+                    sage: sorted([w.reduced_word() for w in chain]              # optional - gap3
+                    ....:        for chain in W.generalized_noncrossing_partitions(2))  # optional - gap3
+                    [[[], [], [1, 2]],
+                     [[], [1], [2]],
+                     [[], [1, 2], []],
+                     [[], [1, 2, 1], [1]],
+                     [[], [2], [1, 2, 1]],
+                     [[1], [], [2]],
+                     [[1], [2], []],
+                     [[1, 2], [], []],
+                     [[1, 2, 1], [], [1]],
+                     [[1, 2, 1], [1], []],
+                     [[2], [], [1, 2, 1]],
+                     [[2], [1, 2, 1], []]]
+
+                    sage: sorted([w.reduced_word() for w in chain]              # optional - gap3
+                    ....:        for chain in W.generalized_noncrossing_partitions(2, positive=True))   # optional - gap3
+                    [[[], [1, 2], []],
+                     [[], [1, 2, 1], [1]],
+                     [[1], [2], []],
+                     [[1, 2], [], []],
+                     [[1, 2, 1], [], [1]],
+                     [[1, 2, 1], [1], []],
+                     [[2], [1, 2, 1], []]]
+                """
+                from sage.combinat.combination import Combinations
+                NC = self.noncrossing_partition_lattice(c=c)
+                one = self.one()
+                if c is None:
+                    c = self.coxeter_element()
+                chains = NC.chains()
+                NCm = set()
+                iter = chains.breadth_first_search_iterator()
+                next(iter)
+                chain = next(iter)
+                while len(chain) <= m:
+                    chain.append(c)
+                    for i in range(len(chain) - 1, 0, -1):
+                        chain[i] = chain[i - 1]**-1 * chain[i]
+                    k = m + 1 - len(chain)
+                    for positions in Combinations(range(m + 1), k):
+                        ncm = []
+                        for l in range(m + 1):
+                            if l in positions:
+                                ncm.append(one)
+                            else:
+                                l_prime = l - len([i for i in positions if i <= l])
+                                ncm.append(chain[l_prime])
+                        if not positive or prod(ncm[:-1]).has_full_support():
+                            NCm.add(tuple(ncm))
+                    try:
+                        chain = next(iter)
+                    except StopIteration:
+                        chain = list(range(m + 1))
+                return NCm
+
+            # TODO: have a cached and an uncached version
+            def absolute_poset(self, in_unitary_group=False):
+                r"""
+                Return the poset induced by the absolute order of ``self``
+                as a finite lattice.
+
+                INPUT:
+
+                - ``in_unitary_group`` -- (default: ``False``) if ``False``,
+                  the relation is given by ``\sigma \leq \tau`` if
+                  `l_R(\sigma) + l_R(\sigma^{-1}\tau) = l_R(\tau)`
+                  If ``True``, the relation is given by `\sigma \leq \tau` if
+                  `\dim(\mathrm{Fix}(\sigma)) + \dim(\mathrm{Fix}(\sigma^{-1}\tau))
+                  = \dim(\mathrm{Fix}(\tau))`
+
+                .. SEEALSO:: :meth:`noncrossing_partition_lattice`
+
+                EXAMPLES::
+
+                    sage: P = ReflectionGroup((1,1,3)).absolute_poset(); P      # optional - gap3
+                    Finite poset containing 6 elements
+
+                    sage: sorted(w.reduced_word() for w in P)                   # optional - gap3
+                    [[], [1], [1, 2], [1, 2, 1], [2], [2, 1]]
+
+                    sage: W = ReflectionGroup(4); W                             # optional - gap3
+                    Irreducible complex reflection group of rank 2 and type ST4
+                    sage: W.absolute_poset()                                    # optional - gap3
+                    Finite poset containing 24 elements
+
+                TESTS::
+
+                    sage: W1 = CoxeterGroup(['A',2])
+                    sage: W2 = WeylGroup(['A',2])
+                    sage: W3 = SymmetricGroup(3)
+                    sage: W1.absolute_poset()
+                    Finite poset containing 6 elements
+                    sage: W2.absolute_poset()
+                    Finite poset containing 6 elements
+                    sage: W3.absolute_poset()
+                    Finite poset containing 6 elements
+                """
+                return self.noncrossing_partition_lattice(L=tuple(self), in_unitary_group=in_unitary_group)
 
     class WellGenerated(CategoryWithAxiom):
 
@@ -651,10 +1046,16 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Return the (unique) conjugacy class in ``self`` containing all
                 Coxeter elements.
 
-                .. NOTE::
+                A Coxeter element is an element that has an eigenvalue
+                `e^{2\pi i/h}` where `h` is the Coxeter number.
 
-                    Beyond real reflection groups, the conjugacy class
-                    is not unique and we only obtain one such class.
+                In case of finite Coxeter groups, these are exactly the
+                elements that are conjugate to one (or, equivalently,
+                all) standard Coxeter element, this is, to an element
+                that is the product of the simple generators in some
+                order.
+
+                .. SEEALSO:: :meth:`~sage.categories.coxeter_groups.standard_coxeter_elements`
 
                 EXAMPLES::
 
@@ -727,9 +1128,17 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     EXAMPLES::
 
+                        sage: W = Permutations(4)
+                        sage: W.number_of_reflections_of_full_support()
+                        1
+
                         sage: W = ColoredPermutations(1,4)
                         sage: W.number_of_reflections_of_full_support()
                         1
+
+                        sage: W = CoxeterGroup("B3")
+                        sage: W.number_of_reflections_of_full_support()
+                        3
 
                         sage: W = ColoredPermutations(3,3)
                         sage: W.number_of_reflections_of_full_support()
@@ -738,8 +1147,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     n = self.rank()
                     h = self.coxeter_number()
                     l = self.cardinality()
-                    codegrees = self.codegrees()[:-1]
-                    return (n * h * prod(codegrees)) // l
+                    return (n * h * prod(d for d in self.codegrees() if d != 0)) // l
 
                 @cached_method
                 def rational_catalan_number(self, p, polynomial=False):
@@ -762,11 +1170,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     - ``polynomial`` -- optional boolean (default ``False``)
                       if ``True``, return instead the `q`-analogue as a
                       polynomial in `q`
-
-                    REFERENCES:
-
-                    .. [STW2016] C. Stump, H. Thomas, N. Williams.
-                       *Cataland II*, in preparation, 2016.
 
                     EXAMPLES::
 
@@ -794,7 +1197,9 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     if polynomial:
                         f = q_int
                     else:
-                        f = lambda n: n
+
+                        def f(n):
+                            return n
 
                     num = prod(f(p + (p * (deg - 1)) % h)
                                for deg in self.degrees())
@@ -825,7 +1230,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                       if ``True``, return instead the `q`-analogue as a
                       polynomial in `q`
 
-                    See [Arm2006]_ for further information.
+                    See [Ar2006]_ for further information.
 
                     .. NOTE::
 
@@ -833,12 +1238,6 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                           Fuss-Catalan number `\frac{1}{mn+1}\binom{(m+1)n}{n}`.
                         - The Fuss-Catalan numbers for `G(r, 1, n)` all
                           coincide for `r > 1`.
-
-                    REFERENCES:
-
-                    .. [Arm2006] D. Armstrong. *Generalized noncrossing
-                       partitions and combinatorics of Coxeter groups*.
-                       Mem. Amer. Math. Soc., 2006.
 
                     EXAMPLES::
 
@@ -896,7 +1295,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     where `d_1, \ldots, d_n` are the degrees and where
                     `h` is the Coxeter number.
-                    See [Arm2006]_ for further information.
+                    See [Ar2006]_ for further information.
 
                     INPUT:
 
@@ -936,4 +1335,3 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     """
                     return self.fuss_catalan_number(1, positive=positive,
                                                     polynomial=polynomial)
-

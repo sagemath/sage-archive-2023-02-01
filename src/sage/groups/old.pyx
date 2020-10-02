@@ -23,7 +23,7 @@ Base class for all groups
 
 import random
 
-from   sage.rings.infinity import infinity
+from sage.rings.infinity import infinity
 import sage.rings.integer_ring
 
 cdef class Group(sage.structure.parent_gens.ParentWithGens):
@@ -81,7 +81,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
             sage: 4 in G               #indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.groups.old.Group object at ...>
         """
         try:
             self(x)
@@ -120,7 +120,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         (Note for developers: Derived classes should override is_abelian, not
         is_commutative.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL(2, 7).is_commutative()
             False

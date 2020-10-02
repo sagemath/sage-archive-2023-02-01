@@ -1,4 +1,4 @@
-$(PYTHON) ipython_genutils decorator
+$(PYTHON) | $(PYTHON_TOOLCHAIN) ipython_genutils decorator six
 
 ----------
 All lines of this file are ignored except the first.

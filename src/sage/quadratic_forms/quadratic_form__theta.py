@@ -21,7 +21,7 @@ from sage.functions.all import sqrt, floor, ceil
 
 
 
-from sage.misc.misc import cputime, verbose
+from sage.misc.misc import cputime
 
 
 def theta_series(self, Max=10, var_str='q', safe_flag=True):
@@ -223,7 +223,7 @@ def theta_by_cholesky(self, q_prec):
 
 
     ## Big loop which runs through all vectors
-    while (done_flag == False):
+    while not done_flag:
 
         ## Loop through until we get to i=1 (so we defined a vector x)
         while from_step3_flag or from_step4_flag:              ## IMPORTANT WARNING:  This replaces a do...while loop, so it may have to be adjusted!
@@ -367,6 +367,8 @@ def theta_series_degree_2(Q, prec):
     - Raum, Ryan, Skoruppa, Tornaria, 'On Formal Siegel Modular Forms'
       (preprint)
     """
+    from sage.misc.verbose import verbose
+
     if Q.base_ring() != ZZ:
         raise TypeError("The quadratic form must be integral")
     if not Q.is_positive_definite():

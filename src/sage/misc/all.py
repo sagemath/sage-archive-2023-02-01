@@ -2,34 +2,35 @@ from __future__ import absolute_import
 from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
-from .misc import (alarm, cancel_alarm,
-                  ellipsis_range, ellipsis_iter, xsrange, sxrange,
-                  BackslashOperator, getitem,
-                  cputime, verbose, set_verbose, set_verbose_files,
-                  get_verbose_files, unset_verbose_files, get_verbose,
+from .misc import (BackslashOperator,
+                  cputime,
                   union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
-                  random_sublist, walltime, generic_cmp,
-                  repr_lincomb,
-                  pad_zeros, attrcall,
+                  random_sublist, walltime,
+                  pad_zeros,
                   SAGE_DB, SAGE_TMP,
-                  newton_method_sizes, compose,
-                  self_compose, nest)
+                   newton_method_sizes, compose,
+                  nest)
 
-lazy_import('sage.arith.srange', 'srange', deprecation=20334)
+from .verbose import (set_verbose, set_verbose_files,
+                      get_verbose_files, unset_verbose_files, get_verbose)
+lazy_import('sage.misc.verbose', 'verbose',
+            deprecation=17815)
+from .call import attrcall
 
 from .banner import version, banner
 
 from .temporary_file import tmp_dir, tmp_filename
 
 from .misc_c import prod, running_total, balanced_sum
-lazy_import('sage.misc.misc_c', ['is_32_bit', 'is_64_bit'], deprecation=17460)
 mul = prod
 add = sum
 
 from .dev_tools import runsnake, import_statements
 
 from .html import html
+
+from .repr import repr_lincomb
 
 from .table import table
 
@@ -53,12 +54,11 @@ from .fpickle import pickle_function, unpickle_function
 
 from .dist import install_scripts
 
-from .package import (install_package,
-        installed_packages, is_package_installed,
-        standard_packages, optional_packages, experimental_packages,
-        upgrade, package_versions)
+lazy_import('sage.misc.package', ('installed_packages', 'is_package_installed',
+                                  'standard_packages', 'optional_packages',
+                                  'experimental_packages', 'package_versions'))
 
-from .pager import pager
+lazy_import('sage.misc.pager', 'pager')
 
 lazy_import('sage.misc.sagedoc', ['browse_sage_doc',
         'search_src', 'search_def', 'search_doc',
@@ -69,7 +69,7 @@ from .classgraph import class_graph
 
 from .reset import reset, restore
 
-from .getusage import top, get_memory_usage
+from .getusage import get_memory_usage
 
 from .mathml import mathml
 
@@ -80,10 +80,8 @@ from .sage_eval import sage_eval, sageobj
 
 from .sage_input import sage_input
 
-lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"]) 
-lazy_import("sage.misc.cython_c", "cython_compile", "cython")
-lazy_import("sage.misc.cython_c", "cython_compile", "pyrex", deprecation=9552)
-lazy_import("sage.misc.cython_c", "cython_compile", "sagex", deprecation=9552)
+lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"])
+lazy_import("sage.misc.cython", "cython_compile", "cython")
 
 from .persist import save, load, dumps, loads, db, db_save
 
@@ -134,7 +132,6 @@ from .functional import (additive_order,
                         n, N,
                         objgens,
                         objgen,
-                        one,
                         order,
                         rank,
                         regulator,
@@ -144,8 +141,9 @@ from .functional import (additive_order,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
+                        symbolic_prod as product,
                         transpose,
-                        zero)
+                        )
 
 
 from .latex import LatexExpr, latex, view, pretty_print_default
@@ -168,7 +166,7 @@ from .explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, un
 
 from .decorators import specialize, sage_wraps, infix_operator
 
-from .unknown import Unknown
+from .unknown import Unknown, UnknownError
 
 lazy_import('sage.misc.inline_fortran', 'fortran')
 
@@ -201,7 +199,3 @@ class logstr(str):
         elif not '~' in self:
          delim = '~'
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
-
-
-lazy_import("sage.misc", "messaging", deprecation=18140)
-

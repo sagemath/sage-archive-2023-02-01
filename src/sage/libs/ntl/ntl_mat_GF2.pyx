@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 Matrices over the $\GF{2}$ via NTL
 
@@ -26,14 +29,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
+
 include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from ntl_GF2 cimport ntl_GF2
+from .ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
+
 
 cdef class ntl_mat_GF2(object):
     r"""
@@ -41,12 +47,13 @@ cdef class ntl_mat_GF2(object):
     """
     def __init__(self, nrows=0, ncols=0, v=None):
         """
-        Constructs a matrix over ntl.GF2.
+        Construct a matrix over ntl.GF2.
 
         INPUT:
-            nrows -- number of rows
-            ncols -- number of columns
-            v     -- either a list or a matrix over GF(2^x)
+
+        - nrows -- number of rows
+        - ncols -- number of columns
+        - v     -- either a list or a matrix over GF(2^x)
 
         EXAMPLES::
 
@@ -81,7 +88,7 @@ cdef class ntl_mat_GF2(object):
         cdef Py_ssize_t i, j
         cdef GF2_c _elem
 
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
 
         if is_Matrix(nrows):
             _nrows = nrows.nrows()
@@ -134,7 +141,7 @@ cdef class ntl_mat_GF2(object):
         """
         Return the string representation of this matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(2),4,4)
             sage: B = ntl.mat_GF2(A); B # indirect doctest
@@ -144,7 +151,7 @@ cdef class ntl_mat_GF2(object):
             [0 1 1 0]
             ]
         """
-        return mat_GF2_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __mul__(ntl_mat_GF2 self, other):
         """
@@ -378,7 +385,7 @@ cdef class ntl_mat_GF2(object):
 
     def __getitem__(self, ij):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = ntl.mat_GF2(3,3,range(9))
             sage: A[0,0]
@@ -407,7 +414,7 @@ cdef class ntl_mat_GF2(object):
 
     def determinant(self):
         """
-        Returns the determinant.
+        Return the determinant.
 
         EXAMPLES::
 
@@ -433,9 +440,11 @@ cdef class ntl_mat_GF2(object):
         the rank of the first ncols columns).
 
         INPUT:
-           ncols -- number of columns to process (default: all)
+
+        ncols -- number of columns to process (default: all)
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.echelon_form()
@@ -474,9 +483,10 @@ cdef class ntl_mat_GF2(object):
 
     def list(self):
         """
-        Returns a list of the entries in this matrix
+        Return a list of the entries in this matrix.
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 4, 4)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.list()
@@ -494,6 +504,7 @@ cdef class ntl_mat_GF2(object):
         Return \code{True} if this matrix contains only zeroes, and \code{False} otherwise.
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A)
             sage: Abar.IsZero()
@@ -510,7 +521,7 @@ cdef class ntl_mat_GF2(object):
 
     def _sage_(ntl_mat_GF2 self):
         r"""
-        Returns a \class{Matrix} over GF(2).
+        Return a \class{Matrix} over GF(2).
 
         EXAMPLES::
 
@@ -552,9 +563,10 @@ cdef class ntl_mat_GF2(object):
 
     def transpose(ntl_mat_GF2 self):
         """
-        Returns the transposed matrix of this matrix.
+        Return the transposed matrix of this matrix.
 
         EXAMPLES::
+
             sage: A = random_matrix(GF(2), 10, 10)
             sage: Abar = ntl.mat_GF2(A); Abar
             [[0 1 0 1 1 0 0 0 1 1]
@@ -593,6 +605,7 @@ cdef class ntl_mat_GF2(object):
         Return $X = A^{-1}$; an error is raised if A is singular.
 
         EXAMPLES::
+
             sage: l = [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, \
                        0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, \
                        1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, \
@@ -613,6 +626,7 @@ cdef class ntl_mat_GF2(object):
         test if this matrix is the n x n identity matrix.
 
         EXAMPLES::
+
             sage: A = ntl.mat_GF2(4,4)
             sage: A[0,0] = 1
             sage: A[1,1] = 1
@@ -632,6 +646,7 @@ cdef class ntl_mat_GF2(object):
         test if X is an  n x n diagonal matrix with d on diagonal.
 
         EXAMPLES::
+
             sage: A = ntl.mat_GF2(4,4)
             sage: A[0,0] = 1
             sage: A[1,1] = 1
@@ -650,7 +665,8 @@ cdef class ntl_mat_GF2(object):
         then, the rows of X are computed as basis of A's row space.  X
         is in row echelon form.
 
-        EXAMPLE::
+        EXAMPLES::
+
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.image()
@@ -688,7 +704,7 @@ cdef class ntl_mat_GF2(object):
         Computes a basis for the kernel of the map x -> x*A. where x
         is a row vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)

@@ -6,12 +6,12 @@ AUTHORS:
 - Travis Scrimshaw (2013-10-15)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
 from sage.misc.abstract_method import abstract_method
@@ -19,9 +19,9 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
-from sage.structure.indexed_generators import IndexedGenerators
-from sage.structure.sage_object import op_EQ, op_NE, py_rich_to_bool
-from sage.combinat.dict_addition import dict_addition
+from sage.structure.indexed_generators import IndexedGenerators, parse_indices_names
+from sage.structure.richcmp import op_EQ, op_NE, richcmp, rich_to_bool
+import sage.data_structures.blas_dict as blas
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap
@@ -29,8 +29,8 @@ from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.family import Family
+
 
 class IndexedMonoidElement(MonoidElement):
     """
@@ -145,7 +145,7 @@ class IndexedMonoidElement(MonoidElement):
             pref = AsciiArt([P.prefix()])
             def ascii_art_gen(m):
                 if m[1] != 1:
-                    r = (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m[1]))
+                    r = (AsciiArt([" " * len(pref)]) + ascii_art(m[1]))
                 else:
                     r = empty_ascii_art
                 r = r * P._ascii_art_generator(m[0])
@@ -259,11 +259,13 @@ class IndexedMonoidElement(MonoidElement):
             sage: a*b*c^3*b*d != a*d*(b^2*c^2)*c
             False
         """
-        if op == op_EQ:
-            return self._monomial == other._monomial
-        elif op == op_NE:
-            return self._monomial != other._monomial
-        return py_rich_to_bool(op, cmp(self.to_word_list(), other.to_word_list()))
+        if self._monomial == other._monomial:
+            # Equal
+            return rich_to_bool(op, 0)
+        if op == op_EQ or op == op_NE:
+            # Not equal
+            return rich_to_bool(op, 1)
+        return richcmp(self.to_word_list(), other.to_word_list(), op)
 
     def support(self):
         """
@@ -284,7 +286,7 @@ class IndexedMonoidElement(MonoidElement):
             sage: (a*c^3).support()
             [0, 2]
         """
-        supp = set([key for key, exp in self._sorted_items() if exp != 0])
+        supp = set(key for key, exp in self._sorted_items() if exp != 0)
         return sorted(supp)
 
     def leading_support(self):
@@ -377,12 +379,10 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
         TESTS::
 
             sage: F = FreeMonoid(index_set=tuple('abcde'))
-            sage: hash(F ([(1,2),(0,1)]) )
-            2401565693828035651 # 64-bit
-            1164080195          # 32-bit
-            sage: hash(F ([(0,2),(1,1)]) )
-            -3359280905493236379 # 64-bit
-            -1890405019          # 32-bit
+            sage: hash(F ([(1,2),(0,1)]) ) == hash(((1, 2), (0, 1)))
+            True
+            sage: hash(F ([(0,2),(1,1)]) ) == hash(((0, 2), (1, 1)))
+            True
         """
         return hash(self._monomial)
 
@@ -493,7 +493,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
-        v = self._monomial.items()
+        v = list(self._monomial.items())
         try:
             v.sort(key=print_options['sorting_key'],
                    reverse=print_options['sorting_reverse'])
@@ -506,12 +506,10 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         TESTS::
 
             sage: F = FreeAbelianMonoid(index_set=ZZ)
-            sage: hash( F([(0,1), (2,2)]) )
-            8087055352805725849 # 64-bit
-            250091161           # 32-bit
-            sage: hash( F([(2,1)]) )
-            5118585357534560720 # 64-bit
-            1683816912          # 32-bit
+            sage: H1 = hash( F([(0,1), (2,2)]) )
+            sage: H2 = hash( F([(2,1)]) )
+            sage: H1 == H2
+            False
         """
         return hash(frozenset(self._monomial.items()))
 
@@ -527,7 +525,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             F[0]*F[1]^2*F[3]*F[4]
         """
         return self.__class__(self.parent(),
-                              dict_addition([self._monomial, other._monomial]))
+                              blas.add(self._monomial, other._monomial))
 
     def __pow__(self, n):
         """
@@ -544,7 +542,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             sage: x^0
             1
         """
-        if not isinstance(n, (int, long, Integer)):
+        if not isinstance(n, (int, Integer)):
             raise TypeError("Argument n (= {}) must be an integer".format(n))
         if n < 0:
             raise ValueError("Argument n (= {}) must be positive".format(n))
@@ -552,7 +550,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             return self
         if n == 0:
             return self.parent().one()
-        return self.__class__(self.parent(), {k:v*n for k,v in self._monomial.iteritems()})
+        return self.__class__(self.parent(), {k:v*n for k,v in self._monomial.items()})
 
     def __floordiv__(self, elt):
         """
@@ -574,15 +572,22 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             Traceback (most recent call last):
             ...
             ValueError: invalid cancellation
+            sage: elt // e^4
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid cancellation
         """
         d = copy(self._monomial)
-        for k,v in elt._monomial.iteritems():
-            d[k] -= v
-        for k,v in d.items():
-            if v < 0:
+        for k, v in elt._monomial.items():
+            if k not in d:
                 raise ValueError("invalid cancellation")
-            if v == 0:
+            diff = d[k] - v
+            if diff < 0:
+                raise ValueError("invalid cancellation")
+            elif diff == 0:
                 del d[k]
+            else:
+                d[k] = diff
         return self.__class__(self.parent(), d)
 
     def __len__(self):
@@ -629,7 +634,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
     :class:`~sage.structure.indexed_generators.IndexedGenerators`.
     """
     @staticmethod
-    def __classcall__(cls, indices, prefix="F", **kwds):
+    def __classcall__(cls, indices, prefix=None, names=None, **kwds):
         """
         TESTS::
 
@@ -647,16 +652,11 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: Groups.Commutative.free()
             Traceback (most recent call last):
             ...
-            ValueError: no index set specified
+            ValueError: either the indices or names must be given
         """
-        if isinstance(indices, str):
-            indices = FiniteEnumeratedSet(list(indices))
-        elif isinstance(indices, (list, tuple)):
-            indices = FiniteEnumeratedSet(indices)
-        elif indices is None:
-            if kwds.get('names', None) is None:
-                raise ValueError("no index set specified")
-            indices = FiniteEnumeratedSet(kwds['names'])
+        names, indices, prefix = parse_indices_names(names, indices, prefix, kwds)
+        if prefix is None:
+            prefix = "F"
 
         # bracket or latex_bracket might be lists, so convert
         # them to tuples so that they're hashable.
@@ -666,7 +666,9 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         latex_bracket = kwds.get('latex_bracket', None)
         if isinstance(latex_bracket, list):
             kwds['latex_bracket'] = tuple(latex_bracket)
-        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix, **kwds)
+
+        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix,
+                                                       names=names, **kwds)
 
     def __init__(self, indices, prefix, category=None, names=None, **kwds):
         """
@@ -704,9 +706,9 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: F.<x,y,z> = FreeMonoid(index_set=ZZ)
-            sage: [x, y, z]
-            [F[0], F[1], F[-1]]
+            sage: F = FreeMonoid(index_set=ZZ)
+            sage: F._first_ngens(3)
+            (F[0], F[1], F[-1])
         """
         it = iter(self._indices)
         return tuple(self.gen(next(it)) for i in range(n))
@@ -869,12 +871,22 @@ class IndexedFreeMonoid(IndexedMonoid):
             F[0]
             sage: F.gen(2)
             F[2]
+
+        TESTS::
+
+            sage: F = FreeMonoid(index_set=[1,2])
+            sage: F.gen(2)
+            F[2]
+            sage: F.gen(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: 0 is not in the index set
         """
         if x not in self._indices:
             raise IndexError("{} is not in the index set".format(x))
         try:
             return self.element_class(self, ((self._indices(x),1),))
-        except TypeError: # Backup (if it is a string)
+        except (TypeError, NotImplementedError): # Backup (e.g., if it is a string)
             return self.element_class(self, ((x,1),))
 
 class IndexedFreeAbelianMonoid(IndexedMonoid):
@@ -926,9 +938,27 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             F[-2]^12*F[1]^3
             sage: F({1:3, -2: 12})
             F[-2]^12*F[1]^3
+
+        TESTS::
+
+            sage: F([(1, 3), (1, 2)])
+            F[1]^5
+
+            sage: F([(42, 0)])
+            1
+            sage: F({42: 0})
+            1
         """
         if isinstance(x, (list, tuple)):
-            x = dict(x)
+            d = dict()
+            for k, v in x:
+                if k in d:
+                    d[k] += v
+                else:
+                    d[k] = v
+            x = d
+        if isinstance(x, dict):
+            x = {k: v for k, v in x.items() if v != 0}
         return IndexedMonoid._element_constructor_(self, x)
 
     Element = IndexedFreeAbelianMonoidElement
@@ -957,11 +987,21 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             F[0]
             sage: F.gen(2)
             F[2]
+
+        TESTS::
+
+            sage: F = FreeAbelianMonoid(index_set=[1,2])
+            sage: F.gen(2)
+            F[2]
+            sage: F.gen(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: 0 is not in the index set
         """
         if x not in self._indices:
             raise IndexError("{} is not in the index set".format(x))
         try:
             return self.element_class(self, {self._indices(x):1})
-        except TypeError: # Backup (if it is a string)
+        except (TypeError, NotImplementedError): # Backup (e.g., if it is a string)
             return self.element_class(self, {x:1})
 

@@ -20,7 +20,6 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 
-import sage.rings.ring as ring
 from .ell_field import EllipticCurve_field
 from . import ell_point
 from sage.rings.all import PolynomialRing
@@ -29,9 +28,6 @@ from sage.rings.all import PolynomialRing
 # there is an "is a" relationship here, and common implementation with regard
 # Coleman integration.
 from sage.schemes.hyperelliptic_curves.hyperelliptic_padic_field import HyperellipticCurve_padic_field
-
-import sage.databases.cremona
-
 
 class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_field):
     """
@@ -55,15 +51,28 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         Returns the Frobenius as a function on the group of points of
         this elliptic curve.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: Qp=pAdicField(13)
-            sage: E=EllipticCurve(Qp,[1,1])
+            sage: Qp = pAdicField(13)
+            sage: E = EllipticCurve(Qp,[1,1])
             sage: type(E.frobenius())
-            <type 'function'>
-            sage: point=E(0,1)
+            <... 'function'>
+            sage: point = E(0,1)
             sage: E.frobenius(point)
             (0 : 1 + O(13^20) : 1 + O(13^20))
+
+        Check that :trac:`29709` is fixed::
+
+            sage: Qp = pAdicField(13)
+            sage: E = EllipticCurve(Qp,[0,0,1,0,1])
+            sage: E.frobenius(E(1,1))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Curve must be in weierstrass normal form.
+            sage: E = EllipticCurve(Qp,[0,1,0,0,1])
+            sage: E.frobenius(E(0,1))
+            (0 : 1 + O(13^20) : 1 + O(13^20))
+
         """
         try:
             _frob = self._frob
@@ -73,7 +82,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
             x = PolynomialRing(K, 'x').gen(0)
 
             a1, a2, a3, a4, a6 = self.a_invariants()
-            if a1 != 0 or a2 != 0:
+            if a1 != 0 or a3 != 0:
                 raise NotImplementedError("Curve must be in weierstrass normal form.")
 
             f = x*x*x + a2*x*x + a4*x + a6

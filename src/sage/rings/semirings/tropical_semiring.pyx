@@ -20,11 +20,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.element cimport Element, ModuleElement
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.semirings import Semirings
 from sage.categories.map cimport Map
 from sage.sets.family import Family
@@ -32,7 +32,7 @@ from sage.rings.all import ZZ
 
 import operator
 
-cdef class TropicalSemiringElement(RingElement):
+cdef class TropicalSemiringElement(Element):
     r"""
     An element in the tropical semiring over an ordered additive semigroup
     `R`. Either in `R` or `\infty`. The operators `+, \cdot` are defined as
@@ -60,7 +60,7 @@ cdef class TropicalSemiringElement(RingElement):
             sage: elt = T(2)
             sage: TestSuite(elt).run()
         """
-        RingElement.__init__(self, parent)
+        Element.__init__(self, parent)
         self._val = val
 
     def __reduce__(self):
@@ -134,11 +134,9 @@ cdef class TropicalSemiringElement(RingElement):
         return hash(self._val)
 
     # Comparisons
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
-        Return ``-1`` if ``left`` is less than ``right``, ``0`` if
-        ``left`` and ``right`` are equal, and ``1`` if ``left`` is
-        greater than ``right``.
+        Return the standard comparison of ``left`` and ``right``.
 
         EXAMPLES::
 
@@ -191,24 +189,24 @@ cdef class TropicalSemiringElement(RingElement):
         cdef TropicalSemiringElement self, x
         self = left
         x = right
-
+        
         if self._val is None:
             if x._val is None:
-                return 0
+                return rich_to_bool(op, 0)
             if self.parent()._use_min:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
 
         if x._val is None:
             if self.parent()._use_min:
-                return -1
-            return 1
+                return rich_to_bool(op, -1)
+            return rich_to_bool(op, 1)
 
         if self._val < x._val:
-            return -1
+            return rich_to_bool(op, -1)
         if self._val > x._val:
-            return 1
-        return 0
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     cpdef _add_(left, right):
         """
@@ -230,6 +228,20 @@ cdef class TropicalSemiringElement(RingElement):
             2
             sage: T.infinity() + T(2)
             2
+
+        TESTS:
+
+        Check some additions with trivial coercion of ``int(0)``::
+
+            sage: T = TropicalSemiring(QQ)
+            sage: T(1) + int(0)
+            0
+            sage: T(-1) + int(0)
+            -1
+            sage: int(0) + T(1)
+            0
+            sage: int(0) + T(-1)
+            -1
         """
         cdef TropicalSemiringElement self, rhs
         self = left

@@ -1,2 +1,1 @@
-linbox
 "pkgconfig(linbox)"

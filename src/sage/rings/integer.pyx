@@ -2703,8 +2703,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             _m=<Integer>Integer(m)
 
-        if mpz_sgn(self.value) <= 0 or mpz_sgn(_m.value) <= 0:
-            raise ValueError("both self and m must be positive")
+        self_sgn = mpz_sgn(self.value)
+        if self_sgn == 0:
+            return -sage.rings.infinity.infinity
+        if self_sgn < 0 or mpz_sgn(_m.value) <= 0:
+            raise ValueError("self must be nonnegative and m must be positive")
         if mpz_cmp_si(_m.value,2) < 0:
             raise ValueError("m must be at least 2")
 
@@ -2870,7 +2873,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if type(m) == Integer and type(self) == Integer:
             elog = self.exact_log(m)
-            if m**elog == self:
+            if elog == -sage.rings.infinity.infinity or m**elog == self:
                 return elog
 
         if (type(m) == Rational and type(self) == Integer

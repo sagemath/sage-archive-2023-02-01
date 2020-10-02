@@ -108,7 +108,7 @@ AUTHORS:
 # ****************************************************************************
 
 from cysignals.signals cimport sig_check, sig_on, sig_off
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 
 from cpython.int cimport PyInt_FromSize_t
 from cpython.slice cimport PySlice_GetIndicesEx

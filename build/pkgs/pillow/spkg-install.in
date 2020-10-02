@@ -20,10 +20,10 @@ fi
 # Note: Avoid shared libraries inside egg files, Trac #19467
 sage-python23 setup.py \
        --no-user-cfg \
+       bdist_wheel \
        build_ext \
        --debug \
        --disable-jpeg \
-       $extra_build_ext \
-       install \
-       --single-version-externally-managed \
-       --root "$SAGE_DESTDIR" || sdh_die "Error building/installing Pillow"
+       $extra_build_ext || sdh_die "Error building/installing Pillow"
+
+sdh_store_and_pip_install_wheel .

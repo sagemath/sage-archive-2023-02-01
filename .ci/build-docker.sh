@@ -26,7 +26,7 @@ docker_build() {
     # Docker's --cache-from does not really work with multi-stage builds: https://github.com/moby/moby/issues/34715
     # So we just have to rely on the local cache.
     time docker build -f docker/Dockerfile \
---build-arg "WITH_PYTHON=${WITH_PYTHON}" --build-arg "MAKEFLAGS=${MAKEFLAGS}" --build-arg "SAGE_NUM_THREADS=${SAGE_NUM_THREADS}" --build-arg "MAKEFLAGS_DOCBUILD=${MAKEFLAGS}" --build-arg "SAGE_NUM_THREADS_DOCBUILD=${SAGE_NUM_THREADS_DOCBUILD}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
+--build-arg "--build-arg "MAKEFLAGS=${MAKEFLAGS}" --build-arg "SAGE_NUM_THREADS=${SAGE_NUM_THREADS}" --build-arg "MAKEFLAGS_DOCBUILD=${MAKEFLAGS}" --build-arg "SAGE_NUM_THREADS_DOCBUILD=${SAGE_NUM_THREADS_DOCBUILD}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
 }
 
 # We use a multi-stage build /docker/Dockerfile. For the caching to be

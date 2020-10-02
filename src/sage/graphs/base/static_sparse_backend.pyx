@@ -46,7 +46,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
 from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 
 cdef class StaticSparseCGraph(CGraph):
     """

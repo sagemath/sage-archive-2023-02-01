@@ -178,7 +178,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: QS3 = SymmetricGroupAlgebra(QQ, 3, category=Monoids())
         sage: QS3.category()
         Category of finite dimensional cellular monoid algebras over Rational Field
-        sage: TestSuite(QS3).run()
+        sage: TestSuite(QS3).run(skip=['_test_construction'])
 
 
     TESTS::
@@ -201,7 +201,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: SGA = SymmetricGroupAlgebra(QQ, W)
         sage: SGA.group() is W
         True
-        sage: TestSuite(SGA).run(skip="_test_cellular")
+        sage: TestSuite(SGA).run(skip=["_test_cellular", "_test_construction"])
         sage: W = WeylGroup(["A",2])
         sage: SGA = SymmetricGroupAlgebra(QQ, W)
         sage: SGA._test_cellular()

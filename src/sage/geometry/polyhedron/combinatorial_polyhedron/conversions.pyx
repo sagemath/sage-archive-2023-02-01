@@ -74,6 +74,7 @@ from libc.string                      cimport memset
 from .list_of_faces                   cimport ListOfFaces
 from sage.misc.superseded              import deprecated_function_alias
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
+from sage.ext.memory_allocator        cimport MemoryAllocator
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -85,6 +86,24 @@ cdef inline uint64_t vertex_to_bit_dictionary(size_t i):
     This "dictionary" helps storing a vector of 64 incidences as ``uint64_t``.
     """
     return (<uint64_t>1) << (64 - i - 1)
+
+def _Vrep_list_to_bit_rep_wrapper(tup, size_t face_length=-1):
+    r"""
+    A function to allow doctesting of :func:`Vrep_list_to_bit_rep`.
+
+    TESTS::
+
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:         import _Vrep_list_to_bit_rep_wrapper
+        sage: _Vrep_list_to_bit_rep_wrapper((60, 63))
+        (9,)
+    """
+    if face_length == -1:
+        face_length = max(tup)//64 + 1
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint64_t *output = <uint64_t *> mem.allocarray(face_length, 8)
+    Vrep_list_to_bit_rep(tup, output, face_length)
+    return tuple(output[i] for i in range(face_length))
 
 cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
                                  size_t face_length) except -1:
@@ -107,41 +126,21 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
 
     EXAMPLES::
 
-        sage: cython('''
-        ....: from libc.stdint cimport uint64_t
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport Vrep_list_to_bit_rep
-        ....: from sage.ext.memory_allocator cimport MemoryAllocator
-        ....: from sage.rings.integer cimport smallInteger
-        ....:
-        ....: def Vrep_list_to_bit_rep_wrapper(tup):
-        ....:     cdef size_t face_length = max(tup)//64 + 1
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef uint64_t *output = <uint64_t *> mem.allocarray(face_length, 8)
-        ....:     Vrep_list_to_bit_rep(tup, output, face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(face_length))
-        ....:
-        ....: def Vrep_list_to_bit_rep_wrong_size(tup):
-        ....:     cdef size_t face_length = 1
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef uint64_t *output = <uint64_t *> mem.allocarray(face_length, 8)
-        ....:     Vrep_list_to_bit_rep(tup, output, face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(face_length))
-        ....: ''')  # long time
-
-        sage: Vrep_list_to_bit_rep_wrapper((62, 63))  # long time
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:         import _Vrep_list_to_bit_rep_wrapper
+        sage: _Vrep_list_to_bit_rep_wrapper((62, 63))
         (3,)
-        sage: Vrep_list_to_bit_rep_wrapper((61, 63, 125))  # long time
+        sage: _Vrep_list_to_bit_rep_wrapper((61, 63, 125))
         (5, 4)
-        sage: Vrep_list_to_bit_rep_wrong_size((62, 70))  # long time
+        sage: _Vrep_list_to_bit_rep_wrapper((62, 70), face_length=1)
         Traceback (most recent call last):
         ...
         IndexError: output too small to represent 70
-        sage: Vrep_list_to_bit_rep_wrapper((-1, 12))  # long time
+        sage: _Vrep_list_to_bit_rep_wrapper((-1, 12))
         Traceback (most recent call last):
         ...
         OverflowError: can...t convert negative value to size_t
-        sage: Vrep_list_to_bit_rep_wrapper((0, 0))  # long time
+        sage: _Vrep_list_to_bit_rep_wrapper((0, 0))
         Traceback (most recent call last):
         ...
         ValueError: entries of ``tup`` are not distinct
@@ -159,6 +158,25 @@ cdef int Vrep_list_to_bit_rep(tuple Vrep_list, uint64_t *output,
         if unlikely(position >= face_length):
             raise IndexError("output too small to represent %s"%entry)
         output[position] += vertex_to_bit_dictionary(value)
+
+def _incidences_to_bit_rep_wrapper(tup, size_t face_length=-1):
+    r"""
+    A function to allow doctesting of :func:`incidences_to_bit_rep`.
+
+    TESTS::
+
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:         import _incidences_to_bit_rep_wrapper
+        sage: _incidences_to_bit_rep_wrapper((0,) * 60 + (1,0,0,1))
+        (9,)
+    """
+    if face_length == -1:
+        face_length = (len(tup)-1)//64 + 1
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint64_t *output = \
+         <uint64_t *> mem.allocarray(face_length, 8)
+    incidences_to_bit_rep(tup, output, face_length)
+    return tuple(output[i] for i in range(face_length))
 
 cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
                                 size_t face_length) except -1:
@@ -182,38 +200,16 @@ cdef int incidences_to_bit_rep(tuple incidences, uint64_t *output,
 
     EXAMPLES::
 
-        sage: cython('''
-        ....: from libc.stdint cimport uint64_t
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport incidences_to_bit_rep
-        ....: from sage.ext.memory_allocator cimport MemoryAllocator
-        ....: from sage.rings.integer cimport smallInteger
-        ....:
-        ....: def incidences_to_bit_reps_wrapper(tup):
-        ....:     cdef size_t face_length = (len(tup)-1)//64 + 1
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef uint64_t *output = \
-        ....:          <uint64_t *> mem.allocarray(face_length, 8)
-        ....:     incidences_to_bit_rep(tup, output, face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(face_length))
-        ....:
-        ....: def incidences_to_bit_reps_wrong_size(tup):
-        ....:     cdef size_t face_length = 1
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef uint64_t *output = \
-        ....:         <uint64_t *> mem.allocarray(face_length, 8)
-        ....:     incidences_to_bit_rep(tup, output, face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(face_length))
-        ....: ''')  # long time
-
-        sage: incidences_to_bit_reps_wrapper((0,) * 62 + (1,1))  # long time
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:         import _incidences_to_bit_rep_wrapper
+        sage: _incidences_to_bit_rep_wrapper((0,) * 62 + (1,1))
         (3,)
-        sage: incidences_to_bit_reps_wrapper((0,) * 61 + (1,0,1) +  # long time
+        sage: _incidences_to_bit_rep_wrapper((0,) * 61 + (1,0,1) +
         ....:                                 (0,) * 61 + (1,))
         (5, 4)
-        sage: incidences_to_bit_reps_wrapper((1,) * 64)  # long time
-        (-1,)
-        sage: incidences_to_bit_reps_wrong_size((1,) * 70)  # long time
+        sage: _incidences_to_bit_rep_wrapper((1,) * 64) == (2**64-1,)
+        True
+        sage: _incidences_to_bit_rep_wrapper((1,) * 70, face_length=1)
         Traceback (most recent call last):
         ...
         IndexError: output too small to represent all incidences
@@ -250,28 +246,9 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
 
     EXAMPLES::
 
-        sage: cython('''
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-        ....: cimport ListOfFaces
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport bit_rep_to_Vrep_list
-        ....: from sage.rings.integer cimport smallInteger
-        ....: from sage.ext.memory_allocator cimport MemoryAllocator
-        ....: from libc.stdint cimport uint64_t
-        ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef size_t *output
-        ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
-        ....:                                        sizeof(size_t))
-        ....:     cdef uint64_t * data = faces.data[index]
-        ....:     length = bit_rep_to_Vrep_list(
-        ....:         data, output, faces.face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(length))
-        ....: ''') # long time
-
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....:     import incidence_matrix_to_bit_rep_of_facets
+        ....:     import incidence_matrix_to_bit_rep_of_facets, \
+        ....:            _bit_rep_to_Vrep_list_wrapper
         sage: P = polytopes.permutahedron(4)
         sage: inc = P.incidence_matrix()
         sage: mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
@@ -280,8 +257,8 @@ def incidence_matrix_to_bit_rep_of_facets(Matrix_integer_dense matrix):
         14
         sage: facets.n_atoms
         24
-        sage: for i in range(facets.n_faces):  # long time
-        ....:     print(bit_rep_to_Vrep_list_wrapper(facets, i))
+        sage: for i in range(facets.n_faces):
+        ....:     print(_bit_rep_to_Vrep_list_wrapper(facets, i))
         (18, 19, 20, 21, 22, 23)
         (3, 5, 8, 10, 12, 17)
         (2, 7, 11, 13, 20, 21)
@@ -329,7 +306,7 @@ def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
     r"""
     Initialize Vrepresentatives in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
-    Each Vrepresenative is represented as the facets it is contained in.
+    Each Vrepresentative is represented as the facets it is contained in.
     Those are the facets of the polar polyhedron, if it exists.
 
     INPUT:
@@ -345,28 +322,9 @@ def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
 
     EXAMPLES::
 
-        sage: cython('''
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-        ....: cimport ListOfFaces
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport bit_rep_to_Vrep_list
-        ....: from sage.rings.integer cimport smallInteger
-        ....: from sage.ext.memory_allocator cimport MemoryAllocator
-        ....: from libc.stdint cimport uint64_t
-        ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef size_t *output
-        ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
-        ....:                                        sizeof(size_t))
-        ....:     cdef uint64_t * data = faces.data[index]
-        ....:     length = bit_rep_to_Vrep_list(
-        ....:         data, output, faces.face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(length))
-        ....: ''')
-
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....:     import incidence_matrix_to_bit_rep_of_Vrep
+        ....:     import incidence_matrix_to_bit_rep_of_Vrep, \
+        ....:            _bit_rep_to_Vrep_list_wrapper
         sage: P = polytopes.permutahedron(4)
         sage: inc = P.incidence_matrix()
         sage: mod_inc = inc.delete_columns([i for i,V in enumerate(P.Hrepresentation()) if V.is_equation()])
@@ -376,7 +334,7 @@ def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
         sage: vertices.n_atoms
         14
         sage: for i in range(vertices.n_faces):
-        ....:     print(bit_rep_to_Vrep_list_wrapper(vertices, i))
+        ....:     print(_bit_rep_to_Vrep_list_wrapper(vertices, i))
         (8, 9, 11)
         (8, 10, 11)
         (2, 3, 7)
@@ -421,33 +379,14 @@ def facets_tuple_to_bit_rep_of_facets(tuple facets_input, size_t n_Vrep):
 
     EXAMPLES::
 
-        sage: cython('''
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-        ....: cimport ListOfFaces
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport bit_rep_to_Vrep_list
-        ....: from sage.rings.integer cimport smallInteger
-        ....: from sage.ext.memory_allocator cimport MemoryAllocator
-        ....: from libc.stdint cimport uint64_t
-        ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef size_t *output
-        ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
-        ....:                                        sizeof(size_t))
-        ....:     cdef uint64_t * data = faces.data[index]
-        ....:     length = bit_rep_to_Vrep_list(
-        ....:         data, output, faces.face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(length))
-        ....: ''') # long time
-
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....:     import facets_tuple_to_bit_rep_of_facets
+        ....:     import facets_tuple_to_bit_rep_of_facets, \
+        ....:            _bit_rep_to_Vrep_list_wrapper
         sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
         ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
         sage: facets = facets_tuple_to_bit_rep_of_facets(bi_pyr, 6)
-        sage: for i in range(8):  # long time
-        ....:     print(bit_rep_to_Vrep_list_wrapper(facets, i))
+        sage: for i in range(8):
+        ....:     print(_bit_rep_to_Vrep_list_wrapper(facets, i))
         (0, 1, 4)
         (1, 2, 4)
         (2, 3, 4)
@@ -487,33 +426,14 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
 
     EXAMPLES::
 
-        sage: cython('''
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-        ....: cimport ListOfFaces
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport bit_rep_to_Vrep_list
-        ....: from sage.rings.integer cimport smallInteger
-        ....: from sage.ext.memory_allocator cimport MemoryAllocator
-        ....: from libc.stdint cimport uint64_t
-        ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(ListOfFaces faces, index):
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef size_t *output
-        ....:     output = <size_t *> mem.allocarray(faces.n_atoms,
-        ....:                                        sizeof(size_t))
-        ....:     cdef uint64_t * data = faces.data[index]
-        ....:     length = bit_rep_to_Vrep_list(
-        ....:         data, output, faces.face_length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(length))
-        ....: ''')
-
         sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....:     import facets_tuple_to_bit_rep_of_Vrep
+        ....:     import facets_tuple_to_bit_rep_of_Vrep, \
+        ....:            _bit_rep_to_Vrep_list_wrapper
         sage: bi_pyr = ((0,1,4), (1,2,4), (2,3,4), (3,0,4),
         ....:           (0,1,5), (1,2,5), (2,3,5), (3,0,5))
         sage: vertices = facets_tuple_to_bit_rep_of_Vrep(bi_pyr, 6)
         sage: for i in range(6):
-        ....:     print(bit_rep_to_Vrep_list_wrapper(vertices, i))
+        ....:     print(_bit_rep_to_Vrep_list_wrapper(vertices, i))
         (0, 3, 4, 7)
         (0, 1, 4, 5)
         (1, 2, 5, 6)
@@ -551,6 +471,52 @@ def facets_tuple_to_bit_rep_of_Vrep(tuple facets_input, size_t n_Vrep):
     return Vrep
 facets_tuple_to_bit_repr_of_Vrepr = deprecated_function_alias(28608, facets_tuple_to_bit_rep_of_Vrep)
 
+def _bit_rep_to_Vrep_list_wrapper(data, index=0):
+    r"""
+    A function to test :func:`bit_rep_to_Vrep_list`.
+
+    INPUT:
+
+    - ``data`` -- either a :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`
+    or a tuple of integers in ``range(0,2**64)``
+    - ``index`` -- ``0`` if ``data`` is a tuple, otherwise the index of the ``face``
+      to convert
+
+    OUTPUT: A tuple of integers.
+
+    If the input is a tuple, it will be interpreted as a list of faces over with `64` atoms per element in the
+    tuple. Each number in the tuple corresponds to an ``uint64_t``.
+
+    The list of faces is then translated into a tuple of the integers with set bits.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:     import facets_tuple_to_bit_rep_of_facets, \
+        ....:            _bit_rep_to_Vrep_list_wrapper
+        sage: _bit_rep_to_Vrep_list_wrapper((1, 1))
+        (63, 127)
+        sage: faces = facets_tuple_to_bit_rep_of_facets(((1,5,123,1054),), 1055)
+        sage: _bit_rep_to_Vrep_list_wrapper(faces, 0)
+        (1, 5, 123, 1054)
+    """
+    cdef ListOfFaces faces
+    if isinstance(data, ListOfFaces):
+        faces = data
+    else:
+        assert isinstance(data, tuple)
+        faces = ListOfFaces(1, 64*len(data))
+        for i in range(len(data)):
+            faces.data[0][i] = data[i]
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef size_t *output
+    output = <size_t *> mem.allocarray(faces.n_atoms,
+                                       sizeof(size_t))
+    length = bit_rep_to_Vrep_list(
+        faces.data[index], output, faces.face_length)
+    return tuple(output[i] for i in range(length))
+
 cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
                                            size_t face_length) except -1:
     r"""
@@ -573,35 +539,13 @@ cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
 
     EXAMPLES::
 
-        sage: cython('''
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces \
-        ....: cimport ListOfFaces
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport bit_rep_to_Vrep_list, Vrep_list_to_bit_rep
-        ....: from sage.rings.integer cimport smallInteger
-        ....: from sage.ext.memory_allocator cimport MemoryAllocator
-        ....: from libc.stdint cimport uint64_t
-        ....:
-        ....: def bit_rep_to_Vrep_list_wrapper(tup):
-        ....:     cdef MemoryAllocator mem = MemoryAllocator()
-        ....:     cdef size_t *output
-        ....:     cdef length = len(tup)
-        ....:     output = <size_t *> mem.allocarray(length*64,
-        ....:                                        sizeof(size_t))
-        ....:     cdef uint64_t * data
-        ....:     data = <uint64_t *> mem.allocarray(length, 8)
-        ....:     for i in range(len(tup)):
-        ....:         data[i] = tup[i]
-        ....:     outputlength = bit_rep_to_Vrep_list(
-        ....:         data, output, length)
-        ....:     return tuple(smallInteger(output[i]) for i in range(outputlength))
-        ....: ''')  # long time
-
-        sage: bit_rep_to_Vrep_list_wrapper((17, 31))  # long time
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:     import _bit_rep_to_Vrep_list_wrapper
+        sage: _bit_rep_to_Vrep_list_wrapper((17, 31))
         (59, 63, 123, 124, 125, 126, 127)
-        sage: bit_rep_to_Vrep_list_wrapper((13,))  # long time
+        sage: _bit_rep_to_Vrep_list_wrapper((13,))
         (60, 61, 63)
-        sage: bit_rep_to_Vrep_list_wrapper((0, 61))  # long time
+        sage: _bit_rep_to_Vrep_list_wrapper((0, 61))
         (122, 123, 124, 125, 127)
 
     TESTS:
@@ -609,26 +553,17 @@ cdef inline size_t bit_rep_to_Vrep_list(uint64_t *face, size_t *output,
     Testing that :meth`bit_rep_to_Vrep_list` is the
     inverse to :meth:`Vrep_list_to_bit_rep`::
 
-        sage: cython('''
-        ....: from libc.stdint cimport uint64_t
-        ....: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
-        ....: cimport bit_rep_to_Vrep_list, Vrep_list_to_bit_rep
-        ....: from sage.misc.prandom import randint
-        ....:
-        ....: cdef uint64_t[2] face
-        ....: cdef size_t length
-        ....: cdef size_t[128] output
-        ....:
-        ....: for _ in range(10):
+        sage: from sage.geometry.polyhedron.combinatorial_polyhedron.conversions \
+        ....:     import _bit_rep_to_Vrep_list_wrapper, \
+        ....:            _Vrep_list_to_bit_rep_wrapper
+        sage: for _ in range(10):
         ....:     st = set(randint(0,127) for i in range(40))
         ....:     tup = tuple(sorted(tuple(st)))
-        ....:     Vrep_list_to_bit_rep(tup, face, 2)
-        ....:     length = bit_rep_to_Vrep_list(face, output, 2)
-        ....:     tup2 = tuple(output[i] for i in range(length))
-        ....:     if not tup == tup2:
+        ....:     faces = _Vrep_list_to_bit_rep_wrapper(tup)
+        ....:     output = _bit_rep_to_Vrep_list_wrapper(faces, 0)
+        ....:     if not tup == output:
         ....:         print('``bit_rep_to_Vrep_list`` does not behave',
         ....:               'as the inverse of ``Vrep_list_to_bit_rep``')
-        ....: ''') # long time
     """
     cdef size_t i, j
     cdef size_t output_length = 0

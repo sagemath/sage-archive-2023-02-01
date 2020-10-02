@@ -626,7 +626,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         OUTPUT:
 
         A tuple of integers, one for each projective space component. A
-        ``ValueError`` is raised if the polynomial is not multihomogenous.
+        ``ValueError`` is raised if the polynomial is not multihomogeneous.
 
         EXAMPLES::
 

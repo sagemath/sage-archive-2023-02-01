@@ -53,3 +53,9 @@
   hint: |
     Use "Sage" or "SageMath" instead
   pattern: '\bSAGE\b'
+
+# https://trac.sagemath.org/ticket/30585
+- name: 'typo "homogenous" detected'
+  hint: |
+    in mathematics it should be "homogeneous"
+  pattern: 'homogenous'

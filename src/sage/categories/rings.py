@@ -760,7 +760,7 @@ class Rings(CategoryWithAxiom):
         ##
         # Quotient rings
         # Again, this is defined in sage.rings.ring.pyx
-        def quotient(self, I, names=None):
+        def quotient(self, I, names=None, **kwds):
             """
             Quotient of a ring by a two-sided ideal.
 
@@ -769,6 +769,8 @@ class Rings(CategoryWithAxiom):
             - ``I``: A twosided ideal of this ring.
             - ``names``: a list of strings to be used as names
               for the variables in the quotient ring.
+            - further named arguments that may be passed to the
+              quotient ring constructor.
 
             EXAMPLES:
 
@@ -801,9 +803,9 @@ class Rings(CategoryWithAxiom):
                 0
             """
             from sage.rings.quotient_ring import QuotientRing
-            return QuotientRing(self, I, names=names)
+            return QuotientRing(self, I, names=names, **kwds)
 
-        def quo(self, I, names=None):
+        def quo(self, I, names=None, **kwds):
             """
             Quotient of a ring by a two-sided ideal.
 
@@ -843,9 +845,9 @@ class Rings(CategoryWithAxiom):
                 )
 
             """
-            return self.quotient(I,names=names)
+            return self.quotient(I,names=names,**kwds)
 
-        def quotient_ring(self, I, names=None):
+        def quotient_ring(self, I, names=None, **kwds):
             """
             Quotient of a ring by a two-sided ideal.
 
@@ -883,7 +885,7 @@ class Rings(CategoryWithAxiom):
                 )
 
             """
-            return self.quotient(I,names=names)
+            return self.quotient(I,names=names, **kwds)
 
         def __truediv__(self, I):
             """

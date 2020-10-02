@@ -340,27 +340,35 @@ class ShuffleProduct(SageObject):
 
         ############ Gray code #############
         def swap(i, j):
-            l[i-1], l[j-1] = l[j-1], l[i-1]
+            l[i - 1], l[j - 1] = l[j - 1], l[i - 1]
 
         def gen(n, k):
             if 0 < k < n:
-                for _ in gen(n-1, k): yield
+                for _ in gen(n - 1, k):
+                    yield
 
-                if k == 1: swap(n, n-1)
-                else: swap(n, k-1)
+                if k == 1:
+                    swap(n, n - 1)
+                else:
+                    swap(n, k - 1)
                 yield
 
-                for _ in neg(n-1, k-1): yield
+                for _ in neg(n - 1, k - 1):
+                    yield
 
         def neg(n, k):
             if 0 < k < n:
-                for _ in gen(n-1, k-1): yield
+                for _ in gen(n - 1, k - 1):
+                    yield
 
-                if k == 1: swap(n, n-1)
-                else: swap(n, k-1)
+                if k == 1:
+                    swap(n, n - 1)
+                else:
+                    swap(n, k - 1)
                 yield
 
-                for _ in neg(n-1, k): yield
+                for _ in neg(n - 1, k):
+                    yield
 
         ####################################
 

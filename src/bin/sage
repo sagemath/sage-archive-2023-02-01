@@ -405,8 +405,8 @@ usage_advanced() {
         echo "  --tox [options] <files|dirs> -- general entry point for testing"
         echo "                                  and linting of the Sage library"
         echo "     -e <envlist>     -- run specific test environments (default: run all)"
-        tox -c "$SAGE_SRC" --listenvs -v 2>/dev/null | sed -n '/->/s/^/        /;s/(same as/\
-                            (same as/;s/->/     --/p;'
+        tox -c "$SAGE_SRC" --listenvs -v 2>/dev/null | sed -n '/->/s/^/        /;s/(/\
+                            (/;s/->/     --/p;'
         echo "     -p auto          -- run test environments in parallel"
         echo "     --help           -- show tox help"
         command -v tox &>/dev/null || \
@@ -529,11 +529,7 @@ fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
-    if [ "$SAGE_PYTHON3" = 'yes' ]; then
-        exec "$SAGE_LOCAL"/bin/python3 "$@"
-    else
-        exec "$SAGE_LOCAL"/bin/python2 "$@"
-    fi
+    exec "$SAGE_LOCAL"/bin/python3 "$@"
 fi
 
 if [ "$1" = '-python3' -o "$1" = '--python3' ]; then
@@ -612,7 +608,11 @@ fi
 
 if [ "$1" = '-maxima' -o "$1" = '--maxima' ]; then
     shift
-    exec maxima "$@"
+    maxima_cmd=$(sage-config MAXIMA 2>/dev/null)
+    if [ -z "${maxima_cmd}" ]; then
+        maxima_cmd="maxima -l ecl"
+    fi
+    exec $maxima_cmd "$@"
 fi
 
 if [ "$1" = '-mwrank' -o "$1" = '--mwrank' ]; then

@@ -22,7 +22,7 @@ REFERENCE:
 # ****************************************************************************
 
 from .data_structures cimport *
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 from sage.rings.integer cimport Integer
 from sage.graphs.base.sparse_graph cimport SparseGraph
 from sage.graphs.base.dense_graph cimport DenseGraph

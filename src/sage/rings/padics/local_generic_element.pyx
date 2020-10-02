@@ -309,6 +309,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: a.slice(None, 5, None)
             2*5^2 + 2*5^3 + O(5^5)
 
+        Verify that :trac:`30695` has been fixed::
+
+            sage: F=Qp(3)
+            sage: a=F(0)
+            sage: a.slice(0,None)
+            0
+
         """
         if i is None:
             i = self.valuation()
@@ -319,6 +326,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         if k<=0:
             raise ValueError("slice step must be positive")
+        
+        if j is infinity:
+            return self.parent()(0)
 
         start = i
         stop = j

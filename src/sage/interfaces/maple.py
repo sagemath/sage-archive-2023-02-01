@@ -348,7 +348,7 @@ class Maple(ExtraTabCompletion, Expect):
 
     def _read_in_file_command(self, filename):
         r"""
-        Returns the string used to read filename into Maple.
+        Return the string used to read filename into Maple.
 
         EXAMPLES::
 
@@ -425,7 +425,7 @@ connection to a server running Maple; for hints, type
 
     def expect(self):
         """
-        Returns the pexpect object for this Maple session.
+        Return the pexpect object for this Maple session.
 
         EXAMPLES::
 
@@ -529,7 +529,7 @@ connection to a server running Maple; for hints, type
 
     def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
-        Returns a list of all the commands defined in Maple and optionally
+        Return a list of all the commands defined in Maple and optionally
         (per default) store them to disk.
 
         EXAMPLES::
@@ -588,7 +588,7 @@ connection to a server running Maple; for hints, type
 
     def cputime(self, t=None):
         r"""
-        Returns the amount of CPU time that the Maple session has used. If
+        Return the amount of CPU time that the Maple session has used. If
         ``t`` is not None, then it returns the difference
         between the current CPU time and ``t``.
 
@@ -638,7 +638,7 @@ connection to a server running Maple; for hints, type
 
     def _object_class(self):
         """
-        Returns the class of MapleElements.
+        Return the class of MapleElements.
 
         EXAMPLES::
 
@@ -655,7 +655,7 @@ connection to a server running Maple; for hints, type
 
     def _function_element_class(self):
         """
-        Returns the MapleFunctionElement class.
+        Return the MapleFunctionElement class.
 
         EXAMPLES::
 
@@ -672,7 +672,7 @@ connection to a server running Maple; for hints, type
 
     def _equality_symbol(self):
         """
-        Returns the symbol used for equality testing in Maple.
+        Return the symbol used for equality testing in Maple.
 
         EXAMPLES::
 
@@ -686,7 +686,7 @@ connection to a server running Maple; for hints, type
 
     def _true_symbol(self):
         """
-        Returns the symbol used for truth in Maple.
+        Return the symbol used for truth in Maple.
 
         EXAMPLES::
 
@@ -702,7 +702,7 @@ connection to a server running Maple; for hints, type
 
     def _assign_symbol(self):
         """
-        Returns the symbol used for assignment in Maple.
+        Return the symbol used for assignment in Maple.
 
         EXAMPLES::
 
@@ -842,7 +842,7 @@ connection to a server running Maple; for hints, type
 class MapleFunction(ExpectFunction):
     def _instancedoc(self):
         """
-        Returns the Maple help for this function. This gets called when
+        Return the Maple help for this function. This gets called when
         doing "?" on self.
 
         EXAMPLES::
@@ -856,7 +856,7 @@ class MapleFunction(ExpectFunction):
 
     def _sage_src_(self):
         """
-        Returns the source code of ``self``.
+        Return the source code of ``self``.
 
         This is the function that eventually gets called when doing
         maple.gcd?? for example.
@@ -878,7 +878,7 @@ class MapleFunction(ExpectFunction):
 class MapleFunctionElement(FunctionElement):
     def _instancedoc_(self):
         """
-        Returns the Maple help for this function.
+        Return the Maple help for this function.
 
         This gets called when doing "?" on ``self``.
 
@@ -893,7 +893,7 @@ class MapleFunctionElement(FunctionElement):
 
     def _sage_src_(self):
         """
-        Returns the source code of self.
+        Return the source code of self.
 
         EXAMPLES::
 
@@ -914,7 +914,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
     
     def __float__(self):
         """
-        Returns a floating point version of self.
+        Return a floating point version of self.
 
         EXAMPLES::
 
@@ -927,7 +927,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
 
     def __hash__(self):
         """
-        Returns a 64-bit integer representing the hash of self. Since
+        Return a 64-bit integer representing the hash of self. Since
         Python uses 32-bit hashes, it will automatically convert the result
         of this to a 32-bit hash.
 
@@ -939,15 +939,15 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: m = maple('x^2+y^2')                      # optional - maple
             sage: m.__hash__()                              # optional - maple
             188724254834261060184983038723355865733L
-            sage: hash(m)                                   # optional - maple
+            sage: hash(m)               # random            # optional - maple
             5035731711831192733
             sage: m = maple('x^2+y^3')                      # optional - maple
-            sage: m.__hash__()                              # optional - maple
+            sage: m.__hash__()          # random            # optional - maple
             264835029579301191531663246434344770556L
-            sage: hash(m)                                   # optional - maple
+            sage: hash(m)               # random            # optional - maple
             -2187277978252104690
         """
-        return int(maple.eval('StringTools:-Hash(convert(%s, string))'%self.name())[1:-1],16)
+        return int(maple.eval('StringTools:-Hash(convert(%s, string))' % self.name())[1:-1],16)
 
     def _richcmp_(self, other, op):
         """
@@ -983,12 +983,6 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: Mm = maple(M)                            # optional - maple
             sage: Mm == Mm                                 # optional - maple
             True
-            sage: Mm < 5                                   # optional - maple
-            True
-            sage: (Mm < 5) == (M < 5)                      # optional - maple
-            True
-            sage: 5 < Mm                                   # optional - maple
-            False
 
         TESTS::
 
@@ -1091,7 +1085,22 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         return self.parent().eval('latex(%s)' % self.name())
 
     def op(self, i):
-        return self.parent().eval("op")(i, self)
+        """
+        Return the i-th operand of this expression.
+
+        INPUT:
+
+        - i -- an integer
+
+        EXAMPLES::
+
+            sage: V = vector(QQ,[4,5,6])._maple_()
+            sage: V.op(1)
+            3
+            sage: V.op(2)
+            {1 = 4, 2 = 5, 3 = 6}
+        """
+        return self.parent().op(i, self)
 
     def _sage_(self):
         r"""
@@ -1100,15 +1109,17 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         This currently does not implement a parser for the Maple output language,
         therefore only very simple expressions will convert successfully.
 
+        REFERENCE:
+
+        https://www.asc.tuwien.ac.at/compmath/download/Monagan_Maple_Programming.pdf
+
         EXAMPLES::
 
-            sage: m = maple('x^2 + 5*y')                            # optional - maple
-            sage: m.sage()                                          # optional - maple
+            sage: m = maple('x^2 + 5*y')        # optional - maple
+            sage: m.sage()                      # optional - maple
             x^2 + 5*y
-            sage: m._sage_()                                        # optional - maple
+            sage: m._sage_()                    # optional - maple
             x^2 + 5*y
-
-        ::
 
             sage: m = maple('sin(sqrt(1-x^2)) * (1 - cos(1/x))^2')  # optional - maple
             sage: m.sage()                                          # optional - maple
@@ -1127,6 +1138,43 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: mm = maple(m)                     # optional - maple
             sage: mm.sage() == m                    # optional - maple
             True
+
+        Integers and rationals are converted as such::
+
+            sage: maple(33).sage().parent()         # optional - maple
+            Integer Ring
+            sage: maple(191/5).sage().parent()      # optional - maple
+            Rational Field
+
+        Sets, lists, sequences::
+
+            sage: maple("[4,5,6]").sage()           # optional - maple
+            [4, 5, 6]
+            sage: maple({14,33,6}).sage()           # optional - maple
+            {6, 14, 33}
+            sage: maple("seq(i**2,i=1..5)").sage()  # optional - maple
+            (1, 4, 9, 16, 25)
+
+        Strings::
+
+            sage: maple('"banane"').sage()          # optional - maple
+            '"banane"'
+
+        Floats::
+
+            sage: Z3 = maple('evalf(Zeta(3))')   # optional - maple
+            sage: Z3.sage().parent()             # optional - maple
+            Real Field with 53 bits of precision
+            sage: c = maple('evalf(sqrt(-Pi))')  # optional - maple
+            sage: c.sage().parent()              # optional - maple
+            Complex Field with 53 bits of precision
+
+        Functions are not yet converted back correctly::
+
+            sage: maple(hypergeometric([3,4],[5],x))  # optional - maple
+            hypergeom([3, 4],[5],x)
+            sage: _.sage()                # known bug # optional - maple
+            hypergeometric((3, 4), (5,), x)
         """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
@@ -1137,37 +1185,45 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         result = repr(self)
         result = result.replace("Pi", "pi")
         if maple_type == 'symbol':       # pi
-            return SR(result)
+            pass   # left to symbolic ring
         elif maple_type == 'string':     # "banane"
             return result
-        elif maple_type == 'expr_seq':   # 2, 2
-            pass
-        elif maple_type == 'set':        # {(1, 1) = 1, (1, 2) = 2}
-            pass
+        elif maple_type == 'exprseq':   # 2, 2
+            n = self.parent()(f"[{self._name}]").nops()._sage_()
+            return tuple(self[i] for i in range(1, n + 1))
+        elif maple_type == 'set':        # {1, 2}
+            n = self.nops()._sage_()
+            return set(self.op(i)._sage_() for i in range(1, n + 1))
+        elif maple_type == 'list':        # [1, 2]
+            n = self.nops()._sage_()
+            return [self.op(i)._sage_() for i in range(1, n + 1)]
         elif maple_type == "Matrix":     # Matrix(2, 2, [[1,2],[3,4]])
-            m, n = self.op(1)._sage_()
-            coeffs = self.op(2)._sage_()
-            coeffs = [self[i + 1, j + 1].sage()
+            mn = self.op(1)
+            m = mn[1]._sage_()
+            n = mn[2]._sage_()
+            coeffs = [self[i + 1, j + 1]._sage_()
                       for i in range(m) for j in range(n)]
             return matrix(m, n, coeffs)
         elif maple_type[:6] == "Vector": # Vector[row](3, [4,5,6])
             n = self.op(1)._sage_()
-            coeffs = self.op(2)._sage_()
-            return vector([self[i + 1].sage() for i in range(n)])
-        elif maple_type = 'integer':
+            return vector([self[i + 1]._sage_() for i in range(n)])
+        elif maple_type == 'integer':
             return ZZ(result)
-        elif maple_type = 'rational':
+        elif maple_type == 'rational':
             return QQ(result)
-        elif maple_type = 'fraction':
+        elif maple_type == 'fraction':
             a, b = self.op(1), self.op(2)
             return a._sage_() / b._sage_()
-        elif maple_type = "function":
-            pass
-        elif maple_type = "float":
+        elif maple_type == "function":
+            pass  # TODO : here one should translate back function names
+        elif maple_type == "float":
+            from sage.rings.real_mpfr import RR
             return RR(result)
-        elif maple_type = "numeric":
+        elif maple_type == "complex(extended_numeric)":
+            from sage.rings.all import CC
             return CC(result)
-        # remain to handle types "+", "*" and "^"
+        elif maple_type == '`=`':        # (1, 1) = 2
+            return (self.op(1)._sage_(), self.op(2)._sage())
         try:
             from sage.symbolic.all import SR
             return SR(result)
@@ -1179,7 +1235,7 @@ maple = Maple()
 
 def reduce_load_Maple():
     """
-    Returns the maple object created in sage.interfaces.maple.
+    Return the maple object created in sage.interfaces.maple.
 
     EXAMPLES::
 

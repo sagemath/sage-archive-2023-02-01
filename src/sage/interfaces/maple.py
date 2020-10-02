@@ -606,7 +606,7 @@ connection to a server running Maple; for hints, type
         if t is None:
             return float(self('time()'))
         else:
-            return float(self('time() - %s'%float(t)))
+            return float(self('time() - %s' % float(t)))
 
     def set(self, var, value):
         """
@@ -1094,10 +1094,10 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: V = vector(QQ,[4,5,6])._maple_()
-            sage: V.op(1)
+            sage: V = maple(vector(QQ,[4,5,6]))      # optional - maple
+            sage: V.op(1)                            # optional - maple
             3
-            sage: V.op(2)
+            sage: V.op(2)                            # optional - maple
             {1 = 4, 2 = 5, 3 = 6}
         """
         return self.parent().op(i, self)

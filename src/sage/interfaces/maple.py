@@ -1165,9 +1165,6 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: Z3 = maple('evalf(Zeta(3))')   # optional - maple
             sage: Z3.sage().parent()             # optional - maple
             Real Field with 53 bits of precision
-            sage: c = maple('evalf(sqrt(-Pi))')  # optional - maple
-            sage: c.sage().parent()              # optional - maple
-            Complex Field with 53 bits of precision
 
         Functions are not yet converted back correctly::
 
@@ -1209,16 +1206,13 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             return vector([self[i + 1]._sage_() for i in range(n)])
         elif maple_type == 'integer':
             return ZZ(result)
-        elif maple_type == 'rational':
-            return QQ(result)
+        elif maple_type == 'fraction':
+            return self.op(1)._sage_() / self.op(2)._sage_()
         elif maple_type == "function":
             pass  # TODO : here one should translate back function names
         elif maple_type == "float":
             from sage.rings.real_mpfr import RR
             return RR(result)
-        elif maple_type == "complex(float)":
-            from sage.rings.all import CC
-            return CC(result)
         elif maple_type == '`=`':        # (1, 1) = 2
             return (self.op(1)._sage_() == self.op(2)._sage())
         try:

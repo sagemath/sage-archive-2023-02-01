@@ -279,9 +279,9 @@ class Maple(ExtraTabCompletion, Expect):
         #errorcursor=false avoids maple command line interface to dump
         #into the editor when an error occurs. Thus pexpect interface
         #is not messed up if a maple error occurs.
-        #screenwidth=infinity prevents maple command interface from cutting 
+        #screenwidth=infinity prevents maple command interface from cutting
         #your input lines. By doing this, file interface also works in the
-        #event that  sage_user_home + sage_tmp_file_stuff exceeds the 
+        #event that  sage_user_home + sage_tmp_file_stuff exceeds the
         #length of 79 characters.
         Expect.__init__(self,
                         name = 'maple',
@@ -295,8 +295,8 @@ class Maple(ExtraTabCompletion, Expect):
                         verbose_start = False,
                         logfile = logfile,
                         eval_using_file_cutoff=2048)  # 2048 is
-        #a small enough value to avoid conflicts with the 4096 limit  
-        #hardcoded in Expect. 
+        #a small enough value to avoid conflicts with the 4096 limit
+        #hardcoded in Expect.
 
     def _function_class(self):
         """
@@ -865,7 +865,7 @@ class MapleFunction(ExpectFunction):
 
             sage: print(maple.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
-            sage: maple.ZZZ._sage_src_()                 #not tested 
+            sage: maple.ZZZ._sage_src_()                 #not tested
             Traceback (most recent call last):
             ...
             Exception: no source code could be found
@@ -901,17 +901,17 @@ class MapleFunctionElement(FunctionElement):
             sage: print(g.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: m = maple('2')                     # optional - maple
-            sage: m.ZZZ._sage_src_()                 #not tested 
+            sage: m.ZZZ._sage_src_()                 #not tested
             Traceback (most recent call last):
             ...
             Exception: no source code could be found
         """
         return self._obj.parent()._source(self._name)
 
-    
+
 @instancedoc
 class MapleElement(ExtraTabCompletion, ExpectElement):
-    
+
     def __float__(self):
         """
         Return a floating point version of self.
@@ -1204,16 +1204,13 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             coeffs = [self[i + 1, j + 1]._sage_()
                       for i in range(m) for j in range(n)]
             return matrix(m, n, coeffs)
-        elif maple_type[:6] == "Vector": # Vector[row](3, [4,5,6])
+        elif maple_type[:6] == "Vector":  # Vector[row](3, [4,5,6])
             n = self.op(1)._sage_()
             return vector([self[i + 1]._sage_() for i in range(n)])
         elif maple_type == 'integer':
             return ZZ(result)
         elif maple_type == 'rational':
             return QQ(result)
-        elif maple_type == 'fraction':
-            a, b = self.op(1), self.op(2)
-            return a._sage_() / b._sage_()
         elif maple_type == "function":
             pass  # TODO : here one should translate back function names
         elif maple_type == "float":
@@ -1223,7 +1220,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             from sage.rings.all import CC
             return CC(result)
         elif maple_type == '`=`':        # (1, 1) = 2
-            return (self.op(1)._sage_(), self.op(2)._sage())
+            return (self.op(1)._sage_() == self.op(2)._sage())
         try:
             from sage.symbolic.all import SR
             return SR(result)

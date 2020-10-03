@@ -1166,6 +1166,12 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: Z3.sage().parent()             # optional - maple
             Real Field with 53 bits of precision
 
+            sage: sq5 = maple('evalf(sqrt(5),100)')   # optional - maple
+            sage: sq5 = sq5.sage(); sq5               # optional - maple
+            2.23606797749978969640...
+            sage: sq5.parent()
+            Real Field with 332 bits of precision
+
         Functions are not yet converted back correctly::
 
             sage: maple(hypergeometric([3,4],[5],x))  # optional - maple
@@ -1211,8 +1217,11 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         elif maple_type == "function":
             pass  # TODO : here one should translate back function names
         elif maple_type == "float":
-            from sage.rings.real_mpfr import RR
-            return RR(result)
+            from sage.rings.real_mpfr import RealField
+            mantissa = len(repr(self.op(1)))
+            prec = max(53, (mantissa * 13301) // 4004)
+            R = RealField(prec)
+            return R(result)
         elif maple_type == '`=`':        # (1, 1) = 2
             return (self.op(1)._sage_() == self.op(2)._sage())
         try:

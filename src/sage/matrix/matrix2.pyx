@@ -9495,6 +9495,10 @@ cdef class Matrix(Matrix1):
         Note that one can use the Python inverse operator to obtain the
         inverse as well.
 
+        .. SEEALSO::
+
+              :meth:`inverse_positive_definite`
+
         EXAMPLES::
 
             sage: m = matrix([[1,2],[3,4]])
@@ -12374,6 +12378,133 @@ cdef class Matrix(Matrix1):
             C.set_immutable()
             self.cache('cholesky', C)
         return C
+
+    def inverse_positive_definite(self):
+        r"""
+        Compute the inverse of a positive-definite matrix.
+
+        In accord with :meth:`is_positive_definite`, only Hermitian
+        matrices are considered positive-definite. Positive-definite
+        matrices have several factorizations (Cholesky, LDLT, et
+        cetera) that allow them to be inverted in a fast,
+        numerically-stable way. This method uses an appropriate
+        factorization, and is akin to the ``cholinv`` and ``chol2inv``
+        functions available in R, Octave, and Stata.
+
+        You should ensure that your matrix is positive-definite before
+        using this method. When in doubt, use the generic
+        :meth:`inverse` method instead.
+
+        OUTPUT:
+
+        If the given matrix is positive-definite, the return value is
+        the same as that of the :meth:`inverse` method. If the matrix
+        is not positive-definite, the behavior of this function is
+        undefined.
+
+        .. SEEALSO::
+
+              :meth:`inverse`,
+              :meth:`is_positive_definite`,
+              :meth:`cholesky`,
+              :meth:`indefinite_factorization`
+
+        EXAMPLES:
+
+        A simple two-by-two matrix with rational entries::
+
+            sage: A = matrix(QQ, [[ 2, -1],
+            ....:                 [-1,  2]])
+            sage: A.is_positive_definite()
+            True
+            sage: A.inverse_positive_definite()
+            [2/3 1/3]
+            [1/3 2/3]
+            sage: A.inverse_positive_definite() == A.inverse()
+            True
+
+        A matrix containing real roots::
+
+            sage: A = matrix(AA, [ [1,       0,       sqrt(2)],
+            ....:                  [0,       sqrt(3), 0      ],
+            ....:                  [sqrt(2), 0,       sqrt(5)] ])
+            sage: A.is_positive_definite()
+            True
+            sage: B = matrix(AA, [ [2*sqrt(5) + 5, 0, -sqrt(8*sqrt(5) + 18)],
+            ....:                  [0,             sqrt(1/3),             0],
+            ....:                  [-sqrt(8*sqrt(5) + 18), 0, sqrt(5) + 2] ])
+            sage: A.inverse_positive_definite() == B
+            True
+            sage: A*B == A.matrix_space().identity_matrix()
+            True
+
+        A Hermitian (but not symmetric) matrix with complex entries::
+
+            sage: A = matrix(QQbar, [ [ 1,  0,        I  ],
+            ....:                     [ 0,  sqrt(5),  0  ],
+            ....:                     [-I,  0,        3  ] ])
+            sage: A.is_positive_definite()
+            True
+            sage: B = matrix(QQbar, [ [ 3/2, 0,        -I/2 ],
+            ....:                     [ 0,   sqrt(1/5), 0   ],
+            ....:                     [ I/2, 0,         1/2 ] ])
+            sage: A.inverse_positive_definite() == B
+            True
+            sage: A*B == A.matrix_space().identity_matrix()
+            True
+
+        TESTS:
+
+        Check that the naive inverse agrees with the fast one for a
+        somewhat-random, positive-definite matrix with integer or
+        rational entries::
+
+            sage: from sage.misc.prandom import choice
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(5)
+            sage: ring = choice([ZZ, QQ])
+            sage: A = matrix.random(ring, n)
+            sage: I = matrix.identity(ring, n)
+            sage: A = A*A.transpose() + I
+            sage: A.is_positive_definite()
+            True
+            sage: actual = A.inverse_positive_definite()
+            sage: expected = A.inverse()
+            sage: actual == expected
+            True
+
+        Check that the naive inverse agrees with the fast one for a
+        somewhat-random, possibly complex, positive-definite matrix
+        with algebraic entries. This test is separate from the integer
+        and rational one because inverting a matrix with algebraic
+        entries is harder and requires smaller test cases::
+
+            sage: from sage.misc.prandom import choice
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(2)
+            sage: ring = choice([AA, QQbar])
+            sage: A = matrix.random(ring, n)
+            sage: I = matrix.identity(ring, n)
+            sage: A = A*A.conjugate_transpose() + I
+            sage: A.is_positive_definite()
+            True
+            sage: actual = A.inverse_positive_definite()
+            sage: expected = A.inverse()
+            sage: actual == expected
+            True
+        """
+        # Does it hurt if we conjugate a real number?
+        L, diags = self.indefinite_factorization(algorithm='hermitian',
+                                                 check=False)
+
+        # The default "echelonize" inverse() method works just fine for
+        # triangular matrices.
+        L_inv = L.inverse()
+        from sage.matrix.constructor import diagonal_matrix
+        D_inv = diagonal_matrix( ~d for d in diags )
+
+        return L_inv.conjugate_transpose()*D_inv*L_inv
+
 
     def LU(self, pivot=None, format='plu'):
         r"""

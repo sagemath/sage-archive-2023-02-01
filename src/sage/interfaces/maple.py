@@ -1216,7 +1216,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         elif maple_type == "float":
             from sage.rings.real_mpfr import RR
             return RR(result)
-        elif maple_type == "complex(extended_numeric)":
+        elif maple_type == "complex(float)":
             from sage.rings.all import CC
             return CC(result)
         elif maple_type == '`=`':        # (1, 1) = 2

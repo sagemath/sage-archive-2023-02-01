@@ -252,7 +252,7 @@ class FeatureNotPresentError(RuntimeError):
     def __init__(self, feature, reason=None, resolution=None):
         self.feature = feature
         self.reason = reason
-        self.resolution = resolution
+        self.resolution = resolution or feature.resolution()
 
     def __str__(self):
         r"""

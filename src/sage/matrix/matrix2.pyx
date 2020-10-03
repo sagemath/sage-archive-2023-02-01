@@ -2284,6 +2284,10 @@ cdef class Matrix(Matrix1):
             if not self.is_alternating():
                 raise ValueError("self must be alternating, which includes the diagonal entries being 0")
 
+        pf = self.fetch('pfaffian')  # check out cache
+        if pf is not None:
+            return pf
+
         # trivial cases:
         R = self.base_ring()
         if k % 2 == 1:

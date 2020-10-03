@@ -393,6 +393,8 @@ def cython_aliases():
     for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
                 'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
         var = lib.upper().replace("-", "") + "_"
+        if lib == 'cblas':
+           lib = 'blas'
         if lib == 'zlib':
             aliases[var + "CFLAGS"] = ""
             try:

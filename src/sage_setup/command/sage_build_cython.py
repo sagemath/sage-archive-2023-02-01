@@ -17,6 +17,7 @@ from Cython.Build.Dependencies import default_create_extension
 from sage_setup.util import stable_uniq
 from sage_setup.find import find_extra_files
 from sage_setup.library_order import library_order
+from sage_setup.cython_options import compiler_directives, compile_time_env_variables
 
 from sage.env import (cython_aliases, sage_include_directories)
 
@@ -149,23 +150,8 @@ class sage_build_cython(Command):
                 "Cython must be installed and importable in order to run "
                 "the cythonize command")
 
-        # Cython compiler directives
-        self.cython_directives = dict(
-            auto_pickle=False,
-            autotestdict=False,
-            cdivision=True,
-            embedsignature=True,
-            fast_getattr=True,
-            language_level="3str",
-            preliminary_late_includes_cy28=True,
-            profile=self.profile,
-        )
-        self.compile_time_env = dict(
-            PY_PLATFORM=sys.platform,
-            # The following two constants are here only for backwards compatibility of user packages
-            PY_VERSION_HEX=sys.hexversion,
-            PY_MAJOR_VERSION=sys.version_info[0]
-        )
+        self.cython_directives = compiler_directives(self.profile)
+        self.compile_time_env = compile_time_env_variables()
 
         # We check the Cython version and some relevant configuration
         # options from the earlier build to see if we need to force a

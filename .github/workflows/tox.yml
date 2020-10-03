@@ -239,7 +239,7 @@ jobs:
         if: contains(matrix.tox_system_factor, 'nobootstrap')
       - name: Move homebrew away
         run: |
-          (cd /usr/local && for a in bin etc include lib opt sbin share; do mv $a $a-moved; done)
+          (cd /usr/local && for a in bin etc include lib opt sbin share; do sudo mv $a $a-moved; done)
       - name: Select Xcode version
         run: |
           if [ ${{ matrix.xcode_version_factor }} != default ]; then sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode_version_factor }}.app; fi

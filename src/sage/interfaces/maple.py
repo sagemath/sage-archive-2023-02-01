@@ -1168,7 +1168,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: sq5 = maple('evalf(sqrt(5),100)')   # optional - maple
             sage: sq5 = sq5.sage(); sq5               # optional - maple
             2.23606797749978969640...
-            sage: sq5.parent()
+            sage: sq5.parent()                        # optional - maple
             Real Field with 332 bits of precision
 
         Functions are not yet converted back correctly::

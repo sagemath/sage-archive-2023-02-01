@@ -273,30 +273,30 @@ class Maple(ExtraTabCompletion, Expect):
         """
         __maple_iface_opts = [
             'screenwidth=infinity',
-            'errorcursor=false',]
+            'errorcursor=false']
         __maple_command = 'maple -t -c "interface({})"'.format(
             ','.join(__maple_iface_opts))
-        #errorcursor=false avoids maple command line interface to dump
-        #into the editor when an error occurs. Thus pexpect interface
-        #is not messed up if a maple error occurs.
-        #screenwidth=infinity prevents maple command interface from cutting
-        #your input lines. By doing this, file interface also works in the
-        #event that  sage_user_home + sage_tmp_file_stuff exceeds the
-        #length of 79 characters.
+        # errorcursor=false avoids maple command line interface to dump
+        # into the editor when an error occurs. Thus pexpect interface
+        # is not messed up if a maple error occurs.
+        # screenwidth=infinity prevents maple command interface from cutting
+        # your input lines. By doing this, file interface also works in the
+        # event that  sage_user_home + sage_tmp_file_stuff exceeds the
+        # length of 79 characters.
         Expect.__init__(self,
-                        name = 'maple',
-                        prompt = '#-->',
-                        command = __maple_command,
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        ulimit = ulimit,
-                        script_subdirectory = script_subdirectory,
-                        restart_on_ctrlc = False,
-                        verbose_start = False,
-                        logfile = logfile,
+                        name='maple',
+                        prompt='#-->',
+                        command=__maple_command,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        ulimit=ulimit,
+                        script_subdirectory=script_subdirectory,
+                        restart_on_ctrlc=False,
+                        verbose_start=False,
+                        logfile=logfile,
                         eval_using_file_cutoff=2048)  # 2048 is
-        #a small enough value to avoid conflicts with the 4096 limit
-        #hardcoded in Expect.
+        # a small enough value to avoid conflicts with the 4096 limit
+        # hardcoded in Expect.
 
     def _function_class(self):
         """
@@ -455,24 +455,24 @@ connection to a server running Maple; for hints, type
         """
         maple_console()
 
-##     def killall(self):
-##         """
-##         Kill all running instances of the maple interpreter
-##         on this system.
+#     def killall(self):
+#         """
+#         Kill all running instances of the maple interpreter
+#         on this system.
 
-##         TODO: When Sage exits it doesn't correctly by default kill
-##         all running Maple interpreters, for some strange reason.
-##         Calling this function uses the kill and pidof operating system
-##         programs to find all instances of cmaple and kill them.
-##         """
-##         import os
-##         self._expect = None
-##         while True:
-##             pid = os.popen("pidof cmaple").read()[:-1]
-##             if len(pid) > 0:
-##                 os.system('kill -9 %s'%pid)
-##             else:
-##                 break
+#         TODO: When Sage exits it doesn't correctly by default kill
+#         all running Maple interpreters, for some strange reason.
+#         Calling this function uses the kill and pidof operating system
+#         programs to find all instances of cmaple and kill them.
+#         """
+#         import os
+#         self._expect = None
+#         while True:
+#             pid = os.popen("pidof cmaple").read()[:-1]
+#             if len(pid) > 0:
+#                 os.system('kill -9 %s'%pid)
+#             else:
+#                 break
 
     def completions(self, s):
         """
@@ -485,13 +485,13 @@ connection to a server running Maple; for hints, type
             sage: 'divide' in c                # optional - maple
             True
         """
-        bs = chr(8)*len(s)
+        bs = chr(8) * len(s)
         if self._expect is None:
             self._start()
         E = self._expect
         E.sendline('%s%s%s' % (s, chr(20), bs))
         t = E.timeout
-        E.timeout=0.3  # since some things have no completion
+        E.timeout = 0.3  # since some things have no completion
         try:
             E.expect('----')
         except pexpect.TIMEOUT:
@@ -516,8 +516,8 @@ connection to a server running Maple; for hints, type
             True
         """
         try:
-            v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
-                sum([self.completions(chr(97+n)) for n in range(26)], [])
+            v = sum([self.completions(chr(65 + n)) for n in range(26)], []) + \
+                sum([self.completions(chr(97 + n)) for n in range(26)], [])
         except RuntimeError:
             print("\n" * 3)
             print("*" * 70)
@@ -571,7 +571,7 @@ connection to a server running Maple; for hints, type
         line += ';'
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
-                    wait_for_prompt=wait_for_prompt).replace('\\\n','').strip()
+                    wait_for_prompt=wait_for_prompt).replace('\\\n', '').strip()
             if z.lower().find("error") != -1:
                 raise RuntimeError("An error occurred running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s" % (line, z))
         return z
@@ -633,8 +633,7 @@ connection to a server running Maple; for hints, type
             sage: maple.get('xx')      # optional - maple
             '2'
         """
-        s = self.eval('printf("%%q",%s)'%var)
-        return s
+        return self.eval('printf("%%q",%s)' % var)
 
     def _object_class(self):
         """
@@ -725,7 +724,7 @@ connection to a server running Maple; for hints, type
             ...
             Exception: no source code could be found
         """
-        cmd = 'echo "interface(verboseproc=2): print(%s);" | maple -q'%s
+        cmd = 'echo "interface(verboseproc=2): print(%s);" | maple -q' % s
         src = os.popen(cmd).read()
         if src.strip() == s:
             raise RuntimeError("no source code could be found")
@@ -815,7 +814,7 @@ connection to a server running Maple; for hints, type
             sage: maple('fibonacci(10)')              # optional - maple
             55
         """
-        self.eval('with(%s)'%package)
+        self.eval('with(%s)' % package)
 
     load = with_package
 
@@ -947,7 +946,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: hash(m)               # random            # optional - maple
             -2187277978252104690
         """
-        return int(maple.eval('StringTools:-Hash(convert(%s, string))' % self.name())[1:-1],16)
+        return int(maple.eval('StringTools:-Hash(convert(%s, string))' % self.name())[1:-1], 16)
 
     def _richcmp_(self, other, op):
         """
@@ -1182,7 +1181,6 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
-        from sage.rings.rational_field import QQ
         # The next few lines are a very crude excuse for a maple "parser"
         maple_type = repr(self.whattype())
         result = repr(self)
@@ -1230,8 +1228,9 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         except Exception:
             raise NotImplementedError("Unable to parse Maple output: %s" % result)
 
-# An instance
-maple = Maple()
+
+maple = Maple()  # an instance
+
 
 def reduce_load_Maple():
     """
@@ -1280,7 +1279,6 @@ def __doctest_cleanup():
     """
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
-
 
 
 """

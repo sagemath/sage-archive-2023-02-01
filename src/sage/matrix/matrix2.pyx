@@ -2414,7 +2414,7 @@ cdef class Matrix(Matrix1):
 
             sage: A = random_matrix(ZZ[x], 6)
             sage: A = A - A.transpose()
-            sage: A.pfaffian(algorithm='bfl') == A._pf_perfect_matchings()  # pfaffian method caches result
+            sage: A.pfaffian(algorithm='bfl') == A._pf_perfect_matchings()
             True
 
         """

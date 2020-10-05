@@ -105,7 +105,8 @@ class DecreasingHeckeFactorization(Element, metaclass=InheritComparisonClasscall
             u = t
             if parent is None:
                 if max_value is None:
-                    max_value = max([x for factor in t for x in factor]+[0])
+                    letters = [x for factor in t for x in factor]
+                    max_value = max(letters) if letters else 1
                 from sage.monoids.hecke_monoid import HeckeMonoid
                 S = SymmetricGroup(max_value+1)
                 H = HeckeMonoid(S)
@@ -1101,7 +1102,7 @@ def _list_equivalent_words(w):
                 L += [[i,"ppq=pqq"]]
             if q == r and r != p:
                 L += [[i,"pqq=ppq"]]
-        if abs(word[-2]-word[-1]) > 1:
+        if len(word) > 1 and abs(word[-2]-word[-1]) > 1:
             L += [[len(word)-2,"pq=qp"]]
         return L
 

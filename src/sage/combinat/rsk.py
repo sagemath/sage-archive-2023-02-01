@@ -2507,16 +2507,17 @@ class RuleStar(Rule):
       unchanged and `y` is to be inserted into the next row.
 
     The `\star`-insertion returns a pair consisting a conjugate of a
-    semistandard tableau and a semistandard tableau.
+    semistandard tableau and a semistandard tableau. It is a bijection from the
+    collection of all increasing Hecke biwords whose bottom row is a fully
+    commutative word to pairs (P, Q) of tableaux of the same shape such that
+    P is conjugate semistandard, Q is semistandard and the row reading word of
+    P is fully commutative [MPPS2020]_.
 
     EXAMPLES:
 
     As an example of `\star`-insertion, we reproduce Example 28 in [MPPS2020]_::
 
         sage: from sage.combinat.rsk import RuleStar
-        sage: RSK_inverse(*RSK([1,3,3,4],[2,1,3,3],insertion='Star'),insertion='Star')
-        [[1, 3, 3, 4], [2, 1, 3, 3]]
-
         sage: p,q = RuleStar().forward_rule([1,1,2,2,4,4], [1,3,2,4,2,4])
         sage: ascii_art(p, q)
           1  2  4  1  1  2
@@ -2531,7 +2532,7 @@ class RuleStar(Rule):
         sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
         sage: h = DecreasingHeckeFactorization([[4, 2], [], [4, 2], [3, 1]])
         sage: RSK_inverse(*RSK(h,insertion='Star'),insertion='Star',
-        ....:   output='DecreasingHeckeFactorization')
+        ....:             output='DecreasingHeckeFactorization')
         (4, 2)()(4, 2)(3, 1)
         sage: p,q = RSK(h, insertion='Star')
         sage: ascii_art(p, q)
@@ -2543,6 +2544,105 @@ class RuleStar(Rule):
         sage: f = RSK_inverse(p, q, output='DecreasingHeckeFactorization', insertion='Star')
         sage: f == h
         True
+
+    .. WARNING::
+
+        When ``output`` is set to ``'DecreasingHeckeFactorization'``, the
+        inverse of `\star`-insertion of `(P,Q)` returns a decreasing
+        factorization whose number of factors is the maximum entry of `Q`::
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: h1 = DecreasingHeckeFactorization([[],[3,1],[1]]); h1
+            ()(3, 1)(1)
+            sage: P,Q = RSK(h1, insertion='Star')
+            sage: ascii_art(P, Q)
+              1  3  1  2
+              1     2
+            sage: h2 = RSK_inverse(P, Q, insertion='Star',
+            ....: output='DecreasingHeckeFactorization'); h2
+            (3, 1)(1)
+
+    TESTS:
+
+        Check that :func:`RSK` is the inverse of :func:`RSK_inverse` for various
+        outputs/inputs::
+
+            sage: from sage.combinat.partition import Partitions_n
+            sage: shapes = [shape for n in range(7) for shape in Partitions_n(n)]
+            sage: row_reading = lambda T: [x for row in reversed(T) for x in row]
+            sage: from sage.monoids.hecke_monoid import HeckeMonoid
+            sage: H = HeckeMonoid(SymmetricGroup(4+1))
+            sage: from sage.combinat import permutation
+            sage: reduce = lambda w: permutation.from_reduced_word(H.from_reduced_word(w).reduced_word())
+            sage: fc = lambda w: not reduce(w).has_pattern([3,2,1])
+            sage: FC_tabs = [T for shape in shapes
+            ....:                  for T in SemistandardTableaux(shape, max_entry=4)
+            ....:                      if fc(row_reading(T.conjugate()))]
+            sage: Checks = []
+            sage: for T in FC_tabs:
+            ....:    shape = T.shape().conjugate()
+            ....:    P = T.conjugate()
+            ....:    Checks += [all((P,Q) == tuple(RSK(*RSK_inverse(P, Q,
+            ....:               insertion='Star', output='array'),
+            ....:               insertion='Star'))
+            ....:               for Q in SemistandardTableaux(shape, max_entry=5))]
+            sage: all(Checks)
+            True
+            sage: Checks = []
+            sage: for T in FC_tabs:
+            ....:    shape = T.shape().conjugate()
+            ....:    P = T.conjugate()
+            ....:    Checks += [all((P,Q) == tuple(RSK(RSK_inverse(P, Q,
+            ....:               insertion='Star', output='DecreasingHeckeFactorization'),
+            ....:               insertion='Star'))
+            ....:               for Q in SemistandardTableaux(shape, max_entry=5))]
+            sage: all(Checks)
+            True
+            sage: Checks = []
+            sage: for T in FC_tabs:
+            ....:    shape = T.shape().conjugate()
+            ....:    P = T.conjugate()
+            ....:    for Q in StandardTableaux(shape, max_entry=5):
+            ....:        Checks += [(P,Q) == tuple(RSK(RSK_inverse(P, Q,
+            ....:                   insertion='Star', output='word'),
+            ....:                   insertion='Star'))]
+            sage: all(Checks)
+            True
+
+        Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on arrays
+        and words::
+
+            sage: S = SymmetricGroup(3+1)
+            sage: from sage.combinat import permutation
+            sage: FC = [x
+            ....:       for x in S
+            ....:           if (not permutation.from_reduced_word(
+            ....:           x.reduced_word()).has_pattern([3,2,1]) and
+            ....:           x.reduced_word())]
+            sage: Triples = [(w, factors, ex)
+            ....:            for w in FC
+            ....:                for factors in range(2, 5+1)
+            ....:                    for ex in range(4)]
+            sage: Checks = []
+            sage: for t in Triples:
+            ....:     B = crystals.FullyCommutativeStableGrothendieck(*t)
+            ....:     Checks += [all(b.to_increasing_hecke_biword() ==
+            ....:                RSK_inverse(*RSK(
+            ....:                *b.to_increasing_hecke_biword(),
+            ....:                insertion='Star'), insertion='Star')
+            ....:                for b in B)]
+            sage: all(Checks)
+            True
+
+            sage: from sage.monoids.hecke_monoid import HeckeMonoid
+            sage: Checks = []
+            sage: H = HeckeMonoid(SymmetricGroup(3+1))
+            sage: reduce = lambda w: permutation.from_reduced_word(H.from_reduced_word(w).reduced_word())
+            sage: fc = lambda w: not reduce(w).has_pattern([3,2,1])
+            sage: words = [w for n in range(10) for w in Words(3, n) if fc(w)]
+            sage: all([all(w == RSK_inverse(*RSK(w, insertion='Star'),
+            ....:          insertion='Star', output='word') for w in words)])
+            True
     """
     def forward_rule(self, obj1, obj2=None, check_braid=True):
         r"""
@@ -2588,11 +2688,21 @@ class RuleStar(Rule):
             sage: p,q = RSK(h, insertion=RSK.rules.Star); p,q
             ([[1, 3], [2, 3], [2]], [[1, 1], [2, 3], [3]])
 
-        TESTS::
+        TESTS:
+
+        Empty objects::
 
             sage: from sage.combinat.rsk import RuleStar
             sage: p,q = RuleStar().forward_rule([]); p,q
             ([], [])
+
+            sage: from sage.combinat.crystals.fully_commutative_stable_grothendieck import DecreasingHeckeFactorization
+            sage: h = DecreasingHeckeFactorization([[],[]])
+            sage: p,q = RuleStar().forward_rule(h); p,q
+            ([], [])
+
+        Invalid inputs::
+
             sage: p,q = RuleStar().forward_rule([1,1,2,3,3], [2,2,3,1,3])
             Traceback (most recent call last):
             ...
@@ -2691,12 +2801,18 @@ class RuleStar(Rule):
 
         TESTS:
 
+        Empty objects::
+
             sage: RuleStar().backward_rule(Tableau([]), Tableau([]))
             [[], []]
+            sage: RuleStar().backward_rule(Tableau([]), Tableau([]), output='word')
+            word:
+            sage: RuleStar().backward_rule(Tableau([]), Tableau([]),output='DecreasingHeckeFactorization')
+            ()
         """
         from sage.combinat.tableau import Tableau, SemistandardTableau, SemistandardTableaux
         if p.shape() != q.shape():
-            raise ValueError("p conjugate(=%s) and q(=%s) must have the same shape" % (p, q))
+            raise ValueError("p(=%s) and q(=%s) must have the same shape" % (p, q))
         if q not in SemistandardTableaux():
             raise ValueError("q(=%s) must be a semistandard tableau" % q)
         if p.conjugate() not in SemistandardTableaux():
@@ -2727,7 +2843,7 @@ class RuleStar(Rule):
         # d is now a double family such that for all integers k and j,
         # d[k][j]=i means that (i, j)-th cell of q is filled with k.
         for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
-            for j in sorted(row_dict.keys(), reverse=True):
+            for j in sorted(row_dict, reverse=True):
                 i = row_dict[j]
                 x = p_copy[i].pop()  # Always the right-most entry
                 while i > 0:
@@ -2810,7 +2926,7 @@ class RuleStar(Rule):
             [[1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4]]
             sage: RuleStar()._backward_format_output([1, 1, 2, 2, 4, 4], [1, 3, 2, 4, 2, 4], 'DecreasingHeckeFactorization')
             (4, 2)()(4, 2)(3, 1)
-            sage: RuleStar()._backward_format_output([6, 5, 4, 3, 2, 1], [4, 2, 4, 2, 3, 1], 'word')
+            sage: RuleStar()._backward_format_output([1, 2, 3, 4, 5, 6], [4, 2, 4, 2, 3, 1], 'word')
             word: 424231
         """
         if len(obj1) != len(obj2):
@@ -2818,7 +2934,7 @@ class RuleStar(Rule):
         if output == 'array':
             return [obj1, obj2]
         elif output == 'word':
-            if obj1 == list(range(len(obj1), 0, -1)):
+            if obj1 == list(range(1, len(obj1)+1)):
                 from sage.combinat.words.word import Word
                 return Word(obj2)
             else:
@@ -2835,7 +2951,11 @@ class RuleStar(Rule):
                     for a in range(obj1[j-1]-obj1[j]):
                         df.append([])
                 df[-1].append(obj2[j])
-            for a in range(obj1[-1]-1):
+            if obj1:
+                for a in range(obj1[-1]-1):
+                    df.append([])
+            # If biword is empty, return a decreasing factorization with 1 factor
+            else:
                 df.append([])
             return DecreasingHeckeFactorization(df)
 

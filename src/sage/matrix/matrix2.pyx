@@ -13566,6 +13566,492 @@ cdef class Matrix(Matrix1):
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
+    def _block_ldlt(self):
+        r"""
+        Perform a user-unfriendly block-`LDL^{T}` factorization of the
+        Hermitian matrix `A`
+
+        This function is used internally to compute the factorization
+        for the user-friendly :meth:`block_ldlt` method. Whereas that
+        function returns three nice matrices, this one returns
+
+          * An array ``p`` of the first `n` natural numbers, permuted
+            in a way that represents the `n`-by-`n` permutation matrix
+            `P`,
+          * A matrix whose lower-triangular portion is ``L``, but whose
+            (strict) upper-triangular portion is junk,
+          * A list of the block-diagonal entries of ``D``.
+
+        This is mainly useful to avoid having to "undo" the
+        construction of the matrix `D` when we don't need it. For
+        example, it's much easier to compute the inertia of a matrix
+        from the list of blocks than it is from the block-diagonal
+        matrix itself; given a block-diagonal matrix, you would
+        first have to figure out where the blocks are!
+
+        All of the real documentation, examples, and tests for this
+        method can be found in the user-facing :meth:`block_ldlt`
+        method.
+
+        EXAMPLES:
+
+        Test that this method can be called directly; the returned ``l``
+        is not inspected because its upper-triangular part is undefined::
+
+            sage: A =  matrix(QQ, [[0, 1, 0],
+            ....:                  [1, 1, 2],
+            ....:                  [0, 2, 0]])
+            sage: p,l,d = A._block_ldlt()
+            sage: p
+            array('I', [1, 2, 0])
+            sage: d
+            [[1], [-4], [0]]
+
+        """
+        cdef Py_ssize_t i, j, k # loop indices
+        cdef Py_ssize_t r       # another row/column index
+
+        # We need to construct 1x1 and 2x2 matrices to stick in d.
+        from sage.matrix.constructor import matrix
+
+        # We have to make at least one copy of the input matrix so
+        # that we can change the base ring to its fraction field. Both
+        # "L" and the intermediate Schur complements will potentially
+        # have entries in the fraction field. However, we don't need
+        # to make *two* copies.  We can't store the entries of "D" and
+        # "L" in the same matrix if "D" will contain any 2x2 blocks;
+        # but we can still store the entries of "L" in the copy of "A"
+        # that we're going to make.  Contrast this with the non-block
+        # LDL^T factorization where the entries of both "L" and "D"
+        # overwrite the lower-left half of "A".
+        #
+        # This grants us an additional speedup, since we don't have to
+        # permute the rows/columns of "L" *and* "A" at each iteration.
+        #
+        # Beware that the diagonals of "L" are all set to ``1`` only
+        # at the end of the function, not as its columns are computed.
+        ring = self.base_ring().fraction_field()
+
+        cdef Matrix A # A copy of the input matrix
+        if self.base_ring() == ring:
+            A = self.__copy__()
+        else:
+            # Changing the ring of a large matrix can take a loooong
+            # time, compared with the short (but predictable) time we
+            # might waste here checking if we need to do it.
+            A = self.change_ring(ring)
+
+        zero = ring.zero()
+        one = ring.one()
+
+        # The magic constant (1 + sqrt(17))/8 used by Bunch-Kaufman.
+        # This is mainly useful for numerical stability, so we use its
+        # numerical approximation to speed up the comparisons we're
+        # going to make with it.
+        cdef double alpha = 0.6403882032022076
+
+        # Likewise, these two values are only ever used in comparisons
+        # that determine which row/column swaps we make. It's quite
+        # pointless to make long, slow comparisons when we happen to be
+        # working in exact arithmetic where the process is stable anyway.
+        # So, we define these constants to be C doubles, forcing any
+        # comparisons to be made quickly.
+        cdef double omega_1, omega_r = 0
+
+        # Keep track of the permutations and diagonal blocks in a vector
+        # rather than in a matrix, for efficiency.
+        cdef Py_ssize_t n = A._nrows
+
+        # Use a low-level array of unsigned integers for the permutation.
+        from array import array
+        p = array('I', range(n))
+
+        # The list of diagonal blocks.
+        cdef list d = []
+
+        # And the parent of those diagonal blocks that are 1x1...
+        one_by_one_space = A.matrix_space(1,1)
+
+        # The case n == 0 is *almost* handled by skipping the
+        # forthcoming loop entirely. However, we must stick a trivial
+        # matrix in "d" to let block_diagonal_matrix() know what its
+        # base ring should be.
+        if n == 0:
+            d.append(A)
+
+        k = 0
+        while k < n:
+            # At each step, we're considering the k-by-k submatrix
+            # contained in the lower-right corner of "A", because that's
+            # where we're storing the next iterate. So our indices are
+            # always "k" greater than those of Higham or B&K.
+
+            A_kk = A.get_unsafe(k,k)
+
+            if k == (n-1):
+                # Handle this trivial case manually, since otherwise the
+                # algorithm's references to the e.g. "subdiagonal" are
+                # meaningless. The corresponding entry of "L" will be
+                # fixed later (since it's an on-diagonal element, it gets
+                # set to one eventually).
+                d.append( one_by_one_space(A_kk) )
+                k += 1
+                continue
+
+            # Find the largest subdiagonal entry (in magnitude) in the
+            # kth column. This occurs prior to Step (1) in Higham,
+            # but is part of Step (1) in Bunch and Kaufman. We adopt
+            # Higham's "omega" notation instead of B&K's "lambda"
+            # because "lambda" can lead to some confusion.
+            #
+            # Note: omega_1 is defined as a C double, but the abs()
+            # below would make a complex number approximate anyway.
+            omega_1 = 0
+            for i in range(k+1,n):
+                a_ik_abs = A.get_unsafe(i,k).abs()
+                if a_ik_abs > omega_1:
+                    omega_1 = a_ik_abs
+                    # We record the index "r" that corresponds to
+                    # omega_1 for later. This is still part of Step
+                    # (1) in B&K, but occurs later in the "else"
+                    # branch of Higham's Step (1), separate from
+                    # his computation of omega_1.
+                    r = i
+
+            if omega_1 == 0:
+                # In this case, our matrix looks like
+                #
+                #   [ a 0 ]
+                #   [ 0 B ]
+                #
+                # and we can simply skip to the next step after recording
+                # the 1x1 pivot "a" in the top-left position. The entry "a"
+                # will be adjusted to "1" later on to ensure that "L" is
+                # (block) unit-lower-triangular.
+                d.append( one_by_one_space(A_kk) )
+                k += 1
+                continue
+
+            if A_kk.abs() > alpha*omega_1:
+                # This is the first case in Higham's Step (1), and B&K's
+                # Step (2). Note that we have skipped the part of B&K's
+                # Step (1) where we determine "r", since "r" is not yet
+                # needed and we may waste some time computing it
+                # otherwise. We are performing a 1x1 pivot, but the
+                # rows/columns are already where we want them, so nothing
+                # needs to be permuted.
+                d.append( one_by_one_space(A_kk) )
+                _block_ldlt_pivot1x1(A,k)
+                k += 1
+                continue
+
+            # Continuing the "else" branch of Higham's Step (1), and
+            # onto B&K's Step (3) where we find the largest
+            # off-diagonal entry (in magniture) in column "r". Since
+            # the matrix is Hermitian, we need only look at the
+            # above-diagonal entries to find the off-diagonal of
+            # maximal magnitude.
+            #
+            # Note: omega_r is defined as a C double, but the abs()
+            # below would make a complex number approximate anyway.
+            omega_r = 0
+            for j in range(k,r):
+                a_rj_abs = A.get_unsafe(r,j).abs()
+                if a_rj_abs > omega_r:
+                    omega_r = a_rj_abs
+
+            if A_kk.abs()*omega_r >= alpha*(omega_1**2):
+                # Step (2) in Higham or Step (4) in B&K.
+                d.append( one_by_one_space(A_kk) )
+                _block_ldlt_pivot1x1(A,k)
+                k += 1
+                continue
+
+            A_rr = A.get_unsafe(r,r)
+            if A_rr.abs() > alpha*omega_r:
+                # This is Step (3) in Higham or Step (5) in B&K. Still
+                # a 1x1 pivot, but this time we need to swap
+                # rows/columns k and r.
+                d.append( one_by_one_space(A_rr) )
+                A.swap_columns_c(k,r); A.swap_rows_c(k,r)
+                p_k = p[k]; p[k] = p[r]; p[r] = p_k
+                _block_ldlt_pivot1x1(A,k)
+                k += 1
+                continue
+
+            # If we've made it this far, we're at Step (4) in Higham
+            # or Step (6) in B&K, where we perform a 2x2 pivot.  See
+            # pivot1x1() for an explanation of why it's OK to permute
+            # the entries of "L" here as well.
+            A.swap_columns_c(k+1,r); A.swap_rows_c(k+1,r)
+            p_k = p[k+1]; p[k+1] = p[r]; p[r] = p_k
+
+            # The top-left 2x2 submatrix (starting at position k,k) is
+            # now our pivot.
+            E = A[k:k+2,k:k+2]
+            d.append(E)
+
+            C = A[k+2:n,k:k+2]
+            B = A[k+2:,k+2:]
+
+            # We don't actually need the inverse of E, what we really need
+            # is C*E.inverse(), and that can be found by setting
+            #
+            #   X = C*E.inverse()   <====>   XE = C.
+            #
+            # Then "X" can be found easily by solving a system.  Note: I
+            # do not actually know that sage solves the system more
+            # intelligently, but this is still The Right Thing To Do.
+            CE_inverse = E.solve_left(C)
+
+            schur_complement = B - (CE_inverse*C.conjugate_transpose())
+
+            # Compute the Schur complement that we'll work on during
+            # the following iteration, and store it back in the lower-
+            # right-hand corner of "A".
+            for i in range(n-k-2):
+                for j in range(i+1):
+                    A.set_unsafe(k+2+i, k+2+j, schur_complement[i,j])
+                    A.set_unsafe(k+2+j, k+2+i, schur_complement[j,i])
+
+            # The on- and above-diagonal entries of "L" will be fixed
+            # later, so we only need to worry about the lower-left entry
+            # of the 2x2 identity matrix that belongs at the top of the
+            # new column of "L".
+            A.set_unsafe(k+1, k, zero)
+            for i in range(n-k-2):
+                for j in range(2):
+                    # Store the new (k and (k+1)st) columns of "L" within
+                    # the lower-left-hand corner of "A".
+                    A.set_unsafe(k+i+2, k+j, CE_inverse[i,j])
+
+
+            k += 2
+
+        for i in range(n):
+            # We skipped this during the main loop, but it's necessary for
+            # correctness.
+            A.set_unsafe(i, i, one)
+
+        return (p,A,d)
+
+    def block_ldlt(self):
+        r"""
+        Compute a block-`LDL^{T}` factorization of a Hermitian
+        matrix.
+
+        The standard `LDL^{T}` factorization of a positive-definite
+        matrix `A` factors it as `A = LDL^{T}` where `L` is
+        unit-lower-triangular and `D` is diagonal. If one allows
+        row/column swaps via a permutation matrix `P`, then this
+        factorization can be extended to many positive-semidefinite
+        matrices `A` via the factorization `P^{T}AP = LDL^{T}` that
+        places the zeros at the bottom of `D` to avoid division by
+        zero. These factorizations extend easily to complex Hermitian
+        matrices when one replaces the transpose by the
+        conjugate-transpose.
+
+        However, we can go one step further. If, in addition, we allow
+        `D` to potentially contain `2 \times 2` blocks on its
+        diagonal, then every real or complex Hermitian matrix `A` can
+        be factored as `A = PLDL^{*}P^{T}`. When the row/column swaps
+        are made intelligently, this process is numerically stable
+        over inexact rings like ``RDF``.  Bunch and Kaufman describe
+        such a "pivot" scheme that is suitable for the solution of
+        Hermitian systems, and that is how we choose our row and
+        column swaps.
+
+        OUTPUT:
+
+        If the input matrix is Hermitian, we return a triple `(P,L,D)`
+        such that `A = PLDL^{*}P^{T}` and
+
+          * `P` is a permutation matrix,
+          * `L` is unit lower-triangular,
+          * `D` is a block-diagonal matrix whose blocks are of size
+            one or two.
+
+        If the input matrix is not Hermitian, the output from this
+        function is undefined.
+
+        ALGORITHM:
+
+        We essentially follow "Algorithm A" in the paper by Bunch and
+        Kaufman [BK1977]_ that describes the stable pivoting strategy.
+        The same scheme is described by Higham [Hig2002]_.
+
+        REFERENCES:
+
+        - [BK1977]_
+        - [Hig2002]_
+
+        EXAMPLES:
+
+        This three-by-three real symmetric matrix has one positive, one
+        negative, and one zero eigenvalue -- so it is not any flavor of
+        (semi)definite, yet we can still factor it::
+
+            sage: A =  matrix(QQ, [[0, 1, 0],
+            ....:                  [1, 1, 2],
+            ....:                  [0, 2, 0]])
+            sage: P,L,D = A.block_ldlt()
+            sage: P
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
+            sage: L
+            [  1   0   0]
+            [  2   1   0]
+            [  1 1/2   1]
+            sage: D
+            [ 1| 0| 0]
+            [--+--+--]
+            [ 0|-4| 0]
+            [--+--+--]
+            [ 0| 0| 0]
+            sage: P.transpose()*A*P == L*D*L.transpose()
+            True
+
+        This two-by-two matrix has no standard factorization, but it
+        constitutes its own block-factorization::
+
+            sage: A = matrix(QQ, [ [0,1],
+            ....:                  [1,0] ])
+            sage: A.block_ldlt()
+            (
+            [1 0]  [1 0]  [0 1]
+            [0 1], [0 1], [1 0]
+            )
+
+        The same is true of the following complex Hermitian matrix::
+
+            sage: A = matrix(QQbar, [ [ 0,I],
+            ....:                     [-I,0] ])
+            sage: A.block_ldlt()
+            (
+            [1 0]  [1 0]  [ 0  I]
+            [0 1], [0 1], [-I  0]
+            )
+
+        Complete diagonal pivoting could cause problems for the
+        following matrix, since the diagonal entries are small
+        compared to the off-diagonals that must be zeroed; however,
+        the block algorithm refuses to factor it::
+
+            sage: A = matrix(RDF, 2, 2, [ [1e-10, 1    ],
+            ....:                         [1    , 2e-10] ])
+            sage: A.block_ldlt()
+            (
+            [1.0 0.0]  [1.0 0.0]  [1e-10   1.0]
+            [0.0 1.0], [0.0 1.0], [  1.0 2e-10]
+            )
+
+        The factorization over an inexact ring is necessarily inexact,
+        but `P^{T}AP` will ideally be close to `LDL^{*}` in the metric
+        induced by the norm::
+
+            sage: A = matrix(CDF, 2, 2, [ [-1.1933, -0.3185 - 1.3553*I],
+            ....:                         [-0.3185 + 1.3553*I, 1.5729 ] ])
+            sage: P,L,D = A.block_ldlt()
+            sage: P.T*A*P == L*D*L.H
+            False
+            sage: (P.T*A*P - L*D*L.H).norm() < 1e-10
+            True
+
+        TESTS:
+
+        All three factors should be the identity when the input matrix is::
+
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(6)
+            sage: I = matrix.identity(QQ,n)
+            sage: P,L,D = I.block_ldlt()
+            sage: P == I and L == I and D == I
+            True
+
+        Ensure that a "random" real symmetric matrix is factored correctly::
+
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(6)
+            sage: A = matrix.random(QQ, n)
+            sage: A = A + A.transpose()
+            sage: P,L,D = A.block_ldlt()
+            sage: A == P*L*D*L.transpose()*P.transpose()
+            True
+
+        Ensure that a "random" complex Hermitian matrix is factored
+        correctly::
+
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(6)
+            sage: F = NumberField(x^2 +1, 'I')
+            sage: A = matrix.random(F, n)
+            sage: A = A + A.conjugate_transpose()
+            sage: P,L,D = A.block_ldlt()
+            sage: A == P*L*D*L.conjugate_transpose()*P.conjugate_transpose()
+            True
+
+        Ensure that a "random" complex positive-semidefinite matrix is
+        factored correctly and that the resulting block-diagonal matrix
+        is in fact diagonal::
+
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(6)
+            sage: F = NumberField(x^2 +1, 'I')
+            sage: A = matrix.random(F, n)
+            sage: A = A*A.conjugate_transpose()
+            sage: P,L,D = A.block_ldlt()
+            sage: A == P*L*D*L.conjugate_transpose()*P.conjugate_transpose()
+            True
+            sage: diagonal_matrix(D.diagonal()) == D
+            True
+
+        The factorization should be a no-op on diagonal matrices::
+
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(6)
+            sage: A = matrix.diagonal(random_vector(QQ, n))
+            sage: I = matrix.identity(QQ,n)
+            sage: P,L,D = A.block_ldlt()
+            sage: P == I and L == I and A == D
+            True
+
+        All three factors have the same base ring, even when they're
+        trivial::
+
+            sage: A = matrix(QQ,0,[])
+            sage: P,L,D = A.block_ldlt()
+            sage: P.base_ring() == L.base_ring()
+            True
+            sage: L.base_ring() == D.base_ring()
+            True
+
+        """
+        cdef Py_ssize_t n    # size of the matrices
+        cdef Py_ssize_t i, j # loop indices
+        cdef Matrix P,L,D    # output matrices
+
+        p,L,d = self._block_ldlt()
+        MS = L.matrix_space()
+        P = MS.matrix(lambda i,j: p[j] == i)
+
+        # Warning: when n == 0, this works, but returns a matrix
+        # whose (nonexistent) entries are in ZZ rather than in
+        # the base ring of P and L. Problematic? Who knows.
+        from sage.matrix.constructor import block_diagonal_matrix
+        D = block_diagonal_matrix(d)
+
+        # Overwrite the (strict) upper-triangular part of "L", since a
+        # priori it contains the same entries as "A" did after _block_ldlt().
+        n = L._nrows
+        zero = MS.base_ring().zero()
+        for i in range(n):
+            for j in range(i+1,n):
+                L.set_unsafe(i,j,zero)
+
+        return (P,L,D)
+
+
     def is_positive_definite(self, certificate=False):
         r"""
         Determines if a real or symmetric matrix is positive definite.
@@ -17176,3 +17662,40 @@ class NotFullRankError(ValueError):
     that method raises this error if the system turns out to be singular.
     """
     pass
+
+
+cdef inline void _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k):
+    r"""
+    Update the `n`-by-`n` matrix `A` as part of a 1x1 pivot in the
+    ``k,k`` position (whose value is ``pivot``). Relies on the fact
+    that `A` is passed in by reference, since for performance reasons
+    this routine should overwrite its argument.
+
+    There is no return value from this function, as its intended
+    effect is to update the matrix `A` in-place.
+    """
+    cdef Py_ssize_t i,j # dumy loop indices
+    cdef Py_ssize_t n = A._nrows
+    pivot = A.get_unsafe(k,k)
+
+    # Compute the Schur complement that we'll work on during
+    # the following iteration, and store it back in the lower-
+    # right-hand corner of "A".
+    for i in range(n-k-1):
+        for j in range(i+1):
+            A.set_unsafe(k+1+i,
+                         k+1+j,
+                         ( A.get_unsafe(k+1+i,k+1+j) -
+                           A.get_unsafe(k+1+i,k)*A.get_unsafe(k,k+1+j)/pivot ))
+            A.set_unsafe(k+1+j,
+                         k+1+i,
+                         A.get_unsafe(k+1+i,k+1+j).conjugate())
+
+    for i in range(n-k-1):
+        # Store the new (kth) column of "L" within the lower-
+        # left-hand corner of "A".
+        A.set_unsafe(k+i+1,
+                     k,
+                     A.get_unsafe(k+i+1,k)/ pivot)
+
+    return

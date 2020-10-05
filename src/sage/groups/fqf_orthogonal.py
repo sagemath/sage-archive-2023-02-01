@@ -78,7 +78,7 @@ class FqfIsometry(AbelianGroupAutomorphism):
 
     def _repr_(self):
         r"""
-        Return the string represenation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -113,6 +113,7 @@ class FqfIsometry(AbelianGroupAutomorphism):
             return x * self
         else:
             return AbelianGroupAutomorphism.__call__(self, x)
+
 
 class FqfOrthogonalGroup(AbelianGroupAutomorphismGroup_subgroup):
     r"""

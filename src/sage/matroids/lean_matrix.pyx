@@ -30,11 +30,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
 from cpython.object cimport Py_EQ, Py_NE
 from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 
+from sage.data_structures.bitset_base cimport *
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
 from sage.rings.integer cimport Integer
@@ -524,7 +524,7 @@ cdef class LeanMatrix:
         `P_rows` and `Q_rows` must be disjoint subsets of row indices.
         `P_cols` and `Q_cols` must be disjoint subsets of column indices.
 
-        Internal version does not verify the above properties hold. 
+        Internal version does not verify the above properties hold.
 
         INPUT:
 
@@ -563,14 +563,14 @@ cdef class LeanMatrix:
         optional column `z2` attached.
         Let `E_2` be the submatrix using rows `U_2` and columns `V_1` with
         optional column `z1` attached.
-        If `E_1` and `E_2` can be extended to a ``m``-separator, then it 
-        returns `True, E`, where `E` is a ``m``-separator. Otherwise it 
+        If `E_1` and `E_2` can be extended to a ``m``-separator, then it
+        returns `True, E`, where `E` is a ``m``-separator. Otherwise it
         returns `False, None`
 
         `U_1` and `U_2` must be disjoint subsets of row indices.
         `V_1` and `V_2` must be disjoint subsets of column indices.
 
-        Internal version does not verify the above properties hold. 
+        Internal version does not verify the above properties hold.
 
         INPUT:
 
@@ -1303,7 +1303,7 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef BinaryMatrix A = BinaryMatrix(len(rows), len(columns))
         for r from 0 <= r < len(rows):
             for c from 0 <= c < len(columns):
-                if bitset_in(self._M[rows[r]], columns[c]):
+                if bitset_in(self._M[rows[r]], <mp_bitcnt_t> columns[c]):
                     bitset_add(A._M[r], c)
         return A
 
@@ -1389,6 +1389,7 @@ cdef class BinaryMatrix(LeanMatrix):
                 d[c] = [i]
         Q = BinaryMatrix(len(d), self._nrows)
         i = 0
+        cdef mp_bitcnt_t j
         for c in sorted(d):
             for j in d[c]:
                 bitset_add(Q._M[i], j)
@@ -2628,7 +2629,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         sig_free(cols)
         bitset_free(mask)
         return A, order
-    
+
     def __neg__(self):
         """
         Negate the matrix.

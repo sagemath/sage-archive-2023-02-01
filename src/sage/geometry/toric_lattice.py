@@ -636,7 +636,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         return I
 
     def quotient(self, sub, check=True,
-                 positive_point=None, positive_dual_point=None):
+                 positive_point=None, positive_dual_point=None, **kwds):
         """
         Return the quotient of ``self`` by the given sublattice ``sub``.
 
@@ -663,6 +663,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
           ``positive_dual_point`` is not zero on the sublattice
           ``sub``, then the notion of positivity will depend on the
           choice of lift!
+
+        Further named arguments are passed to the constructor of a toric lattice
+        quotient.
 
         EXAMPLES::
 
@@ -730,7 +733,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             <N(1, 0, 0), N(0, 1, 0), N(0, 0, 1)>
         """
         return ToricLattice_quotient(self, sub, check,
-                                     positive_point, positive_dual_point)
+                                     positive_point, positive_dual_point, **kwds)
 
     def saturation(self):
         r"""
@@ -1387,6 +1390,9 @@ class ToricLattice_quotient(FGP_Module_class):
       ``positive_dual_point`` is not zero on the sublattice ``sub``,
       then the notion of positivity will depend on the choice of lift!
 
+    Further given named arguments are passed to the constructor of an FGP
+    module.
+
     OUTPUT:
 
     - quotient of ``V`` by ``W``.
@@ -1429,7 +1435,7 @@ class ToricLattice_quotient(FGP_Module_class):
         True
     """
 
-    def __init__(self, V, W, check=True, positive_point=None, positive_dual_point=None):
+    def __init__(self, V, W, check=True, positive_point=None, positive_dual_point=None, **kwds):
         r"""
         The constructor
 
@@ -1461,7 +1467,7 @@ class ToricLattice_quotient(FGP_Module_class):
                 W = V.submodule(W)
             except (TypeError, ArithmeticError):
                 raise ArithmeticError("W must be a sublattice of V")
-        super(ToricLattice_quotient, self).__init__(V, W, check)
+        super(ToricLattice_quotient, self).__init__(V, W, check, **kwds)
         if (positive_point, positive_dual_point) == (None, None):
             self._flip_sign_of_generator = False
             return

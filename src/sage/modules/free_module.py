@@ -3550,7 +3550,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         return FreeModule_submodule_with_basis_field(self.ambient_vector_space(), basis, check=check)
 
-    def quotient(self, sub, check=True):
+    def quotient(self, sub, check=True, **kwds):
         """
         Return the quotient of ``self`` by the given submodule sub.
 
@@ -3561,6 +3561,9 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         -  ``check`` - (default: True) whether or not to check
            that sub is a submodule.
+
+        -  further named arguments, that are passed to the constructor
+           of the quotient space.
 
 
         EXAMPLES::
@@ -3578,7 +3581,7 @@ class FreeModule_generic_pid(FreeModule_generic):
                 raise ArithmeticError("sub must be a subspace of self")
         if self.base_ring() == sage.rings.integer_ring.ZZ:
             from .fg_pid.fgp_module import FGP_Module
-            return FGP_Module(self, sub, check=False)
+            return FGP_Module(self, sub, check=False, **kwds)
         else:
             raise NotImplementedError("quotients of modules over rings other than fields or ZZ is not fully implemented")
 
@@ -4577,7 +4580,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         return Q, L
 
-    def quotient_abstract(self, sub, check=True):
+    def quotient_abstract(self, sub, check=True, **kwds):
         r"""
         Return an ambient free module isomorphic to the quotient space
         of ``self`` modulo ``sub``, together with maps from ``self`` to
@@ -4594,6 +4597,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         -  ``check`` -- (default: ``True``) whether or not to check
            that sub is a submodule
+
+        - further named arguments, that are currently ignored.
 
         OUTPUT:
 

@@ -791,6 +791,7 @@ cdef class CategoryObject(SageObject):
             running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
             running ._test_characteristic() . . . pass
+            running ._test_construction() . . . pass
             running ._test_distributivity() . . . pass
             running ._test_divides() . . . pass
             running ._test_elements() . . .
@@ -864,6 +865,7 @@ cdef class CategoryObject(SageObject):
             _test_cardinality
             _test_category
             _test_characteristic
+            _test_construction
             _test_distributivity
             _test_divides
             _test_elements

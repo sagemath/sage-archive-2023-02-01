@@ -302,7 +302,7 @@ cdef class ConvexityProperties:
         bitset_set_first_n(bs, 0)
 
         for v in vertices:
-            bitset_add(bs, self._dict_vertices_to_integers[v])
+            bitset_add(bs, <mp_bitcnt_t> self._dict_vertices_to_integers[v])
 
         self._bitset_convex_hull(bs)
 

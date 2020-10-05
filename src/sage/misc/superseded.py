@@ -381,8 +381,10 @@ class DeprecatedFunctionAlias(object):
                 if obj is self:
                     return name
         # then search object that contains self as method
-        import gc, copy
+        import gc
+        import copy
         gc.collect()
+
         def is_class(gc_ref):
             if not isinstance(gc_ref, dict):
                 return False

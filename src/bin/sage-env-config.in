@@ -46,7 +46,6 @@ CONFIGURED_OBJCXX="@OBJCXX@"
 #######################################
 # Other configuration (exported)
 #######################################
-export PYTHON_FOR_VENV="@PYTHON_FOR_VENV@"
 
 #######################################
 # Other configuration (not exported, only used in sage-env)

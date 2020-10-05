@@ -257,6 +257,7 @@ jobs:
         # We use a high parallelization on purpose in order to catch possible parallelization bugs in the build scripts.
         # For doctesting, we use a lower parallelization to avoid timeouts.
         run: |
+          export PATH="$HOME/Library/Python/3.9/bin:$HOME/Library/Python/3.8/bin:$HOME/Library/Python/3.7/bin:$PATH"
           MAKE="make -j12" tox -e $TOX_ENV -- SAGE_NUM_THREADS=4 $TARGETS
       - name: Prepare logs artifact
         run: |

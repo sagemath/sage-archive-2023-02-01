@@ -814,7 +814,6 @@ class Polyhedron_base(Element):
     def plot(self,
              point=None, line=None, polygon=None,  # None means unspecified by the user
              wireframe='blue', fill='green',
-             projection_direction=None,
              **kwds):
         """
         Return a graphical representation.
@@ -840,12 +839,6 @@ class Polyhedron_base(Element):
           for higher dimensional polytopes) and ``wireframe`` is used
           for all lower-dimensional graphics objects
           (default: 'green' for ``fill`` and 'blue' for ``wireframe``)
-
-        - ``projection_direction`` -- coordinate list/tuple/iterable
-          or ``None`` (default). The direction to use for the
-          :meth:`schlegel_projection` of the polytope. If not
-          specified, no projection is used in dimensions `< 4` and
-          parallel projection is used in dimension `4`.
 
         - ``**kwds`` -- optional keyword parameters that are passed to
           all graphics objects.
@@ -915,6 +908,15 @@ class Polyhedron_base(Element):
             sage: hypercube.plot(fill='green', wireframe='red')
             Graphics3d Object
 
+        It is possible to draw polyhedra up to dimension 4, no matter what the
+        ambient dimension is::
+
+            sage: hcube = polytopes.hypercube(5)
+            sage: facet = hcube.facets()[0].as_polyhedron();facet
+            A 4-dimensional polyhedron in ZZ^5 defined as the convex hull of 16 vertices
+            sage: facet.plot()
+            Graphics3d Object
+
         TESTS::
 
             sage: for p in square.plot():
@@ -973,13 +975,6 @@ class Polyhedron_base(Element):
             ....:     print("{} {}".format(p.options()['rgbcolor'], p))
             red Point set defined by 1 point(s)
 
-        The ``projection_direction`` option::
-
-            sage: line3d = Polyhedron([(-1,-1,-1), (1,1,1)])
-            sage: print(line3d.plot(projection_direction=[2,3,4]).description())
-            Line defined by 2 points:           [(-0.00..., 0.126...), (0.131..., -1.93...)]
-            Point set defined by 2 point(s):    [(-0.00..., 0.126...), (0.131..., -1.93...)]
-
         We try to draw the polytope in 2 or 3 dimensions::
 
             sage: type(Polyhedron(ieqs=[(1,)]).plot())
@@ -1009,8 +1004,10 @@ class Polyhedron_base(Element):
             sage: type(Polyhedron([(0,0,0), (1,1,1)]).plot())
             <class 'sage.plot.plot3d.base.Graphics3dGroup'>
             sage: type(Polyhedron([(0,0,0,0), (1,1,1,1)]).plot())
-            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            <class 'sage.plot.graphics.Graphics'>
             sage: type(Polyhedron([(0,0,0,0,0), (1,1,1,1,1)]).plot())
+            <class 'sage.plot.graphics.Graphics'>
+            sage: type(Polyhedron([(0,0,0,0), (1,1,1,1), (1,0,0,0)]).plot())
             <class 'sage.plot.graphics.Graphics'>
         """
         def merge_options(*opts):
@@ -1034,9 +1031,9 @@ class Polyhedron_base(Element):
                 for opt1, opt2 in zip(opts, [point, line, polygon])]
 
         def project(polyhedron):
-            if projection_direction is not None:
-                return polyhedron.schlegel_projection(projection_direction)
-            elif polyhedron.ambient_dim() == 4:
+            if polyhedron.ambient_dim() <= 3:
+                return polyhedron.projection()
+            elif polyhedron.dimension() == 4:
                 # There is no 4-d screen, we must project down to 3d
                 return polyhedron.schlegel_projection()
             else:
@@ -1046,6 +1043,8 @@ class Polyhedron_base(Element):
         try:
             plot_method = projection.plot
         except AttributeError:
+            # Could not catch a plot method in the ambient dimension,
+            # Tries in its affine hull:
             projection = project(self.affine_hull_projection())
             try:
                 plot_method = projection.plot
@@ -5877,39 +5876,13 @@ class Polyhedron_base(Element):
             raise ValueError("can not stack onto a vertex")
         elif face.dim() == -1 or face.dim() == self.dim():
             raise ValueError("can only stack on proper face")
-
         if position is None:
             position = 1
 
-        face_vertices = face.vertices()
-        n_vertices = len(face_vertices)
-        barycenter = ZZ.one()*sum([v.vector() for v in face_vertices]) / n_vertices
-
-        # Taking all facets that contain the face
-        if face.dim() == self.dim() - 1:
-            face_star = set([face.ambient_Hrepresentation()[-1]])
-        else:
-            face_star = set(facet for facet in self.Hrepresentation() if facet.is_inequality()
-                            if all(not facet.interior_contains(x) for x in face_vertices))
-
-        neighboring_facets = set()
-        for facet in face_star:
-            for neighbor_facet in facet.neighbors():
-                if neighbor_facet not in face_star:
-                    neighboring_facets.add(neighbor_facet)
-
-        # Create the polyhedron where we can put the new vertex
-        locus_ieqs = [facet.vector() for facet in neighboring_facets]
-        locus_ieqs += [-facet.vector() for facet in face_star]
-        locus_eqns = self.equations_list()
-
-        locus_polyhedron = Polyhedron(ieqs=locus_ieqs, eqns=locus_eqns,
-                                      base_ring=self.base_ring().fraction_field(),
-                                      backend=self.backend())
-
+        barycenter = ZZ.one()*sum([v.vector() for v in face.vertices()]) / len(face.vertices())
+        locus_polyhedron = face.stacking_locus()
         repr_point = locus_polyhedron.representative_point()
         new_vertex = (1-position)*barycenter + position*repr_point
-
         if not locus_polyhedron.relative_interior_contains(new_vertex):
             raise ValueError("the chosen position is too large")
 
@@ -7628,18 +7601,22 @@ class Polyhedron_base(Element):
         parent = self.parent().change_ring(self.base_ring().fraction_field(), ambient_dim=self.ambient_dim()+1)
         return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
 
-    def projection(self):
+    def projection(self, projection=None):
         """
         Return a projection object.
 
-        .. SEEALSO::
+        INPUT:
 
-            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.schlegel_projection` for a more interesting projection.
+        - ``proj`` -- a projection function
 
         OUTPUT:
 
         The identity projection. This is useful for plotting
         polyhedra.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.schlegel_projection` for a more interesting projection.
 
         EXAMPLES::
 
@@ -7649,7 +7626,10 @@ class Polyhedron_base(Element):
             The projection of a polyhedron into 3 dimensions
         """
         from .plot import Projection
-        self.projection = Projection(self)
+        if projection is not None:
+            self.projection = Projection(self, projection)
+        else:
+            self.projection = Projection(self)
         return self.projection
 
     def render_solid(self, **kwds):
@@ -7689,29 +7669,24 @@ class Polyhedron_base(Element):
             return proj.render_outline_2d(**kwds)
         raise ValueError("render_wireframe is only defined for 2 and 3 dimensional polyhedra")
 
-    def schlegel_projection(self, projection_dir=None, height=1.1):
+    def schlegel_projection(self, facet=None, position=None):
         """
         Return the Schlegel projection.
 
-        * The polyhedron is translated such that its
-          :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center`
-          is at the origin.
+        * The facet is orthonormally transformed into its affine hull.
 
-        * The vertices are then normalized to the unit sphere
-
-        * The normalized points are stereographically projected from a
-          point slightly outside of the sphere.
+        * The position specifies a point coming out of the barycenter of the
+          facet from which the other vertices will be projected into the facet.
 
         INPUT:
 
-        - ``projection_direction`` -- coordinate list/tuple/iterable
-          or ``None`` (default). The direction of the Schlegel
-          projection. For a full-dimensional polyhedron, the default
-          is the first facet normal; Otherwise, the vector consisting
-          of the first n primes is chosen.
+        - ``facet`` -- a PolyhedronFace. The facet into which the Schlegel
+          diagram is created. The default is the first facet.
 
-        - ``height`` -- float (default: `1.1`). How far outside of the
-          unit sphere the focal point is.
+        - ``position`` -- a positive number. Determines a relative distance
+          from the barycenter of ``facet``. A value close to 0 will place the
+          projection point close to the facet and a large value further away. 
+          Default is `1`. If the given value is too large, an error is returned.
 
         OUTPUT:
 
@@ -7724,16 +7699,45 @@ class Polyhedron_base(Element):
             sage: schlegel_edge_indices = sch_proj.lines
             sage: schlegel_edges = [sch_proj.coordinates_of(x) for x in schlegel_edge_indices]
             sage: len([x for x in schlegel_edges if x[0][0] > 0])
-            5
+            8
+
+        The Schlegel projection preserves the convexity of facets, see :trac:`30015`::
+
+            sage: fcube = polytopes.hypercube(4)
+            sage: tfcube = fcube.face_truncation(fcube.faces(0)[0])
+            sage: tfcube.facets()[-1]
+            A 3-dimensional face of a Polyhedron in QQ^4 defined as the convex hull of 8 vertices
+            sage: sp = tfcube.schlegel_projection(tfcube.facets()[-1])
+            sage: sp.plot()
+            Graphics3d Object
+
+        The same truncated cube but see inside the tetrahedral facet::
+
+            sage: tfcube.facets()[4]
+            A 3-dimensional face of a Polyhedron in QQ^4 defined as the convex hull of 4 vertices
+            sage: sp = tfcube.schlegel_projection(tfcube.facets()[4])
+            sage: sp.plot()
+            Graphics3d Object
+
+        A different values of ``position`` changes the projection::
+
+            sage: sp = tfcube.schlegel_projection(tfcube.facets()[4],1/2)
+            sage: sp.plot()
+            Graphics3d Object
+            sage: sp = tfcube.schlegel_projection(tfcube.facets()[4],4)
+            sage: sp.plot()
+            Graphics3d Object
+
+        A value which is too large give a projection point that sees more than
+        one facet resulting in a error::
+
+            sage: sp = tfcube.schlegel_projection(tfcube.facets()[4],5)
+            Traceback (most recent call last):
+            ...
+            ValueError: the chosen position is too large
         """
         proj = self.projection()
-        if projection_dir is None:
-            vertices = self.vertices()
-            facet = self.Hrepresentation(0)
-            f0 = [v.index() for v in facet.incident()]
-            projection_dir = [sum([vertices[f0[i]][j]/len(f0) for i in range(len(f0))])
-                              for j in range(self.ambient_dim())]
-        return proj.schlegel(projection_direction=projection_dir, height=height)
+        return proj.schlegel(facet, position)
 
     def _volume_lrs(self, verbose=False):
         """

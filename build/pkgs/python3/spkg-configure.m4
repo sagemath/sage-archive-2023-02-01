@@ -58,8 +58,11 @@ SAGE_SPKG_CONFIGURE([python3], [
     dnl PRE
 ], [
     dnl POST
-    AS_IF([test x$sage_spkg_install_python3 = xno], [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"])
+    AS_IF([test x$sage_spkg_install_python3 = xno],
+          [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"],
+          [SAGE_MACOSX_DEPLOYMENT_TARGET=legacy])
     AC_SUBST([PYTHON_FOR_VENV])
+    AC_SUBST([SAGE_MACOSX_DEPLOYMENT_TARGET])
 
     dnl These temporary directories are created by the check above
     dnl and need to be cleaned up to prevent the "rm -f conftest*"

@@ -2810,7 +2810,7 @@ class RuleStar(Rule):
             sage: RuleStar().backward_rule(Tableau([]), Tableau([]),output='DecreasingHeckeFactorization')
             ()
         """
-        from sage.combinat.tableau import Tableau, SemistandardTableau, SemistandardTableaux
+        from sage.combinat.tableau import SemistandardTableaux
         if p.shape() != q.shape():
             raise ValueError("p(=%s) and q(=%s) must have the same shape" % (p, q))
         if q not in SemistandardTableaux():
@@ -2830,7 +2830,6 @@ class RuleStar(Rule):
             raise ValueError(f"the row reading word of the insertion tableau {p} is not fully-commutative")
 
         p_copy = p.to_list()
-        q_copy = q.to_list()
         line1 = []
         line2 = []
         d = {}

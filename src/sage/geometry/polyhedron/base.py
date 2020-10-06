@@ -1869,7 +1869,7 @@ class Polyhedron_base(Element):
 
     def Vrep_generator(self):
         """
-        Returns an iterator over the objects of the V-representation
+        Return an iterator over the objects of the V-representation
         (vertices, rays, and lines).
 
         EXAMPLES::
@@ -4230,7 +4230,7 @@ class Polyhedron_base(Element):
 
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
-        Returns a triangulation of the polytope.
+        Return a triangulation of the polytope.
 
         INPUT:
 
@@ -4746,7 +4746,7 @@ class Polyhedron_base(Element):
         if self.n_vertices() == 0 or other.n_vertices() == 0:
             # In this case we obtain the empty polyhedron.
             # There is not vertex to attach the rays or lines to.
-            # By our convenction, in this case the polyhedron shall also not have rays or lines.
+            # By our convention, in this case the polyhedron shall also not have rays or lines.
             rays = ()
             lines = ()
 
@@ -5111,7 +5111,7 @@ class Polyhedron_base(Element):
             # Avoid long time computations.
             return
 
-        # Some sanity check on the volume (only run for relativly small instances).
+        # Some sanity check on the volume (only run for relatively small instances).
         if self.dim() > -1 and self.is_compact() and self.base_ring().is_exact():
             tester.assertEqual(self.dilation(3).volume(measure='induced'), self.volume(measure='induced')*3**self.dim())
 
@@ -5263,7 +5263,7 @@ class Polyhedron_base(Element):
             if self.is_compact() and self.n_vertices() and self.n_inequalities():
                 homogeneous_basis = matrix(R, ( [1] + list(v) for v in self.an_affine_basis() )).transpose()
 
-                # To convert first to a list and then to a matrix seems to be necesarry to obtain a meaningful error,
+                # To convert first to a list and then to a matrix seems to be necessary to obtain a meaningful error,
                 # in case the number of columns doesn't match the dimension.
                 new_homogeneous_basis = matrix(list( [1] + list(linear_transf*vector(R, v)) for v in self.an_affine_basis()) ).transpose()
 
@@ -6193,7 +6193,7 @@ class Polyhedron_base(Element):
                 with warnings.catch_warnings():
                     warnings.simplefilter("error")
                     try:
-                        # Implicitely checks :trac:`30328`.
+                        # Implicitly checks :trac:`30328`.
                         R = self.lawrence_extension(2.0*v - self.center())
                         tester.assertEqual(self.dim() + 1, R.dim())
                         tester.assertEqual(self.n_vertices() + 2, R.n_vertices())
@@ -6203,7 +6203,7 @@ class Polyhedron_base(Element):
                         # Data is numerically complicated.
                         pass
                     except ValueError as err:
-                        if not "Numerical inconsistency" in err.args[0]:
+                        if "Numerical inconsistency" not in err.args[0]:
                             raise err
 
         if self.n_vertices() >= 12 or (self.base_ring() not in (ZZ, QQ) and self.backend() == 'field'):
@@ -6877,7 +6877,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        Returns a vector whose `i`-th entry is the number of
+        Return a vector whose `i`-th entry is the number of
         `i-2`-dimensional faces of the polytope.
 
         .. NOTE::
@@ -7286,7 +7286,7 @@ class Polyhedron_base(Element):
         else:
             # Transform the equations such that the normals are pairwise orthogonal.
             t_eqns = list(t_eqns)
-            for i,h in enumerate(t_eqns):
+            for i, h in enumerate(t_eqns):
                 for h1 in t_eqns[:i]:
                     a = h[1:]*h1[1:]
                     if a:
@@ -7344,7 +7344,7 @@ class Polyhedron_base(Element):
 
     def pyramid(self):
         """
-        Returns a polyhedron that is a pyramid over the original.
+        Return a polyhedron that is a pyramid over the original.
 
         EXAMPLES::
 
@@ -7685,7 +7685,7 @@ class Polyhedron_base(Element):
 
         - ``position`` -- a positive number. Determines a relative distance
           from the barycenter of ``facet``. A value close to 0 will place the
-          projection point close to the facet and a large value further away. 
+          projection point close to the facet and a large value further away.
           Default is `1`. If the given value is too large, an error is returned.
 
         OUTPUT:
@@ -9834,7 +9834,7 @@ class Polyhedron_base(Element):
         Each polyhedron is contained in some smallest affine subspace
         (possibly the entire ambient space) -- its affine hull.
         We provide a projection of the ambient
-        space of the polyhedron to Euclidian space of dimension of the
+        space of the polyhedron to Euclidean space of dimension of the
         polyhedron. Then the image of the polyhedron under this
         projection (or, depending on the parameter ``as_affine_map``,
         the projection itself) is returned.
@@ -10168,7 +10168,7 @@ class Polyhedron_base(Element):
 
             translate_vector = vector(A.base_ring(), affine_basis[0])
 
-            # Note the order. We compute ``A*self`` and then substract the translation vector.
+            # Note the order. We compute ``A*self`` and then subtract the translation vector.
             # ``A*self`` uses the incidence matrix and we avoid recomputation.
             # Also, if the new base ring is ``AA``, we want to avoid computing the incidence matrix in that ring.
 

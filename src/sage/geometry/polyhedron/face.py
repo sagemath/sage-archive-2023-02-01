@@ -760,7 +760,7 @@ class PolyhedronFace(SageObject):
     def stacking_locus(self):
         """
         Return the polyhedron containing the points that sees every facet
-        containing ``self``. 
+        containing ``self``.
 
         OUTPUT:
 
@@ -768,6 +768,22 @@ class PolyhedronFace(SageObject):
 
         EXAMPLES::
 
+            sage: cp = polytopes.cross_polytope(4)
+            sage: facet = cp.facets()[0]
+            sage: facet.stacking_locus().vertices()
+            (A vertex at (1/2, 1/2, 1/2, 1/2),
+             A vertex at (1, 0, 0, 0),
+             A vertex at (0, 0, 0, 1),
+             A vertex at (0, 0, 1, 0),
+             A vertex at (0, 1, 0, 0))
+            sage: face = cp.faces(2)[0]
+            sage: face.stacking_locus().vertices()
+            (A vertex at (0, 1, 0, 0),
+             A vertex at (0, 0, 1, 0),
+             A vertex at (1, 0, 0, 0),
+             A vertex at (1, 1, 1, 0),
+             A vertex at (1/2, 1/2, 1/2, 1/2),
+             A vertex at (1/2, 1/2, 1/2, -1/2))
         """
         # Taking all facets that contain the face
         if self.dim() == self.polyhedron().dim() - 1:

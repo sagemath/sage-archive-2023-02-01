@@ -303,7 +303,7 @@ class ProjectionFuncSchlegel():
         # The intersection of the segment with the facet
         preimage = (segment & self.facet).vertices()[0].vector()
         # The transformation matrix acts on the right:
-        return preimage*self.A + self.b  
+        return preimage*self.A + self.b
 
 #########################################################################
 
@@ -471,7 +471,7 @@ class Projection(SageObject):
 
         - ``position`` -- a positive number. Determines a relative distance
           from the barycenter of ``facet``. A value close to 0 will place the
-          projection point close to the facet and a large value further away. 
+          projection point close to the facet and a large value further away.
           Default is `1`. If the given value is too large, an error is returned.
 
         EXAMPLES::
@@ -1171,7 +1171,7 @@ class Projection(SageObject):
             the desired view angle is found, click on the information icon in
             the lower right-hand corner and select *Get Viewpoint*. This will
             copy a string of the form '[x,y,z],angle' to your local clipboard.
-            Go back to Sage and type ``Img = P.projection().tikz([x,y,z],angle)``. 
+            Go back to Sage and type ``Img = P.projection().tikz([x,y,z],angle)``.
 
             The inputs ``view`` and ``angle`` can also be obtained from the
             viewer Jmol::
@@ -1348,7 +1348,7 @@ class Projection(SageObject):
         # Gives the reproduction information
         from sage.env import SAGE_VERSION
         tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
-        tikz_pic += "%% with the command: ._tikz_2d and parameters:\n" 
+        tikz_pic += "%% with the command: ._tikz_2d and parameters:\n"
         tikz_pic += "%% scale = {}\n".format(scale)
         tikz_pic += "%% edge_color = {}\n".format(edge_color)
         tikz_pic += "%% facet_color = {}\n".format(facet_color)
@@ -1493,7 +1493,7 @@ class Projection(SageObject):
         # Gives the reproduction information
         from sage.env import SAGE_VERSION
         tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
-        tikz_pic += "%% with the command: ._tikz_2d_in_3d and parameters:\n" 
+        tikz_pic += "%% with the command: ._tikz_2d_in_3d and parameters:\n"
         tikz_pic += "%% view = {}\n".format(view)
         tikz_pic += "%% angle = {}\n".format(angle)
         tikz_pic += "%% scale = {}\n".format(scale)
@@ -1687,7 +1687,7 @@ class Projection(SageObject):
         # Gives the reproduction information
         from sage.env import SAGE_VERSION
         tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
-        tikz_pic += "%% with the command: ._tikz_3d_in_3d and parameters:\n" 
+        tikz_pic += "%% with the command: ._tikz_3d_in_3d and parameters:\n"
         tikz_pic += "%% view = {}\n".format(view)
         tikz_pic += "%% angle = {}\n".format(angle)
         tikz_pic += "%% scale = {}\n".format(scale)

@@ -70,6 +70,7 @@ envsubst <"$SAGE_ROOT/.zenodo.json.in" >"$SAGE_ROOT/.zenodo.json"
 # Commit auto-generated changes
 git commit -m "Updated SageMath version to $SAGE_VERSION" -- \
     "$SAGE_ROOT/VERSION.txt" \
+    "$SAGE_ROOT/.zenodo.json" \
     "$SAGE_SRC/sage/version.py" \
     "$SAGE_SRC/bin/sage-version.sh" \
     "$SAGE_ROOT/build/pkgs/configure/checksums.ini" \

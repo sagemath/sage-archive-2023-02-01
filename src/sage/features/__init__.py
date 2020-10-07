@@ -366,14 +366,14 @@ def package_systems():
         [Feature('homebrew'), Feature('sage_spkg'), Feature('pip')]
     """
     # The current implementation never returns more than one system.
-    from subprocess import run, CalledProcessError
+    from subprocess import run, CalledProcessError, PIPE
     global _cache_package_systems
     if _cache_package_systems is None:
         _cache_package_systems = []
         # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
         # to obtain system package advice.
         try:
-            proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
+            proc = run('sage-guess-package-system', shell=True, stdout=PIPE, stderr=PIPE, text=True, check=True)
             _cache_package_systems = [PackageSystem(proc.stdout.strip())]
         except CalledProcessError:
             pass
@@ -435,16 +435,16 @@ class PackageSystem(Feature):
             sage: fedora.spkg_installation_hint('openblas')  # optional - SAGE_ROOT
             'To install openblas using the fedora package manager, you can try to run:\n!sudo yum install openblas-devel'
         """
-        from subprocess import run, CalledProcessError
+        from subprocess import run, CalledProcessError, PIPE
         lines = []
         system = self.name
         try:
             proc = run(f'sage-get-system-packages {system} {spkgs}',
-                       shell=True, capture_output=True, text=True, check=True)
+                       shell=True, stdout=PIPE, stderr=PIPE, text=True, check=True)
             system_packages = proc.stdout.strip()
             print_sys = f'sage-print-system-package-command {system} --verbose --sudo --prompt="{prompt}"'
             command = f'{print_sys} update && {print_sys} install {system_packages}'
-            proc = run(command, shell=True, capture_output=True, text=True, check=True)
+            proc = run(command, shell=True, stdout=PIPE, stderr=PIPE, text=True, check=True)
             command = proc.stdout.strip()
             if command:
                 lines.append(f'To install {feature} using the {system} package manager, you can try to run:')

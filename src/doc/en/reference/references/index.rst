@@ -2749,6 +2749,10 @@ REFERENCES:
              In: Recent Developments in Algebra and Related Areas, ALM vol. 8,
              pp. 129--153. International Press, Somerville (2009).
 
+.. [Hig2002] Nicholas J. Higham. Accuracy and Stability of Numerical Algorithms,
+             Second Edition. Society for Industrial and Applied Mathematics,
+             Philadelphia, 2002.
+
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
              Society for Industrial and Applied Mathematics (2008).
 

@@ -21,7 +21,6 @@ AUTHORS:
 from __future__ import absolute_import
 
 from .complex_number import ComplexNumber, RRtoCC
-from .complex_double import ComplexDoubleElement
 from . import ring
 from .real_mpfr import RealNumber
 import weakref
@@ -404,6 +403,7 @@ class ComplexField_class(ring.Field):
 
         """
         if not isinstance(x, (RealNumber, tuple)):
+            from .complex_double import ComplexDoubleElement
             if isinstance(x, ComplexDoubleElement):
                 return ComplexNumber(self, x.real(), x.imag())
             elif isinstance(x, str):

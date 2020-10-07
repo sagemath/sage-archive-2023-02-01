@@ -430,9 +430,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         elif RR.has_coerce_map_from(S):
             return FloatToCDF(RR) * RR._internal_coerce_map_from(S)
         elif isinstance(S, ComplexField_class) and S.prec() >= 53:
-            return complex_number.CCtoCDF(S, self)
+            from sage.rings.complex_conversion import CCtoCDF
+            return CCtoCDF(S, self)
         elif CC.has_coerce_map_from(S):
-            return complex_number.CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
+            from sage.rings.complex_conversion import CCtoCDF
+            return CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
 
     def _magma_init_(self, magma):
         r"""

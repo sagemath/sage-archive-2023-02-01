@@ -23,7 +23,6 @@ from sage.structure.element cimport Element, parent
 from ..integer cimport Integer
 from ..rational cimport Rational
 from ..real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
-from ..complex_interval_field import ComplexIntervalField_class
 from ..real_mpfr cimport RealNumber
 from ..real_double cimport RealDoubleElement
 from ..complex_number cimport ComplexNumber
@@ -188,6 +187,7 @@ cdef int mpfi_set_sage(mpfi_ptr re, mpfi_ptr im, x, field, int base) except -1:
         except AttributeError:
             pass
         else:
+            from ..complex_interval_field import ComplexIntervalField_class
             if not isinstance(field, ComplexIntervalField_class):
                 field = field.complex_field()
             e = <ComplexIntervalFieldElement?>m(field)

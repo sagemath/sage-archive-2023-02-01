@@ -34,7 +34,6 @@ from sage.structure.element cimport FieldElement, RingElement, Element, ModuleEl
 from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.map cimport Map
 
-from .complex_double cimport ComplexDoubleElement
 from .real_mpfr cimport RealNumber
 
 import sage.misc.misc
@@ -2674,26 +2673,6 @@ cdef class RRtoCC(Map):
         mpfr_set(z.__re, (<RealNumber>x).value, rnd)
         mpfr_set_ui(z.__im, 0, rnd)
         return z
-
-
-cdef class CCtoCDF(Map):
-
-    cpdef Element _call_(self, x):
-        """
-        EXAMPLES::
-
-            sage: from sage.rings.complex_number import CCtoCDF
-            sage: f = CCtoCDF(CC, CDF) # indirect doctest
-            sage: f(CC.0)
-            1.0*I
-            sage: f(exp(pi*CC.0/4))
-            0.7071067811865476 + 0.7071067811865475*I
-        """
-        z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
-        z._complex.real = mpfr_get_d((<ComplexNumber>x).__re, MPFR_RNDN)
-        z._complex.imag = mpfr_get_d((<ComplexNumber>x).__im, MPFR_RNDN)
-        return z
-
 
 cdef inline mp_exp_t min_exp_t(mp_exp_t a, mp_exp_t b):
     return a if a < b else b

@@ -4914,7 +4914,7 @@ class FiniteWord_class(Word_class):
         for i in range(1, l - 1):
             return_lengths = [x.length() for x in self.return_words(self[:i])]
             if return_lengths:
-                if (max(return_lengths) <= i and self[l - i:l] == self[:i]):
+                if max(return_lengths) <= i and self[l - i:l] == self[:i]:
                     Q.append(self[:i])
         return Q
 

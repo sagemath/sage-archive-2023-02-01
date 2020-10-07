@@ -4865,10 +4865,10 @@ class Partition(CombinatorialElement):
         """
         res = [tableau.Tableau([])]
         for i in range(len(self)):
-            res = [x.promotion_operator(self[-i - 1]) for x in res]
+            res = (x.promotion_operator(self[-i - 1]) for x in res)
             res = sum(res, [])
-            res = [y.catabolism_projector(Partition(self[-i - 1:]).k_split(k))
-                   for y in res]
+            res = (y.catabolism_projector(Partition(self[-i - 1:]).k_split(k))
+                   for y in res)
             res = [i for i in res if i]
         return res
 
@@ -4900,7 +4900,7 @@ class Partition(CombinatorialElement):
             part = list(self)
             while part and part[0] + len(part) - 1 >= k:
                 p = k - part[0]
-                res.append( part[:p + 1] )
+                res.append(part[:p + 1])
                 part = part[p + 1:]
             if part:
                 res.append(part)

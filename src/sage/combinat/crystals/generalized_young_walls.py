@@ -424,7 +424,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             15
         """
         n = self.parent().cartan_type().rank() - 1
-        m = lambda i: len([1 for r in self.data if r if r[0] == (i-1)%(n+1)])
+        m = lambda i: len([1 for r in self.data if r and r[0] == (i-1)%(n+1)])
         for r in self.data:
             if r and r[0] == n:
                 raise ValueError('Statistic only valid for generalized Young walls in Y_0')

@@ -1381,7 +1381,7 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 True
                 sage: testall(3)  # long time
                 True
-                sage: testall(4)  # lnot tested, too long
+                sage: testall(4)  # not tested, too long
                 True
 
             The internal product on the algebra of non-commutative symmetric

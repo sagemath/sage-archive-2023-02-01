@@ -14060,6 +14060,141 @@ cdef class Matrix(Matrix1):
         return (P,L,D)
 
 
+    def is_positive_semidefinite(self):
+        r"""
+        Returns whether or not this matrix is positive-semidefinite.
+
+        By SageMath convention, positive (semi)definite matrices must
+        be either real symmetric or complex Hermitian.
+
+        ALGORITHM:
+
+        Bunch and Kaufman [BK1977]_ describe a fast,
+        numerically-stable scheme for computing the "inertia" of a
+        matrix by way Sylvester's inertia theorem and a
+        block-`LDL^{T}` factorization. We perform this factorization,
+        and read off the signs of the eigenvalues from the resulting
+        diagonal blocks.
+
+        REFERENCES:
+
+        - [BK1977]_
+
+        .. SEEALSO::
+
+            :meth:`block_ldlt`, :meth:`is_positive_definite`
+
+        EXAMPLES:
+
+        A positive-definite matrix::
+
+            sage: A = matrix(QQ, [ [2,1],
+            ....:                  [1,2] ] )
+            sage: A.eigenvalues()
+            [3, 1]
+            sage: A.is_positive_semidefinite()
+            True
+
+        A positive-semidefinite (but not positive-definite) matrix::
+
+            sage: A = matrix(QQ, [ [1,1],
+            ....:                  [1,1] ] )
+            sage: A.eigenvalues()
+            [2, 0]
+            sage: A.is_positive_semidefinite()
+            True
+
+        And finally, an indefinite matrix::
+
+            sage: A = matrix(QQ, [ [0,1],
+            ....:                  [1,0] ] )
+            sage: A.eigenvalues()
+            [1, -1]
+            sage: A.is_positive_semidefinite()
+            False
+
+        A non-Hermitian matrix cannot be positive-semidefinite,
+        regardless of its eigenvalues::
+
+            sage: A = matrix(QQ, [ [2,1],
+            ....:                  [0,0] ])
+            sage: A.eigenvalues()
+            [2, 0]
+            sage: A.is_positive_semidefinite()
+            False
+
+        Any of the preceding examples are valid over inexact rings and
+        with complex numbers as well::
+
+            sage: A = matrix(CDF, [ [ 2, I],
+            ....:                   [-I, 2] ] )
+            sage: A.is_positive_semidefinite()
+            True
+
+            sage: A = matrix(CDF, [ [ 1, I],
+            ....:                   [-I, 1] ] )
+            sage: A.is_positive_semidefinite()
+            True
+
+            sage: A = matrix(CDF, [ [0,I],
+            ....:                   [I,0] ] )
+            sage: A.is_positive_semidefinite()
+            False
+
+            sage: A = matrix(CDF, [ [2,I],
+            ....:                   [0,0] ])
+            sage: A.is_positive_semidefinite()
+            False
+
+        TESTS:
+
+        The trivial matrix is vacuously positive-semidefinite::
+
+            sage: matrix(QQ, 0).is_positive_semidefinite()
+            True
+            sage: matrix(CDF, 0).is_positive_semidefinite()
+            True
+
+        Check that the naive and fast implementations are the same for
+        a Hermitian matrix (for a non-Hermitian matrix, both "obviously"
+        return ``False``)::
+
+            sage: set_random_seed()
+            sage: F = NumberField(x^2 + 1, 'I')
+            sage: from sage.misc.prandom import choice
+            sage: ring = choice([ZZ, QQ, F, RDF, CDF])
+            sage: A = matrix.random(ring, 10); A = A + A.conjugate_transpose()
+            sage: def is_positive_semidefinite_naive(A):
+            ....:     if A.nrows() == 0:
+            ....:         return True
+            ....:     return ( A.is_hermitian() and
+            ....:              all(v >= 0 for v in A.eigenvalues()) )
+            sage: expected = is_positive_semidefinite_naive(A)
+            sage: actual = A.is_positive_semidefinite()
+            sage: actual == expected
+            True
+        """
+        if not self.is_hermitian():
+            return False
+
+        if self._nrows == 0:
+            return True # vacuously
+
+        cdef list d
+        _,_,d = self._block_ldlt()
+
+        # Check each 1x1 block for a negative entry. If we don't
+        # find any, it's positive-semidefinite. The presence of
+        # any 2x2 blocks also indicates indefiniteness.
+        for d_i in d:
+            if d_i.nrows() == 1:
+                if d_i < 0:
+                    return False
+            else:
+                # There's a 2x2 block
+                return False
+        return True
+
     def is_positive_definite(self, certificate=False):
         r"""
         Determines if a real or symmetric matrix is positive definite.

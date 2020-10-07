@@ -13453,6 +13453,10 @@ cdef class Matrix(Matrix1):
         This makes it an appropriate candidate for solving systems
         with symmetric (or Hermitian) coefficient matrices.
 
+        .. SEEALSO::
+
+            :meth:`block_ldlt`
+
         EXAMPLES:
 
         There is no requirement that a matrix be positive definite, as
@@ -13879,6 +13883,10 @@ cdef class Matrix(Matrix1):
         We essentially follow "Algorithm A" in the paper by Bunch and
         Kaufman [BK1977]_ that describes the stable pivoting strategy.
         The same scheme is described by Higham [Hig2002]_.
+
+        .. SEEALSO::
+
+            :meth:`indefinite_factorization`
 
         REFERENCES:
 

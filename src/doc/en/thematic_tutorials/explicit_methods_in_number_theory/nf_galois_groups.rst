@@ -306,8 +306,7 @@ ideal classes containing :math:`(5,\sqrt{-30})` and
     sage: K.<a> = QuadraticField(-30)
     sage: C = K.class_group()
     sage: C
-    Class group of order 4 with structure C2 x C2 of Number Field
-    in a with defining polynomial x^2 + 30
+    Class group of order 4 with structure C2 x C2 of Number Field in a with defining polynomial x^2 + 30 with a = 5.477225575051661?*I
     sage: category(C)
     Category of finite enumerated commutative groups
     sage: C.gens()

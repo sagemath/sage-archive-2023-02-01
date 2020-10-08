@@ -264,10 +264,10 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
         Looped digraph on 9 vertices
 
         sage: u = W([1,2,3])
-        sage: u.first_pos_in(w)
+        sage: w.first_occurrence(u)
         0
-        sage: u.first_pos_in(w[1:])
-        8
+        sage: w.first_occurrence(u, start=1)
+        9
 
     TESTS::
 
@@ -511,7 +511,7 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 
@@ -549,7 +549,7 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 
@@ -648,7 +648,7 @@ class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 
@@ -684,7 +684,7 @@ class Word_iter(WordDatatype_iter, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        TypeError: can't pickle generator objects
+        TypeError: can...t...pickle...generator...object...
     """
     pass
 

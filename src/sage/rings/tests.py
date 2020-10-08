@@ -87,7 +87,7 @@ def quadratic_number_field():
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.quadratic_number_field()
-        Number Field in a with defining polynomial x^2 - 61099
+        Number Field in a with defining polynomial x^2 - 61099 with a = 247.1821190944038?
     """
     from sage.all import ZZ, QuadraticField
     while True:

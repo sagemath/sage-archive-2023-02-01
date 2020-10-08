@@ -139,6 +139,15 @@ The default CVXOPT backend computes with the Real Double Field, for example::
     sage: 0.5 + 3/2*x[1]
     0.5 + 1.5*x_0
 
+For representing an SDP with exact data, there is another backend::
+
+    sage: from sage.numerical.backends.matrix_sdp_backend import MatrixSDPBackend
+    sage: p = SemidefiniteProgram(solver=MatrixSDPBackend, base_ring=QQ)
+    sage: p.base_ring()
+    Rational Field
+    sage: x = p.new_variable()
+    sage: 1/2 + 3/2 * x[1]
+    1/2 + 3/2*x_0
 
 
 Linear Variables and Expressions
@@ -217,7 +226,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
@@ -283,7 +291,7 @@ cdef class SemidefiniteProgram(SageObject):
     """
 
     def __init__(self, solver=None, maximization=True,
-                 names=tuple()):
+                 names=tuple(), **kwds):
         r"""
         Constructor for the ``SemidefiniteProgram`` class.
 
@@ -308,6 +316,8 @@ cdef class SemidefiniteProgram(SageObject):
           the SDP variables. Used to enable the ``sdp.<x> =
           SemidefiniteProgram()`` syntax.
 
+        - other keyword arguments are passed to the solver.
+
         .. SEEALSO::
 
         - :meth:`default_sdp_solver` -- Returns/Sets the default SDP solver.
@@ -319,7 +329,7 @@ cdef class SemidefiniteProgram(SageObject):
         """
         self._first_variable_names = list(names)
         from sage.numerical.backends.generic_sdp_backend import get_solver
-        self._backend = get_solver(solver=solver)
+        self._backend = get_solver(solver=solver, **kwds)
         if not maximization:
             self._backend.set_sense(-1)
 

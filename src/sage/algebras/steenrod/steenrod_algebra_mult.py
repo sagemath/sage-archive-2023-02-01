@@ -197,7 +197,6 @@ representing a sum of admissible monomials.
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
-from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 
@@ -480,11 +479,11 @@ def milnor_multiplication_odd(m1,m2,p):
                     p_mono = list(mono[1])
                     p_mono[i-1] = p_mono[i-1] - p**k
 
-                    # The next two lines were added so that p_mono won't
+                    # The next two lines were added so that p_mono will not
                     # have trailing zeros. This makes p_mono uniquely
                     # determined by P(*p_mono).
 
-                    while len(p_mono)>0 and p_mono[-1] == 0:
+                    while p_mono and p_mono[-1] == 0:
                         p_mono.pop()
 
                     answer[(q_mono, tuple(p_mono))] = F(coeff)

@@ -65,7 +65,6 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from .matroid cimport Matroid
@@ -276,9 +275,15 @@ cdef class CircuitClosuresMatroid(Matroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Vamos()
-            sage: sorted(M._max_independent(set(['a', 'c', 'd', 'e', 'f'])))
+            sage: X = M._max_independent(set(['a', 'c', 'd', 'e', 'f']))
+            sage: sorted(X) # py2
             ['a', 'd', 'e', 'f']
-
+            sage: sorted(X) # py3 random
+            ['a', 'd', 'e', 'f']
+            sage: M.is_independent(X)
+            True
+            sage: all(M.is_dependent(X.union([y])) for y in M.groundset() if y not in X)
+            True
         """
         I = set(F)
         for r in sorted(self._circuit_closures.keys()):

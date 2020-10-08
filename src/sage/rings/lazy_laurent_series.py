@@ -10,8 +10,7 @@ EXAMPLES:
 
 Generating functions are Laurent series over the integer ring::
 
-    sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-    sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
 
 This defines the generating function of Fibonacci sequence::
 
@@ -20,7 +19,6 @@ This defines the generating function of Fibonacci sequence::
     ....:         return 1
     ....:     else:
     ....:         return s.coefficient(i - 1) + s.coefficient(i - 2)
-    ....:
     sage: f = L.series(coeff, valuation=0); f
     1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
 
@@ -125,7 +123,6 @@ class LazyLaurentSeries(ModuleElement):
 
     EXAMPLES::
 
-        sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
         sage: L = LazyLaurentSeriesRing(ZZ, 'z')
         sage: L.series(lambda s, i: i, valuation=-3, constant=(-1,3))
         -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + ...
@@ -137,7 +134,6 @@ class LazyLaurentSeries(ModuleElement):
         ....:         return 1
         ....:     else:
         ....:         return s.coefficient(i - 1) + s.coefficient(i - 2)
-        ....:
         sage: f = L.series(coeff, valuation=0); f
         1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
         sage: f.coefficient(100)
@@ -161,7 +157,6 @@ class LazyLaurentSeries(ModuleElement):
 
         TESTS::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
             sage: z = L.gen()
             sage: TestSuite(z).run()
@@ -187,9 +182,7 @@ class LazyLaurentSeries(ModuleElement):
 
         TESTS::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(QQ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: z + z^2 == z^2 + z
             True
             sage: z + z^2 != z^2 + z
@@ -241,7 +234,6 @@ class LazyLaurentSeries(ModuleElement):
 
         TESTS::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: f = L.series([1,2,3,4], -5)
             sage: g = (1 + f)/(1 - f)^2
@@ -257,9 +249,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(GF(2))
             sage: (z-z).is_zero()
             True
             sage: f = 1/(1 - z)
@@ -294,9 +284,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: -1/(1 + 2*z)
             -1 + 2*z - 4*z^2 + 8*z^3 - 16*z^4 + 32*z^5 - 64*z^6 + ...
         """
@@ -351,9 +339,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: f = z/(1 - 2*z^3)
             sage: [f[n] for n in range(20)]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
@@ -370,14 +356,12 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: def g(s, i):
             ....:     if i == 0:
             ....:         return 1
             ....:     else:
             ....:         return sum(s.coefficient(j)*s.coefficient(i - 1 -j) for j in [0..i-1])
-            ....:
             sage: e = L.series(g, valuation=0)
             sage: e.coefficient(10)
             16796
@@ -411,9 +395,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s = 1/(1 - z) - 1/(1 - 2*z)
             sage: s.valuation()
             1
@@ -451,9 +433,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: f = 1/(1 - z)
             sage: f.prec()
             +Infinity
@@ -481,7 +461,6 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: f = L.series([1,0,0,2,0,0,0,3], 5); f
             z^5 + 2*z^8 + 3*z^12
@@ -546,7 +525,6 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
             sage: f = (z - 2*z^3)^5/(1 - 2*z)
@@ -591,9 +569,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)*(1 - z)
             1 - 2*z + z^2
             sage: (1 - z)*(1 - z)*(1 - z)
@@ -623,9 +599,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: 2*z
             2*z
             sage: -1*z
@@ -659,9 +633,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)*(1 - z)
             1 - 2*z + z^2
             sage: (1 - z)*(1 - z)*(1 - z)
@@ -691,9 +663,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: z - z
             0
         """
@@ -717,7 +687,6 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
             sage: -(1 - z)
@@ -742,9 +711,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: ~(1 - z)
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
@@ -765,9 +732,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)^-1
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: (1 - z)^0
@@ -792,9 +757,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: z/(1 - z)
             z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
         """
@@ -824,9 +787,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s = z/(1 - 2*z)
             sage: t = s.apply_to_coefficients(lambda c: c + 1)
             sage: s
@@ -857,9 +818,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s = 2 + z
             sage: t = s.change_ring(QQ)
             sage: t^-1
@@ -890,9 +849,7 @@ class LazyLaurentSeries(ModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: alpha = 1/(1-z)
             sage: alpha
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...

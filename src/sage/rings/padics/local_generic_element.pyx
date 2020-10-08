@@ -12,15 +12,15 @@ AUTHORS:
 - Julian Rueth (2012-10-15, 2014-06-25, 2017-08-04): added inverse_of_unit(); improved
   add_bigoh(); added _test_expansion()
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2017 David Roe <roed@math.harvard.edu>
 #                     2012-2017 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
@@ -395,7 +395,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def add_bigoh(self, absprec):
         """
-        Return a copy of this element with ablsolute precision decreased to
+        Return a copy of this element with absolute precision decreased to
         ``absprec``.
 
         INPUT:

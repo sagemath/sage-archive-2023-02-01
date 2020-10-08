@@ -188,9 +188,15 @@ class DualMatroid(Matroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Vamos().dual()
-            sage: sorted(M._max_independent(set(['a', 'c', 'd', 'e', 'f'])))
+            sage: X = M._max_independent(set(['a', 'c', 'd', 'e', 'f']))
+            sage: sorted(X) # py2
             ['a', 'c', 'd', 'e']
-
+            sage: sorted(X) # py3 random
+            ['a', 'c', 'd', 'e']
+            sage: M.is_independent(X)
+            True
+            sage: all(M.is_dependent(X.union([y])) for y in M.groundset() if y not in X)
+            True
         """
         return self._matroid._max_coindependent(X)
 
@@ -261,9 +267,15 @@ class DualMatroid(Matroid):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Vamos().dual()
-            sage: sorted(M._max_coindependent(set(['a', 'c', 'd', 'e', 'f'])))
+            sage: X = M._max_coindependent(set(['a', 'c', 'd', 'e', 'f']))
+            sage: sorted(X) # py2
             ['a', 'd', 'e', 'f']
-
+            sage: sorted(X) # py3 random
+            ['a', 'd', 'e', 'f']
+            sage: M.is_coindependent(X)
+            True
+            sage: all(M.is_codependent(X.union([y])) for y in M.groundset() if y not in X)
+            True
         """
         return self._matroid._max_independent(X)
 

@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -12,7 +15,6 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
@@ -21,7 +23,7 @@ include 'misc.pxi'
 include 'decl.pxi'
 
 from sage.rings.integer cimport Integer
-from sage.libs.ntl.convert cimport PyLong_to_ZZ
+from sage.libs.ntl.convert cimport PyLong_to_ZZ, mpz_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cpython.int cimport PyInt_AS_LONG
@@ -63,8 +65,6 @@ cdef class ntl_ZZ(object):
             12
             sage: ntl.ZZ(Integer(95413094))
             95413094
-            sage: ntl.ZZ(long(223895239852389582983))
-            223895239852389582983
             sage: ntl.ZZ('-1')
             -1
             sage: ntl.ZZ('1L')
@@ -90,7 +90,7 @@ cdef class ntl_ZZ(object):
             self.set_from_sage_int(v)
         elif v is not None:
             v = str(v)
-            if len(v) == 0:
+            if not v:
                 v = '0'
             if not ((v[0].isdigit() or v[0] == '-') and \
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
@@ -254,9 +254,7 @@ cdef class ntl_ZZ(object):
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
-            sage: type(ntl.ZZ(10^30).__int__())  # py2
-            <type 'long'>
-            sage: type(ntl.ZZ(10^30).__int__())  # py3
+            sage: type(ntl.ZZ(10^30).__int__())
             <class 'int'>
         """
         return int(self._integer_())
@@ -298,7 +296,6 @@ cdef class ntl_ZZ(object):
         cdef Integer ans = Integer.__new__(Integer)
         ZZ_to_mpz(ans.value, &self.x)
         return ans
-        #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 
     cdef void set_from_int(ntl_ZZ self, int value):
         r"""
@@ -324,7 +321,7 @@ cdef class ntl_ZZ(object):
         AUTHOR: Joel B. Mohler
         """
         sig_on()
-        value._to_ZZ(&self.x)
+        mpz_to_ZZ(&self.x, value.value)
         sig_off()
 
     def set_from_int_doctest(self, value):

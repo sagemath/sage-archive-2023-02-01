@@ -185,8 +185,8 @@ Here's another way, working more directly with GAP::
     sage: print(gap.eval("G := SymmetricGroup( 4 )"))
     Sym( [ 1 .. 4 ] )
     sage: print(gap.eval("normal := NormalSubgroups( G );"))
-    [ Sym( [ 1 .. 4 ] ), Alt( [ 1 .. 4 ] ), Group([ (1,4)(2,3), (1,3)(2,4) ]),
-      Group(()) ]
+    [ Sym( [ 1 .. 4 ] ), Alt( [ 1 .. 4 ] ), Group([ (1,4)(2,3), (1,2)(3,4) ]),
+          Group(()) ]
 
 .. index::
    pair: groups; center

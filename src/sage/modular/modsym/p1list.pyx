@@ -1,7 +1,9 @@
+# distutils: libraries = gmp zn_poly
+# distutils: extra_compile_args = -D_XPG6
+
 r"""
 Lists of Manin symbols (elements of `\mathbb{P}^1(\ZZ/N\ZZ)`) over `\QQ`
 """
-from __future__ import absolute_import
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_check
@@ -989,7 +991,7 @@ cdef class P1List(object):
             (1, 99)
             sage: L.index(1,99)
             100
-            sage: all([L.index(L[i][0],L[i][1])==i for i in range(len(L))])
+            sage: all(L.index(L[i][0],L[i][1])==i for i in range(len(L)))
             True
         """
         if self.__N == 1:
@@ -1076,11 +1078,12 @@ cdef class P1List(object):
             (1, 99)
             sage: L.index_of_normalized_pair(1,99)
             100
-            sage: all([L.index_of_normalized_pair(L[i][0],L[i][1])==i for i in range(len(L))])
+            sage: all(L.index_of_normalized_pair(L[i][0],L[i][1])==i for i in range(len(L)))
             True
         """
         t, i = search(self.__list, (u,v))
-        if t: return i
+        if t:
+            return i
         return -1
 
     def list(self):

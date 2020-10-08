@@ -45,16 +45,17 @@ Author:
 
  - Jean-Baptiste Priez
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Jean-Baptiste Priez <jbp@kerios.fr>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-import collections
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from collections.abc import Iterable
 import itertools
 import operator
 
@@ -116,11 +117,11 @@ class SetShuffleProduct(SageObject):
             [[2, 3, 4, 5], [2, 5, 3, 4], [5, 2, 3, 4], [2, 3, 5, 4], [1, 2, 3, 5], [1, 5, 2, 3],
              [5, 1, 2, 3], [1, 2, 5, 3]]
         """
-        assert(isinstance(l1, collections.Iterable) and
-               isinstance(l2, collections.Iterable)
+        assert(isinstance(l1, Iterable) and
+               isinstance(l2, Iterable)
         )
-        assert(all(isinstance(elem, collections.Iterable) for elem in l1))
-        assert(all(isinstance(elem, collections.Iterable) for elem in l2))
+        assert(all(isinstance(elem, Iterable) for elem in l1))
+        assert(all(isinstance(elem, Iterable) for elem in l2))
         self._l1 = list(l1)
         self._l2 = list(l2)
 
@@ -259,8 +260,8 @@ class ShuffleProduct(SageObject):
              word: bbbaa, word: bbaba, word: babba, word: abbba]
 
         """
-        assert(isinstance(l1, collections.Iterable) and
-               isinstance(l2, collections.Iterable)
+        assert(isinstance(l1, Iterable) and
+               isinstance(l2, Iterable)
         )
         self._l1 = list(l1)
         self._l2 = list(l2)
@@ -324,42 +325,50 @@ class ShuffleProduct(SageObject):
             sage: B = BinaryTree
             sage: ascii_art(list(ShuffleProduct([B([]), B([[],[]])],
             ....:   [B([[[],[]],[[],None]])])))
-            [ [ o,   o  ,     __o__   ]  [     __o__  , o,   o   ]  [ o,     __o__  ,
-            [ [     / \      /     \  ]  [    /     \       / \  ]  [       /     \
-            [ [    o   o    o       o ]  [   o       o     o   o ]  [      o       o
-            [ [            / \     /  ]  [  / \     /            ]  [     / \     /
-            [ [           o   o   o   ], [ o   o   o             ], [    o   o   o
+            [ [ o,   o  ,     __o__   ]  [     __o__  , o,   o   ]
+            [ [     / \      /     \  ]  [    /     \       / \  ]
+            [ [    o   o    o       o ]  [   o       o     o   o ]
+            [ [            / \     /  ]  [  / \     /            ]
+            [ [           o   o   o   ], [ o   o   o             ],
             <BLANKLINE>
-               o   ] ]
-              / \  ] ]
-             o   o ] ]
-                   ] ]
-                   ] ]
+             [ o,     __o__  ,   o   ] ]
+             [       /     \    / \  ] ]
+             [      o       o  o   o ] ]
+             [     / \     /         ] ]
+             [    o   o   o          ] ]
         """
 
         ############ Gray code #############
         def swap(i, j):
-            l[i-1], l[j-1] = l[j-1], l[i-1]
+            l[i - 1], l[j - 1] = l[j - 1], l[i - 1]
 
         def gen(n, k):
             if 0 < k < n:
-                for _ in gen(n-1, k): yield
+                for _ in gen(n - 1, k):
+                    yield
 
-                if k == 1: swap(n, n-1)
-                else: swap(n, k-1)
+                if k == 1:
+                    swap(n, n - 1)
+                else:
+                    swap(n, k - 1)
                 yield
 
-                for _ in neg(n-1, k-1): yield
+                for _ in neg(n - 1, k - 1):
+                    yield
 
         def neg(n, k):
             if 0 < k < n:
-                for _ in gen(n-1, k-1): yield
+                for _ in gen(n - 1, k - 1):
+                    yield
 
-                if k == 1: swap(n, n-1)
-                else: swap(n, k-1)
+                if k == 1:
+                    swap(n, n - 1)
+                else:
+                    swap(n, k - 1)
                 yield
 
-                for _ in neg(n-1, k): yield
+                for _ in neg(n - 1, k):
+                    yield
 
         ####################################
 

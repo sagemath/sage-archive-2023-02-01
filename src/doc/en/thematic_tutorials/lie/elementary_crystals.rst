@@ -200,8 +200,8 @@ example::
 
     sage: B = crystals.elementary.Elementary("A2",1)
     sage: S = B.subcrystal(max_depth=4, generators=[B(0)])
-    sage: [s for s in S]
-    [0, 1, -1, 2, -2, 3, -3, -4, 4]
+    sage: sorted(s for s in S)
+    [-4, -3, -2, -1, 0, 1, 2, 3, 4]
     sage: G = B.digraph(subset=S)
     sage: view(G, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
 

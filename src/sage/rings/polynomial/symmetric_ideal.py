@@ -55,7 +55,6 @@ equal to `x_1` in ``Q``. Indeed, we have
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
@@ -219,7 +218,7 @@ class SymmetricIdeal( Ideal_generic ):
 
         """
         from sage.misc.latex import latex
-        return '\\left(%s\\right)%s[\\mathfrak{S}_{\\infty}]'%(", ".join([latex(g) for g in self.gens()]), latex(self.ring()))
+        return '\\left(%s\\right)%s[\\mathfrak{S}_{\\infty}]' % (", ".join(latex(g) for g in self.gens()), latex(self.ring()))
 
     def _contains_(self, p):
         """

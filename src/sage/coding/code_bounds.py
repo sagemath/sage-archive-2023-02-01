@@ -1,5 +1,5 @@
 r"""
-Bounds for Parameters of Codes
+Bounds for parameters of codes
 
 This module provided some upper and lower bounds for the parameters
 of codes.
@@ -399,7 +399,7 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
 
     Returns the Griesmer upper bound for the number of elements in a
     largest linear code of minimum distance `d` in `\GF{q}^n`, cf. [HP2003]_.
-    If the method is "gap", it wraps GAP's ``UpperBoundGriesmer``. 
+    If the method is "gap", it wraps GAP's ``UpperBoundGriesmer``.
 
     The bound states:
 
@@ -456,7 +456,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
     Returns the Elias upper bound for number of elements in the largest
     code of minimum distance `d` in `\GF{q}^n`, cf. [HP2003]_.
-    If the method is "gap", it wraps GAP's ``UpperBoundElias``. 
+    If the method is "gap", it wraps GAP's ``UpperBoundElias``.
 
     EXAMPLES::
 

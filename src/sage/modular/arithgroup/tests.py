@@ -13,7 +13,6 @@ Testing Arithmetic subgroup
 #
 ################################################################################
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 from .arithgroup_perm import ArithmeticSubgroup_Permutation, EvenArithmeticSubgroup_Permutation, OddArithmeticSubgroup_Permutation
 from sage.modular.arithgroup.all import Gamma, Gamma0, Gamma1, GammaH
@@ -217,7 +216,8 @@ class Test:
             sage: Test().test_random() #random
             Doing random test
         """
-        tests = [a for a in Test.__dict__.keys() if a[:5] == "test_" and a != "test_random"]
+        tests = [a for a in Test.__dict__
+                 if a[:5] == "test_" and a != "test_random"]
         name = prandom.choice(tests)
         print("Doing random test %s" % name)
         Test.__dict__[name](self)

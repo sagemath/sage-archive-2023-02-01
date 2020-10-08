@@ -1,3 +1,4 @@
+# distutils: libraries = gmp
 """
 Enumeration of Totally Real Fields
 
@@ -22,8 +23,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, print_function
 
 from libc.math cimport sqrt
 from cysignals.memory cimport sig_malloc, sig_free

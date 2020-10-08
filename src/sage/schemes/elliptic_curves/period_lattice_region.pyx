@@ -6,20 +6,13 @@ of the period lattice of an elliptic curve, used in computing minimum height
 bounds.
 
 In particular, these are the approximating sets ``S^{(v)}`` in section 3.2 of
-Thotsaphon Thongjunthug's Ph.D. Thesis and paper [TT]_.
+Thotsaphon Thongjunthug's Ph.D. Thesis and paper [Tho2010]_.
 
 AUTHORS:
 
 - Robert Bradshaw (2010): initial version
 
 - John Cremona (2014): added some docstrings and doctests
-
-REFERENCES:
-
-.. [T] \T. Thongjunthug, Computing a lower bound for the canonical
-   height on elliptic curves over number fields, Math. Comp. 79
-   (2010), pages 2431-2449.
-
 """
 
 #*****************************************************************************
@@ -31,8 +24,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import division, absolute_import
 
 import numpy as np
 cimport numpy as np
@@ -422,7 +413,7 @@ cdef class PeriodicRegion:
             sage: S / (-1)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned int
+            OverflowError: can...t convert negative value to unsigned int
         """
         cdef unsigned int i, j, a, b, rows, cols
         if n <= 1:
@@ -442,9 +433,6 @@ cdef class PeriodicRegion:
                         for b in range(n):
                             new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
         return PeriodicRegion(self.w1, self.w2, new_data)
-
-    def __div__(self, other):
-        return self / other
 
     def __invert__(self):
         """

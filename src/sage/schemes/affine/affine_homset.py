@@ -33,7 +33,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.rings.all import ZZ, CC, RR
 from sage.rings.rational_field import is_RationalField
 from sage.categories.fields import Fields
@@ -425,7 +425,6 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         R = PolynomialRing(BR, N, PS.gens(), order='lex')
         RF = R.change_ring(F)
         I = R.ideal(X.defining_polynomials())
-        I0 = R.ideal(0)
         # Determine the points through elimination This is much faster
         # than using the I.variety() function on each affine chart.
         G = I.groebner_basis()

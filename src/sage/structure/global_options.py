@@ -12,8 +12,8 @@ These options should be "attached" to one or more classes as an options method.
 .. SEEALSO::
 
     For good examples of :class:`GlobalOptions` in action see
-    :meth:`sage.combinat.partition.Partitions.options` and
-    :meth:`sage.combinat.tableau.Tableaux.options`.
+    :obj:`sage.combinat.partition.Partitions.options` and
+    :obj:`sage.combinat.tableau.Tableaux.options`.
 
 .. _construction_section:
 
@@ -508,7 +508,6 @@ AUTHORS:
 
 from __future__ import absolute_import, print_function
 
-from six import iteritems, add_metaclass
 from importlib import import_module
 from pickle import PicklingError
 from textwrap import dedent
@@ -570,7 +569,7 @@ class Option(object):
     def __add__(self, other):
         r"""
         Return the object obtained by adding ``self`` and ``other``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -582,7 +581,7 @@ class Option(object):
     def __radd__(self, other):
         r"""
         Return the object obtained by adding ``other`` and ``self``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -594,7 +593,7 @@ class Option(object):
     def __mul__(self, other):
         r"""
         Return the object obtained by adding ``self`` and ``other``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -606,7 +605,7 @@ class Option(object):
     def __rmul__(self, other):
         r"""
         Return the object obtained by r-adding ``other`` and ``self``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -617,7 +616,7 @@ class Option(object):
 
     def __bool__(self):
         r"""
-        Return the value of ye option interpreted as a boolean.
+        Return the value of this option interpreted as a boolean.
 
         EXAMPLES::
 
@@ -753,6 +752,12 @@ class GlobalOptionsMetaMeta(type):
         # classes, note that Python 2 and Python 3 have different
         # semantics for determining the metaclass when multiple base
         # classes are involved.
+        #
+        # Note: On Python 3 bases is empty if the class was declared
+        # without any explicted bases:
+        if not bases:
+            bases = (object,)
+
         if len(bases) != 1:
             raise TypeError("GlobalOptions must be the only base class")
 
@@ -769,7 +774,7 @@ class GlobalOptionsMetaMeta(type):
         # Split dict in options for instance.__init__ and attributes to
         # insert in the class __dict__
         kwds = {"NAME": name}
-        for key, value in iteritems(dict):
+        for key, value in dict.items():
             if key.startswith("__"):
                 instance.__dict__[key] = value
             else:
@@ -779,8 +784,7 @@ class GlobalOptionsMetaMeta(type):
         return instance
 
 
-@add_metaclass(GlobalOptionsMetaMeta)
-class GlobalOptionsMeta(type):
+class GlobalOptionsMeta(type, metaclass=GlobalOptionsMetaMeta):
     """
     Metaclass for :class:`GlobalOptions`
 
@@ -790,8 +794,7 @@ class GlobalOptionsMeta(type):
 
 
 @instancedoc
-@add_metaclass(GlobalOptionsMeta)
-class GlobalOptions(object):
+class GlobalOptions(metaclass=GlobalOptionsMeta):
     r"""
     The :class:`GlobalOptions` class is a generic class for setting and
     accessing global options for Sage objects.
@@ -1277,7 +1280,7 @@ class GlobalOptions(object):
             sage: Partitions.options._reset()
         """
         # open the options for the corresponding "parent" and copy all of
-        # the data from its' options class into unpickle
+        # the data from its options class into unpickle
         options_class = getattr(import_module(state['options_module']), state['option_class'])
         unpickle = options_class.options
         state.pop('option_class')
@@ -1388,7 +1391,7 @@ class GlobalOptions(object):
                         self._legal_values[option] = [val.lower() for val in self._legal_values[option]]
                     if option in self._alias:
                         self._alias[option] = {k.lower():v.lower()
-                                               for k, v in iteritems(self._alias[option])}
+                                               for k, v in self._alias[option].items()}
                 self._case_sensitive[option] = bool(specifications[spec])
             elif spec == 'checker':
                 if not callable(specifications[spec]):

@@ -223,6 +223,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         """
         return "%s |--> %s"%(self.domain().variable_name(), self(self.domain().gen()))
 
+
 class FunctionFieldDerivation_separable(FunctionFieldDerivation):
     """
     Derivations of separable extensions.
@@ -333,6 +334,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             return ret + "\n" + base
         else:
             return ret
+
 
 class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
     r"""
@@ -445,6 +447,7 @@ class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
         ret = ["%s |--> %s"%(k.variable_name(), self(k.gen())) for k in self.domain()._intermediate_fields(self.domain().rational_function_field())]
         return "\n".join(ret)
 
+
 class FunctionFieldHigherDerivation(Map):
     """
     Base class of higher derivations on function fields.
@@ -542,9 +545,10 @@ def _pth_root_in_finite_field(e):
     """
     return e.pth_root()
 
-class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
+
+class RationalFunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
     """
-    Higher derivations of rational function fields.
+    Higher derivations of rational function fields over finite fields.
 
     INPUT:
 
@@ -946,9 +950,121 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
             coeffs.append(num / den)
         return self._field(coeffs)
 
+
+class FunctionFieldHigherDerivation_char_zero(FunctionFieldHigherDerivation):
+    """
+    Higher derivations of function fields of characteristic zero.
+
+    INPUT:
+
+    - ``field`` -- function field on which the derivation operates
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: h = L.higher_derivation()
+        sage: h
+        Higher derivation map:
+          From: Function field in y defined by y^3 + x^3*y + x
+          To:   Function field in y defined by y^3 + x^3*y + x
+        sage: h(y,1) == -(3*x^2*y+1)/(3*y^2+x^3)
+        True
+        sage: h(y^2,1) == -2*y*(3*x^2*y+1)/(3*y^2+x^3)
+        True
+        sage: e = L.random_element()
+        sage: h(h(e,1),1) == 2*h(e,2)
+        True
+        sage: h(h(h(e,1),1),1) == 3*2*h(e,3)
+        True
+    """
+    def __init__(self, field):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: TestSuite(h).run(skip=['_test_category'])
+        """
+        FunctionFieldHigherDerivation.__init__(self, field)
+
+        self._separating_element = field(field.base_field().gen())
+
+        # cache computed higher derivatives to speed up later computations
+        self._cache = {}
+
+    def _call_with_args(self, f, args, kwds):
+        """
+        Call the derivation with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: e = L.random_element()
+            sage: h(h(e,1),1) == 2*h(e,2)  # indirect doctest
+            True
+        """
+        return self._derive(f, *args, **kwds)
+
+    def _derive(self, f, i, separating_element=None):
+        """
+        Return ``i``-th derivative of ``f` with respect to the separating
+        element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.higher_derivation()
+            sage: y^3
+            -x^3*y - x
+            sage: h._derive(y^3,0)
+            -x^3*y - x
+            sage: h._derive(y^3,1)
+            (-21/4*x^4/(x^7 + 27/4))*y^2 + ((-9/2*x^9 - 45/2*x^2)/(x^7 + 27/4))*y + (-9/2*x^7 - 27/4)/(x^7 + 27/4)
+        """
+        F = self._field
+
+        if separating_element is None:
+            x = self._separating_element
+            xderinv = 1
+        else:
+            x = separating_element
+            xderinv = ~(x.derivative())
+
+        try:
+            cache = self._cache[separating_element]
+        except KeyError:
+            cache = self._cache[separating_element] = {}
+
+        if i == 0:
+            return f
+
+        try:
+            return cache[f,i]
+        except KeyError:
+            pass
+
+        s = i
+        e = f
+        while s > 0:
+            e = xderinv * e.derivative() / F(s)
+            s -= 1
+
+        der = e
+
+        cache[f,i] = der
+        return der
+
+
 class FunctionFieldVectorSpaceIsomorphism(Morphism):
     r"""
-    A base class for isomorphisms between function fields and vector spaces.
+    Base class for isomorphisms between function fields and vector spaces.
 
     EXAMPLES::
 
@@ -1060,6 +1176,7 @@ class FunctionFieldVectorSpaceIsomorphism(Morphism):
         """
         return hash((self.domain(), self.codomain()))
 
+
 class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
     """
     Isomorphism from a vector space to a function field.
@@ -1163,6 +1280,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         """
         return self._K
 
+
 class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
     """
     Isomorphism from a function field to a vector space.
@@ -1232,8 +1350,9 @@ class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
         for k in fields:
             ret = chain.from_iterable([y.list() for y in ret])
         ret = list(ret)
-        assert all([t.parent() is self._V.base_field() for t in ret])
+        assert all(t.parent() is self._V.base_field() for t in ret)
         return self._V(ret)
+
 
 class FunctionFieldMorphism(RingHomomorphism):
     """
@@ -1295,6 +1414,7 @@ class FunctionFieldMorphism(RingHomomorphism):
             a += '\n' + self._base_morphism._repr_defn()
         return a
 
+
 class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
     """
     Morphism from a finite extension of a function field to a function field.
@@ -1348,6 +1468,7 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
             v = [self._base_morphism(a) for a in v]
         f = v[0].parent()['X'](v)
         return f(self._im_gen)
+
 
 class FunctionFieldMorphism_rational(FunctionFieldMorphism):
     """
@@ -1405,6 +1526,7 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
             den = R([f(c) for c in den.list()])
             return num.subs(self._im_gen) / den.subs(self._im_gen)
 
+
 class FunctionFieldConversionToConstantBaseField(Map):
     r"""
     Conversion map from the function field to its constant base field.
@@ -1456,6 +1578,7 @@ class FunctionFieldConversionToConstantBaseField(Map):
 
         """
         return x.parent()._to_constant_base_field(x)
+
 
 class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
     r"""
@@ -1517,6 +1640,7 @@ class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FractionFieldToFunctionField)(parent.domain(), parent.codomain())
 
+
 class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
     r"""
     Isomorphism from a fraction field of a polynomial ring to the isomorphic
@@ -1575,30 +1699,10 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
 
+
 class FunctionFieldCompletion(Map):
     """
-    Base class of completions on function fields.
-    """
-    def _repr_type(self):
-        """
-        Return a string containing the type of the map.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_finite()[0]
-            sage: m = L.completion(p)
-            sage: m  # indirect doctest
-            Completion map:
-              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
-              To:   Laurent Series Ring in s over Finite Field of size 2
-        """
-        return 'Completion'
-
-class FunctionFieldCompletion_global(FunctionFieldCompletion):
-    """
-    Completions on global functionf fields.
+    Completions on function fields.
 
     INPUT:
 
@@ -1674,14 +1778,33 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
         self._gen_name = gen_name
 
         if prec == infinity:
-            raise NotImplementedError('infinite precision not yet supported')
+            from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            codomain = LazyLaurentSeriesRing(k, name)
+            self._precision = infinity
         else: # prec < infinity:
             # if prec is None, the Laurent series ring provides default precision
             from sage.rings.laurent_series_ring import LaurentSeriesRing
             codomain = LaurentSeriesRing(k, name=name, default_prec=prec)
             self._precision = codomain.default_prec()
 
-        FunctionFieldCompletion.__init__(self, field, codomain)
+        Map.__init__(self, field, codomain)
+
+    def _repr_type(self):
+        """
+        Return a string containing the type of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m  # indirect doctest
+            Completion map:
+              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+              To:   Laurent Series Ring in s over Finite Field of size 2
+        """
+        return 'Completion'
 
     def _call_(self, f):
         """
@@ -1696,7 +1819,10 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
             sage: m(y)
             s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + O(s^19)
         """
-        return self._expand(f, prec=None)
+        if self._precision == infinity:
+            return self._expand_lazy(f)
+        else:
+            return self._expand(f, prec=None)
 
     def _call_with_args(self, f, args, kwds):
         """
@@ -1711,7 +1837,10 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
             sage: m(x+y, 10)  # indirect doctest
             s^-1 + 1 + s^2 + s^4 + s^8 + O(s^9)
         """
-        return self._expand(f, *args, **kwds)
+        if self._precision == infinity:
+            return self._expand_lazy(f, *args, **kwds)
+        else:
+            return self._expand(f, *args, **kwds)
 
     def _expand(self, f, prec=None):
         """
@@ -1749,6 +1878,42 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
         coeffs = [to_k(der._derive(e, i, sep)) for i in range(prec)]
         return self.codomain()(coeffs, val).add_bigoh(prec + val)
 
+    def _expand_lazy(self, f):
+        """
+        Return the lazy laurent series expansion of ``f``.
+
+        INPUT:
+
+        - ``f`` -- element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p, prec=infinity)
+            sage: e = m(x); e
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + ...
+            sage: e.coefficient(99)  # indirect doctest
+            0
+            sage: e.coefficient(100)
+            1
+        """
+        place = self._place
+        F = place.function_field()
+        der = F.higher_derivation()
+
+        k, from_k, to_k = place.residue_field(name=self._gen_name)
+        sep = place.local_uniformizer()
+
+        val = f.valuation(place)
+        e = f * sep**(-val)
+
+        def coeff(s, n):
+            return to_k(der._derive(e, n - val, sep))
+
+        return self.codomain().series(coeff, valuation=val)
+
     def default_precision(self):
         """
         Return the default precision.
@@ -1763,6 +1928,7 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
             20
         """
         return self._precision
+
 
 class FunctionFieldRingMorphism(SetMorphism):
     """
@@ -1790,6 +1956,7 @@ class FunctionFieldRingMorphism(SetMorphism):
         s += "\n  From: {}".format(self.domain())
         s += "\n  To:   {}".format(self.codomain())
         return s
+
 
 class FunctionFieldLinearMap(SetMorphism):
     """

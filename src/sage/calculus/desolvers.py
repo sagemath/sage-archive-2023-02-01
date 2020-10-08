@@ -542,7 +542,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
         sage: forget()
         sage: y = function('y')(x)
         sage: desolve(diff(y, x) == sqrt(abs(y)), dvar=y, ivar=x)
-        sqrt(-y(x))*(sgn(y(x)) - 1) + (sgn(y(x)) + 1)*sqrt(y(x)) == _C + x
+        integrate(1/sqrt(abs(y(x))), y(x)) == _C + x
 
     AUTHORS:
 
@@ -1243,13 +1243,13 @@ def desolve_rk4_determine_bounds(ics,end_points=None):
 
     """
     if end_points is None:
-        return((ics[0],ics[0]+10))
-    if not isinstance(end_points,list):
-        end_points=[end_points]
-    if len(end_points)==1:
-        return (min(ics[0],end_points[0]),max(ics[0],end_points[0]))
+        return ics[0], ics[0] + 10
+    if not isinstance(end_points, list):
+        end_points = [end_points]
+    if len(end_points) == 1:
+        return min(ics[0], end_points[0]), max(ics[0], end_points[0])
     else:
-        return (min(ics[0],end_points[0]),max(ics[0],end_points[1]))
+        return min(ics[0], end_points[0]), max(ics[0], end_points[1])
 
 
 def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output='list', **kwds):

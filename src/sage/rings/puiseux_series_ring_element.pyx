@@ -108,7 +108,7 @@ from sage.ext.fast_callable import fast_callable
 from sage.rings.big_oh import O
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.infinity import infinity
 from sage.rings.laurent_series_ring_element cimport LaurentSeries
 from sage.rings.laurent_series_ring import LaurentSeriesRing

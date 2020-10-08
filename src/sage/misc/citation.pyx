@@ -40,7 +40,7 @@ systems['NTL'] = ['sage.libs.ntl',
 systems['FLINT'] = ['_flint']
 systems['GMP'] = ['sage.rings.integer.Integer']
 systems['MPFR'] = ['sage.rings.real_mpfr',
-                   'sage.rings.complex_number']
+                   'sage.rings.complex_mpfr']
 systems['MPFI'] = ['sage.rings.real_mpfi',
                    'sage.rings.complex_interval']
 systems['M4RI'] = ['sage.matrix.matrix_mod2_dense']

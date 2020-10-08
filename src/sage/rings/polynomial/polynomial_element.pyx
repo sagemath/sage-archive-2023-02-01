@@ -68,7 +68,6 @@ from . import polynomial_ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
-import sage.rings.complex_field
 import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
@@ -87,7 +86,7 @@ from sage.libs.all import pari, pari_gen, PariError
 
 from sage.rings.real_mpfr import RealField, is_RealField, RR
 
-from sage.rings.complex_field import is_ComplexField, ComplexField
+from sage.rings.complex_mpfr import is_ComplexField, ComplexField
 CC = ComplexField()
 
 from sage.rings.real_double import is_RealDoubleField, RDF

@@ -2559,7 +2559,7 @@ class MPolynomialIdeal_singular_repr(
         if d == -1:
             return []
 
-        import sage.rings.complex_field as CCmod
+        import sage.rings.complex_mpfr as CCmod
         if isinstance(self.base_ring(), CCmod.ComplexField_class):
           verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
         P = self.ring()

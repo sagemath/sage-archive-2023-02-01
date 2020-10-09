@@ -51,7 +51,6 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.commutative_rings import CommutativeRings
-from sage.categories.rings import Rings
 
 from sage.structure.category_object import normalize_names
 from sage.structure.factory import UniqueFactory

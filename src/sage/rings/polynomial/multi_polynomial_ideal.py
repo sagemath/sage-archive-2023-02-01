@@ -234,7 +234,6 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.interfaces.all import (singular as singular_default,
-                                 macaulay2 as macaulay2_default,
                                  magma as magma_default)
 
 from sage.interfaces.expect import StdOutContext

@@ -3352,12 +3352,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         C = F.critical_subscheme()
         ram_type = {}
         fc = C.defining_ideal().gens()[0]
-        for f, e in fc.factor():
+        for f, m in fc.factor():
             c = F(F.domain().subscheme(f))  # critical value
             if c in ram_type:
-                ram_type[c].append(e + 1)
+                ram_type[c].append(m + 1)
             else:
-                ram_type[c] = [e + 1]
+                ram_type[c] = [m + 1]
         return sorted(ram_type.values())
 
     def is_postcritically_finite(self, err=0.01, use_algebraic_closure=True):

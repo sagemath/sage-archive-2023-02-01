@@ -257,7 +257,7 @@ class ProjectionFuncSchlegel():
             sage: facet = fcube.facets()[0]
             sage: proj = ProjectionFuncSchlegel(facet,[0,-1.5,0,0])
             sage: proj.facet
-            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 8 vertices
+            A 3-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 8 vertices
             sage: proj.A
             [1.0 0.0 0.0]
             [0.0 0.0 0.0]
@@ -277,8 +277,8 @@ class ProjectionFuncSchlegel():
             (2.0, 2.0, 0.0)
             sage: TestSuite(proj).run(skip='_test_pickling')
         """
-        self.facet = facet.as_polyhedron()
-        A,b = self.facet.affine_hull_projection(as_affine_map=True, orthonormal=True,extend=True)
+        self.facet = facet
+        A,b = self.facet.as_polyhedron().affine_hull_projection(as_affine_map=True, orthonormal=True,extend=True)
         self.A = A.change_ring(RDF).matrix()
         self.b = b.change_ring(RDF)
         self.projection_point = vector(RDF,projection_point)
@@ -298,10 +298,13 @@ class ProjectionFuncSchlegel():
             sage: proj.__call__([0,0,0,0])
             (1.0, 1.0, 1.0)
         """
-        from sage.geometry.polyhedron.constructor import Polyhedron
-        segment = Polyhedron(vertices=[vector(RDF, x),self.projection_point])
         # The intersection of the segment with the facet
-        preimage = (segment & self.facet).vertices()[0].vector()
+        # See Ziegler's "Lectures on Polytopes" p.133
+        vx = vector(x)
+        z = (self.facet.ambient_Hrepresentation()[0].b())
+        a = -(self.facet.ambient_Hrepresentation()[0].A())
+        y = self.projection_point
+        preimage = y + ((z-a*y)/(a*vx-a*y))*(vx - y) 
         # The transformation matrix acts on the right:
         return preimage*self.A + self.b
 

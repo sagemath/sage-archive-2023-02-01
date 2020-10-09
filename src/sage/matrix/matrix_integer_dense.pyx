@@ -377,7 +377,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Returns (i, j) entry of self as a new Integer.
+        Return (i, j) entry of self as a new Integer.
 
         .. WARNING::
 
@@ -431,7 +431,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     cdef inline double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Returns (j, i) entry of self as a new Integer.
+        Return (j, i) entry of self as a new Integer.
 
         .. WARNING::
 
@@ -631,7 +631,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def __copy__(self):
         r"""
-        Returns a new copy of this matrix.
+        Return a new copy of this matrix.
 
         EXAMPLES::
 
@@ -1045,7 +1045,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
     # TODO: Implement better
     cdef _vector_times_matrix_(self, Vector v):
         """
-        Returns the vector times matrix product.
+        Return the vector times matrix product.
 
         INPUT:
 
@@ -1704,63 +1704,63 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def symplectic_form(self):
         r"""
-            Find a symplectic basis for self if self is an anti-symmetric,
-            alternating matrix.
+        Find a symplectic basis for self if self is an anti-symmetric,
+        alternating matrix.
 
-            Returns a pair (F, C) such that the rows of C form a symplectic
-            basis for self and F = C \* self \* C.transpose().
+        Return a pair (F, C) such that the rows of C form a symplectic
+        basis for self and F = C \* self \* C.transpose().
 
-            Raises a ValueError if self is not anti-symmetric, or self is not
-            alternating.
+        Raise a ValueError if self is not anti-symmetric, or self is not
+        alternating.
 
-            Anti-symmetric means that `M = -M^t`. Alternating means
-            that the diagonal of `M` is identically zero.
+        Anti-symmetric means that `M = -M^t`. Alternating means
+        that the diagonal of `M` is identically zero.
 
-            A symplectic basis is a basis of the form
-            `e_1, \ldots, e_j, f_1, \ldots f_j, z_1, \dots, z_k`
-            such that
+        A symplectic basis is a basis of the form
+        `e_1, \ldots, e_j, f_1, \ldots f_j, z_1, \dots, z_k`
+        such that
 
-            -  `z_i M v^t` = 0 for all vectors `v`
+        -  `z_i M v^t` = 0 for all vectors `v`
 
-            -  `e_i M {e_j}^t = 0` for all `i, j`
+        -  `e_i M {e_j}^t = 0` for all `i, j`
 
-            -  `f_i M {f_j}^t = 0` for all `i, j`
+        -  `f_i M {f_j}^t = 0` for all `i, j`
 
-            -  `e_i M {f_i}^t = 1` for all `i`
+        -  `e_i M {f_i}^t = 1` for all `i`
 
-            -  `e_i M {f_j}^t = 0` for all `i` not equal
-                `j`.
+        -  `e_i M {f_j}^t = 0` for all `i` not equal
+            `j`.
 
-            The ordering for the factors `d_{i} | d_{i+1}` and for
-            the placement of zeroes was chosen to agree with the output of
-            :meth:`smith_form`.
+        The ordering for the factors `d_{i} | d_{i+1}` and for
+        the placement of zeroes was chosen to agree with the output of
+        :meth:`smith_form`.
 
-            See the example for a pictorial description of such a basis.
+        See the example for a pictorial description of such a basis.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: E = matrix(ZZ, 5, 5, [0, 14, 0, -8, -2, -14, 0, -3, -11, 4, 0, 3, 0, 0, 0, 8, 11, 0, 0, 8, 2, -4, 0, -8, 0]); E
-                [  0  14   0  -8  -2]
-                [-14   0  -3 -11   4]
-                [  0   3   0   0   0]
-                [  8  11   0   0   8]
-                [  2  -4   0  -8   0]
-                sage: F, C = E.symplectic_form()
-                sage: F
-                [ 0  0  1  0  0]
-                [ 0  0  0  2  0]
-                [-1  0  0  0  0]
-                [ 0 -2  0  0  0]
-                [ 0  0  0  0  0]
-                sage: F == C * E * C.transpose()
-                True
-                sage: E.smith_form()[0]
-                [1 0 0 0 0]
-                [0 1 0 0 0]
-                [0 0 2 0 0]
-                [0 0 0 2 0]
-                [0 0 0 0 0]
-            """
+            sage: E = matrix(ZZ, 5, 5, [0, 14, 0, -8, -2, -14, 0, -3, -11, 4, 0, 3, 0, 0, 0, 8, 11, 0, 0, 8, 2, -4, 0, -8, 0]); E
+            [  0  14   0  -8  -2]
+            [-14   0  -3 -11   4]
+            [  0   3   0   0   0]
+            [  8  11   0   0   8]
+            [  2  -4   0  -8   0]
+            sage: F, C = E.symplectic_form()
+            sage: F
+            [ 0  0  1  0  0]
+            [ 0  0  0  2  0]
+            [-1  0  0  0  0]
+            [ 0 -2  0  0  0]
+            [ 0  0  0  0  0]
+            sage: F == C * E * C.transpose()
+            True
+            sage: E.smith_form()[0]
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 2 0 0]
+            [0 0 0 2 0]
+            [0 0 0 0 0]
+        """
         import sage.matrix.symplectic_basis
         return sage.matrix.symplectic_basis.symplectic_basis_over_ZZ(self)
 
@@ -2540,7 +2540,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def _right_kernel_matrix(self, **kwds):
         r"""
-        Returns a pair that includes a matrix of basis vectors
+        Return a pair that includes a matrix of basis vectors
         for the right kernel of ``self``.
 
         INPUT:
@@ -2558,7 +2558,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         OUTPUT:
 
-        Returns a pair.  First item is the string is either
+        Return a pair.  First item is the string is either
         'computed-flint-int', 'computed-pari-int', 'computed-flint-int', which identifies
         the nature of the basis vectors.
 
@@ -4724,7 +4724,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def decomposition(self, **kwds):
         """
-        Returns the decomposition of the free module on which this matrix A
+        Return the decomposition of the free module on which this matrix A
         acts from the right (i.e., the action is x goes to x A), along with
         whether this matrix acts irreducibly on each factor. The factors
         are guaranteed to be sorted in the same way as the corresponding
@@ -5087,7 +5087,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 R = R/d
                 i += 1
                 j = i
-                if i == nrows :
+                if i == nrows:
                     break # return res
                 if T_rows[i][i] == 0:
                     T_rows[i][i] = R
@@ -5179,7 +5179,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def augment(self, right, subdivide=False):
         r"""
-        Returns a new matrix formed by appending the matrix
+        Return a new matrix formed by appending the matrix
         (or vector) ``right`` on the right side of ``self``.
 
         INPUT:
@@ -5500,7 +5500,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def transpose(self):
         """
-        Returns the transpose of self, without changing self.
+        Return the transpose of self, without changing self.
 
         EXAMPLES:
 
@@ -5551,7 +5551,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def antitranspose(self):
         """
-        Returns the antitranspose of self, without changing self.
+        Return the antitranspose of self, without changing self.
 
         EXAMPLES::
 

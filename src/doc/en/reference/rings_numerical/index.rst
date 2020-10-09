@@ -19,7 +19,6 @@ special functions when implementations aren't otherwise available.
    :maxdepth: 2
 
    sage/rings/real_mpfr
-   sage/rings/complex_field
    sage/rings/complex_mpfr
    sage/rings/complex_mpc
    sage/rings/real_double

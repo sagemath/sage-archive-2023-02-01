@@ -550,7 +550,23 @@ cdef class Matrix_integer_dense(Matrix_dense):
         return data
 
     def _unpickle(self, data, int version):
+        """
+        TESTS::
+
+            sage: b = matrix(ZZ,2,3, [0,0,0, 0, 0, 0])
+            sage: s = b'1 61 f -2 3 0'
+            sage: t = s.decode()
+            sage: b._unpickle(s, 0) == b._unpickle(t, 0)
+            True
+            sage: b
+            [  1 193  15]
+            [ -2   3   0]
+        """
         if version == 0:
+            if isinstance(data, str):
+                # old Py2 pickle: old "bytes" object reaches us as a
+                # latin1-encoded string.
+                data = data.encode('latin1')
             if isinstance(data, bytes):
                 self._unpickle_version0(data)
             elif isinstance(data, list):

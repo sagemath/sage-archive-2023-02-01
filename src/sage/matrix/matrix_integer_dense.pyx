@@ -1051,7 +1051,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         -  ``v`` - a free module element.
 
-        OUTPUT: The vector times matrix product v\*A.
+        OUTPUT: The vector times matrix product ``v*A``.
 
         EXAMPLES::
 
@@ -1708,7 +1708,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         alternating matrix.
 
         Return a pair (F, C) such that the rows of C form a symplectic
-        basis for self and F = C \* self \* C.transpose().
+        basis for self and ``F = C * self * C.transpose()``.
 
         Raise a ValueError if self is not anti-symmetric, or self is not
         alternating.
@@ -2003,7 +2003,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         key = 'hnf-%s-%s'%(include_zero_rows,transformation)
         ans = self.fetch(key)
-        if ans is not None: return ans
+        if ans is not None:
+            return ans
 
         cdef Matrix_integer_dense H_m,w,U
         cdef Py_ssize_t nr, nc, n, i, j
@@ -2011,10 +2012,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
         nc = self._ncols
         n = nr if nr >= nc else nc
         if algorithm == 'default':
-            if transformation: algorithm = 'flint'
+            if transformation:
+                algorithm = 'flint'
             else:
-                if n < 75: algorithm = 'pari0'
-                else: algorithm = 'flint'
+                if n < 75:
+                    algorithm = 'pari0'
+                else:
+                    algorithm = 'flint'
         proof = get_proof_flag(proof, "linear_algebra")
         pivots = None
 
@@ -2252,7 +2256,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [ 0  0  0]
         """
         p = self.fetch('pivots')
-        if not p is None: return tuple(p)
+        if not p is None:
+            return tuple(p)
 
         cdef Matrix_integer_dense E
         E = self.echelon_form()
@@ -2446,8 +2451,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
         if not transformation:
             return D
 
-        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
-        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
+        if self._ncols == 0:
+            v[0] = self.matrix_space(ncols = self._nrows)(1)
+        if self._nrows == 0:
+            v[1] = self.matrix_space(nrows = self._ncols)(1)
 
         if self._ncols == 0:
             # silly special cases for matrices with 0 columns (PARI has a unique empty matrix)
@@ -3594,7 +3601,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
 
         ALGORITHM: The p-adic algorithm works by first finding a random
-        vector v, then solving A\*x = v and taking the denominator
+        vector v, then solving `Ax = v` and taking the denominator
         `d`. This gives a divisor of the determinant. Then we
         compute `\det(A)/d` using a multimodular algorithm and the
         Hadamard bound, skipping primes that divide `d`.
@@ -3905,7 +3912,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
            check that the matrix is invertible.
 
 
-        OUTPUT: A, d such that A\*self = d
+        OUTPUT: A, d such that ``A*self == d``
 
 
         -  ``A`` - a matrix over ZZ
@@ -3961,7 +3968,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         -  ``self`` - an invertible matrix
 
-        OUTPUT: A, d such that A\*self = d
+        OUTPUT: A, d such that ``A*self == d``
 
 
         -  ``A`` - a matrix over ZZ
@@ -4242,8 +4249,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
     def _solve_iml(self, Matrix_integer_dense B, right=True):
         """
         Let A equal self be a square matrix. Given B return an integer
-        matrix C and an integer d such that self C\*A == d\*B if right is
-        False or A\*C == d\*B if right is True.
+        matrix C and an integer d such that self ``C*A == d*B`` if right is
+        False or ``A*C == d*B`` if right is True.
 
         OUTPUT:
 
@@ -4408,8 +4415,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
     def _solve_flint(self, Matrix_integer_dense B, right=True):
         """
         Let A equal self be a square matrix. Given B return an integer
-        matrix C and an integer d such that self C\*A == d\*B if right is
-        False or A\*C == d\*B if right is True.
+        matrix C and an integer d such that self ``C*A == d*B`` if right is
+        False or ``A*C == d*B`` if right is True.
 
         OUTPUT:
 
@@ -4564,7 +4571,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
 
         If you put standard basis vectors in order at the pivot columns,
-        and put the matrix (1/d)\*X everywhere else, then you get the
+        and put the matrix ``(1/d)*X`` everywhere else, then you get the
         reduced row echelon form of self, without zero rows at the bottom.
 
         .. NOTE::
@@ -4895,7 +4902,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 row_i = A.row(i)
                 row_n = A.row(n)
 
-                ag = a//g; bg = b//g
+                ag = a//g
+                bg = b//g
 
                 new_top = s*row_i  +  t*row_n
                 new_bot = bg*row_i - ag*row_n
@@ -4953,7 +4961,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         INPUT:
 
         -  ``D`` -- a small integer that is assumed to be a
-           multiple of 2\*det(self)
+           multiple of ``2*det(self)``
 
         OUTPUT:
 

@@ -2708,7 +2708,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         EXAMPLES::
 
             sage: m = matrix(ZZ,3,[1..9])
-            sage: m.adjugate()
+            sage: m.adjugate()  # indirect doctest
             [ -3   6  -3]
             [  6 -12   6]
             [ -3   6  -3]

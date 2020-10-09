@@ -86,7 +86,7 @@ def set_global_complex_round_mode(n):
 
 def is_ComplexNumber(x):
     r"""
-    Returns ``True`` if ``x`` is a complex number. In particular, if ``x`` is
+    Return ``True`` if ``x`` is a complex number. In particular, if ``x`` is
     of the :class:`ComplexNumber` type.
 
     EXAMPLES::
@@ -356,7 +356,7 @@ class ComplexField_class(ring.Field):
 
     def to_prec(self, prec):
         """
-        Returns the complex field to the specified precision.
+        Return the complex field to the specified precision.
 
         EXAMPLES::
 
@@ -646,7 +646,7 @@ class ComplexField_class(ring.Field):
 
     def construction(self):
         """
-        Returns the functorial construction of ``self``, namely the algebraic
+        Return the functorial construction of ``self``, namely the algebraic
         closure of the real field with the same precision.
 
         EXAMPLES::
@@ -662,7 +662,7 @@ class ComplexField_class(ring.Field):
 
     def random_element(self, component_max=1, *args, **kwds):
         r"""
-        Returns a uniformly distributed random number inside a square
+        Return a uniformly distributed random number inside a square
         centered on the origin (by default, the square `[-1,1] \times [-1,1]`).
 
         Passes additional arguments and keywords to underlying real field.
@@ -697,7 +697,7 @@ class ComplexField_class(ring.Field):
 
     def pi(self):
         r"""
-        Returns `\pi` as a complex number.
+        Return `\pi` as a complex number.
 
         EXAMPLES::
 
@@ -960,7 +960,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def _interface_init_(self, I=None):
         """
-        Returns ``self`` formatted as a string, suitable as input to another
+        Return ``self`` formatted as a string, suitable as input to another
         computer algebra system. (This is the default function used for
         exporting to other computer algebra systems.)
 
@@ -1119,7 +1119,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def _repr_(self):
         r"""
-        Returns ``self`` formatted as a string.
+        Return ``self`` formatted as a string.
 
         EXAMPLES::
 
@@ -1132,7 +1132,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __hash__(self):
         """
-        Returns the hash of ``self``, which coincides with the python complex
+        Return the hash of ``self``, which coincides with the python complex
         and float (and often int) types.
 
         This has the drawback that two very close high precision numbers
@@ -1148,7 +1148,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __getitem__(self, i):
         r"""
-        Returns either the real or imaginary component of self depending on
+        Return either the real or imaginary component of self depending on
         the choice of i: real (i=0), imaginary (i=1)
 
         INPUT:
@@ -1423,7 +1423,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def _mpmath_(self, prec=None, rounding=None):
         """
-        Returns an mpmath version of ``self``.
+        Return an mpmath version of ``self``.
 
         .. NOTE::
 
@@ -1513,7 +1513,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def norm(self):
         r"""
-        Returns the norm of this complex number.
+        Return the norm of this complex number.
 
         If `c = a + bi` is a complex number, then the norm of `c` is defined as
         the product of `c` and its complex conjugate:
@@ -1634,7 +1634,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __rtruediv__(self, left):
         r"""
-        Returns the quotient of left with ``self``, that is:
+        Return the quotient of left with ``self``, that is:
 
         ``left/self``
 
@@ -2775,7 +2775,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def dilog(self):
         r"""
-        Returns the complex dilogarithm of ``self``.
+        Return the complex dilogarithm of ``self``.
 
         The complex dilogarithm, or Spence's function, is defined by
 
@@ -3450,7 +3450,7 @@ cdef inline mp_exp_t max_exp(ComplexNumber z):
 
 cpdef int cmp_abs(ComplexNumber a, ComplexNumber b):
     """
-    Returns -1, 0, or 1 according to whether `|a|` is less than, equal to, or
+    Return -1, 0, or 1 according to whether `|a|` is less than, equal to, or
     greater than `|b|`.
 
     Optimized for non-close numbers, where the ordering can be determined by

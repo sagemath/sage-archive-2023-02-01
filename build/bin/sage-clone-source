@@ -11,6 +11,9 @@
 # Also extract auto-generated files from the configure tarball.
 ########################################################################
 
+echo "This script is currently broken, see https://trac.sagemath.org/ticket/30736"
+exit 1
+
 set -e
 
 if [ $# -ne 2 ]; then

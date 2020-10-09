@@ -14093,7 +14093,7 @@ cdef class Matrix(Matrix1):
             return self.change_ring(sage.rings.real_mpfr.RealField(prec))
         except (TypeError, ValueError):
             # try to return a complex result
-            return self.change_ring(sage.rings.complex_field.ComplexField(prec))
+            return self.change_ring(sage.rings.complex_mpfr.ComplexField(prec))
 
     def plot(self, *args, **kwds):
         """

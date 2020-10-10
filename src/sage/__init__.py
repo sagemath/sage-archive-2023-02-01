@@ -84,7 +84,8 @@ if sys.platform == 'cygwin':
             # then
             return
 
-        import sqlite3, functools
+        import sqlite3
+        import functools
         orig_sqlite3_connect = sqlite3.connect
 
         @functools.wraps(orig_sqlite3_connect)

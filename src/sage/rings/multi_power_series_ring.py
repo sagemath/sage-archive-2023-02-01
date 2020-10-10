@@ -281,6 +281,25 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
     #
     # sparse setting may not be implemented completely
     Element = MPowerSeries
+    @staticmethod
+    def __classcall__(cls, base_ring, num_gens, name_list,
+                 order='negdeglex', default_prec=10, sparse=False):
+        """
+        Preprocessing of arguments: The term order can be given as string
+        or as a :class:`~sage.rings.polynomial.term_order.TermOrder` instance.
+
+        TESTS::
+
+            sage: P1 = PowerSeriesRing(QQ, ['f0','f1','f2','f3'], order = TermOrder('degrevlex'))
+            sage: P2 = PowerSeriesRing(QQ,4,'f', order='degrevlex')
+            sage: P1 is P2   # indirect doctest
+            True
+
+        """
+        order = TermOrder(order,num_gens)
+        return super(MPowerSeriesRing_generic,cls).__classcall__(cls, base_ring, num_gens, name_list,
+                 order, default_prec, sparse)
+
     def __init__(self, base_ring, num_gens, name_list,
                  order='negdeglex', default_prec=10, sparse=False):
         """
@@ -335,7 +354,6 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             sage: TestSuite(P).run()
 
         """
-        order = TermOrder(order,num_gens)
         self._term_order = order
         if not base_ring.is_commutative():
             raise TypeError("Base ring must be a commutative ring.")
@@ -487,9 +505,31 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             Multivariate Power Series Ring in f0, f1, f2, f3 over Rational Field
             sage: c(R) == M
             True
+
+        TESTS::
+
+            sage: M2 = PowerSeriesRing(QQ,4,'f', sparse=True)
+            sage: M == M2
+            False
+            sage: c,R = M2.construction()
+            sage: c(R)==M2
+            True
+            sage: M3 = PowerSeriesRing(QQ,4,'f', order='degrevlex')
+            sage: M3 == M
+            False
+            sage: M3 == M2
+            False
+            sage: c,R = M3.construction()
+            sage: c(R)==M3
+            True
+
         """
         from sage.categories.pushout import CompletionFunctor
-        return (CompletionFunctor(self._names, self.default_prec()),
+        extras = {'order':self.term_order(), 'num_gens':self.ngens()}
+        if self.is_sparse():
+            extras['sparse'] = True
+        return (CompletionFunctor(self._names, self.default_prec(),
+                                  extras=extras),
                 self._poly_ring())
 
     def change_ring(self, R):

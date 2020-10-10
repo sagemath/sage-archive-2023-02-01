@@ -867,8 +867,9 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     B = BlockDesign(len(points), blocks, name="AffineGeometryDesign", check=check)
 
     if point_coordinates:
-        rd = {i:p[0][1:] for p,i in points.items()}
-        for v in rd.values(): v.set_immutable()
+        rd = {i: p[0][1:] for p, i in points.items()}
+        for v in rd.values():
+            v.set_immutable()
         B.relabel(rd)
 
     if check:
@@ -876,6 +877,7 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
             raise RuntimeError("error in AffineGeometryDesign "
                     "construction. Please e-mail sage-devel@googlegroups.com")
     return B
+
 
 def CremonaRichmondConfiguration():
     r"""

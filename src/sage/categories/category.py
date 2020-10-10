@@ -2898,7 +2898,6 @@ class CategoryWithParameters(Category):
             return False
         return Unknown
 
-
 #############################################################
 # Join of several categories
 #############################################################

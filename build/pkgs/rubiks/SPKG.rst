@@ -20,7 +20,7 @@ Dik T. Winter (MIT License)
    solution to the 3x3x3 Rubik's cube
 -  size222 - solves a 2x2x2 Rubik's cube
 
-Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
+Eric Dietz (GPL) https://web.archive.org/web/20121212175710/http://www.wrongway.org/?rubiksource
 
 -  cu2 - A fast, non-optimal 2x2x2 solver
 -  cubex - A fast, non-optimal 3x3x3 solver

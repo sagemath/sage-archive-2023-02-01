@@ -1,8 +1,8 @@
-from .PyPolyBoRi import Monomial, random_set, Polynomial, \
-set_random_seed, Ring, ll_red_nf_redsb, Variable
+from .PyPolyBoRi import (Monomial, random_set, Polynomial,
+                         set_random_seed, ll_red_nf_redsb, Variable)
 from .ll import ll_encode
 from random import Random
-from pprint import pprint, pformat
+from pprint import pformat
 from .blocks import declare_ring
 
 

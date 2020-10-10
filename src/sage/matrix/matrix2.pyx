@@ -54,6 +54,10 @@ AUTHORS:
 - Mario Pernici (2014-07-01): modified ``rook_vector`` method
 
 - Rob Beezer (2015-05-25): modified ``is_similar`` method
+
+- Samuel Lelièvre (2020-09-18): improved method ``LLL_gram`` based on a patch
+  by William Stein posted at :trac:`5178`, moving the method from its initial
+  location in ``sage.matrix.integer_matrix_dense``
 """
 
 # ****************************************************************************
@@ -9491,6 +9495,10 @@ cdef class Matrix(Matrix1):
         Note that one can use the Python inverse operator to obtain the
         inverse as well.
 
+        .. SEEALSO::
+
+              :meth:`inverse_positive_definite`
+
         EXAMPLES::
 
             sage: m = matrix([[1,2],[3,4]])
@@ -12370,6 +12378,133 @@ cdef class Matrix(Matrix1):
             C.set_immutable()
             self.cache('cholesky', C)
         return C
+
+    def inverse_positive_definite(self):
+        r"""
+        Compute the inverse of a positive-definite matrix.
+
+        In accord with :meth:`is_positive_definite`, only Hermitian
+        matrices are considered positive-definite. Positive-definite
+        matrices have several factorizations (Cholesky, LDLT, et
+        cetera) that allow them to be inverted in a fast,
+        numerically-stable way. This method uses an appropriate
+        factorization, and is akin to the ``cholinv`` and ``chol2inv``
+        functions available in R, Octave, and Stata.
+
+        You should ensure that your matrix is positive-definite before
+        using this method. When in doubt, use the generic
+        :meth:`inverse` method instead.
+
+        OUTPUT:
+
+        If the given matrix is positive-definite, the return value is
+        the same as that of the :meth:`inverse` method. If the matrix
+        is not positive-definite, the behavior of this function is
+        undefined.
+
+        .. SEEALSO::
+
+              :meth:`inverse`,
+              :meth:`is_positive_definite`,
+              :meth:`cholesky`,
+              :meth:`indefinite_factorization`
+
+        EXAMPLES:
+
+        A simple two-by-two matrix with rational entries::
+
+            sage: A = matrix(QQ, [[ 2, -1],
+            ....:                 [-1,  2]])
+            sage: A.is_positive_definite()
+            True
+            sage: A.inverse_positive_definite()
+            [2/3 1/3]
+            [1/3 2/3]
+            sage: A.inverse_positive_definite() == A.inverse()
+            True
+
+        A matrix containing real roots::
+
+            sage: A = matrix(AA, [ [1,       0,       sqrt(2)],
+            ....:                  [0,       sqrt(3), 0      ],
+            ....:                  [sqrt(2), 0,       sqrt(5)] ])
+            sage: A.is_positive_definite()
+            True
+            sage: B = matrix(AA, [ [2*sqrt(5) + 5, 0, -sqrt(8*sqrt(5) + 18)],
+            ....:                  [0,             sqrt(1/3),             0],
+            ....:                  [-sqrt(8*sqrt(5) + 18), 0, sqrt(5) + 2] ])
+            sage: A.inverse_positive_definite() == B
+            True
+            sage: A*B == A.matrix_space().identity_matrix()
+            True
+
+        A Hermitian (but not symmetric) matrix with complex entries::
+
+            sage: A = matrix(QQbar, [ [ 1,  0,        I  ],
+            ....:                     [ 0,  sqrt(5),  0  ],
+            ....:                     [-I,  0,        3  ] ])
+            sage: A.is_positive_definite()
+            True
+            sage: B = matrix(QQbar, [ [ 3/2, 0,        -I/2 ],
+            ....:                     [ 0,   sqrt(1/5), 0   ],
+            ....:                     [ I/2, 0,         1/2 ] ])
+            sage: A.inverse_positive_definite() == B
+            True
+            sage: A*B == A.matrix_space().identity_matrix()
+            True
+
+        TESTS:
+
+        Check that the naive inverse agrees with the fast one for a
+        somewhat-random, positive-definite matrix with integer or
+        rational entries::
+
+            sage: from sage.misc.prandom import choice
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(5)
+            sage: ring = choice([ZZ, QQ])
+            sage: A = matrix.random(ring, n)
+            sage: I = matrix.identity(ring, n)
+            sage: A = A*A.transpose() + I
+            sage: A.is_positive_definite()
+            True
+            sage: actual = A.inverse_positive_definite()
+            sage: expected = A.inverse()
+            sage: actual == expected
+            True
+
+        Check that the naive inverse agrees with the fast one for a
+        somewhat-random, possibly complex, positive-definite matrix
+        with algebraic entries. This test is separate from the integer
+        and rational one because inverting a matrix with algebraic
+        entries is harder and requires smaller test cases::
+
+            sage: from sage.misc.prandom import choice
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(2)
+            sage: ring = choice([AA, QQbar])
+            sage: A = matrix.random(ring, n)
+            sage: I = matrix.identity(ring, n)
+            sage: A = A*A.conjugate_transpose() + I
+            sage: A.is_positive_definite()
+            True
+            sage: actual = A.inverse_positive_definite()
+            sage: expected = A.inverse()
+            sage: actual == expected
+            True
+        """
+        # Does it hurt if we conjugate a real number?
+        L, diags = self.indefinite_factorization(algorithm='hermitian',
+                                                 check=False)
+
+        # The default "echelonize" inverse() method works just fine for
+        # triangular matrices.
+        L_inv = L.inverse()
+        from sage.matrix.constructor import diagonal_matrix
+        D_inv = diagonal_matrix( ~d for d in diags )
+
+        return L_inv.conjugate_transpose()*D_inv*L_inv
+
 
     def LU(self, pivot=None, format='plu'):
         r"""
@@ -16157,6 +16292,127 @@ cdef class Matrix(Matrix1):
         # about to check.
         return all(s * (self * x) == 0
                    for (x, s) in K.discrete_complementarity_set())
+
+    def LLL_gram(self, flag=0):
+        """
+        Return the LLL transformation matrix for this Gram matrix.
+
+        That is, the transformation matrix U over ZZ of determinant 1
+        that transforms the lattice with this matrix as Gram matrix
+        to a lattice that is LLL-reduced.
+
+        Always works when ``self`` is positive definite,
+        might work in some semidefinite and indefinite cases.
+
+        INPUT:
+
+        - ``self`` -- the Gram matrix of a quadratic form or of
+          a lattice equipped with a bilinear form
+
+        - ``flag`` -- an optional flag passed to ``qflllgram``.
+          According  to :pari:`qflllgram`'s documentation the options are:
+
+            - ``0`` -- (default), assume that ``self`` has either exact
+              (integral or rational) or real floating point entries.
+              The matrix is rescaled, converted to integers and the
+              behavior is then as in ``flag=1``.
+
+            - ``1`` -- assume that G is integral.
+              Computations involving Gram-Schmidt vectors are
+              approximate, with precision varying as needed.
+
+        OUTPUT:
+
+        A dense matrix ``U`` over the integers with determinant 1
+        such that ``U.T * M * U`` is LLL-reduced.
+
+        ALGORITHM:
+
+        Calls PARI's :pari:`qflllgram`.
+
+        EXAMPLES:
+
+        Create a Gram matrix and LLL-reduce it::
+
+            sage: M = Matrix(ZZ, 2, 2, [5, 3, 3, 2])
+            sage: U = M.LLL_gram()
+            sage: MM = U.transpose() * M * U
+            sage: M, U, MM
+            (
+            [5 3]  [-1  1]  [1 0]
+            [3 2], [ 1 -2], [0 1]
+            )
+
+        For a Gram matrix over RR with a length one first vector and
+        a very short second vector, the LLL-reduced basis is obtained
+        by swapping the two basis vectors (and changing sign to
+        preserve orientation). ::
+
+            sage: M = Matrix(RDF, 2, 2, [1, 0, 0, 1e-5])
+            sage: M.LLL_gram()
+            [ 0 -1]
+            [ 1  0]
+
+        The algorithm might work for some semidefinite and indefinite forms::
+
+            sage: Matrix(ZZ, 2, 2, [2, 6, 6, 3]).LLL_gram()
+            [-3 -1]
+            [ 1  0]
+            sage: Matrix(ZZ, 2, 2, [1, 0, 0, -1]).LLL_gram()
+            [ 0 -1]
+            [ 1  0]
+
+        However, it might fail for others, either raising a ``ValueError``::
+
+            sage: Matrix(ZZ, 1, 1, [0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+            sage: Matrix(ZZ, 2, 2, [0, 1, 1, 0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+        or running forever::
+
+            sage: Matrix(ZZ, 2, 2, [-5, -1, -1, -5]).LLL_gram()  # not tested
+            Traceback (most recent call last):
+            ...
+            RuntimeError: infinite loop while calling qflllgram
+
+        Nonreal input leads to a value error::
+
+           sage: Matrix(2, 2, [CDF(1, 1), 0, 0, 1]).LLL_gram()
+           Traceback (most recent call last):
+           ...
+           ValueError: qflllgram failed, perhaps the matrix is not positive definite
+        """
+        if self._nrows != self._ncols:
+            raise ArithmeticError("self must be a square matrix")
+        n = self.nrows()
+        P = self.__pari__()
+        try:
+            if self.base_ring() == ZZ:
+                U = P.lllgramint()
+            else:
+                U = P.qflllgram(flag)
+        except (RuntimeError, ArithmeticError) as msg:
+            raise ValueError("qflllgram failed, "
+                             "perhaps the matrix is not positive definite")
+        if U.matsize() != [n, n]:
+            raise ValueError("qflllgram did not return a square matrix, "
+                             "perhaps the matrix is not positive definite")
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(ZZ, n)
+        U = MS(U.sage())
+        # Fix last column so that det = +1
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        if U.change_ring(FiniteField(3)).det() != 1:  # p = 3 is enough to decide
+            U.rescale_col(n - 1, -1)
+        return U
 
     # a limited number of access-only properties are provided for matrices
     @property

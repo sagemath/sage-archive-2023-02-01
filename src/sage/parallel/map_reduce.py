@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Parallel computations using RecursivelyEnumeratedSet and Map-Reduce
 
@@ -36,8 +37,8 @@ Contents
 - :ref:`protocol-description`
 - :ref:`examples`
 
-How is this different from usual MapReduce ?
---------------------------------------------
+How is this different from usual MapReduce?
+-------------------------------------------
 
 This implementation is specific to :class:`RecursivelyEnumeratedSet_forest`, and uses its
 properties to do its job. Not only mapping and reducing but also
@@ -532,12 +533,19 @@ smaller than 15::
 Classes and methods
 -------------------
 """
-from __future__ import print_function, absolute_import
 
+# ****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from collections import deque
 from threading import Thread
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _generic
 from sage.misc.lazy_attribute import lazy_attribute
-import collections
 import copy
 import sys
 import random
@@ -1575,7 +1583,7 @@ class RESetMapReduceWorker(mp.Process):
         """
         mp.Process.__init__(self)
         self._iproc = iproc
-        self._todo = collections.deque()
+        self._todo = deque()
         self._request = mp.SimpleQueue()  # Faster than Queue
         # currently this is not possible to have to simultaneous read or write
         # on the following Pipe. So there is no need to have a queue.

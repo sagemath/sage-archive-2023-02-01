@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Points
 
 TESTS::
@@ -10,26 +11,22 @@ TESTS::
     Graphics3d Object
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
 #                     2008 Mike Hansen <mhansen@gmail.com>,
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from sage.plot.primitive import GraphicPrimitive_xydata
-import collections
+from collections.abc import Iterator
 
 
 # TODO: create _allowed_options for 3D point classes to
@@ -343,7 +340,7 @@ def point(points, **kwds):
         sage: point(iter([(1,2),(3,5)]))
         Graphics object consisting of 1 graphics primitive
     """
-    if isinstance(points, collections.Iterator):
+    if isinstance(points, Iterator):
         points = list(points)
 
     try:

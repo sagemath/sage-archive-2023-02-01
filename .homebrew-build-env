@@ -2,7 +2,7 @@
 # that activate keg-only homebrew package installations
 
 HOMEBREW=`brew --prefix` || return 1
-for l in gettext; do
+for l in gettext bzip2; do
     if [ -d "$HOMEBREW/opt/$l/bin" ]; then
         PATH="$HOMEBREW/opt/$l/bin:$PATH"
     fi
@@ -23,7 +23,7 @@ export PKG_CONFIG_PATH
 LIBRARY_PATH="$HOMEBREW/lib$LIBRARY_PATH"
 [ -z "$CPATH" ] || CPATH=":${CPATH}"
 CPATH="$HOMEBREW/include$CPATH"
-for l in readline ; do
+for l in readline bzip2; do
     if [ -d "$HOMEBREW/opt/$l/lib" ]; then
         LIBRARY_PATH="$HOMEBREW/opt/$l/lib:$LIBRARY_PATH"
     fi
@@ -31,9 +31,10 @@ for l in readline ; do
         CPATH="$HOMEBREW/opt/$l/include:$CPATH"
     fi
 done
-for l in "gcc@9/lib/gcc/9"; do
+for l in "gcc/lib/gcc/10 gcc/lib/gcc/9"; do
     if [ -d "$HOMEBREW/opt/$l" ]; then
         LIBRARY_PATH="$HOMEBREW/opt/$l:$LIBRARY_PATH"
+        break
     fi
 done
 export LIBRARY_PATH

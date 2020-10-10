@@ -69,27 +69,32 @@ class SemistandardPath(PathTableau):
         r"""
         Initialize a semistandard tableau.
 
-        TESTS::
+        EXAMPLES::
 
             sage: path_tableaux.SemistandardPath([[],[2],[2,1]])
-            [[], [2], [2, 1]]
+            [[2], [2, 1]]
 
             sage: gt = GelfandTsetlinPattern([[2,1],[2],[]])
             sage: path_tableaux.SemistandardPath(gt)
-            [[], [2], [2, 1]]
+            [[2], [2, 1]]
 
             sage: st = SemistandardTableau([[1,1],[2]])
             sage: path_tableaux.SemistandardPath(st)
-            [[], [2], [2, 1]]
+            [[2], [2, 1]]
 
             sage: st = SkewTableau([[1,1],[2]])
             sage: path_tableaux.SemistandardPath(st)
-            [[], [2], [2, 1]]
+            [[2], [2, 1]]
 
-            sage: path_tableaux.SemistandardPath([[],[2],[1,2]])
+        TESTS::
+
+            sage: path_tableaux.SemistandardPath([[2],[1,2]])
             Traceback (most recent call last):
             ...
             ValueError: [1, 2] is not an element of Partitions
+
+            sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
+            sage: TestSuite(pt).run()
         """
         w = None
 
@@ -115,6 +120,9 @@ class SemistandardPath(PathTableau):
         if w is None:
             raise ValueError(f"invalid input {st}")
 
+        if w[0] == Partition([]):
+            w = w[1:]
+
         PathTableau.__init__(self, parent, w, check=check)
 
     def check(self):
@@ -138,12 +146,12 @@ class SemistandardPath(PathTableau):
 
         EXAMPLES::
 
-            sage: path_tableaux.SemistandardPath([[],[2]]).is_skew()
+            sage: path_tableaux.SemistandardPath([[2]]).is_skew()
             False
-            sage: path_tableaux.SemistandardPath([[2],[2,1]]).is_skew()
+            sage: path_tableaux.SemistandardPath([[2,1]]).is_skew()
             True
         """
-        return self[0] != Partition([])
+        return len(self[0]) != 1
 
     def local_rule(self,i):
         r"""
@@ -159,8 +167,10 @@ class SemistandardPath(PathTableau):
         TESTS::
 
         """
-        gt = self.to_pattern()
-        result = gt.bender_knuth_involution(i)
+        #gt = self.to_pattern()
+        #result = gt.bender_knuth_involution(i)
+        st = self.to_tableau()
+        result = st.bender_knuth_involution(i)
         return SemistandardPath(result)
 
 
@@ -184,10 +194,11 @@ class SemistandardPath(PathTableau):
             True
         """
         from sage.combinat.tableau import from_chain
-        if self.is_skew():
-            return SkewTableaux().from_chain(self)
-        else:
-            return from_chain(self)
+        #if self.is_skew():
+        #    return SkewTableaux().from_chain(self)
+        #else:
+        #    return from_chain(self)
+        return from_chain([[]]+list(self))
 
     @combinatorial_map(name='to Gelfand-Tsetlin pattern')
     def to_pattern(self):
@@ -198,7 +209,7 @@ class SemistandardPath(PathTableau):
 
             sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
             sage: pt.to_pattern()
-            [[4, 3, 3, 1, 0], [3, 3, 2, 1], [3, 3, 1], [3, 2], [3], []]
+            [[4, 3, 3, 1, 0], [3, 3, 2, 1], [3, 3, 1], [3, 2], [3]]
 
         TESTS::
 
@@ -223,9 +234,9 @@ class SemistandardPaths(PathTableaux):
         EXAMPLES::
 
             sage: path_tableaux.SemistandardPaths()._an_element_()
-            [[], [2], [2, 1]]
+            [[2], [2, 1]]
 
         """
-        return SemistandardPath([[],[2],[2,1]])
+        return SemistandardPath([[2],[2,1]])
 
     Element = SemistandardPath

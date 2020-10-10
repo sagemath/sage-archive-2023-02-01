@@ -5,6 +5,10 @@ Semistandard Tableaux
 This is an implementation of the abstract base class
 :class:`sage.combinat.path_tableaux.path_tableau.PathTableau`.
 
+This implementation is for semistandard tableaux, represented as a chain of partitions
+(essentially, the Gelfand-Tsetlin pattern).
+This generalises the jeu-de-taquin operations of rectification, promotion, evacuation from
+standard tableaux to semistandard tableaux. The local rule is the Bender-Knuth involution.
 
 AUTHORS:
 
@@ -55,10 +59,9 @@ class SemistandardPath(PathTableau):
 
         TESTS::
 
-            sage: t = path_tableaux.DyckPath([0,1,2,1,0])
-
+            sage: t = path_tableaux.SemistandardPath([[],[2]])
             sage: t.parent()
-            <sage.combinat.path_tableaux.dyck_path.DyckPaths_with_category object at ...>
+            <sage.combinat.path_tableaux.semistandard.SemistandardPaths_with_category object at ...>
         """
         return SemistandardPaths()(st)
 
@@ -67,6 +70,9 @@ class SemistandardPath(PathTableau):
         Initialize a semistandard tableau.
 
         TESTS::
+
+            sage: path_tableaux.SemistandardPath([[],[2],[2,1]])
+            [[], [2], [2, 1]]
 
         """
         w = None
@@ -84,14 +90,14 @@ class SemistandardPath(PathTableau):
             w = [Partition(p) for p in st.to_chain()]
             w = tuple(w)
 
-        elif isinstance(ot, (list,tuple)):
+        elif isinstance(st, (list,tuple)):
             try:
                 w = tuple([Partition(a) for a in st])
             except TypeError:
                 raise ValueError(f"{st} is not a sequence of partitions")
 
         if w is None:
-            raise ValueError(f"invalid input {st}"})
+            raise ValueError(f"invalid input {st}")
 
         PathTableau.__init__(self, parent, w, check=check)
 
@@ -106,7 +112,8 @@ class SemistandardPath(PathTableau):
             if not y.contains(x):
                 raise ValueError(f"{y} does not contain {x}")
             for u, v in zip_longest(x,y[1:],fillvalue=0):
-                if u > v:
+                if v > u:
+                    print(u,v)
                     raise ValueError(f"the skew partition {y}\{x} is not a horizontal strip")
 
     def local_rule(self,i):
@@ -169,8 +176,9 @@ class SemistandardPaths(PathTableaux):
         EXAMPLES::
 
             sage: path_tableaux.SemistandardPaths()._an_element_()
-            [0, 1, 2, 1, 0]
+            [[], [2], [2, 1]]
+
         """
-        return SemistandardPath()
+        return SemistandardPath([[],[2],[2,1]])
 
     Element = SemistandardPath

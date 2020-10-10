@@ -2564,85 +2564,85 @@ class RuleStar(Rule):
 
     TESTS:
 
-        Check that :func:`RSK` is the inverse of :func:`RSK_inverse` for various
-        outputs/inputs::
+    Check that :func:`RSK` is the inverse of :func:`RSK_inverse` for various
+    outputs/inputs::
 
-            sage: from sage.combinat.partition import Partitions_n
-            sage: shapes = [shape for n in range(7) for shape in Partitions_n(n)]
-            sage: row_reading = lambda T: [x for row in reversed(T) for x in row]
-            sage: from sage.monoids.hecke_monoid import HeckeMonoid
-            sage: H = HeckeMonoid(SymmetricGroup(4+1))
-            sage: from sage.combinat import permutation
-            sage: reduce = lambda w: permutation.from_reduced_word(H.from_reduced_word(w).reduced_word())
-            sage: fc = lambda w: not reduce(w).has_pattern([3,2,1])
-            sage: FC_tabs = [T for shape in shapes
-            ....:                  for T in SemistandardTableaux(shape, max_entry=4)
-            ....:                      if fc(row_reading(T.conjugate()))]
-            sage: Checks = []
-            sage: for T in FC_tabs:
-            ....:    shape = T.shape().conjugate()
-            ....:    P = T.conjugate()
-            ....:    Checks += [all((P,Q) == tuple(RSK(*RSK_inverse(P, Q,
-            ....:               insertion='Star', output='array'),
-            ....:               insertion='Star'))
-            ....:               for Q in SemistandardTableaux(shape, max_entry=5))]
-            sage: all(Checks)
-            True
-            sage: Checks = []
-            sage: for T in FC_tabs:
-            ....:    shape = T.shape().conjugate()
-            ....:    P = T.conjugate()
-            ....:    Checks += [all((P,Q) == tuple(RSK(RSK_inverse(P, Q,
-            ....:               insertion='Star', output='DecreasingHeckeFactorization'),
-            ....:               insertion='Star'))
-            ....:               for Q in SemistandardTableaux(shape, max_entry=5))]
-            sage: all(Checks)
-            True
-            sage: Checks = []
-            sage: for T in FC_tabs:
-            ....:    shape = T.shape().conjugate()
-            ....:    P = T.conjugate()
-            ....:    for Q in StandardTableaux(shape, max_entry=5):
-            ....:        Checks += [(P,Q) == tuple(RSK(RSK_inverse(P, Q,
-            ....:                   insertion='Star', output='word'),
-            ....:                   insertion='Star'))]
-            sage: all(Checks)
-            True
+        sage: from sage.combinat.partition import Partitions_n
+        sage: shapes = [shape for n in range(7) for shape in Partitions_n(n)]
+        sage: row_reading = lambda T: [x for row in reversed(T) for x in row]
+        sage: from sage.monoids.hecke_monoid import HeckeMonoid
+        sage: H = HeckeMonoid(SymmetricGroup(4+1))
+        sage: from sage.combinat import permutation
+        sage: reduce = lambda w: permutation.from_reduced_word(H.from_reduced_word(w).reduced_word())
+        sage: fc = lambda w: not reduce(w).has_pattern([3,2,1])
+        sage: FC_tabs = [T for shape in shapes
+        ....:                  for T in SemistandardTableaux(shape, max_entry=4)
+        ....:                      if fc(row_reading(T.conjugate()))]
+        sage: Checks = []
+        sage: for T in FC_tabs:
+        ....:    shape = T.shape().conjugate()
+        ....:    P = T.conjugate()
+        ....:    Checks += [all((P,Q) == tuple(RSK(*RSK_inverse(P, Q,
+        ....:               insertion='Star', output='array'),
+        ....:               insertion='Star'))
+        ....:               for Q in SemistandardTableaux(shape, max_entry=5))]
+        sage: all(Checks)
+        True
+        sage: Checks = []
+        sage: for T in FC_tabs:
+        ....:    shape = T.shape().conjugate()
+        ....:    P = T.conjugate()
+        ....:    Checks += [all((P,Q) == tuple(RSK(RSK_inverse(P, Q,
+        ....:               insertion='Star', output='DecreasingHeckeFactorization'),
+        ....:               insertion='Star'))
+        ....:               for Q in SemistandardTableaux(shape, max_entry=5))]
+        sage: all(Checks)
+        True
+        sage: Checks = []
+        sage: for T in FC_tabs:
+        ....:    shape = T.shape().conjugate()
+        ....:    P = T.conjugate()
+        ....:    for Q in StandardTableaux(shape, max_entry=5):
+        ....:        Checks += [(P,Q) == tuple(RSK(RSK_inverse(P, Q,
+        ....:                   insertion='Star', output='word'),
+        ....:                   insertion='Star'))]
+        sage: all(Checks)
+        True
 
-        Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on arrays
-        and words::
+    Check that :func:`RSK_inverse` is the inverse of :func:`RSK` on arrays
+    and words::
 
-            sage: S = SymmetricGroup(3+1)
-            sage: from sage.combinat import permutation
-            sage: FC = [x
-            ....:       for x in S
-            ....:           if (not permutation.from_reduced_word(
-            ....:           x.reduced_word()).has_pattern([3,2,1]) and
-            ....:           x.reduced_word())]
-            sage: Triples = [(w, factors, ex)
-            ....:            for w in FC
-            ....:                for factors in range(2, 5+1)
-            ....:                    for ex in range(4)]
-            sage: Checks = []
-            sage: for t in Triples:
-            ....:     B = crystals.FullyCommutativeStableGrothendieck(*t)
-            ....:     Checks += [all(b.to_increasing_hecke_biword() ==
-            ....:                RSK_inverse(*RSK(
-            ....:                *b.to_increasing_hecke_biword(),
-            ....:                insertion='Star'), insertion='Star')
-            ....:                for b in B)]
-            sage: all(Checks)
-            True
+        sage: S = SymmetricGroup(3+1)
+        sage: from sage.combinat import permutation
+        sage: FC = [x
+        ....:       for x in S
+        ....:           if (not permutation.from_reduced_word(
+        ....:           x.reduced_word()).has_pattern([3,2,1]) and
+        ....:           x.reduced_word())]
+        sage: Triples = [(w, factors, ex)
+        ....:            for w in FC
+        ....:                for factors in range(2, 5+1)
+        ....:                    for ex in range(4)]
+        sage: Checks = []
+        sage: for t in Triples:
+        ....:     B = crystals.FullyCommutativeStableGrothendieck(*t)
+        ....:     Checks += [all(b.to_increasing_hecke_biword() ==
+        ....:                RSK_inverse(*RSK(
+        ....:                *b.to_increasing_hecke_biword(),
+        ....:                insertion='Star'), insertion='Star')
+        ....:                for b in B)]
+        sage: all(Checks)
+        True
 
-            sage: from sage.monoids.hecke_monoid import HeckeMonoid
-            sage: Checks = []
-            sage: H = HeckeMonoid(SymmetricGroup(3+1))
-            sage: reduce = lambda w: permutation.from_reduced_word(H.from_reduced_word(w).reduced_word())
-            sage: fc = lambda w: not reduce(w).has_pattern([3,2,1])
-            sage: words = [w for n in range(10) for w in Words(3, n) if fc(w)]
-            sage: all([all(w == RSK_inverse(*RSK(w, insertion='Star'),
-            ....:          insertion='Star', output='word') for w in words)])
-            True
+        sage: from sage.monoids.hecke_monoid import HeckeMonoid
+        sage: Checks = []
+        sage: H = HeckeMonoid(SymmetricGroup(3+1))
+        sage: reduce = lambda w: permutation.from_reduced_word(H.from_reduced_word(w).reduced_word())
+        sage: fc = lambda w: not reduce(w).has_pattern([3,2,1])
+        sage: words = [w for n in range(10) for w in Words(3, n) if fc(w)]
+        sage: all([all(w == RSK_inverse(*RSK(w, insertion='Star'),
+        ....:          insertion='Star', output='word') for w in words)])
+        True
     """
     def forward_rule(self, obj1, obj2=None, check_braid=True):
         r"""

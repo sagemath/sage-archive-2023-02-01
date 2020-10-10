@@ -176,6 +176,12 @@ class SemistandardPath(PathTableau):
             sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
             sage: pt.to_tableau()
             [[1, 1, 1, 5], [2, 2, 3], [3, 4, 5], [4]]
+
+        TESTS::
+
+            sage: SST = SemistandardTableaux(shape=[5,5,3],eval=[2,2,3,4,2])
+            sage: all(st == path_tableaux.SemistandardPath(st).to_tableau() for st in SST)
+            True
         """
         from sage.combinat.tableau import from_chain
         if self.is_skew():
@@ -193,6 +199,12 @@ class SemistandardPath(PathTableau):
             sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
             sage: pt.to_pattern()
             [[4, 3, 3, 1, 0], [3, 3, 2, 1], [3, 3, 1], [3, 2], [3], []]
+
+        TESTS::
+
+            sage: GT = GelfandTsetlinPatterns(top_row=[5,5,3])
+            sage: all(st == path_tableaux.SemistandardPath(st).to_pattern() for st in GT)
+            True
         """
         m = len(self[0])
         pt = [list(a)+[0]*(m+i-len(a)) for i,a in enumerate(self)]

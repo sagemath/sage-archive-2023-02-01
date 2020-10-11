@@ -1252,6 +1252,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     With the standard package Giac::
 
+        sage: from sage.libs.giac.giac import libgiac     # random
         sage: (exp(-x)/(2+sin(x))).limit(x=oo, algorithm='giac')
         0
         sage: limit(e^(-1/x), x=0, dir='right', algorithm='giac')
@@ -1413,15 +1414,14 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = fricas.limit(f, eq, '"left"').sage()
     elif algorithm == 'giac':
         from sage.libs.giac.giac import libgiac
-        f = ex._giac_()
-        v = v._giac_()
-        a = a._giac_()
+        v = v._giac_init_()
+        a = a._giac_init_()
         if dir is None:
-            l = libgiac.limit(f, v, a).sage()
+            l = libgiac.limit(ex, v, a).sage()
         elif dir in dir_plus:
-            l = libgiac.limit(f, v, a, 1).sage()
+            l = libgiac.limit(ex, v, a, 1).sage()
         elif dir in dir_minus:
-            l = libgiac.limit(f, v, a, -1).sage()
+            l = libgiac.limit(ex, v, a, -1).sage()
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
     return ex.parent()(l)

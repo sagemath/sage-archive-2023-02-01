@@ -2,12 +2,12 @@ SAGE_SPKG_CONFIGURE([mpir], [
 dnl Implement cases for what to do on different options here
     case "$with_mp" in
         system)
-            AC_CHECK_HEADER(gmp.h, [], [sage_spkg_install_mpir=yes])
-            AC_CHECK_HEADER(gmpxx.h, [], [sage_spkg_install_mpir=yes])
+            AC_CHECK_HEADER(gmp.h, [], [sage_spkg_install_gmp=yes])
+            AC_CHECK_HEADER(gmpxx.h, [], [sage_spkg_install_gmp=yes])
             dnl mpq_cmp_z appeared in GMP 6.1.0 and is used by pynac
             AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [],
-                [sage_spkg_install_mpir=yes])
-            SAGE_MP_LIBRARY=mpir
+                [sage_spkg_install_gmp=yes])
+            SAGE_MP_LIBRARY=gmp
             ;;
         mpir)
             sage_spkg_install_mpir=yes
@@ -40,10 +40,10 @@ dnl Just parse the options here
 
 dnl Set SAGE_MP_LIBRARY depending on the with_mp option
     case "$with_mp" in
-    mpir|system)
+    mpir)
         SAGE_MP_LIBRARY=mpir
         ;;
-    gmp)
+    gmp|system)
         SAGE_MP_LIBRARY=gmp
         ;;
     esac

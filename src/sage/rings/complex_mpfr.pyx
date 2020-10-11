@@ -46,6 +46,7 @@ from sage.structure.parent_gens import ParentWithGens
 
 from sage.misc.sage_eval import sage_eval
 
+from sage.arith.constants cimport LOG_TEN_TWO_PLUS_EPSILON
 from . import ring, infinity
 from .integer cimport Integer
 
@@ -107,8 +108,6 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 
 cdef mpfr_rnd_t rnd
 rnd = MPFR_RNDN
-
-cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
 def set_global_complex_round_mode(n):
     """

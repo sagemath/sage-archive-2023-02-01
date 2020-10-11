@@ -1801,8 +1801,10 @@ const numeric numeric::power(signed long exp_si) const
 const numeric numeric::pow_intexp(const numeric &exponent) const
 {
         if (not exponent.is_integer())
-                throw std::runtime_error("nueric::pow_intexp: exponent not integer");
-        if (exponent.t == MPZ) {
+                throw std::runtime_error("numeric::pow_intexp: exponent not integer");
+	// Because Sage may have simplified a fraction to an integer,
+	// we should check whether the type is MPQ as well as MPZ
+        if (exponent.t == MPZ || exponent.t == MPQ) {
                 if (not mpz_fits_sint_p(exponent.v._bigint))
                         throw std::runtime_error("size of exponent exceeds signed long size");
                 return power(mpz_get_si(exponent.v._bigint));

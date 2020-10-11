@@ -29,7 +29,6 @@ AUTHORS:
 
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.partition import Partition
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.tableau import Tableau, StandardTableau
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
@@ -103,6 +102,17 @@ class SemistandardPath(PathTableau):
 
             sage: pt = path_tableaux.SemistandardPath([[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
             sage: TestSuite(pt).run()
+
+            sage: path_tableaux.SemistandardPath([[3/2],[2,5/2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: [(3/2,), (2, 5/2)] does not satisfy the required inequalities
+
+            sage: path_tableaux.SemistandardPath([[5/2],[7/2,2]])
+            [(5/2,), (7/2, 2)]
+
+            sage: path_tableaux.SemistandardPath([[2.5],[3.5,2]])
+            [(2.50000000000000,), (3.50000000000000, 2)]
         """
         w = None
 
@@ -151,9 +161,9 @@ class SemistandardPath(PathTableau):
         EXAMPLES::
 
             sage: path_tableaux.SemistandardPath([[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]]).size()
-            6
+            5
         """
-        return len(self)-1
+        return len(self)
 
     def is_skew(self):
         """
@@ -182,10 +192,13 @@ class SemistandardPath(PathTableau):
         TESTS::
 
         """
-        #gt = self.to_pattern()
-        #result = gt.bender_knuth_involution(i)
+        if not 0 < i <= self.size():
+            raise ValueError(f"{i} is not defined on {self}")
+        if i == 1:
+            return self
+
         st = self.to_tableau()
-        result = st.bender_knuth_involution(i)
+        result = st.bender_knuth_involution(i-1)
         return SemistandardPath(result)
 
 

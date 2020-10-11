@@ -12553,7 +12553,7 @@ class GenericGraph(GenericGraph_pyx):
         speed::
 
             sage: g = graphs.PathGraph(1000)
-            sage: g.subgraph(list(range(10))) # uses the 'add' algorithm
+            sage: g.subgraph(list(range(10)))  # uses the 'add' algorithm
             Subgraph of (Path graph): Graph on 10 vertices
 
         TESTS:
@@ -12583,7 +12583,9 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm is not None and algorithm not in ("delete", "add"):
             raise ValueError('algorithm should be None, "delete", or "add"')
 
-        if inplace or len(vertices) > 0.05 * self.order() or algorithm == "delete":
+        if (inplace
+            or (algorithm is None and len(vertices) > 0.05 * self.order())
+            or algorithm == "delete"):
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,
                                               edge_property=edge_property,
@@ -12724,8 +12726,9 @@ class GenericGraph(GenericGraph_pyx):
                              or (v, u) in edges_to_keep_unlabeled)):
                         edges_to_keep.append((u, v, l))
         else:
+            s_vertices = set(vertices)
             edges_to_keep = [e for e in self.edges(vertices=vertices, sort=False)
-                                 if e[0] in vertices and e[1] in vertices]
+                                 if e[0] in s_vertices and e[1] in s_vertices]
 
         if edge_property is not None:
             edges_to_keep = [e for e in edges_to_keep if edge_property(e)]

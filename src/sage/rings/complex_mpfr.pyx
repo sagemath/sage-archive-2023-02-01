@@ -60,6 +60,48 @@ from sage.misc.superseded import deprecated_function_alias
 cimport gmpy2
 gmpy2.import_gmpy2()
 
+# Some objects that are note imported at startup in order to break
+# circular imports
+NumberField_quadratic = None
+NumberFieldElement_quadratic = None
+AlgebraicNumber_base = None
+AlgebraicNumber = None
+AlgebraicReal = None
+AA = None
+QQbar = None
+SR = None
+CDF = CLF = RLF = None
+def late_import():
+    """
+    Import the objects/modules after build (when needed).
+
+    TESTS::
+
+        sage: sage.rings.complex_mpfr.late_import()
+    """
+    global NumberField_quadratic
+    global NumberFieldElement_quadratic
+    global AlgebraicNumber_base
+    global AlgebraicNumber
+    global AlgebraicReal
+    global AA, QQbar, SR
+    global CLF, RLF, CDF
+    if NumberFieldElement_quadratic is None:
+        import sage.rings.number_field.number_field
+        import sage.rings.number_field.number_field_element_quadratic as nfeq
+        NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
+        NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
+        import sage.rings.qqbar
+        AlgebraicNumber_base = sage.rings.qqbar.AlgebraicNumber_base
+        AlgebraicNumber = sage.rings.qqbar.AlgebraicNumber
+        AlgebraicReal = sage.rings.qqbar.AlgebraicReal
+        AA = sage.rings.qqbar.AA
+        QQbar = sage.rings.qqbar.QQbar
+        import sage.symbolic.ring
+        SR = sage.symbolic.ring.SR
+        from .real_lazy import CLF, RLF
+        from .complex_double import CDF
+
 cdef object numpy_complex_interface = {'typestr': '=c16'}
 cdef object numpy_object_interface = {'typestr': '|O'}
 
@@ -113,47 +155,6 @@ def is_ComplexNumber(x):
         True
     """
     return isinstance(x, ComplexNumber)
-
-NumberField_quadratic = None
-NumberFieldElement_quadratic = None
-AlgebraicNumber_base = None
-AlgebraicNumber = None
-AlgebraicReal = None
-AA = None
-QQbar = None
-SR = None
-CDF = CLF = RLF = None
-
-def late_import():
-    """
-    Import the objects/modules after build (when needed).
-
-    TESTS::
-
-        sage: sage.rings.complex_mpfr.late_import()
-    """
-    global NumberField_quadratic
-    global NumberFieldElement_quadratic
-    global AlgebraicNumber_base
-    global AlgebraicNumber
-    global AlgebraicReal
-    global AA, QQbar, SR
-    global CLF, RLF, CDF
-    if NumberFieldElement_quadratic is None:
-        import sage.rings.number_field.number_field
-        import sage.rings.number_field.number_field_element_quadratic as nfeq
-        NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
-        NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
-        import sage.rings.qqbar
-        AlgebraicNumber_base = sage.rings.qqbar.AlgebraicNumber_base
-        AlgebraicNumber = sage.rings.qqbar.AlgebraicNumber
-        AlgebraicReal = sage.rings.qqbar.AlgebraicReal
-        AA = sage.rings.qqbar.AA
-        QQbar = sage.rings.qqbar.QQbar
-        import sage.symbolic.ring
-        SR = sage.symbolic.ring.SR
-        from .real_lazy import CLF, RLF
-        from .complex_double import CDF
 
 def is_ComplexField(x):
     """
@@ -628,7 +629,6 @@ class ComplexField_class(ring.Field):
             sage: ComplexField().characteristic()
             0
         """
-        from .integer import Integer
         return Integer(0)
 
     def gen(self, n=0):
@@ -739,7 +739,6 @@ class ComplexField_class(ring.Field):
             sage: C.zeta(5)
             0.309016994374947 + 0.951056516295154*I
         """
-        from .integer import Integer
         n = Integer(n)
         if n == 1:
             x = self(1)
@@ -843,6 +842,7 @@ class ComplexField_class(ring.Field):
         from sage.structure.factorization import Factorization
         return Factorization([(R(gg).monic(), e) for gg, e in zip(*F)],
                              f.leading_coefficient())
+
 cdef class ComplexNumber(sage.structure.element.FieldElement):
     """
     A floating point approximation to a complex number using any

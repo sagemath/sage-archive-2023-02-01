@@ -1610,7 +1610,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate=True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate=True)
-            (False, [62, 63, 68, 66, 61])
+            (False, [68, 66, 69, 67, 65])
         """
         connected_components = self.connected_components()
         number_of_connected_components = len(connected_components)

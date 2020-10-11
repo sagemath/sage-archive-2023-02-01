@@ -4650,9 +4650,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: [sorted(c) for c in G.cycle_basis()]
             [['Hey', 'Really ?', 'Wuuhuu'], [0, 2], [0, 1, 2]]
             sage: [sorted(c) for c in G.cycle_basis(output='edge')]
-            [[('Hey', 'Really ?', None),
-              ('Really ?', 'Wuuhuu', None),
-              ('Wuuhuu', 'Hey', None)],
+            [[('Hey', 'Wuuhuu', None),
+              ('Really ?', 'Hey', None),
+              ('Wuuhuu', 'Really ?', None)],
              [(0, 2, 'a'), (2, 0, 'b')],
              [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
 
@@ -12584,7 +12584,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('algorithm should be None, "delete", or "add"')
 
         if (inplace
-            or (algorithm is None and len(vertices) > 0.05 * self.order())
+            or (algorithm is None and len(vertices) > 0.9 * self.order())
             or algorithm == "delete"):
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,

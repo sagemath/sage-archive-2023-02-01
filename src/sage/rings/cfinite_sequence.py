@@ -94,7 +94,6 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.ring import CommutativeRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.laurent_series_ring import LaurentSeriesRing
@@ -362,13 +361,11 @@ class CFiniteSequence(FieldElement,
             else:
                 self._a = num.shift(-self._off).list()
         else:
-
             # Transform the ogf numerator and denominator to canonical form
             # to get the correct offset, degree, and recurrence coeffs and
             # start values.
             self._off = 0
             self._deg = 0
-            x = P.gen()
             if num.constant_coefficient() == 0:
                 self._off = num.valuation()
                 num = num.shift(-self._off)

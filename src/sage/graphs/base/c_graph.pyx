@@ -4188,6 +4188,57 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             return True
 
+    def obtain_subgraph(self, CGraphBackend other, object vertices):
+        """
+        Initialize ``other`` to be the subgraph of ``self`` with given vertices.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertex labels
+        """
+        cdef object u, v, l, v_copy
+        cdef int u_int, v_int, l_int, foo
+        cdef CGraph cg = self.cg()
+        cdef CGraph cg_other = other.cg()
+        cdef CGraph
+        cdef list b_vertices_2, all_arc_labels
+        cdef FrozenBitset b_vertices
+        cdef bint labels = False  # TODO change
+        cdef int n_vertices = len(vertices)
+
+        # Set other according to format of self.
+        other.loops(self.loops())
+        other._multiple_edges = self._multiple_edges
+
+        b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
+        cdef int* vertices_translation = <int *> sig_malloc((max(b_vertices_2) + 1) * sizeof(int))
+        b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+
+        # Add the vertices to ``other``.
+        cdef int i
+        for u in vertices:
+            other.add_vertex(u)
+        for j in range(n_vertices):
+            i = b_vertices_2[j]
+            if i >= 0:
+                v = self.vertex_label(i)
+                vertices_translation[i] = other.check_labelled_vertex(v, False)
+
+        for v_int in b_vertices:
+            u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
+            while u_int != -1:
+                if (u_int <= b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
+                        and (u_int >= v_int or self._directed)):
+                    if labels:
+                        l = self.edge_labels[l_int] if l_int else None
+
+                    cg_other.add_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int])
+                    # TODO Multiple edges
+
+                u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
+
+        sig_free(vertices_translation)
+
 
 cdef class Search_iterator:
     r"""

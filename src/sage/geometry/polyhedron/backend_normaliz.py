@@ -255,7 +255,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p = Polyhedron(vertices=[(0,0),(1,1),(a,3),(-1,a**2)], rays=[(-1,-a)], backend='normaliz') # optional - pynormaliz
             sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz
             [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
-            sage: sorted(p._nmz_result(p._normaliz_cone, 'Generators')) # optional - pynormaliz
+            sage: sorted(p._nmz_result(p._normaliz_cone, 'TriangulationGenerators')) # optional - pynormaliz
             [[-a^2, -3, 0], [-1, a^2, 1], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
             sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz
             True
@@ -1595,7 +1595,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         # Normaliz does not guarantee that the order of generators is kept during
         # computation of the triangulation.
         # Those are the generators that the indices of the triangulation correspond to:
-        nmz_new_generators = self._nmz_result(cone, "Generators")
+        nmz_new_generators = self._nmz_result(cone, "TriangulationGenerators")
 
         base_ring = self.base_ring()
         v_list = self.vertices_list()

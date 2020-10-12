@@ -3680,7 +3680,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             # Several vertices (nonempty list)
             vertices_case = 2
             b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
-            b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+            try:
+                b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+            except ValueError:
+                # Avoiding "Bitset must not be empty"
+                # in case none of the vertices is active.
+                return
             it = iter(b_vertices)
 
         while True:

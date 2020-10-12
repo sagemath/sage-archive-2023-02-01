@@ -10,8 +10,6 @@ This implementation is for semistandard tableaux, represented as a chain of part
 This generalises the jeu-de-taquin operations of rectification, promotion, evacuation from
 standard tableaux to semistandard tableaux. The local rule is the Bender-Knuth involution.
 
-Promotion should agree with promotion_inverse on semistandard tableaux.
-
 AUTHORS:
 
 - Bruce Westbury (2020): initial version
@@ -73,15 +71,15 @@ class SemistandardPath(PathTableau):
         EXAMPLES::
 
             sage: path_tableaux.SemistandardPath([[],[2],[2,1]])
-            [(2,), (2, 1)]
+            [(), (2,), (2, 1)]
 
-            sage: gt = GelfandTsetlinPattern([[2,1],[2],[]])
+            sage: gt = GelfandTsetlinPattern([[2,1],[2]])
             sage: path_tableaux.SemistandardPath(gt)
-            [(2,), (2, 1)]
+            [(), (2,), (2, 1)]
 
             sage: st = SemistandardTableau([[1,1],[2]])
             sage: path_tableaux.SemistandardPath(st)
-            [(2,), (2, 1)]
+            [(), (2,), (2, 1)]
 
             sage: st = SkewTableau([[1,1],[2]])
             sage: path_tableaux.SemistandardPath(st)
@@ -92,33 +90,34 @@ class SemistandardPath(PathTableau):
 
         TESTS::
 
-            sage: path_tableaux.SemistandardPath([[2],[1,2]])
+            sage: path_tableaux.SemistandardPath([[],[2],[1,2]])
             Traceback (most recent call last):
             ...
-            ValueError: [(2,), (1, 2)] does not satisfy the required inequalities
+            ValueError: [(), (2,), (1, 2)] does not satisfy the required inequalities
 
-            sage: path_tableaux.SemistandardPath([[2],[1,2]],check=False)
-            [(2,), (1, 2)]
+            sage: path_tableaux.SemistandardPath([[],[2],[1,2]],check=False)
+            [(), (2,), (1, 2)]
 
-            sage: pt = path_tableaux.SemistandardPath([[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
+            sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
             sage: TestSuite(pt).run()
 
-            sage: path_tableaux.SemistandardPath([[3/2],[2,5/2]])
+            sage: path_tableaux.SemistandardPath([[],[3/2],[2,5/2]])
             Traceback (most recent call last):
             ...
-            ValueError: [(3/2,), (2, 5/2)] does not satisfy the required inequalities
+            ValueError: [(), (3/2,), (2, 5/2)] does not satisfy the required inequalities
 
-            sage: path_tableaux.SemistandardPath([[5/2],[7/2,2]])
-            [(5/2,), (7/2, 2)]
+            sage: path_tableaux.SemistandardPath([[],[5/2],[7/2,2]])
+            [(), (5/2,), (7/2, 2)]
 
-            sage: path_tableaux.SemistandardPath([[2.5],[3.5,2]])
-            [(2.50000000000000,), (3.50000000000000, 2)]
+            sage: path_tableaux.SemistandardPath([[],[2.5],[3.5,2]])
+            [(), (2.50000000000000,), (3.50000000000000, 2)]
         """
         w = None
 
         if isinstance(st, GelfandTsetlinPattern):
             w = [tuple(a) for a in st]
             w.reverse()
+            w = [()] + w
             w = tuple(w)
 
         elif isinstance(st, Tableau):
@@ -127,6 +126,7 @@ class SemistandardPath(PathTableau):
 
         elif isinstance(st, SkewTableau):
             w = [tuple(p) for p in st.to_chain()]
+            w = w[1:]
             w = tuple(w)
 
         elif isinstance(st, (list,tuple)):
@@ -137,9 +137,6 @@ class SemistandardPath(PathTableau):
 
         if w is None:
             raise ValueError(f"invalid input {st}")
-
-        if w[0] == [] or w[0] == tuple([]):
-            w = w[1:]
 
         PathTableau.__init__(self, parent, w, check=check)
 
@@ -160,8 +157,8 @@ class SemistandardPath(PathTableau):
 
         EXAMPLES::
 
-            sage: path_tableaux.SemistandardPath([[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]]).size()
-            5
+            sage: path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]]).size()
+            6
         """
         return len(self)
 
@@ -171,12 +168,12 @@ class SemistandardPath(PathTableau):
 
         EXAMPLES::
 
-            sage: path_tableaux.SemistandardPath([[2]]).is_skew()
+            sage: path_tableaux.SemistandardPath([[],[2]]).is_skew()
             False
             sage: path_tableaux.SemistandardPath([[2,1]]).is_skew()
             True
         """
-        return len(self[0]) != 1
+        return self[0] != ()
 
     def local_rule(self,i):
         r"""
@@ -194,11 +191,11 @@ class SemistandardPath(PathTableau):
         """
         if not 0 < i <= self.size():
             raise ValueError(f"{i} is not defined on {self}")
-        if i == 1:
-            return self
 
-        st = self.to_tableau()
-        result = st.bender_knuth_involution(i-1)
+        #st = self.to_tableau()
+        #result = st.bender_knuth_involution(i)
+        gt = self.to_pattern()
+        result = gt.bender_knuth_involution(i)
         return SemistandardPath(result)
 
 
@@ -211,7 +208,7 @@ class SemistandardPath(PathTableau):
 
         EXAMPLES::
 
-            sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
+            sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
             sage: pt.to_tableau()
             [[1, 1, 1, 5], [2, 2, 3], [3, 4, 5], [4]]
 
@@ -222,13 +219,10 @@ class SemistandardPath(PathTableau):
             True
         """
         from sage.combinat.tableau import from_chain
-        #if self.is_skew():
-        #    return SkewTableaux().from_chain(self)
-        #else:
-        #    return from_chain(self)
+        from sage.combinat.partition import Partition
 
-        # Check entries are in NN
-        return from_chain([[]]+list(self))
+        parts = [Partition(a) for a in self]
+        return from_chain(parts)
 
     @combinatorial_map(name='to Gelfand-Tsetlin pattern')
     def to_pattern(self):
@@ -251,10 +245,29 @@ class SemistandardPath(PathTableau):
             sage: all(gt.to_tableau() == path_tableaux.SemistandardPath(gt).to_tableau() for gt in GT)
             True
         """
-        m = len(self[0])
-        pt = [list(a)+[0]*(m+i-len(a)) for i,a in enumerate(self)]
+        lt = list(self)
+        if lt[0] == ():
+            lt = lt[1:]
+
+        m = len(lt[0])
+        pt = [list(a)+[0]*(m+i-len(a)) for i,a in enumerate(lt)]
         pt.reverse()
         return GelfandTsetlinPattern(pt)
+
+    def _test_jdt_promotion(self, **options):
+        """
+        Check that promotion agrees with :meth:`Tableau.promotion_inverse`
+        constructed using jeu de taquin.
+
+        TESTS::
+
+            sage: pt = path_tableaux.SemistandardPath([(),(1,),(2,1),(4,2),(4,3,1),(4,3,3)])
+            sage: pt._test_jdt_promotion()
+        """
+        tester = self._tester(**options)
+        LHS = self.promotion().to_tableau()
+        RHS = self.to_tableau().promotion_inverse(len(self)-2)
+        tester.assertEqual(LHS,RHS)
 
 class SemistandardPaths(PathTableaux):
     """
@@ -268,9 +281,9 @@ class SemistandardPaths(PathTableaux):
         EXAMPLES::
 
             sage: path_tableaux.SemistandardPaths()._an_element_()
-            [(2,), (2, 1)]
+            [(), (2,), (2, 1)]
 
         """
-        return SemistandardPath([[2],[2,1]])
+        return SemistandardPath([[],[2],[2,1]])
 
     Element = SemistandardPath

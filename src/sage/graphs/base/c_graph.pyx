@@ -3733,7 +3733,9 @@ cdef class CGraphBackend(GenericGraphBackend):
                 if (modus < 2 or                                            # Do not delete duplicates.
                         vertices_case == 1 or                               # Only one vertex, so no duplicates.
                         u_int >= v_int or                                   # We visit if u_int >= v_int ...
-                        (vertices_case == 2 and not bitset_in(b_vertices._bitset, u_int))):  # ... or if u_int is not in ``vertices``.
+                        (vertices_case == 2 and
+                            u_int <= b_vertices.capacity() and
+                            not bitset_in(b_vertices._bitset, u_int))):     # ... or if u_int is not in ``vertices``.
                     u = self.vertex_label(u_int)
                     if labels:
                         l = self.edge_labels[l_int] if l_int else None

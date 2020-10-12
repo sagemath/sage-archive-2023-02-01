@@ -3671,6 +3671,9 @@ cdef class CGraphBackend(GenericGraphBackend):
             it = self.iterator_verts(None)
             vertices_case = 0
 
+        elif not vertices:
+            return
+
         elif len(vertices) == 1:
             # One vertex
             vertices_case = 1

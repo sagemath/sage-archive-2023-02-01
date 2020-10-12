@@ -661,6 +661,7 @@ class options(GlobalOptions):
         3 x 7 dense matrix over Integer Ring...
         sage: matrix(ZZ, 4, 6)
         4 x 6 dense matrix over Integer Ring...
+        sage: matrix.options._reset()
     """
     NAME = 'Matrix'
     max_cols = dict(default=49,

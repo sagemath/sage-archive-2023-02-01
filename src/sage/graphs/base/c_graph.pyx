@@ -50,6 +50,7 @@ from libcpp.queue cimport priority_queue
 from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
 from cysignals.memory cimport check_allocarray, sig_free
+from sage.data_structures.bitset cimport FrozenBitset
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -3656,9 +3657,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             [(1, 2, None)]
         """
         cdef object u, v, l, v_copy
-        cdef int u_int, v_int, l_int
+        cdef int u_int, v_int, l_int, foo
         cdef CGraph cg = self.cg()
-        cdef list b_vertices, all_arc_labels
+        cdef list b_vertices_2, all_arc_labels
+        cdef FrozenBitset b_vertices
         cdef bint out = modus == 0
 
         cdef int vertices_case
@@ -3677,7 +3679,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             # Several vertices (nonempty list)
             vertices_case = 2
-            b_vertices = [self.get_vertex_checked(v) for v in vertices]
+            b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
+            b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
             it = iter(b_vertices)
 
         while True:
@@ -3722,7 +3725,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 if (modus < 2 or                                            # Do not delete duplicates.
                         vertices_case == 1 or                               # Only one vertex, so no duplicates.
                         u_int >= v_int or                                   # We visit if u_int >= v_int ...
-                        (vertices_case == 2 and u_int not in b_vertices)):  # ... or if u_int is not in ``vertices``.
+                        (vertices_case == 2 and not bitset_in(b_vertices._bitset, u_int))):  # ... or if u_int is not in ``vertices``.
                     u = self.vertex_label(u_int)
                     if labels:
                         l = self.edge_labels[l_int] if l_int else None

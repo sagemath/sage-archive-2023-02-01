@@ -95,5 +95,6 @@ cdef class CGraphBackend(GenericGraphBackend):
     cdef bint _multiple_edges
     cdef CGraph cg(self)
 # TODO: edge functions!
+    cdef int new_edge_label(self, object l) except -1
 
 

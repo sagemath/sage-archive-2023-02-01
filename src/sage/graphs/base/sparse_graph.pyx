@@ -1260,7 +1260,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         self.edge_labels_max = 1
         self.edge_labels_available_ids = []
 
-    cdef inline int new_edge_label(self, object l):
+    cdef inline int new_edge_label(self, object l) except -1:
         """
         Returns a new unique int representing the arbitrary label l.
         """

@@ -581,6 +581,12 @@ cdef class DenseGraphBackend(CGraphBackend):
         self.vertex_labels = {}
         self.vertex_ints = {}
 
+    cdef inline int new_edge_label(self, object l) except -1:
+        """
+        Any label is ignored.
+        """
+        return 0
+
     def add_edge(self, object u, object v, object l, bint directed):
         """
         Add edge ``(u, v)`` to self.

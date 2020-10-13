@@ -729,88 +729,6 @@ cdef class CGraph:
     cdef int del_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
-        """
-        Feed array ``neighbors`` with the out-neighbors of ``u``.
-
-        This function will put at most ``size`` out-neighbors of ``u`` in array
-        ``neighbors``. If ``u`` has more than ``size`` out-neighbors, ``size``
-        of them are put in array ``neighbors`` and the function returns value
-        ``-1``.  Otherwise the function returns the number of out-neighbors that
-        have been put in array ``neighbors``.
-
-        INPUT:
-
-        - ``u`` -- non-negative integer; must be in self
-
-        - ``neighbors`` -- pointer to an (allocated) integer array
-
-        - ``size`` -- the length of the array
-
-        OUTPUT:
-
-        - nonnegative integer -- the out-degree of ``u``
-
-        - ``-1`` -- indicates that the array has been filled with neighbors, but
-          there were more
-
-        """
-        cdef int num_nbrs = 0
-        cdef int l
-        cdef int v = self.next_out_neighbor_unsafe(u, -1, &l)
-        while v != -1:
-            if num_nbrs == size:
-                return -1
-            neighbors[num_nbrs] = v
-            num_nbrs += 1
-            v = self.next_out_neighbor_unsafe(u, v, &l)
-
-        return num_nbrs
-
-    cdef int next_out_neighbor_unsafe(self, int u, int v, int* l) except -2:
-        raise NotImplementedError()
-
-    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
-        """
-        Feed array ``neighbors`` with the in-neighbors of ``v``.
-
-        This function will put at most ``size`` in-neighbors of ``v`` in array
-        ``neighbors``. If ``v`` has more than ``size`` in-neighbors, ``size`` of
-        them are put in array ``neighbors`` and the function returns value
-        ``-1``.  Otherwise the function returns the number of in-neighbors that
-        have been put in array ``neighbors``.
-
-        INPUT:
-
-        - ``v`` -- non-negative integer; must be in self
-
-        - ``neighbors`` -- pointer to an (allocated) integer array
-
-        - ``size`` -- the length of the array
-
-        OUTPUT:
-
-        - nonnegative integer -- the in-degree of ``v``
-
-        - ``-1`` -- indicates that the array has been filled with neighbors, but
-          there were more
-
-        """
-        cdef int num_nbrs = 0
-        cdef int l
-        cdef int v = self.next_in_neighbor_unsafe(u, -1, &l)
-        while v != -1:
-            if num_nbrs == size:
-                return -1
-            neighbors[num_nbrs] = v
-            num_nbrs += 1
-            v = self.next_in_neighbor_unsafe(u, v, &l)
-
-        return num_nbrs
-
-    cdef int next_in_neighbor_unsafe(self, int v, int u, int* l) except -2:
-        raise NotImplementedError()
-
     cpdef add_arc(self, int u, int v):
         """
         Add arc ``(u, v)`` to the graph.
@@ -958,44 +876,123 @@ cdef class CGraph:
         self.check_vertex(v)
         self.del_arc_unsafe(u,v)
 
-    cdef adjacency_sequence_in(self, int n, int *vertices, int v, int* sequence):
-        r"""
-        Compute the adjacency sequence corresponding to a list of vertices and a
-        vertex.
-
-        This method fills the array ``sequence``, whose `i`-th element is set to
-        `1` iff ``(v, vertices[i])`` is an edge.
-
-        See the function ``_test_adjacency_sequence()`` of ``dense_graph.pyx``
-        and ``sparse_graph.pyx`` for unit tests.
+    cpdef list all_arcs(self, int u, int v):
+        """
+        Return the labels of all arcs from ``u`` to ``v``.
 
         INPUT:
 
-        - ``n`` -- nonnegative integer; the maximum index in ``vertices`` up to
-          which we want to consider. If ``n = 0``, we only want to know if
-          ``(vertices[0],v)`` is an edge. If ``n = 1``, we want to know whether
-          ``(vertices[0],v)`` and ``(vertices[1],v)`` are edges.  Let ``k`` be
-          the length of ``vertices``. If ``0 <= n < k``, then we want to know if
-          ``v`` is adjacent to each of ``vertices[0], vertices[1], ...,
-          vertices[n]``. When ``n = k - 1``, then we consider all elements in
-          the list ``vertices``.
+        - ``u`` -- integer; the tail of an arc
 
-        - ``vertices`` -- list of vertices
+        - ``v`` -- integer; the head of an arc
 
-        - ``v`` -- a vertex
+        OUTPUT:
 
-        - ``sequence`` -- ``int *``; the memory segment of length `>= n` that is
-          to be filled
+        - Raise ``NotImplementedError``. This method is not implemented at the
+          :class:`CGraph` level. A child class should provide a suitable
+          implementation.
 
         .. SEEALSO::
 
-            - :meth:`adjacency_sequence_out` -- Similar method for ``(v,
-            vertices[i])`` instead of ``(vertices[i], v)`` (the difference only
-            matters for digraphs)
+            - :meth:`all_arcs <sage.graphs.base.sparse_graph.SparseGraph.all_arcs>`
+              -- ``all_arcs`` method for sparse graphs.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.c_graph import CGraph
+            sage: G = CGraph()
+            sage: G.all_arcs(0, 1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        cdef int i
-        for i in range(n):
-            sequence[i] = self.has_arc_unsafe(vertices[i], v)
+        raise NotImplementedError()
+
+    ###################################
+    # Neighbor Functions
+    ###################################
+
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
+        """
+        Feed array ``neighbors`` with the out-neighbors of ``u``.
+
+        This function will put at most ``size`` out-neighbors of ``u`` in array
+        ``neighbors``. If ``u`` has more than ``size`` out-neighbors, ``size``
+        of them are put in array ``neighbors`` and the function returns value
+        ``-1``.  Otherwise the function returns the number of out-neighbors that
+        have been put in array ``neighbors``.
+
+        INPUT:
+
+        - ``u`` -- non-negative integer; must be in self
+
+        - ``neighbors`` -- pointer to an (allocated) integer array
+
+        - ``size`` -- the length of the array
+
+        OUTPUT:
+
+        - nonnegative integer -- the out-degree of ``u``
+
+        - ``-1`` -- indicates that the array has been filled with neighbors, but
+          there were more
+
+        """
+        cdef int num_nbrs = 0
+        cdef int l
+        cdef int v = self.next_out_neighbor_unsafe(u, -1, &l)
+        while v != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = v
+            num_nbrs += 1
+            v = self.next_out_neighbor_unsafe(u, v, &l)
+
+        return num_nbrs
+
+    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
+        """
+        Feed array ``neighbors`` with the in-neighbors of ``v``.
+
+        This function will put at most ``size`` in-neighbors of ``v`` in array
+        ``neighbors``. If ``v`` has more than ``size`` in-neighbors, ``size`` of
+        them are put in array ``neighbors`` and the function returns value
+        ``-1``.  Otherwise the function returns the number of in-neighbors that
+        have been put in array ``neighbors``.
+
+        INPUT:
+
+        - ``v`` -- non-negative integer; must be in self
+
+        - ``neighbors`` -- pointer to an (allocated) integer array
+
+        - ``size`` -- the length of the array
+
+        OUTPUT:
+
+        - nonnegative integer -- the in-degree of ``v``
+
+        - ``-1`` -- indicates that the array has been filled with neighbors, but
+          there were more
+
+        """
+        cdef int num_nbrs = 0
+        cdef int l
+        cdef int v = self.next_in_neighbor_unsafe(u, -1, &l)
+        while v != -1:
+            if num_nbrs == size:
+                return -1
+            neighbors[num_nbrs] = v
+            num_nbrs += 1
+            v = self.next_in_neighbor_unsafe(u, v, &l)
+
+        return num_nbrs
+
+    cdef int next_out_neighbor_unsafe(self, int u, int v, int* l) except -2:
+        raise NotImplementedError()
+
+    cdef int next_in_neighbor_unsafe(self, int v, int u, int* l) except -2:
+        raise NotImplementedError()
 
     cdef adjacency_sequence_out(self, int n, int *vertices, int v, int* sequence):
         r"""
@@ -1037,37 +1034,98 @@ cdef class CGraph:
         for i in range(n):
             sequence[i] = self.has_arc_unsafe(v, vertices[i])
 
-    cpdef list all_arcs(self, int u, int v):
-        """
-        Return the labels of all arcs from ``u`` to ``v``.
+    cdef adjacency_sequence_in(self, int n, int *vertices, int v, int* sequence):
+        r"""
+        Compute the adjacency sequence corresponding to a list of vertices and a
+        vertex.
+
+        This method fills the array ``sequence``, whose `i`-th element is set to
+        `1` iff ``(v, vertices[i])`` is an edge.
+
+        See the function ``_test_adjacency_sequence()`` of ``dense_graph.pyx``
+        and ``sparse_graph.pyx`` for unit tests.
 
         INPUT:
 
-        - ``u`` -- integer; the tail of an arc
+        - ``n`` -- nonnegative integer; the maximum index in ``vertices`` up to
+          which we want to consider. If ``n = 0``, we only want to know if
+          ``(vertices[0],v)`` is an edge. If ``n = 1``, we want to know whether
+          ``(vertices[0],v)`` and ``(vertices[1],v)`` are edges.  Let ``k`` be
+          the length of ``vertices``. If ``0 <= n < k``, then we want to know if
+          ``v`` is adjacent to each of ``vertices[0], vertices[1], ...,
+          vertices[n]``. When ``n = k - 1``, then we consider all elements in
+          the list ``vertices``.
 
-        - ``v`` -- integer; the head of an arc
+        - ``vertices`` -- list of vertices
 
-        OUTPUT:
+        - ``v`` -- a vertex
 
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
+        - ``sequence`` -- ``int *``; the memory segment of length `>= n` that is
+          to be filled
 
         .. SEEALSO::
 
-            - :meth:`all_arcs <sage.graphs.base.sparse_graph.SparseGraph.all_arcs>`
-              -- ``all_arcs`` method for sparse graphs.
+            - :meth:`adjacency_sequence_out` -- Similar method for ``(v,
+            vertices[i])`` instead of ``(vertices[i], v)`` (the difference only
+            matters for digraphs)
+        """
+        cdef int i
+        for i in range(n):
+            sequence[i] = self.has_arc_unsafe(vertices[i], v)
 
-        EXAMPLES::
+    cpdef list out_neighbors(self, int u):
+        """
+        Return the list of out-neighbors of the vertex ``u``.
+
+        INPUT:
+
+        - ``u`` -- integer representing a vertex of this graph
+
+        EXAMPLES:
+
+        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
-            sage: G.all_arcs(0, 1)
+            sage: G.out_neighbors(0)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            LookupError: vertex (0) is not a vertex of the graph
+
+        It works, once there are vertices and :meth:`out_neighbors_unsafe` is implemented::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0, 1)
+            sage: G.add_arc(1, 2)
+            sage: G.add_arc(1, 3)
+            sage: G.out_neighbors(0)
+            [1]
+            sage: G.out_neighbors(1)
+            [2, 3]
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.add_arc(1,2)
+            sage: G.add_arc(1,3)
+            sage: G.out_neighbors(0)
+            [1]
+            sage: G.out_neighbors(1)
+            [2, 3]
         """
-        raise NotImplementedError()
+        cdef int i, num_nbrs
+        self.check_vertex(u)
+        if not self.out_degrees[u]:
+            return []
+        cdef int size = self.out_degrees[u]
+        cdef int *neighbors = <int *>check_allocarray(size, sizeof(int))
+        if not neighbors:
+            raise MemoryError
+        num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
+        output = [neighbors[i] for i in range(num_nbrs)]
+        sig_free(neighbors)
+        return output
 
     cpdef list in_neighbors(self, int v):
         """
@@ -1130,60 +1188,6 @@ cdef class CGraph:
         if not neighbors:
             raise MemoryError
         num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
-        output = [neighbors[i] for i in range(num_nbrs)]
-        sig_free(neighbors)
-        return output
-
-    cpdef list out_neighbors(self, int u):
-        """
-        Return the list of out-neighbors of the vertex ``u``.
-
-        INPUT:
-
-        - ``u`` -- integer representing a vertex of this graph
-
-        EXAMPLES:
-
-        On the :class:`CGraph` level, this always produces an error, as there are no vertices::
-
-            sage: from sage.graphs.base.c_graph import CGraph
-            sage: G = CGraph()
-            sage: G.out_neighbors(0)
-            Traceback (most recent call last):
-            ...
-            LookupError: vertex (0) is not a vertex of the graph
-
-        It works, once there are vertices and :meth:`out_neighbors_unsafe` is implemented::
-
-            sage: from sage.graphs.base.dense_graph import DenseGraph
-            sage: G = DenseGraph(5)
-            sage: G.add_arc(0, 1)
-            sage: G.add_arc(1, 2)
-            sage: G.add_arc(1, 3)
-            sage: G.out_neighbors(0)
-            [1]
-            sage: G.out_neighbors(1)
-            [2, 3]
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: G = SparseGraph(5)
-            sage: G.add_arc(0,1)
-            sage: G.add_arc(1,2)
-            sage: G.add_arc(1,3)
-            sage: G.out_neighbors(0)
-            [1]
-            sage: G.out_neighbors(1)
-            [2, 3]
-        """
-        cdef int i, num_nbrs
-        self.check_vertex(u)
-        if not self.out_degrees[u]:
-            return []
-        cdef int size = self.out_degrees[u]
-        cdef int *neighbors = <int *>check_allocarray(size, sizeof(int))
-        if not neighbors:
-            raise MemoryError
-        num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
         output = [neighbors[i] for i in range(num_nbrs)]
         sig_free(neighbors)
         return output

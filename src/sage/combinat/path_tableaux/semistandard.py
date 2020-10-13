@@ -12,30 +12,30 @@ standard tableaux to semistandard tableaux. The local rule is the Bender-Knuth i
 
 EXAMPLES::
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])                                                                        
-    sage: pt.promotion()                                                                                                                                           
+    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
+    sage: pt.promotion()
     [(), (2,), (3, 1), (3, 2, 1), (4, 3, 1, 0), (4, 3, 3, 1, 0)]
-    sage: pt.evacuation()                                                                                                                                          
+    sage: pt.evacuation()
     [(), (2,), (4, 0), (4, 2, 0), (4, 3, 1, 0), (4, 3, 3, 1, 0)]
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[9/2,3,3,1,0]])                                                                        
-    sage: pt.promotion()                                                                                                                                           
+    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[9/2,3,3,1,0]])
+    sage: pt.promotion()
     [(), (2,), (3, 1), (3, 2, 1), (9/2, 3, 1, 0), (9/2, 3, 3, 1, 0)]
-    sage: pt.evacuation()                                                                                                                                          
+    sage: pt.evacuation()
     [(), (5/2,), (9/2, 0), (9/2, 2, 0), (9/2, 3, 1, 0), (9/2, 3, 3, 1, 0)]
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[4,2],[5,4,1]])                                                                                              
-    sage: path_tableaux.CylindricalDiagram(pt)                                                                                                                     
+    sage: pt = path_tableaux.SemistandardPath([[],[3],[4,2],[5,4,1]])
+    sage: path_tableaux.CylindricalDiagram(pt)
     [       (),      (3,),    (4, 2), (5, 4, 1)]
     [         ,        (),      (3,),    (5, 2), (5, 4, 1)]
     [         ,          ,        (),      (4,),    (4, 3), (5, 4, 1)]
     [         ,          ,          ,        (),      (3,),    (5, 1), (5, 4, 1)]
 
-    sage: pt2 = path_tableaux.SemistandardPath([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])                                                                              
-    sage: pt1 = path_tableaux.SemistandardPath([[],[3],[3,2]])                                                                                                     
-    sage: pt1.commutor(pt2)                                                                                                                                        
+    sage: pt2 = path_tableaux.SemistandardPath([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
+    sage: pt1 = path_tableaux.SemistandardPath([[],[3],[3,2]])
+    sage: pt1.commutor(pt2)
     ([(), (2,), (2, 2), (4, 2, 0)], [(4, 2, 0), (4, 3, 2, 0), (4, 3, 3, 1, 0)])
-    sage: pt1.commutor(pt2,verbose=True)                                                                                                                           
+    sage: pt1.commutor(pt2,verbose=True)
     [(3, 2), (3, 3, 1), (3, 3, 2, 1), (4, 3, 3, 1, 0)]
     [(3,), (3, 2), (3, 2, 2), (4, 3, 2, 0)]
     [(), (2,), (2, 2), (4, 2, 0)]
@@ -85,11 +85,11 @@ class SemistandardPath(PathTableau):
 
     The :class:'SemistandardSkewTableau` is not implemented.
 
-    INPUT::
+    INPUT:
 
         * a sequence of partitions
         * a sequence of lists/tuples
-        * a semistandard tableau    
+        * a semistandard tableau
         * a Gelfand-Tsetlin pattern
 
     EXAMPLES::
@@ -148,7 +148,6 @@ class SemistandardPath(PathTableau):
             Traceback (most recent call last):
             ...
             ValueError: [(), 3, (3, 2)] is not a sequence of lists
-
         """
         w = None
 
@@ -191,7 +190,7 @@ class SemistandardPath(PathTableau):
 
             sage: path_tableaux.SemistandardPath([[],[2],[1,2]],check=False)
             [(), (2,), (1, 2)]
-        """        
+        """
         if not all( self[i+1][j] >= self[i][j] >= self[i+1][j+1]
                     for i in range(len(self)-1) for j in range(len(self[i+1])-1) ):
             raise ValueError(f"{self} does not satisfy the required inequalities")
@@ -239,14 +238,14 @@ class SemistandardPath(PathTableau):
             sage: pt.local_rule(3)
             [(), (3,), (3, 2), (3, 2, 2), (3, 3, 2, 1)]
 
-    TESTS::
+        TESTS::
 
             sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1]])
             sage: pt.local_rule(0)
             Traceback (most recent call last):
             ...
             ValueError: 0 is not defined on [(), (3,), (3, 2), (3, 3, 1), (3, 3, 2, 1)]
-            sage: pt.local_rule(4)    
+            sage: pt.local_rule(4)
             Traceback (most recent call last):
             ...
             ValueError: 4 is not defined on [(), (3,), (3, 2), (3, 3, 1), (3, 3, 2, 1)]
@@ -350,7 +349,6 @@ class SemistandardPaths(PathTableaux):
 
             sage: path_tableaux.SemistandardPaths()._an_element_()
             [(), (2,), (2, 1)]
-
         """
         return SemistandardPath([[],[2],[2,1]])
 

@@ -123,6 +123,9 @@ from libc.string cimport memcpy
 
 from cysignals.memory cimport sig_calloc, sig_realloc, sig_free
 
+cdef extern from "Python.h":
+    int unlikely(int) nogil  # Defined by Cython
+
 cdef int radix = sizeof(unsigned long) * 8 # number of bits per 'unsigned long'
 cdef int radix_mod_mask = radix - 1        # (assumes that radis is a power of 2)
 
@@ -288,10 +291,10 @@ cdef class DenseGraph(CGraph):
         bitset_realloc(self.active_vertices, total_verts)
 
     ###################################
-    # Unlabeled arc functions
+    # Arc functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v) except -1:
+    cdef int add_arc_label_unsafe(self, int u, int v, int l) except -1:
         """
         Add arc ``(u, v)`` to the graph.
 
@@ -300,6 +303,8 @@ cdef class DenseGraph(CGraph):
         - ``u, v`` -- non-negative integers
 
         """
+        if unlikely(l):
+            raise ValueError("cannot add a labeled arc to an unlabeled graph")
         cdef int place = (u * self.num_longs) + (v / radix)
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         if not self.edges[place] & word:
@@ -308,7 +313,7 @@ cdef class DenseGraph(CGraph):
             self.num_arcs += 1
             self.edges[place] |= word
 
-    cdef int has_arc_unsafe(self, int u, int v) except -1:
+    cdef int has_arc_label_unsafe(self, int u, int v, int l) except -1:
         """
         Check whether arc ``(u, v)`` is in the graph.
 
@@ -316,11 +321,15 @@ cdef class DenseGraph(CGraph):
 
         - ``u, v`` -- non-negative integers, must be in self
 
+        - ``l`` -- a positive integer label, or zero for no label, or ``-1`` for any label
+
         OUTPUT:
             0 -- False
             1 -- True
 
         """
+        if unlikely(l > 0):
+            raise ValueError("cannot locate labeled arc in unlabeled graph")
         cdef int place = (u * self.num_longs) + (v / radix)
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         return (self.edges[place] & word) >> (v & radix_mod_mask)
@@ -341,6 +350,39 @@ cdef class DenseGraph(CGraph):
             self.out_degrees[u] -= 1
             self.num_arcs -= 1
             self.edges[place] &= ~word
+
+    cdef inline int del_arc_label_unsafe(self, int u, int v, int l) except -1:
+        if unlikely(l):
+            raise ValueError("cannot delete labeled arc in unlabeled graph")
+        return self.del_arc_unsafe(u, v)
+
+    cdef inline int arc_label_unsafe(self, int u, int v) except -1:
+        return 0
+
+    cdef int all_arcs_unsafe(self, int u, int v, int* labels, int size) except -1:
+        """
+        Gives the labels of all arcs (u, v).
+
+        INPUT:
+
+        - ``u, v`` -- integers from 0, ..., n-1, where n is the number of vertices
+            arc_labels -- must be a pointer to an (allocated) integer array
+            size -- the length of the array
+
+        OUTPUT:
+
+        - integer -- the number of arcs ``(u, v)``
+          ``-1`` -- indicates that the array has been filled with labels, but
+          there were more
+
+        """
+        if self.has_arc_unsafe(u, v):
+            if size > 0:
+                labels[0] = 0
+                return 1
+            else:
+                return -1
+        return 0
 
     def complement(self):
         r"""

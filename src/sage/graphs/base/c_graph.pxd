@@ -33,13 +33,32 @@ cdef class CGraph:
     # Edge Functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int, int) except -1
-    cdef int has_arc_unsafe(self, int, int) except -1
+    cdef inline int add_arc_unsafe(self, int u, int v) except -1:
+        return self.add_arc_label_unsafe(u, v, 0)
+
+    cdef inline int has_arc_unsafe(self, int u, int v) except -1:
+        return self.has_arc_label_unsafe(u, v, -1)
+
     cdef int del_arc_unsafe(self, int, int) except -1
+
     cpdef add_arc(self, int u, int v)
     cpdef bint has_arc(self, int u, int v) except -1
     cpdef del_all_arcs(self, int u, int v)
+
+    ###################################
+    # Labeled Edge Functions
+    ###################################
+
+    cdef int add_arc_label_unsafe(self, int, int, int) except -1
+    cdef int has_arc_label_unsafe(self, int, int, int) except -1
+    cdef int del_arc_label_unsafe(self, int, int, int) except -1
+    cdef int arc_label_unsafe(self, int, int) except -1
+    cdef int all_arcs_unsafe(self, int, int, int *, int) except -1
+
+    cpdef int arc_label(self, int u, int v)
     cpdef list all_arcs(self, int u, int v)
+    cpdef del_arc_label(self, int u, int v, int l)
+    cpdef bint has_arc_label(self, int u, int v, int l)
 
     ###################################
     # Neighbor Functions

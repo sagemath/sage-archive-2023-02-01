@@ -720,12 +720,6 @@ cdef class CGraph:
     # Edge Functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v) except -1:
-        raise NotImplementedError()
-
-    cdef int has_arc_unsafe(self, int u, int v) except -1:
-        raise NotImplementedError()
-
     cdef int del_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
@@ -874,39 +868,173 @@ cdef class CGraph:
         """
         self.check_vertex(u)
         self.check_vertex(v)
-        self.del_arc_unsafe(u,v)
+        self.del_arc_unsafe(u, v)
 
-    cpdef list all_arcs(self, int u, int v):
+    ###################################
+    # Labeled Edge Functions
+    ###################################
+
+    cdef int add_arc_label_unsafe(self, int u, int v, int l) except -1:
+        raise NotImplementedError()
+
+    cdef int has_arc_label_unsafe(self, int u, int v, int l) except -1:
+        raise NotImplementedError()
+
+    cdef int del_arc_label_unsafe(self, int u, int v, int l) except -1:
+        raise NotImplementedError()
+
+    cdef int arc_label_unsafe(self, int u, int v) except -1:
+        raise NotImplementedError()
+
+    cdef int all_arcs_unsafe(self, int u, int v, int* arc_labels, int size) except -1:
+        raise NotImplementedError()
+
+    cpdef int arc_label(self, int u, int v):
         """
-        Return the labels of all arcs from ``u`` to ``v``.
+        Retrieves the first label found associated with ``(u, v)``.
 
         INPUT:
 
-        - ``u`` -- integer; the tail of an arc
+         - ``u, v`` -- non-negative integers, must be in self
 
-        - ``v`` -- integer; the head of an arc
+        OUTPUT: one of
 
-        OUTPUT:
+        - positive integer -- indicates that there is a label on ``(u, v)``.
 
-        - Raise ``NotImplementedError``. This method is not implemented at the
-          :class:`CGraph` level. A child class should provide a suitable
-          implementation.
-
-        .. SEEALSO::
-
-            - :meth:`all_arcs <sage.graphs.base.sparse_graph.SparseGraph.all_arcs>`
-              -- ``all_arcs`` method for sparse graphs.
+        - ``0`` -- either the arc ``(u, v)`` is unlabeled, or there is no arc at all.
 
         EXAMPLES::
 
-            sage: from sage.graphs.base.c_graph import CGraph
-            sage: G = CGraph()
-            sage: G.all_arcs(0, 1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(3,4,7)
+            sage: G.arc_label(3,4)
+            7
+
+        To this function, an unlabeled arc is indistinguishable from a non-arc::
+
+            sage: G.add_arc_label(1,0)
+            sage: G.arc_label(1,0)
+            0
+            sage: G.arc_label(1,1)
+            0
+
+        This function only returns the *first* label it finds from ``u`` to ``v``::
+
+            sage: G.add_arc_label(1,2,1)
+            sage: G.add_arc_label(1,2,2)
+            sage: G.arc_label(1,2)
+            2
+
         """
-        raise NotImplementedError()
+        self.check_vertex(u)
+        self.check_vertex(v)
+        return self.arc_label_unsafe(u, v)
+
+    cpdef list all_arcs(self, int u, int v):
+        """
+        Gives the labels of all arcs ``(u, v)``. An unlabeled arc is interpreted as
+        having label 0.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(1,2,1)
+            sage: G.add_arc_label(1,2,2)
+            sage: G.add_arc_label(1,2,2)
+            sage: G.add_arc_label(1,2,2)
+            sage: G.add_arc_label(1,2,3)
+            sage: G.add_arc_label(1,2,3)
+            sage: G.add_arc_label(1,2,4)
+            sage: G.all_arcs(1,2)
+            [4, 3, 3, 2, 2, 2, 1]
+
+        """
+        cdef int size, num_arcs, i
+        cdef int *arc_labels
+        cdef list output
+        self.check_vertex(u)
+        self.check_vertex(v)
+        if unlikely(self.in_degrees is NULL or self.out_degrees is NULL):
+            raise ValueError("`self.in_degree` or `self.out_degree` not allocated")
+        if self.in_degrees[v] < self.out_degrees[u]:
+            size = self.in_degrees[v]
+        else:
+            size = self.out_degrees[u]
+        arc_labels = <int *>check_allocarray(size, sizeof(int))
+        num_arcs = self.all_arcs_unsafe(u, v, arc_labels, size)
+        if num_arcs == -1:
+            sig_free(arc_labels)
+            raise RuntimeError("There was an error: there seem to be more arcs than self.in_degrees or self.out_degrees indicate.")
+        output = [arc_labels[i] for i in range(num_arcs)]
+        sig_free(arc_labels)
+        return output
+
+    cpdef del_arc_label(self, int u, int v, int l):
+        """
+        Delete an arc ``(u, v)`` with label ``l``.
+
+        INPUT:
+
+         - ``u, v`` -- non-negative integers, must be in self
+
+         - ``l`` -- a positive integer label, or zero for no label
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(0,1,0)
+            sage: G.add_arc_label(0,1,1)
+            sage: G.add_arc_label(0,1,2)
+            sage: G.add_arc_label(0,1,2)
+            sage: G.add_arc_label(0,1,3)
+            sage: G.del_arc_label(0,1,2)
+            sage: G.all_arcs(0,1)
+            [0, 3, 2, 1]
+            sage: G.del_arc_label(0,1,0)
+            sage: G.all_arcs(0,1)
+            [3, 2, 1]
+
+        """
+        self.check_vertex(u)
+        self.check_vertex(v)
+        if l < 0:
+            raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
+        self.del_arc_label_unsafe(u,v,l)
+
+    cpdef bint has_arc_label(self, int u, int v, int l):
+        """
+        Indicates whether there is an arc ``(u, v)`` with label ``l``.
+
+        INPUT:
+
+         - ``u, v`` -- non-negative integers, must be in self
+
+         - ``l`` -- a positive integer label, or zero for no label
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: G = SparseGraph(5)
+            sage: G.add_arc_label(0,1,0)
+            sage: G.add_arc_label(0,1,1)
+            sage: G.add_arc_label(0,1,2)
+            sage: G.add_arc_label(0,1,2)
+            sage: G.has_arc_label(0,1,1)
+            True
+            sage: G.has_arc_label(0,1,2)
+            True
+            sage: G.has_arc_label(0,1,3)
+            False
+
+        """
+        self.check_vertex(u)
+        self.check_vertex(v)
+        if l < 0:
+            raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
+        return self.has_arc_label_unsafe(u,v,l) == 1
 
     ###################################
     # Neighbor Functions

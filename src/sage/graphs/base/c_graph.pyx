@@ -3734,7 +3734,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                         vertices_case == 1 or                               # Only one vertex, so no duplicates.
                         u_int >= v_int or                                   # We visit if u_int >= v_int ...
                         (vertices_case == 2 and
-                            u_int <= b_vertices.capacity() and
+                            u_int < b_vertices.capacity() and
                             not bitset_in(b_vertices._bitset, u_int))):     # ... or if u_int is not in ``vertices``.
                     u = self.vertex_label(u_int)
                     if labels:

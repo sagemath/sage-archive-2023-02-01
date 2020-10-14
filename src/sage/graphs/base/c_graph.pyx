@@ -1551,6 +1551,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         return self.cg().num_verts
 
+    cdef bint _delete_edge_before_adding(self):
+        """
+        Return whether we should delete edges before adding any.
+
+        This is in particular required if the backend theoretically allows
+        multiple edges but the graph should not have multiple egdes.
+        """
+        return not self._multiple_edges
+
     ###################################
     # Vertex Functions
     ###################################
@@ -2292,6 +2301,139 @@ cdef class CGraphBackend(GenericGraphBackend):
 
     cdef int new_edge_label(self, object l) except -1:
         raise NotImplementedError()
+
+    def add_edges(self, object edges, bint directed):
+        """
+        Add edges from a list.
+
+        INPUT:
+
+         - ``edges`` -- the edges to be added; can either be of the form
+           ``(u,v)`` or ``(u,v,l)``
+
+         - ``directed`` -- if False, add ``(v,u)`` as well as ``(u,v)``
+
+        EXAMPLES::
+
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True))
+            [(0, 1, None),
+             (2, 3, None),
+             (4, 5, None),
+             (5, 6, None)]
+
+        """
+        cdef object u,v,l,e
+        for e in edges:
+            try:
+                u,v,l = e
+            except Exception:
+                u,v = e
+                l = None
+            self.add_edge(u,v,l,directed)
+
+    def add_edge(self, object u, object v, object l, bint directed):
+        """
+        Add the edge ``(u,v)`` to self.
+
+        INPUT:
+
+         - ``u,v`` -- the vertices of the edge
+
+         - ``l`` -- the edge label
+
+         - ``directed`` -- if False, also add ``(v,u)``
+
+        .. NOTE::
+
+            The input ``l`` is ignored if the backend
+            does not support labels.
+
+        EXAMPLES::
+
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edge(0,1,None,False)
+            sage: list(D.iterator_edges(range(9), True))
+            [(0, 1, None)]
+
+        ::
+
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edge(0, 1, None, False)
+            sage: list(D.iterator_edges(range(9), True))
+            [(0, 1, None)]
+
+        TESTS::
+
+            sage: D = DiGraph(sparse=True)
+            sage: D.add_edge(0,1,2)
+            sage: D.add_edge(0,1,3)
+            sage: D.edges()
+            [(0, 1, 3)]
+
+        Check :trac:`22991` for sparse backend::
+
+            sage: G = Graph(3, sparse=True)
+            sage: G.add_edge(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: G = Graph(3, sparse=True, loops=True)
+            sage: G.add_edge(0,0); G.edges()
+            [(0, 0, None)]
+
+        Check :trac:`22991` for dense backend::
+
+            sage: G = Graph(3, sparse=False)
+            sage: G.add_edge(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: G = Graph(3, sparse=True, loops=True)
+            sage: G.add_edge(0, 0); G.edges()
+            [(0, 0, None)]
+
+        Remove edges correctly when multiedges are not allowed (:trac:`28077`)::
+
+            sage: D = DiGraph(multiedges=False)
+            sage: D.add_edge(1, 2, 'A')
+            sage: D.add_edge(1, 2, 'B')
+            sage: D.delete_edge(1, 2)
+            sage: D.incoming_edges(2)
+            []
+            sage: D.shortest_path(1, 2)
+            []
+        """
+        if u is None: u = self.add_vertex(None)
+        if v is None: v = self.add_vertex(None)
+
+        cdef int u_int = self.check_labelled_vertex(u, False)
+        cdef int v_int = self.check_labelled_vertex(v, False)
+
+        cdef CGraph cg = self.cg()
+
+        cdef int l_int
+        if l is None:
+            l_int = 0
+        else:
+            l_int = self.new_edge_label(l)
+
+        if u_int == v_int and not self._loops:
+            raise ValueError(f"cannot add edge from {u!r} to {v!r} in graph without loops")
+
+        if self._delete_edge_before_adding():
+            if cg.has_arc_label(u_int, v_int, l_int):
+                return
+            else:
+                cg.del_all_arcs(u_int, v_int)
+                if not directed and self._directed and v_int != u_int:
+                    cg.del_all_arcs(v_int, u_int)
+
+        cg.add_arc_label_unsafe(u_int, v_int, l_int)
+        if not directed and self._directed and v_int != u_int:
+            cg.add_arc_label_unsafe(v_int, u_int, l_int)
+
 
     ###################################
     # Edge Iterators

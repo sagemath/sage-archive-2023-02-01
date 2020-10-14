@@ -148,6 +148,7 @@ cdef class DenseGraph(CGraph):
       vertices to allocate
     - ``verts`` -- list (default: ``None``); optional list of vertices to add
     - ``arcs`` -- list (default: ``None``); optional list of arcs to add
+    - ``directed`` -- boolean (defualt: ``None``); whether the graph is directed
 
     The first ``nverts`` are created as vertices of the graph, and the next
     ``extra_vertices`` can be freely added without reallocation. See top level
@@ -155,7 +156,7 @@ cdef class DenseGraph(CGraph):
     for use in pickling.
 
     """
-    def __cinit__(self, int nverts, int extra_vertices=10, verts=None, arcs=None):
+    def __cinit__(self, int nverts, int extra_vertices=10, verts=None, arcs=None, directed=True):
         """
         Allocation and initialization happen in one place.
 
@@ -172,6 +173,7 @@ cdef class DenseGraph(CGraph):
         self.num_verts = nverts
         self.num_arcs  = 0
         cdef int total_verts = nverts + extra_vertices
+        self._directed = directed
 
         # self.num_longs = "ceil(total_verts/radix)"
         self.num_longs = total_verts / radix + (0 != (total_verts & radix_mod_mask))
@@ -294,6 +296,22 @@ cdef class DenseGraph(CGraph):
     # Arc functions
     ###################################
 
+    cdef inline int _add_arc_unsafe(self, int u, int v) except -1:
+        r"""
+        .. WARNING::
+
+            This method is for internal use only. Use :meth:`add_arc_label_unsafe` instead.
+
+        Add arc (u, v) with label l in only one direction.
+        """
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
+        if not self.edges[place] & word:
+            self.in_degrees[v] += 1
+            self.out_degrees[u] += 1
+            self.num_arcs += 1
+            self.edges[place] |= word
+
     cdef int add_arc_label_unsafe(self, int u, int v, int l) except -1:
         """
         Add arc ``(u, v)`` to the graph.
@@ -305,13 +323,10 @@ cdef class DenseGraph(CGraph):
         """
         if unlikely(l):
             raise ValueError("cannot add a labeled arc to an unlabeled graph")
-        cdef int place = (u * self.num_longs) + (v / radix)
-        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
-        if not self.edges[place] & word:
-            self.in_degrees[v] += 1
-            self.out_degrees[u] += 1
-            self.num_arcs += 1
-            self.edges[place] |= word
+
+        self._add_arc_unsafe(u, v)
+        if u != v and not self._directed:
+            self._add_arc_unsafe(v, u)
 
     cdef int has_arc_label_unsafe(self, int u, int v, int l) except -1:
         """
@@ -576,68 +591,24 @@ cdef class DenseGraphBackend(CGraphBackend):
             [(0, 1, None)]
 
         """
-        self._cg = DenseGraph(n)
+        self._cg = DenseGraph(n, directed=directed)
         self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}
+
+    cdef bint _delete_edge_before_adding(self):
+        """
+        Return whether we should delete edges before adding any.
+
+        As dense graphs do not support multiple edges, this is never required.
+        """
+        return False
 
     cdef inline int new_edge_label(self, object l) except -1:
         """
         Any label is ignored.
         """
         return 0
-
-    def add_edge(self, object u, object v, object l, bint directed):
-        """
-        Add edge ``(u, v)`` to self.
-
-        INPUT:
-
-        - ``u, v`` -- the vertices of the edge
-
-        - ``l`` -- the edge label (ignored)
-
-        - ``directed`` -- if ``False``, also add ``(v, u)``
-
-        .. NOTE::
-
-            The input ``l`` is for consistency with other backends.
-
-        EXAMPLES::
-
-            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
-            sage: D.add_edge(0, 1, None, False)
-            sage: list(D.iterator_edges(range(9), True))
-            [(0, 1, None)]
-
-        TESTS:
-
-        Check :trac:`22991`::
-
-            sage: G = Graph(3, sparse=False)
-            sage: G.add_edge(0,0)
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot add edge from 0 to 0 in graph without loops
-            sage: G = Graph(3, sparse=True, loops=True)
-            sage: G.add_edge(0, 0); G.edges()
-            [(0, 0, None)]
-        """
-        if u is None: u = self.add_vertex(None)
-        if v is None: v = self.add_vertex(None)
-
-        cdef int u_int = self.check_labelled_vertex(u, 0)
-        cdef int v_int = self.check_labelled_vertex(v, 0)
-
-        if u_int == v_int:
-            if not self._loops:
-                raise ValueError(f"cannot add edge from {u!r} to {v!r} in graph without loops")
-            self._cg.add_arc(u_int, u_int)
-        elif directed:
-            self._cg.add_arc(u_int, v_int)
-        else:
-            self._cg.add_arc(u_int, v_int)
-            self._cg.add_arc(v_int, u_int)
 
     def add_edges(self, object edges, bint directed):
         """

@@ -12583,9 +12583,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm is not None and algorithm not in ("delete", "add"):
             raise ValueError('algorithm should be None, "delete", or "add"')
 
-        if (inplace
-            or (algorithm is None and len(vertices) > 0.9 * self.order())
-            or algorithm == "delete"):
+        if (inplace or algorithm == "delete"):
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,
                                               edge_property=edge_property,
@@ -12705,7 +12703,7 @@ class GenericGraph(GenericGraph_pyx):
         G = self.__class__(weighted=self._weighted, loops=self.allows_loops(),
                            multiedges=self.allows_multiple_edges())
         G.name("Subgraph of (%s)"%self.name())
-        if not edges and not edge_property:
+        if edges is None and edge_property is None:
             self._backend.subgraph_given_vertices(G._backend, vertices)
         else:
             G.add_vertices(self if vertices is None else vertices)
@@ -12872,13 +12870,12 @@ class GenericGraph(GenericGraph_pyx):
         """
         if inplace:
             G = self
+            if vertices is not None:
+                vertices = set(vertices)
+                G.delete_vertices([v for v in G if v not in vertices])
+            G.name("Subgraph of (%s)"%self.name())
         else:
-            G = copy(self)
-        G.name("Subgraph of (%s)"%self.name())
-
-        if vertices is not None:
-            vertices = set(vertices)
-            G.delete_vertices([v for v in G if v not in vertices])
+            G = self._subgraph_by_adding(vertices)
 
         edges_to_delete = []
         if edges is not None:

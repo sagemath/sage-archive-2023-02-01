@@ -278,6 +278,9 @@ class ProjectionFuncSchlegel():
             sage: TestSuite(proj).run(skip='_test_pickling')
         """
         self.facet = facet
+        ineq = [_ for _ in facet.ambient_Hrepresentation() if _.is_inequality()][0]
+        self.full_A = ineq.A()
+        self.full_b = ineq.b()
         A,b = self.facet.as_polyhedron().affine_hull_projection(as_affine_map=True, orthonormal=True,extend=True)
         self.A = A.change_ring(RDF).matrix()
         self.b = b.change_ring(RDF)
@@ -301,8 +304,8 @@ class ProjectionFuncSchlegel():
         # The intersection of the segment with the facet
         # See Ziegler's "Lectures on Polytopes" p.133
         vx = vector(x)
-        z = (self.facet.ambient_Hrepresentation()[0].b())
-        a = -(self.facet.ambient_Hrepresentation()[0].A())
+        z = (self.full_b)
+        a = -(self.full_A)
         y = self.projection_point
         preimage = y + ((z-a*y)/(a*vx-a*y))*(vx - y) 
         # The transformation matrix acts on the right:

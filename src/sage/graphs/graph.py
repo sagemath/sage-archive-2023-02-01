@@ -1182,9 +1182,8 @@ class Graph(GenericGraph):
             if data.get_pos() is not None:
                 pos = data.get_pos()
             self.name(data.name())
-            self.add_vertices(data.vertex_iterator())
             self.set_vertices(data.get_vertices())
-            self.add_edges(data.edge_iterator(), loops=loops)
+            data._backend.subgraph_given_vertices(self._backend, data)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
                 r = lambda x: None if x=={} else x

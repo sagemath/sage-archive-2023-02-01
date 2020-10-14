@@ -1289,7 +1289,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
     def get_edge_label(self, object u, object v):
         """
-        Returns the edge label for ``(u,v)``.
+        Return the edge label for ``(u, v)``.
 
         INPUT:
 

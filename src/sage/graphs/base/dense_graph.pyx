@@ -297,7 +297,7 @@ cdef class DenseGraph(CGraph):
     ###################################
 
     cdef inline int _add_arc_unsafe(self, int u, int v) except -1:
-        r"""
+        """
         .. WARNING::
 
             This method is for internal use only. Use :meth:`add_arc_label_unsafe` instead.
@@ -349,6 +349,22 @@ cdef class DenseGraph(CGraph):
         cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         return (self.edges[place] & word) >> (v & radix_mod_mask)
 
+    cdef inline int _del_arc_unsafe(self, int u, int v) except -1:
+        """
+        .. WARNING::
+
+            This method is for internal use only. Use :meth:`add_arc_label_unsafe` instead.
+
+        Remove arc (u, v) with label l in only one direction.
+        """
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
+        if self.edges[place] & word:
+            self.in_degrees[v] -= 1
+            self.out_degrees[u] -= 1
+            self.num_arcs -= 1
+            self.edges[place] &= ~word
+
     cdef int del_arc_unsafe(self, int u, int v) except -1:
         """
         Delete the arc from ``u`` to ``v``, if it exists.
@@ -358,13 +374,9 @@ cdef class DenseGraph(CGraph):
         - ``u, v`` -- non-negative integers, must be in self
 
         """
-        cdef int place = (u * self.num_longs) + (v / radix)
-        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
-        if self.edges[place] & word:
-            self.in_degrees[v] -= 1
-            self.out_degrees[u] -= 1
-            self.num_arcs -= 1
-            self.edges[place] &= ~word
+        self._del_arc_unsafe(u, v)
+        if u != v and not self._directed:
+            self._del_arc_unsafe(v, u)
 
     cdef inline int del_arc_label_unsafe(self, int u, int v, int l) except -1:
         if unlikely(l):
@@ -610,6 +622,16 @@ cdef class DenseGraphBackend(CGraphBackend):
         """
         return 0
 
+    cdef inline int free_edge_label(self, int l_int) except -1:
+        """
+        Free the label corresponding to ``l_int``.
+
+        As the backend does not support labels this raises an error
+        if ``l_int`` is non-trivial.
+        """
+        if unlikely(l_int):
+            raise ValueError("backend does not support labels")
+
     def add_edges(self, object edges, bint directed):
         """
         Add edges from a list.
@@ -635,54 +657,6 @@ cdef class DenseGraphBackend(CGraphBackend):
         for e in edges:
             u, v = e[:2]
             self.add_edge(u, v, None, directed)
-
-    def del_edge(self, object u, object v, object l, bint directed):
-        """
-        Delete edge ``(u, v)``.
-
-        INPUT:
-
-        - ``u, v`` -- the vertices of the edge
-
-        - ``l`` -- the edge label (ignored)
-
-        - ``directed`` -- if ``False``, also delete ``(v, u, l)``
-
-        .. NOTE::
-
-            The input ``l`` is for consistency with other backends.
-
-        EXAMPLES::
-
-            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
-            sage: D.add_edges([(0, 1), (2, 3), (4, 5), (5, 6)], False)
-            sage: list(D.iterator_edges(range(9), True))
-            [(0, 1, None),
-             (2, 3, None),
-             (4, 5, None),
-             (5, 6, None)]
-            sage: D.del_edge(0, 1, None, True)
-            sage: list(D.iterator_out_edges(range(9), True))
-            [(1, 0, None),
-             (2, 3, None),
-             (3, 2, None),
-             (4, 5, None),
-             (5, 4, None),
-             (5, 6, None),
-             (6, 5, None)]
-
-        """
-        if not (self.has_vertex(u) and self.has_vertex(v)):
-            return
-        cdef int u_int = self.check_labelled_vertex(u, 0)
-        cdef int v_int = self.check_labelled_vertex(v, 0)
-        if v is None:
-            u, v = u[:2]
-        if directed:
-            self._cg.del_all_arcs(u_int, v_int)
-        else:
-            self._cg.del_all_arcs(u_int, v_int)
-            self._cg.del_all_arcs(v_int, u_int)
 
     def get_edge_label(self, object u, object v):
         """

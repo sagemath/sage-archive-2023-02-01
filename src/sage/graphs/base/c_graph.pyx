@@ -2434,6 +2434,110 @@ cdef class CGraphBackend(GenericGraphBackend):
         if not directed and self._directed and v_int != u_int:
             cg.add_arc_label_unsafe(v_int, u_int, l_int)
 
+    def del_edge(self, object u, object v, object l, bint directed):
+        """
+        Delete edge ``(u, v, l)``.
+
+        INPUT:
+
+        - ``u, v`` -- the vertices of the edge
+
+        - ``l`` -- the edge label
+
+        - ``directed`` -- if ``False``, also delete ``(v, u, l)``
+
+        .. NOTE::
+
+            The input ``l`` is ignored if the backend
+            does not support labels.
+
+        EXAMPLES::
+
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True))
+            [(0, 1, None),
+             (2, 3, None),
+             (4, 5, None),
+             (5, 6, None)]
+            sage: D.del_edge(0,1,None,True)
+            sage: list(D.iterator_out_edges(range(9), True))
+            [(1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+
+        ::
+
+            sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
+            sage: D.add_edges([(0, 1), (2, 3), (4, 5), (5, 6)], False)
+            sage: list(D.iterator_edges(range(9), True))
+            [(0, 1, None),
+             (2, 3, None),
+             (4, 5, None),
+             (5, 6, None)]
+            sage: D.del_edge(0, 1, None, True)
+            sage: list(D.iterator_out_edges(range(9), True))
+            [(1, 0, None),
+             (2, 3, None),
+             (3, 2, None),
+             (4, 5, None),
+             (5, 4, None),
+             (5, 6, None),
+             (6, 5, None)]
+
+        TESTS::
+
+            sage: G = Graph(sparse=True)
+            sage: G.add_edge(0,1,2)
+            sage: G.delete_edge(0,1)
+            sage: G.edges()
+            []
+
+            sage: G = Graph(multiedges=True, sparse=True)
+            sage: G.add_edge(0,1,2)
+            sage: G.add_edge(0,1,None)
+            sage: G.delete_edge(0,1)
+            sage: G.edges()
+            [(0, 1, 2)]
+
+        Do we remove loops correctly? (:trac:`12135`)::
+
+            sage: g=Graph({0:[0,0,0]}, sparse=True)
+            sage: g.edges(labels=False)
+            [(0, 0), (0, 0), (0, 0)]
+            sage: g.delete_edge(0,0); g.edges(labels=False)
+            [(0, 0), (0, 0)]
+        """
+        if not (self.has_vertex(u) and self.has_vertex(v)):
+            return
+        cdef int u_int = self.check_labelled_vertex(u, False)
+        cdef int v_int = self.check_labelled_vertex(v, False)
+
+        cdef CGraph cg = self.cg()
+
+        if l is None:
+            if cg.has_arc_label(u_int, v_int, 0):
+                l_int = 0
+            else:
+                l_int = cg.arc_label(u_int, v_int)
+        else:
+            for l_int in self.edge_labels:
+                if self.edge_labels[l_int] == l and cg.has_arc_label(u_int, v_int, l_int):
+                    break
+            else:
+                return
+
+        cg.del_arc_label(u_int, v_int, l_int)
+        if not directed and self._directed and v_int != u_int:
+            cg.del_arc_label(v_int, u_int, l_int)
+        self.free_edge_label(l_int)
+
+    cdef int free_edge_label(self, int l_int) except -1:
+        raise NotImplementedError()
 
     ###################################
     # Edge Iterators

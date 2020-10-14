@@ -1262,7 +1262,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
     cdef inline int new_edge_label(self, object l) except -1:
         """
-        Returns a new unique int representing the arbitrary label l.
+        Return a new unique int representing the arbitrary label l.
         """
         if l is None:
             return 0
@@ -1277,80 +1277,12 @@ cdef class SparseGraphBackend(CGraphBackend):
         self.edge_labels[l_int] = l
         return l_int
 
-    def del_edge(self, object u, object v, object l, bint directed):
+    cdef inline int free_edge_label(self, int l_int) except -1:
         """
-        Delete edge ``(u,v,l)``.
+        Free the label corresponding to ``l_int``.
 
-        INPUT:
-
-         - ``u,v`` -- the vertices of the edge
-
-         - ``l`` -- the edge label
-
-         - ``directed`` -- if False, also delete ``(v,u,l)``
-
-        EXAMPLES::
-
-            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
-            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
-            sage: list(D.iterator_edges(range(9), True))
-            [(0, 1, None),
-             (2, 3, None),
-             (4, 5, None),
-             (5, 6, None)]
-            sage: D.del_edge(0,1,None,True)
-            sage: list(D.iterator_out_edges(range(9), True))
-            [(1, 0, None),
-             (2, 3, None),
-             (3, 2, None),
-             (4, 5, None),
-             (5, 4, None),
-             (5, 6, None),
-             (6, 5, None)]
-
-        TESTS::
-
-            sage: G = Graph(sparse=True)
-            sage: G.add_edge(0,1,2)
-            sage: G.delete_edge(0,1)
-            sage: G.edges()
-            []
-
-            sage: G = Graph(multiedges=True, sparse=True)
-            sage: G.add_edge(0,1,2)
-            sage: G.add_edge(0,1,None)
-            sage: G.delete_edge(0,1)
-            sage: G.edges()
-            [(0, 1, 2)]
-
-        Do we remove loops correctly? (:trac:`12135`)::
-
-            sage: g=Graph({0:[0,0,0]}, sparse=True)
-            sage: g.edges(labels=False)
-            [(0, 0), (0, 0), (0, 0)]
-            sage: g.delete_edge(0,0); g.edges(labels=False)
-            [(0, 0), (0, 0)]
+        Usually called after deleting an edge.
         """
-        if not ( self.has_vertex(u) and self.has_vertex(v) ):
-            return
-        cdef int u_int = self.check_labelled_vertex(u, False)
-        cdef int v_int = self.check_labelled_vertex(v, False)
-
-        if l is None:
-            if self._cg.has_arc_label(u_int, v_int, 0):
-                l_int = 0
-            else:
-                l_int = self._cg.arc_label(u_int, v_int)
-        else:
-            for l_int in self.edge_labels:
-                if self.edge_labels[l_int] == l and self._cg.has_arc_label(u_int, v_int, l_int):
-                    break
-            else:
-                return
-
-        self._cg.del_arc_label(u_int, v_int, l_int)
-        if not directed and self._directed and v_int != u_int:
-            self._cg.del_arc_label(v_int, u_int, l_int)
         if l_int:
             self.edge_labels.pop(l_int)
             self.edge_labels_available_ids.append(l_int)

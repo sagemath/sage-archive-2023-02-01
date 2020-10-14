@@ -410,8 +410,7 @@ unlike for the other interfaces.
 """
 
 
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -423,16 +422,15 @@ unlike for the other interfaces.
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .expect import Expect, ExpectElement
 from sage.docs.instancedoc import instancedoc
 import os
 
 from sage.misc.sage_eval import sage_eval
+
 
 class Kash(Expect):
     r"""
@@ -446,11 +444,10 @@ class Kash(Expect):
                  max_workspace_size=None,
                  maxread=None,
                  script_subdirectory=None,
-                 restart_on_ctrlc = True,
+                 restart_on_ctrlc=True,
                  logfile=None,
                  server=None,
                  server_tmpdir=None):
-
         """
         INPUT:
             max_workspace_size -- (default: None)
@@ -459,23 +456,21 @@ class Kash(Expect):
                     <mem>k stands for kilobyte-wise allocation
                     <mem>m stands for megabyte-wise allocation
         """
-
-
         cmd = "kash3 -b -c -d  "
         if max_workspace_size is not None:
             cmd += " -a %s" % int(max_workspace_size)
         Expect.__init__(self,
-                        name = 'kash',
-                        prompt = 'kash% ',
-                        command = cmd,
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        restart_on_ctrlc = True,
-                        verbose_start = False,
-                        logfile = logfile,
+                        name='kash',
+                        prompt='kash% ',
+                        command=cmd,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        restart_on_ctrlc=True,
+                        verbose_start=False,
+                        logfile=logfile,
                         eval_using_file_cutoff=100,
-                        init_code = ['X:=ZX.1;']
+                        init_code=['X:=ZX.1;']
                         )
         # The above init_code programs around a bug reported by Jack Schmidt
 
@@ -495,8 +490,8 @@ class Kash(Expect):
         """
         pass
 
-    def _read_in_file_command(self,filename):
-        return 'Read("%s");'%filename
+    def _read_in_file_command(self, filename):
+        return 'Read("%s");' % filename
 
     def _eval_line_using_file(self, line):
         F = open(self._local_tmpfile(), 'w')
@@ -557,36 +552,37 @@ class Kash(Expect):
         s = Expect.eval(self, x, **kwds)
         i = s.find('\r\n')
         if i != -1:
-            s = s[i+2:]
+            s = s[i + 2:]
         if newlines:
             return s
         else:
-            return s.replace("\\\n","")
+            return s.replace("\\\n", "")
 
-##     def help(self, name=None):
-##         """
-##         Return help on KASH commands.
+#     def help(self, name=None):
+#         """
+#         Return help on KASH commands.
 
-##         EXAMPLES::
+#         EXAMPLES::
 
-##             sage: X = kash.help('IntegerRing')   # optional - kash
+#             sage: X = kash.help('IntegerRing')   # optional - kash
 
-##         """
-##         if name is None:
-##           print '\nTo use KASH help enter kash.help(s). '
-##           print 'The syntax of the string s is given below.\n'
-##           print self.eval('?')
-##         elif name[0] == '?':
-##           print self.eval(name)
-##         else:
-##           print self.eval('?%s'%name)
+#         """
+#         if name is None:
+#           print '\nTo use KASH help enter kash.help(s). '
+#           print 'The syntax of the string s is given below.\n'
+#           print self.eval('?')
+#         elif name[0] == '?':
+#           print self.eval(name)
+#         else:
+#           print self.eval('?%s'%name)
 
     def help(self, name=None):
         """
         Return help on KASH commands.
 
-        Returns help on all commands with a given name. If name is None,
-        return the location of the installed Kash HTML documentation.
+        This returns help on all commands with a given name.  If name
+        is ``None``, return the location of the installed Kash HTML
+        documentation.
 
         EXAMPLES::
 
@@ -627,42 +623,40 @@ class Kash(Expect):
             i = C.find('m')
             j = C.find(':')
             try:
-                n = int(C[i+1:j])
+                n = int(C[i + 1:j])
             except ValueError:
                 full = C
             else:
-                full = self.eval('?%s'%n)
-            #sig = C[j+2:]
+                full = self.eval('?%s' % n)
             X.append(full)
         return KashDocumentation(X)
 
     def help_search(self, name):
-        return self._doc(self.eval('?*%s'%name))
+        return self._doc(self.eval('?*%s' % name))
 
     def set(self, var, value):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s:=%s;;'%(var,value)
-        #out = self.eval(cmd)
+        cmd = '%s:=%s;;' % (var, value)
         out = self._eval_line(cmd, allow_use_file=True)
         if out.lower().find('error') != -1:
-            raise TypeError("Error executing code in Kash\nCODE:\n\t%s\nKash ERROR:\n\t%s"%(cmd, out))
+            raise TypeError("Error executing code in Kash\nCODE:\n\t%s\nKash ERROR:\n\t%s" % (cmd, out))
 
     def get(self, var):
         """
         Get the value of the variable var.
         """
-        return self.eval('%s;'%var, newlines=False)
+        return self.eval('%s;' % var, newlines=False)
 
-    #def clear(self, var):
+    # def clear(self, var):
     #    """
     #    Clear the variable named var.
     #    """
     #    self.eval('Unbind(%s)'%var)
 
     def _contains(self, v1, v2):
-        return self.eval('%s in %s'%(v1,v2)) == "TRUE"
+        return self.eval('%s in %s' % (v1, v2)) == "TRUE"
 
     def _assign_symbol(self):
         return ":="
@@ -687,12 +681,13 @@ class Kash(Expect):
         self._check_valid_function_name(function)
         s = self._function_call_string(function,
                                        [s.name() for s in args],
-                                       ['%s:=%s'%(key,value.name()) for key, value in kwds.items()])
+                                       ['%s:=%s' % (key, value.name())
+                                        for key, value in kwds.items()])
         return self.new(s)
 
     def _function_call_string(self, function, args, kwds):
         """
-        Returns the string used to make function calls.
+        Return the string used to make function calls.
 
         EXAMPLES::
 
@@ -700,9 +695,8 @@ class Kash(Expect):
             'Expand(x,y,rec(Prec:=10))'
         """
         if not kwds:
-            return "%s(%s)"%(function, ",".join(args))
-        else:
-            return "%s(%s,rec(%s))"%(function, ",".join(args), ",".join(kwds))
+            return "%s(%s)" % (function, ",".join(args))
+        return "%s(%s,rec(%s))" % (function, ",".join(args), ",".join(kwds))
 
     def console(self):
         kash_console()
@@ -718,15 +712,15 @@ class KashElement(ExpectElement):
         if not isinstance(other, KashElement):
             other = self.parent()(other)
         other._check_valid()
-        return self.parent()('%s mod %s'%(self._name,other._name))
+        return self.parent()('%s mod %s' % (self._name, other._name))
 
     def __len__(self):
         self._check_valid()
-        return int(self.parent().eval('Length(%s)'%self.name()))
+        return int(self.parent().eval('Length(%s)' % self.name()))
 
     def __bool__(self):
         """
-        Returns ``True`` if this Kash element is not 0 or FALSE.
+        Return ``True`` if this Kash element is not 0 or FALSE.
 
         EXAMPLES::
 
@@ -750,8 +744,8 @@ class KashElement(ExpectElement):
         # our boolean conversion also has to test against 0.
 
         P = self.parent()
-        return P.eval('%s = FALSE' % self.name()) == 'FALSE' \
-           and P.eval('%s = 0' % self.name()) == 'FALSE'
+        return (P.eval('%s = FALSE' % self.name()) == 'FALSE' and
+                P.eval('%s = 0' % self.name()) == 'FALSE')
 
     __nonzero__ = __bool__
 
@@ -791,7 +785,7 @@ class KashElement(ExpectElement):
 
         i = 1
         parsedict = {}
-        for key,val in locals.items():
+        for key, val in locals.items():
             name = 'sage' + str(i)
             string = string.replace(str(key), name)
             parsedict[name] = val
@@ -813,11 +807,13 @@ class KashDocumentation(list):
 def is_KashElement(x):
     return isinstance(x, KashElement)
 
-############
+######
 
-###########
+######
+
 
 kash = Kash()
+
 
 def reduce_load_Kash():
     return kash

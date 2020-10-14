@@ -4217,7 +4217,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             raise ValueError("cannot obtain an undirected subgraph of a directed graph")
 
         b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
-        b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+        try:
+            b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+        except ValueError:
+            # Avoiding "Bitset must not be empty"
+            # in this case there is nothing to do
+            return
         cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
 
         # Add the vertices to ``other``.

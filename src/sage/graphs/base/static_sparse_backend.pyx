@@ -48,6 +48,9 @@ from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 from sage.data_structures.bitset_base cimport *
 
+cdef extern from "Python.h":
+    int unlikely(int) nogil  # Defined by Cython
+
 cdef class StaticSparseCGraph(CGraph):
     """
     :mod:`CGraph <sage.graphs.base.c_graph>` class based on the sparse graph
@@ -998,18 +1001,16 @@ cdef class StaticSparseBackend(CGraphBackend):
             ``other`` is assumed to be the empty graph.
         """
         cdef object u, v, l, v_copy
-        cdef int u_int, v_int, l_int, l_int_other, foo, tmp
+        cdef int u_int, prev_u_int, v_int, l_int, l_int_other, foo, tmp
         cdef StaticSparseCGraph cg = self._cg
         cdef CGraph cg_other = other.cg()
         cdef list b_vertices_2, all_arc_labels
         cdef FrozenBitset b_vertices
         cdef int n_vertices = len(vertices)
+        cdef bint loops = other.loops()
+        cdef bint delete_multiple_edges = self.multiple_edges(None) and not other.multiple_edges(None)
 
         # Set other according to format of self.
-        if self.loops():
-            other.loops(True)
-        if self.multiple_edges(None):
-            other.multiple_edges(True)
         if self._directed and not other._directed:
             raise ValueError("cannot obtain an undirected subgraph of a directed graph")
 
@@ -1034,10 +1035,18 @@ cdef class StaticSparseBackend(CGraphBackend):
                 vertices_translation[i] = other.check_labelled_vertex(v, False)
 
         for v_int in vertices:
+            prev_u_int = -1
             for tmp in range(out_degree(cg.g, i)):
                 u_int = cg.g.neighbors[v_int][tmp]
                 if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
                         and (u_int >= v_int or other._directed)):
+
+                    if unlikely(delete_multiple_edges and u_int == prev_u_int):
+                        continue
+                    prev_u_int = u_int
+
+                    if unlikely(not loops and u_int == v_int):
+                        continue
 
                     l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
                     l_int_other = other.new_edge_label(l)

@@ -4207,12 +4207,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef list b_vertices_2, all_arc_labels
         cdef FrozenBitset b_vertices
         cdef int n_vertices = len(vertices)
+        cdef bint loops = other.loops()
+        cdef bint multiple_edges = self.multiple_edges(None) and other.multiple_edges(None)
 
         # Set other according to format of self.
-        if self.loops():
-            other.loops(True)
-        if self.multiple_edges(None):
-            other.multiple_edges(True)
         if self._directed and not other._directed:
             raise ValueError("cannot obtain an undirected subgraph of a directed graph")
 
@@ -4243,8 +4241,10 @@ cdef class CGraphBackend(GenericGraphBackend):
                         and (u_int >= v_int or other._directed)):
                     # If ``other`` is directed, we should add the arcs in both directions.
 
-                    # TODO Multiple edges
-                    if not self._multiple_edges:
+                    if unlikely(not loops and u_int == v_int):
+                        continue
+
+                    if not multiple_edges:
                         if l_int:
                             l = self.edge_labels[l_int]
                             l_int_other = other.new_edge_label(l)

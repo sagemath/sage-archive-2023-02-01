@@ -4242,6 +4242,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                     # If ``other`` is directed, we should add the arcs in both directions.
 
                     if unlikely(not loops and u_int == v_int):
+                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
                         continue
 
                     if not multiple_edges:

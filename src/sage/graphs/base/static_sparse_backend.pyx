@@ -1014,13 +1014,16 @@ cdef class StaticSparseBackend(CGraphBackend):
         if self._directed and not other._directed:
             raise ValueError("cannot obtain an undirected subgraph of a directed graph")
 
-        b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
         try:
-            b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+            b_vertices_2 = [self._vertex_to_int[x] for x in vertices]
+            b_vertices = FrozenBitset(b_vertices_2)
+        except KeyError:
+            raise LookupError("one of the vertices does not belong to the graph")
         except ValueError:
             # Avoiding "Bitset must not be empty"
             # in this case there is nothing to do
             return
+
         cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
 
         # Add the vertices to ``other``.
@@ -1034,9 +1037,9 @@ cdef class StaticSparseBackend(CGraphBackend):
                 v = self.vertex_label(i)
                 vertices_translation[i] = other.check_labelled_vertex(v, False)
 
-        for v_int in vertices:
+        for v_int in b_vertices:
             prev_u_int = -1
-            for tmp in range(out_degree(cg.g, i)):
+            for tmp in range(out_degree(cg.g, v_int)):
                 u_int = cg.g.neighbors[v_int][tmp]
                 if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
                         and (u_int >= v_int or other._directed)):

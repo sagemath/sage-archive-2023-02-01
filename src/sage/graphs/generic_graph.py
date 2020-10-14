@@ -12706,7 +12706,7 @@ class GenericGraph(GenericGraph_pyx):
                            multiedges=self.allows_multiple_edges())
         G.name("Subgraph of (%s)"%self.name())
         if not edges and not edge_property:
-            self._backend.obtain_subgraph(G._backend, vertices)
+            self._backend.subgraph_given_vertices(G._backend, vertices)
         else:
             G.add_vertices(self if vertices is None else vertices)
 

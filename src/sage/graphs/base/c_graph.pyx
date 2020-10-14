@@ -4188,7 +4188,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             return True
 
-    def obtain_subgraph(self, CGraphBackend other, object vertices):
+    def subgraph_given_vertices(self, CGraphBackend other, object vertices):
         """
         Initialize ``other`` to be the subgraph of ``self`` with given vertices.
 
@@ -4200,7 +4200,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int u_int, v_int, l_int, foo
         cdef CGraph cg = self.cg()
         cdef CGraph cg_other = other.cg()
-        cdef CGraph
         cdef list b_vertices_2, all_arc_labels
         cdef FrozenBitset b_vertices
         cdef bint labels = False  # TODO change
@@ -4211,8 +4210,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         other._multiple_edges = self._multiple_edges
 
         b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
-        cdef int* vertices_translation = <int *> sig_malloc((max(b_vertices_2) + 1) * sizeof(int))
         b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+        cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity()) * sizeof(int))
 
         # Add the vertices to ``other``.
         cdef int i
@@ -4227,7 +4226,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         for v_int in b_vertices:
             u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
             while u_int != -1:
-                if (u_int <= b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
+                if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
                         and (u_int >= v_int or self._directed)):
                     if labels:
                         l = self.edge_labels[l_int] if l_int else None

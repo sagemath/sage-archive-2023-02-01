@@ -10924,6 +10924,9 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: cannot interpret 1234 as graph edge
         """
+        if loops:
+            self._backend.add_edges(edges, self._directed)
+            return
         if loops is None:
             loops = self.allows_loops()
 

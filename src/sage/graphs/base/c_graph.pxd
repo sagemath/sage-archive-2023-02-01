@@ -94,6 +94,7 @@ cdef class CGraphBackend(GenericGraphBackend):
     cdef bint _loops
     cdef bint _multiple_edges
     cdef CGraph cg(self)
+    cpdef add_edge(self, object u, object v, object l, bint directed)
     cdef bint _delete_edge_before_adding(self)
     cdef int new_edge_label(self, object l) except -1
     cdef int free_edge_label(self, int l_int) except -1

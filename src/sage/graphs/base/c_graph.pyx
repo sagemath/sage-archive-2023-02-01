@@ -1564,7 +1564,7 @@ cdef class CGraphBackend(GenericGraphBackend):
     # Vertex Functions
     ###################################
 
-    cdef int get_vertex(self, u) except ? -2:
+    cdef inline int get_vertex(self, u) except ? -2:
         """
         Return an ``int`` representing the arbitrary hashable vertex ``u``
         (whether or not ``u`` is actually in the graph), or ``-1`` if a new
@@ -1618,7 +1618,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             return -1
         return u_long
 
-    cdef int get_vertex_checked(self, u) except ? -2:
+    cdef inline int get_vertex_checked(self, u) except ? -2:
         """
         As :meth:`get_vertex`, but return ``-1``,
         if ``u`` is not a vertex of the graph.
@@ -1643,7 +1643,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         else:
             return None
 
-    cdef int check_labelled_vertex(self, u, bint reverse) except ? -1:
+    cdef inline int check_labelled_vertex(self, u, bint reverse) except ? -1:
         """
         Return an ``int`` representing the arbitrary hashable vertex ``u``, and
         update, if necessary, the translation dict and list. Add a vertex if the
@@ -1657,6 +1657,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 bitset_add(G.active_vertices, u_int)
                 G.num_verts += 1
             return u_int
+
         u_int = bitset_first_in_complement(G.active_vertices)
         if u_int == -1:
             G.realloc(2 * G.active_vertices.size)
@@ -2326,14 +2327,14 @@ cdef class CGraphBackend(GenericGraphBackend):
         """
         cdef object u,v,l,e
         for e in edges:
-            try:
+            if len(e) == 3:
                 u,v,l = e
-            except Exception:
+            else:
                 u,v = e
                 l = None
             self.add_edge(u,v,l,directed)
 
-    def add_edge(self, object u, object v, object l, bint directed):
+    cpdef add_edge(self, object u, object v, object l, bint directed):
         """
         Add the edge ``(u,v)`` to self.
 

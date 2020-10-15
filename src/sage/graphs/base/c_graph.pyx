@@ -2822,6 +2822,101 @@ cdef class CGraphBackend(GenericGraphBackend):
                 u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
 
     ###################################
+    # Using Edge Iterators
+    ###################################
+
+    def subgraph_given_vertices(self, CGraphBackend other, object vertices):
+        """
+        Initialize ``other`` to be the subgraph of ``self`` with given vertices.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertex labels
+
+        .. NOTE:
+
+            ``other`` is assumed to be the empty graph.
+        """
+        cdef object v, l
+        cdef int u_int, v_int, l_int, l_int_other, foo
+        cdef CGraph cg = self.cg()
+        cdef CGraph cg_other = other.cg()
+        cdef list b_vertices_2, all_arc_labels
+        cdef FrozenBitset b_vertices
+        cdef int n_vertices = len(vertices)
+        cdef bint loops = other.loops()
+        cdef bint multiple_edges = self.multiple_edges(None) and other.multiple_edges(None)
+
+        if self._directed and not other._directed:
+            raise ValueError("cannot obtain an undirected subgraph of a directed graph")
+
+        b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
+        try:
+            b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+        except ValueError:
+            # Avoiding "Bitset must not be empty"
+            # in this case there is nothing to do
+            return
+
+
+        cdef int length = len(b_vertices)
+        cdef int i
+        cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
+
+        try:
+            # Add the vertices to ``other``.
+            if cg_other.active_vertices.size < length:
+                cg_other.realloc(length)
+            for j in range(n_vertices):
+                i = b_vertices_2[j]
+                if i >= 0:
+                    v = self.vertex_label(i)
+                    vertices_translation[i] = other.check_labelled_vertex(v, False)
+
+            # Iterate through the edges and add them to other.
+            for v_int in b_vertices:
+                u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
+                while u_int != -1:
+                    if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
+                            and (u_int >= v_int or other._directed)):
+                        # If ``other`` is directed, we should add the arcs in both directions.
+
+                        if unlikely(not loops and u_int == v_int):
+                            # Delete loops if ``other`` does not allow loops.
+                            u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
+                            continue
+
+                        if not multiple_edges:
+                            if l_int:
+                                l = self.edge_labels[l_int]
+
+                                # Will return ``0``, if ``other`` does not support edges labels.
+                                l_int_other = other.new_edge_label(l)
+                            else:
+                                l_int_other = 0
+
+                            cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+                        else:
+                            all_arc_labels = cg.all_arcs(v_int, u_int)
+
+                            for l_int in all_arc_labels:
+                                if l_int:
+                                    l = self.edge_labels[l_int]
+
+                                    # Will return ``0``, if ``other`` does not support edges labels.
+                                    l_int_other = other.new_edge_label(l)
+                                else:
+                                    l_int_other = 0
+
+                                cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+                    u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
+
+        finally:
+            sig_free(vertices_translation)
+
+    ###################################
     # Paths
     ###################################
 
@@ -4187,86 +4282,6 @@ cdef class CGraphBackend(GenericGraphBackend):
             return (True, ordering)
         else:
             return True
-
-    def subgraph_given_vertices(self, CGraphBackend other, object vertices):
-        """
-        Initialize ``other`` to be the subgraph of ``self`` with given vertices.
-
-        INPUT:
-
-        - ``vertices`` -- a list of vertex labels
-
-        .. NOTE:
-
-            ``other`` is assumed to be the empty graph.
-        """
-        cdef object u, v, l, v_copy
-        cdef int u_int, v_int, l_int, l_int_other, foo
-        cdef CGraph cg = self.cg()
-        cdef CGraph cg_other = other.cg()
-        cdef list b_vertices_2, all_arc_labels
-        cdef FrozenBitset b_vertices
-        cdef int n_vertices = len(vertices)
-        cdef bint loops = other.loops()
-        cdef bint multiple_edges = self.multiple_edges(None) and other.multiple_edges(None)
-
-        # Set other according to format of self.
-        if self._directed and not other._directed:
-            raise ValueError("cannot obtain an undirected subgraph of a directed graph")
-
-        b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
-        try:
-            b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
-        except ValueError:
-            # Avoiding "Bitset must not be empty"
-            # in this case there is nothing to do
-            return
-        cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
-
-        # Add the vertices to ``other``.
-        cdef int length = len(b_vertices)
-        cdef int i
-        if cg_other.active_vertices.size < length:
-            cg_other.realloc(length)
-        for j in range(n_vertices):
-            i = b_vertices_2[j]
-            if i >= 0:
-                v = self.vertex_label(i)
-                vertices_translation[i] = other.check_labelled_vertex(v, False)
-
-        for v_int in b_vertices:
-            u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
-            while u_int != -1:
-                if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
-                        and (u_int >= v_int or other._directed)):
-                    # If ``other`` is directed, we should add the arcs in both directions.
-
-                    if unlikely(not loops and u_int == v_int):
-                        u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
-                        continue
-
-                    if not multiple_edges:
-                        if l_int:
-                            l = self.edge_labels[l_int]
-                            l_int_other = other.new_edge_label(l)
-                        else:
-                            l_int_other = 0
-
-                        cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
-                    else:
-                        all_arc_labels = cg.all_arcs(v_int, u_int)
-
-                        for l_int in all_arc_labels:
-                            if l_int:
-                                l = self.edge_labels[l_int]
-                                l_int_other = other.new_edge_label(l)
-                            else:
-                                l_int_other = 0
-                            cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
-
-                u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
-
-        sig_free(vertices_translation)
 
 
 cdef class Search_iterator:

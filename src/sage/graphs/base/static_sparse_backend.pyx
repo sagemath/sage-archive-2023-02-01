@@ -1000,17 +1000,16 @@ cdef class StaticSparseBackend(CGraphBackend):
 
             ``other`` is assumed to be the empty graph.
         """
-        cdef object u, v, l, v_copy
-        cdef int u_int, prev_u_int, v_int, l_int, l_int_other, foo, tmp
+        cdef object v, l
+        cdef int u_int, prev_u_int, v_int, l_int, l_int_other, tmp
         cdef StaticSparseCGraph cg = self._cg
         cdef CGraph cg_other = other.cg()
-        cdef list b_vertices_2, all_arc_labels
+        cdef list b_vertices_2
         cdef FrozenBitset b_vertices
         cdef int n_vertices = len(vertices)
         cdef bint loops = other.loops()
         cdef bint delete_multiple_edges = self.multiple_edges(None) and not other.multiple_edges(None)
 
-        # Set other according to format of self.
         if self._directed and not other._directed:
             raise ValueError("cannot obtain an undirected subgraph of a directed graph")
 
@@ -1024,38 +1023,45 @@ cdef class StaticSparseBackend(CGraphBackend):
             # in this case there is nothing to do
             return
 
-        cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
-
-        # Add the vertices to ``other``.
         cdef int length = len(b_vertices)
         cdef int i
-        if cg_other.active_vertices.size < length:
-            cg_other.realloc(length)
-        for j in range(n_vertices):
-            i = b_vertices_2[j]
-            if i >= 0:
-                v = self.vertex_label(i)
-                vertices_translation[i] = other.check_labelled_vertex(v, False)
+        cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
 
-        for v_int in b_vertices:
-            prev_u_int = -1
-            for tmp in range(out_degree(cg.g, v_int)):
-                u_int = cg.g.neighbors[v_int][tmp]
-                if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
-                        and (u_int >= v_int or other._directed)):
+        try:
+            # Add the vertices to ``other``.
+            if cg_other.active_vertices.size < length:
+                cg_other.realloc(length)
+            for j in range(n_vertices):
+                i = b_vertices_2[j]
+                if i >= 0:
+                    v = self.vertex_label(i)
+                    vertices_translation[i] = other.check_labelled_vertex(v, False)
 
-                    if unlikely(delete_multiple_edges and u_int == prev_u_int):
-                        continue
-                    prev_u_int = u_int
+            for v_int in b_vertices:
+                prev_u_int = -1
+                for tmp in range(out_degree(cg.g, v_int)):
+                    u_int = cg.g.neighbors[v_int][tmp]
+                    if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
+                            and (u_int >= v_int or other._directed)):
 
-                    if unlikely(not loops and u_int == v_int):
-                        continue
+                        if unlikely(delete_multiple_edges and u_int == prev_u_int):
+                            # Delete multiple edges, if ``other`` does not allow them.
+                            continue
+                        prev_u_int = u_int
 
-                    l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
-                    l_int_other = other.new_edge_label(l)
-                    cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+                        if unlikely(not loops and u_int == v_int):
+                            # Delete loops, if ``other`` does not allow them.
+                            continue
 
-        sig_free(vertices_translation)
+                        l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
+
+                        # Will return ``0``, if ``other`` does not support edge labels.
+                        l_int_other = other.new_edge_label(l)
+
+                        cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+        finally:
+            sig_free(vertices_translation)
 
     def degree(self, v, directed):
         r"""

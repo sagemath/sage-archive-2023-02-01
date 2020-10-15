@@ -98,3 +98,4 @@ cdef class CGraphBackend(GenericGraphBackend):
     cdef bint _delete_edge_before_adding(self)
     cdef int new_edge_label(self, object l) except -1
     cdef int free_edge_label(self, int l_int) except -1
+    cdef int _use_edge_iterator_on_subgraph(self, CGraphBackend other, object vertices, const int modus) except -1

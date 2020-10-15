@@ -2831,11 +2831,105 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         INPUT:
 
+        - ``other`` -- a (mutable) subclass of :class:`CGraphBackend`
         - ``vertices`` -- a list of vertex labels
 
         .. NOTE:
 
             ``other`` is assumed to be the empty graph.
+
+        EXAMPLES:
+
+        Make a dense copy::
+
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9, directed=True)
+            sage: G.loops(True)
+            sage: G.add_edges([[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [7,8], [3,3]], True)
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: list(H.iterator_out_edges(list(range(9)), False)) == list(G.iterator_out_edges(list(range(9)), False))
+            True
+
+        Make a sparse copy::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: sorted(list(H.iterator_out_edges(list(range(9)), False))) == sorted(list(G.iterator_out_edges(list(range(9)), False)))
+            True
+
+        Initialize a proper subgraph::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_out_edges(list(range(9)), False))
+            [(2, 3), (3, 3), (3, 4), (4, 5)]
+
+        Loops are removed, if the other graph does not allow loops::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.loops(False)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_out_edges(list(range(9)), False))
+            [(2, 3), (3, 4), (4, 5)]
+
+        Multiple edges and labels are copied::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(4, directed=False)
+            sage: G.multiple_edges(True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d']], False)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'a'), (0, 1, 'd'), (1, 2, 'b')]
+
+        Multiple edges are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'd'), (1, 2, 'b')]
+
+        Labels are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, None), (1, 2, None)]
+
+        A directed subgraph of an undirected graph is taken by initializing
+        with edges in both directions::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(4, directed=True)
+            sage: G.loops(True)
+            sage: G.multiple_edges(True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d'], [2,2,'e']], False)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.multiple_edges(True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_out_edges(list(range(4)), True))
+            [(0, 1, 'a'),
+             (0, 1, 'd'),
+             (1, 0, 'a'),
+             (1, 0, 'd'),
+             (1, 2, 'b'),
+             (2, 1, 'b'),
+             (2, 2, 'e')]
+
+        An undirected subgraph of a directeed graph is not defined::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(4, directed=True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c']], False)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot obtain an undirected subgraph of a directed graph
         """
         cdef object v, l
         cdef int u_int, v_int, l_int, l_int_other, foo

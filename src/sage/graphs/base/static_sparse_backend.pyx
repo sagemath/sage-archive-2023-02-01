@@ -646,16 +646,30 @@ cdef class StaticSparseBackend(CGraphBackend):
         # make it point toward the leftmost such edge, then build the list of
         # all labels.
         if self.multiple_edges(None):
-            while edge > cg.g.neighbors[u] and (edge - 1)[0] == v:
-                edge -= 1
-            l = []
-            while edge < cg.g.neighbors[u+1] and edge[0] == v:
-                l.append(edge_label(cg.g, edge))
-                edge += 1
-            return l
+            return self._all_edge_labels(u, v, edge)
 
         else:
             return edge_label(cg.g, edge)
+
+    cdef inline list _all_edge_labels(self, int u, int v, uint32_t* edge=NULL):
+        """
+        Gives the labels of all arcs from ``u`` to ``v``.
+
+        ``u`` and ``v`` are the integers corresponding to vertices.
+
+        ``edge`` may point to an edge from ``u`` to ``v``.
+        """
+        cdef StaticSparseCGraph cg = self._cg
+        if edge is NULL:
+            edge = has_edge(cg.g, u, v)
+
+        while edge > cg.g.neighbors[u] and (edge - 1)[0] == v:
+            edge -= 1
+        cdef list l = []
+        while edge < cg.g.neighbors[u+1] and edge[0] == v:
+            l.append(edge_label(cg.g, edge))
+            edge += 1
+        return l
 
     def has_edge(self, object u, object v, object l):
         """
@@ -679,14 +693,21 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g.has_edge(0, 4, None)
             True
         """
-        cdef uint32_t * edge = NULL
-        cdef StaticSparseCGraph cg = <StaticSparseCGraph> (self._cg)
         try:
             u = self._vertex_to_int[u]
             v = self._vertex_to_int[v]
         except KeyError:
             raise LookupError("one of the two vertices does not belong to the graph")
 
+        return self._has_labeled_edge_unsafe(u, v, l)
+
+    cdef inline bint _has_labeled_edge_unsafe(self, int u, int v, object l) except -1:
+        """
+        Return whether ``self`` has an arc specified by indices of the vertices
+        and an arc label.
+        """
+        cdef uint32_t * edge = NULL
+        cdef StaticSparseCGraph cg = <StaticSparseCGraph> (self._cg)
         edge = has_edge(cg.g, u, v)
         if not edge:
             return False
@@ -999,6 +1020,8 @@ cdef class StaticSparseBackend(CGraphBackend):
         - ``modus`` -- integer representing the modus:
           - ``0`` -- initialize ``other`` to be the subgraph induced by the vertices;
             see :meth:`subgraph_given_vertices``
+          - ``1`` -- test whether subgraph of ``self`` induced by the vertices is a subgraph of ``other``
+          - ``2`` -- as ``1`` but ignore the labels
         """
         cdef object v, l
         cdef int u_int, prev_u_int, v_int, l_int, l_int_other, tmp
@@ -1008,10 +1031,16 @@ cdef class StaticSparseBackend(CGraphBackend):
         cdef FrozenBitset b_vertices
         cdef int n_vertices = len(vertices)
         cdef bint loops = other.loops()
-        cdef bint delete_multiple_edges = self.multiple_edges(None) and not other.multiple_edges(None)
+        cdef bint ignore_multiple_edges = modus == 0 and self.multiple_edges(None) and not other.multiple_edges(None)
 
-        if self._directed and not other._directed:
+        if self._directed and not other._directed and modus == 0:
             raise ValueError("cannot obtain an undirected subgraph of a directed graph")
+
+        if self._directed != other._directed and 1 <= modus <= 2:
+            if self._directed:
+                raise ValueError("cannot check if directed graph is a subgraph of an undirected")
+            else:
+                raise ValueError("cannot check if undirected graph is a subgraph of a directed")
 
         try:
             b_vertices_2 = [self._vertex_to_int[x] for x in vertices]
@@ -1028,15 +1057,26 @@ cdef class StaticSparseBackend(CGraphBackend):
         cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
 
         try:
-            # Add the vertices to ``other``.
+            # Iterate through the vertices.
             if cg_other.active_vertices.size < length:
                 cg_other.realloc(length)
             for j in range(n_vertices):
                 i = b_vertices_2[j]
                 if i >= 0:
                     v = self.vertex_label(i)
-                    vertices_translation[i] = other.check_labelled_vertex(v, False)
+                    if modus == 0:
+                        # Add the vertex and obtain the corresponding index.
+                        vertices_translation[i] = other.check_labelled_vertex(v, False)
+                    elif 1 <= modus <= 2:
+                        # Obtain the corresponding index if the vertex is contained in ``other``.
+                        foo = other.get_vertex_checked(v)
+                        if foo >= 0:
+                            vertices_translation[i] = foo
+                        else:
+                            # Not a subgraph.
+                            return 0
 
+            # Iterate through the edges.
             for v_int in b_vertices:
                 prev_u_int = -1
                 for tmp in range(out_degree(cg.g, v_int)):
@@ -1044,24 +1084,59 @@ cdef class StaticSparseBackend(CGraphBackend):
                     if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
                             and (u_int >= v_int or other._directed)):
 
-                        if unlikely(delete_multiple_edges and u_int == prev_u_int):
+                        if unlikely(ignore_multiple_edges and u_int == prev_u_int):
                             # Delete multiple edges, if ``other`` does not allow them.
+                            continue
+
+                        if unlikely(1 <= modus <= 2 and u_int == prev_u_int):
+                            # Check if all of the multiple edges are contained.
+                            if not other.multiple_edges(None):
+                                # ``other`` does not allow multiple edges.
+                                # As ``self`` has a multiple edges (not only allows), it cannot be a subgraph.
+                                return 0
+
+                            all_arc_labels = self._all_edge_labels(v_int, u_int)
+                            all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                            if modus == 2:
+                                # Ignore the labels.
+                                if len(all_arc_labels) > len(all_arc_labels_other):
+                                    return 0
+                            else:
+                                for l in all_arc_labels:
+                                    try:
+                                        all_arc_labels_other.remove(l)
+                                    except ValueError:
+                                        return 0
+
                             continue
                         prev_u_int = u_int
 
-                        if unlikely(not loops and u_int == v_int):
+                        if unlikely(modus == 0 and not loops and u_int == v_int):
                             # Delete loops, if ``other`` does not allow them.
                             continue
 
                         l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
 
-                        # Will return ``0``, if ``other`` does not support edge labels.
-                        l_int_other = other.new_edge_label(l)
+                        if modus == 0:
+                            # Will return ``0``, if ``other`` does not support edge labels.
+                            l_int_other = other.new_edge_label(l)
 
-                        cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+                            cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+                        elif modus == 1:
+                            if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
+                                return 0
+
+                        elif modus == 2:
+                            # Ignore the label.
+                            if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
+                                return 0
+
 
         finally:
             sig_free(vertices_translation)
+
+        return 1
 
     def degree(self, v, directed):
         r"""

@@ -2537,8 +2537,32 @@ cdef class CGraphBackend(GenericGraphBackend):
             cg.del_arc_label(v_int, u_int, l_int)
         self.free_edge_label(l_int)
 
+    cdef bint _has_labeled_edge_unsafe(self, int u_int, int v_int, object l) except -1:
+        """
+        Return whether ``self`` has an arc specified by indices of the vertices
+        and an arc label.
+        """
+        raise NotImplementedError
+        cdef int l_int
+        if l is None:
+            l_int = 0
+        else:
+            l_int = self.new_edge_label(l)
+        return self.cg().has_arc_unsafe(u_int, v_int, l_int)
+
     cdef int free_edge_label(self, int l_int) except -1:
         raise NotImplementedError()
+
+    cdef list _all_edge_labels(self, int u, int v, uint32_t* edge=NULL):
+        """
+        Gives the labels of all arcs from ``u`` to ``v``.
+
+        ``u`` and ``v`` are the integers corresponding to vertices.
+
+        ``edge`` may point to an edge from ``u`` to ``v``.
+        """
+        cdef int l_int
+        return [self.edge_labels[l_int] if l_int else None for l_int in self.cg().all_arcs(u, v)]
 
     ###################################
     # Edge Iterators
@@ -2825,6 +2849,12 @@ cdef class CGraphBackend(GenericGraphBackend):
     # Using Edge Iterators
     ###################################
 
+    def is_subgraph(self, CGraphBackend other, object vertices, bint ignore_labels=False):
+        if not ignore_labels:
+            return 1 == self._use_edge_iterator_on_subgraph(other, vertices, 1)
+        else:
+            return 1 == self._use_edge_iterator_on_subgraph(other, vertices, 2)
+
     def subgraph_given_vertices(self, CGraphBackend other, object vertices):
         """
         Initialize ``other`` to be the subgraph of ``self`` with given vertices.
@@ -3040,19 +3070,31 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``modus`` -- integer representing the modus:
           - ``0`` -- initialize ``other`` to be the subgraph induced by the vertices;
             see :meth:`subgraph_given_vertices``
+          - ``1`` -- test whether subgraph of ``self`` induced by the vertices is a subgraph of ``other``
+          - ``2`` -- as ``1`` but ignore the labels
         """
         cdef object v, l
         cdef int u_int, v_int, l_int, l_int_other, foo
         cdef CGraph cg = self.cg()
         cdef CGraph cg_other = other.cg()
-        cdef list b_vertices_2, all_arc_labels
+        cdef list b_vertices_2, all_arc_labels, all_arc_labels_other
         cdef FrozenBitset b_vertices
         cdef int n_vertices = len(vertices)
         cdef bint loops = other.loops()
-        cdef bint multiple_edges = self.multiple_edges(None) and other.multiple_edges(None)
+        cdef bint multiple_edges
+        if modus == 0:
+            multiple_edges = self.multiple_edges(None) and other.multiple_edges(None)
+        elif 1 <= modus <= 2:
+            multiple_edges = self.multiple_edges(None)
 
-        if self._directed and not other._directed:
+        if self._directed and not other._directed and modus == 0:
             raise ValueError("cannot obtain an undirected subgraph of a directed graph")
+
+        if self._directed != other._directed and 1 <= modus <= 2:
+            if self._directed:
+                raise ValueError("cannot check if directed graph is a subgraph of an undirected")
+            else:
+                raise ValueError("cannot check if undirected graph is a subgraph of a directed")
 
         b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
         try:
@@ -3068,16 +3110,26 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
 
         try:
-            # Add the vertices to ``other``.
+            # Iterate through the vertices.
             if cg_other.active_vertices.size < length:
                 cg_other.realloc(length)
             for j in range(n_vertices):
                 i = b_vertices_2[j]
                 if i >= 0:
                     v = self.vertex_label(i)
-                    vertices_translation[i] = other.check_labelled_vertex(v, False)
+                    if modus == 0:
+                        # Add the vertex and obtain the corresponding index.
+                        vertices_translation[i] = other.check_labelled_vertex(v, False)
+                    elif 1 <= modus <= 2:
+                        # Obtain the corresponding index if the vertex is contained in ``other``.
+                        foo = other.get_vertex_checked(v)
+                        if foo >= 0:
+                            vertices_translation[i] = foo
+                        else:
+                            # Not a subgraph.
+                            return 0
 
-            # Iterate through the edges and add them to other.
+            # Iterate through the edges.
             for v_int in b_vertices:
                 u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
                 while u_int != -1:
@@ -3085,26 +3137,13 @@ cdef class CGraphBackend(GenericGraphBackend):
                             and (u_int >= v_int or other._directed)):
                         # If ``other`` is directed, we should add the arcs in both directions.
 
-                        if unlikely(not loops and u_int == v_int):
+                        if unlikely(modus == 0 and not loops and u_int == v_int):
                             # Delete loops if ``other`` does not allow loops.
                             u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
                             continue
 
                         if not multiple_edges:
-                            if l_int:
-                                l = self.edge_labels[l_int]
-
-                                # Will return ``0``, if ``other`` does not support edges labels.
-                                l_int_other = other.new_edge_label(l)
-                            else:
-                                l_int_other = 0
-
-                            cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
-
-                        else:
-                            all_arc_labels = cg.all_arcs(v_int, u_int)
-
-                            for l_int in all_arc_labels:
+                            if modus == 0:
                                 if l_int:
                                     l = self.edge_labels[l_int]
 
@@ -3112,13 +3151,67 @@ cdef class CGraphBackend(GenericGraphBackend):
                                     l_int_other = other.new_edge_label(l)
                                 else:
                                     l_int_other = 0
-
                                 cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+                            elif modus == 1:
+                                l = self.edge_labels[l_int] if l_int else None
+                                if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
+                                    return 0
+                            elif modus == 2:
+                                # Ignore the label.
+                                if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
+                                    return 0
+
+                        else:
+                            all_arc_labels = cg.all_arcs(v_int, u_int)
+
+                            if modus == 0:
+
+                                for l_int in all_arc_labels:
+                                    if l_int:
+                                        l = self.edge_labels[l_int]
+
+                                        # Will return ``0``, if ``other`` does not support edges labels.
+                                        l_int_other = other.new_edge_label(l)
+                                    else:
+                                        l_int_other = 0
+
+                                    cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+                            elif modus == 1:
+                                if len(all_arc_labels) == 1:
+                                    l = self.edge_labels[l_int] if l_int else None
+                                    if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
+                                        return 0
+                                elif other.multiple_edges(None):
+                                    all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                                    all_arc_labels = [self.edge_labels[l_int] if l_int else None for l_int in all_arc_labels]
+                                    for l in all_arc_labels:
+                                        try:
+                                            all_arc_labels_other.remove(l)
+                                        except ValueError:
+                                            return 0
+
+                                else:
+                                    # ``other`` does not allow multiple edges.
+                                    # As ``self`` has a multiple edges (not only allows), it cannot be a subgraph.
+                                    return 0
+
+                            elif modus == 2:
+                                # Ignore the labels.
+                                if len(all_arc_labels) == 1:
+                                    if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
+                                        return 0
+                                else:
+                                    all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                                    if len(all_arc_labels) > len(all_arc_labels_other):
+                                        return 0
 
                     u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
 
         finally:
             sig_free(vertices_translation)
+
+        return 1
 
     ###################################
     # Paths

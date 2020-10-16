@@ -1563,8 +1563,7 @@ class FriCASElement(ExpectElement):
             D[0, 0, 1](f)(x + y, y)
         """
         from sage.libs.pynac.pynac import register_symbol
-        from sage.symbolic.all import I
-        from sage.symbolic.constants import e, pi
+        from sage.symbolic.constants import e, pi, I
         from sage.calculus.functional import diff
         from sage.functions.log import dilog, lambert_w
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
@@ -1838,10 +1837,9 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import PolynomialRing, RDF
+        from sage.rings.all import PolynomialRing, RDF, I
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
-        from sage.symbolic.all import I
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.structure.factorization import Factorization

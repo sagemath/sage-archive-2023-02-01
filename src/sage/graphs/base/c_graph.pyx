@@ -2566,7 +2566,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 return
         else:
             for l_int in cg.all_arcs(u_int, v_int):
-                if self.edge_labels[l_int] == l:
+                if l_int and self.edge_labels[l_int] == l:
                     break
             else:
                 return

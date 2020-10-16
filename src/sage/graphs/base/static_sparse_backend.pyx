@@ -1088,49 +1088,57 @@ cdef class StaticSparseBackend(CGraphBackend):
                             # Delete multiple edges, if ``other`` does not allow them.
                             continue
 
-                        if unlikely(1 <= modus <= 2 and u_int == prev_u_int):
-                            # Check if all of the multiple edges are contained.
-                            if not other.multiple_edges(None):
-                                # ``other`` does not allow multiple edges.
-                                # As ``self`` has a multiple edges (not only allows), it cannot be a subgraph.
-                                return 0
-
-                            all_arc_labels = self._all_edge_labels(v_int, u_int)
-                            all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
-                            if modus == 2:
-                                # Ignore the labels.
-                                if len(all_arc_labels) > len(all_arc_labels_other):
-                                    return 0
-                            else:
-                                for l in all_arc_labels:
-                                    try:
-                                        all_arc_labels_other.remove(l)
-                                    except ValueError:
-                                        return 0
-
-                            continue
-                        prev_u_int = u_int
-
-                        if unlikely(modus == 0 and not loops and u_int == v_int):
-                            # Delete loops, if ``other`` does not allow them.
-                            continue
-
-                        l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
-
                         if modus == 0:
+                            prev_u_int = u_int
+
+                            if unlikely(not loops and u_int == v_int):
+                                # Ignore loops, if ``other`` does not allow them.
+                                continue
+
+                            l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
+
                             # Will return ``0``, if ``other`` does not support edge labels.
                             l_int_other = other.new_edge_label(l)
 
                             cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
 
-                        elif modus == 1:
-                            if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
-                                return 0
+                        else:
+                            # Modus is 1 or 2.
 
-                        elif modus == 2:
-                            # Ignore the label.
-                            if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
-                                return 0
+                            # Check if the arc is contained in ``other``.
+
+                            if unlikely(u_int == prev_u_int):
+                                # Check if all of the multiple edges are contained.
+                                if not other.multiple_edges(None):
+                                    # ``other`` does not allow multiple edges.
+                                    # As ``self`` has a multiple edges (not only allows), it cannot be a subgraph.
+                                    return 0
+
+                                all_arc_labels = self._all_edge_labels(v_int, u_int)
+                                all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                                if modus == 2:
+                                    # Ignore the labels.
+                                    if len(all_arc_labels) > len(all_arc_labels_other):
+                                        return 0
+                                else:
+                                    for l in all_arc_labels:
+                                        try:
+                                            all_arc_labels_other.remove(l)
+                                        except ValueError:
+                                            return 0
+
+                                continue
+                            prev_u_int = u_int
+
+                            l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
+
+                            if modus == 1:
+                                if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
+                                    return 0
+                            else:
+                                # Ignore the label.
+                                if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
+                                    return 0
 
 
         finally:

@@ -3137,13 +3137,15 @@ cdef class CGraphBackend(GenericGraphBackend):
                             and (u_int >= v_int or other._directed)):
                         # If ``other`` is directed, we should add the arcs in both directions.
 
-                        if unlikely(modus == 0 and not loops and u_int == v_int):
-                            # Delete loops if ``other`` does not allow loops.
-                            u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
-                            continue
+                        if modus == 0:
+                            # We are adding each arc to ``other``.
 
-                        if not multiple_edges:
-                            if modus == 0:
+                            if unlikely(not loops and u_int == v_int):
+                                # Delete loops if ``other`` does not allow loops.
+                                u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
+                                continue
+
+                            if not multiple_edges:
                                 if l_int:
                                     l = self.edge_labels[l_int]
 
@@ -3152,19 +3154,9 @@ cdef class CGraphBackend(GenericGraphBackend):
                                 else:
                                     l_int_other = 0
                                 cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
-                            elif modus == 1:
-                                l = self.edge_labels[l_int] if l_int else None
-                                if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
-                                    return 0
-                            elif modus == 2:
-                                # Ignore the label.
-                                if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
-                                    return 0
 
-                        else:
-                            all_arc_labels = cg.all_arcs(v_int, u_int)
-
-                            if modus == 0:
+                            else:
+                                all_arc_labels = cg.all_arcs(v_int, u_int)
 
                                 for l_int in all_arc_labels:
                                     if l_int:
@@ -3177,34 +3169,50 @@ cdef class CGraphBackend(GenericGraphBackend):
 
                                     cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
 
-                            elif modus == 1:
-                                if len(all_arc_labels) == 1:
+                        else:
+                            # Modus is 1 or 2 and we are checking if ``self`` is a subgraph of ``other``.
+
+                            if not multiple_edges:
+                                if modus == 1:
                                     l = self.edge_labels[l_int] if l_int else None
                                     if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
                                         return 0
-                                elif other.multiple_edges(None):
-                                    all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
-                                    all_arc_labels = [self.edge_labels[l_int] if l_int else None for l_int in all_arc_labels]
-                                    for l in all_arc_labels:
-                                        try:
-                                            all_arc_labels_other.remove(l)
-                                        except ValueError:
-                                            return 0
-
                                 else:
-                                    # ``other`` does not allow multiple edges.
-                                    # As ``self`` has a multiple edges (not only allows), it cannot be a subgraph.
-                                    return 0
-
-                            elif modus == 2:
-                                # Ignore the labels.
-                                if len(all_arc_labels) == 1:
+                                    # Ignore the label.
                                     if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
                                         return 0
-                                else:
-                                    all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
-                                    if len(all_arc_labels) > len(all_arc_labels_other):
+
+                            else:
+                                all_arc_labels = cg.all_arcs(v_int, u_int)
+
+                                if modus == 1:
+                                    if len(all_arc_labels) == 1:
+                                        l = self.edge_labels[l_int] if l_int else None
+                                        if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
+                                            return 0
+                                    elif other.multiple_edges(None):
+                                        all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                                        all_arc_labels = [self.edge_labels[l_int] if l_int else None for l_int in all_arc_labels]
+                                        for l in all_arc_labels:
+                                            try:
+                                                all_arc_labels_other.remove(l)
+                                            except ValueError:
+                                                return 0
+
+                                    else:
+                                        # ``other`` does not allow multiple edges.
+                                        # As ``self`` has a multiple edges (not only allows), it cannot be a subgraph.
                                         return 0
+
+                                else:
+                                    # Ignore the labels.
+                                    if len(all_arc_labels) == 1:
+                                        if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
+                                            return 0
+                                    else:
+                                        all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                                        if len(all_arc_labels) > len(all_arc_labels_other):
+                                            return 0
 
                     u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
 

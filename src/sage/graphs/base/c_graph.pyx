@@ -2303,16 +2303,18 @@ cdef class CGraphBackend(GenericGraphBackend):
     cdef int new_edge_label(self, object l) except -1:
         raise NotImplementedError()
 
-    def add_edges(self, object edges, bint directed):
+    def add_edges(self, object edges, bint directed, bint remove_loops=False):
         """
         Add edges from a list.
 
         INPUT:
 
-         - ``edges`` -- the edges to be added; can either be of the form
-           ``(u,v)`` or ``(u,v,l)``
+        - ``edges`` -- the edges to be added; can either be of the form
+          ``(u,v)`` or ``(u,v,l)``
 
-         - ``directed`` -- if False, add ``(v,u)`` as well as ``(u,v)``
+        - ``directed`` -- if ``False``, add ``(v,u)`` as well as ``(u,v)``
+
+        - ``remove_loops`` -- if ``True``, remove loops
 
         EXAMPLES::
 
@@ -2332,6 +2334,8 @@ cdef class CGraphBackend(GenericGraphBackend):
             else:
                 u,v = e
                 l = None
+            if unlikely(remove_loops and u == v):
+                continue
             self.add_edge(u,v,l,directed)
 
     cpdef add_edge(self, object u, object v, object l, bint directed):

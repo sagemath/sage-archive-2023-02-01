@@ -632,7 +632,7 @@ cdef class DenseGraphBackend(CGraphBackend):
         if unlikely(l_int):
             raise ValueError("backend does not support labels")
 
-    def add_edges(self, object edges, bint directed):
+    def add_edges(self, object edges, bint directed, bint remove_loops=False):
         """
         Add edges from a list.
 
@@ -642,6 +642,8 @@ cdef class DenseGraphBackend(CGraphBackend):
            of the form ``(u, v)`` or ``(u, v, l)``
 
         - ``directed`` -- if ``False``, adds ``(v, u)`` as well as ``(u, v)``
+
+        - ``remove_loops`` -- if ``True``, remove loops
 
         EXAMPLES::
 
@@ -656,6 +658,8 @@ cdef class DenseGraphBackend(CGraphBackend):
         """
         for e in edges:
             u, v = e[:2]
+            if unlikely(remove_loops and u == v):
+                continue
             self.add_edge(u, v, None, directed)
 
     def get_edge_label(self, object u, object v):

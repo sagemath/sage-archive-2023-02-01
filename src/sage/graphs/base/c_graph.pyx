@@ -2565,8 +2565,8 @@ cdef class CGraphBackend(GenericGraphBackend):
                 # The requested edge does not exist.
                 return
         else:
-            for l_int in self.edge_labels:
-                if self.edge_labels[l_int] == l and cg.has_arc_label_unsafe(u_int, v_int, l_int):
+            for l_int in cg.all_arcs(u_int, v_int):
+                if self.edge_labels[l_int] == l:
                     break
             else:
                 return

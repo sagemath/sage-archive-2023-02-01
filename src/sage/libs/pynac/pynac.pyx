@@ -2428,9 +2428,8 @@ def init_pynac_I():
         True
     """
     global pynac_I, I
-    from sage.rings.number_field.number_field import QuadraticField
-    K = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
-    pynac_I = K.gen()
+    from sage.rings.number_field.number_field import GaussianField
+    pynac_I = GaussianField().gen()
     ginac_pyinit_I(pynac_I)
     I = new_Expression_from_GEx(ring.SR, g_I)
 

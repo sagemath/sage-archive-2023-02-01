@@ -2850,6 +2850,50 @@ cdef class CGraphBackend(GenericGraphBackend):
     ###################################
 
     def is_subgraph(self, CGraphBackend other, object vertices, bint ignore_labels=False):
+        """
+        Return whether the subgraph of ``self`` induced by ``vertices`` is a subgraph of ``other``.
+
+        If ``vertices`` are the vertices of ``self``, return whether ``self`` is a subgraph of ``other``.
+
+        INPUT:
+
+            - ``other`` - a subclass of :class:`CGraphBackend`
+            - ``vertices`` -- a iterable over the vertex labels
+            - ``ignore_labels`` -- boolean (default: ``False``); whether to ignore the labels
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(4, directed=True)
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(4, directed=True)
+            sage: G.add_edges([[0,1],[0,2],[0,3],[1,2]], True)
+            sage: H.add_edges([[0,1],[0,2],[0,3]], True)
+            sage: G.is_subgraph(H, range(4))
+            False
+            sage: H.is_subgraph(G, range(4))
+            True
+            sage: G.is_subgraph(H, [0,1,3])
+            True
+
+        Ignore the labels or not::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(3, directed=True)
+            sage: G.multiple_edges(True)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(3, directed=True)
+            sage: H.multiple_edges(True)
+            sage: G.add_edges([[0,1,'a'], [0,1,'b'], [0,2,'c'], [0,2,'d'], [0,2,'e']], True)
+            sage: H.add_edges([[0,1,'a'], [0,1,'foo'], [0,2,'c'], [0,2,'d'], [0,2,'e'], [0,2,'e']], True)
+            sage: G.is_subgraph(H, range(3))
+            False
+            sage: G.is_subgraph(H, range(3), ignore_labels=True)
+            True
+
+        Multiplicities of edges are considered::
+
+            sage: G.is_subgraph(H, [0,2])
+            True
+            sage: H.is_subgraph(G, [0,2])
+            False
+        """
         if not ignore_labels:
             return 1 == self._use_edge_iterator_on_subgraph(other, vertices, 1)
         else:

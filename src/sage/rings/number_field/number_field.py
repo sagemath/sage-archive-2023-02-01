@@ -11405,8 +11405,11 @@ class NumberField_quadratic(NumberField_absolute):
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._standard_embedding = True
-        self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [QQ(t) for t in self.defining_polynomial().list()]
+        if a.is_one() and b.is_zero() and c.is_one():
+            self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
+        else:
+            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         # set the generator
         Dpoly = b*b - 4*a*c
         D = (Dpoly.numer() * Dpoly.denom()).squarefree_part(bound=10000)

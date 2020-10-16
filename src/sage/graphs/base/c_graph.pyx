@@ -2439,7 +2439,36 @@ cdef class CGraphBackend(GenericGraphBackend):
         if not directed and self._directed and v_int != u_int:
             cg.add_arc_label_unsafe(v_int, u_int, l_int)
 
-    def del_edge(self, object u, object v, object l, bint directed):
+    def del_edges(self, object edges, bint directed):
+        """
+        Delete edges from a list.
+
+        INPUT:
+
+        - ``edges`` -- the edges to be added; can either be of the form
+          ``(u,v)`` or ``(u,v,l)``
+
+        - ``directed`` -- if ``False``, remove``(v,u)`` as well as ``(u,v)``
+
+        EXAMPLES::
+
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: D.del_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True))
+            []
+
+        """
+        cdef object u,v,l,e
+        for e in edges:
+            if len(e) == 3:
+                u,v,l = e
+            else:
+                u,v = e
+                l = None
+            self.del_edge(u,v,l,directed)
+
+    cpdef del_edge(self, object u, object v, object l, bint directed):
         """
         Delete edge ``(u, v, l)``.
 
@@ -2517,21 +2546,27 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: g.delete_edge(0,0); g.edges(labels=False)
             [(0, 0), (0, 0)]
         """
-        if not (self.has_vertex(u) and self.has_vertex(v)):
+        cdef int u_int = self.get_vertex_checked(u)
+        cdef int v_int = self.get_vertex_checked(v)
+
+        if u_int == -1 or v_int == -1:
             return
-        cdef int u_int = self.check_labelled_vertex(u, False)
-        cdef int v_int = self.check_labelled_vertex(v, False)
 
         cdef CGraph cg = self.cg()
 
         if l is None:
-            if cg.has_arc_label(u_int, v_int, 0):
+            if cg.has_arc_label_unsafe(u_int, v_int, 0):
                 l_int = 0
             else:
-                l_int = cg.arc_label(u_int, v_int)
+                l_int = cg.arc_label_unsafe(u_int, v_int)
+        elif not self._multiple_edges:
+            l_int = cg.arc_label_unsafe(u_int, v_int)
+            if not l_int or not self.edge_labels[l_int] == l:
+                # The requested edge does not exist.
+                return
         else:
             for l_int in self.edge_labels:
-                if self.edge_labels[l_int] == l and cg.has_arc_label(u_int, v_int, l_int):
+                if self.edge_labels[l_int] == l and cg.has_arc_label_unsafe(u_int, v_int, l_int):
                     break
             else:
                 return

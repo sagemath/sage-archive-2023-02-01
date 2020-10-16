@@ -11193,8 +11193,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: K12.size()
             120
         """
-        for e in edges:
-            self.delete_edge(e)
+        self._backend.del_edges(edges, self._directed)
 
     def contract_edge(self, u, v=None, label=None):
         r"""

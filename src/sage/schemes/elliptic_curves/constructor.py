@@ -274,7 +274,7 @@ class EllipticCurveFactory(UniqueFactory):
         sage: type(E)
         <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>
 
-        sage: E = EllipticCurve([i,i]); E
+        sage: E = EllipticCurve([SR(i),i]); E
         Elliptic Curve defined by y^2 = x^3 + I*x + I over Symbolic Ring
         sage: type(E)
         <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field_with_category'>

@@ -2350,20 +2350,21 @@ def init_pynac_I():
 
     EXAMPLES::
 
-        sage: I
+        sage: from sage.libs.pynac.pynac import I as symbolic_I
+        sage: symbolic_I
         I
-        sage: I^2
+        sage: symbolic_I^2
         -1
 
     Note that conversions to real fields will give TypeErrors::
 
-        sage: float(I)
+        sage: float(symbolic_I)
         Traceback (most recent call last):
         ...
         TypeError: unable to simplify to float approximation
-        sage: gp(I)
+        sage: gp(symbolic_I)
         I
-        sage: RR(I)
+        sage: RR(symbolic_I)
         Traceback (most recent call last):
         ...
         TypeError: unable to convert '1.00000000000000*I' to a real number
@@ -2372,53 +2373,53 @@ def init_pynac_I():
 
         sage: C = ComplexField(200); C
         Complex Field with 200 bits of precision
-        sage: C(I)
+        sage: C(symbolic_I)
         1.0000000000000000000000000000000000000000000000000000000000*I
-        sage: I._complex_mpfr_field_(ComplexField(53))
+        sage: symbolic_I._complex_mpfr_field_(ComplexField(53))
         1.00000000000000*I
 
-        sage: I._complex_double_(CDF)
+        sage: symbolic_I._complex_double_(CDF)
         1.0*I
-        sage: CDF(I)
+        sage: CDF(symbolic_I)
         1.0*I
 
-        sage: z = I + I; z
+        sage: z = symbolic_I + symbolic_I; z
         2*I
         sage: C(z)
         2.0000000000000000000000000000000000000000000000000000000000*I
-        sage: 1e8*I
+        sage: 1e8*symbolic_I
         1.00000000000000e8*I
 
-        sage: complex(I)
+        sage: complex(symbolic_I)
         1j
 
-        sage: QQbar(I)
+        sage: QQbar(symbolic_I)
         I
 
-        sage: abs(I)
+        sage: abs(symbolic_I)
         1
 
-        sage: I.minpoly()
+        sage: symbolic_I.minpoly()
         x^2 + 1
-        sage: maxima(2*I)
+        sage: maxima(2*symbolic_I)
         2*%i
 
     TESTS:
 
-        sage: repr(I)
+        sage: repr(symbolic_I)
         'I'
-        sage: latex(I)
+        sage: latex(symbolic_I)
         i
 
         sage: sage.libs.pynac.pynac.init_pynac_I()
         sage: type(sage.libs.pynac.pynac.I)
         <type 'sage.symbolic.expression.Expression'>
         sage: type(sage.libs.pynac.pynac.I.pyobject())
-        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
 
     Check that :trac:`10064` is fixed::
 
-        sage: y = I*I*x / x # so y is the expression -1
+        sage: y = symbolic_I*symbolic_I*x / x # so y is the expression -1
         sage: y.is_positive()
         False
         sage: z = -x / x

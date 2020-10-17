@@ -1054,8 +1054,6 @@ class Rings(CategoryWithAxiom):
 
             Embeddings::
 
-                sage: QQ[I](I.pyobject())
-                I
                 sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)
                 sage: QQ[expr].coerce_embedding() is None
                 False

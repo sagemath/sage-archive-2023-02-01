@@ -255,7 +255,7 @@ This example is from :trac:`10833`::
 
 Check if :trac:`10849` is fixed::
 
-    sage: t = I.pyobject().parent()(-1/2)
+    sage: t = I.parent()(-1/2)
     sage: t > 0
     False
     sage: t = I*x-1/2; t

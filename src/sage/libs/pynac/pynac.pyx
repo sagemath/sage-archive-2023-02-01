@@ -1174,9 +1174,9 @@ def py_is_crational_for_doctest(x):
         True
         sage: py_is_crational_for_doctest(1.5)
         False
-        sage: py_is_crational_for_doctest(I.pyobject())
+        sage: py_is_crational_for_doctest(I)
         True
-        sage: py_is_crational_for_doctest(I.pyobject()+1/2)
+        sage: py_is_crational_for_doctest(I+1/2)
         True
     """
     return py_is_crational(x)
@@ -1310,11 +1310,11 @@ def py_is_cinteger_for_doctest(x):
         sage: from sage.libs.pynac.pynac import py_is_cinteger_for_doctest
         sage: py_is_cinteger_for_doctest(1)
         True
-        sage: py_is_cinteger_for_doctest(I.pyobject())
+        sage: py_is_cinteger_for_doctest(I)
         True
-        sage: py_is_cinteger_for_doctest(I.pyobject() - 3)
+        sage: py_is_cinteger_for_doctest(I - 3)
         True
-        sage: py_is_cinteger_for_doctest(I.pyobject() + 1/2)
+        sage: py_is_cinteger_for_doctest(I + 1/2)
         False
     """
     return py_is_cinteger(x)

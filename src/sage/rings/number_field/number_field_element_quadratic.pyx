@@ -1858,7 +1858,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             -1/2
             sage: SR(a)
             1/2*I*sqrt(3) - 1/2
-            sage: bool(I*a.imag() + a.real() == a)
+            sage: bool(QQbar(I)*QQbar(a.imag()) + QQbar(a.real()) == QQbar(a))
             True
 
         TESTS::

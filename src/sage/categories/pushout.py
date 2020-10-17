@@ -7,8 +7,8 @@ from sage.misc.lazy_import import lazy_import
 from sage.structure.coerce_exceptions import CoercionException
 from .functor import Functor, IdentityFunctor_generic
 
-lazy_import('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups', at_startup=True)
-lazy_import('sage.categories.commutative_rings', 'CommutativeRings', at_startup=True)
+lazy_import('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups')
+lazy_import('sage.categories.commutative_rings', 'CommutativeRings')
 lazy_import('sage.categories.groups', 'Groups')
 lazy_import('sage.categories.objects', 'Objects')
 lazy_import('sage.categories.rings', 'Rings', at_startup=True)

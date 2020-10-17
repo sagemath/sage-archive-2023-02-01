@@ -1,5 +1,5 @@
 # coding: utf-8
 
-from .number_field.order import GaussianIntegers
+from .number_field.number_field import GaussianField
 
-I = GaussianIntegers().gen(1)
+I = GaussianField().gen()

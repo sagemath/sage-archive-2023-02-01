@@ -26,6 +26,80 @@ SAGE_SPKG_INST=installed
 endif
 endif
 
+# Optimization flags.
+# We allow debugging of individual packages.
+
+# Export SAGE_DEBUG if this was enabled during configure,
+# but be respectful of the current settings.
+SAGE_DEBUG=@SAGE_DEBUG@
+export SAGE_DEBUG
+
+# The configured compilation flags
+# The flags are printed by
+# ``build/pkgs/gcc/spkg-configure.m4`` for convenience.
+# Any changes to the defaults should be applied there as well.
+CFLAGS=@ORIGINAL_CFLAGS@
+CXXFLAGS=@ORIGINAL_CXXFLAGS@
+FCFLAGS=@ORIGINAL_FCFLAGS@
+F77FLAGS=@ORIGINAL_F77FLAGS@
+ORIGINAL_CFLAGS:=$(CFLAGS)
+ORIGINAL_CXXFLAGS:=$(CXXFLAGS)
+ORIGINAL_FCFLAGS:=$(FCFLAGS)
+ORIGINAL_F77FLAGS:=$(F77FLAGS)
+export ORIGINAL_CFLAGS, ORIGINAL_CXXFLAGS, ORIGINAL_FCFLAGS, ORIGINAL_F77FLAGS
+
+ifeq ($(ORIGINAL_CFLAGS), )
+# Evaluate SAGE_DEBUG:
+ifeq ($(SAGE_DEBUG), yes)
+CFLAGS=-Og -g
+CFLAGS_O3=-Og -g
+else
+ifeq ($(SAGE_DEBUG), no)
+CFLAGS=-O2
+CFLAGS_O3=-O3
+else
+CFLAGS=-O2 -g
+CFLAGS_O3=-O3 -g
+endif
+endif
+else
+# Respect user environment variable.
+CFLAGS=$(ORIGINAL_CFLAGS)
+CFLAGS_O3=$(ORIGINAL_CFLAGS)
+endif
+export CFLAGS_O3, CFLAGS
+
+# Copy to CXXFLAGS if this is not set.
+ifeq ($(ORIGINAL_CXXFLAGS), )
+CXXFLAGS=$(CFLAGS)
+CXXFLAGS_O3=$(CFLAGS_O3)
+else
+CXXFLAGS=$(ORIGINAL_CXXFLAGS)
+CXXFLAGS_O3=$(ORIGINAL_CXXFLAGS)
+endif
+export CXXFLAGS_O3, CXXFLAGS
+
+# Copy CFLAGS to FCFLAGS if this is not set.
+ifeq ($(ORIGINAL_FCFLAGS), )
+FCFLAGS=$(CFLAGS)
+FCFLAGS_O3=$(CFLAGS_O3)
+else
+FCFLAGS=$(ORIGINAL_FCFLAGS)
+FCFLAGS_O3=$(ORIGINAL_FCFLAGS)
+endif
+export FCFLAGS_O3, FCFLAGS
+
+# Copy FCFLAGS to F77FLAGS if this is not set.
+ifeq ($(ORIGINAL_F77FLAGS), )
+F77FLAGS=$(FCFLAGS)
+F77FLAGS_O3=$(FCFLAGS_O3)
+else
+F77FLAGS=$(ORIGINAL_F77FLAGS)
+F77FLAGS_O3=$(ORIGINAL_F77FLAGS)
+endif
+export F77FLAGS_O3, F77FLAGS
+
+
 # Directory to keep track of which packages are installed
 INST = $(SAGE_SPKG_INST)
 

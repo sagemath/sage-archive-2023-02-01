@@ -767,7 +767,7 @@ cdef class PowerSeries(AlgebraElement):
                 else:
                     var = ""
                 if n > 0:
-                    s += "%s|%s"%(x,var)
+                    s += "%s| %s"%(x,var)
                 else:
                     s += repr(x)
                 first = False

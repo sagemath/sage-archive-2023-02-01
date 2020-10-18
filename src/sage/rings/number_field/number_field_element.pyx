@@ -2180,9 +2180,17 @@ cdef class NumberFieldElement(FieldElement):
         infinity = sage.rings.infinity.infinity
         return self.parent().quadratic_defect(self, P, check=check) == infinity
 
-    def sqrt(self, all=False):
+    def sqrt(self, all=False, extend=False):
         """
-        Returns the square root of this number in the given number field.
+        Return the square root of this number in the given number field.
+
+        INPUT:
+
+        - ``all`` -- boolean (default ``False``) whether to return
+          both square roots
+
+        - ``extend`` -- boolean (default ``False``) whether to extend
+          the field by adding the square roots if needed
 
         EXAMPLES::
 
@@ -2216,12 +2224,28 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a^4 + a^2 - 3*a + 2).sqrt()
             a^3 - a^2
 
+        Using the ``extend`` keyword::
+
+            sage: K = QuadraticField(-5)
+            sage: z = K(-7).sqrt(extend=True); z
+            sq
+            sage: z**2
+            -7
+            sage: z.parent()
+            Number Field in sq with defining polynomial t^2 + 7 over ...
+            sage: CyclotomicField(4)(4).sqrt(extend=False)
+            2
+
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
-        R = self.number_field()['t']
+        K = self.number_field()
+        R = K['t']
         f = R([-self, 0, 1])
         roots = f.roots()
+        if extend and not roots:
+            K_ext = K.extension(f, 'sq')
+            roots = f.base_extend(K_ext).roots()
         if all:
             return [r[0] for r in roots]
         elif roots:
@@ -2233,7 +2257,7 @@ cdef class NumberFieldElement(FieldElement):
                 from sage.symbolic.ring import SR
                 return sqrt(SR(self))
             except TypeError:
-                raise ValueError("%s not a square in %s"%(self, self._parent))
+                raise ValueError("%s not a square in %s" % (self, self._parent))
 
     def nth_root(self, n, all=False):
         r"""

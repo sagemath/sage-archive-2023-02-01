@@ -42,7 +42,7 @@ from sage.libs.pari.all import pari
 
 def cyclotomic_coeffs(nn, sparse=None):
     u"""
-    Compute the coefficients of the n-th cyclotomic polynomial
+    Return the coefficients of the n-th cyclotomic polynomial
     by using the formula
 
     .. MATH::
@@ -203,10 +203,10 @@ def cyclotomic_value(n, x):
 
     INPUT:
 
-    - n -- an Integer, specifying which cyclotomic polynomial is to be
+    - `n` -- an Integer, specifying which cyclotomic polynomial is to be
       evaluated
 
-    - x -- an element of a ring
+    - `x` -- an element of a ring
 
     OUTPUT:
 

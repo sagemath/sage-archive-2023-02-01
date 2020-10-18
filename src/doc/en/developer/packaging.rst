@@ -330,8 +330,8 @@ It needs to be an executable shell script; it is not subject to the templating
 described in the previous section.
 
 Sage runs ``spkg-install`` from the directory ``$SAGE_ROOT/build/pkgs/<package>``
-in the environment obtained by sourcing the files ``src/bin/sage-env`` and
-``build/bin/sage-build-env-config``.
+in the environment obtained by sourcing the files ``src/bin/sage-env``,
+``build/bin/sage-build-env-config``, and ``build/bin/sage-build-env``.
 
 .. _section-sdh-helpers:
 

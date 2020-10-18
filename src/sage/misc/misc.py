@@ -1056,7 +1056,7 @@ def powerset(X):
     power2 = 1
     for x in X:
         pairs.append((power2, x))
-        next_power2 = power2 * 2
+        next_power2 = power2 << 1
         for w in range(power2, next_power2):
             yield [x for m, x in pairs if m & w]
         power2 = next_power2

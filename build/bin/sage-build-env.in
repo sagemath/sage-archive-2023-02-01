@@ -39,12 +39,12 @@ export ORIGINAL_CXXFLAGS="$CXXFLAGS"
 export ORIGINAL_FCFLAGS="$FCFLAGS"
 export ORIGINAL_F77FLAGS="$F77FLAGS"
 
-if [ -n "$ORIGINAL_CFLAGS" ]; then
+if [ "x$ORIGINAL_CFLAGS" == "x" ]; then
     # Evaluate SAGE_DEBUG:
-    if [ "$SAGE_DEBUG" == "yes" ]; then
+    if [ "x$SAGE_DEBUG" == "xyes" ]; then
         export CFLAGS="-Og -g"
         export CFLAGS_O3="-Og -g"
-    elif [ "$SAGE_DEBUG" == "no" ]; then
+    elif [ "x$SAGE_DEBUG" == "xno" ]; then
         export CFLAGS="-O2"
         export CFLAGS_O3="-O3"
     else
@@ -58,7 +58,7 @@ else
 fi
 
 # Copy to CXXFLAGS if this is not set.
-if [ -n "$ORIGINAL_CXXFLAGS" ]; then
+if [ "x$ORIGINAL_CXXFLAGS" == "x" ]; then
     export CXXFLAGS="$CFLAGS"
     export CXXFLAGS_O3="$CFLAGS_O3"
 else
@@ -67,7 +67,7 @@ else
 fi
 
 # Copy CFLAGS to FCFLAGS if this is not set.
-if [ -n "$ORIGINAL_FCFLAGS" ]; then
+if [ "x$ORIGINAL_FCFLAGS" == "x" ]; then
     export FCFLAGS="$CFLAGS"
     export FCFLAGS_O3="$CFLAGS_O3"
 else
@@ -76,7 +76,7 @@ else
 fi
 
 # Copy FCFLAGS to F77FLAGS if this is not set.
-if [ -n "$ORIGINAL_F77FLAGS" ]; then
+if [ "x$ORIGINAL_F77FLAGS" == "x" ]; then
     export F77FLAGS="$FCFLAGS"
     export F77FLAGS_O3="$FCFLAGS_O3"
 else

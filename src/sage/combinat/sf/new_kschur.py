@@ -221,8 +221,9 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
 
     def K_kschur(self):
         r"""
-        Return the `k`-bounded basis called the K-`k`-Schur basis.  See [Morse11]_ and
-        [LamSchillingShimozono10]_.
+        Return the `k`-bounded basis called the K-`k`-Schur basis.
+
+        See [Morse11]_ and [LamSchillingShimozono10]_.
 
         REFERENCES:
 
@@ -1402,8 +1403,9 @@ class kHomogeneous(CombinatorialFreeModule):
 
 class K_kSchur(CombinatorialFreeModule):
     r"""
-    This class implements the basis of the `k`-bounded subspace called the K-`k`-Schur
-    basis.  See [Morse2011]_, [LamSchillingShimozono2010]_.
+    This class implements the basis of the `k`-bounded subspace called the K-`k`-Schur basis.
+
+    See [Morse2011]_, [LamSchillingShimozono2010]_.
 
     REFERENCES:
 
@@ -1645,8 +1647,9 @@ class K_kSchur(CombinatorialFreeModule):
 
     def _g_to_kh_on_basis(self, la):
         r"""
-        Return the expansion of the K-`k`-Schur function in the homogeneous basis. See
-        method _DualGrothendieck for the code.
+        Return the expansion of the K-`k`-Schur function in the homogeneous basis.
+
+        See method :meth:`_DualGrothendieck` for the code.
 
         INPUT:
 

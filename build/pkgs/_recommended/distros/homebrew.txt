@@ -1,0 +1,4 @@
+# Recommended: Homebrew's texinfo can be used to build the
+# info files for ecl and maxima but the default version of texinfo OS
+# X cannot.
+texinfo

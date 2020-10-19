@@ -2332,7 +2332,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
-            return generic_power(base, exp)
+            return generic_power_c(base, exp)
 
         if (isinstance(base, NumberFieldElement) and exp in QQ):
             qqexp=QQ(exp)

@@ -759,11 +759,11 @@ cdef class DenseGraphBackend(CGraphBackend):
             True
 
         """
-        if not (self.has_vertex(u) and self.has_vertex(v)):
+        cdef int u_int = self.get_vertex_checked(u)
+        cdef int v_int = self.get_vertex_checked(v)
+        if u_int == -1 or v_int == -1:
             return False
-        cdef int u_int = self.get_vertex(u)
-        cdef int v_int = self.get_vertex(v)
-        return self._cg.has_arc(u_int, v_int)
+        return 1 == self.cg().has_arc_unsafe(u_int, v_int)
 
     def iterator_edges(self, object vertices, bint labels):
         """

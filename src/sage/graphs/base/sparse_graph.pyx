@@ -1216,6 +1216,36 @@ cdef class SparseGraph(CGraph):
             return -1
         return num_arcs
 
+    cdef SparseGraphLLNode* arc_labels_unsafe(self, int u, int v):
+        """
+        Return the first label of arcs (u, v) or ``NULL`` if there are none.
+
+        INPUT:
+
+        - ``u, v`` -- integers from 0, ..., n-1, where n is the number of vertices
+            arc_labels -- must be a pointer to an (allocated) integer array
+            size -- the length of the array
+
+        OUTPUT:
+
+        - a pointer to the first label or ``NULL`` if there are none
+        """
+        cdef int i = (u * self.hash_length) + (v & self.hash_mask), j
+        cdef int compared, num_arcs
+        cdef SparseGraphBTNode *temp = self.vertices[i]
+        cdef SparseGraphLLNode *label
+        while temp:
+            compared = compare(temp.vertex, v)
+            if compared > 0:
+                temp = temp.left
+            elif compared < 0:
+                temp = temp.right
+            else: # temp.vertex == v:
+                break
+        if not temp:
+            return NULL
+        return temp.labels
+
     cpdef list all_arcs(self, int u, int v):
         """
         Gives the labels of all arcs ``(u, v)``. An unlabeled arc is interpreted as
@@ -1809,15 +1839,19 @@ cdef class SparseGraphBackend(CGraphBackend):
             True
 
         """
-        if not ( self.has_vertex(u) and self.has_vertex(v) ):
+        cdef int u_int = self.get_vertex_checked(u)
+        cdef int v_int = self.get_vertex_checked(v)
+        if u_int == -1 or v_int == -1:
             return False
-        cdef int u_int = self.get_vertex(u)
-        cdef int v_int = self.get_vertex(v)
+
+        cdef SparseGraph cg = self.cg()
         if l is None:
-            return self._cg.has_arc(u_int, v_int)
-        for l_int in self._cg.all_arcs(u_int, v_int):
-            if l_int and self.edge_labels[l_int] == l:
+            return 1 == cg.has_arc_unsafe(u_int, v_int)
+        cdef SparseGraphLLNode* label = cg.arc_labels_unsafe(u_int, v_int)
+        while label:
+            if label.label and self.edge_labels[label.label] == l:
                 return True
+            label = label.next
         return False
 
     def iterator_edges(self, object vertices, bint labels):

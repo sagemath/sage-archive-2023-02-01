@@ -1,11 +1,7 @@
-from __future__ import print_function
-
 import sys
-if __name__ == '__main__':
-    import pathadjuster
 
 from .PyPolyBoRi import Ring, VariableBlock, Polynomial
-from .PyPolyBoRi import VariableFactory, MonomialFactory
+from .PyPolyBoRi import VariableFactory, Variable
 from itertools import chain, islice
 
 
@@ -19,7 +15,6 @@ class Block(object):
         indices = range(start_index, start_index + size)
         if reverse:
             indices = reversed(indices)
-    #self.index2pos=dict([(v,k) for (k,v) in enumerate(indices)])
         self.names = [var_name + "(" + str(i) + ")" for i in indices]
         self.var_name = var_name
         self.start_index = start_index
@@ -36,8 +31,6 @@ class Block(object):
         return self.size
 
     def register(self, start, context):
-        #def var_func(i):
-        #  return Variable(self.index2pos[i]+start)
         ring_context = context
         while isinstance(ring_context, PrefixedDictProxy):
             ring_context = ring_context.wrapped
@@ -143,12 +136,13 @@ class AdderBlock(AlternatingBlock):
             adder_bits)]
         self.carries_polys = carries[1:]
 
-    #def s(i):
-    #  return self.add_results[i-self.start_index]
-    #def c(i):
-    #  return self.carries_polys[i-self.start_index]
-    #context[self.sums]=s
-    #context[self.carries]=c
+    # def s(i):
+    #     return self.add_results[i-self.start_index]
+    # def c(i):
+    #     return self.carries_polys[i-self.start_index]
+    # context[self.sums]=s
+    # context[self.carries]=c
+
     def implement(self, equations):
         for i in range(self.adder_bits):
             equations.append(self.s(i) + self.add_results[i])
@@ -301,11 +295,6 @@ class MacroBlock(object):
 
     def __getitem__(self, i):
         return self.prefix + "_" + next(islice(chain(*self.blocks), i, i + 1))
-    #for bl in self.blocks:
-    #  if i >= len(bl):
-    #    i -= len(bl)
-    #  else:
-    #    return bl[i]
 
     def __len__(self):
         return sum((len(bl) for bl in self.blocks))
@@ -340,9 +329,8 @@ class IfThen(object):
         self.supposedToBeValid = supposed_to_be_valid
 
     def __str__(self):
-        return ("If(AND(" + ", ".join([str(p) + " == 0" for p in self.ifpart])
-            + ")), THEN " + ", ".join([str(p) + " == 0" for p in self.thenpart
-            ]))
+        return ("If(AND(" + ", ".join(f"{p} == 0" for p in self.ifpart) +
+                ")), THEN " + ", ".join(f"{p} == 0" for p in self.thenpart))
 
 
 def if_then(i, t, supposed_to_be_valid=True):
@@ -352,7 +340,7 @@ def if_then(i, t, supposed_to_be_valid=True):
 def declare_ring(blocks, context=None):
     r"""
     Declare Ring is the preferred function to create a ring and declare a variable scheme,
-    the number of variables is automatically determined, usually you pass globals() as context 
+    the number of variables is automatically determined, usually you pass globals() as context
     argument to store the ring and the variable mapping.
 
     EXAMPLES::
@@ -360,9 +348,9 @@ def declare_ring(blocks, context=None):
         sage: from sage.rings.polynomial.pbori import *
         sage: declare_ring([Block("x",10),Block("y",5)],globals())
         Boolean PolynomialRing in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, y0, y1, y2, y3, y4
-        
-    gives  a ring with x(0..9),y(0..4) and registers the ring as r, and the variable 
-    blocks x and y in the context dictionary globals(), which consists of the global 
+
+    gives  a ring with x(0..9),y(0..4) and registers the ring as r, and the variable
+    blocks x and y in the context dictionary globals(), which consists of the global
     variables of the python module
     """
     if context is None:
@@ -397,18 +385,14 @@ def declare_ring(blocks, context=None):
 def declare_block_scheme(blocks, context):
     start = 0
     block_starts = []
-    ring = context["r"]
     for b in blocks:
-        if start != 0:
+        if start:
             block_starts.append(start)
         if isinstance(b, str):
             context[b] = context["internalVariable"](start)
-        #_cpp_set_variable_name(ring, start, b)
             start = start + 1
         else:
             b.register(start, context)
-        #for (pos,name) in enumerate(b):
-        #    _cpp_set_variable_name(ring, start+pos, name)
             start = start + len(b)
     context["block_start_hints"] = block_starts
     context["number_of_declared_vars"] = start
@@ -422,11 +406,10 @@ def main():
         print(r.variable(i))
 
     print(list(ablock))
-    declare_block_scheme([
-    Block(var_name="x", size=100),
-    HigherOrderBlock("y", (3, 4, 11, 2)),
-    AlternatingBlock(["a", "b", "c"], 100)],
-    globals())
+    declare_block_scheme([Block(var_name="x", size=100),
+                          HigherOrderBlock("y", (3, 4, 11, 2)),
+                          AlternatingBlock(["a", "b", "c"], 100)],
+                         globals())
     for i in range(10):
         print(x(i))
     print(y(0, 0, 0, 0))
@@ -434,11 +417,10 @@ def main():
     print(y(0, 0, 1, 0))
     print(y(0, 0, 1, 1))
     print(a(0), a(1), a(2), b(0), b(1), c(0))
-    declare_block_scheme([
-    Block(var_name="x", size=100, reverse=True),
-    HigherOrderBlock("y", (3, 4, 11, 2), reverse=True),
-    AlternatingBlock(["a", "b", "c"], 100, reverse=True)],
-    globals())
+    declare_block_scheme([Block(var_name="x", size=100, reverse=True),
+                          HigherOrderBlock("y", (3, 4, 11, 2), reverse=True),
+                          AlternatingBlock(["a", "b", "c"], 100, reverse=True)],
+                         globals())
     for i in range(10):
         print(x(i))
     print(y(0, 0, 0, 0))
@@ -448,5 +430,7 @@ def main():
     print(a(0), a(1), a(2), b(0), b(1), c(0))
     declare_block_scheme(["a", "b", "c"], globals())
     print(a, b, c)
+
+
 if __name__ == '__main__':
     main()

@@ -367,6 +367,9 @@ class DocTestController(SageObject):
                         if pkg['installed'] and pkg['installed_version'] == pkg['remote_version']:
                             options.optional.add(pkg['name'])
 
+                    from sage.features import package_systems
+                    options.optional.update(system.name for system in package_systems())
+
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):

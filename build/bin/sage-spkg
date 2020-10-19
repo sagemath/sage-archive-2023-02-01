@@ -181,6 +181,9 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 
+export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"
+export SAGE_SPKG_WHEELS="$SAGE_LOCAL/var/lib/sage/wheels"
 
 # Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
 # (cf. #10192, #10176):
@@ -522,7 +525,7 @@ __EOF__
 }
 
 
-WRAPPED_SCRIPTS="build install check preinst postinst legacy-uninstall prerm postrm"
+WRAPPED_SCRIPTS="build install check preinst postinst prerm postrm"
 INSTALLED_SCRIPTS="prerm postrm"
 
 

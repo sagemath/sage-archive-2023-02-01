@@ -395,7 +395,7 @@ def cython_aliases():
         var = lib.upper().replace("-", "") + "_"
         if lib == 'cblas':
             # There are a few BLAS libraries that the user could have installed
-            blas_libraries = ['openblas', 'cblas', 'blas']
+            blas_libraries = ['cblas', 'openblas', 'blas']
             lib = next((blas_lib for blas_lib in blas_libraries if pkgconfig.exists(blas_lib)))
         if lib == 'zlib':
             aliases[var + "CFLAGS"] = ""

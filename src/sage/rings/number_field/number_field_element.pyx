@@ -2335,13 +2335,13 @@ cdef class NumberFieldElement(FieldElement):
             return generic_power(base, exp)
 
         if (isinstance(base, NumberFieldElement) and exp in QQ):
-            qqexp = QQ(exp)
+            qqexp=QQ(exp)
             n = qqexp.numerator()
             d = qqexp.denominator()
             try:
-                return base.nth_root(d)**n
+               return base.nth_root(d)**n
             except ValueError:
-                pass
+               pass
 
         cbase, cexp = canonical_coercion(base, exp)
         if not isinstance(cbase, NumberFieldElement):

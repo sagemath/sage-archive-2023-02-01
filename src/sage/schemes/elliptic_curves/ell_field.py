@@ -1283,7 +1283,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
 
         EXAMPLES:
 
-        Ordinary curve over finite extension field of degree 2
+        Ordinary curve over finite extension field of degree 2::
 
             sage: E = EllipticCurve(GF(59^2, "i", x^2 + 1), j=5)
             sage: G = E.prime_isogeny_graph(5, directed=False, label_by_j=True)
@@ -1300,7 +1300,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
              ...
              ('8', 'i + 1', None)]
 
-        Supersingular curve over prime field
+        Supersingular curve over prime field::
 
             sage: E = EllipticCurve(GF(419), j=1728)
             sage: G3 = E.prime_isogeny_graph(3, directed=False, label_by_j=True)
@@ -1327,7 +1327,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
               ...
               ('62*', '98*', None)]
 
-        Supersingular curve over finite extension field of degree 2
+        Supersingular curve over finite extension field of degree 2::
 
             sage: K = GF(431^2, "i", x^2 + 1)
             sage: E = EllipticCurve(K, j=0)
@@ -1360,7 +1360,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
              ...
              ('81*i + 65', '87*i + 190', None)]
 
-        Curve over a quadratic number field
+        Curve over a quadratic number field::
 
             sage: K.<e> = NumberField(x^2 - 2)
             sage: E = EllipticCurve(K, [1,0,1,4, -6])
@@ -1388,7 +1388,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
              ('y^2 + x*y + y = x^3 + (-171)*x + (-874)',
              'y^2 + x*y + y = x^3 + 4*x + (-6)', None)]
 
-        TESTS:
+        TESTS::
 
             sage: E = EllipticCurve(GF(11), j=0)
             sage: G0 = E.prime_isogeny_graph(2, directed=False)

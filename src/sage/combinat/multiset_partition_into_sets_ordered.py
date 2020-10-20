@@ -191,7 +191,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
         if not _has_nonempty_sets(co):
             raise ValueError("cannot view %s as an ordered partition of %s"%(co, parent._Xtup))
 
-        ClonableArray.__init__(self, parent, [frozenset(list(k)) for k in co])
+        ClonableArray.__init__(self, parent, [frozenset(k) for k in co])
         self._multiset = _get_multiset(co)
         self._weight = _get_weight(self._multiset)
         self._order = sum(len(block) for block in self)
@@ -951,15 +951,16 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
             return ()
 
         C = [sorted(self[-1])]
-        for i in range(1,len(self)):
-            lower = []; upper = []
-            for j in self[-1-i]:
+        for i in range(1, len(self)):
+            lower = []
+            upper = []
+            for j in self[-1 - i]:
                 if j <= C[0][0]:
                     lower.append(j)
                 else:
                     upper.append(j)
-            C = [sorted(upper)+sorted(lower)] + C
-        return tuple(map(tuple,C))
+            C = [sorted(upper) + sorted(lower)] + C
+        return tuple(map(tuple, C))
 
     def to_tableaux_words(self):
         r"""
@@ -1415,13 +1416,14 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         if "alphabet" in constraints:
             A = constraints["alphabet"]
             if A in ZZ:
-                A = range(1, A+1)
+                A = range(1, A + 1)
             constraints["alphabet"] = frozenset(A)
 
-        if len(args) == 2: # treat as `alphabet` & `order`
-            alph = args[0]; order = args[1]
+        if len(args) == 2:  # treat as `alphabet` & `order`
+            alph = args[0]
+            order = args[1]
             if alph in ZZ:
-                alph = range(1,alph+1)
+                alph = range(1, alph + 1)
             if (alph and len(set(alph)) == len(alph)) and (order in ZZ and order >= 0):
                 if "alphabet" in constraints:
                     raise ValueError("cannot pass alphabet as first argument and keyword argument")
@@ -1817,11 +1819,12 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             [{'a','b','c'}, {'a'}, {'b'}]
         """
         from_zero_lst = list(lst_with_zeros)
-        if from_zero_lst[-1] not in {0,'0'}:
+        if from_zero_lst[-1] not in {0, '0'}:
             from_zero_lst += [0]
-        co = []; block=[]
+        co = []
+        block = []
         for a in from_zero_lst:
-            if a in {0,'0'}:
+            if a in {0, '0'}:
                 if block:
                     co.append(block)
                     block = []
@@ -2873,12 +2876,13 @@ def _iterator_size(size, length=None, alphabet=None):
                                                         max_part=min(a, max_p))
                                         for a in alpha]):
                 if frozenset(_concatenate(p)).issubset(frozenset(alphabet)):
-                    yield tuple(frozenset(list(k)) for k in p)
+                    yield tuple(frozenset(k) for k in p)
     else:
         for alpha in IntegerListsLex(size, length=length, min_part=1, max_part=size):
             for p in cartesian_product([IntegerListsLex(a, min_slope=1,
                                                         min_part=1) for a in alpha]):
-                yield tuple(frozenset(list(k)) for k in p)
+                yield tuple(frozenset(k) for k in p)
+
 
 def _iterator_order(A, d, lengths=None):
     """

@@ -1,5 +1,5 @@
 # Write a configuration file to src/setup.cfg
-sage-system-python make-setup-config.py
+sage-python23 make-setup-config.py
 
 cd src
 

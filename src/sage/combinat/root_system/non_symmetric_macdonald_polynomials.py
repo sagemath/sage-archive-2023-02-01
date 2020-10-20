@@ -156,7 +156,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     .. MATH::
 
-        (T_i-q_1)\circ(T_i-q_2) = 0
+        (T_i-q_1)\circ(T_i-q_2) = 0,
 
     where `q_1` and `q_2` are the input parameters.  Some of the
     representation theory requires that `q_1` and `q_2` satisfy

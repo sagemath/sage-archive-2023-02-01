@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-
 from sage.structure.element import RingElement
 from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.interfaces.singular import singular as singular_default
@@ -515,17 +514,6 @@ class QuotientRingElement(RingElement):
             return self.lift()._rational_()
         except AttributeError:
             raise NotImplementedError
-
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
-            <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category.element_class'>
-            sage: long(S(-3))            # indirect doctest
-            -3L
-        """
-        return long(self.lift())
 
     def __neg__(self):
         """

@@ -107,8 +107,8 @@ todo_include_todos = True""")
 </div>""")
     staticdir = os.path.join(confdir, 'static')
     os.makedirs(staticdir)
-    with open(os.path.join(staticdir, 'empty'), 'w') as filed: pass
-
+    with open(os.path.join(staticdir, 'empty'), 'w') as filed:
+        pass
     with open(os.path.join(srcdir, 'docutils.conf'), 'w') as filed:
         filed.write(r"""
 [parsers]
@@ -158,7 +158,6 @@ smart_quotes = no""")
 
 
 if __name__ == '__main__':
-    import sys
     if len(sys.argv) == 2:
         print(sphinxify(sys.argv[1]))
     else:

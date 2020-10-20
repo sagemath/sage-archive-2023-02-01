@@ -2456,7 +2456,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         NOTE::
 
             The function does not check that its argument ``self`` is 
-            1 in the residue field. If this assumption is not fullfiled
+            1 in the residue field. If this assumption is not fulfilled
             the behaviour of the function is not specified.
 
         ALGORITHM:
@@ -3037,7 +3037,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The function does not check that its argument ``self`` is 
             the disk of convergence of ``exp``. If this assumption is not 
-            fullfiled the behaviour of the function is not specified.
+            fulfilled the behaviour of the function is not specified.
 
         ALGORITHM:
 
@@ -3088,7 +3088,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The function does not check that its argument ``self`` is 
             the disk of convergence of ``exp``. If this assumption is not 
-            fullfiled the behaviour of the function is not specified.
+            fulfilled the behaviour of the function is not specified.
 
         ALGORITHM:
 
@@ -3592,7 +3592,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ValueError: This element is not a nth power
 
         Similarly, when precision on the input is too small, an error
-        is raised:
+        is raised::
 
             sage: x = R(1,6); x
             1 + O(pi^6)
@@ -3600,6 +3600,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             PrecisionError: Not enough precision to be sure that this element is a nth power
+
+        Check that :trac:`30314` is fixed::
+
+            sage: K = Qp(29)
+            sage: x = polygen(K)
+            sage: L.<a> = K.extension(x^2 -29)
+            sage: L(4).nth_root(2)
+            2 + O(a^40)
 
         TESTS:
 
@@ -3716,7 +3724,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # We now extract the (p^v)-th root
         zeta, s, nextzeta = K._primitive_qth_root_of_unity(v)
-        nextzeta = (parent(nextzeta[0]), nextzeta[1])  # nextzeta[0] may have a wrong parent (with more precision)
+        if v:
+            nextzeta = (parent(nextzeta[0]), nextzeta[1])  # nextzeta[0] may have a wrong parent (with more precision)
         for i in range(v):
             if s > 0 and i >= s:
                 root, accuracy = root._inverse_pth_root(twist=zeta, hint=nextzeta)
@@ -4010,13 +4019,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
             sage: a._is_base_elt(17)
             False
-
         """
         raise NotImplementedError
 
     def _polylog_res_1(self, n, p_branch = 0):
         """
         Return `Li_n(`self`)` , the `n`th `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
+
         This is an internal function, used by :meth:`polylog`.
 
         INPUT:
@@ -4032,7 +4041,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Qp(2)(-1)._polylog_res_1(6) == 0
             True
 
-        ::
             sage: Qp(5)(1)._polylog_res_1(1)
             Traceback (most recent call last):
             ...
@@ -4048,7 +4056,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.functions.other import ceil,floor
         from sage.rings.padics.factory import Qp
-        from sage.misc.all import verbose
+        from sage.misc.verbose import verbose
 
         if self == 1:
             raise ValueError('Polylogarithm is not defined for 1.')
@@ -4192,7 +4200,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.rings.padics.factory import Qp
-        from sage.misc.all import verbose
+        from sage.misc.verbose import verbose
         from sage.functions.other import ceil,floor
         from sage.rings.infinity import PlusInfinity
 

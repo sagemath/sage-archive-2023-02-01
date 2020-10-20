@@ -201,7 +201,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         sage: gc.isenabled()
         True
     """
-    import time, math
+    import math
     import timeit as timeit_
 
     import sage.repl.interpreter as interpreter

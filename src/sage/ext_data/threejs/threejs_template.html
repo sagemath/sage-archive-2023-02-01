@@ -20,8 +20,9 @@
     #menu-content div { border-top: 1px solid black; padding: 10px; white-space: nowrap; }
 
     #menu-content div:hover { background-color: #FEFEFE;; }
-  
+
 </style>
+SAGE_STYLES
 </head>
 
 <body>
@@ -37,10 +38,7 @@ SAGE_SCRIPTS
     document.body.appendChild( renderer.domElement );
 
     var options = SAGE_OPTIONS;
-
-    // When animations are supported by the viewer, the value 'false'
-    // will be replaced with an option set in Python by the user
-    var animate = false; // options.animate;
+    var animate = options.animate;
 
     var b = SAGE_BOUNDS; // bounds
 
@@ -110,35 +108,62 @@ SAGE_SCRIPTS
 
     }
 
-    function addLabel( text, x, y, z, color='black', fontsize=14  ) {
+    function addLabel( text, x, y, z, color='black', fontSize=14, fontFamily='monospace',
+                       fontStyle='normal', fontWeight='normal', opacity=1 ) {
 
         var canvas = document.createElement( 'canvas' );
-        var pixelRatio = Math.round( window.devicePixelRatio );
-        canvas.width = 128 * pixelRatio;
-        canvas.height = 32 * pixelRatio; // powers of two
-        canvas.style.width = '128px';
-        canvas.style.height = '32px';
-
         var context = canvas.getContext( '2d' );
+        var pixelRatio = Math.round( window.devicePixelRatio );
+
+        var font = [fontStyle, fontWeight, fontSize + 'px', fontFamily].join(' ');
+
+        context.font = font;
+        var width = context.measureText( text ).width;
+        var height = fontSize;
+
+        // The dimensions of the canvas's underlying image data need to be powers
+        // of two in order for the resulting texture to support mipmapping.
+        canvas.width = THREE.MathUtils.ceilPowerOfTwo( width * pixelRatio );
+        canvas.height = THREE.MathUtils.ceilPowerOfTwo( height * pixelRatio );
+
+        // Re-compute the unscaled dimensions after the power of two conversion.
+        width = canvas.width / pixelRatio;
+        height = canvas.height / pixelRatio;
+
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+
         context.scale( pixelRatio, pixelRatio );
         context.fillStyle = color;
-        context.font = fontsize + 'px monospace';
+        context.font = font; // Must be set again after measureText.
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText( text, canvas.width/2/pixelRatio, canvas.height/2/pixelRatio );
+        context.fillText( text, width/2, height/2 );
 
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;
 
-        var sprite = new THREE.Sprite( new THREE.SpriteMaterial( { map: texture } ) );
+        var materialOptions = { map: texture, sizeAttenuation: false };
+        if ( opacity < 1 ) {
+            // Setting opacity=1 would cause the texture's alpha component to be
+            // discarded, giving the text a black background instead of the
+            // background being transparent.
+            materialOptions.opacity = opacity;
+        }
+        var sprite = new THREE.Sprite( new THREE.SpriteMaterial( materialOptions ) );
         sprite.position.set( x, y, z );
 
-        // Set the initial scale based on plot size to accomodate orthographic projection.
-        // For other projections, the scale will get reset each frame based on camera distance.
-        var scale = midToCorner/2;
-        sprite.scale.set( scale, scale*.25, 1 ); // ratio of canvas width to height
+        // Scaling factor, chosen somewhat arbitrarily so that the size of the text
+        // is consistent with previously generated plots.
+        var scale = 1/625;
+        if ( options.projection === 'orthographic' ) {
+            scale = midToCorner/256; // Needs to scale along with the plot itself.
+        }
+        sprite.scale.set( scale * width, scale * height, 1 );
 
         scene.add( sprite );
+
+        return sprite;
 
     }
 
@@ -146,7 +171,23 @@ SAGE_SCRIPTS
 
     var camera = createCamera();
     camera.up.set( 0, 0, 1 );
-    camera.position.set( a[0]*(xMid+xRange), a[1]*(yMid+yRange), a[2]*(zMid+zRange) );
+    camera.position.set( a[0]*xMid, a[1]*yMid, a[2]*zMid );
+
+    var offset = new THREE.Vector3( a[0]*xRange, a[1]*yRange, a[2]*zRange );
+
+    if ( options.viewpoint ) {
+
+        var aa = options.viewpoint;
+        var axis = new THREE.Vector3( aa[0][0], aa[0][1], aa[0][2] ).normalize();
+        var angle = aa[1] * Math.PI / 180;
+        var q = new THREE.Quaternion().setFromAxisAngle( axis, angle ).inverse();
+
+        offset.set( 0, 0, offset.length() );
+        offset.applyQuaternion( q );
+
+    }
+
+    camera.position.add( offset );
 
     function createCamera() {
 
@@ -204,16 +245,26 @@ SAGE_SCRIPTS
     controls.addEventListener( 'change', function() { if ( !animate ) render(); } );
 
     window.addEventListener( 'resize', function() {
-        
+
         renderer.setSize( window.innerWidth, window.innerHeight );
         updateCameraAspect( camera, window.innerWidth / window.innerHeight );
         if ( !animate ) render();
-        
+
     } );
 
     var texts = SAGE_TEXTS;
-    for ( var i=0 ; i < texts.length ; i++ )
-        addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z, texts[i].color );
+    for ( var i=0 ; i < texts.length ; i++ ) addText( texts[i] );
+
+    function addText( json ) {
+        json.fontFamily = json.fontFamily.map( function( f ) {
+            // Need to put quotes around fonts that have whitespace in their names.
+            return /\s/.test( f ) ? '"' + f + '"' : f;
+        }).join(', ');
+        var sprite = addLabel( json.text, a[0]*json.x, a[1]*json.y, a[2]*json.z, json.color,
+                               json.fontSize, json.fontFamily, json.fontStyle, json.fontWeight,
+                               json.opacity );
+        sprite.userData = json;
+    }
 
     var points = SAGE_POINTS;
     for ( var i=0 ; i < points.length ; i++ ) addPoint( points[i] );
@@ -249,6 +300,7 @@ SAGE_SCRIPTS
 
         var mesh = new THREE.Points( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
+        mesh.userData = json;
         scene.add( mesh );
 
     }
@@ -275,6 +327,7 @@ SAGE_SCRIPTS
 
         var mesh = new THREE.Line( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
+        mesh.userData = json;
         scene.add( mesh );
 
     }
@@ -303,12 +356,13 @@ SAGE_SCRIPTS
 
         var side = json.singleSide ? THREE.FrontSide : THREE.DoubleSide;
         var transparent = json.opacity < 1 ? true : false;
+        var flatShading = json.useFlatShading ? json.useFlatShading : false;
 
         var material = new THREE.MeshPhongMaterial( { side: side,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
-                                     shininess: 20, flatShading: json.useFlatShading } );
+                                     shininess: 20, flatShading: flatShading } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();
@@ -318,6 +372,7 @@ SAGE_SCRIPTS
         var mesh = new THREE.Mesh( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         if ( transparent && json.renderOrder ) mesh.renderOrder = json.renderOrder;
+        mesh.userData = json;
         scene.add( mesh );
 
         if ( json.showMeshGrid ) {
@@ -346,33 +401,22 @@ SAGE_SCRIPTS
 
             var mesh = new THREE.LineSegments( geometry, material );
             mesh.position.set( c.x, c.y, c.z );
+            mesh.userData = json;
             scene.add( mesh );
 
         }
 
     }
 
-    var scratch = new THREE.Vector3();
-
     function render() {
 
+        if ( window.updateAnimation ) animate = updateAnimation();
         if ( animate ) requestAnimationFrame( render );
+
         renderer.render( scene, camera );
 
-        // Resize text based on distance from camera.
-        // Not neccessary for orthographic due to the nature of the projection (preserves sizes).
-        if ( !camera.isOrthographicCamera ) {
-            for ( var i=0 ; i < scene.children.length ; i++ ) {
-                if ( scene.children[i].type === 'Sprite' ) {
-                    var sprite = scene.children[i];
-                    var adjust = scratch.addVectors( sprite.position, scene.position )
-                                    .sub( camera.position ).length() / 5;
-                    sprite.scale.set( adjust, .25*adjust, 1 ); // ratio of canvas width to height
-                }
-            }
-        }
     }
-    
+
     render();
     controls.update();
     if ( !animate ) render();
@@ -445,5 +489,6 @@ SAGE_SCRIPTS
 <div>Close Menu</div>
 </div></div>
 
+SAGE_EXTRA_HTML
 </body>
 </html>

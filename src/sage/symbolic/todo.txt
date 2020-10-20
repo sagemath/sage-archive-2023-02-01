@@ -88,6 +88,7 @@ PYTHON ERROR! error calling function
 }}}
 
 DONE * Control-c --> SIGBUS:
+
 sage: R.<u,v> = QQ[]
 sage: var('a,b,c', ns=1)
 (a, b, c)

@@ -19,10 +19,13 @@ AS_HELP_STRING([--disable-]SPKG_NAME,
 
   AS_IF([test "$want_spkg" = if_installed],
         [AS_VAR_SET([want_spkg], $is_installed)])
-  AS_VAR_SET([spkg_line], ["    ]SPKG_NAME[ \\"$'\n'])
+
+  spkg_line=" \\$(printf '\n    ')SPKG_NAME"
   AS_CASE([$is_installed-$want_spkg],
           [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
           [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_CLEANED_PACKAGES, "$spkg_line")])
+  AS_VAR_SET([SAGE_ENABLE_]SPKG_NAME, [$want_spkg])
+  AC_SUBST([SAGE_ENABLE_]SPKG_NAME)
   m4_popdef([SPKG_TYPE])
   m4_popdef([SPKG_NAME])
 ])

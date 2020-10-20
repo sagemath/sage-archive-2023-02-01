@@ -821,10 +821,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             [2, 4, 4, 2, 1, 2, 4, 4]
             sage: all(T.is_divisible_by(3) for T in tor)
             True
-            sage: Set([T for T in tor if T.is_divisible_by(2)])
-            {(0 : 1 : 0), (1 : 0 : 1)}
-            sage: Set([2*T for T in tor])
-            {(0 : 1 : 0), (1 : 0 : 1)}
+            sage: sorted(T for T in tor if T.is_divisible_by(2))
+            [(0 : 1 : 0), (1 : 0 : 1)]
+            sage: sorted(Set([2*T for T in tor]))
+            [(0 : 1 : 0), (1 : 0 : 1)]
         """
         # Coerce the input m to an integer
         m = Integer(m)
@@ -2415,8 +2415,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         return E.reduction(p)(P)
 
     def height(self, precision=None, normalised=True, algorithm='pari'):
-        r"""
-        Return the Néron-Tate canonical height of the point.
+        r"""Return the Néron-Tate canonical height of the point.
 
         INPUT:
 
@@ -2445,7 +2444,12 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         is the one appropriate for the BSD conjecture. This is
         consistent with [Cre1997]_ and double that of [Sil2009]_.
 
-        See :wikipedia:`Néron-Tate height`
+        See :wikipedia:`Néron-Tate height`.
+
+        .. NOTE::
+
+           The correct height to use for the regulator in the BSD
+           formula is the non-normalised height.
 
         EXAMPLES::
 
@@ -2636,6 +2640,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P2 = F([2,5])
             sage: P2.height()
             1.06248137652528
+
         """
         if self.has_finite_order():
             return rings.QQ(0)
@@ -2809,7 +2814,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if K is rings.QQ:
             v = K.embeddings(RealField())[0]
         v_inf = refine_embedding(v, Infinity)
-
         v_is_real = v_inf(K.gen()).imag().is_zero()
 
         # Find a suitable working precision.  See trac#29666 for an

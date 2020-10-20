@@ -101,9 +101,16 @@ gitlab-build-docker.log
 /src/bin/sage-env-config
 /build/bin/sage-build-env-config
 
+/build/pkgs/*/src/build
+/build/pkgs/*/src/dist
+/build/pkgs/*/src/MANIFEST
+/build/pkgs/*/src/*.egg-info
+/build/pkgs/*/src/.tox
+
 #######################
 # tox generated files #
 #######################
 
 /.tox
 /prefix
+worktree*

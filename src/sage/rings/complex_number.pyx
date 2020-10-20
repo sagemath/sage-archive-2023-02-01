@@ -17,20 +17,21 @@ AUTHORS:
   ComplexNumber constructor support gmpy2.mpc parameter.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import math
 import operator
 
 from sage.libs.mpfr cimport *
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.map cimport Map
 
 from .complex_double cimport ComplexDoubleElement
@@ -42,6 +43,8 @@ import sage.rings.infinity as infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
+
+from sage.misc.superseded import deprecated_function_alias
 
 cimport gmpy2
 gmpy2.import_gmpy2()
@@ -233,6 +236,15 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             True
         """
         return self.str()
+
+    def _mathematica_init_(self):
+        """
+        EXAMPLES::
+
+            sage: mathematica(CC(3.5e-15, 2.3e15))  # indirect doctest, optional - mathematica
+            3.5*^-15 + 2.3*^15*I
+        """
+        return self.str(e='*^')
 
     def _maxima_init_(self, I=None):
         """
@@ -522,6 +534,53 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if not s:
             s = self.real().str(base, **kwds)
         return s
+
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this complex number.
+
+        INPUT:
+
+        - ``format_spec`` -- string; a floating point format specificier as
+          defined by :python:`the format specification mini-language
+          <library/string.html#formatspec>` in Python
+
+        EXAMPLES::
+
+            sage: format(CC(32/3, 0), ' .4f')
+            ' 10.6667 + 0.0000*I'
+            sage: format(CC(-2/3, -2/3), '.4e')
+            '-6.6667e-1 - 6.6667e-1*I'
+
+        If the representation type character is absent, the output matches the
+        string representation of the complex number. This has the effect that
+        real and imaginary part are only shown if they are not zero::
+
+            sage: format(CC(0, 2/3), '.4')
+            '0.6667*I'
+            sage: format(CC(2, 0), '.4')
+            '2.000'
+            sage: format(ComplexField(240)(0, 1/7), '.60')
+            '0.142857142857142857142857142857142857142857142857142857142857*I'
+            sage: format(ComplexField(240)(0, 1/7), '.60f')
+            '0.000000000000000000000000000000000000000000000000000000000000
+            + 0.142857142857142857142857142857142857142857142857142857142857*I'
+
+        Note that the general format does not exactly match the behaviour of
+        ``float``::
+
+            sage: format(CC(3, 0), '.4g')
+            '3.000 + 0e-15*I'
+            sage: format(CC(3, 0), '#.4g')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid format string
+            sage: format(CC(0, 0), '+#.4')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid format string
+        """
+        return _format_complex_number(self.real(), self.imag(), format_spec)
 
     def _latex_(self):
         r"""
@@ -836,7 +895,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(right_nm)
         return x
 
-    def __rdiv__(self, left):
+    def __rtruediv__(self, left):
         r"""
         Returns the quotient of left with ``self``, that is:
 
@@ -851,7 +910,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: a = ComplexNumber(2,0)
-            sage: a.__rdiv__(CC(1))
+            sage: a.__rtruediv__(CC(1))
             0.500000000000000
             sage: CC(1)/a
             0.500000000000000
@@ -1111,35 +1170,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
             sage: a.__int__()
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex to int; use int(abs(z))
+            TypeError: can...t convert complex to int; use int(abs(z))
         """
         raise TypeError("can't convert complex to int; use int(abs(z))")
-
-    def __long__(self):
-        r"""
-        Method for converting ``self`` to type ``long``.
-
-        Called by the ``long`` function. Note that calling this method
-        returns an error since, in general, complex numbers cannot be
-        coerced into integers.
-
-        EXAMPLES::
-
-            sage: a = ComplexNumber(2,1)
-            sage: long(a)   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-            sage: a.__long__()   # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex to long; use long(abs(z))
-        """
-        raise TypeError("can't convert complex to long; use long(abs(z))")
 
     def __float__(self):
         r"""
@@ -1189,7 +1226,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return complex(mpfr_get_d(self.__re, rnd),
                        mpfr_get_d(self.__im, rnd))
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -1204,20 +1241,20 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         a = mpfr_nan_p(left.__re)
         b = mpfr_nan_p((<ComplexNumber>right).__re)
         if a != b:
-            return -1
+            return rich_to_bool(op, -1)
 
         cdef int i
         i = mpfr_cmp(left.__re, (<ComplexNumber>right).__re)
         if i < 0:
-            return -1
+            return rich_to_bool(op, -1)
         elif i > 0:
-            return 1
+            return rich_to_bool(op, 1)
         i = mpfr_cmp(left.__im, (<ComplexNumber>right).__im)
         if i < 0:
-            return -1
+            return rich_to_bool(op, -1)
         elif i > 0:
-            return 1
-        return 0
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     def multiplicative_order(self):
         """
@@ -1461,8 +1498,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: (1+CC(I)).cot()
             0.217621561854403 - 0.868014142895925*I
-            sage: (1+CC(I)).cotan()
-            0.217621561854403 - 0.868014142895925*I
             sage: i = ComplexField(200).0
             sage: (1+i).cot()
             0.21762156185440268136513424360523807352075436916785404091068 - 0.86801414289592494863584920891627388827343874994609327121115*I
@@ -1479,7 +1514,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return ~(self.tan())
 
-    cotan = cot # provide this alias for backward compatibility in #29409
+    cotan = deprecated_function_alias(29412, cot)
 
     def cos(self):
         """
@@ -2752,3 +2787,66 @@ cpdef int cmp_abs(ComplexNumber a, ComplexNumber b):
     mpfr_clear(tmp)
 
     return res
+
+def _format_complex_number(real, imag, format_spec):
+    """
+    Construct a formatted string from real and imaginary parts.
+
+    TESTS::
+
+        sage: s = format(CDF(1/80, -1/2), '25'); s
+        '           0.0125 - 0.5*I'
+        sage: len(s) == 25
+        True
+        sage: '{:=^ 25}'.format(CDF(1/80, -1/2))
+        '===== 0.0125 - 0.5*I====='
+        sage: format(float(3), '#.4') == format(CDF(3, 0), '#.4')
+        True
+        sage: format(CDF(1, 2), '=+20')
+        Traceback (most recent call last):
+        ...
+        ValueError: '=' alignment not allowed in complex format specifier
+
+    ::
+
+        sage: format(CC(1/80, -1/2), '55') == format(str(CC(1/80, -1/2)), '>55')
+        True
+        sage: '{:=^ 55}'.format(CC(1/80, -1/2))
+        '======= 0.0125000000000000 - 0.500000000000000*I======='
+        sage: format(CC(1, 2), '=+20')
+        Traceback (most recent call last):
+        ...
+        ValueError: '=' alignment not allowed in complex format specifier
+    """
+    import re
+    match = re.match(r'^(.?[><=^])?'         # 1: fill and align
+                     r'([ +-]?)'             # 2: sign
+                     r'[^\d\.]*?0?(\d*)'     # 3: width
+                     r'.*?([eEfFgGn%])?$',   # 4: type
+                     format_spec)
+    if not match:
+        raise ValueError("invalid format specifier %s" % format_spec)
+
+    # format floats without align and width
+    float_format = (format_spec[match.start(2):match.start(3)]
+                    + format_spec[match.end(3):])
+
+    use_str_format = not match.group(4)
+    if use_str_format and imag == 0:
+        result = format(real, float_format)
+    elif use_str_format and real == 0:
+        result = format(imag, float_format) + '*I'
+    else:
+        x = format(real, float_format)
+        y = format(imag, '+' + format_spec[match.end(2):match.start(3)]
+                         + format_spec[match.end(3):])
+        result = f"{x} {y[:1]} {y[1:]}*I"
+
+    width = match.group(3)
+    if width:
+        align = match.group(1) or '>'
+        if align.endswith('='):
+            raise ValueError("'=' alignment not allowed in "
+                             "complex format specifier")
+        result = format(result, align + width)
+    return result

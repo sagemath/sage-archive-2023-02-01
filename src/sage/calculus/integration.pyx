@@ -70,7 +70,7 @@ def numerical_integral(func, a, b=None,
                        algorithm='qag',
                        max_points=87, params=[], eps_abs=1e-6,
                        eps_rel=1e-6, rule=6):
-   r"""
+    r"""
     Return the numerical integral of the function on the interval
     from a to b and an error bound.
 
@@ -241,40 +241,52 @@ def numerical_integral(func, a, b=None,
         Traceback (most recent call last):
         ...
         TypeError: unable to simplify to float approximation
-   """
 
-   cdef double abs_err # step size
-   cdef double result
-   cdef int i
-   cdef int j
-   cdef double _a, _b
-   cdef PyFunctionWrapper wrapper  # struct to pass information into GSL C function
+    Check for :trac:`15496`::
 
-   if b is None or isinstance(a, (list, tuple)):
-      b = a[1]
-      a = a[0]
+        sage: f = x^2/exp(-1/(x^2+1))/(x^2+1)
+        sage: D = integrate(f,(x,-infinity,infinity),hold=True)
+        sage: D.n()
+        Traceback (most recent call last):
+        ...
+        ValueError: integral does not converge at -infinity
+    """
+    cdef double abs_err # step size
+    cdef double result
+    cdef int i
+    cdef int j
+    cdef double _a, _b
+    cdef PyFunctionWrapper wrapper  # struct to pass information into GSL C function
 
-   # The integral over a point is always zero
-   if a == b:
-       return (0.0, 0.0)
+    if b is None or isinstance(a, (list, tuple)):
+        b = a[1]
+        a = a[0]
 
-   if not callable(func):
+    # The integral over a point is always zero
+    if a == b:
+        return (0.0, 0.0)
+
+    if not callable(func):
         # handle the constant case
         return (((<double>b - <double>a) * <double>func), 0.0)
 
-   cdef gsl_function F
-   cdef gsl_integration_workspace* W
-   W=NULL
+    cdef gsl_function F
+    cdef gsl_integration_workspace* W
+    W = NULL
 
-   if not isinstance(func, FastDoubleFunc):
+    if not isinstance(func, FastDoubleFunc):
+        from sage.rings.infinity import Infinity
         try:
             if hasattr(func, 'arguments'):
                 vars = func.arguments()
             else:
                 vars = func.variables()
-            if len(vars) == 0:
-               # handle the constant case
-               return (((<double>b - <double>a) * <double>func), 0.0)
+        except (AttributeError):
+            pass
+        else:
+            if not vars:
+                # handle the constant case
+                return (((<double>b - <double>a) * <double>func), 0.0)
             if len(vars) != 1:
                 if len(params) + 1 != len(vars):
                    raise ValueError(("The function to be integrated depends on "
@@ -285,70 +297,85 @@ def numerical_integral(func, a, b=None,
 
                 to_sub = dict(zip(vars[1:], params))
                 func = func.subs(to_sub)
-            func = func._fast_float_(str(vars[0]))
-        except (AttributeError):
-            pass
 
-   if isinstance(func, FastDoubleFunc):
+            # sanity checks for integration up to infinity
+            v = str(vars[0])
+            if a is -Infinity:
+                try:
+                   ell = func.limit(**{v: -Infinity})
+                except (AttributeError, ValueError):
+                   pass
+                else:
+                   if ell.is_numeric() and not ell.is_zero():
+                      raise ValueError('integral does not converge at -infinity')
+            if b is Infinity:
+                try:
+                   ell = func.limit(**{v: Infinity})
+                except (AttributeError, ValueError):
+                   pass
+                else:
+                   if ell.is_numeric() and not ell.is_zero():
+                      raise ValueError('integral does not converge at infinity')
+            func = func._fast_float_(v)
+
+    if isinstance(func, FastDoubleFunc):
         F.function = c_ff
         F.params = <void *>func
 
-   elif not isinstance(func, compiled_integrand):
+    elif not isinstance(func, compiled_integrand):
       wrapper = PyFunctionWrapper()
       if not func is None:
          wrapper.the_function = func
       else:
          raise ValueError("No integrand defined")
       try:
-         if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == 1:
-            wrapper.the_parameters=[]
-         elif params == [] and len(sage_getargspec(wrapper.the_function)[0]) > 1:
+         if not params and len(sage_getargspec(wrapper.the_function)[0]) == 1:
+            wrapper.the_parameters = []
+         elif not params and len(sage_getargspec(wrapper.the_function)[0]) > 1:
             raise ValueError("Integrand has parameters but no parameters specified")
-         elif params!=[]:
+         elif params:
             wrapper.the_parameters = params
       except TypeError:
-         wrapper.the_function = eval("lambda x: func(x)", {'func':func})
+         wrapper.the_function = eval("lambda x: func(x)", {'func': func})
          wrapper.the_parameters = []
 
       F.function = c_f
       F.params = <void *> wrapper
 
+    cdef size_t n
+    n = max_points
 
-   cdef size_t n
-   n = max_points
+    gsl_set_error_handler_off()
 
-   gsl_set_error_handler_off()
-
-   if algorithm == "qng":
+    if algorithm == "qng":
       _a=a
       _b=b
       sig_on()
       gsl_integration_qng(&F, _a, _b, eps_abs, eps_rel, &result, &abs_err, &n)
       sig_off()
 
-   elif algorithm == "qag":
-      from sage.rings.infinity import Infinity
-      if a is -Infinity and b is +Infinity:
+    elif algorithm == "qag":
+       if a is -Infinity and b is +Infinity:
          W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qagi(&F, eps_abs, eps_rel, n, W, &result, &abs_err)
          sig_off()
 
-      elif a is -Infinity:
+       elif a is -Infinity:
          _b = b
          W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qagil(&F, _b, eps_abs, eps_rel, n, W, &result, &abs_err)
          sig_off()
 
-      elif b is +Infinity:
+       elif b is +Infinity:
          _a = a
          W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          sig_on()
          gsl_integration_qagiu(&F, _a, eps_abs, eps_rel, n, W, &result, &abs_err)
          sig_off()
 
-      else:
+       else:
          _a = a
          _b = b
          W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
@@ -357,7 +384,7 @@ def numerical_integral(func, a, b=None,
          sig_off()
 
 
-   elif algorithm == "qags":
+    elif algorithm == "qags":
 
         W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
         sig_on()
@@ -366,13 +393,14 @@ def numerical_integral(func, a, b=None,
         gsl_integration_qags(&F, _a, _b, eps_abs, eps_rel, n, W, &result, &abs_err)
         sig_off()
 
-   else:
+    else:
       raise TypeError("invalid integration algorithm")
 
-   if W != NULL:
+    if W != NULL:
       gsl_integration_workspace_free(W)
 
-   return result, abs_err
+    return result, abs_err
+
 
 cdef double c_monte_carlo_f(double *t, size_t dim, void *params):
     cdef double value
@@ -392,6 +420,7 @@ cdef double c_monte_carlo_f(double *t, size_t dim, void *params):
         return 0
 
     return value
+
 
 cdef double c_monte_carlo_ff(double *x, size_t dim, void *params):
     cdef double result
@@ -598,11 +627,11 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain',
         wrapper = PyFunctionWrapper()
         wrapper.the_function = func
 
-        if params == [] and len(sage_getargspec(wrapper.the_function)[0]) == dim:
+        if not params and len(sage_getargspec(wrapper.the_function)[0]) == dim:
             wrapper.the_parameters = []
-        elif params == [] and len(sage_getargspec(wrapper.the_function)[0]) > dim:
+        elif not params and len(sage_getargspec(wrapper.the_function)[0]) > dim:
             raise ValueError("Integrand has parameters but no parameters specified")
-        elif params != []:
+        elif params:
             wrapper.the_parameters = params
         wrapper.lx = [None] * dim
 

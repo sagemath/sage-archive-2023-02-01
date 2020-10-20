@@ -38,11 +38,10 @@ Methods
 #    the License, or (at your option) any later version.                   #
 #                    https://www.gnu.org/licenses/                          #
 # **************************************************************************
-from __future__ import print_function
-
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.sets.set import Set
+from sage.libs.gap.libgap import libgap
 
 
 class IncidenceStructure(object):
@@ -1058,6 +1057,22 @@ class IncidenceStructure(object):
         gB = [[x + 1 for x in b] for b in self._blocks]
         return "BlockDesign({},{})".format(v, gB)
 
+    def _libgap_(self):
+        """
+        Return the design as a GAP record.
+
+        EXAMPLES::
+
+            sage: D = IncidenceStructure(4, [[0,2],[1,2,3],[2,3]])
+            sage: D._libgap_()                # optional - gap_packages
+            rec( blocks := [ [ 1, 3 ], [ 2, 3, 4 ], [ 3, 4 ] ],
+            isBlockDesign := true, v := 4 )
+        """
+        libgap.load_package("design")
+        v = self.num_points()
+        gB = [[x + 1 for x in b] for b in self._blocks]
+        return libgap.BlockDesign(v, gB)
+
     def intersection_graph(self, sizes=None):
         r"""
         Return the intersection graph of the incidence structure.
@@ -1741,7 +1756,7 @@ class IncidenceStructure(object):
           .. NOTE::
 
               The ``algorithm="gap"`` option requires GAP's Design package
-              (included in the gap_packages Sage spkg).
+              (included in the ``gap_packages`` Sage spkg).
 
         EXAMPLES:
 
@@ -1772,18 +1787,13 @@ class IncidenceStructure(object):
         REFERENCE:
 
         - Soicher, Leonard, Design package manual, available at
-          http://www.gap-system.org/Manuals/pkg/design/htm/CHAP003.htm
+          https://www.gap-system.org/Manuals/pkg/design/htm/CHAP003.htm
         """
         if algorithm == "gap":
-            from sage.interfaces.gap import gap
-            gap.load_package("design")
-            gD = self._gap_()
-            gap.eval("DD:=DualBlockDesign("+gD+")")
-            v = eval(gap.eval("DD.v"))
-            gblcks = eval(gap.eval("DD.blocks"))
-            gB = []
-            for b in gblcks:
-                gB.append([x-1 for x in b])
+            libgap.load_package("design")
+            DD = libgap(self).DualBlockDesign()
+            v = DD['v'].sage()
+            gB = [[x - 1 for x in b] for b in DD['blocks'].sage()]
             return IncidenceStructure(list(range(v)), gB, name=None, check=False)
         else:
             return IncidenceStructure(
@@ -2231,6 +2241,68 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
+
+    def is_spread(self, spread):
+        r"""
+        Check whether the input is a spread for ``self``.
+
+        A spread of an incidence structure `(P, B)` is a subset of `B` which
+        forms a partition of `P`.
+
+        INPUT:
+
+        - ``spread`` -- iterable; defines the spread
+
+        EXAMPLES::
+
+            sage: E = IncidenceStructure([[1, 2, 3], [4, 5, 6], [1, 5, 6]])
+            sage: E.is_spread([[1, 2, 3], [4, 5, 6]])
+            True
+            sage: E.is_spread([1, 2, 3, 4, 5, 6])
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
+            sage: E.is_spread([[1, 2, 3, 4], [5, 6]])
+            False
+
+        Order of blocks or of points within each block doesn't matter::
+
+            sage: E = IncidenceStructure([[1, 2, 3], [4, 5, 6], [1, 5, 6]])
+            sage: E.is_spread([[5, 6, 4], [3, 1, 2]])
+            True
+
+        TESTS::
+
+            sage: E = IncidenceStructure([])
+            sage: E.is_spread([])
+            True
+            sage: E = IncidenceStructure([[1]])
+            sage: E.is_spread([])
+            False
+            sage: E.is_spread([[1]])
+            True
+            sage: E = IncidenceStructure([[1], [1]])
+            sage: E.is_spread([[1]])
+            True
+        """
+
+        points = set(self.ground_set())
+        allBlocks = set(map(frozenset, self.blocks()))
+        for block in spread:
+            sblock = set(block)
+
+            if sblock not in allBlocks:
+                return False
+
+            if not points.issuperset(sblock):
+                return False
+
+            points.difference_update(sblock)
+
+        if points:
+            return False
+
+        return True
 
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index

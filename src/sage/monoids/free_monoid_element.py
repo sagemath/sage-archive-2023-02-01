@@ -66,7 +66,7 @@ class FreeMonoidElement(MonoidElement):
             if check:
                 x2 = []
                 for v in x:
-                    if not isinstance(v, tuple) and len(v) == 2:
+                    if not (isinstance(v, tuple) and len(v) == 2):
                         raise TypeError("x (= %s) must be a list of 2-tuples or 1."%x)
                     if not (isinstance(v[0], (int, Integer)) and
                             isinstance(v[1], (int, Integer))):
@@ -88,15 +88,12 @@ class FreeMonoidElement(MonoidElement):
         TESTS::
 
             sage: R.<x,y> = FreeMonoid(2)
-            sage: hash(x)
-            1914282862589934403  # 64-bit
-            139098947            # 32-bit
-            sage: hash(y)
-            2996819001369607946  # 64-bit
-            13025034             # 32-bit
-            sage: hash(x*y)
-            7114093379175463612  # 64-bit
-            2092317372           # 32-bit
+            sage: hash(x) == hash(((0, 1),))
+            True
+            sage: hash(y) == hash(((1, 1),))
+            True
+            sage: hash(x*y) == hash(((0, 1), (1, 1)))
+            True
         """
         return hash(tuple(self._element_list))
 

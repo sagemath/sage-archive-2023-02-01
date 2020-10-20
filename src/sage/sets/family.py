@@ -45,7 +45,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_import import lazy_import
 from sage.rings.integer import Integer
-from sage.misc.misc import AttrCallObject
+from sage.misc.call import AttrCallObject
 lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 
 def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=False, name=None):
@@ -378,7 +378,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     assert(isinstance(hidden_keys, list))
     assert(isinstance(lazy, bool))
 
-    if hidden_keys == []:
+    if not hidden_keys:
         if hidden_function is not None:
             raise ValueError("hidden_function keyword only makes sense "
                              "together with hidden_keys keyword !")

@@ -1716,9 +1716,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         In the case of numerically approximated points, the points are returned over as
         points of the ambient space.
 
-        For a dimesion greater than 0 scheme, depending on bound size, either the
+        For a dimension greater than 0 scheme, depending on bound size, either the
         points in the ambient space are enumerated or a sieving algorithm lifting points
-        modulo primes is used. See the documention in homset for the details of the
+        modulo primes is used. See the documentation in homset for the details of the
         sieving algorithm.
 
         INPUT:

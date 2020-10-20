@@ -476,7 +476,6 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     c = op(inverse(b),multiple(a,lb,operation=operation))
 
     if ran < 30:    # use simple search for small ranges
-        i = lb
         d = c
 #        for i,d in multiples(a,ran,c,indexed=True,operation=operation):
         for i0 in range(ran):

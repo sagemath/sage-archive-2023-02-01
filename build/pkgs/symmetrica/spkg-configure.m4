@@ -15,7 +15,7 @@ dnl check for one of its many functions
             [b = callocobject();]
             [M_I_I(i, n);]
             [kostka_tafel(n, b);]
-            [println(b);]
+            [fprintln(stderr, b);]
             [freeall(n);]
             [freeall(b);}]
           [ende();]])],

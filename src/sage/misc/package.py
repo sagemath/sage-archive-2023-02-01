@@ -49,15 +49,10 @@ import json
 import os
 import subprocess
 import sys
-try:
-    # Python 3.3+
-    from urllib.request import urlopen
-    from urllib.error import URLError
-except ImportError:
-    # Python 2.7
-    from urllib2 import urlopen, URLError
+from urllib.request import urlopen
+from urllib.error import URLError
 
-DEFAULT_PYPI = 'https://pypi.python.org/pypi'
+DEFAULT_PYPI = 'https://pypi.org/pypi'
 
 def pkgname_split(name):
     r"""
@@ -102,7 +97,8 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
         sage: pypi = 'http://this.is.not.pypi.com/'
         sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=True) # optional - internet
         doctest:...: UserWarning: failed to fetch the version of
-        pkg='hey_this_is_NOT_a_python_package' at http://this.is.not.pypi.com/
+        pkg='hey_this_is_NOT_a_python_package' at
+        http://this.is.not.pypi.com/.../json
         sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=False) # optional - internet
         Traceback (most recent call last):
         ...
@@ -117,7 +113,7 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     except URLError:
         if ignore_URLError:
             import warnings
-            warnings.warn("failed to fetch the version of pkg={!r} at {}".format(pkg, pypi_url))
+            warnings.warn("failed to fetch the version of pkg={!r} at {}".format(pkg, url))
             return
         else:
             raise
@@ -234,9 +230,17 @@ def list_packages(*pkg_types, **opts):
 
     installed = installed_packages(exclude_pip)
 
-    pkgs = {}
     SAGE_PKGS = sage.env.SAGE_PKGS
-    for p in os.listdir(SAGE_PKGS):
+    if not SAGE_PKGS:
+        return {}
+
+    try:
+        lp = os.listdir(SAGE_PKGS)
+    except FileNotFoundError:
+        return {}
+
+    pkgs = {}
+    for p in lp:
         try:
             f = open(os.path.join(SAGE_PKGS, p, "type"))
         except IOError:
@@ -310,8 +314,13 @@ def installed_packages(exclude_pip=True):
     if not exclude_pip:
         installed.update(pip_installed_packages())
     # Sage packages should override pip packages (Trac #23997)
-    installed.update(pkgname_split(pkgname)
-                     for pkgname in os.listdir(sage.env.SAGE_SPKG_INST))
+    SAGE_SPKG_INST = sage.env.SAGE_SPKG_INST
+    if SAGE_SPKG_INST:
+        try:
+            lp = os.listdir(SAGE_SPKG_INST)
+            installed.update(pkgname_split(pkgname) for pkgname in lp)
+        except FileNotFoundError:
+            pass
     return installed
 
 
@@ -533,14 +542,40 @@ class PackageNotFoundError(RuntimeError):
     - The required optional package is installed, but the relevant
       interface to that package is unable to detect the package.
 
+    Raising a ``PackageNotFoundError`` is deprecated.  Use
+    :class:`sage.features.FeatureNotPresentError` instead.
+
+    User code can continue to catch ``PackageNotFoundError`` exceptions
+    for compatibility with older versions of the Sage library.
+    This does not cause deprecation warnings.
+
     EXAMPLES::
 
         sage: from sage.misc.package import PackageNotFoundError
-        sage: raise PackageNotFoundError("my_package")
-        Traceback (most recent call last):
-        ...
-        PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
+        sage: try:
+        ....:     pass
+        ....: except PackageNotFoundError:
+        ....:     pass
+
     """
+
+    def __init__(self, *args):
+        """
+        TESTS::
+
+            sage: from sage.misc.package import PackageNotFoundError
+            sage: raise PackageNotFoundError("my_package")
+            Traceback (most recent call last):
+            ...
+            PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
+        """
+        super().__init__(*args)
+        # We do not deprecate the whole class because we want
+        # to allow user code to handle this exception without causing
+        # a deprecation warning.
+        from sage.misc.superseded import deprecation
+        deprecation(30607, "Instead of raising PackageNotFoundError, raise sage.features.FeatureNotPresentError")
+
     def __str__(self):
         """
         Return the actual error message.
@@ -549,6 +584,7 @@ class PackageNotFoundError(RuntimeError):
 
             sage: from sage.misc.package import PackageNotFoundError
             sage: str(PackageNotFoundError("my_package"))
+            doctest:warning...
             "the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell"
         """
         return ("the package {0!r} was not found. "

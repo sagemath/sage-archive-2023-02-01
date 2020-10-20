@@ -3784,18 +3784,6 @@ cdef class Matroid(SageObject):
         """
         return self.minor(contractions=X)
 
-    def __div__(self, X):
-        r"""
-        Shorthand for ``self.contract(X)``.
-
-        EXAMPLES::
-
-            sage: M = matroids.CompleteGraphic(4)
-            sage: M.contract(1) == M / 1  # indirect doctest
-            True
-        """
-        return self.contract(X)
-
     def __truediv__(self, X):
         r"""
         Shorthand for ``self.contract(X)``.
@@ -6623,7 +6611,7 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_independent_generic()
             False
 
-        Here is an example from [GriRei18]_ (Example 7.4.12 in v5)::
+        Here is an example from [GriRei18]_ (Example 7.4.12 in v6)::
 
             sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
             ....:                 [-1,  0,  1,  1],
@@ -6781,7 +6769,7 @@ cdef class Matroid(SageObject):
             sage: M.dual().is_max_weight_coindependent_generic(weights=wt)
             True
 
-        Here is an example from [GriRei18]_ (Example 7.4.12 in v5)::
+        Here is an example from [GriRei18]_ (Example 7.4.12 in v6)::
 
             sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
             ....:                 [-1,  0,  1,  1],

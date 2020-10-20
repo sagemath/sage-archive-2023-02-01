@@ -108,7 +108,7 @@ AUTHORS:
 # ****************************************************************************
 
 from cysignals.signals cimport sig_check, sig_on, sig_off
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 
 from cpython.int cimport PyInt_FromSize_t
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -587,7 +587,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(16, [2, 7, -20])
         Traceback (most recent call last):
         ...
-        OverflowError: can't convert negative value to size_t
+        OverflowError: can...t convert negative value to size_t
         sage: BoundedIntegerSequence(1, [0, 0, 0])
         <0, 0, 0>
         sage: BoundedIntegerSequence(1, [0, 1, 0])

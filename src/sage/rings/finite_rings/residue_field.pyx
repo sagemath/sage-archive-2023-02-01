@@ -151,6 +151,8 @@ from sage.rings.ring cimport Field
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
+from sage.categories.basic import Fields, Rings
+from sage.categories.pushout import AlgebraicExtensionFunctor
 from sage.rings.all import ZZ, QQ, Integers
 from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
@@ -478,6 +480,42 @@ class ResidueField_generic(Field):
         """
         self.p = p
         # Note: we don't call Parent.__init__ since many residue fields use multiple inheritance and will be calling __init__ via their other superclass.
+
+    def construction(self):
+        """
+        Construction of this residue field.
+
+        OUTPUT:
+
+        An :class:`~sage.categories.pushout.AlgebraicExtensionFunctor` and the
+        number field that this residue field has been obtained from.
+
+        The residue field is determined by a prime (fractional) ideal in a
+        number field. If this ideal can be coerced into a different number
+        field, then the construction functor applied to this number field will
+        return the corresponding residue field. See :trac:`15223`.
+
+        EXAMPLES::
+
+            sage: K.<z> = CyclotomicField(7)
+            sage: P = K.factor(17)[0][0]
+            sage: k = K.residue_field(P)
+            sage: k
+            Residue field in zbar of Fractional ideal (17)
+            sage: F, R = k.construction()
+            sage: F
+            AlgebraicExtensionFunctor
+            sage: R
+            Cyclotomic Field of order 7 and degree 6
+            sage: F(R) is k
+            True
+            sage: F(ZZ)
+            Residue field of Integers modulo 17
+            sage: F(CyclotomicField(49))
+            Residue field in zbar of Fractional ideal (17)
+
+        """
+        return AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None], residue=self.p), self.p.ring()
 
     def ideal(self):
         r"""

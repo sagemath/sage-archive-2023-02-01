@@ -144,8 +144,8 @@ cdef bint is_Integer(x):
 
 def is_Parent(x):
     """
-    Return True if x is a parent object, i.e., derives from
-    sage.structure.parent.Parent and False otherwise.
+    Return ``True`` if x is a parent object, i.e., derives from
+    sage.structure.parent.Parent and ``False`` otherwise.
 
     EXAMPLES::
 
@@ -1346,7 +1346,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             codomain = im_gens.universe()
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
-        # Not all homsets accept catgory/check/base_map as arguments
+        # Not all homsets accept category/check/base_map as arguments
         kwds = {}
         if check is not None:
             kwds['check'] = check
@@ -1472,6 +1472,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         EXAMPLES::
 
             sage: R.<XX> = QQ
+            sage: R._remove_from_coerce_cache(QQ)
             sage: R._is_coercion_cached(QQ)
             False
             sage: _ = R.coerce_map_from(QQ)

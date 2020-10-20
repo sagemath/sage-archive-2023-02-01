@@ -11,7 +11,7 @@ env:
   MAKE: make -j8
   SAGE_NUM_THREADS: 3
   SAGE_CHECK: warn
-  SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
+  SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
   CYGWIN: winsymlinks:native
   CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url
   SAGE_FAT_BINARY: yes
@@ -94,7 +94,7 @@ jobs:
   cygwin-stage-i-b:
     env:
       STAGE: i-b
-      TARGETS: cython setuptools_scm kiwisolver dateutil cycler pyparsing nose certifi singledispatch pkgconfig pplpy
+      TARGETS: cython setuptools_scm kiwisolver dateutil cycler pyparsing nose certifi pkgconfig pplpy
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -481,7 +481,7 @@ jobs:
     env:
       STAGE: ii-e
       PREVIOUS_STAGES: i-*
-      TARGETS: threejs tachyon pillow jmol m4rie sage_brial sympy lrcalc lcalc symmetrica cliquer libbraiding planarity rw elliptic_curves combinatorial_designs zn_poly sympow
+      TARGETS: threejs tachyon pillow jmol m4rie sympy lrcalc lcalc symmetrica cliquer libbraiding planarity rw elliptic_curves combinatorial_designs zn_poly sympow
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 

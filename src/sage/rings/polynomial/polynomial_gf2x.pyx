@@ -1,3 +1,7 @@
+# distutils: libraries = gmp ntl
+# distutils: extra_compile_args = M4RI_CFLAGS
+# distutils: include_dirs = M4RI_INCDIR
+# distutils: language = c++
 """
 Univariate Polynomials over GF(2) via NTL's GF2X
 
@@ -137,7 +141,8 @@ cdef class Polynomial_GF2X(Polynomial_template):
         if g.parent() is not self.parent() or h.parent() is not self.parent():
             raise TypeError("Parents of the first three parameters must match.")
 
-        from sage.misc.misc import verbose, cputime
+        from sage.misc.misc import cputime
+        from sage.misc.verbose import verbose
         from sage.functions.all import ceil
         from sage.matrix.constructor import Matrix
         from sage.rings.all import FiniteField as GF

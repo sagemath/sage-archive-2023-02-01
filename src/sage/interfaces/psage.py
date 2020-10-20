@@ -106,15 +106,31 @@ class PSage(Sage):
             return fobj.read() == '__locked__'
 
     def __del__(self):
-        print("deleting")
-        for x in os.listdir(self.__tmp_dir):
-            os.remove('%s/%s'%(self.__tmp_dir, x))
-        os.removedirs(self.__tmp_dir)
+        """
+        TESTS:
+
+        Check that :trac:`29989` is fixed::
+
+            sage: PSage().__del__()
+        """
+        try:
+            files = os.listdir(self.__tmp_dir)
+        except OSError:
+            pass
+        else:
+            for x in files:
+                try:
+                    os.remove(os.path.join(self.__tmp_dir, x))
+                except OSError:
+                    pass
+        try:
+            os.removedirs(self.__tmp_dir)
+        except OSError:
+            pass
+
         if not (self._expect is None):
             cmd = 'kill -9 %s'%self._expect.pid
-            print(cmd)
             os.system(cmd)
-        Sage.__del__(self)
 
     def eval(self, x, strip=True, **kwds):
         """

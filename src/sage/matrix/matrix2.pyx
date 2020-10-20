@@ -54,6 +54,10 @@ AUTHORS:
 - Mario Pernici (2014-07-01): modified ``rook_vector`` method
 
 - Rob Beezer (2015-05-25): modified ``is_similar`` method
+
+- Samuel Lelièvre (2020-09-18): improved method ``LLL_gram`` based on a patch
+  by William Stein posted at :trac:`5178`, moving the method from its initial
+  location in ``sage.matrix.integer_matrix_dense``
 """
 
 # ****************************************************************************
@@ -74,7 +78,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.coerce cimport coercion_model
 from sage.structure.element import is_Vector
 from sage.structure.element cimport have_same_parent
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 from sage.categories.fields import Fields
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -208,6 +212,12 @@ cdef class Matrix(Matrix1):
         field, this method computes a least-squares solution if the
         system is not square.
 
+        .. NOTE::
+
+            In Sage one can also write ``B / A`` for
+            ``A.solve_left(B)``, that is, Sage implements "the
+            MATLAB/Octave slash operator".
+
         INPUT:
 
         - ``B`` -- a matrix or vector
@@ -250,10 +260,14 @@ cdef class Matrix(Matrix1):
             sage: X = A.solve_left(B)
             sage: X*A == B
             True
+            sage: X == B / A
+            True
 
-            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
-            sage: B = matrix(QQ,3,1, [0,0,-1])
-            sage: M.solve_left(B)
+        ::
+
+            sage: A = matrix([(3, -1, 0, 0), (1, 1, -2, 0), (0, 0, 0, -3)])
+            sage: B = matrix(QQ, 3, 1, [0, 0, -1])
+            sage: A.solve_left(B)
             Traceback (most recent call last):
             ...
             ValueError: number of columns of self must equal number of columns
@@ -409,9 +423,9 @@ cdef class Matrix(Matrix1):
 
         .. NOTE::
 
-           In Sage one can also write ``A \ B`` for
-           ``A.solve_right(B)``, that is, Sage implements "the
-           MATLAB/Octave backslash operator".
+            In Sage one can also write ``A \ B`` for
+            ``A.solve_right(B)``, that is, Sage implements "the
+            MATLAB/Octave backslash operator".
 
         INPUT:
 
@@ -3206,13 +3220,13 @@ cdef class Matrix(Matrix1):
             # Search for a non-zero entry in column m-1
             i = -1
             for r from m+1 <= r < n:
-                if self.get_unsafe(r, m-1) != zero:
+                if not self.get_is_zero_unsafe(r, m-1):
                     i = r
                     break
             if i != -1:
                 # Found a nonzero entry in column m-1 that is strictly below row m
                 # Now set i to be the first nonzero position >= m in column m-1
-                if self.get_unsafe(m,m-1) != zero:
+                if not self.get_is_zero_unsafe(m,m-1):
                     i = m
                 t = self.get_unsafe(i,m-1)
                 t_inv = None
@@ -3694,6 +3708,7 @@ cdef class Matrix(Matrix1):
             ....:                 [4, -1, 0, -6, 2]],
             ....:            sparse=False)
             sage: B = copy(A).sparse_matrix()
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
             verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
@@ -6379,9 +6394,20 @@ cdef class Matrix(Matrix1):
         self.cache('eigenvalues', eigenvalues)
         return eigenvalues
 
-    def eigenvectors_left(self,extend=True):
+    def eigenvectors_left(self, other=None, *, extend=True):
         r"""
         Compute the left eigenvectors of a matrix.
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved (currently supported only if the base ring of ``self`` is
+          ``RDF`` or ``CDF``)
+
+        - ``extend`` -- boolean (default: ``True``)
+
+        OUTPUT:
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
         where e is the eigenvalue, V is a list of eigenvectors forming a
@@ -6391,8 +6417,9 @@ cdef class Matrix(Matrix1):
         If the option extend is set to False, then only the eigenvalues that
         live in the base ring are considered.
 
-        EXAMPLES: We compute the left eigenvectors of a `3\times 3`
-        rational matrix.
+        EXAMPLES:
+
+        We compute the left eigenvectors of a `3\times 3` rational matrix.
 
         ::
 
@@ -6425,7 +6452,37 @@ cdef class Matrix(Matrix1):
             (0, 0, 1)
             ], 1)]
 
+        TESTS::
+
+            sage: A = matrix(QQ, [[1, 2], [3, 4]])
+            sage: B = matrix(QQ, [[1, 1], [0, 1]])
+            sage: A.eigenvectors_left(B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: generalized eigenvector decomposition is
+            implemented for RDF and CDF, but not for Rational Field
+
+        Check the deprecation::
+
+            sage: matrix(QQ, [[1, 2], [3, 4]]).eigenvectors_left(False)
+            doctest:...: DeprecationWarning: "extend" should be used as keyword argument
+            See https://trac.sagemath.org/29243 for details.
+            []
         """
+        if other is not None:
+            if isinstance(other, bool):
+                # for backward compatibility
+                from sage.misc.superseded import deprecation
+                deprecation(29243,
+                            '"extend" should be used as keyword argument')
+                extend = other
+                other = None
+            else:
+                raise NotImplementedError('generalized eigenvector '
+                                          'decomposition is implemented '
+                                          'for RDF and CDF, but not for %s'
+                                          % self.base_ring())
+
         x = self.fetch('eigenvectors_left')
         if not x is None:
             return x
@@ -6465,9 +6522,20 @@ cdef class Matrix(Matrix1):
 
     left_eigenvectors = eigenvectors_left
 
-    def eigenvectors_right(self, extend=True):
+    def eigenvectors_right(self, other=None, *, extend=True):
         r"""
         Compute the right eigenvectors of a matrix.
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved (currently supported only if the base ring of ``self`` is
+          ``RDF`` or ``CDF``)
+
+        - ``extend`` -- boolean (default: ``True``)
+
+        OUTPUT:
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
         where e is the eigenvalue, V is a list of eigenvectors forming a
@@ -6477,8 +6545,9 @@ cdef class Matrix(Matrix1):
         closure of the base field where this is implemented; otherwise
         it will restrict to eigenvalues in the base field.
 
-        EXAMPLES: We compute the right eigenvectors of a
-        `3\times 3` rational matrix.
+        EXAMPLES:
+
+        We compute the right eigenvectors of a `3\times 3` rational matrix.
 
         ::
 
@@ -6500,17 +6569,57 @@ cdef class Matrix(Matrix1):
             sage: delta = eval*evec - A*evec
             sage: abs(abs(delta)) < 1e-10
             True
+
+        TESTS::
+
+            sage: A = matrix(QQ, [[1, 2], [3, 4]])
+            sage: B = matrix(QQ, [[1, 1], [0, 1]])
+            sage: A.eigenvectors_right(B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: generalized eigenvector decomposition is
+            implemented for RDF and CDF, but not for Rational Field
         """
-        return self.transpose().eigenvectors_left(extend=extend)
+        return self.transpose().eigenvectors_left(other=other, extend=extend)
 
     right_eigenvectors = eigenvectors_right
 
-    def eigenmatrix_left(self):
+    def eigenmatrix_left(self, other=None):
         r"""
-        Return matrices D and P, where D is a diagonal matrix of
-        eigenvalues and P is the corresponding matrix where the rows are
-        corresponding eigenvectors (or zero vectors) so that P\*self =
-        D\*P.
+        Return matrices `D` and `P`, where `D` is a diagonal matrix of
+        eigenvalues and the rows of `P` are corresponding eigenvectors
+        (or zero vectors).
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved
+
+        OUTPUT:
+
+        If ``self`` is a square matrix `A`, then the output is a diagonal
+        matrix `D` and a matrix `P` such that
+
+        .. MATH::
+
+            P A = D P,
+
+        where the rows of `P` are eigenvectors of `A` and the diagonal entries
+        of `D` are the corresponding eigenvalues.
+
+        If a matrix `B` is passed as optional argument, the output is a
+        solution to the generalized eigenvalue problem such that
+
+        .. MATH::
+
+            P A = D P B.
+
+        The ordinary eigenvalue problem is equivalent to the generalized one if
+        `B` is the identity matrix.
+
+        The generalized eigenvector decomposition is currently only implemented
+        for matrices over ``RDF`` and ``CDF``.
 
         EXAMPLES::
 
@@ -6530,14 +6639,14 @@ cdef class Matrix(Matrix1):
             sage: P*A == D*P
             True
 
-        Because P is invertible, A is diagonalizable.
+        Because `P` is invertible, `A` is diagonalizable.
 
         ::
 
             sage: A == (~P)*D*P
             True
 
-        The matrix P may contain zero rows corresponding to eigenvalues for
+        The matrix `P` may contain zero rows corresponding to eigenvalues for
         which the algebraic multiplicity is greater than the geometric
         multiplicity. In these cases, the matrix is not diagonalizable.
 
@@ -6547,7 +6656,6 @@ cdef class Matrix(Matrix1):
             [2 1 0]
             [0 2 1]
             [0 0 2]
-            sage: A = jordan_block(2,3)
             sage: D, P = A.eigenmatrix_left()
             sage: D
             [2 0 0]
@@ -6559,6 +6667,42 @@ cdef class Matrix(Matrix1):
             [0 0 0]
             sage: P*A == D*P
             True
+
+        A generalized eigenvector decomposition::
+
+            sage: A = matrix(RDF, [[1, -2], [3, 4]])
+            sage: B = matrix(RDF, [[0, 7], [2, -3]])
+            sage: D, P = A.eigenmatrix_left(B)
+            sage: (P * A - D * P * B).norm() < 1e-14
+            True
+
+        The matrix `B` in a generalized eigenvalue problem may be singular::
+
+            sage: A = matrix.identity(CDF, 2)
+            sage: B = matrix(CDF, [[2, 1+I], [4, 2+2*I]])
+            sage: D, P = A.eigenmatrix_left(B)
+            sage: D.diagonal()  # tol 1e-14
+            [0.2 - 0.1*I, +infinity]
+
+        In this case, we can still verify the eigenvector equation for the
+        first eigenvalue and first eigenvector::
+
+            sage: l = D[0, 0]
+            sage: v = P[0, :]
+            sage: (v * A - l * v * B).norm() < 1e-14
+            True
+
+        The second eigenvector is contained in the left kernel of `B`::
+
+            sage: (P[1, :] * B).norm() < 1e-14
+            True
+
+        .. SEEALSO::
+
+            :meth:`eigenvalues`,
+            :meth:`eigenvectors_left`,
+            :meth:`.Matrix_double_dense.eigenvectors_left`,
+            :meth:`eigenmatrix_right`.
 
         TESTS:
 
@@ -6600,25 +6744,78 @@ cdef class Matrix(Matrix1):
             sage: D, P = A.eigenmatrix_left()
             sage: (P*A - D*P).norm() < 10^(-2)
             True
+
+        For some symbolic matrices, the Maxima backend fails to correctly
+        compute some eigenvectors, returning either none or more vectors than
+        the algebraic multiplicity. The following examples show that these
+        cases are detected (:trac:`27842`)::
+
+            sage: A = matrix(SR, [(225/548, 0, -175/274*sqrt(193/1446)), (0, 1/2, 0), (-63/548*sqrt(723/386), 0, 49/548)])
+            sage: A.eigenmatrix_left()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
+            sage: B = matrix(SR, [(1/2, -7/2*sqrt(1/386), 0, 49/2*sqrt(1/279078)), (-7/2*sqrt(1/386), 211/772, 0, -8425/772*sqrt(1/723)), (0, 0, 1/2, 0), (49/2*sqrt(1/279078), -8425/772*sqrt(1/723), 0, 561/772)])
+            sage: B.eigenmatrix_left()  # long time (1.2 seconds)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
         """
         from sage.misc.flatten import flatten
         from sage.matrix.constructor import diagonal_matrix, matrix
-        evecs = self.eigenvectors_left()
+        evecs = self.eigenvectors_left(other=other)
         D = diagonal_matrix(flatten([[e[0]]*e[2] for e in evecs]))
         rows = []
         for e in evecs:
-            rows.extend(e[1]+[e[1][0].parent().zero_vector()]*(e[2]-len(e[1])))
+            defect = e[2] - len(e[1])
+            if e[1] and defect >= 0:
+                rows.extend(e[1] + [e[1][0].parent().zero_vector()] * defect)
+            else:
+                # see trac #27842
+                raise RuntimeError(
+                        "failed to compute eigenvectors for eigenvalue %s, "
+                        "check eigenvectors_left() for partial results" % e[0])
         P = matrix(rows)
         return D,P
 
     left_eigenmatrix = eigenmatrix_left
 
-    def eigenmatrix_right(self):
+    def eigenmatrix_right(self, other=None):
         r"""
-        Return matrices D and P, where D is a diagonal matrix of
-        eigenvalues and P is the corresponding matrix where the columns are
-        corresponding eigenvectors (or zero vectors) so that self\*P =
-        P\*D.
+        Return matrices `D` and `P`, where `D` is a diagonal matrix of
+        eigenvalues and the columns of `P` are corresponding eigenvectors
+        (or zero vectors).
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved
+
+        OUTPUT:
+
+        If ``self`` is a square matrix `A`, then the output is a diagonal
+        matrix `D` and a matrix `P` such that
+
+        .. MATH::
+
+            A P = P D,
+
+        where the columns of `P` are eigenvectors of `A` and the diagonal
+        entries of `D` are the corresponding eigenvalues.
+
+        If a matrix `B` is passed as optional argument, the output is a
+        solution to the generalized eigenvalue problem such that
+
+        .. MATH::
+
+            A P = B P D.
+
+        The ordinary eigenvalue problem is equivalent to the generalized one if
+        `B` is the identity matrix.
+
+        The generalized eigenvector decomposition is currently only implemented
+        for matrices over ``RDF`` and ``CDF``.
 
         EXAMPLES::
 
@@ -6638,14 +6835,14 @@ cdef class Matrix(Matrix1):
             sage: A*P == P*D
             True
 
-        Because P is invertible, A is diagonalizable.
+        Because `P` is invertible, `A` is diagonalizable.
 
         ::
 
             sage: A == P*D*(~P)
             True
 
-        The matrix P may contain zero columns corresponding to eigenvalues
+        The matrix `P` may contain zero columns corresponding to eigenvalues
         for which the algebraic multiplicity is greater than the geometric
         multiplicity. In these cases, the matrix is not diagonalizable.
 
@@ -6655,7 +6852,6 @@ cdef class Matrix(Matrix1):
             [2 1 0]
             [0 2 1]
             [0 0 2]
-            sage: A = jordan_block(2,3)
             sage: D, P = A.eigenmatrix_right()
             sage: D
             [2 0 0]
@@ -6667,6 +6863,42 @@ cdef class Matrix(Matrix1):
             [0 0 0]
             sage: A*P == P*D
             True
+
+        A generalized eigenvector decomposition::
+
+            sage: A = matrix(RDF, [[1, -2], [3, 4]])
+            sage: B = matrix(RDF, [[0, 7], [2, -3]])
+            sage: D, P = A.eigenmatrix_right(B)
+            sage: (A * P - B * P * D).norm() < 1e-14
+            True
+
+        The matrix `B` in a generalized eigenvalue problem may be singular::
+
+            sage: A = matrix.identity(RDF, 2)
+            sage: B = matrix(RDF, [[3, 5], [6, 10]])
+            sage: D, P = A.eigenmatrix_right(B); D   # tol 1e-14
+            [0.07692307692307694                 0.0]
+            [                0.0           +infinity]
+
+        In this case, we can still verify the eigenvector equation for the
+        first eigenvalue and first eigenvector::
+
+            sage: l = D[0, 0]
+            sage: v = P[:, 0]
+            sage: (A * v  - B * v * l).norm() < 1e-14
+            True
+
+        The second eigenvector is contained in the right kernel of `B`::
+
+            sage: (B * P[:, 1]).norm() < 1e-14
+            True
+
+        .. SEEALSO::
+
+            :meth:`eigenvalues`,
+            :meth:`eigenvectors_right`,
+            :meth:`.Matrix_double_dense.eigenvectors_right`,
+            :meth:`eigenmatrix_left`.
 
         TESTS:
 
@@ -6710,7 +6942,8 @@ cdef class Matrix(Matrix1):
             True
 
         """
-        D,P = self.transpose().eigenmatrix_left()
+        D,P = self.transpose().eigenmatrix_left(None if other is None
+                                                else other.transpose())
         return D,P.transpose()
 
     right_eigenmatrix = eigenmatrix_right
@@ -8812,6 +9045,40 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
+    def is_diagonal(self):
+        """
+        Return True if this matrix is a diagonal matrix.
+
+        OUTPUT:
+
+        - whether self is a diagonal matrix.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ,2,2,range(4))
+            sage: m.is_diagonal()
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_diagonal()
+            True
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_diagonal()
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_diagonal()
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                if i != j:
+                    if not self.get_unsafe(i,j).is_zero():
+                        return False
+        return True
+
     def is_unitary(self):
         r"""
         Returns ``True`` if the columns of the matrix are an orthonormal basis.
@@ -9227,6 +9494,10 @@ cdef class Matrix(Matrix1):
 
         Note that one can use the Python inverse operator to obtain the
         inverse as well.
+
+        .. SEEALSO::
+
+              :meth:`inverse_positive_definite`
 
         EXAMPLES::
 
@@ -12108,6 +12379,133 @@ cdef class Matrix(Matrix1):
             self.cache('cholesky', C)
         return C
 
+    def inverse_positive_definite(self):
+        r"""
+        Compute the inverse of a positive-definite matrix.
+
+        In accord with :meth:`is_positive_definite`, only Hermitian
+        matrices are considered positive-definite. Positive-definite
+        matrices have several factorizations (Cholesky, LDLT, et
+        cetera) that allow them to be inverted in a fast,
+        numerically-stable way. This method uses an appropriate
+        factorization, and is akin to the ``cholinv`` and ``chol2inv``
+        functions available in R, Octave, and Stata.
+
+        You should ensure that your matrix is positive-definite before
+        using this method. When in doubt, use the generic
+        :meth:`inverse` method instead.
+
+        OUTPUT:
+
+        If the given matrix is positive-definite, the return value is
+        the same as that of the :meth:`inverse` method. If the matrix
+        is not positive-definite, the behavior of this function is
+        undefined.
+
+        .. SEEALSO::
+
+              :meth:`inverse`,
+              :meth:`is_positive_definite`,
+              :meth:`cholesky`,
+              :meth:`indefinite_factorization`
+
+        EXAMPLES:
+
+        A simple two-by-two matrix with rational entries::
+
+            sage: A = matrix(QQ, [[ 2, -1],
+            ....:                 [-1,  2]])
+            sage: A.is_positive_definite()
+            True
+            sage: A.inverse_positive_definite()
+            [2/3 1/3]
+            [1/3 2/3]
+            sage: A.inverse_positive_definite() == A.inverse()
+            True
+
+        A matrix containing real roots::
+
+            sage: A = matrix(AA, [ [1,       0,       sqrt(2)],
+            ....:                  [0,       sqrt(3), 0      ],
+            ....:                  [sqrt(2), 0,       sqrt(5)] ])
+            sage: A.is_positive_definite()
+            True
+            sage: B = matrix(AA, [ [2*sqrt(5) + 5, 0, -sqrt(8*sqrt(5) + 18)],
+            ....:                  [0,             sqrt(1/3),             0],
+            ....:                  [-sqrt(8*sqrt(5) + 18), 0, sqrt(5) + 2] ])
+            sage: A.inverse_positive_definite() == B
+            True
+            sage: A*B == A.matrix_space().identity_matrix()
+            True
+
+        A Hermitian (but not symmetric) matrix with complex entries::
+
+            sage: A = matrix(QQbar, [ [ 1,  0,        I  ],
+            ....:                     [ 0,  sqrt(5),  0  ],
+            ....:                     [-I,  0,        3  ] ])
+            sage: A.is_positive_definite()
+            True
+            sage: B = matrix(QQbar, [ [ 3/2, 0,        -I/2 ],
+            ....:                     [ 0,   sqrt(1/5), 0   ],
+            ....:                     [ I/2, 0,         1/2 ] ])
+            sage: A.inverse_positive_definite() == B
+            True
+            sage: A*B == A.matrix_space().identity_matrix()
+            True
+
+        TESTS:
+
+        Check that the naive inverse agrees with the fast one for a
+        somewhat-random, positive-definite matrix with integer or
+        rational entries::
+
+            sage: from sage.misc.prandom import choice
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(5)
+            sage: ring = choice([ZZ, QQ])
+            sage: A = matrix.random(ring, n)
+            sage: I = matrix.identity(ring, n)
+            sage: A = A*A.transpose() + I
+            sage: A.is_positive_definite()
+            True
+            sage: actual = A.inverse_positive_definite()
+            sage: expected = A.inverse()
+            sage: actual == expected
+            True
+
+        Check that the naive inverse agrees with the fast one for a
+        somewhat-random, possibly complex, positive-definite matrix
+        with algebraic entries. This test is separate from the integer
+        and rational one because inverting a matrix with algebraic
+        entries is harder and requires smaller test cases::
+
+            sage: from sage.misc.prandom import choice
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(2)
+            sage: ring = choice([AA, QQbar])
+            sage: A = matrix.random(ring, n)
+            sage: I = matrix.identity(ring, n)
+            sage: A = A*A.conjugate_transpose() + I
+            sage: A.is_positive_definite()
+            True
+            sage: actual = A.inverse_positive_definite()
+            sage: expected = A.inverse()
+            sage: actual == expected
+            True
+        """
+        # Does it hurt if we conjugate a real number?
+        L, diags = self.indefinite_factorization(algorithm='hermitian',
+                                                 check=False)
+
+        # The default "echelonize" inverse() method works just fine for
+        # triangular matrices.
+        L_inv = L.inverse()
+        from sage.matrix.constructor import diagonal_matrix
+        D_inv = diagonal_matrix( ~d for d in diags )
+
+        return L_inv.conjugate_transpose()*D_inv*L_inv
+
+
     def LU(self, pivot=None, format='plu'):
         r"""
         Finds a decomposition into a lower-triangular matrix and
@@ -13459,7 +13857,7 @@ cdef class Matrix(Matrix1):
         There is also a shortcut for the conjugate transpose, or "Hermitian transpose"::
 
             sage: M.H
-             [   I + 2  6*I + 9]
+            [   I + 2  6*I + 9]
             [-4*I + 3     -5*I]
 
         Matrices over base rings that can be embedded in the
@@ -13680,13 +14078,20 @@ cdef class Matrix(Matrix1):
             [0.750000000000000 0.800000000000000 0.833333333333333]
             [0.857142857142857 0.875000000000000 0.888888888888889]
             [0.900000000000000 0.909090909090909 0.916666666666667]
+
+        We check that :trac:`29700` is fixed::
+
+            sage: M = matrix(3,[1,1,1,1,0,0,0,1,0])
+            sage: A,B = M.diagonalization(QQbar)
+            sage: _ = A.n()
+
         """
         if prec is None:
             prec = digits_to_bits(digits)
 
         try:
             return self.change_ring(sage.rings.real_mpfr.RealField(prec))
-        except TypeError:
+        except (TypeError, ValueError):
             # try to return a complex result
             return self.change_ring(sage.rings.complex_field.ComplexField(prec))
 
@@ -15887,6 +16292,127 @@ cdef class Matrix(Matrix1):
         # about to check.
         return all(s * (self * x) == 0
                    for (x, s) in K.discrete_complementarity_set())
+
+    def LLL_gram(self, flag=0):
+        """
+        Return the LLL transformation matrix for this Gram matrix.
+
+        That is, the transformation matrix U over ZZ of determinant 1
+        that transforms the lattice with this matrix as Gram matrix
+        to a lattice that is LLL-reduced.
+
+        Always works when ``self`` is positive definite,
+        might work in some semidefinite and indefinite cases.
+
+        INPUT:
+
+        - ``self`` -- the Gram matrix of a quadratic form or of
+          a lattice equipped with a bilinear form
+
+        - ``flag`` -- an optional flag passed to ``qflllgram``.
+          According  to :pari:`qflllgram`'s documentation the options are:
+
+            - ``0`` -- (default), assume that ``self`` has either exact
+              (integral or rational) or real floating point entries.
+              The matrix is rescaled, converted to integers and the
+              behavior is then as in ``flag=1``.
+
+            - ``1`` -- assume that G is integral.
+              Computations involving Gram-Schmidt vectors are
+              approximate, with precision varying as needed.
+
+        OUTPUT:
+
+        A dense matrix ``U`` over the integers with determinant 1
+        such that ``U.T * M * U`` is LLL-reduced.
+
+        ALGORITHM:
+
+        Calls PARI's :pari:`qflllgram`.
+
+        EXAMPLES:
+
+        Create a Gram matrix and LLL-reduce it::
+
+            sage: M = Matrix(ZZ, 2, 2, [5, 3, 3, 2])
+            sage: U = M.LLL_gram()
+            sage: MM = U.transpose() * M * U
+            sage: M, U, MM
+            (
+            [5 3]  [-1  1]  [1 0]
+            [3 2], [ 1 -2], [0 1]
+            )
+
+        For a Gram matrix over RR with a length one first vector and
+        a very short second vector, the LLL-reduced basis is obtained
+        by swapping the two basis vectors (and changing sign to
+        preserve orientation). ::
+
+            sage: M = Matrix(RDF, 2, 2, [1, 0, 0, 1e-5])
+            sage: M.LLL_gram()
+            [ 0 -1]
+            [ 1  0]
+
+        The algorithm might work for some semidefinite and indefinite forms::
+
+            sage: Matrix(ZZ, 2, 2, [2, 6, 6, 3]).LLL_gram()
+            [-3 -1]
+            [ 1  0]
+            sage: Matrix(ZZ, 2, 2, [1, 0, 0, -1]).LLL_gram()
+            [ 0 -1]
+            [ 1  0]
+
+        However, it might fail for others, either raising a ``ValueError``::
+
+            sage: Matrix(ZZ, 1, 1, [0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+            sage: Matrix(ZZ, 2, 2, [0, 1, 1, 0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+        or running forever::
+
+            sage: Matrix(ZZ, 2, 2, [-5, -1, -1, -5]).LLL_gram()  # not tested
+            Traceback (most recent call last):
+            ...
+            RuntimeError: infinite loop while calling qflllgram
+
+        Nonreal input leads to a value error::
+
+           sage: Matrix(2, 2, [CDF(1, 1), 0, 0, 1]).LLL_gram()
+           Traceback (most recent call last):
+           ...
+           ValueError: qflllgram failed, perhaps the matrix is not positive definite
+        """
+        if self._nrows != self._ncols:
+            raise ArithmeticError("self must be a square matrix")
+        n = self.nrows()
+        P = self.__pari__()
+        try:
+            if self.base_ring() == ZZ:
+                U = P.lllgramint()
+            else:
+                U = P.qflllgram(flag)
+        except (RuntimeError, ArithmeticError) as msg:
+            raise ValueError("qflllgram failed, "
+                             "perhaps the matrix is not positive definite")
+        if U.matsize() != [n, n]:
+            raise ValueError("qflllgram did not return a square matrix, "
+                             "perhaps the matrix is not positive definite")
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(ZZ, n)
+        U = MS(U.sage())
+        # Fix last column so that det = +1
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        if U.change_ring(FiniteField(3)).det() != 1:  # p = 3 is enough to decide
+            U.rescale_col(n - 1, -1)
+        return U
 
     # a limited number of access-only properties are provided for matrices
     @property

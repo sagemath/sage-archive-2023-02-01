@@ -1,3 +1,6 @@
+# distutils: language = c
+# distutils: libraries = fes
+# sage_setup: distribution = sage-fes
 """
 Binding for the FES library
 
@@ -35,7 +38,7 @@ Random Degree-2 System::
     sage: len(sols)                                                              # optional - FES
     1
 
-Cylic benchmark::
+Cyclic benchmark::
 
     sage: from sage.rings.ideal import Cyclic                 # optional - FES
     sage: from sage.libs.fes import exhaustive_search         # optional - FES
@@ -80,7 +83,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.polynomial.pbori import BooleanPolynomial, BooleanPolynomialRing
+from sage.rings.polynomial.pbori.pbori import BooleanPolynomial, BooleanPolynomialRing
 from sage.arith.all import binomial
 from sage.combinat.subset import Subsets
 

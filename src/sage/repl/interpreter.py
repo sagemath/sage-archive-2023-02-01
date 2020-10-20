@@ -78,7 +78,7 @@ Check that Cython source code appears in tracebacks::
     dummy line
     ...
     ZeroDivisionError...Traceback (most recent call last)
-    <ipython-input-...> in <module>()
+    <ipython-input-...> in <module>...
     ----> 1 Integer(1)/Integer(0)
     .../sage/rings/integer.pyx in sage.rings.integer.Integer...div... (.../cythonized/sage/rings/integer.c:...)()
     ...
@@ -87,6 +87,45 @@ Check that Cython source code appears in tracebacks::
        ....:            mpq_div_zz(x.value, ....value, (<Integer>right).value)
     <BLANKLINE>
     ZeroDivisionError: rational division by zero
+    sage: shell.quit()
+
+Test prompt transformer::
+
+    sage: from sage.repl.interpreter import SagePromptTransformer
+    sage: spt = SagePromptTransformer
+    sage: spt(["sage: 2 + 2"])
+    ['2 + 2']
+    sage: spt([''])
+    ['']
+    sage: spt(["....: 2+2"])
+    ['2+2']
+
+This should strip multiple prompts: see :trac:`16297`::
+
+    sage: spt(["sage:   sage: 2+2"])
+    ['2+2']
+    sage: spt(["   sage: ....: 2+2"])
+    ['2+2']
+
+The prompt contains a trailing space. Extra spaces between the
+last prompt and the remainder should not be stripped::
+
+    sage: spt(["   sage: ....:    2+2"])
+    ['   2+2']
+
+We test that the input transformer is enabled on the Sage command
+line::
+
+    sage: from sage.repl.interpreter import get_test_shell
+    sage: shell = get_test_shell()
+    sage: shell.run_cell('sage: a = 123')              # single line
+    sage: shell.run_cell('sage: a = [\n... 123]')      # old-style multi-line
+    sage: shell.run_cell('sage: a = [\n....: 123]')    # new-style multi-line
+
+We test that :trac:`16196` is resolved::
+
+    sage: shell.run_cell('    sage: 1+1')
+    2
     sage: shell.quit()
 """
 
@@ -364,22 +403,19 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
 ###################################################################
 # Transformers used in the SageInputSplitter
 ###################################################################
-from IPython.core.inputtransformer import (CoroutineInputTransformer,
-                                           StatelessInputTransformer,
-                                           _strip_prompts)
+from IPython.core.inputtransformer2 import PromptStripper
 
-@StatelessInputTransformer.wrap
-def SagePreparseTransformer(line):
+def SagePreparseTransformer(lines):
     r"""
     EXAMPLES::
 
         sage: from sage.repl.interpreter import SagePreparseTransformer
-        sage: spt = SagePreparseTransformer()
-        sage: spt.push('1+1r+2.3^2.3r')
-        "Integer(1)+1+RealNumber('2.3')**2.3"
+        sage: spt = SagePreparseTransformer
+        sage: spt(['1+1r+2.3^2.3r'])
+        ["Integer(1)+1+RealNumber('2.3')**2.3"]
         sage: preparser(False)
-        sage: spt.push('2.3^2')
-        '2.3^2'
+        sage: spt(['2.3^2'])
+        ['2.3^2']
 
     TESTS:
 
@@ -399,58 +435,26 @@ def SagePreparseTransformer(line):
         SyntaxError: Mismatched ']'
         <BLANKLINE>
         sage: shell.quit()
+
+    Make sure the quote state is carried over across subsequent lines in order
+    to avoid interfering with multi-line strings, see :trac:`30417`. ::
+
+        sage: SagePreparseTransformer(["'''", 'abc-1-2', "'''"])
+        ["'''", 'abc-1-2', "'''"]
+        sage: # instead of ["'''", 'abc-Integer(1)-Integer(2)', "'''"]
+
     """
-    if _do_preparse and not line.startswith('%'):
-        return preparse(line)
-    else:
-        return line
+    lines_out = []
+    reset = True
+    for line in lines:
+        if _do_preparse and not line.startswith('%'):
+            lines_out += [preparse(line, reset=reset)]
+            reset = False
+        else:
+            lines_out += [line]
+    return lines_out
 
-@CoroutineInputTransformer.wrap
-def SagePromptTransformer():
-    r"""
-    Strip the sage:/....: prompts of Sage.
-
-    EXAMPLES::
-
-        sage: from sage.repl.interpreter import SagePromptTransformer
-        sage: spt = SagePromptTransformer()
-        sage: spt.push("sage: 2 + 2")
-        '2 + 2'
-        sage: spt.push('')
-        ''
-        sage: spt.push("....: 2+2")
-        '2+2'
-
-    This should strip multiple prompts: see :trac:`16297`::
-
-        sage: spt.push("sage:   sage: 2+2")
-        '2+2'
-        sage: spt.push("   sage: ....: 2+2")
-        '2+2'
-
-    The prompt contains a trailing space. Extra spaces between the
-    last prompt and the remainder should not be stripped::
-
-        sage: spt.push("   sage: ....:    2+2")
-        '   2+2'
-
-    We test that the input transformer is enabled on the Sage command
-    line::
-
-        sage: from sage.repl.interpreter import get_test_shell
-        sage: shell = get_test_shell()
-        sage: shell.run_cell('sage: a = 123')              # single line
-        sage: shell.run_cell('sage: a = [\n... 123]')      # old-style multi-line
-        sage: shell.run_cell('sage: a = [\n....: 123]')    # new-style multi-line
-
-    We test that :trac:`16196` is resolved::
-
-        sage: shell.run_cell('    sage: 1+1')
-        2
-        sage: shell.quit()
-    """
-    _sage_prompt_re = re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+')
-    return _strip_prompts(_sage_prompt_re)
+SagePromptTransformer = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
 
 ###################
 # Interface shell #
@@ -612,7 +616,7 @@ def interface_shell_embed(interface):
         sage: shell = interface_shell_embed(gap)
         sage: shell.run_cell('List( [1..10], IsPrime )')
         [ false, true, true, false, true, false, true, false, false, false ]
-        <ExecutionResult object at ..., execution_count=None error_before_exec=None error_in_exec=None result=[ false, true, true, false, true, false, true, false, false, false ]>
+        <ExecutionResult object at ..., execution_count=None error_before_exec=None error_in_exec=None ...result=[ false, true, true, false, true, false, true, false, false, false ]>
     """
     cfg = sage_ipython_config.copy()
     ipshell = InteractiveShellEmbed(config=cfg,

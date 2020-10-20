@@ -2335,7 +2335,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
         r"""
-        A recusive method to fill in ``n``-th preimage tree.
+        A recursive method to fill in ``n``-th preimage tree.
 
         This helper function is used by ``nth_preimage_tree`` below to actually compute the
         points of the tree and populate the dictionary used to create a ``DiGraph``
@@ -2419,7 +2419,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically. Note if this
           is set to ``True``, preimage points are displayed as complex numbers
 
-        - ``prec`` -- (default: 100) postive integer; the precision of the ``ComplexField`` if
+        - ``prec`` -- (default: 100) positive integer; the precision of the ``ComplexField`` if
           we compute the preimage points numerically
 
         - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels. Since labels
@@ -3145,10 +3145,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<w> = CyclotomicField(3)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: D6 = DynamicalSystem_projective([y^2,x^2])
-            sage: D6.automorphism_group()
+            sage: sorted(D6.automorphism_group())
             [
-            [1 0]  [0 w]  [0 1]  [w 0]  [-w - 1      0]  [     0 -w - 1]
-            [0 1], [1 0], [1 0], [0 1], [     0      1], [     1      0]
+            [-w - 1      0]  [     0 -w - 1]  [w 0]  [0 w]  [0 1]  [1 0]
+            [     0      1], [     1      0], [0 1], [1 0], [1 0], [0 1]
             ]
         """
         alg = kwds.get('algorithm', None)
@@ -3748,14 +3748,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<s> = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
-            sage: f.preperiodic_points(0,1)
-            [(-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
-            (-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
-            (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
-            (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1),
-            (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
-            (1 : 1 : 1),
-            (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1)]
+            sage: sorted(f.preperiodic_points(0,1), key=str)
+            [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
+             (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
+             (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
+             (1 : 1 : 1),
+             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1),
+             (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1)]
 
         ::
 
@@ -3969,14 +3969,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1,'s')
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
-            sage: f.periodic_points(1)
-            [(-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
-             (-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
+            sage: sorted(f.periodic_points(1), key=str)
+            [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
              (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
-             (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1),
-             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+             (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
              (1 : 1 : 1),
-             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1)]
+             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1),
+             (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1)]
 
         ::
 
@@ -4871,7 +4871,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             )
         """
         if self.domain().ambient_space().dimension_relative() != 1:
-            return NotImplementedError('only implmeneted for dimension 1')
+            return NotImplementedError('only implemented for dimension 1')
         return_conjugation = kwds.get('return_conjugation', True)
         emb = kwds.get('emb', None)
         prec = kwds.get('prec', 300)
@@ -4880,7 +4880,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         dynatomic = algorithm = kwds.get('dynatomic', True)
         smallest_coeffs = kwds.get('smallest_coeffs', True)
         if smallest_coeffs:
-            if self.base_ring() not in [ZZ,QQ]:
+            if self.base_ring() not in [ZZ, QQ]:
                 raise NotImplementedError("smallest coeff only over ZZ or QQ")
             check_min = kwds.get('check_minimal', True)
             from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import smallest_dynamical
@@ -5391,7 +5391,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([x^2+ y^2, x*y])
-            sage: f.all_periodic_points(algorithm="dnyatomic")
+            sage: f.all_periodic_points(algorithm="banana")
             Traceback (most recent call last):
             ...
             ValueError: algorithm must be 'dynatomic' or 'lifting'
@@ -5570,10 +5570,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<w> = NumberField(x^2-x+1)
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
-            sage: f.rational_periodic_points()
+            sage: sorted(f.rational_periodic_points())
             doctest:warning
             ...
-            [(w : 1), (1 : 0), (-w + 1 : 1)]
+            [(-w + 1 : 1), (w : 1), (1 : 0)]
         """
         from sage.misc.superseded import deprecation
         deprecation(28109, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_periodic_points instead")
@@ -6010,19 +6010,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: PS.<x,y> = ProjectiveSpace(1,K)
             sage: f = DynamicalSystem_projective([x^2 - 29/16*y^2, y^2])
             sage: P = PS([w,1])
-            sage: f.connected_rational_component(P)
-            [(w : 1),
-             (w^2 - 29/16 : 1),
-             (-w^2 - w + 25/16 : 1),
-             (w^2 + w - 25/16 : 1),
+            sage: sorted(f.connected_rational_component(P), key=str)
+            [(-w - 1/2 : 1),
              (-w : 1),
-             (-w^2 + 29/16 : 1),
-             (w + 1/2 : 1),
-             (-w - 1/2 : 1),
              (-w^2 + 21/16 : 1),
-             (w^2 - 21/16 : 1),
+             (-w^2 + 29/16 : 1),
+             (-w^2 - w + 25/16 : 1),
+             (-w^2 - w + 33/16 : 1),
+             (w + 1/2 : 1),
+             (w : 1),
+             (w^2 + w - 25/16 : 1),
              (w^2 + w - 33/16 : 1),
-             (-w^2 - w + 33/16 : 1)]
+             (w^2 - 21/16 : 1),
+             (w^2 - 29/16 : 1)]
 
         ::
 
@@ -6144,10 +6144,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: f.conjugating_set(g) # long time
+            sage: sorted(f.conjugating_set(g)) # long time
             [
-            [1 1]  [-1 -1]
-            [2 1], [ 2  1]
+            [-1 -1]  [1 1]
+            [ 2  1], [2 1]
             ]
 
         ::

@@ -13,7 +13,6 @@
 #    they won't be available in child programs.
 #  - This script has a version number such that a newer version of
 #    sage-env can be sourced when upgrading.  See below.
-#  - It uses bash features, so it cannot be used with other shells.
 #
 #  If you want to set all environment variables for your shell like
 #  they are during the build of Sage packages, type
@@ -27,6 +26,16 @@
 #
 ##########################################################################
 
+if [ "${SAGE_ENV_CONFIG_SOURCED}" != 1 ]; then
+    # This script uses sage-env-config to find the ./configured value
+    # of SAGE_ROOT, but ironically, it doesn't know how to find
+    # sage-env-config because it doesn't know SAGE_ROOT yet!
+    # Fortunately, anyone that knows how to source sage-env must know
+    # how to source sage-env-config, so the issue is avoided by
+    # requiring sage-env-config to be sourced before sage-env.
+    echo 'must source sage-env-config before sage-env' >&2
+    return 3
+fi
 
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an
@@ -44,12 +53,10 @@ resolvelinks() {
     # Move stuff from $in to $out
     while [ -n "$in" ]; do
         # Normalize $in by replacing consecutive slashes by one slash
-        while { in_single_slash=${in//\/\//\/}; [ "$in" != "$in_single_slash" ]; }; do
-            in=$in_single_slash
-        done
+        in=$(echo "${in}" | sed 's://*:/:g')
 
         # If $in starts with a slash, remove it and set $out to the root
-        in_without_slash=${in/#\//}
+        in_without_slash=${in#/}
         if [ "$in" != "$in_without_slash" ]; then
             in=$in_without_slash
             out="/"
@@ -71,7 +78,7 @@ resolvelinks() {
             out="$out$f"
 
             # If the new $in starts with a slash, move it to $out
-            in_without_slash=${in/#\//}
+            in_without_slash=${in#/}
             if [ "$in" != "$in_without_slash" ]; then
                 in=$in_without_slash
                 out="$out/"
@@ -103,13 +110,13 @@ resolvelinks() {
         fi
 
         # In $in, replace $f by $f_resolved (leave $out alone)
-        in=${in/#"$f"/"$f_resolved"}
+        in="${in#${f}}"
+        in="${f_resolved}${in}"
     done
 
     # Return $out
     echo "$out"
 }
-
 
 # New value for SAGE_ROOT: either SAGE_ROOT (if given)
 # or a guessed value based on pwd.
@@ -120,8 +127,8 @@ elif [ -f sage -a -d build ]; then
 elif [ -f ../../sage -a -d ../../build ]; then
     NEW_SAGE_ROOT="../.."
 else
-    # No idea what SAGE_ROOT should be...
-    echo >&2 "Error: You must set the SAGE_ROOT environment variable or run this"
+    # No idea what SAGE_ROOT should be... it should have been set by sage-env-config.
+    echo >&2 "Error: You must set the SAGE_ROOT or SAGE_SCRIPTS_DIR environment variables or run this"
     echo >&2 "script from the SAGE_ROOT or SAGE_ROOT/local/bin/ directory."
     return 1
 fi
@@ -186,13 +193,6 @@ elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
     return 1
 fi
 
-# Set environment variables (like SAGE_LOCAL) depending on ./configure
-. "$SAGE_SCRIPTS_DIR/sage-env-config"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: failed to source $SAGE_SCRIPTS_DIR/sage-env-config"
-    return 1
-fi
-
 # The compilers are set in order of priority by
 # 1) environment variables
 # 2) compiler installed by sage
@@ -225,10 +225,6 @@ if [ "$UNAME" = "Darwin" ]; then
     OBJC="$CONFIGURED_OBJC"
     OBJCXX="$CONFIGURED_OBJCXX"
     export OBJC OBJCXX
-fi
-
-if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
-    export SAGE_PYTHON3=yes
 fi
 
 # Set other Fortran-related compiler variables
@@ -287,9 +283,7 @@ fi
 # depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
-export SAGE_PKGCONFIG="$SAGE_LOCAL/lib/pkgconfig"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
-export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC_SRC="$SAGE_SRC/doc"
@@ -463,7 +457,7 @@ unset R_PROFILE
 if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
    R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
    if ! [ -f "$R_MAKEVARS_SITE" ] ; then
-       if ! [ -a "$R_MAKEVARS_SITE" ] ; then
+       if ! [ -e "$R_MAKEVARS_SITE" ] ; then
            echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
        else
            >&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
@@ -472,7 +466,7 @@ if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
 fi
 if [ -d "$DOT_SAGE" ] ; then
     if ! [ -d "$DOT_SAGE/R" ] ; then
-        if ! [ -a  "$DOT_SAGE/R" ] ; then
+        if ! [ -e  "$DOT_SAGE/R" ] ; then
             mkdir -p "$DOT_SAGE/R"
         else
             >&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
@@ -480,7 +474,7 @@ if [ -d "$DOT_SAGE" ] ; then
     fi
     R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
     if ! [ -f "$R_MAKEVARS_USER" ] ; then
-        if ! [ -a "$R_MAKEVARS_USER" ] ; then
+        if ! [ -e "$R_MAKEVARS_USER" ] ; then
             echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
         else
             >&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
@@ -603,9 +597,10 @@ ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
 # First, figure out the right values for SAGE_NUM_THREADS (default
 # number of threads) and SAGE_NUM_THREADS_PARALLEL (default number of
 # threads when parallel execution is asked explicitly).
-sage_num_threads_array=(`sage-num-threads.py 2>/dev/null || echo 1 2 1`)
-SAGE_NUM_THREADS=${sage_num_threads_array[0]}
-SAGE_NUM_THREADS_PARALLEL=${sage_num_threads_array[1]}
+sage_num_threads_array=$(sage-num-threads.py 2>/dev/null || echo 1 2 1)
+sage_num_threads_array="${sage_num_threads_array% *}" # strip third item
+SAGE_NUM_THREADS="${sage_num_threads_array% *}" # keep first item
+SAGE_NUM_THREADS_PARALLEL="${sage_num_threads_array#* }" # keep second item
 export SAGE_NUM_THREADS
 export SAGE_NUM_THREADS_PARALLEL
 
@@ -670,3 +665,22 @@ fi
 # tell it where to find it. See Trac Ticket #15091
 
 export TERMINFO="$SAGE_LOCAL/share/terminfo"
+
+# If nodejs is installed, activate the nodeenv containing it.
+
+nodeenv_activate="$SAGE_LOCAL/share/nodejs/activate"
+
+if [ -f "$nodeenv_activate" ]; then
+    # symlinked into nodeenv for specific version of nodejs installed
+    # The activate script needs to be sourced using its actual path.
+    nodeenv_activate=`resolvelinks "$nodeenv_activate"`
+
+    # Don't let nodeenv wipe out the sage-sh/sage-buildsh prompt.
+    NODE_VIRTUAL_ENV_DISABLE_PROMPT=1 . "$nodeenv_activate"
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Warning: failed to activate the nodeenv containing nodejs"
+    fi
+elif [ -L "$nodeenv_activate" ]; then
+    echo >&2 "Warning: the nodeenv activation symlink for nodejs is broken"
+fi

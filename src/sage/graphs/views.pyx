@@ -611,6 +611,7 @@ cdef class EdgesView:
         elif i < 0:
             return list(self)[i]
         else:
+            i = int(i)  # For Python < 3.7 where islice doesn't support non-int
             try:
                 return next(islice(self, i, i + 1, 1))
             except StopIteration:
@@ -694,7 +695,7 @@ cdef class EdgesView:
             sage: E * 1.5
             Traceback (most recent call last):
             ...
-            TypeError: can't multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
+            TypeError: can...t multiply sequence by non-int of type 'sage.rings.real_mpfr.RealLiteral'
         """
         if isinstance(left, EdgesView):
             return list(left) * right

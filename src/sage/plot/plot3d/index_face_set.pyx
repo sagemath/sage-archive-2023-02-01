@@ -1799,25 +1799,6 @@ cdef class VertexIter:
                     self.set.vs[self.i-1].z)
 
 
-def len3d(v):
-    """
-    Return the norm of a vector in three dimensions.
-
-    This is deprecated since :trac:`27450` .
-
-    EXAMPLES::
-
-        sage: from sage.plot.plot3d.index_face_set import len3d
-        sage: len3d((1,2,3))
-        doctest:warning...:
-        DeprecationWarning: len3d is deprecated, use point_c_len instead
-        See https://trac.sagemath.org/27450 for details.
-        3.7416573867739413
-    """
-    deprecation(27450, "len3d is deprecated, use point_c_len instead")
-    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-
-
 def sticker(face, width, hover):
     """
     Return a sticker over the given face.

@@ -500,9 +500,8 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal >= graph_classes.Tree
             True
         """
-
         inclusion_digraph = GraphClasses().inclusion_digraph()
-        if inclusion_digraph.shortest_path(self._gc_id,other._gc_id) != []:
+        if inclusion_digraph.shortest_path(self._gc_id,other._gc_id):
             return True
         else:
             return Unknown

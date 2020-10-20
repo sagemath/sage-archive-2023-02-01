@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Run the system python.
 #
@@ -20,11 +20,29 @@ fi
 #
 # See https://trac.sagemath.org/ticket/29090
 
-PYTHONS="python3 python3.8 python3.7 python2.7 python python3.6 python2"
+# Trac #29890: Our first choice is "python", not "python3". This is to avoid
+# a defect of sage_bootstrap on macOS regarding SSL URLs.
+
+# Trac #30177: Also check for hashlib.sha1 to guard against broken python2
+# from old homebrew installations.  Also check whether the current directory
+# is accessible by this python; this is to guard on Cygwin against Pythons
+# installed somewhere else in Windows.
+
+# Trac #30008: Make it work even if the environment tries to sabotage UTF-8
+# operation in Python 3.0.x-3.6.x by setting LC_ALL=C or similar.
+
+if [ "$LC_ALL" = "C" -o "$LANG" = "C" -o "$LC_CTYPE" = "C" ]; then
+    LC_ALL=$(locale -a | grep -E -i '^(c|en_us)[-.]utf-?8$' | head -n 1)
+    LANG=$LC_ALL
+    export LC_ALL
+    export LANG
+fi
+
+PYTHONS="python python3 python3.8 python3.7 python2.7 python3.6 python2"
 for PY in $PYTHONS; do
     PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v $PY)"
-    if [[ -n "$PYTHON" ]]; then
-        if "$PYTHON" -c 'import urllib'; then
+    if [ -n "$PYTHON" ]; then
+        if "$PYTHON" -c "import urllib; from hashlib import sha1; from os import listdir; listdir(\"$(pwd)\");" 2>/dev/null; then
             exec "$PYTHON" "$@"
         fi
     fi

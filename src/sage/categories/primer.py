@@ -803,6 +803,7 @@ element of the parent?)::
     running ._test_associativity() . . . pass
     running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
+    running ._test_construction() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
@@ -1093,7 +1094,7 @@ algebraic structure. This includes:
   See :meth:`Modules().DualObjects <Modules.SubcategoryMethods.DualObjects>`.
 
 - Algebras, as in group algebras, monoid algebras, ...:
-  See: :meth:`Sets.ParentMethods.algebras`.
+  See: :meth:`Sets.ParentMethods.algebra`.
 
 Let for example `A` and `B` be two parents, and let us construct the
 Cartesian product `A \times B \times B`::

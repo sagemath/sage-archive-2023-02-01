@@ -299,14 +299,12 @@ considerations:
   etc. **We do not override the default double underscore __add__, __mul__**,
   since otherwise, we could not use Sage's coercion model.
 
-- Comparisons can be implemented using ``_richcmp_`` or
-  ``_cmp_``. This automatically makes the relational operators like
-  ``==`` and ``<`` work. **Beware**: in these methods, calling the
-  Python2-only ``cmp`` function should be avoided for compatibility
-  with Python3. You can use instead the ``richcmp`` function provided
-  by sage.
+- Comparisons can be implemented using ``_richcmp_``.
+  This automatically makes the relational operators like
+  ``==`` and ``<`` work. Inside this method, you can use
+  the ``richcmp`` functions and related tools provided by sage.
 
-  Note that either ``_cmp_`` or ``_richcmp_`` should be provided,
+  Note that ``_richcmp_`` should be provided,
   since otherwise comparison does not work::
 
       sage: class Foo(sage.structure.element.Element):
@@ -319,7 +317,7 @@ considerations:
       sage: a <= b
       Traceback (most recent call last):
       ...
-      NotImplementedError: comparison not implemented for <class '__main__.Foo'>
+      TypeError: '<=' not supported between instances of 'Foo' and 'Foo'
 
 - In the single underscore methods, we can assume that
   *both arguments belong to the same parent*.
@@ -1341,6 +1339,9 @@ default implementation. Hence:
 
 - Next, we implement a new version of the "usual" fraction field functor, having the same rank, but returning our new implementation.
 - We make our new implementation the default, by virtue of a merge method.
+- Since our fraction fields accept an optional argument ``category``, we pass
+  the optional arguments to the construction functor, which will in turn use
+  it to create a fraction field.
 
 .. WARNING::
 
@@ -1352,10 +1353,12 @@ default implementation. Hence:
     sage: from sage.categories.pushout import ConstructionFunctor
     sage: class MyFracFunctor(ConstructionFunctor):
     ....:     rank = 5
-    ....:     def __init__(self):
+    ....:     def __init__(self, args=None, kwds=None):
+    ....:         self.args = args or ()
+    ....:         self.kwds = kwds or {}
     ....:         ConstructionFunctor.__init__(self, IntegralDomains(), Fields())
     ....:     def _apply_functor(self, R):
-    ....:         return MyFrac(R)
+    ....:         return MyFrac(R,*self.args,**self.kwds)
     ....:     def merge(self, other):
     ....:         if isinstance(other, (type(self), sage.categories.pushout.FractionField)):
     ....:             return self
@@ -1394,14 +1397,18 @@ We verify that our functor can really be used to construct our implementation of
 
 .. end of output
 
-There remains to let our new fraction fields know about the new construction functor:
-
+There remains to let our new fraction fields know about the new construction
+functor. The arguments that were used when creating the fraction field are
+stored as an attribute---this is a feature provided by
+:class:`~sage.structure.unique_representation.CachedRepresentation`. We pass
+all but the first of these arguments to the construction functor, such that
+the construction functor is able to reconstruct the fraction field.
 
 ::
 
     sage: class MyFrac(MyFrac):
     ....:     def construction(self):
-    ....:         return MyFracFunctor(), self.base()
+    ....:         return MyFracFunctor(self._reduction[1][1:], self._reduction[2]), self.base()
 
 
 .. end of output
@@ -1539,6 +1546,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_cardinality',
      '_test_characteristic',
      '_test_characteristic_fields',
+     '_test_construction',
      '_test_distributivity',
      '_test_divides',
      '_test_elements',
@@ -1587,6 +1595,7 @@ Let us see what tests are actually performed::
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
+    running ._test_construction() . . . pass
     running ._test_distributivity() . . . pass
     running ._test_divides() . . . pass
     running ._test_elements() . . .
@@ -1760,6 +1769,7 @@ interesting.
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
+    running ._test_construction() . . . pass
     running ._test_distributivity() . . . pass
     running ._test_divides() . . . pass
     running ._test_elements() . . .

@@ -127,8 +127,8 @@ def category(x):
     try:
         return x.category()
     except AttributeError:
-        import sage.categories.all
-        return sage.categories.all.Objects()
+        from sage.categories.objects import Objects
+        return Objects()
 
 
 def characteristic_polynomial(x, var='x'):

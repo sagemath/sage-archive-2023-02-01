@@ -82,3 +82,21 @@ We can see it from a different perspective:
     Graphics3d Object
 
 .. end of output
+
+:code:`tikz`
+==================================================
+
+This method returns a tikz picture of the polytope (must be 2 or
+3-dimensional). For more detail see the tutorial :ref:`polytikz`.
+
+::
+
+    sage: c = polytopes.cube()
+    sage: c.tikz().splitlines()[:5]
+    ['\\begin{tikzpicture}%',
+     '\t[x={(1.000000cm, 0.000000cm)},',
+     '\ty={(-0.000000cm, 1.000000cm)},',
+     '\tz={(0.000000cm, -0.000000cm)},',
+     '\tscale=1.000000,']
+
+.. end of output

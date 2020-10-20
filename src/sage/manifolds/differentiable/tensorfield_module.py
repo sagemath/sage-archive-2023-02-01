@@ -41,7 +41,6 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
-from sage.rings.integer import Integer
 from sage.tensor.modules.tensor_free_module import TensorFreeModule
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -310,8 +309,12 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, DiffForm):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
@@ -372,12 +375,14 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             else:
                raise TypeError("cannot convert the {}".format(comp) +
                                " to an element of {}".format(self))
-
+        if not isinstance(comp, (list, tuple)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._vmodule, self._tensor_type,
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 
@@ -575,9 +580,10 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         resu = self._element_constructor_(name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                resu._add_comp_unsafe(frame)
+                resu.add_comp(frame)
                 # (since new components are initialized to zero)
         resu._is_zero = True  # This element is certainly zero
+        resu.set_immutable()
         return resu
 
 #***********************************************************************
@@ -793,8 +799,12 @@ class TensorFieldFreeModule(TensorFreeModule):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, DiffFormParal):
             # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
@@ -856,11 +866,14 @@ class TensorFieldFreeModule(TensorFreeModule):
             else:
                 raise TypeError("cannot convert the {}".format(comp) +
                                 " to an element of {}".format(self))
+        if not isinstance(comp, (list, tuple)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
         # Standard construction
         resu = self.element_class(self._fmodule, self._tensor_type,
                                   name=name, latex_name=latex_name,
                                   sym=sym, antisym=antisym)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 

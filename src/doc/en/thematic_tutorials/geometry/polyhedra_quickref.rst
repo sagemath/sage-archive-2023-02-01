@@ -127,12 +127,14 @@ List of Polyhedron methods
 
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.combinatorial_polyhedron` | the combinatorial polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_lattice` | the face lattice
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.hasse_diagram` | the hasse diagram
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.combinatorial_automorphism_group` | the automorphism group of the underlying combinatorial polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.graph`, :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_graph` | underlying graph
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_digraph` | digraph (orientation of edges determined by a linear form)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_facet_graph` | bipartite digraph given vertex-facet adjacency
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.adjacency_matrix` | adjacency matrix
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix` | incidence matrix
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.slack_matrix` | slack matrix
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.facet_adjacency_matrix` | adjacency matrix of the facets
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_adjacency_matrix` | adjacency matrix of the vertices
 

@@ -41,10 +41,11 @@ def maxima_integrator(expression, v, a=None, b=None):
     if not isinstance(expression, Expression):
         expression = SR(expression)
     if a is None:
-        result = maxima.sr_integral(expression,v)
+        result = maxima.sr_integral(expression, v)
     else:
         result = maxima.sr_integral(expression, v, a, b)
     return result._sage_()
+
 
 def sympy_integrator(expression, v, a=None, b=None):
     """
@@ -66,6 +67,7 @@ def sympy_integrator(expression, v, a=None, b=None):
     else:
         result = sympy.integrate(ex, (v, a._sympy_(), b._sympy_()))
     return result._sage_()
+
 
 def mma_free_integrator(expression, v, a=None, b=None):
     """
@@ -94,8 +96,20 @@ def mma_free_integrator(expression, v, a=None, b=None):
 
     ::
 
+    Check that :trac:`14764` is resolved::
+
+        sage: integrate(x^2, x, 0, 1, algorithm="mathematica_free") # optional - internet
+        1/3
+        sage: integrate(sin(x), [x, 0, pi], algorithm="mathematica_free") # optional - internet
+        2
+        sage: integrate(sqrt(x), (x, 0, 1), algorithm="mathematica_free") # optional - internet
+        2/3
+
+    ::
+
         sage: mma_free_integrator(exp(-x^2)*log(x), x) # optional - internet
         1/2*sqrt(pi)*erf(x)*log(x) - x*hypergeometric((1/2, 1/2), (3/2, 3/2), -x^2)
+
 
     """
     math_expr = expression._mathematica_init_()
@@ -107,13 +121,14 @@ def mma_free_integrator(expression, v, a=None, b=None):
                     a._mathematica_init_(), b._mathematica_init_())
     else:
         raise ValueError('a(={}) and b(={}) should be both None'
-                         ' or both defined'.format(a,b))
+                         ' or both defined'.format(a, b))
     json_page_data = request_wolfram_alpha(input)
     all_outputs = parse_moutput_from_json(json_page_data)
     if not all_outputs:
         raise ValueError("no outputs found in the answer from Wolfram Alpha")
     first_output = all_outputs[0]
     return symbolic_expression_from_mathematica_string(first_output)
+
 
 def request_wolfram_alpha(input, verbose=False):
     r"""
@@ -197,8 +212,7 @@ def request_wolfram_alpha(input, verbose=False):
         'scantimeout': '0.5',
         'sponsorcategories': 'true',
         'statemethod': 'deploybutton',
-        'storesubpodexprs': 'true'
-        }
+        'storesubpodexprs': 'true'}
     # # we can also change some parameters
     # params = {
     #     'assumptionsversion': '2',
@@ -215,10 +229,11 @@ def request_wolfram_alpha(input, verbose=False):
     params = urlencode(params)
     url = "https://www.wolframalpha.com/input/json.jsp?%s" % params
     req = Request(url)
-    req.add_header('Referer', "https://www.wolframalpha.com/input/") # seems important
+    req.add_header('Referer', "https://www.wolframalpha.com/input/")  # seems important
     resp = opener.open(req)
     # the website returns JSON containing the code
     return json.loads(resp.read().decode("utf-8"))
+
 
 def parse_moutput_from_json(page_data, verbose=False):
     r"""
@@ -246,7 +261,7 @@ def parse_moutput_from_json(page_data, verbose=False):
         sage: page_data = request_wolfram_alpha('Sin[x]')           # optional internet
         sage: L = parse_moutput_from_json(page_data)                # optional internet
         sage: sorted(L)                                             # optional internet
-        [u'-Cos[x]', u'{{x == Pi C[1], Element[C[1], Integers]}}']
+        ['-Cos[x]', '{{x == 0}}', '{{x == Pi C[1], Element[C[1], Integers]}}']
 
     TESTS::
 
@@ -260,7 +275,7 @@ def parse_moutput_from_json(page_data, verbose=False):
     queryresult = page_data['queryresult']
     if not queryresult['success']:
         raise ValueError('asking wolframalpha.com was not successful')
-    if not 'pods' in queryresult:
+    if 'pods' not in queryresult:
         raise ValueError('json object contains no pods')
     pods = queryresult['pods']
     if verbose:
@@ -284,6 +299,7 @@ def parse_moutput_from_json(page_data, verbose=False):
             if 'moutput' in subpod.keys():
                 L.append(subpod['moutput'])
     return L
+
 
 def symbolic_expression_from_mathematica_string(mexpr):
     r"""
@@ -311,14 +327,13 @@ def symbolic_expression_from_mathematica_string(mexpr):
     from sage.calculus.calculus import symbolic_expression_from_string
     from sage.calculus.calculus import _find_func as find_func
 
-    expr = mexpr.replace('\n',' ').replace('\r', '')
+    expr = mexpr.replace('\n', ' ').replace('\r', '')
     expr = expr.replace('[', '(').replace(']', ')')
     expr = expr.replace('{', '[').replace('}', ']')
     lsymbols = symbol_table['mathematica'].copy()
     autotrans = [lambda x:x.lower(),      # Try it in lower case
-                un_camel,      # Convert `CamelCase` to `camel_case`
-                lambda x: x     # Try the original name
-                ]
+                 un_camel,      # Convert `CamelCase` to `camel_case`
+                 lambda x: x]     # Try the original name
     # Find the MMA funcs/vars/constants - they start with a letter.
     # Exclude exponents (e.g. 'e8' from 4.e8)
     p = re.compile(r'(?<!\.)[a-zA-Z]\w*')
@@ -332,7 +347,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
         # in `autotrans` and check if the function exists in Sage
         elif m.end() < len(expr) and expr[m.end()] == '(':
             for t in autotrans:
-                f = find_func(t(m.group()), create_when_missing = False)
+                f = find_func(t(m.group()), create_when_missing=False)
                 if f is not None:
                     lsymbols[m.group()] = f
                     break

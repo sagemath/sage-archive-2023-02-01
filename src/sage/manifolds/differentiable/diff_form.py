@@ -163,6 +163,12 @@ class DiffForm(TensorField):
         sage: da.display(eV)
         da = -du/\dv
 
+    The exterior derivative can also be obtained by applying the function
+    ``diff`` to a differentiable form::
+
+        sage: diff(a) is a.exterior_derivative()
+        True
+
     Another 1-form defined by its components in ``eU``::
 
         sage: b = M.one_form(1+x*y, x^2, frame=eU, name='b')
@@ -422,19 +428,16 @@ class DiffForm(TensorField):
             True
 
         Instead of invoking the method :meth:`exterior_derivative`, one may
-        use the global function
-        :func:`~sage.manifolds.utilities.exterior_derivative`
-        or its alias :func:`~sage.manifolds.utilities.xder`::
+        use the global function ``diff``::
 
-            sage: from sage.manifolds.utilities import xder
-            sage: xder(a) is a.exterior_derivative()
+            sage: diff(a) is a.exterior_derivative()
             True
 
         Let us check Cartan's identity::
 
             sage: v = M.vector_field({e_xy: [-y, x]}, name='v')
             sage: v.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))  # long time
+            sage: a.lie_der(v) == v.contract(diff(a)) + diff(a(v))  # long time
             True
 
         """
@@ -448,6 +451,9 @@ class DiffForm(TensorField):
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.exterior_derivative()
         return resu
+
+    derivative = exterior_derivative  # allows one to use functional notation,
+                                      # e.g. diff(a) for a.exterior_derivative()
 
     def wedge(self, other):
         r"""
@@ -644,6 +650,14 @@ class DiffForm(TensorField):
             sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
             sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
 
+        We endow `S^2` with the orientation defined by the stereographic
+        frame from the North pole, i.e. ``eU``; ``eV`` is then left-handed and
+        in order to define an orientation on the whole manifold, we introduce a
+        vector frame on ``V`` by swapping ``eV``'s vectors::
+
+            sage: f = V.vector_frame('f', (eV[2], eV[1]))
+            sage: M.set_orientation([eU, f])
+
         Then we construct the 1-form and take its Hodge dual w.r.t. `g`::
 
             sage: a = M.one_form({eU: [-y, x]}, name='a')
@@ -657,7 +671,7 @@ class DiffForm(TensorField):
             sage: sa.display(eU)
             *a = -x dx - y dy
             sage: sa.display(eV)
-            *a = -u/(u^4 + 2*u^2*v^2 + v^4) du - v/(u^4 + 2*u^2*v^2 + v^4) dv
+            *a = u/(u^4 + 2*u^2*v^2 + v^4) du + v/(u^4 + 2*u^2*v^2 + v^4) dv
 
         Instead of calling the method :meth:`hodge_dual` on the differential
         form, one can invoke the method
@@ -683,7 +697,7 @@ class DiffForm(TensorField):
             sage: eps.display(eU)
             eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
             sage: eps.display(eV)
-            eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
+            eps_g = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
             sage: seps = eps.hodge_dual(g); seps
             Scalar field *eps_g on the 2-dimensional differentiable manifold S^2
             sage: seps.display()
@@ -1046,7 +1060,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         no symmetry;  antisymmetry: (0, 1)
 
     The exterior derivative of a differential form is obtained by means
-    of the :meth:`exterior_derivative`::
+    of the method :meth:`exterior_derivative`::
 
         sage: da = a.exterior_derivative() ; da
         2-form dA on the 3-dimensional differentiable manifold R3
@@ -1058,6 +1072,11 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         dB = cos(x) dx/\dy + sin(z) dx/\dz - sin(y) dy/\dz
         sage: dab = ab.exterior_derivative() ; dab
         3-form d(A/\B) on the 3-dimensional differentiable manifold R3
+
+    or by applying the function ``diff`` to the differential form::
+
+        sage: diff(a) is a.exterior_derivative()
+        True
 
     As a 3-form over a 3-dimensional manifold, ``d(A/\B)`` is necessarily
     proportional to the volume 3-form::
@@ -1319,12 +1338,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         Instead of invoking the method :meth:`exterior_derivative`, one may
-        use the global function
-        :func:`~sage.manifolds.utilities.exterior_derivative`
-        or its alias :func:`~sage.manifolds.utilities.xder`::
+        use the global function ``diff``::
 
-            sage: from sage.manifolds.utilities import xder
-            sage: xder(a) is a.exterior_derivative()
+            sage: diff(a) is a.exterior_derivative()
             True
 
         The exterior derivative is nilpotent::
@@ -1339,7 +1355,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         Let us check Cartan's identity::
 
             sage: v = M.vector_field(-y, x, t, z, name='v')
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v)) # long time
+            sage: a.lie_der(v) == v.contract(diff(a)) + diff(a(v)) # long time
             True
 
         """
@@ -1398,6 +1414,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                            val.coord_function(chart).diff(i).scalar_field()
             resu._components[frame] = dc
         return resu
+
+    derivative = exterior_derivative  # allows one to use functional notation,
+                                      # e.g. diff(a) for a.exterior_derivative()
 
     def wedge(self, other):
         r"""

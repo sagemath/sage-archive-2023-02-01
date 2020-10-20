@@ -5,6 +5,9 @@
 #
 # This script is run by SAGE_ROOT/bootstrap as part of the bootstrapping phase
 # (before configure, before creating source distributions).
+#
+# The BOOTSTRAP_QUIET variable is set by the top-level
+# bootstrap script and controls how verbose we are.
 ########################################################################
 
 set -e
@@ -29,6 +32,10 @@ for SYSTEM in arch debian fedora cygwin homebrew; do
         if [ -d $PKG_SCRIPTS ]; then
             PKG_BASE=$(basename $PKG_SCRIPTS)
             SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
+            if [ ! -f $PKG_SCRIPTS/type ]; then
+                echo >&2 "Warning: $PKG_SCRIPTS/type is missing."
+                continue
+            fi
             PKG_TYPE=$(cat $PKG_SCRIPTS/type)
             if [ -f $SYSTEM_PACKAGES_FILE -a -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
                PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
@@ -45,7 +52,48 @@ for SYSTEM in arch debian fedora cygwin homebrew; do
             fi
         fi
     done
-    echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/$SYSTEM.txt and "$OUTPUT_DIR"/$SYSTEM-optional.txt
+    if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+	echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/$SYSTEM.txt and "$OUTPUT_DIR"/$SYSTEM-optional.txt
+    fi
     echo "$(sage-print-system-package-command $SYSTEM --prompt --sudo install $(echo $(echo $SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM.txt
     echo "$(sage-print-system-package-command $SYSTEM --prompt --sudo install $(echo $(echo $OPTIONAL_SYSTEM_PACKAGES | xargs -n 1 echo | sort)))" > "$OUTPUT_DIR"/$SYSTEM-optional.txt
 done
+
+OUTPUT_DIR="src/doc/en/reference/spkg"
+mkdir -p "$OUTPUT_DIR"
+if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+    echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/"*.rst"
+fi
+OUTPUT_INDEX="$OUTPUT_DIR"/index.rst
+cat > "$OUTPUT_INDEX" <<EOF
+
+External Packages
+=================
+
+.. toctree::
+   :maxdepth: 1
+
+EOF
+for PKG_SCRIPTS in build/pkgs/*; do
+    if [ -d "$PKG_SCRIPTS" ]; then
+        PKG_BASE=$(basename "$PKG_SCRIPTS")
+        if [ -f "$PKG_SCRIPTS"/SPKG.rst ]; then
+            # Instead of just copying, we may want to call
+            # a version of sage-spkg-info to format extra information.
+            cp "$PKG_SCRIPTS"/SPKG.rst "$OUTPUT_DIR"/$PKG_BASE.rst
+            echo >> "$OUTPUT_INDEX" "   $PKG_BASE"
+        fi
+    fi
+done
+cat >> "$OUTPUT_INDEX" <<EOF
+.. include:: ../footer.txt
+EOF
+
+# #30064: Create the directory first
+OUTPUT_DIR="src/doc/en/reference/repl"
+mkdir -p "$OUTPUT_DIR"
+OUTPUT="$OUTPUT_DIR/options.txt"
+if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+    echo >&2 $0:$LINENO: installing "$OUTPUT"
+fi
+./sage -advanced > "$OUTPUT"

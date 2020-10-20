@@ -13,7 +13,6 @@ Monoids
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.semigroups import Semigroups
 from sage.misc.lazy_import import LazyImport
@@ -103,7 +102,7 @@ class Monoids(CategoryWithAxiom):
         """
         if names is not None:
             if isinstance(names, str):
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 if ',' not in names and index_set in ZZ:
                     names = [names + repr(i) for i in range(index_set)]
                 else:
@@ -154,6 +153,7 @@ class Monoids(CategoryWithAxiom):
                 sage: S.prod([S('a'), S('b')])
                 'ab'
             """
+            from sage.misc.misc_c import prod
             return prod(args, self.one())
 
         def _test_prod(self, **options):
@@ -349,7 +349,7 @@ class Monoids(CategoryWithAxiom):
             """
             if names is not None:
                 if isinstance(names, str):
-                    from sage.rings.all import ZZ
+                    from sage.rings.integer_ring import ZZ
                     if ',' not in names and index_set in ZZ:
                         names = [names + repr(i) for i in range(index_set)]
                     else:

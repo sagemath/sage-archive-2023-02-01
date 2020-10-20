@@ -238,12 +238,10 @@ class Cusp(Element):
         """
         EXAMPLES::
 
-            sage: hash(Cusp(1/3))
-            1298787075             # 32-bit
-            3713081631933328131    # 64-bit
-            sage: hash(Cusp(oo))
-            1302034650             # 32-bit
-            3713081631936575706    # 64-bit
+            sage: hash(Cusp(1/3)) == hash((1,3))
+            True
+            sage: hash(Cusp(oo)) == hash((1,0))
+            True
         """
         return hash((self.__a, self.__b))
 

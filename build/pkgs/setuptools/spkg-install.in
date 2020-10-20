@@ -9,11 +9,7 @@ export PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
 
 cd src
 
-if [ "$SAGE_PYTHON3" = "yes" ]; then
-    versions="3"
-else
-    versions="2 3"
-fi
+versions=3
 
 # Prevent setuptools from installing itself with easy_install
 for vers in $versions; do

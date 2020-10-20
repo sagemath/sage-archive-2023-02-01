@@ -2180,17 +2180,20 @@ cdef class NumberFieldElement(FieldElement):
         infinity = sage.rings.infinity.infinity
         return self.parent().quadratic_defect(self, P, check=check) == infinity
 
-    def sqrt(self, all=False, extend=False):
+    def sqrt(self, all=False, extend=False, name=None):
         """
         Return the square root of this number in the given number field.
 
         INPUT:
 
-        - ``all`` -- boolean (default ``False``) whether to return
+        - ``all`` -- optional boolean (default ``False``) whether to return
           both square roots
 
-        - ``extend`` -- boolean (default ``False``) whether to extend
+        - ``extend`` -- optional boolean (default ``False``) whether to extend
           the field by adding the square roots if needed
+
+        - ``name`` -- optional string (default ``"sq"``) for the variable
+          used in the field extension
 
         EXAMPLES::
 
@@ -2235,6 +2238,9 @@ cdef class NumberFieldElement(FieldElement):
             Number Field in sq with defining polynomial t^2 + 7 over ...
             sage: CyclotomicField(4)(4).sqrt(extend=False)
             2
+            sage: K = QuadraticField(-7)
+            sage: z = K(-17).sqrt(extend=True, name='u'); z
+            u
 
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
@@ -2244,7 +2250,9 @@ cdef class NumberFieldElement(FieldElement):
         f = R([-self, 0, 1])
         roots = f.roots()
         if extend and not roots:
-            K_ext = K.extension(f, 'sq')
+            if name is None:
+                name = "sq"
+            K_ext = K.extension(f, name)
             roots = f.base_extend(K_ext).roots()
         if all:
             return [r[0] for r in roots]

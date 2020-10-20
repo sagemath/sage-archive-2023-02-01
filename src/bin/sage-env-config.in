@@ -46,7 +46,6 @@ CONFIGURED_OBJCXX="@OBJCXX@"
 #######################################
 # Other configuration (exported)
 #######################################
-export SAGE_PYTHON_VERSION=@SAGE_PYTHON_VERSION@
 export PYTHON_FOR_VENV="@PYTHON_FOR_VENV@"
 
 #######################################

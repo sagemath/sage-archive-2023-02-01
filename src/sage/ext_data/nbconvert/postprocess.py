@@ -9,10 +9,11 @@ This postprocess script fixes some issues with .rst files returned by nbconvert:
 
 AUTHORS:
 
-    - Thierry Monteil (2018): initial version.
+- Thierry Monteil (2018): initial version.
 """
 
-import sys, re
+import sys
+import re
 
 file_name = sys.argv[1]
 

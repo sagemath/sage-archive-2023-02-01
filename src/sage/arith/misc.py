@@ -2008,6 +2008,8 @@ def xkcd(n=""):
     This function is similar to the xgcd function, but behaves
     in a completely different way.
 
+    See https://xkcd.com/json.html for more details.
+
     INPUT:
 
     - ``n`` -- an integer (optional)
@@ -2028,7 +2030,11 @@ def xkcd(n=""):
     from urllib.error import HTTPError, URLError
 
     data = None
-    url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
+    if not n:
+        # default to last comic
+        url = "http://xkcd.com/info.0.json"
+    else:
+        url = "https://xkcd.com/{}/info.0.json".format(n)
 
     try:
         with contextlib.closing(urlopen(url)) as f:

@@ -140,6 +140,9 @@ src/ENV/
 src/env.bak/
 src/venv.bak/
 
+# mypy
+**/.mypy_cache/
+
 # tox generated files
 /.tox
 /prefix

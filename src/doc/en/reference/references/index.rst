@@ -4139,6 +4139,10 @@ REFERENCES:
              :doi:`10.1137/1.9781611972986.7`
              http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf
 
+.. [MPPS2020] Jennifer Morse, Jianping Pan, Wencin Poh and Anne Schilling,
+             *A Crystal on Decreasing Factorizations in the 0-Hecke Monoid*
+             Electron. J. Combin., **27(2)** (2020) #P2.2948. :arxiv:`1911.08732`.
+
 .. [MR1985] \R. Mathon and A. Rosa,
             *A new strongly regular graph*,
             Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.

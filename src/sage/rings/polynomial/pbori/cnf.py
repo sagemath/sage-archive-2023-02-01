@@ -1,7 +1,6 @@
 from random import Random
-from .PyPolyBoRi import (Monomial, BooleSet, Polynomial, if_then_else
-    as ite, lp, gauss_on_polys, ll_red_nf_redsb)
-from .ll import ll_encode
+from sage.rings.polynomial.pbori.pbori import if_then_else as ite
+from .PyPolyBoRi import Polynomial
 from .statistics import used_vars_set
 
 
@@ -14,7 +13,7 @@ class CNFEncoder(object):
 
     def zero_blocks(self, f):
         r"""
-        Divides the zero set of f into blocks
+        Divide the zero set of f into blocks.
         
         TESTS::
         
@@ -34,10 +33,7 @@ class CNFEncoder(object):
         rest = zeros
         res = list()
 
-        def choose_old(s):
-            return next(iter(rest))  # somewhat
-
-            #inefficient compared to polynomials lex_lead
+        # inefficient compared to polynomials lex_lead
         def choose(s):
             indices = []
             assert not s.empty()
@@ -95,14 +91,11 @@ class CNFEncoder(object):
             sage: sorted(e.clauses(r.variable(Integer(1))+r.variable(Integer(0))), key=lambda d: sorted(d.items()))
             [{y: 0, x: 1}, {y: 1, x: 0}]
         """
-        f_plus_one = f + 1
-        blocks = self.zero_blocks(f + 1)
-        negated_blocks = [dict([(variable, 1 - value) for (variable, value)
-            in b.items()]) for b in blocks]
         # we form an expression for a var configuration *not* lying in the
         # block it is evaluated to 0 by f, iff it is not lying in any zero
         # block of f+1
-        return negated_blocks
+        return [{variable: 1 - value for variable, value in b.items()}
+                for b in self.zero_blocks(f + 1)]
 
     def polynomial_clauses(self, f):
         r"""

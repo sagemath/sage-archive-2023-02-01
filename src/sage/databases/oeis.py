@@ -526,7 +526,7 @@ class OEIS:
 
             sage: oeis.find_by_subsequence([2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377]) # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A212804: Expansion of (1-x)/(1-x-x^2).
+            1: A212804: Expansion of (1 - x)/(1 - x - x^2).
             2: A177194: Fibonacci numbers whose decimal expansion does not contain any digit 0.
 
             sage: fibo = _[0] ; fibo                    # optional -- internet

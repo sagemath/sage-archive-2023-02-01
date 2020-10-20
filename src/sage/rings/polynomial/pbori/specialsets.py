@@ -1,12 +1,15 @@
-from .PyPolyBoRi import (BooleSet, Polynomial, mod_mon_set,
-    if_then_else, Monomial, top_index, BooleConstant)
-
+from sage.rings.polynomial.pbori.pbori import (top_index, if_then_else,
+                                               mod_mon_set)
+from .PyPolyBoRi import (BooleSet, Polynomial,
+                         Monomial, BooleConstant, Variable)
 
 #def all_monomials_of_degree_d(d,variables):
 #    res=all_monomials_of_degree_d_new(d, variables)
 #    ref=all_monomials_of_degree_d_old(d, variables)
 #    assert res==ref, (d, variables)
 #    return res
+
+
 def all_monomials_of_degree_d_old(d, variables):
 
     if d == 0:

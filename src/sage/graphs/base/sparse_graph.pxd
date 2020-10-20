@@ -41,6 +41,7 @@ cdef class SparseGraph(CGraph):
     cdef int all_arcs_unsafe(self, int, int, int *, int)
     cdef int _del_arc_label_unsafe(self, int, int, int, SparseGraphBTNode **)
     cdef int del_arc_label_unsafe(self, int, int, int)
+    cdef SparseGraphLLNode* arc_labels_unsafe(self, int u, int v)
     cpdef del_arc_label(self, int u, int v, int l)
     cdef int has_arc_label_unsafe(self, int, int, int)
     cpdef bint has_arc_label(self, int u, int v, int l)

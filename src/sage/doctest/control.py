@@ -44,7 +44,11 @@ nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
 
 # Optional tags which are always automatically added
-auto_optional_tags = set(['py3'])
+
+from sage.libs.arb.arb_version import version as arb_vers
+arb_tag = 'arb2' + arb_vers().split('.')[1]
+
+auto_optional_tags = set(['py3', arb_tag])
 
 
 class DocTestDefaults(SageObject):
@@ -362,6 +366,9 @@ class DocTestController(SageObject):
                     for pkg in list_packages('optional', local=True).values():
                         if pkg['installed'] and pkg['installed_version'] == pkg['remote_version']:
                             options.optional.add(pkg['name'])
+
+                    from sage.features import package_systems
+                    options.optional.update(system.name for system in package_systems())
 
                 # Check that all tags are valid
                 for o in options.optional:
@@ -771,8 +778,8 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(optional='magma,guava')
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
-            sage: sorted(DC.sources[0].options.optional)  # abs tol 1
-            ['guava', 'magma', 'py2']
+            sage: all(t in DC.sources[0].options.optional for t in ['magma','guava'])
+            True
 
         We check that files are skipped appropriately::
 

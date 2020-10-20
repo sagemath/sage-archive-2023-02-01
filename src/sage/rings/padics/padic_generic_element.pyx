@@ -4040,7 +4040,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         Only polylogarithms for `n` at least two are defined by this function ::
 
-            sage: Qp(11)(2).polylog(-1)
+            sage: Qp(11)(2)._polylog_res_1(1)
             Traceback (most recent call last):
             ...
             ValueError: Polylogarithm only implemented for n at least 2.
@@ -4062,16 +4062,17 @@ cdef class pAdicGenericElement(LocalGenericElement):
         z = K(self)
 
         hsl = max(prec / ((z - 1).valuation()) + 1, prec*(p == 2), 2)
-        N = floor(prec - n*(hsl - 1).log(p))
+        N = floor(prec - n*(hsl - 1).log(p).n())
 
         verbose(hsl, level=3)
 
         def bound(m):
-            return prec - m + Integer(1-2**(m-1)).valuation(p) - m*(hsl - 1).log(p)
+            return prec - m + Integer(1-2**(m-1)).valuation(p) - m*(hsl - 1).log(p).n()
 
-        gsl = max([_findprec(1/(p-1), 1, _polylog_c(m,p) + bound(m), p) for m in range(2,n+1)] + [2])
+        gsl = max(_findprec(1/(p-1), 1, _polylog_c(m,p) + bound(m), p) for m in range(2,n+1))
+        gsl = max(gsl, 2)
         verbose(gsl, level=3)
-        g = _compute_g(p, n, max([bound(m) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
+        g = _compute_g(p, n, max(bound(m) + m*floor((gsl-1).log(p).n()) for m in range(2, n+1)), gsl)
         verbose(g, level=3)
         S = PowerSeriesRing(K, default_prec = ceil(hsl), names='t')
         t = S.gen()
@@ -4224,7 +4225,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if z.precision_absolute() == PlusInfinity():
                 return K(0)
             verbose("residue 0, using series. %d %s"%(n,str(self)), level=2)
-            M = ceil((prec/z.valuation()).log(p))
+            M = ceil((prec/z.valuation()).log(p).n())
             N = prec - n*M
             ret = K(0)
             for m in range(M + 1):
@@ -4242,10 +4243,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # Set up precision bounds
         tsl = prec / (z - zeta).valuation() + 1
-        N = floor(prec - n*(tsl - 1).log(p))
-        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) - m*(tsl - 1).log(p), p) for m in range(1,n+1)] + [2])
+        N = floor(prec - n*(tsl - 1).log(p).n())
+        gsl = max(_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) - m*(tsl - 1).log(p).n(), p) for m in range(1,n+1))
+        gsl = max(gsl,2)
 
-        gtr = _compute_g(p, n, prec + n*(gsl - 1).log(p), gsl)
+        gtr = _compute_g(p, n, prec + n*(gsl - 1).log(p).n(), gsl)
 
         K = Qp(p, prec)
 
@@ -4373,9 +4375,9 @@ def _polylog_c(n, p):
     EXAMPLES::
 
         sage: sage.rings.padics.padic_generic_element._polylog_c(1, 2)
-        log(4/log(2))/log(2) + 2
+        4.52876637294490
     """
-    return p/(p-1) - (n-1)/p.log() + (n-1)*(n*(p-1)/p.log()).log(p) + (2*p*(p-1)*n/p.log()).log(p)
+    return p/(p-1) - (n-1)/p.log().n() + (n-1)*(n*(p-1)/p.log().n()).log(p).n() + (2*p*(p-1)*n/p.log().n()).log(p).n()
 
 def _findprec(c_1, c_2, c_3, p):
     """
@@ -4403,7 +4405,7 @@ def _findprec(c_1, c_2, c_3, p):
     from sage.functions.other import ceil
     k = Integer(max(ceil(c_2/c_1), 2))
     while True:
-        if c_1*k - c_2*k.log(p) > c_3:
+        if c_1*k - c_2*k.log(p).n() > c_3:
             return k
         k += 1
 

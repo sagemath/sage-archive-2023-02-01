@@ -2940,7 +2940,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             R = A.to_matrix(self.new_matrix())
         return R
 
-    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False, **kwds):
+    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False, transformation=False, **kwds):
         r"""
         Return LLL reduced or approximated LLL reduced lattice `R` for this
         matrix interpreted as a lattice.
@@ -2999,6 +2999,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         - ``use_siegel`` -- (default: ``False``) use Siegel's condition
           instead of Lovász's condition, ignored by NTL
+
+        - ``transformation`` -- (default: ``False``) also return transformation
+           matrix. Not implemented in case of NTL.
 
         - ``**kwds`` -- keywords to be passed to :mod:`fpylll`.  See
           :meth:`fpylll.LLL.reduction` for details.
@@ -3063,6 +3066,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: L[-1]
             (-100, -3, -1, 13, -1, -4, 2, 3, 4, 5, -1)
 
+        We return the transformation matrix:
+
+            sage: A = random_matrix(ZZ, 10, 20)
+            sage: R, U = A.LLL(transformation=True)
+            sage: U*A == R
+            True
+
         TESTS::
 
             sage: matrix(ZZ, 0, 0).LLL()
@@ -3090,6 +3100,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             TypeError: algorithm NTL:LLL_QD not supported
 
+            sage: A = random_matrix(ZZ, 0, 0)
+            sage: R, U = A.LLL(transformation=True)
+
         .. NOTE::
 
             See :mod:`sage.libs.ntl.ntl_mat_ZZ.ntl_mat_ZZ.LLL` and
@@ -3101,7 +3114,12 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         if self.ncols() == 0 or self.nrows() == 0:
             verbose("Trivial matrix, nothing to do")
-            return self
+            if transformation:
+                return self, self.new_matrix(0,0)
+            else:
+                return self
+
+        U = None
 
         tm = verbose("LLL of %sx%s matrix (algorithm %s)"%(self.nrows(), self.ncols(), algorithm))
         import sage.libs.ntl.all
@@ -3151,6 +3169,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 raise TypeError("eta must be >= 0.5")
 
         if algorithm.startswith('NTL:'):
+
+            if transformation:
+                raise NotImplementedError("Returning the transformation matrix is not implemented for NTL.")
+
             A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),
                     [ntl_ZZ(z) for z in self.list()])
 
@@ -3194,6 +3216,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         elif algorithm.startswith('fpLLL:'):
             from fpylll import LLL, IntegerMatrix
             A = IntegerMatrix.from_matrix(self)
+            if transformation:
+                U = IntegerMatrix(A.nrows, A.nrows)
+
             method = algorithm.replace("fpLLL:","")
             if verb:
                 kwds["flags"] = kwds.get("flags", LLL.DEFAULT) | LLL.VERBOSE
@@ -3202,13 +3227,18 @@ cdef class Matrix_integer_dense(Matrix_dense):
             if early_red:
                 kwds["flags"] = kwds.get("flags", LLL.DEFAULT) | LLL.EARLY_RED
 
-            LLL.reduction(A, delta=delta, eta=eta, method=method, float_type=fp, precision=prec)
+            LLL.reduction(A, delta=delta, eta=eta, method=method, float_type=fp, precision=prec, U=U)
             R = A.to_matrix(self.new_matrix())
+            if transformation:
+                U = U.to_matrix(self.new_matrix(U.nrows, U.ncols))
         else:
             raise TypeError("algorithm %s not supported"%algorithm)
 
         verbose("LLL finished", tm)
-        return R
+        if transformation:
+            return R, U
+        else:
+            return R
 
     def is_LLL_reduced(self, delta=None, eta=None):
         r"""

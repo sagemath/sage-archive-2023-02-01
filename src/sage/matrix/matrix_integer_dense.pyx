@@ -3073,6 +3073,11 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: U*A == R
             True
 
+            sage: A = random_matrix(ZZ, 10, 20)
+            sage: R, U = A.LLL(algorithm="NTL:LLL", transformation=True)
+            sage: U*A == R
+            True
+
         TESTS::
 
             sage: matrix(ZZ, 0, 0).LLL()
@@ -3170,14 +3175,14 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         if algorithm.startswith('NTL:'):
 
-            if transformation:
-                raise NotImplementedError("Returning the transformation matrix is not implemented for NTL.")
-
             A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),
                     [ntl_ZZ(z) for z in self.list()])
 
             if algorithm == "NTL:LLL":
-                r, det2 = A.LLL(a,b, verbose=verb)
+                if transformation:
+                    r, det2, U = A.LLL(a,b, verbose=verb, return_U=True)
+                else:
+                    r, det2 = A.LLL(a,b, verbose=verb)
                 det2 = ZZ(det2)
                 try:
                     det = ZZ(det2.sqrt())
@@ -3186,26 +3191,33 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     pass
             elif algorithm == "NTL:LLL_FP":
                 if use_givens:
-                    r = A.G_LLL_FP(delta, verbose=verb)
+                    r = A.G_LLL_FP(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_FP(delta, verbose=verb)
+                    r = A.LLL_FP(delta, verbose=verb, return_U=transformation)
             elif algorithm == "NTL:LLL_QP":
                 if use_givens:
-                    r = A.G_LLL_QP(delta, verbose=verb)
+                    r = A.G_LLL_QP(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_QP(delta, verbose=verb)
+                    r = A.LLL_QP(delta, verbose=verb, return_U=transformation)
             elif algorithm == "NTL:LLL_XD":
                 if use_givens:
-                    r = A.G_LLL_XD(delta, verbose=verb)
+                    r = A.G_LLL_XD(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_XD(delta, verbose=verb)
+                    r = A.LLL_XD(delta, verbose=verb, return_U=transformation)
             elif algorithm == "NTL:LLL_RR":
                 if use_givens:
-                    r = A.G_LLL_RR(delta, verbose=verb)
+                    r = A.G_LLL_RR(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_XD(delta, verbose=verb)
+                    r = A.LLL_XD(delta, verbose=verb, return_U=transformation)
             else:
                 raise TypeError("algorithm %s not supported"%algorithm)
+
+            if isinstance(r, tuple):
+                r, U = r
+
+            if transformation:
+                U = self.new_matrix(self.nrows(), self.nrows(),
+                                    entries=[ZZ(z) for z in U.list()])
 
             r = ZZ(r)
 

@@ -2244,7 +2244,7 @@ cdef class NumberFieldElement(FieldElement):
         TESTS::
 
             sage: CyclotomicField(4)(2).sqrt()
-            doctest:...: DeprecationWarning: use either SR(elt).sqrt() or extend=True
+            doctest:...: DeprecationWarning: use SR(elt).sqrt() or elt.sqrt(extend=True)
             See https://trac.sagemath.org/3889 for details.
             sqrt(2)
 

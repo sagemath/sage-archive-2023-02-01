@@ -3959,10 +3959,11 @@ class LPDictionary(LPAbstractDictionary):
             # Highlight the entering variable column
             e = 2 * tuple(N).index(self._entering) + 4
             for i, lin in enumerate(lines):
-                lin = lin.split("&")
+                lin = lin[:-2].split("&")
+                # Trac #30809: The MathJaX version of \color takes an argument
                 if len(lin) > 1:
-                    lin[e] = r"\color{green}" + lin[e]
-                    lines[i] = "&".join(lin)
+                    lin[e] = r"\color{green}{%s}" % (lin[e],)
+                    lines[i] = "&".join(lin) + r"\\"
         if self._leaving is not None:
             # Highlight the leaving variable row
             l = tuple(B).index(self._leaving)
@@ -3970,11 +3971,11 @@ class LPDictionary(LPAbstractDictionary):
                l += 3
             if style() == "Vanderbei":
                 l += 4
-            lin = lines[l].split("&")
+            lin = lines[l][:-2].split("&")
             for i, term in enumerate(lin):
-                lin[i] = r"\color{red}" + term
-            lin = "&".join(lin)
-            lin = lin.replace(r"\color{red}\color{green}", r"\color{blue}")
+                lin[i] = r"\color{red}{%s}" % (term,)
+            lin = "&".join(lin) + r"\\"
+            lin = lin.replace(r"\color{red}{\color{green}{", r"\color{blue}{{")
             lines[l] = lin
         return  "\n".join(lines)
 

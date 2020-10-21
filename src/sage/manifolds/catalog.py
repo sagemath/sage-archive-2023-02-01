@@ -171,8 +171,7 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         th, ph = spher[:]
         spher_to_stereoN = spher.transition_map(stereoN_A, (sin(th)*cos(ph) / (1-cos(th)),
                                                             sin(th)*sin(ph) / (1-cos(th))))
-        spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi,
-                                     check=False)
+        spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi)
         stereoN_to_S_A = stereoN_to_S.restrict(A)
         stereoN_to_S_A * spher_to_stereoN # generates spher_to_stereoS
         stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)

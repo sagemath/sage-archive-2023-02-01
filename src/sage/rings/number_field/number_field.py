@@ -33,7 +33,7 @@ AUTHORS:
 
 - Anna Haensch (2018-03): added :meth:``quadratic_defect``
 
-- Michael Daub, Chris Wuthrich (2020-09-01): adding dirichlet characters for abelian fields
+- Michael Daub, Chris Wuthrich (2020-09-01): adding Dirichlet characters for abelian fields
 
 
 .. note::
@@ -12093,5 +12093,4 @@ def _splitting_classes_gens_(K,m,d):
                 Hgens += [h]
                 H = Zmstar.subgroup(Hgens)
 
-    A = [map_Zmstar_to_Zm(h) for h in Hgens]
-    return A
+    return [map_Zmstar_to_Zm(h) for h in Hgens]

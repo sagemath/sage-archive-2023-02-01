@@ -807,7 +807,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
     @cached_method
     def fixed_field_polynomial(self, algorithm = "pari"):
         r"""
-        Give a Dirichlet character this will return a
+        Given a Dirichlet character this will return a
         polynomial generating the abelian extension fixed by the kernel
         of the corresponding Galois character.
 
@@ -815,7 +815,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         OUTPUT:
 
-        - a poynomial with integer coefficients
+        - a polynomial with integer coefficients
 
         EXAMPLES::
 
@@ -850,9 +850,56 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: psi = chi^3
             sage: psi.order()
             2
-            sage: psi.fixed_field_polynomial()
+            sage: psi.fixed_field_polynomial(algorithm="pari")
             x^2 + x + 2
 
+        With the Sage implementation::
+
+            sage: G = DirichletGroup(37)
+            sage: chi = G.0
+            sage: psi = chi^18
+            sage: psi.fixed_field_polynomial(algorithm="sage")
+            x^2 + x - 9
+
+            sage: G = DirichletGroup(7)
+            sage: chi = G.0^2
+            sage: chi
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> zeta6 - 1
+            sage: chi.fixed_field_polynomial(algorithm="sage")
+            x^3 + x^2 - 2*x - 1
+
+            sage: G = DirichletGroup(31)
+            sage: chi = G.0
+            sage: chi^6
+            Dirichlet character modulo 31 of conductor 31 mapping 3 |--> zeta30^6
+            sage: psi = chi^6
+            sage: psi.fixed_field_polynomial(algorithm="sage")
+            x^5 + x^4 - 12*x^3 - 21*x^2 + x + 5
+
+            sage: G = DirichletGroup(7)
+            sage: chi = G.0
+            sage: chi.fixed_field_polynomial(algorithm="sage")
+            x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+
+            sage: G = DirichletGroup(1001)
+            sage: chi = G.0
+            sage: psi = chi^3
+            sage: psi.order()
+            2
+            sage: psi.fixed_field_polynomial(algorithm="sage")
+            x^2 + x + 2
+
+        The algorithm must be one of `sage` or `pari`::
+
+            sage: G = DirichletGroup(1001)
+            sage: chi = G.0
+            sage: psi = chi^3
+            sage: psi.order()
+            2
+            sage: psi.fixed_field_polynomial(algorithm="banana")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: algorithm must be one of 'pari' or 'sage'
 
         """
 
@@ -875,7 +922,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             # check that there will be such a field of degree d inside QQ(zeta_n)
             if euler_phi(n) % d != 0:
                 raise ValueError('No field exists because %s does not divide %s=phi(%s)' % (d,euler_phi(n),n))
-            f = euler_phi(n)/d
+            f = euler_phi(n)//d
 
             S = PolynomialRing(ZZ, 'x')
 
@@ -987,9 +1034,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         """
         from sage.rings.number_field.number_field import NumberField
-        poly = self.fixed_field_polynomial()
-        K = NumberField(poly, 'a')
-        return K
+        return NumberField(self.fixed_field_polynomial(), 'a')
 
     @cached_method
     def decomposition(self):
@@ -1119,8 +1164,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         r"""
         Return the Conrey number for this character.
 
-        This is a positive integer coprime to q that identifies a
-        Dirichlet character of modulus q.
+        This is a positive integer coprime to `q` that identifies a
+        Dirichlet character of modulus `q`.
 
         See https://www.lmfdb.org/knowledge/show/character.dirichlet.conrey
 

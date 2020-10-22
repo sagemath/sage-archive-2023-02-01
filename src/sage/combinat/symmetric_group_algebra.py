@@ -2604,7 +2604,6 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
 
         sage: TestSuite(H3).run()
     """
-
     return HeckeAlgebraSymmetricGroup_t(R, n, q)
 
 
@@ -2640,6 +2639,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialFreeModule):
 
     _repr_option_bracket = False
 
+    @cached_method
     def one_basis(self):
         """
         Return the identity permutation.
@@ -2653,6 +2653,8 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialFreeModule):
 
     def q(self):
         """
+        Return the variable or parameter `q`.
+
         EXAMPLES::
 
             sage: HeckeAlgebraSymmetricGroupT(QQ, 3).q()

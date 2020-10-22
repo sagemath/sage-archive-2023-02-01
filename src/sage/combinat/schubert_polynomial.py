@@ -332,7 +332,7 @@ class SchubertPolynomialRing_xbasis(CombinatorialFreeModule):
             sage: X.one()  # indirect doctest
             X[1]
         """
-        return self.indices()([1])
+        return self._indices([1])
 
     def _element_constructor_(self, x):
         """

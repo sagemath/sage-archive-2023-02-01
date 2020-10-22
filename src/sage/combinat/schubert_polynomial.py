@@ -21,6 +21,7 @@ from sage.rings.all import Integer, PolynomialRing, ZZ
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.permutation import Permutations, Permutation
 import sage.libs.symmetrica.all as symmetrica
+from sage.misc.cachefunc import cached_method
 
 
 def SchubertPolynomialRing(R):
@@ -89,8 +90,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
 
     def divided_difference(self, i, algorithm="sage"):
         r"""
-        Return the ``i``-th divided difference operator, applied to
-        ``self``.
+        Return the ``i``-th divided difference operator, applied to ``self``.
 
         Here, ``i`` can be either a permutation or a positive integer.
 
@@ -321,6 +321,7 @@ class SchubertPolynomialRing_xbasis(CombinatorialFreeModule):
                                          category=GradedAlgebrasWithBasis(R),
                                          prefix='X')
 
+    @cached_method
     def one_basis(self):
         """
         Return the index of the unit of this algebra.
@@ -331,7 +332,7 @@ class SchubertPolynomialRing_xbasis(CombinatorialFreeModule):
             sage: X.one()  # indirect doctest
             X[1]
         """
-        return Permutations()([1])
+        return self.indices()([1])
 
     def _element_constructor_(self, x):
         """

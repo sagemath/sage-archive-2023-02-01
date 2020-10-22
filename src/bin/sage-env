@@ -351,6 +351,10 @@ export CPATH="$SAGE_LOCAL/include${CPATH}"
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
+if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
+    SAGE_REPO_ANONYMOUS="git@trac.sagemath.org:sage.git"
+    export SAGE_REPO_ANONYMOUS
+fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
         SAGE_REPO_AUTHENTICATED="ssh://git@trac.sagemath.org:2222/sage.git"
         export SAGE_REPO_AUTHENTICATED

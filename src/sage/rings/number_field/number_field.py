@@ -12075,7 +12075,6 @@ def _splitting_classes_gens_(K,m,d):
         return prod(unit_gens[i]**li[i] for i in range(len(unit_gens)))
 
     Hgens = []
-    A = []
     H = Zmstar.subgroup([])
     p = 0
     Horder = arith.euler_phi(m)/d

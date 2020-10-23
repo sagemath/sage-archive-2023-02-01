@@ -41,6 +41,13 @@ EXAMPLES::
     [(), (2,), (2, 2), (4, 2, 0)]
     ([(), (2,), (2, 2), (4, 2, 0)], [(4, 2, 0), (4, 3, 2, 0), (4, 3, 3, 1, 0)])
 
+    sage: st = SkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
+    sage: pt = path_tableaux.SemistandardPath(st)
+    sage: bk = [SkewTableau(st.bender_knuth_involution(i+1)) for i in range(10)]
+    sage: lr = [pt.local_rule(i+1) for i in range(10)]
+    sage: all(r.to_tableau() == s for r,s in zip(lr,bk))
+    True
+
 TESTS::
 
     sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
@@ -109,7 +116,7 @@ class SemistandardPath(PathTableau):
 
         sage: st = SkewTableau([[None,1,1],[2]])
         sage: path_tableaux.SemistandardPath(st)
-        [(), (2,), (2, 1)]
+        [(1,), (3, 0), (3, 1, 0)]
 
         sage: path_tableaux.SemistandardPath([[],[5/2],[7/2,2]])
         [(), (5/2,), (7/2, 2)]
@@ -173,7 +180,7 @@ class SemistandardPath(PathTableau):
             raise ValueError(f"invalid input {st} is of type {type(st)}")
 
         # Pad with zeroes, if necessary
-        m = max(len(a)-i for i,a in enumerate(w)) - len(w[0])
+        m = max(len(a)-i for i,a in enumerate(w))
         w = [list(a)+[0]*(m+i-len(a)) for i,a in enumerate(w)]
         # Convert to immutable
         w = tuple([tuple(a) for a in w])

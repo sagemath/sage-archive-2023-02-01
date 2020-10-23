@@ -51,9 +51,7 @@ TESTS::
 
     sage: pt = path_tableaux.SemistandardPath([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
     sage: pt.promotion()
-    Traceback (most recent call last):
-    ...
-    IndexError: tuple index out of range
+    [(3, 2), (3, 2, 2), (4, 3, 2, 0), (4, 3, 3, 1, 0)]
 
 AUTHORS:
 
@@ -72,7 +70,7 @@ AUTHORS:
 
 from sage.combinat.path_tableaux.path_tableau import PathTableau, PathTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.skew_tableau import SkewTableau, SkewTableaux
 from sage.combinat.tableau import Tableau
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
 
@@ -107,7 +105,11 @@ class SemistandardPath(PathTableau):
 
         sage: st = SkewTableau([[1,1],[2]])
         sage: path_tableaux.SemistandardPath(st)
-        [(2,), (2, 1)]
+        [(), (2,), (2, 1)]
+
+        sage: st = SkewTableau([[None,1,1],[2]])
+        sage: path_tableaux.SemistandardPath(st)
+        [(), (2,), (2, 1)]
 
         sage: path_tableaux.SemistandardPath([[],[5/2],[7/2,2]])
         [(), (5/2,), (7/2, 2)]
@@ -142,7 +144,7 @@ class SemistandardPath(PathTableau):
             sage: path_tableaux.SemistandardPath([[],[3/2],[2,5/2]])
             Traceback (most recent call last):
             ...
-            ValueError: [(), (3/2,), (2, 5/2)] does not satisfy the required inequalities
+            ValueError: [(), (3/2,), (2, 5/2)] does not satisfy the required inequalities in row 1
 
             sage: path_tableaux.SemistandardPath([(), 3, (3, 2)])
             Traceback (most recent call last):
@@ -151,26 +153,28 @@ class SemistandardPath(PathTableau):
         """
         w = None
 
-        if isinstance(st, GelfandTsetlinPattern):
-            w = copy(st)
+        if isinstance(st, SemistandardPath):
+            w = list(st)
+
+        elif isinstance(st, GelfandTsetlinPattern):
+            w = list(st)
             w.reverse()
             w = [()] + w
 
-        elif isinstance(st, [Tableau,SkewTableau]):
+        elif isinstance(st, (Tableau,SkewTableau)):
             w = st.to_chain()
 
         elif isinstance(st, (list,tuple)):
-            try:
-                w = copy(st)
-            except TypeError:
+            if any(not isinstance(a,(list,tuple)) for a in st):
                 raise ValueError(f"{st} is not a sequence of lists")
+            w = st
 
-        if w is None:
-            raise ValueError(f"invalid input {st}")
+        else:
+            raise ValueError(f"invalid input {st} is of type {type(st)}")
 
         # Pad with zeroes, if necessary
-        m = max(len(a)+i for a,i in enumerate(w)) - len(w[0])
-        w = [a+[0]*(m+i-len(a)) for a,i in enumerate(w)]
+        m = max(len(a)-i for i,a in enumerate(w)) - len(w[0])
+        w = [list(a)+[0]*(m+i-len(a)) for i,a in enumerate(w)]
         # Convert to immutable
         w = tuple([tuple(a) for a in w])
 
@@ -185,15 +189,16 @@ class SemistandardPath(PathTableau):
             sage: path_tableaux.SemistandardPath([[],[2],[1,2]])
             Traceback (most recent call last):
             ...
-            ValueError: [(), (2,), (1, 2)] does not satisfy the required inequalities
+            ValueError: [(), (2,), (1, 2)] does not satisfy the required inequalities in row 1
 
             sage: path_tableaux.SemistandardPath([[],[2],[1,2]],check=False)
             [(), (2,), (1, 2)]
         """
-        if not all(r>=s for r,s in zip(self[i+1],self[i]) for i in range(len(self)-1))
-            raise ValueError(f"{self} does not satisfy the required inequalities")
-        if not all(r>=s for r,s in zip(self[i],self[i+1][1:]) for i in range(len(self)-1))
-            raise ValueError(f"{self} does not satisfy the required inequalities")
+        for i in range(1,len(self)-1):
+            if not all(r>=s for r,s in zip(self[i+1],self[i])):
+                raise ValueError(f"{self} does not satisfy the required inequalities in row {i}")
+            if not all(r>=s for r,s in zip(self[i],self[i+1][1:])):
+                raise ValueError(f"{self} does not satisfy the required inequalities in row {i}")
 
     def size(self):
         r"""
@@ -256,13 +261,13 @@ class SemistandardPath(PathTableau):
             """
 
             if j == 0:
-                left = self[i-1][0]
+                left = self[i+1][0]
             else:
-                left = min(self[i-1][j], self[i+1][j-1])
-            if j == n-i-1:
-                right = self[i-1][j+1]
+                left = min(self[i+1][j], self[i-1][j-1])
+            if j == len(self[i])-1:
+                right = self[i+1][j+1]
             else:
-                right = max(self[i-1][j+1], self[i+1][j])
+                right = max(self[i+1][j+1], self[i-1][j])
 
             return left + right - self[i][j]
 
@@ -277,10 +282,10 @@ class SemistandardPath(PathTableau):
         if not 0 < i < self.size()-1:
             raise ValueError(f"{i} is not defined on {self}")
 
-        result = copy(self)
-        row = [toggle(r,k) for k in range(i)]
-        result[i] = row
-        return SemistandardPath(result)
+        with self.clone() as result:
+            result[i] = tuple([toggle(i,k) for k in range(len(self[i]))])
+
+        return result
 
 
     @combinatorial_map(name='to semistandard tableau')
@@ -306,8 +311,11 @@ class SemistandardPath(PathTableau):
         from sage.combinat.partition import Partition
 
         parts = [Partition(a) for a in self]
-        if not self.is_skew():
-            return from_chain(parts[1:])
+        if self.is_skew():
+            return SkewTableaux().from_chain(parts)
+        else:
+            return from_chain(parts)
+
 
     @combinatorial_map(name='to Gelfand-Tsetlin pattern')
     def to_pattern(self):
@@ -334,7 +342,7 @@ class SemistandardPath(PathTableau):
         if lt[0] == ():
             lt = lt[1:]
         lt.reverse()
-        return GelfandTsetlinPattern(lt)
+        return GelfandTsetlinPattern([list(a) for a in lt])
 
     def _test_jdt_promotion(self, **options):
         """

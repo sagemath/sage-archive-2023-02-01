@@ -294,6 +294,44 @@ class SemistandardPath(PathTableau):
 
         return result
 
+    def rectify(self,inner=None):
+        """
+        Rectify `self`
+
+        EXAMPLES::
+
+            sage: st = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
+            sage: path_tableaux.SemistandardPath(st).rectify()
+            [(), (2,), (3, 0), (3, 1, 0), (3, 2, 0, 0), (4, 2, 0, 0, 0), (4, 3, 2, 0, 0, 0)]
+
+        TESTS:
+
+            sage: S = SemistandardSkewTableaux([[5,3,3],[3,1]],[3,2,2])
+            sage: LHS = [path_tableaux.SemistandardPath(st.rectify()) for st in S]
+            sage: RHS = [path_tableaux.SemistandardPath(st).rectify() for st in S]
+            sage: [ (r,s) for r,s in zip(LHS,RHS) if r == s]
+            []
+
+        """
+        if not self.is_skew():
+            return self
+
+        n = len(self)
+        pp = self[0]
+        r = len(pp)
+
+        if inner == None:
+            initial = [pp[:r] for r in range(len(pp))]
+        elif inner[-1] == pp:
+            initial = list(self)[:-1]
+        else:
+            raise ValueError(f"The final shape{inner[-1]} must agree with the initial shape {pp}")
+
+        path = SemistandardPath(initial + list(self))
+        for i in range(r-1):
+            for j in range(n-2):
+                path = path.local_rule(r+j-i-1)
+        return SemistandardPath(list(path)[:n])
 
     @combinatorial_map(name='to semistandard tableau')
     def to_tableau(self):

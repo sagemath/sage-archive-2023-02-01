@@ -9,6 +9,8 @@ Differentiable Manifolds
    sage/manifolds/differentiable/chart
 
    sage/manifolds/differentiable/examples/real_line
+   
+   sage/manifolds/differentiable/examples/sphere
 
    diff_scalarfield
 

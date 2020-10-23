@@ -80,6 +80,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux
 from sage.combinat.tableau import Tableau
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
+from sage.combinat.partition import Partition
 
 ###############################################################################
 
@@ -278,14 +279,6 @@ class SemistandardPath(PathTableau):
 
             return left + right - self[i][j]
 
-        #if not 0 < i < n:
-        #    raise ValueError(f"must have 0 < {i} < {n}")
-        #r = n-i
-        #P = self.parent()
-        #data = [list(row) for row in self]
-        #data[r] = [toggle(r,s) for s in range(i)]
-        #return P.element_class(P, data)
-
         if not 0 < i < self.size()-1:
             raise ValueError(f"{i} is not defined on {self}")
 
@@ -302,15 +295,22 @@ class SemistandardPath(PathTableau):
 
             sage: st = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
             sage: path_tableaux.SemistandardPath(st).rectify()
-            [(), (2,), (3, 0), (3, 1, 0), (3, 2, 0, 0), (4, 2, 0, 0, 0), (4, 3, 2, 0, 0, 0)]
+            [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]
+            sage: path_tableaux.SemistandardPath(st.rectify())
+            [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]
 
         TESTS:
 
             sage: S = SemistandardSkewTableaux([[5,3,3],[3,1]],[3,2,2])
             sage: LHS = [path_tableaux.SemistandardPath(st.rectify()) for st in S]
             sage: RHS = [path_tableaux.SemistandardPath(st).rectify() for st in S]
-            sage: [ (r,s) for r,s in zip(LHS,RHS) if r == s]
-            []
+            sage: all(r==s for r,s in zip(LHS,RHS) if r != s)
+            True
+
+            sage: st = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
+            sage: pt = path_tableaux.SemistandardPath(st)
+            sage: SP = [path_tableaux.SemistandardPath(it) for it in StandardTableaux([3,2,2])]
+            sage: set(pt.rectify(inner=ip) for ip in SP)
 
         """
         if not self.is_skew():
@@ -322,15 +322,16 @@ class SemistandardPath(PathTableau):
 
         if inner == None:
             initial = [pp[:r] for r in range(len(pp))]
-        elif inner[-1] == pp:
-            initial = list(self)[:-1]
+        elif Partition(inner[-1]) == Partition(pp):
+            initial = list(inner)[:-1]
         else:
             raise ValueError(f"The final shape{inner[-1]} must agree with the initial shape {pp}")
 
         path = SemistandardPath(initial + list(self))
-        for i in range(r-1):
-            for j in range(n-2):
-                path = path.local_rule(r+j-i-1)
+        print(path)
+        for i in range(r):
+            for j in range(n-1):
+                path = path.local_rule(r+j-i)
         return SemistandardPath(list(path)[:n])
 
     @combinatorial_map(name='to semistandard tableau')
@@ -353,7 +354,6 @@ class SemistandardPath(PathTableau):
             True
         """
         from sage.combinat.tableau import from_chain
-        from sage.combinat.partition import Partition
 
         parts = [Partition(a) for a in self]
         if self.is_skew():

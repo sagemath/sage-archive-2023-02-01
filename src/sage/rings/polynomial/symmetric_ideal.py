@@ -55,7 +55,6 @@ equal to `x_1` in ``Q``. Indeed, we have
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
@@ -107,14 +106,6 @@ class SymmetricIdeal( Ideal_generic ):
     provides degree lexicographic and degree reverse lexicographic
     monomial orderings -- we do, however, not guarantee termination of
     the Buchberger algorithm in these cases.
-
-    .. [AB2007] \M. Aschenbrenner, C. Hillar,
-       *Finite generation of symmetric ideals*.
-       Trans. Amer. Math. Soc. 359 (2007), no. 11, 5171--5192.
-
-    .. [AB2008] \M. Aschenbrenner, C. Hillar,
-       *An Algorithm for Finding Symmetric Groebner Bases in Infinite
-       Dimensional Rings*. :arxiv:`0801.4439`.
 
     EXAMPLES::
 
@@ -227,7 +218,7 @@ class SymmetricIdeal( Ideal_generic ):
 
         """
         from sage.misc.latex import latex
-        return '\\left(%s\\right)%s[\\mathfrak{S}_{\\infty}]'%(", ".join([latex(g) for g in self.gens()]), latex(self.ring()))
+        return '\\left(%s\\right)%s[\\mathfrak{S}_{\\infty}]' % (", ".join(latex(g) for g in self.gens()), latex(self.ring()))
 
     def _contains_(self, p):
         """

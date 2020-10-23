@@ -94,7 +94,7 @@ The ranges of the coordinates introduced so far are::
     sage: cartesian.coord_range()
     x: (-oo, +oo); y: (-oo, +oo)
     sage: polar.coord_range()
-    r: (0, +oo); ph: (0, 2*pi)
+    r: (0, +oo); ph: [0, 2*pi] (periodic)
 
 The transition map from polar coordinates to Cartesian ones is::
 
@@ -142,7 +142,7 @@ coordinates, as we can check from the metric components in it::
 
 The expression of the metric tensor in terms of polar coordinates is::
 
-    sage: g.display(polar.frame(), polar)
+    sage: g.display(polar)
     g = dr*dr + r^2 dph*dph
 
 A vector field on ``E``::
@@ -180,7 +180,72 @@ in the same vein, the default coordinates can be changed via the method
     sage: E.set_default_frame(E.cartesian_frame())  # revert to Cartesian frame
     sage: E.set_default_chart(cartesian)            # and chart
 
-The value of ``v`` at point ``p``::
+When defining a vector field from components relative to a vector frame
+different from the default one, the vector frame has to be specified
+explicitly::
+
+    sage: v = E.vector_field(1, 0, frame=polar_frame)
+    sage: v.display(polar_frame)
+    e_r
+    sage: v.display()
+    x/sqrt(x^2 + y^2) e_x + y/sqrt(x^2 + y^2) e_y
+
+The argument ``chart`` must be used to specify in which coordinate
+chart the components are expressed::
+
+    sage: v = E.vector_field(0, r, frame=polar_frame, chart=polar)
+    sage: v.display(polar_frame, polar)
+    r e_ph
+    sage: v.display()
+    -y e_x + x e_y
+
+It is also possible to pass the components as a dictionary, with
+a pair (vector frame, chart) as a key::
+
+    sage: v = E.vector_field({(polar_frame, polar): (0, r)})
+    sage: v.display(polar_frame, polar)
+    r e_ph
+
+The key can be reduced to the vector frame if the chart is the default
+one::
+
+    sage: v = E.vector_field({polar_frame: (0, 1)})
+    sage: v.display(polar_frame)
+    e_ph
+
+Finally, it is possible to construct the vector field without
+initializing any component::
+
+    sage: v = E.vector_field(); v
+    Vector field on the Euclidean plane E^2
+
+The components can then by set in a second stage, via the square
+bracket operator, the unset components being assumed to be zero::
+
+    sage: v[1] = -y
+    sage: v.display()  # v[2] is zero
+    -y e_x
+    sage: v[2] = x
+    sage: v.display()
+    -y e_x + x e_y
+
+The above is equivalent to::
+
+    sage: v[:] = -y, x
+    sage: v.display()
+    -y e_x + x e_y
+
+The square bracket operator can also be used to set components in a
+vector frame that is not the default one::
+
+    sage: v = E.vector_field(name='v')
+    sage: v[polar_frame, 2, polar] = r
+    sage: v.display(polar_frame, polar)
+    v = r e_ph
+    sage: v.display()
+    v = -y e_x + x e_y
+
+The value of the vector field ``v`` at point ``p``::
 
     sage: vp = v.at(p); vp
     Vector v at Point p on the Euclidean plane E^2
@@ -341,12 +406,15 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.functions.trig import cos, sin, atan2
 from sage.functions.other import sqrt
 from sage.misc.latex import latex
+from sage.rings.real_mpfr import RR
+from sage.categories.manifolds import Manifolds
+from sage.categories.metric_spaces import MetricSpaces
 from sage.manifolds.differentiable.pseudo_riemannian import \
                                                        PseudoRiemannianManifold
 
@@ -547,10 +615,12 @@ class EuclideanSpace(PseudoRiemannianManifold):
         sage: latex(E)
         \mathbb{E}^{4}
 
-    ``E`` is a real smooth manifold of dimension `4`::
+    ``E`` is both a real smooth manifold of dimension `4` and a complete metric
+    space::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of smooth manifolds over Real Field with 53 bits of
+         precision and Category of complete metric spaces
         sage: dim(E)
         4
 
@@ -677,10 +747,8 @@ class EuclideanSpace(PseudoRiemannianManifold):
           an Euclidean space; the created object is then an open subset
           of ``base_manifold``
         - ``category`` -- (default: ``None``) to specify the category;
-          if ``None``, ``Manifolds(RR).Differentiable()`` (or
-          ``Manifolds(RR).Smooth()`` if ``diff_degree`` = ``infinity``)
-          is assumed (see the category
-          :class:`~sage.categories.manifolds.Manifolds`)
+          if ``None``,
+          ``Manifolds(RR).Smooth() & MetricSpaces().Complete()`` is assumed
         - ``init_coord_methods`` -- (default: ``None``) dictionary of
           methods to initialize the various type of coordinates, with each
           key being a string describing the type of coordinates; to be
@@ -707,6 +775,10 @@ class EuclideanSpace(PseudoRiemannianManifold):
             name = 'E^{}'.format(n)
             if latex_name is None:
                 latex_name = r'\mathbb{E}^{' + str(n) + '}'
+        if category is None:
+            category = Manifolds(RR).Smooth() & MetricSpaces().Complete()
+            # NB: RR is a proxy for the field of real numbers, until
+            #     Trac #24456 is ready
         PseudoRiemannianManifold.__init__(self, n, name, metric_name=metric_name,
                                           signature=n, base_manifold=base_manifold,
                                           latex_name=latex_name,
@@ -883,163 +955,38 @@ class EuclideanSpace(PseudoRiemannianManifold):
         # we simply return this frame:
         return self._cartesian_chart.frame()
 
-    def vector_field(self, *args, **kwargs):
+    def dist(self, p, q):
         r"""
-        Define a vector field on ``self``.
+        Euclidean distance between two points.
 
         INPUT:
 
-        - ``args`` -- components of the vector field with respect to the
-          vector frame specified by the argument ``frame`` or a dictionary
-          of components (see examples below)
-        - ``frame`` -- (default: ``None``) vector frame in which the components
-          are given; if ``None``, the default vector frame on ``self`` is
-          assumed
-        - ``chart`` -- (default: ``None``) coordinate chart in which the
-          components are expressed; if ``None``, the default chart on ``self``
-          is assumed
-        - ``name`` -- (default: ``None``) name given to the vector field
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          vector field; if ``None``, the LaTeX symbol is set to
-          ``name``
-        - ``dest_map`` -- (default: ``None``) the destination map
-          `\Phi:\ E \rightarrow F`, where `E` is ``self`` and `F` is the
-          differentiable manifold where the vector field takes its values
-          (see
-          :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
-          for details); if ``None``, it is assumed that `E = F` and that `\Phi`
-          is the identity map (case of a vector field *on* `E`), otherwise
-          ``dest_map`` must be a
-          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+        - ``p`` -- an element of ``self``
+        - ``q`` -- an element of ``self``
 
         OUTPUT:
 
-        - an instance of
-          :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
-          representing the defined vector field
+        - the Euclidean distance `d(p, q)`
 
-        EXAMPLES:
-
-        A vector field in the Euclidean plane::
+        EXAMPLES::
 
             sage: E.<x,y> = EuclideanSpace()
-            sage: v = E.vector_field(x*y, x+y)
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-            sage: v[:]
-            [x*y, x + y]
-
-        A name can be provided; it is then used for displaying the vector
-        field::
-
-            sage: v = E.vector_field(x*y, x+y, name='v')
-            sage: v.display()
-            v = x*y e_x + (x + y) e_y
-
-        It is also possible to initialize a vector field from a vector of
-        symbolic expressions::
-
-            sage: v = E.vector_field(vector([x*y, x+y]))
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-
-        If the components are relative to a vector frame different from the
-        default one (here the Cartesian frame `(e_x,e_y)`), the vector
-        frame has to be specified explicitly::
-
-            sage: polar_frame = E.polar_frame(); polar_frame
-            Vector frame (E^2, (e_r,e_ph))
-            sage: v = E.vector_field(1, 0, frame=polar_frame)
-            sage: v.display(polar_frame)
-            e_r
-            sage: v.display()
-            x/sqrt(x^2 + y^2) e_x + y/sqrt(x^2 + y^2) e_y
-
-        The argument ``chart`` must be used to specify in which coordinate
-        chart the components are expressed::
-
-            sage: polar.<r, ph> = E.polar_coordinates()
-            sage: v = E.vector_field(0, r, frame=polar_frame, chart=polar)
-            sage: v.display(polar_frame, polar)
-            r e_ph
-            sage: v.display()
-            -y e_x + x e_y
-
-        It is also possible to pass the components as a dictionary, with
-        a pair (vector frame, chart) as a key::
-
-            sage: v = E.vector_field({(polar_frame, polar): (0, r)})
-            sage: v.display(polar_frame, polar)
-            r e_ph
-
-        The key can be reduced to the vector frame if the chart is the default
-        one::
-
-            sage: v = E.vector_field({polar_frame: (0, 1)})
-            sage: v.display(polar_frame)
-            e_ph
-
-        Finally, it is possible to construct the vector field without
-        initializing any component::
-
-            sage: v = E.vector_field(); v
-            Vector field on the Euclidean plane E^2
-
-        The components can then by set in a second stage, via the square
-        bracket operator, the unset components being assumed to be zero::
-
-            sage: v[1] = x*y
-            sage: v.display()  # v[2] is zero
-            x*y e_x
-            sage: v[2] = x+y
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-
-        The above is equivalent to::
-
-            sage: v[:] = x*y, x+y
-            sage: v.display()
-            x*y e_x + (x + y) e_y
-
-        The square bracket operator can also be used to set components in a
-        vector frame that is not the default one::
-
-            sage: v = E.vector_field(name='v')
-            sage: v[polar_frame, 1, polar] = r
-            sage: v.display(polar_frame, polar)
-            v = r e_r
-            sage: v.display()
-            v = x e_x + y e_y
+            sage: p = E((1,0))
+            sage: q = E((0,2))
+            sage: E.dist(p, q)
+            sqrt(5)
+            sage: p.dist(q)  # indirect doctest
+            sqrt(5)
 
         """
-        name = kwargs.get('name')
-        latex_name = kwargs.get('latex_name')
-        dest_map = kwargs.get('dest_map')
-        resu = super(EuclideanSpace, self).vector_field(name=name,
-                                      latex_name=latex_name, dest_map=dest_map)
-        if args:
-            # Some components are to be initialized
-            args0 = args[0]
-            if isinstance(args0, dict):
-                for frame, components in args0.items():
-                    chart = None
-                    if isinstance(frame, tuple):
-                        # a pair (frame, chart) has been provided:
-                        frame, chart = frame
-                    resu.add_comp(frame)[:, chart] = components
-            else:
-                if hasattr(args0, '__getitem__') and len(args0) == self._dim:
-                    # args0 is a list/vector of components
-                    args = args0
-                elif len(args) != self._dim:
-                    raise ValueError("{} components must ".format(self._dim) +
-                                     "be provided")
-                    # args is the tuple of components in a specific frame
-                frame = kwargs.get('frame')
-                chart = kwargs.get('chart')
-                resu.add_comp(frame)[:, chart] = args
-        return resu
-
+        chart = self.cartesian_coordinates()
+        coords_p = chart(p)
+        coords_q = chart(q)
+        d2 = 0
+        for xp, xq in zip(coords_p, coords_q):
+            dx = xp - xq
+            d2 += dx*dx
+        return sqrt(d2)
 
 ###############################################################################
 
@@ -1091,9 +1038,7 @@ class EuclideanPlane(EuclideanSpace):
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be an
       Euclidean plane; the created object is then an open subset of ``base_manifold``
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
-      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
-      if ``diff_degree`` = ``infinity``) is assumed (see the category
-      :class:`~sage.categories.manifolds.Manifolds`)
+      ``Manifolds(RR).Smooth() & MetricSpaces().Complete()`` is assumed
     - ``names`` -- (default: ``None``) unused argument, except if
       ``symbols`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
@@ -1118,10 +1063,12 @@ class EuclideanPlane(EuclideanSpace):
         sage: E.<x,y> = EuclideanSpace(); E
         Euclidean plane E^2
 
-    ``E`` is a real smooth manifold of dimension 2::
+    ``E`` is both a real smooth manifold of dimension `2` and a complete metric
+    space::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of smooth manifolds over Real Field with 53 bits of
+         precision and Category of complete metric spaces
         sage: dim(E)
         2
 
@@ -1238,7 +1185,8 @@ class EuclideanPlane(EuclideanSpace):
         """
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
-        coordinates = coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi)'
+        coordinates = (coords[0] + ':(0,+oo) ' + coords[1]
+                       + ':(0,2*pi):periodic')
         chart = self.chart(coordinates=coordinates)
         self._polar_chart = chart
         frame = chart.frame()
@@ -1297,7 +1245,7 @@ class EuclideanPlane(EuclideanSpace):
         r, ph = chart_pol[:]
         pol_to_cart = chart_pol.transition_map(chart_cart,
                                                [r*cos(ph), r*sin(ph)])
-        pol_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y,x))
+        pol_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y,x), check=False)
         # Automorphism Cartesian frame --> orthonormal polar frame:
         oframe = self._polar_frame
         cframe = chart_cart.frame()
@@ -1449,7 +1397,7 @@ class EuclideanPlane(EuclideanSpace):
             sage: latex(_)
             \left(\mathbb{E}^{2},(r, {\phi})\right)
             sage: E.polar_coordinates().coord_range()
-            r: (0, +oo); ph: (0, 2*pi)
+            r: (0, +oo); ph: [0, 2*pi] (periodic)
 
         The relation to Cartesian coordinates is::
 
@@ -1547,8 +1495,7 @@ class EuclideanPlane(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.polar_frame():
-            ....:     e.display(E.polar_coordinates().frame(),
-            ....:               E.polar_coordinates())
+            ....:     e.display(E.polar_coordinates())
             e_r = d/dr
             e_ph = 1/r d/dph
 
@@ -1611,9 +1558,7 @@ class Euclidean3dimSpace(EuclideanSpace):
       Euclidean 3-space; the created object is then an open subset of
       ``base_manifold``
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
-      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
-      if ``diff_degree`` = ``infinity``) is assumed (see the category
-      :class:`~sage.categories.manifolds.Manifolds`)
+      ``Manifolds(RR).Smooth() & MetricSpaces().Complete()`` is assumed
     - ``names`` -- (default: ``None``) unused argument, except if
       ``symbols`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
@@ -1646,10 +1591,12 @@ class Euclidean3dimSpace(EuclideanSpace):
         sage: type(E)
         <class 'sage.manifolds.differentiable.euclidean.Euclidean3dimSpace_with_category'>
 
-    ``E`` is a real smooth manifold of dimension 3::
+    ``E`` is both a real smooth manifold of dimension `3` and a complete metric
+    space::
 
         sage: E.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of smooth manifolds over Real Field with 53 bits of
+         precision and Category of complete metric spaces
         sage: dim(E)
         3
 
@@ -1776,7 +1723,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
         coordinates = (coords[0] + ':(0,+oo) ' + coords[1] + ':(0,pi) '
-                       + coords[2] + ':(0,2*pi)')
+                       + coords[2] + ':(0,2*pi):periodic')
         chart = self.chart(coordinates=coordinates)
         self._spherical_chart = chart
         frame = chart.frame()
@@ -1819,8 +1766,8 @@ class Euclidean3dimSpace(EuclideanSpace):
         """
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
-        coordinates = (coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi) '
-                       + coords[2])
+        coordinates = (coords[0] + ':(0,+oo) ' + coords[1]
+                       + ':(0,2*pi):periodic '+ coords[2])
         chart = self.chart(coordinates=coordinates)
         self._cylindrical_chart = chart
         frame = chart.frame()
@@ -1888,7 +1835,8 @@ class Euclidean3dimSpace(EuclideanSpace):
         spher_to_cart = chart_spher.transition_map(chart_cart,
                              [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
         spher_to_cart.set_inverse(sqrt(x**2+y**2+z**2),
-                                  atan2(sqrt(x**2+y**2),z), atan2(y, x))
+                                  atan2(sqrt(x**2+y**2),z), atan2(y, x),
+                                  check=False)
         # Automorphism Cartesian frame --> orthonormal spherical frame:
         oframe = self._spherical_frame
         cframe = chart_cart.frame()
@@ -1965,7 +1913,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         rh, ph, z = chart_cylind[:]
         cylind_to_cart = chart_cylind.transition_map(chart_cart,
                                                      [rh*cos(ph), rh*sin(ph), z])
-        cylind_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y, x), z)
+        cylind_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y, x), z, check=False)
         # Automorphism Cartesian frame --> orthonormal cylindrical frame:
         oframe = self._cylindrical_frame
         cframe = chart_cart.frame()
@@ -2042,7 +1990,8 @@ class Euclidean3dimSpace(EuclideanSpace):
         r, th, ph = spher[:]
         spher_to_cylind = spher.transition_map(cylind,
                                                [r*sin(th), ph, r*cos(th)])
-        spher_to_cylind.set_inverse(sqrt(rh**2 + z**2), atan2(rh,z), ph)
+        spher_to_cylind.set_inverse(sqrt(rh**2 + z**2), atan2(rh,z), ph,
+                                    check=False)
         # Automorphism orthon. cylindrical frame -> orthon. spherical frame
         cf = cylind.frame() # coordinate cylindrical frame
         sf = spher.frame()  # coordinate spherical frame
@@ -2189,7 +2138,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             sage: latex(_)
             \left(\mathbb{E}^{3},(r, {\theta}, {\phi})\right)
             sage: E.spherical_coordinates().coord_range()
-            r: (0, +oo); th: (0, pi); ph: (0, 2*pi)
+            r: (0, +oo); th: (0, pi); ph: [0, 2*pi] (periodic)
 
         The relation to Cartesian coordinates is::
 
@@ -2295,8 +2244,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial\phi}\right)`::
 
             sage: for e in E.spherical_frame():
-            ....:     e.display(E.spherical_coordinates().frame(),
-            ....:               E.spherical_coordinates())
+            ....:     e.display(E.spherical_coordinates())
             e_r = d/dr
             e_th = 1/r d/dth
             e_ph = 1/(r*sin(th)) d/dph
@@ -2338,7 +2286,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             sage: latex(_)
             \left(\mathbb{E}^{3},({\rho}, {\phi}, z)\right)
             sage: E.cylindrical_coordinates().coord_range()
-            rh: (0, +oo); ph: (0, 2*pi); z: (-oo, +oo)
+            rh: (0, +oo); ph: [0, 2*pi] (periodic); z: (-oo, +oo)
 
         The relation to Cartesian coordinates is::
 
@@ -2444,8 +2392,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         \frac{\partial}{\partial z}\right)`::
 
             sage: for e in E.cylindrical_frame():
-            ....:     e.display(E.cylindrical_coordinates().frame(),
-            ....:               E.cylindrical_coordinates())
+            ....:     e.display(E.cylindrical_coordinates())
             e_rh = d/drh
             e_ph = 1/rh d/dph
             e_z = d/dz

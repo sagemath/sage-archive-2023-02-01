@@ -2,7 +2,7 @@
 r"""
 C-Finite Sequences
 
-C-finite infinite sequences satisfy homogenous linear recurrences with constant coefficients:
+C-finite infinite sequences satisfy homogeneous linear recurrences with constant coefficients:
 
 .. MATH::
 
@@ -71,16 +71,10 @@ AUTHORS:
 
 REFERENCES:
 
-.. [GK82] Daniel H. Greene and Donald E. (1982), "2.1.1 Constant
-   coefficients - A) Homogeneous equations", Mathematics for the Analysis
-   of Algorithms (2nd ed.), Birkhauser, p. 17.
-.. [KP11] Manuel Kauers and Peter Paule. The Concrete Tetrahedron.
-   Springer-Verlag, 2011.
-.. [SZ94] Bruno Salvy and Paul Zimmermann. - Gfun: a Maple package for
-   the manipulation of generating and holonomic functions in one variable.
-   - Acm transactions on mathematical software, 20.2:163-177, 1994.
-.. [Z11] Doron Zeilberger. "The C-finite ansatz." The Ramanujan Journal
-   (2011): 1-10.
+- [GK1982]_
+- [KP2011]_
+- [SZ1994]_
+- [Zei2011]_
 """
 
 #*****************************************************************************
@@ -92,8 +86,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
-from six import add_metaclass
 
 from sage.categories.fields import Fields
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -168,8 +160,8 @@ def CFiniteSequences(base_ring, names = None, category = None):
     return CFiniteSequences_generic(polynomial_ring, category)
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class CFiniteSequence(FieldElement):
+class CFiniteSequence(FieldElement,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Create a C-finite sequence given its ordinary generating function.
 
@@ -592,7 +584,7 @@ class CFiniteSequence(FieldElement):
             False
         """
         return not self.__eq__(other)
-    
+
     def __getitem__(self, key):
         r"""
         Return a slice of the sequence.
@@ -729,17 +721,17 @@ class CFiniteSequence(FieldElement):
 
             sage: C.<x> = CFiniteSequences(QQ)
             sage: C((2-x)/(1-x-x^2)).recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(0...) = [2, 1]'
+            'homogeneous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(0...) = [2, 1]'
             sage: C(x/(1-x)^3).recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 3: a(n+3) = 3*a(n+2) - 3*a(n+1) + a(n), starting a(1...) = [1, 3, 6]'
+            'homogeneous linear recurrence with constant coefficients of degree 3: a(n+3) = 3*a(n+2) - 3*a(n+1) + a(n), starting a(1...) = [1, 3, 6]'
             sage: C(1).recurrence_repr()
             'Finite sequence [1], offset 0'
             sage: r = C((-2*x^3 + x^2 - x + 1)/(2*x^2 - 3*x + 1))
             sage: r.recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = 3*a(n+1) - 2*a(n), starting a(0...) = [1, 2, 5, 9]'
+            'homogeneous linear recurrence with constant coefficients of degree 2: a(n+2) = 3*a(n+1) - 2*a(n), starting a(0...) = [1, 2, 5, 9]'
             sage: r = CFiniteSequence(x^3/(1-x-x^2))
             sage: r.recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(3...) = [1, 1, 2, 3]'
+            'homogeneous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(3...) = [1, 1, 2, 3]'
         """
         if self._deg == 0:
             return 'Finite sequence %s, offset %d' % (str(self._a), self._off)
@@ -768,7 +760,7 @@ class CFiniteSequence(FieldElement):
         for i in range(maxwexp + self._deg):
             astr = astr + str(self[self._off + i]) + ', '
         astr = astr[:-2] + ']'
-        return 'Homogenous linear recurrence with constant coefficients of degree ' + str(self._deg) + ': ' + cstr + astr
+        return 'homogeneous linear recurrence with constant coefficients of degree ' + str(self._deg) + ': ' + cstr + astr
 
     def series(self, n):
         """
@@ -806,7 +798,7 @@ class CFiniteSequence(FieldElement):
         where ``r_i`` are the roots of the characteristic equation and
         ``c_i(n)`` is a polynomial (whose degree equals the multiplicity of
         ``r_i`` minus one).  This is a natural generalization of Binet's
-        formula for Fibonacci numbers.  See, for instance, [KP, Theorem 4.1].
+        formula for Fibonacci numbers.  See, for instance, [KP2011, Theorem 4.1].
 
         Note that if the o.g.f. has a polynomial part, that is, if the
         numerator degree is not strictly less than the denominator degree,
@@ -905,7 +897,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
         INPUT:
 
         - ``base_ring`` -- the base ring for the o.g.f (either ``QQ`` or ``ZZ``)
-        - ``names`` -- an iterable of variables (shuould contain only one variable)
+        - ``names`` -- an iterable of variables (should contain only one variable)
         - ``category`` -- the category of the ring (default: ``Fields()``)
 
         TESTS::
@@ -1102,7 +1094,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
     def from_recurrence(self, coefficients, values):
         r"""
         Create a C-finite sequence given the coefficients $c$ and
-        starting values $a$ of a homogenous linear recurrence.
+        starting values $a$ of a homogeneous linear recurrence.
 
         .. MATH::
 

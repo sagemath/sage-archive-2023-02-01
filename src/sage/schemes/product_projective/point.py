@@ -11,15 +11,15 @@ We construct products projective spaces of various dimensions over the same ring
     sage: P1xP1([2, 1, 3, 1])
     (2 : 1 , 3 : 1)
 """
-#*****************************************************************************
+# ****************************************************************************
 # Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #                    Ben Hutz <bn4941@gmail.com>
 #
 # Distributed under the terms of the GNU General Public License (GPL)
 # as published by the Free Software Foundation; either version 2 of
 # the License, or (at your option) any later version.
-# http://www.gnu.org/licenses/
-#*****************************************************************************
+# https://www.gnu.org/licenses/
+# ****************************************************************************
 from copy import copy
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
@@ -125,7 +125,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: P[1][0]
             1
         """
-        return(self._points[i])
+        return self._points[i]
 
     def _repr_(self):
         r"""
@@ -140,7 +140,8 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: P._repr_()
             '(1 : 2 : 3 , 4 : 5 : 6)'
         """
-        return('(%s)'%(" , ".join((" : ".join([repr(f) for f in Q])) for Q in self._points)))
+        return '(%s)' % (" , ".join((" : ".join(repr(f) for f in Q))
+                                    for Q in self._points))
 
     def _richcmp_(self, right, op):
         r"""
@@ -219,7 +220,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             True
         """
         P = [copy(self[i]) for i in range(self.codomain().ambient_space().num_components())]
-        return(self.codomain().point(P, False))
+        return (self.codomain().point(P, False))
 
     def __iter__(self):
         r"""
@@ -239,10 +240,21 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: list(P)
             [2, 1, 0, 1]
         """
-        L = []
-        for P in self._points:
-            L += P._coords
-        return iter(L)
+        return (x for P in self._points for x in P._coords)
+
+    def __len__(self):
+        """
+        Return the total number of coordinates in ``self``.
+
+        EXAMPLES::
+
+            sage: T = ProductProjectiveSpaces([1, 1], QQ, 'x')
+            sage: P = T([2, 1, 0, 1])
+            sage: len(P)
+            4
+        """
+        image = self.codomain().ambient_space()
+        return image.dimension() + image.num_components()
 
     def __hash__(self):
         """
@@ -258,26 +270,22 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         ::
 
             sage: PP = ProductProjectiveSpaces(ZZ, [1, 2])
-            sage: hash(PP([1, 1, 2, 2, 2]))
-            805439612                            # 32-bit
-            7267864846446758012                  # 64-bit
-            sage: hash(PP([1, 1, 1, 1, 1]))
-            805439612                            # 32-bit
-            7267864846446758012                  # 64-bit
+            sage: hash(PP([1, 1, 2, 2, 2])) == hash(PP([1, 1, 1, 1, 1]))
+            True
 
         ::
 
             sage: PP = ProductProjectiveSpaces(QQ, [1, 1])
-            sage: hash(PP([1/7, 1, 2, 1]))
-            1139616004                          # 32-bit
-            -7585172175017137916                # 64-bit
+            sage: hash(PP([1/7, 1, 2, 1])) == hash((1/7, 1, 2, 1))
+            True
 
         ::
 
             sage: PP = ProductProjectiveSpaces(GF(7), [1, 1, 1])
-            sage: hash(PP([4, 1, 5, 4, 6, 1]))
-            1796924635                          # 32-bit
-            -4539377540667874085                # 64-bit
+            sage: hash(PP([4, 1, 5, 4, 6, 1])) == hash((4, 1, 5, 4, 6, 1))
+            False
+            sage: hash(PP([4, 1, 5, 4, 6, 1])) == hash((4, 1, 3, 1, 6, 1))
+            True
         """
         R = self.codomain().base_ring()
         # if there is a fraction field normalize the point so that
@@ -292,7 +300,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def normalize_coordinates(self):
         r"""
-        Removes common factors (componentwise) from the coordinates of this point (including `-1`).
+        Remove common factors (componentwise) from the coordinates of this point (including `-1`).
 
         OUTPUT: None.
 
@@ -309,7 +317,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def dehomogenize(self, L):
         r"""
-        Dehomogenizes `k^{th}` point at `L[k]^{th}` coordinate.
+        Dehomogenize `k^{th}` point at `L[k]^{th}` coordinate.
 
         This function computes the appropriate affine patch using ``L``
         and then returns the dehomogenized point on of this affine space.
@@ -344,7 +352,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: A.dehomogenize([0,0])
             Traceback (most recent call last):
             ...
-            ValueError: can't dehomogenize at 0 coordinate
+            ValueError: can...t dehomogenize at 0 coordinate
         """
         PP = self.codomain()
         A = PP.affine_patch(L)
@@ -373,15 +381,15 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             (10 : 20 , 15 : 4 , 2 : 6)
         """
         if not isinstance(t, (tuple, list)):
-            raise TypeError("%s must be a list or tuple"%t)
+            raise TypeError("%s must be a list or tuple" % t)
         if len(t) != self.codomain().ambient_space().num_components():
-            raise TypeError("%s must have same number of components as %r"%(t, self))
+            raise TypeError("%s must have same number of components as %r" % (t, self))
         for i in range(self.codomain().ambient_space().num_components()):
             self[i].scale_by(t[i])
 
     def change_ring(self, R, **kwds):
         r"""
-        Returns a new :class:`ProductProjectiveSpaces_point` which is this point coerced to ``R``.
+        Return a new :class:`ProductProjectiveSpaces_point` which is this point coerced to ``R``.
 
         If the keyword ``check`` is ``True``, then the initialization checks are performed.
         The user may specify the embedding into ``R`` with a keyword.
@@ -409,90 +417,12 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         """
         check = kwds.get('check', True)
         S = self.codomain().change_ring(R)
-        Q = [P.change_ring(R,**kwds) for P in self._points]
-        return(S.point(Q, check))
-
-    def nth_iterate(self, f, n, normalize=False):
-        r"""
-        For a map of this point and a point `P` in ``self.domain()``
-        this function returns the nth iterate of `P` by  this point.
-
-        If ``normalize == True``,
-        then the coordinates are automatically normalized.
-
-        INPUT:
-
-        - ``f`` -- a ProductProjectiveSpaces_morphism_ring with ``self`` in ``f.domain()``.
-
-        - ``n`` -- a positive integer.
-
-        - ``normalize`` -- Boolean (optional Default: ``False``).
-
-        OUTPUT:
-
-        - A point in ``self.codomain()``
-
-        EXAMPLES::
-
-            sage: Z.<a,b,x,y> = ProductProjectiveSpaces([1, 1], ZZ)
-            sage: f = DynamicalSystem_projective([a*b, b^2, x^3 - y^3, y^2*x], domain=Z)
-            sage: P = Z([2, 6, 2, 4])
-            sage: P.nth_iterate(f, 2, normalize = True)
-            doctest:warning
-            ...
-            (1 : 3 , 407 : 112)
-
-        .. TODO:: Is there a more efficient way to do this?
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23479, "use f.nth_iterate(P, n, normalize) instead")
-        return f.nth_iterate(self, n, normalize)
-
-    def orbit(self, f, N, **kwds):
-        r"""
-        Returns the orbit this point by ``f``.
-
-        If ``N`` is an integer it returns `[P, self(P), \ldots,self^N(P)]`.
-
-        If ``N`` is a list or tuple `N=[m,k]` it returns `[self^m(P),\ldots,self^k(P)`].
-        Automatically normalize the points if ``normalize == True``.
-        Perform the checks on point initialization if
-        ``check==True``
-
-        INPUT:
-
-        - ``f`` -- a :class:`ProductProjectiveSpaces_morphism_ring` with the orbit of `P` in ``f.domain()``.
-
-        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers.
-
-        kwds:
-
-        - ``check`` -- Boolean (optional - default: ``True``).
-
-        - ``normalize`` -- Boolean (optional - default: ``False``).
-
-
-        OUTPUT:
-
-        - a list of points in ``self.codomain()``.
-
-        EXAMPLES::
-
-            sage: Z.<a,b,x,y> = ProductProjectiveSpaces([1, 1], ZZ)
-            sage: f = DynamicalSystem_projective([a*b, b^2, x^3 - y^3, y^2*x], domain=Z)
-            sage: P = Z([2, 6, 2, 4])
-            sage: P.orbit(f, 3, normalize = True)
-            doctest:warning
-            ...
-            [(1 : 3 , 1 : 2), (1 : 3 , -7 : 4), (1 : 3 , 407 : 112), (1 : 3 , 66014215 : 5105408)]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23479, "use f.orbit(P, N, **kwds) instead")
-        return f.orbit(self, N, **kwds)
+        Q = [P.change_ring(R, **kwds) for P in self._points]
+        return S.point(Q, check)
 
     def global_height(self, prec=None):
         r"""
-        Returns the absolute logarithmic height of the point.
+        Return the absolute logarithmic height of the point.
 
         This function computes the maximum of global height of each
         component point in the product. Global height of component
@@ -546,11 +476,11 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def local_height(self, v, prec=None):
         r"""
-        Returns the maximum of the local height of the coordinates of this point.
+        Return the maximum of the local height of the coordinates of this point.
 
-        This function computes the maximum of local height of each component point
-        in the product. Local height of component point is computed using function
-        for projective point.
+        This function computes the maximum of local height of each
+        component point in the product. Local height of component
+        point is computed using function for projective point.
 
         INPUT:
 
@@ -580,9 +510,10 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         K = FractionField(self.domain().base_ring())
         if K not in NumberFields():
             raise TypeError("must be over a number field or a number field order")
-        
+
         n = self.codomain().ambient_space().num_components()
         return max(self[i].local_height(v, prec=prec) for i in range(n))
+
 
 class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
 
@@ -640,6 +571,7 @@ class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
         if is_ProductProjectiveSpaces(self.codomain()):
             raise TypeError("this point must be a point on a subscheme of a product of projective spaces")
         return self.codomain().multiplicity(self)
+
 
 class ProductProjectiveSpaces_point_finite_field(ProductProjectiveSpaces_point_field):
     pass

@@ -33,16 +33,16 @@ Sage example in ./mpoly.tex, line 96::
 
 Sage example in ./mpoly.tex, line 103::
 
-  sage: test_poly(QQ['x,y'])
+  sage: test_poly(QQ['x,y']) # py2
   x^3 + x^2*y + x*y^2 + y^3 + x^2 + x*y + y^2 + x + y + 1
-  sage: test_poly(QQ['y,x'])
+  sage: test_poly(QQ['y,x']) # py2
   y^3 + y^2*x + y*x^2 + x^3 + y^2 + y*x + x^2 + y + x + 1
-  sage: test_poly(QQ['x,y']) == test_poly(QQ['y,x'])
+  sage: test_poly(QQ['x,y']) == test_poly(QQ['y,x']) # py2
   True
 
 Sage example in ./mpoly.tex, line 127::
 
-  sage: test_poly(PolynomialRing(QQ, 'x,y', order='deglex'))
+  sage: test_poly(PolynomialRing(QQ, 'x,y', order='deglex')) # py2
   x^3 + x^2*y + x*y^2 + y^3 + x^2 + x*y + y^2 + x + y + 1
 
 Sage example in ./mpoly.tex, line 230::
@@ -109,8 +109,10 @@ Sage example in ./mpoly.tex, line 575::
 
 Sage example in ./mpoly.tex, line 584::
 
-  sage: J.variety()
+  sage: J.variety() # py2
   [{y: 2, z: 1, x: 3}]
+  sage: J.variety() # py3
+  [{z: 1, y: 2, x: 3}]
 
 Sage example in ./mpoly.tex, line 596::
 
@@ -120,20 +122,21 @@ Sage example in ./mpoly.tex, line 596::
 
 Sage example in ./mpoly.tex, line 603::
 
-  sage: V[-3:]
-  [{z: 0.9324722294043558? - 0.3612416661871530?*I,
-   y: -1.700434271459229? + 1.052864325754712?*I,
-   x: 1.337215067329615? - 2.685489874065187?*I},
-  {z: 0.9324722294043558? + 0.3612416661871530?*I,
+  sage: sorted(V, key=str)[-3:]
+  [{z: 0.9324722294043558? + 0.3612416661871530?*I,
    y: -1.700434271459229? - 1.052864325754712?*I,
    x: 1.337215067329615? + 2.685489874065187?*I},
-  {z: 1, y: 2, x: 3}]
+  {z: 0.9324722294043558? - 0.3612416661871530?*I,
+   y: -1.700434271459229? + 1.052864325754712?*I,
+   x: 1.337215067329615? - 2.685489874065187?*I},
+   {z: 1, y: 2, x: 3}]
 
 Sage example in ./mpoly.tex, line 619::
 
   sage: (xx, yy, zz) = QQbar['x,y,z'].gens()
-  sage: [ pt[xx].degree() for pt in V ]
-  [16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 1]
+  sage: sorted([pt[xx].degree() for pt in V])
+  [1, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
+  16, 16]
 
 Sage example in ./mpoly.tex, line 640::
 
@@ -149,8 +152,8 @@ Sage example in ./mpoly.tex, line 662::
 
 Sage example in ./mpoly.tex, line 690::
 
-  sage: set(pt[zz].minpoly() for pt in V[:-1])
-  {x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1}
+  sage: set(pt[zz].minpoly() for pt in sorted(V, key=str)[:-1])
+    {x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1}
 
 Sage example in ./mpoly.tex, line 706::
 
@@ -158,9 +161,11 @@ Sage example in ./mpoly.tex, line 706::
   ....:     rho = z.abs(); rho.simplify()
   ....:     theta = 2 * pi * z.rational_argument()
   ....:     return (SR(rho) * exp(I*theta))
-  sage: [tuple(polar_form(pt[i]) for i in [xx,yy,zz]) for pt in V[-3:]]
-  [(3*e^(-6/17*I*pi), 2*e^(14/17*I*pi), e^(-2/17*I*pi)),
-  (3*e^(6/17*I*pi), 2*e^(-14/17*I*pi), e^(2/17*I*pi)), (3, 2, 1)]
+  sage: sorted([tuple(polar_form(pt[i]) for i in [xx,yy,zz])
+  ....:  for pt in sorted(V, key=str)[-3:]])
+  [(3*e^(6/17*I*pi), 2*e^(-14/17*I*pi), e^(2/17*I*pi)),
+   (3*e^(-6/17*I*pi), 2*e^(14/17*I*pi), e^(-2/17*I*pi)),
+   (3, 2, 1)]
 
 Sage example in ./mpoly.tex, line 733::
 
@@ -374,7 +379,7 @@ Sage example in ./mpoly.tex, line 1840::
 
   sage: D = ideal((x+2*y-1)*(x+2*y+1)); J = C + D
   sage: J.variety()
-  [{y: -4/5, x: 3/5}, {y: 0, x: -1}, {y: 0, x: 1}, {y: 4/5, x: -3/5}]
+  [{y: 0, x: 1}, {y: 0, x: -1}, {y: 4/5, x: -3/5}, {y: -4/5, x: 3/5}]
   sage: [T.gens() for T in J.triangular_decomposition()]
   [[y, x^2 - 1], [25*y^2 - 16, 4*x + 3*y]]
 
@@ -395,23 +400,25 @@ Sage example in ./mpoly.tex, line 1882::
   sage: ys = CDF['y'](Jy.0).roots(); ys # abs tol 2e-15
   [(-0.8, 1), (0.0, 1), (0.8, 1)]
   sage: [CDF['x'](p(y=ys[0][0])).roots() for p in J.gens()] # abs tol 2e-15
-  [[(-0.5999999999999999 - 1.306289919090511e-16*I, 1),
-   (0.6000000000000001 + 1.3062899190905113e-16*I, 1)],
-   [(0.6000000000000001 - 3.1350958058172247e-16*I, 1),
-    (2.600000000000001 + 3.135095805817224e-16*I, 1)]]
+  [[(-0.5999999999999999, 1), (0.6000000000000001, 1)], [(0.6000000000000001, 1), (2.600000000000001, 1)]]
 
 Sage example in ./mpoly.tex, line 1911::
 
   sage: R.<x,y> = QQ[]; J = ideal([ x^7-(100*x-1)^2, y-x^7+1 ])
-  sage: J.variety(RealField(51))
+  sage: J.variety(RealField(51))  # random
   [{y: 396340.890166545, x: -14.1660266425312}]
 
 Sage example in ./mpoly.tex, line 1923::
 
-  sage: J.variety(AA)
+  sage: J.variety(AA) # py2
   [{x: 0.00999999900000035?, y: -0.999999999999990?},
   {x: 0.01000000100000035?, y: -0.999999999999990?},
   {x: 6.305568998641385?, y: 396340.8901665450?}]
+  sage: J.variety(AA) # py3
+  [{y: -0.999999999999990?, x: 0.00999999900000035?},
+  {y: -0.999999999999990?, x: 0.01000000100000035?},
+  {y: 396340.8901665450?, x: 6.305568998641385?}]
+
 
 Sage example in ./mpoly.tex, line 1983::
 

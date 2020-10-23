@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interacts for the Sage Jupyter notebook
 
@@ -35,11 +36,14 @@ EXAMPLES::
 
 from ipywidgets.widgets import SelectionSlider, ValueWidget, ToggleButtons
 from ipywidgets.widgets.interaction import interactive, signature
-from collections import Iterable, Iterator, OrderedDict
+from collections import OrderedDict
+from collections.abc import Iterable, Iterator
 from .widgets import EvalText, SageColorPicker
+from .widgets_sagenb import input_grid
 from sage.structure.element import parent
 from sage.symbolic.ring import SR
 from sage.plot.colors import Color
+from sage.structure.element import Matrix
 
 
 class sage_interactive(interactive):
@@ -148,9 +152,9 @@ class sage_interactive(interactive):
         """
         Convert a single value (i.e. a non-iterable) to a widget.
 
-        This supports the Sage :class:`Color` class. Any unknown type
-        is changed to a string for evaluating. This is meant to support
-        symbolic expressions like ``sin(x)``.
+        This supports the Sage :class:`Color` and ``Matrix`` classes.
+        Any unknown type is changed to a string for evaluating.
+        This is meant to support symbolic expressions like ``sin(x)``.
 
         EXAMPLES::
 
@@ -160,10 +164,15 @@ class sage_interactive(interactive):
             sage: sage_interactive.widget_from_single_value(sin(x))
             EvalText(value=u'sin(x)')
             sage: from sage.plot.colors import Color
+            sage: sage_interactive.widget_from_single_value(matrix([[1, 2], [3, 4]]))
+            Grid(value=[[1, 2], [3, 4]], children=(Label(value=u''), VBox(children=(EvalText(value=u'1', layout=Layout(max_width=u'5em')), EvalText(value=u'3', layout=Layout(max_width=u'5em')))), VBox(children=(EvalText(value=u'2', layout=Layout(max_width=u'5em')), EvalText(value=u'4', layout=Layout(max_width=u'5em'))))))
             sage: sage_interactive.widget_from_single_value(Color('cornflowerblue'))
             SageColorPicker(value='#6495ed')
         """
-        # Support Sage Colors
+        # Support Sage matrices and colors
+        if isinstance(abbrev, Matrix):
+            return input_grid(abbrev.nrows(), abbrev.ncols(),
+                              default=abbrev.list(), to_value=abbrev.parent())
         if isinstance(abbrev, Color):
             return SageColorPicker(value=abbrev.html_color())
         # Get widget from IPython if possible
@@ -194,8 +203,10 @@ class sage_interactive(interactive):
             IntSlider(value=5, description=u'number', max=10)
             sage: sage_interactive.widget_from_tuple( (3, (0, 10)) )
             IntSlider(value=3, max=10)
-            sage: sage_interactive.widget_from_tuple( (2, dict(one=1, two=2, three=3)) )
+            sage: sage_interactive.widget_from_tuple((2, dict(one=1, two=2, three=3))) # py2
             Dropdown(index=1, options={'three': 3, 'two': 2, 'one': 1}, value=2)
+            sage: sage_interactive.widget_from_tuple((2, dict(one=1, two=2, three=3))) # py3
+            Dropdown(index=1, options={'one': 1, 'two': 2, 'three': 3}, value=2)
             sage: sage_interactive.widget_from_tuple( (sqrt(2), pi) )
             FloatSlider(value=2.277903107981444, max=3.141592653589793, min=1.4142135623730951)
         """

@@ -17,20 +17,19 @@ AUTHORS:
   minimal approximant bases
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.superseded import deprecated_function_alias
 
 
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
@@ -150,8 +149,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         if self.nrows() == 0 or self.ncols() == 0:
             raise ValueError('empty matrix does not have a degree')
-        return max([ self[i,j].degree()
-            for i in range(self.nrows()) for j in range(self.ncols()) ])
+        return max(self[i, j].degree()
+                   for i in range(self.nrows()) for j in range(self.ncols()))
 
     def degree_matrix(self, shifts=None, row_wise=True):
         r"""
@@ -1395,8 +1394,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return self.T.reduced_form(transformation, shifts, row_wise=True).T
         return self.weak_popov_form(transformation, shifts)
 
-    row_reduced_form = deprecated_function_alias(23619, reduced_form)
-
     def hermite_form(self, include_zero_rows=True, transformation=False):
         """
         Return the Hermite form of this matrix.
@@ -1583,8 +1580,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = pmat.ncols()
 
         # set default shifts / check shifts dimension
-        if shifts == None:
-            shifts = [0]*m if row_wise else [0]*n
+        if shifts is None:
+            shifts = [0] * m if row_wise else [0] * n
         elif row_wise and len(shifts) != m:
             raise ValueError('shifts length should be the row dimension of' \
                                                       + ' the input matrix')
@@ -1796,8 +1793,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = self.ncols()
 
         # set default shifts / check shifts dimension
-        if shifts == None:
-            shifts = [0]*m if row_wise else [0]*n
+        if shifts is None:
+            shifts = [0] * m if row_wise else [0] * n
         elif row_wise and len(shifts) != m:
             raise ValueError('shifts length should be the row dimension')
         elif (not row_wise) and len(shifts) != n:
@@ -1920,7 +1917,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # 'rest_order': the orders that remains to be dealt with
         # 'rest_index': indices of orders that remains to be dealt with
         rest_order = list(order)
-        rest_index = range(n)
+        rest_index = list(range(n))
 
         # initialization of the residuals (= input self)
         # and of the approximant basis (= identity matrix)
@@ -1933,7 +1930,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # --> initially, 'rdeg' is the shift-row degree of the identity matrix
         rdeg = list(shifts)
 
-        while len(rest_order)>0:
+        while rest_order:
             # invariant:
             #   * appbas is a shifts-ordered weak Popov approximant basis for
             #   (self,doneorder)
@@ -1949,15 +1946,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # Note: one may also consider the first one in order (--> process
             # 'self' columnwise, from left column to right column, set j=0
             # instead of the below), but it seems to often be (barely) slower
-            j = min([ind for ind in range(len(rest_order))
-                                 if rest_order[ind] == max(rest_order)])
+            max_rest_order = max(rest_order)
+            for ind, value in enumerate(rest_order):
+                if value == max_rest_order:
+                    j = ind
+                    break
             d = order[rest_index[j]] - rest_order[j]
 
             # coefficient = the coefficient of degree d of the column j of the
             # residual matrix
             # --> this is very likely nonzero and we want to make it zero, so
             # that this column becomes zero mod X^{d+1}
-            coefficient = [residuals[i,j][d] for i in range(m)]
+            coefficient = [residuals[i, j][d] for i in range(m)]
 
             # Lambda: collect rows [i] with nonzero coefficient[i]
             # pi: index of the first row with smallest shift, among those in
@@ -1969,14 +1969,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     Lambda.append(i)
                     if pi < 0 or rdeg[i] < rdeg[pi]:
                         pi = i
-            if Lambda != [] : # otherwise, nothing to do
-                #update all rows in Lambda--{pi}
+            if Lambda: # otherwise, nothing to do
+                # update all rows in Lambda--{pi}
                 Lambda.remove(pi)
                 for row in Lambda:
                     scalar = -coefficient[row]/coefficient[pi]
                     appbas.add_multiple_of_row(row, pi, scalar)
                     residuals.add_multiple_of_row(row, pi, scalar)
-                #update row pi
+                # update row pi
                 rdeg[pi] += 1
                 appbas.rescale_row(pi, X)
                 residuals.rescale_row(pi, X)
@@ -1985,10 +1985,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # this column, i.e. if rest_order[j] was 1:
             # in this case remove the column j of
             # residual,rest_order,rest_index
-            if rest_order[j]==1:
+            if rest_order[j] == 1:
                 residuals = residuals.delete_columns([j])
                 rest_order.pop(j)
                 rest_index.pop(j)
             else:
                 rest_order[j] -= 1
-        return appbas,rdeg
+        return appbas, rdeg

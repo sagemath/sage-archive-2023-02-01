@@ -36,7 +36,7 @@ the imaginary part is positive definite::
 
     sage: all(abs(a) < 1e-20 for a in (M-M.T).list())
     True
-    sage: iM=Matrix(RDF,3,3,[a.imag_part() for a in M.list()])
+    sage: iM = Matrix(RDF,3,3,[a.imag_part() for a in M.list()])
     sage: iM.is_positive_definite()
     True
 
@@ -63,7 +63,6 @@ In fact it is an order in a number field::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import division
-from six.moves import range
 
 from scipy.spatial import Voronoi
 from sage.arith.misc import GCD, algdep
@@ -133,7 +132,8 @@ def voronoi_ghost(cpoints, n=6, CC=CDF):
     extra_points = [average+radius*z**i for i in range(n)]
     return [(c.real_part(),c.imag_part()) for c in cpoints+extra_points]
 
-def bisect(L,t):
+
+def bisect(L, t):
     r"""
     Find position in a sorted list using bisection.
 
@@ -352,8 +352,8 @@ class RiemannSurface(object):
 
         sage: S = RiemannSurface(f, prec=100); S
         Riemann surface defined by polynomial f = -z^3 + w^2 + 1 = 0, with 100 bits of precision
-        sage: S.riemann_matrix() #abs tol 0.00000001
-        [0.500000000000000000000000... + 0.866025403784438646763723...*I]
+        sage: S.riemann_matrix()^6 #abs tol 0.00000001
+        [1.0000000000000000000000000000 - 1.1832913578315177081175928479e-30*I]
 
     We can also work with Riemann surfaces that are defined over fields with a
     complex embedding, but since the current interface for computing genus and
@@ -646,7 +646,7 @@ class RiemannSurface(object):
                            for ak in self._aks]
             upperbounds.reverse()
             # If a0 is a constant polynomial, it is obviously bounded below.
-            if self._a0roots == []:
+            if not self._a0roots:
                 lowerbound = self._CC(self._a0) / 2
             else:
                 lowerbound = self._a0[self._a0.degree()]*prod(abs((zk - z1) - rho) for zk in self._a0roots) / 2
@@ -1146,13 +1146,13 @@ class RiemannSurface(object):
                 (7, 1), (10, 1), (3, 1)])],
              [(1, [(8, 0), (6, 0), (7, 0), (10, 0), (2, 0), (4, 0),
                 (7, 1), (10, 1), (9, 1), (8, 0)])]]
-                
+
         In order to check that the answer returned above is reasonable, we
         test some basic properties. We express the faces of the downstairs graph
         as ZZ-linear combinations of the edges and check that the projection
         of the homology basis upstairs projects down to independent linear
         combinations of an even number of faces::
-        
+
             sage: dg = S.downstairs_graph()
             sage: edges = dg.edges()
             sage: E = ZZ^len(edges)
@@ -1362,7 +1362,7 @@ class RiemannSurface(object):
 
     def simple_vector_line_integral(self, upstairs_edge, differentials):
         r"""
-        Perfom vectorized integration along a straight path.
+        Perform vectorized integration along a straight path.
 
         INPUT:
 
@@ -1393,19 +1393,19 @@ class RiemannSurface(object):
             sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials) #abs tol 0.00000001
             (1.14590610929717e-16 - 0.352971844594760*I)
 
-        ..NOTE::
+        .. NOTE::
 
             Uses data that "homology_basis" initializes.
         """
         w_of_t,Delta_z = self.make_zw_interpolator(upstairs_edge)
-        V = VectorSpace(self._CC,self.genus)
+        V = VectorSpace(self._CC, self.genus)
+
         def integrand(t):
             zt,wt = w_of_t(t)
             dfdwt = self._fastcall_dfdw(zt,wt)
             return V([omega(zt,wt)/dfdwt for omega in differentials])
 
-        I=integrate_vector(integrand,self._prec)*Delta_z
-        return I
+        return integrate_vector(integrand,self._prec)*Delta_z
 
     def cohomology_basis(self, option=1):
         r"""
@@ -1791,7 +1791,7 @@ class RiemannSurface(object):
             sage: P = S.period_matrix()
             sage: Rs = S.endomorphism_basis()
             sage: Ts = S.tangent_representation_numerical(Rs)
-            sage: all([ ((T*P - P*R).norm() < 2^(-80)) for [ T, R ] in zip(Ts, Rs) ])
+            sage: all(((T*P - P*R).norm() < 2^(-80)) for [T, R] in zip(Ts, Rs))
             True
         """
         if not other:
@@ -1965,8 +1965,8 @@ class RiemannSurface(object):
             sage: Q = Y.period_matrix()
             sage: Rs = X.symplectic_isomorphisms(Y)
             sage: Ts = X.tangent_representation_numerical(Rs, other = Y)
-            sage: test1 = all([ ((T*P - Q*R).norm() < 2^(-80)) for [ T, R ] in zip(Ts, Rs) ])
-            sage: test2 = all([ det(R) == 1 for R in Rs ])
+            sage: test1 = all(((T*P - Q*R).norm() < 2^(-80)) for [T, R] in zip(Ts, Rs))
+            sage: test2 = all(det(R) == 1 for R in Rs)
             sage: test1 and test2
             True
         """

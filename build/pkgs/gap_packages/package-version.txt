@@ -1,1 +1,1 @@
-4.10.0
+../gap/package-version.txt

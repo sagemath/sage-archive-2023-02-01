@@ -166,7 +166,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: c = []
             sage: c = [Conic(a) for a in m if a != [0,0,0]]
             sage: d = [C.has_rational_point(algorithm = 'rnfisnorm', point = True) for C in c] # long time: 3.3 seconds
-            sage: all([c[k].defining_polynomial()(Sequence(d[k][1])) == 0 for k in range(len(d)) if d[k][0]])
+            sage: all(c[k].defining_polynomial()(Sequence(d[k][1])) == 0 for k in range(len(d)) if d[k][0])
             True
             sage: [C.has_rational_point(algorithm='local', read_cache=False) for C in c] == [o[0] for o in d] # long time: 5 seconds
             True
@@ -183,9 +183,9 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: M.<c> = NumberField(x^5+3*x+1)
             sage: m = [[F(b) for b in a] for a in l for F in [K, L, M]]
             sage: c = [Conic(a) for a in m if a != [0,0,0] and a != [1,1,1] and a != [-1,-1,-1]]
-            sage: assert all([C.has_rational_point(algorithm = 'rnfisnorm') for C in c])
-            sage: assert all([C.defining_polynomial()(Sequence(C.has_rational_point(point = True)[1])) == 0 for C in c])
-            sage: assert all([C.has_rational_point(algorithm='local', read_cache=False) for C in c]) # long time: 1 second
+            sage: assert all(C.has_rational_point(algorithm = 'rnfisnorm') for C in c)
+            sage: assert all(C.defining_polynomial()(Sequence(C.has_rational_point(point = True)[1])) == 0 for C in c)
+            sage: assert all(C.has_rational_point(algorithm='local', read_cache=False) for C in c) # long time: 1 second
         """
         if read_cache:
             if self._rational_point is not None:
@@ -198,8 +198,8 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                     return False, self._local_obstruction
                 else:
                     return False
-            if (not point) and self._finite_obstructions == [] and \
-               self._infinite_obstructions == []:
+            if (not point and not self._finite_obstructions and
+                        not self._infinite_obstructions):
                 if obstruction:
                     return True, None
                 return True
@@ -224,9 +224,9 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                                               algorithm='local',
                                               read_cache=False)
                 if ret[0]:
-                    raise RuntimeError("Outputs of algorithms in " \
-                                        "has_rational_point disagree " \
-                                        "for conic %s" % self)
+                    raise RuntimeError("Outputs of algorithms in "
+                                       "has_rational_point disagree "
+                                       "for conic %s" % self)
                 return ret
             if point:
                 return False, None
@@ -234,16 +234,16 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
 
         if algorithm == 'local':
             if point:
-                raise ValueError("Algorithm 'local' cannot be combined " \
-                                  "with point = True in has_rational_point")
+                raise ValueError("Algorithm 'local' cannot be combined "
+                                 "with point = True in has_rational_point")
             obs = self.local_obstructions(infinite = True, finite = False,
                                           read_cache = read_cache)
-            if obs != []:
+            if obs:
                 if obstruction:
                     return False, obs[0]
                 return False
             obs = self.local_obstructions(read_cache = read_cache)
-            if obs == []:
+            if not obs:
                 if obstruction:
                     return True, None
                 return True
@@ -253,8 +253,8 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         if algorithm == 'rnfisnorm':
             from sage.modules.free_module_element import vector
             if obstruction:
-                raise ValueError("Algorithm rnfisnorm cannot be combined " \
-                                  "with obstruction = True in " \
+                raise ValueError("Algorithm rnfisnorm cannot be combined "
+                                  "with obstruction = True in "
                                   "has_rational_point")
             D, T = self.diagonal_matrix()
             abc = [D[0,0], D[1,1], D[2,2]]
@@ -296,11 +296,11 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                 return False, None
             return False
         if algorithm == 'qfsolve':
-            raise TypeError("Algorithm qfsolve in has_rational_point only " \
-                                 "for conics over QQ, not over %s" % B)
+            raise TypeError("Algorithm qfsolve in has_rational_point only "
+                            "for conics over QQ, not over %s" % B)
         if obstruction:
-            raise ValueError("Invalid combination: obstruction=True and " \
-                                 "algorithm=%s" % algorithm)
+            raise ValueError("Invalid combination: obstruction=True and "
+                             "algorithm=%s" % algorithm)
 
         return ProjectiveConic_field.has_rational_point(self, point = point,
                            algorithm = algorithm, read_cache = False)
@@ -352,7 +352,6 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
 
         return True
 
-
     def local_obstructions(self, finite = True, infinite = True, read_cache = True):
         r"""
         Returns the sequence of finite primes and/or infinite places
@@ -377,12 +376,12 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: L.<a> = QuadraticField(5)
             sage: Conic(L, [1, 2, 3]).local_obstructions()
             [Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 5
-              To:   Algebraic Real Field
-              Defn: a |--> -2.236067977499790?, Ring morphism:
-              From: Number Field in a with defining polynomial x^2 - 5
-              To:   Algebraic Real Field
-              Defn: a |--> 2.236067977499790?]
+               From: Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
+               To:   Algebraic Real Field
+               Defn: a |--> -2.236067977499790?, Ring morphism:
+               From: Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?
+               To:   Algebraic Real Field
+               Defn: a |--> 2.236067977499790?]
         """
         obs0 = []
         obs1 = []

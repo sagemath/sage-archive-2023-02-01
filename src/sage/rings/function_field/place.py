@@ -1,20 +1,15 @@
 """
 Places of function fields
 
-Places are defined for arbitrary function fields, but presently Sage can find
-and compute with places only of rational function fields and global function
-fields.
-
-The places of a function field correspond, one-to-one, to valuation rings
-of the function field, each of which defines discrete valuation of the
-elements of the function field. "Finite" places are in one-to-one
-correspondence with the prime ideals of the finite maximal order while
-places "at infinity" are in one-to-one correspondence with the prime ideals
-of the infinite maximal order.
+The places of a function field correspond, one-to-one, to valuation rings of
+the function field, each of which defines a discrete valuation for the elements
+of the function field. "Finite" places are in one-to-one correspondence with
+the prime ideals of the finite maximal order while places "at infinity" are in
+one-to-one correspondence with the prime ideals of the infinite maximal order.
 
 EXAMPLES:
 
-All rational places of the function field can be computed::
+All rational places of a function field can be computed::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
     sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
@@ -33,7 +28,7 @@ constant field::
     sage: k
     Finite Field in z2 of size 2^2
 
-The isomorphisms are between the valuation ring and the residue field::
+The homomorphisms are between the valuation ring and the residue field::
 
     sage: fr_k
     Ring morphism:
@@ -48,6 +43,8 @@ AUTHORS:
 
 - Kwankyu Lee (2017-04-30): initial version
 
+- Brent Baccala (2019-12-20): function fields of characteristic zero
+
 """
 #*****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
@@ -61,6 +58,12 @@ from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 
+from sage.arith.all import lcm
+
+from sage.rings.all import ZZ
+from sage.rings.qqbar import QQbar
+from sage.rings.number_field.number_field_base import NumberField
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -71,6 +74,7 @@ from sage.categories.sets_cat import Sets
 from sage.modules.free_module_element import vector
 
 from sage.matrix.constructor import matrix
+
 
 class FunctionFieldPlace(Element):
     """
@@ -137,6 +141,20 @@ class FunctionFieldPlace(Element):
         gens_str = ', '.join(repr(g) for g in gens)
         return "Place ({})".format(gens_str)
 
+    def _latex_(self):
+        r"""
+        Return the LaTeX representation of the place.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+            sage: p = L.places_finite()[0]
+            sage: latex(p)
+            \left(y\right)
+        """
+        return self._prime._latex_()
+
     def _richcmp_(self, other, op):
         """
         Compare the place with ``other`` place.
@@ -180,6 +198,22 @@ class FunctionFieldPlace(Element):
         if self_on_left:
             raise TypeError("only left multiplication by integers is allowed")
         return other * self.divisor()
+
+    def _neg_(self):
+        """
+        Return the negative of the prime divisor of this place.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: p1, p2, p3 = L.places()[:3]
+            sage: -p1 + p2
+            - Place (1/x, 1/x^3*y^2 + 1/x)
+             + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
+        """
+        from .divisor import divisor
+        return divisor(self.function_field(), {self: -1})
 
     def _add_(self, other):
         """
@@ -251,7 +285,7 @@ class FunctionFieldPlace(Element):
             sage: L.<y>=K.extension(Y^3+x+x^3*Y)
             sage: p = L.places()[0]
             sage: p.prime_ideal()
-            Ideal (1/x,1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
+            Ideal (1/x^3*y^2 + 1/x) of Maximal infinite order of Function field
             in y defined by y^3 + x^3*y + x
         """
         return self._prime
@@ -273,9 +307,10 @@ class FunctionFieldPlace(Element):
         from .divisor import prime_divisor
         return prime_divisor(self.function_field(), self, multiplicity)
 
+
 class FunctionFieldPlace_rational(FunctionFieldPlace):
     """
-    Places of rational function field.
+    Places of rational function fields.
     """
     def degree(self):
         """
@@ -430,13 +465,14 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
             sage: p.valuation_ring()
             Valuation ring at Place (x, x*y)
         """
-        from .valuation_ring import FunctionFieldValuationRing_global
+        from .valuation_ring import FunctionFieldValuationRing
 
-        return FunctionFieldValuationRing_global(self.function_field(), self)
+        return FunctionFieldValuationRing(self.function_field(), self)
 
-class FunctionFieldPlace_global(FunctionFieldPlace):
+
+class FunctionFieldPlace_polymod(FunctionFieldPlace):
     """
-    Places of function fields
+    Places of extensions of function fields.
     """
     def place_below(self):
         """
@@ -444,8 +480,8 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
             sage: OK = K.maximal_order()
             sage: OL = L.maximal_order()
             sage: p = OK.ideal(x^2 + x + 1)
@@ -462,8 +498,8 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
             sage: OK = K.maximal_order()
             sage: OL = L.maximal_order()
             sage: p = OK.ideal(x^2 + x + 1)
@@ -480,8 +516,8 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
             sage: OK = K.maximal_order()
             sage: OL = L.maximal_order()
             sage: p = OK.ideal(x^2 + x + 1)
@@ -499,8 +535,8 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
             sage: pls = L.places()
             sage: [p.is_infinite_place() for p in pls]
             [True, True, False]
@@ -528,6 +564,210 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
                 return g
         assert False, "Internal error"
 
+    def gaps(self):
+        """
+        Return the gap sequence for the place.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
+            sage: O = L.maximal_order()
+            sage: p = O.ideal(x,y).place()
+            sage: p.gaps() # a Weierstrass place
+            [1, 2, 4]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: [p.gaps() for p in L.places()]
+            [[1, 2, 4], [1, 2, 4], [1, 2, 4]]
+        """
+        if self.degree() == 1:
+            return self._gaps_rational() # faster for rational places
+        else:
+            return self._gaps_wronskian()
+
+    def _gaps_rational(self):
+        """
+        Return the gap sequence for the rational place.
+
+        This method computes the gap numbers using the definition of gap
+        numbers. The dimension of the multiple of the prime divisor
+        supported at the place is computed by Hess' algorithm.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
+            sage: O = L.maximal_order()
+            sage: p = O.ideal(x,y).place()
+            sage: p.gaps()  # indirect doctest
+            [1, 2, 4]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
+            sage: [p.gaps() for p in L.places()]  # indirect doctest
+            [[1, 2, 4], [1, 2, 4], [1, 2, 4]]
+        """
+        F = self.function_field()
+        n = F.degree()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        R = O._module_base_ring._ring
+        one = R.one()
+
+        # Hess' Riemann-Roch basis algorithm stripped down for gaps computation
+        def dim_RR(M):
+            den = lcm([e.denominator() for e in M.list()])
+            mat = matrix(R, M.nrows(), [(den*e).numerator() for e in M.list()])
+
+            # initialise pivot_row and conflicts list
+            pivot_row = [[] for i in range(n)]
+            conflicts = []
+            for i in range(n):
+                bestp = -1
+                best = -1
+                for c in range(n):
+                    d = mat[i,c].degree()
+                    if d >= best:
+                        bestp = c
+                        best = d
+
+                if best >= 0:
+                    pivot_row[bestp].append((i,best))
+                    if len(pivot_row[bestp]) > 1:
+                        conflicts.append(bestp)
+
+            # while there is a conflict, do a simple transformation
+            while conflicts:
+                c = conflicts.pop()
+                row = pivot_row[c]
+                i,ideg = row.pop()
+                j,jdeg = row.pop()
+
+                if jdeg > ideg:
+                    i,j = j,i
+                    ideg,jdeg = jdeg,ideg
+
+                coeff = - mat[i,c].lc() / mat[j,c].lc()
+                s = coeff * one.shift(ideg - jdeg)
+
+                mat.add_multiple_of_row(i, j, s)
+
+                row.append((j,jdeg))
+
+                bestp = -1
+                best = -1
+                for c in range(n):
+                    d = mat[i,c].degree()
+                    if d >= best:
+                        bestp = c
+                        best = d
+
+                if best >= 0:
+                    pivot_row[bestp].append((i,best))
+                    if len(pivot_row[bestp]) > 1:
+                        conflicts.append(bestp)
+
+            dim = 0
+            for j in range(n):
+                i,ideg = pivot_row[j][0]
+                k = den.degree() - ideg + 1
+                if k > 0:
+                    dim += k
+            return dim
+
+        V,fr,to = F.vector_space()
+
+        prime_inv = ~ self.prime_ideal()
+        I = O.ideal(1)
+        J = Oinf.ideal(1)
+
+        B = matrix([to(b) for b in J.gens_over_base()])
+        C = matrix([to(v) for v in I.gens_over_base()])
+
+        prev = dim_RR(C * B.inverse())
+        gaps = []
+        g = F.genus()
+        i = 1
+        if self.is_infinite_place():
+            while g:
+                J = J * prime_inv
+                B = matrix([to(b) for b in J.gens_over_base()])
+                dim = dim_RR(C * B.inverse())
+                if dim == prev:
+                    gaps.append(i)
+                    g -= 1
+                else:
+                    prev = dim
+                i += 1
+        else: # self is a finite place
+            Binv = B.inverse()
+            while g:
+                I = I * prime_inv
+                C = matrix([to(v) for v in I.gens_over_base()])
+                dim = dim_RR(C * Binv)
+                if dim == prev:
+                    gaps.append(i)
+                    g -= 1
+                else:
+                    prev = dim
+                i += 1
+
+        return gaps
+
+    def _gaps_wronskian(self):
+        """
+        Return the gap sequence for the place.
+
+        This method implements the local version of Hess' Algorithm 30 of [Hes2002b]_
+        based on the Wronskian determinant.
+
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: O = L.maximal_order()
+            sage: p = O.ideal(x,y).place()
+            sage: p._gaps_wronskian() # a Weierstrass place
+            [1, 2, 4]
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
+            sage: [p._gaps_wronskian() for p in L.places()]
+            [[1, 2, 4], [1, 2, 4], [1, 2, 4]]
+        """
+        F = self.function_field()
+        R,fr_R,to_R = self._residue_field()
+        der = F.higher_derivation()
+
+        sep = self.local_uniformizer()
+
+        # a differential divisor satisfying
+        # v_p(W) = 0 for the place p
+        W = sep.differential().divisor()
+
+        # Step 3:
+        basis = W._basis()
+        d = len(basis)
+        M = matrix([to_R(b) for b in basis])
+        if M.rank() == 0:
+            return []
+
+        # Steps 4, 5, 6, 7:
+        e = 1
+        gaps = [1]
+        while M.nrows() < d:
+            row = vector([to_R(der._derive(basis[i], e, sep)) for i in range(d)])
+            if not row in M.row_space():
+                M = matrix(M.rows() + [row])
+                M.echelonize()
+                gaps.append(e + 1)
+            e += 1
+
+        return gaps
+
     def residue_field(self, name=None):
         """
         Return the residue field of the place.
@@ -535,6 +775,14 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         INPUT:
 
         - ``name`` -- string; name of the generator of the residue field
+
+        OUTPUT:
+
+        - a field isomorphic to the residue field
+
+        - a ring homomorphism from the valuation ring to the field
+
+        - a ring homomorphism from the field to the valuation ring
 
         EXAMPLES::
 
@@ -586,6 +834,8 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             sage: [fr_k(e) for e in k]
             [0, 1]
 
+        ::
+
             sage: K.<x> = FunctionField(GF(9)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + Y - x^4)
             sage: p = L.places()[-1]
@@ -595,9 +845,52 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
                To:   Valuation ring at Place (x + 1, y + 2*z2), Ring morphism:
                From: Valuation ring at Place (x + 1, y + 2*z2)
                To:   Finite Field in z2 of size 3^2)
+
+        ::
+
+            sage: K.<x> = FunctionField(QQ); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + Y - x^4)
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x)
+            sage: [p.residue_field() for p in L.places_above(I.place())]
+            [(Rational Field, Ring morphism:
+                From: Rational Field
+                To:   Valuation ring at Place (x, y, y^2), Ring morphism:
+                From: Valuation ring at Place (x, y, y^2)
+                To:   Rational Field),
+             (Number Field in s with defining polynomial x^2 - 2*x + 2, Ring morphism:
+                From: Number Field in s with defining polynomial x^2 - 2*x + 2
+                To:   Valuation ring at Place (x, x*y, y^2 + 1), Ring morphism:
+                From: Valuation ring at Place (x, x*y, y^2 + 1)
+                To:   Number Field in s with defining polynomial x^2 - 2*x + 2)]
+            sage: for p in L.places_above(I.place()):
+            ....:    k, fr_k, to_k = p.residue_field()
+            ....:    assert all(fr_k(k(e)) == e for e in range(10))
+            ....:    assert all(to_k(fr_k(e)) == e for e in [k.random_element() for i in [1..10]])
+
+        ::
+
+            sage: K.<x> = FunctionField(QQbar); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + Y - x^4)
+            sage: O = K.maximal_order()
+            sage: I = O.ideal(x)
+            sage: [p.residue_field() for p in L.places_above(I.place())]
+            [(Algebraic Field, Ring morphism:
+                From: Algebraic Field
+                To:   Valuation ring at Place (x, y - I, y^2 + 1), Ring morphism:
+                From: Valuation ring at Place (x, y - I, y^2 + 1)
+                To:   Algebraic Field), (Algebraic Field, Ring morphism:
+                From: Algebraic Field
+                To:   Valuation ring at Place (x, y, y^2), Ring morphism:
+                From: Valuation ring at Place (x, y, y^2)
+                To:   Algebraic Field), (Algebraic Field, Ring morphism:
+                From: Algebraic Field
+                To:   Valuation ring at Place (x, y + I, y^2 + 1), Ring morphism:
+                From: Valuation ring at Place (x, y + I, y^2 + 1)
+                To:   Algebraic Field)]
         """
         F = self.function_field()
-        prime = self.prime_ideal()
+        prime = self.prime_ideal()  # Let P be this prime ideal
 
         if self.is_infinite_place():
             _F, from_F, to_F  = F._inversion_isomorphism()
@@ -617,12 +910,19 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         R = M.base_ring() # univariate polynomial ring
         n = M.nrows() # extension degree of the function field
 
+        # Step 1: construct a vector space representing the residue field
+        #
+        # Given an (reversed) HNF basis M for a prime ideal P of O, every
+        # element of O mod P can be represented by a vector of polynomials of
+        # degrees less than those of the (anti)diagonal elements of M. In turn,
+        # the vector of polynomials can be represented by the vector of the
+        # coefficients of the polynomials. V is the space of these vectors.
+
+        k = F.constant_base_field()
         degs = [M[i,i].degree() for i in range(n)]
         deg = sum(degs) # degree of the place
 
-        # Step 1: construct a vector space representing the residue field
-        k = F.constant_base_field()
-        #V = k**deg
+        # Let V = k**deg
 
         def to_V(e):
             """
@@ -655,9 +955,11 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
                     pos = end
             return e
 
-        # Step 2: find a generator of the residue field
+        # Step 2: find a primitive element of the residue field
+
         def candidates():
             # Trial 1: this suffices for places obtained from Kummers' theorem
+            # and for places of function fields over number fields or QQbar
 
             # Note that a = O._kummer_gen is a simple generator of O/prime over
             # o/p. If b is a simple generator of o/p over the constant base field
@@ -667,8 +969,13 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             if a is not None:
                 K,fr_K,_ = self.place_below().residue_field()
                 b = fr_K(K.gen())
-                for c in reversed(k.list()):
-                    yield a + c * b
+                if isinstance(k, NumberField) or k is QQbar:
+                    kk = ZZ
+                else:
+                    kk = k
+                for c in kk:
+                    if c != 0:
+                        yield a + c * b
 
             # Trial 2: basis elements of the maximal order
             for gen in reversed(Obasis):
@@ -697,6 +1004,8 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
                     gen = sum([c1*c2 for c1,c2 in zip(g, Obasis)])
                     yield gen
 
+        # Search for a primitive element. It is such an element g of O
+        # whose powers span the vector space V.
         for gen in candidates():
             g = F.one()
             m = []
@@ -710,32 +1019,46 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         # Step 3: compute the minimal polynomial of g
         min_poly = R((-mat.solve_left(to_V(g))).list() + [1])
 
+        # Step 4: construct the residue field K as an extension of the base
+        # constant field using the minimal polynomial and compute vector space
+        # representation W of K along with maps between them
         if deg > 1:
-            # Step 4: construct the finite field
-            K = k.extension(deg, name=name)
-            alpha = min_poly.roots(K)[0][0]
-            W, from_W, to_W = K.vector_space(k, basis=[alpha**i for i in range(deg)], map=True)
+            if isinstance(k, NumberField):
+                if name is None:
+                    name='s'
+                K = k.extension(min_poly, names=name)
+                def from_W(e):
+                    return K(list(e))
+                def to_W(e):
+                    return vector(K(e))
+            else:
+                K = k.extension(deg, name=name)
 
-            # Step 5: compute the matrix of change of basis
-            C = mat.inverse()
+                # primitive element in K corresponding to g in O mod P
+                prim = min_poly.roots(K)[0][0]
 
-            # Step 6: construct an isomorphism
-            def from_K(e):
-                return fr_V(to_W(e) * mat)
+                W, from_W, to_W = K.vector_space(k, basis=[prim**i for i in range(deg)], map=True)
         else: # deg == 1
-            # Step 4: construct the finite field
             K = k
+            def from_W(e):
+                return K(e[0])
+            def to_W(e):
+                return vector([e])
 
-            # Step 5: compute the matrix of change of basis
-            C = mat.inverse()
+        # Step 5: compute the matrix of change of basis, from V to W via K
+        C = mat.inverse()
 
-            # Step 6: construct an isomorphism
-            def from_K(e):
-                return fr_V(vector([e]) * mat)
+        # Step 6: construct the maps between the residue field of the valuation
+        # ring at P and K, via O and V and W
 
+        def from_K(e):
+            return fr_V(to_W(e) * mat)
+
+        # As explained in Section 4.8.3 of [Coh1993]_, alpha has a simple pole
+        # at this place and no other poles at finite places.
         p = prime.prime_below().gen().numerator()
         beta = prime._beta
-        alpha = ~p * sum(c1*c2 for c1,c2 in zip(beta, O.basis()))
+        alpha = ~p * sum(c1*c2 for c1,c2 in zip(beta, Obasis))
         alpha_powered_by_ramification_index = alpha ** prime._ramification_index
 
         def to_K(f):
@@ -754,11 +1077,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
                 # does not fall into an infinite loop.
                 return to_K(rn) / to_K(rd)
 
-            e = (to_V(f)*C)
-            if deg > 1:
-                return from_W(e)
-            else: # len(e) == 1
-                return K(e[0])
+            return from_W(to_V(f) * C)
 
         return K, from_K, to_K
 
@@ -774,9 +1093,10 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             sage: p.valuation_ring()
             Valuation ring at Place (x, x*y)
         """
-        from .valuation_ring import FunctionFieldValuationRing_global
+        from .valuation_ring import FunctionFieldValuationRing
 
-        return FunctionFieldValuationRing_global(self.function_field(), self)
+        return FunctionFieldValuationRing(self.function_field(), self)
+
 
 class PlaceSet(UniqueRepresentation, Parent):
     """

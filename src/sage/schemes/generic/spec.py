@@ -8,16 +8,17 @@ AUTHORS:
 - Peter Bruin (2014): rewrite Spec as a functor
 """
 
-#*******************************************************************************
+# ******************************************************************************
 #  Copyright (C) 2006 William Stein
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#                  https://www.gnu.org/licenses/
+# ******************************************************************************
 
 from sage.categories.functor import Functor
 from sage.rings.integer_ring import ZZ
-from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
+from sage.schemes.generic.scheme import AffineScheme
 from sage.structure.unique_representation import UniqueRepresentation
+
 
 def Spec(R, S=None):
     r"""
@@ -80,6 +81,7 @@ def Spec(R, S=None):
         Spectrum of Rational Field
     """
     return SpecFunctor(S)(R)
+
 
 class SpecFunctor(Functor, UniqueRepresentation):
     """
@@ -188,9 +190,6 @@ SpecZ = Spec(ZZ)
 
 
 # Compatibility with older versions of this module
-
-from sage.misc.superseded import deprecated_function_alias
-is_Spec = deprecated_function_alias(16158, is_AffineScheme)
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.spec', 'Spec', AffineScheme)

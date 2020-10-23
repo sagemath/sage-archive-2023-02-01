@@ -10,7 +10,6 @@ Mutability Cython Implementation
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 ##########################################################################
-from __future__ import print_function, absolute_import
 
 from sage.misc.decorators import sage_wraps
 
@@ -69,9 +68,6 @@ cdef class Mutability:
 
     def is_mutable(self):
         return not self._is_immutable
-
-    def __reduce__(self):
-        return Mutability, (self._is_immutable, )
 
 ##########################################################################
 ## Method decorators for mutating methods resp. methods that assume immutability

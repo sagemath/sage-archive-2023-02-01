@@ -15,7 +15,6 @@ Yang-Baxter Graphs
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six.moves import range
 
 from sage.graphs.digraph import DiGraph
 from sage.structure.sage_object import SageObject
@@ -337,7 +336,8 @@ class YangBaxterGraph_generic(SageObject):
         seen[self._root] = True
         while queue:
             u = queue.pop()
-            for w in digraph.neighbor_out_iterator(u):
+            l = sorted(list(digraph.neighbor_out_iterator(u)))
+            for w in l:
                 if w not in seen:
                     seen[w] = True
                     queue.append(w)
@@ -381,7 +381,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y = YangBaxterGraph(root=(1,0,2,1,0), operators=ops)
             sage: Y.successors(Y.root())
             [(1, 2, 0, 1, 0)]
-            sage: Y.successors((1, 2, 0, 1, 0))
+            sage: sorted(Y.successors((1, 2, 0, 1, 0)))
             [(1, 2, 1, 0, 0), (2, 1, 0, 1, 0)]
         """
         return [a for (a,b) in self._successors(v)]

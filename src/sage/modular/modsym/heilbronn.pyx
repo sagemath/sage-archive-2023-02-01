@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = -D_XPG6
+
 """
 Heilbronn matrix computation
 """
@@ -15,12 +17,11 @@ Heilbronn matrix computation
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.memory cimport check_allocarray, sig_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.arith.misc import is_prime
 
 from sage.libs.gmp.mpz cimport *
@@ -259,9 +260,9 @@ cdef class Heilbronn:
         cdef object X
         cdef dict M = {}
         t = verbose("start making list M.", level=5)
-        sig_on()
         if N < 32768:   # use ints with no reduction modulo N
             for i in range(self.length):
+                sig_check()
                 a = u*self.list.v[4*i] + v*self.list.v[4*i+2]
                 b = u*self.list.v[4*i+1] + v*self.list.v[4*i+3]
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
@@ -272,6 +273,7 @@ cdef class Heilbronn:
                     M[X] = 1
         elif N < 46340:    # use ints but reduce mod N so can add two
             for i in range(self.length):
+                sig_check()
                 a = (u * self.list.v[4*i]) % N + (v * self.list.v[4*i+2]) % N
                 b = (u * self.list.v[4*i+1]) % N + (v * self.list.v[4*i+3]) % N
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
@@ -282,6 +284,7 @@ cdef class Heilbronn:
                     M[X] = 1
         else:
             for i in range(self.length):
+                sig_check()
                 a = llong_prod_mod(u,self.list.v[4*i],N) + llong_prod_mod(v,self.list.v[4*i+2], N)
                 b = llong_prod_mod(u,self.list.v[4*i+1],N) + llong_prod_mod(v,self.list.v[4*i+3], N)
                 export.c_p1_normalize_llong(N, a, b, &c, &d, &s, 0)
@@ -291,11 +294,8 @@ cdef class Heilbronn:
                 else:
                     M[X] = 1
         t = verbose("finished making list M.", t, level=5)
-        mul = []
-        for x, y in sorted(M.items()):
-            mul.append((x, y))
+        mul = sorted(M.items())
         t = verbose("finished making mul list.", t, level=5)
-        sig_off()
         return mul
 
 

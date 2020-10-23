@@ -23,7 +23,6 @@ Functions and classes
 #                  https://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function, absolute_import
-from six import iteritems
 
 from warnings import warn
 import inspect
@@ -53,7 +52,6 @@ def _check_trac_number(trac_number):
         ...
         ValueError: 0 is not a valid trac issue number
         sage: _check_trac_number(int(10))
-        sage: _check_trac_number(long(1000))
         sage: _check_trac_number(10.0)
         Traceback (most recent call last):
         ...
@@ -374,18 +372,19 @@ class DeprecatedFunctionAlias(object):
             ....:     r"        return 1",
             ....:     r"    old_cython_meth = deprecated_function_alias(13109, new_cython_meth)"
             ....: ]))
-            ....:
             sage: cython_cls().old_cython_meth.__name__
             'old_cython_meth'
         """
         # first look through variables in stack frames
         for frame in inspect.stack():
-            for name, obj in iteritems(frame[0].f_globals):
+            for name, obj in frame[0].f_globals.items():
                 if obj is self:
                     return name
         # then search object that contains self as method
-        import gc, copy
+        import gc
+        import copy
         gc.collect()
+
         def is_class(gc_ref):
             if not isinstance(gc_ref, dict):
                 return False
@@ -396,7 +395,7 @@ class DeprecatedFunctionAlias(object):
         for ref in gc.get_referrers(search_for):
             if is_class(ref) and ref is not self.__dict__:
                 ref_copy = copy.copy(ref)
-                for key, val in iteritems(ref_copy):
+                for key, val in ref_copy.items():
                     if val is search_for:
                         return key
         raise AttributeError("The name of this deprecated function can not be determined")

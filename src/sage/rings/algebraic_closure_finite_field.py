@@ -54,7 +54,6 @@ AUTHORS:
 
 """
 from __future__ import print_function
-from six.moves import range
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.fast_methods import WithEqualityById
@@ -144,7 +143,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
             sage: R.<x,y> = GF(2).algebraic_closure()[]
             sage: x.resultant(y)
-            -y
+            y
         """
         # TODO: this is *very* slow
         # NOTE: the hash of a generator (e.g. z2, z3, ...) is always the
@@ -548,6 +547,13 @@ class AlgebraicClosureFiniteField_generic(Field):
     """
     Algebraic closure of a finite field.
 
+    TESTS::
+
+        sage: GF(3).algebraic_closure().cardinality()
+        +Infinity
+
+        sage: GF(3).algebraic_closure().is_finite()
+        False
     """
     def __init__(self, base_ring, name, category=None):
         """
@@ -557,7 +563,6 @@ class AlgebraicClosureFiniteField_generic(Field):
             sage: F = AlgebraicClosureFiniteField_generic(GF(5), 'z')
             sage: F
             Algebraic closure of Finite Field of size 5
-
         """
         Field.__init__(self, base_ring=base_ring, names=name,
                        normalize=False, category=category)
@@ -596,44 +601,6 @@ class AlgebraicClosureFiniteField_generic(Field):
             True
         """
         return not (self == other)
-
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        This always returns ``+Infinity``.
-
-        .. TODO::
-
-            When :trac:`10963` is merged we should remove that method and set the
-            category to infinite fields (i.e. ``Fields().Infinite()``).
-
-        EXAMPLES::
-
-            sage: F = GF(3).algebraic_closure()
-            sage: F.cardinality()
-            +Infinity
-
-        """
-        from sage.rings.infinity import Infinity
-        return Infinity
-
-    def is_finite(self):
-        """
-        Returns ``False`` as an algebraically closed field is always infinite.
-
-        .. TODO::
-
-            When :trac:`10963` is merged we should remove that method and set the
-            category to infinite fields (i.e. ``Fields().Infinite()``).
-
-        EXAMPLES::
-
-            sage: GF(3).algebraic_closure().is_finite()
-            False
-
-        """
-        return False
 
     def characteristic(self):
         """
@@ -1006,7 +973,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         roots = []    # a list of pair (root,multiplicity)
         while polys:
             g,m,l,phi = polys.pop()
-        
+
             if g.degree() == 1: # found a root
                 r = phi(-g.constant_coefficient())
                 roots.append((r,m))
@@ -1208,7 +1175,8 @@ def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=N
     """
     if category is None:
         from sage.categories.fields import Fields
-        category = Fields()
+        category = Fields().Infinite()
+
     if implementation is None:
         implementation = 'pseudo_conway'
 

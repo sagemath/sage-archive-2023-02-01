@@ -207,11 +207,12 @@ class SageKernelSpec(object):
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
             sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.kernel_spec()
-            {'argv': ..., 'display_name': 'SageMath ...'}
+            {'argv': ..., 'display_name': 'SageMath ...', 'language': 'sage'}
         """
         return dict(
             argv=self._kernel_cmd(),
             display_name=self._display_name,
+            language='sage',
         )
 
     def _install_spec(self):

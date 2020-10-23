@@ -100,7 +100,6 @@ See :trac:`12091`::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from cpython.object cimport Py_EQ, Py_GE, Py_LE, Py_GT, Py_LT
 
@@ -689,10 +688,7 @@ cdef class LinearFunctionsParent_class(Parent):
             False
         """
         if is_LinearFunction(x):
-            if x.parent() is self:
-                return x
-            else:
-                return LinearFunction(self, (<LinearFunction>x)._f)
+            return LinearFunction(self, (<LinearFunction>x)._f)
         return LinearFunction(self, x)
 
     cpdef _coerce_map_from_(self, R):
@@ -716,11 +712,8 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: parent._coerce_map_from_(int)
             True
         """
-        if R in [int, float, long, complex]:
-            return True
-        from sage.rings.real_mpfr import mpfr_prec_min
-        from sage.rings.all import RealField
-        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+        from sage.structure.coerce import parent_is_real_numerical
+        if parent_is_real_numerical(R) or R is complex:
             return True
         return False
 
@@ -809,7 +802,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
     cpdef iteritems(self):
         """
-        Iterate over the index, coefficient pairs
+        Iterate over the index, coefficient pairs.
 
         OUTPUT:
 
@@ -822,11 +815,11 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             sage: p = MixedIntegerLinearProgram(solver = 'ppl')
             sage: x = p.new_variable()
             sage: f = 0.5 + 3/2*x[1] + 0.6*x[3]
-            sage: for id, coeff in f.iteritems():
+            sage: for id, coeff in sorted(f.iteritems()):
             ....:     print('id = {}   coeff = {}'.format(id, coeff))
+            id = -1   coeff = 1/2
             id = 0   coeff = 3/2
             id = 1   coeff = 3/5
-            id = -1   coeff = 1/2
         """
         return self._f.iteritems()
 

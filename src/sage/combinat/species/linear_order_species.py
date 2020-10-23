@@ -43,7 +43,7 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
         EXAMPLES::
 
             sage: F = species.LinearOrderSpecies()
-            sage: a = F.structures(["a", "b", "c"]).random_element(); a
+            sage: a = F.structures(["a", "b", "c"])[0]; a
             ['a', 'b', 'c']
             sage: p = PermutationGroupElement((1,2))
             sage: a.transport(p)
@@ -60,7 +60,7 @@ class LinearOrderSpeciesStructure(GenericSpeciesStructure):
         EXAMPLES::
 
             sage: F = species.LinearOrderSpecies()
-            sage: a = F.structures(["a", "b", "c"]).random_element(); a
+            sage: a = F.structures(["a", "b", "c"])[0]; a
             ['a', 'b', 'c']
             sage: a.automorphism_group()
             Symmetric group of order 1! as a permutation group

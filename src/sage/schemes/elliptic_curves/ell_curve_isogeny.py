@@ -63,8 +63,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six import itervalues
-from six.moves import range
 
 from copy import copy
 
@@ -144,7 +142,7 @@ def isogeny_determine_algorithm(E, kernel):
     """
     kernel_is_list = isinstance(kernel, list)
 
-    if not kernel_is_list and kernel in E :
+    if not kernel_is_list and kernel in E:
         kernel = [kernel]
         kernel_is_list = True
 
@@ -399,13 +397,7 @@ def compute_codomain_kohel(E, kernel, degree):
 
     .. NOTE::
 
-       This function uses the formulas of Section 2.4 of [K96]_.
-
-    REFERENCES:
-
-    .. [K96] Kohel, "Endomorphism Rings of Elliptic Curves over Finite
-       Fields", UC Berkeley PhD thesis 1996.
-
+       This function uses the formulas of Section 2.4 of [Koh1996]_.
     """
     # First set up the polynomial ring
 
@@ -986,7 +978,7 @@ class EllipticCurveIsogeny(Morphism):
         if not is_EllipticCurve(E):
             raise ValueError("E parameter must be an EllipticCurve.")
 
-        if not isinstance(kernel, list) and kernel in E :
+        if not isinstance(kernel, list) and kernel in E:
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
@@ -2093,12 +2085,12 @@ class EllipticCurveIsogeny(Morphism):
         a3 = self.__E1.a3()
 
         # next iterate over the 2torsion points of the kernel
-        for Qvalues in itervalues(ker_2tor):
+        for Qvalues in ker_2tor.values():
             (tX, tY) = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
             X = X + tX
             Y = Y + tY
 
-        for Qvalues in itervalues(ker_non2tor):
+        for Qvalues in ker_non2tor.values():
             (tX, tY) = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
             X = X + tX
             Y = Y + tY
@@ -2164,11 +2156,11 @@ class EllipticCurveIsogeny(Morphism):
 
         psi = poly_ring(1)
 
-        for Qvalues in itervalues(self.__kernel_2tor):
+        for Qvalues in self.__kernel_2tor.values():
             xQ = invX(x=Qvalues[0])
             psi = psi*(x - xQ)
 
-        for Qvalues in itervalues(self.__kernel_non2tor):
+        for Qvalues in self.__kernel_non2tor.values():
             xQ = invX(x=Qvalues[0])
             psi = psi*(x - xQ)
 
@@ -3669,19 +3661,13 @@ def compute_isogeny_starks(E1, E2, ell):
     ALGORITHM:
 
     This function uses Starks Algorithm as presented in section 6.2 of
-    [BMSS]_.
+    [BMSS2006]_.
 
     .. NOTE::
 
-       As published in [BMSS]_, the algorithm is incorrect, and a
+       As published in [BMSS2006]_, the algorithm is incorrect, and a
        correct version (with slightly different notation) can be found
-       in [M09]_.  The algorithm originates in [S72]_.
-
-    REFERENCES:
-
-    .. [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-    .. [M09] Moody, "The Diffie-Hellman Problem and Generalization of Verheul's Theorem"
-    .. [S72] Stark, "Class-numbers of complex quadratic fields."
+       in [Mo2009]_.  The algorithm originates in [Sta1973]_.
 
     EXAMPLES::
 
@@ -3717,7 +3703,7 @@ def compute_isogeny_starks(E1, E2, ell):
     R = PolynomialRing(K, 'x')
     x = R.gen()
 
-    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS claim 2*ell is enough, but it is not M09
+    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS2006 claim 2*ell is enough, but it is not M09
     wp2 = E2.weierstrass_p(prec=4*ell+4)
 
     # viewed them as power series in Z = z^2

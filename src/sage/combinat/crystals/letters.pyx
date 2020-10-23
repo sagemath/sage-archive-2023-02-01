@@ -2987,7 +2987,7 @@ class ClassicalCrystalOfLettersWrapped(ClassicalCrystalOfLetters):
     This class follows the same output as the other crystal of letters,
     where `b` is represented by the "letter" with `\varphi_i(b)` (resp.,
     `\varepsilon_i`) number of `i`'s (resp., `-i`'s or `\bar{i}`'s).
-    However, this uses an auxillary crystal to construct these letters
+    However, this uses an auxiliary crystal to construct these letters
     to avoid hardcoding the crystal elements and the corresponding edges;
     in particular, the 248 nodes of `E_8`.
     """

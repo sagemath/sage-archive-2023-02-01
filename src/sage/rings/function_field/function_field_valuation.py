@@ -141,14 +141,14 @@ fields can be found in Section 4.6 of [Rüt2014]_. Most of this was originally
 developed for number fields in [Mac1936I]_ and [Mac1936II]_.
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.factory import UniqueFactory
 from sage.rings.all import QQ
 from sage.misc.cachefunc import cached_method
@@ -276,7 +276,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
             # generator is a polynomial
             generator = domain._ring(generator)
             if not generator.is_monic():
-                raise ValueError("place must be defined by a monic polynomiala but %r is not monic" % (generator,))
+                raise ValueError("place must be defined by a monic polynomial but %r is not monic" % (generator,))
             if not generator.is_irreducible():
                 raise ValueError("place must be defined by an irreducible polynomial but %r factors over %r" % (generator, domain._ring))
             # we construct the corresponding valuation on the polynomial ring
@@ -831,11 +831,11 @@ class InducedRationalFunctionFieldValuation_base(FunctionFieldValuation_base):
             return [self]
 
         from sage.categories.function_fields import FunctionFields
-        if L in FunctionFields() \
-            and K.is_subring(L) \
-            and L.base() is L \
-            and L.constant_base_field() is not K.constant_base_field() \
-            and K.constant_base_field().is_subring(L.constant_base_field()):
+        if (L in FunctionFields()
+            and K.is_subring(L)
+            and L.base() is L
+            and L.constant_base_field() is not K.constant_base_field()
+            and K.constant_base_field().is_subring(L.constant_base_field())):
             # The above condition checks whether L is an extension of K that
             # comes from an extension of the field of constants
             # Condition "L.base() is L" is important so we do not call this

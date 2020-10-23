@@ -75,15 +75,15 @@ WARNING:
     `i < j` and `c_{ij} = 0` if `i>j`.
 """
 
-#******************************************************************************
+# *****************************************************************************
 #  Copyright (C) 2013
 #
 #  Arthur Lubovsky (alubovsky at albany dot edu)
 #  Ben Salisbury (ben dot salisbury at cmich dot edu)
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from copy import copy
 from sage.structure.element import Element
@@ -98,8 +98,6 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace
-
-import six
 
 
 class NakajimaMonomial(Element):
@@ -177,7 +175,7 @@ class NakajimaMonomial(Element):
         if not self._Y:
             return "1"
 
-        L = sorted(six.iteritems(self._Y), key=lambda x: (x[0][0], x[0][1]))
+        L = sorted(self._Y.items(), key=lambda x: (x[0][0], x[0][1]))
         exp = lambda e: "^{}".format(e) if e != 1 else ""
         return ' '.join("Y({},{})".format(mon[0][0], mon[0][1]) + exp(mon[1])
                         for mon in L)
@@ -201,7 +199,7 @@ class NakajimaMonomial(Element):
         if not Y and not self._A:
             return "1"
 
-        L = sorted(six.iteritems(Y), key=lambda x: (x[0][0], x[0][1]))
+        L = sorted(Y.items(), key=lambda x: (x[0][0], x[0][1]))
         exp = lambda e: "^{}".format(e) if e != 1 else ""
         ret = ' '.join("Y({},{})".format(mon[0][0], mon[0][1]) + exp(mon[1])
                         for mon in L)
@@ -209,7 +207,7 @@ class NakajimaMonomial(Element):
             return ret
         if Y:
             ret += ' '
-        L = sorted(six.iteritems(self._A), key=lambda x: (x[0][0], x[0][1]))
+        L = sorted(self._A.items(), key=lambda x: (x[0][0], x[0][1]))
         return ret + ' '.join("A({},{})".format(mon[0][0], mon[0][1]) + exp(mon[1])
                               for mon in L)
 
@@ -219,11 +217,11 @@ class NakajimaMonomial(Element):
 
             sage: M = crystals.infinity.NakajimaMonomials(['C',5])
             sage: m1 = M.module_generators[0].f(1)
-            sage: hash(m1)
-            4715601665014767730  # 64-bit
-            -512614286           # 32-bit
+            sage: m2 = M.module_generators[0].f(2)
+            sage: hash(m1) != hash(m2)
+            True
         """
-        return hash(frozenset(tuple(six.iteritems(self._Y))))
+        return hash(frozenset(tuple(self._Y.items())))
 
     def __eq__(self, other):
         r"""
@@ -300,7 +298,7 @@ class NakajimaMonomial(Element):
         if not self._Y:
             return "\\boldsymbol{1}"
 
-        L = sorted(six.iteritems(self._Y), key=lambda x:(x[0][0],x[0][1]))
+        L = sorted(self._Y.items(), key=lambda x:(x[0][0],x[0][1]))
         return_str = ''
         for x in L:
             if x[1] != 1:
@@ -328,14 +326,14 @@ class NakajimaMonomial(Element):
         if not Y and not self._A:
             return "\\boldsymbol{1}"
 
-        L = sorted(six.iteritems(Y), key=lambda x:(x[0][0],x[0][1]))
+        L = sorted(Y.items(), key=lambda x:(x[0][0],x[0][1]))
         return_str = ''
         for x in L:
             if x[1] != 1:
                 return_str += "Y_{%s,%s}"%(x[0][0],x[0][1]) + "^{%s} "%x[1]
             else:
                 return_str += "Y_{%s,%s} "%(x[0][0],x[0][1])
-        L = sorted(six.iteritems(self._A), key=lambda x:(x[0][0],x[0][1]))
+        L = sorted(self._A.items(), key=lambda x:(x[0][0],x[0][1]))
         for x in L:
             if x[1] != 1:
                 return_str += "A_{%s,%s}"%(x[0][0],x[0][1]) + "^{%s} "%x[1]
@@ -362,7 +360,7 @@ class NakajimaMonomial(Element):
         """
         P = self.parent().weight_lattice_realization()
         La = P.fundamental_weights()
-        return P(sum(v*La[k[0]] for k,v in six.iteritems(self._Y)))
+        return P(sum(v*La[k[0]] for k,v in self._Y.items()))
 
     def weight_in_root_lattice(self):
         r"""
@@ -388,7 +386,7 @@ class NakajimaMonomial(Element):
         """
         Q = RootSystem(self.parent().cartan_type()).root_lattice()
         al = Q.simple_roots()
-        return Q.sum(e*al[k[0]] for k,e in six.iteritems(self._A))
+        return Q.sum(e*al[k[0]] for k,e in self._A.items())
 
     def weight(self):
         r"""
@@ -466,7 +464,7 @@ class NakajimaMonomial(Element):
                 continue
             else:
                 d[(i,a)] = 0
-        S = sorted((x for x in six.iteritems(d) if x[0][0] == i), key=lambda x: x[0][1])
+        S = sorted((x for x in d.items() if x[0][0] == i), key=lambda x: x[0][1])
         return max(sum(S[k][1] for k in range(s)) for s in range(1,len(S)+1))
 
     def _ke(self, i):
@@ -498,7 +496,7 @@ class NakajimaMonomial(Element):
                 d[(i,a)] = 0
         total = ZZ.zero()
         L = []
-        S = sorted((x for x in six.iteritems(d) if x[0][0] == i), key=lambda x: x[0][1])
+        S = sorted((x for x in d.items() if x[0][0] == i), key=lambda x: x[0][1])
         for var,exp in S:
             total += exp
             if total == phi:
@@ -531,7 +529,7 @@ class NakajimaMonomial(Element):
                 continue
             else:
                 d[(i,a)] = 0
-        S = sorted((x for x in six.iteritems(d) if x[0][0] == i), key=lambda x: x[0][1])
+        S = sorted((x for x in d.items() if x[0][0] == i), key=lambda x: x[0][1])
         sum = 0
         phi = self.phi(i)
         for var,exp in S:
@@ -601,7 +599,7 @@ class NakajimaMonomial(Element):
             if cm[j_index,i-shift] != 0:
                 Aik[(j, ke+c)] = cm[j_index,i-shift]
         # Multiply by Aik
-        for key,value in six.iteritems(Aik):
+        for key,value in Aik.items():
             if key in newdict:
                 if newdict[key] == -value: # The result would be a 0 exponent
                     del newdict[key]
@@ -650,7 +648,7 @@ class NakajimaMonomial(Element):
             if cm[j_index,i-shift] != 0:
                 Aik[(j, kf+c)] = -cm[j_index,i-shift]
         # Multiply by Aik
-        for key,value in six.iteritems(Aik):
+        for key,value in Aik.items():
             if key in newdict:
                 if newdict[key] == -value: # The result would be a 0 exponent
                     del newdict[key]
@@ -902,7 +900,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             if ct.is_finite():
                 shift = 1
             Y = {}
-            for k,v in six.iteritems(A):
+            for k,v in A.items():
                 Y[k] = Y.get(k, 0) + v
                 Y[(k[0],k[1]+1)] = Y.get((k[0],k[1]+1), 0) + v
                 for j_index,j in enumerate(I):
@@ -1164,16 +1162,16 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]])
         sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: M = crystals.NakajimaMonomials(2*La[1], c=c)
-        sage: list(M.subcrystal(max_depth=3))
-        [Y(1,0)^2,
-         Y(0,1) Y(1,0) Y(1,1)^-1 Y(2,0),
-         Y(0,2)^-1 Y(1,0) Y(2,0) Y(2,2),
-         Y(0,1)^2 Y(1,1)^-2 Y(2,0)^2,
-         Y(0,0) Y(0,1) Y(1,0) Y(2,1)^-1,
+        sage: sorted(M.subcrystal(max_depth=3), key=str)
+        [Y(0,0) Y(0,1) Y(1,0) Y(2,1)^-1,
+         Y(0,0) Y(0,1)^2 Y(1,1)^-1 Y(2,0) Y(2,1)^-1,
          Y(0,0) Y(0,2)^-1 Y(1,0) Y(1,1) Y(2,1)^-1 Y(2,2),
          Y(0,1) Y(0,2)^-1 Y(1,1)^-1 Y(2,0)^2 Y(2,2),
-         Y(0,0) Y(0,1)^2 Y(1,1)^-1 Y(2,0) Y(2,1)^-1,
-         Y(1,0) Y(1,3) Y(2,0) Y(2,3)^-1]
+         Y(0,1) Y(1,0) Y(1,1)^-1 Y(2,0),
+         Y(0,1)^2 Y(1,1)^-2 Y(2,0)^2,
+         Y(0,2)^-1 Y(1,0) Y(2,0) Y(2,2),
+         Y(1,0) Y(1,3) Y(2,0) Y(2,3)^-1,
+         Y(1,0)^2]
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, La=None, c=None):

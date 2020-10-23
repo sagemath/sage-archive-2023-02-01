@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Univariate Polynomial Rings
 
@@ -141,7 +142,6 @@ Check that :trac:`5562` has been fixed::
 from __future__ import absolute_import, print_function
 
 import sys
-from six.moves import range
 
 from sage.structure.element import Element
 
@@ -154,6 +154,7 @@ import sage.rings.ring as ring
 from sage.structure.element import is_RingElement
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
+from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -174,7 +175,6 @@ from .polynomial_real_mpfr_dense import PolynomialRealDense
 from .polynomial_integer_dense_flint import Polynomial_integer_dense_flint
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
-
 
 _CommutativeRings = categories.commutative_rings.CommutativeRings()
 
@@ -231,7 +231,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     """
     Univariate polynomial ring over a ring.
     """
-    _no_generic_basering_coercion = True
+
     def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
         """
         EXAMPLES::
@@ -263,7 +263,24 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Check that category for zero ring::
 
             sage: PolynomialRing(Zmod(1), 'x').category()
-            Category of finite rings
+            Category of finite commutative algebras over
+            (finite commutative rings and subquotients of monoids and
+            quotients of semigroups and finite enumerated sets)
+
+        Check `is_finite` inherited from category (:trac:`24432`)::
+
+            sage: Zmod(1)['x'].is_finite()
+            True
+
+            sage: GF(7)['x'].is_finite()
+            False
+
+            sage: Zmod(1)['x']['y'].is_finite()
+            True
+
+            sage: GF(7)['x']['y'].is_finite()
+            False
+
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
@@ -284,17 +301,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         self.Element = self._polynomial_class
         self.__cyclopoly_cache = {}
         self._has_singular = False
-        # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
-        # tries to provide a conversion from the base ring, if it does not exist.
-        # This is for algebras that only do the generic stuff in their initialisation.
-        # But the attribute _no_generic_basering_coercion prevents that from happening,
-        # since we want to use PolynomialBaseringInjection.
         sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
-        self.__generator = self.element_class(self, [0,1], is_gen=True)
-        self._populate_coercion_lists_(
-                #coerce_list = [base_inject],
-                #convert_list = [list, base_inject],
-                convert_method_name = '_polynomial_')
+        self._populate_coercion_lists_(convert_method_name='_polynomial_')
 
     def __reduce__(self):
         from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing
@@ -367,7 +375,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         Python 3 range is allowed::
 
-            sage: from six.moves import range
             sage: R = PolynomialRing(ZZ,'x')
             sage: R(range(4))
             3*x^3 + 2*x^2 + x
@@ -401,6 +408,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: x = SR.var('x')
             sage: QQbar[x](x^6+x^5+x^4-x^3+x^2-x+2/5)
             x^6 + x^5 + x^4 - x^3 + x^2 - x + 2/5
+
+        Check support for unicode characters (:trac:`29280`)::
+
+            sage: QQ['λ']('λ^2')
+            λ^2
         """
         C = self.element_class
         if isinstance(x, (list, tuple)):
@@ -638,9 +650,36 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         if str(p) == self._names[0]:
             from sage.rings.power_series_ring import PowerSeriesRing
-            return PowerSeriesRing(self.base_ring(), name=self._names[0], default_prec=prec)
+            return PowerSeriesRing(self.base_ring(), name=self._names[0],
+                                   default_prec=prec, sparse=self.is_sparse())
         else:
             raise TypeError("Cannot complete %s with respect to %s" % (self, p))
+
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.coerce_map_from(QQ)
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: R.coerce_map_from(ZZ)
+            Composite map:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in x over Rational Field
+              Defn:   Natural morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+                    then
+                      Polynomial base injection morphism:
+                      From: Rational Field
+                      To:   Univariate Polynomial Ring in x over Rational Field
+            sage: R.coerce_map_from(GF(7))
+        """
+        return PolynomialBaseringInjection(self.base_ring(), self)
 
     def _coerce_map_from_(self, P):
         """
@@ -665,28 +704,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: R = QQ['x']
-            sage: R.has_coerce_map_from(QQ)
-            True
-            sage: R.has_coerce_map_from(ZZ)
-            True
-            sage: R.has_coerce_map_from(GF(7))
-            False
             sage: R.has_coerce_map_from(ZZ['x'])
             True
             sage: R.has_coerce_map_from(ZZ['y'])
             False
-
-            sage: R.coerce_map_from(ZZ)
-            Composite map:
-              From: Integer Ring
-              To:   Univariate Polynomial Ring in x over Rational Field
-              Defn:   Natural morphism:
-                      From: Integer Ring
-                      To:   Rational Field
-                    then
-                      Polynomial base injection morphism:
-                      From: Rational Field
-                      To:   Univariate Polynomial Ring in x over Rational Field
 
         Here we test against the change in the coercions introduced
         in :trac:`9944`::
@@ -738,10 +759,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: T.has_coerce_map_from(S)
             False
         """
-        # In the first place, handle the base ring
         base_ring = self.base_ring()
-        if P is base_ring:
-            return PolynomialBaseringInjection(base_ring, self)
         # handle constants that canonically coerce into self.base_ring()
         # first, if possible
         try:
@@ -897,33 +915,48 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return sib.parent_with_gens(self, sie, self.variable_names(), 'R',
                                     gens_syntax=gens_syntax)
 
-    def _macaulay2_(self, m2=None):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 
             sage: R = QQ['x']
-            sage: macaulay2(R) # optional - macaulay2
-            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 32}, DegreeRank => 1]
+            sage: macaulay2(R).describe()  # optional - macaulay2
+            QQ[x, Degrees => {1}, Heft => {1}, MonomialOrder => {MonomialSize => 16},
                                                                 {GRevLex => {1}    }
                                                                 {Position => Up    }
+            --------------------------------------------------------------------------------
+            DegreeRank => 1]
+
+        TESTS:
+
+        Check that results are cached (:trac:`28074`)::
+
+            sage: R = ZZ['t']
+            sage: macaulay2(R) is macaulay2(R)  # optional - macaulay2
+            True
         """
-        if m2 is None:
-            import sage.interfaces.macaulay2
-            m2 = sage.interfaces.macaulay2.macaulay2
-        base_ring = m2( self.base_ring() )
-        var = self.gen()
-        return m2("%s[symbol %s]"%(base_ring.name(), var))
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return macaulay2._macaulay2_input_ring(self.base_ring(), self.gens())
 
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        try:
-            # all that is needed is that elements of the base ring
-            # of the polynomial ring canonically coerce into codomain.
-            # Since poly rings are free, any image of the gen
-            # determines a homomorphism
-            codomain.coerce(self.base_ring().one())
-        except TypeError:
-            return False
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
+        """
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R._is_valid_homomorphism_(GF(7), [5])
+            False
+            sage: R._is_valid_homomorphism_(Qp(7), [5])
+            True
+        """
+        # Since poly rings are free, any image of the gen
+        # determines a homomorphism
+        if base_map is None:
+            # If no base map is given, the only requirement is that the
+            # base ring coerces into the codomain
+            return codomain.has_coerce_map_from(self.base_ring())
         return True
 
     #    Polynomial rings should be unique parents. Hence,
@@ -1139,6 +1172,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         else:
             return self(cyclotomic.cyclotomic_coeffs(n), check=True)
 
+    @cached_method
     def gen(self, n=0):
         """
         Return the indeterminate generator of this polynomial ring.
@@ -1161,7 +1195,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         if n != 0:
             raise IndexError("generator n not defined")
-        return self.__generator
+        return self.element_class(self, [0,1], is_gen=True)
 
     def gens_dict(self):
         """
@@ -1188,27 +1222,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         This is the same as ``self.gen()``.
         """
         return self.gen()
-
-    def is_finite(self):
-        """
-        Return False since polynomial rings are not finite (unless the base
-        ring is 0.)
-
-        EXAMPLES::
-
-            sage: R = Integers(1)['x']
-            sage: R.is_finite()
-            True
-            sage: R = GF(7)['x']
-            sage: R.is_finite()
-            False
-            sage: R['x']['y'].is_finite()
-            False
-        """
-        R = self.base_ring()
-        if R.is_finite() and R.order() == 1:
-            return True
-        return False
 
     @cached_method
     def is_exact(self):
@@ -1244,6 +1257,28 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             True
         """
         return self.__is_sparse
+
+    def monomial(self, exponent):
+        """
+        Return the monomial with the ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- nonnegative integer
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: R.monomial(5)
+            x^5
+            sage: e=(10,)
+            sage: R.monomial(*e)
+            x^10
+            sage: m = R.monomial(100)
+            sage: R.monomial(m.degree()) == m
+            True
+        """
+        return self({exponent:self.base_ring().one()})
 
     def krull_dimension(self):
         """
@@ -1369,7 +1404,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             else:
                 raise ValueError("No polynomial of degree >= 0 has all coefficients zero")
 
-        # Pick a random degree 
+        # Pick a random degree
         d = randint(degree[0], degree[1])
 
         # If degree is -1, return the 0 polynomial
@@ -1636,13 +1671,13 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         # We trust that, if a category is given, that it is useful.
         if category is None:
             if base_ring.is_zero():
-                category = categories.rings.Rings().Finite()
+                category = categories.algebras.Algebras(base_ring.category()).Commutative().Finite()
             else:
                 category = polynomial_default_category(base_ring.category(), 1)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 
-    def quotient_by_principal_ideal(self, f, names=None):
+    def quotient_by_principal_ideal(self, f, names=None, **kwds):
         """
         Return the quotient of this polynomial ring by the principal
         ideal (generated by) `f`.
@@ -1651,6 +1686,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
 
         - ``f`` - either a polynomial in ``self``, or a principal
           ideal of ``self``.
+        - further named arguments that are passed to the quotient constructor.
 
         EXAMPLES::
 
@@ -1682,7 +1718,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             return self
         f = I.gen()
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing
-        return PolynomialQuotientRing(self, f, names)
+        return PolynomialQuotientRing(self, f, names, **kwds)
 
     def weyl_algebra(self):
         """
@@ -1722,10 +1758,21 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             [x^2 - 2*x + 1, x + 1]
             sage: p.roots(degree_bound=1)
             [(x + 1, 2)]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: foo = QQ['x']['y'].one()
+            sage: foo.roots(QQ)
+            []
         """
         if ring is not None and ring is not self:
             p = p.change_ring(ring)
-            return p.roots(multiplicities, algorithm, degree_bound)
+            if degree_bound is None:
+                return p.roots(multiplicities = multiplicities, algorithm = algorithm)
+            return p.roots(multiplicities = multiplicities, algorithm = algorithm, degree_bound = degree_bound)
+
         roots = p._roots_from_factorization(p.factor(), multiplicities)
         if degree_bound is not None:
             if multiplicities:
@@ -1766,6 +1813,108 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
         self._has_singular = can_convert_to_singular(self)
+
+    @cached_method(key=lambda self, d, q, sign, lead: (d, q, sign, tuple([x if isinstance(x, (tuple, list)) else (x, 0) for x in lead]) if isinstance(lead, (tuple, list)) else ((lead, 0))))
+    def weil_polynomials(self, d, q, sign=1, lead=1):
+        r"""
+        Return all integer polynomials whose complex roots all have a specified absolute value.
+
+        Such polynomials `f` satisfy a functional equation
+
+        .. MATH::
+
+            T^d f(q/T) = s q^{d/2} f(T)
+
+        where `d` is the degree of `f`, `s` is a sign and `q^{1/2}` is the absolute value
+        of the roots of `f`.
+
+        INPUT:
+
+        - ``d`` -- integer, the degree of the polynomials
+
+        - ``q`` -- integer, the square of the complex absolute value of the roots
+
+        - ``sign`` -- integer (default `1`), the sign `s` of the functional equation
+
+        - ``lead`` -- integer, list of integers or list of pairs of integers (default `1`),
+            constraints on the leading few coefficients of the generated polynomials.
+            If pairs `(a, b)` of integers are given, they are treated as a constraint
+            of the form `\equiv a \pmod{b}`; the moduli must be in decreasing order by
+            divisibility, and the modulus of the leading coefficient must be 0.
+
+        .. SEEALSO::
+
+            More documentation and additional options are available using the iterator
+            :class:`sage.rings.polynomial.weil.weil_polynomials.WeilPolynomials`
+            directly. In addition, polynomials have a method `is_weil_polynomial` to
+            test whether or not the given polynomial is a Weil polynomial.
+
+        EXAMPLES::
+
+            sage: R.<T> = ZZ[]
+            sage: L = R.weil_polynomials(4, 2)
+            sage: len(L)
+            35
+            sage: L[9]
+            T^4 + T^3 + 2*T^2 + 2*T + 4
+            sage: all(p.is_weil_polynomial() for p in L)
+            True
+
+        Setting multiple leading coefficients:
+
+            sage: R.<T> = QQ[]
+            sage: l = R.weil_polynomials(4,2,lead=((1,0),(2,4),(1,2)))
+            sage: l
+            [T^4 + 2*T^3 + 5*T^2 + 4*T + 4,
+            T^4 + 2*T^3 + 3*T^2 + 4*T + 4,
+            T^4 - 2*T^3 + 5*T^2 - 4*T + 4,
+            T^4 - 2*T^3 + 3*T^2 - 4*T + 4]
+
+        We do not require Weil polynomials to be monic. This example generates Weil
+        polynomials associated to K3 surfaces over `GF(2)` of Picard number at least 12::
+
+            sage: R.<T> = QQ[]
+            sage: l = R.weil_polynomials(10,1,lead=2)
+            sage: len(l)
+            4865
+            sage: l[len(l)//2]
+            2*T^10 + T^8 + T^6 + T^4 + T^2 + 2
+
+        TESTS:
+
+        We check that products of Weil polynomials are also listed as Weil polynomials::
+
+            sage: all((f * g) in R.weil_polynomials(6, q) for q in [3,4] for f in R.weil_polynomials(2, q) for g in R.weil_polynomials(4, q))
+            True
+
+        We check that irreducible Weil polynomials of degree 6 are CM::
+
+            sage: simples = [f for f in R.weil_polynomials(6, 3) if f.is_irreducible()]
+            sage: len(simples)
+            348
+            sage: reals = [R([f[3+i] + sum((-3)^j * (i+2*j)/(i+j) * binomial(i+j,j) * f[3+i+2*j] for j in range(1,(3+i)//2+1)) for i in range(4)]) for f in simples]
+
+        Check that every polynomial in this list has 3 real roots between `-2 \sqrt{3}` and `2 \sqrt{3}`::
+
+            sage: roots = [f.roots(RR, multiplicities=False) for f in reals]
+            sage: all(len(L) == 3 and all(x^2 <= 12 for x in L) for L in roots)
+            True
+
+        Finally, check that the original polynomials are reconstructed as CM polynomials::
+
+            sage: all(f == T^3*r(T + 3/T) for (f, r) in zip(simples, reals))
+            True
+
+        A simple check (not sufficient)::
+
+            sage: all(f.number_of_real_roots() == 0 for f in simples)
+            True
+        """
+        R = self.base_ring()
+        if not (R is ZZ or R is QQ):
+            raise ValueError("Weil polynomials have integer coefficients")
+        from sage.rings.polynomial.weil.weil_polynomials import WeilPolynomials
+        return list(WeilPolynomials(d, q, sign, lead, polring=self))
 
     @staticmethod
     def _implementation_names_impl(implementation, base_ring, sparse):
@@ -1900,7 +2049,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         EXAMPLES:
 
         Only return the divided-difference coefficients `F_{i,i}`.
-        This example is taken from Example 1, page 121 of [BF05]_::
+        This example is taken from Example 1, page 121 of [BF2005]_::
 
             sage: points = [(1.0, 0.7651977), (1.3, 0.6200860), (1.6, 0.4554022), (1.9, 0.2818186), (2.2, 0.1103623)]
             sage: R = PolynomialRing(RR, "x")
@@ -1930,7 +2079,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0.00182510288066044]]
 
         The following example is taken from Example 4.12, page 225 of
-        [MF99]_::
+        [MF1999]_::
 
             sage: points = [(1, -3), (2, 0), (3, 15), (4, 48), (5, 105), (6, 192)]
             sage: R = PolynomialRing(QQ, "x")
@@ -1943,12 +2092,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             [48, 33, 9, 1],
             [105, 57, 12, 1, 0],
             [192, 87, 15, 1, 0, 0]]
-
-        REFERENCES:
-
-        .. [MF99] \J.H. Mathews and K.D. Fink. *Numerical Methods Using
-           MATLAB*.  3rd edition, Prentice-Hall, 1999.
-
         """
         to_base_ring = self.base_ring()
         points = [tuple(to_base_ring(c) for c in p) for p in points]
@@ -1983,7 +2126,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             differences.
 
           - ``algorithm='neville'``: adapt Neville's method as
-            described on page 144 of [BF05]_ to recursively generate
+            described on page 144 of [BF2005]_ to recursively generate
             the Lagrange interpolation polynomial.  Neville's method
             generates a table of approximating polynomials, where the
             last row of that table contains the `n`-th Lagrange
@@ -2104,12 +2247,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0
             sage: R.lagrange_polynomial([[1, 0], [2, 0], [3, 0]])
             0
-
-        REFERENCES:
-
-        .. [BF05] \R.L. Burden and J.D. Faires. *Numerical Analysis*.
-           8th edition, Thomson Brooks/Cole, 2005.
-
         """
         # Perhaps we should be slightly stricter on the input and use
         # self.base_ring().coerce here and in the divided_difference()
@@ -2597,12 +2734,28 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             [x + 1]
             sage: p.roots(multiplicities=False, algorithm="Roth-Ruckenstein")
             [x^2 + 11*x + 1, x + 1]
+
+        TESTS:
+
+        Check that :trac:`23639` is fixed::
+
+            sage: R = GF(3)['x']['y']
+            sage: R.one().roots(multiplicities=False)
+            []
+            sage: R.zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: roots of 0 are not defined
         """
         if multiplicities:
             raise NotImplementedError("Use multiplicities=False")
 
         if degree_bound is None:
             l = p.degree()
+            if l < 0:
+                raise ArithmeticError("roots of 0 are not defined")
+            if l == 0:
+                return []
             dl = p[l].degree()
             degree_bound = max((p[i].degree() - dl)//(l - i) for i in range(l) if p[i])
 
@@ -3237,7 +3390,7 @@ def polygen(ring_or_element, name="x"):
         return t.gens()
     return t.gen()
 
-def polygens(base_ring, names="x"):
+def polygens(base_ring, names="x", *args):
     """
     Return indeterminates over the given base ring with the given
     names.
@@ -3252,6 +3405,11 @@ def polygens(base_ring, names="x"):
         sage: t = polygens(QQ,['x','yz','abc'])
         sage: t
         (x, yz, abc)
+
+    The number of generators can be passed as a third argument::
+
+        sage: polygens(QQ, 'x', 4)
+        (x0, x1, x2, x3)
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    return PolynomialRing(base_ring, names).gens()
+    return PolynomialRing(base_ring, names, *args).gens()

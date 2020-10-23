@@ -88,7 +88,7 @@ The following example shows all these steps::
       x_3 is an integer variable (min=0.0, max=+oo)
     sage: print('Objective Value: {}'.format(p.solve()))
     Objective Value: 2.0
-    sage: for i, v in p.get_values(w).iteritems():
+    sage: for i, v in sorted(p.get_values(w).items()):
     ....:     print('w_%s = %s' % (i, int(round(v))))
     w_0 = 15
     w_1 = 10
@@ -224,15 +224,14 @@ AUTHORS:
 - Risan (2012/02): added extension for exact computation
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
 from sage.structure.parent cimport Parent
@@ -240,6 +239,7 @@ from sage.structure.element cimport Element
 from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
+
 
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""
@@ -250,36 +250,46 @@ cdef class MixedIntegerLinearProgram(SageObject):
     constraints on these variables, and an objective function which is to be
     maximised or minimised under these constraints.
 
-    See the :wikipedia:`Linear_programming` for further information on linear
+    See the thematic tutorial on `Linear Programming (Mixed Integer)
+    <../../../../thematic_tutorials/linear_programming.html>`_
+    or :wikipedia:`Linear_programming` for further information on linear
     programming, and the :mod:`MILP module <sage.numerical.mip>` for its use in
     Sage.
 
     INPUT:
 
-    - ``solver`` -- selects a solver:
+    - ``solver`` -- selects a solver; see `Solvers (backends)
+      <../../../../thematic_tutorials/linear_programming.html#solvers-backends>`_
+      for more information and installation instructions for optional
+      solvers.
 
-      - GLPK (``solver="GLPK"``). See the `GLPK
-        <http://www.gnu.org/software/glpk/>`_ web site.
+      - ``solver="GLPK"``: The `GNU Linear Programming Kit
+        <http://www.gnu.org/software/glpk/>`_.
 
-      - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
-        <http://www.coin-or.org>`_ web site.
+      - ``solver="GLPK/exact"``: GLPK's implementation of an exact rational simplex
+        method.
 
-      - CPLEX (``solver="CPLEX"``). See the `CPLEX
-        <http://www.ilog.com/products/cplex/>`_ web site.
+      - ``solver="Coin"``: The `COIN-OR CBC (COIN Branch and Cut) solver
+        <http://www.coin-or.org>`_.
 
-      - Gurobi (``solver="Gurobi"``). See the `Gurobi <http://www.gurobi.com/>`_
-          web site.
+      - ``solver="CPLEX"``, provided by the proprietary `IBM ILOG CPLEX
+        Optimization Studio <https://www.ibm.com/products/ilog-cplex-optimization-studio/>`_.
 
-      - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT <http://www.cvxopt.org/>`_
-          web site.
+      - ``solver="Gurobi"``: The proprietary `Gurobi solver <http://www.gurobi.com/>`_.
 
-      - PPL (``solver="PPL"``). See the `PPL <http://bugseng.com/products/ppl>`_
-          web site.
+      - ``solver="CVXOPT"``: See the `CVXOPT <http://www.cvxopt.org/>`_ web site.
+
+      - ``solver="PPL"``: An exact rational solver (for small scale instances)
+        provided by the `Parma Polyhedra Library (PPL) <http://bugseng.com/products/ppl>`_.
+
+      - ``solver="InteractiveLP"``: A didactical
+        implementation of the revised simplex method in Sage.  It works over
+        any exact ordered field, the default is ``QQ``.
 
       - If ``solver=None`` (default), the default solver is used (see
-        :func:`default_mip_solver`)
+        :func:`default_mip_solver`).
 
-      - ``solver`` can also be a callable,
+      - ``solver`` can also be a callable (such as a class),
         see :func:`sage.numerical.backends.generic_backend.get_solver` for
         examples.
 
@@ -347,36 +357,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         INPUT:
 
-        - ``solver`` -- the following solvers should be available through this class:
+        - ``solver`` -- one of the following:
 
-          - GLPK (``solver="GLPK"``). See the `GLPK
-            <http://www.gnu.org/software/glpk/>`_ web site.
+          - a string indicating one of the available solvers
+            (see :class:`MixedIntegerLinearProgram`);
 
-          - GLPK's implementation of an exact rational simplex
-            method (``solver="GLPK/exact"``).
-
-          - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
-            <http://www.coin-or.org>`_ web site.
-
-          - CPLEX (``solver="CPLEX"``). See the `CPLEX
-            <http://www.ilog.com/products/cplex/>`_ web site.  An interface to
-            CPLEX is not yet implemented.
-
-          - Gurobi (``solver="Gurobi"``). See the `Gurobi
-            <http://www.gurobi.com/>`_ web site.
-
-          - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT <http://www.cvxopt.org/>`_
-              web site.
-
-          - PPL (``solver="PPL"``). See the `PPL
-            <http://bugseng.com/products/ppl>`_ web site.
-
-          - If ``solver=None`` (default), the default solver is used, see
+          - ``None`` (default), the default solver is used, see
             :func:`default_mip_solver`.
 
-          - ``solver`` can also be a callable,
-            see :func:`sage.numerical.backends.generic_backend.get_solver` for
-            examples.
+          - or a callable (such as a class), see
+            :func:`sage.numerical.backends.generic_backend.get_solver`
+            for examples.
 
         - ``maximization``
 
@@ -678,7 +669,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: d = polytopes.dodecahedron()
             sage: p = MixedIntegerLinearProgram(base_ring=d.base_ring())
             sage: p.base_ring()
-            Number Field in sqrt5 with defining polynomial x^2 - 5
+            Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         """
         return self._backend.base_ring()
 
@@ -777,7 +768,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         An exception is raised when two types are supplied ::
 
-            sage: z = p.new_variable(real = True, integer = True)
+            sage: z = p.new_variable(real=True, integer=True)
             Traceback (most recent call last):
             ...
             ValueError: Exactly one of the available types has to be True
@@ -1420,7 +1411,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         values for the corresponding variables ::
 
             sage: x_sol = p.get_values(x)
-            sage: x_sol.keys()
+            sage: sorted(x_sol)
             [3, 5]
 
         Obviously, it also works with variables of higher dimension::
@@ -2782,6 +2773,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             raise ValueError('Form of interactive_lp_problem must be either None or \'standard\'')
 
+
 class MIPSolverException(RuntimeError):
     r"""
     Exception raised when the solver fails.
@@ -2791,7 +2783,7 @@ class MIPSolverException(RuntimeError):
         sage: from sage.numerical.mip import MIPSolverException
         sage: e = MIPSolverException("Error")
         sage: e
-        MIPSolverException('Error',)
+        MIPSolverException('Error'...)
         sage: print(e)
         Error
 
@@ -3155,7 +3147,7 @@ cdef class MIPVariable(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: list(v.keys())
+            sage: sorted(v.keys())
             [0, 1]
         """
         return self._dict.keys()
@@ -3169,7 +3161,7 @@ cdef class MIPVariable(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: list(v.items())
+            sage: sorted(v.items())
             [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
@@ -3183,7 +3175,7 @@ cdef class MIPVariable(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: list(v.values())
+            sage: sorted(v.values(), key=str)
             [x_0, x_1]
         """
         return self._dict.values()

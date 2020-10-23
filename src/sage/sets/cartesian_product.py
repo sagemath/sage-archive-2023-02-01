@@ -5,19 +5,20 @@ AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
 #                          Mike Hansen <mhansen@gmail.com>,
 #                          Florent Hivert <Florent.Hivert@univ-rouen.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
-from sage.misc.misc import attrcall
+import numbers
+
+from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.sets_cat import Sets
 
@@ -25,6 +26,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapperCheckWrappedClass
 
+from sage.categories.rings import Rings
+_Rings = Rings()
 
 class CartesianProduct(UniqueRepresentation, Parent):
     """
@@ -111,9 +114,21 @@ class CartesianProduct(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: (1, 3, 4) should be of length 2
+
+            sage: R = ZZ.cartesian_product(ZZ)
+            sage: R(0)
+            (0, 0)
+            sage: R(-5)
+            (-5, -5)
         """
+        # NOTE: should we more generally allow diagonal embedding
+        # if we have a conversion?
+        if self in _Rings and isinstance(x, numbers.Integral):
+            return x * self.one()
+
         from builtins import zip
         x = tuple(x)
+
         if len(x) != len(self._sets):
             raise ValueError(
                 "{} should be of length {}".format(x, len(self._sets)))
@@ -213,8 +228,6 @@ class CartesianProduct(UniqueRepresentation, Parent):
             raise ValueError("i (={}) must be in {}".format(i, self._sets_keys()))
         return attrcall("cartesian_projection", i)
 
-    summand_projection = deprecated_function_alias(10963, cartesian_projection)
-
     def _cartesian_product_of_elements(self, elements):
         """
         Return the Cartesian product of the given ``elements``.
@@ -260,8 +273,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
             (The cartesian_product functorial construction,
              (Integer Ring, Rational Field))
         """
-        from sage.categories.cartesian_product import cartesian_product
-        return cartesian_product, self.cartesian_factors()
+        from sage.categories.cartesian_product import CartesianProductFunctor
+        return CartesianProductFunctor(self.category()), self.cartesian_factors()
 
     def _coerce_map_from_(self, S):
         r"""
@@ -282,6 +295,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             if len(S_factors) == len(R_factors):
                 if all(r.has_coerce_map_from(s) for r, s in zip(R_factors, S_factors)):
                     return True
+        return super(CartesianProduct, self)._coerce_map_from_(S)
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
@@ -307,11 +321,6 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: x = C.an_element(); x
                 (47, 42, 1)
                 sage: x.cartesian_projection(1)
-                42
-
-                sage: x.summand_projection(1)
-                doctest:...: DeprecationWarning: summand_projection is deprecated. Please use cartesian_projection instead.
-                See http://trac.sagemath.org/10963 for details.
                 42
             """
             return self.value[i]
@@ -365,4 +374,3 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 <... 'tuple'>
             """
             return self.value
-

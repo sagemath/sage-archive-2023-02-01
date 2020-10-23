@@ -105,7 +105,7 @@ class LatticeEuclideanGroupElement(SageObject):
             LatticePolytope_PPL, LatticePolytope_PPL_class)
         if isinstance(x, LatticePolytope_PPL_class):
             if x.is_empty():
-                from sage.libs.ppl import C_Polyhedron
+                from ppl import C_Polyhedron
                 return LatticePolytope_PPL(C_Polyhedron(self._b.degree(),
                                                         'empty'))
             return LatticePolytope_PPL(*[self(v) for v in x.vertices()])

@@ -1,3 +1,5 @@
+# distutils: libraries = gmp ntl m
+# distutils: language = c++
 """
 p-Adic Printing
 
@@ -21,7 +23,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *

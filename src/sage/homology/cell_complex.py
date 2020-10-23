@@ -44,7 +44,6 @@ by developers producing new classes, not casual users.
 #                  http://www.gnu.org/licenses/
 ########################################################################
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
@@ -907,7 +906,7 @@ class GenericCellComplex(SageObject):
 
             For all but the smallest complexes, this is likely to be
             slower than :meth:`cohomology` (with field coefficients),
-            possibly by several orders of magnitute. This and its
+            possibly by several orders of magnitude. This and its
             companion :meth:`homology_with_basis` carry extra
             information which allows computation of cup products, for
             example, but because of speed issues, you may only wish to

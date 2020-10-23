@@ -8,7 +8,6 @@ Root system data for relabelled Cartan types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -405,6 +404,22 @@ class CartanType(cartan_type.CartanType_decorator):
             'G'
         """
         return self._type.type()
+
+    def coxeter_diagram(self):
+        """
+        Return the Coxeter diagram for ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['H', 3]).relabel({1:3,2:2,3:1})
+            sage: G = ct.coxeter_diagram(); G
+            Graph on 3 vertices
+            sage: G.edges()
+            [(1, 2, 5), (2, 3, 3)]
+        """
+        result = self._type.coxeter_diagram().copy()
+        result.relabel(self._relabelling)
+        return result
 
 ###########################################################################
 

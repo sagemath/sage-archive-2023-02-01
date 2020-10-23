@@ -71,11 +71,11 @@ class CartesianProductPoset(CartesianProduct):
         sage: Cl.category()
         Join of Category of finite posets and
         Category of Cartesian products of finite enumerated sets
-        sage: TestSuite(Cl).run()
+        sage: TestSuite(Cl).run(skip=['_test_construction'])
         sage: Cp.category()
         Join of Category of finite posets and
         Category of Cartesian products of finite enumerated sets
-        sage: TestSuite(Cp).run()
+        sage: TestSuite(Cp).run(skip=['_test_construction'])
 
     .. SEEALSO::
 

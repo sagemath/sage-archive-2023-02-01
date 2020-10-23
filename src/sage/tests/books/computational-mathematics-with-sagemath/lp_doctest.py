@@ -103,7 +103,7 @@ Sage example in ./lp.tex, line 360::
   sage: try:
   ....:    p.solve()
   ....:    print("The problem has a solution!")
-  ....: except:
+  ....: except RuntimeError:
   ....:    print("The problem is infeasible!")
   The problem is infeasible!
 
@@ -160,8 +160,8 @@ Sage example in ./lp.tex, line 573::
 Sage example in ./lp.tex, line 586::
 
   sage: matching = p.get_values(matching)
-  sage: [e for e, b in matching.items() if b == 1]
-  [(0, 1), (4, 9), (6, 8), (5, 7), (2, 3)]
+  sage: sorted(e for e, b in matching.items() if b == 1)
+  [(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)]
 
 Sage example in ./lp.tex, line 665::
 

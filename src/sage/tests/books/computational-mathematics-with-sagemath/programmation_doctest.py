@@ -24,7 +24,7 @@ Sage example in ./programmation.tex, line 137::
 Sage example in ./programmation.tex, line 201::
 
   sage: import keyword; sorted(keyword.kwlist)
-  [...'and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del'...]
+  [...'and', 'as', 'assert', ..., 'class', 'continue', 'def', 'del'...]
 
 Sage example in ./programmation.tex, line 338::
 
@@ -484,7 +484,7 @@ Sage example in ./programmation.tex, line 3006::
 
   sage: L = [[2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3],\
   ....: [1, 1, 2], [1, 2, 7]]
-  sage: L.sort (cmp = alpha) ; L
+  sage: L.sort (cmp = alpha) ; L  # py2
   [[1, 1, 2], [1, 2, 7], [2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3]]
 
 Sage example in ./programmation.tex, line 3031::

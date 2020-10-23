@@ -119,7 +119,7 @@ class SemistandardPath(PathTableau):
     @staticmethod
     def __classcall_private__(cls, st, check=True):
         r"""
-        This ensures that a tableau is only ever constructed as an
+        Ensure that a tableau is only ever constructed as an
         ``element_class`` call of an appropriate parent.
 
         EXAMPLES::
@@ -152,34 +152,33 @@ class SemistandardPath(PathTableau):
         w = None
 
         if isinstance(st, GelfandTsetlinPattern):
-            w = [tuple(a) for a in st]
+            w = copy(st)
             w.reverse()
             w = [()] + w
-            w = tuple(w)
 
-        elif isinstance(st, Tableau):
-            w = [tuple(p) for p in st.to_chain()]
-            w = tuple(w)
-
-        elif isinstance(st, SkewTableau):
-            w = [tuple(p) for p in st.to_chain()]
-            w = w[1:]
-            w = tuple(w)
+        elif isinstance(st, [Tableau,SkewTableau]):
+            w = st.to_chain()
 
         elif isinstance(st, (list,tuple)):
             try:
-                w = tuple([tuple(a) for a in st])
+                w = copy(st)
             except TypeError:
                 raise ValueError(f"{st} is not a sequence of lists")
 
         if w is None:
             raise ValueError(f"invalid input {st}")
 
+        # Pad with zeroes, if necessary
+        m = max(len(a)+i for a,i in enumerate(w)) - len(w[0])
+        w = [a+[0]*(m+i-len(a)) for a,i in enumerate(w)]
+        # Convert to immutable
+        w = tuple([tuple(a) for a in w])
+
         PathTableau.__init__(self, parent, w, check=check)
 
     def check(self):
         """
-        Checks that ``self`` is a valid path.
+        Check that ``self`` is a valid path.
 
         TESTS::
 
@@ -191,8 +190,9 @@ class SemistandardPath(PathTableau):
             sage: path_tableaux.SemistandardPath([[],[2],[1,2]],check=False)
             [(), (2,), (1, 2)]
         """
-        if not all( self[i+1][j] >= self[i][j] >= self[i+1][j+1]
-                    for i in range(len(self)-1) for j in range(len(self[i+1])-1) ):
+        if not all(r>=s for r,s in zip(self[i+1],self[i]) for i in range(len(self)-1))
+            raise ValueError(f"{self} does not satisfy the required inequalities")
+        if not all(r>=s for r,s in zip(self[i],self[i+1][1:]) for i in range(len(self)-1))
             raise ValueError(f"{self} does not satisfy the required inequalities")
 
     def size(self):
@@ -250,20 +250,43 @@ class SemistandardPath(PathTableau):
             ...
             ValueError: 4 is not defined on [(), (3,), (3, 2), (3, 3, 1), (3, 3, 2, 1)]
         """
+        def toggle(i,j):
+            """
+            Return the toggle of entry 'self[i][j]'.
+            """
+
+            if j == 0:
+                left = self[i-1][0]
+            else:
+                left = min(self[i-1][j], self[i+1][j-1])
+            if j == n-i-1:
+                right = self[i-1][j+1]
+            else:
+                right = max(self[i-1][j+1], self[i+1][j])
+
+            return left + right - self[i][j]
+
+        #if not 0 < i < n:
+        #    raise ValueError(f"must have 0 < {i} < {n}")
+        #r = n-i
+        #P = self.parent()
+        #data = [list(row) for row in self]
+        #data[r] = [toggle(r,s) for s in range(i)]
+        #return P.element_class(P, data)
+
         if not 0 < i < self.size()-1:
             raise ValueError(f"{i} is not defined on {self}")
 
-        #st = self.to_tableau()
-        #result = st.bender_knuth_involution(i)
-        gt = self.to_pattern()
-        result = gt.bender_knuth_involution(i)
+        result = copy(self)
+        row = [toggle(r,k) for k in range(i)]
+        result[i] = row
         return SemistandardPath(result)
 
 
     @combinatorial_map(name='to semistandard tableau')
     def to_tableau(self):
         r"""
-        Converts ``self`` to a :class:`SemistandardTableau`.
+        Convert ``self`` to a :class:`SemistandardTableau`.
 
         The :class:`SemistandardSkewTableau` is not implemented.
 
@@ -283,12 +306,13 @@ class SemistandardPath(PathTableau):
         from sage.combinat.partition import Partition
 
         parts = [Partition(a) for a in self]
-        return from_chain(parts)
+        if not self.is_skew():
+            return from_chain(parts[1:])
 
     @combinatorial_map(name='to Gelfand-Tsetlin pattern')
     def to_pattern(self):
         r"""
-        Converts ``self`` to a Gelfand-Tsetlin pattern.
+        Convert ``self`` to a Gelfand-Tsetlin pattern.
 
         EXAMPLES::
 
@@ -309,11 +333,8 @@ class SemistandardPath(PathTableau):
         lt = list(self)
         if lt[0] == ():
             lt = lt[1:]
-
-        m = len(lt[0])
-        pt = [list(a)+[0]*(m+i-len(a)) for i,a in enumerate(lt)]
-        pt.reverse()
-        return GelfandTsetlinPattern(pt)
+        lt.reverse()
+        return GelfandTsetlinPattern(lt)
 
     def _test_jdt_promotion(self, **options):
         """

@@ -2788,6 +2788,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1
             sage: (x^3 + x - 1) % (x^2 - 1)
             2*x - 1
+
+        TESTS:
+
+        Check the problem reported at :trac:`12529` is fixed::
+
+            sage: gens = 'y a0 a1 a2 b0 b1 b2 c1 c2 d0 d1 d2 d3 d4 d5 d6 d7'.split()
+            sage: R = PolynomialRing(GF(8), 17, gens)
+            sage: R.inject_variables(verbose=False)
+            sage: A, B, C = a0 + a1*y + a2*y^2, b0 + b1*y + b2*y^2, c1*y + c2*y^2
+            sage: D = d0 + d1*y + d2*y^2 + d3*y^3 + d4*y^4 + d5*y^5 + d6*y^6 + d7*y^7
+            sage: F = D.subs({y: B})
+            sage: G = A.subs({y: F}) + C
+            sage: g = G.mod(y^8 + y)
+            sage: g.degree(y)
+            7
         """
         return self % other
 

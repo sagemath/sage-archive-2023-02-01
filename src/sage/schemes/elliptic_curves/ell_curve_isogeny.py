@@ -480,7 +480,7 @@ def compute_codomain_kohel(E, kernel, degree):
 
 def two_torsion_part(E, psi):
     r"""
-    Returns the greatest common divisor of ``psi`` and the 2 torsion
+    Return the greatest common divisor of ``psi`` and the 2 torsion
     polynomial of `E`.
 
     INPUT:
@@ -1277,7 +1277,7 @@ class EllipticCurveIsogeny(Morphism):
     def __neg__(self):
         r"""
         Function to implement unary negation (-) operator on
-        isogenies. Returns a copy of this isogeny that has been
+        isogenies. Return a copy of this isogeny that has been
         negated.
 
         EXAMPLES:
@@ -2256,7 +2256,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def __init_even_kernel_polynomial(self, E, psi_G):
         r"""
-        Returns the isogeny parameters for the 2-part of an isogeny.
+        Return the isogeny parameters for the 2-part of an isogeny.
 
         INPUT:
 
@@ -2372,7 +2372,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def __init_odd_kernel_polynomial(self, E, psi):
         r"""
-        Returns the isogeny parameters for a cyclic isogeny of odd degree.
+        Return the isogeny parameters for a cyclic isogeny of odd degree.
 
         INPUT:
 
@@ -2749,7 +2749,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def degree(self):
         r"""
-        Returns the degree of this isogeny.
+        Return the degree of this isogeny.
 
         EXAMPLES::
 
@@ -4011,9 +4011,10 @@ def compute_sequence_of_maps(E1, E2, ell):
 
 # Utility function for manipulating isogeny degree matrices
 
+
 def fill_isogeny_matrix(M):
     """
-    Returns a filled isogeny matrix giving all degrees from one giving only prime degrees.
+    Return a filled isogeny matrix giving all degrees from one giving only prime degrees.
 
     INPUT:
 

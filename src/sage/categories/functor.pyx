@@ -13,7 +13,7 @@ AUTHORS:
   re-implementation of the default call method,
   making functors applicable to morphisms (not only to objects)
 
-- Simon King (2010-12): Pickling of functors without loosing domain and codomain
+- Simon King (2010-12): Pickling of functors without losing domain and codomain
 
 """
 

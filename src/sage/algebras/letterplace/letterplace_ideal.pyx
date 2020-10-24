@@ -249,9 +249,8 @@ class LetterplaceIdeal(Ideal_nc):
             sage: J.groebner_basis()
             [b*a^2 - c^3, b^2*a + c*a^2, c*a^3 + c^3*b, c^3*b^2 + c^4*a]
 
-        Aparently, the results are compatible, by sending `a` to `x`, `b`
+        Apparently, the results are compatible, by sending `a` to `x`, `b`
         to `y` and `c` to `z`.
-
         """
         cdef FreeAlgebra_letterplace A = self.ring()
         cdef FreeAlgebraElement_letterplace x

@@ -253,9 +253,10 @@ def is_twograph(T):
 
     return True
 
+
 def twograph_descendant(G, v, name=None):
     r"""
-    Returns the descendant graph w.r.t. vertex `v` of the two-graph of `G`
+    Return the descendant graph w.r.t. vertex `v` of the two-graph of `G`
 
     In the :mod:`switching class <sage.combinat.designs.twographs>` of `G`,
     construct a graph `\Delta` with `v` an isolated vertex, and return the subgraph

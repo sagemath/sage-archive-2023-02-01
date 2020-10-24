@@ -60,7 +60,7 @@ solutions::
 Scott's pentamino problem
 -------------------------
 
-As mentionned in the introduction of [Knuth1]_, Scott's pentamino problem
+As mentioned in the introduction of [Knuth1]_, Scott's pentamino problem
 consists in tiling a chessboard leaving the center four squares vacant with
 the 12 distinct pentaminoes.
 

@@ -326,7 +326,7 @@ class CartanType(cartan_type.CartanType_decorator):
 
     def dynkin_diagram(self):
         """
-        Returns the Dynkin diagram for this Cartan type.
+        Return the Dynkin diagram for this Cartan type.
 
         EXAMPLES::
 

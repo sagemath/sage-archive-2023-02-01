@@ -648,7 +648,7 @@ class _drawing_tool:
         and XY user function.
 
         First we apply XY function, then the translation, then the mirror and
-        finaly the rotation.
+        finally the rotation.
 
         INPUT:
 
@@ -761,11 +761,11 @@ class _drawing_tool:
         - ``v2`` -- point, The second point of the line.
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -803,11 +803,11 @@ class _drawing_tool:
         - ``list_of_vertices`` -- A list of points
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -843,11 +843,11 @@ class _drawing_tool:
         - ``p1`` -- A point
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -2177,7 +2177,7 @@ class ParallelogramPolyomino(ClonableList,
 
         def __getitem__(self, column):
             r"""
-            Return 0 or 1 if the is a cell inside the specific colum inside the
+            Return 0 or 1 if the is a cell inside the specific column inside the
             row.
 
             EXAMPLES::
@@ -2831,7 +2831,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -2878,7 +2878,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -2936,7 +2936,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -3341,7 +3341,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A list of [row,colum] position of cells.
+        A list of [row,column] position of cells.
 
         EXAMPLES::
 

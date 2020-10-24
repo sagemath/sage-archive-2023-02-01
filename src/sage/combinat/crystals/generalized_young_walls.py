@@ -538,7 +538,7 @@ class GeneralizedYoungWall(CombinatorialElement):
 
     def weight(self, root_lattice=False):
         r"""
-        Returns the weight of ``self``.
+        Return the weight of ``self``.
 
         INPUT:
 

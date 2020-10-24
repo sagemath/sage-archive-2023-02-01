@@ -98,7 +98,7 @@ def biplane(n, existence=False):
         sage: designs.biplane(9)
         (56,11,2)-Balanced Incomplete Block Design
 
-    Check all knwon biplanes::
+    Check all known biplanes::
 
         sage: [n for n in [0,1,2,3,4,7,9,11] if designs.biplane(n, existence=True) is True]
         [0, 1, 2, 3, 4, 7, 9, 11]

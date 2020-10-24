@@ -132,7 +132,7 @@ from sage.env import COMBINATORIAL_DESIGN_DATA_DIR
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
     r"""
-    Check wether the list of matrices in ``l`` form mutually orthogonal latin
+    Check whether the list of matrices in ``l`` form mutually orthogonal latin
     squares.
 
     INPUT:

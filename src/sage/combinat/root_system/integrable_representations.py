@@ -665,7 +665,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
         elif self._cartan_type.type() == 'BC':
             #case A^2_{2l}
-            # We have to keep track of the roots we have visted for this case
+            # We have to keep track of the roots we have visited for this case
             ret = set(self._classical_positive_roots)
             for al in self._classical_roots:
                 if al in self._classical_short_roots:

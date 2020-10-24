@@ -146,7 +146,6 @@ import operator, sys, warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
-import sage.rings.number_field.number_field as number_field
 
 cimport sage.rings.rational
 
@@ -549,7 +548,9 @@ class ComplexBallField(UniqueRepresentation, Field):
             return other._prec >= self._prec
         elif isinstance(other, ComplexBallField):
             return other._prec >= self._prec
-        elif isinstance(other, number_field.NumberField_generic):
+
+        import sage.rings.number_field.number_field as number_field
+        if isinstance(other, number_field.NumberField_generic):
             emb = other.coerce_embedding()
             return emb is not None and self.has_coerce_map_from(emb.codomain())
 

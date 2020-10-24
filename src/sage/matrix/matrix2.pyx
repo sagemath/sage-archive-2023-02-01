@@ -2640,7 +2640,7 @@ cdef class Matrix(Matrix1):
             x^3
 
         Here is an example over a general commutative ring, that is to say,
-        as of version 4.0.2, SAGE does not even positively determine that
+        as of version 4.0.2, Sage does not even positively determine that
         ``S`` in the following example is an integral domain.  But the
         computation of the characteristic polynomial succeeds as follows::
 
@@ -2833,7 +2833,7 @@ cdef class Matrix(Matrix1):
         # drop the second index t, reducing storage requirements.
         #
         # N.B.  The documentation is still 1-based, although the code, after
-        # having been ported from Magma to SAGE, is 0-based.
+        # having been ported from Magma to Sage, is 0-based.
         #
         from sage.matrix.constructor import matrix
 

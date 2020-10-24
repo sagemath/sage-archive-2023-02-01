@@ -47,10 +47,32 @@ cdef class SparseGraph(CGraph):
     cpdef bint has_arc_label(self, int u, int v, int l)
     cpdef int out_degree(self, int u)
     cpdef int in_degree(self, int u)
+
     cdef int out_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
-    cdef list out_arcs_unsafe(self, int u, bint labels)
     cdef int in_neighbors_BTNode_unsafe(self, int u, SparseGraphBTNode *** p_pointers)
-    cdef list in_arcs_unsafe(self, int u, bint labels)
+
+    cdef inline SparseGraphBTNode* next_out_neighbor_BTNode_unsafe(self, int u, int v):
+        """
+        Return the next out-neighbor of ``u`` that is greater than ``v``.
+
+        If ``v`` is ``-1`` return the first neighbor of ``u``.
+
+        Return ``NULL`` in case there does not exist such an out-neighbor.
+        """
+        return self.next_neighbor_BTNode_unsafe(self.vertices, u, v)
+
+    cdef inline SparseGraphBTNode* next_in_neighbor_BTNode_unsafe(self, int v, int u):
+        """
+        Return the next in-neighbor of ``v`` that is greater than ``u``.
+
+        If ``u`` is ``-1`` return the first neighbor of ``v``.
+
+        Return ``NULL`` in case there does not exist such an in-neighbor.
+        """
+        return self.next_neighbor_BTNode_unsafe(self.vertices_rev, v, u)
+
+    cdef inline SparseGraphBTNode* next_neighbor_BTNode_unsafe(self, SparseGraphBTNode** vertices, int u, int v)
+
 
 cdef class SparseGraphBackend(CGraphBackend):
     cdef int edge_labels_max

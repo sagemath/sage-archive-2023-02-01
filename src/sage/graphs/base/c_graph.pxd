@@ -20,6 +20,15 @@ cdef class CGraph:
     cdef int out_neighbors_unsafe(self, int, int *, int) except -2
     cdef int in_neighbors_unsafe(self, int, int *, int) except -2
 
+    cdef inline int _next_neighbor_unsafe(self, int v, int u, bint out, int* l) except -2:
+        if out:
+            return self.next_out_neighbor_unsafe(v, u, l)
+        else:
+            return self.next_in_neighbor_unsafe(v, u, l)
+
+    cdef int next_out_neighbor_unsafe(self, int, int, int*) except -2
+    cdef int next_in_neighbor_unsafe(self, int, int, int*) except -2
+
     cdef bitset_t active_vertices
 
     cpdef bint has_vertex(self, int n) except -1
@@ -39,6 +48,7 @@ cdef class CGraph:
     cdef int del_vertex_unsafe(self, int) except -1
     cpdef realloc(self, int)
     cdef int add_vertex_unsafe(self, int) except -1
+
 
 cdef class CGraphBackend(GenericGraphBackend):
     cdef int get_vertex(self, u) except ? -2

@@ -516,8 +516,12 @@ def _graph_without_edge_labels(dg, vertices):
     i = 0
     while i in vertices:
         i += 1
-    for u, v, label in dg.edge_iterator(labels=True):
-        if label != (1, -1):
+
+    # We have to pass the old vertices to the iterator.
+    # Otherwise the ``edge_iterator`` will use the ``vertices``
+    # of ``dg``, which are not well-defined, if we add vertices along the way.
+    for u, v, label in dg.edge_iterator(vertices=vertices, labels=True):
+        if label != (1, -1):  # Ignore edges we just added.
             index = edge_labels.index(label)
             edge_partition[index].append(i)
             dg._backend.add_edge(u, i, (1, -1), True)

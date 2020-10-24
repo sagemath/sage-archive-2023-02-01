@@ -187,7 +187,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.arith.long cimport is_small_python_int
 
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
 
@@ -1563,7 +1563,7 @@ cdef class ComplexBall(RingElement):
 
         INPUT:
 
-        - ``parent`` - :class:`~sage.rings.complex_field.ComplexField_class`,
+        - ``parent`` - :class:`~sage.rings.complex_mpfr.ComplexField_class`,
           target parent.
 
         EXAMPLES::
@@ -1903,7 +1903,7 @@ cdef class ComplexBall(RingElement):
 
         OUTPUT:
 
-        :class:`~sage.rings.complex_number.ComplexNumber`, floating-point
+        :class:`~sage.rings.complex_mpfr.ComplexNumber`, floating-point
         complex number formed by the centers of the real and imaginary parts of
         this ball.
 
@@ -1927,7 +1927,7 @@ cdef class ComplexBall(RingElement):
         .. SEEALSO:: :meth:`squash`
         """
         re, im = self.real().mid(), self.imag().mid()
-        field = sage.rings.complex_field.ComplexField(
+        field = sage.rings.complex_mpfr.ComplexField(
                 max(prec(self), re.prec(), im.prec()))
         return field(re, im)
 

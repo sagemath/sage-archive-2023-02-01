@@ -88,7 +88,7 @@ from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.real_mpfr import RealField
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
 from sage.arith.numerical_approx cimport digits_to_bits
@@ -14093,7 +14093,7 @@ cdef class Matrix(Matrix1):
             return self.change_ring(sage.rings.real_mpfr.RealField(prec))
         except (TypeError, ValueError):
             # try to return a complex result
-            return self.change_ring(sage.rings.complex_field.ComplexField(prec))
+            return self.change_ring(sage.rings.complex_mpfr.ComplexField(prec))
 
     def plot(self, *args, **kwds):
         """

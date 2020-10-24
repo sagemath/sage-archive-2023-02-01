@@ -1304,18 +1304,16 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             + 0.142857142857142857142857142857142857142857142857142857142857*I'
 
         Note that the general format does not exactly match the behaviour of
-        ``float``::
+        ``float``. Some Python versions do not implement the full spec
+        (see :trac:`30689`)::
 
             sage: format(CC(3, 0), '.4g')
             '3.000 + 0e-15*I'
-            sage: format(CC(3, 0), '#.4g')
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid format string
-            sage: format(CC(0, 0), '+#.4')
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid format string
+            sage: try:
+            ....:     assert format(CC(3, 0), '#.4g') == '3.000 + 0.e-15*I'
+            ....:     assert format(CC(0, 0), '+#.4') == '+0.E-15'
+            ....: except ValueError:
+            ....:     pass
         """
         return _format_complex_number(self.real(), self.imag(), format_spec)
 

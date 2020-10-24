@@ -287,7 +287,7 @@ class SemistandardPath(PathTableau):
 
         return result
 
-    def rectify(self,inner=None):
+    def rectify(self,inner=None,verbose=False):
         """
         Rectify `self`
 
@@ -298,6 +298,11 @@ class SemistandardPath(PathTableau):
             [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]
             sage: path_tableaux.SemistandardPath(st.rectify())
             [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]
+            sage: path_tableaux.SemistandardPath(st).rectify(verbose=True)
+            [[(3, 2, 2), (3, 3, 2, 0), (3, 3, 2, 1, 0), (3, 3, 2, 2, 0, 0), (4, 3, 2, 2, 0, 0, 0), (4, 3, 3, 2, 0, 0, 0, 0), (4, 4, 3, 2, 0, 0, 0, 0, 0)],
+            [(3, 2), (3, 3, 0), (3, 3, 1, 0), (3, 3, 2, 0, 0), (4, 3, 2, 0, 0, 0), (4, 3, 3, 0, 0, 0, 0), (4, 4, 3, 0, 0, 0, 0, 0)],
+            [(3,), (3, 1), (3, 1, 1), (3, 2, 1, 0), (4, 2, 1, 0, 0), (4, 3, 1, 0, 0, 0), (4, 4, 1, 0, 0, 0, 0)],
+            [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]]
 
         TESTS:
 
@@ -311,14 +316,13 @@ class SemistandardPath(PathTableau):
             sage: pt = path_tableaux.SemistandardPath(st)
             sage: SP = [path_tableaux.SemistandardPath(it) for it in StandardTableaux([3,2,2])]
             sage: set(pt.rectify(inner=ip) for ip in SP)
-
+            {[(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]}
         """
         if not self.is_skew():
             return self
 
         n = len(self)
         pp = self[0]
-        r = len(pp)
 
         if inner == None:
             initial = [pp[:r] for r in range(len(pp))]
@@ -327,12 +331,21 @@ class SemistandardPath(PathTableau):
         else:
             raise ValueError(f"The final shape{inner[-1]} must agree with the initial shape {pp}")
 
+        r = len(initial)
         path = SemistandardPath(initial + list(self))
-        print(path)
+        if verbose:
+            rect = [self]
+
         for i in range(r):
             for j in range(n-1):
                 path = path.local_rule(r+j-i)
-        return SemistandardPath(list(path)[:n])
+            if verbose:
+                rect.append(SemistandardPath(list(path)[r-i-1:r+n-i-1]))
+
+        if verbose:
+            return rect
+        else:
+            return SemistandardPath(list(path)[:n])
 
     @combinatorial_map(name='to semistandard tableau')
     def to_tableau(self):

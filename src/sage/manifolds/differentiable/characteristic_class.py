@@ -322,6 +322,7 @@ that our form actually represents the Euler class appropriately.
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
+from sage.symbolic.ring import SR
 from sage.rings.rational_field import QQ
 
 ################################################################################
@@ -474,7 +475,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         self._coeff_list = self._get_coeff_list()
         self._init_derived()
 
-    def _get_coeff_list(self):
+    def _get_coeff_list(self, distinct_real=True):
         r"""
         Return the list of coefficients of the Taylor expansion at zero of the
         function.
@@ -492,7 +493,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         def_var = self._func.default_variable()
         # Use a complex variable without affecting the old one:
         new_var = SR.symbol('x_char_class_', domain='complex')
-        if self._vbundle._field_type == 'real':
+        if self._vbundle._field_type == 'real' and distinct_real:
             if self._class_type == 'additive':
                 func = self._func.subs({def_var: new_var ** 2}) / 2
             elif self._class_type == 'multiplicative':
@@ -508,6 +509,9 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                         self._func.subs({def_var: -new_var})) / 2
         else:
             func = self._func.subs({def_var: new_var})
+
+        if self._vbundle._field_type == 'real' and not distinct_real:
+            pow_range = pow_range // 2
 
         return func.taylor(new_var, 0, pow_range).coefficients(sparse=False)
 
@@ -667,19 +671,19 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: A.sequence()
             e[] - 1/24*e[1] + 7/5760*e[1, 1] - 1/1440*e[2]
 
-        This is an element of the symmetric functions over the symbolic ring::
+        This is an element of the symmetric functions over the rational field::
 
             sage: A.sequence().parent()
-            Symmetric Functions over Symbolic Ring in the elementary basis
+            Symmetric Functions over Rational Field in the elementary basis
 
         To get the sequence as an element of usual polynomial ring, we can do
         the following::
 
-            sage: P = PolynomialRing(SR, 'e', 3)
+            sage: P = PolynomialRing(QQ, 'e', 3)
             sage: poly = P(sum(c * prod(P.gens()[i] for i in p)
             ....:          for p, c in A.sequence()))
             sage: poly
-            7/5760*e1^2 + (-1/24)*e1 + (-1/1440)*e2 + 1
+            7/5760*e1^2 - 1/24*e1 - 1/1440*e2 + 1
 
         .. SEEALSO::
 

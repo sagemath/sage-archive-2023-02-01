@@ -109,19 +109,19 @@ The `style` parameter allows to change the way to print the `H`-relations:
     sage: P = polytopes.permutahedron(3)
     sage: print(P.Hrepresentation_str(style='<='))
     -x0 - x1 - x2 == -6
-          x1 + x2 <=  5
-               x2 <=  3
-               x1 <=  3
+         -x0 - x1 <= -3
+          x0 + x1 <=  5
               -x1 <= -1
-         -x1 - x2 <= -3
-              -x2 <= -1
+               x0 <=  3
+              -x0 <= -1
+               x1 <=  3
     sage: print(P.Hrepresentation_str(style='positive'))
     x0 + x1 + x2 == 6
-               5 >= x1 + x2
-               3 >= x2
-               3 >= x1
+         x0 + x1 >= 3
+               5 >= x0 + x1
               x1 >= 1
-         x1 + x2 >= 3
-              x2 >= 1
+               3 >= x0
+              x0 >= 1
+               3 >= x1
 
 .. end of output

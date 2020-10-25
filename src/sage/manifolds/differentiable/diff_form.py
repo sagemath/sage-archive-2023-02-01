@@ -650,6 +650,14 @@ class DiffForm(TensorField):
             sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
             sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
 
+        We endow `S^2` with the orientation defined by the stereographic
+        frame from the North pole, i.e. ``eU``; ``eV`` is then left-handed and
+        in order to define an orientation on the whole manifold, we introduce a
+        vector frame on ``V`` by swapping ``eV``'s vectors::
+
+            sage: f = V.vector_frame('f', (eV[2], eV[1]))
+            sage: M.set_orientation([eU, f])
+
         Then we construct the 1-form and take its Hodge dual w.r.t. `g`::
 
             sage: a = M.one_form({eU: [-y, x]}, name='a')
@@ -663,7 +671,7 @@ class DiffForm(TensorField):
             sage: sa.display(eU)
             *a = -x dx - y dy
             sage: sa.display(eV)
-            *a = -u/(u^4 + 2*u^2*v^2 + v^4) du - v/(u^4 + 2*u^2*v^2 + v^4) dv
+            *a = u/(u^4 + 2*u^2*v^2 + v^4) du + v/(u^4 + 2*u^2*v^2 + v^4) dv
 
         Instead of calling the method :meth:`hodge_dual` on the differential
         form, one can invoke the method
@@ -689,7 +697,7 @@ class DiffForm(TensorField):
             sage: eps.display(eU)
             eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
             sage: eps.display(eV)
-            eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
+            eps_g = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
             sage: seps = eps.hodge_dual(g); seps
             Scalar field *eps_g on the 2-dimensional differentiable manifold S^2
             sage: seps.display()

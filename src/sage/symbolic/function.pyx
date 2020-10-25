@@ -677,21 +677,37 @@ cdef class Function(SageObject):
 
         TESTS::
 
-            sage: sin._is_numerical(5)
-            False
-            sage: sin._is_numerical(5.)
-            True
-            sage: sin._is_numerical(pi)
-            False
-            sage: sin._is_numerical(5r)
-            False
-            sage: sin._is_numerical(5.4r)
-            True
+            sage: [sin._is_numerical(a) for a in [5., 5.4r]]
+            [True, True]
+            sage: [sin._is_numerical(a) for a in [5, pi]]
+            [False, False]
+            sage: [sin._is_numerical(R(1)) for R in [RIF, CIF, RBF, CBF]]
+            [False, False, False, False]
+
+        The following calls used to yield incorrect results because intervals
+        were considered numerical by this method::
+
+            sage: b = RBF(3/2, 1e-10)
+            sage: airy_ai(b)
+            airy_ai([1.500000000 +/- 1.01e-10])
+            sage: gamma(b, 1)
+            gamma([1.500000000 +/- 1.01e-10], 1)
+            sage: hurwitz_zeta(b, b)
+            hurwitz_zeta([1.500000000 +/- 1.01e-10], [1.500000000 +/- 1.01e-10])
+            sage: hurwitz_zeta(1/2, b)
+            hurwitz_zeta(1/2, [1.500000000 +/- 1.01e-10])
+
+            sage: iv = RIF(1, 1.0001)
+            sage: airy_ai(iv)
+            airy_ai(1.0001?)
+            sage: airy_ai(CIF(iv))
+            airy_ai(1.0001?)
         """
         if isinstance(x, (float, complex)):
             return True
         if isinstance(x, Element):
-            return hasattr((<Element>x)._parent, 'precision')
+            parent = (<Element>x)._parent
+            return hasattr(parent, 'precision') and parent._is_numerical()
         return False
 
     def _interface_init_(self, I=None):

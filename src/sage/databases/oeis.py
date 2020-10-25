@@ -90,7 +90,7 @@ related ?
 
 ::
 
-    sage: p.cross_references(fetch=True)                # optional -- internet
+    sage: p.cross_references(fetch=True)        # optional -- internet   # random
     0: A000798: Number of different quasi-orders (or topologies, or transitive digraphs) with n labeled elements.
     1: A001035: Number of partially ordered sets ("posets") with n labeled elements (or labeled acyclic transitive digraphs).
     2: A001930: Number of topologies, or transitive digraphs with n unlabeled nodes.
@@ -526,7 +526,7 @@ class OEIS:
 
             sage: oeis.find_by_subsequence([2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377]) # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A212804: Expansion of (1-x)/(1-x-x^2).
+            1: A212804: Expansion of (1 - x)/(1 - x - x^2).
             2: A177194: Fibonacci numbers whose decimal expansion does not contain any digit 0.
 
             sage: fibo = _[0] ; fibo                    # optional -- internet

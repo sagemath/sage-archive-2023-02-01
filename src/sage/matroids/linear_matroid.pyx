@@ -111,9 +111,9 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/data_structures/bitset.pxi'
 from cpython.object cimport Py_EQ, Py_NE
 
+from sage.data_structures.bitset_base cimport *
 from sage.structure.richcmp cimport rich_to_bool
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
@@ -3671,10 +3671,12 @@ cdef class BinaryMatroid(LinearMatroid):
         sage: M = matroids.named_matroids.R12()
         sage: N = BinaryMatroid(reduced_matrix=M.representation(reduced=True,
         ....:                         labels=False), groundset='abcdefghijkl')
-        sage: N._projection_partition()
+        sage: Npp = N._projection_partition(); Npp # random
         2 x 12 BinaryMatrix
         [110011001100]
         [001100110011]
+        sage: sorted(Npp._matrix_().rows())
+        [(1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0), (0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1)]
         """
         if self._eq_part is None:
             if self._b_invariant is None:

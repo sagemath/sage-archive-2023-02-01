@@ -155,7 +155,9 @@ class p_iter_fork(object):
         """
         n = self.ncpus
         v = list(inputs)
-        import os, sys, signal
+        import os
+        import sys
+        import signal
         from sage.misc.persist import loads
         from sage.misc.temporary_file import tmp_dir
         dir = tmp_dir()
@@ -279,7 +281,8 @@ class p_iter_fork(object):
             sage: F._subprocess(operator.add, tmp_dir(), (1, 2))
             sage: sys.stdout = saved_stdout
         """
-        import os, sys
+        import os
+        import sys
         try:
             from importlib import reload
         except ImportError:

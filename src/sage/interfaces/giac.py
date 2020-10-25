@@ -992,11 +992,27 @@ class GiacElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: print(latex(giac('(x^4 - y)/(y^2-3*x)')))
-            "\frac{(x^{4}-y)}{(y^{2}-3\cdot x)}"
+            sage: M = matrix(QQ, [[1, 2], [3, 4]])
+            sage: latex(M)
+            \left(\begin{array}{rr}
+            1 & 2 \\
+            3 & 4
+            \end{array}\right)
+            sage: gM = giac(M)
+            sage: latex(gM)
+            \left...\begin{array}{cc}...1...&...2...\\...3...&...4...\end{array}\right...
+            sage: gf = giac('(x^4 - y)/(y^2-3*x)')
+            sage: latex(gf)          # output changed slightly from 1.5.0-63 to 1.5.0-87
+            \frac{...x^{4}...-...y...}{...y^{2}-3...x...}
 
         """
-        return self.parent().eval('latex(%s)'%self.name())
+        s = self.parent().eval('latex(%s)'%self.name())
+        if s.startswith('"'):
+            s = s[1:]
+        if s.endswith('"'):
+            s = s[:-1]
+        s = s.strip()
+        return s
 
     def _matrix_(self, R):
         r"""

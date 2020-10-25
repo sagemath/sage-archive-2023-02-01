@@ -1513,6 +1513,64 @@ cdef class Expression(CommutativeRingElement):
         except TypeError:
             raise TypeError("unable to simplify to a complex interval approximation")
 
+    def _arb_(self, R):
+        r"""
+        Convert this expression to a real or complex ball.
+
+        (In spite of its name, this method also works in the complex case.)
+
+        EXAMPLES::
+
+            sage: RBF(pi, 1/1000)
+            [3.14 +/- 2.60e-3]
+            sage: RBF(pi/2 + 2*arctan(1))
+            [3.14159265358979...]
+            sage: (pi + I)._arb_(CBF)
+            [3.14159265358979...] + 1.000000000000000*I
+            sage: RBF(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x to a RealBall
+
+        TESTS::
+
+            sage: CBF(gamma(15/2, 1)).identical(CBF(15/2).gamma(1))
+            True
+        """
+        # Note that we deliberately don't use _eval_self and don't try going
+        # through RIF/CIF in order to avoid unsafe conversions.
+        operator = self.operator()
+        # Constants
+        if operator is None:
+            try:
+                return R(self.pyobject())
+            except (TypeError, ValueError):
+                pass
+        else:
+            # Intended for BuiltinFunctions with a well-defined main argument
+            args = [a.pyobject() if a.is_numeric() else a
+                    for a in self.operands()]
+            try:
+                args = operator._method_arguments(*args)
+                method = getattr(R(args[0]), operator.name())
+            except (AttributeError, TypeError):
+                pass
+            else:
+                if callable(method):
+                    return method(*args[1:])
+            # Generic case: walk through the expression
+            try:
+                res = self.operator()(*[R(a) for a in args])
+            except (TypeError, ValueError):
+                pass
+            else:
+                if res.parent() is R:
+                    return res
+        # Typically more informative and consistent than the exceptions that
+        # would propagate
+        raise TypeError("unable to convert {!r} to a {!s}".format(
+                self, R.element_class.__name__))
+
     def _real_double_(self, R):
         """
         EXAMPLES::
@@ -2030,7 +2088,7 @@ cdef class Expression(CommutativeRingElement):
             pynac_assume_rel(self._gobj)
             if str(s._sage_()[0]) in ['meaningless','inconsistent','redundant']:
                 raise ValueError("Assumption is %s" % str(s._sage_()[0]))
-            _assumptions.append(self)
+            _assumptions[self] = True
 
     def forget(self):
         """
@@ -2076,8 +2134,8 @@ cdef class Expression(CommutativeRingElement):
         m = self._maxima_init_assume_()
         maxima.forget(m)
         try:
-            _assumptions.remove(self)
-        except ValueError:
+            del _assumptions[self]
+        except KeyError:
             pass
 
     def _maxima_init_assume_(self):
@@ -2912,6 +2970,9 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: t.is_zero()
             True
+            sage: t = pi + x*pi + (pi - 1 - x)*pi - pi^2
+            sage: t.is_zero()
+            True
             sage: u = sin(x)^2 + cos(x)^2 - 1
             sage: u.is_trivial_zero()
             False
@@ -3067,6 +3128,12 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s)...
+
+        Check that :trac:`24658` is fixed::
+
+            sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
+            sage: bool(val>0)
+            False
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -3113,10 +3180,11 @@ cdef class Expression(CommutativeRingElement):
                 if pynac_result == relational_notimplemented and self.operator()==operator.ne:
                     return not (self.lhs()-self.rhs()).is_trivial_zero()
                 res = self.test_relation()
-                if res is True:
-                    return True
-                elif res is False:
-                    return False
+                if res in (True, False):
+                    return res
+                res = self.operator()((self.lhs()-self.rhs()).simplify_full(), 0).test_relation()
+                if res in (True, False):
+                    return res
 
             # we really have to do some work here...
             # I really don't like calling Maxima to test equality.  It
@@ -3125,7 +3193,10 @@ cdef class Expression(CommutativeRingElement):
             # precision, etc., that can lead to subtle bugs.  Also, a
             # lot of basic Sage objects can't be put into maxima.
             from sage.symbolic.relation import test_relation_maxima
-            return test_relation_maxima(self)
+            if self.variables():
+                return test_relation_maxima(self)
+            else:
+                return False
 
         self_is_zero = self._gobj.is_zero()
         if self_is_zero:
@@ -10038,7 +10109,7 @@ cdef class Expression(CommutativeRingElement):
             ....:  .simplify_hypergeometric(algorithm='sage'))
             hypergeometric((hypergeometric((e^x,), (1,), x),), (1,), x)
             sage: hypergeometric_M(1, 3, x).simplify_hypergeometric()
-            -2*(x - e^x + 1)/x^2
+            -2*((x + 1)*e^(-x) - 1)*e^x/x^2
             sage: (2 * hypergeometric_U(1, 3, x)).simplify_hypergeometric()
             2*(x + 1)/x^2
 

@@ -24,8 +24,7 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_GetIndicesEx
 from sage.structure.richcmp cimport rich_to_bool
-
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 cdef class QuiverPath(MonoidElement):
     r"""

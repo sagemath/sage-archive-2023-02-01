@@ -1,7 +1,7 @@
 # distutils: extra_compile_args = -D_XPG6 M4RI_CFLAGS
 # distutils: libraries = iml ntl m CBLAS_LIBRARIES
 # distutils: library_dirs = CBLAS_LIBDIR
-# distutils: include_dirs = CBLAS_INCDIR
+# distutils: include_dirs = M4RI_INCDIR CBLAS_INCDIR
 
 """
 Dense matrices over the rational field
@@ -1443,7 +1443,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: a.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can't change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ.
             sage: b = a.change_ring(QQ['x']); b
             [1/2  -1]
             [  2   3]

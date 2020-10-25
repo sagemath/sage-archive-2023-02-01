@@ -1238,12 +1238,13 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuples(level=2)([[[5]],[[1,2],[3,4]]]).restrict(3).category()
             Category of elements of Tableau tuples of level 2
         """
-        if m is None: m=self.size()-1
+        if m is None:
+            m = self.size() - 1
         # We are lucky in that currently restriction is defined for arbitrary
         # (level one) tableau and not just standard ones. If this ever changes
         # we will have to treat the cases where the components restrict to
         # empty lists of the form [[]] separately.
-        tab=[t.restrict(m) for t in self]
+        tab = [t.restrict(m) for t in self]
         try:
             return self.parent()(tab)
         except ValueError:

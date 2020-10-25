@@ -59,14 +59,14 @@ cdef class PolyDict:
         """
         INPUT:
 
-        - ``pdict`` -- dict or list, which represents a multi-variable polynomial with
-          the distribute representation (a copy is not made)
+        - ``pdict`` -- dict or list, which represents a multi-variable
+          polynomial with the distribute representation (a copy is not made)
 
         - ``zero`` --  (optional) zero in the base ring
 
         - ``force_int_exponents`` -- bool (optional) arithmetic with int
           exponents is much faster than some of the alternatives, so this is
-          True by default.
+          ``True`` by default
 
         - ``force_etuples`` -- bool (optional) enforce that the exponent tuples
           are instances of ETuple class
@@ -87,23 +87,25 @@ cdef class PolyDict:
             sage: PolyDict({(0,0):RIF(-1,1)}, remove_zero=True)
             PolyDict with representation {(0, 0): 0.?}
         """
+        cdef dict v
+
         if not isinstance(pdict, dict):
             if isinstance(pdict, list):
                 v = {}
-                for w in pdict:
+                L = <list> pdict
+                for w in L:
                     if w[0] != 0:
                         v[ETuple(w[1])] = w[0]
                 remove_zero = False
                 pdict = v
             else:
-                raise TypeError("pdict must be a list.")
+                raise TypeError("pdict must be a list")
 
         if isinstance(pdict, dict) and force_etuples is True:
-            pdict2 = []
-            for k, v in pdict.iteritems():
-                pdict2.append((ETuple(k), v))
-
-            pdict = dict(pdict2)
+            v = pdict
+            pdict = {}
+            for k, val in v.iteritems():
+                pdict[ETuple(k)] = val
 
         if force_int_exponents:
             new_pdict = {}
@@ -120,7 +122,7 @@ cdef class PolyDict:
                 for k in list(pdict):
                     if pdict[k] == zero:
                         del pdict[k]
-        self.__repn = pdict
+        self.__repn = <dict> pdict
         self.__zero = zero
 
     def __hash__(self):
@@ -1720,6 +1722,45 @@ cdef class ETuple:
 
         return result
 
+    cpdef ETuple eadd_scaled(ETuple self, ETuple other, int scalar):
+        """
+        Vector addition of ``self`` with ``scalar * other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: f = ETuple([0,1,1])
+            sage: e.eadd_scaled(f, 3)
+            (1, 3, 5)
+        """
+        if self._length != other._length:
+            raise ArithmeticError
+
+        cdef size_t ind1 = 0
+        cdef size_t ind2 = 0
+        cdef size_t index
+        cdef int exp1
+        cdef int exp2
+        cdef int s  # sum
+        cdef size_t alloc_len = self._nonzero + other._nonzero  # we simply guesstimate the length -- there might be double the correct amount allocated -- who cares?
+        if alloc_len > self._length:
+            alloc_len = self._length
+        cdef ETuple result = <ETuple>self._new()
+        result._nonzero = 0  # we don't know the correct length quite yet
+        result._data = <int*>sig_malloc(sizeof(int)*alloc_len*2)
+        while dual_etuple_iter(self, other, &ind1, &ind2, &index, &exp1, &exp2):
+            exp2 *= scalar
+            s = exp1 + exp2
+            # Check for overflow and underflow
+            if (exp2 > 0 and s < exp1) or (exp2 < 0 and s > exp1):
+                raise OverflowError("exponent overflow (%s)" % (int(exp1)+int(exp2)))
+            if s != 0:
+                result._data[2*result._nonzero] = index
+                result._data[2*result._nonzero+1] = s
+                result._nonzero += 1
+        return result
+
     cpdef ETuple esub(ETuple self, ETuple other):
         """
         Vector subtraction of ``self`` with ``other``.
@@ -1751,7 +1792,7 @@ cdef class ETuple:
             # Check for overflow and underflow
             d = exp1 - exp2
             if (exp2 > 0 and d > exp1) or (exp2 < 0 and d < exp1):
-                raise OverflowError("Exponent overflow (%s)." % (int(exp1)-int(exp2)))
+                raise OverflowError("Exponent overflow (%s)" % (int(exp1)-int(exp2)))
             if d != 0:
                 result._data[2*result._nonzero] = index
                 result._data[2*result._nonzero+1] = d

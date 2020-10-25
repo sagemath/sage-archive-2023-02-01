@@ -495,7 +495,11 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: F(QQ)
             Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
         """
-        return ZinbielFunctor(self.variable_names()), self.base_ring()
+        if self._n is None:
+            A = self._indices.alphabet()
+        else:
+            A = self.variable_names()
+        return ZinbielFunctor(A), self.base_ring()
 
 
 class ZinbielFunctor(ConstructionFunctor):
@@ -526,7 +530,7 @@ class ZinbielFunctor(ConstructionFunctor):
     """
     rank = 9
 
-    def __init__(self, vars):
+    def __init__(self, variables):
         """
         EXAMPLES::
 
@@ -537,7 +541,8 @@ class ZinbielFunctor(ConstructionFunctor):
             Free Zinbiel algebra on generators (Z[x], Z[y]) over Integer Ring
         """
         Functor.__init__(self, Rings(), Magmas())
-        self.vars = vars
+        self.vars = variables
+        self._finite_vars = bool(isinstance(variables, (list, tuple)) or variables in Sets().Finite())
 
     def _apply_functor(self, R):
         """
@@ -552,9 +557,17 @@ class ZinbielFunctor(ConstructionFunctor):
             <class 'sage.algebras.free_zinbiel_algebra.ZinbielFunctor'>
             sage: F(ZZ)          # indirect doctest
             Free Zinbiel algebra on generators (Z[x], Z[y], Z[z])
-            over Integer Ring
+             over Integer Ring
+
+            sage: R = algebras.FreeZinbiel(QQ, ZZ)
+            sage: F = R.construction()[0]; F
+            Zinbiel[Integer Ring]
+            sage: F(ZZ)  # indirect doctest
+            Free Zinbiel algebra on generators indexed by Integer Ring over Integer Ring
         """
-        return FreeZinbielAlgebra(R, len(self.vars), self.vars)
+        if self._finite_vars:
+            return FreeZinbielAlgebra(R, len(self.vars), self.vars)
+        return FreeZinbielAlgebra(R, self.vars)
 
     def _apply_functor_to_morphism(self, f):
         """
@@ -637,9 +650,7 @@ class ZinbielFunctor(ConstructionFunctor):
         if isinstance(other, IdentityConstructionFunctor):
             return self
         if isinstance(other, ZinbielFunctor):
-            def check(x):
-                return isinstance(x, (list, tuple)) or x in Sets().Finite()
-            if not check(self.vars) or not check(other.vars):
+            if not self._finite_vars or not other._finite_vars:
                 raise CoercionException("Unable to determine overlap for infinite sets")
             if set(self.vars).intersection(other.vars):
                 raise CoercionException("Overlapping variables (%s,%s)" %
@@ -716,6 +727,11 @@ class ZinbielFunctor(ConstructionFunctor):
 
             sage: algebras.FreeZinbiel(QQ,'x,y,z,t').construction()[0]
             Zinbiel[x,y,z,t]
+
+            sage: algebras.FreeZinbiel(QQ, ZZ).construction()[0]
+            Zinbiel[Integer Ring]
         """
-        return "Zinbiel[%s]" % ','.join(self.vars)
+        if self._finite_vars:
+            return "Zinbiel[%s]" % ','.join(self.vars)
+        return "Zinbiel[{}]".format(self.vars)
 

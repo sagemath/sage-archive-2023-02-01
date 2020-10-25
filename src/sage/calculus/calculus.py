@@ -1153,14 +1153,14 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     EXAMPLES::
 
         sage: x = var('x')
-        sage: f = (1+1/x)^x
-        sage: f.limit(x = oo)
+        sage: f = (1 + 1/x)^x
+        sage: f.limit(x=oo)
         e
-        sage: f.limit(x = 5)
+        sage: f.limit(x=5)
         7776/3125
-        sage: f.limit(x = 1.2)
+        sage: f.limit(x=1.2)
         2.06961575467...
-        sage: f.limit(x = I, taylor=True)
+        sage: f.limit(x=I, taylor=True)
         (-I + 1)^I
         sage: f(x=1.2)
         2.0696157546720...
@@ -1168,7 +1168,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         (-I + 1)^I
         sage: CDF(f(x=I))
         2.0628722350809046 + 0.7450070621797239*I
-        sage: CDF(f.limit(x = I))
+        sage: CDF(f.limit(x=I))
         2.0628722350809046 + 0.7450070621797239*I
 
     Notice that Maxima may ask for more information::
@@ -1196,7 +1196,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
          more details)
         Is a an integer?
         sage: assume(a,'integer')
-        sage: limit(x^a,x=0)
+        sage: limit(x^a, x=0)
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
@@ -1204,26 +1204,26 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         (example of legal syntax is 'assume(a>0)', see `assume?` for
          more details)
         Is a an even number?
-        sage: assume(a,'even')
-        sage: limit(x^a,x=0)
+        sage: assume(a, 'even')
+        sage: limit(x^a, x=0)
         0
         sage: forget()
 
     More examples::
 
-        sage: limit(x*log(x), x = 0, dir='+')
+        sage: limit(x*log(x), x=0, dir='+')
         0
-        sage: lim((x+1)^(1/x), x = 0)
+        sage: lim((x+1)^(1/x), x=0)
         e
-        sage: lim(e^x/x, x = oo)
+        sage: lim(e^x/x, x=oo)
         +Infinity
-        sage: lim(e^x/x, x = -oo)
+        sage: lim(e^x/x, x=-oo)
         0
-        sage: lim(-e^x/x, x = oo)
+        sage: lim(-e^x/x, x=oo)
         -Infinity
-        sage: lim((cos(x))/(x^2), x = 0)
+        sage: lim((cos(x))/(x^2), x=0)
         +Infinity
-        sage: lim(sqrt(x^2+1) - x, x = oo)
+        sage: lim(sqrt(x^2+1) - x, x=oo)
         0
         sage: lim(x^2/(sec(x)-1), x=0)
         2
@@ -1238,8 +1238,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     ::
 
-        sage: f = log(log(x))/log(x)
-        sage: forget(); assume(x<-2); lim(f, x=0, taylor=True)
+        sage: f = log(log(x)) / log(x)
+        sage: forget(); assume(x < -2); lim(f, x=0, taylor=True)
         0
         sage: forget()
 
@@ -1283,7 +1283,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     Maxima gives the right answer here, too, showing
     that :trac:`4142` is fixed::
 
-        sage: f = sqrt(1-x^2)
+        sage: f = sqrt(1 - x^2)
         sage: g = diff(f, x); g
         -x/sqrt(-x^2 + 1)
         sage: limit(g, x=1, dir='-')
@@ -1300,24 +1300,24 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     Check that :trac:`8942` is fixed::
 
-        sage: f(x) = (cos(pi/4-x) - tan(x)) / (1 - sin(pi/4+x))
-        sage: limit(f(x), x = pi/4, dir='minus')
+        sage: f(x) = (cos(pi/4 - x) - tan(x)) / (1 - sin(pi/4 + x))
+        sage: limit(f(x), x=pi/4, dir='minus')
         +Infinity
-        sage: limit(f(x), x = pi/4, dir='plus')
+        sage: limit(f(x), x=pi/4, dir='plus')
         -Infinity
-        sage: limit(f(x), x = pi/4)
+        sage: limit(f(x), x=pi/4)
         Infinity
 
     Check that :trac:`12708` is fixed::
 
-        sage: limit(tanh(x),x=0)
+        sage: limit(tanh(x), x=0)
         0
 
     Check that :trac:`15386` is fixed::
 
         sage: n = var('n')
         sage: assume(n>0)
-        sage: sequence = -(3*n^2 + 1)*(-1)^n/sqrt(n^5 + 8*n^3 + 8)
+        sage: sequence = -(3*n^2 + 1)*(-1)^n / sqrt(n^5 + 8*n^3 + 8)
         sage: limit(sequence, n=infinity)
         0
 
@@ -1328,7 +1328,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     From :trac:`14677`::
 
-        sage: f = (x^x-sin(x)^sin(x))/(x^3*log(x))
+        sage: f = (x^x - sin(x)^sin(x)) / (x^3*log(x))
         sage: limit(f, x=0, algorithm='fricas')                                 # optional - fricas
         und
 
@@ -1342,6 +1342,10 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(f, y=0, algorithm='fricas')                                 # optional - fricas
         0
 
+    From :trac:`26060`::
+
+        sage: limit(x / (x + 2^x + cos(x)), x=-infinity)
+        1
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -2345,7 +2349,7 @@ def _find_func(name, create_when_missing = True):
             return None
 
 SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
-                   make_float    = lambda x: SR(RealDoubleElement(x)),
+                   make_float    = lambda x: SR(create_RealNumber(x)),
                    make_var      = _find_var,
                    make_function = _find_func)
 
@@ -2371,6 +2375,15 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         sage: y = var('y')
         sage: sage.calculus.calculus.symbolic_expression_from_string('[sin(0)*x^2,3*spam+e^pi]',syms={'spam':y},accept_sequence=True)
         [0, 3*y + e^pi]
+
+    TESTS:
+
+    Check that the precision is preserved (:trac:`28814`)::
+
+        sage: sage.calculus.calculus.symbolic_expression_from_string(str(RealField(100)(1/3)))
+        0.3333333333333333333333333333
+        sage: sage.calculus.calculus.symbolic_expression_from_string(str(RealField(100)(10^-500/3)))
+        3.333333333333333333333333333e-501
     """
     global _syms
     _syms = symbol_table['functions'].copy()

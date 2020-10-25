@@ -967,8 +967,6 @@ as well as testing the Sage notebook::
         [304 tests, 69.0 s]
     ...
 
-If you want to just run the notebook tests, use the ``--sagenb`` flag instead.
-
 
 Debugging Tools
 ---------------

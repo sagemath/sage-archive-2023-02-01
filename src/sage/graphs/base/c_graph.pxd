@@ -42,16 +42,17 @@ cdef class CGraph:
 
 cdef class CGraphBackend(GenericGraphBackend):
     cdef int get_vertex(self, u) except ? -2
+    cdef int get_vertex_checked(self, u) except ? -2
     cdef vertex_label(self, int u_int)
     cdef int check_labelled_vertex(self, u, bint reverse) except ? -1
-    cdef CGraph _cg
-    cdef CGraph _cg_rev
+    #cdef CGraph _cg  # a child class should declare this accordingly
     cdef bint _directed
     cdef dict vertex_labels
     cdef dict vertex_ints
     cdef dict edge_labels
     cdef bint _loops
     cdef bint _multiple_edges
+    cdef CGraph cg(self)
 # TODO: edge functions!
 
 

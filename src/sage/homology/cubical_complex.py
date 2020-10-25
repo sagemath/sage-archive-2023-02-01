@@ -699,9 +699,8 @@ class Cube(SageObject):
 
             sage: from sage.homology.cubical_complex import Cube
             sage: C1 = Cube([[1,1], [2,3], [4,5]])
-            sage: C1.__hash__()
-            837272820736660832  # 64-bit
-            -1004989088  # 32-bit
+            sage: hash(C1) == hash(((1,1),(2,3),(4,5)))
+            True
         """
         return hash(self.__tuple)
 

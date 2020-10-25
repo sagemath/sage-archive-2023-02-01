@@ -67,6 +67,6 @@ Boolean Polynomials
 .. toctree::
    :maxdepth: 1
 
-   sage/rings/polynomial/pbori
+   sage/rings/polynomial/pbori/pbori
 
 .. include:: ../footer.txt

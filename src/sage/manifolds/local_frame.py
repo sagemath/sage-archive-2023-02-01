@@ -119,7 +119,7 @@ created, which, by default, bares the same name (here `e`)::
 Let us check that the coframe `(e^i)` is indeed the dual of the vector
 frame `(e_i)`::
 
-    sage: e_dual[1](e[1]) # the linear form e^1 applied to the local section e_1
+    sage: e_dual[1](e[1]) # linear form e^1 applied to local section e_1
     Scalar field e^1(e_1) on the Open subset U of the 3-dimensional topological
      manifold M
     sage: e_dual[1](e[1]).expr() # the explicit expression of e^1(e_1)
@@ -646,7 +646,7 @@ class LocalFrame(FreeModuleBasis):
                     smodule.set_default_frame(self)
                 # Initialization of the zero element of the section module:
                 if not isinstance(smodule, FiniteRankFreeModule):
-                    smodule(0).add_comp(self)
+                    smodule(0)._add_comp_unsafe(self)
                     # (since new components are initialized to zero)
         ###
         # Add this frame to the list of frames of the overlying vector bundle:
@@ -1136,7 +1136,8 @@ class LocalFrame(FreeModuleBasis):
         vbf_frame_bases[self] = basis
         # Update of the change of bases in the fiber:
         for frame_pair, automorph in self._vbundle._frame_changes.items():
-            frame1 = frame_pair[0]; frame2 = frame_pair[1]
+            frame1 = frame_pair[0]
+            frame2 = frame_pair[1]
             if frame1 is self:
                 fr2 = None
                 for frame in vbf_frame_bases:

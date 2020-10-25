@@ -37,14 +37,14 @@ from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.rings.polynomial.pbori import BooleanPolynomial
+from sage.rings.polynomial.pbori.pbori import BooleanPolynomial
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.misc.superseded import deprecated_function_alias
 
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 # for details about the implementation of hamming_weight_int,
 # walsh_hadamard transform, reed_muller transform, and a lot
@@ -294,6 +294,7 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: the length of the truth table must be a power of 2
         """
+        cdef mp_bitcnt_t i
         if isinstance(x, str):
             L = ZZ(len(x))
             if L.is_power_of(2):
@@ -502,10 +503,11 @@ cdef class BooleanFunction(SageObject):
             [0, 1, 1, 0, 1, 0, 1, 1]
         """
         cdef bitset_t anf
+        cdef mp_bitcnt_t i, inf, sup, j
         bitset_init(anf, (1<<self._nvariables))
         bitset_copy(anf, self._truth_table)
         reed_muller(anf.bits, ZZ(anf.limbs).exact_log(2))
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
         R = BooleanPolynomialRing(self._nvariables,"x")
         G = R.gens()
         P = R(0)
@@ -653,7 +655,7 @@ cdef class BooleanFunction(SageObject):
         if isinstance(x, (int,long,Integer)):
             if x >= self._truth_table.size:
                 raise IndexError("index out of bound")
-            return bitset_in(self._truth_table,x)
+            return bitset_in(self._truth_table, <mp_bitcnt_t> x)
         elif isinstance(x, list):
             if len(x) != self._nvariables:
                 raise ValueError("bad number of inputs")
@@ -704,6 +706,7 @@ cdef class BooleanFunction(SageObject):
             (0, -4, 0, 4, 0, 4, 0, 4)
         """
         cdef long *temp
+        cdef mp_bitcnt_t i,n
 
         if self._walsh_hadamard_transform is None:
             n =  self._truth_table.size
@@ -775,6 +778,7 @@ cdef class BooleanFunction(SageObject):
             sage: B.is_symmetric()
             True
         """
+        cdef mp_bitcnt_t i
         cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
             sig_check()
@@ -1009,6 +1013,8 @@ cdef class BooleanFunction(SageObject):
                 r.append(prod([G[i] for i in c]))
 
         cdef BooleanFunction t
+
+        cdef mp_bitcnt_t v
 
         for i,m in enumerate(r):
             t = BooleanFunction(m)

@@ -80,6 +80,17 @@ def is_globally_equivalent_to(self, other, return_matrix=False):
 
     ALGORITHM: this uses the PARI function :pari:`qfisom`, implementing
     an algorithm by Plesken and Souvignier.
+
+    TESTS:
+
+    :trac:`27749` is fixed::
+
+        sage: Q = QuadraticForm(ZZ, 2, [2, 3, 5])
+        sage: P = QuadraticForm(ZZ, 2, [8, 6, 5])
+        sage: Q.is_globally_equivalent_to(P)
+        False
+        sage: P.is_globally_equivalent_to(Q)
+        False
     """
     ## Check that other is a QuadraticForm
     if not is_QuadraticForm(other):

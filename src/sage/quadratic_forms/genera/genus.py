@@ -208,11 +208,10 @@ def _local_genera(p, rank, det_val, max_scale, even):
     # this is more work for the programmer
     if p == 2:
         for g in scales_rks:
-            n = len(g)
             poss_blocks = []
             for b in g:
                 b += [0, 0]
-                poss_blocks.append(_blocks(b, even_only=(even and b[0]==0)))
+                poss_blocks.append(_blocks(b, even_only=(even and b[0] == 0)))
             for g1 in cantor_product(*poss_blocks):
                 g1 = list(g1)
                 if is_2_adic_genus(g1):
@@ -220,7 +219,7 @@ def _local_genera(p, rank, det_val, max_scale, even):
                     # some of our symbols have the same canonical symbol
                     # thus they are equivalent - we want only one in
                     # each equivalence class
-                    if not g1 in symbols:
+                    if g1 not in symbols:
                         symbols.append(g1)
     return symbols
 

@@ -1071,7 +1071,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         # -------------------------------------------------------------------------------
         # local methods to set up the classical group (specific part)
         # -------------------------------------------------------------------------------
-        # Case for symlectic groups
+        # Case for symplectic groups
         # -------------------------------------------------------------------------------
         def create_sympl_realization(self, m):
             r"""

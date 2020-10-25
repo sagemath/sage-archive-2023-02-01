@@ -106,6 +106,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
+from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.structure.category_object cimport normalize_names
 
@@ -2524,10 +2525,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x + 0
 
         """
+        if name is None:
+            name = self._parent._names[0]
+        # p-adic polynomials like (1 + O(p^20))*x have _is_gen set to True but
+        # want their coefficient printed with its O() term
+        if self._is_gen and not isinstance(self._parent._base, pAdicGeneric):
+            return name
         s = " "
         m = self.degree() + 1
-        if name is None:
-            name = self._parent.variable_name()
         atomic_repr = self._parent.base_ring()._repr_option('element_is_atomic')
         coeffs = self.list(copy=False)
         for n in reversed(xrange(m)):
@@ -7534,6 +7539,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.roots(ring=QQbar)
             [(-5.9223865215328558?e225, 1), (5.9223865215328558?e225, 1)]
 
+        Check that :trac:`30522` is fixed::
+
+            sage: PolynomialRing(SR, names="x")("x^2").roots()
+            [(0, 2)]
+
+        Check that :trac:`30523` is fixed::
+
+            sage: PolynomialRing(SR, names="x")("x^2 + q").roots()
+            [(-sqrt(-q), 1), (sqrt(-q), 1)]
+
         Algorithms used:
 
         For brevity, we will use RR to mean any RealField of any precision;
@@ -7825,18 +7840,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 from sage.libs.pynac.pynac import I
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
+                l = None
                 if D > 0:
                     l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1),
                          ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)]
                 elif D < 0:
                     l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1),
                          ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
-                else:
-                    l = [(-coeffs[1]/2/coeffs[2]), 2]
-                if multiplicities:
-                    return l
-                else:
-                    return [val for val,m in l]
+                elif D == 0:
+                    l = [(-coeffs[1]/2/coeffs[2], 2)]
+                if l:
+                    if multiplicities:
+                        return l
+                    else:
+                        return [val for val,m in l]
             vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
             var = SR(vname)
             expr = self(var)
@@ -7930,7 +7947,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         # integer
                         c = self.content_ideal().gen()
                         self = self//c
-                    except (AttributeError, NotImplementedError):
+                    except (AttributeError, NotImplementedError, TypeError):
                         pass
                 return self._roots_from_factorization(self.factor(), multiplicities)
             else:

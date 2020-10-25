@@ -13,7 +13,7 @@ Fast word datatype using an array of unsigned char
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_on, sig_off
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 cimport cython
 from cpython.object cimport Py_EQ, Py_NE

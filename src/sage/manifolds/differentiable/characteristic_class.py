@@ -321,7 +321,7 @@ that our form actually represents the Euler class appropriately.
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
-from sage.symbolic.ring import SR
+from sage.rings.rational_field import QQ
 
 ################################################################################
 ## Separate functions
@@ -624,7 +624,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         return self._func
 
     @cached_method
-    def sequence(self, ring=SR):
+    def sequence(self, ring=QQ):
         r"""
         Return the multiplicative/additive sequence (depending on the class
         type of ``self``) of ``self.function`` in terms of elementary symmetric
@@ -647,9 +647,9 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``ring`` -- (default: ``SR``) the base ring of the symmetric
+        - ``ring`` -- (default: ``QQ``) the base ring of the symmetric
           function ring; in most cases, one can assume ``QQ`` which is
-          supposed to work faster
+          supposed to work faster, if it doesn't work, try ``SR`` instead.
 
         OUTPUT:
 

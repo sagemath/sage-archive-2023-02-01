@@ -729,7 +729,7 @@ class BipartiteGraph(Graph):
         # delete from the graph
         Graph.delete_vertex(self, vertex)
 
-        # now remove from partition (exception already thrown for non-existant
+        # now remove from partition (exception already thrown for non-existent
         # vertex)
         if vertex in self.left:
             self.left.remove(vertex)
@@ -772,7 +772,7 @@ class BipartiteGraph(Graph):
         Graph.delete_vertices(self, vertices)
 
         # now remove vertices from partition lists (exception already thrown
-        # for non-existant vertices)
+        # for non-existent vertices)
         for vertex in vertices:
             if vertex in self.left:
                 self.left.remove(vertex)

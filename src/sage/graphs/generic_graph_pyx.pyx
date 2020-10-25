@@ -170,7 +170,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: sorted(pos.keys()) == sorted(G)
         True
 
-    With ``split=True``, each component of G is layed out separately,
+    With ``split=True``, each component of G is laid out separately,
     placing them adjacent to each other. This is done because on a
     disconnected graph, the spring layout will push components further
     and further from each other without bound, resulting in very tight

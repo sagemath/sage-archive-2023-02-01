@@ -23,7 +23,7 @@ cdef char* bitset_chars(char* s, fused_bitset_t bits, char zero=c'0', char one=c
     cdef mp_bitcnt_t i
     if s == NULL:
         s = <char *>sig_malloc(bits.size + 1)
-    for i from 0 <= i < bits.size:
+    for i in range(bits.size):
         s[i] = one if bitset_in(bits, i) else zero
     s[bits.size] = 0
     return s
@@ -35,7 +35,7 @@ cdef int bitset_from_char(bitset_t bits, char* s, char zero=c'0', char one=c'1')
     """
     bitset_init(bits, strlen(s))
     cdef mp_bitcnt_t i
-    for i from 0 <= i < bits.size:
+    for i in range(bits.size):
         bitset_set_to(bits, i, s[i] == one)
     return 0
 
@@ -87,7 +87,7 @@ cdef bitset_pickle(bitset_t bs):
     """
     version = 0
     data = []
-    for i from 0 <= i < bs.limbs:
+    for i in range(bs.limbs):
         data.append(bs.bits[i])
     return (version, bs.size, bs.limbs, sizeof(unsigned long), tuple(data))
 
@@ -103,14 +103,14 @@ cdef bitset_unpickle(bitset_t bs, tuple input):
     if bs.size != size:
         bitset_realloc(bs, size)
     if sizeof(unsigned long) == longsize and bs.limbs == limbs:
-        for i from 0 <= i < bs.limbs:
+        for i in range(bs.limbs):
             bs.bits[i] = data[i]
     else:
         storage = 8 * longsize  # number of elements encoded in one limb
         adder = 0
         bitset_clear(bs)
-        for i from 0 <= i < limbs:
-            for j from 0 <= j < storage:
+        for i in range(limbs):
+            for j in range(storage):
                 if (data[i] >> j) & 1:
                     bitset_add(bs, <mp_bitcnt_t>(j + adder))
             adder += storage

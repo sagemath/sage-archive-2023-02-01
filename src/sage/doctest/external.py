@@ -289,6 +289,20 @@ def has_imagemagick():
     from sage.features.imagemagick import ImageMagick
     return ImageMagick().is_present()
 
+def has_rubiks():
+    """
+    Test if the rubiks package (``cu2``, ``cubex``, ``dikcube``,
+    ``mcube``, ``optimal``, and ``size222``) is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_rubiks
+        sage: has_rubiks()   # optional -- rubiks
+        FeatureTestResult('Rubiks', True)
+    """
+    from sage.features.rubiks import Rubiks
+    return Rubiks().is_present()
+
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
@@ -345,6 +359,7 @@ class AvailableSoftware(object):
          'matlab',
          'octave',
          'pandoc',
+         'rubiks',
          'scilab']
         sage: 'internet' in available_software # random, optional - internet
         True

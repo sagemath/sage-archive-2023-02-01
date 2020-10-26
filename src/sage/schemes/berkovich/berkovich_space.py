@@ -424,7 +424,7 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
         if is_AffineSpace(base):
             base = base.base_ring()
         if base in NumberFields():
-            if ideal == None:
+            if ideal is None:
                 raise ValueError('passed a number field but not an ideal')
             if base is not QQ:
                 if not isinstance(ideal, NumberFieldFractionalIdeal):
@@ -625,7 +625,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
                 raise ValueError("base of projective Berkovich space must be " + \
                     "projective space over Qp or a number field")
             else:
-                if ideal == None:
+                if ideal is None:
                     raise ValueError('passed a number field but not an ideal')
                 if base.base_ring() is not QQ:
                     if not isinstance(ideal, NumberFieldFractionalIdeal):

@@ -1252,8 +1252,8 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
 
         .. TODO::
 
-            Can ``collections.OrderedDict`` can help maintain the breadth
-            first search enumeration for each graded component?
+            Can :class:`collections.OrderedDict` help maintain the
+            breadth first search enumeration for each graded component?
 
         EXAMPLES::
 
@@ -1467,8 +1467,8 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
 
         .. TODO::
 
-            Can ``collections.OrderedDict`` can help maintain the breadth
-            first search enumeration for each graded component?
+            Can :class:`collections.OrderedDict` help maintain the
+            breadth first search enumeration for each graded component?
 
         EXAMPLES::
 

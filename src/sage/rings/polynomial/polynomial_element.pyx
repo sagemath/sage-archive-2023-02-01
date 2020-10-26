@@ -7539,6 +7539,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.roots(ring=QQbar)
             [(-5.9223865215328558?e225, 1), (5.9223865215328558?e225, 1)]
 
+        Check that :trac:`30522` is fixed::
+
+            sage: PolynomialRing(SR, names="x")("x^2").roots()
+            [(0, 2)]
+
+        Check that :trac:`30523` is fixed::
+
+            sage: PolynomialRing(SR, names="x")("x^2 + q").roots()
+            [(-sqrt(-q), 1), (sqrt(-q), 1)]
+
         Algorithms used:
 
         For brevity, we will use RR to mean any RealField of any precision;
@@ -7830,18 +7840,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 from sage.libs.pynac.pynac import I
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
+                l = None
                 if D > 0:
                     l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1),
                          ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)]
                 elif D < 0:
                     l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1),
                          ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
-                else:
-                    l = [(-coeffs[1]/2/coeffs[2]), 2]
-                if multiplicities:
-                    return l
-                else:
-                    return [val for val,m in l]
+                elif D == 0:
+                    l = [(-coeffs[1]/2/coeffs[2], 2)]
+                if l:
+                    if multiplicities:
+                        return l
+                    else:
+                        return [val for val,m in l]
             vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
             var = SR(vname)
             expr = self(var)

@@ -113,10 +113,21 @@ class PSage(Sage):
 
             sage: PSage().__del__()
         """
-        if os.path.exists(self.__tmp_dir):
-            for x in os.listdir(self.__tmp_dir):
-                os.remove(os.path.join(self.__tmp_dir, x))
+        try:
+            files = os.listdir(self.__tmp_dir)
+        except OSError:
+            pass
+        else:
+            for x in files:
+                try:
+                    os.remove(os.path.join(self.__tmp_dir, x))
+                except OSError:
+                    pass
+        try:
             os.removedirs(self.__tmp_dir)
+        except OSError:
+            pass
+
         if not (self._expect is None):
             cmd = 'kill -9 %s'%self._expect.pid
             os.system(cmd)

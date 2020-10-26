@@ -660,7 +660,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             data["number_field"] = number_field_data
         self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
 
-    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False):
+    def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False, homogeneous=False):
         r"""
         Construct cone from V-representation data and H-representation data.
 
@@ -684,6 +684,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         - ``verbose`` -- boolean (default: ``False``); whether to print
           verbose output for debugging purposes
+
+        - ``homogeneous`` -- boolean (default: ``False``); if ``True`` set
+          up the cone without explicit inhomogenization
 
         EXAMPLES::
 
@@ -852,7 +855,8 @@ class Polyhedron_normaliz(Polyhedron_base):
                 "support_hyperplanes": nmz_ieqs}
 
         ambient_dim = len(data["extreme_rays"][0])
-        data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
+        if not homogeneous:
+            data["dehomogenization"] = [[0]*(ambient_dim-1) + [1]]
 
         number_field_data = self._number_field_triple(normaliz_field)
         if number_field_data:
@@ -1112,36 +1116,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         cone = PyNormaliz.NmzCone(**data)
         assert cone, "NmzCone(**{}) did not return a cone".format(data)
         return cone
-
-    @staticmethod
-    def _cone_generators(pynormaliz_cone):
-        r"""
-        Returns the generators of a pynormaliz cone.
-
-        This is particularly useful to get the reordering of the vertices (or
-        rays) that is internally used by normaliz.
-
-        INPUT:
-
-        - ``pynormaliz_cone`` -- a pynormaliz cone object.
-
-        OUTPUT:
-
-        - a tuple of generators for the cone.
-
-        TESTS::
-
-            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz     # optional - pynormaliz
-            sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}   # optional - pynormaliz
-            sage: nmz_cone = Polyhedron_normaliz._make_normaliz_cone(data,verbose=False)        # optional - pynormaliz
-            sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # py2 # optional - pynormaliz
-            [[1L, 2L, 0L], [0L, 0L, 1L], [2L, 1L, 0L]]
-            sage: Polyhedron_normaliz._cone_generators(nmz_cone)                                # py3 # optional - pynormaliz
-            [[1, 2, 0], [0, 0, 1], [2, 1, 0]]
-        """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
-        return PyNormaliz.NmzResult(pynormaliz_cone, "Generators")
 
     def _get_nmzcone_data(self):
         r"""
@@ -1541,12 +1515,15 @@ class Polyhedron_normaliz(Polyhedron_base):
 
     def _triangulate_normaliz(self):
         r"""
-        Gives a triangulation of the polyhedron using normaliz
+        Give a triangulation of the polyhedron using normaliz.
 
         OUTPUT:
 
-        A tuple of pairs ``(simplex,simplex_volume)`` used in the
-        triangulation.
+        For compact polyhedra a list of simplices
+        each represented by indices of their vertices.
+
+        For cones a list of simplicial cones
+        each represented by indices of their rays.
 
         .. NOTE::
 
@@ -1564,47 +1541,101 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  #  optional - pynormaliz
             sage: C2._triangulate_normaliz()  #  optional - pynormaliz
             [(0, 1, 2), (1, 2, 3)]
+
+        Works only for cones and compact polyhedra::
+
+            sage: P = polytopes.cube(backend='normaliz')             # optional - pynormaliz
+            sage: Q = Polyhedron(rays=[[0,1]], backend='normaliz')   # optional - pynormaliz
+            sage: R = Polyhedron(lines=[[0,1]], backend='normaliz')  # optional - pynormaliz
+            sage: (P*Q)._triangulate_normaliz()                      # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: triangulation of non-compact polyhedra that are not cones is not supported
+            sage: (P*R)._triangulate_normaliz()                      # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: triangulation of non-compact not pointed polyhedron is not supported
+
+        TESTS:
+
+        Check that :trac:`30531` is fixed::
+
+            sage: P = polytopes.cube(backend='normaliz')*AA(2).sqrt()  # optional - pynormaliz
+            sage: P._triangulate_normaliz()                            # optional - pynormaliz
+            [(0, 1, 2, 4),
+            (1, 2, 4, 3),
+            (1, 3, 4, 5),
+            (3, 5, 6, 7),
+            (6, 2, 4, 3),
+            (6, 3, 4, 5)]
+
+        ::
+
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,AA(2).sqrt()],[0,1,1],[1,1,1]], backend='normaliz')  # optional - pynormaliz
+            sage: C1._triangulate_normaliz()                                                              # optional - pynormaliz
+            [(0, 1, 3), (0, 3, 2)]
         """
-        cone = self._normaliz_cone
-        assert cone
         if self.lines():
             raise NotImplementedError("triangulation of non-compact not pointed polyhedron is not supported")
         if len(self.vertices_list()) >= 2 and self.rays_list():  # A mix of polytope and cone
             raise NotImplementedError("triangulation of non-compact polyhedra that are not cones is not supported")
 
-        data = self._get_nmzcone_data()
-        # Recreates a pointed cone. This is a hack and should be fixed once
-        # Normaliz accepts compact polyhedron
-        # For now, we lose the information about the volume?
-        # if self.is_compact():
-        #     data['cone'] = data['vertices']
-        if not self.is_compact():
-            data.pop('vertices', None)
-        data.pop('inhom_equations', None)
-        data.pop('inhom_inequalities', None)
-        cone = self._make_normaliz_cone(data)
+        if self.is_compact():
+            cone = self._normaliz_cone
+        else:
+            # Make a inhomogeneous copy of the cone.
+            cone = self._cone_from_Vrepresentation_and_Hrepresentation(
+                    self.vertices(), self.rays(), self.lines(),
+                    self.inequalities(), self.equations(), homogeneous=True)
 
+        # Compute the triangulation.
+        assert cone
         nmz_triangulation = self._nmz_result(cone, "Triangulation")
-        triang_indices = tuple(vector(ZZ, s[0]) for s in nmz_triangulation)
 
-        # Get the Normaliz ordering of generators
-        if self.is_compact():
-            generators = [list(vector(ZZ, g)[:-1]) for g in self._cone_generators(cone)]
-        else:
-            generators = [list(vector(ZZ, g)) for g in self._cone_generators(cone)]
+        # Normaliz does not guarantee that the order of generators is kept during
+        # computation of the triangulation.
+        # Those are the generators that the indices of the triangulation correspond to:
+        nmz_new_generators = self._nmz_result(cone, "Generators")
 
-        # Get the Sage ordering of generators
-        if self.is_compact():
-            poly_gen = self.vertices_list()
-        else:
-            poly_gen = self.rays_list()
+        base_ring = self.base_ring()
+        v_list = self.vertices_list()
+        r_list = self.rays_list()
 
-        # When triangulating, Normaliz uses the indexing of 'Generators' and
-        # not necessarily the indexing of the V-representation. So we apply the
-        # appropriate relabeling into the V-representation inside sage.
-        triangulation = [tuple(sorted([poly_gen.index(generators[i]) for i in s])) for s in triang_indices]
+        new_to_old = {}
+        for i,g in enumerate(nmz_new_generators):
+            if self.is_compact():
+                d = base_ring(g[-1])
+                vertex = [base_ring(x)/d for x in g[:-1]]
+                new_to_old[i] = v_list.index(vertex)
+                pass
+            else:
+                if g[-1] > 0:
+                    new_to_old[i] = None
+                else:
+                    try:
+                        new_to_old[i] = r_list.index([base_ring(x) for x in g[:-1]])
+                    except ValueError:
+                        # Rays are only unique up to scaling.
+                        new_ray = vector(base_ring, g[:-1])
 
-        return triangulation
+                        for j,r in enumerate(self.rays()):
+                            ray = r.vector()
+                            try:
+                                # Check for colinearity.
+                                _ = new_ray/ray
+                                new_to_old[i] = j
+                                break
+                            except (TypeError, ArithmeticError):
+                                pass
+                        else:
+                            raise ValueError("could not match rays after computing triangulation with original rays")
+
+        def new_indices(old_indices):
+            for i in old_indices:
+                if new_to_old[i] is not None:
+                    yield new_to_old[i]
+
+        return [tuple(new_indices(x[0])) for x in nmz_triangulation]
 
 
 #########################################################################

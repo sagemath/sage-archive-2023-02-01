@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Normal form games with N players.
 
@@ -612,9 +613,10 @@ REFERENCES:
 
 - [SLB2008]_
 
-AUTHOR:
+AUTHORS:
 
 - James Campbell and Vince Knight (06-2014): Original version
+
 - Tobenna P. Igwe: Constant-sum game solvers
 
 """
@@ -628,9 +630,8 @@ AUTHOR:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from itertools import product
 from .parser import Parser
 from sage.misc.latex import latex
@@ -1764,9 +1765,10 @@ class NormalFormGame(SageObject, MutableMapping):
             process = Popen(['lrsnash', g1_name, g2_name],
                     stdout=PIPE,
                     stderr=PIPE)
-        except OSError:
-            from sage.misc.package import PackageNotFoundError
-            raise PackageNotFoundError("lrslib")
+        except OSError as e:
+            from sage.features.lrs import Lrs
+            from sage.features import FeatureNotPresentError
+            raise FeatureNotPresentError(Lrs(), reason=f'Calling lrsnash failed with {e}')
 
         lrs_output = [bytes_to_str(row) for row in process.stdout]
         process.terminate()

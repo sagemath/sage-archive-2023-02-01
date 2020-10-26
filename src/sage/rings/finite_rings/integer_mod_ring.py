@@ -89,6 +89,7 @@ class IntegerModFactory(UniqueFactory):
     - ``is_field`` -- bool (default: ``False``); assert that
       the order is prime and hence the quotient ring belongs to
       the category of fields
+    - ``category`` (optional) - the category that the quotient ring belongs to.
 
     .. NOTE::
 
@@ -187,6 +188,11 @@ class IntegerModFactory(UniqueFactory):
         sage: R in Fields()
         True
 
+    To avoid side-effects of this test on other tests, we clear the cache of
+    the ring factory::
+
+        sage: IntegerModRing._cache.clear()
+
     """
     def get_object(self, version, key, extra_args):
         out = super(IntegerModFactory,self).get_object(version, key, extra_args)
@@ -196,7 +202,7 @@ class IntegerModFactory(UniqueFactory):
             out._factory_data[3]['category'] = category
         return out
 
-    def create_key_and_extra_args(self, order=0, is_field=False):
+    def create_key_and_extra_args(self, order=0, is_field=False, category=None):
         """
         An integer mod ring is specified uniquely by its order.
 
@@ -734,6 +740,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             in other parts of Sage. Either it was a mistake of the user,
             or a probabilistic primality test has failed.
             In the latter case, please inform the developers.
+
+        To avoid side-effects of this test on other tests, we clear the cache
+        of the ring factory::
+
+            sage: IntegerModRing._cache.clear()
 
         """
         from sage.categories.fields import Fields

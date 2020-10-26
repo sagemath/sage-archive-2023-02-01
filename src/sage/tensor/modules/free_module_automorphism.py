@@ -472,7 +472,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.set_comp(e)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the identity map cannot be changed
+            ValueError: the components of the identity map cannot be changed
 
         Indeed, the components are set automatically::
 
@@ -483,8 +483,8 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise AssertionError("the components of the identity map cannot be "
-                                 "changed")
+            raise ValueError("the components of the identity map cannot be "
+                             "changed")
         return FreeModuleTensor._set_comp_unsafe(self, basis=basis)
 
     def add_comp(self, basis=None):
@@ -544,7 +544,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.add_comp(e)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the identity map cannot be changed
+            ValueError: the components of the identity map cannot be changed
 
         Indeed, the components are set automatically::
 
@@ -555,8 +555,8 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise AssertionError("the components of the identity map cannot be "
-                                 "changed")
+            raise ValueError("the components of the identity map cannot be "
+                             "changed")
         return FreeModuleTensor._add_comp_unsafe(self, basis=basis)
 
     def __call__(self, *arg):

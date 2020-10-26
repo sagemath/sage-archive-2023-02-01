@@ -108,15 +108,18 @@ SAGE_SCRIPTS
 
     }
 
-    function addLabel( text, x, y, z, color='black', fontsize=14 ) {
+    function addLabel( text, x, y, z, color='black', fontSize=14, fontFamily='monospace',
+                       fontStyle='normal', fontWeight='normal', opacity=1 ) {
 
         var canvas = document.createElement( 'canvas' );
         var context = canvas.getContext( '2d' );
         var pixelRatio = Math.round( window.devicePixelRatio );
 
-        context.font = fontsize + 'px monospace';
+        var font = [fontStyle, fontWeight, fontSize + 'px', fontFamily].join(' ');
+
+        context.font = font;
         var width = context.measureText( text ).width;
-        var height = fontsize;
+        var height = fontSize;
 
         // The dimensions of the canvas's underlying image data need to be powers
         // of two in order for the resulting texture to support mipmapping.
@@ -132,7 +135,7 @@ SAGE_SCRIPTS
 
         context.scale( pixelRatio, pixelRatio );
         context.fillStyle = color;
-        context.font = fontsize + 'px monospace'; // Must be set again after measureText.
+        context.font = font; // Must be set again after measureText.
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillText( text, width/2, height/2 );
@@ -141,6 +144,12 @@ SAGE_SCRIPTS
         texture.needsUpdate = true;
 
         var materialOptions = { map: texture, sizeAttenuation: false };
+        if ( opacity < 1 ) {
+            // Setting opacity=1 would cause the texture's alpha component to be
+            // discarded, giving the text a black background instead of the
+            // background being transparent.
+            materialOptions.opacity = opacity;
+        }
         var sprite = new THREE.Sprite( new THREE.SpriteMaterial( materialOptions ) );
         sprite.position.set( x, y, z );
 
@@ -247,7 +256,13 @@ SAGE_SCRIPTS
     for ( var i=0 ; i < texts.length ; i++ ) addText( texts[i] );
 
     function addText( json ) {
-        var sprite = addLabel( json.text, a[0]*json.x, a[1]*json.y, a[2]*json.z, json.color );
+        json.fontFamily = json.fontFamily.map( function( f ) {
+            // Need to put quotes around fonts that have whitespace in their names.
+            return /\s/.test( f ) ? '"' + f + '"' : f;
+        }).join(', ');
+        var sprite = addLabel( json.text, a[0]*json.x, a[1]*json.y, a[2]*json.z, json.color,
+                               json.fontSize, json.fontFamily, json.fontStyle, json.fontWeight,
+                               json.opacity );
         sprite.userData = json;
     }
 

@@ -12,7 +12,7 @@ This module defines two classes:
 Classes and methods
 -------------------
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Anne Schilling <anne at math.ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -24,8 +24,8 @@ Classes and methods
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 from __future__ import print_function
 
 from sage.rings.rational_field import QQ
@@ -36,9 +36,9 @@ from sage.graphs.digraph import DiGraph
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
-from sage.misc.misc_c import prod
 from sage.functions.other import factorial
 from sage.matrix.constructor import matrix
+
 
 class LinearExtensionOfPoset(ClonableArray,
         metaclass=InheritComparisonClasscallMetaclass):

@@ -971,11 +971,16 @@ cdef class PowerSeries(AlgebraElement):
             True
             sage: (3 + t - t^5).is_unit()
             False
+            sage: O(t^0).is_unit()
+            False
 
         AUTHORS:
 
         - David Harvey (2006-09-03)
         """
+        # Return False for O(t^0) (the only power-series-ring element with precision_absolute == 0).
+        if self.precision_absolute() == 0:
+            return False
         return self[0].is_unit()
 
     def inverse(self):
@@ -1311,6 +1316,81 @@ cdef class PowerSeries(AlgebraElement):
             if B == 0:
                 raise ValueError('vanishing term, no further expansion')
             serie = (u - 1 - A * t) / (B * t ** 2)
+        return tuple(resu)
+
+    def stieltjes_continued_fraction(self):
+        r"""
+        Return the Stieltjes continued fraction of ``self``.
+
+        The S-fraction or Stieltjes continued fraction of a power series
+        is a continued fraction expansion with steps of size one. We use
+        the following convention
+
+        .. MATH::
+
+            1 / (1 - A_1 t / (1 - A_2 t / (1 - A_3 t / (1 - \cdots))))
+
+        OUTPUT:
+
+        `A_n` for `n \geq 1`
+
+        The expansion is done as long as possible given the precision.
+        Whenever the expansion is not well-defined, because it would
+        require to divide by zero, an exception is raised.
+
+        EXAMPLES::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: s = sum(catalan_number(k) * t**k for k in range(12)).O(12)
+            sage: s.stieltjes_continued_fraction()
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+        Another example::
+
+            sage: (exp(t)).stieltjes_continued_fraction()
+            (1,
+             -1/2,
+             1/6,
+             -1/6,
+             1/10,
+             -1/10,
+             1/14,
+             -1/14,
+             1/18,
+             -1/18,
+             1/22,
+             -1/22,
+             1/26,
+             -1/26,
+             1/30,
+             -1/30,
+             1/34,
+             -1/34,
+             1/38)
+
+        TESTS::
+
+             sage: (t).stieltjes_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing constant term, no expansion
+             sage: (1/(1+3*t)).stieltjes_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing term, no further expansion
+        """
+        t = self.parent().gen()
+        if self[0] == 0:
+            raise ValueError('vanishing constant term, no expansion')
+        serie = self / self[0]
+        resu = []
+        while serie.prec() >= 2:
+            u = serie.inverse()
+            A = -u[1]
+            resu.append(A)
+            if A == 0:
+                raise ValueError('vanishing term, no further expansion')
+            serie = (u - 1) / (-A * t)
         return tuple(resu)
         
     def is_square(self):

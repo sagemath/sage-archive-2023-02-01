@@ -252,7 +252,7 @@ def incidence_matrix_to_bit_rep_of_Vrep(Matrix_integer_dense matrix):
     r"""
     Initialize Vrepresentatives in Bit-representation as :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces`.
 
-    Each Vrepresenative is represented as the facets it is contained in.
+    Each Vrepresentative is represented as the facets it is contained in.
     Those are the facets of the polar polyhedron, if it exists.
 
     INPUT:

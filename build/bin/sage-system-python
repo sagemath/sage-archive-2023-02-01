@@ -28,6 +28,16 @@ fi
 # is accessible by this python; this is to guard on Cygwin against Pythons
 # installed somewhere else in Windows.
 
+# Trac #30008: Make it work even if the environment tries to sabotage UTF-8
+# operation in Python 3.0.x-3.6.x by setting LC_ALL=C or similar.
+
+if [ "$LC_ALL" = "C" -o "$LANG" = "C" -o "$LC_CTYPE" = "C" ]; then
+    LC_ALL=$(locale -a | grep -E -i '^(c|en_us)[-.]utf-?8$' | head -n 1)
+    LANG=$LC_ALL
+    export LC_ALL
+    export LANG
+fi
+
 PYTHONS="python python3 python3.8 python3.7 python2.7 python3.6 python2"
 for PY in $PYTHONS; do
     PYTHON="$(PATH="$SAGE_ORIG_PATH" command -v $PY)"

@@ -18,8 +18,10 @@ University of Bayreuth. It has routines to handle the following topics
 -  operations of finite groups.
 -  ordinary representation theory of Hecke algebras of type A_n
 
-For more details check http://www.symmetrica.de (currently redirects to
-http://www.algorithm.uni-bayreuth.de/en/research/SYMMETRICA)
+For more details check http://www.algorithm.uni-bayreuth.de/en/research/SYMMETRICA
+
+Updated package on https://gitlab.com/sagemath/symmetrica/-/releases
+with changes to modernize the source and the build system.
 
 License
 -------
@@ -30,28 +32,4 @@ Public Domain (see the above web site)
 Upstream Contact
 ----------------
 
--  Axel Kohnert - see http://www.mathe2.uni-bayreuth.de/axel/
-
-Dependencies
-------------
-
--  GNU patch (for applying the patches to upstream)
-
-
-Special Update/Build Instructions
----------------------------------
-
-The following patches are applied in spkg-install:
-
--  ``bruch.patch``: store integers in a temporary variable before freeing
-   memory
--  ``de.patch``: turn off banner
--  ``int32.patch``: use ``int32_t`` and ``uint32_t`` for type INT.
--  ``sort_sum_rename.patch``: rename ``sort`` to ``sym_sort``, ``sum`` to ``sym_sum``
--  We copy over our own ``Makefile``:
-
-   ``patches/makefile`` (Fix compiler, i.e., use ``$CC``, and let it use
-   ``$CFLAGS``.)
-
-Permissions in the upstream tarball are funky, please run ``chmod 644
-src/*`` after unpacking.
+-  (passed away in 2013) Axel Kohnert - see http://www.mathe2.uni-bayreuth.de/axel/

@@ -976,8 +976,8 @@ class TensorWithIndices(SageObject):
                 ("^" in term)*term.split("^") + ("^" not in term)*(term.split("^")+['1'])
                 for term in decomposition_as_string.replace("x","").split("*")
             ]
-            decomposition = [(swap_params[int(x)-1], int(y)) for x,y in decomposition_as_string]
-            decomposition.reverse() # /!\ The symetric group acts on the right by default /!\.
+            decomposition = [(swap_params[int(x)-1], int(y)) for x, y in decomposition_as_string]
+            decomposition.reverse()  # /!\ The symmetric group acts on the right by default /!\.
         else:
             decomposition = []
         # Choice of a basis

@@ -164,10 +164,14 @@ The following are some additional files which can be added:
 .. CODE-BLOCK:: text
 
     SAGE_ROOT/build/pkgs/foo
+    |-- distros
+    |   |-- platform1.txt
+    |   `-- platform2.txt
     |-- patches
     |   |-- bar.patch
     |   `-- baz.patch
     |-- spkg-check.in
+    |-- spkg-configure.m4
     `-- spkg-src
 
 We discuss the individual files in the following sections.
@@ -368,12 +372,26 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    arguments. If ``$SAGE_DESTDIR`` is not set then the command is run
    with ``$SAGE_SUDO``, if set.
 
-- ``sdh_pip_install [...]``: Runs ``pip install`` with the given
-   arguments, as well as additional default arguments used for
-   installing packages into Sage with pip. Currently this is just a
-   wrapper around the ``sage-pip-install`` command. If
-   ``$SAGE_DESTDIR`` is not set then the command is run with
-   ``$SAGE_SUDO``, if set.
+- ``sdh_pip_install [...]``: The equivalent of running ``pip install``
+   with the given arguments, as well as additional default arguments used for
+   installing packages into Sage with pip. The last argument must be
+   ``.`` to indicate installation from the current directory.
+
+   ``sdh_pip_install`` actually does the installation via ``pip wheel``,
+   creating a wheel file in ``dist/``, followed by
+   ``sdh_store_and_pip_install_wheel`` (see below).
+
+- ``sdh_store_and_pip_install_wheel .``: The current directory,
+   indicated by the required argument ``.``, must have a subdirectory
+   ``dist`` containing a unique wheel file (``*.whl``).
+
+   This command (1) moves this wheel file to the
+   directory ``$SAGE_SPKG_WHEELS`` (``$SAGE_LOCAL/var/lib/sage/wheels``)
+   and then (2) installs the wheel in ``$SAGE_LOCAL``.
+
+   Both of these steps, instead of writing directly into ``$SAGE_LOCAL``,
+   use the staging directory ``$SAGE_DESTDIR`` if set; otherwise, they
+   use ``$SAGE_SUDO`` (if set).
 
 - ``sdh_install [-T] SRC [SRC...] DEST``: Copies one or more files or
    directories given as ``SRC`` (recursively in the case of
@@ -408,6 +426,57 @@ The following are also available, but rarely used.
    program or another library) for a library starting with ``SONAME``, and
    if found appends ``SONAME`` to the ``LD_PRELOAD`` environment variable.
    See :trac:`24885`.
+
+
+.. _spkg-configure.m4:
+
+Allowing for the use of system packages
+---------------------------------------
+
+For a number of Sage packages, an already installed system version can
+be used instead, and Sage's top-level ``./configure`` script
+determines when this is possible. To enable this, a package needs to
+have a script called ``spkg-configure.m4``, which can, for example,
+determines whether the installed software is recent enough (and
+sometimes not too recent) to be usable by Sage. This script is
+processed by the `GNU M4 macro processor
+<https://www.gnu.org/savannah-checkouts/gnu/m4/manual/m4-1.4.18/m4.html>`_.
+
+Also, if the software for a Sage package is provided by a system
+package, the ``./configure`` script can provide that information. To
+do this, there must be a directory ``build/pkgs/PACKAGE/distros``
+containing files with names like ::
+
+    arch.txt
+    conda.txt
+    cygwin.txt
+    debian.txt
+    homebrew.txt
+    ...
+
+corresponding to different packaging systems.
+
+For example, if ``./configure`` detects that the Homebrew packaging
+system is in use, and if the current package can be provided by a
+Homebrew package called "foo", then the file
+``build/pkgs/PACKAGE/distros/homebrew.txt`` should contain the single
+line "foo". If ``foo`` is currently uninstalled, then ``./configure``
+will print a message suggesting that the user should run ``brew install
+foo``. See :ref:`section-equiv-distro-packages` for more on this.
+
+.. IMPORTANT::
+
+    All new standard packages should, when possible, include a
+    ``spkg-configure.m4`` script and a populated ``distros``
+    directory. There are many examples in ``build/pkgs``, including
+    ``build/pkgs/python3`` and ``build/pkgs/suitesparse``, to name a few.
+
+Note that this may not be possible (as of this writing) for some
+packages, for example packages installed via pip for use while running
+Sage, like ``matplotlib`` or ``scipy``. If a package is installed via
+pip for use in a separate process, like ``tox``, then this should be
+possible.
+
 
 
 .. _section-spkg-check:

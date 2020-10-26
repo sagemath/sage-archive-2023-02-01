@@ -2188,9 +2188,8 @@ cdef class NumberFieldElement(FieldElement):
         - ``all`` -- optional boolean (default ``False``) whether to return
           both square roots
 
-        - ``extend`` -- optional boolean (default ``None``) whether to extend
+        - ``extend`` -- optional boolean (default ``True``) whether to extend
           the field by adding the square roots if needed;
-          ``None`` is deprecated
 
         - ``name`` -- optional string (default ``"sq"``) for the variable
           used in the field extension
@@ -2250,13 +2249,6 @@ cdef class NumberFieldElement(FieldElement):
             ...
             ValueError: -7 not a square in Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
 
-        TESTS::
-
-            sage: CyclotomicField(4)(2).sqrt()
-            doctest:...: DeprecationWarning: use SR(elt).sqrt() or elt.sqrt(extend=True) or elt.sqrt(extend=False)
-            See https://trac.sagemath.org/3889 for details.
-            sqrt(2)
-
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
@@ -2275,14 +2267,6 @@ cdef class NumberFieldElement(FieldElement):
             return roots[0][0]
 
         if extend is False:
-            raise ValueError("%s not a square in %s" % (self, self._parent))
-
-        from sage.symbolic.ring import SR
-        deprecation(3889, "use SR(elt).sqrt() or elt.sqrt(extend=True) or elt.sqrt(extend=False)")
-        try:
-            # This is what integers, rationals do...
-            return SR(self).sqrt()
-        except (TypeError, AttributeError):
             raise ValueError("%s not a square in %s" % (self, self._parent))
 
     def nth_root(self, n, all=False):

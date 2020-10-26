@@ -2189,7 +2189,8 @@ cdef class NumberFieldElement(FieldElement):
           both square roots
 
         - ``extend`` -- optional boolean (default ``None``) whether to extend
-          the field by adding the square roots if needed
+          the field by adding the square roots if needed;
+          ``None`` is deprecated
 
         - ``name`` -- optional string (default ``"sq"``) for the variable
           used in the field extension
@@ -2252,7 +2253,7 @@ cdef class NumberFieldElement(FieldElement):
         TESTS::
 
             sage: CyclotomicField(4)(2).sqrt()
-            doctest:...: DeprecationWarning: use SR(elt).sqrt() or elt.sqrt(extend=True)
+            doctest:...: DeprecationWarning: use SR(elt).sqrt() or elt.sqrt(extend=True) or elt.sqrt(extend=False)
             See https://trac.sagemath.org/3889 for details.
             sqrt(2)
 
@@ -2279,7 +2280,7 @@ cdef class NumberFieldElement(FieldElement):
         from sage.symbolic.ring import SR
         try:
             # This is what integers, rationals do...
-            deprecation(3889, "use SR(elt).sqrt() or elt.sqrt(extend=True)")
+            deprecation(3889, "use SR(elt).sqrt() or elt.sqrt(extend=True) or elt.sqrt(extend=False)")
             return SR(self).sqrt()
         except TypeError:
             raise ValueError("%s not a square in %s" % (self, self._parent))

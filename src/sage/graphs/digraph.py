@@ -113,7 +113,7 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.feedback_edge_set` | Compute the minimum feedback edge (arc) set of a digraph
 
-**Miscellanous:**
+**Miscellaneous:**
 
 .. csv-table::
     :class: contentstable
@@ -646,7 +646,7 @@ class DiGraph(GenericGraph):
             data_structure = 'static_sparse'
 
         # If the data structure is static_sparse, we first build a graph
-        # using the sparse data structure, then reencode the resulting graph
+        # using the sparse data structure, then re-encode the resulting graph
         # as a static sparse graph.
         from sage.graphs.base.sparse_graph import SparseGraphBackend
         from sage.graphs.base.dense_graph import DenseGraphBackend

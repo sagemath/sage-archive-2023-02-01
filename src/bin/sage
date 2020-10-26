@@ -655,9 +655,11 @@ if [ "$1" = '-sh' -o "$1" = '--sh' -o "$1" = '-buildsh' -o "$1" = '--buildsh' ];
            exit 1
         fi
         . "$SAGE_ROOT"/build/bin/sage-build-env-config || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env-config"; exit 1)
+        . "$SAGE_ROOT"/build/bin/sage-build-env || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env"; exit 1)
         export SAGE_SHPROMPT_PREFIX=sage-buildsh
         # We export it so that recursive invocation of 'sage-sh' from a sage-buildsh shows the sage-buildsh prompt;
-        # this makes sense because all environment variables set in build/bin/sage-build-env-config are exported.
+        # this makes sense because all environment variables set in build/bin/sage-build-env-config
+        # and build/bin/sage-build-env are exported.
     fi
     shift
     # If $SHELL is unset, default to bash

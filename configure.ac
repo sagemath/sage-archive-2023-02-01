@@ -85,6 +85,18 @@ if test "$enable_build_as_root" != yes; then
    AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unprivileged user.  (If building in a container, use --enable-build-as-root.)])], [])
 fi
 
+AC_ARG_ENABLE([fat-binary],
+              [AS_HELP_STRING([--enable-fat-binary],
+                              [build binaries that will run on the widest range of target CPUs (but not relocatable)])],
+              [AC_SUBST(SAGE_FAT_BINARY, "yes")],
+              [])
+
+AC_ARG_ENABLE([debug],
+              [AS_HELP_STRING([--enable-debug={no|symbols|yes}],
+                              [controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes")])],
+              [AC_SUBST(SAGE_DEBUG, $enableval)],
+              [])
+
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
 AC_CANONICAL_HOST()
@@ -300,6 +312,12 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
 # Check C/C++/Fortran compilers
 ###############################################################################
 
+# Save compiler flags as configured by the user.
+AC_SUBST(ORIGINAL_CFLAGS, "$CFLAGS")
+AC_SUBST(ORIGINAL_CXXFLAGS, "$CXXFLAGS")
+AC_SUBST(ORIGINAL_FCFLAGS, "$FCFLAGS")
+AC_SUBST(ORIGINAL_F77FLAGS, "$F77FLAGS")
+
 SAGE_CHECK_CONDA_COMPILERS
 
 AC_PROG_CC()
@@ -393,7 +411,7 @@ SAGE_SPKG_COLLECT()
 
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile])
-AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])
+AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config build/bin/sage-build-env])
 
 AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])
 

@@ -1388,7 +1388,7 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
     r"""
     Use Johnson algorithm to compute the closeness centrality of all vertices.
 
-    This routine is preferrable to :func:`~johnson_shortest_paths` because it
+    This routine is preferable to :func:`~johnson_shortest_paths` because it
     does not create a doubly indexed dictionary of distances, saving memory.
 
     The time-complexity is `O(mn\log n)`, where `n` is the number of nodes and

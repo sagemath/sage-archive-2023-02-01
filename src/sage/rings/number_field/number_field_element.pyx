@@ -2179,7 +2179,7 @@ cdef class NumberFieldElement(FieldElement):
         infinity = sage.rings.infinity.infinity
         return self.parent().quadratic_defect(self, P, check=check) == infinity
 
-    def sqrt(self, all=False, extend=False, name=None):
+    def sqrt(self, all=False, extend=None, name=None):
         """
         Return the square root of this number in the given number field.
 
@@ -2188,7 +2188,7 @@ cdef class NumberFieldElement(FieldElement):
         - ``all`` -- optional boolean (default ``False``) whether to return
           both square roots
 
-        - ``extend`` -- optional boolean (default ``False``) whether to extend
+        - ``extend`` -- optional boolean (default ``None``) whether to extend
           the field by adding the square roots if needed
 
         - ``name`` -- optional string (default ``"sq"``) for the variable
@@ -2241,6 +2241,14 @@ cdef class NumberFieldElement(FieldElement):
             sage: z = K(-17).sqrt(extend=True, name='u'); z
             u
 
+        If ``extend=False`` an error is raised, if ``self`` is not a square::
+
+            sage: K = QuadraticField(-5)
+            sage: K(-7).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: -7 not a square in Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
+
         TESTS::
 
             sage: CyclotomicField(4)(2).sqrt()
@@ -2264,6 +2272,9 @@ cdef class NumberFieldElement(FieldElement):
             return [r[0] for r in roots]
         elif roots:
             return roots[0][0]
+
+        if extend is False:
+            raise ValueError("%s not a square in %s" % (self, self._parent))
 
         from sage.symbolic.ring import SR
         try:

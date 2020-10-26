@@ -22,10 +22,6 @@ cdef void sort_faces_list(face_list_t faces):
 
     # Sort the faces using merge sort.
     _sort_faces_loop(faces.faces, faces.faces, extra_mem, faces.n_faces)
-    cdef size_t i
-    if faces.n_faces == 0:
-        # Nothing to do. Prevent it from crashing.
-        return
 
 cdef void _sort_faces_loop(face_t* inp, face_t* out, face_t* extra_mem, size_t n_faces):
     """

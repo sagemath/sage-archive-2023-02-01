@@ -21,19 +21,10 @@
 
 # Optimization flags.
 # We allow debugging of individual packages.
-
-# Export SAGE_DEBUG if this was enabled during configure,
-# but be respectful of the current settings.
-export SAGE_DEBUG="@SAGE_DEBUG@"
-
-# The configured compilation flags
+#
 # The flags are printed by
 # ``build/pkgs/gcc/spkg-configure.m4`` for convenience.
 # Any changes to the defaults should be applied there as well.
-export CFLAGS="@ORIGINAL_CFLAGS@"
-export CXXFLAGS="@ORIGINAL_CXXFLAGS@"
-export FCFLAGS="@ORIGINAL_FCFLAGS@"
-export F77FLAGS="@ORIGINAL_F77FLAGS@"
 export ORIGINAL_CFLAGS="$CFLAGS"
 export ORIGINAL_CXXFLAGS="$CXXFLAGS"
 export ORIGINAL_FCFLAGS="$FCFLAGS"

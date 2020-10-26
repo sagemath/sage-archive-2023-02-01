@@ -25,6 +25,26 @@ export SAGE_CXX_WITHOUT_STD="@SAGE_CXX_WITHOUT_STD@"
 # Export SAGE_FAT_BINARY if this was enabled during configure.
 export SAGE_FAT_BINARY="@SAGE_FAT_BINARY@"
 
+# Export SAGE_DEBUG if this was enabled during configure,
+# but be respectful of the current settings.
+if [ "x$SAGE_DEBUG" == "x" ]; then
+    export SAGE_DEBUG="@SAGE_DEBUG@"
+fi
+
+# The configured compilation flags.
+if [ "x$CFLAGS" == "x" ]; then
+    export CFLAGS="@ORIGINAL_CFLAGS@"
+fi
+if [ "x$CXXFLAGS" == "x" ]; then
+    export CXXFLAGS="@ORIGINAL_CXXFLAGS@"
+fi
+if [ "x$FCFLAGS" == "x" ]; then
+    export FCFLAGS="@ORIGINAL_FCFLAGS@"
+fi
+if [ "x$F77FLAGS" == "x" ]; then
+    export F77FLAGS="@ORIGINAL_F77FLAGS@"
+fi
+
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
 export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"
 export SAGE_GMP_INCLUDE="@SAGE_GMP_INCLUDE@"

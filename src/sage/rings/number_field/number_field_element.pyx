@@ -21,14 +21,14 @@ AUTHORS:
   CM fields
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import operator
 
@@ -67,7 +67,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
 from sage.rings.infinity import infinity
 from sage.categories.fields import Fields
-
+from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 
 from sage.structure.element cimport Element, FieldElement
@@ -123,7 +123,6 @@ def __create__NumberFieldElement_version0(parent, poly):
         See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
-    from sage.misc.superseded import deprecation
     deprecation(25848, '__create__NumberFieldElement_version0() is deprecated')
     return NumberFieldElement(parent, poly)
 
@@ -2180,9 +2179,20 @@ cdef class NumberFieldElement(FieldElement):
         infinity = sage.rings.infinity.infinity
         return self.parent().quadratic_defect(self, P, check=check) == infinity
 
-    def sqrt(self, all=False):
+    def sqrt(self, all=False, extend=False, name=None):
         """
-        Returns the square root of this number in the given number field.
+        Return the square root of this number in the given number field.
+
+        INPUT:
+
+        - ``all`` -- optional boolean (default ``False``) whether to return
+          both square roots
+
+        - ``extend`` -- optional boolean (default ``False``) whether to extend
+          the field by adding the square roots if needed
+
+        - ``name`` -- optional string (default ``"sq"``) for the variable
+          used in the field extension
 
         EXAMPLES::
 
@@ -2216,24 +2226,52 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a^4 + a^2 - 3*a + 2).sqrt()
             a^3 - a^2
 
+        Using the ``extend`` keyword::
+
+            sage: K = QuadraticField(-5)
+            sage: z = K(-7).sqrt(extend=True); z
+            sq
+            sage: z**2
+            -7
+            sage: z.parent()
+            Number Field in sq with defining polynomial t^2 + 7 over ...
+            sage: CyclotomicField(4)(4).sqrt(extend=False)
+            2
+            sage: K = QuadraticField(-7)
+            sage: z = K(-17).sqrt(extend=True, name='u'); z
+            u
+
+        TESTS::
+
+            sage: CyclotomicField(4)(2).sqrt()
+            doctest:...: DeprecationWarning: use SR(elt).sqrt() or elt.sqrt(extend=True)
+            See https://trac.sagemath.org/3889 for details.
+            sqrt(2)
+
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
-        R = self.number_field()['t']
+        K = self.number_field()
+        R = K['t']
         f = R([-self, 0, 1])
         roots = f.roots()
+        if extend and not roots:
+            if name is None:
+                name = "sq"
+            K_ext = K.extension(f, name)
+            roots = f.base_extend(K_ext).roots()
         if all:
             return [r[0] for r in roots]
         elif roots:
             return roots[0][0]
-        else:
-            try:
-                # This is what integers, rationals do...
-                from sage.functions.other import sqrt
-                from sage.symbolic.ring import SR
-                return sqrt(SR(self))
-            except TypeError:
-                raise ValueError("%s not a square in %s"%(self, self._parent))
+
+        from sage.symbolic.ring import SR
+        try:
+            # This is what integers, rationals do...
+            deprecation(3889, "use SR(elt).sqrt() or elt.sqrt(extend=True)")
+            return SR(self).sqrt()
+        except TypeError:
+            raise ValueError("%s not a square in %s" % (self, self._parent))
 
     def nth_root(self, n, all=False):
         r"""

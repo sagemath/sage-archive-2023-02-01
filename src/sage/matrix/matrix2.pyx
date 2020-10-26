@@ -9947,7 +9947,6 @@ cdef class Matrix(Matrix1):
         """
         from sage.modules.free_module_element import zero_vector
         from sage.matrix.constructor import zero_matrix, matrix
-        from sage.functions.other import sqrt
 
         if full:
             QR = self.fetch('QR_factors')
@@ -9972,7 +9971,7 @@ cdef class Matrix(Matrix1):
             hip = v.hermitian_inner_product(v)
             if hip != 0:
                 try:
-                    scale = sqrt(hip)
+                    scale = hip.sqrt(extend=False)
                     q = (1/scale)*v
                     Q.append(q)
                     R[row,i] = scale
@@ -9980,7 +9979,7 @@ cdef class Matrix(Matrix1):
                         R[row,j] = q.hermitian_inner_product(V[j])
                         V[j] = V[j] - R[row,j]*q
                     row = row + 1
-                except TypeError:
+                except (ValueError, TypeError, ArithmeticError):
                     raise TypeError('QR decomposition unable to compute square roots in %s' % F)
         # complete to full orthonormal basis, or reduce to truncated R
         if full:

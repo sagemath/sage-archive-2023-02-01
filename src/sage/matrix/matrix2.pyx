@@ -9947,6 +9947,7 @@ cdef class Matrix(Matrix1):
         """
         from sage.modules.free_module_element import zero_vector
         from sage.matrix.constructor import zero_matrix, matrix
+        from sage.functions.other import sqrt
 
         if full:
             QR = self.fetch('QR_factors')
@@ -9971,7 +9972,7 @@ cdef class Matrix(Matrix1):
             hip = v.hermitian_inner_product(v)
             if hip != 0:
                 try:
-                    scale = hip.sqrt(extend=False)
+                    scale = sqrt(hip, extend=False)
                     q = (1/scale)*v
                     Q.append(q)
                     R[row,i] = scale

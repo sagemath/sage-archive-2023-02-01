@@ -243,7 +243,7 @@ cdef inline size_t get_next_level_fused(
 
     # Step 1:
     n_faces -= 1
-    faces.n_faces -= 1;
+    faces.n_faces -= 1
     face_list_intersection_fused(new_faces, faces, faces.faces[n_faces], algorithm)
 
     cdef size_t j

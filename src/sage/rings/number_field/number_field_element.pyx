@@ -2278,11 +2278,11 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError("%s not a square in %s" % (self, self._parent))
 
         from sage.symbolic.ring import SR
+        deprecation(3889, "use SR(elt).sqrt() or elt.sqrt(extend=True) or elt.sqrt(extend=False)")
         try:
             # This is what integers, rationals do...
-            deprecation(3889, "use SR(elt).sqrt() or elt.sqrt(extend=True) or elt.sqrt(extend=False)")
             return SR(self).sqrt()
-        except TypeError:
+        except (TypeError, AttributeError):
             raise ValueError("%s not a square in %s" % (self, self._parent))
 
     def nth_root(self, n, all=False):

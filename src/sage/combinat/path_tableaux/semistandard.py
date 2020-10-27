@@ -89,7 +89,7 @@ class SemistandardPath(PathTableau):
     An instance is the sequence of partitions which is the
     chain of partitions of a skew semistandard tableau.
 
-    The :class:`SemistandardSkewTableau is not implemented.
+    The :class:`SemistandardSkewTableau` is not implemented.
 
     INPUT:
 

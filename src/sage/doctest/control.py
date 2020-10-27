@@ -44,11 +44,14 @@ optionaltag_regex = re.compile(r'^\w+$')
 
 # Optional tags which are always automatically added
 
-from sage.libs.arb.arb_version import version as arb_vers
-arb_tag = 'arb2' + arb_vers().split('.')[1]
+auto_optional_tags = set(['py3'])
 
-auto_optional_tags = set(['py3', arb_tag])
-
+try:
+    from sage.libs.arb.arb_version import version as arb_vers
+    arb_tag = 'arb2' + arb_vers().split('.')[1]
+    auto_optional_tags.add(arb_tag)
+except ImportError:
+    pass
 
 class DocTestDefaults(SageObject):
     """

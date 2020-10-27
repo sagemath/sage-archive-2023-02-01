@@ -304,7 +304,7 @@ class SemistandardPath(PathTableau):
             [(3,), (3, 1), (3, 1, 1), (3, 2, 1, 0), (4, 2, 1, 0, 0), (4, 3, 1, 0, 0, 0), (4, 4, 1, 0, 0, 0, 0)],
             [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]]
 
-        TESTS:
+        TESTS::
 
             sage: S = SemistandardSkewTableaux([[5,3,3],[3,1]],[3,2,2])
             sage: LHS = [path_tableaux.SemistandardPath(st.rectify()) for st in S]

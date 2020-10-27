@@ -685,6 +685,15 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: poly
             7/5760*e1^2 - 1/24*e1 - 1/1440*e2 + 1
 
+        Get an additive sequence::
+
+            sage: E = M.vector_bundle(2, 'E', field='complex')
+            sage: ch = E.characteristic_class('ChernChar')
+            sage: ch.sequence()
+            2*e[] + e[1] + 1/2*e[1, 1] + 1/6*e[1, 1, 1] + 1/24*e[1, 1, 1, 1]
+             - e[2] - 1/2*e[2, 1] - 1/6*e[2, 1, 1] + 1/12*e[2, 2] + 1/2*e[3]
+             + 1/6*e[3, 1] - 1/6*e[4]
+
         .. SEEALSO::
 
             See :class:`~sage.combinat.sf.elementary.SymmetricFunctionAlgebra_elementary`
@@ -702,19 +711,20 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         Sym = SymmetricFunctions(ring)
 
         coeff = self._get_coeff_list(distinct_real=False)
+        from sage.combinat.partition import Partitions
+        m = Sym.m()
         if self._class_type == 'multiplicative':
-            from sage.combinat.partition import Partitions
             # Get the multiplicative sequence in the monomial basis:
-            mon_pol = Sym.m().sum(prod(ring(coeff[i]) for i in p) * Sym.m()[p]
-                                  for k in range(len(coeff))
-                                  for p in Partitions(k))
+            mon_pol = m._from_dict({p: prod(ring(coeff[i]) for i in p)
+                                    for k in range(len(coeff))
+                                    for p in Partitions(k)})
         elif self._class_type == 'additive':
-            # Express the additive sequence in the monomial basis:
-            summands = [ring(coeff[k]) * Sym.m()[k]
-                        for k in range(1, len(coeff))]
-            # The 0th order term must be treated separately:
-            summands.append(self._vbundle._rank * coeff[0] * Sym.m()[0])
-            mon_pol = Sym.m().sum(summands)
+            # Express the additive sequence in the monomial basis, the 0th
+            # order term must be treated separately:
+
+            m_dict = {Partitions(0)([]): self._vbundle._rank * ring(coeff[0])}
+            m_dict.update({Partitions(k)([k]): ring(coeff[k]) for k in range(1, len(coeff))})
+            mon_pol = m._from_dict(m_dict)
         # Convert to elementary symmetric polynomials:
         return Sym.e()(mon_pol)
 

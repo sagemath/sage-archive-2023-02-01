@@ -2150,7 +2150,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (u^14).is_square()
             True
         """
-        v = self.sqrt(all=True)
+        v = self.sqrt(all=True, extend=False)
         t = len(v) > 0
         if root:
             if t:
@@ -2179,7 +2179,7 @@ cdef class NumberFieldElement(FieldElement):
         infinity = sage.rings.infinity.infinity
         return self.parent().quadratic_defect(self, P, check=check) == infinity
 
-    def sqrt(self, all=False, extend=None, name=None):
+    def sqrt(self, all=False, extend=True, name=None):
         """
         Return the square root of this number in the given number field.
 
@@ -2205,7 +2205,7 @@ cdef class NumberFieldElement(FieldElement):
             9*a
             sage: K(49).sqrt()
             7
-            sage: K(1+a).sqrt()
+            sage: K(1+a).sqrt(extend=False)
             Traceback (most recent call last):
             ...
             ValueError: a + 1 not a square in Number Field in a with defining polynomial x^2 - 3

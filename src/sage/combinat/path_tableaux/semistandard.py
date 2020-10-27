@@ -89,14 +89,14 @@ class SemistandardPath(PathTableau):
     An instance is the sequence of partitions which is the
     chain of partitions of a skew semistandard tableau.
 
-    The :class:'SemistandardSkewTableau` is not implemented.
+    The :class:`SemistandardSkewTableau is not implemented.
 
     INPUT:
 
-        * a sequence of partitions
-        * a sequence of lists/tuples
-        * a semistandard tableau
-        * a Gelfand-Tsetlin pattern
+    * a sequence of partitions
+    * a sequence of lists/tuples
+    * a semistandard tableau
+    * a Gelfand-Tsetlin pattern
 
     EXAMPLES::
 
@@ -221,7 +221,7 @@ class SemistandardPath(PathTableau):
 
     def is_skew(self):
         """
-        Return `True` if `self` is skew.
+        Return ``True`` if ``self`` is skew.
 
         EXAMPLES::
 
@@ -289,7 +289,7 @@ class SemistandardPath(PathTableau):
 
     def rectify(self,inner=None,verbose=False):
         """
-        Rectify `self`
+        Rectify ``self``.
 
         EXAMPLES::
 

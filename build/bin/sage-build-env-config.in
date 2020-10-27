@@ -33,16 +33,16 @@ fi
 
 # The configured compilation flags.
 if [ "x$CFLAGS" == "x" ]; then
-    export CFLAGS="@ORIGINAL_CFLAGS@"
+    export CFLAGS="@CFLAGS@"
 fi
 if [ "x$CXXFLAGS" == "x" ]; then
-    export CXXFLAGS="@ORIGINAL_CXXFLAGS@"
+    export CXXFLAGS="@CXXFLAGS@"
 fi
 if [ "x$FCFLAGS" == "x" ]; then
-    export FCFLAGS="@ORIGINAL_FCFLAGS@"
+    export FCFLAGS="@FCFLAGS@"
 fi
 if [ "x$F77FLAGS" == "x" ]; then
-    export F77FLAGS="@ORIGINAL_F77FLAGS@"
+    export F77FLAGS="@F77FLAGS@"
 fi
 
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise

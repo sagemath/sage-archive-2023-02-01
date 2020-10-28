@@ -14,10 +14,9 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from sage.categories.lie_algebras import LieAlgebras
 from sage.sets.family import Family
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -164,13 +163,13 @@ class SymplecticDerivationLieAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGener
 
             sage: L = lie_algebras.SymplecticDerivation(QQ, 5)
             sage: L._unicode_art_term([7, 5, 2, 1])
-            'a₁·a₂·a₅·b₂'
+            a₁·a₂·a₅·b₂
         """
         from sage.typeset.unicode_art import unicode_art, unicode_subscript
         g = self._g
         def label(i):
             return "a{}".format(unicode_subscript(i)) if i <= g else "b{}".format(unicode_subscript(i-g))
-        return "·".join(label(i) for i in reversed(m))
+        return unicode_art("·".join(label(i) for i in reversed(m)))
 
     def _repr_(self):
         """

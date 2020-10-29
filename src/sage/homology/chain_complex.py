@@ -1248,9 +1248,16 @@ class ChainComplex_class(Parent):
             sage: D.homology()
             {0: 0, 1: 0, 4: 0, 5: 0}
 
-        Generators: generators are given as
-        a list of cycles, each of which is an element in the
-        appropriate free module, and hence is represented as a vector::
+        Generators: generators are given as a list of cycles, each of
+        which is an element in the appropriate free module, and hence
+        is represented as a vector. Each summand of the homology is
+        listed separately, with a corresponding generator::
+
+            sage: C.homology(1, generators=True, algorithm='no_chomp')
+            [(C3, Chain(1:(1, 0))), (Z, Chain(1:(0, 1)))]
+
+        Note that the answer will be formatted differently if the optional
+        package CHomP is installed. ::
 
             sage: C.homology(1, generators=True)  # optional - CHomP
             (Z x C3, [(0, 1), (1, 0)])
@@ -1261,8 +1268,10 @@ class ChainComplex_class(Parent):
             sage: d1 = matrix(ZZ, 1,3, [[0,0,0]])
             sage: d2 = matrix(ZZ, 3,2, [[1,1], [1,-1], [-1,1]])
             sage: C_k = ChainComplex({0:d0, 1:d1, 2:d2}, degree=-1)
-            sage: C_k.homology(generators=true)   # optional - CHomP
-            {0: (Z, [(1)]), 1: (Z x C2, [(0, 0, 1), (0, 1, -1)]), 2: 0}
+            sage: C_k.homology(generators=true, algorithm='no_chomp')
+            {0: [(Z, Chain(0:(1)))],
+             1: [(C2, Chain(1:(1, 0, 0))), (Z, Chain(1:(0, 0, 1)))],
+             2: []}
 
         From a torus using a field::
 

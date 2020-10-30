@@ -409,30 +409,31 @@ On other systems, check the documentation for your particular operating system.
 
 .. _section_conda_compilers:
 
-Notes on using Anaconda/Miniconda
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using conda
+^^^^^^^^^^^
 
 If Conda is installed (check by typing ``conda info``), there are two ways to
 prepare for installing SageMath from source:
 
-- Make sure that a Conda environment is active (for the current shell session)
-  that has at least the following Conda packages required for building SageMath::
+  - Create a new conda environment with standard packages::
 
-    c-compiler cxx-compiler fortran-compiler
+      $ conda env create -f environment.yml
 
-  - Activate a Conda environment that has these packages, using::
+  - Or create a new conda environment with standard and optional packages::
 
-      $ conda activate ENVIRONMENT
+      $ conda env create -f environment-optional.yml
 
-  - The packages can be installed into the current Conda environment using::
+  - Then SageMath will be built using the compilers provided by Conda::
 
-      $ conda install c-compiler cxx-compiler fortran-compiler
+      $ ./bootstrap
+      $ ./configure --prefix=$CONDA_PREFIX
+      $ make
 
-  - Optionally, install additional Conda packages.
 
-  Then SageMath will be built using the compilers provided by Conda.
+Notes on using conda
+^^^^^^^^^^^^^^^^^^^^
 
-- Deactivate conda (for the current shell session).
+If you don't want conda to be used by sage, deactivate conda (for the current shell session).
 
   - Type::
 

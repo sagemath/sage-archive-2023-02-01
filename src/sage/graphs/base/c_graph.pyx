@@ -1210,6 +1210,17 @@ cdef class CGraphBackend(GenericGraphBackend):
             return -1
         return u_long
 
+    cdef int get_vertex_checked(self, u) except ? -2:
+        """
+        As :meth:`get_vertex`, but return ``-1``,
+        if ``u`` is not a vertex of the graph.
+        """
+        cdef int u_int = self.get_vertex(u)
+        if u_int != -1 and bitset_in(self.cg().active_vertices, u_int):
+            return u_int
+        else:
+            return -1
+
     cdef vertex_label(self, int u_int):
         """
         Return the object represented by ``u_int``, or ``None`` if this does not
@@ -1269,8 +1280,8 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: B.has_vertex(7)
             False
         """
-        cdef int v_int = self.get_vertex(v)
-        return v_int != -1 and bitset_in(self.cg().active_vertices, v_int)
+        cdef int v_int = self.get_vertex_checked(v)
+        return v_int != -1
 
     cdef CGraph cg(self):
         r"""

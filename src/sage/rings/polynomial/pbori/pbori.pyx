@@ -1095,7 +1095,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         vars = list(self.variable_names())
         for v in var:
             vars.remove(str(v))
-        if len(vars) == 0:
+        if not vars:
             return self.base_ring()
         if order is None:
             try:

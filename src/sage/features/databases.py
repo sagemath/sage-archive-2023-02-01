@@ -32,3 +32,25 @@ class DatabaseCremona(StaticFile):
                             filename=os.path.join("cremona", filename),
                             spkg=spkg,
                             url="https://github.com/JohnCremona/ecdata")
+
+class DatabaseJones(StaticFile):
+    r"""
+    A :class:`Feature` which describes the presence of John Jones's tables of number fields.
+
+    EXAMPLES::
+
+        sage: from sage.features.databases import DatabaseJones
+        sage: bool(DatabaseJones().is_present())  # optional: database_jones_numfield
+        True
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.databases import DatabaseJones
+            sage: isinstance(DatabaseJones(), DatabaseJones)
+            True
+        """
+        StaticFile.__init__(self, "John Jones's tables of number fields",
+                            filename='jones/jones.sobj',
+                            spkg="database_jones_numfield")

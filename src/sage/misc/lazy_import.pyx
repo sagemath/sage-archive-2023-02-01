@@ -68,7 +68,7 @@ import inspect
 from . import sageinspect
 
 from .lazy_import_cache import get_cache_file
-
+from sage.features import FeatureNotPresentError
 
 cdef inline obj(x):
     if type(x) is LazyImport:
@@ -159,8 +159,10 @@ cdef class LazyImport(object):
     cdef _namespace
     cdef bint _at_startup
     cdef _deprecation
+    cdef _feature
 
-    def __init__(self, module, name, as_name=None, at_startup=False, namespace=None, deprecation=None):
+    def __init__(self, module, name, as_name=None, at_startup=False, namespace=None,
+                 deprecation=None, feature=None):
         """
         EXAMPLES::
 
@@ -178,6 +180,7 @@ cdef class LazyImport(object):
         self._namespace = namespace
         self._at_startup = at_startup
         self._deprecation = deprecation
+        self._feature = feature
 
     cdef inline get_object(self):
         """
@@ -217,7 +220,12 @@ cdef class LazyImport(object):
             raise RuntimeError(f"resolving lazy import {self._name} during startup")
         elif self._at_startup and not startup_guard:
             print('Option ``at_startup=True`` for lazy import {0} not needed anymore'.format(self._name))
-        self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
+        try:
+            self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
+        except ImportError as e:
+            if self._feature:
+                raise FeatureNotPresentError(self._feature, reason=f'Importing {self._name} failed: {e}')
+            raise
         name = self._as_name
         if self._deprecation is not None:
             from sage.misc.superseded import deprecation
@@ -953,7 +961,7 @@ cdef class LazyImport(object):
 
 
 def lazy_import(module, names, as_=None, *,
-    at_startup=False, namespace=None, deprecation=None):
+    at_startup=False, namespace=None, deprecation=None, feature=None):
     """
     Create a lazy import object and inject it into the caller's global
     namespace. For the purposes of introspection and calling, this is
@@ -1061,7 +1069,7 @@ def lazy_import(module, names, as_=None, *,
         names[ix:ix+1] = all
         as_[ix:ix+1] = all
     for name, alias in zip(names, as_):
-        namespace[alias] = LazyImport(module, name, alias, at_startup, namespace, deprecation)
+        namespace[alias] = LazyImport(module, name, alias, at_startup, namespace, deprecation, feature)
 
 
 star_imports = None

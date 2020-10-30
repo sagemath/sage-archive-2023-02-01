@@ -26,7 +26,7 @@
 #
 ##########################################################################
 
-if [ "${SAGE_ENV_CONFIG_SOURCED}" -ne 1 ]; then
+if [ "${SAGE_ENV_CONFIG_SOURCED}" != 1 ]; then
     # This script uses sage-env-config to find the ./configured value
     # of SAGE_ROOT, but ironically, it doesn't know how to find
     # sage-env-config because it doesn't know SAGE_ROOT yet!

@@ -24,9 +24,11 @@ from sage.misc.cachefunc import cached_method
 from sage.functions.other import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 from sage.combinat.posets.hasse_cython import (moebius_matrix_fast,
-                                               coxeter_matrix_fast)
+                                               coxeter_matrix_fast,
+                                               IncreasingChains)
 
 from collections import deque
+
 
 class LatticeError(ValueError):
     """
@@ -543,6 +545,30 @@ class HasseDiagram(DiGraph):
         elms_sorted = sorted(set(elms))
         return not any(self.is_lequal(a, b) for a, b in
                        combinations(elms_sorted, 2))
+
+    def is_chain_of_poset(self, tup):
+        """
+        Return ``True`` if ``tup`` is an increasing chain of the Hasse
+        diagram and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.is_chain_of_poset([0, 1, 4])
+            True
+            sage: H.is_chain_of_poset([0, 2, 3])
+            False
+        """
+        if not tup:
+            return True
+        y = tup[0]
+        for k in range(1, len(tup)):
+            x = y
+            y = tup[k]
+            if x == y or not self.is_lequal(x, y):
+                return False
+        return True
 
     def dual(self):
         """
@@ -2229,7 +2255,7 @@ class HasseDiagram(DiGraph):
                                          self.are_incomparable,
                                          element_class=element_class)
 
-    def chains(self, element_class=list, exclude=None):
+    def chains(self, element_class=list, exclude=None, from_poset=None):
         """
         Return all chains of ``self``, organized as a prefix tree.
 
@@ -2281,14 +2307,8 @@ class HasseDiagram(DiGraph):
 
         .. SEEALSO:: :meth:`antichains`
         """
-        from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
-        if not(exclude is None):
-            vertices = [u for u in self.vertex_iterator() if u not in exclude]
-        else:
-            vertices = self.vertices()
-        return PairwiseCompatibleSubsets(vertices,
-                                         self.are_comparable,
-                                         element_class=element_class)
+        return IncreasingChains(self._leq_storage, element_class,
+                                exclude, from_poset)
 
     def diamonds(self):
         r"""

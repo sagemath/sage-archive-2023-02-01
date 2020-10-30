@@ -4708,13 +4708,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. SEEALSO:: :meth:`maximal_chains`, :meth:`antichains`
         """
         vertex_to_element = self._vertex_to_element
+        element_to_vertex = self._element_to_vertex
 
         def f(chain):
             return element_constructor(vertex_to_element(x) for x in chain)
         if not(exclude is None):
             exclude = [self._element_to_vertex(x) for x in exclude]
-        result = self._hasse_diagram.chains(element_class = f,
-                                            exclude=exclude)
+        result = self._hasse_diagram.chains(element_class=f,
+                                            exclude=exclude,
+                                            from_poset=element_to_vertex)
         result.rename("Set of chains of %s" % self)
         return result
 

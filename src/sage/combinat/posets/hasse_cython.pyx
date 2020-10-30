@@ -21,6 +21,8 @@ from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
 
 
 cpdef Matrix_integer_dense moebius_matrix_fast(list positions):
@@ -150,3 +152,105 @@ cpdef Matrix_integer_dense coxeter_matrix_fast(list positions):
     fmpz_mat_scalar_mul_si(A._matrix, A._matrix, -1)
     return A
 
+
+class IncreasingChains(RecursivelyEnumeratedSet_forest):
+    r"""
+    """
+    def __init__(self, positions, element_class, exclude, from_poset=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_cython import IncreasingChains
+            sage: D = IncreasingChains([{0,1},{1}], list, []); D
+            An enumerated set with a forest structure
+            sage: D.cardinality()
+            4
+            sage: list(D)
+            [[], [0], [0, 1], [1]]
+        """
+        n = len(positions)
+        self._n = n
+        if exclude is not None:
+            self._greater_than = [gti.difference(exclude) for gti in positions]
+            self._vertices = [u for u in range(n) if u not in exclude]
+        else:
+            self._greater_than = positions
+            self._vertices = list(range(n))
+
+        self._element_class = element_class
+        self._from_poset = from_poset
+
+        self._roots = (tuple(),)
+
+        RecursivelyEnumeratedSet_forest.__init__(self, algorithm='depth',
+                    category=FiniteEnumeratedSets())
+
+    def __contains__(self, tup):
+        """
+        Membership testing
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_cython import IncreasingChains
+            sage: D = IncreasingChains([{0,1},{1}], list, [])
+            sage: [x in D for x in D]
+            [True, True, True, True]
+            sage: [2] in D
+            False
+            sage: [1,1] in D
+            False
+
+            sage: P = Poset({'a':['b'],'b':[]})
+            sage: ['a'] in P.chains()
+            True
+        """
+        if not tup:
+            return True
+        if self._from_poset is not None:
+            tup = [self._from_poset(x) for x in tup]
+        for i in tup:
+            if not(0 <= i < self._n):
+                return False
+        y = tup[0]
+        for k in range(1, len(tup)):
+            x = y
+            y = tup[k]
+            if x == y or y not in self._greater_than[x]:
+                return False
+        return True
+
+    def post_process(self, chain):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_cython import IncreasingChains
+            sage: D = IncreasingChains([{0,1},{1}], list, [])
+            sage: D.post_process((0,1))
+            [0, 1]
+
+            sage: P = Poset({'a':['b'],'b':[]})
+            sage: list(P.chains())
+            [[], ['a'], ['a', 'b'], ['b']]
+        """
+        return self._element_class(chain)
+
+    def children(self, chain):
+        """
+        Return the children of a chain, by adding one largest element.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_cython import IncreasingChains
+            sage: D = IncreasingChains([{0,1},{1}], list, [])
+            sage: D.children((0,))
+            [(0, 1)]
+
+            sage: P = Poset({'a':['b'],'b':[]})
+            sage: next(iter(P.chains()))
+            []
+        """
+        if not chain:
+            return [(x,) for x in self._vertices]
+        else:
+            x = chain[-1]
+            return [chain + (y,) for y in self._greater_than[x] if x != y]

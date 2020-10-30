@@ -2231,22 +2231,28 @@ class HasseDiagram(DiGraph):
                                          self.are_incomparable,
                                          element_class=element_class)
 
-    def chains(self, element_class=list, exclude=None, from_poset=None):
+    def chains(self, element_class=list, exclude=None, conversion=None):
         """
         Return all chains of ``self``, organized as a prefix tree.
 
         INPUT:
 
-        - ``element_class`` -- (default: ``list``) an iterable type
+        - ``element_class`` -- (optional, default: ``list``) an iterable type
 
         - ``exclude`` -- elements of the poset to be excluded
-          (default: ``None``)
+          (optional, default: ``None``)
+
+        - ``conversion`` -- (optional, default: ``None``) used to pass
+           the list of elements of the poset in their fixed order
 
         OUTPUT:
 
         The enumerated set (with a forest structure given by prefix
         ordering) consisting of all chains of ``self``, each of
         which is given as an ``element_class``.
+
+        If ``conversion`` is given, then the chains are converted
+        to chain of elements of this list.
 
         EXAMPLES::
 
@@ -2283,8 +2289,7 @@ class HasseDiagram(DiGraph):
 
         .. SEEALSO:: :meth:`antichains`
         """
-        return IncreasingChains(self._leq_storage, element_class,
-                                exclude, from_poset)
+        return IncreasingChains(self._leq_storage, element_class, exclude, conversion)
 
     def diamonds(self):
         r"""

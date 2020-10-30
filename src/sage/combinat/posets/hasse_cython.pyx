@@ -31,7 +31,7 @@ cpdef Matrix_integer_dense moebius_matrix_fast(list positions):
 
     INPUT:
 
-    a list of sets describing the poset, as given by the
+    a list of sets of integers describing the poset, as given by the
     lazy attribute ``_leq_storage`` of Hasse diagrams.
 
     OUTPUT:
@@ -90,7 +90,7 @@ cpdef Matrix_integer_dense coxeter_matrix_fast(list positions):
 
     INPUT:
 
-    a list of sets describing the poset, as given by the
+    a list of sets of integers describing the poset, as given by the
     lazy attribute ``_leq_storage`` of Hasse diagrams.
 
     OUTPUT:
@@ -156,8 +156,26 @@ cpdef Matrix_integer_dense coxeter_matrix_fast(list positions):
 class IncreasingChains(RecursivelyEnumeratedSet_forest):
     r"""
     """
-    def __init__(self, positions, element_class, exclude, from_poset=None):
+    def __init__(self, positions, element_constructor,
+                 exclude, conversion=None):
         """
+        The enumerated set of increasing chains.
+
+        INPUT:
+
+        - ``positions`` -- a list of sets of integers describing the poset,
+          as given by the lazy attribute ``_leq_storage`` of Hasse diagrams.
+
+        - ``element_constructor`` -- used to determine the type of chains,
+          for example ``list`` or ``tuple``
+
+        - ``exclude`` -- list of integers that should not belong to the chains
+
+        - ``conversion`` -- optional list of elements of the poset
+
+        If ``conversion`` is provided, it is used to convert chain elements
+        to elements of this list.
+
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_cython import IncreasingChains
@@ -177,8 +195,10 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
             self._greater_than = positions
             self._vertices = list(range(n))
 
-        self._element_class = element_class
-        self._from_poset = from_poset
+        self._element_constructor = element_constructor
+        self._conversion = conversion
+        if conversion is not None:
+            self._from_poset = {elt: i for i, elt in enumerate(conversion)}
 
         self._roots = (tuple(),)
 
@@ -187,7 +207,10 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
 
     def __contains__(self, tup):
         """
-        Membership testing
+        Membership testing.
+
+        If ``conversion`` was provided, it first converts elements of ``tup``
+        to integers.
 
         EXAMPLES::
 
@@ -206,8 +229,8 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
         """
         if not tup:
             return True
-        if self._from_poset is not None:
-            tup = [self._from_poset(x) for x in tup]
+        if self._conversion is not None:
+            tup = [self._from_poset[x] for x in tup]
         for i in tup:
             if not(0 <= i < self._n):
                 return False
@@ -221,6 +244,13 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
 
     def post_process(self, chain):
         """
+        Create a chain from the internal object.
+
+        If ``conversion`` was provided, it first converts elements of the
+        chain to elements of this list.
+
+        Then the given ``element_constructor`` is applied to the chain.
+
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_cython import IncreasingChains
@@ -232,7 +262,9 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
             sage: list(P.chains())
             [[], ['a'], ['a', 'b'], ['b']]
         """
-        return self._element_class(chain)
+        if self._conversion is not None:
+            return self._element_constructor(self._conversion[i] for i in chain)
+        return self._element_constructor(chain)
 
     def children(self, chain):
         """

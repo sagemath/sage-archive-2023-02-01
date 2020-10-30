@@ -2162,8 +2162,12 @@ class HasseDiagram(DiGraph):
             sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_incomparable(i,j)]
             [(1, 2), (1, 3), (2, 1), (3, 1)]
         """
+        if i == j:
+            return False
+        if i > j:
+            i, j = j, i
         mat = self._leq_matrix_boolean
-        return not mat[i, j] and not mat[j, i]
+        return not mat[i, j]
 
     def are_comparable(self, i, j):
         """
@@ -2182,8 +2186,12 @@ class HasseDiagram(DiGraph):
             sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_comparable(i,j)]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1), (1, 4), (2, 0), (2, 2), (2, 3), (2, 4), (3, 0), (3, 2), (3, 3), (3, 4), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]
         """
+        if i == j:
+            return True
+        if i > j:
+            i, j = j, i
         mat = self._leq_matrix_boolean
-        return bool(mat[i, j]) or bool(mat[j, i])
+        return bool(mat[i, j])
 
     def antichains(self, element_class=list):
         """

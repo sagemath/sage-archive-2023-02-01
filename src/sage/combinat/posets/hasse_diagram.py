@@ -546,30 +546,6 @@ class HasseDiagram(DiGraph):
         return not any(self.is_lequal(a, b) for a, b in
                        combinations(elms_sorted, 2))
 
-    def is_chain_of_poset(self, tup):
-        """
-        Return ``True`` if ``tup`` is an increasing chain of the Hasse
-        diagram and ``False`` otherwise.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
-            sage: H.is_chain_of_poset([0, 1, 4])
-            True
-            sage: H.is_chain_of_poset([0, 2, 3])
-            False
-        """
-        if not tup:
-            return True
-        y = tup[0]
-        for k in range(1, len(tup)):
-            x = y
-            y = tup[k]
-            if x == y or not self.is_lequal(x, y):
-                return False
-        return True
-
     def dual(self):
         """
         Return a poset that is dual to the given poset.

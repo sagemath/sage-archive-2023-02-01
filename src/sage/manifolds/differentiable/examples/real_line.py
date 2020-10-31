@@ -290,6 +290,34 @@ class OpenInterval(DifferentiableManifold):
         t: (1/2, 1)
 
     """
+    @staticmethod
+    def __classcall_private__(cls, lower, upper, ambient_interval=None,
+                              name=None, latex_name=None, coordinate=None,
+                              names=None, start_index=0):
+        r"""
+        Determine the correct interval to return based upon the input.
+
+        TESTS:
+
+        Check whether :trac:`30830` is fixed::
+
+            sage: I = OpenInterval(0,2)
+            sage: J = OpenInterval(0,1, ambient_interval=I, coordinate='t')
+            sage: I.open_interval(0,1)
+            Real interval (0, 1)
+
+        """
+        if ambient_interval:
+            # cope the UniqueRepresentation framework for subintervals and
+            # reset irrelevant information only:
+            coordinate = None
+            names = None
+            start_index = 0
+        return super(cls, OpenInterval).__classcall__(cls, lower, upper,
+                          ambient_interval=ambient_interval, name=name,
+                          latex_name=latex_name, coordinate=coordinate,
+                          names=names, start_index=start_index)
+
     def __init__(self, lower, upper, ambient_interval=None,
                  name=None, latex_name=None,
                  coordinate=None, names=None, start_index=0):

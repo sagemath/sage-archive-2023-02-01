@@ -475,80 +475,6 @@ cdef class SparseGraph(CGraph):
     # Unlabeled arc functions
     ###################################
 
-    cdef inline int _add_arc_unsafe(self, int u, int v, SparseGraphBTNode **ins_pt) except -1:
-        r"""
-        .. WARNING::
-
-            This method is for internal use only. Use :meth:`add_arc_unsafe` instead.
-
-        Add arc (u, v) to only the ingoing or outgoing arcs
-        """
-        cdef int i = (u * self.hash_length) + (v & self.hash_mask)
-        ins_pt = &ins_pt[i]
-        cdef int compared
-        while ins_pt[0]:
-            compared = compare(ins_pt[0].vertex, v)
-            if compared > 0:
-                ins_pt = &(ins_pt[0].left)
-            elif compared < 0:
-                ins_pt = &(ins_pt[0].right)
-            else:
-                ins_pt[0].number += 1
-                break
-        if not ins_pt[0]:
-            ins_pt[0] = <SparseGraphBTNode *>check_malloc(sizeof(SparseGraphBTNode))
-            ins_pt[0].vertex = v
-            ins_pt[0].number = 1
-            ins_pt[0].left = NULL
-            ins_pt[0].right = NULL
-            ins_pt[0].labels = NULL
-
-    cdef int add_arc_unsafe(self, int u, int v) except -1:
-        """
-        Add arc (u, v) to the graph with no label.
-
-        INPUT:
-
-        - ``u, v`` -- non-negative integers
-        """
-        self._add_arc_unsafe(u, v, self.vertices)
-        if u != v or self.is_directed():
-            # We add the reverse copy only if u != v or graph is directed.
-            self._add_arc_unsafe(v, u, self.vertices_rev)
-            if self.vertices == self.vertices_rev:
-                # In case of an undirected graph, we have added two arcs.
-                self.in_degrees[u] += 1
-                self.out_degrees[v] += 1
-                self.num_arcs += 1
-
-        self.in_degrees[v] += 1
-        self.out_degrees[u] += 1
-        self.num_arcs += 1
-
-    cdef int has_arc_unsafe(self, int u, int v) except -1:
-        """
-        Checks whether arc (u, v) is in the graph.
-
-        INPUT:
-
-        - ``u, v`` -- non-negative integers
-
-        OUTPUT:
-            0 -- False
-            1 -- True
-
-        """
-        cdef int i = (u * self.hash_length) + (v & self.hash_mask)
-        cdef SparseGraphBTNode *temp = self.vertices[i]
-        while temp:
-            if temp.vertex == v:
-                return 1
-            if compare(temp.vertex, v) > 0:
-                temp = temp.left
-            else: # note compare < 0
-                temp = temp.right
-        return 0
-
     cdef inline int _del_arc_unsafe(self, int u, int v, SparseGraphBTNode **parent) except -1:
         """
         .. WARNING::
@@ -989,7 +915,7 @@ cdef class SparseGraph(CGraph):
             raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
         self.add_arc_label_unsafe(u,v,l)
 
-    cdef int arc_label_unsafe(self, int u, int v):
+    cdef int arc_label_unsafe(self, int u, int v) except -1:
         """
         Retrieves the first label found associated with (u, v) (a positive
         integer).
@@ -1020,49 +946,7 @@ cdef class SparseGraph(CGraph):
             return 0
         return temp.labels.label
 
-    cpdef int arc_label(self, int u, int v):
-        """
-        Retrieves the first label found associated with ``(u, v)``.
-
-        INPUT:
-
-         - ``u, v`` -- non-negative integers, must be in self
-
-        OUTPUT: one of
-
-        - positive integer -- indicates that there is a label on ``(u, v)``.
-
-        - ``0`` -- either the arc ``(u, v)`` is unlabeled, or there is no arc at all.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: G = SparseGraph(5)
-            sage: G.add_arc_label(3,4,7)
-            sage: G.arc_label(3,4)
-            7
-
-        To this function, an unlabeled arc is indistinguishable from a non-arc::
-
-            sage: G.add_arc_label(1,0)
-            sage: G.arc_label(1,0)
-            0
-            sage: G.arc_label(1,1)
-            0
-
-        This function only returns the *first* label it finds from ``u`` to ``v``::
-
-            sage: G.add_arc_label(1,2,1)
-            sage: G.add_arc_label(1,2,2)
-            sage: G.arc_label(1,2)
-            2
-
-        """
-        self.check_vertex(u)
-        self.check_vertex(v)
-        return self.arc_label_unsafe(u, v)
-
-    cdef int all_arcs_unsafe(self, int u, int v, int *arc_labels, int size):
+    cdef int all_arcs_unsafe(self, int u, int v, int *arc_labels, int size) except -1:
         """
         Gives the labels of all arcs (u, v).
 
@@ -1139,44 +1023,6 @@ cdef class SparseGraph(CGraph):
             return NULL
         return temp.labels
 
-    cpdef list all_arcs(self, int u, int v):
-        """
-        Gives the labels of all arcs ``(u, v)``. An unlabeled arc is interpreted as
-        having label 0.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: G = SparseGraph(5)
-            sage: G.add_arc_label(1,2,1)
-            sage: G.add_arc_label(1,2,2)
-            sage: G.add_arc_label(1,2,2)
-            sage: G.add_arc_label(1,2,2)
-            sage: G.add_arc_label(1,2,3)
-            sage: G.add_arc_label(1,2,3)
-            sage: G.add_arc_label(1,2,4)
-            sage: G.all_arcs(1,2)
-            [4, 3, 3, 2, 2, 2, 1]
-
-        """
-        cdef int size, num_arcs, i
-        cdef int *arc_labels
-        cdef list output
-        self.check_vertex(u)
-        self.check_vertex(v)
-        if self.in_degrees[v] < self.out_degrees[u]:
-            size = self.in_degrees[v]
-        else:
-            size = self.out_degrees[u]
-        arc_labels = <int *>check_allocarray(size, sizeof(int))
-        num_arcs = self.all_arcs_unsafe(u, v, arc_labels, size)
-        if num_arcs == -1:
-            sig_free(arc_labels)
-            raise RuntimeError("There was an error: there seem to be more arcs than self.in_degrees or self.out_degrees indicate.")
-        output = [arc_labels[i] for i in range(num_arcs)]
-        sig_free(arc_labels)
-        return output
-
     cdef inline int _del_arc_label_unsafe(self, int u, int v, int l, SparseGraphBTNode **parent):
         """
         .. WARNING::
@@ -1229,7 +1075,7 @@ cdef class SparseGraph(CGraph):
                     # here we need to delete an "empty" binary tree node
                     self._del_arc_unsafe(u, v, old_parent)
 
-    cdef int del_arc_label_unsafe(self, int u, int v, int l):
+    cdef int del_arc_label_unsafe(self, int u, int v, int l) except -1:
         """
         Delete an arc (u, v) with label l.
 
@@ -1261,40 +1107,7 @@ cdef class SparseGraph(CGraph):
         self.out_degrees[u] -= 1
         self.num_arcs -= 1
 
-    cpdef del_arc_label(self, int u, int v, int l):
-        """
-        Delete an arc ``(u, v)`` with label ``l``.
-
-        INPUT:
-
-         - ``u, v`` -- non-negative integers, must be in self
-
-         - ``l`` -- a positive integer label, or zero for no label
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: G = SparseGraph(5)
-            sage: G.add_arc_label(0,1,0)
-            sage: G.add_arc_label(0,1,1)
-            sage: G.add_arc_label(0,1,2)
-            sage: G.add_arc_label(0,1,2)
-            sage: G.add_arc_label(0,1,3)
-            sage: G.del_arc_label(0,1,2)
-            sage: G.all_arcs(0,1)
-            [0, 3, 2, 1]
-            sage: G.del_arc_label(0,1,0)
-            sage: G.all_arcs(0,1)
-            [3, 2, 1]
-
-        """
-        self.check_vertex(u)
-        self.check_vertex(v)
-        if l < 0:
-            raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
-        self.del_arc_label_unsafe(u,v,l)
-
-    cdef int has_arc_label_unsafe(self, int u, int v, int l):
+    cdef int has_arc_label_unsafe(self, int u, int v, int l) except -1:
         """
         Indicates whether there is an arc (u, v) with label l.
 
@@ -1302,7 +1115,7 @@ cdef class SparseGraph(CGraph):
 
         - ``u, v`` -- integers from `0, ..., n-1`, where `n` is the number of vertices
 
-        - ``l`` -- a positive integer label, or zero for no label
+        - ``l`` -- a positive integer label, or zero for no label, or ``-1`` for any label
 
         OUTPUT: one of
 
@@ -1324,6 +1137,8 @@ cdef class SparseGraph(CGraph):
                 break
         if not temp:
             return 0
+        if l == -1:
+            return 1
         if l == 0 and temp.number > 0:
             return 1
         label = temp.labels
@@ -1332,38 +1147,6 @@ cdef class SparseGraph(CGraph):
                 return 1
             label = label.next
         return 0
-
-    cpdef bint has_arc_label(self, int u, int v, int l):
-        """
-        Indicates whether there is an arc ``(u, v)`` with label ``l``.
-
-        INPUT:
-
-         - ``u, v`` -- non-negative integers, must be in self
-
-         - ``l`` -- a positive integer label, or zero for no label
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: G = SparseGraph(5)
-            sage: G.add_arc_label(0,1,0)
-            sage: G.add_arc_label(0,1,1)
-            sage: G.add_arc_label(0,1,2)
-            sage: G.add_arc_label(0,1,2)
-            sage: G.has_arc_label(0,1,1)
-            True
-            sage: G.has_arc_label(0,1,2)
-            True
-            sage: G.has_arc_label(0,1,3)
-            False
-
-        """
-        self.check_vertex(u)
-        self.check_vertex(v)
-        if l < 0:
-            raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
-        return self.has_arc_label_unsafe(u,v,l) == 1
 
 ##############################
 # Further tests. Unit tests for methods, functions, classes defined with cdef.
@@ -1477,9 +1260,9 @@ cdef class SparseGraphBackend(CGraphBackend):
         self.edge_labels_max = 1
         self.edge_labels_available_ids = []
 
-    cdef inline int new_edge_label(self, object l):
+    cdef inline int new_edge_label(self, object l) except -1:
         """
-        Returns a new unique int representing the arbitrary label l.
+        Return a new unique int representing the arbitrary label l.
         """
         if l is None:
             return 0
@@ -1494,194 +1277,19 @@ cdef class SparseGraphBackend(CGraphBackend):
         self.edge_labels[l_int] = l
         return l_int
 
-    def add_edge(self, object u, object v, object l, bint directed):
+    cdef inline int free_edge_label(self, int l_int) except -1:
         """
-        Add the edge ``(u,v)`` to self.
+        Free the label corresponding to ``l_int``.
 
-        INPUT:
-
-         - ``u,v`` -- the vertices of the edge
-
-         - ``l`` -- the edge label
-
-         - ``directed`` -- if False, also add ``(v,u)``
-
-        EXAMPLES::
-
-            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
-            sage: D.add_edge(0,1,None,False)
-            sage: list(D.iterator_edges(range(9), True))
-            [(0, 1, None)]
-
-        TESTS::
-
-            sage: D = DiGraph(sparse=True)
-            sage: D.add_edge(0,1,2)
-            sage: D.add_edge(0,1,3)
-            sage: D.edges()
-            [(0, 1, 3)]
-
-        Check :trac:`22991`::
-
-            sage: G = Graph(3, sparse=True)
-            sage: G.add_edge(0,0)
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot add edge from 0 to 0 in graph without loops
-            sage: G = Graph(3, sparse=True, loops=True)
-            sage: G.add_edge(0,0); G.edges()
-            [(0, 0, None)]
-
-        Remove edges correctly when multiedges are not allowed (:trac:`28077`)::
-
-            sage: D = DiGraph(multiedges=False)
-            sage: D.add_edge(1, 2, 'A')
-            sage: D.add_edge(1, 2, 'B')
-            sage: D.delete_edge(1, 2)
-            sage: D.incoming_edges(2)
-            []
-            sage: D.shortest_path(1, 2)
-            []
+        Usually called after deleting an edge.
         """
-        if u is None: u = self.add_vertex(None)
-        if v is None: v = self.add_vertex(None)
-
-        cdef int u_int = self.check_labelled_vertex(u, False)
-        cdef int v_int = self.check_labelled_vertex(v, False)
-
-        cdef int l_int
-        if l is None:
-            l_int = 0
-        else:
-            l_int = self.new_edge_label(l)
-
-        if u_int == v_int and not self._loops:
-            raise ValueError(f"cannot add edge from {u!r} to {v!r} in graph without loops")
-
-        if not self.multiple_edges(None):
-            if self._cg.has_arc_label(u_int, v_int, l_int):
-                return
-            else:
-                self._cg.del_all_arcs(u_int, v_int)
-                if not directed and self._directed and v_int != u_int:
-                    self._cg.del_all_arcs(v_int, u_int)
-
-        self._cg.add_arc_label(u_int, v_int, l_int)
-        if not directed and self._directed and v_int != u_int:
-            self._cg.add_arc_label(v_int, u_int, l_int)
-
-    def add_edges(self, object edges, bint directed):
-        """
-        Add edges from a list.
-
-        INPUT:
-
-         - ``edges`` -- the edges to be added; can either be of the form
-           ``(u,v)`` or ``(u,v,l)``
-
-         - ``directed`` -- if False, add ``(v,u)`` as well as ``(u,v)``
-
-        EXAMPLES::
-
-            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
-            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
-            sage: list(D.iterator_edges(range(9), True))
-            [(0, 1, None),
-             (2, 3, None),
-             (4, 5, None),
-             (5, 6, None)]
-
-        """
-        cdef object u,v,l,e
-        for e in edges:
-            try:
-                u,v,l = e
-            except Exception:
-                u,v = e
-                l = None
-            self.add_edge(u,v,l,directed)
-
-    def del_edge(self, object u, object v, object l, bint directed):
-        """
-        Delete edge ``(u,v,l)``.
-
-        INPUT:
-
-         - ``u,v`` -- the vertices of the edge
-
-         - ``l`` -- the edge label
-
-         - ``directed`` -- if False, also delete ``(v,u,l)``
-
-        EXAMPLES::
-
-            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
-            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
-            sage: list(D.iterator_edges(range(9), True))
-            [(0, 1, None),
-             (2, 3, None),
-             (4, 5, None),
-             (5, 6, None)]
-            sage: D.del_edge(0,1,None,True)
-            sage: list(D.iterator_out_edges(range(9), True))
-            [(1, 0, None),
-             (2, 3, None),
-             (3, 2, None),
-             (4, 5, None),
-             (5, 4, None),
-             (5, 6, None),
-             (6, 5, None)]
-
-        TESTS::
-
-            sage: G = Graph(sparse=True)
-            sage: G.add_edge(0,1,2)
-            sage: G.delete_edge(0,1)
-            sage: G.edges()
-            []
-
-            sage: G = Graph(multiedges=True, sparse=True)
-            sage: G.add_edge(0,1,2)
-            sage: G.add_edge(0,1,None)
-            sage: G.delete_edge(0,1)
-            sage: G.edges()
-            [(0, 1, 2)]
-
-        Do we remove loops correctly? (:trac:`12135`)::
-
-            sage: g=Graph({0:[0,0,0]}, sparse=True)
-            sage: g.edges(labels=False)
-            [(0, 0), (0, 0), (0, 0)]
-            sage: g.delete_edge(0,0); g.edges(labels=False)
-            [(0, 0), (0, 0)]
-        """
-        if not ( self.has_vertex(u) and self.has_vertex(v) ):
-            return
-        cdef int u_int = self.check_labelled_vertex(u, False)
-        cdef int v_int = self.check_labelled_vertex(v, False)
-
-        if l is None:
-            if self._cg.has_arc_label(u_int, v_int, 0):
-                l_int = 0
-            else:
-                l_int = self._cg.arc_label(u_int, v_int)
-        else:
-            for l_int in self.edge_labels:
-                if self.edge_labels[l_int] == l and self._cg.has_arc_label(u_int, v_int, l_int):
-                    break
-            else:
-                return
-
-        self._cg.del_arc_label(u_int, v_int, l_int)
-        if not directed and self._directed and v_int != u_int:
-            self._cg.del_arc_label(v_int, u_int, l_int)
         if l_int:
             self.edge_labels.pop(l_int)
             self.edge_labels_available_ids.append(l_int)
 
     def get_edge_label(self, object u, object v):
         """
-        Returns the edge label for ``(u,v)``.
+        Return the edge label for ``(u, v)``.
 
         INPUT:
 

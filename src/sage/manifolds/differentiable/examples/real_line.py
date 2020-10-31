@@ -858,6 +858,27 @@ class RealLine(OpenInterval):
         [Real interval (0, 1), Real number line R]
 
     """
+    @staticmethod
+    def __classcall__(cls, name='R', latex_name=r'\Bold{R}', coordinate=None,
+                      names=None, start_index=0):
+        r"""
+        Determine the correct interval to return based upon the input.
+
+        TESTS::
+
+            sage: R = RealLine(); R
+            Real number line R
+            sage: R1 = RealLine('R'); R1
+            Real number line R
+            sage: R is R1
+            True
+
+        """
+        return super(cls, RealLine).__classcall__(cls, name=name,
+                                           latex_name=latex_name,
+                                           coordinate=coordinate,
+                                           names=names, start_index=start_index)
+
     def __init__(self, name='R', latex_name=r'\Bold{R}', coordinate=None,
                  names=None, start_index=0):
         r"""

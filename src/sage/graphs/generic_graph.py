@@ -1736,7 +1736,7 @@ class GenericGraph(GenericGraph_pyx):
              9: {4: [None], 6: [None], 7: [None]}}
         """
 
-        # Returning the resuls as a dictionary of lists
+        # Returning the results as a dictionary of lists
         #
         # dictionary :
         # {vertex : [list of (out-)neighbors]}

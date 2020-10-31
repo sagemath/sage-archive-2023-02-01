@@ -1990,7 +1990,7 @@ def _laplace_latex_(self, *args):
         \mathcal{L}\left(f\left(t\right), t, s\right)
 
     """
-    return "\\mathcal{L}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
+    return "\\mathcal{L}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
 
 def _inverse_laplace_latex_(self, *args):
     r"""
@@ -2008,7 +2008,8 @@ def _inverse_laplace_latex_(self, *args):
         sage: latex(inverse_laplace(F,s,t))
         \mathcal{L}^{-1}\left(F\left(s\right), s, t\right)
     """
-    return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
+    return "\\mathcal{L}^{-1}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
+
 
 # Return un-evaluated expression as instances of SFunction class
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)

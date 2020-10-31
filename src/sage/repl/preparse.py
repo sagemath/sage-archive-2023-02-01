@@ -989,8 +989,8 @@ def containing_block(code, idx, delimiters=['()','[]','{}'], require_delim=True)
         (0, 3)
 
     """
-    openings = "".join([d[0] for d in delimiters])
-    closings = "".join([d[-1] for d in delimiters])
+    openings = "".join(d[0] for d in delimiters)
+    closings = "".join(d[-1] for d in delimiters)
     levels = [0] * len(openings)
     p = 0
     start = idx

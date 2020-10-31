@@ -1395,11 +1395,13 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         elif dir in dir_minus:
             l = maxima.sr_tlimit(ex, v, a, 'minus')
     elif algorithm == 'sympy':
+        import sympy
         if dir is None:
-            import sympy
             l = sympy.limit(ex._sympy_(), v._sympy_(), a._sympy_())
-        else:
-            raise NotImplementedError("sympy does not support one-sided limits")
+        elif dir in dir_plus:
+            l = sympy.limit(ex._sympy_(), v._sympy_(), a._sympy_(), dir='+')
+        elif dir in dir_minus:
+            l = sympy.limit(ex._sympy_(), v._sympy_(), a._sympy_(), dir='-')
     elif algorithm == 'fricas':
         from sage.interfaces.fricas import fricas
         eq = fricas.equation(v._fricas_(), a._fricas_())

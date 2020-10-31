@@ -2817,10 +2817,9 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
 
-
     def is_square(self):
         """
-        Returns ``True`` if ``self`` is a perfect square.
+        Return ``True`` if ``self`` is a perfect square.
 
         EXAMPLES::
 
@@ -2844,7 +2843,6 @@ cdef class Expression(CommutativeRingElement):
             raise NotImplementedError("is_square() not implemented for non numeric elements of Symbolic Ring")
 
         return obj.is_square()
-
 
     def left_hand_side(self):
         """
@@ -6611,11 +6609,11 @@ cdef class Expression(CommutativeRingElement):
 
     def low_degree(self, s):
         """
-        Return the exponent of the lowest nonpositive power of s in self.
+        Return the exponent of the lowest power of ``s`` in ``self``.
 
         OUTPUT:
 
-        An integer ``<= 0``.
+        An integer
 
         EXAMPLES::
 
@@ -6631,6 +6629,8 @@ cdef class Expression(CommutativeRingElement):
             0
             sage: (x^3+y).low_degree(x)
             0
+            sage: (x+x**2).low_degree(x)
+            1
         """
         cdef Expression ss = self.coerce_in(s)
         sig_on()
@@ -6642,11 +6642,11 @@ cdef class Expression(CommutativeRingElement):
 
     def degree(self, s):
         """
-        Return the exponent of the highest nonnegative power of s in self.
+        Return the exponent of the highest power of ``s`` in ``self``.
 
         OUTPUT:
 
-        An integer ``>= 0``.
+        An integer
 
         EXAMPLES::
 
@@ -6662,6 +6662,8 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: (x^-3+y).degree(x)
             0
+            sage: (1/x+1/x**2).degree(x)
+            -1
         """
         cdef Expression ss = self.coerce_in(s)
         sig_on()
@@ -7519,7 +7521,6 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
-
 
     def collect(Expression self, s):
         """

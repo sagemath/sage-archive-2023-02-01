@@ -605,7 +605,7 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
             print("The number of frozen variables is larger than the number of vertices.")
             return False
 
-        if [ e for e in dg.edges(labels=False) if e[0] >= n] != []:
+        if any(e[0] >= n for e in dg.edges(labels=False)):
             print("The given digraph or edge list contains edges within the frozen vertices.")
             return False
 

@@ -2442,7 +2442,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             k = rs[i-1]
             # find k-th block which does not yet have a closer
             b = 0
-            while k > 0 or (P[b] != [] and P[b][-1] in R):
+            while k > 0 or (P[b] and P[b][-1] in R):
                 if P[b][-1] not in R:
                     k -= 1
                 b += 1

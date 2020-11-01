@@ -1,5 +1,4 @@
-from __future__ import print_function
-
+from sage.rings.polynomial.pbori.pbori import mod_mon_set
 from .PyPolyBoRi import *
 from .easy_polynomials import (easy_linear_polynomials as
                                easy_linear_polynomials_func)
@@ -14,12 +13,13 @@ class GeneratorLimitExceeded(Exception):
     """
 
     def __init__(self, strat):
-        #super(GeneratorLimitExceeded, self).__init__()
         self.strat = strat
 
 
 def pkey(p):
     return (p[0], len(p))
+
+
 mat_counter = 0
 
 
@@ -32,16 +32,15 @@ def build_and_print_matrices(v, strat):
     v = list(v)
     rows = 0
     polys_in_mat = []
-    if len(v) == 0:
+    if not v:
         return
-    while(len(v) > 0):
+    while v:
         rows = rows + 1
         p = v[0]
         v = v[1:]
-        #used_polynomials.append(p)
         for m in list(p.terms()):
             m = Monomial(m)
-            if not m in BooleSet(treated):
+            if m not in BooleSet(treated):
                 i = strat.select(m)
                 if i >= 0:
                     p2 = strat[i]
@@ -105,7 +104,7 @@ def build_and_print_matrices_deg_colored(v, strat):
     r"""
     old PIL solution using a different color for each degree
     """
-    if len(v) == 0:
+    if not v:
         return
 
     treated = BooleSet()
@@ -113,13 +112,13 @@ def build_and_print_matrices_deg_colored(v, strat):
     rows = 0
     polys_in_mat = []
 
-    while(len(v) > 0):
+    while v:
         rows = rows + 1
         p = v[0]
         v = v[1:]
         for m in list(p.terms()):
             m = Monomial(m)
-            if not m in BooleSet(treated):
+            if m not in BooleSet(treated):
                 i = strat.select(m)
                 if i >= 0:
                     p2 = strat[i]
@@ -167,7 +166,7 @@ def high_probability_polynomials_trick(p, strat):
     factor = multiply_polynomials(easy_linear_factors(p), ring)
     p = p / factor
 
-    #again, do it twice, it's cheap
+    # again, do it twice, it's cheap
     lead_deg = p.lead_deg()
     if lead_deg <= 3:
         return
@@ -190,7 +189,7 @@ def high_probability_polynomials_trick(p, strat):
     for v in lead.variables():
         variable_selection = lead // v
         vars_reversed = reversed(list(variable_selection.variables()))
-        #it's just a way to loop over the cartesian product
+        # it's just a way to loop over the cartesian product
         for assignment in variable_selection.divisors():
             c_p = assignment
             for v in vars_reversed:
@@ -200,20 +199,20 @@ def high_probability_polynomials_trick(p, strat):
             points = (c_p + 1).zeros_in(space)
             if p.zeros_in(points).empty():
                 candidates.append(c_p * factor)
-        #there many more combinations depending on plugged in values
+        # there many more combinations depending on plugged in values
     for c in candidates:
         strat.add_as_you_wish(c)
 
 
 def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
-    use_faugere=False, use_noro=False, opt_lazy=True, opt_red_tail=True,
-    max_growth=2.0, step_factor=1.0, implications=False, prot=False,
-    full_prot=False, selection_size=1000, opt_exchange=True,
-    opt_allow_recursion=False, ll=False,
-    opt_linear_algebra_in_last_block=True, max_generators=None,
-    red_tail_deg_growth=True, matrix_prefix='mat',
-    modified_linear_algebra=True, draw_matrices=False,
-    easy_linear_polynomials=True):
+        use_faugere=False, use_noro=False, opt_lazy=True, opt_red_tail=True,
+        max_growth=2.0, step_factor=1.0, implications=False, prot=False,
+        full_prot=False, selection_size=1000, opt_exchange=True,
+        opt_allow_recursion=False, ll=False,
+        opt_linear_algebra_in_last_block=True, max_generators=None,
+        red_tail_deg_growth=True, matrix_prefix='mat',
+        modified_linear_algebra=True, draw_matrices=False,
+        easy_linear_polynomials=True):
     if use_noro and use_faugere:
         raise ValueError('both use_noro and use_faugere specified')
 
@@ -237,12 +236,11 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
             if new_len == 1 + old_len:
                 high_probability_polynomials_trick(p, strat)
 
-
             if prot:
                 print("#Generators:", len(strat))
 
-    if (isinstance(G, list)):
-        if len(G) == 0:
+    if isinstance(G, list):
+        if not G:
             return []
         G = [Polynomial(g) for g in G]
         current_ring = G[0].ring()
@@ -262,7 +260,7 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
         strat.opt_draw_matrices = draw_matrices
         strat.matrix_prefix = matrix_prefix
 
-        for g in  G:
+        for g in G:
             if not g.is_zero():
                 strat.add_generator_delayed(g)
     else:
@@ -289,7 +287,7 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
             if ps and ps[0].ring().has_degree_order():
                 ps = [strat.reduction_strategy.cheap_reductions(p) for p in ps]
                 ps = [p for p in ps if not p.is_zero()]
-                if len(ps) > 0:
+                if ps:
                     min_deg = min((p.deg() for p in ps))
                 new_ps = []
                 for p in ps:
@@ -323,27 +321,24 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
             else:
                 v = BoolePolynomialVector()
                 for p in ps:
-                    p = Polynomial(
-                        mod_mon_set(
-                        BooleSet(p.set()), strat.reduction_strategy.monomials))
+                    p = Polynomial(mod_mon_set(BooleSet(p.set()),
+                                        strat.reduction_strategy.monomials))
                     if not p.is_zero():
                         v.append(p)
                 if len(v) > 100:
                     res = parallel_reduce(v, strat, int(step_factor * 10),
-                        max_growth)
+                                          max_growth)
+                elif len(v) > 10:
+                    res = parallel_reduce(v, strat, int(step_factor * 30),
+                                          max_growth)
                 else:
-                    if len(v) > 10:
-                        res = parallel_reduce(v, strat, int(step_factor * 30),
-                            max_growth)
-                    else:
-                        res = parallel_reduce(v, strat, int(step_factor * 100
-                            ), max_growth)
+                    res = parallel_reduce(v, strat, int(step_factor * 100),
+                                          max_growth)
 
             if prot:
                 print("end reducing")
 
-
-            if len(res) > 0 and res[0].ring().has_degree_order():
+            if res and res[0].ring().has_degree_order():
                 res_min_deg = min([p.deg() for p in res])
                 new_res = []
                 for p in res:
@@ -357,8 +352,7 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
                 return p.lead()
             res_cp = sorted(res, key=sort_key)
 
-
-            for p in  res_cp:
+            for p in res_cp:
                 old_len = len(strat)
                 add_to_basis(strat, p)
                 if implications and old_len == len(strat) - 1:
@@ -373,7 +367,6 @@ def symmGB_F2_python(G, deg_bound=1000000000000, over_deg_bound=0,
             strat.clean_top_by_chain_criterion()
         return strat
     except KeyboardInterrupt:
-        #return strat
         raise
 
 
@@ -383,8 +376,8 @@ def GPS(G, vars_start, vars_end):
         print("npairs", strat.npairs())
         strat = GroebnerStrategy(strat)
         print("npairs", strat.npairs())
-        strat.add_generator_delayed(Polynomial(Monomial(Variable(var, strat.r)
-            ) + val))
+        strat.add_generator_delayed(Polynomial(
+            Monomial(Variable(var, strat.r)) + val))
         strat = symmGB_F2_python(strat, prot=True, deg_bound=2,
             over_deg_bound=10)
         if var <= vars_start:
@@ -394,22 +387,22 @@ def GPS(G, vars_start, vars_end):
             pass
         else:
             if var <= vars_start:
-                #bug: may contain Delayed polynomials
+                # bug: may contain Delayed polynomials
                 print("!!!!!!! SOLUTION", trace)
                 raise Exception
-                #yield trace
+                # yield trace
             else:
                 branch(strat, trace + [(var, val)], var - 1)
 
     def branch(strat, trace, var):
-        while(strat.variableHasValue(var)):
-            #remember to add value to trace
-            var = var - 1
+        while strat.variableHasValue(var):
+            # remember to add value to trace
+            var -= 1
         step(strat, trace, var, 0)
         step(strat, trace, var, 1)
     if G:
         strat = GroebnerStrategy(G[0].ring())
-        #strat.add_generator(G[0])
+        # strat.add_generator(G[0])
         for g in G[:]:
             strat.add_generator_delayed(g)
         branch(strat, [], vars_end - 1)
@@ -447,10 +440,10 @@ def GPS_with_proof_path(G, proof_path, deg_bound, over_deg_bound):
                 print("minimized:")
                 for p in strat.minimalize_and_tail_reduce():
                     print(p)
-                #bug: may contain Delayed polynomials
+                # bug: may contain Delayed polynomials
                 print("!!!!!!! SOLUTION", trace)
                 raise Exception
-                #yield trace
+                # yield trace
             else:
                 branch(strat, trace + [(pos, val)], proof_path, pos)
 
@@ -466,7 +459,7 @@ def GPS_with_proof_path(G, proof_path, deg_bound, over_deg_bound):
 
 
 def GPS_with_suggestions(G, deg_bound, over_deg_bound, opt_lazy=True,
-    opt_red_tail=True, initial_bb=True):
+                         opt_red_tail=True, initial_bb=True):
     def step(strat, trace, var, val):
         print(trace)
         plug_p = val + var
@@ -480,7 +473,6 @@ def GPS_with_suggestions(G, deg_bound, over_deg_bound, opt_lazy=True,
         strat = symmGB_F2_python(strat, deg_bound=deg_bound,
             opt_lazy=opt_lazy, over_deg_bound=over_deg_bound, prot=True)
 
-        #pos=pos+1
         if not strat.containsOne():
             branch(strat, trace)
 
@@ -493,7 +485,7 @@ def GPS_with_suggestions(G, deg_bound, over_deg_bound, opt_lazy=True,
             lv = set([next(iter(p.lead())).index() for p in strat if p.
                 lead_deg() == 1])
             candidates = uv.difference(lv)
-            if len(candidates) > 0:
+            if candidates:
                 index = next(iter(candidates)).index()
         if index >= 0:
             print("chosen index:", index)
@@ -510,7 +502,6 @@ def GPS_with_suggestions(G, deg_bound, over_deg_bound, opt_lazy=True,
                 raise Exception
 
     def sort_crit(p):
-        #return (p.deg(),p.lead(),p.elength())
         return (p.lead(), p.deg(), p.elength())
     if not G:
         return
@@ -518,18 +509,14 @@ def GPS_with_suggestions(G, deg_bound, over_deg_bound, opt_lazy=True,
     strat.reduction_strategy.opt_red_tail = opt_red_tail  # True
     strat.opt_exchange = False
     strat.opt_allow_recursion = False
-    #strat.opt_red_tail_deg_growth=False
     strat.opt_lazy = opt_lazy
-    #strat.opt_lazy=True
     first_deg_bound = 1
     G = [Polynomial(p) for p in G]
     G.sort(key=sort_crit)
-    higher_deg = {}
     if initial_bb:
         for g in G:
             print(g)
-            index = strat.select(g.lead())
-            if p.deg() == 1:  # (index<0):
+            if g.deg() == 1:  # (index<0):
                 strat.add_as_you_wish(g)
             else:
                 first_deg_bound = max(first_deg_bound, g.deg())
@@ -572,19 +559,15 @@ def GPS_with_non_binary_proof_path(G, proof_path, deg_bound, over_deg_bound):
         else:
             if pos >= len(proof_path):
                 print("npairs", strat.npairs())
-                #strat.to_std_out()
-                l = [p for p in strat]
-                strat2 = symmGB_F2_python(l)
-                #strat2.to_std_out()
-                #bug: may contain Delayed polynomials
+                # bug: may contain Delayed polynomials
                 print("!!!!!!! SOLUTION", trace)
                 raise Exception
-                #yield trace
+                # yield trace
             else:
                 branch(strat, trace + [(pos, choice)], proof_path, pos)
-                #workaround because of stack depth
-                #step(strat,trace+[(var,val)],var-1, 0)
-                #step(strat,trace+[(var,val)],var-1, 1)
+                # workaround because of stack depth
+                # step(strat,trace+[(var,val)],var-1, 0)
+                # step(strat,trace+[(var,val)],var-1, 1)
 
     def branch(strat, trace, proof_path, pos):
         for i in range(len(proof_path[pos])):
@@ -598,20 +581,20 @@ def GPS_with_non_binary_proof_path(G, proof_path, deg_bound, over_deg_bound):
 
 
 def symmGB_F2_C(G, opt_exchange=True,
-    deg_bound=1000000000000, opt_lazy=False,
-    over_deg_bound=0, opt_red_tail=True,
-    max_growth=2.0, step_factor=1.0,
-    implications=False, prot=False,
-    full_prot=False, selection_size=1000,
-    opt_allow_recursion=False, use_noro=False, use_faugere=False,
-    ll=False, opt_linear_algebra_in_last_block=True,
-    max_generators=None, red_tail_deg_growth=True,
-    modified_linear_algebra=True, matrix_prefix="",
-    draw_matrices=False):
+        deg_bound=1000000000000, opt_lazy=False,
+        over_deg_bound=0, opt_red_tail=True,
+        max_growth=2.0, step_factor=1.0,
+        implications=False, prot=False,
+        full_prot=False, selection_size=1000,
+        opt_allow_recursion=False, use_noro=False, use_faugere=False,
+        ll=False, opt_linear_algebra_in_last_block=True,
+        max_generators=None, red_tail_deg_growth=True,
+        modified_linear_algebra=True, matrix_prefix="",
+        draw_matrices=False):
     if use_noro:
         raise NotImplementedError("noro not implemented for symmgb")
-    if (isinstance(G, list)):
-        if len(G) == 0:
+    if isinstance(G, list):
+        if not G:
             return []
 
         G = [Polynomial(g) for g in G]
@@ -629,7 +612,6 @@ def symmGB_F2_C(G, opt_exchange=True,
         strat.matrix_prefix = matrix_prefix
         strat.opt_draw_matrices = draw_matrices
         strat.reduction_strategy.opt_red_tail_deg_growth = red_tail_deg_growth
-        #strat.add_generator(G[0])
 
         strat.redByReduced = False  # True
 
@@ -671,6 +653,7 @@ def normal_form(poly, ideal, reduced=True):
 def _test():
     import doctest
     doctest.testmod()
+
 
 if __name__ == "__main__":
     _test()

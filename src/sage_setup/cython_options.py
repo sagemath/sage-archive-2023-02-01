@@ -5,6 +5,8 @@ def compiler_directives(profile: bool):
     Returns a list of Cython directives used for compilation.
     """
     return dict(
+        # Do not generate __reduce__ methods
+        auto_pickle=False,
         # Do not create __test__ dictionary automatically from docstrings
         autotestdict=False,
         # Do not check for division by 0 (this is about 35% quicker than with check)

@@ -142,15 +142,15 @@ class FreeMonoidElement(MonoidElement):
             sage: latex(alpha*beta*gamma)
             \alpha\beta\gamma
 
-            Check that :trac:`14509` is fixed::
+        Check that :trac:`14509` is fixed::
 
-                sage: K.< alpha,b > = FreeAlgebra(SR)
-                sage: latex(alpha*b)
-                \alpha b
-                sage: latex(b*alpha)
-                b \alpha
-                sage: "%s"%latex(alpha*b)                                                                                                                                                                                       
-                '\\alpha b'
+            sage: K.< alpha,b > = FreeAlgebra(SR)
+            sage: latex(alpha*b)
+            \alpha b
+            sage: latex(b*alpha)
+            b \alpha
+            sage: "%s"%latex(alpha*b)                                                                                                                                                                                       
+            '\\alpha b'
         """
         s = ""
         v = self._element_list

@@ -5632,6 +5632,10 @@ REFERENCES:
 .. [Wie2000] \B. Wieland. *A large dihedral symmetry of the set of
              alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
+.. [Wilson2016] \A. T. Wilson. *An extension of MacMahon's Equidistribution
+                Theorem to ordered multiset partitions*. Electron. J. Combin.,
+                **23** (1) (2016).
+
 .. [Wil2010] \M. Willis. A direct way to find the right key of
              a semistandard Young tableau. :arxiv:`1110.6184v1`.
 

@@ -1217,6 +1217,9 @@ REFERENCES:
 
 **C**
 
+.. [Cal2005] \D. Callan. *On Conjugates for Set Partitions and Integer
+             Compositions*. Preprint, :arxiv:`math/0508052`.
+
 .. [dCa2007] \C. de Canniere: *Analysis and Design of Symmetric Encryption
              Algorithms*, PhD Thesis, 2007.
 

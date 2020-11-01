@@ -2683,7 +2683,7 @@ class DiGraph(GenericGraph):
 
         - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
           only simple cycles are considered. A cycle is simple if the only
-          vertex occuring twice in it is the starting and ending one.
+          vertex occurring twice in it is the starting and ending one.
 
         - ``rooted`` -- boolean (default: ``False``); if set to False, then
           cycles differing only by their starting vertex are considered the same
@@ -2803,7 +2803,7 @@ class DiGraph(GenericGraph):
 
         - ``simple`` -- boolean (default: ``False``); if set to ``True``, then
           only simple cycles are considered. A cycle is simple if the only
-          vertex occuring twice in it is the starting and ending one.
+          vertex occurring twice in it is the starting and ending one.
 
         - ``rooted`` -- boolean (default: ``False``); if set to False, then
           cycles differing only by their starting vertex are considered the same
@@ -2882,7 +2882,7 @@ class DiGraph(GenericGraph):
              ['a', 'a', 'a', 'a']]
 
         One may prefer to enumerate simple cycles, i.e. cycles such that the only
-        vertex occuring twice in it is the starting and ending one (see also
+        vertex occurring twice in it is the starting and ending one (see also
         :meth:`all_simple_cycles`)::
 
             sage: it = g.all_cycles_iterator(simple=True)
@@ -3347,7 +3347,7 @@ class DiGraph(GenericGraph):
         the levels `l[j]` for `j < i`, and at least one in level `l[i-1]`
         (unless `i = 0`).
 
-        The level decomposition contains exactly the vertices not occuring in
+        The level decomposition contains exactly the vertices not occurring in
         any cycle of the graph. In particular, the graph is acyclic if and only
         if the decomposition forms a set partition of its vertices, and we
         recover the usual level set decomposition of the corresponding poset.

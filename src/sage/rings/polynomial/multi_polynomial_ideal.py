@@ -234,7 +234,6 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.interfaces.all import (singular as singular_default,
-                                 macaulay2 as macaulay2_default,
                                  magma as magma_default)
 
 from sage.interfaces.expect import StdOutContext
@@ -2559,7 +2558,7 @@ class MPolynomialIdeal_singular_repr(
         if d == -1:
             return []
 
-        import sage.rings.complex_field as CCmod
+        import sage.rings.complex_mpfr as CCmod
         if isinstance(self.base_ring(), CCmod.ComplexField_class):
           verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
         P = self.ring()

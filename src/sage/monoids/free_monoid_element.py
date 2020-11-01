@@ -140,7 +140,7 @@ class FreeMonoidElement(MonoidElement):
             'a_{0}^{5}a_{1}^{2}a_{0}^{12}a_{1}^{2}'
             sage: F.<alpha,beta,gamma> = FreeMonoid(3)
             sage: latex(alpha*beta*gamma)
-            \alpha\beta\gamma
+            \alpha \beta \gamma
 
         Check that :trac:`14509` is fixed::
 

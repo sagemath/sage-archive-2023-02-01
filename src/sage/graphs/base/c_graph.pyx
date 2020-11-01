@@ -3372,15 +3372,15 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``
 
-        - ``exclude_vertices`` -- iterable conatiner (default: ``None``);
+        - ``exclude_vertices`` -- iterable container (default: ``None``);
           iterable of vertices to exclude from the graph while calculating the
           shortest path from ``x`` to ``y``
 
-        - ``exclude_edges`` -- iterable conatiner (default: ``None``); iterable
+        - ``exclude_edges`` -- iterable container (default: ``None``); iterable
           of edges to exclude from the graph while calculating the shortest path
           from ``x`` to ``y``
 
-        - ``include_vertices`` -- iterable conatiner (default: ``None``);
+        - ``include_vertices`` -- iterable container (default: ``None``);
           iterable of vertices to consider in the graph while calculating the
           shortest path from ``x`` to ``y``
 

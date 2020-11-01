@@ -791,7 +791,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
     right = root.children[source_index]
 
     while len(root.children) != 1:
-        # source_index is changed everytime a new module is formed therefore
+        # source_index is changed every time a new module is formed therefore
         # updated. left or right are also updated every time module is formed.
 
         # First series module is attempted
@@ -801,7 +801,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
             left = root.children[source_index].children[0]
             continue
 
-        # If series module cant be formed, parallel is tried
+        # If series module can't be formed, parallel is tried
         result, source_index = check_parallel(graph, root, left, right,
                                                 source_index, mu, vertex_dist,
                                                 vertices_in_component)

@@ -636,7 +636,7 @@ class OpenInterval(DifferentiableManifold):
 
         OUTPUT:
 
-        - :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+        - :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
           representing the open interval (``lower``, ``upper``)
 
         EXAMPLES:
@@ -738,7 +738,7 @@ class RealLine(OpenInterval):
         False
 
     The canonical coordinate is returned by the method
-    :meth:`~sage.manifolds.differentiable.real_line.OpenInterval.canonical_coordinate`::
+    :meth:`~sage.manifolds.differentiable.examples.real_line.OpenInterval.canonical_coordinate`::
 
         sage: R.canonical_coordinate()
         t
@@ -812,7 +812,7 @@ class RealLine(OpenInterval):
 
     The real line is considered as the open interval `(-\infty, +\infty)`::
 
-        sage: isinstance(R, sage.manifolds.differentiable.real_line.OpenInterval)
+        sage: isinstance(R, sage.manifolds.differentiable.examples.real_line.OpenInterval)
         True
         sage: R.lower_bound()
         -Infinity
@@ -820,7 +820,7 @@ class RealLine(OpenInterval):
         +Infinity
 
     A real interval can be created from ``R`` means of the method
-    :meth:`~sage.manifolds.differentiable.real_line.OpenInterval.open_interval`::
+    :meth:`~sage.manifolds.differentiable.examples.real_line.OpenInterval.open_interval`::
 
         sage: I = R.open_interval(0, 1); I
         Real interval (0, 1)

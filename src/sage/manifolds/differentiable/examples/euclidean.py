@@ -447,11 +447,11 @@ class EuclideanSpace(PseudoRiemannianManifold):
 
       - ``'Cartesian'`` (canonical coordinates on `\RR^n`)
       - ``'polar'`` for ``n=2`` only (see
-        :meth:`~sage.manifolds.differentiable.euclidean.EuclideanPlane.polar_coordinates`)
+        :meth:`~sage.manifolds.differentiable.examples.euclidean.EuclideanPlane.polar_coordinates`)
       - ``'spherical'`` for ``n=3`` only (see
-        :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.spherical_coordinates`)
+        :meth:`~sage.manifolds.differentiable.examples.euclidean.Euclidean3dimSpace.spherical_coordinates`)
       - ``'cylindrical'`` for ``n=3`` only (see
-        :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.cylindrical_coordinates`)
+        :meth:`~sage.manifolds.differentiable.examples.euclidean.Euclidean3dimSpace.cylindrical_coordinates`)
 
     - ``symbols`` -- (default: ``None``) string defining the coordinate
       text symbols and LaTeX symbols, with the same conventions as the
@@ -656,12 +656,12 @@ class EuclideanSpace(PseudoRiemannianManifold):
             sage: E2.<x,y> = EuclideanSpace(); E2
             Euclidean plane E^2
             sage: type(E2)
-            <class 'sage.manifolds.differentiable.euclidean.EuclideanPlane_with_category'>
+            <class 'sage.manifolds.differentiable.examples.euclidean.EuclideanPlane_with_category'>
 
             sage: E3.<r,t,p> = EuclideanSpace(coordinates='spherical'); E3
             Euclidean space E^3
             sage: type(E3)
-            <class 'sage.manifolds.differentiable.euclidean.Euclidean3dimSpace_with_category'>
+            <class 'sage.manifolds.differentiable.examples.euclidean.Euclidean3dimSpace_with_category'>
             sage: E3.default_frame()._latex_indices
             (r, {\theta}, {\phi})
         """
@@ -1589,7 +1589,7 @@ class Euclidean3dimSpace(EuclideanSpace):
     a dynamically generated subclass of it via SageMath's category framework)::
 
         sage: type(E)
-        <class 'sage.manifolds.differentiable.euclidean.Euclidean3dimSpace_with_category'>
+        <class 'sage.manifolds.differentiable.examples.euclidean.Euclidean3dimSpace_with_category'>
 
     ``E`` is both a real smooth manifold of dimension `3` and a complete metric
     space::

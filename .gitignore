@@ -82,6 +82,9 @@ $RECYCLE.BIN/
 # SublimeText
 *.sublime-workspace
 
+# mypy
+**/.mypy_cache/
+
 #################
 # SageMathCloud #
 #################

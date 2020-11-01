@@ -7136,6 +7136,13 @@ class Polyhedron_base(Element):
             sage: line = Polyhedron(lines=[[0,1]])
             sage: line.vertex_graph()
             Graph on 0 vertices
+
+        TESTS:
+
+        Check for a line segment (:trac:`30545`)::
+
+            sage: polytopes.simplex(1).graph().edges()
+            [(A vertex at (0, 1), A vertex at (1, 0), None)]
         """
         return self.combinatorial_polyhedron().vertex_graph()
 

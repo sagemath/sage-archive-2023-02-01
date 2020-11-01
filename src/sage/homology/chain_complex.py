@@ -263,7 +263,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
 
     # make sure values in data_dict are appropriate matrices
     for n in list(data_dict):
-        if not n in grading_group:
+        if n not in grading_group:
             raise ValueError('one of the dictionary keys is not an element of the grading group')
         mat = data_dict[n]
         if not isinstance(mat, Matrix):
@@ -2156,9 +2156,11 @@ class ChainComplex_class(Parent):
         ret = self
 
         if self._grading_group is ZZ:
-            scalar = lambda a: (-1)**(a * deg_diff)
+            def scalar(a):
+                return (-1)**(a * deg_diff)
         else:
-            scalar = lambda a: (-1)**(sum(a) * sum(deg_diff))
+            def scalar(a):
+                return (-1)**(sum(a) * sum(deg_diff))
 
         for D in factors:
             # Setup

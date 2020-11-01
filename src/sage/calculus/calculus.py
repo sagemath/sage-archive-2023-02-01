@@ -2210,7 +2210,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #replace all instances of Maxima's scientific notation
     #with regular notation
     search = sci_not.search(s)
-    while not search is None:
+    while search is not None:
         (start, end) = search.span()
         r = create_RealNumber(s[start:end]).str(no_sci=2, truncate=True)
         s = s.replace(s[start:end], r)

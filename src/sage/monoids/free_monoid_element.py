@@ -143,6 +143,7 @@ class FreeMonoidElement(MonoidElement):
             \alpha\beta\gamma
 
             Check that :trac:`14509` is fixed::
+
             sage: K.< alpha,b > = FreeAlgebra(SR)
             sage: latex(alpha*b)
             \alpha b

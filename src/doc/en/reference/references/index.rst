@@ -2410,6 +2410,10 @@ REFERENCES:
              *Algebraic and combinatorial structures on pairs of twin binary trees*,
              :arxiv:`1204.4776v1`.
 
+.. [GiTr1996] P. Gianni and B. Trager. *Square-Free Algorithms in Positive
+              Characteristic*. Applicable Algebra In Engineering, Communication
+              And Computing, 7(1), p. 1-14.
+
 .. [GJ1997] Ewgenij Gawrilow and Michael Joswig, polymake: a framework for
             analyzing convex polytopes, Polytopes—combinatorics and
             computation (Oberwolfach, 1997), DMV Sem., vol. 29, Birkhäuser,

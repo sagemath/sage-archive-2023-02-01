@@ -302,18 +302,18 @@ def modular_decomposition(graph):
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
-              8
-              5
-              1
-              11
-              7
-              0
-              6
-              9
-              2
-              4
-              10
-              3
+         5
+         7
+         11
+         1
+         8
+         0
+         9
+         4
+         10
+         6
+         2
+         3
 
     The Octahedral graph is not Prime::
 
@@ -2417,18 +2417,18 @@ def print_md_tree(root):
         sage: from sage.graphs.graph_decompositions.modular_decomposition import *
         sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
-              8
-              5
-              1
-              11
-              7
-              0
-              6
-              9
-              2
-              4
-              10
-              3
+         5
+         7
+         11
+         1
+         8
+         0
+         9
+         4
+         10
+         6
+         2
+         3
     """
 
     def recursive_print_md_tree(root, level):

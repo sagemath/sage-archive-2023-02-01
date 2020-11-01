@@ -241,7 +241,9 @@ cpdef gen_to_sage(Gen z, locals=None):
     elif t == t_FRAC:
         return Rational(z)
     elif t == t_REAL:
-        prec = prec_words_to_bits(z.precision())
+        prec = z.bitprecision()
+        if prec.type() == 't_INFINITY':
+            prec = 53
         return RealField(prec)(z)
     elif t == t_COMPLEX:
         real = z.real()
@@ -251,14 +253,19 @@ cpdef gen_to_sage(Gen z, locals=None):
         if tx in [t_INTMOD, t_PADIC] or ty in [t_INTMOD, t_PADIC]:
             raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
         if tx == t_REAL or ty == t_REAL:
-            xprec = real.precision()  # will be 0 if exact
-            yprec = imag.precision()  # will be 0 if exact
-            if xprec == 0:
-                prec = prec_words_to_bits(yprec)
-            elif yprec == 0:
-                prec = prec_words_to_bits(xprec)
+            xprec = real.bitprecision()  # will be 0 if exact
+            yprec = imag.bitprecision()  # will be 0 if exact
+            if xprec == 0 or yprec == 0:
+                raise RuntimeError
+            if xprec.type() == 't_INFINITY':
+                if yprec.type() == 't_INFINITY':
+                    prec = 53
+                else:
+                    prec = yprec
+            elif yprec.type() == 't_INFINITY':
+                prec = xprec
             else:
-                prec = max(prec_words_to_bits(xprec), prec_words_to_bits(yprec))
+                prec = max(xprec, yprec)
 
             R = RealField(prec)
             C = ComplexField(prec)

@@ -261,7 +261,7 @@ def parse_moutput_from_json(page_data, verbose=False):
         sage: page_data = request_wolfram_alpha('Sin[x]')           # optional internet
         sage: L = parse_moutput_from_json(page_data)                # optional internet
         sage: sorted(L)                                             # optional internet
-        [u'-Cos[x]', u'{{x == Pi C[1], Element[C[1], Integers]}}']
+        ['-Cos[x]', '{{x == 0}}', '{{x == Pi C[1], Element[C[1], Integers]}}']
 
     TESTS::
 

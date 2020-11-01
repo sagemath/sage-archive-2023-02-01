@@ -1660,8 +1660,8 @@ class K_kSchur(CombinatorialFreeModule):
             ...
             ValueError: Partition should be 3-bounded
         """
-        if la != [] and (la[0] > self.k):
-            raise  ValueError("Partition should be %d-bounded"%self.k)
+        if la and la[0] > self.k:
+            raise  ValueError("Partition should be %d-bounded" % self.k)
         return self._DualGrothendieck(Partition(la))
 
     def K_k_Schur_non_commutative_variables(self,la):

@@ -1,6 +1,4 @@
 from .PyPolyBoRi import Polynomial, gauss_on_polys
-from .nf import symmGB_F2_python
-from .interpolate import variety_lex_leading_terms, nf_lex_points
 
 
 def dense_system(I):
@@ -30,7 +28,7 @@ def gauss_on_linear(I):
             linear.append(p)
         else:
             non_linear.append(p)
-    if len(linear) == 0:
+    if not linear:
         return non_linear
     linear = list(gauss_on_polys(linear))
     return linear + non_linear

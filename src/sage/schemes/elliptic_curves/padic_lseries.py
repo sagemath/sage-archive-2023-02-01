@@ -855,7 +855,8 @@ class pAdicLseriesOrdinary(pAdicLseries):
         eta = ZZ(eta) % (self._p - 1)
         D = ZZ(quadratic_twist)
         if D != 1:
-            if eta != 0: raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
+            if eta != 0:
+                raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
             if D % 4 == 0:
                 d = D//4
                 if not d.is_squarefree() or d % 4 == 1:
@@ -914,7 +915,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         verbose("using series precision of %s"%res_series_prec)
 
         ans = self._get_series_from_cache(n, res_series_prec,D,eta)
-        if not ans is None:
+        if ans is not None:
             verbose("found series in cache")
             return ans
 
@@ -1211,7 +1212,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # check if the conditions on quadratic_twist are satisfied
         D = ZZ(quadratic_twist)
         if D != 1:
-            if eta != 0: raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
+            if eta != 0:
+                raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
             if D % 4 == 0:
                 d = D//4
                 if not d.is_squarefree() or d % 4 == 1:
@@ -1252,9 +1254,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
             alphaadic_prec = max(bounds[1:]) + 5
 
         padic_prec = alphaadic_prec//2+1
-        verbose("using alpha-adic precision of %s"%padic_prec)
+        verbose("using alpha-adic precision of %s" % padic_prec)
         ans = self._get_series_from_cache(n, prec, quadratic_twist,eta)
-        if not ans is None:
+        if ans is not None:
             verbose("found series in cache")
             return ans
 

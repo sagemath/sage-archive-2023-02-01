@@ -820,7 +820,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: E.quadratic_twist(-19).label()    # optional -- database_cremona_ellcurve
             '15523a1'
 
-        This proves that the rank of '15523a1' is zero, even if ``mwrank`` can not determine this.
+        This proves that the rank of '15523a1' is zero, even if ``mwrank`` cannot determine this.
 
         We calculate the `L`-series in the nontrivial Teichmueller components::
 
@@ -868,7 +868,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             if gcd(D, self._E.conductor()) != 1:
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(), ell) > valuation(D, ell):
-                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
+                        raise ValueError("cannot twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
         p = self._p
 
         #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
@@ -1222,7 +1222,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             if gcd(D, self._E.conductor()) != 1:
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(), ell) > valuation(D, ell):
-                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)." % (self._E.conductor(), D))
+                        raise ValueError("cannot twist a curve of conductor (=%s) by the quadratic twist (=%s)." % (self._E.conductor(), D))
 
         p = self._p
         eta = ZZ(eta) % (p - 1)

@@ -2035,7 +2035,7 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             sage: continued_fraction(w)
             Traceback (most recent call last):
             ...
-            ValueError: word with unknown length can not be converted to
+            ValueError: word with unknown length cannot be converted to
             continued fractions
 
             sage: continued_fraction(words.FibonacciWord([0,1]))
@@ -2254,7 +2254,7 @@ def check_and_reduce_pair(x1, x2=None):
     else:
         y2 = [Integer(x) for x in x2]
         if any(b <= ZZ_0 for b in y2):
-            raise ValueError("the elements of the period can not be negative")
+            raise ValueError("the elements of the period cannot be negative")
 
     # add possibly some element of x1 into the period
     while y1 and y1[-1] == y2[-1]:
@@ -2628,7 +2628,7 @@ def continued_fraction(x, value=None):
 
     from sage.combinat.words.abstract_word import Word_class
     if isinstance(x, Word_class):
-        raise ValueError("word with unknown length can not be converted "
+        raise ValueError("word with unknown length cannot be converted "
                          "to continued fractions")
 
     # input for numbers
@@ -2655,7 +2655,7 @@ def continued_fraction(x, value=None):
 
     from .real_mpfi import RealIntervalField
     if is_real is False:
-        # we can not rely on the answer of .is_real() for elements of the
+        # we cannot rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.
         RIF = RealIntervalField(53)
         try:

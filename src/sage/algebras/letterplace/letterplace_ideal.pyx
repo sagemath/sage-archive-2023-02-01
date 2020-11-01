@@ -207,7 +207,7 @@ class LetterplaceIdeal(Ideal_nc):
             - The result is cached. The same Groebner basis is returned
               if a smaller degree bound than the known one is requested.
             - If the degree bound ``Infinity`` is requested, it is attempted to
-              compute a complete Groebner basis. But we can not guarantee
+              compute a complete Groebner basis. But we cannot guarantee
               that the computation will terminate, since not all twosided
               homogeneous ideals of a free algebra have a finite Groebner
               basis.
@@ -217,9 +217,9 @@ class LetterplaceIdeal(Ideal_nc):
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
 
-        Since `F` was cached and since its degree bound can not be
+        Since `F` was cached and since its degree bound cannot be
         decreased, it may happen that, as a side effect of other tests,
-        it already has a degree bound bigger than 3. So, we can not
+        it already has a degree bound bigger than 3. So, we cannot
         test against the output of ``I.groebner_basis()``::
 
             sage: F.set_degbound(3)

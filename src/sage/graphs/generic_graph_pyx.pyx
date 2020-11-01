@@ -665,7 +665,7 @@ cdef class SubgraphSearch:
             raise ValueError("Searched graph should have at least 2 vertices.")
 
         if sum([G.is_directed(), H.is_directed()]) == 1:
-            raise ValueError("One graph can not be directed while the other is not.")
+            raise ValueError("One graph cannot be directed while the other is not.")
 
         G._scream_if_not_simple(allow_loops=True)
         H._scream_if_not_simple(allow_loops=True)

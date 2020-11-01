@@ -1593,7 +1593,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
             v_int = min_path.predecessors[v_int]
             min_path_nodes.append(v_int if v_int < n else v_int - n)
 
-        # removal of edges occuring even number of times
+        # removal of edges occurring even number of times
         edges = set()
         for edge in zip(min_path_nodes[:-1], min_path_nodes[1:]):
             edges ^= {edge}

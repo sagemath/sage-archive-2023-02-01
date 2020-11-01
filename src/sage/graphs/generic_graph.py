@@ -23565,7 +23565,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         for u, v in edge_iter:
             if G.has_edge(u, v):
                 continue
-            # We count the number of occurence of each distinct label
+            # We count the number of occurrences of each distinct label
             if ignore_edge_labels:
                 G.add_edge(u, v, [[None, len(g.edge_label(u, v))]])
             else:

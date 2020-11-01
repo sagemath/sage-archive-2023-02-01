@@ -1490,7 +1490,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
 
     def variables(self):
         """
-        Return the tuple of variables occuring in this Laurent polynomial.
+        Return the tuple of variables occurring in this Laurent polynomial.
 
         EXAMPLES::
 

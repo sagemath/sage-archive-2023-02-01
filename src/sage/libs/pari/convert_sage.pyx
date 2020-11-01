@@ -144,6 +144,20 @@ cpdef gen_to_sage(Gen z, locals=None):
         sage: a.parent()
         Complex Field with 64 bits of precision
 
+        sage: z = pari('1 + 1.0*I'); z
+        1 + 1.00000000000000*I
+        sage: a = gen_to_sage(z); a
+        1.00000000000000000 + 1.00000000000000000*I
+        sage: a.parent()
+        Complex Field with 64 bits of precision
+
+        sage: z = pari('1.0 + 1*I'); z
+        1.00000000000000 + I
+        sage: a = gen_to_sage(z); a
+        1.00000000000000000 + 1.00000000000000000*I
+        sage: a.parent()
+        Complex Field with 64 bits of precision
+
     Converting polynomials::
 
         sage: f = pari('(2/3)*x^3 + x - 5/7 + y')

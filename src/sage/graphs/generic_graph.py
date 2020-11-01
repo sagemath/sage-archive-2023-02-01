@@ -615,38 +615,8 @@ class GenericGraph(GenericGraph_pyx):
             self.size() != other.size() or
             self.weighted() != other.weighted()):
                 return False
-        # Vertices
-        if any(x not in other for x in self):
-            return False
-        # Finally, we are prepared to check edges:
-        if not self.allows_multiple_edges():
-            return all(other.has_edge(*edge)
-                       for edge in self.edge_iterator(labels=self._weighted, sort_vertices=False))
-        # The problem with multiple edges is that labels may not have total
-        # ordering, which makes it difficult to compare lists of labels.
-        seen = set()
-        for e in self.edge_iterator(labels=False, sort_vertices=False):
-            if e in seen:
-                continue
-            seen.add(e)
-            # All labels between e[0] and e[1]
-            labels1 = self.edge_label(*e)
-            try:
-                labels2 = other.edge_label(*e)
-            except LookupError:
-                return False
-            if len(labels1) != len(labels2):
-                return False
-            if self._weighted:
-                # If there is total ordering, sorting will speed up things
-                labels1.sort()
-                labels2.sort()
-                for l in labels1:
-                    try:
-                        labels2.remove(l)
-                    except ValueError:
-                        return False
-        return True
+
+        return self._backend.is_subgraph(other._backend, self, ignore_labels=not self.weighted())
 
     @cached_method
     def __hash__(self):
@@ -4650,9 +4620,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: [sorted(c) for c in G.cycle_basis()]
             [['Hey', 'Really ?', 'Wuuhuu'], [0, 2], [0, 1, 2]]
             sage: [sorted(c) for c in G.cycle_basis(output='edge')]
-            [[('Hey', 'Really ?', None),
-              ('Really ?', 'Wuuhuu', None),
-              ('Wuuhuu', 'Hey', None)],
+            [[('Hey', 'Wuuhuu', None),
+              ('Really ?', 'Hey', None),
+              ('Wuuhuu', 'Really ?', None)],
              [(0, 2, 'a'), (2, 0, 'b')],
              [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
 
@@ -12538,7 +12508,7 @@ class GenericGraph(GenericGraph_pyx):
         speed::
 
             sage: g = graphs.PathGraph(1000)
-            sage: g.subgraph(list(range(10))) # uses the 'add' algorithm
+            sage: g.subgraph(list(range(10)))  # uses the 'add' algorithm
             Subgraph of (Path graph): Graph on 10 vertices
 
         TESTS:
@@ -12568,7 +12538,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm is not None and algorithm not in ("delete", "add"):
             raise ValueError('algorithm should be None, "delete", or "add"')
 
-        if inplace or len(vertices) > 0.05 * self.order() or algorithm == "delete":
+        if (inplace or algorithm == "delete"):
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,
                                               edge_property=edge_property,
@@ -12688,33 +12658,37 @@ class GenericGraph(GenericGraph_pyx):
         G = self.__class__(weighted=self._weighted, loops=self.allows_loops(),
                            multiedges=self.allows_multiple_edges())
         G.name("Subgraph of (%s)"%self.name())
-        G.add_vertices(self if vertices is None else vertices)
-
-        if edges is not None:
-            edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
-            edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
-
-            edges_to_keep = []
-            if self._directed:
-                for u, v, l in self.edges(vertices=vertices, sort=False):
-                    if (v in G and ((u, v, l) in edges_to_keep_labeled
-                                    or (u, v) in edges_to_keep_unlabeled)):
-                        edges_to_keep.append((u, v, l))
-            else:
-                for u, v, l in self.edges(vertices=vertices, sort=False):
-                    if (u in G and v in G
-                        and ((u, v, l) in edges_to_keep_labeled
-                             or (v, u, l) in edges_to_keep_labeled
-                             or (u, v) in edges_to_keep_unlabeled
-                             or (v, u) in edges_to_keep_unlabeled)):
-                        edges_to_keep.append((u, v, l))
+        if edges is None and edge_property is None:
+            self._backend.subgraph_given_vertices(G._backend, vertices)
         else:
-            edges_to_keep = [e for e in self.edges(vertices=vertices, sort=False)
-                                 if e[0] in vertices and e[1] in vertices]
+            G.add_vertices(self if vertices is None else vertices)
 
-        if edge_property is not None:
-            edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
-        G.add_edges(edges_to_keep)
+            if edges is not None:
+                edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
+                edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
+
+                edges_to_keep = []
+                if self._directed:
+                    for u, v, l in self.edges(vertices=vertices, sort=False):
+                        if (v in G and ((u, v, l) in edges_to_keep_labeled
+                                        or (u, v) in edges_to_keep_unlabeled)):
+                            edges_to_keep.append((u, v, l))
+                else:
+                    for u, v, l in self.edges(vertices=vertices, sort=False):
+                        if (u in G and v in G
+                            and ((u, v, l) in edges_to_keep_labeled
+                                 or (v, u, l) in edges_to_keep_labeled
+                                 or (u, v) in edges_to_keep_unlabeled
+                                 or (v, u) in edges_to_keep_unlabeled)):
+                            edges_to_keep.append((u, v, l))
+            else:
+                s_vertices = set(vertices)
+                edges_to_keep = [e for e in self.edges(vertices=vertices, sort=False, sort_vertices=False)
+                                     if e[0] in s_vertices and e[1] in s_vertices]
+
+            if edge_property is not None:
+                edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
+            G.add_edges(edges_to_keep)
 
         attributes_to_update = ('_pos', '_assoc')
         for attr in attributes_to_update:
@@ -12851,13 +12825,12 @@ class GenericGraph(GenericGraph_pyx):
         """
         if inplace:
             G = self
+            if vertices is not None:
+                vertices = set(vertices)
+                G.delete_vertices([v for v in G if v not in vertices])
+            G.name("Subgraph of (%s)"%self.name())
         else:
-            G = copy(self)
-        G.name("Subgraph of (%s)"%self.name())
-
-        if vertices is not None:
-            vertices = set(vertices)
-            G.delete_vertices([v for v in G if v not in vertices])
+            G = self._subgraph_by_adding(vertices)
 
         edges_to_delete = []
         if edges is not None:
@@ -14203,10 +14176,12 @@ class GenericGraph(GenericGraph_pyx):
             return False
 
         if induced:
-            return other.subgraph(self) == self
+            # Check whether ``self`` is contained in ``other``
+            # and whether the induced subgraph of ``other`` is contained in ``self``.
+            return (self._backend.is_subgraph(other._backend, self)
+                    and other._backend.is_subgraph(self._backend, self))
         else:
-            self._scream_if_not_simple(allow_loops=True)
-            return all(other.has_edge(e) for e in self.edge_iterator())
+            return self._backend.is_subgraph(other._backend, self)
 
     ### Cluster
 

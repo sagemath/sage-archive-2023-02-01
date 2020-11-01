@@ -2576,8 +2576,32 @@ cdef class CGraphBackend(GenericGraphBackend):
             cg.del_arc_label(v_int, u_int, l_int)
         self.free_edge_label(l_int)
 
+    cdef bint _has_labeled_edge_unsafe(self, int u_int, int v_int, object l) except -1:
+        """
+        Return whether ``self`` has an arc specified by indices of the vertices
+        and an arc label.
+        """
+        raise NotImplementedError
+        cdef int l_int
+        if l is None:
+            l_int = 0
+        else:
+            l_int = self.new_edge_label(l)
+        return self.cg().has_arc_unsafe(u_int, v_int, l_int)
+
     cdef int free_edge_label(self, int l_int) except -1:
         raise NotImplementedError()
+
+    cdef list _all_edge_labels(self, int u, int v, uint32_t* edge=NULL):
+        """
+        Gives the labels of all arcs from ``u`` to ``v``.
+
+        ``u`` and ``v`` are the integers corresponding to vertices.
+
+        ``edge`` may point to an edge from ``u`` to ``v``.
+        """
+        cdef int l_int
+        return [self.edge_labels[l_int] if l_int else None for l_int in self.cg().all_arcs(u, v)]
 
     ###################################
     # Edge Iterators
@@ -2859,6 +2883,426 @@ cdef class CGraphBackend(GenericGraphBackend):
                     raise IndexError("the vertices were modified while iterating the edges")
 
                 u_int = cg._next_neighbor_unsafe(v_int, u_int, out, &l_int)
+
+    ###################################
+    # Using Edge Iterators
+    ###################################
+
+    def is_subgraph(self, CGraphBackend other, object vertices, bint ignore_labels=False):
+        """
+        Return whether the subgraph of ``self`` induced by ``vertices`` is a subgraph of ``other``.
+
+        If ``vertices`` are the vertices of ``self``, return whether ``self`` is a subgraph of ``other``.
+
+        INPUT:
+
+            - ``other`` - a subclass of :class:`CGraphBackend`
+            - ``vertices`` -- a iterable over the vertex labels
+            - ``ignore_labels`` -- boolean (default: ``False``); whether to ignore the labels
+
+        EXAMPLES::
+
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(4, directed=True)
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(4, directed=True)
+            sage: G.add_edges([[0,1],[0,2],[0,3],[1,2]], True)
+            sage: H.add_edges([[0,1],[0,2],[0,3]], True)
+            sage: G.is_subgraph(H, range(4))
+            False
+            sage: H.is_subgraph(G, range(4))
+            True
+            sage: G.is_subgraph(H, [0,1,3])
+            True
+
+        Ignore the labels or not::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(3, directed=True)
+            sage: G.multiple_edges(True)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(3, directed=True)
+            sage: H.multiple_edges(True)
+            sage: G.add_edges([[0,1,'a'], [0,1,'b'], [0,2,'c'], [0,2,'d'], [0,2,'e']], True)
+            sage: H.add_edges([[0,1,'a'], [0,1,'foo'], [0,2,'c'], [0,2,'d'], [0,2,'e'], [0,2,'e']], True)
+            sage: G.is_subgraph(H, range(3))
+            False
+            sage: G.is_subgraph(H, range(3), ignore_labels=True)
+            True
+
+        Multiplicities of edges are considered::
+
+            sage: G.is_subgraph(H, [0,2])
+            True
+            sage: H.is_subgraph(G, [0,2])
+            False
+        """
+        if not ignore_labels:
+            return 1 == self._use_edge_iterator_on_subgraph(other, vertices, 1)
+        else:
+            return 1 == self._use_edge_iterator_on_subgraph(other, vertices, 2)
+
+    def subgraph_given_vertices(self, CGraphBackend other, object vertices):
+        """
+        Initialize ``other`` to be the subgraph of ``self`` with given vertices.
+
+        INPUT:
+
+        - ``other`` -- a (mutable) subclass of :class:`CGraphBackend`
+        - ``vertices`` -- a list of vertex labels
+
+        .. NOTE:
+
+            ``other`` is assumed to be the empty graph.
+
+        EXAMPLES:
+
+        Make a dense copy::
+
+            sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9, directed=True)
+            sage: G.loops(True)
+            sage: G.add_edges([[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [7,8], [3,3]], True)
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: list(H.iterator_out_edges(list(range(9)), False)) == list(G.iterator_out_edges(list(range(9)), False))
+            True
+
+        Make a sparse copy::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: sorted(list(H.iterator_out_edges(list(range(9)), False))) == sorted(list(G.iterator_out_edges(list(range(9)), False)))
+            True
+
+        Initialize a proper subgraph::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_out_edges(list(range(9)), False))
+            [(2, 3), (3, 3), (3, 4), (4, 5)]
+
+        Loops are removed, if the other graph does not allow loops::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.loops(False)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_out_edges(list(range(9)), False))
+            [(2, 3), (3, 4), (4, 5)]
+
+        Multiple edges and labels are copied::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(4, directed=False)
+            sage: G.multiple_edges(True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d']], False)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'a'), (0, 1, 'd'), (1, 2, 'b')]
+
+        Multiple edges are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'd'), (1, 2, 'b')]
+
+        Labels are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, None), (1, 2, None)]
+
+        A directed subgraph of an undirected graph is taken by initializing
+        with edges in both directions::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(4, directed=True)
+            sage: G.loops(True)
+            sage: G.multiple_edges(True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d'], [2,2,'e']], False)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.multiple_edges(True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_out_edges(list(range(4)), True))
+            [(0, 1, 'a'),
+             (0, 1, 'd'),
+             (1, 0, 'a'),
+             (1, 0, 'd'),
+             (1, 2, 'b'),
+             (2, 1, 'b'),
+             (2, 2, 'e')]
+
+        An undirected subgraph of a directeed graph is not defined::
+
+            sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(4, directed=True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c']], False)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot obtain an undirected subgraph of a directed graph
+
+        TESTS:
+
+        All the examples for ``self`` a static sparse graph.
+
+        Make a dense copy::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: G = Graph(loops=True)
+            sage: G.add_edges([[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [7,8], [3,3]])
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=False)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: list(H.iterator_edges(list(range(9)), False)) == list(G.iterator_edges(list(range(9)), False))
+            True
+
+        Make a sparse copy::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: sorted(list(H.iterator_edges(list(range(9)), False))) == sorted(list(G.iterator_edges(list(range(9)), False)))
+            True
+
+        Initialize a proper subgraph::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_edges(list(range(9)), False))
+            [(2, 3), (3, 3), (3, 4), (4, 5)]
+
+        Loops are removed, if the other graph does not allow loops::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.loops(False)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_edges(list(range(9)), False))
+            [(2, 3), (3, 4), (4, 5)]
+
+        Multiple edges and labels are copied::
+
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d']], False)
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'a'), (0, 1, 'd'), (1, 2, 'b')]
+
+        Multiple edges are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'a'), (1, 2, 'b')]
+
+        Labels are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, None), (1, 2, None)]
+
+        A directed subgraph of an undirected graph is taken by initializing
+        with edges in both directions::
+
+            sage: G = Graph(multiedges=True, loops=True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d'], [2,2,'e']])
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.multiple_edges(True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_out_edges(list(range(4)), True))
+            [(0, 1, 'a'),
+             (0, 1, 'd'),
+             (1, 0, 'a'),
+             (1, 0, 'd'),
+             (1, 2, 'b'),
+             (2, 1, 'b'),
+             (2, 2, 'e')]
+
+        An undirected subgraph of a directeed graph is not defined::
+
+            sage: G = DiGraph()
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c']])
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot obtain an undirected subgraph of a directed graph
+        """
+        self._use_edge_iterator_on_subgraph(other, vertices, 0)
+
+    cdef int _use_edge_iterator_on_subgraph(self, CGraphBackend other, object vertices, const int modus) except -1:
+        """
+        Use an edge iterator on the subgraph induced by ``vertices`` and do something according to ``modus``.
+
+        INPUT:
+
+        - ``other`` -- a (mutable) subclass of :class:`CGraphBackend`
+        - ``vertices`` -- a list of vertex labels
+        - ``modus`` -- integer representing the modus:
+          - ``0`` -- initialize ``other`` to be the subgraph induced by the vertices;
+            see :meth:`subgraph_given_vertices``
+          - ``1`` -- test whether subgraph of ``self`` induced by the vertices is a subgraph of ``other``
+          - ``2`` -- as ``1`` but ignore the labels
+        """
+        cdef object v, l
+        cdef int u_int, v_int, l_int, l_int_other, foo
+        cdef CGraph cg = self.cg()
+        cdef CGraph cg_other = other.cg()
+        cdef list b_vertices_2, all_arc_labels, all_arc_labels_other
+        cdef FrozenBitset b_vertices
+        cdef int n_vertices = len(vertices)
+        cdef bint loops = other.loops()
+        cdef bint multiple_edges
+        if modus == 0:
+            multiple_edges = self.multiple_edges(None) and other.multiple_edges(None)
+        elif 1 <= modus <= 2:
+            multiple_edges = self.multiple_edges(None)
+
+        if self._directed and not other._directed and modus == 0:
+            raise ValueError("cannot obtain an undirected subgraph of a directed graph")
+
+        if self._directed != other._directed and 1 <= modus <= 2:
+            if self._directed:
+                raise ValueError("cannot check if directed graph is a subgraph of an undirected")
+            else:
+                raise ValueError("cannot check if undirected graph is a subgraph of a directed")
+
+        b_vertices_2 = [self.get_vertex_checked(v) for v in vertices]
+        try:
+            b_vertices = FrozenBitset(foo for foo in b_vertices_2 if foo >= 0)
+        except ValueError:
+            # Avoiding "Bitset must not be empty"
+            # in this case there is nothing to do
+            return 1
+
+
+        cdef int length = len(b_vertices)
+        cdef int i
+        cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
+
+        try:
+            # Iterate through the vertices.
+            if cg_other.active_vertices.size < length:
+                cg_other.realloc(length)
+            for j in range(n_vertices):
+                i = b_vertices_2[j]
+                if i >= 0:
+                    v = self.vertex_label(i)
+                    if modus == 0:
+                        # Add the vertex and obtain the corresponding index.
+                        vertices_translation[i] = other.check_labelled_vertex(v, False)
+                    elif 1 <= modus <= 2:
+                        # Obtain the corresponding index if the vertex is contained in ``other``.
+                        foo = other.get_vertex_checked(v)
+                        if foo >= 0:
+                            vertices_translation[i] = foo
+                        else:
+                            # Not a subgraph.
+                            return 0
+
+            # Iterate through the edges.
+            for v_int in b_vertices:
+                u_int = cg.next_out_neighbor_unsafe(v_int, -1, &l_int)
+                while u_int != -1:
+                    if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
+                            and (u_int >= v_int or other._directed)):
+                        # If ``other`` is directed, we should add the arcs in both directions.
+
+                        if modus == 0:
+                            # We are adding each arc to ``other``.
+
+                            if unlikely(not loops and u_int == v_int):
+                                # Delete loops if ``other`` does not allow loops.
+                                u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
+                                continue
+
+                            if not multiple_edges:
+                                if l_int:
+                                    l = self.edge_labels[l_int]
+
+                                    # Will return ``0``, if ``other`` does not support edges labels.
+                                    l_int_other = other.new_edge_label(l)
+                                else:
+                                    l_int_other = 0
+                                cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+                            else:
+                                all_arc_labels = cg.all_arcs(v_int, u_int)
+
+                                for l_int in all_arc_labels:
+                                    if l_int:
+                                        l = self.edge_labels[l_int]
+
+                                        # Will return ``0``, if ``other`` does not support edges labels.
+                                        l_int_other = other.new_edge_label(l)
+                                    else:
+                                        l_int_other = 0
+
+                                    cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+                        else:
+                            # Modus is 1 or 2 and we are checking if ``self`` is a subgraph of ``other``.
+
+                            if not multiple_edges:
+                                if modus == 1:
+                                    l = self.edge_labels[l_int] if l_int else None
+                                    if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
+                                        return 0
+                                else:
+                                    # Ignore the label.
+                                    if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
+                                        return 0
+
+                            else:
+                                all_arc_labels = cg.all_arcs(v_int, u_int)
+
+                                if modus == 1:
+                                    if len(all_arc_labels) == 1:
+                                        l = self.edge_labels[l_int] if l_int else None
+                                        if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
+                                            return 0
+                                    elif other.multiple_edges(None):
+                                        all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                                        all_arc_labels = [self.edge_labels[l_int] if l_int else None for l_int in all_arc_labels]
+                                        for l in all_arc_labels:
+                                            try:
+                                                all_arc_labels_other.remove(l)
+                                            except ValueError:
+                                                return 0
+
+                                    else:
+                                        # ``other`` does not allow multiple edges.
+                                        # As ``self`` has a multiple edges (not only allows), it cannot be a subgraph.
+                                        return 0
+
+                                else:
+                                    # Ignore the labels.
+                                    if len(all_arc_labels) == 1:
+                                        if not cg_other.has_arc_unsafe(vertices_translation[v_int], vertices_translation[u_int]):
+                                            return 0
+                                    else:
+                                        all_arc_labels_other = other._all_edge_labels(vertices_translation[v_int], vertices_translation[u_int])
+                                        if len(all_arc_labels) > len(all_arc_labels_other):
+                                            return 0
+
+                    u_int = cg.next_out_neighbor_unsafe(v_int, u_int, &l_int)
+
+        finally:
+            sig_free(vertices_translation)
+
+        return 1
 
     ###################################
     # Paths

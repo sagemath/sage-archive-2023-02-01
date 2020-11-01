@@ -90,9 +90,8 @@ class PolyhedronRepresentation(SageObject):
 
             sage: from sage.geometry.polyhedron.representation import Hrepresentation
             sage: pr = Hrepresentation(Polyhedron(vertices = [[1,2,3]]).parent())
-            sage: hash(pr)
-            1647257843           # 32-bit
-            4686581268940269811  # 64-bit
+            sage: hash(pr) == hash(tuple([0,0,0,0]))
+            True
         """
         # TODO: ideally the argument self._vector of self should be immutable.
         # So that we could change the line below by hash(self._vector). The
@@ -182,7 +181,7 @@ class PolyhedronRepresentation(SageObject):
             sage: C = polytopes.cube()
             sage: C.vertices()[0].vector()[0] = 3
             sage: C.vertices()[0]
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
         """
         if (base_ring is None) or (base_ring is self._base_ring):
             return copy(self._vector)
@@ -429,7 +428,7 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: C = polytopes.cube()
             sage: C.inequalities()[0].A()[2] = 5
             sage: C.inequalities()[0]
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
         """
         return copy(self._A)
 
@@ -751,7 +750,7 @@ class Inequality(Hrepresentation):
             [True, True, True, True, True, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
         """
         try:
             if Vobj.is_vector(): # assume we were passed a point
@@ -778,7 +777,7 @@ class Inequality(Hrepresentation):
             [False, True, True, False, False, True]
             sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.interior_contains(q) for q in p2.vertex_generator()]
-            [True, False, False, False, True, True, True, False]
+            [True, True, False, True, False, True, False, False]
 
         If you pass a vector, it is assumed to be the coordinate vector of a point::
 
@@ -1105,12 +1104,12 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: h1
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v1 = next(p.vertex_generator())
             sage: v1
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: v1.is_incident(h1)
-            False
+            True
         """
         return self.polyhedron().incidence_matrix()[self.index(), Hobj.index()] == 1
 
@@ -1124,7 +1123,7 @@ class Vrepresentation(PolyhedronRepresentation):
             sage: h1 = next(p.inequality_generator())
             sage: v1 = next(p.vertex_generator())
             sage: v1.__mul__(h1)
-            2
+            0
         """
         return self.evaluated_on(Hobj)
 
@@ -1252,11 +1251,11 @@ class Vertex(Vrepresentation):
             sage: v = next(p.vertex_generator())
             sage: h = next(p.inequality_generator())
             sage: v
-            A vertex at (-1, -1, -1)
+            A vertex at (1, -1, -1)
             sage: h
-            An inequality (0, 0, -1) x + 1 >= 0
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: v.evaluated_on(h)
-            2
+            0
         """
         return Hobj.A() * self.vector() + Hobj.b()
 

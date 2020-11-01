@@ -1,5 +1,5 @@
 """
-Testing modular symbols spaces.
+Testing modular symbols spaces
 
 TESTS::
 
@@ -9,7 +9,7 @@ TESTS::
 """
 
 # ****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -25,7 +25,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 import random
 

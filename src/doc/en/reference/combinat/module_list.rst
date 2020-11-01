@@ -25,6 +25,7 @@ Comprehensive Module list
     sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
+    sage/combinat/blob_algebra
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
     sage/combinat/chas/__init__
@@ -65,6 +66,7 @@ Comprehensive Module list
     sage/combinat/crystals/direct_sum
     sage/combinat/crystals/elementary_crystals
     sage/combinat/crystals/fast_crystals
+    sage/combinat/crystals/fully_commutative_stable_grothendieck
     sage/combinat/crystals/generalized_young_walls
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/induced_structure
@@ -103,6 +105,7 @@ Comprehensive Module list
     sage/combinat/designs/difference_matrices
     sage/combinat/designs/evenly_distributed_sets
     sage/combinat/designs/ext_rep
+    sage/combinat/designs/gen_quadrangles_with_spread
     sage/combinat/designs/incidence_structures
     sage/combinat/designs/latin_squares
     sage/combinat/designs/orthogonal_arrays
@@ -119,6 +122,8 @@ Comprehensive Module list
     sage/combinat/enumeration_mod_permgroup
     sage/combinat/expnums
     sage/combinat/family
+    sage/combinat/fast_vector_partitions
+    sage/combinat/fully_commutative_elements
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/fqsym
@@ -170,6 +175,9 @@ Comprehensive Module list
     sage/combinat/output
     sage/combinat/parallelogram_polyomino
     sage/combinat/parking_functions
+    sage/combinat/path_tableaux/catalog
+    sage/combinat/path_tableaux/dyck_path
+    sage/combinat/path_tableaux/path_tableau
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
@@ -183,7 +191,10 @@ Comprehensive Module list
     sage/combinat/posets/__init__
     sage/combinat/posets/all
     sage/combinat/posets/cartesian_product
+    sage/combinat/posets/d_complete
+    sage/combinat/posets/mobile
     sage/combinat/posets/elements
+    sage/combinat/posets/forest
     sage/combinat/posets/hasse_diagram
     sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
@@ -277,6 +288,7 @@ Comprehensive Module list
     sage/combinat/root_system/weight_lattice_realizations
     sage/combinat/root_system/weight_space
     sage/combinat/root_system/weyl_characters
+    sage/combinat/root_system/fusion_ring
     sage/combinat/root_system/weyl_group
     sage/combinat/rooted_tree
     sage/combinat/rsk

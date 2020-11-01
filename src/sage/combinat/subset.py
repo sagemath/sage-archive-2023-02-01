@@ -28,8 +28,6 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function, absolute_import
 
-import six
-from six.moves import range
 import sage.misc.prandom as rnd
 import itertools
 
@@ -88,8 +86,8 @@ def Subsets(s, k=None, submultiset=False):
         {}
         sage: S.last()
         {1, 2, 3}
-        sage: S.random_element()  # random
-        {2}
+        sage: S.random_element() in S
+        True
         sage: S.list()
         [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
 
@@ -144,7 +142,7 @@ def Subsets(s, k=None, submultiset=False):
          {},
          {{2}, {1, 2, 3}, {}, {3}, {1, 2}},
          {{1, 2, 3}, {}, {1}}, {{2}, {2, 3}, {}, {1, 2}}}
-        sage: S3.unrank(14123091480) # py3
+        sage: S3.unrank(14123091480) # py3  #random
         {{{2}, {1, 2, 3}, {1, 2}, {3}, {}},
          {{1, 2, 3}, {2}, {1}, {1, 3}},
          {{}, {2}, {2, 3}, {1, 2}},
@@ -157,7 +155,7 @@ def Subsets(s, k=None, submultiset=False):
         278826214642518400
         sage: T.unrank(1441231049) # py2
         {{{3}, {1, 2}, {}, {2, 3}, {1}, {1, 3}, ..., {{2, 3}, {}}, {{}}}
-        sage: T.unrank(1441231049) # py3
+        sage: T.unrank(1441231049) # py3 # random
         {{{1, 2, 3}, {2}, {2, 3}}, {{3}, {1, 3}, ..., {3}, {1}, {}, {1, 3}}}
     """
     if k is not None:
@@ -205,7 +203,7 @@ class Subsets_s(Parent):
          {{1, 2}, {}, {0, 2}, {1}, {0, 1, 2}, {2}},
          {{1, 2}, {0}}, {{1, 2}, {0, 1}, {0, 1, 2}, {1}},
          {{0, 2}, {1}}}
-        sage: S.unrank(3149254230) # py3
+        sage: S.unrank(3149254230) # py3 #random
         {{{1}, {0, 2}}, {{0, 1, 2}, {0, 1}, {1}, {1, 2}},
          {{2}, {1, 2}, {0, 1, 2}, {0, 2}, {1}, {}},
          {{1, 2}, {0}},
@@ -359,7 +357,22 @@ class Subsets_s(Parent):
         """
         return Integer(1) << self._s.cardinality()
 
-    __len__ = cardinality
+    def __len__(self):
+        r"""
+        Equivalent to ``self.cardinality()``.
+
+        TESTS::
+
+            ``__len__`` should return a Python int; in Python 3.7+ this happens
+            automatically, but not on Python 3.6.
+
+            sage: S = Subsets(Set([1,2,3]))
+            sage: len(S)
+            8
+            sage: type(len(S)) is int
+            True
+        """
+        return int(self.cardinality())
 
     def first(self):
         """
@@ -542,6 +555,23 @@ class Subsets_s(Parent):
             {2, 4}
         """
         return self.unrank(self.cardinality() // 2)
+
+    def lattice(self):
+        r"""
+        Return the lattice of subsets ordered by containment.
+
+        EXAMPLES::
+
+            sage: X = Subsets([7,8,9])
+            sage: X.lattice()
+            Finite lattice containing 8 elements
+            sage: Y = Subsets(0)
+            sage: Y.lattice()
+            Finite lattice containing 1 elements
+
+        """
+        S = self.underlying_set()
+        return S.subsets_lattice()
 
 class Subsets_sk(Subsets_s):
     r"""
@@ -764,8 +794,10 @@ class Subsets_sk(Subsets_s):
 
         EXAMPLES::
 
-            sage: Subsets(3, 2).random_element()
-            {1, 2}
+            sage: s = Subsets(3, 2).random_element()
+            sage: s in Subsets(3, 2)
+            True
+
             sage: Subsets(3,4).random_element()
             Traceback (most recent call last):
             ...
@@ -863,7 +895,7 @@ def dict_to_list(d):
         ['a', 'b', 'b', 'b']
     """
     l = []
-    for i, j in six.iteritems(d):
+    for i, j in d.items():
         l.extend([i] * j)
     return l
 
@@ -1051,8 +1083,9 @@ class SubMultiset_s(Parent):
         EXAMPLES::
 
             sage: S = Subsets([1,1,2,3], submultiset=True)
-            sage: S.random_element()
-            [2]
+            sage: s = S.random_element()
+            sage: s in S
+            True
         """
         l = []
         for i, di in self._d.items():
@@ -1273,10 +1306,13 @@ class SubMultiset_sk(SubMultiset_s):
 
         EXAMPLES::
 
-            sage: Subsets(7,3).random_element()
-            {1, 4, 7}
-            sage: Subsets(7,5).random_element()
-            {1, 3, 4, 5, 7}
+            sage: s = Subsets(7,3).random_element()
+            sage: s in Subsets(7,3)
+            True
+
+            sage: s = Subsets(7,5).random_element()
+            sage: s in Subsets(7,5)
+            True
         """
         return rnd.sample(self._l, self._k)
 

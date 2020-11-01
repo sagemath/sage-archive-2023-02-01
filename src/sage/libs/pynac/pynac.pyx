@@ -287,7 +287,12 @@ cdef subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& 
         ....:         print("len(args): %s, types: %s"%(len(args), str(list(map(type, args)))))
         ....:         return args[-1]
         sage: tfunc = TFunc()
-        sage: tfunc(x).subs(x=1)
+        sage: tfunc(x).subs(x=1)   # py3
+        len(args): 3, types: [<class 'sage.symbolic.substitution_map.SubstitutionMap'>,
+          <class 'int'>,
+          <class 'sage.symbolic.expression.Expression'>]
+        x
+        sage: tfunc(x).subs(x=1)   # py2
         len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
           <type 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
@@ -1101,8 +1106,6 @@ cdef bint py_is_integer(x):
 
         sage: py_is_integer(1r)
         True
-        sage: py_is_integer(long(1))
-        True
         sage: py_is_integer(3^57)
         True
         sage: py_is_integer(SR(5))
@@ -1307,8 +1310,6 @@ def py_is_cinteger_for_doctest(x):
         sage: from sage.libs.pynac.pynac import py_is_cinteger_for_doctest
         sage: py_is_cinteger_for_doctest(1)
         True
-        sage: py_is_cinteger_for_doctest(long(-3))
-        True
         sage: py_is_cinteger_for_doctest(I.pyobject())
         True
         sage: py_is_cinteger_for_doctest(I.pyobject() - 3)
@@ -1336,7 +1337,7 @@ cdef py_float(n, PyObject* kwds):
         sage: py_float(1/2, {'parent':CC})
         0.500000000000000
         sage: type(py_float(1/2, {'parent':CC}))
-        <type 'sage.rings.complex_number.ComplexNumber'>
+        <type 'sage.rings.complex_mpfr.ComplexNumber'>
     """
     if kwds is not NULL:
         p = (<object>kwds)['parent']
@@ -1705,11 +1706,7 @@ cdef py_log(x):
         3.141592653589793j
         sage: py_log(int(1))
         0.0
-        sage: py_log(long(1))
-        0.0
         sage: py_log(int(0))
-        -inf
-        sage: py_log(long(0))
         -inf
         sage: py_log(complex(0))
         -inf

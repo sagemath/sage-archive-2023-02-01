@@ -211,8 +211,6 @@ subsequent papers on the representation theory of these algebras.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import add_metaclass
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -1240,12 +1238,13 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuples(level=2)([[[5]],[[1,2],[3,4]]]).restrict(3).category()
             Category of elements of Tableau tuples of level 2
         """
-        if m is None: m=self.size()-1
+        if m is None:
+            m = self.size() - 1
         # We are lucky in that currently restriction is defined for arbitrary
         # (level one) tableau and not just standard ones. If this ever changes
         # we will have to treat the cases where the components restrict to
         # empty lists of the form [[]] separately.
-        tab=[t.restrict(m) for t in self]
+        tab = [t.restrict(m) for t in self]
         try:
             return self.parent()(tab)
         except ValueError:
@@ -1386,8 +1385,7 @@ class TableauTuple(CombinatorialElement):
 #--------------------------------------------------
 # Row standard tableau tuple - element class
 #--------------------------------------------------
-@add_metaclass(ClasscallMetaclass)
-class RowStandardTableauTuple(TableauTuple):
+class RowStandardTableauTuple(TableauTuple, metaclass=ClasscallMetaclass):
     r"""
     A class for row standard tableau tuples of shape a partition tuple.
 

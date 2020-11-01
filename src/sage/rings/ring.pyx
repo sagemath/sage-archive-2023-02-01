@@ -103,6 +103,7 @@ cdef class Ring(ParentWithGens):
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
+        running ._test_construction() . . . pass
         running ._test_distributivity() . . . pass
         running ._test_divides() . . . pass
         running ._test_elements() . . .
@@ -608,7 +609,7 @@ cdef class Ring(ParentWithGens):
             return I
         return self._zero_ideal
 
-    def quotient(self, I, names=None):
+    def quotient(self, I, names=None, **kwds):
         """
         Create the quotient of this ring by a twosided ideal ``I``.
 
@@ -619,6 +620,9 @@ cdef class Ring(ParentWithGens):
         - ``names`` -- (optional) names of the generators of the quotient (if
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0).
+
+        - further named arguments that may be passed to the quotient ring
+          constructor.
 
         EXAMPLES::
 
@@ -638,12 +642,11 @@ cdef class Ring(ParentWithGens):
             False
         """
         import sage.rings.quotient_ring
-        return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
+        return sage.rings.quotient_ring.QuotientRing(self, I, names=names, **kwds)
 
-    def quo(self, I, names=None):
+    def quo(self, I, names=None, **kwds):
         """
-        Create the quotient of `R` by the ideal `I`.  This is a synonym for
-        :meth:`.quotient`
+        Create the quotient of `R` by the ideal `I`.  This is a synonym for :meth:`.quotient`
 
         EXAMPLES::
 
@@ -656,7 +659,7 @@ cdef class Ring(ParentWithGens):
             sage: a == b
             False
         """
-        return self.quotient(I, names=names)
+        return self.quotient(I, names=names, **kwds)
 
     def __truediv__(self, I):
         """
@@ -672,7 +675,7 @@ cdef class Ring(ParentWithGens):
         """
         raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
-    def quotient_ring(self, I, names=None):
+    def quotient_ring(self, I, names=None, **kwds):
         """
         Return the quotient of self by the ideal `I` of ``self``.
         (Synonym for ``self.quotient(I)``.)
@@ -684,6 +687,9 @@ cdef class Ring(ParentWithGens):
         - ``names`` -- (optional) names of the generators of the quotient. (If
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0.)
+
+        - further named arguments that may be passed to the quotient ring
+          constructor.
 
         OUTPUT:
 
@@ -706,7 +712,7 @@ cdef class Ring(ParentWithGens):
             sage: a == b
             False
         """
-        return self.quotient(I, names)
+        return self.quotient(I, names, **kwds)
 
     def zero(self):
         """
@@ -1284,6 +1290,24 @@ cdef class CommutativeRing(Ring):
         Ring.__init__(self, base_ring, names=names, normalize=normalize,
                       category=category)
 
+    def localization(self, additional_units, names=None, normalize=True, category=None):
+        """
+        Return the localization of ``self`` at the given additional units.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = GF(3)[]
+            sage: R.localization((x*y, x**2+y**2))
+            Multivariate Polynomial Ring in x, y over Finite Field of size 3 localized at (y, x, x^2 + y^2)
+            sage: ~y in _
+            True
+        """
+        if not self.is_integral_domain():
+            raise TypeError("self must be an integral domain.")
+
+        from sage.rings.localization import Localization
+        return Localization(self, additional_units)
+
     def fraction_field(self):
         """
         Return the fraction field of ``self``.
@@ -1490,7 +1514,7 @@ cdef class CommutativeRing(Ring):
         if name is None:
             name = str(poly.parent().gen(0))
         for key, val in kwds.items():
-            if key not in ['structure', 'implementation', 'prec', 'embedding']:
+            if key not in ['structure', 'implementation', 'prec', 'embedding', 'latex_name', 'latex_names']:
                 raise TypeError("extension() got an unexpected keyword argument '%s'"%key)
             if not (val is None or isinstance(val, list) and all(c is None for c in val)):
                 raise NotImplementedError("ring extension with prescripted %s is not implemented"%key)
@@ -2476,7 +2500,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
     """
     Generic commutative algebra
     """
-    def __init__(self, base_ring, names=None, normalize=True, category = None):
+    def __init__(self, base_ring, names=None, normalize=True, category=None):
         r"""
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.

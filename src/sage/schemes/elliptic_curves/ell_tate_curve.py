@@ -10,7 +10,8 @@ the algebraic closure `\bar{\QQ}_p` are in bijection with
 `\bar{\QQ}_p^{\times}\,/\, q^{\ZZ}`. More precisely there exists
 the series `s_4(q)` and `s_6(q)` such that the
 `y^2+x y = x^3 + s_4(q) x+s_6(q)` curve is isomorphic to `E` over
-`\bar{\QQ}_p` (or over `\QQ_p` if the reduction is *split* multiplicative). There is `p`-adic analytic map from
+`\bar{\QQ}_p` (or over `\QQ_p` if the reduction is *split* multiplicative).
+There is a `p`-adic analytic map from
 `\bar{\QQ}^{\times}_p` to this curve with kernel `q^{\ZZ}`.
 Points of good reduction correspond to points of valuation
 `0` in `\bar{\QQ}^{\times}_p`.
@@ -60,7 +61,7 @@ class TateCurve(SageObject):
     Tate's `p`-adic uniformisation of an elliptic curve with
     multiplicative reduction.
 
-    .. note::
+    .. NOTE::
 
        Some of the methods of this Tate curve only work when the
        reduction is split multiplicative over `\QQ_p`.
@@ -79,9 +80,9 @@ class TateCurve(SageObject):
         r"""
         INPUT:
 
-        - ``E`` - an elliptic curve over the rational numbers
+        - ``E`` -- an elliptic curve over the rational numbers
 
-        - ``p`` - a prime where `E` has multiplicative reduction,
+        - ``p`` -- a prime where `E` has multiplicative reduction,
                  i.e., such that `j(E)` has negative valuation.
 
         EXAMPLES::
@@ -166,7 +167,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -174,12 +175,9 @@ class TateCurve(SageObject):
             sage: eq.parameter(prec=5)
             3*5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
         """
-        try:
-            qE = self._q
-            if qE.absolute_precision() >= prec:
-                return qE
-        except AttributeError:
-            pass
+        qE = getattr(self, "_q", None)
+        if qE and qE.precision_relative() >= prec:
+            return Qp(self._p, prec=prec)(qE)
 
         E4 = EisensteinForms(weight=4).basis()[0]
         Delta = CuspForms(weight=12).basis()[0]
@@ -211,7 +209,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -222,19 +220,16 @@ class TateCurve(SageObject):
             (2*5^3+5^4+2*5^5+5^7+O(5^8)) over 5-adic
             Field with capped relative precision 5
         """
-        try:
-            Eq = self.__curve
-            if Eq.a6().absolute_precision() >= prec:
-                return Eq
-        except AttributeError:
-            pass
+
+        Eq = getattr(self, "__curve", None)
+        if Eq and Eq.a6().precision_relative() >= prec:
+            return Eq.change_ring(Qp(self._p, prec))
 
         qE = self.parameter(prec=prec)
         precp = prec + 2
-        R = qE.parent()
-
         tate_a4 = -5 * self.__sk(3, precp)
         tate_a6 = (tate_a4 - 7 * self.__sk(5, precp)) / 12
+        R = qE.parent()
         Eq = EllipticCurve([R.one(), R.zero(), R.zero(), R(tate_a4), R(tate_a6)])
         self.__curve = Eq
         return Eq
@@ -251,7 +246,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -259,12 +254,10 @@ class TateCurve(SageObject):
             sage: eq._Csquare(prec=5)
             4 + 2*5^2 + 2*5^4 + O(5^5)
         """
-        try:
-            Csq = self.__Csquare
-            if Csq.absolute_precision() >= prec:
-                return Csq
-        except AttributeError:
-            pass
+
+        Csq = getattr(self, "__csquare", None)
+        if Csq and Csq.precision_relative() >= prec:
+            return Csq
 
         Eq = self.curve(prec=prec)
         tateCsquare = Eq.c6() * self._E.c4() / Eq.c4() / self._E.c6()
@@ -279,7 +272,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -302,7 +295,7 @@ class TateCurve(SageObject):
 
     def is_split(self):
         r"""
-        Returns True if the given elliptic curve has split multiplicative reduction.
+        Return True if the given elliptic curve has split multiplicative reduction.
 
         EXAMPLES::
 
@@ -316,25 +309,38 @@ class TateCurve(SageObject):
         """
         return self._Csquare().is_square()
 
-    def parametrisation_onto_tate_curve(self, u, prec=20):
+    def parametrisation_onto_tate_curve(self, u, prec=None):
         r"""
         Given an element `u` in `\QQ_p^{\times}`, this computes its image on the Tate curve
         under the `p`-adic uniformisation of `E`.
 
         INPUT:
 
-        - ``u`` - a non-zero `p`-adic number.
+        - ``u`` -- a non-zero `p`-adic number.
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is the relative precision of ``u``
+          otherwise 20.
 
 
         EXAMPLES::
 
             sage: eq = EllipticCurve('130a1').tate_curve(5)
+            sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10), prec=10)
+            (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) : 4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^10))
             sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10))
-            (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) :
-            4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^20))
+            (5^-2 + 4*5^-1 + 1 + 2*5 + 3*5^2 + 2*5^5 + 3*5^6 + O(5^7) : 4*5^-3 + 2*5^-1 + 4 + 2*5 + 3*5^4 + 2*5^5 + O(5^6) : 1 + O(5^10))
+            sage: eq.parametrisation_onto_tate_curve(1+5+5^2+O(5^10), prec=20)
+            Traceback (most recent call last):
+            ...
+            ValueError: Requested more precision than the precision of u
+
         """
+
+        if prec is None:
+            prec = getattr(u, "precision_relative", lambda : 20)()
+        u = Qp(self._p, prec)(u)
+        if prec > u.precision_relative():
+            raise ValueError("Requested more precision than the precision of u")
         if u == 1:
             return self.curve(prec=prec)(0)
 
@@ -361,17 +367,16 @@ class TateCurve(SageObject):
 
     def L_invariant(self, prec=20):
         r"""
-        Returns the *mysterious* `\mathcal{L}`-invariant associated
+        Return the *mysterious* `\mathcal{L}`-invariant associated
         to an elliptic curve with split multiplicative reduction.
 
-        One
-        instance where this constant appears is in the exceptional
+        One instance where this constant appears is in the exceptional
         case of the `p`-adic Birch and Swinnerton-Dyer conjecture as
         formulated in [MTT1986]_. See [Col2004]_ for a detailed discussion.
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -402,7 +407,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -439,7 +444,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -462,9 +467,9 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``P`` - a point on the elliptic curve.
+        - ``P`` -- a point on the elliptic curve.
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         EXAMPLES::
 
@@ -477,7 +482,7 @@ class TateCurve(SageObject):
         Now we map the lift l back and check that it is indeed right.::
 
             sage: eq.parametrisation_onto_original_curve(l)
-            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^20))
+            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^10))
             sage: e5 = e.change_ring(Qp(5,9))
             sage: e5(12*P)
             (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 2*5^-3 + 5^-1 + 4 + 4*5 + 5^2 + 3*5^3 + 4*5^4 + O(5^6) : 1 + O(5^9))
@@ -514,16 +519,17 @@ class TateCurve(SageObject):
             u += z ** i / fac
         return u
 
-    def parametrisation_onto_original_curve(self, u, prec=20):
+    def parametrisation_onto_original_curve(self, u, prec=None):
         r"""
         Given an element `u` in `\QQ_p^{\times}`, this computes its image on the original curve
         under the `p`-adic uniformisation of `E`.
 
         INPUT:
 
-        - ``u`` - a non-zero `p`-adic number.
+        - ``u`` -- a non-zero `p`-adic number.
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is the relative precision of ``u``
+          otherwise 20.
 
         EXAMPLES::
 
@@ -531,7 +537,11 @@ class TateCurve(SageObject):
             sage: eq.parametrisation_onto_original_curve(1+5+5^2+O(5^10))
             (4*5^-2 + 4*5^-1 + 4 + 2*5^3 + 3*5^4 + 2*5^6 + O(5^7) :
             3*5^-3 + 5^-2 + 4*5^-1 + 1 + 4*5 + 5^2 + 3*5^5 + O(5^6) :
-            1 + O(5^20))
+            1 + O(5^10))
+            sage: eq.parametrisation_onto_original_curve(1+5+5^2+O(5^10), prec=20)
+            Traceback (most recent call last):
+            ...
+            ValueError: Requested more precision than the precision of u
 
         Here is how one gets a 4-torsion point on `E` over `\QQ_5`::
 
@@ -545,6 +555,9 @@ class TateCurve(SageObject):
         if not self.is_split():
             raise ValueError("The curve must have split multiplicative "
                              "reduction.")
+        if prec is None:
+            prec = getattr(u, "precision_relative", lambda : 20)()
+
         P = self.parametrisation_onto_tate_curve(u, prec=prec)
         C, r, s, t = self._inverse_isomorphism(prec=prec)
         xx = r + C ** 2 * P[0]
@@ -569,7 +582,7 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         OUTPUT:
 
@@ -619,7 +632,8 @@ class TateCurve(SageObject):
 
     def padic_regulator(self, prec=20):
         r"""
-        Compute the canonical `p`-adic regulator on the extended Mordell-Weil group as in [MTT1986]_
+        Compute the canonical `p`-adic regulator on the extended 
+        Mordell-Weil group as in [MTT1986]_
         (with the correction of [Wer1998]_ and sign convention in [SW2013]_.)
 
         The `p`-adic Birch and Swinnerton-Dyer conjecture predicts

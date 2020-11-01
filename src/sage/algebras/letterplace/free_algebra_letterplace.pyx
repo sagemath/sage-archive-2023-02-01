@@ -403,7 +403,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         return self.__ngens-self._nb_slackvars <= 1
 
-    def is_field(self):
+    def is_field(self, proof=True):
         """
         Tell whether this free algebra is a field.
 
@@ -419,7 +419,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             False
 
         """
-        return (not (self.__ngens-self._nb_slackvars)) and self._base.is_field()
+        return (not (self.__ngens-self._nb_slackvars)) and self._base.is_field(proof=proof)
 
     def _repr_(self):
         """
@@ -596,11 +596,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
                 raise NotImplementedError("\n  Apparently you tried to view the letterplace algebra with\n  shift-multiplication as the free algebra over a finitely\n  generated free abelian monoid.\n  In principle, this is correct, but it is not implemented, yet.")
 
             out.append(self._names[var_ind])
-            i += (self._degrees[var_ind]-1)
-            ### This was the original implementation, with "monoid hack" but without generator degrees
-            #s = '.'.join([('%s^%d'%(x,e) if e>1 else x) for x,e in zip(self._names,E[i*ngens:(i+1)*ngens]) if e])
-            #if s:
-            #    out.append(s)
+            i += self._degrees[var_ind] - 1
         return '*'.join(out)
 
     # Auxiliar methods

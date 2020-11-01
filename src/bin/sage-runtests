@@ -46,11 +46,10 @@ if __name__ == "__main__":
     parser.add_option("-m", "--memlimit", type=int, default=3300,
                       help='maximum virtual memory to allow each test '
                            'process, in megabytes; no limit if zero or less, '
-                           'but tests tagged "high mem" are skipped if no limit '
-                           'is set (default: 3300 MB)')
+                           'but tests tagged "optional - memlimit" are '
+                           'skipped if no limit is set (default: 3300 MB)')
     parser.add_option("-a", "--all", action="store_true", default=False, help="test all files in the Sage library")
     parser.add_option("--logfile", metavar="FILE", help="log all output to FILE")
-    parser.add_option("--sagenb", action="store_true", default=False, help="test all files from the Sage notebook sources")
 
     parser.add_option("-l", "--long", action="store_true", default=False, help="include lines with the phrase 'long time'")
     parser.add_option("-s", "--short", dest="target_walltime", default=None, action="callback",
@@ -71,8 +70,10 @@ if __name__ == "__main__":
              'if "build" is listed, will also run tests specific to Sage\'s build/packaging system; '
              'if set to "all", then all tests will be run')
     parser.add_option("--randorder", type=int, metavar="SEED", help="randomize order of tests")
+    parser.add_option("--random-seed", dest="random_seed", type=int, metavar="SEED", help="random seed for fuzzing doctests")
     parser.add_option("--global-iterations", "--global_iterations", type=int, default=0, help="repeat the whole testing process this many times")
     parser.add_option("--file-iterations", "--file_iterations", type=int, default=0, help="repeat each file this many times, stopping on the first failure")
+    parser.add_option("--environment", type=str, default="sage.repl.ipython_kernel.all_jupyter", help="name of a module that provides the global environment for tests")
 
     parser.add_option("-i", "--initial", action="store_true", default=False, help="only show the first failure in each file")
     parser.add_option("--exitfirst", action="store_true", default=False, help="end the test run immediately after the first failure or unexpected exception")
@@ -128,10 +129,9 @@ if __name__ == "__main__":
 
     parser.set_usage("sage -t [options] filenames")
 
-
     options, args = parser.parse_args()
 
-    if len(args) == 0 and not (options.all or options.sagenb or options.new):
+    if not args and not (options.all or options.new):
         parser.print_help()
         sys.exit(2)
 
@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     # Python's resource module only supports limits up to sys.maxsize,
     # even if the OS does support higher limits.
-    if memlimit > 0 and memlimit <= sys.maxsize:
+    if 0 < memlimit <= sys.maxsize:
         import resource
         lim, hard = resource.getrlimit(resource.RLIMIT_AS)
         if lim == resource.RLIM_INFINITY or lim > memlimit:
@@ -168,10 +168,13 @@ if __name__ == "__main__":
                     # cause us to run out of physical memory, leading to system
                     # instability (as opposed to virtual memory allocs failing)
                     options.memlimit = -1
-
     # Limit the number of threads to 2 to save system resources.
-    # See Trac #23713 and #23892
-    os.environ["OMP_NUM_THREADS"] = "2"
+    # See Trac #23713, #23892, #30351
+    if sys.platform == 'darwin':  
+        os.environ["OMP_NUM_THREADS"] = "1"
+    else:
+        os.environ["OMP_NUM_THREADS"] = "2"
+
     os.environ["SAGE_NUM_THREADS"] = "2"
 
     from sage.doctest.control import DocTestController

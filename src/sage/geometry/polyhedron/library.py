@@ -86,9 +86,9 @@ from sage.rings.all import ZZ, QQ, RDF, RR, AA, QQbar
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from .constructor import Polyhedron
+from .parent import Polyhedra
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.associahedron import Associahedron
-
 
 def zero_sum_projection(d, base_ring=RDF):
     r"""
@@ -193,6 +193,308 @@ def project_points(*points, **kwds):
     return [m * v for v in vecs]
 
 
+def gale_transform_to_polytope(vectors, base_ring=None, backend=None):
+    r"""
+    Return the polytope associated to the list of vectors forming a Gale transform.
+
+    This function is the inverse of
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.gale_transform`
+    up to projective transformation.
+
+    INPUT:
+
+    - ``vectors`` -- the vectors of the Gale transform
+
+    - ``base_ring`` -- string (default: `None`);
+      the base ring to be used for the construction
+
+    - ``backend`` -- string (default: `None`);
+      the backend to use to create the polytope
+
+    .. NOTE::
+
+        The order of the input vectors will not be preserved.
+
+        If the center of the (input) vectors is the origin,
+        the function is much faster and might give a nicer representation
+        of the polytope.
+
+        If this is not the case, the vectors will be scaled
+        (each by a positive scalar) accordingly to obtain the polytope.
+
+    .. SEEALSO::
+
+        :func`~sage.geometry.polyhedron.library.gale_transform_to_primal`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.library import gale_transform_to_polytope
+        sage: points = polytopes.octahedron().gale_transform()
+        sage: points
+        ((0, -1), (-1, 0), (1, 1), (1, 1), (-1, 0), (0, -1))
+        sage: P = gale_transform_to_polytope(points); P
+        A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+        sage: P.vertices()
+        (A vertex at (-1, 0, 0),
+         A vertex at (0, -1, 0),
+         A vertex at (0, 0, -1),
+         A vertex at (0, 0, 1),
+         A vertex at (0, 1, 0),
+         A vertex at (1, 0, 0))
+
+    One can specify the base ring::
+
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)]).vertices()
+        (A vertex at (-25, 0, 0),
+         A vertex at (-15, 50, -60),
+         A vertex at (0, -25, 0),
+         A vertex at (0, 0, -25),
+         A vertex at (16, -35, 54),
+         A vertex at (24, 10, 31))
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)],
+        ....:     base_ring=RDF).vertices()
+        (A vertex at (-0.64, 1.4, -2.16),
+         A vertex at (-0.96, -0.4, -1.24),
+         A vertex at (0.6, -2.0, 2.4),
+         A vertex at (1.0, 0.0, 0.0),
+         A vertex at (0.0, 1.0, 0.0),
+         A vertex at (0.0, 0.0, 1.0))
+
+    One can also specify the backend::
+
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)],
+        ....:     backend='field').backend()
+        'field'
+        sage: gale_transform_to_polytope(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)],
+        ....:     backend='cdd', base_ring=RDF).backend()
+        'cdd'
+
+    A gale transform corresponds to a polytope if and only if
+    every oriented (linear) hyperplane
+    has at least two vectors on each side.
+    See Theorem 6.19 of [Zie2007]_.
+    If this is not the case, one of two errors is raised.
+
+    If there is such a hyperplane with no vector on one side,
+    the vectors are not totally cyclic::
+
+        sage: gale_transform_to_polytope([(0,1), (1,1), (1,0), (-1,0)])
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
+
+    If every hyperplane has at least one vector on each side, then the gale
+    transform corresponds to a point configuration.
+    It corresponds to a polytope if and only if this point configuration is
+    convex and if and only if every hyperplane contains at least two vectors of
+    the gale transform on each side.
+
+    If this is not the case, an error is raised::
+
+        sage: gale_transform_to_polytope([(0,1), (1,1), (1,0), (-1,-1)])
+        Traceback (most recent call last):
+        ...
+        ValueError: the gale transform does not correspond to a polytope
+    """
+    vertices = gale_transform_to_primal(vectors, base_ring, backend)
+    P = Polyhedron(vertices=vertices, base_ring=base_ring, backend=backend)
+
+    if not P.n_vertices() == len(vertices):
+        # If the input vectors are not totally cyclic, ``gale_transform_to_primal``
+        # raises an error.
+        # As no error was raised so far, the gale transform corresponds to
+        # to a point configuration.
+        # It corresponds to a polytope if and only if
+        # ``vertices`` are in convex position.
+        raise ValueError("the gale transform does not correspond to a polytope")
+
+    return P
+
+def gale_transform_to_primal(vectors, base_ring=None, backend=None):
+    r"""
+    Return a point configuration dual to a totally cyclic vector configuration.
+
+    This is the dehomogenized vector configuration dual to the input.
+    The dual vector configuration is acyclic and can therefore
+    be dehomogenized as the input is totally cyclic.
+
+    INPUT:
+
+    - ``vectors`` -- the ordered vectors of the Gale transform
+
+    - ``base_ring`` -- string (default: `None`);
+      the base ring to be used for the construction
+
+    - ``backend`` -- string (default: `None`);
+      the backend to be use to construct a polyhedral,
+      used interally in case the center is not the origin,
+      see :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
+
+    OUTPUT: An ordered point configuration as list of vectors.
+
+    .. NOTE::
+
+        If the center of the (input) vectors is the origin,
+        the function is much faster and might give a nicer representation
+        of the point configuration.
+
+        If this is not the case, the vectors will be scaled
+        (each by a positive scalar) accordingly.
+
+    ALGORITHM:
+
+    Step 1: If the center of the (input) vectors is not the origin,
+    we do an appropriate transformation to make it so.
+
+    Step 2: We add a row of ones on top of ``Matrix(vectors)``.
+    The right kernel of this larger matrix is the dual configuration space,
+    and a basis of this space provides the dual point configuration.
+
+    More concretely, the dual vector configuration (inhomogeneous)
+    is obtained by taking a basis of the right kernel of ``Matrix(vectors)``.
+    If the center of the (input) vectors is the origin,
+    there exists a basis of the right kernel of the form
+    ``[[1], [V]]``, where ``[1]`` represents a row of ones.
+    Then, ``V`` is a dehomogenization and thus the dual point configuration.
+
+    To extend ``[1]`` to a basis of ``Matrix(vectors)``, we add
+    a row of ones to ``Matrix(vectors)`` and calculate a basis of the
+    right kernel of the obtained matrix.
+
+    REFERENCES:
+
+        For more information, see Section 6.4 of [Zie2007]_
+        or Definition 2.5.1 and Definition 4.1.35 of [DLRS2010]_.
+
+    .. SEEALSO::
+
+        :func`~sage.geometry.polyhedron.library.gale_transform_to_polytope`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.library import gale_transform_to_primal
+        sage: points = ((0, -1), (-1, 0), (1, 1), (1, 1), (-1, 0), (0, -1))
+        sage: gale_transform_to_primal(points)
+        [(0, 0, 1), (0, 1, 0), (1, 0, 0), (-1, 0, 0), (0, -1, 0), (0, 0, -1)]
+
+    One can specify the base ring::
+
+        sage: gale_transform_to_primal(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)])
+        [(16, -35, 54),
+         (24, 10, 31),
+         (-15, 50, -60),
+         (-25, 0, 0),
+         (0, -25, 0),
+         (0, 0, -25)]
+        sage: gale_transform_to_primal(
+        ....:     [(1,1),(-1,-1),(1,0),(-1,0),(1,-1),(-2,1)], base_ring=RDF)
+        [(-0.6400000000000001, 1.4, -2.1600000000000006),
+         (-0.9600000000000002, -0.39999999999999997, -1.2400000000000002),
+         (0.6000000000000001, -2.0, 2.4000000000000004),
+         (1.0, 0.0, 0.0),
+         (0.0, 1.0, 0.0),
+         (0.0, 0.0, 1.0)]
+
+    One can also specify the backend to be used internally::
+
+        sage: gale_transform_to_primal(
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)], backend='field')
+        [(48, -71, 88),
+         (84, -28, 99),
+         (-77, 154, -132),
+         (-55, 0, 0),
+         (0, -55, 0),
+         (0, 0, -55)]
+        sage: gale_transform_to_primal(                          # optional - pynormaliz
+        ....:     [(1,1), (-1,-1), (1,0),
+        ....:      (-1,0), (1,-1), (-2,1)], backend='normaliz')
+        [(16, -35, 54),
+         (24, 10, 31),
+         (-15, 50, -60),
+         (-25, 0, 0),
+         (0, -25, 0),
+         (0, 0, -25)]
+
+    The input vectors should be totally cyclic::
+
+        sage: gale_transform_to_primal([(0,1), (1,0), (1,1), (-1,0)])
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
+
+        sage: gale_transform_to_primal(
+        ....:     [(1,1,0), (-1,-1,0), (1,0,0),
+        ....:      (-1,0,0), (1,-1,0), (-2,1,0)], backend='field')
+        Traceback (most recent call last):
+        ...
+        ValueError: input vectors not totally cyclic
+    """
+    from sage.modules.free_module_element import vector
+    from sage.matrix.all import Matrix
+    if base_ring:
+        vectors = tuple(vector(base_ring, x) for x in vectors)
+    else:
+        vectors = tuple(vector(x) for x in vectors)
+
+    if not sum(vectors).is_zero():
+        # The center of the input vectors shall be the origin.
+        # If this is not the case, we scale them accordingly.
+        # This has the adventage that right kernel of ``vectors`` can be
+        # presented in the form ``[[1], [V]]``, where ``V`` are the points
+        # in the dual point configuration.
+        # (Dehomogenization is straightforward.)
+
+        # Scaling of the vectors is equivalent to finding a hyperplane that intersects
+        # all vectors of the dual point configuration. But if the input is already provided
+        # such that the vectors add up to zero, the coordinates might be nicer.
+        # (And this is faster.)
+
+        if base_ring:
+            ker = Matrix(base_ring, vectors).left_kernel()
+        else:
+            ker = Matrix(vectors).left_kernel()
+        solutions = Polyhedron(lines=tuple(y for y in ker.basis_matrix()), base_ring=base_ring, backend=backend)
+
+        from sage.matrix.special import identity_matrix
+        pos_orthant = Polyhedron(rays=identity_matrix(len(vectors)), base_ring=base_ring, backend=backend)
+        pos_solutions = solutions.intersection(pos_orthant)
+        if base_ring is ZZ:
+            pos_solutions = pos_solutions.change_ring(ZZ)
+
+        # Any integral point in ``pos_solutions`` will correspond to scaling-factors
+        # that make ``sum(vectors)`` zero.
+        x = pos_solutions.representative_point()
+        if not all(y > 0 for y in x):
+            raise ValueError("input vectors not totally cyclic")
+        vectors = tuple(vec*x[i] for i,vec in enumerate(vectors))
+
+    # The right kernel of ``vectors`` has a basis of the form ``[[1], [V]]``,
+    # where ``V`` is the dehomogenized dual point configuration.
+    # If we append a row of ones to ``vectors``, ``V`` is just the right kernel.
+    if base_ring:
+        m = Matrix(base_ring, vectors).transpose().stack(Matrix(base_ring, [[1]*len(vectors)]))
+    else:
+        m = Matrix(vectors).transpose().stack(Matrix([[1]*len(vectors)]))
+
+    if m.rank() != len(vectors[0]) + 1:
+        # The given vectors do not span the ambient space,
+        # then there exists a nonnegative value vector.
+        raise ValueError("input vectors not totally cyclic")
+
+    return m.right_kernel_matrix(basis='computed').columns()
+
+
 class Polytopes():
     """
     A class of constructors for commonly used, famous, or interesting
@@ -247,7 +549,9 @@ class Polytopes():
             sage: octagon.n_vertices()                                        # optional - pynormaliz
             8
             sage: octagon.volume()                                            # optional - pynormaliz
-            2.828427124746190?
+            2*a
+            sage: TestSuite(octagon).run()                                    # long time
+            sage: TestSuite(polytopes.regular_polygon(5, exact=False)).run()
         """
         n = ZZ(n)
         if n <= 2:
@@ -311,7 +615,8 @@ class Polytopes():
         TESTS::
 
             sage: b4norm = polytopes.Birkhoff_polytope(4,backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(b4norm).run(skip='_test_pickling')                # optional - pynormaliz
+            sage: TestSuite(b4norm).run()                                     # optional - pynormaliz
+            sage: TestSuite(polytopes.Birkhoff_polytope(3)).run()
         """
         from itertools import permutations
         verts = []
@@ -385,7 +690,8 @@ class Polytopes():
         TESTS::
 
             sage: s6norm = polytopes.simplex(6,backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(s6norm).run(skip='_test_pickling')      # optional - pynormaliz
+            sage: TestSuite(s6norm).run()                           # optional - pynormaliz
+            sage: TestSuite(polytopes.simplex(5)).run()
         """
         verts = list((ZZ**(dim + 1)).basis())
         if project:
@@ -452,6 +758,9 @@ class Polytopes():
             (1, 12, 30, 20, 1)
             sage: ico.volume()                                     # optional - pynormaliz
             5/12*sqrt5 + 5/4
+            sage: TestSuite(ico).run()                             # optional - pynormaliz
+            sage: ico = polytopes.icosahedron(exact=False)
+            sage: TestSuite(ico).run()
 
         """
         if base_ring is None and exact:
@@ -517,6 +826,7 @@ class Polytopes():
             sage: d12 = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: d12.f_vector()                                    # optional - pynormaliz
             (1, 20, 30, 12, 1)
+            sage: TestSuite(d12).run()                              # optional - pynormaliz
 
         """
         return self.icosahedron(exact=exact, base_ring=base_ring, backend=backend).polar()
@@ -571,6 +881,7 @@ class Polytopes():
             (1, 24, 48, 26, 1)
             sage: sr.volume()                                                   # optional - pynormaliz
             80/3*sqrt2 + 32
+            sage: TestSuite(sr).run()                                           # optional - pynormaliz, long time
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -688,7 +999,7 @@ class Polytopes():
         TESTS::
 
             sage: rd_norm = polytopes.rhombic_dodecahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(rd_norm).run(skip='_test_pickling')                 # optional - pynormaliz
+            sage: TestSuite(rd_norm).run()                                      # optional - pynormaliz
         """
         v = [[2,0,0],[-2,0,0],[0,2,0],[0,-2,0],[0,0,2],[0,0,-2]]
         v.extend((itertools.product([1, -1], repeat=3)))
@@ -735,7 +1046,7 @@ class Polytopes():
         TESTS::
 
             sage: co_norm = polytopes.cuboctahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(co_norm).run(skip='_test_pickling')          # optional - pynormaliz
+            sage: TestSuite(co_norm).run()                               # optional - pynormaliz
         """
         v = [[0, -1, -1], [0, 1, -1], [0, -1, 1], [0, 1, 1],
              [-1, -1, 0], [1, -1, 0], [-1, 1, 0], [1, 1, 0],
@@ -787,6 +1098,7 @@ class Polytopes():
             sage: co = polytopes.truncated_cube(backend='normaliz')  # optional - pynormaliz
             sage: co.f_vector()                                      # optional - pynormaliz
             (1, 24, 36, 14, 1)
+            sage: TestSuite(co).run()                                # optional - pynormaliz
 
         """
         if base_ring is None and exact:
@@ -844,7 +1156,7 @@ class Polytopes():
         TESTS::
 
             sage: t_norm = polytopes.tetrahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(t_norm).run(skip='_test_pickling')        # optional - pynormaliz
+            sage: TestSuite(t_norm).run()                             # optional - pynormaliz
         """
         v = [[0, 0, 0], [1, 0, 1], [1, 1, 0], [0, 1, 1]]
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
@@ -886,7 +1198,7 @@ class Polytopes():
         TESTS::
 
             sage: tt_norm = polytopes.truncated_tetrahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(tt_norm).run(skip='_test_pickling')                  # optional - pynormaliz
+            sage: TestSuite(tt_norm).run()                                       # optional - pynormaliz
         """
         v = [(3,1,1), (1,3,1), (1,1,3),
              (-3,-1,1), (-1,-3,1), (-1,-1,3),
@@ -932,7 +1244,7 @@ class Polytopes():
         TESTS::
 
             sage: to_norm = polytopes.truncated_octahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(to_norm).run(skip='_test_pickling')                 # optional - pynormaliz
+            sage: TestSuite(to_norm).run()                                      # optional - pynormaliz
         """
         v = [(0, e, f) for e in [-1, 1] for f in [-2, 2]]
         v = [(xyz[sigma(1) - 1], xyz[sigma(2) - 1], xyz[sigma(3) - 1])
@@ -974,7 +1286,7 @@ class Polytopes():
         TESTS::
 
             sage: o_norm = polytopes.octahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(o_norm).run(skip='_test_pickling')       # optional - pynormaliz
+            sage: TestSuite(o_norm).run()                            # optional - pynormaliz
         """
         v = [[0, 0, -1], [0, 0, 1], [1, 0, 0],
              [-1, 0, 0], [0, 1, 0], [0, -1, 0]]
@@ -1011,7 +1323,7 @@ class Polytopes():
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
             sage: sc_inexact.f_vector()
             (1, 24, 60, 38, 1)
-            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time - 30secs
+            sage: sc_exact = polytopes.snub_cube(exact=True)  # long time
             sage: sc_exact.f_vector()               # long time
             (1, 24, 60, 38, 1)
             sage: sorted(sc_exact.vertices())       # long time
@@ -1039,7 +1351,7 @@ class Polytopes():
              A vertex at (1, -z^2, -z),
              A vertex at (1, z^2, z),
              A vertex at (1, z, -z^2)]
-            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact) #long time
+            sage: sc_exact.is_combinatorially_isomorphic(sc_inexact)  # long time
             True
 
         TESTS::
@@ -1164,14 +1476,19 @@ class Polytopes():
 
         TESTS::
 
-            sage: polytopes.icosidodecahedron(exact=False)
+            sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
+            sage: TestSuite(id).run(skip=["_test_is_combinatorially_isomorphic",
+            ....:                         "_test_product",
+            ....:                         "_test_pyramid",
+            ....:                         "_test_lawrence"])
 
             sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: id.f_vector()                                         # optional - pynormaliz
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                        # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
+            sage: TestSuite(id).run()                                   # optional - pynormaliz, long time
         """
         from sage.rings.number_field.number_field import QuadraticField
         from itertools import product
@@ -1244,7 +1561,7 @@ class Polytopes():
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                           # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-
+            sage: TestSuite(id).run()                                      # optional - pynormaliz, long time
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1424,7 +1741,7 @@ class Polytopes():
         TESTS::
 
             sage: ki_norm = polytopes.Kirkman_icosahedron(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(ki_norm).run(skip='_test_pickling')                # optional - pynormaliz
+            sage: TestSuite(ki_norm).run()                                     # optional - pynormaliz
         """
         vertices = [[9, 6, 6], [-9, 6, 6], [9, -6, 6], [9, 6, -6],
                     [-9, -6, 6], [-9, 6, -6], [9, -6, -6], [-9, -6, -6],
@@ -1697,7 +2014,7 @@ class Polytopes():
         TESTS::
 
             sage: tfcell = polytopes.twenty_four_cell(backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(tfcell).run(skip='_test_pickling')             # optional - pynormaliz
+            sage: TestSuite(tfcell).run()                                  # optional - pynormaliz
         """
         q12 = QQ((1, 2))
         verts = list(itertools.product([q12, -q12], repeat=4))
@@ -1928,7 +2245,7 @@ class Polytopes():
         TESTS::
 
             sage: p600 = polytopes.six_hundred_cell(exact=True, backend='normaliz') # optional - pynormaliz
-            sage: len(list(p600.bounded_edges()))                                   # optional - pynormaliz
+            sage: len(list(p600.bounded_edges()))                                   # optional - pynormaliz, long time
             720
         """
         if exact:
@@ -2067,7 +2384,7 @@ class Polytopes():
         TESTS::
 
             sage: G321 = polytopes.Gosset_3_21(backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(G321).run(skip='_test_pickling')         # optional - pynormaliz
+            sage: TestSuite(G321).run()                              # optional - pynormaliz, long time
         """
         from itertools import combinations
         verts = []
@@ -2107,7 +2424,7 @@ class Polytopes():
         TESTS::
 
             sage: cp = polytopes.cyclic_polytope(4,10,backend='normaliz')  # optional - pynormaliz
-            sage: TestSuite(cp).run(skip='_test_pickling')                 # optional - pynormaliz
+            sage: TestSuite(cp).run()                                      # optional - pynormaliz
         """
         verts = [[t**i for i in range(1, dim+1)] for t in range(n)]
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
@@ -2148,12 +2465,14 @@ class Polytopes():
             (1, 6, 12, 8, 1)
             sage: h_4_2.ehrhart_polynomial()    # optional - latte_int
             2/3*t^3 + 2*t^2 + 7/3*t + 1
+            sage: TestSuite(h_4_2).run()
 
             sage: h_7_3 = polytopes.hypersimplex(7, 3, project=True)
             sage: h_7_3
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
+            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -2204,6 +2523,15 @@ class Polytopes():
             sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
             True
 
+        As both Hrepresentation an Vrepresentation are known, the permutahedron can be set
+        up with both using the backend ``field``. The following takes very very long time
+        to recompute, e.g. with backend ``ppl``::
+
+            sage: polytopes.permutahedron(8, backend='field')  # (~1s)
+            A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 40320 vertices
+            sage: polytopes.permutahedron(9, backend='field')  # not tested (memory consumption)  # (~5s)
+            A 8-dimensional polyhedron in QQ^9 defined as the convex hull of 362880 vertices
+
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
@@ -2211,12 +2539,35 @@ class Polytopes():
         TESTS::
 
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(p4).run(skip='_test_pickling')             # optional - pynormaliz
+            sage: TestSuite(p4).run()                                  # optional - pynormaliz
+
+        Check that precomputed data is correct::
+
+            sage: P = polytopes.permutahedron(5, backend='field')
+            sage: TestSuite(P).run()  # long time
         """
-        verts = list(itertools.permutations(range(1, n + 1)))
+        verts = itertools.permutations(range(1, n + 1))
         if project:
             verts = project_points(*verts)
-        return Polyhedron(vertices=verts, backend=backend)
+            return Polyhedron(vertices=verts, backend=backend)
+        else:
+            parent = Polyhedra(ZZ, n, backend=backend)
+            def tri(m):
+                return (m*(m+1))//2
+
+            # Each proper `S \subset [n]` corresponds exactly to
+            # a facet that minimizes the coordinates in `S`.
+            # The minimal sum for `m` coordinates is `(m*(m+1))/2`.
+            ieqs = ((-tri(sum(x)),) + x
+                    for x in itertools.product([0,1], repeat=n)
+                    if 0 < sum(x) < n)
+
+            # Adding the defining equality.
+            eqns = ((-tri(n),) + tuple(1 for _ in range(n)),)
+
+            return parent([verts, [], []], [ieqs, eqns],
+                          Vrep_minimal=True, Hrep_minimal=True, pref_rep="Hrep")
+
 
     def generalized_permutahedron(self, coxeter_type, point=None, exact=True, regular=False, backend=None):
         r"""
@@ -2286,42 +2637,52 @@ class Polytopes():
         an exact embedded NumberField::
 
             sage: perm_a2_reg = polytopes.generalized_permutahedron(['A',2],regular=True)
-            sage: perm_a2_reg.vertices()
-            (A vertex at (-1/2, -0.866025403784439?),
-             A vertex at (-1, 0),
-             A vertex at (1/2, -0.866025403784439?),
+            sage: V = sorted(perm_a2_reg.vertices()); V         # random
+            [A vertex at (-1, 0),
+             A vertex at (-1/2, -0.866025403784439?),
              A vertex at (-1/2, 0.866025403784439?),
-             A vertex at (1.000000000000000?, 0.?e-18),
-             A vertex at (0.500000000000000?, 0.866025403784439?))
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (1/2, 0.866025403784439?),
+             A vertex at (1.000000000000000?, 0.?e-18)]
+            sage: for v in V:
+            ....:     for x in v:
+            ....:         x.exactify()
+            sage: V
+            [A vertex at (-1, 0),
+             A vertex at (-1/2, -0.866025403784439?),
+             A vertex at (-1/2, 0.866025403784439?),
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (1/2, 0.866025403784439?),
+             A vertex at (1, 0)]
             sage: perm_a2_reg.is_inscribed()
             True
-            sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)
-            sage: perm_a3_reg.is_inscribed()
+            sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)  # long time
+            sage: perm_a3_reg.is_inscribed()                                               # long time
             True
 
         The same is possible with vertices in ``RDF``::
 
             sage: perm_a2_inexact = polytopes.generalized_permutahedron(['A',2],exact=False)
-            sage: perm_a2_inexact.vertices()
-            (A vertex at (0.0, 1.0),
+            sage: sorted(perm_a2_inexact.vertices())
+            [A vertex at (-1.0, -1.0),
              A vertex at (-1.0, 0.0),
-             A vertex at (-1.0, -1.0),
              A vertex at (0.0, -1.0),
+             A vertex at (0.0, 1.0),
              A vertex at (1.0, 0.0),
-             A vertex at (1.0, 1.0))
+             A vertex at (1.0, 1.0)]
 
             sage: perm_a2_inexact_reg = polytopes.generalized_permutahedron(['A',2],exact=False,regular=True)
-            sage: perm_a2_inexact_reg.vertices()
-            (A vertex at (-0.5, 0.8660254038),
-             A vertex at (-1.0, 0.0),
+            sage: sorted(perm_a2_inexact_reg.vertices())
+            [A vertex at (-1.0, 0.0),
              A vertex at (-0.5, -0.8660254038),
+             A vertex at (-0.5, 0.8660254038),
              A vertex at (0.5, -0.8660254038),
-             A vertex at (1.0, 0.0),
-             A vertex at (0.5, 0.8660254038))
+             A vertex at (0.5, 0.8660254038),
+             A vertex at (1.0, 0.0)]
 
         It works also with types with non-rational coordinates::
 
-            sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3
+            sage: perm_b3 = polytopes.generalized_permutahedron(['B',3]); perm_b3  # long time
             A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)^3 defined as the convex hull of 48 vertices
 
             sage: perm_b3_reg = polytopes.generalized_permutahedron(['B',3],regular=True); perm_b3_reg # not tested - long time (12sec on 64 bits).
@@ -2339,8 +2700,8 @@ class Polytopes():
             sage: perm_h3 = polytopes.generalized_permutahedron(['H',3],backend='normaliz')  # optional - pynormaliz
             sage: perm_h3                                                                    # optional - pynormaliz
             A 3-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?)^3 defined as the convex hull of 120 vertices
-            sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz')  # optional - pynormaliz
-            sage: perm_f4                                                                    # optional - pynormaliz
+            sage: perm_f4 = polytopes.generalized_permutahedron(['F',4],backend='normaliz')  # optional - pynormaliz, long time
+            sage: perm_f4                                                                    # optional - pynormaliz, long time
             A 4-dimensional polyhedron in (Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?)^4 defined as the convex hull of 1152 vertices
 
         .. SEEALSO::
@@ -2350,7 +2711,7 @@ class Polytopes():
 
         TESTS::
 
-            sage: TestSuite(perm_h3).run(skip='_test_pickling')    # optional - pynormaliz
+            sage: TestSuite(perm_h3).run()  # optional - pynormaliz
         """
         from sage.combinat.root_system.coxeter_group import CoxeterGroup
         try:
@@ -2388,7 +2749,7 @@ class Polytopes():
                 transf_col += [new_col]
                 m = matrix(AA, transf_col)
                 col = bf.column(i)
-                rhs = vector(list(col[:i+1]))
+                rhs = vector(AA, list(col[:i+1]))
                 adjusted_col = m.solve_right(rhs)
                 # Then scales the images so that the polytope is inscribed
                 c = 1 - sum(adjusted_col[j]**2 for j in range(n) if j != i)
@@ -2662,8 +3023,8 @@ class Polytopes():
 
         The ``'normaliz'`` is faster::
 
-            sage: polytopes.one_hundred_twenty_cell(backend='normaliz')  # optional - pynormaliz
-            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining 
+            sage: P = polytopes.one_hundred_twenty_cell(backend='normaliz'); P  # optional - pynormaliz
+            A 4-dimensional polyhedron in (Number Field in sqrt5 with defining
             polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^4 defined as the convex hull of 600 vertices
 
         It is also possible to realize it using the generalized permutahedron
@@ -2671,6 +3032,10 @@ class Polytopes():
 
             sage: polytopes.one_hundred_twenty_cell(backend='normaliz',construction='as_permutahedron') # not tested - long time
             A 4-dimensional polyhedron in AA^4 defined as the convex hull of 600 vertices
+
+        TESTS::
+
+            sage: TestSuite(P).run()          # optional - pynormaliz, long time
         """
         if construction == 'coxeter':
             if not exact:
@@ -2715,21 +3080,36 @@ class Polytopes():
         else:
             raise ValueError("construction (={}) must be either 'coxeter' or 'as_permutahedron' ".format(construction))
 
-    def hypercube(self, dim, backend=None):
+    def hypercube(self, dim, intervals=None, backend=None):
         r"""
-        Return a hypercube in the given dimension.
+        Return a hypercube of the given dimension.
 
-        The `d` dimensional hypercube is the convex hull of the points `(\pm 1,
-        \pm 1, \ldots, \pm 1)` in `\RR^d`. For more information see
-        the :wikipedia:`Hypercube`.
+        The ``dim``-dimensional hypercube is by default the convex hull of the
+        `2^{\text{dim}}` `\pm 1` vectors of length ``dim``. Alternatively,
+        it is the product of ``dim`` line segments given in the ``intervals``.
+        For more information see the wikipedia article :wikipedia:`Hypercube`.
 
         INPUT:
 
-        - ``dim`` -- integer. The dimension of the cube.
+        - ``dim`` -- integer. The dimension of the hypercube.
+
+        - ``intervals`` -- (default = None). It takes the following
+          possible inputs:
+
+          - If ``None`` (the default), it returns the `\pm 1`-cube of
+            dimension ``dim``.
+
+          - ``'zero_one'`` -- (string). Return the `0/1`-cube.
+
+          - a list of length ``dim``. Its elements are pairs of
+            numbers `(a,b)` with `a < b`. The cube will be the product of
+            these intervals.
 
         - ``backend`` -- the backend to use to create the polytope.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Create the `\pm 1`-hypercube of dimension 4::
 
             sage: four_cube = polytopes.hypercube(4)
             sage: four_cube.is_simple()
@@ -2741,20 +3121,151 @@ class Polytopes():
             sage: four_cube.ehrhart_polynomial()    # optional - latte_int
             16*t^4 + 32*t^3 + 24*t^2 + 8*t + 1
 
+        Return the `0/1`-hypercube of dimension 4::
+
+            sage: z_cube = polytopes.hypercube(4,intervals = 'zero_one')
+            sage: z_cube.vertices()[0]
+            A vertex at (1, 0, 1, 1)
+            sage: z_cube.is_simple()
+            True
+            sage: z_cube.base_ring()
+            Integer Ring
+            sage: z_cube.volume()
+            1
+            sage: z_cube.ehrhart_polynomial()    # optional - latte_int
+            t^4 + 4*t^3 + 6*t^2 + 4*t + 1
+
+        Return the 4-dimensional combinatorial cube that is the product of
+        [0,3]^4::
+
+            sage: t_cube = polytopes.hypercube(4, intervals = [[0,3]]*4)
+
+        Checking that t_cube is three times the previous `0/1`-cube::
+
+            sage: t_cube == 3 * z_cube
+            True
+
         TESTS::
 
             sage: fc = polytopes.hypercube(4,backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(fc).run(skip='_test_pickling')         # optional - pynormaliz
-        """
-        return Polyhedron(vertices=list(itertools.product([1, -1], repeat=dim)), base_ring=ZZ, backend=backend)
+            sage: TestSuite(fc).run()                              # optional - pynormaliz
 
-    def cube(self, backend=None):
+        ::
+
+            sage: ls = [randint(-100,100) for _ in range(4)]
+            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: P = polytopes.hypercube(4, intervals, backend='field')
+            sage: TestSuite(P).run()
+
+        Check that :trac:`29904` is fixed::
+
+            sage: intervals = [[-2,2]]
+            sage: P = polytopes.hypercube(1, intervals, 'field')
+            sage: TestSuite(P).run()
+
+        If the dimension ``dim`` is not equal to the length of intervals, an
+        error is raised::
+
+            sage: u_cube = polytopes.hypercube(2,intervals = [[0,1],[0,2],[0,3]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the dimension of the hypercube must match the number of intervals
+
+        The intervals must be pairs `(a, b)` with `a < b`::
+
+            sage: w_cube = polytopes.hypercube(3, intervals = [[0,1],[3,2],[0,3]])
+            Traceback (most recent call last):
+            ...
+            ValueError: each interval must be a pair `(a, b)` with `a < b`
+
+        If a string besides 'zero_one' is passed to ``intervals``, return an
+        error::
+
+            sage: v_cube = polytopes.hypercube(3,intervals = 'a_string')
+            Traceback (most recent call last):
+            ...
+            ValueError: the only allowed string is 'zero_one'
+
+        Check that we set up the hypercube correctly::
+
+            sage: ls = [randint(-100,100) for _ in range(4)]
+            sage: intervals = [[x, x+randint(1,50)] for x in ls]
+            sage: P = polytopes.hypercube(4, intervals, backend='field')
+            sage: P1 = polytopes.hypercube(4, intervals, backend='ppl')
+            sage: assert P == P1
+
+        Check that coercion for input invervals is handled correctly::
+
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1.0]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, AA(2).sqrt()]])
+            sage: P = polytopes.hypercube(2, [[1/2, 2], [0, 1.0]], backend='ppl')
+            Traceback (most recent call last):
+            ...
+            ValueError: specified backend ppl cannot handle the intervals
+        """
+        parent = Polyhedra(ZZ, dim, backend=backend)
+        convert = False
+
+        # If the intervals are (a_1,b_1), ..., (a_dim, b_dim),
+        # then the inequalites correspond to
+        # b_1,b_2,...,b_dim, a_1,a_2,...,a_dim
+        # in that order.
+
+        if intervals is None:
+            cp = itertools.product((-1,1), repeat=dim)
+
+            # An inequality -x_i       + 1 >= 0 for i <  dim
+            # resp.          x_{dim-i} + 1 >= 0 for i >= dim
+            ieq_b = lambda i: 1
+
+        elif isinstance(intervals, str):
+            if intervals == 'zero_one':
+                cp = itertools.product((0,1), repeat=dim)
+
+                # An inequality -x_i       + 1 >= 0 for i <  dim
+                # resp.          x_{dim-i} + 0 >= 0 for i >= dim
+                ieq_b = lambda i: 1 if i < dim else 0
+            else:
+                raise ValueError("the only allowed string is 'zero_one'")
+        elif len(intervals) == dim:
+            if not all(a < b for a,b in intervals):
+                raise ValueError("each interval must be a pair `(a, b)` with `a < b`")
+            parent = parent.base_extend(sum(a + b for a,b in intervals))
+            if parent.base_ring() not in (ZZ, QQ):
+                convert = True
+            if backend and parent.backend() is not backend:
+                # If the parent changed backends, but a backend was specified,
+                # the specified backend cannot handle the intervals.
+                raise ValueError("specified backend {} cannot handle the intervals".format(backend))
+
+            cp = itertools.product(*intervals)
+
+            # An inequality -x_i       + b_i >= 0 for i <  dim
+            # resp.          x_{dim-i} - a_i >= 0 for i >= dim
+            ieq_b = lambda i: intervals[i][1] if i < dim \
+                              else -intervals[i-dim][0]
+        else:
+            raise ValueError("the dimension of the hypercube must match the number of intervals")
+
+        # An inequality -x_i       + ieq_b(i)     >= 0 for i <  dim
+        # resp.          x_{dim-i} + ieq_b(i-dim) >= 0 for i >= dim
+        ieq_A = lambda i, pos: -1 if i == pos           \
+                               else 1 if i == pos + dim \
+                               else 0
+        ieqs = (tuple(ieq_b(i) if pos == 0 else ieq_A(i, pos-1)
+                      for pos in range(dim+1))
+                for i in range(2*dim))
+
+        return parent([cp, [], []], [ieqs, []], convert=convert, Vrep_minimal=True, Hrep_minimal=True, pref_rep='Hrep')
+
+    def cube(self, intervals=None, backend=None):
         r"""
         Return the cube.
 
         The cube is the Platonic solid that is obtained as the convex hull of
-        the points `(\pm 1, \pm 1, \pm 1)`. It generalizes into several
-        dimension into hypercubes.
+        the eight `\pm 1` vectors of length 3 (by default). Alternatively, the
+        cube is the product of three intervals from ``intervals``.
 
         .. SEEALSO::
 
@@ -2762,9 +3273,26 @@ class Polytopes():
 
         INPUT:
 
+        - ``intervals`` -- list (default=None). It takes the following
+          possible inputs:
+
+            - If the input is ``None`` (the default), returns the convex hull of
+              the eight `\pm 1` vectors of length three.
+
+            - ``'zero_one'`` -- (string). Return the `0/1`-cube.
+
+            - a list of 3 lists of length 2. The cube will be a product of
+              these three intervals.
+
         - ``backend`` -- the backend to use to create the polytope.
 
-        EXAMPLES::
+        OUTPUT:
+
+        A cube as a polyhedron object.
+
+        EXAMPLES:
+
+        Return the `\pm 1`-cube::
 
             sage: c = polytopes.cube()
             sage: c
@@ -2775,8 +3303,21 @@ class Polytopes():
             8
             sage: c.plot()
             Graphics3d Object
+
+        Return the `0/1`-cube::
+
+            sage: cc = polytopes.cube(intervals ='zero_one')
+            sage: cc.vertices_list()
+            [[1, 0, 0],
+             [1, 1, 0],
+             [1, 1, 1],
+             [1, 0, 1],
+             [0, 0, 1],
+             [0, 0, 0],
+             [0, 1, 0],
+             [0, 1, 1]]
         """
-        return self.hypercube(3, backend=backend)
+        return self.hypercube(3, backend=backend, intervals=intervals)
 
     def cross_polytope(self, dim, backend=None):
         r"""
@@ -2804,11 +3345,25 @@ class Polytopes():
         TESTS::
 
             sage: cp = polytopes.cross_polytope(4,backend='normaliz')   # optional - pynormaliz
-            sage: TestSuite(cp).run(skip='_test_pickling')              # optional - pynormaliz
+            sage: TestSuite(cp).run()                                   # optional - pynormaliz
+
+        ::
+
+            sage: P = polytopes.cross_polytope(6, backend='field')
+            sage: TestSuite(P).run()  # long time
+
+        Check that double description is set up correctly::
+
+            sage: P = polytopes.cross_polytope(6, backend='ppl')
+            sage: Q = polytopes.cross_polytope(6, backend='ppl')
+            sage: P == Q
+            True
         """
-        verts = list((ZZ**dim).basis())
-        verts.extend([-v for v in verts])
-        return Polyhedron(vertices=verts, backend=backend)
+        verts = tuple((ZZ**dim).basis())
+        verts += tuple(-v for v in verts)
+        ieqs = ((1,) + x for x in itertools.product((-1,1), repeat=dim))
+        parent = Polyhedra(ZZ, dim, backend=backend)
+        return parent([verts, [], []], [ieqs, []], Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
 
     def parallelotope(self, generators, backend=None):
         r"""
@@ -2832,10 +3387,14 @@ class Polytopes():
 
             sage: K = QuadraticField(2, 'sqrt2')
             sage: sqrt2 = K.gen()
-            sage: polytopes.parallelotope([ (1,sqrt2), (1,-1) ])
+            sage: P = polytopes.parallelotope([ (1,sqrt2), (1,-1) ]); P
             A 2-dimensional polyhedron in (Number Field in sqrt2 with defining
             polynomial x^2 - 2 with sqrt2 = 1.414213562373095?)^2 defined as
             the convex hull of 4 vertices
+
+        TESTS::
+
+            sage: TestSuite(P).run()
         """
         from sage.modules.free_module_element import vector
         from sage.structure.sequence import Sequence

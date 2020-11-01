@@ -46,7 +46,8 @@ preparsed when calling ``%runfile`` ::
     sage: bool(re.search('/[0-9]+/', TMP))
     True
     sage: tmp = os.path.join(TMP, 'run_cell.py')
-    sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
+    sage: with open(tmp, 'w') as f:
+    ....:     _ = f.write('a = 2\n')
     sage: shell.run_cell('%runfile '+tmp)
     sage: shell.run_cell('a')
     2
@@ -109,7 +110,8 @@ class SageMagics(Magics):
             sage: from sage.misc.all import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
-            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
+            sage: with open(tmp, 'w') as f:
+            ....:     _ = f.write('a = 2\n')
             sage: shell.run_cell('%runfile '+tmp)
             sage: shell.run_cell('a')
             2
@@ -133,12 +135,12 @@ class SageMagics(Magics):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: tmp = os.path.normpath(os.path.join(SAGE_TMP, 'run_cell.py'))
-            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
+            sage: with open(tmp, 'w') as f: _ = f.write('a = 2\n')
             sage: shell.run_cell('%attach ' + tmp)
             sage: shell.run_cell('a')
             2
             sage: sleep(1)  # filesystem timestamp granularity
-            sage: f = open(tmp, 'w'); _ = f.write('a = 3\n'); f.close()
+            sage: with open(tmp, 'w') as f: _ = f.write('a = 3\n')
 
         Note that the doctests are never really at the command prompt, so
         we call the input hook manually::
@@ -509,9 +511,8 @@ class SageCustomizations(object):
         from .interpreter import (SagePreparseTransformer,
                                  SagePromptTransformer)
 
-        for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
-            s.physical_line_transforms.insert(1, SagePromptTransformer())
-            s.python_line_transforms.append(SagePreparseTransformer())
+        self.shell.input_transformers_cleanup.insert(1, SagePromptTransformer)
+        self.shell.input_transformers_post.append(SagePreparseTransformer)
 
 
 class SageJupyterCustomizations(SageCustomizations):

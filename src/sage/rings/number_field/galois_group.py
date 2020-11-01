@@ -232,13 +232,22 @@ class GaloisGroup_v2(PermutationGroup_generic):
         # PARI computes all the elements of self anyway, so we might as well store them
         self._elts = sorted([self(x, check=False) for x in g[5]])
 
-    def __call__(self, x, check=True):
-        r""" Create an element of self from x. Here x had better be one of:
-        -- the integer 1, denoting the identity of G
-        -- an element of G
-        -- a permutation of the right length which defines an element of G, or anything that
-            coerces into a permutation of the right length
-        -- an abstract automorphism of the underlying number field.
+    def _element_constructor_(self, x, check=True):
+        """
+        Create an element of ``self`` from ``x``.
+
+        INPUT:
+
+        - ``x`` -- one of the following (`G` is this Galois group):
+
+          - the integer 1, denoting the identity of `G`;
+
+          - an element of `G`;
+
+          - a permutation of the right length that defines an element
+            of `G`, or anything that coerces into such a permutation;
+
+          - an automorphism of the underlying number field.
 
         EXAMPLES::
 
@@ -256,7 +265,6 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if x == 1:
             return self.identity()
 
-        from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
         if isinstance(x, NumberFieldHomomorphism_im_gens) and x.parent() == self.number_field().Hom(self.number_field()):
             l = [g for g in self if g.as_hom() == x]
             if len(l) != 1:
@@ -390,14 +398,63 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
             sage: G.subgroup([ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)]) ])
             Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
+
+        Subgroups can be specified using generators (:trac:`26816`)::
+
+            sage: K.<a> = NumberField(x^6 - 6*x^4 + 9*x^2 + 23)
+            sage: G = K.galois_group()
+            sage: list(G)
+            [(),
+             (1,2,3)(4,5,6),
+             (1,3,2)(4,6,5),
+             (1,4)(2,6)(3,5),
+             (1,5)(2,4)(3,6),
+             (1,6)(2,5)(3,4)]
+            sage: g = G[1]
+            sage: h = G[3]
+            sage: list(G.subgroup([]))
+            [()]
+            sage: list(G.subgroup([g]))
+            [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)]
+            sage: list(G.subgroup([h]))
+            [(), (1,4)(2,6)(3,5)]
+            sage: list(G.subgroup([g,h])) == list(G)
+            True
         """
-        if len(elts) == self.order():
-            return self
-        else:
-            return GaloisGroup_subgroup(self, elts)
+        return GaloisGroup_subgroup(self, elts)
 
     # Proper number theory starts here. All the functions below make no sense
     # unless the field is Galois.
+
+    @cached_method
+    def _ramgroups(self, P):
+        """
+        Compute ramification data using PARI.
+
+        INPUT:
+
+        - ``P`` -- a prime ideal
+
+        OUTPUT:
+
+        A PARI vector holding the decomposition group, inertia groups,
+        and higher ramification groups.
+
+        ALGORITHM:
+
+        This uses the PARI function :pari:`idealramgroups`.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^4 - 2*x^2 + 2,'b').galois_closure()
+            sage: P = K.ideal([17, a^2])
+            sage: G = K.galois_group()
+            sage: G._ramgroups(P)
+            [[[Vecsmall([8, 7, 6, 5, 4, 3, 2, 1])], Vecsmall([2])]]
+        """
+        K = self.number_field()
+        P = K.ideal_monoid()(P).pari_prime()
+        return pari(K).idealramgroups(self._pari_data, P)
 
     def decomposition_group(self, P):
         r"""
@@ -420,11 +477,11 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: G.decomposition_group(P^2)
             Traceback (most recent call last):
             ...
-            ValueError: Fractional ideal (...) is not prime
+            ValueError: Fractional ideal (...) is not a prime ideal
             sage: G.decomposition_group(17)
             Traceback (most recent call last):
             ...
-            ValueError: Fractional ideal (17) is not prime
+            ValueError: Fractional ideal (17) is not a prime ideal
 
         An example with an infinite place::
 
@@ -442,10 +499,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             else:
                 return self.subgroup([self.identity(), self.complex_conjugation(P)])
         else:
-            P = self.number_field().ideal_monoid()(P)
-            if not P.is_prime():
-                raise ValueError("%s is not prime" % P)
-            return self.subgroup([s for s in self if s(P) == P])
+            return self.ramification_group(P, -1)
 
     def complex_conjugation(self, P=None):
         """
@@ -508,10 +562,13 @@ class GaloisGroup_v2(PermutationGroup_generic):
         """
         if not self.is_galois():
             raise TypeError("Ramification groups only defined for Galois extensions")
-        P = self.number_field().ideal_monoid()(P)
-        if not P.is_prime():
-            raise ValueError("%s is not prime")
-        return self.subgroup([g for g in self if g(P) == P and g.ramification_degree(P) >= v + 1])
+        ramdata = self._ramgroups(P)
+        if v < -1:
+            raise ValueError("v must be at least -1")
+        elif v + 1 >= len(ramdata):
+            return self.subgroup([])
+        else:
+            return self.subgroup(ramdata[v + 1][0])
 
     def inertia_group(self, P):
         """
@@ -523,7 +580,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: K.<b> = NumberField(x^2 - 3,'a')
             sage: G = K.galois_group()
             sage: G.inertia_group(K.primes_above(2)[0])
-            Galois group of Number Field in b with defining polynomial x^2 - 3
+            Subgroup [(), (1,2)] of Galois group of Number Field in b with defining polynomial x^2 - 3
             sage: G.inertia_group(K.primes_above(5)[0])
             Subgroup [()] of Galois group of Number Field in b with defining polynomial x^2 - 3
         """
@@ -549,11 +606,11 @@ class GaloisGroup_v2(PermutationGroup_generic):
         """
         if not self.is_galois():
             raise TypeError("Ramification breaks only defined for Galois extensions")
-        from sage.rings.infinity import infinity
+        ramdata = self._ramgroups(P)
+        n = len(ramdata)
         from sage.sets.set import Set
-        i = [g.ramification_degree(P) - 1 for g in self.decomposition_group(P)]
-        i.remove(infinity)
-        return Set(i)
+        return Set([i - 1 for i in range(n - 1)
+                    if ramdata[i][1] != ramdata[i + 1][1]] + [n - 2])
 
     def artin_symbol(self, P):
         r"""
@@ -605,8 +662,11 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
 
     def __init__(self, ambient, elts):
         r"""
-        Create a subgroup of a Galois group with the given elements. It is generally better to
-        use the subgroup() method of the parent group.
+        Return the subgroup of this Galois group generated by the
+        given elements.
+
+        It is generally better to use the :meth:`subgroup` method of
+        the parent group.
 
         EXAMPLES::
 
@@ -637,7 +697,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
         self._pari_data = ambient._pari_data
         self._pari_gc = ambient._pari_gc
         self._gc_map = ambient._gc_map
-        self._elts = elts
+        self._elts = sorted(self.iteration())
 
     def fixed_field(self):
         r"""
@@ -656,10 +716,17 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
                To:   Number Field in a with defining polynomial x^4 + 1
                Defn: a0 |--> a^3 + a)
 
-        """
-        if self.order() == 1:
-            return self._galois_closure  # work around a silly error
+        An embedding is returned also if the subgroup is trivial
+        (:trac:`26817`)::
 
+            sage: H = G.subgroup([G.identity()])
+            sage: H.fixed_field()
+            (Number Field in a0 with defining polynomial x^4 + 1 with a0 = a,
+             Ring morphism:
+               From: Number Field in a0 with defining polynomial x^4 + 1 with a0 = a
+               To:   Number Field in a with defining polynomial x^4 + 1
+               Defn: a0 |--> a)
+        """
         vecs = [pari(g.domain()).Vecsmall() for g in self._elts]
         v = self._ambient._pari_data.galoisfixedfield(vecs)
         x = self._galois_closure(v[1])

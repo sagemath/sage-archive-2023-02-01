@@ -18,6 +18,11 @@ AUTHORS:
 
 - Michael Jung (2019) : initial version
 
+REFERENCES:
+
+- [Lee2013]_
+- [Mil1974]_
+
 """
 
 #******************************************************************************
@@ -34,7 +39,7 @@ from sage.categories.vector_bundles import VectorBundles
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.rings.integer import Integer
 from sage.manifolds.vector_bundle_fiber import VectorBundleFiber
 
@@ -241,6 +246,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         self._diff_degree = 0
         self._base_space = base_space
         self._total_space = None
+        self._orientation = []  # set no orientation a priori
         ###
         # Set names:
         self._name = name
@@ -249,10 +255,10 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         else:
             self._latex_name = latex_name
         ###
-        # Initialize derived quantities like frames and trivializations:
-        self._init_derived()
+        # Initialize quantities like frames and trivializations:
+        self._init_attributes()
 
-    def _init_derived(self):
+    def _init_attributes(self):
         r"""
         Initialize the derived quantities.
 
@@ -260,7 +266,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: E = M.vector_bundle(2, 'E')
-            sage: E._init_derived()
+            sage: E._init_attributes()
 
         """
         self._section_modules = {} # dict of section modules with domains as
@@ -578,6 +584,8 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         INPUT:
 
+        - ``domain`` -- (default: ``None``) the domain on which the module is
+          defined; if ``None`` the base space is assumed
         - ``force_free`` -- (default: ``False``) if set to ``True``, force
           the construction of a *free* module (this implies that `E` is trivial)
 
@@ -587,44 +595,45 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
           :class:`~sage.manifolds.section_module.SectionModule`
           (or if `E` is trivial, a
           :class:`~sage.manifolds.section_module.SectionFreeModule`)
-          representing the module `\Gamma(E)` of continuous sections on
-          `M` taking values on `E`
+          representing the module of continuous sections on
+          `U` taking values in `E`
 
         EXAMPLES:
 
-        Module of sections on the Möbius bundle::
+        Module of sections on the Möbius bundle over the real-projective space
+        `M=\RR P^1`::
 
-            sage: M = Manifold(1, 'S^1', structure='top', start_index=1)
+            sage: M = Manifold(1, 'RP^1', structure='top', start_index=1)
             sage: U = M.open_subset('U')  # the complement of one point
-            sage: c_t.<t> =  U.chart('t:(0,2*pi)') # the standard angle coordinate
-            sage: V = M.open_subset('V') # the complement of the point t=pi
-            sage: M.declare_union(U,V)   # S^1 is the union of U and V
-            sage: c_u.<u> = V.chart('u:(0,2*pi)') # the angle t-pi
-            sage: t_to_u = c_t.transition_map(c_u, (t-pi,),
+            sage: c_u.<u> =  U.chart() # [1:u] in homogeneous coord.
+            sage: V = M.open_subset('V') # the complement of the point u=0
+            sage: M.declare_union(U,V)   # [v:1] in homogeneous coord.
+            sage: c_v.<v> = V.chart()
+            sage: u_to_v = c_u.transition_map(c_v, (1/u),
             ....:                             intersection_name='W',
-            ....:                             restrictions1 = t!=pi,
-            ....:                             restrictions2 = u!=pi)
-            sage: u_to_t = t_to_u.inverse()
+            ....:                             restrictions1 = u!=0,
+            ....:                             restrictions2 = v!=0)
+            sage: v_to_u = u_to_v.inverse()
             sage: W = U.intersection(V)
             sage: E = M.vector_bundle(1, 'E')
             sage: phi_U = E.trivialization('phi_U', latex_name=r'\varphi_U',
             ....:                          domain=U)
             sage: phi_V = E.trivialization('phi_V', latex_name=r'\varphi_V',
             ....:                          domain=V)
-            sage: transf = phi_U.transition_map(phi_V, [[-1]])
+            sage: transf = phi_U.transition_map(phi_V, [[u]])
             sage: C0 = E.section_module(); C0
-            Module C^0(S^1;E) of sections on the 1-dimensional topological
-             manifold S^1 with values in the real vector bundle E of rank 1
+            Module C^0(RP^1;E) of sections on the 1-dimensional topological
+             manifold RP^1 with values in the real vector bundle E of rank 1
 
-        `C^0(S^1;E)` is a module over the algebra `C^0(M)`::
+        `C^0(\RR P^1;E)` is a module over the algebra `C^0(\RR P^1)`::
 
             sage: C0.category()
-            Category of modules over Algebra of scalar fields on the 1-dimensional
-             topological manifold S^1
+            Category of modules over Algebra of scalar fields on the
+             1-dimensional topological manifold RP^1
             sage: C0.base_ring() is M.scalar_field_algebra()
             True
 
-        However, `C^0(S^1;E)` is not a free module::
+        However, `C^0(\RR P^1;E)` is not a free module::
 
             sage: isinstance(C0, FiniteRankFreeModule)
             False
@@ -645,10 +654,9 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
             sage: C0_U.an_element()
             Section on the Open subset U of the 1-dimensional topological
-             manifold S^1 with values in the real vector bundle E of rank 1
+             manifold RP^1 with values in the real vector bundle E of rank 1
             sage: C0_U.an_element().display(phi_U.frame())
             2 (phi_U^*e_1)
-
 
         """
         if domain is None:
@@ -692,9 +700,7 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
         """
         return VectorBundleFiber(self, point)
 
-    def local_frame(self, symbol, latex_symbol=None, indices=None,
-                    latex_indices=None, symbol_dual=None,
-                    latex_symbol_dual=None, domain=None):
+    def local_frame(self, *args, **kwargs):
         r"""
         Define a local frame on ``self``.
 
@@ -709,11 +715,12 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``symbol`` -- (default: ``None``) either a string, to be used as a
-          common base for the symbols of the sections constituting the
-          local frame, or a list/tuple of strings, representing the individual
-          symbols of the sections; can be ``None`` only if ``from_frame``
-          is not ``None`` (see below)
+        - ``symbol`` -- either a string, to be used as a common base for the
+          symbols of the sections constituting the local frame, or a list/tuple
+          of strings, representing the individual symbols of the sections
+        - ``sections`` -- tuple or list of `n` linearly independent sections on
+          ``self`` (`n` being the rank of ``self``) defining the local
+          frame; can be omitted if the local frame is created from scratch
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the sections
           constituting the local frame, or a list/tuple of strings,
@@ -742,18 +749,43 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         EXAMPLES:
 
-        Setting a local frame on a real rank-2 vector bundle::
+
+        Defining a local frame from two linearly independent sections on a
+        real rank-2 vector bundle::
 
             sage: M = Manifold(3, 'M', structure='top')
             sage: U = M.open_subset('U')
+            sage: X.<x,y,z> = U.chart()
             sage: E = M.vector_bundle(2, 'E')
-            sage: e = E.local_frame('e', domain=U); e
+            sage: phi = E.trivialization('phi', domain=U)
+            sage: s0 = E.section(name='s_0', domain=U)
+            sage: s0[:] = 1+z^2, -2
+            sage: s1 = E.section(name='s_1', domain=U)
+            sage: s1[:] = 1, 1+x^2
+            sage: e = E.local_frame('e', (s0, s1), domain=U); e
             Local frame (E|_U, (e_0,e_1))
+            sage: (e[0], e[1]) == (s0, s1)
+            True
+
+        If the sections are not linearly independent, an error is raised::
+
+            sage: e = E.local_frame('z', (s0, -s0), domain=U)
+            Traceback (most recent call last):
+            ...
+            ValueError: the provided sections are not linearly independent
+
+        It is also possible to create a local frame from scratch, without
+        connecting it to previously defined local frames or sections
+        (this can still be performed later via the method
+        :meth:`set_change_of_frame`)::
+
+            sage: f = E.local_frame('f', domain=U); f
+            Local frame (E|_U, (f_0,f_1))
 
         For a global frame, the argument ``domain`` is omitted::
 
-            sage: f = E.local_frame('f'); f
-            Local frame (E|_M, (f_0,f_1))
+            sage: g = E.local_frame('g'); g
+            Local frame (E|_M, (g_0,g_1))
 
         .. SEEALSO::
 
@@ -762,11 +794,38 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
 
         """
         from sage.manifolds.local_frame import LocalFrame
+        # Input processing
+        n_args = len(args)
+        if n_args < 1 or n_args > 2:
+            raise TypeError("local_frame() takes one or two positional "
+                            "arguments, not {}".format(n_args))
+        symbol = args[0]
+        sections = None
+        if n_args == 2:
+            sections = args[1]
+        latex_symbol = kwargs.pop('latex_symbol', None)
+        indices = kwargs.pop('indices', None)
+        latex_indices = kwargs.pop('latex_indices', None)
+        symbol_dual = kwargs.pop('symbol_dual', None)
+        latex_symbol_dual = kwargs.pop('latex_symbol_dual', None)
+        domain = kwargs.pop('domain', None)
+        #
         sec_module = self.section_module(domain=domain, force_free=True)
-        return LocalFrame(sec_module, symbol=symbol, latex_symbol=latex_symbol,
+        resu = LocalFrame(sec_module, symbol=symbol, latex_symbol=latex_symbol,
                           indices=indices, latex_indices=latex_indices,
                           symbol_dual=symbol_dual,
                           latex_symbol_dual=latex_symbol_dual)
+        if sections:
+            linked = False
+            try:
+                resu._init_from_family(sections)
+            except ArithmeticError as err:
+                linked = str(err) in ["non-invertible matrix",
+                                      "input matrix must be nonsingular"]
+            if linked:
+                raise ValueError("the provided sections are not linearly "
+                                 "independent")
+        return resu
 
     def section(self, *comp, **kwargs):
         r"""
@@ -1084,3 +1143,242 @@ class TopologicalVectorBundle(CategoryObject, UniqueRepresentation):
                              "the {}".format(self))
         frame._fmodule.set_default_basis(frame)
         self._def_frame = frame
+
+    def set_orientation(self, orientation):
+        r"""
+        Set the preferred orientation of ``self``.
+
+        INPUT:
+
+        - ``orientation`` -- a local frame or a list of local frames whose
+          domains cover the base space
+
+        .. WARNING::
+
+            It is the user's responsibility that the orientation set here
+            is indeed an orientation. There is no check going on in the
+            background. See :meth:`orientation` for the definition of an
+            orientation.
+
+        EXAMPLES:
+
+        Set an orientation on a vector bundle::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e'); e
+            Local frame (E|_M, (e_0,e_1))
+            sage: f = E.local_frame('f'); f
+            Local frame (E|_M, (f_0,f_1))
+            sage: E.set_orientation(f)
+            sage: E.orientation()
+            [Local frame (E|_M, (f_0,f_1))]
+
+        Set an orientation in the non-trivial case::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e', domain=U); e
+            Local frame (E|_U, (e_0,e_1))
+            sage: f = E.local_frame('f', domain=V); f
+            Local frame (E|_V, (f_0,f_1))
+            sage: E.orientation()
+            []
+            sage: E.set_orientation([e, f])
+            sage: E.orientation()
+            [Local frame (E|_U, (e_0,e_1)),
+             Local frame (E|_V, (f_0,f_1))]
+
+        """
+        from .local_frame import LocalFrame
+        if isinstance(orientation, LocalFrame):
+            orientation = [orientation]
+        elif isinstance(orientation, (tuple, list)):
+            orientation = list(orientation)
+        else:
+            raise TypeError("orientation must be a frame or a list/tuple of "
+                            "frames")
+        dom_union = None
+        for frame in orientation:
+            if frame not in self.frames():
+                raise ValueError("{} must be a frame ".format(frame) +
+                                 "defined on {}".format(self))
+            dom = frame.domain()
+            if dom_union is not None:
+                dom_union = dom.union(dom_union)
+            else:
+                dom_union = dom
+        base_space = self._base_space
+        if dom_union != base_space:
+            raise ValueError("the frames's domains must "
+                             "cover {}".format(base_space))
+        self._orientation = orientation
+
+    def orientation(self):
+        r"""
+        Get the orientation of ``self`` if available.
+
+        An *orientation* on a vector bundle is a choice of local frames whose
+
+        1. union of domains cover the base space,
+        2. changes of frames are pairwise orientation preserving, i.e. have
+           positive determinant.
+
+        A vector bundle endowed with an orientation is called *orientable*.
+
+        The trivial case corresponds to ``self`` being trivial, i.e. ``self``
+        can be covered by one frame. In that case, if no preferred
+        orientation has been set before, one of those frames (usually the
+        default frame) is set automatically to the preferred orientation and
+        returned here.
+
+        EXAMPLES:
+
+        The trivial case is covered automatically::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e'); e
+            Local frame (E|_M, (e_0,e_1))
+            sage: E.orientation()  # trivial case
+            [Local frame (E|_M, (e_0,e_1))]
+
+        The orientation can also be set by the user::
+
+            sage: f = E.local_frame('f'); f
+            Local frame (E|_M, (f_0,f_1))
+            sage: E.set_orientation(f)
+            sage: E.orientation()
+            [Local frame (E|_M, (f_0,f_1))]
+
+        In case of the non-trivial case, the orientation must be set manually,
+        otherwise no orientation is returned::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e', domain=U); e
+            Local frame (E|_U, (e_0,e_1))
+            sage: f = E.local_frame('f', domain=V); f
+            Local frame (E|_V, (f_0,f_1))
+            sage: E.orientation()
+            []
+            sage: E.set_orientation([e, f])
+            sage: E.orientation()
+            [Local frame (E|_U, (e_0,e_1)),
+             Local frame (E|_V, (f_0,f_1))]
+
+        """
+        if not self._orientation:
+            # Trivial case:
+            if self.is_manifestly_trivial():
+                # Try the default frame:
+                def_frame = self._def_frame
+                if def_frame is not None:
+                    if def_frame._domain is self._base_space:
+                        self._orientation = [def_frame]
+                # Still no orientation? Choose arbitrary frame:
+                if not self._orientation:
+                    for frame in self.frames():
+                        if frame._domain is self._base_space:
+                            self._orientation = [frame]
+                            break
+        return list(self._orientation)
+
+    def has_orientation(self):
+        r"""
+        Check whether ``self`` admits an obvious or by user set orientation.
+
+        .. SEEALSO::
+
+            Consult :meth:`orientation` for details about orientations.
+
+        .. NOTE::
+
+            Notice that if :meth:`has_orientation` returns ``False`` this does
+            not necessarily mean that the vector bundle admits no orientation.
+            It just means that the user has to set an orientation manually
+            in that case, see :meth:`set_orientation`.
+
+        EXAMPLES:
+
+        The trivial case::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: E.has_orientation()  # trivial case
+            True
+
+        Non-trivial case::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e', domain=U)
+            sage: f = E.local_frame('f', domain=V)
+            sage: E.has_orientation()
+            False
+            sage: E.set_orientation([e, f])
+            sage: E.has_orientation()
+            True
+
+        """
+        return bool(self.orientation())
+
+    def irange(self, start=None):
+        r"""
+        Single index generator.
+
+        INPUT:
+
+        - ``start`` -- (default: ``None``) initial value `i_0` of the index;
+          if none are provided, the value returned by
+          :meth:`sage.manifolds.manifold.Manifold.start_index()` is assumed
+
+        OUTPUT:
+
+        - an iterable index, starting from `i_0` and ending at
+          `i_0 + n - 1`, where `n` is the vector bundle's dimension
+
+        EXAMPLES:
+
+        Index range on a 4-dimensional vector bundle over a 5-dimensional
+        manifold::
+
+            sage: M = Manifold(5, 'M', structure='topological')
+            sage: E = M.vector_bundle(4, 'E')
+            sage: list(E.irange())
+            [0, 1, 2, 3]
+            sage: list(E.irange(2))
+            [2, 3]
+
+        Index range on a 4-dimensional vector bundle over a 5-dimensional
+        manifold with starting index=1::
+
+            sage: M = Manifold(5, 'M', structure='topological', start_index=1)
+            sage: E = M.vector_bundle(4, 'E')
+            sage: list(E.irange())
+            [1, 2, 3, 4]
+            sage: list(E.irange(2))
+            [2, 3, 4]
+
+        In general, one has always::
+
+            sage: next(E.irange()) == M.start_index()
+            True
+
+        """
+        si = self._base_space._sindex
+        imax = self._rank + si
+        if start is None:
+            i = si
+        else:
+            i = start
+        while i < imax:
+            yield i
+            i += 1

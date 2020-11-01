@@ -23,19 +23,19 @@ REFERENCES:
 - Chaps. 15, 24 of R. Godement: *Algebra* [God1968]_
 
 """
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from __future__ import absolute_import
-from six import itervalues
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
+
 
 class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
     r"""
@@ -244,7 +244,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         [1 3], [-1  0], [0 3]
         )
 
-    To get the result as an endomorphism, one has to explicitely convert it via
+    To get the result as an endomorphism, one has to explicitly convert it via
     the parent of endomorphisms, `\mathrm{End}(M)`::
 
         sage: s = End(M)(a+b) ; s
@@ -472,7 +472,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.set_comp(e)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the identity map cannot be changed
+            ValueError: the components of the identity map cannot be changed
 
         Indeed, the components are set automatically::
 
@@ -483,8 +483,8 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise AssertionError("the components of the identity map cannot be "
-                                 "changed")
+            raise ValueError("the components of the identity map cannot be "
+                             "changed")
         return FreeModuleTensor._set_comp_unsafe(self, basis=basis)
 
     def add_comp(self, basis=None):
@@ -544,7 +544,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.add_comp(e)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the identity map cannot be changed
+            ValueError: the components of the identity map cannot be changed
 
         Indeed, the components are set automatically::
 
@@ -555,8 +555,8 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise AssertionError("the components of the identity map cannot be "
-                                 "changed")
+            raise ValueError("the components of the identity map cannot be "
+                             "changed")
         return FreeModuleTensor._add_comp_unsafe(self, basis=basis)
 
     def __call__(self, *arg):
@@ -729,7 +729,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
             sage: ~a is a.inverse()
             True
-            sage: a^(-1) is a.inverse()
+            sage: (a)^(-1) is a.inverse()
             True
 
         The inverse of the identity map is of course itself::
@@ -740,23 +740,41 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         and we have::
 
-            sage: a*a^(-1) == id
+            sage: a*(a)^(-1) == id
             True
-            sage: a^(-1)*a == id
+            sage: (a)^(-1)*a == id
             True
+
+        If the name could cause some confusion, a bracket is added around the
+        element before taking the inverse::
+
+            sage: c = M.automorphism(name='a^(-1)*b')
+            sage: c[e,:] = [[1,0,0],[0,-1,1],[0,2,-1]]
+            sage: c.inverse()
+            Automorphism (a^(-1)*b)^(-1) of the Rank-3 free module M over the
+             Integer Ring
+
         """
         from .comp import Components
         if self._is_identity:
             return self
         if self._inverse is None:
+            from sage.tensor.modules.format_utilities import is_atomic
             if self._name is None:
                 inv_name = None
             else:
-                inv_name = self._name  + '^(-1)'
+                if is_atomic(self._name, ['*']):
+                    inv_name = self._name + '^(-1)'
+                else:
+                    inv_name = '(' + self._name + ')^(-1)'
             if self._latex_name is None:
                 inv_latex_name = None
             else:
-                inv_latex_name = self._latex_name + r'^{-1}'
+                if is_atomic(self._latex_name, ['\\circ', '\\otimes']):
+                    inv_latex_name = self._latex_name + r'^{-1}'
+                else:
+                    inv_latex_name = r'\left(' + self._latex_name + \
+                                     r'\right)^{-1}'
             fmodule = self._fmodule
             si = fmodule._sindex
             nsi = fmodule._rank + si
@@ -791,7 +809,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         OUTPUT:
 
         - the automorphism resulting from the composition of ``other`` and
-        ``self.``
+          ``self``.
 
         EXAMPLES::
 
@@ -1070,7 +1088,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return next(itervalues(self._matrices)).det() # pick a random value in the
+        return next(iter(self._matrices.values())).det() # pick a random value in the
                                                 # dictionary self._matrices
                                                 # and compute the determinant
 
@@ -1103,6 +1121,6 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return next(itervalues(self._matrices)).trace() # pick a random value in the
+        return next(iter(self._matrices.values())).trace() # pick a random value in the
                                                   # dictionary self._matrices
                                                   # and compute the trace

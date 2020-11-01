@@ -15,7 +15,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
@@ -28,7 +28,7 @@ from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.parallel.decorate import parallel
 from sage.parallel.ncpus import ncpus as num_cpus
 from sage.libs.flint.ulong_extras cimport n_is_prime
@@ -1266,7 +1266,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         r"""
         Method called by self._zerosum_sincsquared_parallel() to determine
         the optimal residue class breakdown when sieving for primes.
-        Returns a list of small primes, the product thereof, and a list of
+
+        Return a list of small primes, the product thereof, and a list of
         residues coprime to the product.
 
         INPUT:
@@ -1621,7 +1622,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             :func:`LFunctionZeroSum`
             :meth:`EllipticCurve.root_number`
-            :func:`set_verbose`
+            :func:`~sage.misc.verbose.set_verbose`
 
         EXAMPLES:
 

@@ -7,7 +7,7 @@ from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.libs.pynac.pynac import (register_symbol, symbol_table)
 from sage.structure.all import parent as s_parent
 from sage.rings.all import Rational, ComplexField
-from sage.rings.complex_number import is_ComplexNumber
+from sage.rings.complex_mpfr import is_ComplexNumber
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 from .log import exp
@@ -509,14 +509,14 @@ class Function_gamma_inc_lower(BuiltinFunction):
             sage: gamma_inc_lower(x,x)._sympy_()
             lowergamma(x, x)
             sage: maxima(gamma_inc_lower(x,x))
-            gamma_greek(_SAGE_VAR_x,_SAGE_VAR_x)
+            gamma_incomplete_lower(_SAGE_VAR_x,_SAGE_VAR_x)
 
     .. SEEALSO::
 
         :class:`Function_gamma_inc`
         """
         BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
-                conversions={'maxima':'gamma_greek',
+                conversions={'maxima':'gamma_incomplete_lower',
                     'maple':'GAMMA', 'sympy':'lowergamma', 'giac':'igamma'})
 
     def _eval_(self, x, y):

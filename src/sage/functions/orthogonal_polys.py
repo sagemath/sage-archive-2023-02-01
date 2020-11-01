@@ -298,7 +298,6 @@ Willis of the University of Nebraska at Kearney.
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from six.moves import range
 
 import warnings
 
@@ -306,7 +305,7 @@ from sage.misc.latex import latex
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfr import is_RealField
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import is_ComplexField
 
 from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
@@ -531,7 +530,7 @@ class ChebyshevFunction(OrthogonalFunction):
             # Numerical evaluation failed => keep symbolic
             return None
 
-    
+
 class Func_chebyshev_T(ChebyshevFunction):
     """
     Chebyshev polynomials of the first kind.
@@ -2007,7 +2006,7 @@ gegenbauer = Func_ultraspherical()
 class Func_laguerre(OrthogonalFunction):
     """
     REFERENCE:
- 
+
     - [AS1964]_ 22.5.16, page 778 and page 789.
     """
     def __init__(self):

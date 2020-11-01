@@ -13,8 +13,12 @@
 /config.log
 /config.status
 /configure
+/conftest*
 
 /m4/sage_spkg_configures.m4
+
+# no longer generated, but may still be in user worktrees
+/src/lib/pkgconfig
 
 ###################
 # Temporary Files #
@@ -73,6 +77,9 @@ $RECYCLE.BIN/
 # SublimeText
 *.sublime-workspace
 
+# mypy
+**/.mypy_cache/
+
 #################
 # SageMathCloud #
 #################
@@ -95,4 +102,18 @@ gitlab-build-docker.log
 /src/build
 /src/Makefile
 /src/bin/sage-env-config
+/build/bin/sage-build-env-config
 
+/build/pkgs/*/src/build
+/build/pkgs/*/src/dist
+/build/pkgs/*/src/MANIFEST
+/build/pkgs/*/src/*.egg-info
+/build/pkgs/*/src/.tox
+
+#######################
+# tox generated files #
+#######################
+
+/.tox
+/prefix
+worktree*

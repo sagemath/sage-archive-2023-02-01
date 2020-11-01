@@ -10,9 +10,8 @@ Group algebras of root lattice realizations
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
-
-import functools, operator
+import functools
+import operator
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc_c import prod
@@ -20,8 +19,6 @@ from sage.categories.algebra_functor import AlgebrasCategory
 lazy_import('sage.rings.integer_ring', 'ZZ')
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
-
-import six
 
 
 class Algebras(AlgebrasCategory):
@@ -119,7 +116,8 @@ class Algebras(AlgebrasCategory):
             .. TODO:: make this work for Laurent polynomials too
             """
             L = self.basis().keys()
-            return self.sum_of_terms((L.from_vector(vector(t)), c) for (t,c) in six.iteritems(p.dict()))
+            return self.sum_of_terms((L.from_vector(vector(t)), c)
+                                     for (t,c) in p.dict().items())
 
         @cached_method
         def divided_difference_on_basis(self, weight, i):

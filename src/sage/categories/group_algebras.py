@@ -143,7 +143,7 @@ class GroupAlgebras(AlgebrasCategory):
                 ## some matrix groups assume that coercion is only valid to
                 ## other matrix groups. This is a workaround
                 ## call _element_constructor_ to coerce group elements
-                #try :
+                #try:
                 self._populate_coercion_lists_(coerce_list=[self.group()])
 
         def _latex_(self):

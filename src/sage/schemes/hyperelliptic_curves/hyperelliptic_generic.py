@@ -8,7 +8,7 @@ EXAMPLES::
     sage: C = HyperellipticCurve(f); C
     Hyperelliptic Curve over Finite Field of size 5 defined by y^2 = x^5 + 2*x^4 + 3*x^3 + x^2 + 3*x + 4
 
-EXAMPLES::
+::
 
     sage: P.<x> = QQ[]
     sage: f = 4*x^5 - 30*x^3 + 45*x - 22
@@ -203,7 +203,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
             sage: R.<x> = QQ[]
             sage: H = HyperellipticCurve(x^5+2)
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: H.is_singular()
             False
             sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
@@ -230,7 +231,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
 
             sage: R.<x> = GF(27, 'a')[]
             sage: H = HyperellipticCurve(x^10+2)
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: H.is_smooth()
             True
             sage: from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
@@ -262,7 +264,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             return []
         else:
             raise ValueError("No point with x-coordinate %s on %s"%(x, self))
-
 
     def genus(self):
         return self._genus
@@ -385,7 +386,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         """
         f, h = self._hyperelliptic_polynomials
         return 'HyperellipticCurve(%s, %s)'%(f._magma_init_(magma), h._magma_init_(magma))
-
 
     def monsky_washnitzer_gens(self):
         import sage.schemes.hyperelliptic_curves.monsky_washnitzer as monsky_washnitzer
@@ -571,7 +571,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         y = x**g/t
         return x+O(t**(prec+2)) , y+O(t**(prec+2))
 
-
     def local_coord(self, P, prec = 20, name = 't'):
         """
         Calls the appropriate local_coordinates function
@@ -607,3 +606,59 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             return self.local_coordinates_at_infinity(prec, name)
         else:
             return self.local_coordinates_at_nonweierstrass(P, prec, name)
+
+
+
+    def rational_points(self, **kwds):
+        r"""
+        Find rational points on the hyperelliptic curve, all arguments are passed
+        on to :meth:`sage.schemes.generic.algebraic_scheme.rational_points`.
+
+        EXAMPLES:
+
+        For the LMFDB genus 2 curve `932.a.3728.1 <https://www.lmfdb.org/Genus2Curve/Q/932/a/3728/1>`::
+
+            sage: R.<x> = PolynomialRing(QQ); C = HyperellipticCurve(R([0, -1, 1, 0, 1, -2, 1]), R([1]));
+            sage: C.rational_points(bound=8)
+            [(-1 : -3 : 1),
+            (-1 : 2 : 1),
+            (0 : -1 : 1),
+            (0 : 0 : 1),
+            (0 : 1 : 0),
+            (1/2 : -5/8 : 1),
+            (1/2 : -3/8 : 1),
+            (1 : -1 : 1),
+            (1 : 0 : 1)]
+
+        Check that :trac:`29509` is fixed for the LMFDB genus 2 curve
+        `169.a.169.1 <https://www.lmfdb.org/Genus2Curve/Q/169/a/169/1>`::
+
+            sage: C = HyperellipticCurve(R([0, 0, 0, 0, 1, 1]), R([1, 1, 0, 1]));
+            sage: C.rational_points(bound=10)
+            [(-1 : 0 : 1),
+            (-1 : 1 : 1),
+            (0 : -1 : 1),
+            (0 : 0 : 1),
+            (0 : 1 : 0)]
+
+        An example over a number field::
+
+            sage: R.<x> = PolynomialRing(QuadraticField(2));
+            sage: C = HyperellipticCurve(R([1, 0, 0, 0, 0, 1]));
+            sage: C.rational_points(bound=2)
+            [(-1 : 0 : 1),
+             (0 : -1 : 1),
+             (0 : 1 : 0),
+             (0 : 1 : 1),
+             (1 : -a : 1),
+             (1 : a : 1)]
+        """
+        from sage.schemes.curves.constructor import Curve
+        # we change C to be a plane curve to allow the generic rational
+        # points code to reduce mod any prime, whereas a HyperellipticCurve
+        # can only be base changed to good primes.
+        C = self
+        if 'F' in kwds:
+            C = C.change_ring(kwds['F'])
+
+        return [C(pt) for pt in Curve(self).rational_points(**kwds)]

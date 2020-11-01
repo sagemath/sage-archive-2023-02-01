@@ -17,7 +17,7 @@ different types.  The hierarchy is as follows:
 
 """
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -33,7 +33,6 @@ different types.  The hierarchy is as follows:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
 
 import sage.modular.modsym.p1list as p1list
 import sage.modular.modsym.g1list as g1list

@@ -1,5 +1,5 @@
 """
-Floating point template for complete discrete valuation rings.
+Floating point template for complete discrete valuation rings
 
 In order to use this template you need to write a linkage file and
 gluing file.  For an example see mpz_linkage.pxi (linkage file) and
@@ -1041,12 +1041,12 @@ cdef class FPElement(pAdicTemplateElement):
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
-            sage: K.<a> = Qq(25)
+            sage: K.<a> = QqFP(5^3)
             sage: W.<w> = K.extension(x^3-5)
-            sage: (1 + w + O(w^11))._polynomial_list()
-            [1 + O(5^4), 1 + O(5^4)]
-            sage: (1 + w + O(w^11))._polynomial_list(pad=True)
-            [1 + O(5^4), 1 + O(5^4), O(5^3)]
+            sage: (1 + w)._polynomial_list()
+            [1, 1]
+            sage: (1 + w)._polynomial_list(pad=True)
+            [1, 1, 0]
         """
         R = self.base_ring()
         if very_pos_val(self.ordp):

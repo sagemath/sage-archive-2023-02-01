@@ -1,3 +1,4 @@
+# cython: binding=True
 # distutils: language = c++
 
 """
@@ -20,6 +21,15 @@ do :
     :meth:`chromatic_number` | Return the chromatic number of the graph
     :meth:`vertex_coloring` | Compute vertex colorings and chromatic numbers
 
+**Fractional relaxations**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`fractional_chromatic_number` | Return the fractional chromatic number of the graph
+    :meth:`fractional_chromatic_index` | Return the fractional chromatic index of the graph
 
 **Other colorings**
 
@@ -53,17 +63,17 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         https://www.gnu.org/licenses/
 # ****************************************************************************
-from six.moves import range
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
-from .graph_generators import GraphGenerators
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.numerical.mip import MIPSolverException
+from sage.graphs.independent_sets import IndependentSets
+
 
 def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_dict=False):
     r"""
@@ -183,7 +193,6 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         raise ValueError("n must be non-negative")
 
     cdef list V = list(G)
-    cdef list E = G.edges(sort=False)
 
     cdef int nV = G.order()
     cdef int nE = G.size()
@@ -201,7 +210,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
 
     cdef int kk = nV
     cdef int v0, v1
-    for e in E:
+    for e in G.edges(labels=False, sort=False):
         v0 = n * Vd[e[0]]
         v1 = n * Vd[e[1]]
         for c in range(n):
@@ -614,6 +623,253 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
             return dict(zip(rainbow(len(classes)), classes))
         else:
             return classes
+
+# Fractional relaxations
+def fractional_chromatic_number(G, solver='PPL', verbose=0,
+                                check_components=True, check_bipartite=True):
+    r"""
+    Return the fractional chromatic number of the graph.
+
+    Fractional coloring is a relaxed version of vertex coloring with several
+    equivalent definitions, such as the optimum value in a linear relaxation of
+    the integer program that gives the usual chromatic number. It is also equal
+    to the fractional clique number by LP-duality.
+
+    ALGORITHM:
+
+    The fractional chromatic number is computed via the usual Linear Program.
+    The LP solved by sage is essentially,
+
+    .. MATH::
+
+        \mbox{Minimize : }&\sum_{I\in \mathcal{I}(G)} x_{I}\\
+        \mbox{Such that : }&\\
+        &\forall v\in V(G), \sum_{I\in \mathcal{I}(G),\, v\in I}x_{v}\geq 1\\
+        &\forall I\in \mathcal{I}(G), x_{I} \geq 0
+
+    where `\mathcal{I}(G)` is the set of maximal independent sets of `G` (see
+    Section 2.1 of [CFKPR2010]_ to know why it is sufficient to consider maximal
+    independent sets). As optional optimisations, we construct the LP on each
+    biconnected component of `G` (and output the maximum value), and avoid using
+    the LP if G is bipartite (as then the output must be 1 or 2).
+
+    .. NOTE::
+
+        Computing the fractional chromatic number can be very slow. Since the
+        variables of the LP are independent sets, in general the LP has size
+        exponential in the order of the graph. In the current implementation a
+        list of all maximal independent sets is created and stored, which can be
+        both slow and memory-hungry.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP) solver
+      to be used. If set to ``None``, the default one is used. For more
+      information on LP solvers and which default solver is used, see the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+      class :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+      .. NOTE::
+
+          The default solver used here is ``"PPL"`` which provides exact
+          results, i.e. a rational number, although this may be slower that
+          using other solvers.
+
+    - ``verbose`` -- integer (default: `0`); sets the level of verbosity of
+      the LP solver
+
+    - ``check_components`` -- boolean (default: ``True``); whether the method is
+      called on each biconnected component of `G`
+
+    - ``check_bipartite`` -- boolean (default: ``True``); whether the graph is
+      checked for bipartiteness. If the graph is bipartite then we can avoid
+      creating and solving the LP.
+
+    EXAMPLES:
+
+    The fractional chromatic number of a `C_5` is `5/2`::
+
+        sage: g = graphs.CycleGraph(5)
+        sage: g.fractional_chromatic_number()
+        5/2
+
+    TESTS::
+
+        sage: G = graphs.RandomGNP(20, .2)
+        sage: a = G.fractional_chromatic_number(check_components=True)
+        sage: b = G.fractional_chromatic_number(check_components=False)
+        sage: a == b
+        True
+    """
+    G._scream_if_not_simple()
+
+    if not G.order():
+        return 0
+    if not G.size():
+        # The fractional chromatic number of an independent set is 1
+        return 1
+    if check_bipartite and G.is_bipartite():
+        # at this point we've already ascertained g.size() > 0
+        # so g is a bipartite graph with at least one edge
+        return 2
+    if check_components:
+        return max(fractional_chromatic_number(G.subgraph(b), solver=solver,
+                                               verbose=verbose,
+                                               check_components=False,
+                                               check_bipartite=check_bipartite)
+                   for b in G.blocks_and_cut_vertices()[0])
+
+    Is = [frozenset(I) for I in IndependentSets(G, maximal=True)]
+
+    # Initialize LP for fractional chromatic number, we want to minimize the
+    # total weight
+    p = MixedIntegerLinearProgram(solver=solver, maximization=False)
+
+    # One nonnegative variable per maximal independent set
+    w = p.new_variable(nonnegative=True)
+
+    # the objective is the sum of weights of the independent sets
+    p.set_objective(p.sum(w[I] for I in Is))
+
+    # such that each vertex gets total weight at least 1
+    for v in G:
+        p.add_constraint(p.sum(w[I] for I in Is if v in I), min=1)
+
+    obj = p.solve(log=verbose)
+
+    return obj
+
+def fractional_chromatic_index(G, solver="PPL", verbose_constraints=False, verbose=0):
+    r"""
+    Return the fractional chromatic index of the graph.
+
+    The fractional chromatic index is a relaxed version of edge-coloring. An
+    edge coloring of a graph being actually a covering of its edges into the
+    smallest possible number of matchings, the fractional chromatic index of a
+    graph `G` is the smallest real value `\chi_f(G)` such that there exists a
+    list of matchings `M_1, \ldots, M_k` of `G` and coefficients `\alpha_1,
+    \ldots, \alpha_k` with the property that each edge is covered by the
+    matchings in the following relaxed way
+
+    .. MATH::
+
+        \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1.
+
+    For more information, see the :wikipedia:`Fractional_coloring`.
+
+    ALGORITHM:
+
+    The fractional chromatic index is computed through Linear Programming
+    through its dual. The LP solved by sage is actually:
+
+    .. MATH::
+
+        \mbox{Maximize : }&\sum_{e\in E(G)} r_{e}\\
+        \mbox{Such that : }&\\
+        &\forall M\text{ matching }\subseteq G, \sum_{e\in M}r_{v}\leq 1\\
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``solver`` -- (default: ``"PPL"``); specify a Linear Program (LP) solver
+      to be used. If set to ``None``, the default one is used. For more
+      information on LP solvers and which default solver is used, see the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+      class :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+      .. NOTE::
+
+          The default solver used here is ``"PPL"`` which provides exact
+          results, i.e. a rational number, although this may be slower that
+          using other solvers. Be aware that this method may loop endlessly when
+          using some non exact solvers as reported in :trac:`23658` and
+          :trac:`23798`.
+
+    - ``verbose_constraints`` -- boolean (default: ``False``); whether to
+      display which constraints are being generated
+
+    - ``verbose`` -- integer (default: `0`); sets the level of verbosity of the
+      LP solver
+
+    EXAMPLES:
+
+    The fractional chromatic index of a `C_5` is `5/2`::
+
+        sage: g = graphs.CycleGraph(5)
+        sage: g.fractional_chromatic_index()
+        5/2
+
+    TESTS:
+
+    Issue reported in :trac:`23658` and :trac:`23798` with non exact
+    solvers::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
+        3.0
+        sage: g.fractional_chromatic_index(solver='PPL')
+        3
+    """
+    G._scream_if_not_simple()
+
+    if not G.order():
+        return 0
+    if not G.size():
+        return 1
+
+    frozen_edges = [frozenset(e) for e in G.edges(labels=False, sort=False)]
+
+    # Initialize LP for maximum weight matching
+    M = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
+
+    # One variable per edge
+    b = M.new_variable(binary=True, nonnegative=True)
+
+    # We want to select at most one incident edge per vertex (matching)
+    for u in G:
+        M.add_constraint(M.sum(b[frozenset(e)] for e in G.edges_incident(u, labels=False)) <= 1)
+
+    #
+    # Initialize LP for fractional chromatic number
+    p = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
+
+    # One variable per edge
+    r = p.new_variable(nonnegative=True)
+
+    # We want to maximize the sum of weights on the edges
+    p.set_objective(p.sum(r[fe] for fe in frozen_edges))
+
+    # Each edge being by itself a matching, its weight can not be more than 1
+    for fe in frozen_edges:
+        p.add_constraint(r[fe] <= 1)
+
+    obj = p.solve(log=verbose)
+
+    while True:
+
+        # Update the weights of edges for the matching problem
+        M.set_objective(M.sum(p.get_values(r[fe]) * b[fe] for fe in frozen_edges))
+
+        # If the maximum matching has weight at most 1, we are done !
+        if M.solve(log=verbose) <= 1:
+            break
+
+        # Otherwise, we add a new constraint
+        matching = [fe for fe in frozen_edges if M.get_values(b[fe]) == 1]
+        p.add_constraint(p.sum(r[fe] for fe in matching) <= 1)
+        if verbose_constraints:
+            print("Adding a constraint on matching : {}".format(matching))
+
+        # And solve again
+        obj = p.solve(log=verbose)
+
+    # Accomplished !
+    return obj
 
 def grundy_coloring(g, k, value_only=True, solver=None, verbose=0):
     r"""
@@ -1214,7 +1470,8 @@ def round_robin(n):
     def my_mod(x, y):
         return x - y * (x // y)
     if not n % 2:
-        g = GraphGenerators().CompleteGraph(n)
+        from sage.graphs.generators.basic import CompleteGraph
+        g = CompleteGraph(n)
         for i in range(n - 1):
             g.set_edge_label(n - 1, i, i)
             for j in range(1, (n - 1) // 2 + 1):
@@ -1676,7 +1933,7 @@ cdef class Test:
 
     def random(self, tests=1000):
         r"""
-        Call ``self.random_all_graph_colorings()``. 
+        Call ``self.random_all_graph_colorings()``.
 
         In the future, if other methods are added, it should call them, too.
 
@@ -1704,10 +1961,11 @@ cdef class Test:
             sage: from sage.graphs.graph_coloring import Test
             sage: Test().random_all_graph_colorings(1)
         """
+        from sage.graphs.generators.random import RandomGNP
         cdef set S
         cdef list parts
         for _ in range(tests):
-            G = GraphGenerators().RandomGNP(10, .5)
+            G = RandomGNP(10, .5)
             Q = G.chromatic_polynomial()
             chi = G.chromatic_number()
 

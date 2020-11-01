@@ -20,7 +20,6 @@ from sage.categories.category_singleton import Category_contains_method_by_paren
 from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.division_rings import DivisionRings
 
-import sage.rings.ring
 from sage.structure.element import coerce_binop
 
 class Fields(CategoryWithAxiom):
@@ -119,6 +118,7 @@ class Fields(CategoryWithAxiom):
             0
 
         """
+        import sage.rings.ring
         try:
             return self._contains_helper(x) or sage.rings.ring._is_Field(x)
         except Exception:
@@ -141,8 +141,8 @@ class Fields(CategoryWithAxiom):
             sage: P.<x> = QQ[]
             sage: Q = P.quotient(x^2+2)
             sage: Q.category()
-            Category of commutative no zero divisors quotients
-            of algebras over Rational Field
+            Category of commutative no zero divisors quotients of algebras
+             over (number fields and quotient fields and metric spaces)
             sage: F = Fields()
             sage: F._contains_helper(Q)
             False
@@ -559,7 +559,7 @@ class Fields(CategoryWithAxiom):
             """
             if self.is_zero():
                 raise ValueError("euclidean degree not defined for the zero element")
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.zero()
 
         def quo_rem(self, other):
@@ -625,7 +625,7 @@ class Fields(CategoryWithAxiom):
                 sage: gcd(15.0,12.0)
                 3.00000000000000
 
-            But for others floating point numbers, the gcd is just `0.0` or `1.0`::
+            But for other floating point numbers, the gcd is just `0.0` or `1.0`::
 
                 sage: gcd(3.2, 2.18)
                 1.00000000000000

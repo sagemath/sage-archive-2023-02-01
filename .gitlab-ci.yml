@@ -37,7 +37,7 @@
 # If you want to provide your own runners, make sure to tag them as follows:
 # * "big" (60GB of disk space are available) to make build-from-clean pass.
 
-image: docker:latest
+image: docker:stable
 
 stages:
   - build
@@ -77,7 +77,7 @@ before_script:
 # better isolation. If you expect many builds to run simultaneously on a host,
 # conflicting tags can cause issues with a mounted DOCKER_HOST.
 services:
-- docker:18.05.0-ce-dind
+- docker:stable-dind
 
 # Build Sage and its documentation.
 # The build starts from the build artifacts of DEFAULT_ARTIFACT_BASE which is
@@ -88,9 +88,10 @@ build-from-latest:
     when: always
     paths:
     - gitlab-build-docker.log
+    - html
     expire_in: 1 month
   script:
-    - apk --update add coreutils
+    - apk --update add coreutils rsync
     # The output of the build can get larger than gitlab.com's limit; only
     # print the first 1MB (and the last 80 lines.) GitLab's limit is 4MB,
     # however, the list of all branches and tags that shows up in the initial
@@ -99,6 +100,7 @@ build-from-latest:
     - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 1048576
     - .ci/push-gitlab.sh sagemath-dev
     - .ci/push-gitlab.sh sagemath
+    - DOCKER_TAG=$CI_COMMIT_SHA .ci/push-gitlab.sh sagemath
   except:
     - master
     - develop
@@ -115,6 +117,12 @@ build-from-latest:
 build-from-clean:
   extends:
     - build-from-latest
+  artifacts:
+    when: always
+    paths:
+    - gitlab-build-docker.log
+    - html
+    expire_in: 99 years
   variables:
     ARTIFACT_BASE: "source-clean"
   only:
@@ -136,18 +144,21 @@ build-from-clean:
 
 test-dev:
   stage: test
+  dependencies: []
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/test-dev.sh "$DOCKER_IMAGE"
 
 test-cli:
   stage: test
+  dependencies: []
   script:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-cli.sh "$DOCKER_IMAGE"
 
 test-jupyter:
   stage: test
+  dependencies: []
   script:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
@@ -156,6 +167,7 @@ test-jupyter:
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
 push-dockerhub:
   stage: release
+  dependencies: []
   only:
     refs:
       - branches
@@ -170,6 +182,7 @@ push-dockerhub:
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
 push-dockerhub-dev:
   stage: release
+  dependencies: []
   only:
     refs:
       - master
@@ -180,43 +193,3 @@ push-dockerhub-dev:
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev
-
-.py3:
-  variables:
-    WITH_PYTHON: 3
-    DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop-py3
-
-build-from-latest-py3:
-  extends:
-    - build-from-latest
-    - .py3
-
-build-from-clean-py3:
-  extends:
-    - build-from-clean
-    - .py3
-
-test-dev-py3:
-  extends:
-    - test-dev
-    - .py3
-
-test-cli-py3:
-  extends:
-    - test-cli
-    - .py3
-
-test-jupyter-py3:
-  extends:
-    - test-jupyter
-    - .py3
-
-push-dockerhub-py3:
-  extends:
-    - push-dockerhub
-    - .py3
-
-push-dockerhub-dev-py3:
-  extends:
-    - push-dockerhub-dev
-    - .py3

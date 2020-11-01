@@ -35,14 +35,15 @@ import sys
 from docutils.statemachine import ViewList
 
 import sphinx
-from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
+from sphinx.ext.autodoc import mock
+from sphinx.ext.autodoc.importer import import_object, get_object_members, get_module_members
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.errors import PycodeError
 from sphinx.util import logging
 from sphinx.util import rpartition, force_decode
 from sphinx.util.docstrings import prepare_docstring
-from sphinx.util.inspect import isdescriptor, safe_getmembers, \
+from sphinx.util.inspect import isdescriptor, \
     safe_getattr, object_description, is_builtin_class_method, \
     isenumattribute, isclassmethod, isstaticmethod, getdoc
 
@@ -487,7 +488,7 @@ class Documenter(object):
             docstring = getdoc(self.object)
         # make sure we have Unicode docstrings, then sanitize and split
         # into lines
-        if isinstance(docstring, text_type):
+        if isinstance(docstring, str):
             return [prepare_docstring(docstring, ignore)]
         elif isinstance(docstring, str):  # this will not trigger on Py3
             return [prepare_docstring(force_decode(docstring, encoding),
@@ -511,9 +512,9 @@ class Documenter(object):
         # type: () -> unicode
         if self.analyzer:
             # prevent encoding errors when the file name is non-ASCII
-            if not isinstance(self.analyzer.srcname, text_type):
-                filename = text_type(self.analyzer.srcname,
-                                     sys.getfilesystemencoding(), 'replace')
+            if not isinstance(self.analyzer.srcname, str):
+                filename = str(self.analyzer.srcname,
+                               sys.getfilesystemencoding(), 'replace')
             else:
                 filename = self.analyzer.srcname
             return u'%s:docstring of %s' % (filename, self.fullname)
@@ -536,7 +537,7 @@ class Documenter(object):
 
         # add content from docstrings
         if not no_docstring:
-            encoding = self.analyzer and self.analyzer.encoding
+            encoding = self.analyzer and self.analyzer._encoding
             docstrings = self.get_doc(encoding)
             if not docstrings:
                 # append at least a dummy docstring, so that the event
@@ -699,7 +700,7 @@ class Documenter(object):
         # document non-skipped members
         memberdocumenters = []  # type: List[Tuple[Documenter, bool]]
         for (mname, member, isattr) in self.filter_members(members, want_all):
-            classes = [cls for cls in itervalues(self.documenters)
+            classes = [cls for cls in self.documenters.values()
                        if cls.can_document_member(member, mname, isattr, self)]
             if not classes:
                 # don't know how to document this member
@@ -882,18 +883,18 @@ class ModuleDocumenter(Documenter):
             if not hasattr(self.object, '__all__'):
                 # for implicit module members, check __module__ to avoid
                 # documenting imported objects
-                return True, safe_getmembers(self.object)
+                return True, get_module_members(self.object)
             else:
                 memberlist = self.object.__all__
                 # Sometimes __all__ is broken...
                 if not isinstance(memberlist, (list, tuple)) or not \
-                   all(isinstance(entry, string_types) for entry in memberlist):
+                   all(isinstance(entry, str) for entry in memberlist):
                     logger.warning(
                         '__all__ should be a list of strings, not %r '
                         '(in module %s) -- ignoring __all__' %
                         (memberlist, self.fullname))
                     # fall back to all members
-                    return True, safe_getmembers(self.object)
+                    return True, get_module_members(self.object)
         else:
             memberlist = self.options.members or []
         ret = []
@@ -1050,12 +1051,12 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         # However, there is an exception: CachedFunction(f) returns a class instance,
         # whose doc string coincides with that of f and is thus different from
         # that of the class CachedFunction. In that situation, we want that f is documented.
-        # This is part of SAGE TRAC 9976
+        # This is part of trac #9976.
         return (inspect.isfunction(member) or inspect.isbuiltin(member)
                 or (isclassinstance(member)
                     and sage_getdoc_original(member) != sage_getdoc_original(member.__class__)))
 
-    # Sage Trac #9976: This function has been rewritten to support the
+    # Trac #9976: This function has been rewritten to support the
     # _sage_argspec_ attribute which makes it possible to get argument
     # specification of decorated callables in documentation correct.
     # See e.g. sage.misc.decorators.sage_wraps
@@ -1112,7 +1113,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
         # type: (Any, unicode, bool, Any) -> bool
-        return isinstance(member, class_types)
+        return isinstance(member, type)
 
     def import_object(self):
         # type: () -> Any
@@ -1282,7 +1283,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
                     docstrings.append(initdocstring)
         doc = []
         for docstring in docstrings:
-            if isinstance(docstring, text_type):
+            if isinstance(docstring, str):
                 doc.append(prepare_docstring(docstring, ignore))
             elif isinstance(docstring, str):  # this will not trigger on Py3
                 doc.append(prepare_docstring(force_decode(docstring, encoding),
@@ -1295,7 +1296,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
             # We cannot rely on __qualname__ yet for Python 2, because of a
             # Cython bug: https://github.com/cython/cython/issues/2772. See
             # trac #27002.
-            classname = None if PY2 else safe_getattr(self.object, '__qualname__', None)
+            classname = safe_getattr(self.object, '__qualname__', None)
             if not classname:
                 classname = safe_getattr(self.object, '__name__', None)
             if classname:
@@ -1340,8 +1341,7 @@ class ExceptionDocumenter(ClassDocumenter):
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
         # type: (Any, unicode, bool, Any) -> bool
-        return isinstance(member, class_types) and \
-            issubclass(member, BaseException)
+        return isinstance(member, type) and issubclass(member, BaseException)
 
 
 class DataDocumenter(ModuleLevelDocumenter):
@@ -1418,10 +1418,10 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):
             self.directivetype = 'method'
         return ret
 
-    # Sage Trac #9976: This function has been rewritten to support the
+    # Trac #9976: This function has been rewritten to support the
     # _sage_argspec_ attribute which makes it possible to get argument
     # specification of decorated callables in documentation correct.
-    # See e.g. sage.misc.decorators.sage_wraps
+    # See e.g. sage.misc.decorators.sage_wraps.
     #
     # Note, however, that sage.misc.sageinspect.sage_getargspec already
     # uses a method _sage_argspec_, that only works on objects, not on classes, though.
@@ -1491,8 +1491,13 @@ class AttributeDocumenter(DocstringStripSignatureMixin, ClassLevelDocumenter):  
         # descriptors.
         isattribute = isattribute or isinstance(type(member), ClasscallMetaclass)
 
-        if PY2:
-            return isattribute
+        return isattribute
+
+        # We ignore the obscure case supported in the following return
+        # statement. The additional check opens a door for attributes without
+        # docstrings to appear in the Sage documentation, and more seriously
+        # effectively prevents certain attributes to get properly documented.
+        # See trac #28698.
 
         # That last condition addresses an obscure case of C-defined
         # methods using a deprecated type in Python 3, that is not otherwise

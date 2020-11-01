@@ -623,8 +623,8 @@ class Variable(CachedRepresentation, SageObject):
             ...
             TypeError: Cannot substitute in 1/x in
             <class 'sage.rings.asymptotic.growth_group.Variable'>.
-            > *previous* TypeError: unsupported operand type(s) for /:
-            'sage.rings.integer.Integer' and 'str'
+            > *previous* TypeError: unsupported operand parent(s) for /:
+            'Integer Ring' and '<class 'str'>'
             sage: Variable('1/x')._substitute_({'x': 0})
             Traceback (most recent call last):
             ...
@@ -2258,6 +2258,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
         - ``other`` -- a growth group
 
         EXAMPLES::
+
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, ExponentialNonGrowthGroup
             sage: from sage.groups.misc_gps.argument_groups import RootsOfUnityGroup
             sage: EQ = ExponentialGrowthGroup(QQ, 'n')
@@ -4547,7 +4548,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: forget()
         """
         from sage.rings.complex_arb import ComplexBallField
-        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.complex_mpfr import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
@@ -4740,7 +4741,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         from sage.groups.misc_gps.argument_groups import AbstractArgumentGroup
         from sage.groups.misc_gps.argument_groups import ArgumentGroup
         from sage.rings.complex_arb import ComplexBallField
-        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.complex_mpfr import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.number_field.number_field import NumberField_cyclotomic
         from sage.rings.qqbar import QQbar, AA
@@ -5238,6 +5239,7 @@ class GrowthGroupFactory(UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -5266,6 +5268,7 @@ class GrowthGroupFactory(UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -5294,6 +5297,7 @@ class GrowthGroupFactory(UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass

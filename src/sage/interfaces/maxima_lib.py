@@ -70,7 +70,7 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -86,7 +86,6 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-from six import string_types
 
 from sage.symbolic.ring import SR
 
@@ -453,7 +452,7 @@ class MaximaLib(MaximaAbstract):
                     statement = line[:ind_semi]
                     line = line[ind_semi+1:]
                 if statement:
-                    result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))                        
+                    result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))
             else:
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
@@ -509,7 +508,7 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib.get('xxxxx')
             '2'
         """
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         self.eval(cmd)
@@ -536,6 +535,7 @@ class MaximaLib(MaximaAbstract):
         """
         try:
             self.eval('kill(%s)$'%var)
+            ecl_eval("(unintern '$%s)"%var)
         except (TypeError, AttributeError):
             pass
 
@@ -1012,7 +1012,7 @@ class MaximaLib(MaximaAbstract):
         """
         Helper function for unified handling of failed computation because an
         assumption was missing.
-        
+
         EXAMPLES::
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
@@ -1028,7 +1028,7 @@ class MaximaLib(MaximaAbstract):
         if errstr[3] == ' ':
             jj = 3
         k = errstr.find(' ',jj+1)
-        
+
         outstr = "Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume("\
              + errstr[jj+1:k] +">0)', see `assume?` for more details)\n" + errstr
         outstr = outstr.replace('_SAGE_VAR_','')
@@ -1443,8 +1443,8 @@ def dummy_integrate(expr):
         sage: dummy_integrate(f.ecl())
         integrate(f(x), x, 0, 10)
     """
-    args=[max_to_sr(a) for a in cdr(expr)]
-    if len(args) == 4 :
+    args = [max_to_sr(a) for a in cdr(expr)]
+    if len(args) == 4:
         return sage.symbolic.integration.integral.definite_integral(*args,
                                                                 hold=True)
     else:

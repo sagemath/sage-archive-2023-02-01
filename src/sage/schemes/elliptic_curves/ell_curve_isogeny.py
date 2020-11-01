@@ -63,8 +63,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function, absolute_import
-from six import itervalues
-from six.moves import range
 
 from copy import copy
 
@@ -144,7 +142,7 @@ def isogeny_determine_algorithm(E, kernel):
     """
     kernel_is_list = isinstance(kernel, list)
 
-    if not kernel_is_list and kernel in E :
+    if not kernel_is_list and kernel in E:
         kernel = [kernel]
         kernel_is_list = True
 
@@ -980,7 +978,7 @@ class EllipticCurveIsogeny(Morphism):
         if not is_EllipticCurve(E):
             raise ValueError("E parameter must be an EllipticCurve.")
 
-        if not isinstance(kernel, list) and kernel in E :
+        if not isinstance(kernel, list) and kernel in E:
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
@@ -2087,12 +2085,12 @@ class EllipticCurveIsogeny(Morphism):
         a3 = self.__E1.a3()
 
         # next iterate over the 2torsion points of the kernel
-        for Qvalues in itervalues(ker_2tor):
+        for Qvalues in ker_2tor.values():
             (tX, tY) = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
             X = X + tX
             Y = Y + tY
 
-        for Qvalues in itervalues(ker_non2tor):
+        for Qvalues in ker_non2tor.values():
             (tX, tY) = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
             X = X + tX
             Y = Y + tY
@@ -2158,11 +2156,11 @@ class EllipticCurveIsogeny(Morphism):
 
         psi = poly_ring(1)
 
-        for Qvalues in itervalues(self.__kernel_2tor):
+        for Qvalues in self.__kernel_2tor.values():
             xQ = invX(x=Qvalues[0])
             psi = psi*(x - xQ)
 
-        for Qvalues in itervalues(self.__kernel_non2tor):
+        for Qvalues in self.__kernel_non2tor.values():
             xQ = invX(x=Qvalues[0])
             psi = psi*(x - xQ)
 

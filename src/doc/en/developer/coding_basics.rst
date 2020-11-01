@@ -103,7 +103,7 @@ of the directory containing the Sage sources:
     SAGE_ROOT/
         sage          # the Sage launcher
         Makefile      # top level Makefile
-        build/        # sage's build system
+        build/        # Sage's build system
             deps
             install
             ...
@@ -112,12 +112,12 @@ of the directory containing the Sage sources:
             setup.py
             module_list.py
             ...
-            sage/     # sage library (formerly devel/sage-main/sage)
-            ext/      # extra sage resources (formerly devel/ext-main)
-            mac-app/  # would no longer have to awkwardly be in extcode
-            bin/      # the scripts in local/bin that are tracked
-        upstream/     # tarballs of upstream sources
-        local/        # installed binaries
+            sage/            # Sage library
+                ext_data/    # extra Sage resources (formerly src/ext)
+            mac-app/         # would no longer have to awkwardly be in extcode
+            bin/             # the scripts in local/bin that are tracked
+        upstream/            # tarballs of upstream sources
+        local/               # installed binaries
 
 Python Sage library code goes into ``src/`` and uses the following
 conventions. Directory names may be plural (e.g. ``rings``) and file
@@ -155,11 +155,11 @@ Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
     from sage.measure_theory.all import *
 
 Non-Python Sage source code and supporting files should be placed in
-appropriate subdirectories of ``SAGE_ROOT/src/ext/``. They will then be
+appropriate subdirectories of ``SAGE_ROOT/src/sage/ext_data/``. They will then be
 automatically copied to the corresponding subdirectories of
 ``SAGE_ROOT/local/share/sage/ext/`` during the build process and can be
 accessed at runtime using ``SAGE_EXTCODE``.  For example, if ``file`` is placed
-in ``SAGE_ROOT/src/ext/directory/`` it can be accessed with ::
+in ``SAGE_ROOT/src/sage/ext_data/directory/`` it can be accessed with ::
 
     from sage.env import SAGE_EXTCODE
     file = os.path.join(SAGE_EXTCODE, 'directory', 'file')
@@ -187,7 +187,7 @@ Headings of Sage Library Code Files
 The top of each Sage code file should follow this format::
 
     r"""
-    <Very short 1-line summary>
+    <Short one-line summary that ends with no period>
 
     <Paragraph description>
 
@@ -347,7 +347,7 @@ information. You can use the existing functions of Sage as templates.
            :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
-   link in Sage.
+   links in Sage.
 
 -  An **ALGORITHM** block (optional).
 
@@ -461,7 +461,7 @@ information. You can use the existing functions of Sage as templates.
   Note the trailing underscores which makes the citations into hyperlinks. See
   below for more about the master bibliography file. For more about citations,
   see the `Sphinx/reST markup for citations
-  <http://www.sphinx-doc.org/rest.html#citations>`_. For links to trac tickets
+  <https://www.sphinx-doc.org/rest.html#citations>`_. For links to trac tickets
   or wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (highly recommended).
@@ -478,7 +478,7 @@ information. You can use the existing functions of Sage as templates.
   that ``direction='junk'`` raises an exception.
 
   For the purposes of removal, A "TESTS" block is a block starting
-  with "TEST:" or "TESTS:" (or the same with two colons), on a line on
+  with "TESTS:" (or the same with two colons), on a line on
   its own, and ending either with a line indented less than "TESTS",
   or with a line with the same level of indentation -- not more --
   matching one of the following:
@@ -520,7 +520,7 @@ Sage documentation style
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 All Sage documentation is written in reStructuredText (reST) and is
-processed by Sphinx. See http://www.sphinx-doc.org/rest.html for an
+processed by Sphinx. See https://www.sphinx-doc.org/rest.html for an
 introduction. Sage imposes these styles:
 
 - Lines should be shorter than 80 characters. If in doubt, read `PEP8: Maximum
@@ -572,7 +572,7 @@ that the letter (``C.`` in the example above) will not be
 interpreted as a list enumerator.
 
 For more about citations, see the `Sphinx/reST markup for citations
-<http://www.sphinx-doc.org/rest.html#citations>`_.
+<https://www.sphinx-doc.org/rest.html#citations>`_.
 
 Template
 ^^^^^^^^
@@ -876,9 +876,10 @@ written.
   Sage does not know about the function ``AA()`` by default, so it needs to be
   imported before it is tested. Hence the first line in the example.
 
-- **Preparsing:** As in Sage's console, `4/3` returns `4/3` and not `1` as in
-  Python 2.7. Testing occurs with full Sage preparsing of input within the
-  standard Sage shell environment, as described in :ref:`section-preparsing`.
+- **Preparsing:** As in Sage's console, `4/3` returns `4/3` and not
+  `1.3333333333333333` as in Python 3.8. Testing occurs with full Sage
+  preparsing of input within the standard Sage shell environment, as
+  described in :ref:`section-preparsing`.
 
 - **Writing files:** If a test outputs to a file, the file should be a
   temporary file.  Use :func:`tmp_filename` to get a temporary filename, or
@@ -898,10 +899,9 @@ written.
       5
       7
 
-- **Python3 print:** even if Python2 syntax for print can still be
-  used in your own code for the moment, Python3 syntax for print must
-  be used in Sage code and doctests. If you use an old-style print in
-  doctests, it will raise a SyntaxError::
+- **Python3 print:** Python3 syntax for print must be used in Sage
+  code and doctests. If you use an old-style print in doctests, it
+  will raise a SyntaxError::
 
       sage: print "not like that"
       Traceback (most recent call last):
@@ -1052,12 +1052,6 @@ framework. Here is a comprehensive list:
      Neither of this applies to files or directories which are explicitly given
      as command line arguments: those are always tested.
 
-- **py2** or **py3:** Run the line on Python 2 *only* or Python 3 *only*
-  respectively.  Generally this should be avoided as code should be tested on
-  both Python 2 and Python 3, but there are on occasion tests that are simply
-  inapplicable on one or the other, such as tests that rely on optional features
-  that are only available on one Python version or the other.
-
 - **optional:** A line flagged with ``optional - keyword`` is not tested unless
   the ``--optional=keyword`` flag is passed to ``sage -t`` (see
   :ref:`section-optional-doctest-flag`). The main applications are:
@@ -1122,7 +1116,7 @@ framework. Here is a comprehensive list:
   **output** lines, not the input lines::
 
       sage: hash(2^31 + 2^13)
-      -2147475456               # 32-bit
+      8193                      # 32-bit
       2147491840                # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
@@ -1218,7 +1212,7 @@ Sage.
 General Coding Style Regarding Whitespace
 =========================================
 
-Use spaces instead of tabs for indentation.  The only exception is for
+Use spaces instead of tabs for indentation. The only exception is for
 makefiles, in which tabs have a syntactic meaning different from
 spaces.
 

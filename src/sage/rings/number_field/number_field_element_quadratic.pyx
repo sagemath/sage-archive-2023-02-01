@@ -1,3 +1,5 @@
+# distutils: libraries = ntl
+# distutils: language = c++
 """
 Optimized Quadratic Number Field Elements
 
@@ -278,6 +280,27 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     # by coincidence, maxima and fricas both use %i for the imaginary unit I
     _fricas_init_ = _maxima_init_
+
+    def _sympy_(self):
+        """
+        Convert this number to Sympy.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: (1/3 + a/2)._sympy_()
+            1/3 + I/2
+            sage: type(_)
+            <class 'sympy.core.add.Add'>
+        """
+        a = self.parent().gen()
+        if a**2 == -1 and self.standard_embedding:
+            x0, x1 = self
+            import sympy
+            return x0._sympy_() + x1._sympy_() * sympy.I
+        raise NotImplementedError(
+                "conversion implemented only for elements of quadratic "
+                "fields with discriminant -1 and standard embedding")
 
     def _polymake_init_(self):
         """
@@ -986,6 +1009,10 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         test = mpz_cmp(i,j)
         mpz_clear(i)
         mpz_clear(j)
+        if test > 0:
+            test = 1
+        elif test < 0:
+            test = -1
         if mpz_sgn(self.a) == 1 and mpz_sgn(self.b) == -s:
             return test
         return -test
@@ -1415,6 +1442,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K.<a> = NumberField(x^2-41)
             sage: (10^1000 * (a+1)) * K(2+3*a) == 10^1000 * ((a+1) * K(2+3*a))
             True
+
+        TESTS:
+
+        Test that :trac:`30360` is fixed::
+
+            sage: K.<sqrt5> = QuadraticField(5, embedding=AA(5).sqrt())
+            sage: sqrt5*vector([1,2])
+            (sqrt5, 2*sqrt5)
+
         """
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()

@@ -242,9 +242,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
       sage: g = graphs.PetersenGraph()
       sage: is_comparability(g)
       False
-      sage: is_comparability(g, no_certificate=True)  # py2
-      (False, [0, 4, 9, 6, 1, 0])
-      sage: is_comparability(g, no_certificate=True)  # py3
+      sage: is_comparability(g, no_certificate=True)
       (False, [2, 1, 0, 4, 3, 2])
 
     But the Bull graph is::
@@ -339,16 +337,12 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
       sage: from sage.graphs.comparability import greedy_is_comparability_with_certificate as is_comparability
-      sage: is_comparability(graphs.CycleGraph(5), certificate=True)  # py2
-      (False, [1, 2, 3, 4, 0, 1])
-      sage: is_comparability(graphs.CycleGraph(5), certificate=True)  # py3
+      sage: is_comparability(graphs.CycleGraph(5), certificate=True)
       (False, [2, 1, 0, 4, 3, 2])
       sage: g = graphs.PetersenGraph()
       sage: is_comparability(g)
       False
-      sage: is_comparability(g, certificate=True)  # py2
-      (False, [0, 4, 9, 6, 1, 0])
-      sage: is_comparability(g, certificate=True)  # py3
+      sage: is_comparability(g, certificate=True)
       (False, [2, 1, 0, 4, 3, 2])
 
     But the Bull graph is::
@@ -693,7 +687,7 @@ def is_permutation(g, algorithm="greedy", certificate=False, check=True,
             return False, co_certif
 
         # Building the two orderings
-        tmp = co_certif.edges(labels=False, sort=False)
+        tmp = list(co_certif.edges(labels=False, sort=False))
         for u,v in certif.edge_iterator(labels=False):
             co_certif.add_edge(v,u)
         certif.add_edges(tmp)
@@ -752,7 +746,7 @@ def is_transitive(g, certificate=False):
         sage: cert = D.is_transitive(certificate=True)
         sage: D.has_edge(*cert)
         False
-        sage: D.shortest_path(*cert) != []
+        sage: bool(D.shortest_path(*cert))
         True
         sage: digraphs.RandomDirectedGNP(20,.2).transitive_closure().is_transitive()
         True

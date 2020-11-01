@@ -1,3 +1,6 @@
+# distutils: language = c++
+# sage_setup: distribution = sage-tdlib
+
 r"""
 Interface with TdLib (algorithms for tree decompositions)
 
@@ -112,7 +115,7 @@ def treedecomposition_exact(G, lb=-1):
     A tree decomposition of ``G`` of ``tw(G)``, if the lower bound was not
     greater than ``tw(G)``, otherwise a tree decomposition of ``width = lb``.
 
-    ..  WARNING::
+    .. WARNING::
 
         The computation can take a lot of time for a graph `G` on more than
         about 30 vertices and `tw(G) > 3`.
@@ -152,6 +155,7 @@ def treedecomposition_exact(G, lb=-1):
 
     return T
 
+
 def get_width(T):
     """
     Return the width of a given tree decomposition.
@@ -167,6 +171,7 @@ def get_width(T):
     - The width of ``T``
 
     EXAMPLES::
+
         sage: import sage.graphs.graph_decompositions.tdlib as tdlib # optional - tdlib
         sage: G = graphs.PetersenGraph()                             # optional - tdlib
         sage: T = tdlib.treedecomposition_exact(G)                   # optional - tdlib

@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = ntl
 """
 Matrices over Cyclotomic Fields
 
@@ -62,7 +64,7 @@ from .misc import matrix_integer_dense_rational_reconstruction
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import previous_prime, binomial
-from sage.rings.all import RealNumber
+from sage.rings.real_mpfr import create_RealNumber as RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -71,7 +73,7 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 import math
 
 from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_modn_dense_double
@@ -402,6 +404,26 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         return x
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: K.<z> = CyclotomicField(3)
+            sage: A = matrix(K, 4, 3, [0, -z, -2, -2*z + 2, 2*z, z, z, 1-z, 2+3*z, z, 1+z, 0])
+            sage: A.zero_pattern_matrix()  # indirect doctest
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 1]
+        """
+        cdef int a
+        for a in range(self._degree):
+            if not self._matrix.get_is_zero_unsafe(a, j+i*self._ncols):
+                return False
+        return True
+
     def _pickle(self):
         """
         Used for pickling matrices. This function returns the
@@ -454,7 +476,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
     # x * cdef _sub_
     #   * cdef _mul_
     # x * cdef _lmul_    -- scalar multiplication
-    # x * cpdef _cmp_
+    # x * cpdef _richcmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -736,15 +758,16 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         EXAMPLES:
 
-        We create a cyclotomic matrix.::
+        We create a cyclotomic matrix::
 
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
 
-        We make a copy of A.::
+        We make a copy of A::
+
             sage: C = A.__copy__()
 
-        We make another reference to A.::
+        We make another reference to A::
 
             sage: B = A
 
@@ -754,7 +777,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: A[0,0]
             10
 
-        Changing the copy does not change A.::
+        Changing the copy does not change A::
 
             sage: C[0,0] = 20
             sage: C[0,0]
@@ -1486,6 +1509,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             [4, 9, 1, 3]
 
         The reduction matrix is cached::
+
             sage: w._reduction_matrix(7) is w._reduction_matrix(7)
             True
         """
@@ -1499,7 +1523,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             pass
         K = self.base_ring()
         phi = K.defining_polynomial()
-        from sage.rings.all import GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         from .constructor import matrix
         F = GF(p)
         aa = [a for a, _ in phi.change_ring(F).roots()]

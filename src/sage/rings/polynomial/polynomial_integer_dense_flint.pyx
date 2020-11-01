@@ -1,5 +1,7 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 """
-Dense univariate polynomials over `\ZZ`, implemented using FLINT.
+Dense univariate polynomials over `\ZZ`, implemented using FLINT
 
 AUTHORS:
 
@@ -38,7 +40,7 @@ include "sage/libs/ntl/decl.pxi"
 
 from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
-from sage.arith.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long, is_small_python_int
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element
@@ -55,16 +57,19 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.arith.all import lcm
 
+from sage.libs.arb.arb_fmpz_poly cimport arb_fmpz_poly_evaluate_arb, arb_fmpz_poly_evaluate_acb
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.types cimport ulong, fmpz_poly_t
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ZZX cimport *
+from sage.rings.complex_arb cimport ComplexBall
 from sage.rings.integer cimport Integer, smallInteger
+from sage.rings.real_arb cimport RealBall
 from sage.rings.real_mpfr cimport RealNumber, RealField_class
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
-from sage.rings.polynomial.evaluation cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
+from sage.rings.polynomial.evaluation_flint cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
 
 
 cdef class Polynomial_integer_dense_flint(Polynomial):
@@ -239,7 +244,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             # now fill them in
             for ii, a in x:
                 i = ii[0] if type(ii) is tuple else ii
-                if type(a) is int:
+                if is_small_python_int(a):
                     sig_on()
                     fmpz_poly_set_coeff_si(self.__poly, i, a)
                     sig_off()
@@ -277,7 +282,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         for i from 0 <= i < len(x):
             a = x[i]
-            if type(a) is int:
+            if is_small_python_int(a):
                 sig_on()
                 fmpz_poly_set_coeff_si(self.__poly, i, a)
                 sig_off()
@@ -379,9 +384,15 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: t(-sys.maxsize-1r) == t(-sys.maxsize-1)
             True
+            sage: (t^2+3)(RealBallField(100)(1/3))
+            [3.1111111111111111111111111111...]
+            sage: (t^2+3)(ComplexBallField(10)(i))
+            2.00
         """
         cdef Polynomial_integer_dense_flint f
         cdef Integer a, z
+        cdef RealBall arb_a, arb_z
+        cdef ComplexBall acb_a, acb_z
 
         cdef unsigned long limbs
         cdef fmpz_t a_fmpz
@@ -396,7 +407,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     (<Polynomial_integer_dense_flint> x0).__poly)
                 sig_off()
                 return f
-            if isinstance(x0, int):
+            if is_small_python_int(x0):
                 z = Integer.__new__(Integer)
                 sig_on()
                 fmpz_init(a_fmpz)
@@ -408,7 +419,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 fmpz_clear(z_fmpz)
                 sig_off()
                 return z
-            if isinstance(x0, long):
+            if isinstance(x0, (int, long)):
                 x0 = Integer(x0)
             if isinstance(x0, Integer):
                 a = <Integer> x0
@@ -436,6 +447,20 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 return self._eval_mpfr_(<RealNumber> x0)
             if isinstance(x0, RealIntervalFieldElement):
                 return self._eval_mpfi_(<RealIntervalFieldElement> x0)
+            if isinstance(x0, RealBall):
+                arb_a = <RealBall> x0
+                arb_z = arb_a._new()
+                sig_on()
+                arb_fmpz_poly_evaluate_arb(arb_z.value, self.__poly, arb_a.value, arb_a._parent._prec)
+                sig_off()
+                return arb_z
+            if isinstance(x0, ComplexBall):
+                acb_a = <ComplexBall> x0
+                acb_z = acb_a._new()
+                sig_on()
+                arb_fmpz_poly_evaluate_acb(acb_z.value, self.__poly, acb_a.value, acb_a._parent._prec)
+                sig_off()
+                return acb_z
 
         return Polynomial.__call__(self, *x, **kwds)
 

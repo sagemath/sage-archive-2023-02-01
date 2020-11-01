@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 # ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -220,9 +223,6 @@ cdef class ntl_GF2X(object):
         if not divisible:
             raise ArithmeticError("self (=%s) is not divisible by b (=%s)" % (self, b))
         return q
-
-    def __div__(self, other):
-        return self / other
 
     def DivRem(ntl_GF2X self, b):
         """

@@ -10,13 +10,15 @@ cdef class PolyhedronFaceLattice:
     cdef int dimension              # dimension of Polyhedron
     cdef readonly bint dual         # if True, then List of all faces by dual Polyhedron
     cdef size_t face_length         # stores length of the faces in terms of uint64_t
-    cdef tuple _V, _H, _equalities  # some copies from CombinatorialPolyhedron
     cdef size_t *f_vector           # a copy of the f-vector, is reversed if dual
     cdef size_t *face_counter       # how many faces of each dimension have been initialized
-    cdef size_t *atom_repr          # a place where atom-representaion of face will be stored
-    cdef size_t *coatom_repr        # a place where coatom-representaion of face will be stored
+    cdef size_t *atom_rep           # a place where atom-representation of face will be stored
+    cdef size_t *coatom_rep         # a place where coatom-representation of face will be stored
 
-    # Atoms and coatoms are the Vrepr/facets of the Polyedron.
+    # some copies from CombinatorialPolyhedron
+    cdef tuple _Vrep, _facet_names, _equalities
+
+    # Atoms and coatoms are the Vrep/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms Vrepresentatives and vice versa.
     cdef ListOfFaces atoms, coatoms
 
@@ -49,9 +51,9 @@ cdef class PolyhedronFaceLattice:
     cdef inline bint is_smaller(self, uint64_t *one, uint64_t *two)
     cdef inline int is_equal(self, int dimension, size_t index,
                              uint64_t *face) except -1
-    cdef CombinatorialFace get_face(self, int dimension, size_t index)
-    cdef size_t set_coatom_repr(self, int dimension, size_t index) except -1
-    cdef size_t set_atom_repr(self, int dimension, size_t index) except -1
+    cpdef CombinatorialFace get_face(self, int dimension, size_t index)
+    cdef size_t set_coatom_rep(self, int dimension, size_t index) except -1
+    cdef size_t set_atom_rep(self, int dimension, size_t index) except -1
     cdef void incidence_init(self, int dimension_one, int dimension_two)
     cdef inline bint next_incidence(self, size_t *one, size_t *two)
     cdef inline bint next_incidence_loop(self, size_t *one, size_t *two)

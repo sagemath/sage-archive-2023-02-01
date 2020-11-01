@@ -1,9 +1,13 @@
+# distutils: depends = sage/geometry/polyhedron/combinatorial_polyhedron/bit_vector_operations.cc
+# distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
+
 r"""
 Combinatorial face of a polyhedron
 
 This module provides the combinatorial type of a polyhedral face.
 
-,, SEEALSO::
+.. SEEALSO::
 
     :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.base`,
     :mod:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator`.
@@ -34,11 +38,11 @@ Obtain further information regarding a face::
     sage: it = C.face_iter(2)
     sage: face = next(it); face
     A 2-dimensional face of a 3-dimensional combinatorial polyhedron
-    sage: face.Vrepr()
+    sage: face.ambient_Vrepresentation()
     (A vertex at (0, 0, 1), A vertex at (0, 1, 0), A vertex at (1, 0, 0))
-    sage: face.length_Vrepr()
+    sage: face.n_ambient_Vrepresentation()
     3
-    sage: face.Hrepr(names=False)
+    sage: face.ambient_H_indices()
     (5,)
     sage: face.dimension()
     2
@@ -64,13 +68,29 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded        import deprecated_function_alias
+
 import numbers
 from sage.rings.integer         cimport smallInteger
-from .conversions               cimport bit_repr_to_Vrepr_list
+from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
-from .bit_vector_operations     cimport count_atoms, bit_repr_to_coatom_repr
+from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 from libc.string                cimport memcpy
+
+cdef extern from "bit_vector_operations.cc":
+    cdef size_t count_atoms(uint64_t *A, size_t face_length)
+#        Return the number of atoms/vertices in A.
+#        This is the number of set bits in A.
+#        ``face_length`` is the length of A in terms of uint64_t.
+
+    cdef size_t bit_rep_to_coatom_rep(
+            uint64_t *face, uint64_t **coatoms, size_t n_coatoms,
+            size_t face_length, size_t *output)
+#        Write the coatom-representation of face in output. Return length.
+#        ``face_length`` is the length of ``face`` and ``coatoms[i]``
+#        in terms of uint64_t.
+#        ``n_coatoms`` length of ``coatoms``.
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -110,16 +130,16 @@ cdef class CombinatorialFace(SageObject):
 
     The Vrepresentation::
 
-        sage: face.Vrepr()
+        sage: face.ambient_Vrepresentation()
         (A vertex at (6, 36, 216, 1296, 7776),)
-        sage: face.Vrepr(names=False)
+        sage: face.ambient_V_indices()
         (6,)
-        sage: face.length_Vrepr()
+        sage: face.n_ambient_Vrepresentation()
         1
 
     The Hrepresentation::
 
-        sage: face.Hrepr()
+        sage: face.ambient_Hrepresentation()
         (An inequality (60, -112, 65, -14, 1) x + 0 >= 0,
          An inequality (180, -216, 91, -16, 1) x + 0 >= 0,
          An inequality (360, -342, 119, -18, 1) x + 0 >= 0,
@@ -131,9 +151,9 @@ cdef class CombinatorialFace(SageObject):
          An inequality (-844, 567, -163, 21, -1) x + 420 >= 0,
          An inequality (84, -152, 83, -16, 1) x + 0 >= 0,
          An inequality (-210, 317, -125, 19, -1) x + 0 >= 0)
-        sage: face.Hrepr(names=False)
+        sage: face.ambient_H_indices()
         (3, 4, 5, 6, 7, 8, 9, 10, 11, 18, 19)
-        sage: face.length_Hrepr()
+        sage: face.n_ambient_Hrepresentation()
         11
     """
     def __init__(self, data, dimension=None, index=None):
@@ -155,28 +175,30 @@ cdef class CombinatorialFace(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace).run()
         """
-        cdef FaceIterator it
+        cdef FaceIterator_base it
         cdef PolyhedronFaceLattice all_faces
 
-        if isinstance(data, FaceIterator):
+        if isinstance(data, FaceIterator_base):
             assert dimension is None and index is None, "dimension and index must be ``None``, when providing a face iterator"
 
             # Copy data from FaceIterator.
             it = data
             self._dual              = it.dual
-            self.face_mem           = ListOfFaces(1, it.face_length*64)
+            self.face_mem           = ListOfFaces(1, it.structure.face_length*64)
             self.face               = self.face_mem.data[0]
-            memcpy(self.face, it.face, it.face_length*8)
+            memcpy(self.face, it.structure.face, it.structure.face_length*8)
             self._mem               = MemoryAllocator()
-            self._dimension         = it.current_dimension
-            self._ambient_dimension = it.dimension
-            self.face_length        = it.face_length
-            self._V                 = it._V
-            self._H                 = it._H
+            self._dimension         = it.structure.current_dimension
+            self._ambient_dimension = it.structure.dimension
+            self.face_length        = it.structure.face_length
+            self._ambient_Vrep      = it._Vrep
+            self._ambient_facets    = it._facet_names
             self._equalities        = it._equalities
             self.atoms              = it.atoms
             self.coatoms            = it.coatoms
-            self._hash_index        = it._index
+            self._hash_index        = it.structure._index
+
+            self._initialized_from_face_lattice = False
 
         elif isinstance(data, PolyhedronFaceLattice):
             all_faces = data
@@ -194,17 +216,29 @@ cdef class CombinatorialFace(SageObject):
             self._dimension         = dimension
             self._ambient_dimension = all_faces.dimension
             self.face_length        = all_faces.face_length
-            self._V                 = all_faces._V
-            self._H                 = all_faces._H
+            self._ambient_Vrep      = all_faces._Vrep
+            self._ambient_facets    = all_faces._facet_names
             self._equalities        = all_faces._equalities
             self.atoms              = all_faces.atoms
             self.coatoms            = all_faces.coatoms
 
+            self._initialized_from_face_lattice = True
+
             self._hash_index = index
             for i in range(-1,dimension):
                 self._hash_index += all_faces.f_vector[i+1]
+
+            # Add the complete ``f-vector`` to the hash index,
+            # such that hash values obtained by an iterator or by the face lattice
+            # do not collide.
+            for i in range(-1,self._ambient_dimension+1):
+                self._hash_index += all_faces.f_vector[i+1]
         else:
             raise NotImplementedError("data must be face iterator or a list of all faces")
+
+        if self._dual:
+            # Reverse the hash index in dual mode to respect inclusion of faces.
+            self._hash_index = -self._hash_index - 1
 
     def _repr_(self):
         r"""
@@ -247,12 +281,18 @@ cdef class CombinatorialFace(SageObject):
         r"""
         Return an index for the face.
 
+        This is constructed such that for faces `F,G` constructed in the same manner (same face iterator or face lattice)
+        it holds that `F` contained in `G` implies ``hash(F) < hash(G)``.
+
         If the face was constructed from a :class:`sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
         then this is the index of the occurence in the iterator.
+        In dual mode this value is then deducted from the maximal value of ``size_t``.
 
         If the face was constructed from
-        :meth:`sage:geometry.polyhedron.combinatorial_polyhedronn.base.CombinatorialPolyhedron.face_by_face_lattice_index`,
-        then this the index in the level set plus the number of lower dimension (or higher dimension).
+        :meth:`sage:geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron.face_by_face_lattice_index`,
+        then this is the total number of faces plus the index in the level set plus the number of lower dimensional faces
+        (or higher dimensional faces in dual mode).
+        In dual mode this value is then deducted from the maximal value of ``size_t``.
 
         EXAMPLES::
 
@@ -276,6 +316,51 @@ cdef class CombinatorialFace(SageObject):
         """
         return self._hash_index
 
+    def __lt__(self, other):
+        r"""
+        Compare faces of the same polyhedron.
+
+        This is a helper function.
+        In order to construct a Hasse diagram (a digraph) with combinatorial faces,
+        we must define some order relation that is compatible with the Hasse diagram.
+
+        Any order relation compatible with ordering by dimension is suitable.
+        We use :meth:`__hash__` to define the relation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: F1 = C.face_by_face_lattice_index(0)
+            sage: F2 = C.face_by_face_lattice_index(1)
+            sage: F1 < F2
+            True
+            sage: for i,j in Combinations(range(28), 2):
+            ....:     F1 = C.face_by_face_lattice_index(i)
+            ....:     F2 = C.face_by_face_lattice_index(j)
+            ....:     if F1.dim() != F2.dim():
+            ....:          assert (F1.dim() < F2.dim()) == (F1 < F2)
+
+            sage: P = polytopes.cross_polytope(3)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: F1 = C.face_by_face_lattice_index(0)
+            sage: F2 = C.face_by_face_lattice_index(1)
+            sage: F1 < F2
+            True
+            sage: for i,j in Combinations(range(28), 2):
+            ....:     F1 = C.face_by_face_lattice_index(i)
+            ....:     F2 = C.face_by_face_lattice_index(j)
+            ....:     if F1.dim() != F2.dim():
+            ....:          assert (F1.dim() < F2.dim()) == (F1 < F2)
+        """
+        cdef CombinatorialFace other_face
+        if isinstance(other, CombinatorialFace):
+            other_face = other
+            if (self._initialized_from_face_lattice == other_face._initialized_from_face_lattice and
+                    self.atoms is other_face.atoms):
+                # They are faces of the same polyhedron obtained in the same way.
+                return hash(self) < hash(other)
+
     def dimension(self):
         r"""
         Return the dimension of the face.
@@ -288,11 +373,18 @@ cdef class CombinatorialFace(SageObject):
             sage: face = next(it)
             sage: face.dimension()
             2
+
+        ``dim`` is an alias::
+
+            sage: face.dim()
+            2
         """
         if self._dual:
             return smallInteger(self._ambient_dimension - self._dimension - 1)
         else:
             return smallInteger(self._dimension)
+
+    dim = dimension
 
     def ambient_dimension(self):
         r"""
@@ -309,17 +401,13 @@ cdef class CombinatorialFace(SageObject):
         """
         return smallInteger(self._ambient_dimension)
 
-    def Vrepr(self, names=True):
+    def ambient_Vrepresentation(self):
         r"""
-        Return the vertex-representation of the current face.
+        Return the Vrepresentation objects of the ambient polyhedron
+        defining the face.
 
-        The vertex-representation consists of
-        the ``[vertices, rays, lines]`` that face contains.
-
-        INPUT:
-
-        - ``names`` -- if ``True`` returns the names of the ``[vertices, rays, lines]``
-          as given on initialization of the :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
+        It consists of the vertices/rays/lines
+        that face contains.
 
         EXAMPLES::
 
@@ -327,25 +415,25 @@ cdef class CombinatorialFace(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(dimension=2)
             sage: face = next(it)
-            sage: face.Vrepr()
-            (A vertex at (4, 1, 5, 2, 3),
-             A vertex at (4, 2, 5, 1, 3),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (5, 2, 4, 1, 3))
+            sage: face.ambient_Vrepresentation()
+            (A vertex at (1, 3, 2, 5, 4),
+             A vertex at (2, 3, 1, 5, 4),
+             A vertex at (3, 1, 2, 5, 4),
+             A vertex at (3, 2, 1, 5, 4),
+             A vertex at (2, 1, 3, 5, 4),
+             A vertex at (1, 2, 3, 5, 4))
             sage: face = next(it)
-            sage: face.Vrepr()
-            (A vertex at (4, 1, 5, 2, 3),
-             A vertex at (4, 1, 5, 3, 2),
-             A vertex at (5, 1, 4, 2, 3),
-             A vertex at (5, 1, 4, 3, 2))
-            sage: next(it).Vrepr(False)
-            (76, 77, 82, 83, 88, 89)
-            sage: next(it).Vrepr(False)
-            (77, 83, 101, 107)
+            sage: face.ambient_Vrepresentation()
+            (A vertex at (2, 1, 4, 5, 3),
+             A vertex at (3, 2, 4, 5, 1),
+             A vertex at (3, 1, 4, 5, 2),
+             A vertex at (1, 3, 4, 5, 2),
+             A vertex at (1, 2, 4, 5, 3),
+             A vertex at (2, 3, 4, 5, 1))
 
             sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
             sage: it = C.face_iter()
-            sage: for face in it: (face.dimension(), face.Vrepr())
+            sage: for face in it: (face.dimension(), face.ambient_Vrepresentation())
             (2, (1, 2, 3))
             (2, (0, 2, 3))
             (2, (0, 1, 3))
@@ -360,48 +448,258 @@ cdef class CombinatorialFace(SageObject):
             (1, (0, 2))
             (0, (0,))
             (1, (0, 1))
+
+        .. SEEALSO::
+
+            :meth:`ambient_V_indices`.
+        """
+        if not self._ambient_Vrep:
+            # There are no names, so we return indices instead.
+            return self.ambient_V_indices()
+        cdef size_t length
+        if self._dual:
+            # if dual, the Vrepresentation corresponds to the coatom-representation
+            length = self.set_coatom_rep()
+            return tuple(self._ambient_Vrep[self.coatom_rep[i]]
+                         for i in range(length))
+        else:
+            # if not dual, the Vrepresentation corresponds to the atom-representation
+            length = self.set_atom_rep()
+            return tuple(self._ambient_Vrep[self.atom_rep[i]]
+                         for i in range(length))
+
+    def ambient_V_indices(self):
+        r"""
+        Return the indices of the Vrepresentation
+        objects of the ambient polyhedron defining the face.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(dimension=2)
+            sage: face = next(it)
+            sage: next(it).ambient_V_indices()
+            (32, 91, 92, 93, 94, 95)
+            sage: next(it).ambient_V_indices()
+            (32, 89, 90, 94)
+
+            sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
+            sage: it = C.face_iter()
+            sage: for face in it: (face.dimension(), face.ambient_V_indices())
+            (2, (1, 2, 3))
+            (2, (0, 2, 3))
+            (2, (0, 1, 3))
+            (2, (0, 1, 2))
+            (1, (2, 3))
+            (1, (1, 3))
+            (1, (1, 2))
+            (0, (3,))
+            (0, (2,))
+            (0, (1,))
+            (1, (0, 3))
+            (1, (0, 2))
+            (0, (0,))
+            (1, (0, 1))
+
+        .. SEEALSO::
+
+            :meth:`ambient_Vrepresentation`.
         """
         cdef size_t length
         if self._dual:
-            # if dual, the Vrepresenation corresponds to the coatom-representation
-            length = self.set_coatom_repr()
-            if names and self._V:
-                return tuple(self._V[self.coatom_repr[i]]
-                             for i in range(length))
-            else:
-                return tuple(smallInteger(self.coatom_repr[i])
-                             for i in range(length))
+            # if dual, the Vrepresentation corresponds to the coatom-representation
+            length = self.set_coatom_rep()
+            return tuple(smallInteger(self.coatom_rep[i])
+                         for i in range(length))
         else:
-            # if not dual, the Vrepresenation corresponds to the atom-representation
-            length = self.set_atom_repr()
-            if names and self._V:
-                return tuple(self._V[self.atom_repr[i]]
-                             for i in range(length))
-            else:
-                return tuple(smallInteger(self.atom_repr[i])
-                             for i in range(length))
+            # if not dual, the Vrepresentation corresponds to the atom-representation
+            length = self.set_atom_rep()
+            return tuple(smallInteger(self.atom_rep[i])
+                         for i in range(length))
 
-    def length_Vrepr(self):
+    def Vrepr(self, names=True):
         r"""
-        Return the length of the face.
+        The method is deprecated. Use one of the following:
+        - :meth:`CombinatorialFace.ambient_Vrepresentation`
+        - :meth:`CombinatorialFace.ambient_V_indices`
 
-        Might be faster than `len(self.Vrepr())`.
+        Return the vertex-representation of the current face.
+
+        The vertex-representation consists of
+        the ``[vertices, rays, lines]`` that face contains.
+
+        INPUT:
+
+        - ``names`` -- if ``True`` returns the names of the ``[vertices, rays, lines]``
+          as given on initialization of the :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
+
+        TESTS::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(dimension=2)
+            sage: face = next(it)
+            sage: face.Vrepr()
+            doctest:...: DeprecationWarning: the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation
+            See https://trac.sagemath.org/28616 for details.
+            (A vertex at (1, 3, 2, 5, 4),
+             A vertex at (2, 3, 1, 5, 4),
+             A vertex at (3, 1, 2, 5, 4),
+             A vertex at (3, 2, 1, 5, 4),
+             A vertex at (2, 1, 3, 5, 4),
+             A vertex at (1, 2, 3, 5, 4))
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(28616, "the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation", 3)
+        if names:
+            return self.ambient_Vrepresentation()
+        else:
+            return self.ambient_V_indices()
+
+    def n_ambient_Vrepresentation(self):
+        r"""
+        Return the length of the :meth:`CombinatorialFace.ambient_V_indices`.
+
+        Might be faster than then using ``len``.
 
         EXAMPLES::
 
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: all(face.length_Vrepr() == len(face.Vrepr()) for face in it)
+            sage: all(face.n_ambient_Vrepresentation() == len(face.ambient_Vrepresentation()) for face in it)
             True
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: _ = face.n_Vrepr()
+            doctest:...: DeprecationWarning: n_Vrepr is deprecated. Please use n_ambient_Vrepresentation instead.
+            See https://trac.sagemath.org/28614 for details.
         """
         if self._dual:
-            return smallInteger(self.set_coatom_repr())
+            return smallInteger(self.set_coatom_rep())
         else:
-            return smallInteger(self.length_atom_repr())
+            return smallInteger(self.n_atom_rep())
+
+    n_Vrepr = deprecated_function_alias(28614, n_ambient_Vrepresentation)
+
+    def ambient_Hrepresentation(self):
+        r"""
+        Return the Hrepresentation objects of the ambient polyhedron
+        defining the face.
+
+        It consists of the facets/inequalities that contain the face
+        and the equalities defining the ambient polyhedron.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(2)
+            sage: next(it).ambient_Hrepresentation()
+            (An inequality (1, 1, 1, 0, 0) x - 6 >= 0,
+             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
+             An equation (1, 1, 1, 1, 1) x - 15 == 0)
+            sage: next(it).ambient_Hrepresentation()
+            (An inequality (0, 0, -1, -1, 0) x + 9 >= 0,
+             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
+             An equation (1, 1, 1, 1, 1) x - 15 == 0)
+
+            sage: P = polytopes.cyclic_polytope(4,6)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: next(it).ambient_Hrepresentation()
+            (An inequality (-20, 29, -10, 1) x + 0 >= 0,
+             An inequality (60, -47, 12, -1) x + 0 >= 0,
+             An inequality (30, -31, 10, -1) x + 0 >= 0,
+             An inequality (10, -17, 8, -1) x + 0 >= 0,
+             An inequality (-154, 71, -14, 1) x + 120 >= 0,
+             An inequality (-78, 49, -12, 1) x + 40 >= 0)
+            sage: next(it).ambient_Hrepresentation()
+            (An inequality (-50, 35, -10, 1) x + 24 >= 0,
+             An inequality (-12, 19, -8, 1) x + 0 >= 0,
+             An inequality (-20, 29, -10, 1) x + 0 >= 0,
+             An inequality (60, -47, 12, -1) x + 0 >= 0,
+             An inequality (-154, 71, -14, 1) x + 120 >= 0,
+             An inequality (-78, 49, -12, 1) x + 40 >= 0)
+
+        .. SEEALSO::
+
+            :meth:`ambient_H_indices`.
+        """
+        if not self._ambient_facets:
+            # There are no names, so we return indices instead.
+            return self.ambient_H_indices()
+        cdef size_t length
+        if not self._dual:
+            # if not dual, the facet-representation corresponds to the coatom-representation
+            length = self.set_coatom_rep()  # fill self.coatom_repr_face
+            return tuple(self._ambient_facets[self.coatom_rep[i]]
+                         for i in range(length)) + self._equalities
+        else:
+            # if dual, the facet-representation corresponds to the atom-representation
+            length = self.set_atom_rep()  # fill self.atom_repr_face
+            return tuple(self._ambient_facets[self.atom_rep[i]]
+                         for i in range(length)) + self._equalities
+
+    def ambient_H_indices(self):
+        r"""
+        Return the indices of the Hrepresentation objects
+        of the ambient polyhedron defining the face.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(2)
+            sage: next(it).ambient_H_indices()
+            (28, 29)
+            sage: next(it).ambient_H_indices()
+            (25, 29)
+
+            sage: P = polytopes.cyclic_polytope(4,6)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: _ = next(it); _ = next(it)
+            sage: next(it).ambient_H_indices()
+            (0, 1, 2, 4, 5, 7)
+            sage: next(it).ambient_H_indices()
+            (0, 1, 5, 6, 7, 8)
+            sage: next(it).ambient_H_indices()
+            (0, 1, 2, 3, 6, 8)
+            sage: [next(it).dimension() for _ in range(2)]
+            [0, 1]
+            sage: face = next(it)
+            sage: face.ambient_H_indices()
+            (4, 5, 7)
+
+        .. SEEALSO::
+
+            :meth:`ambient_Hrepresentation`.
+        """
+        cdef size_t length
+        if not self._dual:
+            # if not dual, the facet-representation corresponds to the coatom-representation
+            length = self.set_coatom_rep()  # fill self.coatom_repr_face
+            return tuple(smallInteger(self.coatom_rep[i])
+                         for i in range(length))
+        else:
+            # if dual, the facet-representation corresponds to the atom-representation
+            length = self.set_atom_rep()  # fill self.atom_repr_face
+            return tuple(smallInteger(self.atom_rep[i])
+                         for i in range(length))
 
     def Hrepr(self, names=True):
         r"""
+        The method is deprecated. Use one of the following:
+        - :meth:`CombinatorialFace.ambient_Hrepresentation`
+        - :meth:`CombinatorialFace.ambient_H_indices`
+
         Return the Hrepresentation of the face.
 
         If ``names`` is ``False`` this is just the indices
@@ -417,97 +715,57 @@ cdef class CombinatorialFace(SageObject):
         - ``names`` -- if ``True`` returns the names of the ``[facets, equations]``
           as given on initialization of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
 
-        EXAMPLES::
+        TESTS::
 
             sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(2)
             sage: next(it).Hrepr()
-            (An inequality (0, 1, 0, 1, 0) x - 3 >= 0,
-             An inequality (0, 1, 0, 1, 1) x - 6 >= 0,
+            doctest:...: DeprecationWarning: the method Hrepr of CombinatorialPolyhedron is deprecated; use ambient_H_indices or ambient_Hrepresentation
+            See https://trac.sagemath.org/28616 for details.
+            (An inequality (1, 1, 1, 0, 0) x - 6 >= 0,
+             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
-            sage: next(it).Hrepr()
-            (An inequality (0, 1, 0, 0, 0) x - 1 >= 0,
-             An inequality (0, 1, 0, 1, 1) x - 6 >= 0,
-             An equation (1, 1, 1, 1, 1) x - 15 == 0)
-            sage: next(it).Hrepr(False)
-            (12, 29)
-            sage: next(it).Hrepr(False)
-            (6, 29)
-
-            sage: P = polytopes.cyclic_polytope(4,6)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
-            sage: next(it).Hrepr()
-            (An inequality (-20, 29, -10, 1) x + 0 >= 0,
-             An inequality (60, -47, 12, -1) x + 0 >= 0,
-             An inequality (30, -31, 10, -1) x + 0 >= 0,
-             An inequality (10, -17, 8, -1) x + 0 >= 0,
-             An inequality (-154, 71, -14, 1) x + 120 >= 0,
-             An inequality (-78, 49, -12, 1) x + 40 >= 0)
-            sage: next(it).Hrepr()
-            (An inequality (-50, 35, -10, 1) x + 24 >= 0,
-             An inequality (-12, 19, -8, 1) x + 0 >= 0,
-             An inequality (-20, 29, -10, 1) x + 0 >= 0,
-             An inequality (60, -47, 12, -1) x + 0 >= 0,
-             An inequality (-154, 71, -14, 1) x + 120 >= 0,
-             An inequality (-78, 49, -12, 1) x + 40 >= 0)
-            sage: next(it).Hrepr(False)
-            (0, 1, 2, 4, 5, 7)
-            sage: next(it).Hrepr(False)
-            (0, 1, 5, 6, 7, 8)
-            sage: next(it).Hrepr(False)
-            (0, 1, 2, 3, 6, 8)
-            sage: [next(it).dimension() for _ in range(2)]
-            [0, 1]
-            sage: face = next(it)
-            sage: face.Hrepr(False)
-            (4, 5, 7)
-            sage: face.Hrepr()
-            (An inequality (60, -47, 12, -1) x + 0 >= 0,
-             An inequality (30, -31, 10, -1) x + 0 >= 0,
-             An inequality (-154, 71, -14, 1) x + 120 >= 0)
         """
-        cdef size_t length
-        if not self._dual:
-            # if not dual, the facet-represention corresponds to the coatom-representation
-            length = self.set_coatom_repr()  # fill self.coatom_repr_face
-            if names and self._H:
-                return tuple(self._H[self.coatom_repr[i]]
-                             for i in range(length)) + self._equalities
-            else:
-                return tuple(smallInteger(self.coatom_repr[i])
-                             for i in range(length))
+        from sage.misc.superseded import deprecation
+        deprecation(28616, "the method Hrepr of CombinatorialPolyhedron is deprecated; use ambient_H_indices or ambient_Hrepresentation", 3)
+        if names:
+            return self.ambient_Hrepresentation()
         else:
-            # if dual, the facet-represention corresponds to the atom-representation
-            length = self.set_atom_repr()  # fill self.atom_repr_face
-            if names and self._H:
-                return tuple(self._H[self.atom_repr[i]]
-                             for i in range(length)) + self._equalities
-            else:
-                return tuple(smallInteger(self.atom_repr[i])
-                             for i in range(length))
+            return self.ambient_H_indices()
 
-    def length_Hrepr(self):
+    def n_ambient_Hrepresentation(self):
         r"""
-        Returns the length of the :meth:`Hrepr`.
+        Return the length of the :meth:`CombinatorialFace.ambient_H_indices`.
 
-        Might be faster than ``len(self.Hrepr())``.
+        Might be faster than then using ``len``.
 
         EXAMPLES::
 
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
-            sage: all(face.length_Hrepr() == len(face.Hrepr()) for face in it)
+            sage: all(face.n_ambient_Hrepresentation() == len(face.ambient_Hrepresentation()) for face in it)
             True
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: _ = face.n_Hrepr()
+            doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
+            See https://trac.sagemath.org/28614 for details.
         """
         if not self._dual:
-            return smallInteger(self.set_coatom_repr())
+            return smallInteger(self.set_coatom_rep())
         else:
-            return smallInteger(self.length_atom_repr())
+            return smallInteger(self.n_atom_rep())
 
-    cdef size_t length_atom_repr(self) except -1:
+    n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
+
+    cdef size_t n_atom_rep(self) except -1:
         r"""
         Compute the number of atoms in the current face by counting the
         number of set bits.
@@ -518,26 +776,26 @@ cdef class CombinatorialFace(SageObject):
         # The face was not initialized properly.
         raise LookupError("``FaceIterator`` does not point to a face")
 
-    cdef size_t set_coatom_repr(self) except -1:
+    cdef size_t set_coatom_rep(self) except -1:
         r"""
-        Set ``coatom_repr`` to be the coatom-representation of the current face.
+        Set ``coatom_rep`` to be the coatom-representation of the current face.
         Return its length.
         """
         cdef size_t n_coatoms = self.coatoms.n_faces
         cdef uint64_t **coatoms = self.coatoms.data
         cdef size_t face_length = self.face_length
-        if not self.coatom_repr:
-            self.coatom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
-        return bit_repr_to_coatom_repr(self.face, coatoms, n_coatoms,
-                                       face_length, self.coatom_repr)
+        if not self.coatom_rep:
+            self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces, sizeof(size_t))
+        return bit_rep_to_coatom_rep(self.face, coatoms, n_coatoms,
+                                       face_length, self.coatom_rep)
 
-    cdef size_t set_atom_repr(self) except -1:
+    cdef size_t set_atom_rep(self) except -1:
         r"""
-        Set ``atom_repr`` to be the atom-representation of the current face.
+        Set ``atom_rep`` to be the atom-representation of the current face.
         Return its length.
         """
         cdef size_t face_length = self.face_length
-        if not self.atom_repr:
-            self.atom_repr = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
-        return bit_repr_to_Vrepr_list(self.face, self.atom_repr, face_length)
+        if not self.atom_rep:
+            self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms, sizeof(size_t))
+        return bit_rep_to_Vrep_list(self.face, self.atom_rep, face_length)
 

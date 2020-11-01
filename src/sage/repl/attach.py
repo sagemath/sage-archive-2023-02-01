@@ -6,7 +6,7 @@ TESTS::
     sage: attach('http://wstein.org/loadtest.py')
     Traceback (most recent call last):
     ...
-    NotImplementedError: you can't attach a URL
+    NotImplementedError: you cannot attach a URL
 
 Check that no file clutter is produced::
 
@@ -70,7 +70,6 @@ character-by-character::
 from __future__ import print_function
 
 import os
-import six
 import time
 from IPython import get_ipython
 
@@ -167,7 +166,8 @@ def load_attach_path(path=None, replace=False):
         ['.']
         sage: t_dir = tmp_dir()
         sage: fullpath = os.path.join(t_dir, 'test.py')
-        sage: _ = open(fullpath, 'w').write("print(37 * 3)")
+        sage: with open(fullpath, 'w') as f:
+        ....:     _ = f.write("print(37 * 3)")
 
     We put SAGE_TMP on the attach path for testing (otherwise this will
     load ``test.py`` from the current working directory if that happens
@@ -249,13 +249,14 @@ def reset_load_attach_path():
         sage: reset_load_attach_path(); load_attach_path()
         ['.']
         sage: os.environ['SAGE_LOAD_ATTACH_PATH'] = '/veni/vidi:vici:'
-        sage: import imp
-        sage: imp.reload(sage.repl.attach)    # Simulate startup
+        sage: from imp import reload        # py2
+        sage: from importlib import reload  # py3
+        sage: reload(sage.repl.attach)    # Simulate startup
         <module 'sage.repl.attach' from '...'>
         sage: load_attach_path()
         ['.', '/veni/vidi', 'vici']
         sage: del os.environ['SAGE_LOAD_ATTACH_PATH']
-        sage: imp.reload(sage.repl.preparse)    # Simulate startup
+        sage: reload(sage.repl.preparse)    # Simulate startup
         <module 'sage.repl.preparse' from '...'>
         sage: reset_load_attach_path(); load_attach_path()
         ['.']
@@ -322,9 +323,9 @@ def attach(*files):
 
         sage: sage.repl.attach.reset()
         sage: t1 = tmp_filename(ext='.py')
-        sage: _ = open(t1,'w').write("print('hello world')")
+        sage: with open(t1,'w') as f: _ = f.write("print('hello world')")
         sage: t2 = tmp_filename(ext='.py')
-        sage: _ = open(t2,'w').write("print('hi there xxx')")
+        sage: with open(t2,'w') as f: _ = f.write("print('hi there xxx')")
         sage: attach(t1, t2)
         hello world
         hi there xxx
@@ -398,7 +399,7 @@ def attached_files():
 
         sage: sage.repl.attach.reset()
         sage: t = tmp_filename(ext='.py')
-        sage: _ = open(t,'w').write("print('hello world')")
+        sage: with open(t,'w') as f: _ = f.write("print('hello world')")
         sage: attach(t)
         hello world
         sage: attached_files()
@@ -424,7 +425,7 @@ def detach(filename):
 
         sage: sage.repl.attach.reset()
         sage: t = tmp_filename(ext='.py')
-        sage: _ = open(t,'w').write("print('hello world')")
+        sage: with open(t,'w') as f: _ = f.write("print('hello world')")
         sage: attach(t)
         hello world
         sage: attached_files() == [t]
@@ -438,7 +439,7 @@ def detach(filename):
         ['.']
         sage: t_dir = tmp_dir()
         sage: fullpath = os.path.join(t_dir, 'test.py')
-        sage: _ = open(fullpath, 'w').write("print(37 * 3)")
+        sage: with open(fullpath, 'w') as f: _ = f.write("print(37 * 3)")
         sage: load_attach_path(t_dir, replace=True)
         sage: attach('test.py')
         111
@@ -450,7 +451,7 @@ def detach(filename):
         sage: attach('test.py')
         111
         sage: fullpath = os.path.join(t_dir, 'test2.py')
-        sage: _ = open(fullpath, 'w').write("print(3)")
+        sage: with open(fullpath, 'w') as f: _ = f.write("print(3)")
         sage: attach('test2.py')
         3
         sage: detach(attached_files())
@@ -464,7 +465,7 @@ def detach(filename):
         ...
         ValueError: file '/dev/null/foobar.sage' is not attached, see attached_files()
     """
-    if isinstance(filename, six.string_types):
+    if isinstance(filename, str):
         filelist = [filename]
     else:
         filelist = [str(x) for x in filename]
@@ -494,7 +495,7 @@ def reset():
 
         sage: sage.repl.attach.reset()
         sage: t = tmp_filename(ext='.py')
-        sage: _ = open(t,'w').write("print('hello world')")
+        sage: with open(t,'w') as f: _ = f.write("print('hello world')")
         sage: attach(t)
         hello world
         sage: attached_files() == [t]
@@ -527,7 +528,7 @@ def modified_file_iterator():
         sage: list(modified_file_iterator())
         []
         sage: sleep(1)   # filesystem mtime granularity
-        sage: _ = open(t, 'w').write('1')
+        sage: with open(t, 'w') as f: _ = f.write('1')
         sage: list(modified_file_iterator())
         [('/.../tmp_....py', time.struct_time(...))]
     """
@@ -568,12 +569,12 @@ def reload_attached_files_if_modified():
         sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: tmp = tmp_filename(ext='.py')
-        sage: _ = open(tmp, 'w').write('a = 2\n')
+        sage: with open(tmp, 'w') as f: _ = f.write('a = 2\n')
         sage: shell.run_cell('attach({0})'.format(repr(tmp)))
         sage: shell.run_cell('a')
         2
         sage: sleep(1)   # filesystem mtime granularity
-        sage: _ = open(tmp, 'w').write('a = 3\n')
+        sage: with open(tmp, 'w') as f: _ = f.write('a = 3\n')
 
     Note that the doctests are never really at the command prompt
     where the automatic reload is triggered. So we have to do it
@@ -595,12 +596,7 @@ def reload_attached_files_if_modified():
         basename = os.path.basename(filename)
         timestr = time.strftime('%T', mtime)
         notice = '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
-        if ip and ip.pt_cli:
-            with ip.pt_cli.patch_stdout_context(raw=True):
-                print(notice)
-                code = load_wrap(filename, attach=True)
-                ip.run_cell(code)
-        elif ip:
+        if ip:
             print(notice)
             code = load_wrap(filename, attach=True)
             ip.run_cell(code)

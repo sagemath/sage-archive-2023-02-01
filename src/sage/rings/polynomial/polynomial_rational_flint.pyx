@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 r"""
 Univariate polynomials over `\QQ` implemented via FLINT
 
@@ -22,6 +24,9 @@ from cysignals.signals cimport sig_on, sig_str, sig_off
 from cpython.int cimport PyInt_AS_LONG
 from sage.arith.long cimport pyobject_to_long
 
+from sage.libs.arb.acb cimport acb_div_fmpz
+from sage.libs.arb.arb cimport arb_div_fmpz
+from sage.libs.arb.arb_fmpz_poly cimport _arb_fmpz_poly_evaluate_arb, _arb_fmpz_poly_evaluate_acb
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.flint.fmpz cimport *
@@ -33,11 +38,13 @@ from sage.interfaces.all import singular as singular_default
 
 from cypari2.gen import Gen as pari_gen
 
+from sage.rings.complex_arb cimport ComplexBall
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.rational cimport Rational
 from sage.rings.rational_field import QQ
+from sage.rings.real_arb cimport RealBall
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
@@ -475,10 +482,18 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: t(-sys.maxsize-1r) == t(-sys.maxsize-1)
             True
+            sage: (t/3)(RealBallField(100)(1))
+            [0.33333333333333333333333333333...]
+            sage: (t/3)(ComplexBallField(10)(1+i))
+            [0.33...] + [0.33...]*I
         """
         cdef Polynomial_rational_flint f
         cdef Rational r
         cdef mpz_t tmpz
+        cdef fmpz_t tmpfz
+        cdef fmpq_t tmpfq
+        cdef RealBall arb_a, arb_z
+        cdef ComplexBall acb_a, acb_z
 
         if len(x) == 1:
             a = x[0]
@@ -504,12 +519,33 @@ cdef class Polynomial_rational_flint(Polynomial):
             elif isinstance(a, int):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
-                mpz_init(tmpz)
-                mpz_set_si(tmpz, PyInt_AS_LONG(a))
-                fmpq_poly_evaluate_mpz(r.value, self.__poly, tmpz)
-                mpz_clear(tmpz)
+                fmpz_init(tmpfz)
+                fmpq_init(tmpfq)
+                fmpz_set_si(tmpfz, PyInt_AS_LONG(a))
+                fmpq_poly_evaluate_fmpz(tmpfq, self.__poly, tmpfz)
+                fmpq_get_mpq(r.value, tmpfq)
+                fmpq_clear(tmpfq)
+                fmpz_clear(tmpfz)
                 sig_off()
                 return r
+            if isinstance(a, RealBall):
+                arb_a = <RealBall> a
+                arb_z = arb_a._new()
+                sig_on()
+                _arb_fmpz_poly_evaluate_arb(arb_z.value, fmpq_poly_numref(self.__poly),
+                        fmpq_poly_length(self.__poly), arb_a.value, arb_a._parent._prec)
+                arb_div_fmpz(arb_z.value, arb_z.value, fmpq_poly_denref(self.__poly), arb_a._parent._prec)
+                sig_off()
+                return arb_z
+            if isinstance(a, ComplexBall):
+                acb_a = <ComplexBall> a
+                acb_z = acb_a._new()
+                sig_on()
+                _arb_fmpz_poly_evaluate_acb(acb_z.value, fmpq_poly_numref(self.__poly),
+                        fmpq_poly_length(self.__poly), acb_a.value, acb_a._parent._prec)
+                acb_div_fmpz(acb_z.value, acb_z.value, fmpq_poly_denref(self.__poly), acb_a._parent._prec)
+                sig_off()
+                return acb_z
 
         return Polynomial.__call__(self, *x, **kwds)
 
@@ -2125,7 +2161,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if self.degree() > 21 and algorithm == 'kash':
             raise NotImplementedError("Galois group computation is "
                 "supported for degrees up to 11 using PARI, or up to 21 "
-                "if the optional package KASH is installed.  Try "
+                "if KASH is installed.  Try "
                 "algorithm='magma' if you have magma.")
 
         if algorithm == 'pari':
@@ -2149,7 +2185,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 raise NotImplementedError(str(msg) + "\nSorry, " +
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
-                    "the optional free (closed source) KASH package, which " +
+                    "the optional free (closed source) KASH software, which " +
                     "supports degrees up to 21, or use algorithm='magma' if " +
                     "you have magma.")
 

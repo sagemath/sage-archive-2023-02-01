@@ -1,5 +1,5 @@
 """
-Capped relative template for complete discrete valuation rings and their fraction fields.
+Capped relative template for complete discrete valuation rings and their fraction fields
 
 In order to use this template you need to write a linkage file and gluing file.
 For an example see mpz_linkage.pxi (linkage file) and padic_capped_relative_element.pyx (gluing file).
@@ -1299,6 +1299,14 @@ cdef class CRElement(pAdicTemplateElement):
             [1 + O(5^4), 1 + O(5^4)]
             sage: (1 + w + O(w^11))._polynomial_list(pad=True)
             [1 + O(5^4), 1 + O(5^4), O(5^3)]
+            sage: W(0)._polynomial_list()
+            []
+            sage: W(0)._polynomial_list(pad=True)
+            [0, 0, 0]
+            sage: W(O(w^7))._polynomial_list()
+            []
+            sage: W(O(w^7))._polynomial_list(pad=True)
+            [O(5^3), O(5^2), O(5^2)]
         """
         R = self.base_ring()
         if exactzero(self.ordp):
@@ -1510,9 +1518,12 @@ cdef class CRElement(pAdicTemplateElement):
             sage: hash(R(17)) #indirect doctest
             17
 
-            sage: hash(R(-1))
-            1977822444 # 32-bit
-            95367431640624 # 64-bit
+            sage: hash(R(-1))     # py3
+            1977844648            # 32-bit
+            95367431640624        # 64-bit
+            sage: hash(R(-1))     # py2
+            1977822444            # 32-bit
+            95367431640624        # 64-bit
         """
         if exactzero(self.ordp):
             return 0

@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Spanning trees
 
@@ -227,7 +228,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: sorted(T.edge_iterator()) == kruskal(T, check=True)  # long time
+        sage: sorted(T.edge_iterator()) == sorted(kruskal(T, check=True))  # long time
         True
 
     If the input is not a Graph::
@@ -286,6 +287,7 @@ def kruskal_iterator(G, wfunction=None, bint check=False):
                                            weighted=G.weighted(),
                                            weight_function=wfunction)
 
+
 def kruskal_iterator_from_edges(edges, union_find, weighted=False, weight_function=None):
     """
     Return an iterator implementation of Kruskal algorithm on list of edges.
@@ -341,6 +343,7 @@ def kruskal_iterator_from_edges(edges, union_find, weighted=False, weight_functi
              union_find.union(u, v)
              if union_find.number_of_subsets() == 1:
                  return
+
 
 def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     """
@@ -401,7 +404,7 @@ def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
-        - :wikipedia:`Kruskal's_algorithm`
+        - :wikipedia:`Kruskal%27s_algorithm`
         - :func:`kruskal`
         - :func:`filter_kruskal_iterator`
 
@@ -418,6 +421,7 @@ def filter_kruskal(G, threshold=10000, weight_function=None, bint check=False):
     """
     return list(filter_kruskal_iterator(G, threshold=threshold, weight_function=weight_function, check=check))
 
+
 def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check=False):
     r"""
     Return an iterator implementation of Filter Kruskal's algorithm.
@@ -429,14 +433,14 @@ def filter_kruskal_iterator(G, threshold=10000, weight_function=None, bint check
     .. SEEALSO::
 
         - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
-        - :wikipedia:`Kruskal's_algorithm`
+        - :wikipedia:`Kruskal%27s_algorithm`
         - :func:`kruskal`
         - :func:`filter_kruskal`
 
     EXAMPLES:
 
     The edges of a minimum spanning tree of ``G``, if one exists, otherwise
-    returns the empty list.
+    returns the empty list. ::
 
         sage: from sage.graphs.spanning_tree import filter_kruskal_iterator
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
@@ -617,7 +621,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
       connected, and has at least one vertex. Otherwise, you should set
       ``check=True`` to perform some sanity checks and preprocessing on the
       input graph.
-    
+
     - ``by_weight`` -- boolean (default: ``False``); whether to find MST by
       using weights of edges provided.  Default: ``by_weight=True``. If
       ``wfunction`` is given, MST is calculated using the weights of edges as
@@ -666,11 +670,11 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         []
 
     TESTS:
-    
+
     If the input graph is a tree, then return its edges::
 
         sage: T = graphs.RandomTree(randint(1, 10))
-        sage: T.edges() == sorted(boruvka(T, check=True))
+        sage: list(T.edges(sort=True)) == sorted(boruvka(T, check=True))
         True
 
     Check if the weight of MST returned by Prim's and Boruvka's is the same::
@@ -791,7 +795,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     return T
 
-@cython.binding(True)
+
 def random_spanning_tree(self, output_as_graph=False):
     r"""
     Return a random spanning tree of the graph.
@@ -870,8 +874,8 @@ def random_spanning_tree(self, output_as_graph=False):
     cdef list tree_edges = []
     cdef list neighbors
     while found_nr < N:
-        neighbours = self.neighbors(s)
-        new_s = neighbours[randint(0, len(neighbours) - 1)]
+        neighbors = self.neighbors(s)
+        new_s = neighbors[randint(0, len(neighbors) - 1)]
         if new_s not in found:
             found.add(new_s)
             found_nr += 1
@@ -881,3 +885,129 @@ def random_spanning_tree(self, output_as_graph=False):
     if not output_as_graph:
         return tree_edges
     return Graph(tree_edges)
+
+
+def spanning_trees(g, labels=False):
+    r"""
+    Return an iterator over all spanning trees of the graph `g`.
+
+    A disconnected graph has no spanning tree.
+
+    Uses the Read-Tarjan backtracking algorithm [RT1975a]_.
+
+    INPUT:
+
+    - ``labels`` -- boolean (default: ``False``); whether to return edges labels
+      in the spanning trees or not
+
+    EXAMPLES::
+
+        sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)], multiedges=True)
+        sage: len(list(G.spanning_trees()))
+        8
+        sage: G.spanning_trees_count()
+        8
+        sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)], multiedges=True)
+        sage: len(list(G.spanning_trees()))
+        6
+        sage: G.spanning_trees_count()
+        6
+
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+          -- counts the number of spanning trees
+
+        - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
+          -- returns a random spanning tree
+
+    TESTS:
+
+    Works with looped graphs::
+
+        sage: g = Graph({i:[i,(i+1)%6] for i in range(6)})
+        sage: list(g.spanning_trees())
+        [Graph on 6 vertices,
+         Graph on 6 vertices,
+         Graph on 6 vertices,
+         Graph on 6 vertices,
+         Graph on 6 vertices,
+         Graph on 6 vertices]
+
+    Edges of the spanning trees can be labeled or unlabeled (:trac:`27557`)::
+
+        sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
+        sage: l = list(g.spanning_trees(labels=True))
+        sage: l[0].edges()
+        [(1, 2, 4), (1, 4, 5)]
+        sage: l[1].edges()
+        [(1, 2, 1), (1, 4, 5)]
+        sage: l[2].edges()
+        [(1, 2, 2), (1, 4, 5)]
+
+    Small cases::
+
+        sage: list(Graph().spanning_trees())
+        []
+        sage: list(Graph(1).spanning_trees())
+        [Graph on 1 vertex]
+        sage: list(Graph(2).spanning_trees())
+        []
+
+    Giving anything else than a graph::
+
+        sage: from sage.graphs.spanning_tree import spanning_trees
+        sage: list(spanning_trees(DiGraph()))
+        Traceback (most recent call last):
+        ...
+        ValueError: this method is for undirected graphs only
+        sage: list(spanning_trees("bike"))
+        Traceback (most recent call last):
+        ...
+        ValueError: this method is for undirected graphs only
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(g, Graph):
+        raise ValueError("this method is for undirected graphs only")
+
+    def _recursive_spanning_trees(G, forest, labels):
+        """
+        Return an iterator over all the spanning trees of G containing forest
+        """
+        if not G.is_connected():
+            return
+
+        if G.size() == forest.size():
+            yield forest.copy()
+        else:
+            # Pick an edge e from G-forest
+            for e in G.edge_iterator(labels=labels):
+                if not forest.has_edge(e):
+                    break
+
+            # 1) Recursive call with e removed from G
+            G.delete_edge(e)
+            yield from _recursive_spanning_trees(G, forest, labels)
+            G.add_edge(e)
+
+            # 2) Recursive call with e include in forest
+            #
+            # e=xy links the CC (connected component) of forest containing x
+            # with the CC containing y. Any other edge which does that cannot be
+            # added to forest anymore, and B is the list of them
+            c1 = forest.connected_component_containing_vertex(e[0])
+            c2 = forest.connected_component_containing_vertex(e[1])
+            G.delete_edge(e)
+            B = G.edge_boundary(c1, c2, sort=False)
+            G.add_edge(e)
+
+            # Actual call
+            forest.add_edge(e)
+            G.delete_edges(B)
+            yield from _recursive_spanning_trees(G, forest, labels)
+            G.add_edges(B)
+            forest.delete_edge(e)
+
+    if g.order() and g.is_connected():
+        forest = Graph([g, g.bridges()], format='vertices_and_edges')
+        yield from _recursive_spanning_trees(Graph(g, immutable=False, loops=False), forest, labels)

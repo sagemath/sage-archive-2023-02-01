@@ -152,7 +152,7 @@ class ProjectionFuncStereographic():
         sage: cube = polytopes.hypercube(3).vertices()
         sage: proj = ProjectionFuncStereographic([1.2, 3.4, 5.6])
         sage: ppoints = [proj(vector(x)) for x in cube]
-        sage: ppoints[0]
+        sage: ppoints[5]
         (-0.0486511..., 0.0859565...)
     """
     def __init__(self, projection_point):
@@ -500,7 +500,7 @@ class Projection(SageObject):
             sage: p = polytopes.hypercube(3)
             sage: proj = p.projection()
             sage: proj.coord_index_of(vector((1,1,1)))
-            7
+            2
         """
         try:
             return self.coords.index(v)
@@ -518,7 +518,7 @@ class Projection(SageObject):
             sage: p = polytopes.hypercube(3)
             sage: proj = p.projection()
             sage: proj.coord_indices_of([vector((1,1,1)),vector((1,-1,1))])
-            [7, 5]
+            [2, 3]
         """
         return [self.coord_index_of(v) for v in v_list]
 
@@ -928,7 +928,7 @@ class Projection(SageObject):
             sage: cube_proj = cube.projection()
             sage: wire = cube_proj.render_wireframe_3d()
             sage: print(wire.tachyon().split('\n')[77])  # for testing
-            FCylinder base -1.0 1.0 -1.0 apex -1.0 -1.0 -1.0 rad 0.005 texture...
+            FCylinder base 1.0 1.0 -1.0 apex 1.0 1.0 1.0 rad 0.005 texture...
         """
         wireframe = []
         for l in self.lines:
@@ -1097,9 +1097,9 @@ class Projection(SageObject):
             lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
             pgplt = self.render_solid_3d(**polygon_opts)
-        return sum(_ for _ in [pplt, lplt, pgplt] if _ != None)
+        return sum(_ for _ in [pplt, lplt, pgplt] if _ is not None)
 
-    def tikz(self, view=[0, 0, 1], angle=0, scale=2,
+    def tikz(self, view=[0, 0, 1], angle=0, scale=1,
              edge_color='blue!95!black', facet_color='blue!95!black',
              opacity=0.8, vertex_color='green', axis=False):
         r"""
@@ -1112,7 +1112,7 @@ class Projection(SageObject):
         - ``view`` - list (default: [0,0,1]) representing the rotation axis (see note below).
         - ``angle`` - integer (default: 0) angle of rotation in degree from 0 to 360 (see note
           below).
-        - ``scale`` - integer (default: 2) specifying the scaling of the tikz picture.
+        - ``scale`` - integer (default: 1) specifying the scaling of the tikz picture.
         - ``edge_color`` - string (default: 'blue!95!black') representing colors which tikz
           recognize.
         - ``facet_color`` - string (default: 'blue!95!black') representing colors which tikz
@@ -1129,7 +1129,15 @@ class Projection(SageObject):
 
         .. NOTE::
 
-            The inputs ``view`` and ``angle`` can be obtained from the
+            The inputs ``view`` and ``angle`` can be obtained by visualizing it
+            using ``.show(aspect_ratio=1)``. This will open an interactive view
+            in your default browser, where you can rotate the polytope. Once
+            the desired view angle is found, click on the information icon in
+            the lower right-hand corner and select *Get Viewpoint*. This will
+            copy a string of the form '[x,y,z],angle' to your local clipboard.
+            Go back to Sage and type ``Img = P.projection().tikz([x,y,z],angle)``. 
+
+            The inputs ``view`` and ``angle`` can also be obtained from the
             viewer Jmol::
 
                 1) Right click on the image
@@ -1158,7 +1166,8 @@ class Projection(SageObject):
                 [x={(-0.939161cm, 0.244762cm)},
                 y={(0.097442cm, -0.482887cm)},
                 z={(0.329367cm, 0.840780cm)},
-            sage: _ = open('polytope-tikz1.tex', 'w').write(Image1)    # not tested
+            sage: with open('polytope-tikz1.tex', 'w') as f:  # not tested
+            ....:     _ = f.write(Image1)
 
             sage: P2 = Polyhedron(vertices=[[1, 1],[1, 2],[2, 1]])
             sage: Image2 = P2.projection().tikz(scale=3, edge_color='blue!95!black', facet_color='orange!95!black', opacity=0.4, vertex_color='yellow', axis=True)
@@ -1169,7 +1178,8 @@ class Projection(SageObject):
                 [scale=3.000000,
                 back/.style={loosely dotted, thin},
                 edge/.style={color=blue!95!black, thick},
-            sage: _ = open('polytope-tikz2.tex', 'w').write(Image2)    # not tested
+            sage: with open('polytope-tikz2.tex', 'w') as f:  # not tested
+            ....:     _ = f.write(Image2)
 
             sage: P3 = Polyhedron(vertices=[[-1, -1, 2],[-1, 2, -1],[2, -1, -1]])
             sage: P3
@@ -1180,9 +1190,10 @@ class Projection(SageObject):
                 [x={(0.658184cm, -0.242192cm)},
                 y={(-0.096240cm, 0.912008cm)},
                 z={(-0.746680cm, -0.331036cm)},
-            sage: _ = open('polytope-tikz3.tex', 'w').write(Image3)    # not tested
+            sage: with open('polytope-tikz3.tex', 'w') as f:  # not tested
+            ....:     _ = f.write(Image3)
 
-            sage: P=Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]])
+            sage: P = Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]])
             sage: P
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
             sage: P.projection().tikz()
@@ -1251,8 +1262,8 @@ class Projection(SageObject):
                 [scale=3.000000,
                 back/.style={loosely dotted, thin},
                 edge/.style={color=black, thick},
-            sage: _ = open('polytope-tikz2.tex', 'w').write(Image)    # not tested
-
+            sage: with open('polytope-tikz2.tex', 'w') as f:  # not tested
+            ....:     _ = f.write(Image)
 
         Scientific notation is not used in the output (:trac:`16519`)::
 
@@ -1296,12 +1307,24 @@ class Projection(SageObject):
         tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
         tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
         tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
-        tikz_pic += 'fill=%s!75!black,thick,anchor=base}]\n%%\n%%\n' % vertex_color
+        tikz_pic += 'fill=%s!75!black,thick}]\n%%\n%%\n' % vertex_color
+
+        # Gives the reproduction information
+        from sage.env import SAGE_VERSION
+        tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
+        tikz_pic += "%% with the command: ._tikz_2d and parameters:\n" 
+        tikz_pic += "%% scale = {}\n".format(scale)
+        tikz_pic += "%% edge_color = {}\n".format(edge_color)
+        tikz_pic += "%% facet_color = {}\n".format(facet_color)
+        tikz_pic += "%% opacity = {}\n".format(opacity)
+        tikz_pic += "%% vertex_color = {}\n".format(vertex_color)
+        tikz_pic += "%% axis = {}\n\n".format(axis)
 
         # Draws the axes if True
         if axis:
+            tikz_pic += '%% Drawing the axes\n'
             tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};\n'
-            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n'
+            tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n\n'
 
         # Create the coordinate of the vertices:
         tikz_pic += '%% Coordinate of the vertices:\n%%\n'
@@ -1369,16 +1392,22 @@ class Projection(SageObject):
                 [x={(0.644647cm, -0.476559cm)},
                 y={(0.192276cm, 0.857859cm)},
                 z={(-0.739905cm, -0.192276cm)},
-            sage: _ open('polytope-tikz3.tex', 'w').write(Image)    # not tested
+            sage: with open('polytope-tikz3.tex', 'w') as f:  # not tested
+            ....:     _ = f.write(Image)
 
             sage: p = Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
             sage: proj = p.projection()
             sage: Img = proj.tikz([1,1,1],130,axis=True)
-            sage: print('\n'.join(Img.splitlines()[21:25]))
-            %% Drawing the interior
-            %%
-            \fill[facet] (1.00000, 0.00000, 0.00000) -- (0.00000, 0.00000, 1.00000) -- (0.00000, 1.00000, 0.00000) -- cycle {};
-            %%
+            sage: print('\n'.join(Img.splitlines()[12:21]))
+            %% with the command: ._tikz_2d_in_3d and parameters:
+            %% view = [1, 1, 1]
+            %% angle = 130
+            %% scale = 1
+            %% edge_color = blue!95!black
+            %% facet_color = blue!95!black
+            %% opacity = 0.8
+            %% vertex_color = green
+            %% axis = True
 
         .. NOTE::
 
@@ -1423,10 +1452,24 @@ class Projection(SageObject):
         tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
         tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
         tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
-        tikz_pic += 'fill=%s!75!black,thick,anchor=base}]\n%%\n%%\n' % vertex_color
+        tikz_pic += 'fill=%s!75!black,thick}]\n%%\n%%\n' % vertex_color
+
+        # Gives the reproduction information
+        from sage.env import SAGE_VERSION
+        tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
+        tikz_pic += "%% with the command: ._tikz_2d_in_3d and parameters:\n" 
+        tikz_pic += "%% view = {}\n".format(view)
+        tikz_pic += "%% angle = {}\n".format(angle)
+        tikz_pic += "%% scale = {}\n".format(scale)
+        tikz_pic += "%% edge_color = {}\n".format(edge_color)
+        tikz_pic += "%% facet_color = {}\n".format(facet_color)
+        tikz_pic += "%% opacity = {}\n".format(opacity)
+        tikz_pic += "%% vertex_color = {}\n".format(vertex_color)
+        tikz_pic += "%% axis = {}\n\n".format(axis)
 
         # Draws the axes if True
         if axis:
+            tikz_pic += '%% Drawing the axes\n'
             tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};\n'
             tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n'
             tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};\n'
@@ -1497,23 +1540,30 @@ class Projection(SageObject):
                 [x={(-0.046385cm, 0.837431cm)},
                 y={(-0.243536cm, 0.519228cm)},
                 z={(0.968782cm, 0.170622cm)},
-            sage: _ = open('polytope-tikz1.tex', 'w').write(Image)    # not tested
+            sage: with open('polytope-tikz1.tex', 'w') as f:  # not tested
+            ....:     _ = f.write(Image)
 
             sage: Associahedron = Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()
             sage: ImageAsso = Associahedron.projection().tikz([-15,-755,-655], 116, scale=1)
-            sage: print('\n'.join(ImageAsso.splitlines()[29:41]))
-            %% Drawing edges in the back
+            sage: print('\n'.join(ImageAsso.splitlines()[12:30]))
+            %% with the command: ._tikz_3d_in_3d and parameters:
+            %% view = [-15, -755, -655]
+            %% angle = 116
+            %% scale = 1
+            %% edge_color = blue!95!black
+            %% facet_color = blue!95!black
+            %% opacity = 0.8
+            %% vertex_color = green
+            %% axis = False
+            <BLANKLINE>
+            %% Coordinate of the vertices:
             %%
-            \draw[edge,back] (-0.50000, -0.50000, -0.50000) -- (-1.00000, 0.00000, 0.00000);
-            \draw[edge,back] (-0.50000, -0.50000, -0.50000) -- (0.00000, -1.00000, 0.00000);
-            \draw[edge,back] (-0.50000, -0.50000, -0.50000) -- (0.00000, 0.00000, -1.00000);
-            \draw[edge,back] (-1.00000, 0.00000, 0.00000) -- (-1.00000, 0.00000, 1.00000);
-            \draw[edge,back] (-1.00000, 0.00000, 0.00000) -- (-1.00000, 1.00000, 0.00000);
-            \draw[edge,back] (0.00000, -1.00000, 0.00000) -- (0.00000, -1.00000, 1.00000);
-            \draw[edge,back] (0.00000, -1.00000, 0.00000) -- (1.00000, -1.00000, 0.00000);
-            \draw[edge,back] (0.00000, 0.00000, -1.00000) -- (0.00000, 1.00000, -1.00000);
-            \draw[edge,back] (0.00000, 0.00000, -1.00000) -- (1.00000, 0.00000, -1.00000);
-            %%
+            \coordinate (0.00000, 1.00000, -1.00000) at (0.00000, 1.00000, -1.00000);
+            \coordinate (1.00000, 1.00000, -1.00000) at (1.00000, 1.00000, -1.00000);
+            \coordinate (1.00000, 1.00000, 1.00000) at (1.00000, 1.00000, 1.00000);
+            \coordinate (1.00000, -1.00000, 1.00000) at (1.00000, -1.00000, 1.00000);
+            \coordinate (1.00000, -1.00000, 0.00000) at (1.00000, -1.00000, 0.00000);
+            \coordinate (1.00000, 0.00000, -1.00000) at (1.00000, 0.00000, -1.00000);
         """
         view_vector = vector(RDF, view)
         rot = rotate_arbitrary(view_vector, -(angle/360)*2*pi)
@@ -1596,10 +1646,24 @@ class Projection(SageObject):
         tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
         tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
         tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
-        tikz_pic += 'fill=%s!75!black,thick,anchor=base}]\n%%\n%%\n' % vertex_color
+        tikz_pic += 'fill=%s!75!black,thick}]\n%%\n%%\n' % vertex_color
+
+        # Gives the reproduction information
+        from sage.env import SAGE_VERSION
+        tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
+        tikz_pic += "%% with the command: ._tikz_3d_in_3d and parameters:\n" 
+        tikz_pic += "%% view = {}\n".format(view)
+        tikz_pic += "%% angle = {}\n".format(angle)
+        tikz_pic += "%% scale = {}\n".format(scale)
+        tikz_pic += "%% edge_color = {}\n".format(edge_color)
+        tikz_pic += "%% facet_color = {}\n".format(facet_color)
+        tikz_pic += "%% opacity = {}\n".format(opacity)
+        tikz_pic += "%% vertex_color = {}\n".format(vertex_color)
+        tikz_pic += "%% axis = {}\n\n".format(axis)
 
         # Draws the axes if True
         if axis:
+            tikz_pic += '%% Drawing the axes\n'
             tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};\n'
             tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};\n'
             tikz_pic += '\\draw[color=black,thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};\n'

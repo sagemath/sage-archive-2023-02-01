@@ -38,17 +38,16 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
-from six.moves import range
-
 import logging
 import optparse
 import os
+import pickle
 import re
 import shutil
 import subprocess
 import sys
 import time
+import types
 import warnings
 
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, DOT_SAGE
 
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -68,6 +67,7 @@ from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
+
 def build_ref_doc(args):
     doc = args[0]
     lang = args[1]
@@ -244,6 +244,21 @@ class DocBuilder(object):
         self.latex()
         tex_dir = self._output_dir('latex')
         pdf_dir = self._output_dir('pdf')
+
+        if self.name == 'reference':
+            # recover maths in tex, undoing what Sphinx did (trac #29993)
+            tex_file = os.path.join(tex_dir, 'reference.tex')
+            with open(tex_file) as f:
+                ref = f.read()
+                ref = re.sub(r'\\textbackslash{}', r'\\', ref)
+                ref = re.sub(r'\\textbackslash{}', r'\\', ref)
+                ref = re.sub(r'\\{', r'{', ref)
+                ref = re.sub(r'\\}', r'}', ref)
+                ref = re.sub(r'\\_', r'_', ref)
+                ref = re.sub(r'\\textasciicircum{}', r'^', ref)
+            with open(tex_file, 'w') as f:
+                f.write(ref)
+
         make_target = "cd '%s' && $MAKE %s && mv -f *.pdf '%s'"
         error_message = "failed to run $MAKE %s in %s"
         command = 'all-pdf'
@@ -271,6 +286,7 @@ class DocBuilder(object):
 
 
 from .utils import build_many as _build_many
+
 def build_many(target, args):
     """
     Thin wrapper around `sage_setup.docbuild.utils.build_many` which uses the
@@ -282,10 +298,10 @@ def build_many(target, args):
         if ABORT_ON_ERROR:
             raise
 
-
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
+
 def build_other_doc(args):
     document = args[0]
     name = args[1]
@@ -293,6 +309,7 @@ def build_other_doc(args):
     args = args[3:]
     logger.warning("\nBuilding %s.\n" % document)
     getattr(get_builder(document), name)(*args, **kwds)
+
 
 class AllBuilder(object):
     """
@@ -385,20 +402,20 @@ class WebsiteBuilder(DocBuilder):
                 shutil.copytree(src, dst)
             else:
                 shutil.copy2(src, dst)
-        self.create_html_redirects()
 
     def create_html_redirects(self):
         """
-        Writes a number of small HTML files; these are files which
-        used to contain the main content of the reference manual
-        before before splitting the manual into multiple
-        documents. After the split, those files have moved, so in each
-        old location, write a file which redirects to the new version.
-        (This is so old URLs to pieces of the reference manual still
+        Writes a number of small HTML files; these are files which used to
+        contain the main content of the reference manual before splitting the
+        manual into multiple documents. After the split, those files have
+        moved, so in each old location, write a file which redirects to the new
+        version.  (This is so old URLs to pieces of the reference manual still
         open the correct files.)
         """
-        # The simple html template which will cause a redirect to the
-        # correct file
+        from sage.misc.superseded import deprecation
+        deprecation(29993, "This method was created in trac #6495 for backward compatibility. Not necessary anymore.")
+
+        # The simple html template which will cause a redirect to the correct file.
         html_template = """<html><head>
             <meta HTTP-EQUIV="REFRESH" content="0; url=%s">
             </head><body></body></html>"""
@@ -408,7 +425,7 @@ class WebsiteBuilder(DocBuilder):
         reference_builder = ReferenceBuilder('reference')
         refdir = os.path.join(SAGE_DOC_SRC, 'en', 'reference')
         for document in reference_builder.get_all_documents(refdir):
-            #path is the directory above reference dir
+            # path is the directory above reference dir
             path = os.path.abspath(os.path.join(reference_dir, '..'))
 
             # the name of the subdocument
@@ -426,7 +443,7 @@ class WebsiteBuilder(DocBuilder):
                 # a string like sage/algebras
                 shorter_path = os.path.join(*short_path.split(os.sep)[2:])
 
-                #Make the shorter path directory
+                # make the shorter path directory
                 try:
                     os.makedirs(os.path.join(reference_dir, shorter_path))
                 except OSError:
@@ -447,6 +464,7 @@ class WebsiteBuilder(DocBuilder):
 
                     # write the html file which performs the redirect
                     with open(redirect_filename, 'w') as f:
+                        print(redirect_filename)
                         f.write(html_template % redirect_url)
 
 
@@ -509,21 +527,47 @@ class ReferenceBuilder(AllBuilder):
         sage_makedirs(d)
         return d
 
+    def _refdir(self, lang):
+        return os.path.join(SAGE_DOC_SRC, lang, self.name)
+
+    def _build_bibliography(self, lang, format, *args, **kwds):
+        """
+        Build the bibliography only
+
+        The bibliography references.aux is referenced by the other
+        manuals and needs to be built first.
+        """
+        refdir = self._refdir(lang)
+        references = [
+            (doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)
+            if doc == 'reference/references'
+        ]
+        build_many(build_ref_doc, references)
+
+    def _build_everything_except_bibliography(self, lang, format, *args, **kwds):
+        """
+        Build the entire reference manual except the bibliography
+        """
+        refdir = self._refdir(lang)
+        non_references = [
+            (doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)
+            if doc != 'reference/references'
+        ]
+        build_many(build_ref_doc, non_references)
+
     def _wrapper(self, format, *args, **kwds):
         """
         Builds reference manuals.  For each language, it builds the
         top-level document and its components.
         """
         for lang in LANGUAGES:
-            refdir = os.path.join(SAGE_DOC_SRC, lang, self.name)
+            refdir = self._refdir(lang)
             if not os.path.exists(refdir):
                 continue
-            output_dir = self._output_dir(format, lang)
-            L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            if format == 'pdf' and lang == 'en':
-                logger.warning('Building bibliography')
-                getattr(ReferenceSubBuilder('reference/references', 'en'), 'pdf')(*args, **kwds)
-            build_many(build_ref_doc, L)
+            logger.info('Building bibliography')
+            self._build_bibliography(lang, format, *args, **kwds)
+            logger.info('Bibliography finished, building dependent manuals')
+            self._build_everything_except_bibliography(lang, format, *args, **kwds)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -536,32 +580,20 @@ class ReferenceBuilder(AllBuilder):
             # of the PDF file.  So we create an html file, based on
             # the file index.html from the "website" target.
             if format == 'pdf':
-                # First build the website page.  (This only takes a
-                # few seconds.)
+                # First build the website page. This only takes a few seconds.
                 getattr(get_builder('website'), 'html')()
-                # Copy the relevant pieces of
-                # SAGE_DOC/html/en/website/_static to output_dir.
-                # (Don't copy all of _static to save some space: we
-                # don't need all of the MathJax stuff, and in
-                # particular we don't need the fonts.)
-                website_dir = os.path.join(SAGE_DOC, 'html',
-                                           'en', 'website')
-                static_files = ['COPYING.txt', 'basic.css', 'blank.gif',
-                         'default.css', 'doctools.js', 'favicon.ico',
-                         'file.png', 'jquery.js', 'minus.png',
-                         'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png',
-                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
-                         'searchtools.js', 'sidebar.js', 'underscore.js']
-                sage_makedirs(os.path.join(output_dir, '_static'))
-                for f in static_files:
-                    try:
-                        shutil.copyfile(os.path.join(website_dir, '_static', f),
-                                        os.path.join(output_dir, '_static', f))
-                    except IOError: # original file does not exist
-                        pass
-                # Now modify website's index.html page and write it
-                # to output_dir.
+
+                website_dir = os.path.join(SAGE_DOC, 'html', 'en', 'website')
+                output_dir = self._output_dir(format, lang)
+
+                # Install in output_dir a symlink to the directory containing static files.
+                try:
+                    os.symlink(os.path.join(website_dir, '_static'), os.path.join(output_dir, '_static'))
+                except FileExistsError:
+                    pass
+
+                # Now modify website's index.html page and write it to
+                # output_dir.
                 with open(os.path.join(website_dir, 'index.html')) as f:
                     html = f.read().replace('Documentation', 'Reference')
                 html_output_dir = os.path.dirname(website_dir)
@@ -570,53 +602,58 @@ class ReferenceBuilder(AllBuilder):
                 # From index.html, we want the preamble and the tail.
                 html_end_preamble = html.find('<h1>Sage Reference')
                 html_bottom = html.rfind('</table>') + len('</table>')
-                # For the content, we modify doc/en/reference/index.rst,
-                # which has two parts: the body and the table of contents.
+
+                # For the content, we modify doc/en/reference/index.rst, which
+                # has two parts: the body and the table of contents.
                 with open(os.path.join(SAGE_DOC_SRC, lang, 'reference', 'index.rst')) as f:
                     rst = f.read()
-                # Replace rst links with html links.  There are two forms:
+                # Get rid of todolist and miscellaneous rst markup.
+                rst = rst.replace('.. _reference-manual:\n\n', '')
+                rst = re.sub(r'\\\\', r'\\', rst)
+                # Replace rst links with html links. There are three forms:
                 #
                 #   `blah`__    followed by __ LINK
                 #
+                #   `blah <LINK>`_
+                #
                 #   :doc:`blah <module/index>`
                 #
-                # Change the first form to
+                # Change the first and the second forms to
                 #
                 #   <a href="LINK">blah</a>
                 #
-                # Change the second form to
+                # Change the third form to
                 #
                 #   <a href="module/module.pdf">blah <img src="_static/pdf.png" /></a>
                 #
-                rst = re.sub(r'`([^`]*)`__\.\n\n__ (.*)',
-                                  r'<a href="\2">\1</a>.', rst)
+                rst = re.sub(r'`([^`\n]*)`__.*\n\n__ (.*)',
+                             r'<a href="\2">\1</a>.', rst)
+                rst = re.sub(r'`([^<\n]*)\s+<(.*)>`_',
+                             r'<a href="\2">\1</a>',  rst)
                 rst = re.sub(r':doc:`([^<]*?)\s+<(.*)/index>`',
-                             r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png" /></a>',
-                             rst)
-                # Get rid of todolist and miscellaneous rst markup.
-                rst = rst.replace('.. toctree::', '')
-                rst = rst.replace(':maxdepth: 2', '')
-                rst = rst.replace('todolist', '')
-                start = rst.find('=\n') + 1
-                end = rst.find('Table of Contents')
+                             r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png"/></a>', rst)
                 # Body: add paragraph <p> markup.
+                start = rst.rfind('*\n') + 1
+                end = rst.find('\nUser Interfaces')
                 rst_body = rst[start:end]
                 rst_body = rst_body.replace('\n\n', '</p>\n<p>')
-                start = rst.find('Table of Contents') + 2*len('Table of Contents') + 1
-                # Don't include the indices.
+                # TOC: don't include the indices
+                start = rst.find('\nUser Interfaces')
                 end = rst.find('Indices and Tables')
-                # TOC: change * to <li>, change rst headers to html headers.
                 rst_toc = rst[start:end]
-                rst_toc = rst_toc.replace('*', '<li>')
-                rst_toc = re.sub('\n([A-Z][a-zA-Z, ]*)\n-*\n',
-                             '</ul>\n\n\n<h2>\\1</h2>\n\n<ul>\n', rst_toc)
-                # Now write the file.
+                # change * to <li>; change rst headers to html headers
+                rst_toc = re.sub(r'\*(.*)\n',
+                                 r'<li>\1</li>\n', rst_toc)
+                rst_toc = re.sub(r'\n([A-Z][a-zA-Z, ]*)\n[=]*\n',
+                                 r'</ul>\n\n\n<h2>\1</h2>\n\n<ul>\n', rst_toc)
+                rst_toc = re.sub(r'\n([A-Z][a-zA-Z, ]*)\n[-]*\n',
+                                 r'</ul>\n\n\n<h3>\1</h3>\n\n<ul>\n', rst_toc)
+                # now write the file.
                 with open(os.path.join(output_dir, 'index.html'), 'w') as new_index:
                     new_index.write(html[:html_end_preamble])
-                    new_index.write('<h1>' + rst[:rst.find('\n')] +
-                                    ' (PDF version)'+ '</h1>')
+                    new_index.write('<h1> Sage Reference Manual (PDF version)'+ '</h1>')
                     new_index.write(rst_body)
-                    new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
+                    new_index.write('<ul>')
                     new_index.write(rst_toc)
                     new_index.write('</ul>\n\n')
                     new_index.write(html[html_bottom:])
@@ -755,10 +792,9 @@ class ReferenceSubBuilder(DocBuilder):
         filename = self.cache_filename()
         if not os.path.exists(filename):
             return {}
-        from six.moves import cPickle
         with open(self.cache_filename(), 'rb') as file:
             try:
-                cache = cPickle.load(file)
+                cache = pickle.load(file)
             except Exception:
                 logger.debug("Cache file '%s' is corrupted; ignoring it..." % filename)
                 cache = {}
@@ -771,9 +807,8 @@ class ReferenceSubBuilder(DocBuilder):
         Pickle the current reference cache for later retrieval.
         """
         cache = self.get_cache()
-        from six.moves import cPickle
         with open(self.cache_filename(), 'wb') as file:
-            cPickle.dump(cache, file)
+            pickle.dump(cache, file)
         logger.debug("Saved the reference cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
@@ -790,9 +825,12 @@ class ReferenceSubBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(env_pickle, FakeApp(self.dir))
-            logger.debug("Opened Sphinx environment: %s", env_pickle)
-            return env
+            with open(env_pickle, 'rb') as f:
+                env = pickle.load(f)
+                env.app = FakeApp(self.dir)
+                env.config.values = env.app.config.values
+                logger.debug("Opened Sphinx environment: %s", env_pickle)
+                return env
         except IOError as err:
             logger.debug("Failed to open Sphinx environment: %s", err)
 
@@ -818,8 +856,6 @@ class ReferenceSubBuilder(DocBuilder):
             # env.topickle(env_pickle), which first writes a temporary
             # file.  We adapt sphinx.environment's
             # BuildEnvironment.topickle:
-            from six.moves import cPickle
-            import types
 
             # remove unpicklable attributes
             env.set_warnfunc(None)
@@ -831,7 +867,7 @@ class ReferenceSubBuilder(DocBuilder):
                                                                types.FunctionType,
                                                                type)):
                         del env.config[key]
-                cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
+                pickle.dump(env, picklefile, pickle.HIGHEST_PROTOCOL)
 
             logger.debug("Saved Sphinx environment: %s", env_pickle)
 
@@ -1128,7 +1164,7 @@ class SingleFileBuilder(DocBuilder):
         # By default, this is DOT_SAGE/docbuild/MODULE_NAME, but can
         # also be specified at the command line.
         module_name = os.path.splitext(os.path.basename(path))[0]
-        latex_name = module_name.replace('_', r'\_')
+        latex_name = module_name.replace('_', r'\\_')
 
         if self._options.output_dir:
             base_dir = os.path.join(self._options.output_dir, module_name)
@@ -1157,6 +1193,9 @@ name = {!r}
 html_title = project
 html_short_title = project
 htmlhelp_basename = name
+
+extensions.remove('multidocs') # see #29651
+extensions.remove('inventory_builder')
 
 latex_domain_indices = False
 latex_documents = [
@@ -1245,7 +1284,6 @@ def get_builder(name):
         print("of documents, or 'sage --docbuild --help' for more help.")
         sys.exit(1)
 
-
 def format_columns(lst, align=u'<', cols=None, indent=4, pad=3, width=80):
     """
     Utility function that formats a list as a simple table and returns
@@ -1268,7 +1306,6 @@ def format_columns(lst, align=u'<', cols=None, indent=4, pad=3, width=80):
         s += u"{0:{1}{2}}".format(lst[i], align, size)
     s += u"\n"
     return s
-
 
 def help_usage(s=u"", compact=False):
     """
@@ -1391,7 +1428,6 @@ def help_message_long(option, opt_str, value, parser):
         print(f())
     sys.exit(0)
 
-
 def help_message_short(option=None, opt_str=None, value=None, parser=None,
                        error=False):
     """
@@ -1408,7 +1444,6 @@ def help_message_short(option=None, opt_str=None, value=None, parser=None,
         else:
             parser.print_help()
         setattr(parser.values, 'printed_help', 1)
-
 
 def help_wrapper(option, opt_str, value, parser):
     """
@@ -1451,6 +1486,7 @@ class IndentedHelpFormatter2(optparse.IndentedHelpFormatter, object):
         if heading.lower() == 'options':
             heading = "OPTIONS"
         return super(IndentedHelpFormatter2, self).format_heading(heading)
+
 
 def setup_parser():
     """
@@ -1540,7 +1576,6 @@ def setup_parser():
 
     return parser
 
-
 def setup_logger(verbose=1, color=True):
     r"""
     Set up a Python Logger instance for the Sage documentation builder. The
@@ -1596,6 +1631,7 @@ def setup_logger(verbose=1, color=True):
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
 
 class IntersphinxCache:
     """

@@ -32,8 +32,6 @@ Functions
 ---------
 """
 
-from six import itervalues
-
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -441,10 +439,9 @@ class MinimizeDegree(EdgeSelection):
             (0, 1, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=True)
-        edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
-        for e in edges:
-            return e
+        edges = graph.edges(labels=True, sort=False)
+        if edges:
+            return min(edges, key=lambda x: degrees[x[0]] + degrees[x[1]])
         raise RuntimeError("no edges left to select")
 
 
@@ -456,14 +453,14 @@ class MaximizeDegree(EdgeSelection):
             sage: from sage.graphs.tutte_polynomial import MaximizeDegree
             sage: G = graphs.PathGraph(6)
             sage: MaximizeDegree()(G)
-            (3, 4, None)
+            (1, 2, None)
         """
         degrees = dict(graph.degree_iterator(labels=True))
-        edges = graph.edges(labels=True)
-        edges.sort(key=lambda x: degrees[x[0]]+degrees[x[1]])  # Sort by degree
-        for e in reversed(edges):
-            return e
+        edges = graph.edges(labels=True, sort=False)
+        if edges:
+            return max(edges, key=lambda x: degrees[x[0]] + degrees[x[1]])
         raise RuntimeError("no edges left to select")
+
 
 ###########
 # Caching #
@@ -475,8 +472,15 @@ def _cache_key(G):
     Return the key used to cache the result for the graph G
 
     This is used by the decorator :func:`_cached`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.tutte_polynomial import _cache_key
+        sage: G = graphs.DiamondGraph()
+        sage: print(_cache_key(G))
+        ((0, 2), (0, 3), (1, 2), (1, 3), (2, 3))
     """
-    return tuple(sorted(G.canonical_label().edges(labels=False)))
+    return tuple(G.canonical_label().edges(labels=False, sort=True))
 
 
 def _cached(func):
@@ -627,7 +631,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
 
     uG = underlying_graph(G)
     em = edge_multiplicities(G)
-    d = list(itervalues(em))
+    d = list(em.values())
 
     def yy(start, end):
         return sum(y**i for i in range(start, end+1))
@@ -672,7 +676,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
                                                       for d_i in d[:-2])
         return result
 
-    # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-eaars
+    # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-ears
     ear = Ear.find_ear(uG)
     if ear is not None:
         if (ear.is_cycle and ear.vertices == G.vertices()):

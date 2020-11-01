@@ -971,11 +971,16 @@ cdef class PowerSeries(AlgebraElement):
             True
             sage: (3 + t - t^5).is_unit()
             False
+            sage: O(t^0).is_unit()
+            False
 
         AUTHORS:
 
         - David Harvey (2006-09-03)
         """
+        # Return False for O(t^0) (the only power-series-ring element with precision_absolute == 0).
+        if self.precision_absolute() == 0:
+            return False
         return self[0].is_unit()
 
     def inverse(self):
@@ -1184,7 +1189,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def map_coefficients(self, f, new_base_ring=None):
         r"""
-        Returns the series obtained by applying ``f`` to the non-zero
+        Return the series obtained by applying ``f`` to the non-zero
         coefficients of ``self``.
 
         If ``f`` is a :class:`sage.categories.map.Map`, then the resulting
@@ -1244,6 +1249,150 @@ cdef class PowerSeries(AlgebraElement):
         else:
             return self.parent()(res, self.prec())
 
+    def jacobi_continued_fraction(self):
+        r"""
+        Return the Jacobi continued fraction of ``self``.
+
+        The J-fraction or Jacobi continued fraction of a power series
+        is a continued fraction expansion with steps of size two. We use
+        the following convention
+
+        .. MATH::
+
+            1 / (1 + A_0 t + B_0 t^2 / (1 + A_1 t + B_1 t^2 / (1 + \cdots)))
+
+        OUTPUT:
+
+        tuple of pairs `(A_n, B_n)` for `n \geq 0`
+
+        The expansion is done as long as possible given the precision.
+        Whenever the expansion is not well-defined, because it would
+        require to divide by zero, an exception is raised.
+
+        See section 2.7 of [Kra1999det]_ for the close relationship
+        of this kind of expansion with Hankel determinants and
+        orthogonal polynomials.
+
+        EXAMPLES::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: s = sum(factorial(k) * t**k for k in range(12)).O(12)
+            sage: s.jacobi_continued_fraction()
+            ((-1, -1), (-3, -4), (-5, -9), (-7, -16), (-9, -25))
+
+        Another example::
+
+            sage: (log(1+t)/t).jacobi_continued_fraction()
+            ((1/2, -1/12),
+             (1/2, -1/15),
+             (1/2, -9/140),
+             (1/2, -4/63),
+             (1/2, -25/396),
+             (1/2, -9/143),
+             (1/2, -49/780),
+             (1/2, -16/255),
+             (1/2, -81/1292))
+
+        TESTS::
+
+             sage: (t).jacobi_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing constant term, no expansion
+             sage: (1/(1+3*t)).jacobi_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing term, no further expansion
+        """
+        t = self.parent().gen()
+        if self[0] == 0:
+            raise ValueError('vanishing constant term, no expansion')
+        serie = self / self[0]
+        resu = []
+        while serie.prec() >= 3:
+            u = serie.inverse()
+            A, B = u[1], u[2]
+            resu.append((A, B))
+            if B == 0:
+                raise ValueError('vanishing term, no further expansion')
+            serie = (u - 1 - A * t) / (B * t ** 2)
+        return tuple(resu)
+
+    def stieltjes_continued_fraction(self):
+        r"""
+        Return the Stieltjes continued fraction of ``self``.
+
+        The S-fraction or Stieltjes continued fraction of a power series
+        is a continued fraction expansion with steps of size one. We use
+        the following convention
+
+        .. MATH::
+
+            1 / (1 - A_1 t / (1 - A_2 t / (1 - A_3 t / (1 - \cdots))))
+
+        OUTPUT:
+
+        `A_n` for `n \geq 1`
+
+        The expansion is done as long as possible given the precision.
+        Whenever the expansion is not well-defined, because it would
+        require to divide by zero, an exception is raised.
+
+        EXAMPLES::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: s = sum(catalan_number(k) * t**k for k in range(12)).O(12)
+            sage: s.stieltjes_continued_fraction()
+            (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+        Another example::
+
+            sage: (exp(t)).stieltjes_continued_fraction()
+            (1,
+             -1/2,
+             1/6,
+             -1/6,
+             1/10,
+             -1/10,
+             1/14,
+             -1/14,
+             1/18,
+             -1/18,
+             1/22,
+             -1/22,
+             1/26,
+             -1/26,
+             1/30,
+             -1/30,
+             1/34,
+             -1/34,
+             1/38)
+
+        TESTS::
+
+             sage: (t).stieltjes_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing constant term, no expansion
+             sage: (1/(1+3*t)).stieltjes_continued_fraction()
+             Traceback (most recent call last):
+             ...
+             ValueError: vanishing term, no further expansion
+        """
+        t = self.parent().gen()
+        if self[0] == 0:
+            raise ValueError('vanishing constant term, no expansion')
+        serie = self / self[0]
+        resu = []
+        while serie.prec() >= 2:
+            u = serie.inverse()
+            A = -u[1]
+            resu.append(A)
+            if A == 0:
+                raise ValueError('vanishing term, no further expansion')
+            serie = (u - 1) / (-A * t)
+        return tuple(resu)
+        
     def is_square(self):
         """
         Return True if this function has a square root in this ring, e.g.,
@@ -1374,6 +1523,14 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ValueError: unable to take the square root of 1/2
 
+        Check :trac:`30655`::
+
+            sage: t = polygen(QQ, 't')
+            sage: x = t.parent()[['x']].0
+            sage: W = (t*x + 1 - x).O(3)
+            sage: W.sqrt()
+            1 + (1/2*t - 1/2)*x + (-1/8*t^2 + 1/4*t - 1/8)*x^2 + O(x^3)
+
         AUTHORS:
 
         - Robert Bradshaw
@@ -1410,12 +1567,12 @@ cdef class PowerSeries(AlgebraElement):
 
         val = self.valuation()
 
-        if formal_sqrt or val % 2 == 1:
+        if formal_sqrt or val % 2:
             if extend:
                 if name is None:
                     raise ValueError("the square root generates an extension, so you must specify the name of the square root")
                 R = self._parent['x']
-                S = R.quotient(R([-self,0,1]), names=name)
+                S = R.quotient(R([-self, 0, 1]), names=name)
                 a = S.gen()
                 if all:
                     if not self.base_ring().is_integral_domain():
@@ -1427,7 +1584,6 @@ cdef class PowerSeries(AlgebraElement):
                 raise ValueError("unable to take the square root of %s" % u[0])
             else:
                 raise ValueError("power series does not have a square root since it has odd valuation.")
-
 
         pr = self.prec()
         if pr == infinity:
@@ -1443,7 +1599,7 @@ cdef class PowerSeries(AlgebraElement):
         R = s.parent()
         a = self.valuation_zero_part()
         P = self._parent
-        if not R is P.base_ring():
+        if not P.base_ring().has_coerce_map_from(R):
             a = a.change_ring(R)
         half = ~R(2)
 
@@ -1838,6 +1994,250 @@ cdef class PowerSeries(AlgebraElement):
                              'series with zero constant term')
         assert(self.valuation() >= 1)
         return self.sin(prec) / self.cos(prec)
+
+    def sinh(self, prec=infinity):
+        r"""
+        Apply sinh to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new power series.
+
+        EXAMPLES:
+
+        For one variable::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: f = (t + t**2).O(4)
+            sage: sinh(f)
+            t + t^2 + 1/6*t^3 + O(t^4)
+
+        For several variables::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: sin(f)
+            a + b + a*b + O(a, b)^3
+            sage: f.sinh()
+            a + b + a*b + O(a, b)^3
+            sage: f.sinh(prec=2)
+            a + b + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: sinh(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only apply sinh to formal power series with zero
+            constant term
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: sinh(a)
+            a + 1/6*a^3 + 1/120*a^5 + 1/5040*a^7 + 1/362880*a^9 +
+             1/39916800*a^11 + O(a, b)^12
+            sage: a.sinh(prec=5)
+            a + 1/6*a^3 + O(a, b)^5
+            sage: sinh(a + T.O(5))
+            a + 1/6*a^3 + O(a, b)^5
+
+        TESTS::
+
+            sage: sinh(a^2 + T.O(5))
+            a^2 + O(a, b)^5
+
+        """
+        R = self.parent()
+
+        c = self[0]
+        if not c.is_zero():
+            raise ValueError('can only apply sinh to formal power '
+                             'series with zero constant term')
+        val = self.valuation()
+        assert(val >= 1)
+
+        x = self
+
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        n_inv_factorial = R.base_ring().one()
+        x_pow_n = x
+        x2 = x ** 2
+        sinh_x = x.add_bigoh(prec)
+        for n in range(3, prec // val + 1, 2):
+            x_pow_n = (x_pow_n * x2).add_bigoh(prec)
+            n_inv_factorial /= n * (n - 1)
+            sinh_x += x_pow_n * n_inv_factorial
+        result_bg = sinh_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
+
+    def cosh(self, prec=infinity):
+        r"""
+        Apply cosh to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new power series.
+
+        EXAMPLES:
+
+        For one variable::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: f = (t + t**2).O(4)
+            sage: cosh(f)
+            1 + 1/2*t^2 + t^3 + O(t^4)
+
+        For several variables::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: cosh(f)
+            1 + 1/2*a^2 + a*b + 1/2*b^2 + O(a, b)^3
+            sage: f.cosh()
+            1 + 1/2*a^2 + a*b + 1/2*b^2 + O(a, b)^3
+            sage: f.cosh(prec=2)
+            1 + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: cosh(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only apply cosh to formal power series with zero
+            constant term
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: cosh(a)
+            1 + 1/2*a^2 + 1/24*a^4 + 1/720*a^6 + 1/40320*a^8 + 1/3628800*a^10 +
+             O(a, b)^12
+            sage: a.cosh(prec=5)
+            1 + 1/2*a^2 + 1/24*a^4 + O(a, b)^5
+            sage: cosh(a + T.O(5))
+            1 + 1/2*a^2 + 1/24*a^4 + O(a, b)^5
+
+        TESTS::
+
+            sage: cosh(a^2 + T.O(5))
+            1 + 1/2*a^4 + O(a, b)^5
+
+        """
+        R = self.parent()
+
+        c = self[0]
+        if not c.is_zero():
+            raise ValueError('can only apply cosh to formal power '
+                             'series with zero constant term')
+        x = self
+        val = x.valuation()
+        assert(val >= 1)
+
+        prec = min(prec, self.prec())
+        if is_Infinite(prec):
+            prec = R.default_prec()
+        n_inv_factorial = R.base_ring().one()
+        x_pow_n = R.one()
+        x2 = x ** 2
+        cosh_x = R.one().add_bigoh(prec)
+        for n in range(2, prec // val + 1, 2):
+            x_pow_n = (x_pow_n * x2).add_bigoh(prec)
+            n_inv_factorial /= n * (n - 1)
+            cosh_x += x_pow_n * n_inv_factorial
+        result_bg = cosh_x
+
+        if result_bg.base_ring() is not self.base_ring():
+            R = R.change_ring(self.base_ring().fraction_field())
+        return R(result_bg, prec=prec)
+
+    def tanh(self, prec=infinity):
+        r"""
+        Apply tanh to the formal power series.
+
+        INPUT:
+
+        - ``prec`` -- Integer or ``infinity``. The degree to truncate
+          the result to.
+
+        OUTPUT:
+
+        A new power series.
+
+        EXAMPLES:
+
+        For one variable::
+
+            sage: t = PowerSeriesRing(QQ, 't').gen()
+            sage: f = (t + t**2).O(4)
+            sage: tanh(f)
+            t + t^2 - 1/3*t^3 + O(t^4)
+
+        For several variables::
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: f = a + b + a*b + T.O(3)
+            sage: tanh(f)
+            a + b + a*b + O(a, b)^3
+            sage: f.tanh()
+            a + b + a*b + O(a, b)^3
+            sage: f.tanh(prec=2)
+            a + b + O(a, b)^2
+
+        If the power series has a non-zero constant coefficient `c`,
+        one raises an error::
+
+            sage: g = 2+f
+            sage: tanh(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only apply tanh to formal power series with zero
+             constant term
+
+        If no precision is specified, the default precision is used::
+
+            sage: T.default_prec()
+            12
+            sage: tanh(a)
+            a - 1/3*a^3 + 2/15*a^5 - 17/315*a^7 + 62/2835*a^9 -
+            1382/155925*a^11 + O(a, b)^12
+            sage: a.tanh(prec=5)
+            a - 1/3*a^3 + O(a, b)^5
+            sage: tanh(a + T.O(5))
+            a - 1/3*a^3 + O(a, b)^5
+
+        TESTS::
+
+            sage: tanh(a^2 + T.O(5))
+            a^2 + O(a, b)^5
+
+        """
+        if not self[0].is_zero():
+            raise ValueError('can only apply tanh to formal power '
+                             'series with zero constant term')
+        assert(self.valuation() >= 1)
+        return self.sinh(prec) / self.cosh(prec)
 
     def O(self, prec):
         r"""
@@ -2285,7 +2685,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def egf_to_ogf(self):
         r"""
-        Returns the ordinary generating function power series,
+        Return the ordinary generating function power series,
         assuming self is an exponential generating function power series.
 
         This function is known as ``serlaplace`` in PARI/GP.
@@ -2301,7 +2701,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def ogf_to_egf(self):
         r"""
-        Returns the exponential generating function power series,
+        Return the exponential generating function power series,
         assuming self is an ordinary generating function power series.
 
         This can also be computed as ``serconvol(f,exp(t))`` in PARI/GP.

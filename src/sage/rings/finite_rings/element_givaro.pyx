@@ -1,3 +1,5 @@
+# distutils: libraries = givaro gmp m
+# distutils: language = c++
 r"""
 Givaro Field Elements
 
@@ -52,7 +54,6 @@ AUTHORS:
 
 from cysignals.signals cimport sig_on, sig_off
 
-include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -344,8 +345,6 @@ cdef class Cache_givaro(SageObject):
             sage: k(2^100)
             1
             sage: k(int(2^100))
-            1
-            sage: k(long(2^100))
             1
             sage: k(-2^100)
             2
@@ -1596,7 +1595,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             b
             sage: c is b
             True
-            sage: copy(5r) is 5r
+            sage: copy(5r) == 5r
             True
         """
         return self

@@ -65,10 +65,10 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
-import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_import import lazy_import
 from sage.misc.cachefunc import cached_method
 from sage.categories.groups import Groups
 from sage.groups.free_group import FreeGroup, is_FreeGroup
@@ -81,7 +81,13 @@ from sage.groups.finitely_presented import FinitelyPresentedGroup
 from sage.groups.artin import FiniteTypeArtinGroup, FiniteTypeArtinGroupElement
 from sage.misc.package import PackageNotFoundError
 from sage.structure.richcmp import richcmp, rich_to_bool
+from sage.features import PythonModule
 
+lazy_import('sage.libs.braiding',
+            ['rightnormalform', 'centralizer', 'supersummitset', 'greatestcommondivisor',
+             'leastcommonmultiple', 'conjugatingbraid', 'ultrasummitset',
+             'thurston_type', 'rigidity', 'sliding_circuits'],
+            feature=PythonModule('sage.libs.braiding', spkg='libbraiding'))
 
 class Braid(FiniteTypeArtinGroupElement):
     """
@@ -310,7 +316,7 @@ class Braid(FiniteTypeArtinGroupElement):
                         A[-j-1, -j-1] = -t**(-1)
                         if -j > 1:
                             A[-j-1, -j-2] = 1
-                        if -j < n-1 :
+                        if -j < n - 1:
                             A[-j-1, -j] = t**(-1)
                     M = M * A
 
@@ -1071,10 +1077,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: b.right_normal_form()
             (s1*s0, s0*s2, 1)
         """
-        try:
-            from sage.libs.braiding import rightnormalform
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         l = rightnormalform(self)
         B = self.parent()
         return tuple([B(b) for b in l[:-1]] + [B.delta() ** l[-1][0]])
@@ -1091,10 +1093,6 @@ class Braid(FiniteTypeArtinGroupElement):
             [s1*s0*s2*s1, s0*s2]
 
         """
-        try:
-            from sage.libs.braiding import centralizer
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         l = centralizer(self)
         B = self.parent()
         return [B._element_from_libbraiding(b) for b in l]
@@ -1114,10 +1112,6 @@ class Braid(FiniteTypeArtinGroupElement):
             s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^3*s0]
 
         """
-        try:
-            from sage.libs.braiding import supersummitset
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         l = supersummitset(self)
         B = self.parent()
         return [B._element_from_libbraiding(b) for b in l]
@@ -1140,10 +1134,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: c.gcd(b)
             s0^-1*s1^-1*s0^-2*s1^2*s0
         """
-        try:
-            from sage.libs.braiding import greatestcommondivisor
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         B = self.parent()
         b = greatestcommondivisor(self, other)
         return B._element_from_libbraiding(b)
@@ -1164,10 +1154,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: b.lcm(c)
             (s0*s1)^2*s0
         """
-        try:
-            from sage.libs.braiding import leastcommonmultiple
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         B = self.parent()
         b = leastcommonmultiple(self, other)
         return B._element_from_libbraiding(b)
@@ -1194,10 +1180,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: d * a / d == c
             False
         """
-        try:
-            from sage.libs.braiding import conjugatingbraid
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         l = conjugatingbraid(self, other)
         if not l:
             return None
@@ -1223,10 +1205,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: c.is_conjugated(b)
             False
         """
-        try:
-            from sage.libs.braiding import conjugatingbraid
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         l = conjugatingbraid(self, other)
         return bool(l)
 
@@ -1255,10 +1233,6 @@ class Braid(FiniteTypeArtinGroupElement):
             s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0,
             s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2]]
         """
-        try:
-            from sage.libs.braiding import ultrasummitset
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         uss = ultrasummitset(self)
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in uss]
@@ -1284,10 +1258,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: c.thurston_type()
             'periodic'
         """
-        try:
-            from sage.libs.braiding import thurston_type
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         return thurston_type(self)
 
     def is_reducible(self):
@@ -1353,10 +1323,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: b.rigidity()
             0
         """
-        try:
-            from sage.libs.braiding import rigidity
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         return Integer(rigidity(self))
 
     def sliding_circuits(self):
@@ -1389,10 +1355,6 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: b.sliding_circuits()
             [[s0*s1*s0^2, (s0*s1)^2]]
         """
-        try:
-            from sage.libs.braiding import sliding_circuits
-        except ImportError:
-            raise PackageNotFoundError("libbraiding")
         slc = sliding_circuits(self)
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in slc]
@@ -2246,7 +2208,7 @@ def BraidGroup(n=None, names='s'):
             n = None
     # derive n from counting names
     if n is None:
-        if isinstance(names, six.string_types):
+        if isinstance(names, str):
             n = len(names.split(','))
         else:
             names = list(names)

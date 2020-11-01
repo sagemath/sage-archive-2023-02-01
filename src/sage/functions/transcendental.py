@@ -18,10 +18,10 @@ Number-Theoretic Functions
 # ****************************************************************************
 
 import sys
-import sage.rings.complex_field as complex_field
+import sage.rings.complex_mpfr as complex_field
 
 from sage.rings.all import (ComplexField, ZZ, RR, RDF)
-from sage.rings.complex_number import is_ComplexNumber
+from sage.rings.complex_mpfr import is_ComplexNumber
 from sage.rings.real_mpfr import (RealField, is_RealNumber)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
@@ -345,6 +345,12 @@ class Function_zetaderiv(GinacFunction):
             sage: a = loads(dumps(zetaderiv(2,x)))
             sage: a.operator() == zetaderiv
             True
+
+            sage: b = RBF(3/2, 1e-10)
+            sage: zetaderiv(1, b, hold=True)
+            zetaderiv(1, [1.500000000 +/- 1.01e-10])
+            sage: zetaderiv(b, 1)
+            zetaderiv([1.500000000 +/- 1.01e-10], 1)
         """
         GinacFunction.__init__(self, "zetaderiv", nargs=2)
 

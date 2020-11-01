@@ -524,7 +524,7 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
     if P:
         # create list of lists where inner lists are parallel classes
         pcls = []
-        gnd = sorted(list(M1.groundset()))
+        gnd = sorted(M1.groundset())
         for g in gnd:
             pcl = [g]
             for p in P:
@@ -780,10 +780,10 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
     if M.rank() == 0:
         limits = None
         loops = L
-        looptext = ", ".join([str(l) for l in loops])
+        looptext = ", ".join(str(l) for l in loops)
         rectx = -1
         recty = -1
-        rectw = 0.5 + 0.4*len(loops) + 0.5  # controlled based on len(loops)
+        rectw = 0.5 + 0.4 * len(loops) + 0.5  # controlled based on len(loops)
         recth = 0.6
         G += polygon2d([[rectx, recty], [rectx, recty+recth],
                         [rectx+rectw, recty+recth], [rectx+rectw, recty]],

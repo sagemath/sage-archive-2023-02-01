@@ -1,6 +1,5 @@
 """
-Dense matrices using a NumPy backend.
-
+Dense matrices using a NumPy backend
 
 This serves as a base class for dense matrices over
 Real Double Field and Complex Double Field.
@@ -51,9 +50,10 @@ import sage.rings.complex_double
 
 from .matrix cimport Matrix
 from .args cimport MatrixArgs_init
+from sage.structure.coerce cimport coercion_model
+from sage.structure.element import is_Matrix
 from sage.structure.element cimport ModuleElement,Vector
 from .constructor import matrix
-from sage.modules.free_module_element import vector
 cimport sage.structure.element
 from .matrix_space import MatrixSpace
 from sage.misc.decorators import rename_keyword
@@ -602,9 +602,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
-            doctest:warning
-            ...
-            ...ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...
@@ -689,7 +686,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             import numpy
         import sage.rings.infinity
         import sage.rings.integer
-        import sage.rings.real_double
+        from sage.rings.real_double import RDF
         if p == sage.rings.infinity.Infinity:
             p = numpy.inf
         elif p == -sage.rings.infinity.Infinity:
@@ -710,7 +707,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         if c == numpy.inf:
             return sage.rings.infinity.Infinity
         else:
-            return sage.rings.real_double.RDF(c)
+            return RDF(c.real if numpy.iscomplexobj(c) else c)
 
     def norm(self, p=2):
         r"""
@@ -981,6 +978,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         singular values are always real. ::
 
             sage: A = matrix(CDF, 4, range(16))
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: sv = A.singular_values(eps='auto'); sv
             verbose 1 (<module>) singular values,
@@ -1005,7 +1003,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         - Rob Beezer - (2011-02-18)
         """
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
         from sage.rings.real_double import RDF
         global scipy
         # get SVD decomposition, which is a cached quantity
@@ -1050,7 +1048,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         For an `m\times n` matrix ``A`` this method returns a triple of
         immutable matrices ``P, L, U`` such that
 
-        - ``P*A = L*U``
+        - ``A = P*L*U``
         - ``P`` is a square permutation matrix, of size `m\times m`,
           so is all zeroes, but with exactly a single one in each
           row and each column.
@@ -1072,27 +1070,31 @@ cdef class Matrix_double_dense(Matrix_dense):
         the zero entries of ``U``.
 
         .. NOTE::
-
-            Sometimes this decomposition is written as ``A=P*L*U``,
-            where ``P`` represents the inverse permutation and is
+            The behaviour of ``LU()`` has changed in Sage version 9.1.
+            Earlier, ``LU()`` returned ``P,L,U`` such that ``P*A=L*U``,
+            where ``P`` represents the permutation and is
             the matrix inverse of the ``P`` returned by this method.
             The computation of this matrix inverse can be accomplished
             quickly with just a transpose as the matrix is orthogonal/unitary.
+
+            For details see :trac:`18365`.
 
         EXAMPLES::
 
             sage: m = matrix(RDF,4,range(16))
             sage: P,L,U = m.LU()
-            sage: P*m
-            [12.0 13.0 14.0 15.0]
+            sage: P*L*U # rel tol 2e-16
             [ 0.0  1.0  2.0  3.0]
-            [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
-            sage: L*U # rel tol 2e-16
+            [ 8.0  9.0 10.0 11.0]
             [12.0 13.0 14.0 15.0]
-            [ 0.0  1.0  2.0  3.0]
-            [ 8.0  9.0 10.0 11.0]
-            [ 4.0  5.0  6.0  7.0]
+
+        Below example illustrates the change in behaviour of ``LU()``. ::
+
+            sage: m == P*L*U
+            True
+            sage: P*m == L*U
+            False
 
         :trac:`10839` made this routine available for rectangular matrices.  ::
 
@@ -1104,11 +1106,11 @@ cdef class Matrix_double_dense(Matrix_dense):
             [24.0 25.0 26.0 27.0 28.0 29.0]
             sage: P, L, U = A.LU()
             sage: P
+            [0.0 1.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 1.0]
-            [1.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 1.0 0.0 0.0]
             [0.0 0.0 0.0 1.0 0.0]
-            [0.0 1.0 0.0 0.0 0.0]
+            [1.0 0.0 0.0 0.0 0.0]
             sage: L.zero_at(0)   # Use zero_at(0) to get rid of signed zeros
             [ 1.0  0.0  0.0  0.0  0.0]
             [ 0.0  1.0  0.0  0.0  0.0]
@@ -1121,13 +1123,13 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 0.0  0.0  0.0  0.0  0.0  0.0]
             [ 0.0  0.0  0.0  0.0  0.0  0.0]
             [ 0.0  0.0  0.0  0.0  0.0  0.0]
-            sage: P*A-L*U
+            sage: P.transpose()*A-L*U
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0 0.0 0.0]
-            sage: P.transpose()*L*U
+            sage: P*L*U
             [ 0.0  1.0  2.0  3.0  4.0  5.0]
             [ 6.0  7.0  8.0  9.0 10.0 11.0]
             [12.0 13.0 14.0 15.0 16.0 17.0]
@@ -1145,7 +1147,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             Full MatrixSpace of 5 by 5 dense matrices over Real Double Field
             sage: U.parent()
             Full MatrixSpace of 5 by 0 dense matrices over Real Double Field
-            sage: P*A-L*U
+            sage: A-P*L*U
             []
 
         The results are immutable since they are cached.  ::
@@ -1189,14 +1191,12 @@ cdef class Matrix_double_dense(Matrix_dense):
         if numpy is None:
             import numpy
         PM, LM, UM = scipy.linalg.lu(self._matrix_numpy)
-        # Numpy has a different convention than we had with GSL
-        # So we invert (transpose) the P to match our prior behavior
         # TODO: It's an awful waste to store a huge matrix for P, which
         # is just a simple permutation, really.
         P = self._new(m, m)
         L = self._new(m, m)
         U = self._new(m, n)
-        P._matrix_numpy = PM.T.copy()
+        P._matrix_numpy = numpy.ascontiguousarray(PM)
         L._matrix_numpy = numpy.ascontiguousarray(LM)
         U._matrix_numpy = numpy.ascontiguousarray(UM)
         PLU = (P, L, U)
@@ -1205,13 +1205,19 @@ cdef class Matrix_double_dense(Matrix_dense):
         self.cache('PLU_factors', PLU)
         return PLU
 
-    def eigenvalues(self, algorithm='default', tol=None):
+    def eigenvalues(self, other=None, algorithm='default', tol=None, *,
+                    homogeneous=False):
         r"""
-        Return a list of eigenvalues.
+        Return a list of ordinary or generalized eigenvalues.
 
         INPUT:
 
         - ``self`` - a square matrix
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved; if ``algorithm`` is ``'symmetric'`` or ``'hermitian'``, `B`
+          must be real symmetric or hermitian positive definite, respectively
 
         - ``algorithm`` - default: ``'default'``
 
@@ -1233,10 +1239,15 @@ cdef class Matrix_double_dense(Matrix_dense):
             This algorithm can be significantly faster than the
             ``'default'`` algorithm.
 
-        - ``'tol'`` - default: ``None`` - if set to a value other than
-          ``None`` this is interpreted as a small real number used to aid in
-          grouping eigenvalues that are numerically similar.  See the output
-          description for more information.
+        - ``'tol'`` -- (default: ``None``); if set to a value other than
+          ``None``, this is interpreted as a small real number used to aid in
+          grouping eigenvalues that are numerically similar, but is ignored
+          when ``homogeneous`` is set.  See the output description for more
+          information.
+
+        - ``homogeneous`` -- boolean (default: ``False``); if ``True``, use
+          homogeneous coordinates for the output
+          (see :meth:`eigenvectors_right` for details)
 
         .. WARNING::
 
@@ -1294,11 +1305,11 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = graphs.PetersenGraph().adjacency_matrix()
             sage: A = A.change_ring(RDF)
             sage: ev = A.eigenvalues(algorithm='symmetric'); ev  # tol 1e-14
-            [-2.0000000000000004, -1.9999999999999998, -1.9999999999999998, -1.9999999999999993, 0.9999999999999994, 0.9999999999999997, 1.0, 1.0000000000000002, 1.0000000000000004, 2.9999999999999996]
+            [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
             sage: ev[0].parent()
             Real Double Field
 
-        The matrix ``A`` is "random", but the construction of ``B``
+        The matrix ``A`` is "random", but the construction of ``C``
         provides a positive-definite Hermitian matrix.  Note that
         the eigenvalues of a Hermitian matrix are real, and the
         eigenvalues of a positive-definite matrix will be positive.  ::
@@ -1307,8 +1318,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             ....:             [ 7*I - 2, -4*I + 7, -2*I + 4, 8*I + 8],
             ....:             [-2*I + 1,  6*I + 6,  5*I + 5,  -I - 4],
             ....:             [ 5*I + 1,  6*I + 2,    I - 4, -I + 3]])
-            sage: B = (A*A.conjugate_transpose()).change_ring(CDF)
-            sage: ev = B.eigenvalues(algorithm='hermitian'); ev
+            sage: C = (A*A.conjugate_transpose()).change_ring(CDF)
+            sage: ev = C.eigenvalues(algorithm='hermitian'); ev
             [2.68144025..., 49.5167998..., 274.086188..., 390.71557...]
             sage: ev[0].parent()
             Real Double Field
@@ -1324,17 +1335,36 @@ cdef class Matrix_double_dense(Matrix_dense):
 
             sage: A = G.adjacency_matrix().change_ring(RDF)
             sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-5)  # tol 1e-15
-            [(-1.9999999999999998, 4), (1.0, 5), (2.9999999999999996, 1)]
+            [(-2.0, 4), (1.0, 5), (3.0, 1)]
 
             sage: A.eigenvalues(algorithm='symmetric', tol=2.5)  # tol 1e-15
-            [(-1.9999999999999998, 4), (1.3333333333333333, 6)]
+            [(-2.0, 4), (1.3333333333333333, 6)]
 
         An (extreme) example of properly grouping similar eigenvalues.  ::
 
             sage: G = graphs.HigmanSimsGraph()
             sage: A = G.adjacency_matrix().change_ring(RDF)
             sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-5)  # tol 2e-15
-            [(-8.0, 22), (1.9999999999999984, 77), (21.999999999999996, 1)]
+            [(-8.0, 22), (2.0, 77), (22.0, 1)]
+
+        In this generalized eigenvalue problem, the homogeneous coordinates
+        explain the output obtained for the eigenvalues::
+
+            sage: A = matrix.identity(RDF, 2)
+            sage: B = matrix(RDF, [[3, 5], [6, 10]])
+            sage: A.eigenvalues(B)  # tol 1e-14
+            [0.0769230769230769, +infinity]
+            sage: E = A.eigenvalues(B, homogeneous=True); E  # random
+            [(0.9999999999999999, 13.000000000000002), (0.9999999999999999, 0.0)]
+            sage: [alpha/beta for alpha, beta in E]  # tol 1e-14
+            [0.0769230769230769, NaN + NaN*I]
+
+        .. SEEALSO::
+
+            :meth:`eigenvectors_left`,
+            :meth:`eigenvectors_right`,
+            :meth:`.Matrix.eigenmatrix_left`,
+            :meth:`.Matrix.eigenmatrix_right`.
 
         TESTS:
 
@@ -1351,6 +1381,10 @@ cdef class Matrix_double_dense(Matrix_dense):
             Traceback (most recent call last):
             ...
             ValueError: matrix must be square, not 2 x 3
+            sage: matrix.identity(CDF, 2).eigenvalues(A)
+            Traceback (most recent call last):
+            ...
+            ValueError: other matrix must be square, not 2 x 3
 
             sage: A = matrix(CDF, 2, [1, 2, 3, 4*I])
             sage: A.eigenvalues(algorithm='symmetric')
@@ -1374,23 +1408,74 @@ cdef class Matrix_double_dense(Matrix_dense):
 
             sage: matrix(CDF,0,0).eigenvalues()
             []
+
+        Check that homogeneous coordinates work for hermitian positive definite
+        input::
+
+            sage: A = matrix.identity(CDF, 2)
+            sage: B = matrix(CDF, [[2, 1+I], [1-I, 3]])
+            sage: A.eigenvalues(B, algorithm='hermitian', homogeneous=True)  # tol 1e-14
+            [(0.25, 1.0), (1.0, 1.0)]
+
+        Test the deprecation::
+
+            sage: A = graphs.PetersenGraph().adjacency_matrix().change_ring(RDF)
+            sage: ev = A.eigenvalues('symmetric', 1e-13)
+            doctest:...: DeprecationWarning: "algorithm" and "tol" should be used
+            as keyword argument only
+            See https://trac.sagemath.org/29243 for details.
+            sage: ev  # tol 1e-13
+            [(-2.0, 4), (1.0, 5), (3.0, 1)]
+            sage: A.eigenvalues('symmetric', 1e-13, tol=1e-12)
+            Traceback (most recent call last):
+            ...
+            TypeError: eigenvalues() got multiple values for keyword argument 'tol'
+            sage: A.eigenvalues('symmetric', algorithm='hermitian')
+            Traceback (most recent call last):
+            ...
+            TypeError: eigenvalues() got multiple values for keyword argument 'algorithm'
         """
-        import sage.rings.real_double
-        import sage.rings.complex_double
-        import numpy
+        from sage.rings.real_double import RDF
+        from sage.rings.complex_double import CDF
+        if isinstance(other, str):
+            # for backward compatibilty, allow algorithm to be passed as first
+            # positional argument and tol as second positional argument
+            from sage.misc.superseded import deprecation
+            deprecation(29243, '"algorithm" and "tol" should be used as '
+                               'keyword argument only')
+            if algorithm != 'default':
+                if isinstance(algorithm, str):
+                    raise TypeError("eigenvalues() got multiple values for "
+                                    "keyword argument 'algorithm'")
+                if tol is not None:
+                    raise TypeError("eigenvalues() got multiple values for "
+                                    "keyword argument 'tol'")
+                tol = algorithm
+            algorithm = other
+            other = None
         if not algorithm in ['default', 'symmetric', 'hermitian']:
             msg = "algorithm must be 'default', 'symmetric', or 'hermitian', not {0}"
             raise ValueError(msg.format(algorithm))
         if not self.is_square():
-            msg = 'matrix must be square, not {0} x {1}'
-            raise ValueError(msg.format(self.nrows(), self.ncols()))
-        if algorithm == 'symmetric' and self.base_ring() == sage.rings.complex_double.CDF:
-            try:
-                self = self.change_ring(sage.rings.real_double.RDF)  # check side effect
-            except TypeError:
-                raise TypeError('cannot apply symmetric algorithm to matrix with complex entries')
+            raise ValueError('matrix must be square, not %s x %s'
+                             % (self.nrows(), self.ncols()))
+        if other is not None and not other.is_square():
+            raise ValueError('other matrix must be square, not %s x %s'
+                             % (other.nrows(), other.ncols()))
         if algorithm == 'symmetric':
+            if self.base_ring() != RDF:
+                try:
+                    self = self.change_ring(RDF)  # check side effect
+                except TypeError:
+                    raise TypeError('cannot apply symmetric algorithm to matrix with complex entries')
+            if other is not None and other.base_ring() != RDF:
+                try:
+                    other = other.change_ring(RDF)  # check side effect
+                except TypeError:
+                    raise TypeError('cannot apply symmetric algorithm to matrix with complex entries')
             algorithm = 'hermitian'
+        if homogeneous:
+            tol = None
         multiplicity = (tol is not None)
         if multiplicity:
             try:
@@ -1408,23 +1493,27 @@ cdef class Matrix_double_dense(Matrix_dense):
         if scipy is None:
             import scipy
         import scipy.linalg
-        if self._nrows == 0:
-            return []
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
         global numpy
         if numpy is None:
             import numpy
+        other_numpy = None if other is None else other.numpy()
         # generic eigenvalues, or real eigenvalues for Hermitian
         if algorithm == 'default':
-            return_class = sage.rings.complex_double.CDF
-            evalues = scipy.linalg.eigvals(self._matrix_numpy)
+            return_class = CDF
+            evalues = scipy.linalg.eigvals(self._matrix_numpy, other_numpy,
+                                           homogeneous_eigvals=homogeneous)
         elif algorithm == 'hermitian':
-            return_class = sage.rings.real_double.RDF
-            evalues = scipy.linalg.eigh(self._matrix_numpy, eigvals_only=True)
-        if not multiplicity:
+            return_class = RDF
+            evalues = scipy.linalg.eigh(self._matrix_numpy, other_numpy,
+                                        eigvals_only=True)
+            if homogeneous:
+                # eigh does not support homogeneous output
+                evalues = evalues, [RDF.one()] * len(evalues)
+
+        if homogeneous:
+            return [(return_class(a), return_class(b))
+                    for a, b in zip(*evalues)]
+        elif not multiplicity:
             return [return_class(e) for e in evalues]
         else:
             # pairs in ev_group are
@@ -1450,19 +1539,47 @@ cdef class Matrix_double_dense(Matrix_dense):
                     ev_group[location][2] = ev_group[location][0]/ev_group[location][1]
             return [(return_class(avg), m) for _, m, avg in ev_group]
 
-    def left_eigenvectors(self):
+    def left_eigenvectors(self, other=None, *, homogeneous=False):
         r"""
-        Compute the left eigenvectors of a matrix of double precision
-        real or complex numbers (i.e. RDF or CDF).
+        Compute the ordinary or generalized left eigenvectors of a matrix of
+        double precision real or complex numbers (i.e. ``RDF`` or ``CDF``).
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved
+
+        - ``homogeneous`` -- boolean (default: ``False``); if ``True``, use
+          homogeneous coordinates for the eigenvalues in the output
 
         OUTPUT:
 
-        Returns a list of triples, each of the form ``(e,[v],1)``,
+        A list of triples, each of the form ``(e,[v],1)``,
         where ``e`` is the eigenvalue, and ``v`` is an associated
-        left eigenvector.  If the matrix is of size `n`, then there are
-        `n` triples.  Values are computed with the SciPy library.
+        left eigenvector such that
 
-        The format of this output is designed to match the format
+        .. MATH::
+
+            v A = e v.
+
+        If the matrix `A` is of size `n`, then there are `n` triples.
+
+        If a matrix `B` is passed as optional argument, the output is a
+        solution to the generalized eigenvalue problem such that
+
+        .. MATH::
+
+            v A = e v B.
+
+        If ``homogeneous`` is set, each eigenvalue is returned as a tuple
+        `(\alpha, \beta)` of homogeneous coordinates such that
+
+        .. MATH::
+
+            \beta v A = \alpha v B.
+
+        The format of the output is designed to match the format
         for exact results.  However, since matrices here have numerical
         entries, the resulting eigenvalues will also be numerical.  No
         attempt is made to determine if two eigenvalues are equal, or if
@@ -1473,8 +1590,13 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         The SciPy routines used for these computations produce eigenvectors
         normalized to have length 1, but on different hardware they may vary
-        by a sign. So for doctests we have normalized output by forcing their
-        eigenvectors to have their first non-zero entry equal to one.
+        by a complex sign. So for doctests we have normalized output by forcing
+        their eigenvectors to have their first non-zero entry equal to one.
+
+        ALGORITHM:
+
+        Values are computed with the SciPy library using
+        :func:`scipy:scipy.linalg.eig`.
 
         EXAMPLES::
 
@@ -1488,13 +1610,38 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: for i in range(len(spectrum)):
             ....:     spectrum[i][1][0] = matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]  # tol 1e-13
-            (2.0000000000000675, [(1.0, 1.0000000000000138, 1.0000000000000147, 1.0000000000000309)], 1)
+            (2.0, [(1.0, 1.0, 1.0, 1.0)], 1)
             sage: spectrum[1]  # tol 1e-13
-            (0.9999999999999164, [(0.9999999999999999, 0.7999999999999833, 0.7999999999999836, 0.5999999999999696)], 1)
+            (1.0, [(1.0, 0.8, 0.8, 0.6)], 1)
             sage: spectrum[2]  # tol 1e-13
-            (-1.9999999999999782, [(1.0, 0.40000000000000335, 0.6000000000000039, 0.2000000000000051)], 1)
+            (-2.0, [(1.0, 0.4, 0.6, 0.2)], 1)
             sage: spectrum[3]  # tol 1e-13
-            (-1.0000000000000018, [(1.0, 0.9999999999999568, 1.9999999999998794, 1.9999999999998472)], 1)
+            (-1.0, [(1.0, 1.0, 2.0, 2.0)], 1)
+
+        A generalized eigenvalue problem::
+
+            sage: A = matrix(CDF, [[1+I, -2], [3, 4]])
+            sage: B = matrix(CDF, [[0, 7-I], [2, -3]])
+            sage: E = A.eigenvectors_left(B)
+            sage: all((v * A - e * v * B).norm() < 1e-14 for e, [v], _ in E)
+            True
+
+        In a generalized eigenvalue problem with a singular matrix `B`, we can
+        check the eigenvector property using homogeneous coordinates, even
+        though the quotient `\alpha/\beta` is not always defined::
+
+            sage: A = matrix.identity(CDF, 2)
+            sage: B = matrix(CDF, [[2, 1+I], [4, 2+2*I]])
+            sage: E = A.eigenvectors_left(B, homogeneous=True)
+            sage: all((beta * v * A - alpha * v * B).norm() < 1e-14
+            ....:     for (alpha, beta), [v], _ in E)
+            True
+
+        .. SEEALSO::
+
+            :meth:`eigenvalues`,
+            :meth:`eigenvectors_right`,
+            :meth:`.Matrix.eigenmatrix_left`.
 
         TESTS:
 
@@ -1522,32 +1669,75 @@ cdef class Matrix_double_dense(Matrix_dense):
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
+        if other is not None and not other.is_square():
+            raise ArithmeticError("other must be a square matrix")
         if self._nrows == 0:
             return [], self.__copy__()
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
-        v,eig = scipy.linalg.eig(self._matrix_numpy, right=False, left=True)
+        v, eig = scipy.linalg.eig(self._matrix_numpy,
+                                  None if other is None else other.numpy(),
+                                  right=False, left=True,
+                                  homogeneous_eigvals=homogeneous)
         # scipy puts eigenvectors in columns, we will extract from rows
         eig = matrix(eig.T)
-        return [(sage.rings.complex_double.CDF(v[i]), [eig[i].conjugate()], 1) for i in range(len(v))]
+        if other is not None:
+            # scipy fails to normalize generalized left eigenvectors
+            # (see https://github.com/scipy/scipy/issues/11550),
+            # FIXME: remove this normalization step once that issue is resolved
+            eig = [v.normalized() for v in eig]
+        from sage.rings.complex_double import CDF
+        if homogeneous:
+            v = [(CDF(a), CDF(b)) for a, b in v.T]
+        else:
+            v = [CDF(e) for e in v]
+        return [(v[i], [eig[i].conjugate()], 1) for i in range(len(v))]
 
     eigenvectors_left = left_eigenvectors
 
-    def right_eigenvectors(self):
+    def right_eigenvectors(self, other=None, *, homogeneous=False):
         r"""
-        Compute the right eigenvectors of a matrix of double precision
-        real or complex numbers (i.e. RDF or CDF).
+        Compute the ordinary or generalized right eigenvectors of a matrix of
+        double precision real or complex numbers (i.e. ``RDF`` or ``CDF``).
+
+        INPUT:
+
+        - ``other`` -- a square matrix `B` (default: ``None``) in a generalized
+          eigenvalue problem; if ``None``, an ordinary eigenvalue problem is
+          solved
+
+        - ``homogeneous`` -- boolean (default: ``False``); if ``True``, use
+          homogeneous coordinates for the eigenvalues in the output
 
         OUTPUT:
 
-        Returns a list of triples, each of the form ``(e,[v],1)``,
+        A list of triples, each of the form ``(e,[v],1)``,
         where ``e`` is the eigenvalue, and ``v`` is an associated
-        right eigenvector.  If the matrix is of size `n`, then there
-        are `n` triples.  Values are computed with the SciPy library.
+        right eigenvector such that
 
-        The format of this output is designed to match the format
+        .. MATH::
+
+            A v = e v.
+
+        If the matrix `A` is of size `n`, then there are `n` triples.
+
+        If a matrix `B` is passed as optional argument, the output is a
+        solution to the generalized eigenvalue problem such that
+
+        .. MATH::
+
+            A v = e B v.
+
+        If ``homogeneous`` is set, each eigenvalue is returned as a tuple
+        `(\alpha, \beta)` of homogeneous coordinates such that
+
+        .. MATH::
+
+            \beta A v = \alpha B v.
+
+        The format of the output is designed to match the format
         for exact results.  However, since matrices here have numerical
         entries, the resulting eigenvalues will also be numerical.  No
         attempt is made to determine if two eigenvalues are equal, or if
@@ -1558,8 +1748,13 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         The SciPy routines used for these computations produce eigenvectors
         normalized to have length 1, but on different hardware they may vary
-        by a sign. So for doctests we have normalized output by forcing their
-        eigenvectors to have their first non-zero entry equal to one.
+        by a complex sign. So for doctests we have normalized output by forcing
+        their eigenvectors to have their first non-zero entry equal to one.
+
+        ALGORITHM:
+
+        Values are computed with the SciPy library using
+        :func:`scipy:scipy.linalg.eig`.
 
         EXAMPLES::
 
@@ -1573,13 +1768,38 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: for i in range(len(spectrum)):
             ....:   spectrum[i][1][0] = matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]  # tol 1e-13
-            (2.000000000000048, [(1.0, -2.0000000000001523, 3.000000000000181, 1.0000000000000746)], 1)
+            (2.0, [(1.0, -2.0, 3.0, 1.0)], 1)
             sage: spectrum[1]  # tol 1e-13
-            (0.999999999999941, [(1.0, -0.666666666666633, 1.333333333333286, 0.33333333333331555)], 1)
+            (1.0, [(1.0, -0.666666666666633, 1.333333333333286, 0.33333333333331555)], 1)
             sage: spectrum[2]  # tol 1e-13
-            (-1.9999999999999483, [(1.0, -0.2000000000000063, 1.0000000000000173, 0.20000000000000498)], 1)
+            (-2.0, [(1.0, -0.2, 1.0, 0.2)], 1)
             sage: spectrum[3]  # tol 1e-13
-            (-1.0000000000000406, [(1.0, -0.49999999999996264, 1.9999999999998617, 0.499999999999958)], 1)
+            (-1.0, [(1.0, -0.5, 2.0, 0.5)], 1)
+
+        A generalized eigenvalue problem::
+
+            sage: A = matrix(CDF, [[1+I, -2], [3, 4]])
+            sage: B = matrix(CDF, [[0, 7-I], [2, -3]])
+            sage: E = A.eigenvectors_right(B)
+            sage: all((A * v - e * B * v).norm() < 1e-14 for e, [v], _ in E)
+            True
+
+        In a generalized eigenvalue problem with a singular matrix `B`, we can
+        check the eigenvector property using homogeneous coordinates, even
+        though the quotient `\alpha/\beta` is not always defined::
+
+            sage: A = matrix.identity(RDF, 2)
+            sage: B = matrix(RDF, [[3, 5], [6, 10]])
+            sage: E = A.eigenvectors_right(B, homogeneous=True)
+            sage: all((beta * A * v - alpha * B * v).norm() < 1e-14
+            ....:     for (alpha, beta), [v], _ in E)
+            True
+
+        .. SEEALSO::
+
+            :meth:`eigenvalues`,
+            :meth:`eigenvectors_left`,
+            :meth:`.Matrix.eigenmatrix_right`.
 
         TESTS:
 
@@ -1606,298 +1826,74 @@ cdef class Matrix_double_dense(Matrix_dense):
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
+        if other is not None and not other.is_square():
+            raise ArithmeticError("other must be a square matrix")
         if self._nrows == 0:
             return [], self.__copy__()
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
-        v,eig = scipy.linalg.eig(self._matrix_numpy, right=True, left=False)
+        v, eig = scipy.linalg.eig(self._matrix_numpy,
+                                  None if other is None else other.numpy(),
+                                  right=True, left=False,
+                                  homogeneous_eigvals=homogeneous)
         # scipy puts eigenvectors in columns, we will extract from rows
         eig = matrix(eig.T)
-        return [(sage.rings.complex_double.CDF(v[i]), [eig[i]], 1) for i in range(len(v))]
+        from sage.rings.complex_double import CDF
+        if homogeneous:
+            v = [(CDF(a), CDF(b)) for a, b in v.T]
+        else:
+            v = [CDF(e) for e in v]
+        return [(v[i], [eig[i]], 1) for i in range(len(v))]
 
     eigenvectors_right = right_eigenvectors
 
-    def solve_right(self, b):
-        r"""
-        Solve the vector equation ``A*x = b`` for a nonsingular ``A``.
-
-        INPUT:
-
-        - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector of the correct size.  Elements of the vector
-          must coerce into the base ring of the coefficient matrix.  In
-          particular, if ``b`` has entries from ``CDF`` then ``self``
-          must have ``CDF`` as its base ring.
-
-        OUTPUT:
-
-        The unique solution ``x`` to the matrix equation ``A*x = b``,
-        as a vector over the same base ring as ``self``.
-
-        ALGORITHM:
-
-        Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module.
-
-        EXAMPLES:
-
-        Over the reals. ::
-
-            sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
-            [ 1.0  2.0  5.0]
-            [ 7.6  2.3  1.0]
-            [ 1.0  2.0 -1.0]
-            sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_right(b); x  # tol 1e-14
-            (-0.1136950904392765, 1.3901808785529717, -0.33333333333333337)
-            sage: x.parent()
-            Vector space of dimension 3 over Real Double Field
-            sage: A*x  # tol 1e-14
-            (1.0, 1.9999999999999996, 3.0000000000000004)
-
-        Over the complex numbers.  ::
-
-            sage: A = matrix(CDF, [[      0, -1 + 2*I,  1 - 3*I,        I],
-            ....:                  [2 + 4*I, -2 + 3*I, -1 + 2*I,   -1 - I],
-            ....:                  [  2 + I,    1 - I,       -1,        5],
-            ....:                  [    3*I,   -1 - I,   -1 + I,   -3 + I]])
-            sage: b = vector(CDF, [2 -3*I, 3, -2 + 3*I, 8])
-            sage: x = A.solve_right(b); x
-            (1.96841637... - 1.07606761...*I, -0.614323843... + 1.68416370...*I, 0.0733985765... + 1.73487544...*I, -1.6018683... + 0.524021352...*I)
-            sage: x.parent()
-            Vector space of dimension 4 over Complex Double Field
-            sage: abs(A*x - b) < 1e-14
-            True
-
-        The vector of constants, ``b``, can be given in a
-        variety of forms, so long as it coerces to a vector
-        over the same base ring as the coefficient matrix.  ::
-
-            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: A.solve_right([1]*5)  # tol 1e-11
-            (5.0, -120.0, 630.0, -1120.0, 630.0)
-
-        TESTS:
-
-        A degenerate case. ::
-
-            sage: A = matrix(RDF, 0, 0, [])
-            sage: A.solve_right(vector(RDF,[]))
-            ()
-
-        The coefficient matrix must be square. ::
-
-            sage: A = matrix(RDF, 2, 3, range(6))
-            sage: b = vector(RDF, [1,2,3])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: coefficient matrix of a system over RDF/CDF must be square, not 2 x 3
-
-        The coefficient matrix must be nonsingular.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4,5])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Matrix is singular.
-
-        The vector of constants needs the correct degree.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Real Double Field incompatible with matrix over Real Double Field
-
-        The vector of constants needs to be compatible with
-        the base ring of the coefficient matrix.  ::
-
-            sage: F.<a> = FiniteField(27)
-            sage: b = vector(F, [a,a,a,a,a])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
-
-        With a coefficient matrix over ``RDF``, a vector of constants
-        over ``CDF`` can be accommodated by converting the base ring
-        of the coefficient matrix.  ::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: b = vector(CDF, [1+I,2])
-            sage: A.solve_right(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Complex Double Field incompatible with matrix over Real Double Field
-
-            sage: B = A.change_ring(CDF)
-            sage: B.solve_right(b)
-            (-0.5 - 1.5*I, 1.0 + 1.0*I)
+    def _solve_right_nonsingular_square(self, B, check_rank=False):
         """
-        if not self.is_square():
-            raise ValueError("coefficient matrix of a system over RDF/CDF must be square, not %s x %s " % (self.nrows(), self.ncols()))
-        M = self._column_ambient_module()
-        try:
-            vec = M(b)
-        except TypeError:
-            raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.ncols():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of columns for the coefficient matrix, not %s" % vec.degree() )
+        Find a solution `X` to the equation `A X = B` if ``self`` is a square
+        matrix `A`.
 
-        if self._ncols == 0:
-            return M.zero_vector()
+        TESTS::
 
+            sage: A = matrix(CDF, [[1, 2], [3, 3+I]])
+            sage: b = matrix(CDF, [[1, 0], [2, 1]])
+            sage: x = A._solve_right_nonsingular_square(b)
+            sage: (A * x - b).norm() < 1e-14
+            True
+        """
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
+        X = self._new(self._ncols, B.ncols())
         # may raise a LinAlgError for a singular matrix
-        return M(scipy.linalg.solve(self._matrix_numpy, vec.numpy()))
+        X._matrix_numpy = scipy.linalg.solve(self._matrix_numpy, B.numpy())
+        return X
 
-    def solve_left(self, b):
-        r"""
-        Solve the vector equation ``x*A = b`` for a nonsingular ``A``.
-
-        INPUT:
-
-        - ``self`` - a square matrix that is nonsingular (of full rank).
-        - ``b`` - a vector of the correct size.  Elements of the vector
-          must coerce into the base ring of the coefficient matrix.  In
-          particular, if ``b`` has entries from ``CDF`` then ``self``
-          must have ``CDF`` as its base ring.
-
-        OUTPUT:
-
-        The unique solution ``x`` to the matrix equation ``x*A = b``,
-        as a vector over the same base ring as ``self``.
-
-        ALGORITHM:
-
-        Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module,
-        after taking the transpose of the coefficient matrix.
-
-        EXAMPLES:
-
-        Over the reals. ::
-
-            sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
-            [ 1.0  2.0  5.0]
-            [ 7.6  2.3  1.0]
-            [ 1.0  2.0 -1.0]
-            sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(2e-17) # fix noisy zeroes
-            (0.666666666..., 0.0, 0.333333333...)
-            sage: x.parent()
-            Vector space of dimension 3 over Real Double Field
-            sage: x*A  # tol 1e-14
-            (0.9999999999999999, 1.9999999999999998, 3.0)
-
-        Over the complex numbers.  ::
-
-            sage: A = matrix(CDF, [[      0, -1 + 2*I,  1 - 3*I,        I],
-            ....:                  [2 + 4*I, -2 + 3*I, -1 + 2*I,   -1 - I],
-            ....:                  [  2 + I,    1 - I,       -1,        5],
-            ....:                  [    3*I,   -1 - I,   -1 + I,   -3 + I]])
-            sage: b = vector(CDF, [2 -3*I, 3, -2 + 3*I, 8])
-            sage: x = A.solve_left(b); x
-            (-1.55765124... - 0.644483985...*I, 0.183274021... + 0.286476868...*I, 0.270818505... + 0.246619217...*I, -1.69003558... - 0.828113879...*I)
-            sage: x.parent()
-            Vector space of dimension 4 over Complex Double Field
-            sage: abs(x*A - b) < 1e-14
-            True
-
-        The vector of constants, ``b``, can be given in a
-        variety of forms, so long as it coerces to a vector
-        over the same base ring as the coefficient matrix.  ::
-
-            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: A.solve_left([1]*5)  # tol 1e-11
-            (5.0, -120.0, 630.0, -1120.0, 630.0)
-
-        TESTS:
-
-        A degenerate case. ::
-
-            sage: A = matrix(RDF, 0, 0, [])
-            sage: A.solve_left(vector(RDF,[]))
-            ()
-
-        The coefficient matrix must be square. ::
-
-            sage: A = matrix(RDF, 2, 3, range(6))
-            sage: b = vector(RDF, [1,2,3])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            ValueError: coefficient matrix of a system over RDF/CDF must be square, not 2 x 3
-
-        The coefficient matrix must be nonsingular.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4,5])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Matrix is singular.
-
-        The vector of constants needs the correct degree.  ::
-
-            sage: A = matrix(RDF, 5, range(25))
-            sage: b = vector(RDF, [1,2,3,4])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Real Double Field incompatible with matrix over Real Double Field
-
-        The vector of constants needs to be compatible with
-        the base ring of the coefficient matrix.  ::
-
-            sage: F.<a> = FiniteField(27)
-            sage: b = vector(F, [a,a,a,a,a])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Finite Field in a of size 3^3 incompatible with matrix over Real Double Field
-
-        With a coefficient matrix over ``RDF``, a vector of constants
-        over ``CDF`` can be accommodated by converting the base ring
-        of the coefficient matrix.  ::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: b = vector(CDF, [1+I,2])
-            sage: A.solve_left(b)
-            Traceback (most recent call last):
-            ...
-            TypeError: vector of constants over Complex Double Field incompatible with matrix over Real Double Field
-
-            sage: B = A.change_ring(CDF)
-            sage: B.solve_left(b)
-            (0.5 - 1.5*I, 0.5 + 0.5*I)
+    def _solve_right_general(self, B, check=False):
         """
-        if not self.is_square():
-            raise ValueError("coefficient matrix of a system over RDF/CDF must be square, not %s x %s " % (self.nrows(), self.ncols()))
-        M = self._row_ambient_module()
-        try:
-            vec = M(b)
-        except TypeError:
-            raise TypeError("vector of constants over %s incompatible with matrix over %s" % (b.base_ring(), self.base_ring()))
-        if vec.degree() != self.nrows():
-            raise ValueError("vector of constants in linear system over RDF/CDF must have degree equal to the number of rows for the coefficient matrix, not %s" % vec.degree() )
+        Compute a least-squares solution `X` to the equation `A X = B` where
+        ``self`` is the matrix `A`.
 
-        if self._nrows == 0:
-            return M.zero_vector()
+        TESTS::
 
+            sage: A = matrix(RDF, 3, 2, [1, 3, 4, 2, 0, -3])
+            sage: b = matrix(RDF, 3, 2, [5, 6, 1, 0, 0, 2])
+            sage: x = A._solve_right_general(b)
+            sage: y = ~(A.T * A) * A.T * b  # closed form solution
+            sage: (x - y).norm() < 1e-14
+            True
+        """
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
-        # may raise a LinAlgError for a singular matrix
-        # call "right solve" routine with the transpose
-        return M(scipy.linalg.solve(self._matrix_numpy.T, vec.numpy()))
+        X = self._new(self._ncols, B.ncols())
+        arr, resid, rank, s = scipy.linalg.lstsq(self._matrix_numpy, B.numpy())
+        X._matrix_numpy = arr
+        return X
+
 
     def determinant(self):
         """
@@ -2509,8 +2505,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.is_unitary()
             False
 
-        The smallest cases.  The Schur decomposition used by the
-        orthonormal algorithm will fail on a matrix of size zero.  ::
+        The smallest cases::
 
             sage: P = matrix(CDF, 0, 0)
             sage: P.is_unitary(algorithm='naive')
@@ -2522,9 +2517,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
             sage: P = matrix(CDF, 0, 0,)
             sage: P.is_unitary(algorithm='orthonormal')
-            Traceback (most recent call last):
-            ...
-            error: ((lwork==-1)||(lwork >= MAX(1,2*n))) failed for 3rd keyword lwork: zgees:lwork=0
+            True
 
         TESTS::
 
@@ -2549,6 +2542,12 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         - Rob Beezer (2011-05-04)
         """
+        if self.dimensions() == (0,0):
+            # The "orthonormal" algorithm would otherwise fail in this
+            # corner case. Returning `True` is consistent with the
+            # other implementations of this method.
+            return True
+
         global numpy
         try:
             tol = float(tol)

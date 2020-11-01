@@ -489,6 +489,7 @@ class DisplayManager(SageObject):
         One of
         :class:`~sage.repl.rich_output.output_basic.OutputPlainText`,
         :class:`~sage.repl.rich_output.output_basic.OutputAsciiArt`,
+        :class:`~sage.repl.rich_output.output_basic.OutputUnicodeArt`,
         or
         :class:`~sage.repl.rich_output.output_basic.OutputLatex`
         containing the preferred textual representation of ``obj``
@@ -745,7 +746,9 @@ class DisplayManager(SageObject):
             offline threejs graphics
         """
         if online:
-            import sage.env, re, os
+            import sage.env
+            import re
+            import os
             with open(os.path.join(sage.env.THREEJS_DIR, 'build', 'three.min.js')) as f:
                 text = f.read().replace('\n','')
             version = re.search(r'REVISION="(\d+)"', text).group(1)

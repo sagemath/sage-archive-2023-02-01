@@ -480,8 +480,8 @@ class HyperbolicPoint(Element):
 
             sage: p = HyperbolicPlane().UHP().random_element()
             sage: A = p.symmetry_involution()
-            sage: A*p == p
-            True
+            sage: p.dist(A*p)  # abs tol 1e-10
+            0
 
             sage: A.preserves_orientation()
             True
@@ -589,7 +589,7 @@ class HyperbolicPointUHP(HyperbolicPoint):
             sage: HyperbolicPlane().UHP().get_point(infinity).show()
             Traceback (most recent call last):
             ...
-            NotImplementedError: can't draw the point infinity
+            NotImplementedError: can...t draw the point infinity
         """
         p = self.coordinates()
         if p == infinity:

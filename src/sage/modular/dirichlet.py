@@ -57,7 +57,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six.moves import range, zip
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -66,10 +65,11 @@ import sage.modules.free_module             as free_module
 import sage.modules.free_module_element     as free_module_element
 import sage.rings.all                       as rings
 import sage.rings.number_field.number_field as number_field
-
+from sage.libs.pari import pari
+        
 from sage.categories.map import Map
 from sage.rings.rational_field import is_RationalField
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import is_ComplexField
 from sage.rings.qqbar import is_AlgebraicField
 from sage.rings.ring import is_Ring
 
@@ -416,9 +416,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: e = DirichletGroup(16)([-1, 1])
-            sage: hash(e)
-            -1497246046           # 32-bit
-            -3713082714463545694  # 64-bit
+            sage: hash(e) == hash((-1,1))
+            True
         """
         return hash(self.values_on_gens())
 
@@ -879,6 +878,109 @@ class DirichletCharacter(MultiplicativeGroupElement):
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
+    def _pari_conversion(self):
+        r"""
+        Prepare data for the conversion of the character to Pari.
+
+        OUTPUT:
+
+        pair (G, v) where G is `(\ZZ / N \ZZ)^*` where `N` is the modulus
+
+        EXAMPLES::
+
+            sage: chi4 = DirichletGroup(4).gen()
+            sage: chi4._pari_conversion()
+            ([[4, [0]], [2, [2], [3]], [[2]~, Vecsmall([2])],
+            [[4], [[1, matrix(0,2)]], Mat(1), [3], [2], [0]], Mat(1)], [1])
+
+            sage: chi = DirichletGroup(24)([1,-1,-1]); chi
+            Dirichlet character modulo 24 of conductor 24
+            mapping 7 |--> 1, 13 |--> -1, 17 |--> -1
+            sage: chi._pari_conversion()
+            ([[24, [0]], [8, [2, 2, 2], [7, 13, 17]],
+            [[2, 2, 3]~, Vecsmall([3, 3, 1])],
+            [[8, 8, 3], [[1, matrix(0,2)], [1, matrix(0,2)], [2, Mat([2, 1])]],
+            [1, 0, 0; 0, 1, 0; 0, 0, 1], [7, 13, 17], [2, 2, 2], [0, 0, 0]],
+            [1, 0, 0; 0, 1, 0; 0, 0, 1]], [0, 1, 1])
+        """
+        G = pari.znstar(self.modulus(), 1)
+
+        pari_orders = G[1][1]
+        pari_gens = G[1][2]
+        # one should use the following, but this does not work
+        # pari_orders = G.cyc()
+        # pari_gens = G.gen()
+
+        values_on_gens = (self(x) for x in pari_gens)
+
+        # now compute the input for pari (list of exponents)
+        P = self.parent()
+        if is_ComplexField(P.base_ring()):
+            zeta = P.zeta()
+            zeta_argument = zeta.argument()
+            v = [int(x.argument() / zeta_argument) for x in values_on_gens]
+        else:
+            dlog = P._zeta_dlog
+            v = [dlog[x] for x in values_on_gens]
+
+        m = P.zeta_order()
+        v = [(vi * oi) // m for vi, oi in zip(v, pari_orders)]
+        return (G, v)
+
+    def conrey_number(self):
+        r"""
+        Return the Conrey number for this character.
+
+        This is a positive integer coprime to q that identifies a
+        Dirichlet character of modulus q.
+
+        See https://www.lmfdb.org/knowledge/show/character.dirichlet.conrey
+
+        EXAMPLES::
+
+            sage: chi4 = DirichletGroup(4).gen()
+            sage: chi4.conrey_number()
+            3
+            sage: chi = DirichletGroup(24)([1,-1,-1]); chi
+            Dirichlet character modulo 24 of conductor 24
+            mapping 7 |--> 1, 13 |--> -1, 17 |--> -1
+            sage: chi.conrey_number()
+            5
+
+            sage: chi = DirichletGroup(60)([1,-1,I])
+            sage: chi.conrey_number()
+            17
+
+            sage: chi = DirichletGroup(420)([1,-1,-I,1])
+            sage: chi.conrey_number()
+            113
+
+        TESTS::
+
+            sage: eps1 = DirichletGroup(5)([-1])
+            sage: eps2 = DirichletGroup(5,QQ)([-1])
+            sage: eps1.conrey_number() == eps2.conrey_number()
+            True
+        """
+        G, v = self._pari_conversion()
+        return pari.znconreyexp(G, v).sage()
+
+    def lmfdb_page(self):
+         r"""
+         Open the LMFDB web page of the character in a browser.
+
+         See https://www.lmfdb.org
+
+         EXAMPLES::
+
+             sage: E = DirichletGroup(4).gen()
+             sage: E.lmfdb_page()  # optional -- webbrowser
+         """
+         import webbrowser
+         lmfdb_url = 'https://www.lmfdb.org/Character/Dirichlet/{}/{}'
+         url = lmfdb_url.format(self.modulus(), self.conrey_number())
+         webbrowser.open(url)
+
     def galois_orbit(self, sort=True):
         r"""
         Return the orbit of this character under the action of the absolute
@@ -1087,7 +1189,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             phi = lambda t : t
             CC = K
         elif is_AlgebraicField(K):
-            from sage.rings.complex_field import ComplexField
+            from sage.rings.complex_mpfr import ComplexField
             CC = ComplexField(prec)
             phi = CC.coerce_map_from(K)
         elif number_field.is_CyclotomicField(K) or is_RationalField(K):
@@ -1239,34 +1341,49 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.kloosterman_sum(3,5)
             -2*zeta6 + 1
             sage: G = DirichletGroup(20)
-            sage: e = G([1 for  u in G.unit_gens()])
+            sage: e = G([1 for u in G.unit_gens()])
             sage: e.kloosterman_sum(7,17)
             -2*zeta20^6 + 2*zeta20^4 + 4
 
+        TESTS::
+
+            sage: G = DirichletGroup(20, UniversalCyclotomicField())
+            sage: e = G([1 for u in G.unit_gens()])
+            sage: e.kloosterman_sum(7,17)
+            -2*E(5) - 4*E(5)^2 - 4*E(5)^3 - 2*E(5)^4
+
+            sage: G = DirichletGroup(12, QQbar)
+            sage: e = G.gens()[0]
+            sage: e.kloosterman_sum(5,11)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Kloosterman sums not implemented over this ring
         """
         G = self.parent()
-        K = G.base_ring()
-        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
-        g = 0
+        zo = G.zeta_order()
         m = G.modulus()
-        L = rings.CyclotomicField(lcm(m,G.zeta_order()))
+        g = 0
+        L = rings.CyclotomicField(m.lcm(zo))
         zeta = L.gen(0)
+        try:
+            self(1) * zeta**(a+b)
+        except TypeError:
+            raise NotImplementedError('Kloosterman sums not implemented '
+                                      'over this ring')
         n = zeta.multiplicative_order()
-        zeta = zeta ** (n // m)
-        for c in range(1,m):
-            if gcd(c,m)==1:
-                e = rings.Mod(c,m)
-                z = zeta ** int(a*e + b*(e**(-1)))
-                g += self(c)*z
+        zeta = zeta**(n // m)
+        for c in m.coprime_integers(m):
+            e = rings.Mod(c, m)
+            g += self(c) * zeta**int(a*e + b*e**(-1))
         return g
 
-    def kloosterman_sum_numerical(self, prec=53, a=1,b=0):
+    def kloosterman_sum_numerical(self, prec=53, a=1, b=0):
         r"""
         Return the Kloosterman sum associated to this Dirichlet character as
-        an approximate complex number with prec bits of precision. See also
-        :meth:`.kloosterman_sum`, which calculates the sum exactly (which is
-        generally slower).
+        an approximate complex number with prec bits of precision.
+
+        See also :meth:`.kloosterman_sum`, which calculates the sum
+        exactly (which is generally slower).
 
         INPUT:
 
@@ -1300,12 +1417,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
         g = 0
         m = G.modulus()
         zeta = CC.zeta(m)
-
-        for c in range(1,m):
-            if gcd(c,m)==1:
-                e = rings.Mod(c,m)
-                z = zeta ** int(a*e + b*(e**(-1)))
-                g += phi(self(c))*z
+        for c in m.coprime_integers(m):
+            e = rings.Mod(c, m)
+            z = zeta ** int(a*e + b*(e**(-1)))
+            g += phi(self(c))*z
         return g
 
     @cached_method

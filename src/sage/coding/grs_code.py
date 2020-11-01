@@ -38,17 +38,16 @@ Here is a list of all content related to GRS codes:
   using the key equation on syndrome polynomials
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 David Lucas <david.lucas@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
 
 from sage.categories.cartesian_product import cartesian_product
 
@@ -118,6 +117,28 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k, colmults)
         sage: C
         [40, 12, 29] Generalized Reed-Solomon Code over GF(59)
+
+    SageMath implements efficient decoding algorithms for GRS codes::
+
+        sage: F = GF(11)
+        sage: n, k = 10, 5
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
+        sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
+        sage: C.decode_to_message(r)
+        (3, 6, 6, 3, 1)
+
+    TESTS:
+
+    Test that the bug in :trac:`30045` is fixed::
+
+        sage: F = GF(5)
+        sage: C = codes.GeneralizedReedSolomonCode(F.list()[:5], 2)
+        sage: D = codes.decoders.GRSErrorErasureDecoder(C)
+        sage: y = (vector(F, [3, 0, 3, 0, 3]), vector(GF(2),[0, 1, 0, 1, 0]))
+        sage: D.decode_to_code(y)
+        (3, 3, 3, 3, 3)
+        sage: D.decode_to_message(y)
+        (3, 0)
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -443,7 +464,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         EXAMPLES::
 
             sage: F =  GF(59)
-            sage: colmults = [ F.random_element() for i in range(40) ]
+            sage: colmults = [ F._random_nonzero_element() for i in range(40) ]
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:40], 12, colmults)
             sage: Cd = C.dual_code(); Cd
             [40, 28, 13] Generalized Reed-Solomon Code over GF(59)
@@ -549,37 +570,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         G = G.delete_columns(list(points))
         dimension = G.rank()
         return GeneralizedReedSolomonCode(punctured_alphas, dimension, punctured_col_mults)
-
-    def decode_to_message(self, r):
-        r"""
-        Decode ``r`` to an element in message space of ``self``.
-
-        .. NOTE::
-
-            If the code associated to ``self`` has the same length as its
-            dimension, ``r`` will be unencoded as is. In that case,
-            if ``r`` is not a codeword, the output is unspecified.
-
-        INPUT:
-
-        - ``r`` -- a codeword of ``self``
-
-        OUTPUT:
-
-        - a vector of ``self`` message space
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10, 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[1:n+1], k)
-            sage: r = vector(F, (8, 2, 6, 10, 6, 10, 7, 6, 7, 2))
-            sage: C.decode_to_message(r)
-            (3, 6, 6, 3, 1)
-        """
-        if self.length() == self.dimension():
-            return self.encoder().unencode_nocheck(r)
-        return vector(self.decoder().decode_to_message(r))
 
 
 def ReedSolomonCode(base_field, length, dimension, primitive_root=None):
@@ -1242,9 +1232,9 @@ class GRSBerlekampWelchDecoder(Decoder):
         t  = (C.minimum_distance()-1) // 2
         l0 = n-1-t
         l1 = n-1-t-(k-1)
-        S  = matrix(C.base_field(), n, l0+l1+2, lambda i,j :
-                (C.evaluation_points()[i])**j if j<(l0+1)
-                else r_list[i]*(C.evaluation_points()[i])**(j-(l0+1)))
+        S  = matrix(C.base_field(), n, l0+l1+2,
+                    lambda i, j: (C.evaluation_points()[i])**j if j<(l0+1)
+                    else r_list[i]*(C.evaluation_points()[i])**(j-(l0+1)))
         S  = S.right_kernel()
         S  = S.basis_matrix().row(0)
         R = C.base_field()['x']

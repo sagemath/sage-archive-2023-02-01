@@ -11,7 +11,6 @@ Sets
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -135,6 +134,7 @@ class Sets(Category_singleton):
         running ._test_an_element() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -1451,6 +1451,65 @@ class Sets(Category_singleton):
             """
             return None
 
+        def _test_construction(self, **options):
+            """
+            Test that the construction returned by self really yields self.
+
+            :meth:`construction` either returns None or a pair ``(F,O)``,
+            and if it returns the latter, then it is supposed that ``F(O)==self`.
+            The test verifies this assumption.
+
+            EXAMPLE:
+
+            We create a parent that returns a wrong construction (its construction
+            returns the rational field rather than the parent itself)::
+
+                sage: class P(Parent):
+                ....:     Element = ElementWrapper
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category=Sets())
+                ....:     def __eq__(self, P):
+                ....:         return type(self) == type(P)
+                ....:     def __hash__(self):
+                ....:         return hash(type(self))
+                ....:     def construction(self):
+                ....:         return sage.categories.pushout.FractionField(), ZZ
+                ....:
+                sage: import __main__
+                sage: __main__.P = P   # this is to enable pickling in doctests
+                sage: p = P()
+                sage: F,R = p.construction()
+                sage: F(R)
+                Rational Field
+                sage: TestSuite(p).run()
+                Failure in _test_construction:
+                Traceback (most recent call last):
+                ...
+                AssertionError: the object's construction does not recreate this object
+                ...
+                The following tests failed: _test_construction
+
+            If the parent returns the empty construction, the test will not complain::
+
+                sage: ZZ.construction() is None
+                True
+                sage: TestSuite(ZZ).run()   # indirect doctest
+
+            If the construction works as expected, the test will not complain
+            either::
+
+                sage: F,R = QQ.construction()
+                sage: F(R) == QQ
+                True
+                sage: TestSuite(QQ).run()   # indirect doctest
+
+            """
+            tester = self._tester(**options)
+            FO = self.construction()
+            if FO is None:
+                return
+            tester.assertEqual(FO[0](FO[1]), self, "the object's construction does not recreate this object")
+
         CartesianProduct = CartesianProduct
 
         def cartesian_product(*parents, **kwargs):
@@ -1506,11 +1565,13 @@ class Sets(Category_singleton):
                 sage: cartesian_product([ZZ, ZZ]).category()
                 Join of
                 Category of Cartesian products of commutative rings and
+                Category of Cartesian products of metric spaces and
                 Category of Cartesian products of enumerated sets
                 sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
                 Join of
                 Category of Cartesian products of commutative rings and
                 Category of posets and
+                Category of Cartesian products of metric spaces and
                 Category of Cartesian products of enumerated sets
             """
             category = kwargs.pop('category', None)
@@ -1717,16 +1778,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                   To:   Finite Field of size 3
                 sage: f.is_injective()
                 False
-
-            Note that many maps do not implement this method::
-
-                sage: R.<x> = ZZ[]
-                sage: f = R.hom([x])
-                sage: f.is_injective()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
-
             """
             if self.domain().cardinality() <= 1:
                 return True
@@ -1740,7 +1791,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
     Topological = LazyImport('sage.categories.topological_spaces',
                              'TopologicalSpaces', 'Topological', at_startup=True)
     Metric = LazyImport('sage.categories.metric_spaces', 'MetricSpaces',
-                        'Mertic', at_startup=True)
+                        'Metric', at_startup=True)
 
     class Infinite(CategoryWithAxiom):
 
@@ -1760,10 +1811,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 TESTS::
 
-                    sage: from six import get_method_function as gmf
-                    sage: gmf(C.is_finite) is gmf(sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite)  # py2
-                    True
-                    sage: gmf(C.is_finite) is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite  # py3
+                    sage: C.is_finite.__func__ is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite
                     True
                 """
                 return False
@@ -2577,7 +2625,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 tester = self._tester(**options)
                 for R in self.realizations():
-                    tester.assertTrue(R in self.Realizations())
+                    tester.assertIn(R, self.Realizations())
                 # Could check that there are coerce maps between any two realizations
 
             @lazy_attribute

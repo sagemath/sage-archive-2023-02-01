@@ -50,8 +50,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
-from six import integer_types, iteritems
-from six.moves import range
 
 from . import constructor
 from . import BSD
@@ -86,6 +84,7 @@ from sage.rings.all import (
     ComplexField, RationalField)
 
 import sage.misc.all as misc
+from sage.misc.verbose import verbose as verbose_verbose
 
 from sage.functions.log import log
 
@@ -474,7 +473,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Generator 1 is [29604565304828237474403861024284371796799791624792913256602210:-256256267988926809388776834045513089648669153204356603464786949:490078023219787588959802933995928925096061616470779979261000]; height 95.98037...
             Regulator = 95.98037...
         """
-        if options == "":
+        if not options:
             from sage.interfaces.all import mwrank
         else:
             from sage.interfaces.all import Mwrank
@@ -490,7 +489,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``algorithm`` - str, (default: "pari")
 
-           -  ``"pari"`` - use the PARI C-library ellglobalred
+           -  ``"pari"`` - use the PARI C-library :pari:`ellglobalred`
               implementation of Tate's algorithm
 
            -  ``"mwrank"`` - use Cremona's mwrank implementation
@@ -718,7 +717,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__database_curve
         except AttributeError:
-            misc.verbose("Looking up %s in the database."%self)
+            verbose_verbose("Looking up %s in the database."%self)
             D = sage.databases.cremona.CremonaDatabase()
             ainvs = list(self.minimal_model().ainvs())
             try:
@@ -839,7 +838,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
 
         """
-        misc.verbose("Calling mwrank C++ library.")
+        verbose_verbose("Calling mwrank C++ library.")
         C = self.mwrank_curve()
         C.two_descent(verbose, selmer_only,
                         first_limit, second_limit,
@@ -1110,15 +1109,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             normalize = "L_ratio"
         if normalize not in ["L_ratio", "period", "none"]:
             raise ValueError("normalize should be one of 'L_ratio', 'period' or 'none'")
-        if implementation not in ["sage", "eclib"]:
-            raise ValueError("Implementation should be one of 'sage' or 'eclib'")
+        if implementation not in ["sage", "eclib", "num"]:
+            raise ValueError("Implementation should be one of 'sage', 'num' or 'eclib'")
         return (sign, normalize, implementation)
 
     @cached_method(key = _modular_symbol_normalize)
     def modular_symbol(self, sign=+1, normalize=None, implementation='eclib'):
         r"""
-        Return the modular symbol associated to this elliptic curve,
-        with given sign.
+        Return the modular symbol associated to this elliptic curve
+        with given sign.  This is a map that sends any rational number`r`
+        to a rational number `[r]_E`, defined to be a certain
+        multiple of the integral of `2 \pi i f(z) dz`
+        from `\infty` to `r` where `f` is the newform attached to `E`.
+
+        More precisely: If the sign is +1, then the value returned is the
+        quotient of the real part of this integral by the least positive
+        period `\Omega_E^{+}` of `E`. In particular for `r=0`, the value
+        is equal to `L(E,1)/\Omega_E^{+}` (unlike in ``L_ratio`` of
+        ``lseries()``, where the value is also divided by the number of
+        connected components of `E(\RR)`). In particular the modular
+        symbol depends on `E` and not only the isogeny class of `E`.
+        For sign `-1`, it is the quotient of the imaginary part of the
+        integral divided by the purely imaginary period of `E` with
+        smallest positive imaginary part. Note however there is an
+        issue about these normalizations, hence the optional argument
+        ``normalize`` explained below
 
         INPUT:
 
@@ -1126,10 +1141,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``normalize`` - (default: None); either 'L_ratio', 'period',
            or 'none' when ``implementation`` is 'sage'; ignored if
-           ``implementation`` is ``eclib``.  For 'L_ratio', the
-           modular symbol tries to normalize correctly as explained
-           below by comparing it to ``L_ratio`` for the curve and some
-           small twists.  The normalization 'period' uses the
+           ``implementation`` is ``eclib`` or ``num``.
+           For 'L_ratio', the modular symbol tries to normalize
+           correctly as explained below by comparing it to
+           ``L_ratio`` for the curve and some small twists.
+           The normalization 'period' uses the
            ``integral_period_map`` for modular symbols which is known
            to be equal to the desired normalization, up to the sign
            and a possible power of 2.  With normalization 'none', the
@@ -1140,10 +1156,32 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            ``sage`` is chosen, though evaluation of it after computing
            it is no faster.
 
-        -  ``implementation`` - either 'eclib' (default) or
-           'sage'. Here 'eclib' uses John Cremona's implementation in
-           the eclib library, while 'sage' uses an implementation
-           in Sage which is often quite a bit slower.
+
+        -  ``implementation`` - either 'eclib' (default), 'sage' or
+           'num'. Here 'eclib' uses John Cremona's implementation in
+           his eclib library. Instead 'sage' uses an implementation
+           within Sage which is often quite a bit slower.
+           Finally 'num' uses an implementation of numerical
+           modular symbols.
+
+        ALGORITHM:
+
+           For the implementations 'sage' and 'eclib', the used
+           algorithm starts by finding the space of modular symbols
+           within the full space of all modular symbols of that
+           level. This initial step will take a very long time if
+           the conductor is large (e.g. minutes for five digit
+           conductors). Once the space is determined, each
+           evaluation is very fast (logarithmic in the
+           denominator of `r`).
+
+           The implementation 'num' uses a different algorithm.
+           It uses numerical integration along paths in the upper
+           half plane. The bounds are rigorously proved so that
+           the outcome is known to be correct. The initial step
+           costs no time, instead each evaluation will take more
+           time than in the above. More information in the
+           documentation of the class ``ModularSymbolNumerical``.
 
         .. SEEALSO::
 
@@ -1188,6 +1226,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1 and a power of 2
             sage: M(1/7)
             -1/2
+
+        With the numerical version, rather high conductors can
+        be computed::
+
+            sage: E = EllipticCurve([999,997])
+            sage: E.conductor()
+            16059400956
+            sage: m = E.modular_symbol(implementation="num")
+            sage: m(0) # long time
+            16
 
         Different curves in an isogeny class have modular symbols
         which differ by a nonzero rational factor::
@@ -1253,87 +1301,74 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         sign, normalize, implementation = self._modular_symbol_normalize(sign, normalize, implementation)
         if implementation == 'eclib':
             M = ell_modular_symbols.ModularSymbolECLIB(self, sign)
-        else:  # implementation == 'sage':
+        elif implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
+        else: # implementation == "num":
+            from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
+            M = ModularSymbolNumerical(self, sign)
         return M
 
-    def _modsym(self, tau, prec=53):
-        r"""
-        Compute the modular symbol `\{\infty, \tau\}` analytically.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('11a1')
-            sage: E._modsym(0)  # abs tol 1e-14
-            0.253841860855911 - 2.86184184507043e-17*I
-            sage: E = EllipticCurve('17a1')
-            sage: E._modsym(0)  # abs tol 1e-14
-            0.386769938387780 - 4.26353246509333e-17*I
-        """
-        from sage.modular.cusps import Cusps
-        from sage.sets.all import Primes
-        N = self.conductor()
-        # Find a prime p that is suitable, along with matrices M[i].
-        for p in Primes():
-            if N % p == 0:
-                continue
-            # Are the cusps tau, p*tau, and (tau+j)/p for j = 0, ..., p-1
-            # all equivalent?
-            t = Cusps(tau)
-            M = []
-            b, m = t.is_gamma0_equiv(p * tau, N, transformation='matrix')
-            if not b:
-                continue
-            M.append(m)
-            good = True
-            for j in range(p):
-                b, m = t.is_gamma0_equiv((tau + j) / p, N,
-                                         transformation='matrix')
-                if not b:
-                    good = False
-                    break
-                M.append(m)
-            if good:
-                # Found it!
-                break
-        f = self.newform()
-        return -sum(f.period(m, prec) for m in M) / (1 + p - self.ap(p))
-
-    def modular_symbol_numerical(self, sign=1, prec=53):
+    def modular_symbol_numerical(self, sign=1, prec=20):
         """
         Return the modular symbol as a numerical function.
 
-        .. NOTE::
+        Just as in :meth:`modular_symbol` this returns a function
+        that maps any rational `r` to a real number that should be
+        equal to the rational number with an error smaller than the
+        given binary precision. In practice the precision is
+        often much higher. See the examples below.
+        The normalisation is the same.
 
-            This method does not compute spaces of modular symbols, so
-            it is suitable for curves of larger conductor than can be
-            handled by :meth:`modular_symbol`.
+        INPUT:
+
+        - ``sign`` -- either +1 (default) or -1
+
+        - ``prec`` -- an integer (default 20)
+
+        OUTPUT:
+
+        - a real number
+
+        ALGORITHM:
+
+            This method does not compute spaces of modular symbols,
+            so it is suitable for curves of larger conductor than
+            can be handled by :meth:`modular_symbol`.
+            It is essentially the same implementation as
+            ``modular_symbol`` with implementation set to 'num'.
+            However the precision is not automatically chosen to
+            be certain that the output is equal to the rational
+            number it approximates.
+
+            For large conductors one should set the ``prec`` very small.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('19a1')
             sage: f = E.modular_symbol_numerical(1)
-            sage: g = E.modular_symbol()
-            sage: f(0), g(0)  # abs tol 1e-14
-            (0.333333333333330, 1/3)
-            sage: f(oo), g(oo)
-            (-0.000000000000000, 0)
+            sage: g = E.modular_symbol(1)
+            sage: f(0), g(0)  # abs tol 1e-11
+            (0.333333333333333, 1/3)
 
-            sage: E = EllipticCurve('79a1')
-            sage: f = E.modular_symbol_numerical(-1)
-            sage: g = E.modular_symbol(-1, implementation="sage")
-            sage: f(1/3), g(1/3)  # abs tol 1e-13
-            (1.00000000000001, 1)
-            sage: f(oo), g(oo)
-            (0.000000000000000, 0)
+            sage: E = EllipticCurve('5077a1')
+            sage: f = E.modular_symbol_numerical(-1, prec=2)
+            sage: f(0)        # abs tol 1e-11
+            0.000000000000000
+            sage: f(1/7)      # abs tol 1e-11
+            0.999844176260303
+
+            sage: E = EllipticCurve([123,456])
+            sage: E.conductor()
+            104461920
+            sage: f = E.modular_symbol_numerical(prec=2)
+            sage: f(0)        # abs tol 1e-11
+            2.00001004772210
         """
-        lam = self.period_lattice().basis(prec=prec)
-        if sign == 1:
-            P = lam[0].real()
-            return lambda a: self._modsym(a, prec).real() / P
-        else:
-            P = lam[1].imag()
-            return lambda a: self._modsym(a, prec).imag() / P
+        from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
+        M = ModularSymbolNumerical(self, sign=sign)
+        def f(r):
+            return M.approximative_value(r, prec=prec)
+        return f
 
 
     def pollack_stevens_modular_symbol(self, sign=0, implementation='eclib'):
@@ -1632,7 +1667,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             :func:`LFunctionZeroSum`
             :meth:`.root_number`
-            :func:`set_verbose`
+            :func:`~sage.misc.verbose.set_verbose`
 
         EXAMPLES:
 
@@ -2069,7 +2104,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # true rank
             rank_bound = self.analytic_rank_upper_bound()
             if rank_bound <= 1:
-                misc.verbose("rank %s due to zero sum bound and parity"%rank_bound)
+                verbose_verbose("rank %s due to zero sum bound and parity"%rank_bound)
                 rank = Integer(rank_bound)
                 self.__rank = (rank, proof)
                 return rank
@@ -2080,20 +2115,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if self.root_number() == 1:
                 L, err = self.lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 0 because L(E,1)=%s" % L)
+                    verbose_verbose("rank 0 because L(E,1)=%s" % L)
                     rank = Integer(0)
                     self.__rank = (rank, proof)
                     return rank
             else:
                 Lprime, err = self.lseries().deriv_at1(prec)
                 if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
+                    verbose_verbose("rank 1 because L'(E,1)=%s"%Lprime)
                     rank = Integer(1)
                     self.__rank = (rank, proof)
                     return rank
 
         if algorithm == 'mwrank_lib':
-            misc.verbose("using mwrank lib")
+            verbose_verbose("using mwrank lib")
             if self.is_integral(): E = self
             else: E = self.integral_model()
             C = E.mwrank_curve()
@@ -2111,11 +2146,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     del E.__mwrank_curve
                     raise RuntimeError('rank not provably correct (lower bound: {})'.format(rank))
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose_verbose("Warning -- rank not proven correct", level=1)
             return rank
 
         if algorithm == 'mwrank_shell':
-            misc.verbose("using mwrank shell")
+            verbose_verbose("using mwrank shell")
             X = self.mwrank()
             if 'determined unconditionally' not in X or 'only a lower bound of' in X:
                 if proof:
@@ -2123,7 +2158,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     print(X)
                     raise RuntimeError('rank not provably correct')
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose_verbose("Warning -- rank not proven correct", level=1)
 
                 s = "lower bound of"
                 X = X[X.rfind(s)+len(s)+1:]
@@ -2285,31 +2320,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if not only_use_mwrank:
             try:
-                misc.verbose("Trying to compute rank.")
+                verbose_verbose("Trying to compute rank.")
                 r = self.rank(only_use_mwrank = False)
-                misc.verbose("Got r = %s."%r)
+                verbose_verbose("Got r = %s."%r)
                 if r == 0:
-                    misc.verbose("Rank = 0, so done.")
+                    verbose_verbose("Rank = 0, so done.")
                     return [], True
                 if r == 1 and rank1_search:
-                    misc.verbose("Rank = 1, so using direct search.")
+                    verbose_verbose("Rank = 1, so using direct search.")
                     h = 6
                     while h <= rank1_search:
-                        misc.verbose("Trying direct search up to height %s"%h)
+                        verbose_verbose("Trying direct search up to height %s"%h)
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
-                        if len(G) > 0:
-                            misc.verbose("Direct search succeeded.")
+                        if G:
+                            verbose_verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
-                            misc.verbose("Computed saturation.")
+                            verbose_verbose("Computed saturation.")
                             return G, True
                         h += 2
-                    misc.verbose("Direct search FAILED.")
+                    verbose_verbose("Direct search FAILED.")
             except RuntimeError:
                 pass
         # end if (not_use_mwrank)
         if algorithm == "mwrank_lib":
-            misc.verbose("Calling mwrank C++ library.")
+            verbose_verbose("Calling mwrank C++ library.")
             if not self.is_integral():
                 xterm = 1
                 yterm = 1
@@ -2351,13 +2386,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # all for gens() and just use the library. This is in
             # progress (see trac #1949).
             X = self.mwrank('-p 100 -S '+str(sat_bound))
-            misc.verbose("Calling mwrank shell.")
+            verbose_verbose("Calling mwrank shell.")
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
                 msg = 'Generators not provably computed.'
                 if proof:
                     raise RuntimeError('%s\n%s'%(X,msg))
                 else:
-                    misc.verbose("Warning -- %s"%msg, level=1)
+                    verbose_verbose("Warning -- %s"%msg, level=1)
                 proved = False
             else:
                 proved = True
@@ -2566,8 +2601,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         """
         if not isinstance(points, list):
-            raise TypeError("points (=%s) must be a list."%points)
-        if len(points) == 0:
+            raise TypeError("points (=%s) must be a list." % points)
+        if not points:
             return [], None, R(1)
 
         v = []
@@ -4507,7 +4542,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: isocls.matrix()
             [ 1 37]
             [37  1]
-            sage: print("\n".join([repr(E) for E in isocls.curves]))
+            sage: print("\n".join(repr(E) for E in isocls.curves))
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 8*x + 6 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 208083*x - 36621194 over Rational Field
 
@@ -4531,7 +4566,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: isocls = E.isogeny_class(); isocls.matrix()
             [  1 163]
             [163   1]
-            sage: print("\n".join([repr(C) for C in isocls.curves]))
+            sage: print("\n".join(repr(C) for C in isocls.curves))
             Elliptic Curve defined by y^2 + y = x^3 - 2174420*x + 1234136692 over Rational Field
             Elliptic Curve defined by y^2 + y = x^3 - 57772164980*x - 5344733777551611 over Rational Field
 
@@ -4556,7 +4591,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [ 3  6  9  1 18  2]
             [ 6  3  2 18  1  9]
             [ 6  3 18  2  9  1]
-            sage: print("\n".join([repr(C) for C in isocls.curves]))
+            sage: print("\n".join(repr(C) for C in isocls.curves))
             Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 36*x - 70 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 - x over Rational Field
@@ -4570,7 +4605,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [ 9 18  3  1  2  6]
             [18  9  6  2  1  3]
             [ 6  3  2  6  3  1]
-            sage: print("\n".join([repr(C) for C in isocls2.curves]))
+            sage: print("\n".join(repr(C) for C in isocls2.curves))
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 2731*x - 55146 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 171*x - 874 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 - 36*x - 70 over Rational Field
@@ -4672,7 +4707,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise ValueError("%s is not prime."%l)
         if l is None:
             isogs = isogenies_prime_degree_genus_0(self)
-            if isogs != []:
+            if isogs:
                 return isogs
             else:
                 return isogenies_sporadic_Q(self)
@@ -4682,7 +4717,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             while i<len(l):
                 isogenies = [f for f in self.isogenies_prime_degree(l[i]) if not f in isogs]
                 isogs.extend(isogenies)
-                i = i+1
+                i += 1
             return isogs
 
     def is_isogenous(self, other, proof=True, maxp=200):
@@ -5101,7 +5136,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in iteritems(v)])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in v.items()])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5134,7 +5169,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in iteritems(v) if deg]  # get just the degrees
+        v = [deg for num, deg in v.items() if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################
@@ -6746,7 +6781,7 @@ def cremona_curves(conductors):
         ('39a3', 0),
         ('39a4', 0)]
     """
-    if isinstance(conductors, integer_types + (rings.RingElement,)):
+    if isinstance(conductors, (rings.RingElement, int)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter(conductors)
 
@@ -6772,7 +6807,7 @@ def cremona_optimal_curves(conductors):
         ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
 
     """
-    if isinstance(conductors, integer_types + (rings.RingElement,)):
+    if isinstance(conductors, (rings.RingElement, int)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
@@ -6962,7 +6997,7 @@ def elliptic_curve_congruence_graph(curves):
                 n = a_E[l] - a_F[l]
                 if n != 0:
                     p_edges = [p for p in p_edges if p.divides(n)]
-            if len(p_edges):
+            if p_edges:
                 G.add_edge(E.cremona_label(), F.cremona_label(),
                            p_edges)
     return G

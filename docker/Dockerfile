@@ -94,7 +94,7 @@ ARG SAGE_ROOT=/home/sage/sage
 RUN mkdir -p "$SAGE_ROOT"
 WORKDIR $SAGE_ROOT
 RUN git init
-RUN git remote add trac git://trac.sagemath.org/sage.git
+RUN git remote add trac https://gitlab.com/sagemath/dev/tracmirror.git
 
 ################################################################################
 # Image with the build context added, i.e., the directory from which `docker   #
@@ -126,7 +126,7 @@ ARG SAGE_ROOT=/home/sage/sage
 WORKDIR $SAGE_ROOT
 # We create a list of all files present in the artifact-base (with a timestamp
 # of now) so we can find out later which files were added/changed/removed.
-RUN find . -type f > $HOME/artifact-base.manifest
+RUN find . \( -type f -or -type l \) > $HOME/artifact-base.manifest
 RUN git fetch "$HOME/sage-context" HEAD \
     && if [ -e docker/.commit ]; then \
           git reset `cat docker/.commit` \
@@ -163,14 +163,12 @@ ENV SAGE_INSTALL_GCC no
 # Set MAKEFLAGS and SAGE_NUM_THREADS to build things in parallel during the
 # docker build. Note that these do not leak into the sagemath and sagemath-dev
 # images.
-ARG WITH_PYTHON=2
-ENV WITH_PYTHON $WITH_PYTHON
 ARG MAKEFLAGS="-j2"
 ENV MAKEFLAGS $MAKEFLAGS
 ARG SAGE_NUM_THREADS="2"
 ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS
 RUN make configure
-RUN ./configure --with-python=$WITH_PYTHON
+RUN ./configure
 RUN make build
 
 ################################################################################
@@ -184,7 +182,7 @@ FROM make-build as make-all
 ARG MAKEFLAGS_DOCBUILD=$MAKEFLAGS
 ENV MAKEFLAGS_DOCBUILD $MAKEFLAGS_DOCBUILD
 ARG SAGE_NUM_THREADS_DOCBUILD=$SAGE_NUM_THREADS
-ENV SAGE_NUM_THREADS_DOCBUILD $SAGE_NUM_THREADS_DOCBUILD
+ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS_DOCBUILD
 RUN make
 
 ################################################################################
@@ -232,9 +230,9 @@ ARG SAGE_ROOT=/home/sage/sage
 # and a list of all modified files (added/updated/removed).
 RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
         mkdir -p $HOME/patch \
-        && find . -type f > $HOME/make-fast-rebuild-clean.manifest \
+        && find . \( -type f -or -type l \) > $HOME/make-fast-rebuild-clean.manifest \
         && cat $HOME/make-fast-rebuild-clean.manifest $HOME/artifact-base.manifest | sort | uniq -u > $HOME/obsolete \
-        && find . -type f -cnewer $HOME/artifact-base.manifest > $HOME/modified \
+        && find . \( -type f -or -type l \) -cnewer $HOME/artifact-base.manifest > $HOME/modified \
         && tar -cJf $HOME/patch/modified.tar.xz -T $HOME/modified \
         && cat $HOME/obsolete $HOME/modified | xz > $HOME/patch/modified.xz \
         && rm -rf $SAGE_ROOT \

@@ -88,7 +88,7 @@ Functions
 =========
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz>
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com>
@@ -97,12 +97,10 @@ Functions
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import
-
-from six import itervalues
 
 from itertools import combinations
 from sage.matrix.constructor import Matrix
@@ -695,11 +693,11 @@ def Matroid(groundset=None, data=None, **kwds):
     base_ring = None
     if 'field' in kwds:
         base_ring = kwds.pop('field')
-        if check and not base_ring in Fields:
+        if check and base_ring not in Fields:
             raise TypeError("{} is not a field".format(base_ring))
     elif 'ring' in kwds:
         base_ring = kwds.pop('ring')
-        if check and not base_ring in Rings:
+        if check and base_ring not in Rings:
             raise TypeError("{} is not a ring".format(base_ring))
 
     # "key" is the kind of data we got
@@ -917,7 +915,7 @@ def Matroid(groundset=None, data=None, **kwds):
 
         if groundset is None:
             groundset = set()
-            for X in itervalues(CC):
+            for X in CC.values():
                 for Y in X:
                     groundset.update(Y)
 

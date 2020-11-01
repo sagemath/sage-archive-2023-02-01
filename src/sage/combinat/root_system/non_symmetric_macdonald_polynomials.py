@@ -15,13 +15,13 @@ with the help of Dan Bump, Ben Brubaker, Bogdan Ion, Dan Orr, Arun Ram, Siddhart
 Special thanks go to Bogdan Ion and Mark Shimozono for their patient explanations and hand computations
 to check the code.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #                          Anne Schilling <anne at math.ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.integer_ring import ZZ
@@ -156,7 +156,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     .. MATH::
 
-        (T_i-q_1)\circ(T_i-q_2) = 0
+        (T_i-q_1)\circ(T_i-q_2) = 0,
 
     where `q_1` and `q_2` are the input parameters.  Some of the
     representation theory requires that `q_1` and `q_2` satisfy
@@ -1802,7 +1802,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
             sage: P = SymmetricFunctions(K).macdonald().P()
             sage: g = P[2,1].expand(3); g
             x0^2*x1 + x0*x1^2 + x0^2*x2 + ((-2*q*t^2 + q*t - t^2 + q - t + 2)/(-q*t^2 + 1))*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
-            sage: fe =f.expand(g.parent().gens()); fe
+            sage: fe = f.expand(g.parent().gens()); fe
             x0^2*x1 + x0*x1^2 + x0^2*x2 + ((2*q*v^4 + v^4 - q*v^2 + v^2 - q - 2)/(q*v^4 - 1))*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
             sage: g.map_coefficients(lambda x: x.subs(t=v*v)) == fe
             True

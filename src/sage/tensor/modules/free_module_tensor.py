@@ -195,7 +195,7 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 from __future__ import absolute_import
 
 from sage.rings.integer import Integer
-from sage.structure.element import ModuleElement
+from sage.structure.element import ModuleElementWithMutability
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
@@ -206,7 +206,7 @@ from sage.manifolds.chart import Chart
 # TODO: remove the import of Chart after _preparse_display has been redefined
 # in tensor fields
 
-class FreeModuleTensor(ModuleElement):
+class FreeModuleTensor(ModuleElementWithMutability):
     r"""
     Tensor over a free module of finite rank over a commutative ring.
 
@@ -281,7 +281,7 @@ class FreeModuleTensor(ModuleElement):
         """
         if parent is None:
             parent = fmodule.tensor_module(*tensor_type)
-        ModuleElement.__init__(self, parent)
+        ModuleElementWithMutability.__init__(self, parent)
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
@@ -1137,7 +1137,7 @@ class FreeModuleTensor(ModuleElement):
             # loop on the new components:
             nproc = Parallelism().get('tensor')
 
-            if nproc != 1 :
+            if nproc != 1:
                 # Parallel computation
                 lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
                 ind_list = [ind for ind in new_comp.non_redundant_index_generator()]
@@ -1319,18 +1319,18 @@ class FreeModuleTensor(ModuleElement):
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
-        Since zero is a special element, its components cannot be changed::
+        Since zero is an immutable element, its components cannot be changed::
 
             sage: z = M.tensor_module(1, 1).zero()
             sage: z.set_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            ValueError: the components of an immutable element cannot be changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
-                                 "cannot be changed")
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         return self._set_comp_unsafe(basis)
 
@@ -1456,18 +1456,18 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display(e)
             t = -3 e_0*e^1 + 2 e_1*e^2
 
-        Since zero is a special element, its components cannot be changed::
+        Since zero is an immutable element, its components cannot be changed::
 
             sage: z = M.tensor_module(1, 1).zero()
             sage: z.add_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            ValueError: the components of an immutable element cannot be changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
-                                 "cannot be changed")
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         return self._add_comp_unsafe(basis)
 
@@ -1669,6 +1669,9 @@ class FreeModuleTensor(ModuleElement):
             False
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))
@@ -1678,11 +1681,17 @@ class FreeModuleTensor(ModuleElement):
             self._components[basis] = comp.copy()
         self._is_zero = other._is_zero
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.
 
         The name and the derived quantities are not copied.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -1712,6 +1721,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         resu = self._new_instance()
+        resu.set_name(name=name, latex_name=latex_name)
         for basis, comp in self._components.items():
              resu._components[basis] = comp.copy()
         resu._is_zero = self._is_zero
@@ -2187,6 +2197,15 @@ class FreeModuleTensor(ModuleElement):
         result = self._new_instance()
         for basis in self._components:
             result._components[basis] = other * self._components[basis]
+        # If other has a name, set the name of the result:
+        try:
+            from .format_utilities import format_mul_txt, format_mul_latex
+            result_name = format_mul_txt(other._name, '*', self._name)
+            result_latex = format_mul_latex(other._latex_name, r' \cdot ',
+                                            self._latex_name)
+            result.set_name(name=result_name, latex_name=result_latex)
+        except AttributeError:
+            pass
         return result
 
     ######### End of ModuleElement arithmetic operators ########
@@ -2247,7 +2266,7 @@ class FreeModuleTensor(ModuleElement):
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')
             sage: a[:] = [[4,0], [-2,5]]
-            sage: s = a.__div__(4) ; s
+            sage: s = a.__truediv__(4) ; s
             Type-(2,0) tensor on the 2-dimensional vector space M over the
              Rational Field
             sage: s[:]
@@ -2263,8 +2282,6 @@ class FreeModuleTensor(ModuleElement):
         for basis in self._components:
             result._components[basis] = self._components[basis] / other
         return result
-
-    __div__ = __truediv__
 
     def __call__(self, *args):
         r"""
@@ -2628,7 +2645,7 @@ class FreeModuleTensor(ModuleElement):
             sage: s == a[0]*b[0] + a[1]*b[1] + a[2]*b[2]  # check of the computation
             True
 
-        The positions of the contraction indices can be set explicitely::
+        The positions of the contraction indices can be set explicitly::
 
             sage: s == a.contract(0, b, 0)
             True

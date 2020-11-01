@@ -596,7 +596,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         sage: NP == NP2
         True
 
-    except if the contrary is explicitely mentioned::
+    except if the contrary is explicitly mentioned::
 
         sage: NewtonPolygon([0, 1, 1/2, 2/3, 1/2, 2/3, 1, 2/3], sort_slopes=False)
         Finite Newton polygon with 4 vertices: (0, 0), (1, 0), (6, 10/3), (8, 5)

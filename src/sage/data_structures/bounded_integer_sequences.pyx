@@ -108,7 +108,7 @@ AUTHORS:
 # ****************************************************************************
 
 from cysignals.signals cimport sig_check, sig_on, sig_off
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 
 from cpython.int cimport PyInt_FromSize_t
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -258,7 +258,7 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
 
 cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
     """
-    Returns the position in ``S`` of an item in ``S[start:]``, or -1 if
+    Return the position in ``S`` of an item in ``S[start:]``, or -1 if
     ``S[start:]`` does not contain the item.
 
     """
@@ -587,7 +587,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(16, [2, 7, -20])
         Traceback (most recent call last):
         ...
-        OverflowError: can't convert negative value to size_t
+        OverflowError: can...t convert negative value to size_t
         sage: BoundedIntegerSequence(1, [0, 0, 0])
         <0, 0, 0>
         sage: BoundedIntegerSequence(1, [0, 1, 0])
@@ -1239,9 +1239,9 @@ cdef class BoundedIntegerSequence:
 
     cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other):
         """
-        Returns ``self``'s maximal trailing sub-sequence that ``other`` starts with.
+        Return ``self``'s maximal trailing sub-sequence that ``other`` starts with.
 
-        Returns ``None`` if there is no overlap
+        Return ``None`` if there is no overlap.
 
         EXAMPLES::
 

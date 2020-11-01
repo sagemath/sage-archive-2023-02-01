@@ -25,8 +25,8 @@ Cython modules::
     sage: sage_getdoc(sage.rings.rational).lstrip()
     'Rational Numbers...'
 
-    sage: sage_getsource(sage.rings.rational)[5:]
-    'Rational Numbers...'
+    sage: sage_getsource(sage.rings.rational)
+    '# distutils: ...Rational Numbers...'
 
 Python modules::
 
@@ -114,15 +114,10 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 
-import six
-from six import iteritems, string_types, class_types
-from six.moves import range
-
 import ast
 import inspect
 import functools
 import os
-import sys
 import tokenize
 import re
 EMBEDDED_MODE = False
@@ -146,14 +141,8 @@ def loadable_module_extension():
         sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
         True
     """
-    if six.PY2:
-        if sys.platform == 'cygwin':
-            return os.path.extsep + 'dll'
-        else:
-            return os.path.extsep + 'so'
-    else:
-        # Return the full platform-specific extension module suffix
-        return import_machinery.EXTENSION_SUFFIXES[0]
+    # Return the full platform-specific extension module suffix
+    return import_machinery.EXTENSION_SUFFIXES[0]
 
 
 def isclassinstance(obj):
@@ -167,9 +156,9 @@ def isclassinstance(obj):
         sage: from sage.misc.sageinspect import isclassinstance
         sage: isclassinstance(int)
         False
-        sage: isclassinstance(FreeModule)
-        True
         sage: class myclass: pass
+        sage: isclassinstance(myclass())
+        True
         sage: isclassinstance(myclass)
         False
         sage: class mymetaclass(type): pass
@@ -377,12 +366,8 @@ def _getblock(lines):
     """
     blockfinder = BlockFinder()
     iter_lines = iter(lines)
-    if six.PY2:
-        tokenizer = tokenize.generate_tokens
-        readline = lambda: next(iter_lines)
-    else:
-        tokenizer = tokenize.tokenize
-        readline = lambda: next(iter_lines).encode('utf-8')
+    tokenizer = tokenize.tokenize
+    readline = lambda: next(iter_lines).encode('utf-8')
     try:
         for tok in tokenizer(readline):
             blockfinder.tokeneater(*tok)
@@ -413,7 +398,7 @@ def _extract_source(lines, lineno):
         raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
-    if isinstance(lines, string_types):
+    if isinstance(lines, str):
         lines = lines.splitlines(True) # true keeps the '\n'
     if len(lines):
         # Fixes an issue with getblock
@@ -441,9 +426,10 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         sage: sorted(v.items(), key=lambda x: str(x[0]))
         [(37.0, 'temp'), ('a', ('e', 2, [None, ({False: True}, 'pi')]))]
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
-        <_ast.Assign object at ...>
-        sage: [x for x in dir(v) if not x.startswith('__')]
-        ['_attributes', '_fields', 'col_offset', 'lineno', 'targets', 'value']
+        <...ast.Assign object at ...>
+        sage: attrs = [x for x in dir(v) if not x.startswith('__')]
+        sage: '_attributes' in attrs and '_fields' in attrs and 'col_offset' in attrs
+        True
         sage: visitor.visit(v.targets[0])
         'jc'
         sage: visitor.visit(v.value)
@@ -475,73 +461,64 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [type(vis(n)) for n in ['foo', 'bar']]  # py3
             [<type 'str'>, <type 'str'>]
         """
-        if six.PY2:
-            what = node.id
-            if what == 'None':
-                return None
-            elif what == 'True':
-                return True
-            elif what == 'False':
-                return False
         return node.id
 
-    if six.PY3:
-        def visit_NameConstant(self, node):
-            """
-            Visit a Python AST :class:`ast.NameConstant` node.
+    def visit_NameConstant(self, node):
+        """
+        Visit a Python AST :class:`ast.NameConstant` node.
 
-            This is an optimization added in Python 3.4 for the special cases
-            of True, False, and None.
+        This is an optimization added in Python 3.4 for the special cases
+        of True, False, and None.
 
-            INPUT:
+        INPUT:
 
-            - ``node`` - the node instance to visit
+        - ``node`` - the node instance to visit
 
-            OUTPUT:
+        OUTPUT:
 
-            - None, True, False.
+        - None, True, False.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import ast, sage.misc.sageinspect as sms  # py3
-                sage: visitor = sms.SageArgSpecVisitor()  # py3
-                sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
-                sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
-                [True, False, None]
-                sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
-                [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
-            """
+            sage: import ast, sage.misc.sageinspect as sms  # py3
+            sage: visitor = sms.SageArgSpecVisitor()  # py3
+            sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
+            sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
+            [True, False, None]
+            sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
+            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
+        """
 
-            return node.value
+        return node.value
 
-        def visit_arg(self, node):
-            r"""
-            Visit a Python AST :class:`ast.arg` node.
+    def visit_arg(self, node):
+        r"""
+        Visit a Python AST :class:`ast.arg` node.
 
-            This node type is only on Python 3, where function arguments are
-            more complex than just an identifier (e.g. they may also include
-            annotations).
+        This node type is only on Python 3, where function arguments are
+        more complex than just an identifier (e.g. they may also include
+        annotations).
 
-            For now we simply return the argument identifier as a string.
+        For now we simply return the argument identifier as a string.
 
-            INPUT:
+        INPUT:
 
-            - ``node`` -- the node instance to visit
+        - ``node`` -- the node instance to visit
 
-            OUTPUT:
+        OUTPUT:
 
-            the argument name
+        the argument name
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: import ast, sage.misc.sageinspect as sms  # py3
-                sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
-                sage: visitor = sms.SageArgSpecVisitor()  # py3
-                sage: args = ast.parse(s).body[0].args.args  # py3
-                sage: [visitor.visit_arg(n) for n in args]  # py3
-                ['a', 'b', 'c', 'd']
-            """
-            return node.arg
+            sage: import ast, sage.misc.sageinspect as sms  # py3
+            sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
+            sage: visitor = sms.SageArgSpecVisitor()  # py3
+            sage: args = ast.parse(s).body[0].args.args  # py3
+            sage: [visitor.visit_arg(n) for n in args]  # py3
+            ['a', 'b', 'c', 'd']
+        """
+        return node.arg
 
     def visit_Num(self, node):
         """
@@ -1104,13 +1081,9 @@ def _sage_getargspec_from_ast(source):
     args = [visitor.visit(a) for a in ast_args.args]
     defaults = [visitor.visit(d) for d in ast_args.defaults]
 
-    if six.PY2:
-        vararg = ast_args.vararg
-        kwarg = ast_args.kwarg
-    else:
-        # vararg and kwarg may be None
-        vararg = getattr(ast_args.vararg, 'arg', None)
-        kwarg = getattr(ast_args.kwarg, 'arg', None)
+    # vararg and kwarg may be None
+    vararg = getattr(ast_args.vararg, 'arg', None)
+    kwarg = getattr(ast_args.kwarg, 'arg', None)
 
     return inspect.ArgSpec(args, vararg, kwarg,
                            tuple(defaults) if defaults else None)
@@ -1456,7 +1429,7 @@ def sage_getargspec(obj):
         sage: from sage.rings.polynomial.real_roots import bernstein_polynomial_factory_ratlist
         sage: sage_getargspec(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
-        sage: from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+        sage: from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
         sage: sage_getargspec(BooleanMonomialMonoid.gen)
         ArgSpec(args=['self', 'i'], varargs=None, keywords=None, defaults=(0,))
         sage: I = P*[x,y]
@@ -1693,7 +1666,6 @@ def formatannotation(annotation, base_module=None):
         sage: import inspect
         sage: def foo(a, *, b:int, **kwargs): # py3
         ....:     pass
-        ....:
         sage: s = inspect.signature(foo) # py3
 
         sage: a = s.parameters['a'].annotation # py3
@@ -1752,10 +1724,8 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py2
-        True
-        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults) # py3
-        doctest:...: DeprecationWarning: `formatargspec` is deprecated since Python 3.5. Use `signature` and the `Signature` object directly
+        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
     def formatargandannotation(arg):
@@ -1922,7 +1892,7 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if isinstance(r, string_types):
+    if isinstance(r, str):
         return r
     else:
         # Not a string of any kind
@@ -1999,7 +1969,7 @@ def sage_getdoc_original(obj):
     """
     # typ is the type corresponding to obj, which is obj itself if
     # that was a type or old-style class
-    if isinstance(obj, class_types):
+    if isinstance(obj, type):
         typ = obj
     else:
         typ = type(obj)
@@ -2303,7 +2273,7 @@ def sage_getsourcelines(obj):
           '    def __cinit__(self):\n',
         ...)
         sage: sage_getsourcelines(I)
-        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...)
         sage: x = var('x')
         sage: sage_getsourcelines(x)
@@ -2348,7 +2318,7 @@ def sage_getsourcelines(obj):
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
         sage: sage_getsourcelines(I)
-        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
           '                        MPolynomialIdeal_macaulay2_repr, \\\n',
           '                        MPolynomialIdeal_magma_repr, \\\n',
           '                        Ideal_generic ):\n',
@@ -2511,7 +2481,7 @@ def sage_getvariablename(self, omit_underscore_names=True):
     """
     result = []
     for frame in inspect.stack():
-        for name, obj in iteritems(frame[0].f_globals):
+        for name, obj in frame[0].f_globals.items():
             if obj is self:
                 result.append(name)
     if len(result) == 1:

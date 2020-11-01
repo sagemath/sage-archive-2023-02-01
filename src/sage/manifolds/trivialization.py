@@ -271,7 +271,11 @@ class Trivialization(UniqueRepresentation, SageObject):
 
     def frame(self):
         r"""
-        Return the standard frame induced by ``self``.
+        Return the standard frame induced by ``self``. If `\psi` is a
+        trivialization then the corresponding frame can be obtained by the maps
+        `p \mapsto \psi^{-1}(p,e_i)`, where `(e_1, \ldots, e_n)` is the standard
+        basis of `K^n`. We briefly denote `(\psi^*e_i)` instead of
+        `\psi^{-1}(\cdot,e_i)`.
 
         .. SEEALSO::
 
@@ -661,9 +665,9 @@ class TransitionMap(SageObject):
             sage: phi_U_to_phi_V = phi_U.transition_map(phi_V, [[0,1],[1,0]])
             sage: matrix = phi_U_to_phi_V.matrix(); matrix
             [Scalar field zero on the Open subset W of the 2-dimensional
-             topological manifold S^2      Scalar field on the Open subset W of
-             the 2-dimensional topological manifold S^2]
-             [     Scalar field on the Open subset W of the 2-dimensional
+             topological manifold S^2      Scalar field 1 on the Open subset
+             W of the 2-dimensional topological manifold S^2]
+             [     Scalar field 1 on the Open subset W of the 2-dimensional
              topological manifold S^2 Scalar field zero on the Open subset W of
              the 2-dimensional topological manifold S^2]
 
@@ -674,11 +678,11 @@ class TransitionMap(SageObject):
                 (x, y) |--> 0
                 (u, v) |--> 0
             sage: matrix[0,1].display()
-            W --> R
+            1: W --> R
              (x, y) |--> 1
              (u, v) |--> 1
             sage: matrix[1,0].display()
-            W --> R
+            1: W --> R
              (x, y) |--> 1
              (u, v) |--> 1
             sage: matrix[1,1].display()

@@ -149,7 +149,7 @@ from cysignals.memory cimport check_reallocarray, sig_free
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
-from sage.structure.richcmp cimport richcmp
+from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 ############################################################################
 ###                         Basic clone elements                         ###
@@ -310,7 +310,7 @@ cdef class ClonableElement(Element):
 
     cpdef bint is_mutable(self):
         """
-        Returns ``True`` if ``self`` is mutable (can be changed) and ``False``
+        Return ``True`` if ``self`` is mutable (can be changed) and ``False``
         if it is not.
 
         To make this object immutable use ``self.set_immutable()``.
@@ -331,7 +331,7 @@ cdef class ClonableElement(Element):
 
     cpdef bint is_immutable(self):
         """
-        Returns ``True`` if ``self`` is immutable (can not be changed)
+        Return ``True`` if ``self`` is immutable (can not be changed)
         and ``False`` if it is not.
 
         To make ``self`` immutable use ``self.set_immutable()``.
@@ -417,7 +417,7 @@ cdef class ClonableElement(Element):
 
     cpdef ClonableElement clone(self, bint check=True):
         """
-        Returns a clone that is mutable copy of ``self``.
+        Return a clone that is mutable copy of ``self``.
 
         INPUT:
 
@@ -580,7 +580,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef list _get_list(self):
         """
-        Returns the list embedded in ``self``.
+        Return the list embedded in ``self``.
 
         .. warning:: No copy is performed. As a consequence, modifying the
            returned list is not allowed.
@@ -613,7 +613,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __len__(self):
         """
-        Returns the len of ``self``
+        Return the len of ``self``
 
         EXAMPLES::
 
@@ -625,7 +625,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __getitem__(self, key):
         """
-        Returns the ``key``-th element of ``self``
+        Return the ``key``-th element of ``self``
 
         It also works with slice returning a python list in this case.
 
@@ -723,7 +723,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __iter__(self):
         """
-        Returns an iterator for ``self``::
+        Return an iterator for ``self``::
 
         EXAMPLES::
 
@@ -760,7 +760,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef int index(self, x, start=None, stop=None) except -1:
         """
-        Returns the smallest ``k`` such that ``s[k] == x`` and ``i <= k < j``
+        Return the smallest ``k`` such that ``s[k] == x`` and ``i <= k < j``
 
         EXAMPLES::
 
@@ -784,7 +784,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef int count(self, key) except -1:
         """
-        Returns number of ``i``'s for which ``s[i] == key``
+        Return number of ``i``'s for which ``s[i] == key``
 
         EXAMPLES::
 
@@ -801,7 +801,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __hash__(self):
         """
-        Returns the hash value of ``self``.
+        Return the hash value of ``self``.
 
         TESTS::
 
@@ -847,7 +847,7 @@ cdef class ClonableArray(ClonableElement):
 
     cpdef ClonableArray __copy__(self):
         """
-        Returns a copy of ``self``
+        Return a copy of ``self``
 
         TESTS::
 
@@ -1331,7 +1331,8 @@ cdef class ClonableIntArray(ClonableElement):
             sage: IncreasingIntArrays()([1,2,3])
             [1, 2, 3]
         """
-        return '['+', '.join(["%i"%(self._list[i]) for i in range(self._len)])+']'
+        return '[' + ', '.join("%i" % self._list[i]
+                               for i in range(self._len)) + ']'
 
     def __nonzero__(self):
         """
@@ -1347,7 +1348,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __len__(self):
         """
-        Returns the len of ``self``
+        Return the len of ``self``
 
         EXAMPLES::
 
@@ -1399,7 +1400,7 @@ cdef class ClonableIntArray(ClonableElement):
 
     def __getitem__(self, key):
         """
-        Returns the ith element of ``self``
+        Return the ith element of ``self``
 
         EXAMPLES::
 
@@ -1577,7 +1578,7 @@ cdef class ClonableIntArray(ClonableElement):
         return self._hash
 
     # See protocol in comment in sage/structure/element.pyx
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         TESTS::
 
@@ -1600,14 +1601,14 @@ cdef class ClonableIntArray(ClonableElement):
         cdef int i, minlen, reslen
         cdef ClonableIntArray rgt = <ClonableIntArray>right
         if left is right:
-             return 0
+             return rich_to_bool(op, 0)
         if left._list is NULL:
             if rgt._list is NULL:
-                return 0
+                return rich_to_bool(op, 0)
             else:
-                return -1
+                return rich_to_bool(op, -1)
         elif rgt._list is NULL:
-            return 1
+            return rich_to_bool(op, 1)
         if left._len < rgt._len:
             minlen = left._len
             reslen = -1
@@ -1617,17 +1618,17 @@ cdef class ClonableIntArray(ClonableElement):
         else:
             minlen = rgt._len
             reslen = 0
-        for i from 0 <= i < minlen:
+        for i in range(minlen):
             if left._list[i] != rgt._list[i]:
                 if left._list[i] < rgt._list[i]:
-                    return -1
+                    return rich_to_bool(op, -1)
                 else:
-                    return 1
-        return reslen
+                    return rich_to_bool(op, 1)
+        return rich_to_bool(op, reslen)
 
     cpdef ClonableIntArray __copy__(self):
         """
-        Returns a copy of ``self``
+        Return a copy of ``self``
 
         TESTS::
 

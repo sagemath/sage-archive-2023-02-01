@@ -149,8 +149,6 @@ We can also make mutable copies of an immutable simplicial complex
     True
 """
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
 from operator import index as PyNumber_Index
 
 # possible future directions for SimplicialComplex:
@@ -775,7 +773,7 @@ class Simplex(SageObject):
         try:
             return sorted(self) < sorted(other)
         except TypeError:
-            return sorted(map(str,self)) < sorted(map(str, other))
+            return sorted(map(str, self)) < sorted(map(str, other))
 
     def __hash__(self):
         """
@@ -2943,7 +2941,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def generated_subcomplex(self, sub_vertex_set, is_mutable=True):
         """
-        Returns the largest sub-simplicial complex of ``self`` containing
+        Return the largest sub-simplicial complex of ``self`` containing
         exactly ``sub_vertex_set`` as vertices.
 
         :param sub_vertex_set: The sub-vertex set.
@@ -3616,9 +3614,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def delta_complex(self, sort_simplices=False):
         r"""
-        Returns ``self`` as a `\Delta`-complex.  The `\Delta`-complex
-        is essentially identical to the simplicial complex: it has
-        same simplices with the same boundaries.
+        Return ``self`` as a `\Delta`-complex.
+
+        The `\Delta`-complex is essentially identical to the
+        simplicial complex: it has same simplices with the same
+        boundaries.
 
         :param sort_simplices: if ``True``, sort the list of simplices in
           each dimension
@@ -3651,7 +3651,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def is_flag_complex(self):
         """
-        Returns ``True`` if and only if ``self`` is a flag complex.
+        Return ``True`` if and only if ``self`` is a flag complex.
 
         A flag complex is a simplicial complex that is the largest simplicial
         complex on its 1-skeleton. Thus a flag complex is the clique complex
@@ -4223,7 +4223,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             G = self.automorphism_group().subgroup(gens)
 
         invariant_f = [list(u) for u in self.face_iterator()
-                       if all(sorted([sigma(j) for j in u]) == sorted(list(u))
+                       if all(sorted(sigma(j) for j in u) == sorted(u)
                               for sigma in gens)]
         new_verts = [min(o) for o in G.orbits() if o in invariant_f]
         return SimplicialComplex([[s for s in f if s in new_verts]
@@ -4284,7 +4284,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: s._is_numeric()
             False
         """
-        return all(isinstance(v, integer_types + (Integer,))
+        return all(isinstance(v, (int, Integer))
                    for v in self.vertices())
 
     # @cached_method    when we switch to immutable SimplicialComplex
@@ -4713,9 +4713,10 @@ def facets_for_RP4():
                 facets.append(new)
     return facets
 
+
 def facets_for_K3():
     """
-    Returns the facets for a minimal triangulation of the K3 surface.
+    Return the facets for a minimal triangulation of the K3 surface.
 
     This is a pure simplicial complex of dimension 4 with 16
     vertices and 288 facets. The facets are obtained by constructing a

@@ -4,7 +4,7 @@ A single element of an ambient space of modular symbols
 from __future__ import absolute_import
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 
 import sage.modules.free_module_element
-import sage.misc.misc as misc
+from sage.misc.repr import repr_lincomb
 import sage.structure.formal_sum as formal_sum
 import sage.modular.hecke.all as hecke
 import sage.misc.latex as latex
@@ -144,7 +144,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             m = self.manin_symbol_rep()
         elif _print_mode == "modular":
             m = self.modular_symbol_rep()
-        return misc.repr_lincomb([(t,c) for c,t in m])
+        return repr_lincomb([(t,c) for c,t in m])
 
     def _latex_(self):
         r"""

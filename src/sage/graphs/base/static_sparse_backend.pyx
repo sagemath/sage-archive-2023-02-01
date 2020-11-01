@@ -46,7 +46,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
 from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -172,10 +172,10 @@ cdef class StaticSparseCGraph(CGraph):
         return 0 <= v and v < self.g.n
 
     cdef int add_vertex_unsafe(self, int v) except -1:
-        raise ValueError("thou shalt not add a vertex to an immutable graph")
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
     cdef int del_vertex_unsafe(self, int v) except -1:
-        raise ValueError("thou shalt not remove a vertex from an immutable graph")
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
     def add_vertex(self, int k):
         r"""
@@ -188,7 +188,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g.add_vertex(45)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not add a vertex to an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         self.add_vertex_unsafe(k)
 
@@ -203,7 +203,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g.del_vertex(45)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not remove a vertex from an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         self.del_vertex_unsafe(k)
 
@@ -220,7 +220,10 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return list(range(self.g.n))
 
-    cdef int has_arc_unsafe(self, int u, int v) except -1:
+    cdef int has_arc_label_unsafe(self, int u, int v, int l) except -1:
+        """
+        Label is ignored.
+        """
         return ((0 <= u) and
                 (0 <= v) and
                 (u < self.g.n) and
@@ -500,6 +503,81 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         return v in self._vertex_to_int
 
+    def add_edge(self, u, v, l, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.add_edge(1,2,3,True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def add_edges(self, edges, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.add_edges([[1, 2]], True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def add_vertices(self, vertices):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.add_vertices([1, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def del_edge(self, u, v, l, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.set_edge_label(1,2,3,True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def set_edge_label(self, u, v, l, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.set_edge_label(1,2,3,True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
     def relabel(self, perm, directed):
         r"""
         Relabel the graphs' vertices. No way.
@@ -511,10 +589,9 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g.relabel([],True)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not relabel an immutable graph
-
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
-        raise ValueError("thou shalt not relabel an immutable graph")
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
     def get_edge_label(self, object u, object v):
         """
@@ -906,6 +983,8 @@ cdef class StaticSparseBackend(CGraphBackend):
                 else:
                     yield vi, self._vertex_to_labels[j]
 
+    iterator_unsorted_edges = iterator_edges
+
     def degree(self, v, directed):
         r"""
         Return the degree of a vertex
@@ -1138,11 +1217,11 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g.add_vertex(1)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not add a vertex to an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
             sage: g.add_vertices([1,2,3])
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not add a vertex to an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         (<StaticSparseCGraph> self._cg).add_vertex(v)
 
@@ -1156,11 +1235,11 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g.delete_vertex(1)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not remove a vertex from an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
             sage: g.delete_vertices([1,2,3])
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not remove a vertex from an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         (<StaticSparseCGraph> self._cg).del_vertex(v)
 

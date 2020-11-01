@@ -1,3 +1,5 @@
+# distutils: libraries = mtx
+# sage_setup: distribution = sage-meataxe
 r"""
 Dense Matrices over `\mathbb F_q`, with `q<255`.
 
@@ -52,6 +54,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
+from sage.structure.richcmp import rich_to_bool
 from .args cimport MatrixArgs_init
 
 from libc.string cimport memset, memcpy
@@ -117,6 +120,7 @@ cdef class FieldConverter_class:
             <sage.matrix.matrix_gfpn_dense.FieldConverter_class object at ...>
         """
         self.field = field._cache.fetch_int
+        self.zero_FEL = self.field_to_fel(field.zero())
 
     cpdef fel_to_field(self, FEL x):
         """
@@ -574,6 +578,21 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         # This method is here for speed!
         return FfToInt(FfExtract(MatGetPtr(self.Data,i), j))
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: F.<z> = GF(9)
+            sage: M = MatrixSpace(F,2,5)(sorted(list(F))+[0])
+            sage: M.zero_pattern_matrix()  # indirect doctest
+            [1 0 0 0 0]
+            [0 0 0 0 1]
+        """
+        FfSetField(self.Data.Field)
+        return FfExtract(MatGetPtr(self.Data,i), j) == self._converter.zero_FEL
+
     cpdef Matrix_gfpn_dense get_slice(self, Py_ssize_t i, Py_ssize_t j):
         """
         Return a horizontal slice of this matrix.
@@ -799,11 +818,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 ##################
 ## comparison
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare two :class:`Matrix_gfpn_dense` matrices.
 
-        Of course, '<' and '>' doesn't make much sense for matrices.
+        Of course, '<' and '>' do not make much sense for matrices.
 
         EXAMPLES::
 
@@ -824,26 +843,26 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense self = left
         cdef Matrix_gfpn_dense N = right
         if self is None or N is None:
-            return -1
+            return rich_to_bool(op, -1)
         if self.Data == NULL:
             if N.Data == NULL:
-                return 0
+                return rich_to_bool(op, 0)
             else:
-                return 1
+                return rich_to_bool(op, 1)
         elif N.Data == NULL:
-            return -1
+            return rich_to_bool(op, -1)
         if self.Data.Field != N.Data.Field:
             if self.Data.Field > N.Data.Field:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
         if self.Data.Noc != N.Data.Noc:
             if self.Data.Noc > N.Data.Noc:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
         if self.Data.Nor != N.Data.Nor:
             if self.Data.Nor > N.Data.Nor:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
 
         cdef char* d1 = <char*>self.Data.Data
         cdef char* d2 = <char*>N.Data.Data
@@ -854,9 +873,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         s2 = PyBytes_FromStringAndSize(d2, total_size)
         if s1 != s2:
             if s1 > s2:
-                return 1
-            return -1
-        return 0
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
     cpdef list _rowlist_(self, i, j=-1):
         """
@@ -1389,7 +1408,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sig_off()
         return new_mtx(mat, self)
 
-    def __div__(Matrix_gfpn_dense self, p):
+    def __truediv__(Matrix_gfpn_dense self, p):
         """
         Divide a matrix by a scalar.
 

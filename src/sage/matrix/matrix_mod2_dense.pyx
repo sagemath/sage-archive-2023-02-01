@@ -1,5 +1,10 @@
+# -*- coding: utf-8 -*-
+# distutils: libraries = M4RI_LIBRARIES GDLIB_LIBRARIES LIBPNG_LIBRARIES ZLIB_LIBRARIES
+# distutils: library_dirs = M4RI_LIBDIR GDLIB_LIBDIR LIBPNG_LIBDIR ZLIB_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR GDLIB_INCDIR LIBPNG_INCDIR ZLIB_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 """
-Dense matrices over GF(2) using the M4RI library.
+Dense matrices over GF(2) using the M4RI library
 
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
@@ -111,9 +116,11 @@ from sage.structure.element cimport (Matrix, Vector,
 from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.misc.misc import verbose, get_verbose, cputime
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose, get_verbose
 from sage.modules.free_module import VectorSpace
 from sage.modules.vector_mod2_dense cimport Vector_mod2_dense
+from sage.structure.richcmp cimport rich_to_bool
 from sage.cpython.string cimport bytes_to_str, char_to_str, str_to_bytes
 from sage.cpython.string import FS_ENCODING
 
@@ -332,27 +339,44 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return self._zero
 
 
-    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
+    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
+            *, unicode=False, shape=None, character_art=False):
         r"""
         Return a nice string representation of the matrix.
 
         INPUT:
 
-        - ``rep_mapping`` - a dictionary or callable used to override
+        - ``rep_mapping`` -- a dictionary or callable used to override
           the usual representation of elements.  For a dictionary,
           keys should be elements of the base ring and values the
           desired string representation.
 
-        - ``zero`` - string (default: ``None``); if not ``None`` use
+        - ``zero`` -- string (default: ``None``); if not ``None`` use
           the value of ``zero`` as the representation of the zero
           element.
 
-        - ``plus_one`` - string (default: ``None``); if not ``None``
+        - ``plus_one`` -- string (default: ``None``); if not ``None``
           use the value of ``plus_one`` as the representation of the
           one element.
 
-        - ``minus_one`` - Ignored.  Only for compatibility with
+        - ``minus_one`` -- Ignored.  Only for compatibility with
           generic matrices.
+
+        - ``unicode`` -- boolean (default: ``False``).
+          Whether to use Unicode symbols instead of ASCII symbols
+          for brackets and subdivision lines.
+
+        - ``shape`` -- one of ``"square"`` or ``"round"`` (default: ``None``).
+          Switches between round and square brackets.
+          The default depends on the setting of the ``unicode`` keyword
+          argument. For Unicode symbols, the default is round brackets
+          in accordance with the TeX rendering,
+          while the ASCII rendering defaults to square brackets.
+
+        - ``character_art`` -- boolean (default: ``False``); if ``True``, the
+          result will be of type :class:`~sage.typeset.ascii_art.AsciiArt` or
+          :class:`~sage.typeset.unicode_art.UnicodeArt` which support line
+          breaking of wide matrices that exceed the window width
 
         EXAMPLES::
 
@@ -371,7 +395,29 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0 0|0 0 0]
             sage: B.str(zero='.')
             '[. 1 .]\n[. 1 1]\n[. . .]'
+
+            sage: M = matrix.identity(GF(2), 3)
+            sage: M.subdivide(None, 2)
+            sage: print(M.str(unicode=True, shape='square'))
+            ⎡1 0│0⎤
+            ⎢0 1│0⎥
+            ⎣0 0│1⎦
+            sage: print(unicode_art(M))  # indirect doctest
+            ⎛1 0│0⎞
+            ⎜0 1│0⎟
+            ⎝0 0│1⎠
         """
+        # Set the mapping based on keyword arguments
+        # We ignore minus_one (it's only there for compatibility with Matrix)
+        if (rep_mapping is not None or zero is not None or plus_one is not None
+                or unicode or shape is not None or character_art):
+            # Shunt mappings off to the generic code since they might not be
+            # single characters
+            return matrix_dense.Matrix_dense.str(self, rep_mapping=rep_mapping,
+                                                 zero=zero, plus_one=plus_one,
+                                                 unicode=unicode, shape=shape,
+                                                 character_art=character_art)
+
         if self._nrows == 0 or self._ncols == 0:
             return "[]"
 
@@ -380,12 +426,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         empty_row = b' '*(self._ncols*2-1)
         cdef char *row_s
         cdef char *div_s
-
-        # Set the mapping based on keyword arguments
-        # We ignore minus_one (it's only there for compatibility with Matrix)
-        if rep_mapping is not None or zero is not None or plus_one is not None:
-        # Shunt mappings off to the generic code since they might not be single characters
-            return matrix_dense.Matrix_dense.str(self, rep_mapping=rep_mapping, zero=zero, plus_one=plus_one)
 
         cdef list row_div, col_div
         if self._subdivisions is not None:
@@ -477,7 +517,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * def _pickle
     #   * def _unpickle
     #   * cdef _mul_
-    #   * cpdef _cmp_
+    #   * cpdef _richcmp_
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
@@ -518,7 +558,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0, alloc=False)
         if self._nrows == 0 or self._ncols == 0:
             return A
-        A._entries = mzd_add(NULL, self._entries,(<Matrix_mod2_dense>right)._entries)
+        A._entries = mzd_add(A._entries, self._entries,(<Matrix_mod2_dense>right)._entries)
 
         return A
 
@@ -560,20 +600,18 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef mzd_t *tmp
+        VS = VectorSpace(self._base_ring, self._nrows)
         if not isinstance(v, Vector_mod2_dense):
-            M = VectorSpace(self._base_ring, self._nrows)
-            v = M(v)
+            v = VS(v)
         if self.ncols() != v.degree():
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
-        VS = VectorSpace(self._base_ring, self._nrows)
         # If the vector is 0-dimensional, the result will be the 0-vector
         if not self.ncols():
             return VS.zero()
         cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         sig_str("matrix allocation failed")
         c._init(self._nrows, VS)
-        c._entries = mzd_init(1, self._nrows)
         if c._entries.nrows and c._entries.ncols:
             tmp = mzd_init(self._nrows, 1)
             _mzd_mul_naive(tmp, self._entries, (<Vector_mod2_dense>v)._entries, 0)
@@ -857,7 +895,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0, alloc = False)
         sig_on()
-        A._entries = mzd_inv_m4ri(NULL, self._entries, 0)
+        A._entries = mzd_inv_m4ri(A._entries, self._entries, 0)
         sig_off()
 
         if A._entries==NULL:
@@ -1373,9 +1411,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A.subdivide(*self.subdivisions())
         return A
 
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
-        Compares ``self`` with ``right``. While equality and
+        Compare ``self`` with ``right``.
+
+        While equality and
         inequality are clearly defined, ``<`` and ``>`` are not.  For
         those first the matrix dimensions of ``self`` and ``right``
         are compared. If these match then ``<`` means that there is a
@@ -1400,9 +1440,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             False
         """
         if self._nrows == 0 or self._ncols == 0:
-            return 0
-        return mzd_cmp(self._entries, (<Matrix_mod2_dense>right)._entries)
-
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, mzd_cmp(self._entries,
+                                        (<Matrix_mod2_dense>right)._entries))
 
     def augment(self, right, subdivide=False):
         r"""

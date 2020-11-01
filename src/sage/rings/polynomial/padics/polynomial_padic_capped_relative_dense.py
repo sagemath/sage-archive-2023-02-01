@@ -8,7 +8,6 @@ p-adic Capped Relative Dense Polynomials
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 import sage.rings.polynomial.polynomial_element_generic
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -20,8 +19,6 @@ import sage.rings.padics.misc as misc
 import sage.rings.padics.precision_error as precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
-from sage.structure.element import coerce_binop
-import six
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
@@ -54,6 +51,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             sage: R(f.dict())
             0
 
+        Check that :trac:`29829` has been fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: f = x + 5
+            sage: S.<y> = PolynomialRing(Qp(5))
+            sage: g2 = S(f)
+            sage: 25*g2
+            (5^2 + O(5^22))*y + 5^3 + O(5^23)
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._polygon = None
@@ -94,7 +99,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                     self._adjust_prec_info(absprec, relprec)
                 return
             elif x.base_ring() is ZZ:
-                self._poly = x
+                self._poly = PolynomialRing(ZZ, parent.variable_name())(x)
                 self._valbase = Integer(0)
                 p = parentbr.prime()
                 self._relprecs = [c.valuation(p) + parentbr.precision_cap() for c in x.list()]
@@ -111,7 +116,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             zero = parentbr.zero()
             n = max(x.keys()) if x else 0
             v = [zero] * (n + 1)
-            for i, z in six.iteritems(x):
+            for i, z in x.items():
                 v[i] = z
             x = v
         elif isinstance(x, pari_gen):
@@ -217,9 +222,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             self._list = []
         polylist = self._poly.list()
         polylen = len(polylist)
-        self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
-                     + [self.base_ring()(0, absprec = self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
-        while len(self._list) > 0 and self._list[-1]._is_exact_zero():
+        self._list = [self.base_ring()(polylist[i], absprec=self._relprecs[i]) << self._valbase for i in range(polylen)] \
+                     + [self.base_ring()(0, absprec=self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
+        while self._list and self._list[-1]._is_exact_zero():
             self._list.pop()
 
     def _comp_valaddeds(self):
@@ -753,11 +758,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         - secure  -- a boolean (default: ``False``)
 
         If ``secure`` is ``True`` and the degree of this polynomial
-        is not determined (because the leading coefficient is 
+        is not determined (because the leading coefficient is
         indistinguishable from 0), an error is raised.
 
-        If ``secure`` is ``False``, the returned value is the largest 
-        $n$ so that the coefficient of $x^n$ does not compare equal 
+        If ``secure`` is ``False``, the returned value is the largest
+        $n$ so that the coefficient of $x^n$ does not compare equal
         to $0$.
 
         EXAMPLES::
@@ -1120,52 +1125,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
     #def lcm(self, right):
     #    raise NotImplementedError
 
-    @coerce_binop
-    def xgcd(self, right):
-        """
-        Extended gcd of ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- an element with the same parent as ``self``
-
-        OUTPUT:
-
-        Polynomials ``g``, ``u``, and ``v`` such that ``g = u*self + v*other``
-
-        .. WARNING::
-
-            The computations are performed using the standard Euclidean
-            algorithm which might produce mathematically incorrect results in
-            some cases. See :trac:`13439`.
-
-        EXAMPLES::
-
-            sage: R.<x> = Qp(3,3)[]
-            sage: f = x + 1
-            sage: f.xgcd(f^2)
-            ((1 + O(3^3))*x + 1 + O(3^3), 1 + O(3^3), 0)
-
-        In these examples the results are incorrect, see :trac:`13439`::
-
-            sage: R.<x> = Qp(3,3)[]
-            sage: f = 3*x + 7
-            sage: g = 5*x + 9
-            sage: f.xgcd(f*g)  # known bug
-            ((3 + O(3^4))*x + (1 + 2*3 + O(3^3)), (1 + O(3^3)), 0)
-
-            sage: R.<x> = Qp(3)[]
-            sage: f = 490473657*x + 257392844/729
-            sage: g = 225227399/59049*x - 8669753175
-            sage: f.xgcd(f*g)  # known bug
-            ((3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 2*3^10 + 2*3^11 + 3^12 + 3^13 + 3^15 + 2*3^16 + 3^18 + O(3^23))*x + (2*3^-6 + 2*3^-5 + 3^-3 + 2*3^-2 + 3^-1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 3^11 + O(3^14)), (1 + O(3^20)), 0)
-
-        """
-        from sage.misc.stopgap import stopgap
-        stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
-
-        return Polynomial_generic_cdv.xgcd(self,right)
-
     #def discriminant(self):
     #    raise NotImplementedError
 
@@ -1264,7 +1223,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             ...
             PrecisionError: Not enough precision on the constant coefficient
 
-            sage: g = R([5,K(0,0),0,1]); g 
+            sage: g = R([5,K(0,0),0,1]); g
             (1 + O(5^20))*t^3 + O(5^0)*t + 5 + O(5^21)
             sage: g.is_eisenstein()
             True
@@ -1293,7 +1252,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         for i in range(1, deg):
             if relprecs[i] < compval:   # not enough precision
                 if valaddeds[i] < relprecs[i]: return False
-                if secure: 
+                if secure:
                     if i == 1:
                         raise PrecisionError("Not enough precision on the coefficient of %s" % self.variable_name())
                     else:

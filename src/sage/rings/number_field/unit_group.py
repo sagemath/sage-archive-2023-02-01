@@ -15,12 +15,12 @@ The first generator is a primitive root of unity in the field::
     sage: UK.gens_values()  # random
     [-1/12*a^3 + 1/6*a, 1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
     sage: UK.gen(0).value()
-    -1/12*a^3 + 1/6*a
+    1/12*a^3 - 1/6*a
 
     sage: UK.gen(0)
     u0
     sage: UK.gen(0) + K.one()   # coerce abstract generator into number field
-    -1/12*a^3 + 1/6*a + 1
+    1/12*a^3 - 1/6*a + 1
 
     sage: [u.multiplicative_order() for u in UK.gens()]
     [4, +Infinity]
@@ -37,18 +37,18 @@ as elements of an abstract multiplicative group::
     sage: UK(-1)
     u0^2
     sage: [UK(u) for u in (x^4-1).roots(K, multiplicities=False)]
-    [1, u0^2, u0^3, u0]
+    [1, u0^2, u0, u0^3]
 
     sage: UK.fundamental_units() # random
     [1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
     sage: torsion_gen = UK.torsion_generator();  torsion_gen
     u0
     sage: torsion_gen.value()
-    -1/12*a^3 + 1/6*a
+    1/12*a^3 - 1/6*a
     sage: UK.zeta_order()
     4
     sage: UK.roots_of_unity()
-    [-1/12*a^3 + 1/6*a, -1, 1/12*a^3 - 1/6*a, 1]
+    [1/12*a^3 - 1/6*a, -1, -1/12*a^3 + 1/6*a, 1]
 
 Exp and log functions provide maps between units as field elements and exponent
 vectors with respect to the generators::
@@ -82,7 +82,7 @@ S-unit groups may be constructed, where S is a set of primes::
     sage: SUK.rank()
     4
     sage: SUK.gens_values()
-    [-1, a^2 + 1, a^5 + a^4 - a^2 - a - 1, a + 1, -a + 1]
+    [-1, a^2 + 1, -a^5 - a^4 + a^2 + a + 1, a + 1, a - 1]
     sage: u = 9*prod(SUK.gens_values()); u
     -18*a^5 - 18*a^4 - 18*a^3 - 9*a^2 + 9*a + 27
     sage: SUK.log(u)

@@ -5,3 +5,6 @@ sage -t --optional="sage,database_knotinfo" databases/knotinfo_db.py  || sdh_die
 
 echo "Testing knots/knotinfo.py"
 sage -t --optional="sage,database_knotinfo" knots/knotinfo.py  || sdh_die "Error testing KnotInfo funcionality"
+
+echo "Testing knots/link.py"
+sage -t --optional="sage,database_knotinfo" knots/link.py  || sdh_die "Error testing KnotInfo funcionality"

@@ -8785,7 +8785,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda X: p.sum(flow[uu,vv] for uu,vv in g.outgoing_edge_iterator([X], labels=None))
 
-            # The flow to be considered when defining the capacity contraints
+            # The flow to be considered when defining the capacity constraints
             capacity_sum = lambda u,v: flow[u,v]
 
         else:
@@ -8795,7 +8795,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda X: p.sum(flow[X,vv] for vv in g[X])
 
-            # The flow to be considered when defining the capacity contraints
+            # The flow to be considered when defining the capacity constraints
             capacity_sum = lambda u,v: flow[u,v] + flow[v,u]
 
         # Maximizes the flow leaving x
@@ -9331,7 +9331,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda i,X: p.sum(flow[i,(uu,vv)] for uu,vv in g.outgoing_edge_iterator([X], labels=None))
 
-            # the flow to consider when defining the capacity contraints
+            # the flow to consider when defining the capacity constraints
             capacity_sum = lambda i,u,v: flow[i,(u,v)]
 
         else:
@@ -9341,7 +9341,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda i, X: p.sum(flow[i,(X,vv)] for vv in g.neighbor_iterator(X))
 
-            # the flow to consider when defining the capacity contraints
+            # the flow to consider when defining the capacity constraints
             capacity_sum = lambda i,u,v: flow[i,(u,v)] + flow[i,(v,u)]
 
 
@@ -11822,10 +11822,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertices`` -- object (default: ``None``); a vertex, a list of
           vertices or ``None``
 
-        - ``labels`` -- boolean (defaul: ``True``); if ``False``, each edge is a
-           tuple `(u,v)` of vertices
+        - ``labels`` -- boolean (default: ``True``); if ``False``, each edge is
+           a tuple `(u,v)` of vertices
 
-        - ``ignore_direction`` -- boolean (defaul: ``False``); only applies to
+        - ``ignore_direction`` -- boolean (default: ``False``); only applies to
            directed graphs. If ``True``, searches across edges in either
            direction.
 
@@ -18028,7 +18028,7 @@ class GenericGraph(GenericGraph_pyx):
         `(v, x)` is an edge of other.
 
         The tensor product is also known as the categorical product and the
-        kronecker product (refering to the kronecker matrix product). See
+        kronecker product (referring to the kronecker matrix product). See
         the :wikipedia:`Kronecker_product`.
 
         EXAMPLES::

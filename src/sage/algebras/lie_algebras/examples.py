@@ -44,6 +44,7 @@ from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieA
 assert VirasoroAlgebra
 assert RankTwoHeisenbergVirasoro
 assert OnsagerAlgebra
+assert SymplecticDerivation
 assert Affine
 assert gl
 assert ClassicalMatrix

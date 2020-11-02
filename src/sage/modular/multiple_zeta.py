@@ -1255,7 +1255,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
     Secondary class for the algebra of multiple zeta values.
 
     This is used to represent multiple zeta values as iterated integrals
-    of the differential forms `\omega_0 = dt/t`and `\omega_1 = dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t` and `\omega_1 = dt/(t-1)`.
 
     EXAMPLES::
 
@@ -1844,7 +1844,7 @@ class All_iterated(CombinatorialFreeModule):
 
     This is used to represent multiple zeta values as possibly
     divergent iterated integrals
-    of the differential forms `\omega_0 = dt/t`and `\omega_1 = dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t` and `\omega_1 = dt/(t-1)`.
 
     This means that the elements are symbols
     `I(a_0 ; a_1,a_2,...a_n ; a_{n+1})`

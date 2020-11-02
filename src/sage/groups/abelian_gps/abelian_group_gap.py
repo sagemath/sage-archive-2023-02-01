@@ -830,7 +830,10 @@ class AbelianGroupQuotient_gap(AbelianGroup_gap):
     r"""
     Quotients of abelian groups by a subgroup.
 
-    Do not call this directly. Instead use :meth:`quotient`.
+
+    .. NOTE::
+
+        Do not call this directly. Instead use :meth:`quotient`.
 
     EXAMPLES::
 

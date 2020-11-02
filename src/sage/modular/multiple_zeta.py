@@ -455,7 +455,7 @@ class MultizetaValues(UniqueRepresentation):
         """
         self.prec = int(prec)
         self.max_weight = int(max_weight)
-        self._data = pari.zetamultall(self.max_weight, self.prec)
+        self._data = pari.zetamultall(self.max_weight, precision=self.prec)
 
     def update(self, max_weight, prec):
         """

@@ -1801,7 +1801,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError("L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K))
 
         rnf_data = K.pari_rnfnorm_data(L, proof=proof)
-        x, q = self.__pari__().rnfisnorm(rnf_data)
+        x, q = pari.rnfisnorm(rnf_data, self)
         return L(x, check=False), K(q, check=False)
 
     def _mpfr_(self, R):

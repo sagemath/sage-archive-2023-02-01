@@ -1120,12 +1120,23 @@ class Multizetas(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from sage.modular.multiple_zeta import Multizetas_iterated
                 sage: M = Multizeta
                 sage: M(2,2,2) != M(6)
                 True
             """
             return not (self == other)
+
+        def __hash__(self):
+            """
+            Return the hash of ``self``.
+
+            EXAMPLES::
+
+                sage: M = Multizeta
+                sage: hash(M(1,2)) != hash(M(6))
+                True
+            """
+            return hash(self.iterated().phi())
 
         def phi(self):
             """

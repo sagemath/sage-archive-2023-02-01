@@ -17,15 +17,14 @@ AUTHORS:
       curves are done).
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import, print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import copy
 import os
@@ -174,9 +173,11 @@ class Dokchitser(SageObject):
     """
 
     __gp = None
-    __globals = set()  # set of global variables defined in a run of the
-                       # computel.gp script that are replaced by indexed copies
-                       # in the computel.gp.template
+    __globals = set()
+    # set of global variables defined in a run of the
+    # computel.gp script that are replaced by indexed copies
+    # in the computel.gp.template
+
     __globals_re = None
     __instance = 0  # Monotonically increasing unique instance ID
     __n_instances = 0  # Number of currently allocated instances
@@ -191,9 +192,9 @@ class Dokchitser(SageObject):
         cls.__instance += 1
         return inst
 
-    def __init__(self, conductor, gammaV, weight, eps, \
-                       poles=[], residues='automatic', prec=53,
-                       init=None):
+    def __init__(self, conductor, gammaV, weight, eps,
+                 poles=None, residues='automatic', prec=53,
+                 init=None):
         """
         Initialization of Dokchitser calculator EXAMPLES::
 
@@ -205,7 +206,7 @@ class Dokchitser(SageObject):
         self.gammaV = gammaV
         self.weight = weight
         self.eps = eps
-        self.poles = poles
+        self.poles = poles if poles is not None else []
         self.residues = residues
         self.prec = prec
         self.__CC = ComplexField(self.prec)

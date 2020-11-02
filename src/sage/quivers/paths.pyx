@@ -218,7 +218,8 @@ cdef class QuiverPath(MonoidElement):
         if not self._path.length:
             return 'e_{0}'.format(self._start)
         L = self._parent._labels
-        return '*'.join([L[biseq_getitem(self._path, i)] for i in range(self._path.length)])
+        return '*'.join(L[biseq_getitem(self._path, i)]
+                        for i in range(self._path.length))
 
     def __len__(self):
         """

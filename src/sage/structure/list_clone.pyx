@@ -1331,7 +1331,8 @@ cdef class ClonableIntArray(ClonableElement):
             sage: IncreasingIntArrays()([1,2,3])
             [1, 2, 3]
         """
-        return '['+', '.join(["%i"%(self._list[i]) for i in range(self._len)])+']'
+        return '[' + ', '.join("%i" % self._list[i]
+                               for i in range(self._len)) + ']'
 
     def __nonzero__(self):
         """

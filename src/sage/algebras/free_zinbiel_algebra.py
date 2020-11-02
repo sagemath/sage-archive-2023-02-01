@@ -390,7 +390,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             Z[bab] # Z[]
         """
         TS = self.tensor_square()
-        return TS.sum_of_terms([((w[:i], w[i:]), 1)
+        one = self.base_ring().one()
+        return TS.sum_of_terms([((w[:i], w[i:]), one)
                                 for i in range(len(w) + 1)], distinct=True)
 
     def counit(self, S):

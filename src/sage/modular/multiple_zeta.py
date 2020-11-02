@@ -1050,6 +1050,34 @@ class Multizetas(CombinatorialFreeModule):
             """
             return self.parent().iterated(self)
 
+        def single_valued(self):
+            """
+            Return the single valued version of ``self``.
+
+            EXAMPLES::
+
+                sage: M = Multizetas(QQ)
+                sage: x = M((2,))
+                sage: x.single_valued()
+                0
+                sage: x = M((3,))
+                sage: x.single_valued()
+                2*ζ(3)
+                sage: x = M((5,))
+                sage: x.single_valued()
+                2*ζ(5)
+                sage: x = M((2,3))
+                sage: x.single_valued()
+                -11*ζ(5)
+            """
+            phi_im = self.phi()
+            zin = phi_im.parent()
+            BR2 = zin.base_ring()
+            sv = zin.sum_of_terms((w, BR2(cf(0)))
+                                  for (a, b), cf in phi_im.coproduct()
+                                  for w in a.shuffle(b))
+            return rho_inverse(sv)
+
         def simplify(self):
             """
             Gather terms using the duality relations.
@@ -2545,6 +2573,8 @@ def rho_inverse(elt):
         ζ(3)
         sage: rho_inverse(f(9))
         ζ(9)
+        sage: rho_inverse(f(5)*f(3))
+        -1/5*ζ(3,5)
     """
     pa = elt.parent()
     BR = pa.base_ring().base_ring()

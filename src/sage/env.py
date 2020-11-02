@@ -424,6 +424,8 @@ def cython_aliases():
 
     aliases["LINUX_NOEXECSTACK"] = uname_specific("Linux", ["-Wl,-z,noexecstack"],
                                                   [])
+    aliases["CYGWIN_SQLITE3_LIBS"] = uname_specific("CYGWIN", ["sqlite3"],
+                                                    [])
 
     # LinBox needs special care because it actually requires C++11 with
     # GNU extensions: -std=c++11 does not work, you need -std=gnu++11

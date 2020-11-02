@@ -39,7 +39,7 @@ def fglm(I, from_ring, to_ring):
 
 def vars_real_divisors(monomial, monomial_set):
     r"""
-    Return all elements of of monomial_set, which result multiplied by a variable in monomial.
+    Returns all elements of of monomial_set, which result multiplied by a variable in monomial.
 
     TESTS::
 
@@ -60,7 +60,7 @@ def vars_real_divisors(monomial, monomial_set):
 
 def m_k_plus_one(completed_elements, variables):
     r"""
-    Calculate $m_{k+1}$ from the FGLM algorithm as described in Wichmanns diploma thesis
+    Calculates $m_{k+1}$ from the FGLM algorithm as described in Wichmanns diploma thesis
 
     It would be nice to be able to efficiently extract the smallest term of a polynomial.
 

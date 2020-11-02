@@ -1053,7 +1053,7 @@ class Multizetas(CombinatorialFreeModule):
 
         def single_valued(self):
             """
-            Return the single valued version of ``self``.
+            Return the single-valued version of ``self``.
 
             EXAMPLES::
 
@@ -1225,7 +1225,7 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M((3,)).n(digits=10)
                 1.202056903
 
-            If you need plan to use intensively numerical approximation at high precision,
+            If you plan to use intensively numerical approximation at high precision,
             you might want to add more values and/or accuracy to the cache::
 
                 sage: from sage.modular.multiple_zeta import MultizetaValues
@@ -1255,7 +1255,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
     Secondary class for the algebra of multiple zeta values.
 
     This is used to represent multiple zeta values as iterated integrals
-    of the differential forms `\omega_0 = \dt/t`and `\omega_1 = \dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t`and `\omega_1 = dt/(t-1)`.
 
     EXAMPLES::
 
@@ -1844,15 +1844,15 @@ class All_iterated(CombinatorialFreeModule):
 
     This is used to represent multiple zeta values as possibly
     divergent iterated integrals
-    of the differential forms `\omega_0 = \dt/t`and `\omega_1 = \dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t`and `\omega_1 = dt/(t-1)`.
 
     This means that the elements are symbols
-    `I(a_0 ; a_1,a_2,...a_m ; a_{n+1})`
+    `I(a_0 ; a_1,a_2,...a_n ; a_{n+1})`
     where all arguments, including the starting and ending points
     can be 0 or 1.
 
     This comes with a "regularise" method mapping
-    to :class:`Multizeta_iterated`.
+    to :class:`Multizetas_iterated`.
 
     EXAMPLES::
 
@@ -2104,7 +2104,7 @@ class All_iterated(CombinatorialFreeModule):
     class Element(CombinatorialFreeModule.Element):
         def conversion(self):
             """
-            Conversion to the :class:`Multizeta_iterated`.
+            Conversion to the :class:`Multizetas_iterated`.
 
             This assumed that the element has been prepared.
 
@@ -2126,7 +2126,7 @@ class All_iterated(CombinatorialFreeModule):
 
         def regularise(self):
             """
-            Conversion to the :class:`Multizeta_iterated`.
+            Conversion to the :class:`Multizetas_iterated`.
 
             This is the regularisation procedure, done in several steps.
 
@@ -2150,7 +2150,7 @@ class All_iterated(CombinatorialFreeModule):
             step2 = P.expand(step1)   # R2
             step3 = P.dual(step2)     # R4
             step4 = P.expand(step3)    # R2
-            return step4.conversion()  # dans Multizeta_iterated
+            return step4.conversion()  # dans Multizetas_iterated
 
 
 # **************** procedures after F. Brown ************

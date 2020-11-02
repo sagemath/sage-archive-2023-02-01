@@ -1070,13 +1070,19 @@ class Multizetas(CombinatorialFreeModule):
                 sage: x = M((2,3))
                 sage: x.single_valued()
                 -11*ζ(5)
+
+                sage: Z = Multizeta
+                sage: Z(3,5).single_valued() == -10*Z(3)*Z(5)
+                True
+                sage: Z(5,3).single_valued() == 14*Z(3)*Z(5)
+                True
             """
             phi_im = self.phi()
             zin = phi_im.parent()
             BR2 = zin.base_ring()
             sv = zin.sum_of_terms((w, BR2(cf(0)))
                                   for (a, b), cf in phi_im.coproduct()
-                                  for w in a.shuffle(b))
+                                  for w in a.shuffle(b.reversal()))
             return rho_inverse(sv)
 
         def simplify(self):

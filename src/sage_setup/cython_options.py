@@ -2,7 +2,7 @@ import sys
 
 def compiler_directives(profile: bool):
     """
-    Returns a list of Cython directives used for compilation.
+    Return a list of Cython directives used for compilation.
     """
     return dict(
         # Do not generate __reduce__ methods
@@ -24,7 +24,7 @@ def compiler_directives(profile: bool):
 
 def compile_time_env_variables():
     """
-    Returns a list of environmental variables used for compilation.
+    Return a list of environmental variables used for compilation.
     """
     return dict(
         PY_PLATFORM=sys.platform,

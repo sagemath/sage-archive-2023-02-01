@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-r"""Algebra of motivic multiple zeta values
+r"""
+Algebra of motivic multiple zeta values
 
 This file contains an implementation of the algebra of motivic
 multiple zeta values.

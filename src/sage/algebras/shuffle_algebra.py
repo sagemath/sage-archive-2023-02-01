@@ -343,9 +343,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             B[word: ] # B[word: ]
         """
         TS = self.tensor_square()
-        one = self.base_ring().one()
-        return TS.sum_of_terms([((w[:i], w[i:]), one)
-                                for i in range(len(w) + 1)], distinct=True)
+        return TS.sum_of_monomials((w[:i], w[i:]) for i in range(len(w) + 1))
 
     def counit(self, S):
         """

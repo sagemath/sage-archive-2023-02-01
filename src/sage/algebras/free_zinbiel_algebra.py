@@ -21,6 +21,7 @@ from sage.categories.magmas import Magmas
 from sage.categories.pushout import (ConstructionFunctor,
                                      CompositeConstructionFunctor,
                                      IdentityConstructionFunctor)
+from sage.categories.coalgebras_with_basis import CoalgebrasWithBasis
 from sage.categories.rings import Rings
 from sage.categories.functor import Functor
 from sage.categories.sets_cat import Sets
@@ -229,6 +230,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             indices = Words(Alphabet(n, names=names), infinite=False)
             self._n = n
         cat = MagmaticAlgebras(R).WithBasis().Graded()
+        cat &= CoalgebrasWithBasis(R)
         CombinatorialFreeModule.__init__(self, R, indices, prefix=prefix,
                                          category=cat)
         if self._n is not None:
@@ -355,6 +357,56 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             return self.monomial(y)
         x0 = self._indices([x[0]])
         return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
+
+    def coproduct_on_basis(self, w):
+        """
+        Return the coproduct of the element of the basis indexed by
+        the word ``w``.
+
+        The coproduct is given by deconcatenation.
+
+        INPUT:
+
+        - ``w`` -- a word
+
+        EXAMPLES::
+
+            sage: F = algebras.FreeZinbiel(QQ,['a','b'])
+            sage: F.coproduct_on_basis(Word('a'))
+            Z[] # Z[a] + Z[a] # Z[]
+            sage: F.coproduct_on_basis(Word('aba'))
+            Z[] # Z[aba] + Z[a] # Z[ba] + Z[ab] # Z[a] + Z[aba] # Z[]
+            sage: F.coproduct_on_basis(Word())
+            Z[] # Z[]
+
+        TESTS::
+
+            sage: F = algebras.FreeZinbiel(QQ,['a','b'])
+            sage: S = F.an_element(); S
+            Z[] + 2*Z[a] + 3*Z[b] + Z[bab]
+            sage: F.coproduct(S)
+            Z[] # Z[] + 2*Z[] # Z[a] + 3*Z[] # Z[b] + Z[] # Z[bab] +
+            2*Z[a] # Z[] + 3*Z[b] # Z[] + Z[b] # Z[ab] + Z[ba] # Z[b] +
+            Z[bab] # Z[]
+        """
+        TS = self.tensor_square()
+        return TS.sum_of_terms([((w[:i], w[i:]), 1)
+                                for i in range(len(w) + 1)], distinct=True)
+
+    def counit(self, S):
+        """
+        Return the counit of ``S``.
+
+        EXAMPLES::
+
+            sage: F = algebras.FreeZinbiel(QQ,['a','b'])
+            sage: S = F.an_element(); S
+            Z[] + 2*Z[a] + 3*Z[b] + Z[bab]
+            sage: F.counit(S)
+            1
+        """
+        W = self.basis().keys()
+        return S.coefficient(W())
 
     def _element_constructor_(self, x):
         r"""

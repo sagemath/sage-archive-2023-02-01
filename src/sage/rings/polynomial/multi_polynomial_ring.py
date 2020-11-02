@@ -526,6 +526,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             # univariate polynomials.  Below, v is the variable
             # with highest priority, and the x[i] are expressions
             # in the remaining variables.
+            if x == 0:
+                return self.zero()
             v = self.gens_dict_recursive()[str(x.variable())]
             return sum(self(x[i]) * v ** i for i in range(x.poldegree() + 1))
 

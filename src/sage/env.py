@@ -370,6 +370,13 @@ def sage_include_directories(use_sources=False):
             distutils.sysconfig.get_python_inc(),
             numpy.get_include()]
 
+def get_cblas_pc_module_name() -> str:
+    """
+    Return the name of the BLAS libraries to be used.
+    """
+    import pkgconfig
+    cblas_pc_modules = CBLAS_PC_MODULES.split(':')
+    return next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
 
 def cython_aliases():
     """
@@ -395,9 +402,7 @@ def cython_aliases():
                 'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
         var = lib.upper().replace("-", "") + "_"
         if lib == 'cblas':
-            # There are a few BLAS libraries that the user could have installed
-            cblas_pc_modules = CBLAS_PC_MODULES.split(':')
-            lib = next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
+            lib = get_cblas_pc_module_name()
         if lib == 'zlib':
             aliases[var + "CFLAGS"] = ""
             try:

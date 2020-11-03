@@ -131,7 +131,20 @@ The embedding takes now the following form in all coordinates::
     on S^1(c)-{NP}: y1 |--> (x, y) = (2*y1/(y1^2 + 1) + 1, (y1^2 - 1)/(y1^2 + 1))
     on S^1(c)-{SP}: yp1 |--> (x, y) = (2*yp1/(yp1^2 + 1) + 1, -(yp1^2 - 1)/(yp1^2 + 1))
 
-Each sphere is orientable::
+Since the sphere is a hypersurface, we can get a normal vector field by using
+``normal``::
+
+    sage: n = S1c.normal(); n
+    Vector field n along the 1-sphere S^1(c) of radius 1 smoothly embedded in
+     the Euclidean plane E^2 centered at the Point c with values on the
+     Euclidean plane E^2
+    sage: n.display()
+    n = -cos(chi) e_x - sin(chi) e_y
+
+Notice that this is just *one* normal field with arbitrary direction,
+in this particular case `n` points inwards whereas `-n` points outwards.
+However, the vector field `n` is indeed non-vanishing and hence the sphere
+admits an orientation (as all spheres do)::
 
     sage: orient = S1c.orientation(); orient
     [Coordinate frame (S^1(c)-{SP}, (d/dyp1)), Vector frame (S^1(c)-{NP}, (f_1))]
@@ -139,7 +152,10 @@ Each sphere is orientable::
     sage: f[1].display()
     f_1 = -d/dy1
 
-And hence admits a Volume form::
+Notice that the orientation is chosen is such a way that `(\iota_*(f_1), -n)`
+is oriented in the ambient Euclidean space, i.e. the last entry is the normal
+vector field pointing outwards. Henceforth, the manifold admits
+a volume form::
 
     sage: h = S1c.induced_metric()
     sage: h.display()

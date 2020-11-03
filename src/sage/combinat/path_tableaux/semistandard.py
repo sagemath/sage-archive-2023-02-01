@@ -80,7 +80,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux
 from sage.combinat.tableau import Tableau
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
-from sage.combinat.partition import Partition
+from sage.combinat.partition import _Partitions
 
 ###############################################################################
 
@@ -93,9 +93,12 @@ class SemistandardPath(PathTableau):
 
     INPUT:
 
+    Can be any of the following
+
     * a sequence of partitions
     * a sequence of lists/tuples
     * a semistandard tableau
+    * a semistandard skew tableau
     * a Gelfand-Tsetlin pattern
 
     EXAMPLES::
@@ -232,7 +235,7 @@ class SemistandardPath(PathTableau):
         """
         return self[0] != ()
 
-    def local_rule(self,i):
+    def local_rule(self, i):
         r"""
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
@@ -263,7 +266,7 @@ class SemistandardPath(PathTableau):
             ...
             ValueError: 4 is not defined on [(), (3,), (3, 2), (3, 3, 1), (3, 3, 2, 1)]
         """
-        def toggle(i,j):
+        def toggle(i, j):
             """
             Return the toggle of entry 'self[i][j]'.
             """
@@ -287,7 +290,7 @@ class SemistandardPath(PathTableau):
 
         return result
 
-    def rectify(self,inner=None,verbose=False):
+    def rectify(self, inner=None, verbose=False):
         """
         Rectify ``self``.
 
@@ -324,12 +327,12 @@ class SemistandardPath(PathTableau):
         n = len(self)
         pp = self[0]
 
-        if inner == None:
+        if inner is None:
             initial = [pp[:r] for r in range(len(pp))]
         elif Partition(inner[-1]) == Partition(pp):
             initial = list(inner)[:-1]
         else:
-            raise ValueError(f"The final shape{inner[-1]} must agree with the initial shape {pp}")
+            raise ValueError(f"the final shape{inner[-1]} must agree with the initial shape {pp}")
 
         r = len(initial)
         path = SemistandardPath(initial + list(self))
@@ -368,7 +371,7 @@ class SemistandardPath(PathTableau):
         """
         from sage.combinat.tableau import from_chain
 
-        parts = [Partition(a) for a in self]
+        parts = [_Partitions(a) for a in self]
         if self.is_skew():
             return SkewTableaux().from_chain(parts)
         else:
@@ -416,12 +419,9 @@ class SemistandardPath(PathTableau):
             sage: pt._test_jdt_promotion()
         """
         tester = self._tester(**options)
-        try:
-            LHS = self.promotion().to_tableau()
-            RHS = self.to_tableau().promotion_inverse(len(self)-2)
-            tester.assertEqual(LHS,RHS)
-        except ValueError:
-            pass
+        LHS = self.promotion().to_tableau()
+        RHS = self.to_tableau().promotion_inverse(len(self)-2)
+        tester.assertEqual(LHS,RHS)
 
 class SemistandardPaths(PathTableaux):
     """

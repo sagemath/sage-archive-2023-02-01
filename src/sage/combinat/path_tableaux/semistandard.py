@@ -12,27 +12,27 @@ standard tableaux to semistandard tableaux. The local rule is the Bender-Knuth i
 
 EXAMPLES::
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
+    sage: pt = path_tableaux.SemistandardPathTableau([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
     sage: pt.promotion()
     [(), (2,), (3, 1), (3, 2, 1), (4, 3, 1, 0), (4, 3, 3, 1, 0)]
     sage: pt.evacuation()
     [(), (2,), (4, 0), (4, 2, 0), (4, 3, 1, 0), (4, 3, 3, 1, 0)]
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[9/2,3,3,1,0]])
+    sage: pt = path_tableaux.SemistandardPathTableau([[],[3],[3,2],[3,3,1],[3,3,2,1],[9/2,3,3,1,0]])
     sage: pt.promotion()
     [(), (2,), (3, 1), (3, 2, 1), (9/2, 3, 1, 0), (9/2, 3, 3, 1, 0)]
     sage: pt.evacuation()
     [(), (5/2,), (9/2, 0), (9/2, 2, 0), (9/2, 3, 1, 0), (9/2, 3, 3, 1, 0)]
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[4,2],[5,4,1]])
+    sage: pt = path_tableaux.SemistandardPathTableau([[],[3],[4,2],[5,4,1]])
     sage: path_tableaux.CylindricalDiagram(pt)
     [       (),      (3,),    (4, 2), (5, 4, 1)]
     [         ,        (),      (3,),    (5, 2), (5, 4, 1)]
     [         ,          ,        (),      (4,),    (4, 3), (5, 4, 1)]
     [         ,          ,          ,        (),      (3,),    (5, 1), (5, 4, 1)]
 
-    sage: pt2 = path_tableaux.SemistandardPath([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
-    sage: pt1 = path_tableaux.SemistandardPath([[],[3],[3,2]])
+    sage: pt2 = path_tableaux.SemistandardPathTableau([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
+    sage: pt1 = path_tableaux.SemistandardPathTableau([[],[3],[3,2]])
     sage: pt1.commutor(pt2)
     ([(), (2,), (2, 2), (4, 2, 0)], [(4, 2, 0), (4, 3, 2, 0), (4, 3, 3, 1, 0)])
     sage: pt1.commutor(pt2,verbose=True)
@@ -42,7 +42,7 @@ EXAMPLES::
     ([(), (2,), (2, 2), (4, 2, 0)], [(4, 2, 0), (4, 3, 2, 0), (4, 3, 3, 1, 0)])
 
     sage: st = SkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
-    sage: pt = path_tableaux.SemistandardPath(st)
+    sage: pt = path_tableaux.SemistandardPathTableau(st)
     sage: bk = [SkewTableau(st.bender_knuth_involution(i+1)) for i in range(10)]
     sage: lr = [pt.local_rule(i+1) for i in range(10)]
     sage: all(r.to_tableau() == s for r,s in zip(lr,bk))
@@ -50,13 +50,13 @@ EXAMPLES::
 
 TESTS::
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
+    sage: pt = path_tableaux.SemistandardPathTableau([[],[3],[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
     sage: TestSuite(pt).run()
 
-    sage: pt = path_tableaux.SemistandardPath([[],[3],[3,2],[3,3,1],[7/2,3,2,1],[4,3,3,1,0]])
+    sage: pt = path_tableaux.SemistandardPathTableau([[],[3],[3,2],[3,3,1],[7/2,3,2,1],[4,3,3,1,0]])
     sage: TestSuite(pt).run()
 
-    sage: pt = path_tableaux.SemistandardPath([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
+    sage: pt = path_tableaux.SemistandardPathTableau([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1,0]])
     sage: pt.promotion()
     [(3, 2), (3, 2, 2), (4, 3, 2, 0), (4, 3, 3, 1, 0)]
 
@@ -84,7 +84,7 @@ from sage.combinat.partition import _Partitions
 
 ###############################################################################
 
-class SemistandardPath(PathTableau):
+class SemistandardPathTableau(PathTableau):
     r"""
     An instance is the sequence of partitions which is the
     chain of partitions of a skew semistandard tableau.
@@ -103,29 +103,29 @@ class SemistandardPath(PathTableau):
 
     EXAMPLES::
 
-        sage: path_tableaux.SemistandardPath([[],[2],[2,1]])
+        sage: path_tableaux.SemistandardPathTableau([[],[2],[2,1]])
         [(), (2,), (2, 1)]
 
         sage: gt = GelfandTsetlinPattern([[2,1],[2]])
-        sage: path_tableaux.SemistandardPath(gt)
+        sage: path_tableaux.SemistandardPathTableau(gt)
         [(), (2,), (2, 1)]
 
         sage: st = SemistandardTableau([[1,1],[2]])
-        sage: path_tableaux.SemistandardPath(st)
+        sage: path_tableaux.SemistandardPathTableau(st)
         [(), (2,), (2, 1)]
 
         sage: st = SkewTableau([[1,1],[2]])
-        sage: path_tableaux.SemistandardPath(st)
+        sage: path_tableaux.SemistandardPathTableau(st)
         [(), (2,), (2, 1)]
 
         sage: st = SkewTableau([[None,1,1],[2]])
-        sage: path_tableaux.SemistandardPath(st)
+        sage: path_tableaux.SemistandardPathTableau(st)
         [(1,), (3, 0), (3, 1, 0)]
 
-        sage: path_tableaux.SemistandardPath([[],[5/2],[7/2,2]])
+        sage: path_tableaux.SemistandardPathTableau([[],[5/2],[7/2,2]])
         [(), (5/2,), (7/2, 2)]
 
-        sage: path_tableaux.SemistandardPath([[],[2.5],[3.5,2]])
+        sage: path_tableaux.SemistandardPathTableau([[],[2.5],[3.5,2]])
         [(), (2.50000000000000,), (3.50000000000000, 2)]
     """
 
@@ -141,7 +141,7 @@ class SemistandardPath(PathTableau):
             sage: t.parent()
             <sage.combinat.path_tableaux.semistandard.SemistandardPaths_with_category object at ...>
         """
-        return SemistandardPaths()(st, check=check)
+        return SemistandardPathTableaux()(st, check=check)
 
     def __init__(self, parent, st, check=True):
         r"""
@@ -164,7 +164,7 @@ class SemistandardPath(PathTableau):
         """
         w = None
 
-        if isinstance(st, SemistandardPath):
+        if isinstance(st, SemistandardPathTableau):
             w = list(st)
 
         elif isinstance(st, GelfandTsetlinPattern):
@@ -335,7 +335,7 @@ class SemistandardPath(PathTableau):
             raise ValueError(f"the final shape{inner[-1]} must agree with the initial shape {pp}")
 
         r = len(initial)
-        path = SemistandardPath(initial + list(self))
+        path = SemistandardPathTableau(initial + list(self))
         if verbose:
             rect = [self]
 
@@ -343,7 +343,7 @@ class SemistandardPath(PathTableau):
             for j in range(n-1):
                 path = path.local_rule(r+j-i)
             if verbose:
-                rect.append(SemistandardPath(list(path)[r-i-1:r+n-i-1]))
+                rect.append(SemistandardPathTableau(list(path)[r-i-1:r+n-i-1]))
 
         if verbose:
             return rect
@@ -423,7 +423,7 @@ class SemistandardPath(PathTableau):
         RHS = self.to_tableau().promotion_inverse(len(self)-2)
         tester.assertEqual(LHS,RHS)
 
-class SemistandardPaths(PathTableaux):
+class SemistandardPathTableaux(PathTableaux):
     """
     The parent class for :class:`SemistandardTableau`.
     """
@@ -437,6 +437,6 @@ class SemistandardPaths(PathTableaux):
             sage: path_tableaux.SemistandardPaths()._an_element_()
             [(), (2,), (2, 1)]
         """
-        return SemistandardPath([[],[2],[2,1]])
+        return SemistandardPathTableau([[],[2],[2,1]])
 
-    Element = SemistandardPath
+    Element = SemistandardPathTableau

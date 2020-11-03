@@ -14,8 +14,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`~sage.combinat.path_tableaux.dyck_path.DyckPaths`
 - :class:`~sage.combinat.path_tableaux.frieze.FriezePattern`
 - :class:`~sage.combinat.path_tableaux.frieze.FriezePatterns`
-- :class:`~sage.combinat.path_tableaux.semistandard.SemistandardPath`
-- :class:`~sage.combinat.path_tableaux.semistandard.SemistandardPaths`
+- :class:`~sage.combinat.path_tableaux.semistandard.SemistandardPathTableau`
+- :class:`~sage.combinat.path_tableaux.semistandard.SemistandardPathTableaux`
 
 """
 
@@ -24,6 +24,6 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.path_tableaux.path_tableau', ['CylindricalDiagram'])
 lazy_import('sage.combinat.path_tableaux.dyck_path', ['DyckPath', 'DyckPaths'])
 lazy_import('sage.combinat.path_tableaux.frieze', ['FriezePattern','FriezePatterns'])
-lazy_import('sage.combinat.path_tableaux.semistandard', ['SemistandardPath','SemistandardPaths'])
+lazy_import('sage.combinat.path_tableaux.semistandard', ['SemistandardPathTableau','SemistandardPathTableaux'])
 
 del lazy_import

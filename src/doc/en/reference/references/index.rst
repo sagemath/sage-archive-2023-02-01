@@ -361,6 +361,9 @@ REFERENCES:
 
 **B**
 
+.. [Baer2020] Christian Bär. *The Faddeev-LeVerrier algorithm and the Pfaffian*.
+              :arxiv:`2008.04247`, 2020.
+
 .. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
             AMS (2001).
 
@@ -4142,9 +4145,9 @@ REFERENCES:
              :doi:`10.1137/1.9781611972986.7`
              http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf
 
-.. [MPPS2020] Jennifer Morse, Jianping Pan, Wencin Poh and Anne Schilling,
+.. [MPPS2020] Jennifer Morse, Jianping Pan, Wencin Poh, Anne Schilling.
              *A Crystal on Decreasing Factorizations in the 0-Hecke Monoid*
-             Electron. J. Combin., **27(2)** (2020) #P2.2948. :arxiv:`1911.08732`.
+             Electron. J. Combin., **27(2)** (2020) #P2.29. :arxiv:`1911.08732`.
 
 .. [MR1985] \R. Mathon and A. Rosa,
             *A new strongly regular graph*,

@@ -328,7 +328,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             f2
         """
         if isinstance(x, AbelianGroupElement_gap):
-            try :
+            try:
                 if x in self._cover:
                     x = self.gap().NaturalHomomorphism().Image(x.gap())
                 else:
@@ -557,7 +557,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
 
     def quotient(self, N):
         r"""
-        Return the quotient of this group by the normal subgroup N.
+        Return the quotient of this group by the normal subgroup `N`.
 
         INPUT:
 
@@ -830,7 +830,9 @@ class AbelianGroupQuotient_gap(AbelianGroup_gap):
     r"""
     Quotients of abelian groups by a subgroup.
 
-    Do not call this directly. Instead use :meth:`quotient`.
+    .. NOTE::
+
+        Do not call this directly. Instead use :meth:`quotient`.
 
     EXAMPLES::
 
@@ -961,7 +963,7 @@ class AbelianGroupQuotient_gap(AbelianGroup_gap):
     @cached_method
     def natural_homomorphism(self):
         r"""
-        Return the defining homomorphism into self.
+        Return the defining homomorphism into ``self``.
 
         EXAMPLES::
 

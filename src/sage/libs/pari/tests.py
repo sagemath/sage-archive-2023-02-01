@@ -375,16 +375,13 @@ Constructors::
     sage: pari('["bc","ab","bc"]').Set()
     ["ab", "bc"]
 
-    sage: pari([65,66,123]).Strchr()
-    doctest:warning
-    ...
-    DeprecationWarning: the PARI/GP function Strchr is obsolete (2018-10-01)
+    sage: pari([65,66,123]).strchr()
     "AB{"
     sage: pari('"Sage"').Vecsmall()
     Vecsmall([83, 97, 103, 101])
-    sage: _.Strchr()
+    sage: _.strchr()
     "Sage"
-    sage: pari([83, 97, 103, 101]).Strchr()
+    sage: pari([83, 97, 103, 101]).strchr()
     "Sage"
 
 Basic functions::
@@ -766,10 +763,7 @@ Transcendental functions::
     sage: pari(2).besseli(3+i)
     1.12539407613913 + 2.08313822670661*I
     sage: C.<i> = ComplexField()
-    sage: pari(2+i).besseln(3)
-    doctest:warning
-    ...
-    DeprecationWarning: the PARI/GP function besseln is obsolete (2018-12-10)
+    sage: pari(2+i).bessely(3)
     -0.280775566958244 - 0.486708533223726*I
 
     sage: pari(1.5).cos()

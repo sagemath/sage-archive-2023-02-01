@@ -6713,7 +6713,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 pass
 
         # get PARI to compute the units
-        B = self.pari_bnf(proof).bnfunit()
+        B = self.pari_bnf(proof).bnf_get_fu()
         B = tuple(self(b, check=False) for b in B)
         if proof:
             # cache the provable results and return them

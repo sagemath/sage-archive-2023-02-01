@@ -31,7 +31,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer, GCD_list
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealNumber
-from sage.rings.complex_number import ComplexNumber
+from sage.rings.complex_mpfr import ComplexNumber
 
 from sage.rings.fast_arith import arith_int, arith_llong, prime_range
 

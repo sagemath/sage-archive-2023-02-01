@@ -2172,7 +2172,7 @@ class Graphics3dGroup(Graphics3d):
             <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
         """
-        return "\n".join([g.x3d_str() for g in self.all])
+        return "\n".join(g.x3d_str() for g in self.all)
 
     def obj_repr(self, render_params):
         """

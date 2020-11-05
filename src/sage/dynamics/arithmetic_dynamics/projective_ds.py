@@ -70,7 +70,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import Integer
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
 from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -3352,12 +3352,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         C = F.critical_subscheme()
         ram_type = {}
         fc = C.defining_ideal().gens()[0]
-        for f, e in fc.factor():
+        for f, m in fc.factor():
             c = F(F.domain().subscheme(f))  # critical value
             if c in ram_type:
-                ram_type[c].append(e + 1)
+                ram_type[c].append(m + 1)
             else:
-                ram_type[c] = [e + 1]
+                ram_type[c] = [m + 1]
         return sorted(ram_type.values())
 
     def is_postcritically_finite(self, err=0.01, use_algebraic_closure=True):

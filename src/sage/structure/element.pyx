@@ -4331,7 +4331,7 @@ def coerce_binop(method):
         sage: x.test_add(CC(2))
         Traceback (most recent call last):
         ...
-        AttributeError: 'sage.rings.complex_number.ComplexNumber' object has no attribute 'test_add'
+        AttributeError: 'sage.rings.complex_mpfr.ComplexNumber' object has no attribute 'test_add'
 
     TESTS:
 

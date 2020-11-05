@@ -323,34 +323,31 @@ class UnitGroup(AbelianGroupWithValues_class):
             self.__S = S
             self.__pS = pS = [P.pari_prime() for P in S]
 
-        # compute the fundamental units via pari:
-        fu = [K(u, check=False) for u in pK.bnfunit()]
-        self.__nfu = len(fu)
-
-        # compute the additional S-unit generators:
+        # compute units
+        # NOTE: old pari syntax for S-units (< 2.13.0): pK.bnfsunit(pS)
+        # NOTE: pari >= 2.13.0: the first component of the result of bnfunits
+        # are *all* units starting with S-units, followed by fundamental units
+        # followed by the torsion unit.
         if S:
-            self.__S_unit_data = pK.bnfsunit(pS)
-            su = [K(u, check=False) for u in self.__S_unit_data[0]]
+            self.__S_unit_data = pK.bnfunits(pS)
         else:
-            su = []
-        self.__nsu = len(su)
+            self.__S_unit_data = pK.bnfunits()
+        # TODO: converting the factored matrix representation of bnfunits into polynomial
+        # form is a *big* waste of time
+        su_fu_tu = [pK.nfbasistoalg(pK.nffactorback(z)) for z in self.__S_unit_data[0]]
+
+        self.__nfu = len(pK.bnf_get_fu())           # number of fundamental units
+        self.__nsu = len(su_fu_tu) - self.__nfu - 1 # number of S-units
+        self.__ntu = pK.bnf_get_tu()[0]             # order of torsion
         self.__rank = self.__nfu + self.__nsu
 
-        # compute a torsion generator and pick the 'simplest' one:
-        n, z = pK[7][3] # number of roots of unity and bnf.tu as in pari documentation
-        n = ZZ(n)
-        self.__ntu = n
-        z = K(z, check=False)
+        # Move the torsion unit first, then fundamental units then S-units
+        gens = [K(u, check=False) for u in su_fu_tu]
+        gens = [gens[-1]] + gens[self.__nsu:-1] + gens[:self.__nsu]
 
-        # If we replaced z by another torsion generator we would need
-        # to allow for this in the dlog function!  So we do not.
-
-        # Store the actual generators (torsion first):
-        gens = [z] + fu + su
-        values = Sequence(gens, immutable=True, universe=self, check=False)
         # Construct the abtract group:
-        gens_orders = tuple([ZZ(n)]+[ZZ(0)]*(self.__rank))
-        AbelianGroupWithValues_class.__init__(self, gens_orders, 'u', values, number_field)
+        gens_orders = tuple([ZZ(self.__ntu)]+[ZZ(0)]*(self.__rank))
+        AbelianGroupWithValues_class.__init__(self, gens_orders, 'u', gens, number_field)
 
     def _element_constructor_(self, u):
         """
@@ -394,8 +391,8 @@ class UnitGroup(AbelianGroupWithValues_class):
         except TypeError:
             raise ValueError("%s is not an element of %s"%(u,K))
         if self.__S:
-            m = pK.bnfissunit(self.__S_unit_data, pari(u)).mattranspose()
-            if m.ncols()==0:
+            m = pK.bnfisunit(pari(u), self.__S_unit_data).mattranspose()
+            if m.ncols() == 0:
                 raise ValueError("%s is not an S-unit"%u)
         else:
             if not u.is_integral() or u.norm().abs() != 1:
@@ -405,9 +402,8 @@ class UnitGroup(AbelianGroupWithValues_class):
         # convert column matrix to a list:
         m = [ZZ(m[0,i].sage()) for i in range(m.ncols())]
 
-        # NB pari puts the torsion after the fundamental units, before
-        # the extra S-units but we have the torsion first:
-        m = [m[self.__nfu]] + m[:self.__nfu] + m[self.__nfu+1:]
+        # NOTE: pari ordering for the units is (S-units, fundamental units, torsion unit)
+        m = [m[-1]] + m[self.__nsu:-1] + m[:self.__nsu]
 
         return self.element_class(self, m)
 

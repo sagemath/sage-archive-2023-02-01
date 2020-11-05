@@ -2015,6 +2015,39 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
+    @staticmethod
+    def random_element(m, n, bound=5, special_probability=0.2):
+        r"""
+        Construct a random ``InteractiveLPProblemStandardForm``.
+
+        INPUT:
+
+        - ``m`` -- the number of constraints/basic variables
+
+        - ``n`` -- the number of decision/non-basic variables
+
+        - ``bound`` -- (default: 5) a bound on coefficients
+
+        - ``special_probability`` -- (default: 0.2) probability of
+          constructing a problem whose initial dictionary is allowed
+          to be primal infeasible or dual feasible
+
+        EXAMPLES::
+
+            sage: InteractiveLPProblemStandardForm.random_element(3, 4)
+            LP problem (use typeset mode to see details)
+        """
+        A = random_matrix(ZZ, m, n, x=-bound, y=bound).change_ring(QQ)
+        if special_probability < random():
+            b = random_vector(ZZ, m, x=0, y=bound).change_ring(QQ)
+        else:   # Allow infeasible dictionary
+            b = random_vector(ZZ, m, x=-bound, y=bound).change_ring(QQ)
+        if special_probability < random():
+            c = random_vector(ZZ, n, x=-bound, y=bound).change_ring(QQ)
+        else:   # Make dual feasible dictionary
+            c = random_vector(ZZ, n, x=-bound, y=0).change_ring(QQ)
+        return InteractiveLPProblemStandardForm(A, b, c)
+
     def add_constraint(self, coefficients, constant_term, slack_variable=None):
         r"""
         Return a new LP problem by adding a constraint to``self``.

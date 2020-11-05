@@ -6646,7 +6646,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return generators for the unit group modulo torsion.
 
-        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
+        ALGORITHM: Uses PARI's :pari:`bnfinit` command (that computes fundamental units
+        among other things).
 
         INPUT:
 
@@ -6728,7 +6729,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return the unit group (including torsion) of this number field.
 
-        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
+        ALGORITHM: Uses PARI's :pari:`bnfinit` and :pari:`bnfunits`.
 
         INPUT:
 

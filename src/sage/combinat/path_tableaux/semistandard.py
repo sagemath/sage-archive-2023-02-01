@@ -91,10 +91,10 @@ from sage.rings.all import NN
 
 class SemistandardPathTableau(PathTableau):
     r"""
-    An instance is the sequence of partitions which is the
-    chain of partitions of a skew semistandard tableau.
-
-    The :class:`SemistandardSkewTableau` is not implemented.
+    An instance is a sequence of lists. Usually the entries will be non-negative integers
+    in which case this is the chain of partitions of a (skew) semistandard tableau.
+    In general the entries are elements of an ordered abelian group; each list is weakly
+    decreasing and successive lists are interleaved.
 
     INPUT:
 
@@ -152,15 +152,7 @@ class SemistandardPathTableau(PathTableau):
         r"""
         Initialize a semistandard tableau.
 
-        Don't require entries to be positive or to be integral.
-        The operations we require are addition, subtraction and comparisons.
-
         TESTS::
-
-            sage: path_tableaux.SemistandardPathTableau([[],[3/2],[2,5/2]])
-            Traceback (most recent call last):
-            ...
-            ValueError: [(), (3/2,), (2, 5/2)] does not satisfy the required inequalities in row 1
 
             sage: path_tableaux.SemistandardPathTableau([(), 3, (3, 2)])
             Traceback (most recent call last):
@@ -175,7 +167,7 @@ class SemistandardPathTableau(PathTableau):
         elif isinstance(st, GelfandTsetlinPattern):
             w = list(st)
             w.reverse()
-            w = [()] + w
+            w = [(),*w]
 
         elif isinstance(st, (Tableau,SkewTableau)):
             w = st.to_chain()
@@ -200,6 +192,19 @@ class SemistandardPathTableau(PathTableau):
         """
         Check that ``self`` is a valid path.
 
+        EXAMPLES::
+
+            sage: path_tableaux.SemistandardPathTableau([[],[3],[2,2]]) # indirect test
+            Traceback (most recent call last):
+            ...
+            ValueError: [(), (3,), (2, 2)] does not satisfy the required inequalities in row 1
+
+            sage: path_tableaux.SemistandardPathTableau([[],[3/2],[2,5/2]]) # indirect test
+            Traceback (most recent call last):
+            ...
+            ValueError: [(), (3/2,), (2, 5/2)] does not satisfy the required inequalities in row 1
+
+
         TESTS::
 
             sage: path_tableaux.SemistandardPathTableau([[],[2],[1,2]])
@@ -211,9 +216,9 @@ class SemistandardPathTableau(PathTableau):
             [(), (2,), (1, 2)]
         """
         for i in range(1,len(self)-1):
-            if not all(r>=s for r,s in zip(self[i+1],self[i])):
+            if not all(r >= s for r,s in zip(self[i+1],self[i])):
                 raise ValueError(f"{self} does not satisfy the required inequalities in row {i}")
-            if not all(r>=s for r,s in zip(self[i],self[i+1][1:])):
+            if not all(r >= s for r,s in zip(self[i],self[i+1][1:])):
                 raise ValueError(f"{self} does not satisfy the required inequalities in row {i}")
 
     def size(self):
@@ -257,12 +262,11 @@ class SemistandardPathTableau(PathTableau):
 
     def local_rule(self, i):
         r"""
-        This has input a list of objects. This method first takes
-        the list of objects of length three consisting of the `(i-1)`-st,
-        `i`-th and `(i+1)`-term and applies the rule. It then replaces
-        the `i`-th object  by the object returned by the rule.
-
         This is the Bender-Knuth involution.
+
+        This is implemented by toggling the entries of the `i`-th list.
+        The allowed range for `i` is 0 < `i` < len(self)-1 so any row except
+        the first and last can be changed.
 
         EXAMPLES::
 
@@ -314,6 +318,10 @@ class SemistandardPathTableau(PathTableau):
         """
         Rectify ``self``.
 
+        This gives the usual rectification of a skew standard tableau and gives a
+        generalisation to skew semistandard tableaux. The usual construction uses
+        jeu-de-taquin but here we use the Bender-Knuth involutions.
+
         EXAMPLES::
 
             sage: st = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
@@ -346,6 +354,7 @@ class SemistandardPathTableau(PathTableau):
 
         n = len(self)
         pp = self[0]
+        P = self.parent()
 
         if inner is None:
             initial = [pp[:r] for r in range(len(pp))]
@@ -355,7 +364,7 @@ class SemistandardPathTableau(PathTableau):
             raise ValueError(f"the final shape{inner[-1]} must agree with the initial shape {pp}")
 
         r = len(initial)
-        path = SemistandardPathTableau(initial + list(self))
+        path = P.element_class(P, initial + list(self))
         if verbose:
             rect = [self]
 
@@ -363,12 +372,12 @@ class SemistandardPathTableau(PathTableau):
             for j in range(n-1):
                 path = path.local_rule(r+j-i)
             if verbose:
-                rect.append(SemistandardPathTableau(list(path)[r-i-1:r+n-i-1]))
+                rect.append(P.element_class(P, list(path)[r-i-1:r+n-i-1]))
 
         if verbose:
             return rect
         else:
-            return SemistandardPathTableau(list(path)[:n])
+            return P.element_class(P, list(path)[:n])
 
     @combinatorial_map(name='to semistandard tableau')
     def to_tableau(self):
@@ -394,11 +403,11 @@ class SemistandardPathTableau(PathTableau):
         if not self.is_integral():
             raise ValueError(f"{self} must have all entries nonnegative integers")
 
+        lt = [[i for i in a if i > 0] for a in self]
         if self.is_skew():
-            return SkewTableaux().from_chain([[i for i in a if i > 0] for a in self])
+            return SkewTableaux().from_chain(lt)
         else:
-            return from_chain([[i for i in a if i > 0] for a in self[1:]])
-
+            return from_chain(lt)
 
     @combinatorial_map(name='to Gelfand-Tsetlin pattern')
     def to_pattern(self):
@@ -422,9 +431,10 @@ class SemistandardPathTableau(PathTableau):
             True
         """
         lt = list(self)
-        if lt[0] == ():
-            lt = lt[1:]
         lt.reverse()
+        if lt[-1] == ():
+            lt.pop()
+
         return GelfandTsetlinPattern([list(a) for a in lt])
 
     def _test_jdt_promotion(self, **options):

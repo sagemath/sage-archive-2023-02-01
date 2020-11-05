@@ -327,8 +327,6 @@ class SemistandardPathTableau(PathTableau):
             sage: st = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
             sage: path_tableaux.SemistandardPathTableau(st).rectify()
             [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]
-            sage: path_tableaux.SemistandardPathTableau(st.rectify())
-            [(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]
             sage: path_tableaux.SemistandardPathTableau(st).rectify(verbose=True)
             [[(3, 2, 2), (3, 3, 2, 0), (3, 3, 2, 1, 0), (3, 3, 2, 2, 0, 0), (4, 3, 2, 2, 0, 0, 0), (4, 3, 3, 2, 0, 0, 0, 0), (4, 4, 3, 2, 0, 0, 0, 0, 0)],
             [(3, 2), (3, 3, 0), (3, 3, 1, 0), (3, 3, 2, 0, 0), (4, 3, 2, 0, 0, 0), (4, 3, 3, 0, 0, 0, 0), (4, 4, 3, 0, 0, 0, 0, 0)],
@@ -340,14 +338,14 @@ class SemistandardPathTableau(PathTableau):
             sage: S = SemistandardSkewTableaux([[5,3,3],[3,1]],[3,2,2])
             sage: LHS = [path_tableaux.SemistandardPathTableau(st.rectify()) for st in S]
             sage: RHS = [path_tableaux.SemistandardPathTableau(st).rectify() for st in S]
-            sage: all(r==s for r,s in zip(LHS,RHS) if r != s)
+            sage: LHS == RHS
             True
 
             sage: st = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
             sage: pt = path_tableaux.SemistandardPathTableau(st)
             sage: SP = [path_tableaux.SemistandardPathTableau(it) for it in StandardTableaux([3,2,2])]
-            sage: set(pt.rectify(inner=ip) for ip in SP)
-            {[(), (1,), (1, 1), (2, 1, 0), (3, 1, 0, 0), (3, 2, 0, 0, 0), (4, 2, 0, 0, 0, 0)]}
+            sage: len(set(pt.rectify(inner=ip) for ip in SP))
+            1
         """
         if not self.is_skew():
             return self
@@ -384,7 +382,7 @@ class SemistandardPathTableau(PathTableau):
         r"""
         Convert ``self`` to a :class:`SemistandardTableau`.
 
-        The :class:`SemistandardSkewTableau` is not implemented.
+        The :class:`SemistandardSkewTableau` is not implemented so this returns a :class:`SkewTableau`
 
         EXAMPLES::
 
@@ -422,6 +420,12 @@ class SemistandardPathTableau(PathTableau):
 
         TESTS::
 
+            sage: pt = path_tableaux.SemistandardPathTableau([[3,2],[3,3,1],[3,3,2,1],[4,3,3,1]])
+            sage: pt.to_pattern()
+            Traceback (most recent call last):
+            ...
+            ValueError: [(3, 2), (3, 3, 1), (3, 3, 2, 1), (4, 3, 3, 1, 0)] cannot be a skew tableau
+
             sage: GT = GelfandTsetlinPatterns(top_row=[5,5,3])
             sage: all(gt == path_tableaux.SemistandardPathTableau(gt).to_pattern() for gt in GT)
             True
@@ -430,6 +434,9 @@ class SemistandardPathTableau(PathTableau):
             sage: all(gt.to_tableau() == path_tableaux.SemistandardPathTableau(gt).to_tableau() for gt in GT)
             True
         """
+        if self.is_skew():
+            raise ValueError(f"{self} cannot be a skew tableau")
+
         lt = list(self)
         lt.reverse()
         if lt[-1] == ():

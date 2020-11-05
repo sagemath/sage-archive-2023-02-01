@@ -4134,13 +4134,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         a very long time without the ``maximize_at_primes`` option::
 
             sage: K.<a> = NumberField(x^2 - p*q, maximize_at_primes=[p])
-            sage: K.pari_nf() # not tested # TODO: pari-2.13.0
+            sage: K.pari_nf()
             [y^2 - 100000000000000000000...]
 
         Since the discriminant is square-free, this also works::
 
             sage: K.<a> = NumberField(x^2 - p*q, assume_disc_small=True)
-            sage: K.pari_nf() # not tested # TODO: pari-2.13.0
+            sage: K.pari_nf()
             [y^2 - 100000000000000000000...]
         """
         try:
@@ -5930,28 +5930,37 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         try:
             return self._integral_basis_dict[v]
         except (AttributeError, KeyError):
-            f = self.pari_polynomial("y")
-            if v:
-                B = f.nfbasis(fa=v)
-            elif self._assume_disc_small:
-                B = f.nfbasis(1)
-            elif not important:
-                # Trial divide the discriminant with primes up to 10^6
-                m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
-                # Since we only need a *squarefree* factorization for
-                # primes with exponent 1, we need trial division up to D^(1/3)
-                # instead of D^(1/2).
-                trialdivlimit2 = pari(10**12)
-                trialdivlimit3 = pari(10**18)
-                if all(p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p, e in zip(m[0], m[1])):
-                    B = f.nfbasis(fa = m)
-                else:
-                    raise RuntimeError("Unable to factor discriminant with trial division")
-            else:
-                B = f.nfbasis()
+            pass
 
-            self._integral_basis_dict[v] = B
-            return B
+        f = self.pari_polynomial("y")
+        if v:
+            # NOTE: here we make pari know about potentially big primes factors of
+            # the discriminant, see
+            # https://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=2257
+            primelimit = pari.default("primelimit")
+            primes = [p for p in v if p > primelimit]
+            if primes:
+                pari.addprimes(primes)
+            B = f.nfbasis(fa=v)
+        elif self._assume_disc_small:
+            B = f.nfbasis(1)
+        elif not important:
+            # Trial divide the discriminant with primes up to 10^6
+            m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
+            # Since we only need a *squarefree* factorization for
+            # primes with exponent 1, we need trial division up to D^(1/3)
+            # instead of D^(1/2).
+            trialdivlimit2 = pari(10**12)
+            trialdivlimit3 = pari(10**18)
+            if all(p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p, e in zip(m[0], m[1])):
+                B = f.nfbasis(fa = m)
+            else:
+                raise RuntimeError("Unable to factor discriminant with trial division")
+        else:
+            B = f.nfbasis()
+
+        self._integral_basis_dict[v] = B
+        return B
 
     def reduced_basis(self, prec=None):
         r"""

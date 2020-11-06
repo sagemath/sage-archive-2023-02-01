@@ -265,7 +265,7 @@ class SemistandardPathTableau(PathTableau):
         This is the Bender-Knuth involution.
 
         This is implemented by toggling the entries of the `i`-th list.
-        The allowed range for `i` is 0 < `i` < len(self)-1 so any row except
+        The allowed range for ``i`` is ``0 < i < len(self)-1`` so any row except
         the first and last can be changed.
 
         EXAMPLES::
@@ -439,7 +439,7 @@ class SemistandardPathTableau(PathTableau):
 
         lt = list(self)
         lt.reverse()
-        if lt[-1] == ():
+        if not lt[-1]:
             lt.pop()
 
         return GelfandTsetlinPattern([list(a) for a in lt])

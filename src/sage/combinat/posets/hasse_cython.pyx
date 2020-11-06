@@ -155,38 +155,40 @@ cpdef Matrix_integer_dense coxeter_matrix_fast(list positions):
 
 class IncreasingChains(RecursivelyEnumeratedSet_forest):
     r"""
+    The enumerated set of increasing chains.
+
+    INPUT:
+
+    - ``positions`` -- a list of sets of integers describing the poset,
+      as given by the lazy attribute ``_leq_storage`` of Hasse diagrams.
+
+    - ``element_constructor`` -- used to determine the type of chains,
+      for example ``list`` or ``tuple``
+
+    - ``exclude`` -- list of integers that should not belong to the chains
+
+    - ``conversion`` -- optional list of elements of the poset
+
+    If ``conversion`` is provided, it is used to convert chain elements
+    to elements of this list.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.posets.hasse_cython import IncreasingChains
+        sage: D = IncreasingChains([{0,1},{1}], list, []); D
+        An enumerated set with a forest structure
+        sage: D.cardinality()
+        4
+        sage: list(D)
+        [[], [0], [0, 1], [1]]
     """
-    def __init__(self, positions, element_constructor,
-                 exclude, conversion=None):
+    def __init__(self, list positions, element_constructor,
+                 list exclude, conversion=None):
         """
         The enumerated set of increasing chains.
-
-        INPUT:
-
-        - ``positions`` -- a list of sets of integers describing the poset,
-          as given by the lazy attribute ``_leq_storage`` of Hasse diagrams.
-
-        - ``element_constructor`` -- used to determine the type of chains,
-          for example ``list`` or ``tuple``
-
-        - ``exclude`` -- list of integers that should not belong to the chains
-
-        - ``conversion`` -- optional list of elements of the poset
-
-        If ``conversion`` is provided, it is used to convert chain elements
-        to elements of this list.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.posets.hasse_cython import IncreasingChains
-            sage: D = IncreasingChains([{0,1},{1}], list, []); D
-            An enumerated set with a forest structure
-            sage: D.cardinality()
-            4
-            sage: list(D)
-            [[], [0], [0, 1], [1]]
         """
-        n = len(positions)
+        cdef int i
+        cdef Py_ssize_t n = len(positions)
         self._n = n
         if exclude is not None:
             self._greater_than = [gti.difference(exclude) for gti in positions]
@@ -227,10 +229,12 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
             sage: ['a'] in P.chains()
             True
         """
+        cdef int k
+        cdef Py_ssize_t i, x, y
         if not tup:
             return True
         if self._conversion is not None:
-            tup = [self._from_poset[x] for x in tup]
+            tup = [self._from_poset[elt] for elt in tup]
         for i in tup:
             if not(0 <= i < self._n):
                 return False
@@ -262,6 +266,7 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
             sage: list(P.chains())
             [[], ['a'], ['a', 'b'], ['b']]
         """
+        cdef Py_ssize_t i
         if self._conversion is not None:
             return self._element_constructor(self._conversion[i] for i in chain)
         return self._element_constructor(chain)
@@ -281,6 +286,7 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
             sage: next(iter(P.chains()))
             []
         """
+        cdef Py_ssize_t x, y
         if not chain:
             return [(x,) for x in self._vertices]
         else:

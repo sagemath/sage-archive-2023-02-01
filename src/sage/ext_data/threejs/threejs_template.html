@@ -266,6 +266,7 @@ SAGE_SCRIPTS
 
         renderer.setSize( window.innerWidth, window.innerHeight );
         updateCameraAspect( camera, window.innerWidth / window.innerHeight );
+        if ( window.rescaleFatLines ) rescaleFatLines();
         if ( !animate ) render();
 
     } );
@@ -334,16 +335,23 @@ SAGE_SCRIPTS
             geometry.vertices.push( new THREE.Vector3( a[0]*v[0], a[1]*v[1], a[2]*v[2] ) );
         }
 
-        var transparent = json.opacity < 1 ? true : false;
-        var material = new THREE.LineBasicMaterial( { color: json.color, linewidth: json.linewidth,
-                                                      transparent: transparent, opacity: json.opacity } );
-
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();
         geometry.boundingBox.getCenter( c );
         geometry.translate( -c.x, -c.y, -c.z );
 
-        var mesh = new THREE.Line( geometry, material );
+        var transparent = json.opacity < 1 ? true : false;
+        var materialOptions = { color: json.color, linewidth: json.linewidth,
+                                transparent: transparent, opacity: json.opacity };
+
+        var mesh;
+        if ( json.linewidth > 1 && window.createFatLineStrip ) {
+            mesh = createFatLineStrip( geometry, materialOptions );
+        } else {
+            var material = new THREE.LineBasicMaterial( materialOptions );
+            mesh = new THREE.Line( geometry, material );
+        }
+
         mesh.position.set( c.x, c.y, c.z );
         mesh.userData = json;
         scene.add( mesh );
@@ -393,37 +401,47 @@ SAGE_SCRIPTS
         mesh.userData = json;
         scene.add( mesh );
 
-        if ( json.showMeshGrid ) {
+        if ( json.showMeshGrid ) addSurfaceMeshGrid( json );
 
-            var geometry = new THREE.Geometry();
+    }
 
-            for ( var i=0 ; i < json.faces.length ; i++ ) {
-                var f = json.faces[i];
-                for ( var j=0 ; j < f.length ; j++ ) {
-                    var k = j === f.length-1 ? 0 : j+1;
-                    var v1 = json.vertices[f[j]];
-                    var v2 = json.vertices[f[k]];
-                    // vertices in opposite directions on neighboring faces
-                    var nudge = f[j] < f[k] ? .0005*zRange : -.0005*zRange;
-                    geometry.vertices.push( new THREE.Vector3( a[0]*v1.x, a[1]*v1.y, a[2]*(v1.z+nudge) ) );
-                    geometry.vertices.push( new THREE.Vector3( a[0]*v2.x, a[1]*v2.y, a[2]*(v2.z+nudge) ) );
-                }
+    function addSurfaceMeshGrid( json ) {
+
+        var geometry = new THREE.Geometry();
+
+        for ( var i=0 ; i < json.faces.length ; i++ ) {
+            var f = json.faces[i];
+            for ( var j=0 ; j < f.length ; j++ ) {
+                var k = j === f.length-1 ? 0 : j+1;
+                var v1 = json.vertices[f[j]];
+                var v2 = json.vertices[f[k]];
+                // vertices in opposite directions on neighboring faces
+                var nudge = f[j] < f[k] ? .0005*zRange : -.0005*zRange;
+                geometry.vertices.push( new THREE.Vector3( a[0]*v1.x, a[1]*v1.y, a[2]*(v1.z+nudge) ) );
+                geometry.vertices.push( new THREE.Vector3( a[0]*v2.x, a[1]*v2.y, a[2]*(v2.z+nudge) ) );
             }
-
-            var gridColor = options.theme === 'dark' ? 'white' : 'black';
-            var material = new THREE.LineBasicMaterial( { color: gridColor, linewidth: 1 } );
-
-            var c = new THREE.Vector3();
-            geometry.computeBoundingBox();
-            geometry.boundingBox.getCenter( c );
-            geometry.translate( -c.x, -c.y, -c.z );
-
-            var mesh = new THREE.LineSegments( geometry, material );
-            mesh.position.set( c.x, c.y, c.z );
-            mesh.userData = json;
-            scene.add( mesh );
-
         }
+
+        var c = new THREE.Vector3();
+        geometry.computeBoundingBox();
+        geometry.boundingBox.getCenter( c );
+        geometry.translate( -c.x, -c.y, -c.z );
+
+        var gridColor = options.theme === 'dark' ? 'white' : 'black';
+        var linewidth = json.linewidth || 1;
+        var materialOptions = { color: gridColor, linewidth: linewidth };
+
+        var mesh;
+        if ( linewidth > 1 && window.createFatLineSegments ) {
+            mesh = createFatLineSegments( geometry, materialOptions );
+        } else {
+            var material = new THREE.LineBasicMaterial( materialOptions );
+            mesh = new THREE.LineSegments( geometry, material );
+        }
+
+        mesh.position.set( c.x, c.y, c.z );
+        mesh.userData = json;
+        scene.add( mesh );
 
     }
 

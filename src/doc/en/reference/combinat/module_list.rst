@@ -178,6 +178,7 @@ Comprehensive Module list
     sage/combinat/path_tableaux/catalog
     sage/combinat/path_tableaux/dyck_path
     sage/combinat/path_tableaux/path_tableau
+    sage/combinat/path_tableaux/semistandard
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra

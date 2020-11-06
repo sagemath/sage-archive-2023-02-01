@@ -2,8 +2,6 @@
 ### Library order
 #########################################################
 
-import os
-
 # This list defines the *order* of linking libraries. A library should
 # be put *before* any library it links to. Cython allows
 # defining libraries using "# distutils: libraries = LIB". However, if

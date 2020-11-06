@@ -22,11 +22,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import re
 import doctest
-import collections
+from collections import defaultdict
 from sage.repl.preparse import preparse, strip_string_literals
 from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
@@ -35,7 +34,7 @@ from functools import reduce
 from .external import available_software
 
 float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(arb216|arb218|py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 # Version 4.65 of glpk prints the warning "Long-step dual simplex will
 # be used" frequently. When Sage uses a system installation of glpk
 # which has not been patched, we need to ignore that message.
@@ -298,6 +297,8 @@ def parse_optional_tags(string):
     - 'known bug'
     - 'py2'
     - 'py3'
+    - 'arb216'
+    - 'arb218'
     - 'optional: PKG_NAME' -- the set will just contain 'PKG_NAME'
 
     EXAMPLES::
@@ -662,8 +663,8 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: TestSuite(DTP).run()
         """
         self.long = long
-        self.optionals = collections.defaultdict(int) # record skipped optional tests
-        if optional_tags is True: # run all optional tests
+        self.optionals = defaultdict(int)  # record skipped optional tests
+        if optional_tags is True:  # run all optional tests
             self.optional_tags = True
             self.optional_only = False
         else:

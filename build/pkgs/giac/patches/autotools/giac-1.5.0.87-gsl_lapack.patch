@@ -72,12 +72,14 @@ diff --git a/src/Makefile.am b/src/Makefile.am
 index b5dd325..d45b553 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -14,7 +14,7 @@ libgiac_la_SOURCES = input_lexer.ll sym2poly.cc gausspol.cc threaded.cc \
+@@ -14,6 +14,8 @@ libgiac_la_SOURCES = input_lexer.ll sym2poly.cc gausspol.cc threaded.cc \
    help.cc  lpsolve.cc optimization.cc signalprocessing.cc \
    graphe.cc graphtheory.cc nautywrapper.c markup.cc kdisplay.cc kadd.cc # Ugh..
  
 -libgiac_la_LIBADD = $(NTL_LIBS) $(COCOA_LIBS) $(PARI_LIBS) $(GSL_LIBS)
 +libgiac_la_LIBADD = $(NTL_LIBS) $(COCOA_LIBS) $(PARI_LIBS) $(GSL_LIBS) $(LAPACK_LIBS) $(BLAS_LIBS)
++
++AM_LDFLAGS = -no-undefined
  
  giacincludedir = $(includedir)/giac
  giacinclude_HEADERS = dispatch.h fraction.h gen.h desolve.h misc.h ti89.h \

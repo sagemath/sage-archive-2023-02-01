@@ -189,7 +189,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         """
         raise NotImplementedError
 
-    def quotient(self, H):
+    def quotient(self, H, **kwds):
         """
         Return the quotient of this group by the normal subgroup
         `H`.

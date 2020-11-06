@@ -994,7 +994,7 @@ class Permutation(CombinatorialElement):
             if toConsider == -1:
                 #Add the cycle to the list of cycles
                 if singletons:
-                    if cycle != []:
+                    if cycle:
                         cycles.append(tuple(cycle))
                 else:
                     if len(cycle) > 1:
@@ -1018,9 +1018,9 @@ class Permutation(CombinatorialElement):
                 l.remove( next )
                 toConsider = next
 
-        #When we're finished, add the last cycle
+        # When we're finished, add the last cycle
         if singletons:
-            if cycle != []:
+            if cycle:
                 cycles.append(tuple(cycle))
         else:
             if len(cycle) > 1:
@@ -4512,11 +4512,13 @@ class Permutation(CombinatorialElement):
             4[3[2[., .], 1[., .]], .]
         """
         from sage.combinat.binary_tree import LabelledBinaryTree as LBT
+
         def rec(perm):
-            if len(perm) == 0: return LBT(None)
+            if len(perm) == 0:
+                return LBT(None)
             mn = compare(perm)
             k = perm.index(mn)
-            return LBT([rec(perm[:k]), rec(perm[k+1:])], label = mn)
+            return LBT([rec(perm[:k]), rec(perm[k + 1:])], label = mn)
         return rec(self)
 
     @combinatorial_map(name="Increasing tree")
@@ -5472,9 +5474,10 @@ class Permutations_nk(Permutations):
             sage: [3,1] in Permutations(3,2)
             True
         """
-        if len(x) != self._k: return False
+        if len(x) != self._k:
+            return False
 
-        r = list(range(1, self.n+1))
+        r = list(range(1, self.n + 1))
         for i in x:
             if i in r:
                 r.remove(i)

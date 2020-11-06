@@ -826,7 +826,6 @@ class ReferenceSubBuilder(DocBuilder):
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
             with open(env_pickle, 'rb') as f:
-                import pickle
                 env = pickle.load(f)
                 env.app = FakeApp(self.dir)
                 env.config.values = env.app.config.values

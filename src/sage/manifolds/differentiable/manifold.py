@@ -416,6 +416,7 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
+- Michael Jung (2020): tensor bundles and orientability
 
 REFERENCES:
 
@@ -2802,7 +2803,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         - ``frame`` --
           :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
-          a vector frame defined on the manifold
+          a vector frame defined on some subset of ``self``
 
         EXAMPLES:
 
@@ -2821,13 +2822,8 @@ class DifferentiableManifold(TopologicalManifold):
         from sage.manifolds.differentiable.vectorframe import VectorFrame
         if not isinstance(frame, VectorFrame):
             raise TypeError("{} is not a vector frame".format(frame))
-        if frame._domain is not self:
-            if self.is_manifestly_parallelizable():
-                raise ValueError("the frame domain must coincide with " +
-                                 "the {}".format(self))
-            if not frame._domain.is_subset(self):
-                raise ValueError("the frame must be defined on " +
-                                 "the {}".format(self))
+        if not frame._domain.is_subset(self):
+            raise ValueError("the frame must be defined on the {}".format(self))
         self._def_frame = frame
         frame._fmodule.set_default_basis(frame)
 
@@ -3443,7 +3439,7 @@ class DifferentiableManifold(TopologicalManifold):
             for more examples, including plots.
 
         """
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         if not isinstance(param, (tuple, list)):
             param = (param, minus_infinity, infinity)
         elif len(param) != 3:
@@ -3564,7 +3560,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
 
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
 
         if len(curve_param) != 3:
@@ -3699,7 +3695,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
 
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
 
         if len(curve_param) != 3:
@@ -3820,7 +3816,7 @@ class DifferentiableManifold(TopologicalManifold):
             [-1.0907409234671228, 0.6205670379855032]
 
         """
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
 
         if len(curve_param) != 3:

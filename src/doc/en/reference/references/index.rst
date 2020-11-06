@@ -361,6 +361,9 @@ REFERENCES:
 
 **B**
 
+.. [Baer2020] Christian Bär. *The Faddeev-LeVerrier algorithm and the Pfaffian*.
+              :arxiv:`2008.04247`, 2020.
+
 .. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
             AMS (2001).
 
@@ -1905,6 +1908,13 @@ REFERENCES:
             l'École Normale Supérieure, Sér. 4, 23, no. 3 (1990) p
             469-494
 
+.. [DNB1996] Feodor F. Dragan, Falk Nicolai, Andreas Brandstat.
+               *LexBFS-orderings and powers of graphs*.
+               International Workshop on Graph-Theoretic Concepts in Computer
+               Science, WG 1996. Lecture Notes in Computer Science, vol 1197.
+               Springer, Berlin, Heidelberg.
+               :doi:`10.1007/3-540-62559-3_15`
+
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 
@@ -2794,15 +2804,21 @@ REFERENCES:
                 pp. 216--221.
                 :doi:`10.1016/0097-3165(76)90065-0`
 
+.. [HK2002] *Introduction to Quantum Groups and Crystal Bases.*
+            Jin Hong and Seok-Jin Kang. 2002. Volume 42.
+            Graduate Studies in Mathematics. American Mathematical Society.
+
 .. [HM1979]  M. Habib, and M.C. Maurer
           On the X-join decomposition for undirected graphs
           Discrete Applied Mathematics
           vol 1, issue 3, pages 201-207
 
-.. [HK2002] *Introduction to Quantum Groups and Crystal Bases.*
-            Jin Hong and Seok-Jin Kang. 2002. Volume 42.
-            Graduate Studies in Mathematics. American Mathematical Society.
-
+.. [HMPV2000] Michel Habib, Ross McConnell, Christophe Paul, and
+            Laurent Viennot. *Lex-BFS and partition refinement, with
+            applications to transitive orientation, interval graph
+            recognition and consecutive ones testing*.
+            Theoretical Computer Science, 234(1-2): 59-84, 2000.
+            :doi:`10.1016/S0304-3975(97)00241-7`.
 
 .. [HN2006] Florent Hivert and Janvier Nzeutchap. *Dual Graded Graphs
             in Combinatorial Hopf Algebras*.
@@ -4125,6 +4141,10 @@ REFERENCES:
              *Generating random derangements*
              :doi:`10.1137/1.9781611972986.7`
              http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf
+
+.. [MPPS2020] Jennifer Morse, Jianping Pan, Wencin Poh, Anne Schilling.
+             *A Crystal on Decreasing Factorizations in the 0-Hecke Monoid*
+             Electron. J. Combin., **27(2)** (2020) #P2.29. :arxiv:`1911.08732`.
 
 .. [MR1985] \R. Mathon and A. Rosa,
             *A new strongly regular graph*,

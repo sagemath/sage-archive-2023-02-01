@@ -424,6 +424,11 @@ def log(*args, **kwds):
         Traceback (most recent call last):
         ...
         TypeError: Symbolic function log takes at most 2 arguments (3 given)
+    
+    Check if :trac:`29164` is fixed::
+        
+        sage: log(0, 2)
+        -Infinity
     """
     base = kwds.pop('base', None)
     if base:

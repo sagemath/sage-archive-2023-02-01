@@ -70,7 +70,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import Integer
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
 from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -2335,7 +2335,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
         r"""
-        A recusive method to fill in ``n``-th preimage tree.
+        A recursive method to fill in ``n``-th preimage tree.
 
         This helper function is used by ``nth_preimage_tree`` below to actually compute the
         points of the tree and populate the dictionary used to create a ``DiGraph``
@@ -2419,7 +2419,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically. Note if this
           is set to ``True``, preimage points are displayed as complex numbers
 
-        - ``prec`` -- (default: 100) postive integer; the precision of the ``ComplexField`` if
+        - ``prec`` -- (default: 100) positive integer; the precision of the ``ComplexField`` if
           we compute the preimage points numerically
 
         - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels. Since labels
@@ -3352,12 +3352,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         C = F.critical_subscheme()
         ram_type = {}
         fc = C.defining_ideal().gens()[0]
-        for f, e in fc.factor():
+        for f, m in fc.factor():
             c = F(F.domain().subscheme(f))  # critical value
             if c in ram_type:
-                ram_type[c].append(e + 1)
+                ram_type[c].append(m + 1)
             else:
-                ram_type[c] = [e + 1]
+                ram_type[c] = [m + 1]
         return sorted(ram_type.values())
 
     def is_postcritically_finite(self, err=0.01, use_algebraic_closure=True):
@@ -5391,7 +5391,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([x^2+ y^2, x*y])
-            sage: f.all_periodic_points(algorithm="dnyatomic")
+            sage: f.all_periodic_points(algorithm="banana")
             Traceback (most recent call last):
             ...
             ValueError: algorithm must be 'dynatomic' or 'lifting'

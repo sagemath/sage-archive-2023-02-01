@@ -69,8 +69,10 @@
 
 # Avoid surprises with character ranges [a-z] in regular expressions
 # See Trac #15791; some locales can produce different results for
-# character ranges (use C.UTF-8 to ensure UTF-8 default encoding in Python)
-export LC_ALL=C.UTF-8
+# character ranges; using C.UTF-8 to ensure UTF-8 default encoding in Python
+# introduces extra complications, see #30053, so we don't do it, but
+# assume we are on Python3.x,  for x at least 7.
+export LC_ALL=C
 
 usage()
 {
@@ -179,6 +181,9 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 
+export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"
+export SAGE_SPKG_WHEELS="$SAGE_LOCAL/var/lib/sage/wheels"
 
 # Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
 # (cf. #10192, #10176):
@@ -484,6 +489,7 @@ export SAGE_ROOT="$SAGE_ROOT"
 export SAGE_SRC="$SAGE_SRC"
 export SAGE_PKG_DIR="$script_dir"
 export SAGE_SPKG_SCRIPTS="$SAGE_SPKG_SCRIPTS"
+export SAGE_SPKG_WHEELS="$SAGE_SPKG_WHEELS"
 
 export PKG_NAME="$PKG_NAME"
 export PKG_BASE="$PKG_BASE"
@@ -520,7 +526,7 @@ __EOF__
 }
 
 
-WRAPPED_SCRIPTS="build install check preinst postinst legacy-uninstall prerm postrm"
+WRAPPED_SCRIPTS="build install check preinst postinst prerm postrm"
 INSTALLED_SCRIPTS="prerm postrm"
 
 

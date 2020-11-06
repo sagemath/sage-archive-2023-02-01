@@ -123,7 +123,7 @@ AUTHORS:
 
 - Grayson Jorgenson (2016-08)
 
-- Kwankyu Lee (2019-05): added integral projecive curves
+- Kwankyu Lee (2019-05): added integral projective curves
 
 """
 # ****************************************************************************

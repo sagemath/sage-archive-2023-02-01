@@ -723,9 +723,11 @@ def _exceptionals(E, L, patience=1000):
 
 
 def _over_numberfield(E):
-    r"""Return `E`, defined over a NumberField object. This is necessary
-    since if `E` is defined over `\QQ`, then we cannot use SAGE commands
-    available for number fields.
+    r"""
+    Return `E`, defined over a ``NumberField`` object.
+
+    This is necessary since if `E` is defined over `\QQ`, then we
+    cannot use Sage commands available for number fields.
 
     INPUT:
 

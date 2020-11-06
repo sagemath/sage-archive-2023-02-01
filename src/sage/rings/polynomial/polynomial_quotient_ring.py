@@ -41,7 +41,7 @@ from __future__ import absolute_import, print_function
 import sage.rings.number_field.all
 from . import polynomial_element
 import sage.rings.rational_field
-import sage.rings.complex_field
+import sage.rings.complex_mpfr
 
 from sage.rings.ring import Field, IntegralDomain, CommutativeRing
 
@@ -50,6 +50,7 @@ from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuo
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 
 from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.commutative_rings import CommutativeRings
 
 from sage.structure.category_object import normalize_names
 from sage.structure.factory import UniqueFactory
@@ -760,7 +761,11 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         -- Simon King (2010-05)
         """
         from sage.categories.pushout import QuotientFunctor
-        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names()), self.base()
+        Cover = self.base()
+        if Cover in CommutativeRings():
+            return QuotientFunctor([self.modulus()]*Cover, self.variable_names(),
+                                   domain=CommutativeRings(), codomain=CommutativeRings()), Cover
+        return QuotientFunctor([self.modulus()]*self.base(), self.variable_names()), Cover
 
     @cached_method
     def base_ring(self):
@@ -2209,8 +2214,8 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, Field):
         sage: loads(xbar.dumps()) == xbar
         True
     """
-    def __init__(self, ring, polynomial, name=None):
-        PolynomialQuotientRing_domain.__init__(self, ring, polynomial, name)
+    def __init__(self, ring, polynomial, name=None, category=None):
+        PolynomialQuotientRing_domain.__init__(self, ring, polynomial, name, category)
 
     def base_field(self):
         r"""
@@ -2232,7 +2237,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, Field):
             sage: [phi(k.0^2) for phi in v]
             [2.9757207403766761469671194565, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I, 0.92103906697304693634806949137 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949137 + 3.0755331188457794473265418086*I]
         """
-        CC = sage.rings.complex_field.ComplexField(prec)
+        CC = sage.rings.complex_mpfr.ComplexField(prec)
         v = self.modulus().roots(multiplicities=False, ring=CC)
         return [self.hom([a], check=False) for a in v]
 

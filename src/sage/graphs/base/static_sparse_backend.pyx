@@ -46,7 +46,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
 from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -220,7 +220,10 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return list(range(self.g.n))
 
-    cdef int has_arc_unsafe(self, int u, int v) except -1:
+    cdef int has_arc_label_unsafe(self, int u, int v, int l) except -1:
+        """
+        Label is ignored.
+        """
         return ((0 <= u) and
                 (0 <= v) and
                 (u < self.g.n) and
@@ -979,6 +982,8 @@ cdef class StaticSparseBackend(CGraphBackend):
                            edge_label(cg.g, cg.g.neighbors[i] + tmp))
                 else:
                     yield vi, self._vertex_to_labels[j]
+
+    iterator_unsorted_edges = iterator_edges
 
     def degree(self, v, directed):
         r"""

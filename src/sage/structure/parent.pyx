@@ -2737,7 +2737,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: [R._is_numerical() for R in [RIF, RBF, CIF, CBF]]
             [False, False, False, False]
         """
-        from sage.rings.complex_field import ComplexField
+        from sage.rings.complex_mpfr import ComplexField
         from sage.rings.real_mpfr import mpfr_prec_min
         return ComplexField(mpfr_prec_min()).has_coerce_map_from(self)
 

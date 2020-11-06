@@ -1666,12 +1666,15 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         elif explain_construction:
             return "Hadamard difference set product from N1={} and N2={}".format(N1,N2)
         else:
-            v1 = 4*N1*N1; v2 = 4*N2*N2
-            k1 = 2*N1*N1 - N1; k2 = 2*N2*N2 - N2
-            l1 = N1*N1 - N1; l2 = N2*N2 - N2
-            G1,D1 = difference_family(v1,k1,l1)
-            G2,D2 = difference_family(v2,k2,l2)
-            G,D = hadamard_difference_set_product(G1,D1,G2,D2)
+            v1 = 4*N1*N1
+            v2 = 4*N2*N2
+            k1 = 2*N1*N1 - N1
+            k2 = 2*N2*N2 - N2
+            l1 = N1*N1 - N1
+            l2 = N2*N2 - N2
+            G1, D1 = difference_family(v1,k1,l1)
+            G2, D2 = difference_family(v2,k2,l2)
+            G, D = hadamard_difference_set_product(G1,D1,G2,D2)
 
     elif are_hadamard_difference_set_parameters(v,k,l) and (k-2*l).is_prime():
         if existence:

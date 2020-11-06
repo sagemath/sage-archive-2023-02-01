@@ -6751,10 +6751,10 @@ class A002275(SloaneSequence):
 
 
 
-# inhomogenous second order recurrences
+# inhomogeneous second order recurrences
 def recur_gen2b(a0,a1,a2,a3,b):
     r"""
-    inhomogenous second-order linear recurrence generator with fixed
+    inhomogeneous second-order linear recurrence generator with fixed
     coefficients and `b = f(n)`
 
     `a(0) = a0`, `a(1) = a1`,

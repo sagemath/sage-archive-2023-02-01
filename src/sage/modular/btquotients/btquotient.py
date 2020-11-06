@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-#########################################################################
-#       Copyright (C) 2011 Cameron Franc and Marc Masdeu
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#                  https://www.gnu.org/licenses/
-#########################################################################
 r"""
 Quotients of the Bruhat-Tits tree
 
@@ -29,8 +22,24 @@ We can query for its genus, as well as get it back as a graph::
     Multi-graph on 2 vertices
 
 The rest of functionality can be found in the docstrings below.
+
+AUTHORS:
+
+- Cameron Franc and Marc Masdeu (2011): initial version
 """
-from __future__ import print_function, absolute_import
+
+# ****************************************************************************
+#       Copyright (C) 2011 Cameron Franc and Marc Masdeu
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from copy import copy
+from collections import deque
 
 from sage.rings.integer import Integer
 from sage.matrix.constructor import Matrix
@@ -39,7 +48,6 @@ from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, Zmod, QQ
 from sage.misc.latex import latex
 from sage.rings.padics.precision_error import PrecisionError
-import collections
 from sage.misc.misc_c import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
@@ -51,7 +59,6 @@ from sage.quadratic_forms.all import QuadraticForm
 from sage.graphs.all import Graph
 from sage.libs.all import pari
 from sage.interfaces.all import magma
-from copy import copy
 from sage.plot.colors import rainbow
 from sage.rings.number_field.all import NumberField
 from sage.modular.arithgroup.all import Gamma0
@@ -3607,7 +3614,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         p = self._p
         v0 = Vertex(p, num_verts, self._Mat_22([1, 0, 0, 1]),
                     determinant=1, valuation=0)
-        V = collections.deque([v0])
+        V = deque([v0])
         S = Graph(0, multiedges=True, weighted=True)
         Sfun = Graph(0)
         edge_list = []

@@ -348,7 +348,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         self._radius_lst = None
         self._radius_func = None
 
-        if (radius == None and power == None) or radius == 0:
+        if (radius is None and power is None) or radius == 0:
             self._type = 1
             self._radius = 0
             self._power = None
@@ -385,7 +385,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
                         raise ValueError('radius univariate function but center is constant. ' + \
                             'this does not define a type IV point')
                     raise TypeError("symbolic radius must be a real number")
-            if (not is_RealNumber(radius)) and power == None:
+            if (not is_RealNumber(radius)) and power is None:
                 if RR.has_coerce_map_from(radius.parent()):
                     self._radius = RR(radius)
                 else:
@@ -460,7 +460,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         """
         if self.type_of_point() != 4:
             raise ValueError('center_function not defined for points which are not type IV')
-        if self._center_func == None:
+        if self._center_func is None:
             raise ValueError('this type IV point does not have a center function')
         return self._center_func
 
@@ -488,7 +488,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         """
         if self.type_of_point() != 4:
             raise ValueError('center_function not defined for points which are not type IV')
-        if self._radius_func == None:
+        if self._radius_func is None:
             raise ValueError('this type IV point does not have a radius function')
         return self._radius_func
 
@@ -651,7 +651,7 @@ class Berkovich_Element_Cp(Berkovich_Element):
         """
         if basepoint == Infinity:
             if self._type == 4:
-                if self._radius_func == None:
+                if self._radius_func is None:
                     return self._radius_lst[-1]
                 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
                 R = PolynomialRing(QQ, names="x")
@@ -1308,11 +1308,11 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             return new_space(self.center(), power=self.power())
         elif self.type_of_point() == 3:
             return new_space(self.center(), self.radius())
-        if self._center_func == None:
+        if self._center_func is None:
             center = self.center()
         else:
             center = self.center_function()
-        if self._radius_func == None:
+        if self._radius_func is None:
             radius = self.radius()
         else:
             radius = self.radius_function()
@@ -1951,11 +1951,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
                 return new_space(center, power=self.power())
             elif self.type_of_point() == 3:
                 return new_space(center, self.radius())
-        if self._center_func == None:
+        if self._center_func is None:
             center = [i[0] for i in self.center()]
         else:
             center = self.center_function()
-        if self._radius_func == None:
+        if self._radius_func is None:
             radius = self.radius()
         else:
             radius = self.radius_function()

@@ -26,7 +26,7 @@
 #
 ##########################################################################
 
-if [ "${SAGE_ENV_CONFIG_SOURCED}" -ne 1 ]; then
+if [ "${SAGE_ENV_CONFIG_SOURCED}" != 1 ]; then
     # This script uses sage-env-config to find the ./configured value
     # of SAGE_ROOT, but ironically, it doesn't know how to find
     # sage-env-config because it doesn't know SAGE_ROOT yet!
@@ -227,10 +227,6 @@ if [ "$UNAME" = "Darwin" ]; then
     export OBJC OBJCXX
 fi
 
-if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
-    export SAGE_PYTHON3=yes
-fi
-
 # Set other Fortran-related compiler variables
 export F77="$FC"
 export F90="$FC"   # Needed for SciPy
@@ -356,7 +352,7 @@ SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
-    SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
+    SAGE_REPO_ANONYMOUS="https://gitlab.com/sagemath/dev/tracmirror.git"
     export SAGE_REPO_ANONYMOUS
 fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then

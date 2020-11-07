@@ -186,6 +186,12 @@ class IncreasingChains(RecursivelyEnumeratedSet_forest):
                  list exclude, conversion=None):
         """
         The enumerated set of increasing chains.
+
+        TESTS::
+
+            sage: from sage.combinat.posets.hasse_cython import IncreasingChains
+            sage: D = IncreasingChains([{0,1},{1}], list, [])
+            sage: TestSuite(D).run(skip='_test_pickling')
         """
         cdef int i
         cdef Py_ssize_t n = len(positions)

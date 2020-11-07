@@ -2,37 +2,44 @@
 r"""
 Access to the KnotInfo database
 
-This module contains the class :class:`KnotInfoBase` which is derived from :class:`Enum`
-and provides knots and links listed in the databases at the web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__
+This module contains the class :class:`KnotInfoBase` which is derived from
+:class:`Enum` and provides knots and links listed in the databases at the
+web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__
 and `LinkInfo <https://linkinfo.sitehost.iu.edu/>`__ as its items.
 
-This interface contains a set of about twenty knots and links statically as demonstration cases. The complete
-database can be installed as an optional Sage package using
+This interface contains a set of about twenty knots and links statically as
+demonstration cases. The complete database can be installed as an optional Sage
+package using
 
-- ``sage -i database_knotinfo`` (does not install if the current version is already present)
-- ``sage -f database_knotinfo`` (installs even if the current version is already present)
+- ``sage -i database_knotinfo`` (does not install if the current version is present)
+- ``sage -f database_knotinfo`` (installs even if the current version is present)
 
-To perform all the doctests concerning the usage of the database on the installation add the option ``-c``.
-In this case (for instance ``sage -f -c database_knotinfo``) the installation breaks on failing tests.
+To perform all the doctests concerning the usage of the database on the installation
+add the option ``-c``. In this case (for instance ``sage -f -c database_knotinfo``)
+the installation breaks on failing tests.
 
-The installation of the complete database  will be necessary in order to have access to all the properties
-recorded in the databases, as well.
+The installation of the complete database  will be necessary in order to have
+access to all the properties recorded in the databases, as well.
 
-Be aware that there are a couple of conventions used differently on KnotInfo as in Sage, especially
-concerning the selection of the symmetry version of the link. In our transitions to Sage objects
-these are translated (by default) in order to avoid confusion about exchanged mirror versions.
+Be aware that there are a couple of conventions used differently on KnotInfo as
+in Sage, especially concerning the selection of the symmetry version of the link.
+In our transitions to Sage objects these are translated (by default) in order to
+avoid confusion about exchanged mirror versions.
 
 Briefly, these differences are:
 
-   - ``pd_notation`` --        KnotInfo: counter clockwise Sage: clockwise, see note in
-     :meth:`KnotInfoBase.link`
+- ``pd_notation`` --        KnotInfo: counter clockwise Sage: clockwise, see note
+  in :meth:`KnotInfoBase.link`
 
-   - ``homfly_polynomial`` --  KnotInfo: ``v``  Sage: `1/a`, see note in :meth:`KnotInfoBase.homfly_polynomial`.
+- ``homfly_polynomial`` --  KnotInfo: ``v``  Sage: `1/a`, see note in
+  :meth:`KnotInfoBase.homfly_polynomial`.
 
-   - ``braid_notation``    --  This is used accordingly: The crossing of the braid generators are positive
-     in both systems. Here it is listed because there could arise confusion from the source where they are
-     taken from. There, the braid generators are assumed to have a negative crossing
-     (see definition 3  of `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links <https://arxiv.org/abs/math/0401051>`__).
+- ``braid_notation``    --  This is used accordingly: The crossing of the braid
+  generators are positive in both systems. Here it is listed because there could
+  arise confusion from the source where they are taken from. There, the braid
+  generators are assumed to have a negative crossing (see definition 3  of
+  `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
+  <https://arxiv.org/abs/math/0401051>`__).
 
 
 EXAMPLES::
@@ -82,30 +89,34 @@ Obtaining an instance of :class:`Link`::
     sage: type(l)
     <class 'sage.knots.link.Link'>
 
-If you have `SnapPy <https://snappy.math.uic.edu/index.html>`__ installed inside Sage
-you can obtain an instance of :class:`~spherogram.links.links_base.Link`, too::
+If you have `SnapPy <https://snappy.math.uic.edu/index.html>`__ installed inside
+Sage you can obtain an instance of :class:`~spherogram.links.links_base.Link`,
+too::
 
     sage: L6 = KnotInfo.L6a2_0
-    sage: l6s = L6.link(snappy=True); l6s                              # optional - snappy
+    sage: l6s = L6.link(snappy=True); l6s      # optional - snappy
     Plink failed to import tkinter.
     <Link: 2 comp; 6 cross>
-    sage: type(l6s)                                                    # optional - snappy
+    sage: type(l6s)                            # optional - snappy
     <class 'spherogram.links.invariants.Link'>
     sage: l6  = L6.link()
-    sage: l6 == l6s.sage_link()                                        # optional - snappy
+    sage: l6 == l6s.sage_link()                # optional - snappy
     True
-    sage: l6sn = L6.link(use_item=L6.items.name, snappy=True); l6sn    # optional - snappy
+    sage: L6.link(L6.items.name, snappy=True)  # optional - snappy
     <Link L6a2: 2 comp; 6 cross>
-    sage: l6s == l6sn                                                  # optional - snappy
+    sage: l6sn = _                             # optional - snappy
+    sage: l6s == l6sn                          # optional - snappy
     False
-    sage: l6sn.sage_link().is_isotopic(l6)                             # optional - snappy
+    sage: l6sn.sage_link().is_isotopic(l6)     # optional - snappy
     True
 
-But observe that the name conversion to SnapPy does not distingiush orientation types::
+But observe that the name conversion to SnapPy does not distingiush orientation
+types::
 
     sage: L6b = KnotInfo.L6a2_1
-    sage: l6bsn = L6b.link(use_item=L6b.items.name, snappy=True)       # optional - snappy
-    sage: l6bsn.PD_code() == l6sn.PD_code()                            # optional - snappy
+    sage: L6b.link(L6b.items.name, snappy=True)  # optional - snappy
+    <Link L6a2: 2 comp; 6 cross>
+    sage: _.PD_code() == l6sn.PD_code()          # optional - snappy
     True
 
 Obtaining the HOMFLY-PT polynomial::
@@ -120,7 +131,7 @@ Obtaining the HOMFLY-PT polynomial::
 
 Obtaining the original string from the database for an arbitrary property::
 
-    sage: K[K.items.classical_conway_name]         # optional - database_knotinfo
+    sage: K[K.items.classical_conway_name]  # optional - database_knotinfo
     '4_1'
 
 Further methods::
@@ -150,7 +161,9 @@ Further methods::
 
 Using the ``column_type`` of a property::
 
-    sage: [i.column_name() for i in K.items if i.column_type() != i.types.OnlyLinks and K[i] == 'Y']     # optional - database_knotinfo
+    sage: def select_column(i):
+    ....:     return i.column_type() != i.types.OnlyLinks and K[i] == 'Y'
+    sage: [i.column_name() for i in K.items if select_column(i)]  # optional - database_knotinfo
     ['Alternating', 'Fibered', 'Quasialternating', 'Adequate']
 
 You can launch web-pages attached to the links::
@@ -178,13 +191,13 @@ In a similar way you may select the knots and links. Here you have to type ``Kno
 or ``KnotInfo.L7`` before stroking the "tab-key". In the latter case  the selection list
 will be reduced to proper links with 7 crossings.
 
-Finally there is a method :meth:`Link.identify_knotinfo` of class :class:`Link` to find an instance
+Finally there is a method :meth:`Link.get_knotinfo` of class :class:`Link` to find an instance
 in the KnotInfo database::
 
     sage: L = Link([[3,1,2,4], [8,9,1,7], [5,6,7,3], [4,18,6,5],
     ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
     ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
-    sage: L.identify_knotinfo()
+    sage: L.get_knotinfo()
     (<KnotInfo.K0_1: '0_1'>, False)
 
 
@@ -226,26 +239,6 @@ from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, db
 
 
 
-def is_knotinfo_available(raise_error=False):
-    r"""
-    Return whether the KnotInfo databases are installed or not.
-
-    INPUT:
-
-    - ``raise_error`` -- boolean (default ``False``) if set to ``True``
-      an import error is raised in case KnotInfo is not installed
-
-    EXAMPLES::
-
-        sage: from sage.knots.knotinfo import is_knotinfo_available
-        sage: is_knotinfo_available()     # optional - database_knotinfo
-        True
-    """
-    res = db.is_available()
-    if not res and raise_error:
-        raise ImportError('This functionality needs KnotInfo to be installed! Type `sage -i database_knotinfo` to have this done')
-    return res
-
 @cached_function
 def knotinfo_matching_list(number_of_crossings, num_components, homfly_polynomial=None):
     r"""
@@ -267,19 +260,29 @@ def knotinfo_matching_list(number_of_crossings, num_components, homfly_polynomia
         [<KnotInfo.K0_1: '0_1'>, <KnotInfo.K3_1: '3_1'>]
         sage: [l.name for l in knotinfo_matching_list(4,2)]
         ['L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
-        sage: L = KnotInfo.L6a3_0                            # optional - database_knotinfo
-        sage: h = L.homfly_polynomial(sage_convention=True)  # optional - database_knotinfo
-        sage: l = knotinfo_matching_list(L.crossing_number(), L.num_components(), h)  # optional - database_knotinfo
-        sage: len(l) == 1 and l[0] == L                      # optional - database_knotinfo
-        True
+
+        sage: KnotInfo.L6a2_0.inject()
+        Defining L6a2_0
+        sage: L6a2_0.num_components()
+        2
+        sage: h = L6a2_0.homfly_polynomial(sage_convention=True)
+        sage: knotinfo_matching_list(6, 2, h)
+        [<KnotInfo.L6a2_0: 'L6a2{0}'>]
+
+    Care is needed for non irreducible HOMFLY-PT polynomials::
+
+        sage: k4_1 = KnotInfo.K4_1.link()
+        sage: k5_2 = KnotInfo.K5_2.link()
+        sage: H = k4_1.connected_sum(k5_2).homfly_polynomial(normalization='az')
+        sage: knotinfo_matching_list(9, 1, H)   # optional - database_knotinfo
+        [<KnotInfo.K9_12: '9_12'>]
     """
     res = []
     if homfly_polynomial:
         l = knotinfo_matching_list(number_of_crossings, num_components)
         for L in l:
-            if homfly_polynomial:
-                if L.homfly_polynomial(sage_convention=True) != homfly_polynomial:
-                    continue
+            if L.homfly_polynomial(sage_convention=True) != homfly_polynomial:
+                continue
             res.append(L)
         return res
 
@@ -356,7 +359,8 @@ class KnotInfoBase(Enum):
         sage: [knot.name for knot in KnotInfo if knot.crossing_number() < 5]
         ['K0_1', 'K3_1', 'K4_1', 'L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
 
-    More examples and information can be seen in the module header :mod:`~sage.knots.knotinfo` (by typing)::
+    More examples and information can be seen in the module header
+    :mod:`~sage.knots.knotinfo` (by typing)::
 
         sage: import sage.knots.knotinfo   # not tested
         sage: sage.knots.knotinfo?         # not tested
@@ -377,19 +381,8 @@ class KnotInfoBase(Enum):
             sage: from sage.knots.knotinfo import KnotInfo
             sage: L = KnotInfo.L4a1_0
             sage: it = L.items
-            sage: [i.name for i in it if i.name.endswith('notation')]   # optional - database_knotinfo
-            ['dt_notation',
-             'conway_notation',
-             'two_bridge_notation',
-             'gauss_notation',
-             'enhanced_gauss_notation',
-             'pd_notation',
-             'braid_notation',
-             'positive_braid_notation',
-             'positive_pd_notation',
-             'strongly_quasipositive_braid_notation',
-             'quasipositive_braid_notation',
-             'arc_notation']
+            sage: [i.name for i in it if i.name.startswith('braid')]
+            ['braid_index', 'braid_length', 'braid_notation']
             sage: L.items.dt_notation.column_name()
             'DT Notation'
 
@@ -660,7 +653,8 @@ class KnotInfoBase(Enum):
                         break
 
         if not self.is_knot():
-            # in linkinfo the braid_notation includes the braid_index as first item of a pair
+            # in linkinfo the braid_notation includes the braid_index as
+            # first item of a pair
             braid_notation = braid_notation[1]
         return braid_notation
 
@@ -797,7 +791,8 @@ class KnotInfoBase(Enum):
     @cached_method
     def name_unoriented(self):
         r"""
-        Return the the part of the name of ``self`` which is independent on the orientation.
+        Return the the part of the name of ``self`` which is independent on the
+        orientation.
 
         EXAMPLES::
 
@@ -837,12 +832,12 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: [(L.name, L.symmetry_type()) for L in KnotInfo if L.is_knot() and L.crossing_number() < 6]
-            [('K0_1', 'fully amphicheiral'),
-            ('K3_1', 'reversible'),
-            ('K4_1', 'fully amphicheiral'),
-            ('K5_1', 'reversible'),
-            ('K5_2', 'reversible')]
+            sage: KnotInfo.K6_1.series().inject()
+            Defining K6
+            sage: [(K.name, K.symmetry_type()) for K in K6]
+            [('K6_1', 'reversible'),
+             ('K6_2', 'reversible'),
+             ('K6_3', 'fully amphicheiral')]
         """
         if not self.is_knot():
             raise NotImplementedError('This is only available for knots')
@@ -881,10 +876,10 @@ class KnotInfoBase(Enum):
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: K = KnotInfo.K12a_427                 # optional - database_knotinfo
-            sage: K.is_amphicheiral()                   # optional - database_knotinfo
+            sage: K = KnotInfo.K12a_427             # optional - database_knotinfo
+            sage: K.is_amphicheiral()               # optional - database_knotinfo
             False
-            sage: K.is_amphicheiral(positive=True)      # optional - database_knotinfo
+            sage: K.is_amphicheiral(positive=True)  # optional - database_knotinfo
             True
         """
         if positive:
@@ -921,7 +916,7 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K5_2.is_almost_alternating() # optional - database_knotinfo
             False
         """
-        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        db._feature.require()    # column not available in demo-version
         return knotinfo_bool(self[self.items.almost_alternating])
 
     @cached_method
@@ -935,7 +930,7 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K5_2.is_quasi_alternating() # optional - database_knotinfo
             True
         """
-        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        db._feature.require()    # column not available in demo-version
         return knotinfo_bool(self[self.items.quasi_alternating])
 
     @cached_method
@@ -949,7 +944,7 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K5_2.is_adequate()         # optional - database_knotinfo
             True
         """
-        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        db._feature.require()    # column not available in demo-version
         return knotinfo_bool(self[self.items.adequate])
 
     @cached_method
@@ -976,7 +971,7 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K5_2.is_quasipositive()     # optional - database_knotinfo
             True
         """
-        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        db._feature.require()    # column not available in demo-version
         return knotinfo_bool(self[self.items.quasipositive])
 
     @cached_method
@@ -990,7 +985,7 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K5_2.is_strongly_quasipositive() # optional - database_knotinfo
             True
         """
-        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        db._feature.require()    # column not available in demo-version
         return knotinfo_bool(self[self.items.strongly_quasipositive])
 
     @cached_method
@@ -1004,7 +999,7 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K5_2.is_positive_braid()         # optional - database_knotinfo
             False
         """
-        is_knotinfo_available(raise_error=True) # column not available in demo-version
+        db._feature.require()    # column not available in demo-version
         return knotinfo_bool(self[self.items.positive_braid])
 
     @cached_method
@@ -1043,8 +1038,9 @@ class KnotInfoBase(Enum):
         element class according to the output of :meth:`Link.homfly_polynomial`
         of :class:`Link`.
 
-        The HOMFLY-PT polynomial `P(L)` of a link `L` satisfies the following skein relation
-        (see the corresponding `KnotInfo description page <https://knotinfo.math.indiana.edu/descriptions/jones_homfly_kauffman_description/polynomial_defn.html)>`__):
+        The HOMFLY-PT polynomial `P(L)` of a link `L` satisfies the following skein
+        relation (see the corresponding `KnotInfo description page
+        <https://knotinfo.math.indiana.edu/descriptions/jones_homfly_kauffman_description/polynomial_defn.html)>`__):
 
         .. MATH::
 
@@ -1053,13 +1049,15 @@ class KnotInfoBase(Enum):
         INPUT:
 
         - ``var1`` -- string for the name of the first variable (default depending
-          on keyword ``sage_convention``: ``'v'`` or ``'L'`` if ``sage_convention == True``)
+          on keyword ``sage_convention``: ``'v'`` or ``'L'`` if
+          ``sage_convention == True``)
         - ``var2`` -- string for the name of the second variable (default depending
-          on keyword ``sage_convention``: ``'z'`` or ``'M'`` if ``sage_convention == True``)
+          on keyword ``sage_convention``: ``'z'`` or ``'M'`` if
+          ``sage_convention == True``)
         - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True`` the conversion
-          to Sage's conventions (see the note below) is performed
+        - ``sage_convention`` -- boolean (default ``False``) if set to ``True``
+          the conversion to Sage's conventions (see the note below) is performed
 
         OUTPUT:
 
@@ -1103,13 +1101,13 @@ class KnotInfoBase(Enum):
             sage: L4a1_1 = KnotInfo.L4a1_1
             sage: PL4a1_1 = L4a1_1.homfly_polynomial(var1='x', var2='y'); PL4a1_1
             -x^5*y + x^3*y^3 - x^5*y^-1 + 3*x^3*y + x^3*y^-1
-            sage: PL4a1_1s = L4a1_1.homfly_polynomial(var1='x', var2='y', sage_convention=True); PL4a1_1s
+            sage: L4a1_1.homfly_polynomial(var1='x', var2='y', sage_convention=True)
             x^-3*y^3 + 3*x^-3*y + x^-3*y^-1 - x^-5*y - x^-5*y^-1
-            sage: PL4a1_1s == L4a1_1.link().homfly_polynomial(var1='x', var2='y', normalization='az')
+            sage: _ == L4a1_1.link().homfly_polynomial(var1='x', var2='y', normalization='az')
             True
 
-        check the skein-relation from the KnotInfo description page (applied to one of
-        the positive crossings of the right-handed trefoil)::
+        check the skein-relation from the KnotInfo description page (applied to one
+        of the positive crossings of the right-handed trefoil)::
 
             sage: R = PK3_1.parent()
             sage: PO = R.one()
@@ -1119,8 +1117,9 @@ class KnotInfoBase(Enum):
             sage: ~v*PK3_1 -v*PO == z*PL2a1_1
             True
 
-        check the skein-relation given in the doc string of :meth:`Link.homfly_polynomial` of
-        :class:`Link` (applied to one of the positive crossings of the right-handed trefoil)::
+        check the skein-relation given in the doc string of :meth:`Link.homfly_polynomial`
+        of :class:`Link` (applied to one of the positive crossings of the
+        right-handed trefoil)::
 
             sage: Rs = PK3_1s.parent()
             sage: POs = Rs.one()
@@ -1132,7 +1131,8 @@ class KnotInfoBase(Enum):
 
         TESTS::
 
-            all(L.homfly_polynomial() == L.link().homfly_polynomial(normalization='az') for L in KnotInfo if L.crossing_number() > 0 and L.crossing_number() < 7)
+            sage: all(L.homfly_polynomial(sage_convention=True) == L.link().homfly_polynomial(normalization='az')\
+                      for L in KnotInfo if L.crossing_number() > 0 and L.crossing_number() < 7)
             True
 
         REFERENCES:
@@ -1176,17 +1176,18 @@ class KnotInfoBase(Enum):
         ``kauffman_polynomial`` for this knot or link as an instance of
         :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
 
-        The Kauffman polynomial `F(L)` respectivlely its corresponding invariant under
-        regular isotopy `\Delta (L) = a^{w(L)} F(L)` where `w(L)` is the writhe of
-        the link `L` satisfies the following skein relation
-        (see the corresponding `KnotInfo description page <https://knotinfo.math.indiana.edu/descriptions/jones_homfly_kauffman_description/polynomial_defn.html)>`__):
+        The Kauffman polynomial `F(L)` respectivlely its corresponding invariant
+        under regular isotopy `\Delta (L) = a^{w(L)} F(L)` where `w(L)` is the
+        writhe of the link `L` satisfies the following skein relation
+        (see the corresponding `KnotInfo description page
+        <https://knotinfo.math.indiana.edu/descriptions/jones_homfly_kauffman_description/polynomial_defn.html)>`__):
 
         .. MATH::
 
             \Delta(O) = 1,\,\,\,   \Delta(L_+) -  \Delta(L_-) = z (\Delta(L_0 + \Delta(L_{\infty}))
 
-        Furthermore, removing a curl of sign `\epsilon` leads to a multiplication of `\Delta(L)`
-        with `a^{\epsilon}`.
+        Furthermore, removing a curl of sign `\epsilon` leads to a multiplication
+        of `\Delta(L)` with `a^{\epsilon}`.
 
         INPUT:
 
@@ -1255,15 +1256,18 @@ class KnotInfoBase(Enum):
     @cached_method
     def jones_polynomial(self, variab=None, skein_normalization=False, puiseux=False, original=False, sage_convention=False):
         r"""
-        Return the Jones polynomial according to the value of column ``jones_polynomial``
-        for this knot or link as an element of the symbolic ring :class:`~sage.symbolic.ring.SR`
-        or an instance of :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
-        depending on the keyword ``skein_normalization``. Using the keyword ``puiseux`` instead
-        of an element of the symbolic ring an instance of :class:`~sage.rings.puiseux_series_ring_element.PuiseuxSeries`
-        can be returned.
+        Return the Jones polynomial according to the value of column
+        ``jones_polynomial`` for this knot or link as an element of the symbolic
+        ring :class:`~sage.symbolic.ring.SR` or an instance of
+        :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
+        depending on the keyword ``skein_normalization``. Using the keyword
+        ``puiseux`` instead of an element of the symbolic ring an instance of
+        :class:`~sage.rings.puiseux_series_ring_element.PuiseuxSeries` can be
+        returned.
 
-        The Jones polynomial `V(L)` of a link `L` satisfies the following skein relation
-        (see the corresponding `KnotInfo description page <https://knotinfo.math.indiana.edu/descriptions/jones_homfly_kauffman_description/polynomial_defn.html)>`__):
+        The Jones polynomial `V(L)` of a link `L` satisfies the following skein
+        relation (see the corresponding `KnotInfo description page
+        <https://knotinfo.math.indiana.edu/descriptions/jones_homfly_kauffman_description/polynomial_defn.html)>`__):
 
         .. MATH::
 
@@ -1272,36 +1276,40 @@ class KnotInfoBase(Enum):
         INPUT:
 
         - ``variab`` -- variable (default: ``None``) used according to :meth:`Link.jones_polynomial`
-        - ``skein_normalization`` -- boolean (default: ``False``) used according to
-          :meth:`Link.jones_polynomial`
-        - ``puiseux`` -- boolean (default ``True``) only used in case ``skein_normalization=False``.
-          If set to ``True`` instead of an element of the symbolic ring an instance of
-          :class:`~sage.rings.puiseux_series_ring_element.PuiseuxSeries` is returned
+        - ``skein_normalization`` -- boolean (default: ``False``) used according
+          to :meth:`Link.jones_polynomial`
+        - ``puiseux`` -- boolean (default ``True``) only used in case
+          ``skein_normalization=False``. If set to ``True`` instead of an element
+          of the symbolic ring an instance of :class:`~sage.rings.puiseux_series_ring_element.PuiseuxSeries`
+          is returned
         - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True`` the conversion
-          to Sage's conventions (see the note below) is performed
+        - ``sage_convention`` -- boolean (default ``False``) if set to ``True`` the
+          conversion to Sage's conventions (see the note below) is performed
 
 
         OUTPUT:
 
         Depends on the keywords (in excluding order):
 
-        - ``original=True`` a string according to the original value from the database
-        - ``skein_normalization=True`` a Laurent polynomial over the integers, more precisely
-          an instance of :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
-        - ``puiseux=True`` a puiseux series over the integers, more precisely an instance of
-          :class:`~sage.rings.puiseux_series_ring_element.PuiseuxSeries`
+        - ``original=True`` a string according to the original value from the
+          database
+        - ``skein_normalization=True`` a Laurent polynomial over the integers,
+          more precisely an instance of :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
+        - ``puiseux=True`` a puiseux series over the integers, more precisely an
+          instance of :class:`~sage.rings.puiseux_series_ring_element.PuiseuxSeries`
 
         In all other cases an element of the symbolic ring :class:`~sage.symbolic.ring.SR`.
 
         .. NOTE::
 
-            The only difference of conventions concerning the Jones polynomial is its representation
-            in the case of proper links. KnotInfo does not display these polynomials in the indeterminate
-            `t` used in the skein relation. Instead a variable `x` is used defined by `x^2 = t`.
-            Sage uses `t` in both cases, knots and proper links. Thus, to obtain the Jones polynomial
-            for a proper link in `t` you have to set the keyword ``sage_convention`` to ``True``.
+            The only difference of conventions concerning the Jones polynomial is
+            its representation in the case of proper links. KnotInfo does not
+            display these polynomials in the indeterminate `t` used in the skein
+            relation. Instead a variable `x` is used defined by `x^2 = t`. Sage
+            uses `t` in both cases, knots and proper links. Thus, to obtain the
+            Jones polynomial for a proper link in `t` you have to set the keyword
+            ``sage_convention`` to ``True``.
 
         EXAMPLES::
 
@@ -1353,8 +1361,8 @@ class KnotInfoBase(Enum):
             sage: Ljs == ljs
             True
 
-        Check the skein-relation from the KnotInfo description page (applied to one of
-        the positive crossings of the right-handed trefoil)::
+        Check the skein-relation from the KnotInfo description page (applied to one
+        of the positive crossings of the right-handed trefoil)::
 
             sage: K3_1  = KnotInfo.K3_1
             sage: K3_1j = K3_1.jones_polynomial()
@@ -1461,8 +1469,8 @@ class KnotInfoBase(Enum):
         - ``var`` -- (default: ``'t'``) the variable
         - ``original`` -- boolean (optional, default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True`` the
-          conversion to Sage's conventions (see the note below) is performed
+        - ``sage_convention`` -- boolean (default ``False``) if set to ``True``
+          the conversion to Sage's conventions (see the note below) is performed
 
         OUTPUT:
 
@@ -1503,7 +1511,7 @@ class KnotInfoBase(Enum):
 
         Launch the KnotInfo description web-page::
 
-            sage: K.items.alexander_polynomial.description_webpage()    # not tested
+            sage: K.items.alexander_polynomial.description_webpage() # not tested
             True
         """
         alexander_polynomial = self[self.items.alexander_polynomial]
@@ -1608,12 +1616,12 @@ class KnotInfoBase(Enum):
         using ``snappy``::
 
             sage: K7   = KnotInfo.K7_2
-            sage: k7s  = K7.link(snappy=True); k7s              # optional - snappy
+            sage: k7s  = K7.link(snappy=True); k7s     # optional - snappy
             <Link: 1 comp; 7 cross>
-            sage: K7.link(use_item=K7.items.name, snappy=True)  # optional - snappy
+            sage: K7.link(K7.items.name, snappy=True)  # optional - snappy
             <Link 7_2: 1 comp; 7 cross>
-            sage: k7sn = _                                      # optional - snappy
-            sage: k7s == k7sn                                   # optional - snappy
+            sage: k7sn = _                             # optional - snappy
+            sage: k7s == k7sn                          # optional - snappy
             False
             sage: k7s.sage_link().is_isotopic(k7sn.sage_link()) # optional - snappy
             True
@@ -1721,9 +1729,9 @@ class KnotInfoBase(Enum):
 
         INPUT:
 
-        - ``overview`` -- boolean (optional, default ``True``) if set to ``False``
-          the series will be reduced to the unoriented type of ``self``
-          in the case of proper links.
+        - ``overview`` -- boolean (optional, default ``True``) if set to
+          ``False`` the series will be reduced to the unoriented type of
+          ``self`` in the case of proper links.
 
         EXAMPLES::
 
@@ -1831,11 +1839,15 @@ class KnotInfoSeries(UniqueRepresentation):
 
     INPUT:
 
-    - ``crossing_number`` -- integer giving the crossing numer of this series of links
-    - ``is_knot``         -- boolean wether this series is a series of knots or proper links
-    - ``is_alternating``  -- boolean wether this series is restriced to alternating links or not.
+    - ``crossing_number`` -- integer giving the crossing numer of this series
+      of links
+    - ``is_knot``         -- boolean wether this series is a series of knots
+      or proper links
+    - ``is_alternating``  -- boolean wether this series is restriced to
+      alternating links or not
       This is not relevant for knots with less than 11 crossings
-    - ``name_unoriented`` -- string restricting the series to all links with that ``name_unoriented``
+    - ``name_unoriented`` -- string restricting the series to all links with
+      that ``name_unoriented``
 
     EXAMPLES::
 
@@ -1984,13 +1996,15 @@ class KnotInfoSeries(UniqueRepresentation):
             <KnotInfo.K6_2: '6_2'>
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: KnotInfo.L8a21_0_1_0.inject()               # optional - database_knotinfo
+            sage: KnotInfo.L8a21_0_1_0.inject()  # optional - database_knotinfo
             Defining L8a21_0_1_0
-            sage: L8a21_0_1_0.series()(1)                     # optional - database_knotinfo
+            sage: L8a21_0_1_0.series().inject()  # optional - database_knotinfo
+            Defining L8a
+            sage: L8a(1)                         # optional - database_knotinfo
             Series of links L8a1
-            sage: L8a21_0_1_0.series()(21)(2) == L8a21_0_1_0  # optional - database_knotinfo
+            sage: L8a(21)(2)     == L8a21_0_1_0  # optional - database_knotinfo
             True
-            sage: L8a21_0_1_0.series()(21)('010') == L8a21_0_1_0   # optional database_knotinfo
+            sage: L8a(21)('010') == L8a21_0_1_0  # optional - database_knotinfo
             True
         """
         if self._name_unoriented:

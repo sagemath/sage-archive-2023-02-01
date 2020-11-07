@@ -2,9 +2,10 @@
 r"""
 KontInfo Database
 
-This module contains the class :class:`KnotInfoDataBase`  and auxilary classes for it
-which serves as an interface to the lists of named knots and links provided at the web-pages
-`KnotInfo <https://knotinfo.math.indiana.edu/>`__ and `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
+This module contains the class :class:`KnotInfoDataBase`  and auxilary classes
+for it which serves as an interface to the lists of named knots and links provided
+at the web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
+`LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
 
 
 AUTHORS:
@@ -37,9 +38,10 @@ from sage.env import SAGE_SHARE, SAGE_ROOT
 
 class KnotInfoColumnTypes(Enum):
     r"""
-    Enum class to specify if a column from the table of knots and links provided at the web-pages
-    `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
-    is used for knots only, links only or both.
+    Enum class to specify if a column from the table of knots and links provided
+    at the web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
+    `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.  is used for knots only,
+    links only or both.
 
     EXAMPLES::
 
@@ -57,16 +59,23 @@ class KnotInfoColumnTypes(Enum):
 
 class KnotInfoColumns(Enum):
     r"""
-    Enum class to select a column from the table of knots and links provided at the web-pages
-    `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
+    Enum class to select a column from the table of knots and links provided
+    at the web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
+    `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
 
     EXAMPLES::
 
-        sage: from sage.databases.knotinfo_db import KnotInfoDataBase, KnotInfoColumns, KnotInfoColumnTypes
+        sage: from sage.databases.knotinfo_db import KnotInfoDataBase
         sage: ki_db = KnotInfoDataBase()
-        sage: KnotInfoColumns('Columns', ki_db.read_column_dict())
+        sage: cols = ki_db.columns(); cols
         <enum 'Columns'>
-        sage: [col.column_name() for col in _ if col.column_type() == col.types.OnlyLinks]  # optional - database_knotinfo
+        sage: from sage.databases.knotinfo_db import KnotInfoColumns
+        sage: isinstance(cols.name, KnotInfoColumns)
+        True
+
+        sage: def only_links(c):
+        ....:     return c.column_type() == c.types.OnlyLinks
+        sage: [c.column_name() for c in cols if only_links(c)]  # optional - database_knotinfo
         ['Name - Unoriented',
          'Orientation',
          'Unoriented Rank',
@@ -92,10 +101,10 @@ class KnotInfoColumns(Enum):
 
         EXAMPLES::
 
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase, KnotInfoColumns
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: KIcols = KnotInfoColumns('Columns', ki_db.read_column_dict())
-            sage: KIcols.dt_code.column_type() == KIcols.dt_code.types.OnlyLinks
+            sage: cols = ki_db.columns()
+            sage: cols.dt_code.column_type() == cols.dt_code.types.OnlyLinks
             True
         """
         return KnotInfoColumnTypes
@@ -106,10 +115,10 @@ class KnotInfoColumns(Enum):
 
         EXAMPLES::
 
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase, KnotInfoColumns
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: KIcols = KnotInfoColumns('Columns', ki_db.read_column_dict())
-            sage: KIcols.dt_code.column_name()
+            sage: cols = ki_db.columns()
+            sage: cols.dt_code.column_name()
             'DT code'
         """
         return self.value[0]
@@ -121,14 +130,14 @@ class KnotInfoColumns(Enum):
 
         EXAMPLES::
 
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase, KnotInfoColumns, KnotInfoColumnTypes
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: KIcols = KnotInfoColumns('Columns', ki_db.read_column_dict())
-            sage: KIcols.homfly_polynomial.column_type()
+            sage: cols = ki_db.columns()
+            sage: cols.homfly_polynomial.column_type()
             <KnotInfoColumnTypes.OnlyKnots: 'K'>
-            sage: KIcols.homflypt_polynomial.column_type()
+            sage: cols.homflypt_polynomial.column_type()
             <KnotInfoColumnTypes.OnlyLinks: 'L'>
-            sage: KIcols.name.column_type()
+            sage: cols.name.column_type()
             <KnotInfoColumnTypes.KnotsAndLinks: 'B'>
         """
         return self.value[1]
@@ -139,12 +148,12 @@ class KnotInfoColumns(Enum):
 
         EXAMPLES::
 
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase, KnotInfoColumns
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: KIcols = KnotInfoColumns('Columns', ki_db.read_column_dict())
-            sage: KIcols.pd_notation.description_webpage()            # not tested
+            sage: cols = ki_db.columns()
+            sage: cols.pd_notation.description_webpage()            # not tested
             True
-            sage: KIcols.homflypt_polynomial.description_webpage()    # not tested
+            sage: cols.homflypt_polynomial.description_webpage()    # not tested
             True
         """
         import webbrowser
@@ -217,6 +226,21 @@ class KnotInfoFilename(Enum):
             'knotinfo_data_complete.csv'
         """
         return '%s.csv' %(self.value[1])
+
+    def sobj_path(self):
+        r"""
+        Return the path name under which the data is stored internally
+        in ``sobj`` files.
+
+        Examples::
+
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.filename.knots.sobj_path().endswith('knotinfo')
+            True
+        """
+        return os.path.join(SAGE_SHARE, 'knotinfo')
+
 
     def sobj_num_knots(self):
         r"""
@@ -323,16 +347,18 @@ class KnotInfoDataBase(SageObject):
     r"""
     Database interface to KnotInfo
 
-    The original data are obtained from KnotInfo web-page (URL see the example below). In order
-    to have these data installed during the build process as a sage-package they are converted
-    as csv files into a tarball. This tarball has been created using the method :meth:`create_spkg_tarball`.
+    The original data are obtained from KnotInfo web-page (URL see the example
+    below). In order to have these data installed during the build process as
+    a sage-package they are converted as csv files into a tarball. This tarball
+    has been created using the method :meth:`create_spkg_tarball`.
 
     EXAMPLES::
 
         sage: from sage.databases.knotinfo_db import KnotInfoDataBase
         sage: ki_db = KnotInfoDataBase()
         sage: ki_db.filename.knots
-        <KnotInfoFilename.knots: ['https://knotinfo.math.indiana.edu/', 'knotinfo_data_complete']>
+        <KnotInfoFilename.knots: ['https://knotinfo.math.indiana.edu/',
+                                  'knotinfo_data_complete']>
     """
 
     filename = KnotInfoFilename
@@ -344,13 +370,15 @@ class KnotInfoDataBase(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
-            sage: from sage.env import SAGE_SHARE
             sage: ki_db = KnotInfoDataBase()
             sage: ki_db.filename.links
-            <KnotInfoFilename.links: ['https://linkinfo.sitehost.iu.edu/', 'linkinfo_data_complete']>
+            <KnotInfoFilename.links: ['https://linkinfo.sitehost.iu.edu/',
+                                      'linkinfo_data_complete']>
         """
-        self._package = 'database_knotinfo'
-        version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._package)
+        from sage.features.databases import DatabaseKnotInfo
+        self._feature = DatabaseKnotInfo()
+        self._sobj_path  = KnotInfoFilename.knots.sobj_path()
+        version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._feature.spkg)
         f = open(version_file)
         self._version = f.read().splitlines()[0]
         f.close()
@@ -360,61 +388,61 @@ class KnotInfoDataBase(SageObject):
         self._names_column = 'name'
         self._components_column = 'components'
         self._knot_prefix  = 'K'
-        self._import_path  = os.path.join(SAGE_SHARE, 'knotinfo')
 
         self._knot_list = None
         self._link_list = None
-        self._available = None
+        self._demo      = None
         self._num_knots = None
 
 
-    def is_available(self):
+    def demo_version(self):
         r"""
-        Return wether the KnotInfo databases are installed or not.
+        Return wether the KnotInfo databases are installed completely or
+        just the demo version is used.
 
         EXAMPLES::
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.is_available()       # optional - database_knotinfo
-            True
+            sage: ki_db.demo_version()       # optional - database_knotinfo
+            False
         """
-        if not self._available:
-            try:
-                lib_path = self._import_path
-                filename = self.filename.knots.sobj_num_knots()
-                self._num_knots =  load('%s/%s' %(lib_path, filename))
-                self._available = True
-            except FileNotFoundError:
-                self._available = False
+        if not self._demo:
+            if self._feature.is_present():
+                self._num_knots =  load(self._feature.absolute_path())
+                self._demo = False
+            else:
+                self._demo = True
                 self._num_knots = len([v for v in row_demo_sample.values() if v[1]==1])
-        return self._available
+        return self._demo
 
 
     def create_spkg_tarball(self, path_for_src=None):
         r"""
-        Create a tarball for the sage-package ``database_knotinfo`` in the ``upstream`` directory. This
-        utility should only be used by users who know what they do in case of a switch to a new
-        version of the data files (that is if the original files on KnotInfo web-page have changed).
-        In that case an invocation of ``sage -package update database_knotinfo <new version>`` and
-        ``sage -package fix-checksum database_knotinfo`` will be necessary.
+        Create a tarball for the sage-package ``database_knotinfo`` in the
+        ``upstream`` directory. This utility should only be used by users who
+        know what they do in case of a switch to a new version of the data files
+        (that is if the original files on KnotInfo web-page have changed). In that
+        case an invocation of ``sage -package update database_knotinfo <new version>``
+        and ``sage -package fix-checksum database_knotinfo`` will be necessary.
 
         INPUT:
 
-        -- ``path_for_src`` - string of the path under which the source are stored in a
-           subdirectory called ``src``. In that directory there should be the data files in
-           csv format (for example ``KnotInfoDataBase.filename.knots.csv()``)
+        - ``path_for_src`` -- string of the path under which the source are
+          stored in a subdirectory called ``src``. In that directory there should
+          be the data files in csv format (for example
+          ``KnotInfoDataBase.filename.knots.csv()``)
 
         EXAMPLES::
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.create_spkg_tarball()    # not tested (because of internet access)
+            sage: ki_db.create_spkg_tarball()    # not tested (internet access)
         """
         if not path_for_src:
             path_for_src = os.environ['PWD']
 
-        os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 src' %(path_for_src, SAGE_ROOT, self._package, self._version) )
+        os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 src' %(path_for_src, SAGE_ROOT, self.feature.spkg, self._version) )
 
 
     def version(self):
@@ -438,7 +466,7 @@ class KnotInfoDataBase(SageObject):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: len(ki_db.knot_list())  # not tested because its only used on installation
+            sage: len(ki_db.knot_list())  # not tested (just used on installation)
         """
         if self._knot_list:
             return self._knot_list
@@ -460,7 +488,7 @@ class KnotInfoDataBase(SageObject):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: len(ki_db.link_list())  # not tested because its only used on installation
+            sage: len(ki_db.link_list())  # not tested (just used on installation)
         """
         if self._link_list:
             return self._link_list
@@ -481,7 +509,7 @@ class KnotInfoDataBase(SageObject):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.create_col_dict_sobj() # not tested because its only used on installation
+            sage: ki_db.create_col_dict_sobj() # not tested (used on installation)
         """
         knot_list = self.knot_list()
         knot_column_names = knot_list[0]
@@ -491,10 +519,10 @@ class KnotInfoDataBase(SageObject):
         link_column_names = link_list[0]
 
         from sage.misc.misc import sage_makedirs
-        sage_makedirs(self._import_path)
+        sage_makedirs(self._sobj_path)
 
         num_knots = len_knots - 1 
-        save(num_knots, '%s/%s' %(self._import_path, self.filename.knots.sobj_num_knots()))
+        save(num_knots, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_num_knots()))
 
         column_dict = {}
 
@@ -530,7 +558,7 @@ class KnotInfoDataBase(SageObject):
             col_type = KnotInfoColumnTypes.OnlyLinks
             column_dict[col] = [name, col_type]
 
-        save(column_dict, '%s/%s' %(self._import_path, self.filename.knots.sobj_column()))
+        save(column_dict, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_column()))
 
 
 
@@ -541,16 +569,17 @@ class KnotInfoDataBase(SageObject):
         strings giving the entries of the database table.
 
         The length of these lists depends on the type of the corresponding
-        column. If a column is used in both tables (``KnotInfoColumnTypes.KnotsAndLinks``)
-        the list of proper links is appended to the list of knots.
-        In both other cases the lenght of the list corresponds to
-        the number of listed knots and proper links respectively.
+        column. If a column is used in both tables
+        (``KnotInfoColumnTypes.KnotsAndLinks``) the list of proper links
+        is appended to the list of knots.  In both other cases the lenght
+        of the list corresponds to the number of listed knots and proper
+        links respectively.
 
         EXAMPLES::
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.create_data_sobj() # not tested because its only used on installation
+            sage: ki_db.create_data_sobj() # not tested (just used on installation)
         """
         knot_list = self.knot_list()
         link_list = self.link_list()
@@ -586,9 +615,9 @@ class KnotInfoDataBase(SageObject):
                     val_list.append(link_list[i][col.name])
 
             if val_list:
-                save(val_list, '%s/%s' %(self._import_path, self.filename.knots.sobj_data(col)))
+                save(val_list, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_data(col)))
 
-        save(row_dict,    '%s/%s' %(self._import_path, self.filename.knots.sobj_row()))
+        save(row_dict,    '%s/%s' %(self._sobj_path, self.filename.knots.sobj_row()))
 
 
     @cached_method
@@ -628,11 +657,11 @@ class KnotInfoDataBase(SageObject):
             sage: len(ki_db.read_column_dict())       # optional - database_knotinfo
             122
         """
-        if not self.is_available():
+        if self.demo_version():
             return column_demo_sample
-        lib_path = self._import_path
+        sobj_path = self._sobj_path
         filename = self.filename.knots.sobj_column()
-        return load('%s/%s' %(lib_path, filename))
+        return load('%s/%s' %(sobj_path, filename))
 
     # -------------------------------------------------------------------------------------------------------------
     # read the dictionary for the row names that is the knot and link names from sobj-file
@@ -656,11 +685,11 @@ class KnotInfoDataBase(SageObject):
             sage: ki_db.read_row_dict()['K7_1']
             [8, 1]
         """
-        if not self.is_available():
+        if self.demo_version():
             return row_demo_sample
-        lib_path = self._import_path
+        sobj_path = self._sobj_path
         filename = self.filename.knots.sobj_row()
-        return load('%s/%s' %(lib_path, filename))
+        return load('%s/%s' %(sobj_path, filename))
 
     # -------------------------------------------------------------------------------------------------------------
     # return a dictionary to obtain the original name to a row_dict key
@@ -707,7 +736,7 @@ class KnotInfoDataBase(SageObject):
             2978
         """
         if not self._num_knots:
-            self.is_available()
+            self.demo_version()
         return self._num_knots
 
 
@@ -736,17 +765,17 @@ class KnotInfoDataBase(SageObject):
         if not isinstance(column, KnotInfoColumns):
             raise TypeError('column must be an instance of enum %s' (KnotInfoColumns))
 
-        if not self.is_available():
+        if self.demo_version():
             return data_demo_sample[column]
 
-        lib_path = self._import_path
+        sobj_path = self._sobj_path
         if column.column_type() == column.types.OnlyLinks:
             filename = self.filename.links.sobj_data(column)
         else:
             filename = self.filename.knots.sobj_data(column)
 
         verbose('loading data library %s ...' %(filename))
-        res = load('%s/%s' %(lib_path, filename))
+        res = load('%s/%s' %(sobj_path, filename))
         verbose('... finished!')
 
         return res

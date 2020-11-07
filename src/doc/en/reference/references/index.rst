@@ -2702,6 +2702,10 @@ REFERENCES:
 
 .. [Har1994] Frank Harary. *Graph Theory*. Reading, MA: Addison-Wesley, 1994.
 
+.. [Harako2020] Shuichi Harako. *The second homology group of the commutative
+                case of Kontsevich's symplectic derivation Lie algebra*.
+                Preprint, 2020, :arxiv:`2006.06064`.
+
 .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
             a graph. Publ. Math. Debrecen 13 1966 103-107.
 

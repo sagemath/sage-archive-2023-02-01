@@ -181,6 +181,7 @@ AUTHOR:
 from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check, sig_on, sig_off
 from .conversions           cimport bit_rep_to_Vrep_list
+from .conversions            import facets_tuple_to_bit_rep_of_facets
 from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 
@@ -221,6 +222,17 @@ cdef extern from "bit_vector_operations.cc":
 #        Step 3: Only keep those that we have not already visited.
 #                We obtain exactly the facets of ``faces[n_faces-1]`` that we have
 #                not visited yet.
+
+    cdef size_t get_next_level_simple(
+        uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces,
+        uint64_t **newfaces, uint64_t **visited_all,
+        size_t n_visited_all, size_t face_length,
+        uint64_t **faces_coatom_rep, uint64_t **maybe_newfaces_coatom_rep,
+        uint64_t **newfaces_coatom_rep, uint64_t **visited_all_coatom_rep,
+        size_t face_length_coatom_rep) nogil
+#   /*
+#   As above, but modified for the case where every interval not containing zero is boolean.
+#   */
 
     cdef size_t count_atoms(uint64_t *A, size_t face_length) nogil
 #        Return the number of atoms/vertices in A.
@@ -274,6 +286,7 @@ cdef class FaceIterator_base(SageObject):
         self.dual = dual
         self.structure.dual = dual
         self.structure.face = NULL
+        self.structure.face_coatom_rep = NULL
         self.structure.dimension = C.dimension()
         self.structure.current_dimension = self.structure.dimension -1
         self._mem = MemoryAllocator()
@@ -363,6 +376,40 @@ cdef class FaceIterator_base(SageObject):
 
         self.structure.yet_to_visit = self.coatoms.n_faces
         self.structure._index = 0
+
+        if C.is_bounded() and ((dual and C.is_simplicial()) or (not dual and C.is_simple())):
+            # We are in the comfortable situation that for our iterator
+            # all intervals not containing the 0 element are boolean.
+            # This makes things a lot easier.
+            self.structure.is_simple = True
+
+            self.structure.face_length_coatom_rep = self.atoms.face_length
+
+            # Initialize ``maybe_newfaces``,
+            # the place where the new faces are being stored.
+            self.newfaces_lists_coatom_rep = tuple(ListOfFaces(self.coatoms.n_faces, self.atoms.n_atoms)
+                                                   for i in range(self.structure.dimension -1))
+            self.structure.maybe_newfaces_coatom_rep = <uint64_t ***> self._mem.allocarray((self.structure.dimension -1), sizeof(uint64_t **))
+            for i in range(self.structure.dimension -1):
+                some_list = self.newfaces_lists_coatom_rep[i]
+                self.structure.maybe_newfaces_coatom_rep[i] = some_list.data
+
+            # Initialize ``visited_all``.
+            self.structure.visited_all_coatom_rep = <uint64_t **> self._mem.allocarray(self.coatoms.n_faces, sizeof(uint64_t *))
+
+            # Note that C is not bounded.
+
+            # Initializing the facets in their Bit-representation.
+            self.coatoms_coatom_rep = facets_tuple_to_bit_rep_of_facets(tuple((i,) for i in range(self.coatoms.n_faces)), self.coatoms.n_faces)
+
+            # Initialize ``newfaces``, which will point to the new faces of codimension 1,
+            # which have not been visited yet.
+            self.structure.newfaces_coatom_rep = <uint64_t ***> self._mem.allocarray(self.structure.dimension, sizeof(uint64_t **))
+            for i in range(self.structure.dimension - 1):
+                self.structure.newfaces_coatom_rep[i] = <uint64_t **> self._mem.allocarray(self.atoms.n_faces, sizeof(uint64_t *))
+            self.structure.newfaces_coatom_rep[self.structure.dimension - 1] = self.coatoms_coatom_rep.data  # we start with coatoms
+        else:
+            self.structure.is_simple = False
 
     def reset(self):
         r"""
@@ -546,6 +593,8 @@ cdef class FaceIterator_base(SageObject):
         # Also, this face will not be added a second time to ``visited_all``,
         # as there are no new faces.
         self.structure.visited_all[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face
+        if self.structure.is_simple:
+            self.structure.visited_all_coatom_rep[self.structure.n_visited_all[self.structure.current_dimension]] = self.structure.face_coatom_rep
         self.structure.n_visited_all[self.structure.current_dimension] += 1
 
     cdef inline CombinatorialFace next_face(self):
@@ -784,6 +833,10 @@ cdef class FaceIterator(FaceIterator_base):
 
     ALGORITHM:
 
+    For the special case that the all intervals of the lattice not containing zero are boolean
+    (e.g. when the polyhedron is simple) the algorithm is modified. See below.
+
+
     A (slightly generalized) description of the algorithm can be found in [KS2019]_.
 
     The algorithm to visit all proper faces exactly once is roughly
@@ -853,6 +906,30 @@ cdef class FaceIterator(FaceIterator_base):
 
                 # Note: At this point, we have visited exactly those faces,
                 # contained in any of the ``visited_all``.
+
+
+    For the special case that the all intervals of the lattice not containing zero are boolean
+    (e.g. when the polyhedron is simple), the algorithm can be modified.
+
+    We do not assume any other properties of our lattice in this case.
+    Note that intervals of length 2 not containing zero, have exactly 2 elements now.
+    But the atom-representation of faces might not be unique.
+
+    We do the following modifications:
+
+    - To check whether an intersection of faces is zero, we check whether the
+      atom-representation is zero. Although not unique,
+      it works to distinct from zero.
+
+    - The intersection of two (relative) facets has always codimension `1` unless empty.
+
+    - To intersect we now additionally unite the coatom representation.
+      This gives the correct representation of the new face
+      unless the intersection is zero.
+
+    - To mark a face as visited, we save its coatom representation.
+
+    - To check whether we have seen a face already, we check containment of the coatom representation.
     """
     def _repr_(self):
         r"""
@@ -1236,6 +1313,9 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
     cdef uint64_t **faces = structptr[0].newfaces[structptr[0].current_dimension]
     cdef size_t n_faces = structptr[0].n_newfaces[structptr[0].current_dimension]
     cdef size_t n_visited_all = structptr[0].n_visited_all[structptr[0].current_dimension]
+    cdef uint64_t **faces_coatom_rep
+    if structptr[0].is_simple:
+        faces_coatom_rep = structptr[0].newfaces_coatom_rep[structptr[0].current_dimension]
 
     if (structptr[0].output_dimension > -2) and (structptr[0].output_dimension != structptr[0].current_dimension):
         # If only a specific dimension was requested (i.e. ``output_dimension > -2``),
@@ -1246,6 +1326,8 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
         # Set ``face`` to the next face.
         structptr[0].yet_to_visit -= 1
         structptr[0].face = faces[structptr[0].yet_to_visit]
+        if structptr[0].is_simple:
+            structptr[0].face_coatom_rep = faces_coatom_rep[structptr[0].yet_to_visit]
         return 1
 
     if structptr[0].current_dimension <= structptr[0].lowest_dimension:
@@ -1268,6 +1350,8 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
         # have visited all faces, but which was not added to
         # ``visited_all`` yet.
         structptr[0].visited_all[n_visited_all] = faces[n_faces + 1]
+        if structptr[0].is_simple:
+            structptr[0].visited_all_coatom_rep[n_visited_all] = faces_coatom_rep[n_faces + 1]
         structptr[0].n_visited_all[structptr[0].current_dimension] += 1
         n_visited_all = structptr[0].n_visited_all[structptr[0].current_dimension]
     else:
@@ -1279,12 +1363,23 @@ cdef inline int next_face_loop(iter_struct *structptr) nogil except -1:
     # which we have not yet visited.
     cdef size_t newfacescounter
 
-    sig_on()
-    newfacescounter = get_next_level(
-        faces, n_faces + 1, structptr[0].maybe_newfaces[structptr[0].current_dimension-1],
-        structptr[0].newfaces[structptr[0].current_dimension-1],
-        structptr[0].visited_all, n_visited_all, structptr[0].face_length)
-    sig_off()
+    if structptr[0].is_simple:
+        sig_on()
+        newfacescounter = get_next_level_simple(
+            faces, n_faces + 1, structptr[0].maybe_newfaces[structptr[0].current_dimension-1],
+            structptr[0].newfaces[structptr[0].current_dimension-1],
+            structptr[0].visited_all, n_visited_all, structptr[0].face_length,
+            faces_coatom_rep, structptr[0].maybe_newfaces_coatom_rep[structptr[0].current_dimension-1],
+            structptr[0].newfaces_coatom_rep[structptr[0].current_dimension-1],
+            structptr[0].visited_all_coatom_rep, structptr[0].face_length_coatom_rep)
+        sig_off()
+    else:
+        sig_on()
+        newfacescounter = get_next_level(
+            faces, n_faces + 1, structptr[0].maybe_newfaces[structptr[0].current_dimension-1],
+            structptr[0].newfaces[structptr[0].current_dimension-1],
+            structptr[0].visited_all, n_visited_all, structptr[0].face_length)
+        sig_off()
 
     if newfacescounter:
         # ``faces[n_faces]`` contains new faces.

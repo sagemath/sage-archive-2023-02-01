@@ -49,6 +49,17 @@ inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
     }
 }
 
+inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                         size_t face_length){
+    /*
+    Set ``dest = A | B``, i.e. dest is the union of A and B.
+    ``face_length`` is the length of A, B and dest in terms of uint64_t.
+    */
+    for (size_t i = 0; i < face_length; i++){
+        dest[i] = A[i] | B[i];
+    }
+}
+
 inline size_t count_atoms(const uint64_t* A, size_t face_length){
     /*
     Return the number of atoms/vertices in A.
@@ -65,7 +76,14 @@ inline size_t count_atoms(const uint64_t* A, size_t face_length){
     }
     return count;
 }
-
+inline int is_zero(uint64_t *A, size_t face_length){
+    for (size_t i = 0; i < face_length; i++){
+        if (A[i]){
+            return 0;
+        }
+    }
+    return 1;
+}
 
 inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length){
     /*
@@ -158,7 +176,7 @@ size_t get_next_level(\
     }
 
 
-    // For each face we will Step 2 and Step 3.
+    // For each face we will do Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
         if (is_contained_in_one(maybe_newfaces[j], maybe_newfaces, n_faces-1, face_length, j) || \
                 is_contained_in_one(maybe_newfaces[j], visited_all, n_visited_all, face_length))
@@ -174,6 +192,56 @@ size_t get_next_level(\
         }
         // It is a new face of codimension 1.
         newfaces[n_newfaces] = maybe_newfaces[j];
+        n_newfaces++;
+    }
+    return n_newfaces;
+}
+
+size_t get_next_level_simple(\
+        uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **newfaces, uint64_t **visited_all, \
+        size_t n_visited_all, size_t face_length,
+        uint64_t **faces_coatom_rep, uint64_t **maybe_newfaces_coatom_rep, \
+        uint64_t **newfaces_coatom_rep, uint64_t **visited_all_coatom_rep, \
+        size_t face_length_coatom_rep){
+    /*
+    As above, but modified for the case where every interval not containing zero is boolean.
+    */
+
+    // We keep track, which face in ``maybe_newfaces`` is a new face.
+    int is_not_newface[n_faces -1];
+
+    // Step 1:
+    for (size_t j = 0; j < n_faces - 1; j++){
+        intersection(maybe_newfaces[j], faces[j], faces[n_faces - 1], face_length);
+        unite(maybe_newfaces_coatom_rep[j], faces_coatom_rep[j], faces_coatom_rep[n_faces - 1], face_length_coatom_rep);
+        is_not_newface[j] = 0;
+    }
+
+    // For each face we will do Step 2 and Step 3.
+    for (size_t j = 0; j < n_faces-1; j++){
+        // Step 2:
+        // Check if the atom representation is zero.
+        //
+        // and
+        //
+        //
+        // Step 3:
+        if (is_zero(maybe_newfaces[j], face_length) || \
+                contains_one(maybe_newfaces_coatom_rep[j], visited_all_coatom_rep, n_visited_all, face_length_coatom_rep))
+            is_not_newface[j] = 1;
+    }
+
+    // Set ``newfaces`` to point to the correct ones.
+    size_t n_newfaces = 0;  // length of newfaces2
+    for (size_t j = 0; j < n_faces -1; j++){
+        if (is_not_newface[j]) {
+            // Not a new face of codimension 1.
+            continue;
+        }
+        // It is a new face of codimension 1.
+        newfaces[n_newfaces] = maybe_newfaces[j];
+        newfaces_coatom_rep[n_newfaces] = maybe_newfaces_coatom_rep[j];
         n_newfaces++;
     }
     return n_newfaces;

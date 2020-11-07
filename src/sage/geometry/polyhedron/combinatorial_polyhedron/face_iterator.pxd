@@ -52,12 +52,21 @@ cdef struct iter_struct:
     # that have not been visited yet.
     size_t yet_to_visit
 
+    # Some modifications that make things better for simple and simplicial polyhedra.
+    bint is_simple
+    uint64_t *face_coatom_rep
+    size_t face_length_coatom_rep
+    uint64_t **visited_all_coatom_rep
+    uint64_t ***maybe_newfaces_coatom_rep
+    uint64_t ***newfaces_coatom_rep
+
 
 cdef class FaceIterator_base(SageObject):
     cdef iter_struct structure
     cdef readonly bint dual         # if 1, then iterate over dual Polyhedron
     cdef MemoryAllocator _mem
     cdef tuple newfaces_lists       # tuple to hold the ListOfFaces corresponding to maybe_newfaces
+    cdef tuple newfaces_lists_coatom_rep
 
     # some copies from ``CombinatorialPolyhedron``
     cdef tuple _Vrep, _facet_names, _equalities
@@ -65,7 +74,7 @@ cdef class FaceIterator_base(SageObject):
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.
-    cdef ListOfFaces atoms, coatoms
+    cdef ListOfFaces atoms, coatoms, coatoms_coatom_rep
 
     cdef inline CombinatorialFace next_face(self)
     cdef inline int next_dimension(self) except -1

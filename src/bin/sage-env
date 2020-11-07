@@ -592,17 +592,26 @@ fi
 # See trac 7186 -- this is needed if ecl is moved
 ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
 
+
 # Handle parallel building/testing/...
-# See Trac Ticket #12016
-# First, figure out the right values for SAGE_NUM_THREADS (default
-# number of threads) and SAGE_NUM_THREADS_PARALLEL (default number of
-# threads when parallel execution is asked explicitly).
-sage_num_threads_array=$(sage-num-threads.py 2>/dev/null || echo 1 2 1)
-sage_num_threads_array="${sage_num_threads_array% *}" # strip third item
-SAGE_NUM_THREADS="${sage_num_threads_array% *}" # keep first item
-SAGE_NUM_THREADS_PARALLEL="${sage_num_threads_array#* }" # keep second item
-export SAGE_NUM_THREADS
-export SAGE_NUM_THREADS_PARALLEL
+case "$SAGE_NUM_THREADS,$SAGE_NUM_THREADS_PARALLEL" in
+    [1-9][0-9]*,[1-9][0-9]*)
+        # Variables are set to positive values already,
+        # sage-num-threads.py would just recompute them
+        ;;
+    *)
+        # See Trac Ticket #12016
+        # First, figure out the right values for SAGE_NUM_THREADS (default
+        # number of threads) and SAGE_NUM_THREADS_PARALLEL (default number of
+        # threads when parallel execution is asked explicitly).
+        sage_num_threads_array=$(sage-num-threads.py 2>/dev/null || echo 1 2 1)
+        sage_num_threads_array="${sage_num_threads_array% *}" # strip third item
+        SAGE_NUM_THREADS="${sage_num_threads_array% *}" # keep first item
+        SAGE_NUM_THREADS_PARALLEL="${sage_num_threads_array#* }" # keep second item
+        export SAGE_NUM_THREADS
+        export SAGE_NUM_THREADS_PARALLEL
+        ;;
+esac
 
 # Multithreading in OpenBLAS does not seem to play well with Sage's attempts to
 # spawn new processes, see #26118. Apparently, OpenBLAS sets the thread

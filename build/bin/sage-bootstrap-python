@@ -2,11 +2,10 @@
 
 # Run the system python.
 #
-# This is primarily for use by the build toolchain so that it can continue
-# using the system Python rather than Sage's Python, preventing conflicts
-# that might otherwise occur, particularly in parallel builds.
+# This is only for use by the build toolchain.
 #
-# See https://trac.sagemath.org/ticket/18438
+# (It has nothing to do with the python3 that configure --with-system-python3
+# is looking for in build/pkgs/python3/spkg-configure.m4.)
 
 if [ -z "$SAGE_ORIG_PATH" ]; then
     # If not we're running from within sage-env just set the existing path

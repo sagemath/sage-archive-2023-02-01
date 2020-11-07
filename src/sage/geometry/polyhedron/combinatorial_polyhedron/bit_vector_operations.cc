@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <algorithm>
 using namespace std;
 
 /*
@@ -128,7 +129,7 @@ inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t
 }
 
 size_t get_next_level(\
-        uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **faces, size_t n_faces, \
         uint64_t **newfaces, uint64_t **visited_all, \
         size_t n_visited_all, size_t face_length){
     /*
@@ -137,9 +138,8 @@ size_t get_next_level(\
 
     INPUT:
 
-    - ``maybe_newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
+    - ``newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
       needs to be ``chunksize``-Bit aligned
-    - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
     - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
     - ``face_length`` -- length of the faces
 
@@ -166,20 +166,20 @@ size_t get_next_level(\
             not visited yet.
     */
 
-    // We keep track, which face in ``maybe_newfaces`` is a new face.
+    // We keep track, which face in ``newfaces`` is a new face.
     int is_not_newface[n_faces -1];
 
     // Step 1:
     for (size_t j = 0; j < n_faces - 1; j++){
-        intersection(maybe_newfaces[j], faces[j], faces[n_faces - 1], face_length);
+        intersection(newfaces[j], faces[j], faces[n_faces - 1], face_length);
         is_not_newface[j] = 0;
     }
 
 
     // For each face we will do Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
-        if (is_contained_in_one(maybe_newfaces[j], maybe_newfaces, n_faces-1, face_length, j) || \
-                is_contained_in_one(maybe_newfaces[j], visited_all, n_visited_all, face_length))
+        if (is_contained_in_one(newfaces[j], newfaces, n_faces-1, face_length, j) || \
+                is_contained_in_one(newfaces[j], visited_all, n_visited_all, face_length))
                     is_not_newface[j] = 1;
     }
 
@@ -191,30 +191,32 @@ size_t get_next_level(\
             continue;
         }
         // It is a new face of codimension 1.
-        newfaces[n_newfaces] = maybe_newfaces[j];
+        // Either ``n_newfaces == j`` or ``newfaces[n_newfaces]`` is not
+        // a new face.
+        swap(newfaces[n_newfaces], newfaces[j]);
         n_newfaces++;
     }
     return n_newfaces;
 }
 
 size_t get_next_level_simple(\
-        uint64_t **faces, const size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **faces, const size_t n_faces, \
         uint64_t **newfaces, uint64_t **visited_all, \
         size_t n_visited_all, size_t face_length,
-        uint64_t **faces_coatom_rep, uint64_t **maybe_newfaces_coatom_rep, \
+        uint64_t **faces_coatom_rep, \
         uint64_t **newfaces_coatom_rep, uint64_t **visited_all_coatom_rep, \
         size_t face_length_coatom_rep){
     /*
     As above, but modified for the case where every interval not containing zero is boolean.
     */
 
-    // We keep track, which face in ``maybe_newfaces`` is a new face.
+    // We keep track, which face in ``newfaces`` is a new face.
     int is_not_newface[n_faces -1];
 
     // Step 1:
     for (size_t j = 0; j < n_faces - 1; j++){
-        intersection(maybe_newfaces[j], faces[j], faces[n_faces - 1], face_length);
-        unite(maybe_newfaces_coatom_rep[j], faces_coatom_rep[j], faces_coatom_rep[n_faces - 1], face_length_coatom_rep);
+        intersection(newfaces[j], faces[j], faces[n_faces - 1], face_length);
+        unite(newfaces_coatom_rep[j], faces_coatom_rep[j], faces_coatom_rep[n_faces - 1], face_length_coatom_rep);
         is_not_newface[j] = 0;
     }
 
@@ -227,8 +229,8 @@ size_t get_next_level_simple(\
         //
         //
         // Step 3:
-        if (is_zero(maybe_newfaces[j], face_length) || \
-                contains_one(maybe_newfaces_coatom_rep[j], visited_all_coatom_rep, n_visited_all, face_length_coatom_rep))
+        if (is_zero(newfaces[j], face_length) || \
+                contains_one(newfaces_coatom_rep[j], visited_all_coatom_rep, n_visited_all, face_length_coatom_rep))
             is_not_newface[j] = 1;
     }
 
@@ -240,8 +242,10 @@ size_t get_next_level_simple(\
             continue;
         }
         // It is a new face of codimension 1.
-        newfaces[n_newfaces] = maybe_newfaces[j];
-        newfaces_coatom_rep[n_newfaces] = maybe_newfaces_coatom_rep[j];
+        // Either ``n_newfaces == j`` or ``newfaces[n_newfaces]`` is not
+        // a new face.
+        swap(newfaces[n_newfaces], newfaces[j]);
+        swap(newfaces_coatom_rep[n_newfaces], newfaces_coatom_rep[j]);
         n_newfaces++;
     }
     return n_newfaces;

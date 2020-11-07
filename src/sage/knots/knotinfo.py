@@ -1878,6 +1878,7 @@ class KnotInfoSeries(UniqueRepresentation):
         Python constructor.
 
         EXAMPLES::
+
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: L6a = KnotInfoSeries(6, False, True); L6a
             Series of links L6a

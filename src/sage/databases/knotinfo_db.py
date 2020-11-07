@@ -442,7 +442,7 @@ class KnotInfoDataBase(SageObject):
         if not path_for_src:
             path_for_src = os.environ['PWD']
 
-        os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 src' %(path_for_src, SAGE_ROOT, self.feature.spkg, self._version) )
+        os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 src' %(path_for_src, SAGE_ROOT, self._feature.spkg, self._version) )
 
 
     def version(self):

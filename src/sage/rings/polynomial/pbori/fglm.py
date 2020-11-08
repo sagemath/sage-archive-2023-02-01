@@ -61,9 +61,13 @@ def vars_real_divisors(monomial, monomial_set):
 
 def m_k_plus_one(completed_elements, variables):
     r"""
-    Calculate $m_{k+1}$ from the FGLM algorithm as described in Wichmanns diploma thesis.
+    Calculate $m_{k+1}$ from the FGLM algorithm.
 
-    It would be nice to be able to efficiently extract the smallest term of a polynomial.
+    Calculate $m_{k+1}$ from the FGLM algorithm as described in Wichmann [Wich1997]_.
+
+    .. NOTE::
+
+        It would be nice to be able to efficiently extract the smallest term of a polynomial.
 
     EXAMPLES::
 

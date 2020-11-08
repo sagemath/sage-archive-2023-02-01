@@ -48,7 +48,7 @@ class FreeMonoidElement(MonoidElement):
         sage: x**(-1)
         Traceback (most recent call last):
         ...
-        TypeError: bad operand type for unary ~: 'FreeMonoid_with_category.element_class'
+        NotimplementedError
     """
     def __init__(self, F, x, check=True):
         """
@@ -255,6 +255,16 @@ class FreeMonoidElement(MonoidElement):
         return z
 
     def __invert__(self):
+        """
+        EXAMPLES::
+
+            sage: a = FreeMonoid(5, 'a').gens()
+            sage: x = a[0]*a[1]*a[4]**3
+            sage: x**(-1)
+            Traceback (most recent call last):
+            ...
+            NotimplementedError
+        """
         raise NotImplementedError
 
     def __len__(self):

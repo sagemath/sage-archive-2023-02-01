@@ -321,7 +321,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: isinstance(Q.an_element(),Q.element_class)
         True
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'inverse_of_unit', 'is_idempotent', 'is_one', 'is_unit', 'lift', 'powers']
+        ['cartesian_product', 'inverse', 'inverse_of_unit', 'is_idempotent', 'is_one', 'is_unit', 'lift', 'powers']
         sage: first_class = Q.__class__
 
     We try to find out whether `Q` is a field. Indeed it is, and thus its category,
@@ -339,6 +339,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
          'euclidean_degree',
          'factor',
          'gcd',
+         'inverse',
          'inverse_of_unit',
          'is_idempotent',
          'is_one',
@@ -1029,8 +1030,10 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         try:
             ret = ret and self.modulus().is_irreducible()
         except NotImplementedError:
-            if proof: raise
-            else: ret = False
+            if proof:
+                raise
+            else:
+                ret = False
 
         if ret:
             from sage.categories.all import Fields
@@ -1202,7 +1205,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             j = 0
             for D_iso,_ in iso_classes:
                 if D_abs.is_isomorphic(D_iso):
-                    seen_before = True; break
+                    seen_before = True
+                    break
                 j += 1
             if not seen_before:
                 S_abs = []

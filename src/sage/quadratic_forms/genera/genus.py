@@ -1978,7 +1978,7 @@ class Genus_Symbol_p_adic_ring(object):
         if self.prime() != 2:
             return True
         sym = self.symbol_tuple_list()[0]
-        return sym[0] > 0 or sym[3]==0
+        return sym[0] > 0 or sym[3] == 0
 
     def symbol_tuple_list(self):
         r"""
@@ -2265,7 +2265,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G.local_symbol(3).scale()
             1
         """
-        if self.rank()==0:
+        if self.rank() == 0:
             return ZZ(0)
         return self.prime()**self._symbol[0][0]
 
@@ -2286,7 +2286,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G.local_symbol(2).norm()
             2
             """
-        if self.rank()==0:
+        if self.rank() == 0:
             return ZZ(0)
         p = self.prime()
         if p == 2:
@@ -2305,7 +2305,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G.local_symbol(2).level()
             4
         """
-        if self.rank()==0:
+        if self.rank() == 0:
             return ZZ(1)
         return self.prime()**self._symbol[-1][0]
 
@@ -2606,7 +2606,7 @@ class GenusSymbol_global_ring(object):
             sage: G.is_even()
             True
         """
-        if self.rank()==0:
+        if self.rank() == 0:
             return True
         return self._local_symbols[0].is_even()
 
@@ -2639,7 +2639,7 @@ class GenusSymbol_global_ring(object):
 
         A pair ``(A, K)`` where
 
-        MATH::
+        .. MATH::
 
             A = \prod_{p \mid 2d} ZZ_p^\times / ZZ_p^{\times2},
 
@@ -2681,7 +2681,7 @@ class GenusSymbol_global_ring(object):
 
         A pair ``(A, K)`` where
 
-        MATH::
+        .. MATH::
 
             A = \prod_{p \mid 2d} ZZ_p^\times / ZZ_p^{\times2},
 
@@ -3099,10 +3099,10 @@ class GenusSymbol_global_ring(object):
             pass
         n = self.dimension()
         representatives = []
-        if n==0:
-            return [self.representative()]
+        if n == 0:
+            return (self.representative(), )
         if backend is None:
-            if n>6 and prod(self.signature_pair_of_matrix())==0:
+            if n > 6 and prod(self.signature_pair_of_matrix()) == 0:
                 backend = 'magma'
             else:
                 backend = 'sage'

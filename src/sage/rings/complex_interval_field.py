@@ -45,7 +45,7 @@ from . import integer
 from . import complex_interval
 import weakref
 from .real_mpfi import RealIntervalField, RealIntervalField_class
-from .complex_field import ComplexField
+from .complex_mpfr import ComplexField
 from sage.misc.cachefunc import cached_method
 
 
@@ -163,7 +163,7 @@ class ComplexIntervalField_class(Field):
 
         sage: CIF.category()
         Category of infinite fields
-        sage: TestSuite(CIF).run()
+        sage: TestSuite(CIF).run(skip="_test_gcd_vs_xgcd")
 
     TESTS:
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 #
 # Script to prepare a GIAC spkg for Sage.  This script is only for the
 # package maintainer, not for building GIAC during a Sage install.
@@ -14,8 +14,8 @@ fi
 set -e
 
 VERSION="1.5.0"
-VERSIONREV="63"
-PATCHSUFFIX="-p0"
+VERSIONREV="87"
+PATCHSUFFIX="p2"
 
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz
 SOURCEORIG=_"$VERSION"-"$VERSIONREV"
@@ -30,7 +30,7 @@ if [ -f "$OUTPUTFILEBASENAME".tar.gz -o -f "$OUTPUTFILEBASENAME".tar.bz2 ] ; the
 fi
 
 # Build a temporary working dir. (preferably, a subdir of SAGE_DISTFILES)
-TARGET=$(mktemp -d -p"$SAGE_DISTFILES" || mktemp -d)
+TARGET=$(mktemp -d -p"$SAGE_DISTFILES" 2>/dev/null || mktemp -d)
 ORIGDIR=`pwd`
 cd "$TARGET"
 
@@ -67,9 +67,15 @@ touch html_mtt
 touch html_vall
 #
 
-
 # building giac source tarball for the spkg
-cd ../../../
+cd ../../
+
+for a in "$SAGE_ROOT"/build/pkgs/giac/patches/autotools/*.patch; do
+    patch -p1 < $a
+done
+autoreconf -fi
+
+cd ..
 tar -cjf "$OUTPUTFILEBASENAME".tar.bz2 src
 
 # cleaning extracted dir.
@@ -78,3 +84,6 @@ rm -rf "$TARGET"
 
 # going back to starting dir
 cd "$ORIGDIR"
+#$SAGE_ROOT/sage -package update giac "$VERSION"."$VERSIONREV""$PATCHSUFFIX"
+echo "$VERSION"."$VERSIONREV""$PATCHSUFFIX" > build/pkgs/giac/package-version.txt
+$SAGE_ROOT/sage -package fix-checksum giac

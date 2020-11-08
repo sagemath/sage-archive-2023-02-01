@@ -51,7 +51,7 @@ cdef class PolyhedronFaceLattice:
     cdef inline bint is_smaller(self, uint64_t *one, uint64_t *two)
     cdef inline int is_equal(self, int dimension, size_t index,
                              uint64_t *face) except -1
-    cdef CombinatorialFace get_face(self, int dimension, size_t index)
+    cpdef CombinatorialFace get_face(self, int dimension, size_t index)
     cdef size_t set_coatom_rep(self, int dimension, size_t index) except -1
     cdef size_t set_atom_rep(self, int dimension, size_t index) except -1
     cdef void incidence_init(self, int dimension_one, int dimension_two)

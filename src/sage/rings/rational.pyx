@@ -857,6 +857,24 @@ cdef class Rational(sage.structure.element.FieldElement):
             ....:     assert (one1 == one2) is True
             ....:     assert (one1 <= one2) is True
             ....:     assert (one1 >= one2) is True
+
+        Comparisons with gmpy2 values (:trac:`28394`)::
+
+            sage: import gmpy2
+            sage: values = [(-2,5),(-1,3),(0,1),(2,9),(1,1),(73,2)]
+            sage: for num1, den1 in values:
+            ....:     for num2, den2 in values:
+            ....:         a1 = QQ((num1, den1))
+            ....:         a2 = QQ((num2, den2))
+            ....:         b1 = gmpy2.mpq(num1, den1)
+            ....:         b2 = gmpy2.mpq(num2, den2)
+            ....:         assert a1 == b1 and b1 == a1 and a2 == b2 and b2 == a2
+            ....:         assert (a1 == a2) == (b1 == b2) == (a1 == b2) == (b1 == a2)
+            ....:         assert (a1 != a2) == (b1 != b2) == (a1 != b2) == (b1 != a2)
+            ....:         assert (a1 <  a2) == (b1 <  b2) == (a1 <  b2) == (b1 <  a2)
+            ....:         assert (a1 <= a2) == (b1 <= b2) == (a1 <= b2) == (b1 <= a2)
+            ....:         assert (a1 >  a2) == (b1 >  b2) == (a1 >  b2) == (b1 >  a2)
+            ....:         assert (a1 >= a2) == (b1 >= b2) == (a1 >= b2) == (b1 >= a2)
         """
         cdef int c
         if op == Py_EQ:
@@ -3149,7 +3167,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 from sage.rings.real_mpfr import RealField
                 return RealField(prec)(self).log(m)
             else:
-                from sage.rings.complex_field import ComplexField
+                from sage.rings.complex_mpfr import ComplexField
                 return ComplexField(prec)(self).log(m)
 
         from sage.functions.log import function_log

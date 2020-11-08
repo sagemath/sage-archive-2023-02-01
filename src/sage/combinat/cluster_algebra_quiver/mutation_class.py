@@ -49,13 +49,13 @@ def _principal_part(mat):
         [1 2]
         [3 4]
     """
-    n, m = mat.ncols(), mat.nrows()-mat.ncols()
+    n, m = mat.ncols(), mat.nrows() - mat.ncols()
     if m < 0:
         raise ValueError('The input matrix has more columns than rows.')
     elif m == 0:
         return mat
     else:
-        return mat.submatrix(0,0,n,n)
+        return mat.submatrix(0, 0, n, n)
 
 
 def _digraph_mutate(dg, k, frozen=None):
@@ -166,8 +166,10 @@ def _matrix_to_digraph( M ):
 
     dg = DiGraph(sparse=True)
     for i,j in M.nonzero_positions():
-        if i >= n: a,b = M[i,j],-M[i,j]
-        else: a,b = M[i,j],M[j,i]
+        if i >= n:
+            a, b = M[i, j], -M[i, j]
+        else:
+            a, b = M[i, j], M[j, i]
         if a > 0:
             dg._backend.add_edge(i,j,(a,b),True)
         elif i >= n:
@@ -508,14 +510,18 @@ def _graph_without_edge_labels(dg, vertices):
     """
     vertices = list(vertices)
     edges = dg.edge_iterator(labels=True)
-    edge_labels = tuple(set(label for _, _, label in edges
-                            if label != (1, -1)))
+    edge_labels = tuple(sorted(set(label for _, _, label in edges
+                            if label != (1, -1))))
     edge_partition = [[] for _ in edge_labels]
     i = 0
     while i in vertices:
         i += 1
-    for u, v, label in dg.edge_iterator(labels=True):
-        if label != (1, -1):
+
+    # We have to pass the old vertices to the iterator.
+    # Otherwise the ``edge_iterator`` will use the ``vertices``
+    # of ``dg``, which are not well-defined, if we add vertices along the way.
+    for u, v, label in dg.edge_iterator(vertices=vertices, labels=True):
+        if label != (1, -1):  # Ignore edges we just added.
             index = edge_labels.index(label)
             edge_partition[index].append(i)
             dg._backend.add_edge(u, i, (1, -1), True)
@@ -599,7 +605,7 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
             print("The number of frozen variables is larger than the number of vertices.")
             return False
 
-        if [ e for e in dg.edges(labels=False) if e[0] >= n] != []:
+        if any(e[0] >= n for e in dg.edges(labels=False)):
             print("The given digraph or edge list contains edges within the frozen vertices.")
             return False
 

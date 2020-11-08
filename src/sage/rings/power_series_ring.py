@@ -824,9 +824,18 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             Univariate Polynomial Ring in x over Integer Ring
             sage: R == c(S)
             True
+            sage: R = PowerSeriesRing(ZZ, 'x', sparse=True)
+            sage: c, S = R.construction()
+            sage: R == c(S)
+            True
+
         """
         from sage.categories.pushout import CompletionFunctor
-        return CompletionFunctor(self._names[0], self.default_prec()), self._poly_ring()
+        if self.is_sparse():
+            extras = {'sparse': True}
+        else:
+            extras = None
+        return CompletionFunctor(self._names[0], self.default_prec(), extras), self._poly_ring()
 
     def _coerce_impl(self, x):
         """

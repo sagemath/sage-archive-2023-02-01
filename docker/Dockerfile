@@ -94,7 +94,7 @@ ARG SAGE_ROOT=/home/sage/sage
 RUN mkdir -p "$SAGE_ROOT"
 WORKDIR $SAGE_ROOT
 RUN git init
-RUN git remote add trac git://trac.sagemath.org/sage.git
+RUN git remote add trac https://gitlab.com/sagemath/dev/tracmirror.git
 
 ################################################################################
 # Image with the build context added, i.e., the directory from which `docker   #
@@ -163,14 +163,12 @@ ENV SAGE_INSTALL_GCC no
 # Set MAKEFLAGS and SAGE_NUM_THREADS to build things in parallel during the
 # docker build. Note that these do not leak into the sagemath and sagemath-dev
 # images.
-ARG WITH_PYTHON=2
-ENV WITH_PYTHON $WITH_PYTHON
 ARG MAKEFLAGS="-j2"
 ENV MAKEFLAGS $MAKEFLAGS
 ARG SAGE_NUM_THREADS="2"
 ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS
 RUN make configure
-RUN ./configure --with-python=$WITH_PYTHON
+RUN ./configure
 RUN make build
 
 ################################################################################

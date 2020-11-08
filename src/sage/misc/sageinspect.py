@@ -426,9 +426,10 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         sage: sorted(v.items(), key=lambda x: str(x[0]))
         [(37.0, 'temp'), ('a', ('e', 2, [None, ({False: True}, 'pi')]))]
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
-        <_ast.Assign object at ...>
-        sage: [x for x in dir(v) if not x.startswith('__')]
-        ['_attributes', '_fields', 'col_offset', 'lineno', 'targets', 'value']
+        <...ast.Assign object at ...>
+        sage: attrs = [x for x in dir(v) if not x.startswith('__')]
+        sage: '_attributes' in attrs and '_fields' in attrs and 'col_offset' in attrs
+        True
         sage: visitor.visit(v.targets[0])
         'jc'
         sage: visitor.visit(v.value)
@@ -1428,7 +1429,7 @@ def sage_getargspec(obj):
         sage: from sage.rings.polynomial.real_roots import bernstein_polynomial_factory_ratlist
         sage: sage_getargspec(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
         ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
-        sage: from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+        sage: from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
         sage: sage_getargspec(BooleanMonomialMonoid.gen)
         ArgSpec(args=['self', 'i'], varargs=None, keywords=None, defaults=(0,))
         sage: I = P*[x,y]
@@ -2231,7 +2232,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        20
+        21
         sage: sage_getsourcelines(matrix)[0][0]
         'def matrix(*args, **kwds):\n'
 
@@ -2272,7 +2273,7 @@ def sage_getsourcelines(obj):
           '    def __cinit__(self):\n',
         ...)
         sage: sage_getsourcelines(I)
-        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...)
         sage: x = var('x')
         sage: sage_getsourcelines(x)
@@ -2312,12 +2313,12 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(HC)
         (['    class Homsets(HomsetsCategory):\n', ...], ...)
 
-    Testing against a bug that has occured during work on :trac:`11768`::
+    Testing against a bug that has occurred during work on :trac:`11768`::
 
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
         sage: sage_getsourcelines(I)
-        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
           '                        MPolynomialIdeal_macaulay2_repr, \\\n',
           '                        MPolynomialIdeal_magma_repr, \\\n',
           '                        Ideal_generic ):\n',

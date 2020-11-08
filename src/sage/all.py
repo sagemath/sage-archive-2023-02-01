@@ -102,6 +102,11 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
     message=r'[\s\S]*See https\?://trac\.sagemath\.org/[0-9]* for details.')
+
+# Ignore Python 3.9 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*ast')
+
 ################ end setup warnings ###############################
 
 

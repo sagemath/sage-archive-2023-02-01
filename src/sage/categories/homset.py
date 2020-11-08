@@ -310,7 +310,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(S, S, C)
         Set of Morphisms from S to S in Permissive category
 
-    With ``check=False``, unitialized parents, as can appear upon
+    With ``check=False``, uninitialized parents, as can appear upon
     unpickling, are supported. Case of a parent::
 
         sage: cls = type(Set())
@@ -328,7 +328,7 @@ def Hom(X, Y, category=None, check=True):
         sage: H = Hom(S, S, SimplicialComplexes(), check=False)
 
     Typical example where unpickling involves calling Hom on an
-    unitialized parent::
+    uninitialized parent::
 
         sage: P.<x,y> = QQ['x,y']
         sage: Q = P.quotient([x^2-1,y^2-1])
@@ -586,11 +586,10 @@ class Homset(Set_generic):
 
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
+            sage: f = X.hom([0], Y)
             sage: class MyHomset(Homset):
-            ....:     def my_function(self, x):
-            ....:         return Y(x[0])
             ....:     def _an_element_(self):
-            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ....:         return sage.categories.morphism.SetMorphism(self, f)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids(), base = ZZ)
             sage: H
@@ -602,9 +601,6 @@ class Homset(Set_generic):
             ...
             TypeError: category (=1) must be a category
 
-            sage: H
-            Set of Morphisms from X to Y in Category of monoids
-            sage: TestSuite(H).run()
             sage: H = MyHomset(X, Y, category=1, base = ZZ, check = False)
             Traceback (most recent call last):
             ...
@@ -667,7 +663,7 @@ class Homset(Set_generic):
         .. NOTE::
 
             It can happen, that ``Hom(X,X)`` is called during
-            unpickling with an unitialized instance ``X`` of a Python
+            unpickling with an uninitialized instance ``X`` of a Python
             class. In some of these cases, testing that ``X in
             category`` can trigger ``X.category()``. This in turn can
             raise a error, or return a too large category (``Sets()``,
@@ -1239,11 +1235,10 @@ class HomsetWithBase(Homset):
 
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
+            sage: f = X.hom([0], Y)
             sage: class MyHomset(HomsetWithBase):
-            ....:     def my_function(self, x):
-            ....:         return Y(x[0])
             ....:     def _an_element_(self):
-            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
+            ....:         return sage.categories.morphism.SetMorphism(self, f)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids())
             sage: H

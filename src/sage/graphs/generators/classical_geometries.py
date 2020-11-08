@@ -1394,7 +1394,6 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
         hyperoval = [x for x in Pi
                      if (x[0] + x[1] * x[2] == 0) or
                         (x[0] == 1 and x[1] == x[2] == 0)]
-        O = set(hyperoval)
     else:
         for v in hyperoval:
             v.set_immutable()
@@ -1405,7 +1404,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
                 raise RuntimeError("incorrect hyperoval size")
             for L in Theta.blocks():
                 if set(L).issubset(Pi):
-                    if not len(O.intersection(L)) in [0,2]:
+                    if len(O.intersection(L)) not in [0, 2]:
                         raise RuntimeError("incorrect hyperoval")
     M = matrix(hyperoval)
     F_0 = F.zero()
@@ -1413,15 +1412,16 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 
     for x in C:
         x.set_immutable()
-    G = Graph([C, lambda x,y: not F.zero() in x+y])
+    G = Graph([C, lambda x,y: F.zero() not in x+y])
     G.name('Nowhere0WordsTwoWeightCodeGraph('+str(q)+')')
     G.relabel()
     return G
 
+
 def OrthogonalDualPolarGraph(e, d, q):
     r"""
     Return dual polar graph on $GO^e(n,q)$ of diameter `d`.
-    The value of `n` is determinded by `d` and `e`.
+    The value of `n` is determined by `d` and `e`.
 
     The graph is distance-regular with classical parameters
     `(d, q, 0, q^e)`.
@@ -1541,7 +1541,7 @@ def OrthogonalDualPolarGraph(e, d, q):
     allIsoSubspaces = libgap.Orbit(permutation, isoSPointsInt, libgap.OnSets)
 
     # number of projective points in a (d-1)-subspace
-    intersection_size = (q**(d-1) - 1) / (q-1)
+    intersection_size = (q**(d-1) - 1) // (q-1)
 
     edges = []
     n = len(allIsoSubspaces)

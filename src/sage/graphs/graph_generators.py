@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Common Graphs
+Common graphs
 
 All graphs in Sage can be built through the ``graphs`` object. In order to
 build a complete graph on 15 elements, one can do::
@@ -57,8 +57,7 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["AztecDiamondGraph",
-     "BullGraph",
+    ["BullGraph",
      "ButterflyGraph",
      "CircularLadderGraph",
      "ClawGraph",
@@ -156,7 +155,7 @@ __append_to_doc(
      "LargeWittGraph",
      "LeonardGraph",
      "LjubljanaGraph",
-     "LintSchrijverGraph",
+     "vanLintSchrijverGraph",
      "LivingstoneGraph",
      "locally_GQ42_distance_transitive_graph",
      "LocalMcLaughlinGraph",
@@ -219,8 +218,11 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["BalancedTree",
+    ["AlternatingFormsGraph",
+     "AztecDiamondGraph",
+     "BalancedTree",
      "BarbellGraph",
+     "BilinearFormsGraph",
      "BubbleSortGraph",
      "CaiFurerImmermanGraph",
      "chang_graphs",
@@ -229,6 +231,8 @@ __append_to_doc(
      "CubeGraph",
      "CubeConnectedCycle",
      "DorogovtsevGoltsevMendesGraph",
+     "DoubleGrassmannGraph",
+     "DoubleOddGraph",
      "EgawaGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
@@ -239,9 +243,12 @@ __append_to_doc(
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
      "GoethalsSeidelGraph",
+     "GrassmannGraph",
+     "HalfCube",
      "HammingGraph",
      "HanoiTowerGraph",
      "HararyGraph",
+     "HermitianFormsGraph",
      "HyperStarGraph",
      "JohnsonGraph",
      "KneserGraph",
@@ -920,7 +927,7 @@ class GraphGenerators():
         The ``debug`` switch can be used to examine ``geng``'s reaction to the
         input in the ``options`` string.  We illustrate success.  (A failure
         will be a string beginning with ">E".)  Passing the "-q" switch to
-        ``geng`` will supress the indicator of a successful initiation, and so
+        ``geng`` will suppress the indicator of a successful initiation, and so
         the first returned value might be an empty string if ``debug`` is
         ``True``::
 
@@ -1995,7 +2002,7 @@ class GraphGenerators():
     LargeWittGraph           = staticmethod(distance_regular.LargeWittGraph)
     LeonardGraph             = staticmethod(distance_regular.LeonardGraph)
     LjubljanaGraph           = staticmethod(smallgraphs.LjubljanaGraph)
-    LintSchrijverGraph       = staticmethod(distance_regular.LintSchrijverGraph)
+    vanLintSchrijverGraph       = staticmethod(distance_regular.vanLintSchrijverGraph)
     LivingstoneGraph         = staticmethod(smallgraphs.LivingstoneGraph)
     locally_GQ42_distance_transitive_graph = staticmethod(distance_regular.locally_GQ42_distance_transitive_graph)
     LocalMcLaughlinGraph     = staticmethod(smallgraphs.LocalMcLaughlinGraph)
@@ -2051,9 +2058,11 @@ class GraphGenerators():
 ###########################################################################
     from .generators import families
     from . import strongly_regular_db
+    AlternatingFormsGraph   = staticmethod(distance_regular.AlternatingFormsGraph)
     AztecDiamondGraph      = staticmethod(families.AztecDiamondGraph)
     BalancedTree           = staticmethod(families.BalancedTree)
     BarbellGraph           = staticmethod(families.BarbellGraph)
+    BilinearFormsGraph      = staticmethod(distance_regular.BilinearFormsGraph)
     BubbleSortGraph        = staticmethod(families.BubbleSortGraph)
     CaiFurerImmermanGraph  = staticmethod(families.CaiFurerImmermanGraph)
     chang_graphs           = staticmethod(families.chang_graphs)
@@ -2062,6 +2071,8 @@ class GraphGenerators():
     CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
+    DoubleGrassmannGraph   = staticmethod(distance_regular.DoubleGrassmannGraph)
+    DoubleOddGraph         = staticmethod(distance_regular.DoubleOddGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
     FibonacciTree          = staticmethod(families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(families.FoldedCubeGraph)
@@ -2070,9 +2081,12 @@ class GraphGenerators():
     FuzzyBallGraph         = staticmethod(families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(families.GeneralizedPetersenGraph)
     GoethalsSeidelGraph    = staticmethod(families.GoethalsSeidelGraph)
+    GrassmannGraph         = staticmethod(distance_regular.GrassmannGraph)
+    HalfCube               = staticmethod(distance_regular.HalfCube)
     HammingGraph           = staticmethod(families.HammingGraph)
     HanoiTowerGraph        = staticmethod(families.HanoiTowerGraph)
     HararyGraph            = staticmethod(families.HararyGraph)
+    HermitianFormsGraph     = staticmethod(distance_regular.HermitianFormsGraph)
     HyperStarGraph         = staticmethod(families.HyperStarGraph)
     JohnsonGraph           = staticmethod(families.JohnsonGraph)
     KneserGraph            = staticmethod(families.KneserGraph)

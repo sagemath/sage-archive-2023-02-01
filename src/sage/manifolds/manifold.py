@@ -303,6 +303,7 @@ AUTHORS:
 - Travis Scrimshaw (2015): structure described via
   :class:`~sage.manifolds.structure.TopologicalStructure` or
   :class:`~sage.manifolds.structure.RealTopologicalStructure`
+- Michael Jung (2020): topological vector bundles and orientability
 
 
 REFERENCES:
@@ -330,7 +331,7 @@ from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.misc.prandom import getrandbits
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -1282,13 +1283,8 @@ class TopologicalManifold(ManifoldSubset):
         from .chart import Chart
         if not isinstance(chart, Chart):
             raise TypeError("{} is not a chart".format(chart))
-        if chart._domain is not self:
-            if self.is_manifestly_coordinate_domain():
-                raise TypeError("the chart domain must coincide with " +
-                                "the {}".format(self))
-            if chart not in self._atlas:
-                raise ValueError("the chart must be defined on the " +
-                                 "{}".format(self))
+        if chart not in self._atlas:
+            raise ValueError("the chart must be defined on the {}".format(self))
         self._def_chart = chart
 
     def coord_change(self, chart1, chart2):

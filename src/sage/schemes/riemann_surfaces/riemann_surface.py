@@ -77,7 +77,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.modules.free_module import VectorSpace
 from sage.numerical.gauss_legendre import integrate_vector
-from sage.rings.complex_field import ComplexField, CDF
+from sage.rings.complex_mpfr import ComplexField, CDF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import number_field_elements_from_algebraics
@@ -352,8 +352,8 @@ class RiemannSurface(object):
 
         sage: S = RiemannSurface(f, prec=100); S
         Riemann surface defined by polynomial f = -z^3 + w^2 + 1 = 0, with 100 bits of precision
-        sage: S.riemann_matrix() #abs tol 0.00000001
-        [0.500000000000000000000000... + 0.866025403784438646763723...*I]
+        sage: S.riemann_matrix()^6 #abs tol 0.00000001
+        [1.0000000000000000000000000000 - 1.1832913578315177081175928479e-30*I]
 
     We can also work with Riemann surfaces that are defined over fields with a
     complex embedding, but since the current interface for computing genus and

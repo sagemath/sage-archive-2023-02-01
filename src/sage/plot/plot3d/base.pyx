@@ -55,7 +55,7 @@ from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.temporary_file import tmp_filename
-from .texture import Texture, is_Texture
+from .texture import Texture
 from .transform cimport Transformation, point_c, face_c
 include "point_c.pxi"
 
@@ -415,12 +415,18 @@ cdef class Graphics3d(SageObject):
         js_options['frame'] = options.get('frame', True)
         js_options['loop'] = options.get('loop', True)
         js_options['projection'] = options.get('projection', 'perspective')
+        js_options['theme'] = options.get('theme', 'light')
         js_options['viewpoint'] = options.get('viewpoint', False)
 
         if js_options['projection'] not in ['perspective', 'orthographic']:
             import warnings
             warnings.warn('projection={} is not supported; using perspective'.format(js_options['projection']))
             js_options['projection'] = 'perspective'
+
+        if js_options['theme'] not in ['light', 'dark']:
+            import warnings
+            warnings.warn('theme={} is not supported; using light theme'.format(js_options['theme']))
+            js_options['theme'] = 'light'
 
         # Normalization of options values for proper JSONing
         js_options['aspectRatio'] = [float(i) for i in js_options['aspectRatio']]
@@ -434,9 +440,9 @@ cdef class Graphics3d(SageObject):
                 js_options['viewpoint'] = False
             else:
                 if type(js_options['viewpoint']) is tuple:
-                    js_options['viewpoint'] = list(js_options['viewpoint']) 
+                    js_options['viewpoint'] = list(js_options['viewpoint'])
                 if type(js_options['viewpoint'][0]) is tuple:
-                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0]) 
+                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0])
                 js_options['viewpoint'][0] = [float(i) for i in js_options['viewpoint'][0]]
                 js_options['viewpoint'][1] = float(js_options['viewpoint'][1])
 
@@ -2172,7 +2178,7 @@ class Graphics3dGroup(Graphics3d):
             <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
         """
-        return "\n".join([g.x3d_str() for g in self.all])
+        return "\n".join(g.x3d_str() for g in self.all)
 
     def obj_repr(self, render_params):
         """
@@ -2673,7 +2679,7 @@ cdef class PrimitiveObject(Graphics3d):
     def __init__(self, **kwds):
         if 'texture' in kwds:
             self.texture = kwds['texture']
-            if not is_Texture(self.texture):
+            if not isinstance(self.texture, Texture):
                 self.texture = Texture(self.texture)
         else:
             self.texture = Texture(kwds)
@@ -2687,7 +2693,7 @@ cdef class PrimitiveObject(Graphics3d):
             sage: G.set_texture(color='yellow'); G
             Graphics3d Object
         """
-        if not is_Texture(texture):
+        if not isinstance(texture, Texture):
             texture = Texture(texture, **kwds)
         self.texture = texture
 

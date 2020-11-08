@@ -704,7 +704,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         - ``restart_if_needed`` (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 
@@ -1577,7 +1577,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         sage: P = [Process(target=gap, args=("14242",)) for i in range(4)]
         sage: for p in P:  # long time, indirect doctest
         ....:     p.start()
-        ....:     time.sleep(0.2)
+        ....:     time.sleep(float(0.2))
         sage: for p in P:  # long time
         ....:     p.join()
         sage: os.unlink(sage.interfaces.gap.WORKSPACE)  # long time

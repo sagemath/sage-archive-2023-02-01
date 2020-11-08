@@ -29,6 +29,8 @@ docstrings.
 
 -  Stirling numbers, :func:`stirling_number1`,
    :func:`stirling_number2`.
+   
+-  Polygonal numbers, :func:`polygonal_number`
 
 **Set-theoretic constructions:**
 
@@ -89,7 +91,7 @@ combinatorial functions:
 
 .. MATH::
 
-             \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
+    \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}{(1-q)(1-q^2)\cdots (1-q^r)}.
 
 The ``sage.groups.perm_gps.permgroup_elements``
 contains the following combinatorial functions:
@@ -500,7 +502,7 @@ def narayana_number(n, k):
 
     REFERENCES:
 
-    - wikipedia:`Narayana_number`
+    - :wikipedia:`Narayana_number`
     """
     n = ZZ(n)
     if n <= 0:
@@ -670,7 +672,7 @@ def fibonacci(n, algorithm="pari"):
     - ``algorithm`` -- a string:
 
       * ``"pari"`` - (default) use the PARI C library's
-        fibo function
+        :pari:`fibo` function
 
       * ``"gap"`` - use GAP's Fibonacci function
 
@@ -989,6 +991,84 @@ def stirling_number2(n, k, algorithm=None):
         return ZZ(maxima.eval("stirling2(%s,%s)" % (n, k)))
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
+
+
+def polygonal_number(s, n):
+    r"""
+    Return the `n`-th `s`-gonal number.
+
+    Polygonal sequences are represented by dots forming a regular polygon.
+    Two famous sequences are the triangular numbers (3rd column of Pascal's
+    Triangle) and the square numbers. The `n`-th term in a polygonal sequence
+    is defined by
+
+    .. MATH::
+
+        P(s, n) = \frac{n^2(s-2) - n(s-4)}{2},
+
+    where `s` is the number of sides of the polygon.
+
+    INPUT:
+
+    - ``s`` -- integer greater than 1; the number of sides of the polygon
+
+    - ``n`` -- integer; the index of the returned `s`-gonal number
+
+    OUTPUT: an integer
+
+    EXAMPLES:
+
+    The triangular numbers::
+
+        sage: [polygonal_number(3, n) for n in range(10)]
+        [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
+
+        sage: [polygonal_number(3, n) for n in range(-10, 0)]
+        [45, 36, 28, 21, 15, 10, 6, 3, 1, 0]
+
+    The square numbers::
+
+        sage: [polygonal_number(4, n) for n in range(10)]
+        [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+    The pentagonal numbers::
+
+        sage: [polygonal_number(5, n) for n in range(10)]
+        [0, 1, 5, 12, 22, 35, 51, 70, 92, 117]
+
+    The hexagonal numbers::
+
+        sage: [polygonal_number(6, n) for n in range(10)]
+        [0, 1, 6, 15, 28, 45, 66, 91, 120, 153]
+
+    The input is converted into an integer::
+
+        sage: polygonal_number(3.0, 2.0)
+        3
+
+    A non-integer input returns an error::
+
+        sage: polygonal_number(3.5, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral RealNumber to Integer
+
+    `s` must be greater than 1::
+
+        sage: polygonal_number(1, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: s (=1) must be greater than 1
+
+    REFERENCES:
+
+    - :wikipedia:`Polygonal_number`
+    """
+    s = ZZ(s)
+    n = ZZ(n)
+    if s < 2:
+        raise ValueError("s (=%s) must be greater than 1" % s)
+    return (((n**2) * (s-2)) - (n * (s-4))) // 2
 
 
 class CombinatorialObject(SageObject):

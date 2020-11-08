@@ -77,7 +77,7 @@ from sage.calculus.functions import jacobian
 
 from sage.rings.all import Integer
 from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
@@ -779,7 +779,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 new_polys = [R(u*t) for u in self]
         self._polys = tuple(new_polys)
 
-    def normalize_coordinates(self):
+    def normalize_coordinates(self, **kwds):
         """
         Ensures that this morphism has integral coefficients, and,
         if the coordinate ring has a GCD, then it ensures that the
@@ -789,14 +789,32 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         positive (if positive has meaning in the coordinate ring).
         This is done in place.
 
+        When ``ideal`` or ``valuation`` is specified,
+        normalization occurs with respect to the absolute value
+        defined by the ``ideal`` or ``valuation``. That is, the
+        coefficients are scaled such that one coefficient has
+        absolute value 1 while the others have absolute value
+        less than or equal to 1. Only supported when the base
+        ring is a number field.
+
+        INPUT:
+
+        keywords:
+
+        - ``ideal`` -- (optional) a prime ideal of the base ring of this
+          morphism.
+
+        - ``valuation`` -- (optional) a valuation of the base ring of this
+          morphism.
+
         OUTPUT:
 
         - None.
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = Hom(P,P)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P, P)
             sage: f = H([5/4*x^3, 5*x*y^2])
             sage: f.normalize_coordinates(); f
             Scheme endomorphism of Projective Space of dimension 1 over Rational
@@ -806,10 +824,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(GF(7),2)
-            sage: X = P.subscheme(x^2-y^2)
-            sage: H = Hom(X,X)
-            sage: f = H([x^3+x*y^2, x*y^2, x*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(GF(7), 2)
+            sage: X = P.subscheme(x^2 - y^2)
+            sage: H = Hom(X, X)
+            sage: f = H([x^3 + x*y^2, x*y^2, x*z^2])
             sage: f.normalize_coordinates(); f
             Scheme endomorphism of Closed subscheme of Projective Space of dimension
             2 over Finite Field of size 7 defined by:
@@ -822,7 +840,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: R.<a,b> = QQ[]
             sage: P.<x,y,z> = ProjectiveSpace(R, 2)
             sage: H = End(P)
-            sage: f = H([a*(x*z+y^2)*x^2, a*b*(x*z+y^2)*y^2, a*(x*z+y^2)*z^2])
+            sage: f = H([a*(x*z + y^2)*x^2, a*b*(x*z + y^2)*y^2, a*(x*z + y^2)*z^2])
             sage: f.normalize_coordinates(); f
             Scheme endomorphism of Projective Space of dimension 2 over Multivariate
             Polynomial Ring in a, b over Rational Field
@@ -844,13 +862,44 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: R.<t> = PolynomialRing(ZZ)
             sage: K.<b> = NumberField(t^3 - 11)
-            sage: a = 7/(b-1)
+            sage: a = 7/(b - 1)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
-            sage: f = DynamicalSystem_projective([a*y^2 - (a*y-x)^2, y^2])
+            sage: f = DynamicalSystem_projective([a*y^2 - (a*y - x)^2, y^2])
             sage: f.normalize_coordinates(); f
             Dynamical System of Projective Space of dimension 1 over Number Field in b with defining polynomial t^3 - 11
             Defn: Defined on coordinates by sending (x : y) to
                     (-100*x^2 + (140*b^2 + 140*b + 140)*x*y + (-77*b^2 - 567*b - 1057)*y^2 : 100*y^2)
+
+        We can used ``ideal`` to scale with respect to a norm defined by an ideal::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([2*x^3, 2*x^2*y + 4*x*y^2])
+            sage: f.normalize_coordinates(ideal=2); f
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 : x^2*y + 2*x*y^2)
+
+        ::
+
+            sage: R.<w> = QQ[]
+            sage: A.<a> = NumberField(w^2 + 1)
+            sage: P.<x,y,z> = ProjectiveSpace(A, 2)
+            sage: X = P.subscheme(x^2-y^2)
+            sage: H = Hom(X,X)
+            sage: f = H([(a+1)*x^3 + 2*x*y^2, 4*x*y^2, 8*x*z^2])
+            sage: f.normalize_coordinates(ideal=A.prime_above(2)); f
+            Scheme endomorphism of Closed subscheme of Projective Space of dimension 2 over
+            Number Field in a with defining polynomial w^2 + 1 defined by:
+              x^2 - y^2
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    ((-a + 2)*x*y^2 : (-2*a + 2)*x*y^2 : (-4*a + 4)*x*z^2)
+
+        We can pass in a valuation to ``valuation``::
+
+            sage: g = H([(a+1)*x^3 + 2*x*y^2, 4*x*y^2, 8*x*z^2])
+            sage: g.normalize_coordinates(valuation=A.valuation(A.prime_above(2)))
+            sage: g == f
+            True
 
         ::
 
@@ -861,6 +910,57 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + (2 + O(3^20))*y^2 : (3 + O(3^21))*x*y)
         """
+        # if ideal or valuation is specified, we scale according the norm defined by the ideal/valuation
+        ideal = kwds.pop('ideal', None)
+        if ideal != None:
+            from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
+            if not (ideal in ZZ or isinstance(ideal, NumberFieldFractionalIdeal)):
+                raise TypeError('ideal must be an ideal of a number field, not %s' %ideal)
+            if isinstance(ideal, NumberFieldFractionalIdeal):
+                if ideal.number_field() != self.base_ring():
+                    raise ValueError('ideal must be an ideal of the base ring of this morphism ' +  \
+                        ', not an ideal of %s' %ideal.number_field())
+                if not ideal.is_prime():
+                    raise ValueError('ideal was %s, not a prime ideal' %ideal)
+                for generator in ideal.gens():
+                    if generator.valuation(ideal) == 1:
+                        uniformizer = generator
+                        break
+            else:
+                ideal = ZZ(ideal)
+                if self.base_ring() != QQ:
+                    raise ValueError('ideal was an integer, but the base ring of this ' + \
+                        'morphism is %s' %self.base_ring())
+                if not ideal.is_prime():
+                    raise ValueError('ideal must be a prime, not %s' %ideal)
+                uniformizer = ideal
+            valuations = []
+            for poly in self:
+                for coefficient, monomial in poly:
+                    if coefficient != 0:
+                        valuations.append(coefficient.valuation(ideal))
+            min_val = min(valuations)
+            self.scale_by(uniformizer**(-1*min_val))
+            return
+        valuation = kwds.pop('valuation', None)
+        if valuation != None:
+            from sage.rings.padics.padic_valuation import pAdicValuation_base
+            if not isinstance(valuation, pAdicValuation_base):
+                raise TypeError('valuation must be a valuation on a number field, not %s' %valuation)
+            if valuation.domain() != self.base_ring():
+                raise ValueError('the domain of valuation must be the base ring of this morphism ' + \
+                    'not %s' %valuation.domain())
+            uniformizer = valuation.uniformizer()
+            ramification_index = 1/valuation(uniformizer)
+            valuations = []
+            for poly in self:
+                for coefficient, monomial in poly:
+                    if coefficient != 0:
+                        valuations.append(valuation(coefficient) * ramification_index)
+            min_val = min(valuations)
+            self.scale_by(uniformizer**(-1*min_val))
+            return
+
         # clear any denominators from the coefficients
         N = self.codomain().ambient_space().dimension_relative() + 1
         LCM = lcm([self[i].denominator() for i in range(N)])

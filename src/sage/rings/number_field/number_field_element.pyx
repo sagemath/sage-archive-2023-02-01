@@ -82,7 +82,7 @@ Integer_sage = sage.rings.integer.Integer
 
 from sage.rings.real_mpfi import RealInterval
 
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 CC = ComplexField(53)
 
 # this is a threshold for the charpoly() methods in this file
@@ -496,7 +496,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: latex(zeta12^4-zeta12) # indirect doctest
             \zeta_{12}^{2} - \zeta_{12} - 1
         """
-        return self.polynomial()._latex_(name=self.number_field().latex_variable_name())
+        latex_name = self.number_field().latex_variable_names()[0]
+        return self.polynomial()._latex_(name=latex_name)
 
     def _gap_init_(self):
         """
@@ -2294,12 +2295,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: (1+sqrt2)^-1
             sqrt2 - 1
 
-        If the exponent is not integral, attempt this operation in the NumberField:
-
-            sage: K(2)^(1/2)
-            sqrt2
-
-        If this fails, perform this operation in the symbolic ring::
+        If the exponent is not integral, perform this operation in
+        the symbolic ring::
 
             sage: sqrt2^(1/5)
             2^(1/10)
@@ -2332,38 +2329,29 @@ cdef class NumberFieldElement(FieldElement):
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
             return generic_power(base, exp)
-
-        if (isinstance(base, NumberFieldElement) and exp in QQ):
-            qqexp = QQ(exp)
-            n = qqexp.numerator()
-            d = qqexp.denominator()
+        else:
+            cbase, cexp = canonical_coercion(base, exp)
+            if not isinstance(cbase, NumberFieldElement):
+                return cbase ** cexp
+            # Return a symbolic expression.
+            # We use the hold=True keyword argument to prevent the
+            # symbolics library from trying to simplify this expression
+            # again. This would lead to infinite loops otherwise.
+            from sage.symbolic.ring import SR
             try:
-                return base.nth_root(d)**n
-            except ValueError:
+                res = QQ(base)**QQ(exp)
+            except TypeError:
                 pass
-
-        cbase, cexp = canonical_coercion(base, exp)
-        if not isinstance(cbase, NumberFieldElement):
-            return cbase ** cexp
-        # Return a symbolic expression.
-        # We use the hold=True keyword argument to prevent the
-        # symbolics library from trying to simplify this expression
-        # again. This would lead to infinite loops otherwise.
-        from sage.symbolic.ring import SR
-        try:
-            res = QQ(base)**QQ(exp)
-        except TypeError:
-            pass
-        else:
-            if res.parent() is not SR:
-                return parent(cbase)(res)
-            return res
-        sbase = SR(base)
-        if sbase.operator() is operator.pow:
-            nbase, pexp = sbase.operands()
-            return nbase.power(pexp * exp, hold=True)
-        else:
-            return sbase.power(exp, hold=True)
+            else:
+                if res.parent() is not SR:
+                    return parent(cbase)(res)
+                return res
+            sbase = SR(base)
+            if sbase.operator() is operator.pow:
+                nbase, pexp = sbase.operands()
+                return nbase.power(pexp * exp, hold=True)
+            else:
+                return sbase.power(exp, hold=True)
 
     cdef void _reduce_c_(self):
         """
@@ -3035,6 +3023,25 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: g is f.polynomial()
             False
+
+        Note that in relative number fields, this produces the polynomial of
+        the internal representation of this element::
+
+            sage: R.<y> = K[]
+            sage: L.<b> = K.extension(y^2 - a)
+            sage: b.polynomial()
+            x
+
+        In some cases this might not be what you are looking for::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: R.<y> = K[]
+            sage: L.<b> = K.extension(y^2 + y + 2)
+            sage: b.polynomial()
+            1/2*x^3 + 3*x - 1/2
+            sage: R(list(b))
+            y
+
         """
         from sage.rings.polynomial.polynomial_ring_constructor import _single_variate as Pol
         return Pol(QQ, var)(self._coefficients())
@@ -4384,6 +4391,83 @@ cdef class NumberFieldElement(FieldElement):
         candidates = [h(a) for a in K.selmer_group_iterator(S,d)]
         return [a for a in candidates if (self/f(a)).is_nth_power(d)]
 
+    def different(self, K=None):
+        r"""
+        Return the different of this element with respect to the given
+        base field.
+
+        The different of an element `a` in an extension of number fields `L/K`
+        is defined as `\mathrm{Diff}_{L/K}(a) = f'(a)` where `f` is the
+        characteristic polynomial of `a` over `K`.
+
+        INPUT:
+
+        - ``K`` -- a subfield (embedding of a subfield) of the parent
+          number field of ``self``. Default: ``None``, which will amount
+          to ``self.parent().base_field()``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: a.different()
+            3*a^2
+            sage: a.different(K=K)
+            1
+
+        The optional argument ``K`` can be an embedding of a subfield::
+
+            sage: K.<b> = NumberField(x^4 - 2)
+            sage: (b^2).different()
+            0
+            sage: phi = K.base_field().embeddings(K)[0]
+            sage: b.different(K=phi)
+            4*b^3
+
+        Compare the relative different and the absolute different
+        for an element in a relative number field::
+
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: a.different()
+            2*a0
+            sage: a.different(K=QQ)
+            0
+            sage: a.absolute_different()
+            0
+
+        Observe that for the field extension `\QQ(i)/\QQ`, the different of
+        the field extension is the ideal generated by the different of `i`::
+
+
+            sage: K.<c> = NumberField(x^2 + 1)
+            sage: K.different() == K.ideal(c.different())
+            True
+
+        .. SEEALSO::
+
+            :meth:`absolute_different`
+            :meth:`sage.rings.number_field.number_field_rel.NumberField_relative.different`
+        """
+        f = self.matrix(base=K).charpoly().derivative().change_ring(self.parent())
+        return f(self)
+
+    def absolute_different(self):
+        r"""
+        Return the absolute different of this element.
+
+        This means the different with respect to the base field `\QQ`.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: a.absolute_different()
+            0
+
+        .. SEEALSO::
+
+            :meth:`different`
+        """
+        return self.different(K=QQ)
+
 cdef class NumberFieldElement_absolute(NumberFieldElement):
 
     def _magma_init_(self, magma):
@@ -4794,9 +4878,16 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: L.<beta> = NumberField(y^3 + y + alpha)
             sage: latex((beta + zeta)^3) # indirect doctest
             3 \zeta_{12} \beta^{2} + \left(3 \zeta_{12}^{2} - 1\right) \beta - \alpha + \zeta_{12}^{3}
+            sage: L.<b> = NumberField(y^3 + y + alpha, latex_name=r'\beta')
+            sage: latex((b + zeta)^3) # indirect doctest
+            3 \zeta_{12} \beta^{2} + \left(3 \zeta_{12}^{2} - 1\right) \beta - \alpha + \zeta_{12}^{3}
+            sage: M.<c> = L.extension(x^2 - 5, latex_name=r'\gamma')
+            sage: latex(zeta + c) # indirect doctest
+            \gamma + \zeta_{12}
         """
         K = self.number_field()
         R = K.base_field()[K.variable_name()]
+        R._latex_names = K.latex_variable_names()
         return R(self.list())._latex_()
 
     def charpoly(self, var='x'):

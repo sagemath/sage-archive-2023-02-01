@@ -33,8 +33,8 @@ usage() {
     echo "  --maxima [...]      -- run Sage's Maxima with given arguments"
     echo "  --mwrank [...]      -- run Sage's mwrank with given arguments"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
-    echo "                         'default', 'jupyter', and 'export')"
-    echo "                         Current default is 'export' from sagenb to jupyter"
+    echo "                         'default', 'jupyter', 'jupyterlab', and 'export')"
+    echo "                         Current default is 'jupyter'"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
     echo "  --python [...], --python3 [...] -- run the Python 3 interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
@@ -348,9 +348,9 @@ usage_advanced() {
     echo "Running the notebook:"
     echo
     echo "  -n [...], --notebook=[...]"
-    echo "                      -- start the notebook; valid options"
-    echo "                         include \"default\", \"jupyter\", \"export\"."
-    echo "                         Current default is \"jupyter\"."
+    echo "                      -- start the notebook; valid options include"
+    echo "                         'default', 'jupyter', 'jupyterlab', and 'export'."
+    echo "                         Current default is 'jupyter'."
     echo "                         Run \"sage --notebook --help\" for more details."
     echo
     ####  1.......................26..................................................78
@@ -389,7 +389,7 @@ usage_advanced() {
     echo "                         the tests for each module from the top of the file"
     echo "                         and skips tests once it exceeds the budget"
     echo "                         allocated for that file."
-    echo "     --help           -- show all testing options"
+    echo "     --help           -- show all doctesting options"
     echo "  --tnew [...]        -- equivalent to -t --new"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using"
     echo "                         N threads, with 0 interpreted as min(8, cpu_count())"
@@ -401,6 +401,17 @@ usage_advanced() {
     echo "  --startuptime [module] -- display how long each component of Sage takes to"
     echo "                         start up; optionally specify a module to get more"
     echo "                         details about that particular module"
+    if [ -n "$SAGE_SRC" -a -f "$SAGE_SRC/tox.ini" ]; then
+        echo "  --tox [options] <files|dirs> -- general entry point for testing"
+        echo "                                  and linting of the Sage library"
+        echo "     -e <envlist>     -- run specific test environments (default: run all)"
+        tox -c "$SAGE_SRC" --listenvs -v 2>/dev/null | sed -n '/->/s/^/        /;s/(/\
+                            (/;s/->/     --/p;'
+        echo "     -p auto          -- run test environments in parallel"
+        echo "     --help           -- show tox help"
+        command -v tox &>/dev/null || \
+        echo "                         (not installed currently, run sage -i tox)"
+    fi
     echo
     echo "Some developer utilities:"
     echo
@@ -422,6 +433,10 @@ usage_advanced() {
     echo "                         a Jupyter notebook (.ipynb)."
     echo "  --rst2txt [...]     -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
+    echo "  --sws2rst <sws doc> -- Generates a reStructuredText source file from"
+    echo "                         a Sage worksheet (.sws) document."
+    command -v sage-sws2rst >&/dev/null || \
+    echo "                         (not installed currently, run sage -i sage_sws2rst)"
     echo
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
@@ -514,11 +529,7 @@ fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
-    if [ "$SAGE_PYTHON3" = 'yes' ]; then
-        exec "$SAGE_LOCAL"/bin/python3 "$@"
-    else
-        exec "$SAGE_LOCAL"/bin/python2 "$@"
-    fi
+    exec "$SAGE_LOCAL"/bin/python3 "$@"
 fi
 
 if [ "$1" = '-python3' -o "$1" = '--python3' ]; then
@@ -597,7 +608,11 @@ fi
 
 if [ "$1" = '-maxima' -o "$1" = '--maxima' ]; then
     shift
-    exec maxima "$@"
+    maxima_cmd=$(sage-config MAXIMA 2>/dev/null)
+    if [ -z "${maxima_cmd}" ]; then
+        maxima_cmd="maxima -l ecl"
+    fi
+    exec $maxima_cmd "$@"
 fi
 
 if [ "$1" = '-mwrank' -o "$1" = '--mwrank' ]; then
@@ -777,6 +792,11 @@ if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
     exec sage-rst2txt "$@"
 fi
 
+if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
+    shift
+    exec sage-sws2rst "$@"
+fi
+
 #####################################################################
 # The notebook, grep, building Sage, testing Sage
 #####################################################################
@@ -901,6 +921,20 @@ fi
 
 if [ "$1" = '-startuptime' -o "$1" = '--startuptime' ]; then
     exec sage-startuptime.py "$@"
+fi
+
+if [ "$1" = '-tox' -o "$1" = '--tox' ]; then
+    shift
+    if [ -n "$SAGE_SRC" -a -f "$SAGE_SRC/tox.ini" ]; then
+        if command -v tox >/dev/null ; then
+            exec tox -c "$SAGE_SRC" "$@"
+        else
+            echo "Run sage -i tox to install"
+        fi
+    else
+        echo >&2 "error: Sage source directory or tox.ini not avialable"
+        exit 1
+    fi
 fi
 
 #####################################################################

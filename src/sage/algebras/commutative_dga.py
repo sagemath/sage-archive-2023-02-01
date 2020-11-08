@@ -99,6 +99,7 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.misc.cachefunc import cached_function
+from sage.misc.superseded import deprecated_function_alias
 
 
 def sorting_keys(element):
@@ -1505,9 +1506,9 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                         return False
             return True
 
-        def homogenous_parts(self):
+        def homogeneous_parts(self):
             r"""
-            Return the homogenous parts of the element. The result is given as
+            Return the homogeneous parts of the element. The result is given as
             a dictionary indexed by degree.
 
 
@@ -1515,7 +1516,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
                 sage: A.<e1,e2,e3,e4,e5> = GradedCommutativeAlgebra(QQ)
                 sage: a = e1*e3*e5-3*e2*e3*e5 + e1*e2 -2*e3 + e5
-                sage: a.homogenous_parts()
+                sage: a.homogeneous_parts()
                 {1: -2*e3 + e5, 2: e1*e2, 3: e1*e3*e5 - 3*e2*e3*e5}
             """
             dic = self.dict()
@@ -1528,6 +1529,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 else:
                     res[deg] = term
             return {i: res[i] for i in sorted(res.keys())}
+
+        homogenous_parts = deprecated_function_alias(30585, homogeneous_parts)
 
         def dict(self):
             r"""
@@ -1667,7 +1670,7 @@ class GCAlgebra_multigraded(GCAlgebra):
             sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=((1,0), (0,1), (1,1)))
             sage: TestSuite(A).run()
             sage: B.<w> = GradedCommutativeAlgebra(GF(2), degrees=((3,2),))
-            sage: TestSuite(B).run()
+            sage: TestSuite(B).run(skip=['_test_construction'])
             sage: C = GradedCommutativeAlgebra(GF(7), degrees=((3,2),))
             sage: TestSuite(C).run()
         """
@@ -2930,7 +2933,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         def cohomology_class(self):
             r"""
-            Return the cohomology class of an homogenous cycle, as an element
+            Return the cohomology class of an homogeneous cycle, as an element
             of the corresponding cohomology group.
 
             EXAMPLES::
@@ -2967,7 +2970,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                 True
             """
             if not self.is_homogeneous():
-                raise ValueError("The element is not homogenous")
+                raise ValueError("The element is not homogeneous")
             if not self.differential().is_zero():
                 raise ValueError("The element is not closed")
             d = self.degree()
@@ -3005,7 +3008,7 @@ class DifferentialGCAlgebra(GCAlgebra):
                 raise ValueError("The element is not closed")
             if not self.is_homogeneous():
                 res = {}
-                for d in self.homogenous_parts().values():
+                for d in self.homogeneous_parts().values():
                     res.update(d._cohomology_class_dict())
                 return res
             d = self.degree()

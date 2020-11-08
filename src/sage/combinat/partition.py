@@ -314,7 +314,6 @@ from .combinat import CombinatorialElement
 from . import tableau
 from . import permutation
 from . import composition
-from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_lists import IntegerListsLex
@@ -4864,12 +4863,13 @@ class Partition(CombinatorialElement):
             sage: Partition([]).k_atom(1)
             [[]]
         """
-        res = [ tableau.Tableau([]) ]
+        res = [tableau.Tableau([])]
         for i in range(len(self)):
-            res = [ x.promotion_operator( self[-i-1] ) for x in res]
+            res = (x.promotion_operator(self[-i - 1]) for x in res)
             res = sum(res, [])
-            res = [ y.catabolism_projector(Partition(self[-i-1:]).k_split(k)) for y in res]
-            res = [ i for i in res if i !=0 and i != [] ]
+            res = (y.catabolism_projector(Partition(self[-i - 1:]).k_split(k))
+                   for y in res)
+            res = [i for i in res if i]
         return res
 
     def k_split(self, k):
@@ -4898,11 +4898,11 @@ class Partition(CombinatorialElement):
         else:
             res = []
             part = list(self)
-            while part != [] and part[0]+len(part)-1 >= k:
+            while part and part[0] + len(part) - 1 >= k:
                 p = k - part[0]
-                res.append( part[:p+1] )
-                part = part[p+1:]
-            if part != []:
+                res.append(part[:p + 1])
+                part = part[p + 1:]
+            if part:
                 res.append(part)
         return res
 
@@ -6385,7 +6385,6 @@ class Partitions_n(Partitions):
         - ``algorithm``  - (default: ``'flint'``)
 
           - ``'flint'`` -- use FLINT (currently the fastest)
-          - ``'bober'`` -- Use Jonathan Bober's implementation (*very* fast)
           - ``'gap'`` -- use GAP (VERY *slow*)
           - ``'pari'`` -- use PARI. Speed seems the same as GAP until
             `n` is in the thousands, in which case PARI is faster.
@@ -6404,8 +6403,6 @@ class Partitions_n(Partitions):
             sage: Partitions(5).cardinality(algorithm='gap')
             7
             sage: Partitions(5).cardinality(algorithm='pari')
-            7
-            sage: Partitions(5).cardinality(algorithm='bober')
             7
             sage: number_of_partitions(5, algorithm='flint')
             7
@@ -6456,9 +6453,6 @@ class Partitions_n(Partitions):
         """
         if algorithm == 'flint':
             return cached_number_of_partitions(self.n)
-
-        elif algorithm == 'bober':
-            return bober_number_of_partitions(self.n)
 
         elif algorithm == 'gap':
             from sage.libs.gap.libgap import libgap
@@ -7099,7 +7093,7 @@ class Partitions_parts_in(Partitions):
             return None
         elif n == 0:
             return []
-        elif parts != []:
+        elif parts:
             p = parts[0]
             q, r = n.quo_rem(p)
             if r == 0:
@@ -7108,13 +7102,12 @@ class Partitions_parts_in(Partitions):
             # largest part
             else:
                 for i, p in enumerate(parts[1:]):
-                    rest = self._findlast(n - p, parts[:i+2])
+                    rest = self._findlast(n - p, parts[:i + 2])
                     if rest is not None:
                         return [p] + rest
         # If we get to here, nothing ever worked, so there's no such
         # partitions, and we return None.
         return None
-
 
     def __iter__(self):
         """
@@ -8122,9 +8115,9 @@ class OrderedPartitions(Partitions):
             sage: OrderedPartitions(3,2) # indirect doctest
             Ordered partitions of 3 of length 2
         """
-        string = "Ordered partitions of %s"%self.n
+        string = "Ordered partitions of %s" % self.n
         if self.k is not None:
-            string += " of length %s"%self.k
+            string += " of length %s" % self.k
         return string
 
     def list(self):
@@ -8138,14 +8131,14 @@ class OrderedPartitions(Partitions):
             sage: OrderedPartitions(3,2).list()
             [[2, 1], [1, 2]]
         """
-        from sage.interfaces.all import gap
+        from sage.libs.gap.libgap import libgap
         n = self.n
         k = self.k
         if k is None:
-            ans=gap.eval("OrderedPartitions(%s)" % (ZZ(n)))
+            ans = libgap.OrderedPartitions(ZZ(n))
         else:
-            ans=gap.eval("OrderedPartitions(%s,%s)" % (ZZ(n), ZZ(k)))
-        result = eval(ans.replace('\n',''))
+            ans = libgap.OrderedPartitions(ZZ(n), ZZ(k))
+        result = ans.sage()
         result.reverse()
         return result
 
@@ -8636,15 +8629,11 @@ def number_of_partitions(n, algorithm='default'):
 
        -  ``'flint'`` -- use FLINT
 
-       -  ``'bober'`` -- use Jonathan Bober's implementation
-
     EXAMPLES::
 
         sage: v = Partitions(5).list(); v
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
         sage: len(v)
-        7
-        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ``ValueError`` is raised.
@@ -8734,9 +8723,6 @@ def number_of_partitions(n, algorithm='default'):
 
     if algorithm == 'flint':
         return cached_number_of_partitions(n)
-
-    elif algorithm == 'bober':
-        return bober_number_of_partitions(n)
 
     raise ValueError("unknown algorithm '%s'"%algorithm)
 

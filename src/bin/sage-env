@@ -26,7 +26,7 @@
 #
 ##########################################################################
 
-if [ "${SAGE_ENV_CONFIG_SOURCED}" -ne 1 ]; then
+if [ "${SAGE_ENV_CONFIG_SOURCED}" != 1 ]; then
     # This script uses sage-env-config to find the ./configured value
     # of SAGE_ROOT, but ironically, it doesn't know how to find
     # sage-env-config because it doesn't know SAGE_ROOT yet!
@@ -227,10 +227,6 @@ if [ "$UNAME" = "Darwin" ]; then
     export OBJC OBJCXX
 fi
 
-if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
-    export SAGE_PYTHON3=yes
-fi
-
 # Set other Fortran-related compiler variables
 export F77="$FC"
 export F90="$FC"   # Needed for SciPy
@@ -356,7 +352,7 @@ SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
-    SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
+    SAGE_REPO_ANONYMOUS="https://gitlab.com/sagemath/dev/tracmirror.git"
     export SAGE_REPO_ANONYMOUS
 fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
@@ -669,3 +665,22 @@ fi
 # tell it where to find it. See Trac Ticket #15091
 
 export TERMINFO="$SAGE_LOCAL/share/terminfo"
+
+# If nodejs is installed, activate the nodeenv containing it.
+
+nodeenv_activate="$SAGE_LOCAL/share/nodejs/activate"
+
+if [ -f "$nodeenv_activate" ]; then
+    # symlinked into nodeenv for specific version of nodejs installed
+    # The activate script needs to be sourced using its actual path.
+    nodeenv_activate=`resolvelinks "$nodeenv_activate"`
+
+    # Don't let nodeenv wipe out the sage-sh/sage-buildsh prompt.
+    NODE_VIRTUAL_ENV_DISABLE_PROMPT=1 . "$nodeenv_activate"
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Warning: failed to activate the nodeenv containing nodejs"
+    fi
+elif [ -L "$nodeenv_activate" ]; then
+    echo >&2 "Warning: the nodeenv activation symlink for nodejs is broken"
+fi

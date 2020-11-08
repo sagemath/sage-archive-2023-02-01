@@ -33,9 +33,11 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~Posets.DexterSemilattice` | Return the Dexter semilattice.
     :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
     :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
+    :meth:`~Posets.DoubleTailedDiamond` | Return the double tailed diamond poset on `2n + 2` elements.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~Posets.MobilePoset` | Return the mobile poset formed by the `ribbon` with `hangers` below and an `anchor` above.
     :meth:`~Posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.PermutationPattern` | Return the Permutation pattern poset.
@@ -45,6 +47,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~Posets.ProductOfChains` | Return a product of chain posets.
     :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
+    :meth:`~Posets.RibbonPoset` | Return a ribbon on `n` elements with descents at `descents`.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
     :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
     :meth:`~Posets.ShardPoset` | Return the shard intersection order.
@@ -87,6 +90,7 @@ import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation, to_standard
 from sage.combinat.posets.posets import Poset, FinitePoset, FinitePosets_n
 from sage.combinat.posets.d_complete import DCompletePoset
+from sage.combinat.posets.mobile import MobilePoset as Mobile
 from sage.combinat.posets.lattices import (LatticePoset, MeetSemilattice,
                                            JoinSemilattice, FiniteLatticePoset)
 from sage.categories.finite_posets import FinitePosets
@@ -1761,7 +1765,79 @@ class Posets(metaclass=ClasscallMetaclass):
         elem = [item for sublist in elem for item in sublist]
         return Poset([elem,rel])
 
+    @staticmethod
+    def RibbonPoset(n, descents):
+        r"""
+        Return a ribbon poset on ``n`` vertices with descents at ``descents``.
 
+        INPUT:
+
+        - ``n`` -- the number of vertices
+        - ``descents`` -- an iterable; the indices on the ribbon where `y > x`
+
+        EXAMPLES::
+
+            sage: R = Posets.RibbonPoset(5, [1,2])
+            sage: sorted(R.cover_relations())
+            [[0, 1], [2, 1], [3, 2], [3, 4]]
+        """
+        return Mobile(DiGraph([list(range(n)), [(i+1, i) if i in descents else (i, i+1) for i in range(n-1) ]]))
+
+    @staticmethod
+    def MobilePoset(ribbon, hangers, anchor=None):
+        r"""
+        Return a mobile poset with the ribbon ``ribbon`` and
+        with hanging d-complete posets specified in ``hangers``
+        and a d-complete poset attached above, specified in ``anchor``.
+
+        INPUT:
+
+        - ``ribbon`` -- a finite poset that is a ribbon
+        - ``hangers`` -- a dictionary mapping an element on the ribbon
+          to a list of d-complete posets that it covers
+        - ``anchor`` -- (optional) a ``tuple`` (``ribbon_elmt``,
+          ``anchor_elmt``, ``anchor_poset``), where ``anchor_elmt`` covers
+          ``ribbon_elmt``, and ``anchor_elmt`` is an acyclic element of
+          ``anchor_poset``
+
+        EXAMPLES::
+
+            sage: R = Posets.RibbonPoset(5, [1,2])
+            sage: H = Poset([[5, 6, 7], [(5, 6), (6,7)]])
+            sage: M = Posets.MobilePoset(R, {3: [H]})
+            sage: len(M.cover_relations())
+            7
+
+            sage: P = posets.MobilePoset(posets.RibbonPoset(7, [1,3]),
+            ....: {1: [posets.YoungDiagramPoset([3, 2], dual=True)],
+            ....: 3: [posets.DoubleTailedDiamond(6)]},
+            ....: anchor=(4, 2, posets.ChainPoset(6)))
+            sage: len(P.cover_relations())
+            33
+        """
+        elements = []
+        cover_relations = []
+
+        cover_relations.extend(ribbon.cover_relations())
+        elements.extend(ribbon._elements)
+
+        if anchor:
+            for cr in anchor[2].cover_relations():
+                cover_relations.append(((anchor[0], cr[0]), (anchor[0], cr[1])))
+            cover_relations.append((anchor[0], (anchor[0], anchor[1])))
+
+            for elmt in anchor[2]._elements:
+                elements.append((anchor[0], elmt))
+
+        for r, hangs in hangers.items():
+            for i, h in enumerate(hangs):
+                for v in h._elements:
+                    elements.append((r,i,v))
+                for cr in h.cover_relations():
+                    cover_relations.append(((r, i, cr[0]), (r, i, cr[1])))
+                cover_relations.append(((r,i,h.top()), r))
+
+        return Mobile(DiGraph([elements, cover_relations]))
 
 
 ## RANDOM LATTICES

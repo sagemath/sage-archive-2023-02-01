@@ -49,6 +49,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.rank` | Returns the rank of ``self`` in lexicographic ordering (on the symmetric group containing ``self``).
     :meth:`~sage.combinat.permutation.Permutation.to_inversion_vector` | Returns the inversion vector of a permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.inversions` | Returns a list of the inversions of permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.to_digraph` | Return a digraph representation of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.show` | Displays the permutation as a drawing.
     :meth:`~sage.combinat.permutation.Permutation.number_of_inversions` | Returns the number of inversions in the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.noninversions` | Returns the ``k``-noninversions in the permutation ``self``.
@@ -993,7 +994,7 @@ class Permutation(CombinatorialElement):
             if toConsider == -1:
                 #Add the cycle to the list of cycles
                 if singletons:
-                    if cycle != []:
+                    if cycle:
                         cycles.append(tuple(cycle))
                 else:
                     if len(cycle) > 1:
@@ -1017,9 +1018,9 @@ class Permutation(CombinatorialElement):
                 l.remove( next )
                 toConsider = next
 
-        #When we're finished, add the last cycle
+        # When we're finished, add the last cycle
         if singletons:
-            if cycle != []:
+            if cycle:
                 cycles.append(tuple(cycle))
         else:
             if len(cycle) > 1:
@@ -1599,6 +1600,29 @@ class Permutation(CombinatorialElement):
         return [tuple([i+1,j+1]) for i in range(n-1) for j in range(i+1,n)
                 if p[i]>p[j]]
 
+    def to_digraph(self):
+        r"""
+        Return a digraph representation of ``self``.
+
+        EXAMPLES::
+
+            sage: d = Permutation([3, 1, 2]).to_digraph()
+            sage: d.edges(labels=False)
+            [(1, 3), (2, 1), (3, 2)]
+            sage: P = Permutations(range(1, 10))
+            sage: d = Permutation(P.random_element()).to_digraph()
+            sage: all(c.is_cycle() for c in d.strongly_connected_components_subgraphs())
+            True
+
+        TESTS::
+
+            sage: d = Permutation([1]).to_digraph()
+            sage: d.edges(labels=False)
+            [(1, 1)]
+        """
+        return DiGraph([self, enumerate(self, start=1)],
+                       format='vertices_and_edges', loops=True)
+
     def show(self, representation="cycles", orientation="landscape", **args):
         r"""
         Display the permutation as a drawing.
@@ -1637,9 +1661,7 @@ class Permutation(CombinatorialElement):
             ValueError: The value of 'representation' must be equal to 'cycles', 'chord-diagram' or 'braid'
         """
         if representation == "cycles" or representation == "chord-diagram":
-            d = DiGraph(loops = True)
-            for i in range(len(self)):
-                d.add_edge(i+1, self[i])
+            d = self.to_digraph()
 
             if representation == "cycles":
                 d.show(**args)
@@ -4490,11 +4512,13 @@ class Permutation(CombinatorialElement):
             4[3[2[., .], 1[., .]], .]
         """
         from sage.combinat.binary_tree import LabelledBinaryTree as LBT
+
         def rec(perm):
-            if len(perm) == 0: return LBT(None)
+            if len(perm) == 0:
+                return LBT(None)
             mn = compare(perm)
             k = perm.index(mn)
-            return LBT([rec(perm[:k]), rec(perm[k+1:])], label = mn)
+            return LBT([rec(perm[:k]), rec(perm[k + 1:])], label = mn)
         return rec(self)
 
     @combinatorial_map(name="Increasing tree")
@@ -5450,9 +5474,10 @@ class Permutations_nk(Permutations):
             sage: [3,1] in Permutations(3,2)
             True
         """
-        if len(x) != self._k: return False
+        if len(x) != self._k:
+            return False
 
-        r = list(range(1, self.n+1))
+        r = list(range(1, self.n + 1))
         for i in x:
             if i in r:
                 r.remove(i)

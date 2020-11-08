@@ -813,6 +813,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: 2*P
             ((1/4*x^4 - 4*x)/(x^3 + 2) : ((1/8*x^6 + 5*x^3 - 4)/(x^6 + 4*x^3 + 4))*y : 1)
 
+        Check that :trac:`30297` is fixed::
+
+            sage: K = Qp(5)
+            sage: E = EllipticCurve([K(0), K(1)])
+            sage: E.lift_x(1, extend=True)
+            (1 + O(5^20) : y + O(5^20) : 1 + O(5^20))
 
         AUTHOR:
 
@@ -884,7 +890,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         if K.characteristic() != 2:  # else we already defined F
             R = PolynomialRing(L, 'y')
             F = R([-f,b,1])
-        M = L.fraction_field().extension(F, 'y')
+        M = L.fraction_field().extension(F, names='y')
         EM = E.change_ring(M)
         y1 = M.gen()
         y2 = -b-y1

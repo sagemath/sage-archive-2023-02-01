@@ -17,8 +17,8 @@ for PKG_SCRIPTS in build/pkgs/*; do
     if [ -d $PKG_SCRIPTS ]; then
         PKG_BASE=$(basename $PKG_SCRIPTS)
         SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
-        PKG_TYPE=$(cat $PKG_SCRIPTS/type)
-        if [ -f $SYSTEM_PACKAGES_FILE -a -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
+        if [ -f $PKG_SCRIPTS/type -a -f $SYSTEM_PACKAGES_FILE -a -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
+           PKG_TYPE=$(cat $PKG_SCRIPTS/type)
            PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
            if [ -n "PKG_SYSTEM_PACKAGES" ]; then
                case "$PKG_TYPE" in
@@ -90,6 +90,18 @@ EOF
         UPDATE="pacman -Sy &&"
         EXISTS="pacman -Si"
         INSTALL="pacman -Su --noconfirm"
+        ;;
+    nix*)
+        # https://hub.docker.com/r/nixos/nix
+        cat <<EOF
+ARG BASE_IMAGE=nixos/nix:latest
+FROM \${BASE_IMAGE} as with-system-packages
+RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
+RUN nix-channel --update
+EOF
+        INSTALL="nix-env --install"
+        RUN="RUN nix-shell --packages \$PACKAGES --run "\'
+        ENDRUN=\'
         ;;
     void*)
 	# https://hub.docker.com/r/voidlinux/masterdir-x86_64-musl
@@ -178,7 +190,7 @@ ADD src/bin src/bin
 ADD m4 ./m4
 ADD build ./build
 ARG BOOTSTRAP=./bootstrap
-$RUN sh -x -c "\${BOOTSTRAP}"
+$RUN sh -x -c "\${BOOTSTRAP}" $ENDRUN
 
 FROM bootstrapped as configured
 #:configuring:
@@ -187,11 +199,11 @@ ARG EXTRA_CONFIGURE_ARGS=""
 EOF
 if [ ${WITH_SYSTEM_SPKG} = "force" ]; then
     cat <<EOF
-$RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (echo "********** configuring without forcing ***********"; cat config.log; ./configure --enable-build-as-root; cat config.log; exit 1)
+$RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (echo "********** configuring without forcing ***********"; cat config.log; ./configure --enable-build-as-root; cat config.log; exit 1) $ENDRUN
 EOF
 else
     cat <<EOF
-$RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (cat config.log; exit 1)
+$RUN echo "****** Configuring: ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} *******"; ./configure --enable-build-as-root $CONFIGURE_ARGS \${EXTRA_CONFIGURE_ARGS} || (cat config.log; exit 1) $ENDRUN
 EOF
 fi
 cat <<EOF
@@ -204,7 +216,7 @@ ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 #:toolchain:
-$RUN make \${USE_MAKEFLAGS} base-toolchain
+$RUN make \${USE_MAKEFLAGS} base-toolchain $ENDRUN
 
 FROM with-base-toolchain as with-targets-pre
 ARG NUMPROC=8
@@ -214,7 +226,7 @@ ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 #:make:
 ARG TARGETS_PRE="sagelib-build-deps"
-$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE}
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE} $ENDRUN
 
 FROM with-targets-pre as with-targets
 ARG NUMPROC=8
@@ -224,7 +236,7 @@ ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 ADD src src
 ARG TARGETS="build"
-$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS}
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS} $ENDRUN
 
 FROM with-targets as with-targets-optional
 ARG NUMPROC=8
@@ -233,7 +245,7 @@ ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
 ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!symengine_py"
 ARG TARGETS_OPTIONAL="ptest"
-$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_OPTIONAL} || echo "(error ignored)"
+$RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_OPTIONAL} || echo "(error ignored)" $ENDRUN
 
 #:end:
 EOF

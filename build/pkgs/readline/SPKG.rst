@@ -46,5 +46,3 @@ Patches
 
 -  0002-ltinfo.patch: We build readline using ncurses, and for that it
    needs to be told to link with libtinfo (part of ncurses).
-
--  sigsetjmp.patch: Correctly define sigsetjmp and friends on Cygwin.

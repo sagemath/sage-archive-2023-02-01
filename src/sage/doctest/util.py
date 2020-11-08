@@ -60,7 +60,7 @@ def count_noun(number, noun, plural=None, pad_number=False, pad_noun=False):
 
 def dict_difference(self, other):
     """
-    Return a dict with all key-value pairs occuring in ``self`` but not
+    Return a dict with all key-value pairs occurring in ``self`` but not
     in ``other``.
 
     EXAMPLES::
@@ -127,7 +127,7 @@ class Timer:
             sage: from sage.doctest.util import Timer
             sage: import time
             sage: timer = Timer().start()
-            sage: time.sleep(0.5)
+            sage: time.sleep(float(0.5))
             sage: timer.stop()
             {'cputime': ..., 'walltime': ...}
         """

@@ -251,12 +251,12 @@ class SemistandardPathTableau(PathTableau):
 
         EXAMPLES::
 
-        sage: path_tableaux.SemistandardPathTableau([[],[3],[3,2]]).is_integral()
-        True
-        sage: path_tableaux.SemistandardPathTableau([[],[5/2],[7/2,2]]).is_integral()
-        False
-        sage: path_tableaux.SemistandardPathTableau([[],[3],[3,-2]]).is_integral()
-        False
+            sage: path_tableaux.SemistandardPathTableau([[],[3],[3,2]]).is_integral()
+            True
+            sage: path_tableaux.SemistandardPathTableau([[],[5/2],[7/2,2]]).is_integral()
+            False
+            sage: path_tableaux.SemistandardPathTableau([[],[3],[3,-2]]).is_integral()
+            False
         """
         return all(all(i in NN for i in a) for a in self)
 

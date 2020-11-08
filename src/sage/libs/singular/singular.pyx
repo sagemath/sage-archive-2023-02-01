@@ -768,23 +768,19 @@ cdef init_libsingular():
 
     cdef void *handle = NULL
 
-    from sage.env import SINGULAR_SO
-    if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
+    from sage.env import get_singular_lib_path
+    singular_path = get_singular_lib_path()
+    if singular_path is None:
         raise RuntimeError(
-            "libSingular not found--a working Singular install in $SAGE_LOCAL "
+            "libSingular not found--a working Singular install "
             "is required for Sage to work")
 
-    lib = SINGULAR_SO
-
-    if not os.path.exists(lib):
-        raise ImportError("cannot locate Singular library ({})".format(lib))
-
-    lib = str_to_bytes(lib, FS_ENCODING, "surrogateescape")
+    lib = str_to_bytes(str(singular_path), FS_ENCODING, "surrogateescape")
 
     handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:
         err = dlerror()
-        raise ImportError("cannot load Singular library ({})".format(err))
+        raise ImportError(f"cannot load Singular library from {singular_path} ({err})")
 
     # load SINGULAR
     siInit(lib)

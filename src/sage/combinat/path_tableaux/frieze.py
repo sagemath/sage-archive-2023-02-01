@@ -32,10 +32,15 @@ from sage.rings.all import QQ, ZZ
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class FriezePattern(PathTableau):
-    """
+    r"""
     A frieze pattern.
 
     We encode a frieze pattern as a sequence in a fixed ground field.
+
+    INPUT:
+
+    - ``fp`` -- a sequence of elements of ``field``
+    - ``field`` -- (default: ``QQ``) the ground field
 
     EXAMPLES::
 
@@ -114,12 +119,8 @@ class FriezePattern(PathTableau):
     """
     @staticmethod
     def __classcall_private__(cls, fp, field=QQ):
-        """
+        r"""
         This is the preprocessing for creating friezes.
-
-        INPUT:
-
-        - ``field`` -- a sequence of elements of the field
 
         EXAMPLES::
 
@@ -160,7 +161,7 @@ class FriezePattern(PathTableau):
         return FriezePatterns(field)(tuple(fp))
 
     def check(self):
-        """
+        r"""
         Check that ``self`` is a valid frieze pattern.
 
         TESTS::
@@ -172,7 +173,7 @@ class FriezePattern(PathTableau):
         pass
 
     def _repr_(self):
-        """
+        r"""
         Return the string representation of ``self``.
 
         This removes the leading and trailing zero.
@@ -258,7 +259,8 @@ class FriezePattern(PathTableau):
         r"""
         Return ``True`` if all elements of ``self`` are positive.
 
-        This implies that all entries of ``CylindricalDiagram(self)`` are positive.
+        This implies that all entries of ``CylindricalDiagram(self)``
+        are positive.
 
         .. WARNING::
 
@@ -282,7 +284,8 @@ class FriezePattern(PathTableau):
 
     def is_integral(self):
         r"""
-        Return ``True`` if all entries of the frieze pattern are positive integers.
+        Return ``True`` if all entries of the frieze pattern are
+        positive integers.
 
         EXAMPLES::
 
@@ -303,11 +306,10 @@ class FriezePattern(PathTableau):
         If ``self`` is positive and integral then this will be a triangulation.
 
         .. PLOT::
-            :width: 600 px
+            :width: 400 px
 
             G = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1]).triangulation()
-            p = graphics_array(G, 7, 6)
-            sphinx_plot(p)
+            sphinx_plot(G)
 
         EXAMPLES::
 
@@ -354,14 +356,18 @@ class FriezePattern(PathTableau):
 
         The option ``model`` must be one of
 
-        * ``'UHP'``, for the upper half plane model
-        * ``'PD'``, for the Poincare disk model
-        * ``'KM'``, for the Klein model
+        * ``'UHP'`` - (default) for the upper half plane model
+        * ``'PD'`` - for the Poincare disk model
+        * ``'KM'`` - for the Klein model
 
         The hyperboloid model is not an option as this does not implement
         boundary points.
 
-        This can be omitted in which case it is taken to be UHP.
+        .. PLOT::
+            :width: 400 px
+
+            t = path_tableaux.FriezePattern([1,2,7,5,3,7,4,1])
+            sphinx_plot(t.plot())
 
         EXAMPLES::
 
@@ -421,7 +427,7 @@ class FriezePattern(PathTableau):
 
 class FriezePatterns(PathTableaux):
     """
-    The parent class for path_tableaux.FriezePattern.
+    The set of all frieze patterns.
 
     EXAMPLES::
 
@@ -435,8 +441,8 @@ class FriezePatterns(PathTableaux):
         [ ,  , 1, 1, 1]
     """
     def __init__(self, field):
-        """
-        Initializes the class of all FriezePatterns
+        r"""
+        Initialize ``self``.
 
         TESTS::
 

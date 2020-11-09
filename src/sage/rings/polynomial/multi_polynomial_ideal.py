@@ -1165,7 +1165,7 @@ class MPolynomialIdeal_singular_repr(
                         n = len(ring_vars)
                         lms = [each.lm() for each in gb]
                         # compute M_j, denoted by var_lms
-                        var_lms = [Set([]) for each in lms]
+                        var_lms = [Set([]) for _ in lms]
                         for j in range(len(ring_vars)):
                             for i in range(len(lms)):
                                 if lms[i].degree(ring_vars[j]) > 0:

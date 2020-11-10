@@ -26,17 +26,6 @@
 #
 ##########################################################################
 
-if [ "${SAGE_ENV_CONFIG_SOURCED}" != 1 ]; then
-    # This script uses sage-env-config to find the ./configured value
-    # of SAGE_ROOT, but ironically, it doesn't know how to find
-    # sage-env-config because it doesn't know SAGE_ROOT yet!
-    # Fortunately, anyone that knows how to source sage-env must know
-    # how to source sage-env-config, so the issue is avoided by
-    # requiring sage-env-config to be sourced before sage-env.
-    echo 'must source sage-env-config before sage-env' >&2
-    return 3
-fi
-
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an
 # absolute path (a relative path remains relative), nor does it treat

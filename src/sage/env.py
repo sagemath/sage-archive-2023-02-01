@@ -159,7 +159,8 @@ var('SAGE_DATE',           version.date)
 var('SAGE_VERSION_BANNER', version.banner)
 
 # bunch of sage directories and files
-var('SAGE_LOCAL',          os.path.abspath(sys.prefix))
+var('SAGE_VENV',           os.path.abspath(sys.prefix))
+var('SAGE_LOCAL',          SAGE_VENV)
 var('SAGE_ETC',            join(SAGE_LOCAL, 'etc'))
 var('SAGE_INC',            join(SAGE_LOCAL, 'include'))
 var('SAGE_SHARE',          join(SAGE_LOCAL, 'share'))

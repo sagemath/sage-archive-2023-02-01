@@ -7,7 +7,7 @@ It is meant for internal use only.
 EXAMPLES::
 
     sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
-    sage: A = SpinorOperators((2,3,7))
+    sage: A = SpinorOperators((2, 3, 7))
 
 AUTHORS:
 
@@ -37,7 +37,7 @@ class SpinorOperator(AbelianGroupElement_gap):
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.spinor_genus import *
-        sage: A = SpinorOperators((2,3,7))
+        sage: A = SpinorOperators((2, 3, 7))
         sage: A.an_element()
         [2:7, 3:-1, 7:-1]
     """
@@ -49,7 +49,7 @@ class SpinorOperator(AbelianGroupElement_gap):
         EXAMPLES::
 
             sage: from sage.quadratic_forms.genera.spinor_genus import *
-            sage: A = SpinorOperators((2,3,7))
+            sage: A = SpinorOperators((2, 3, 7))
             sage: A.an_element()
             [2:7, 3:-1, 7:-1]
         """
@@ -83,11 +83,18 @@ class SpinorOperators(AbelianGroupGap):
     EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.spinor_genus import *
-        sage: SpinorOperators((2,3,7))
+        sage: SpinorOperators((2, 3, 7))
         Group of SpinorOperators at primes (2, 3, 7)
     """
     def __init__(self, primes):
         r"""
+        Initialize the group of spinor operators
+
+        TESTS::
+
+            sage: from sage.quadratic_forms.genera.spinor_genus import *
+            sage: S = SpinorOperators((2, 3, 7))
+            sage: TestSuite(S).run()
         """
         if primes[0] != 2:
             raise ValueError("first prime must be 2")
@@ -96,6 +103,23 @@ class SpinorOperators(AbelianGroupGap):
         # 3, 5, unit_p1, unit_p2,...
         orders = tuple(orders)
         AbelianGroupGap.__init__(self, orders)
+
+    def __reduce__(self):
+        r"""
+        Implement pickling.
+
+        OUTPUT:
+
+        - a tuple ``f`` such that this element is ``f[0](*f[1])``
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
+            sage: S = SpinorOperators((2, 3, 7))
+            sage: S == loads(dumps(S))
+            True
+        """
+        return SpinorOperators, (self._primes,)
 
     Element = SpinorOperator
 

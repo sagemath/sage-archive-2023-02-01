@@ -20,6 +20,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function
 
+from sage.misc.lazy_import import lazy_import
 from sage.misc.all import prod, cached_method
 from sage.arith.all import LCM, fundamental_discriminant
 from sage.matrix.matrix_space import MatrixSpace
@@ -37,8 +38,8 @@ from sage.functions.transcendental import zeta
 from sage.symbolic.constants import pi
 from sage.symbolic.ring import SR
 from sage.quadratic_forms.special_values import quadratic_L_function__exact
-from sage.quadratic_forms.genera.normal_form import _min_nonsquare
-from sage.interfaces.magma import magma
+lazy_import('sage.quadratic_forms.genera.normal_form', '_min_nonsquare')
+lazy_import('sage.interfaces.magma', 'magma')
 
 
 def genera(sig_pair, determinant, max_scale=None, even=False):

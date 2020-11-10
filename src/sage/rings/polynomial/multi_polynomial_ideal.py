@@ -2532,11 +2532,14 @@ class MPolynomialIdeal_singular_repr(
             Return variety ``V`` for one triangular set of
             polynomials ``T``.
             """
-            if v is None: v = {}
+            if v is None:
+                v = {}
             found = False
             for f in T:
                 if f.is_univariate() and not f.is_constant():
-                    T.remove(f); found = True; break
+                    T.remove(f)
+                    found = True
+                    break
 
             if found is False:
                 V.append(v)
@@ -2563,7 +2566,8 @@ class MPolynomialIdeal_singular_repr(
         if isinstance(self.base_ring(), CCmod.ComplexField_class):
           verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
         P = self.ring()
-        if ring is not None: P = P.change_ring(ring)
+        if ring is not None:
+            P = P.change_ring(ring)
         try:
           TI = self.triangular_decomposition('singular:triangLfak')
           T = [list(each.gens()) for each in TI]

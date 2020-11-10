@@ -4532,18 +4532,18 @@ class LPRevisedDictionary(LPAbstractDictionary):
             \begin{array}{l|r|rr||r||r|r|r}
             x_B & c_B &  & \mspace{-16mu} B^{-1} & y & B^{-1} b & B^{-1} A_{x_{1}} & \hbox{Ratio} \\
             \hline
-            \color{red} x_{3} & \color{red} 0 & \color{red} 1 & \color{red} 0 & 0 & \color{red} 1000 & \color{red} 1 & \color{red} 1000 \\
+            \color{red}{ x_{3} } & \color{red}{ 0 } & \color{red}{ 1 } & \color{red}{ 0 } & 0 & \color{red}{ 1000 } & \color{red}{ 1 } & \color{red}{ 1000 } \\
             x_{4} & 0 & 0 & 1 & 0 & 1500 & 3 & 500 \\
             \end{array}\\
             \\
             \begin{array}{r|rr}
-            x_N & \color{green} x_{1} & x_{2} \\
+            x_N & \color{green}{ x_{1} } & x_{2} \\
             \hline
-            c_N^T & \color{green} 10 & 5 \\
+            c_N^T & \color{green}{ 10 } & 5 \\
             \hline
-            y^T A_N & \color{green} 0 & 0 \\
+            y^T A_N & \color{green}{ 0 } & 0 \\
             \hline
-            c_N^T - y^T A_N & \color{green} 10 & 5 \\
+            c_N^T - y^T A_N & \color{green}{ 10 } & 5 \\
             \end{array}
             \end{array}
         """
@@ -4594,7 +4594,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
                 for j, t in enumerate(terms):
                     if j == m + 2:
                         continue
-                    terms[j] = r"\color{red} " + t
+                    # Trac #30809: The MathJaX version of \color takes an argument
+                    terms[j] = r"\color{red}{" + t + "}"
             lines.append(" & ".join(terms) + r" \\")
         lines.append(r"\end{array}")
         top = "\n".join(lines)
@@ -4602,7 +4603,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         def make_line(header, terms):
             terms = [latex(_) for _ in terms]
             if entering is not None:
-                terms[k] = r"\color{green} " + terms[k]
+                terms[k] = r"\color{green}{" + terms[k] + "}"
             lines.append(" & ".join([header] + terms) + r" \\")
 
         lines = []

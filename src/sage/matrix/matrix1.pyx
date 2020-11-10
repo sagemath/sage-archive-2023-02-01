@@ -397,7 +397,7 @@ cdef class Matrix(Matrix0):
         """
         s = ','.join('[' + ','.join(cf._maple_init_() for cf in row) + ']'
                      for row in self.rows())
-        return "Matrix(%s,%s,%s)" % (self.nrows(), self.ncols(), s)
+        return "Matrix(%s,%s,[%s])" % (self.nrows(), self.ncols(), s)
 
     def _polymake_(self, polymake=None):
         """

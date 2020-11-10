@@ -196,8 +196,11 @@ fi
 # append -env to that). We redirect stdout to stderr, which is safer
 # for scripts.
 #####################################################################
-if [ -f "$0-env-config" ] && [ -f "$0-env" ]; then
+if [ -f "$0-env-config" ]; then
+    # As of Trac #29850, sage-env-config is optional.
     . "$0-env-config" >&2
+fi
+if [ -f "$0-env" ]; then
     . "$0-env" >&2
     if [ $? -ne 0 ]; then
         echo >&2 "Error setting environment variables by sourcing '$0-env';"

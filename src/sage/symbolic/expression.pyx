@@ -307,7 +307,7 @@ from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 from inspect import isfunction
 import operator
-from . import ring
+from .ring import SR
 import sage.rings.integer
 import sage.rings.rational
 
@@ -737,12 +737,12 @@ cdef class Expression(CommutativeRingElement):
         if state[0] != 0 or len(state) != 3:
             raise ValueError("unknown state information")
         # set parent
-        self._parent = ring.SR
+        self._parent = SR
         # get variables
         cdef GExList sym_lst
         for name in state[1]:
             sym_lst.append_sym(\
-                    ex_to_symbol((<Expression>ring.SR.symbol(name))._gobj))
+                    ex_to_symbol((<Expression>SR.symbol(name))._gobj))
 
         # initialize archive
         cdef GArchive ar
@@ -7151,8 +7151,8 @@ cdef class Expression(CommutativeRingElement):
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.fraction_field import FractionField
-        nu = ring.SR(self.numerator()).polynomial(base_ring)
-        de = ring.SR(self.denominator()).polynomial(base_ring)
+        nu = SR(self.numerator()).polynomial(base_ring)
+        de = SR(self.denominator()).polynomial(base_ring)
         vars = sorted(set(nu.variables() + de.variables()), key=repr)
         R = FractionField(PolynomialRing(base_ring, vars))
         return R(self.numerator())/R(self.denominator())
@@ -12503,7 +12503,7 @@ cdef class Expression(CommutativeRingElement):
             CallableSymbolicExpressionRing, is_CallableSymbolicExpressionRing
         R = self._parent
         if is_CallableSymbolicExpressionRing(R):
-            f = ring.SR(self)
+            f = SR(self)
             f, v, a, b = _normalize_integral_input(f, *args)
             # Definite integral with respect to a positional variable.
             if a is not None and v in R.arguments():
@@ -12513,7 +12513,7 @@ cdef class Expression(CommutativeRingElement):
                     arguments = tuple(arguments)
                     R = CallableSymbolicExpressionRing(arguments, check=False)
                 else:   # all arguments are gone
-                    R = ring.SR
+                    R = SR
             return R(integral(f, v, a, b, **kwds))
         return integral(self, *args, **kwds)
 

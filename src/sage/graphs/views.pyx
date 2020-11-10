@@ -189,7 +189,7 @@ cdef class EdgesView:
         [(0, 1), (1, 2)]
 
     We can ignore the direction of the edges of a directed graph, in which case
-    we search accross edges in either direction::
+    we search across edges in either direction::
 
         sage: G = digraphs.Circuit(5)
         sage: E = EdgesView(G, vertices=[0, 1], labels=False, sort=True, ignore_direction=False); E

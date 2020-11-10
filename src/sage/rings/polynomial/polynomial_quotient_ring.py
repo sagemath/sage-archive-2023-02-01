@@ -1020,7 +1020,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: F2.is_field()
             Traceback (most recent call last):
             ...
-            NotImplementedError: can not rewrite Univariate Quotient Polynomial Ring in xbar over 2-adic Field with capped relative precision 20 with modulus (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20) as an isomorphic ring
+            NotImplementedError: cannot rewrite Univariate Quotient Polynomial Ring in xbar over 2-adic Field with capped relative precision 20 with modulus (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20) as an isomorphic ring
             sage: F2.is_field(proof = False)
             False
 
@@ -1847,9 +1847,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             isomorphic_ring = self.base_ring()
 
             # With this knowledge we can refine the category of self (and of the resulting morphisms.)
-            # However, we can not just refine self to
+            # However, we cannot just refine self to
             # isomorphic_ring.category() because that category might expect an
-            # interface which we can not provide (e.g. NumberFields).
+            # interface which we cannot provide (e.g. NumberFields).
             # So we just check some important special cases here (note that
             # integral domains is already handled elsewhere.)
             from sage.categories.all import Fields
@@ -1906,7 +1906,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                 pass # modulus is not irreducible
             else:
                 if not isomorphic_ring in NumberFields():
-                    raise NotImplementedError("can not handle extensions of number fields that do not produce number fields")
+                    raise NotImplementedError("cannot handle extensions of number fields that do not produce number fields")
                 # refine the category of self
                 if not self.is_field():
                     assert False, "self is isomorphic to a field"
@@ -1915,7 +1915,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                 to_isomorphic_ring = self.hom([isomorphic_ring.gen()])
                 return from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring
 
-        raise NotImplementedError("can not rewrite %r as an isomorphic ring"%(self,))
+        raise NotImplementedError("cannot rewrite %r as an isomorphic ring"%(self,))
 
     def _test_isomorphic_ring(self, **options):
         r"""

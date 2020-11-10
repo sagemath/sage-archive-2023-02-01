@@ -37,7 +37,8 @@ from sage.functions.transcendental import zeta
 from sage.symbolic.constants import pi
 from sage.symbolic.ring import SR
 from sage.quadratic_forms.special_values import quadratic_L_function__exact
-
+from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+from sage.interfaces.magma import magma
 
 
 def genera(sig_pair, determinant, max_scale=None, even=False):
@@ -1600,7 +1601,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: sym[0].automorphous_numbers()
             [1, 2, 5]
         """
-        from .normal_form import collect_small_blocks, _min_nonsquare
+        from .normal_form import collect_small_blocks
         automorphs = []
         sym = self.symbol_tuple_list()
         G = self.gram_matrix().change_ring(ZZ)
@@ -2635,7 +2636,7 @@ class GenusSymbol_global_ring(object):
         r"""
         Return the proper spinor kernel.
 
-        OUTPUT::
+        OUTPUT:
 
         A pair ``(A, K)`` where
 
@@ -2677,7 +2678,7 @@ class GenusSymbol_global_ring(object):
         r"""
         Return the improper spinor kernel.
 
-        OUTPUT::
+        OUTPUT:
 
         A pair ``(A, K)`` where
 
@@ -2707,7 +2708,7 @@ class GenusSymbol_global_ring(object):
         if b:
             return A, K
         else:
-            Ki = A.subgroup(K.gens() + (j,))
+            K = A.subgroup(K.gens() + (j,))
             return A, K
 
 
@@ -3107,7 +3108,6 @@ class GenusSymbol_global_ring(object):
             else:
                 backend = 'sage'
         if backend == 'magma':
-            from sage.interfaces.magma import magma
             if prod(self.signature_pair_of_matrix()) != 0:
                 if n <= 2:
                     raise NotImplementedError()
@@ -3431,7 +3431,6 @@ def _gram_from_jordan_block(p, block, discr_form=False):
         [  0   0 1/2   0]
         [  0   0   0 1/2]
     """
-    from sage.quadratic_forms.genera.normal_form import _min_nonsquare
     level = block[0]
     rk = block[1]
     det = block[2]

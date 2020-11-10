@@ -25,10 +25,22 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap, AbelianGroupElement_gap
-from sage.quadratic_forms.genera.normal_form import _min_nonsquare
 from sage.rings.all import ZZ,QQ
 
 class SpinorOperator(AbelianGroupElement_gap):
+    r"""
+    A spinor operator seen as a tuple of square classes.
+
+    For `2` the square class is represented as one of `1,3,5,7` and for
+    `p` odd it is `1` for a p-adic unit square and `-1` for a non-square.
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.spinor_genus import *
+        sage: A = SpinorOperators((2,3,7))
+        sage: A.an_element()
+        [2:7, 3:-1, 7:-1]
+    """
 
     def _repr_(self):
         r"""
@@ -36,10 +48,10 @@ class SpinorOperator(AbelianGroupElement_gap):
 
         EXAMPLES::
 
-              sage: from sage.quadratic_forms.genera.spinor_genus import *
-              sage: A = SpinorOperators((2,3,7))
-              sage: A.an_element()
-              [2:7, 3:-1, 7:-1]
+            sage: from sage.quadratic_forms.genera.spinor_genus import *
+            sage: A = SpinorOperators((2,3,7))
+            sage: A.an_element()
+            [2:7, 3:-1, 7:-1]
         """
         e = self.exponents()
         p = self.parent()._primes
@@ -82,7 +94,7 @@ class SpinorOperators(AbelianGroupGap):
         self._primes = tuple(ZZ(p) for p in primes)
         orders = len(self._primes)*[2] + [2]
         # 3, 5, unit_p1, unit_p2,...
-        order = tuple(orders)
+        orders = tuple(orders)
         AbelianGroupGap.__init__(self, orders)
 
     Element = SpinorOperator
@@ -93,9 +105,9 @@ class SpinorOperators(AbelianGroupGap):
 
       EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
-            sage: SpinorOperators((2, 3, 7))
-            Group of SpinorOperators at primes (2, 3, 7)
+          sage: from sage.quadratic_forms.genera.spinor_genus import SpinorOperators
+          sage: SpinorOperators((2, 3, 7))
+          Group of SpinorOperators at primes (2, 3, 7)
       """
       s = "Group of SpinorOperators at primes %s"%(self._primes,)
       return s

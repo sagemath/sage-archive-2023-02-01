@@ -3432,7 +3432,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.weighted()
             False
 
-        Ensure that graphs using the static sparse backend can not be mutated
+        Ensure that graphs using the static sparse backend cannot be mutated
         using this method, as fixed in :trac:`15278`::
 
             sage: G = graphs.PetersenGraph()
@@ -4650,9 +4650,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: [sorted(c) for c in G.cycle_basis()]
             [['Hey', 'Really ?', 'Wuuhuu'], [0, 2], [0, 1, 2]]
             sage: [sorted(c) for c in G.cycle_basis(output='edge')]
-            [[('Hey', 'Really ?', None),
-              ('Really ?', 'Wuuhuu', None),
-              ('Wuuhuu', 'Hey', None)],
+            [[('Hey', 'Wuuhuu', None),
+              ('Really ?', 'Hey', None),
+              ('Wuuhuu', 'Really ?', None)],
              [(0, 2, 'a'), (2, 0, 'b')],
              [(0, 2, 'b'), (1, 0, 'c'), (2, 1, 'd')]]
 
@@ -7312,7 +7312,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if self._directed:
 
-            # if edge uv is used, vu can not be
+            # if edge uv is used, vu cannot be
             for u, v in self.edge_iterator(labels=False):
                 if self.has_edge(v, u):
                     p.add_constraint(edge_used[u,v] + edge_used[v,u] <= 1)
@@ -8625,7 +8625,7 @@ class GenericGraph(GenericGraph_pyx):
         .. NOTE::
 
             Even though the three different implementations are meant to return
-            the same Flow values, they can not be expected to return the same
+            the same Flow values, they cannot be expected to return the same
             Flow graphs.
 
             Besides, the use of Linear Programming may possibly mean a (slight)
@@ -8785,7 +8785,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda X: p.sum(flow[uu,vv] for uu,vv in g.outgoing_edge_iterator([X], labels=None))
 
-            # The flow to be considered when defining the capacity contraints
+            # The flow to be considered when defining the capacity constraints
             capacity_sum = lambda u,v: flow[u,v]
 
         else:
@@ -8795,7 +8795,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda X: p.sum(flow[X,vv] for vv in g[X])
 
-            # The flow to be considered when defining the capacity contraints
+            # The flow to be considered when defining the capacity constraints
             capacity_sum = lambda u,v: flow[u,v] + flow[v,u]
 
         # Maximizes the flow leaving x
@@ -9331,7 +9331,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda i,X: p.sum(flow[i,(uu,vv)] for uu,vv in g.outgoing_edge_iterator([X], labels=None))
 
-            # the flow to consider when defining the capacity contraints
+            # the flow to consider when defining the capacity constraints
             capacity_sum = lambda i,u,v: flow[i,(u,v)]
 
         else:
@@ -9341,7 +9341,7 @@ class GenericGraph(GenericGraph_pyx):
             # The flow leaving x
             flow_leaving = lambda i, X: p.sum(flow[i,(X,vv)] for vv in g.neighbor_iterator(X))
 
-            # the flow to consider when defining the capacity contraints
+            # the flow to consider when defining the capacity constraints
             capacity_sum = lambda i,u,v: flow[i,(u,v)] + flow[i,(v,u)]
 
 
@@ -11822,10 +11822,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertices`` -- object (default: ``None``); a vertex, a list of
           vertices or ``None``
 
-        - ``labels`` -- boolean (defaul: ``True``); if ``False``, each edge is a
-           tuple `(u,v)` of vertices
+        - ``labels`` -- boolean (default: ``True``); if ``False``, each edge is
+           a tuple `(u,v)` of vertices
 
-        - ``ignore_direction`` -- boolean (defaul: ``False``); only applies to
+        - ``ignore_direction`` -- boolean (default: ``False``); only applies to
            directed graphs. If ``True``, searches across edges in either
            direction.
 
@@ -12553,7 +12553,7 @@ class GenericGraph(GenericGraph_pyx):
         speed::
 
             sage: g = graphs.PathGraph(1000)
-            sage: g.subgraph(list(range(10))) # uses the 'add' algorithm
+            sage: g.subgraph(list(range(10)))  # uses the 'add' algorithm
             Subgraph of (Path graph): Graph on 10 vertices
 
         TESTS:
@@ -12583,7 +12583,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm is not None and algorithm not in ("delete", "add"):
             raise ValueError('algorithm should be None, "delete", or "add"')
 
-        if inplace or len(vertices) > 0.05 * self.order() or algorithm == "delete":
+        if (inplace or algorithm == "delete"):
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,
                                               edge_property=edge_property,
@@ -12703,33 +12703,37 @@ class GenericGraph(GenericGraph_pyx):
         G = self.__class__(weighted=self._weighted, loops=self.allows_loops(),
                            multiedges=self.allows_multiple_edges())
         G.name("Subgraph of (%s)"%self.name())
-        G.add_vertices(self if vertices is None else vertices)
-
-        if edges is not None:
-            edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
-            edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
-
-            edges_to_keep = []
-            if self._directed:
-                for u, v, l in self.edges(vertices=vertices, sort=False):
-                    if (v in G and ((u, v, l) in edges_to_keep_labeled
-                                    or (u, v) in edges_to_keep_unlabeled)):
-                        edges_to_keep.append((u, v, l))
-            else:
-                for u, v, l in self.edges(vertices=vertices, sort=False):
-                    if (u in G and v in G
-                        and ((u, v, l) in edges_to_keep_labeled
-                             or (v, u, l) in edges_to_keep_labeled
-                             or (u, v) in edges_to_keep_unlabeled
-                             or (v, u) in edges_to_keep_unlabeled)):
-                        edges_to_keep.append((u, v, l))
+        if edges is None and edge_property is None:
+            self._backend.subgraph_given_vertices(G._backend, vertices)
         else:
-            edges_to_keep = [e for e in self.edges(vertices=vertices, sort=False)
-                                 if e[0] in vertices and e[1] in vertices]
+            G.add_vertices(self if vertices is None else vertices)
 
-        if edge_property is not None:
-            edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
-        G.add_edges(edges_to_keep)
+            if edges is not None:
+                edges_to_keep_labeled = frozenset(e for e in edges if len(e) == 3)
+                edges_to_keep_unlabeled = frozenset(e for e in edges if len(e) == 2)
+
+                edges_to_keep = []
+                if self._directed:
+                    for u, v, l in self.edges(vertices=vertices, sort=False):
+                        if (v in G and ((u, v, l) in edges_to_keep_labeled
+                                        or (u, v) in edges_to_keep_unlabeled)):
+                            edges_to_keep.append((u, v, l))
+                else:
+                    for u, v, l in self.edges(vertices=vertices, sort=False):
+                        if (u in G and v in G
+                            and ((u, v, l) in edges_to_keep_labeled
+                                 or (v, u, l) in edges_to_keep_labeled
+                                 or (u, v) in edges_to_keep_unlabeled
+                                 or (v, u) in edges_to_keep_unlabeled)):
+                            edges_to_keep.append((u, v, l))
+            else:
+                s_vertices = set(vertices)
+                edges_to_keep = [e for e in self.edges(vertices=vertices, sort=False, sort_vertices=False)
+                                     if e[0] in s_vertices and e[1] in s_vertices]
+
+            if edge_property is not None:
+                edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
+            G.add_edges(edges_to_keep)
 
         attributes_to_update = ('_pos', '_assoc')
         for attr in attributes_to_update:
@@ -12866,13 +12870,12 @@ class GenericGraph(GenericGraph_pyx):
         """
         if inplace:
             G = self
+            if vertices is not None:
+                vertices = set(vertices)
+                G.delete_vertices([v for v in G if v not in vertices])
+            G.name("Subgraph of (%s)"%self.name())
         else:
-            G = copy(self)
-        G.name("Subgraph of (%s)"%self.name())
-
-        if vertices is not None:
-            vertices = set(vertices)
-            G.delete_vertices([v for v in G if v not in vertices])
+            G = self._subgraph_by_adding(vertices)
 
         edges_to_delete = []
         if edges is not None:
@@ -13288,7 +13291,7 @@ class GenericGraph(GenericGraph_pyx):
         neighborhood is a clique (also called *simplicial* vertices)
         [FG1965]_.
 
-        (It can be seen that if `G` contains an induced hole, then it can not
+        (It can be seen that if `G` contains an induced hole, then it cannot
         have a perfect elimination order. Indeed, if we write `h_1,...,h_k` the
         `k` vertices of such a hole, then the first of those vertices to be
         removed would have two non-adjacent neighbors in the graph.)
@@ -13315,7 +13318,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``algorithm`` -- string (default: ``"B"``); the algorithm to choose
           among ``"A"`` or ``"B"`` (see next section). While they will agree on
-          whether the given graph is chordal, they can not be expected to return
+          whether the given graph is chordal, they cannot be expected to return
           the same certificates.
 
         ALGORITHM:
@@ -18025,7 +18028,7 @@ class GenericGraph(GenericGraph_pyx):
         `(v, x)` is an edge of other.
 
         The tensor product is also known as the categorical product and the
-        kronecker product (refering to the kronecker matrix product). See
+        kronecker product (referring to the kronecker matrix product). See
         the :wikipedia:`Kronecker_product`.
 
         EXAMPLES::
@@ -21989,7 +21992,7 @@ class GenericGraph(GenericGraph_pyx):
         # See trac #21704
         if self.has_multiple_edges():
             if algorithm == 'bliss':
-                raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
+                raise NotImplementedError("algorithm 'bliss' cannot be used for graph with multiedges")
             have_bliss = False
 
         if (algorithm == 'bliss'           or   # explicit choice from the user; or
@@ -22741,7 +22744,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("return_graph=False can only be used with algorithm='bliss'")
         has_multiedges = self.has_multiple_edges()
         if has_multiedges and algorithm == 'bliss':  # See trac #21704
-            raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
+            raise NotImplementedError("algorithm 'bliss' cannot be used for graph with multiedges")
 
         # Check bliss if explicitly requested, raise if not found.
         if algorithm == 'bliss':
@@ -23562,7 +23565,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         for u, v in edge_iter:
             if G.has_edge(u, v):
                 continue
-            # We count the number of occurence of each distinct label
+            # We count the number of occurrences of each distinct label
             if ignore_edge_labels:
                 G.add_edge(u, v, [[None, len(g.edge_label(u, v))]])
             else:

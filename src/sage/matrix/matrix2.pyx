@@ -1248,7 +1248,7 @@ cdef class Matrix(Matrix1):
             sage: A.permanent()
             32
 
-        A huge permanent that can not be reasonably computed with the Ryser
+        A huge permanent that cannot be reasonably computed with the Ryser
         algorithm (a `50 \times 50` band matrix with width `5`)::
 
             sage: n, w = 50, 5

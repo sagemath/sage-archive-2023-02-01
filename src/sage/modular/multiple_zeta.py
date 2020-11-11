@@ -165,6 +165,7 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.richcmp import op_EQ,op_NE
 from sage.algebras.free_zinbiel_algebra import FreeZinbielAlgebra
 from sage.arith.misc import bernoulli
 from sage.categories.cartesian_product import cartesian_product
@@ -1065,9 +1066,33 @@ class Multizetas(CombinatorialFreeModule):
             """
             return self.iterated().simplify().composition()
 
-        def __eq__(self, other):
+        def is_zero(self):
+            r"""
+            Return whether this element is zero.
+
+            EXAMPLES::
+
+                sage: M = Multizeta
+
+                sage: (4*M(2,3) + 6*M(3,2) - 5*M(5)).is_zero()
+                True
+                sage: (3*M(4) - 4*M(2,2)).is_zero()
+                True
+                sage: (4*M(2,3) + 6*M(3,2) + 3*M(4) - 5*M(5) - 4*M(2,2)).is_zero()
+                True
+
+                sage: (4*M(2,3) + 6*M(3,2) - 4*M(5)).is_zero()
+                False
+                sage: (M(4) - M(2,2)).is_zero()
+                False
+                sage: (4*M(2,3) + 6*M(3,2) + 3*M(4) - 4*M(5) - 4*M(2,2)).is_zero()
+                False
             """
-            Test for equality.
+            return self.iterated().is_zero()
+
+        def _richcmp_(self, other, op):
+            """
+            Comparison.
 
             This means equality as motivic multiple zeta value, computed
             using the morphism ``phi``.
@@ -1080,24 +1105,22 @@ class Multizetas(CombinatorialFreeModule):
                 sage: our_pi2 = 6*M(2)
                 sage: Multizeta(2,2,2) == our_pi2**3 / 7.factorial()
                 True
-            """
-            return self.iterated().phi() == other.iterated().phi()
 
-        def __ne__(self, other):
-            """
-            Test for non-equality.
-
-            This means non-equality as motivic multiple zeta value, computed
-            using the morphism ``phi``.
-
-            EXAMPLES::
-
-                sage: from sage.modular.multiple_zeta import Multizetas_iterated
-                sage: M = Multizeta
                 sage: M(2,2,2) != M(6)
                 True
+
+                sage: M(4) == M(66) + M(33,33)
+                False
+                sage: M(33) + M(22,11) == M(3)
+                False
+                sage: M(5) == 1
+                False
+                sage: M() == 1
+                True
+                sage: (0*M()) == 0
+                True
             """
-            return not (self == other)
+            return self.iterated()._richcmp_(other.iterated(), op)
 
         def phi(self):
             """
@@ -1137,6 +1160,8 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M = Multizetas(QQ)
                 sage: M((3,2)).phi_as_vector()
                 (9/2, -2)
+                sage: M(0).phi_as_vector()
+                ()
 
             TESTS::
 
@@ -1759,7 +1784,31 @@ class Multizetas_iterated(CombinatorialFreeModule):
             """
             return self.parent().phi(self)
 
-        def __eq__(self, other):
+        def is_zero(self):
+            r"""
+            Return whether this element is zero.
+
+            EXAMPLES::
+
+                sage: from sage.modular.multiple_zeta import Multizetas_iterated
+                sage: M = Multizetas_iterated(QQ)
+                sage: M(0).is_zero()
+                True
+                sage: M(1).is_zero()
+                False
+                sage: (M((1,1,0)) - -M((1,0,0))).is_zero()
+                True
+            """
+            P = self.parent()
+            deg = P.degree_on_basis
+            phi = P.phi
+            for d in sorted(set(deg(w) for w in self.support())):
+                z = self.homogeneous_component(d)
+                if not phi(z).is_zero():
+                    return False
+            return True
+
+        def _richcmp_(self, other, op):
             """
             Test for equality.
 
@@ -1779,24 +1828,10 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 sage: a.iterated() == b.iterated() # not tested, long time 20s
                 True
             """
-            return self.phi() == other.phi()
+            if op != op_EQ and op != op_NE:
+                raise NotImplementedError("no comparison available")
 
-        def __ne__(self, other):
-            """
-            Test for non-equality.
-
-            This means non-equality as motivic multiple zeta value, computed
-            using the morphism ``phi``.
-
-            EXAMPLES::
-
-                sage: from sage.modular.multiple_zeta import Multizetas_iterated
-                sage: M = Multizetas_iterated(QQ)
-                sage: M((1,0)) == M((1,0,0))
-                False
-            """
-            return not (self == other)
-
+            return (self - other).is_zero() == (op == op_EQ)
 
 class All_iterated(CombinatorialFreeModule):
     r"""
@@ -2454,6 +2489,8 @@ def f_to_vector(elt):
     """
     F = elt.parent()
     BR = F.base_ring().base_ring()
+    if not elt:
+        return vector(BR, [])
     a, b = next(iter(elt))
     N = sum(int(x[1:]) for x in a) + 2 * b.degree()
     W = F.basis().keys()

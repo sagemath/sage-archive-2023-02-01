@@ -18,8 +18,9 @@ from __future__ import print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
-from sage.symbolic.all import I, SR
-from sage.functions.all import exp
+from sage.symbolic.ring import SR
+from sage.libs.pynac.pynac import I
+from sage.functions.log import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
@@ -858,7 +859,7 @@ class SympyConverter(Converter):
             sage: diff(f(x, t), x)._sympy_(), diff(f(x, t), t)._sympy_()
             (Derivative(f(x, t), x), Derivative(f(x, t), t))
 
-        Check differentiating by variables with multiple occurences
+        Check differentiating by variables with multiple occurrences
         (:trac:`28964`)::
 
             sage: f = function('f')

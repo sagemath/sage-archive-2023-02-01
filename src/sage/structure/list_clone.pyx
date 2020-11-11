@@ -331,7 +331,7 @@ cdef class ClonableElement(Element):
 
     cpdef bint is_immutable(self):
         """
-        Return ``True`` if ``self`` is immutable (can not be changed)
+        Return ``True`` if ``self`` is immutable (cannot be changed)
         and ``False`` if it is not.
 
         To make ``self`` immutable use ``self.set_immutable()``.

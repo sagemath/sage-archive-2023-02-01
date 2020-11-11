@@ -245,7 +245,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
                                     op_LT, op_GT, op_LE, op_GE, rich_to_bool)
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.verbose import verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
 

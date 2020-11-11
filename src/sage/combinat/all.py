@@ -26,7 +26,6 @@ from sage.combinat.designs.all import *
 
 # Free modules and friends
 from .free_module import CombinatorialFreeModule
-from .combinatorial_algebra import CombinatorialAlgebra
 from .debruijn_sequence import DeBruijnSequences
 
 from .schubert_polynomial import SchubertPolynomialRing

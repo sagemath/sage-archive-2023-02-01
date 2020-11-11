@@ -1,0 +1,3 @@
+from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
+
+cpdef charpoly_cdv(Matrix_generic_dense)

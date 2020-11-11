@@ -2862,18 +2862,22 @@ cdef class Matrix(Matrix1):
         if f is not None:
             return f.change_variable_name(var)
 
+        R = self._base_ring
+
         if algorithm is None:
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-
-            R = self._base_ring
-            if is_NumberField(R):
-                f = self._charpoly_over_number_field(var)
-            elif is_IntegerModRing(R):
-                f = self.lift().charpoly(var).change_ring(R)
-            elif R in _Fields and R.is_exact():
-                f = self._charpoly_hessenberg(var)
-            else:
-                f = self._charpoly_df(var)
+                
+            if hasattr(R, '_matrix_charpoly'):
+                f = R._matrix_charpoly(self)
+            if f is None:
+                if is_NumberField(R):
+                    f = self._charpoly_over_number_field(var)
+                elif is_IntegerModRing(R):
+                    f = self.lift().charpoly(var).change_ring(R)
+                elif R in _Fields and R.is_exact():
+                    f = self._charpoly_hessenberg(var)
+                else:
+                    f = self._charpoly_df(var)
         else:
             if algorithm == "hessenberg":
                 f = self._charpoly_hessenberg(var)

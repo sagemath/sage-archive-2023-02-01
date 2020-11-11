@@ -64,6 +64,12 @@ class DiscreteValuationRings(Category_singleton):
                 Rational Field
             """
 
+        def _matrix_charpoly(self, M):
+            from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+            from sage.matrix.matrix_cdv import charpoly_cdv
+            if isinstance(M, Matrix_generic_dense):
+                return charpoly_cdv(M)
+
     class ElementMethods:
         @abstract_method
         def valuation(self):

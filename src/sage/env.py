@@ -255,7 +255,7 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
                 Path(sysconfig.get_config_var('BINDIR')),
             ]
             # Note: The following is not very robust, since if there are multible
-             # versions for the same library this just selects one more or less
+            # versions for the same library this just selects one more or less
             # at arbitrary. However, practically speaking, on Cygwin, there
             # will only ever be one version
             patterns = [f'cyg{libname}.dll', f'cyg{libname}-*.dll']

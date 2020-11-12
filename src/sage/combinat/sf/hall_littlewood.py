@@ -966,13 +966,12 @@ class HallLittlewood_qp(HallLittlewood_generic):
         """
         t = QQt.gen()
 
-        if part == []:
+        if not part:
             return lambda part2: QQt.one()
 
         res = hall_littlewood(part) # call to symmetrica (returns in variable x)
         f = lambda part2: res.coefficient(part2).subs(x=t)
         return f
-
 
     def _s_cache(self, n):
         r"""

@@ -774,7 +774,7 @@ cdef init_libsingular():
             "libSingular not found--a working Singular install "
             "is required for Sage to work")
 
-    lib = str_to_bytes(str(SINGULAR_SO), FS_ENCODING, "surrogateescape")
+    lib = str_to_bytes(SINGULAR_SO, FS_ENCODING, "surrogateescape")
 
     handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:

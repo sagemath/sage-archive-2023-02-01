@@ -197,7 +197,7 @@ fi
 # for scripts.
 #####################################################################
 if [ -f "$0-env-config" ]; then
-    # As of Trac #29850, sage-env-config is optional.
+    # As of Trac #22731, sage-env-config is optional.
     . "$0-env-config" >&2
 fi
 if [ -f "$0-env" ]; then

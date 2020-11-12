@@ -235,9 +235,9 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
         sage: if sys.platform == 'cygwin':
         ....:     pattern = "*/cygSingular-*.dll"
         ....: elif sys.platform == 'darwin':
-        ....:     pattern = "*/libSingular.dylib"
+        ....:     pattern = "*/libSingular-*.dylib"
         ....: else:
-        ....:     pattern = "*/lib*Singular.so"
+        ....:     pattern = "*/lib*Singular-*.so"
         sage: fnmatch(str(lib_filename), pattern)
         True
         sage: _get_shared_lib_path("an_absurd_lib") is None

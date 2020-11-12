@@ -266,11 +266,13 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
                 ext = 'so'
 
             search_directories = [get_sage_local() / 'lib']
-            if (libdir_str := sysconfig.get_config_var('LIBDIR')) is not None:
+            libdir = sysconfig.get_config_var('LIBDIR')
+            if libdir is not None:
                 libdir = Path(libdir_str)
                 search_directories.append(libdir)
 
-                if (multiarchlib := sysconfig.get_config_var('MULTIARCH')) is not None: 
+                multiarchlib = sysconfig.get_config_var('MULTIARCH')
+                if multiarchlib is not None: 
                     search_directories.append(libdir / multiarchlib),
 
             patterns = [f'lib{libname}.{ext}']

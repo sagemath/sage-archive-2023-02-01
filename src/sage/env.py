@@ -206,7 +206,7 @@ var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
 
-def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
+def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
     """
     Return the full path to a shared library file installed in
     ``$SAGE_LOCAL/lib`` or the directories associated with the
@@ -251,7 +251,7 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
             search_directories = [
-                get_sage_local() / 'bin',
+                _get_sage_local() / 'bin',
                 Path(sysconfig.get_config_var('BINDIR')),
             ]
             # Note: The following is not very robust, since if there are multible
@@ -265,7 +265,7 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
             else:
                 ext = 'so'
 
-            search_directories = [get_sage_local() / 'lib']
+            search_directories = [_get_sage_local() / 'lib']
             libdir = sysconfig.get_config_var('LIBDIR')
             if libdir is not None:
                 libdir = Path(libdir_str)
@@ -281,26 +281,22 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[Path]:
             for pattern in patterns:
                 path = next(directory.glob(pattern), None)
                 if path is not None:
-                    return path.resolve()
+                    return str(path.resolve())
 
     # Just return None if no files were found
     return None
 
-def get_sage_local() -> Path:
+def _get_sage_local() -> Path:
     return Path(SAGE_LOCAL)
 
-def get_singular_lib_path() -> Optional[Path]:
-    """
-    Return the location of the singular shared object.
-    """
-    # On Debian it's libsingular-Singular so try that as well
-    return _get_shared_lib_path('Singular', 'singular-Singular')
+# locate singular shared object
+# On Debian it's libsingular-Singular so try that as well
+SINGULAR_SO = _get_shared_lib_filename('Singular', 'singular-Singular')
+var('SINGULAR_SO', SINGULAR_SO)
 
-def get_gap_lib_path() -> Optional[Path]:
-    """ 
-    Return the location of the libgap shared object.
-    """
-    return _get_shared_lib_path('gap', '')
+# locate libgap shared object
+GAP_SO = _get_shared_lib_filename('gap','')
+var('GAP_SO', GAP_SO)
 
 # post process
 if ' ' in DOT_SAGE:

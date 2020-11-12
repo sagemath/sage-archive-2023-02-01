@@ -229,8 +229,7 @@ cdef initialize():
     # this isn't portable
 
     cdef void* handle
-    from sage.env import get_gap_lib_path
-    libgapname = str_to_bytes(str(get_gap_lib_path()))
+    libgapname = str_to_bytes(sage.env.GAP_SO)
     handle = dlopen(libgapname, RTLD_NOW | RTLD_GLOBAL)
     if handle is NULL:
         raise RuntimeError(

@@ -268,7 +268,7 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
             search_directories = [_get_sage_local() / 'lib']
             libdir = sysconfig.get_config_var('LIBDIR')
             if libdir is not None:
-                libdir = Path(libdir_str)
+                libdir = Path(libdir)
                 search_directories.append(libdir)
 
                 multiarchlib = sysconfig.get_config_var('MULTIARCH')
@@ -291,11 +291,11 @@ def _get_sage_local() -> Path:
 
 # locate singular shared object
 # On Debian it's libsingular-Singular so try that as well
-SINGULAR_SO = _get_shared_lib_filename('Singular', 'singular-Singular')
+SINGULAR_SO = _get_shared_lib_path('Singular', 'singular-Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
 # locate libgap shared object
-GAP_SO = _get_shared_lib_filename('gap','')
+GAP_SO = _get_shared_lib_path('gap','')
 var('GAP_SO', GAP_SO)
 
 # post process

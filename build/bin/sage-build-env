@@ -1,0 +1,76 @@
+# -*- shell-script -*-
+
+###########################################################################
+#
+#  Determine environment variables according to configuration.
+#
+#  NOTES:
+#  - You must *source* this script instead of executing.
+#  - Use "return" instead of "exit" to signal a failure.  Since this
+#    file is sourced, an "exit" here will actually exit src/bin/sage,
+#    which is probably not intended.
+#  - All environment variables set here should be *exported*, otherwise
+#    they won't be available in child programs.
+#
+#  If you want to set all environment variables for your shell like
+#  they are during the build of Sage packages, type
+#
+#             sage --buildsh
+#
+##########################################################################
+
+# Optimization flags.
+# We allow debugging of individual packages.
+#
+# The flags are printed by
+# ``build/pkgs/gcc/spkg-configure.m4`` for convenience.
+# Any changes to the defaults should be applied there as well.
+export ORIGINAL_CFLAGS="$CFLAGS"
+export ORIGINAL_CXXFLAGS="$CXXFLAGS"
+export ORIGINAL_FCFLAGS="$FCFLAGS"
+export ORIGINAL_F77FLAGS="$F77FLAGS"
+
+if [ "x$ORIGINAL_CFLAGS" == "x" ]; then
+    # Evaluate SAGE_DEBUG:
+    if [ "x$SAGE_DEBUG" == "xyes" ]; then
+        export CFLAGS="-Og -g"
+        export CFLAGS_O3="-Og -g"
+    elif [ "x$SAGE_DEBUG" == "xno" ]; then
+        export CFLAGS="-O2"
+        export CFLAGS_O3="-O3"
+    else
+        export CFLAGS="-O2 -g"
+        export CFLAGS_O3="-O3 -g"
+    fi
+else
+    # Respect user environment variable.
+    export CFLAGS="$ORIGINAL_CFLAGS"
+    export CFLAGS_O3="$ORIGINAL_CFLAGS"
+fi
+
+# Copy to CXXFLAGS if this is not set.
+if [ "x$ORIGINAL_CXXFLAGS" == "x" ]; then
+    export CXXFLAGS="$CFLAGS"
+    export CXXFLAGS_O3="$CFLAGS_O3"
+else
+    export CXXFLAGS="$ORIGINAL_CXXFLAGS"
+    export CXXFLAGS_O3="$ORIGINAL_CXXFLAGS"
+fi
+
+# Copy CFLAGS to FCFLAGS if this is not set.
+if [ "x$ORIGINAL_FCFLAGS" == "x" ]; then
+    export FCFLAGS="$CFLAGS"
+    export FCFLAGS_O3="$CFLAGS_O3"
+else
+    export FCFLAGS="$ORIGINAL_FCFLAGS"
+    export FCFLAGS_O3="$ORIGINAL_FCFLAGS"
+fi
+
+# Copy FCFLAGS to F77FLAGS if this is not set.
+if [ "x$ORIGINAL_F77FLAGS" == "x" ]; then
+    export F77FLAGS="$FCFLAGS"
+    export F77FLAGS_O3="$FCFLAGS_O3"
+else
+    export F77FLAGS="$ORIGINAL_F77FLAGS"
+    export F77FLAGS_O3="$ORIGINAL_F77FLAGS"
+fi

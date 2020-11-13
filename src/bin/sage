@@ -64,6 +64,10 @@ if [ -x "$0-config" ]; then
     export SAGE_ROOT=$("$0-config" SAGE_ROOT)
     export SAGE_LOCAL=$("$0-config" SAGE_LOCAL)
 fi
+if [ -f "$0-src-env-config" ]; then
+    # Not installed script, present only in src/bin/
+    . "$0-src-env-config" >&2
+fi
 if [ -x "$0-venv-config" ]; then
     # installed by setup.py
     export SAGE_VENV=$("$0-venv-config" SAGE_VENV)

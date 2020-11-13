@@ -130,6 +130,7 @@ src/*.egg-info/
 /src/build
 /src/Makefile
 /src/bin/sage-env-config
+/src/bin/sage-src-env-config
 
 # Virtual environments
 src/.env

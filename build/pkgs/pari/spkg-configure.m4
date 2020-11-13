@@ -78,8 +78,8 @@ SAGE_SPKG_CONFIGURE([pari], [
            sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([whether bnfisunit bug of pari 2.11.3 is fixed])
-        bug_check=`echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)" | $GP -qf 2>> config.log`
-        expected="[[0, 2, Mod(0, 2)]]~"
+        bug_check=`echo "bnf = bnfinit(y^4-y-1); bnfisunit(bnf,-y^3+2*y^2-1)==[[0,2,0]]~" | $GP -qf 2>> config.log`
+        expected="1"
         if test x"$bug_check" = x"$expected"; then
            AC_MSG_RESULT([yes])
         else

@@ -51,11 +51,11 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
 
 
 SAGE_SPKG_CONFIGURE_BASE([gcc], [
-    AC_REQUIRE([AC_PROG_CC])
-    AC_REQUIRE([AC_PROG_CPP])
-    AC_REQUIRE([AC_PROG_CXX])
-    AC_REQUIRE([AC_PROG_OBJC])
-    AC_REQUIRE([AC_PROG_OBJCXX])
+	AC_REQUIRE([AC_PROG_CC])
+	AC_REQUIRE([AC_PROG_CPP])
+	AC_REQUIRE([AC_PROG_CXX])
+	AC_REQUIRE([AC_PROG_OBJC])
+	AC_REQUIRE([AC_PROG_OBJCXX])
 
     if test -f "$SAGE_LOCAL/bin/gcc"; then
         # Special value for SAGE_INSTALL_GCC if GCC is already installed
@@ -201,36 +201,6 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
             SAGE_SRC="$SAGE_SRC"
         ])
     fi
-
-    # We redo this later.
-    # (Allow debugging of individual packages.)
-    # But we print the messages for convenience.
-    if test "x$ORIGINAL_CFLAGS" = "x"; then
-        # Evaluate SAGE_DEBUG:
-        if test "x$SAGE_DEBUG" = "xyes" ; then
-            CFLAGS="-Og -g"
-            CFLAGS_O3="-Og -g"
-        else
-            if test "x$SAGE_DEBUG" = "xno" ; then
-                CFLAGS="-O2"
-                CFLAGS_O3="-O3"
-            else
-                CFLAGS="-O2 -g"
-                CFLAGS_O3="-O3 -g"
-            fi
-        fi
-        CFLAGS="${CFLAGS_NON_NATIVE}
-        CFLAGS_O3="${CFLAGS_O3_NON_NATIVE}
-    else
-        # Respect user environment variable.
-        CFLAGS="${CFLAGS}
-        CFLAGS_O3="${CFLAGS}
-    fi
-
-    AC_MSG_NOTICE(ORIGINAL_CFLAGS=$ORIGINAL_CFLAGS)
-    AC_MSG_NOTICE(CFLAGS=$CFLAGS)
-    AC_MSG_NOTICE(CFLAGS_O3=$CFLAGS_O3)
-
 ], , , [
     # Trac #27907: Find location of crti.o from the system CC, in case we build our own gcc
     AC_MSG_CHECKING([for the location of crti.o])

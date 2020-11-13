@@ -244,7 +244,17 @@ def _urls(html_string):
     return urls
 
 
-to_tuple = lambda string: tuple(Integer(x) for x in string.split(",") if x)
+def to_tuple(string):
+    """
+    Convert a string to a tuple of integers.
+
+    EXAMPLES::
+
+        sage: from sage.databases.oeis import to_tuple
+        sage: to_tuple('12,55,273')
+        (12, 55, 273)
+    """
+    return tuple(Integer(x) for x in string.split(",") if x)
 
 
 class OEIS:
@@ -363,6 +373,11 @@ class OEIS:
 
         Indeed, due to some caching mechanism, the sequence is not re-created
         when called from its ID.
+
+    TESTS::
+
+        sage: oeis((1,2,5,16,61))    # optional -- internet
+        0: A000111: ...
     """
 
     def __call__(self, query, max_results=3, first_result=0):
@@ -384,6 +399,7 @@ class OEIS:
         elif isinstance(query, (int, Integer)):
             return self.find_by_id(query)
         elif isinstance(query, (list, tuple)):
+            query = list(query)  # so that searching for tuples works
             return self.find_by_subsequence(query, max_results, first_result)
 
     def __repr__(self):
@@ -1556,7 +1572,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: type(HTML)
             <class 'sage.misc.html.HtmlFragment'>
         """
-        url_absolute = lambda s: re.sub(r'\"\/', '\"' + oeis_url, s)
+        def url_absolute(s):
+            return re.sub(r'\"\/', '\"' + oeis_url, s)
         if browse is None:
             if format == 'guess':
                 if embedded():
@@ -1909,7 +1926,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
                      ('mathematica', FancyTuple(self._field('t')))]
         else:
             table = []
-        
+
         def is_starting_line(line):
             """
             Help to split the big OEIS code block into blocks by language.

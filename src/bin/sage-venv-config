@@ -1,4 +1,6 @@
 #! /doesnotexist/python3
+#  this interpreter will be replaced by the interpreter in the venv
+#  during installation.
 
 try:
     from sage_conf import *

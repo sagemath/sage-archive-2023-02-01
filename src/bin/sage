@@ -58,6 +58,17 @@ usage() {
 # 'usage_advanced', which prints a longer help message, is defined
 # below, after sourcing sage-env.
 
+# Determine SAGE_ROOT and SAGE_LOCAL.
+if [ -x "$0-config" ]; then
+    # optional sage-config console script, installed by sage_conf
+    export SAGE_ROOT=$("$0-config" SAGE_ROOT)
+    export SAGE_LOCAL=$("$0-config" SAGE_LOCAL)
+fi
+if [ -f "$0-env-config" ]; then
+    # As of Trac #22731, sage-env-config is optional.
+    . "$0-env-config" >&2
+fi
+
 #####################################################################
 # Special options to be processed without sage-env
 #####################################################################
@@ -196,15 +207,6 @@ fi
 # append -env to that). We redirect stdout to stderr, which is safer
 # for scripts.
 #####################################################################
-if [ -x "$0-config" ]; then
-    # optional sage-config console script, installed by sage_conf
-    export SAGE_ROOT=$("$0-config" SAGE_ROOT)
-    export SAGE_LOCAL=$("$0-config" SAGE_LOCAL)
-fi
-if [ -f "$0-env-config" ]; then
-    # As of Trac #22731, sage-env-config is optional.
-    . "$0-env-config" >&2
-fi
 if [ -f "$0-env" ]; then
     . "$0-env" >&2
     if [ $? -ne 0 ]; then

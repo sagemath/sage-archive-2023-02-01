@@ -28,7 +28,6 @@ sdh_install \
     liering-* \
     loops-* \
     MapClass-* \
-    PackageManager-* \
     polymaking-* \
     qpa-* \
     quagroup-* \

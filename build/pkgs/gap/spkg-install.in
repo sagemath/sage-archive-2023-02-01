@@ -66,6 +66,7 @@ sdh_install \
     pkg/fga \
     pkg/irredsol-* \
     pkg/laguna-* \
+    pkg/PackageManager-* \
     pkg/polenta-* \
     pkg/polycyclic-* \
     pkg/resclasses-* \

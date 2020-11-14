@@ -40,6 +40,5 @@ To use Sage from there,
 * Enter the new environment: ``conda activate sage``
 * Start SageMath: ``sage``
 
-For developers: see instructions on the wiki page
-https://wiki.sagemath.org/Conda
-for using Conda for SageMath development.
+Instructions for using Conda for SageMath development are on
+`the Conda page of the Sage wiki <https://wiki.sagemath.org/Conda>`__.

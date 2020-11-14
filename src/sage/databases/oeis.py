@@ -290,9 +290,9 @@ class OEIS:
       description corresponds to the query. Those sequences can be used
       without the need to fetch the database again.
 
-    - if ``query`` is a list of integers, returns a tuple of OEIS sequences
-      containing it as a subsequence. Those sequences can be used without
-      the need to fetch the database again.
+    - if ``query`` is a list or tuple of integers, returns a tuple of
+      OEIS sequences containing it as a subsequence. Those sequences
+      can be used without the need to fetch the database again.
 
     EXAMPLES::
 
@@ -399,7 +399,6 @@ class OEIS:
         elif isinstance(query, (int, Integer)):
             return self.find_by_id(query)
         elif isinstance(query, (list, tuple)):
-            query = list(query)  # so that searching for tuples works
             return self.find_by_subsequence(query, max_results, first_result)
 
     def __repr__(self):
@@ -523,7 +522,7 @@ class OEIS:
 
         INPUT:
 
-        - ``subsequence`` -- a list of integers.
+        - ``subsequence`` -- a list or tuple of integers.
 
         - ``max_results`` -- (integer, default: 3), the maximum of results requested.
 

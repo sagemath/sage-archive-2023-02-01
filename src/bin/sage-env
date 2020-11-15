@@ -334,8 +334,9 @@ export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
 
 # Mac OS X-specific setup
 if [ "$UNAME" = "Darwin" ]; then
-  # Avoid 'MACOSX_DEPLOYMENT_TARGET mismatch: now "10.9" but "10.15" during configure'
-  if [ -z "$PYTHON_FOR_VENV" ]; then
+  case "$SAGE_MACOSX_DEPLOYMENT_TARGET" in
+  legacy)
+    # legacy behavior of the Sage distribution.
     # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
@@ -348,7 +349,15 @@ if [ "$UNAME" = "Darwin" ]; then
         MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
     fi
     export MACOSX_DEPLOYMENT_TARGET MACOSX_VERSION
-  fi
+    ;;
+  "")
+    # Do nothing
+    ;;
+  *)
+    # A fixed version set at configure time.
+    export MACOSX_DEPLOYMENT_TARGET=$SAGE_MACOSX_DEPLOYMENT_TARGET
+    ;;
+  esac
     # Work around problems on recent OS X crashing with an error message
     # "... may have been in progress in another thread when fork() was called"
     # when objective-C functions are called after fork(). See Trac #25921.

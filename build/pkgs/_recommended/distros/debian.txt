@@ -1,7 +1,7 @@
 # From https://wiki.sagemath.org/prerequisitesUbuntu
 
 # to generate pdf documentation
-texlive-generic-extra
+texlive-plain-generic
 # to convert Jupyter notebooks to pdf
 texlive-xetex
 # to generate pdf documentation

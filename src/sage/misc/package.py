@@ -27,8 +27,7 @@ command inside Sage::
      'arb',
      ...
      'zlib',
-     'zn_poly',
-     'zope_interface']
+     'zn_poly']
 
 Functions
 ---------
@@ -196,8 +195,7 @@ def list_packages(*pkg_types, **opts):
          'arb',
          'babel',
          ...
-         'zn_poly',
-         'zope_interface']
+         'zn_poly']
         sage: sage_conf_info = L['sage_conf']  # optional - build
         sage: sage_conf_info['type'] # optional - build
         'standard'
@@ -427,7 +425,7 @@ def standard_packages():
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()  # optional - build
         sage: installed[0], installed[-1]  # optional - build
-        ('alabaster', 'zope_interface')
+        ('alabaster', 'zn_poly')
     """
     pkgs = list_packages('standard', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),

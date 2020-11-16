@@ -31,7 +31,7 @@ jobs:
         & wsl sudo add-apt-repository ppa:deadsnakes/ppa
         # Install
         & wsl sudo apt-get update -y 
-        & wsl sudo apt-get install -y @packages
+        & wsl sudo apt-get install -y tox
     - name: Build
       run: wsl tox -e local -- SAGE_NUM_THREADS=4 build
       env:
@@ -42,7 +42,7 @@ jobs:
         MAKE: "make -j2"
         WSLENV: EXTRA_CONFIGURE_ARGS:MAKE
     - name: Test
-      run: wsl tox -e local -- SAGE_NUM_THREADS=4 ptest
+      run: wsl tox -e local-sudo-ubuntu-standard -- SAGE_NUM_THREADS=4 ptest
     - name: Prepare logs artifact
       run: mkdir -p "artifacts/logs"; cp -r .tox/*/log "artifacts/logs"
       shell: bash

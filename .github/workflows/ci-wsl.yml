@@ -18,20 +18,8 @@ jobs:
         Ubuntu\ubuntu2004.exe install --root
     - name: Install dependencies
       run: |
-        Function ExtractPackages
-        {
-           param($path)
-           @(Get-Content $path | Where-Object { !$_.StartsWith("#") })
-        }
-        $packages = Get-ChildItem build/pkgs -recurse -Include debian.txt, debian-bootstrap.txt | foreach-object { ExtractPackages $_.FullName } | sort -Unique
-        # Add tox which is use to build
-        $packages += 'tox'
-        echo "Install the following packages:" @packages
-        # Add deadsnakes so that libpython3.7-dev is found
-        & wsl sudo add-apt-repository ppa:deadsnakes/ppa
-        # Install
-        & wsl sudo apt-get update -y 
-        & wsl sudo apt-get install -y tox
+        wsl sudo apt-get update -y 
+        wsl sudo apt-get install -y tox
     - name: Build
       run: wsl tox -e local-sudo-ubuntu-standard -- SAGE_NUM_THREADS=4 build
       env:

@@ -1,11 +1,19 @@
 name: Build & Test WSL
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    tags:
+      - '*'
+    branches:
+      - 'public/build/**wsl**'
+  workflow_dispatch:
 
 jobs:
   windows:
     runs-on: windows-latest
-    name: Windows (using WSL)
+    name: Ubuntu 20.04
     # Following https://trac.sagemath.org/ticket/25206#comment:63
     steps:
     - name: Configure git

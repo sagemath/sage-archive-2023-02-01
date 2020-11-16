@@ -453,6 +453,38 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         order = self.term_order()
         return unpickle_BooleanPolynomialRing,(n, names, order)
 
+    def construction(self):
+        """
+        A boolean polynomial ring is the quotient of a polynomial ring,
+        in a special implementation.
+
+        Before :trac:`15223`, the boolean polynomial rings returned the
+        construction of a polynomial ring, which was of course wrong.
+
+        Now, a :class:`~sage.categories.pushout.QuotientFunctor` is returned
+        that knows about the `"pbori"` implementation.
+
+        EXAMPLES::
+
+            sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degneglex(2),degneglex(2)')
+            sage: F,O = P.construction()
+            sage: O
+            Multivariate Polynomial Ring in x0, x1, x2, x3 over Finite Field of size 2
+            sage: F
+            QuotientFunctor
+            sage: F(O) is P
+            True
+
+        """
+        from sage.categories.pushout import QuotientFunctor
+        I = self.defining_ideal()
+        R = I.ring()
+        return QuotientFunctor(I, names=self.variable_names(),
+                               domain=R.category(), codomain=self.category(),
+                               implementation="pbori",
+                               order=self.term_order()
+                              ), R
+
     def ngens(self):
         """
         Return the number of variables in this boolean polynomial ring.
@@ -1063,7 +1095,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         vars = list(self.variable_names())
         for v in var:
             vars.remove(str(v))
-        if len(vars) == 0:
+        if not vars:
             return self.base_ring()
         if order is None:
             try:
@@ -6617,7 +6649,7 @@ cdef class GroebnerStrategy:
     def add_generator_delayed(self, BooleanPolynomial p):
         """
         Add a new generator but do not perform interreduction
-        immediatly.
+        immediately.
 
         INPUT:
 
@@ -6688,7 +6720,7 @@ cdef class GroebnerStrategy:
             [a + b]
             sage: gbs.add_as_you_wish(a + c)
 
-        Note that nothing happened immediatly but that the generator
+        Note that nothing happened immediately but that the generator
         was indeed added::
 
             sage: list(gbs)

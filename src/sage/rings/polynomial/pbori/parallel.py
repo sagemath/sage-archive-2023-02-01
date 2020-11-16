@@ -6,28 +6,24 @@ PolyBoRi
 Created by Michael Brickenstein on 2008-10-31.
 Copyright 2008 The PolyBoRi Team
 """
-
-from .PyPolyBoRi import if_then_else, CCuddNavigator, BooleSet
-from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial,
-    Variable)
+from sage.rings.polynomial.pbori.pbori import if_then_else
+from .PyPolyBoRi import CCuddNavigator, BooleSet
+from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial, Variable)
 from .gbcore import groebner_basis
 from zlib import compress, decompress
-try:
-    import copy_reg as copyreg
-except ImportError:
-    import copyreg
+import copyreg
 
 
 def to_fast_pickable(l):
     r"""
-    Converts a list of polynomials into a builtin Python value, which is fast pickable and compact.
+    Convert a list of polynomials into a builtin Python value, which is fast pickable and compact.
 
     INPUT:
-    
+
     - a list of Boolean polynomials
-    
+
     OUTPUT:
-    
+
     It is converted to a tuple consisting of
     - codes referring to the polynomials
     - list of conversions of nodes.
@@ -72,7 +68,7 @@ def to_fast_pickable(l):
         sage: to_fast_pickable([x(0)*x(1), Polynomial(0, r), Polynomial(1, r), x(3)])
         [[2, 0, 1, 4], [(0, 3, 0), (1, 1, 0), (3, 1, 0)]]
     """
-    if len(l) == 0:
+    if not l:
         return [[], []]
 
     f = l[0]
@@ -112,15 +108,15 @@ def from_fast_pickable(l, r):
     The second argument is ring, in which this polynomial should be created.
 
     INPUT:
-    
+
     See OUTPUT of to_fast_pickable
 
     OUTPUT:
-    
+
     a list of Boolean polynomials
-    
+
     EXAMPLES::
-    
+
         sage: from sage.rings.polynomial.pbori.frontend import *
         sage: from sage.rings.polynomial.pbori.parallel import from_fast_pickable
         sage: r=Ring(1000)
@@ -263,19 +259,19 @@ copyreg.pickle(Ring, pickle_ring)
 
 def groebner_basis_first_finished(I, *l):
     r"""
-    
+
     INPUT:
-    
+
     - ``I`` -- ideal
     - ``l`` -- keyword dictionaries, which will be keyword arguments to groebner_basis.
-    
+
     OUTPUT:
-    
+
     - tries to compute ``groebner_basis(I, **kwd)`` for kwd in l
     - returns the result of the first terminated computation
-    
+
     EXAMPLES::
-    
+
         sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: ideal = [r.variable(1)*r.variable(2)+r.variable(2)+r.variable(1)]
@@ -285,10 +281,8 @@ def groebner_basis_first_finished(I, *l):
     """
     if not I:
         return []
-    try:
-        from multiprocessing import Pool
-    except:
-        from processing import Pool
+
+    from multiprocessing import Pool
 
     pool = Pool(processes=len(l))
     it = pool.imap_unordered(_calculate_gb_with_keywords,

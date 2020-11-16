@@ -221,7 +221,7 @@ cdef class Group(Parent):
         from sage.misc.all import prod
         return prod(self.gens())
 
-    def quotient(self, H):
+    def quotient(self, H, **kwds):
         """
         Return the quotient of this group by the normal subgroup
         `H`.

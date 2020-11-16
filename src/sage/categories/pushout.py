@@ -754,10 +754,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
             Traceback (most recent call last):
             ...
-            CoercionException: No common base ("join") found for
-            The cartesian_product functorial construction(Integer Ring) and
-            The cartesian_product functorial construction(Integer Ring, Rational Field):
-            Functors need the same number of arguments.
+            CoercionException: No common base ("join") found ...
         """
         if self != other_functor:
             self._raise_common_base_exception_(
@@ -1824,7 +1821,7 @@ class VectorFunctor(ConstructionFunctor):
         Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
     """
     rank = 10 # ranking of functor, not rank of module.
-    # This coincides with the rank of the matrix construction functor, but this is OK since they can not both be applied in any order
+    # This coincides with the rank of the matrix construction functor, but this is OK since they cannot both be applied in any order
 
     def __init__(self, n, is_sparse=False, inner_product_matrix=None):
         """
@@ -1905,10 +1902,10 @@ class VectorFunctor(ConstructionFunctor):
             sage: F(f)       # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: Can not create induced morphisms of free modules yet
+            NotImplementedError: Cannot create induced morphisms of free modules yet
         """
         # TODO: Implement this!
-        raise NotImplementedError("Can not create induced morphisms of free modules yet")
+        raise NotImplementedError("Cannot create induced morphisms of free modules yet")
 
     def __eq__(self, other):
         """
@@ -2105,9 +2102,9 @@ class SubspaceFunctor(ConstructionFunctor):
             sage: F(f)      # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: Can not create morphisms of free sub-modules yet
+            NotImplementedError: Cannot create morphisms of free sub-modules yet
         """
-        raise NotImplementedError("Can not create morphisms of free sub-modules yet")
+        raise NotImplementedError("Cannot create morphisms of free sub-modules yet")
 
     def __eq__(self, other):
         """
@@ -2167,7 +2164,7 @@ class SubspaceFunctor(ConstructionFunctor):
             return False
 
         # since comparing the basis involves constructing the pushout
-        # of the ambient module, we can not do:
+        # of the ambient module, we cannot do:
         # c = (self.basis == other.basis)
         # Instead, we only test whether there are coercions.
         L = self.basis.universe()
@@ -2369,7 +2366,8 @@ class CompletionFunctor(ConstructionFunctor):
           In the ``lattice-cap`` precision case, ``prec`` will be a tuple instead.
 
         - ``extras`` (optional dictionary): Information on how to print elements, etc.
-          If 'type' is given as a key, the corresponding value should be a string among the following:
+          If 'type' is given as a key, the corresponding value should be a string among
+          the following:
 
           - 'RDF', 'Interval', 'RLF', or 'RR' for completions at infinity
 
@@ -2384,11 +2382,17 @@ class CompletionFunctor(ConstructionFunctor):
             5-adic Field with capped relative precision 100
             sage: F1(ZZ)
             5-adic Ring with capped relative precision 100
+            sage: F1.type is None
+            True
+            sage: sorted(F1.extras.items())
+            []
             sage: F2 = RR.construction()[0]
             sage: F2
             Completion[+Infinity, prec=53]
+            sage: F2.type
+            'MPFR'
             sage: F2.extras
-            {'rnd': 0, 'sci_not': False, 'type': 'MPFR'}
+            {'rnd': 0, 'sci_not': False}
         """
         Functor.__init__(self, Rings(), Rings())
         self.p = p
@@ -2399,7 +2403,7 @@ class CompletionFunctor(ConstructionFunctor):
             self.type = None
         else:
             self.extras = dict(extras)
-            self.type = extras.get('type', None)
+            self.type = self.extras.pop('type', None)
             from sage.rings.infinity import Infinity
             if self.p == Infinity:
                 if self.type not in self._real_types:
@@ -2445,7 +2449,8 @@ class CompletionFunctor(ConstructionFunctor):
                     return R.completion(self.p, self.prec, {'type': self.type})
             else:
                 extras = self.extras.copy()
-                extras['type'] = self.type
+                if self.type is not None:
+                    extras['type'] = self.type
                 return R.completion(self.p, self.prec, extras)
         except (NotImplementedError, AttributeError):
             if R.construction() is None:
@@ -2665,7 +2670,9 @@ class QuotientFunctor(ConstructionFunctor):
 
     .. NOTE::
 
-        The functor keeps track of variable names.
+        The functor keeps track of variable names. Optionally, it may
+        keep track of additional properties of the quotient, such as
+        its category or its implementation.
 
     EXAMPLES::
 
@@ -2679,7 +2686,7 @@ class QuotientFunctor(ConstructionFunctor):
         sage: F(QQ['x','y','z'])
         Traceback (most recent call last):
         ...
-        CoercionException: Can not apply this quotient functor to Multivariate Polynomial Ring in x, y, z over Rational Field
+        CoercionException: Cannot apply this quotient functor to Multivariate Polynomial Ring in x, y, z over Rational Field
         sage: F(QQ['y','z'])
         Traceback (most recent call last):
         ...
@@ -2687,13 +2694,23 @@ class QuotientFunctor(ConstructionFunctor):
     """
     rank = 4.5
 
-    def __init__(self, I, names=None, as_field=False):
+    def __init__(self, I, names=None, as_field=False, domain=None,
+                 codomain=None, **kwds):
         """
         INPUT:
 
         - ``I``, an ideal (the modulus)
-        - ``names`` (optional string or list of strings), the names for the quotient ring generators
-        - ``as_field`` (optional bool, default false), return the quotient ring as field (if available).
+        - ``names`` (optional string or list of strings), the names for the
+          quotient ring generators
+        - ``as_field`` (optional bool, default false), return the quotient
+          ring as field (if available).
+        - ``domain`` (optional category, default ``Rings()``), the domain of
+          this functor.
+        - ``codomain`` (optional category, default ``Rings()``), the codomain
+          of this functor.
+        - Further named arguments. In particular, an implementation of the
+          quotient can be suggested here.  These named arguments are passed to
+          the quotient construction.
 
         TESTS::
 
@@ -2717,7 +2734,12 @@ class QuotientFunctor(ConstructionFunctor):
             Ring of integers modulo 5
 
         """
-        Functor.__init__(self, Rings(), Rings()) # much more general...
+        if domain is None:
+            domain = Rings()
+        if codomain is None:
+            codomain = Rings()
+        Functor.__init__(self, domain, codomain)
+        
         self.I = I
         if names is None:
             self.names = None
@@ -2726,6 +2748,7 @@ class QuotientFunctor(ConstructionFunctor):
         else:
             self.names = tuple(names)
         self.as_field = as_field
+        self.kwds = kwds
 
     def _apply_functor(self, R):
         """
@@ -2764,10 +2787,10 @@ class QuotientFunctor(ConstructionFunctor):
                 R = pushout(R, I.ring().base_ring())
                 I = [R.one() * t for t in I.gens()] * R
         try:
-            Q = R.quo(I, names=self.names)
-        except IndexError: # That may happen!
-            raise CoercionException("Can not apply this quotient functor to %s" % R)
-        if self.as_field:# and hasattr(Q, 'field'):
+            Q = R.quo(I, names=self.names, **self.kwds)
+        except IndexError:  # That may happen!
+            raise CoercionException("Cannot apply this quotient functor to %s" % R)
+        if self.as_field:
             try:
                 Q = Q.field()
             except AttributeError:
@@ -2776,7 +2799,7 @@ class QuotientFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         """
-        The types, the names and the moduli are compared.
+        The types, domain, codomain, names and moduli are compared.
 
         TESTS::
 
@@ -2793,7 +2816,10 @@ class QuotientFunctor(ConstructionFunctor):
         """
         if not isinstance(other, QuotientFunctor):
             return False
-        return (self.names == other.names and
+        return (type(self) == type(other) and
+                self.domain() == other.domain() and
+                self.codomain() == other.codomain() and
+                self.names == other.names and
                 self.I == other.I)
 
     def __ne__(self, other):
@@ -2819,7 +2845,12 @@ class QuotientFunctor(ConstructionFunctor):
 
     def merge(self, other):
         """
-        Two quotient functors with coinciding names are merged by taking the gcd of their moduli.
+        Two quotient functors with coinciding names are merged by taking the gcd
+        of their moduli, the meet of their domains, and the join of their codomains.
+
+        In particular, if one of the functors being merged knows that the quotient
+        is going to be a field, then the merged functor will return fields as
+        well.
 
         EXAMPLES::
 
@@ -2842,23 +2873,47 @@ class QuotientFunctor(ConstructionFunctor):
             return None
         if self == other:
             if self.as_field == other.as_field:
+                # The two functors are *really* equal
                 return self
-            return QuotientFunctor(self.I, names=self.names, as_field=True) # one of them yields a field!
-        try:
-            gcd = self.I + other.I
-        except (TypeError, NotImplementedError):
+            # They are equal up to the additional arguments
+            I = self.I
+            domain = self.domain()
+            codomain = self.codomain()
+        else:
             try:
-                gcd = self.I.gcd(other.I)
+                I = self.I + other.I
             except (TypeError, NotImplementedError):
+                try:
+                    I = self.I.gcd(other.I)
+                except (TypeError, NotImplementedError):
+                    return None
+            domain = self.domain().meet([self.domain(), other.domain()])
+            codomain = self.codomain().join([self.codomain(), other.codomain()])
+        # Get the optional arguments:
+        as_field = self.as_field or other.as_field
+        kwds = {}
+        for k,v in self.kwds.items():
+            kwds[k] = v
+        for k,v in other.kwds.items():
+            if k=='category':
+                if kwds[k] is not None:
+                    kwds[k] = v.join([v,kwds[k]])
+                else:
+                    kwds[k] = v
+                continue
+            if k in kwds and kwds[k] is not None and v!=kwds[k]:
+                # Don't know what default to choose. Hence: No merge!
                 return None
-        if gcd.is_trivial() and not gcd.is_zero():
-            # quotient by gcd would result in the trivial ring/group/...
+            kwds[k] = v
+        if I.is_trivial() and not I.is_zero():
+            # quotient by I would result in the trivial ring/group/...
             # Rather than create the zero ring, we claim they can't be merged
             # TODO: Perhaps this should be detected at a higher level...
             raise TypeError("Trivial quotient intersection.")
         # GF(p) has a coercion from Integers(p). Hence, merging should
         # yield a field if either self or other yields a field.
-        return QuotientFunctor(gcd, names=self.names, as_field=self.as_field or other.as_field)
+        return QuotientFunctor(I, names=self.names, as_field=as_field,
+                               domain=domain, codomain=codomain, **kwds)
 
 
 class AlgebraicExtensionFunctor(ConstructionFunctor):
@@ -2897,12 +2952,42 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         sage: O.ambient() is K
         True
 
+    Special cases are made for cyclotomic fields and residue fields::
+
+        sage: C = CyclotomicField(8)
+        sage: F,R = C.construction()
+        sage: F
+        AlgebraicExtensionFunctor
+        sage: R
+        Rational Field
+        sage: F(R)
+        Cyclotomic Field of order 8 and degree 4
+        sage: F(ZZ)
+        Maximal Order in Cyclotomic Field of order 8 and degree 4
+
+    ::
+
+        sage: K.<z> = CyclotomicField(7)
+        sage: P = K.factor(17)[0][0]
+        sage: k = K.residue_field(P)
+        sage: F, R = k.construction()
+        sage: F
+        AlgebraicExtensionFunctor
+        sage: R
+        Cyclotomic Field of order 7 and degree 6
+        sage: F(R) is k
+        True
+        sage: F(ZZ)
+        Residue field of Integers modulo 17
+        sage: F(CyclotomicField(49))
+        Residue field in zbar of Fractional ideal (17)
+
     """
     rank = 3
 
     def __init__(self, polys, names, embeddings=None, structures=None,
                  cyclotomic=None, precs=None, implementations=None,
-                 *, latex_names=None, **kwds):
+                 *, residue=None, latex_names=None, **kwds):
         """
         INPUT:
 
@@ -2931,6 +3016,12 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         - ``implementations`` -- (optional) list of strings.
           If it is provided, it is used to determine an implementation in the
           p-adic case.
+
+        - ``residue`` -- (optional) prime ideal of an order in a number
+          field, determining a residue field. If it is provided,
+          application of the functor to a number field yields the
+          residue field with respect to the given prime ideal
+          (coerced into the number field).
 
         - ``latex_names`` -- (optional) list of strings of the same length
           as the list ``polys``
@@ -3008,7 +3099,6 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: L1 = (b*x).parent().base_ring()
             sage: L1 is L0
             True
-
         """
         Functor.__init__(self, Rings(), Rings())
         if not (isinstance(polys, (list, tuple)) and isinstance(names, (list, tuple))):
@@ -3033,6 +3123,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         self.cyclotomic = int(cyclotomic) if cyclotomic is not None else None
         self.precs = list(precs)
         self.implementations = list(implementations)
+        self.residue = residue
         # Normalize latex_names:  Use None when latex_name does not override the default.
         latex_names = list(latex_names)
         for i, name in enumerate(self.names):
@@ -3073,6 +3164,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                 return CyclotomicField(self.cyclotomic)
             if R == ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
+        elif self.residue is not None:
+            return R.residue_field(R*self.residue, names=tuple(self.names))
         if len(self.polys) == 1:
             return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0],
                                structure=self.structures[0], prec=self.precs[0],
@@ -3255,12 +3348,18 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         # Finite fields and unramified local extensions may use
         # integers to encode degrees of extensions.
         from sage.rings.integer import Integer
+        kwds_self = dict(self.kwds.items())
+        if 'impl' in kwds_self:
+            del kwds_self['impl']
+        kwds_other = dict(other.kwds.items())
+        if 'impl' in kwds_other:
+            del kwds_other['impl']
         if (isinstance(self.polys[0], Integer)
                 and isinstance(other.polys[0], Integer)
                 and self.embeddings == other.embeddings == [None]
                 and self.structures == other.structures == [None]
-                and self.kwds == other.kwds):
-            return AlgebraicExtensionFunctor([self.polys[0].lcm(other.polys[0])], [None], **self.kwds)
+                and kwds_self == kwds_other):
+            return AlgebraicExtensionFunctor([self.polys[0].lcm(other.polys[0])], [None], **kwds_self)
 
     def __mul__(self, other):
         """

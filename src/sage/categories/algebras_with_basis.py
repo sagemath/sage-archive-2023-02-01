@@ -69,6 +69,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
+        running ._test_construction() . . . pass
         running ._test_distributivity() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -339,10 +340,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 else:
                     return NotImplemented
 
-            #def product_on_basis(self, t1, t2):
+            # def product_on_basis(self, t1, t2):
             # would be easy to implement, but without a special
             # version of module morphism, this would not take
-            # advantage of the bloc structure
+            # advantage of the block structure
 
 
     class TensorProducts(TensorProductsCategory):

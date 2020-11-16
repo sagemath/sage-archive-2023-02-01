@@ -49,6 +49,7 @@ from sage.structure.element import is_Matrix
 from sage.misc.misc import cputime
 from sage.rings.integer cimport Integer
 from copy import copy
+from sage.data_structures.bitset_base cimport *
 
 WORD_SIZE = sizeof(codeword) << 3
 
@@ -84,7 +85,6 @@ cdef int *hamming_weights():
         ham_wts[i] = ham_wts[i & 255] + ham_wts[(i>>8) & 255]
     return ham_wts
 
-include 'sage/data_structures/bitset.pxi'
 def weight_dist(M):
     """
     Computes the weight distribution of the row space of M.

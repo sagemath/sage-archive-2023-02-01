@@ -84,7 +84,6 @@ For display options, see :meth:`Tableaux.options`.
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -1298,7 +1297,7 @@ class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
         The reading word of the standardization is the standardization of
         the reading word::
 
-            sage: T = SemistandardTableaux(shape=[6,3,3,1], max_entry=5)
+            sage: T = SemistandardTableaux(shape=[5,2,2,1], max_entry=4)
             sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T) # long time
             True
         """
@@ -7160,7 +7159,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         sage: sts = [RowStandardTableaux(n) for n in ns]
         sage: all(st.cardinality() == len(st.list()) for st in sts)
         True
-        sage: RowStandardTableaux(40).cardinality()  # long time
+        sage: RowStandardTableaux(40).cardinality()  # not tested, too long
         2063837185739279909309355007659204891024472174278
     """
     def __init__(self, n):
@@ -9190,12 +9189,12 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
         wt = self.weight
         list_of_partial_inc_tabs = [tab]
         list_of_inc_tabs = []
-        while list_of_partial_inc_tabs != []:
+        while list_of_partial_inc_tabs:
             active_tab = list_of_partial_inc_tabs.pop()
             unfilled_spots = []
-            for (r,c) in active_tab.cells():
+            for (r, c) in active_tab.cells():
                 if active_tab[r][c] == 0:
-                    unfilled_spots.append((r,c))
+                    unfilled_spots.append((r, c))
             if not unfilled_spots:
                 top_value = max(active_tab.entries())
                 if top_value == len(wt) - wt[::-1].index(1):

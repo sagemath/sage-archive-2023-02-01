@@ -2388,7 +2388,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Category.join([Groups() & Posets()], as_list=True)
             [Category of groups, Category of posets]
 
-        Support for axiom categories (TODO: put here meaningfull examples)::
+        Support for axiom categories (TODO: put here meaningful examples)::
 
             sage: Sets().Facade() & Sets().Infinite()
             Category of facade infinite sets
@@ -2897,7 +2897,6 @@ class CategoryWithParameters(Category):
         if not issubclass(C.parent_class, self.parent_class):
             return False
         return Unknown
-
 
 #############################################################
 # Join of several categories

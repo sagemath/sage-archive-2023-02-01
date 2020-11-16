@@ -2703,8 +2703,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             _m=<Integer>Integer(m)
 
-        if mpz_sgn(self.value) <= 0 or mpz_sgn(_m.value) <= 0:
-            raise ValueError("both self and m must be positive")
+        self_sgn = mpz_sgn(self.value)
+        if self_sgn == 0:
+            return -sage.rings.infinity.infinity
+        if self_sgn < 0 or mpz_sgn(_m.value) <= 0:
+            raise ValueError("self must be nonnegative and m must be positive")
         if mpz_cmp_si(_m.value,2) < 0:
             raise ValueError("m must be at least 2")
 
@@ -2857,7 +2860,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 from sage.rings.real_mpfr import RealField
                 return RealField(prec)(self).log(m)
             else:
-                from sage.rings.complex_field import ComplexField
+                from sage.rings.complex_mpfr import ComplexField
                 return ComplexField(prec)(self).log(m)
 
         if m is None:
@@ -2870,7 +2873,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if type(m) == Integer and type(self) == Integer:
             elog = self.exact_log(m)
-            if m**elog == self:
+            if elog == -sage.rings.infinity.infinity or m**elog == self:
                 return elog
 
         if (type(m) == Rational and type(self) == Integer
@@ -6225,7 +6228,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(5.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type((-5).sqrt(prec=53))
-            <type 'sage.rings.complex_number.ComplexNumber'>
+            <type 'sage.rings.complex_mpfr.ComplexNumber'>
             sage: type(0.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
 

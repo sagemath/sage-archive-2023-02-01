@@ -17,7 +17,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -26,8 +26,8 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
@@ -1246,8 +1246,10 @@ class ContinuousMap(Morphism):
              - 8*U + V**3 + 4*V**2 - 8*V)/(4*(U - V))) on the Chart (M, (U, V))
 
         """
-        dom1 = self._domain; dom2 = self._codomain
-        def_chart1 = dom1._def_chart; def_chart2 = dom2._def_chart
+        dom1 = self._domain
+        dom2 = self._codomain
+        def_chart1 = dom1._def_chart
+        def_chart2 = dom2._def_chart
         if chart1 is None:
             chart1 = def_chart1
         if chart2 is None:
@@ -1268,7 +1270,8 @@ class ContinuousMap(Morphism):
                                          chart1.multifunction(*coord_functions)
                 return self._coord_expression[(chart1, chart2)]
             # Some change of coordinates must be performed
-            change_start = [] ; change_arrival = []
+            change_start = []
+            change_arrival = []
             for (ochart1, ochart2) in self._coord_expression:
                 if chart1 == ochart1:
                     change_arrival.append(ochart2)

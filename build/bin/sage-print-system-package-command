@@ -15,11 +15,14 @@ do
             # Whether to print sudo for package managers that need sudo for non-root users
             SUDO="sudo "
             ;;
+        --prompt=*)
+            PROMPT=${1#--prompt=}
+            ;;
         --prompt)
             PROMPT='  $ '
             ;;
         -*)
-            echo >&2 "$0: unknown option $2"
+            echo >&2 "$0: unknown option $1"
             exit 1
             ;;
         *)
@@ -88,6 +91,9 @@ case $system:$command in
         ;;
     freebsd*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}pkg install $system_packages"
+        ;;
+    pip:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}sage -pip install $system_packages"
         ;;
     *:update)
         # Nothing needed

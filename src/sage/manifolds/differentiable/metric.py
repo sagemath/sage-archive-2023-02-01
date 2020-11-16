@@ -2444,7 +2444,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             if frame not in self._inverse._components:
                 # the computation is necessary
                 fmodule = self._fmodule
-                si = fmodule._sindex ; nsi = fmodule._rank + si
+                si = fmodule._sindex
+                nsi = fmodule._rank + si
                 dom = self._domain
                 cinv = CompFullySym(fmodule._ring, frame, 2, start_index=si,
                                     output_formatter=fmodule._output_formatter)

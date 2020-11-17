@@ -814,6 +814,7 @@ class Polyhedron_base(Element):
     def plot(self,
              point=None, line=None, polygon=None,  # None means unspecified by the user
              wireframe='blue', fill='green',
+             position=None,
              **kwds):
         """
         Return a graphical representation.
@@ -839,6 +840,9 @@ class Polyhedron_base(Element):
           for higher dimensional polytopes) and ``wireframe`` is used
           for all lower-dimensional graphics objects
           (default: 'green' for ``fill`` and 'blue' for ``wireframe``)
+
+        - ``position`` -- positive number; the position to take the projection
+          point in Schlegel diagrams.
 
         - ``**kwds`` -- optional keyword parameters that are passed to
           all graphics objects.
@@ -1035,7 +1039,7 @@ class Polyhedron_base(Element):
                 return polyhedron.projection()
             elif polyhedron.dimension() == 4:
                 # There is no 4-d screen, we must project down to 3d
-                return polyhedron.schlegel_projection()
+                return polyhedron.schlegel_projection(position=position)
             else:
                 return polyhedron.projection()
 

@@ -307,7 +307,7 @@ class ProjectionFuncSchlegel():
         z = (self.full_b)
         a = -(self.full_A)
         y = self.projection_point
-        preimage = y + ((z-a*y)/(a*vx-a*y))*(vx - y) 
+        preimage = y + ((z-a*y)/(a*vx-a*y))*(vx - y)
         # The transformation matrix acts on the right:
         return preimage*self.A + self.b
 
@@ -505,13 +505,17 @@ class Projection(SageObject):
             sage: into_tetra_far.plot()
             Graphics3d Object
 
-        A value which is too large give a projection point that sees more than
-        one facet resulting in a error::
+        A value which is too large or negative give a projection point that
+        sees more than one facet resulting in a error::
 
             sage: Projection(tcube4).schlegel(tcube4.facets()[4],5)
             Traceback (most recent call last):
             ...
             ValueError: the chosen position is too large
+            sage: Projection(tcube4).schlegel(tcube4.facets()[4],-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'position' should be a positive number
         """
         from sage.geometry.polyhedron.face import PolyhedronFace
         from sage.rings.integer_ring import ZZ
@@ -523,6 +527,8 @@ class Projection(SageObject):
             raise ValueError("The face should be a facet of the polyhedron")
         if position is None:
             position = 1
+        elif position <= 0:
+            raise ValueError("'position' should be a positive number")
 
         barycenter = ZZ.one()*sum([v.vector() for v in facet.vertices()]) / len(facet.vertices())
         locus_polyhedron = facet.stacking_locus()

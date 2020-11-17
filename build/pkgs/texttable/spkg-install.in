@@ -1,0 +1,7 @@
+cd src
+sdh_pip_install .
+
+if [ $? -ne 0]; then
+    echo >$2 "Error installing texttable."
+    exit 1
+fi

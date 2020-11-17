@@ -1,4 +1,4 @@
-if pkg-config --modversion libxml-2.0; then
+if `pkg-config --modversion libxml-2.0`; then
     echo "
 You need libxml2 to run igraph. On Ubuntu and Debian Linux, installing the build-essential and the libxml2-dev packages is sufficient."
     exit 1

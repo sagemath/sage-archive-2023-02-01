@@ -93,17 +93,26 @@ If you have `SnapPy <https://snappy.math.uic.edu/index.html>`__ installed inside
 Sage you can obtain an instance of :class:`~spherogram.links.links_base.Link`,
 too::
 
-    sage: L6 = KnotInfo.L6a2_0
+    sage: L6 = KnotInfo.L6a1_0
     sage: l6s = L6.link(snappy=True); l6s      # optional - snappy
     Plink failed to import tkinter.
+    doctest:warning
+    ...
+    DeprecationWarning: the complex_field module is deprecated, please use sage.rings.complex_mpfr
+    See http://trac.sagemath.org/24483 for details.
+    doctest:warning
+    ...
+    DeprecationWarning: the complex_number module is deprecated, please use sage.rings.complex_mpfr
+    See http://trac.sagemath.org/24483 for details.
     <Link: 2 comp; 6 cross>
+
     sage: type(l6s)                            # optional - snappy
     <class 'spherogram.links.invariants.Link'>
     sage: l6  = L6.link()
     sage: l6 == l6s.sage_link()                # optional - snappy
     True
     sage: L6.link(L6.items.name, snappy=True)  # optional - snappy
-    <Link L6a2: 2 comp; 6 cross>
+    <Link L6a1: 2 comp; 6 cross>
     sage: l6sn = _                             # optional - snappy
     sage: l6s == l6sn                          # optional - snappy
     False
@@ -113,9 +122,9 @@ too::
 But observe that the name conversion to SnapPy does not distingiush orientation
 types::
 
-    sage: L6b = KnotInfo.L6a2_1
+    sage: L6b = KnotInfo.L6a1_1
     sage: L6b.link(L6b.items.name, snappy=True)  # optional - snappy
-    <Link L6a2: 2 comp; 6 cross>
+    <Link L6a1: 2 comp; 6 cross>
     sage: _.PD_code() == l6sn.PD_code()          # optional - snappy
     True
 
@@ -239,63 +248,6 @@ from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, db
 
 
 
-@cached_function
-def knotinfo_matching_list(number_of_crossings, num_components, homfly_polynomial=None):
-    r"""
-    Return a list of links from the KontInfo and LinkInfo tables with given properties.
-
-    INPUT:
-
-    - ``number_of_crossings``  -- Python ``int`` giving the (not necessarily minimal)
-      number of crossings to be matched
-    - ``num_components``   -- Python ``int`` giving the number of components
-      to be matched
-    - ``homfly_polynomial``  -- instance of :class:`~sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomial_mpair`
-      giving the HOMFLY-PT polynomial to be matched
-
-    EXAMPLES::
-
-        sage: from sage.knots.knotinfo import KnotInfo, knotinfo_matching_list
-        sage: knotinfo_matching_list(3,1)
-        [<KnotInfo.K0_1: '0_1'>, <KnotInfo.K3_1: '3_1'>]
-        sage: [l.name for l in knotinfo_matching_list(4,2)]
-        ['L2a1_0', 'L2a1_1', 'L4a1_0', 'L4a1_1']
-
-        sage: KnotInfo.L6a2_0.inject()
-        Defining L6a2_0
-        sage: L6a2_0.num_components()
-        2
-        sage: h = L6a2_0.homfly_polynomial(sage_convention=True)
-        sage: knotinfo_matching_list(6, 2, h)
-        [<KnotInfo.L6a2_0: 'L6a2{0}'>]
-
-    Care is needed for non irreducible HOMFLY-PT polynomials::
-
-        sage: k4_1 = KnotInfo.K4_1.link()
-        sage: k5_2 = KnotInfo.K5_2.link()
-        sage: H = k4_1.connected_sum(k5_2).homfly_polynomial(normalization='az')
-        sage: knotinfo_matching_list(9, 1, H)   # optional - database_knotinfo
-        [<KnotInfo.K9_12: '9_12'>]
-    """
-    res = []
-    if homfly_polynomial:
-        l = knotinfo_matching_list(number_of_crossings, num_components)
-        for L in l:
-            if L.homfly_polynomial(sage_convention=True) != homfly_polynomial:
-                continue
-            res.append(L)
-        return res
-
-    for L in KnotInfo:
-        if L.crossing_number() > number_of_crossings:
-            continue
-        if L.num_components() != num_components:
-            continue
-        res.append(L)
-
-    return res
-
-
 def eval_knotinfo(string, locals={}, to_tuple=True):
     r"""
     Preparse a string from the KnotInfo database and evaluate it by ``sage_eval``.
@@ -371,6 +323,27 @@ class KnotInfoBase(Enum):
         Defining K7_1
         sage: TestSuite(K7_1).run()
     """
+
+    def __gt__(self, other):
+        r"""
+        Implement comparision of different items in order to have ``sorted`` work.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.L4a1_0 < KnotInfo.L4a1_1 # indirect doctest
+            True
+            sage: KnotInfo.L2a1_0 < KnotInfo.K3_1   # indirect doctest
+            False
+            sage: KnotInfo.K10_3 > KnotInfo.K3_1    # optional - database_knotinfo
+            True
+        """
+        if self.__class__ is other.__class__:
+            tups = (not self.is_knot(),  self.crossing_number(),  self.value)
+            tupo = (not other.is_knot(), other.crossing_number(), other.value)
+            return tups > tupo
+        return NotImplemented
+
     @property
     def items(self):
         r"""
@@ -1723,15 +1696,17 @@ class KnotInfoBase(Enum):
         from sage.repl.user_globals import set_global
         set_global(name, self)
 
-    def series(self, overview=True):
+    def series(self, oriented=False):
         r"""
         Return the series of links ``self`` belongs to.
 
         INPUT:
 
-        - ``overview`` -- boolean (optional, default ``True``) if set to
-          ``False`` the series will be reduced to the unoriented type of
-          ``self`` in the case of proper links.
+        - ``oriented`` -- boolean (default False) it only affects proper links.
+          By default the items of the series will be again series of links
+          collecting all orientation mutants of an unoriented name. To obtain
+          the series of the individual links this keyword has to be set to
+          ``True``.
 
         EXAMPLES::
 
@@ -1743,15 +1718,17 @@ class KnotInfoBase(Enum):
             Defining L4a
             sage: L4a(1)
             Series of links L4a1
-            sage: KnotInfo.L4a1_1.series(overview=False).inject()
+            sage: KnotInfo.L4a1_1.series(oriented=True).inject()
             Defining L4a1
+            sage: L4a(1) == L4a1
+            True
             sage: L4a1(1)
             <KnotInfo.L4a1_1: 'L4a1{1}'>
         """
-        if overview:
-            S = KnotInfoSeries(self.crossing_number(), self.is_knot(), self.is_alternating())
-        else:
+        if oriented:
             S = KnotInfoSeries(self.crossing_number(), self.is_knot(), self.is_alternating(), self.name_unoriented())
+        else:
+            S = KnotInfoSeries(self.crossing_number(), self.is_knot(), self.is_alternating())
         return S
 
     def diagram(self, single=False, new=0, autoraise=True):
@@ -1888,29 +1865,40 @@ class KnotInfoSeries(UniqueRepresentation):
         self._is_knot           = is_knot
         self._is_alternating    = is_alternating
         self._name_unoriented   = name_unoriented
-        self._list              = None
 
-    def list(self):
+    @cached_method
+    def list(self, oriented=False):
         r"""
         Return this series as a Python list.
+
+        INPUT:
+
+        - ``oriented`` -- boolean (default False) it only affects series of
+          proper links. By default the list items of a series of proper links
+          are again series of links collecting all orientation types of an
+          unoriented name. To obtain the list of the individual links this
+          keyword has to be set to ``True``.
 
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: K6 = KnotInfoSeries(6, True, True); K6
             Series of knots K6
-            sage: K6(3)
-            <KnotInfo.K6_3: '6_3'>
+            sage: K6.list()
+            [<KnotInfo.K6_1: '6_1'>, <KnotInfo.K6_2: '6_2'>, <KnotInfo.K6_3: '6_3'>]
+            sage: KnotInfoSeries(2, False, True).inject()
+            Defining L2a
+            sage: L2a.list()
+            [Series of links L2a1]
+            sage: L2a.list(oriented=True)
+            [<KnotInfo.L2a1_0: 'L2a1{0}'>, <KnotInfo.L2a1_1: 'L2a1{1}'>]
         """
-        if self._list:
-            return self._list
-
         is_knot  = self._is_knot
         cross_nr = self._crossing_number
         is_alt   = self._is_alternating
         n_unori  = self._name_unoriented
 
-        self._list = []
+        res = []
         curr_n_unori = None
         for K in KnotInfo:
             if K.is_knot() != is_knot:
@@ -1920,24 +1908,59 @@ class KnotInfoSeries(UniqueRepresentation):
             if not is_knot or cross_nr > 10:
                 if K.is_alternating() !=  is_alt:
                     continue
-            if is_knot:
-                self._list.append(K)
+            if is_knot or oriented:
+                res.append(K)
             else:
                 this_n_unori = K.name_unoriented()
                 if n_unori:
                     if this_n_unori  != n_unori:
                         continue
-                    self._list.append(K)
+                    res.append(K)
                 elif this_n_unori  != curr_n_unori:
                     if curr_n_unori:
-                        self._list.append(KnotInfoSeries(cross_nr, is_knot, is_alt, curr_n_unori))
+                        res.append(KnotInfoSeries(cross_nr, is_knot, is_alt, curr_n_unori))
                     curr_n_unori = this_n_unori
                 else:
                     continue
 
         if curr_n_unori:
-            self._list.append(KnotInfoSeries(cross_nr, is_knot, is_alt, curr_n_unori))
-        return self._list
+            res.append(KnotInfoSeries(cross_nr, is_knot, is_alt, curr_n_unori))
+        return res
+
+
+    @cached_method
+    def lower_list(self, oriented=False):
+        r"""
+        Return this series together with all series with smaller crossing number
+        as a Python list.
+
+        INPUT:
+
+        - ``oriented`` -- boolean (default False) see the description
+          for :meth:`list`.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfoSeries
+            sage: KnotInfoSeries(5, True, True).lower_list()
+            [<KnotInfo.K0_1: '0_1'>,
+             <KnotInfo.K3_1: '3_1'>,
+             <KnotInfo.K4_1: '4_1'>,
+             <KnotInfo.K5_1: '5_1'>,
+             <KnotInfo.K5_2: '5_2'>]
+            sage: KnotInfoSeries(4, False, True).lower_list()
+            [Series of links L2a1, Series of links L4a1]
+            sage: KnotInfoSeries(4, False, True).lower_list(oriented=True)
+            [<KnotInfo.L2a1_0: 'L2a1{0}'>,
+             <KnotInfo.L2a1_1: 'L2a1{1}'>,
+             <KnotInfo.L4a1_0: 'L4a1{0}'>,
+             <KnotInfo.L4a1_1: 'L4a1{1}'>]
+        """
+        l = []
+        for i in range(self._crossing_number):
+            LS = type(self)(i, self._is_knot, self._is_alternating, self._name_unoriented )
+            l += LS.list(oriented=oriented)
+        return l + self.list(oriented=oriented)
 
 
     def __repr__(self):
@@ -1974,7 +1997,7 @@ class KnotInfoSeries(UniqueRepresentation):
         from sage.rings.integer import Integer
         if  not type(item) in (int, Integer):
             raise ValueError('Item must be an integer')
-        l =self.list()
+        l = self.list()
         max_item = len(l)
         if item < 0 or item  > max_item:
             raise ValueError('Item must be non negative and smaller than %s' %(max_item))
@@ -2056,7 +2079,7 @@ class KnotInfoSeries(UniqueRepresentation):
 
 
     def inject(self, verbose=True):
-        """
+        r"""
         Inject ``self`` with its name into the namespace of the
         Python code from which this function is called.
 
@@ -2078,8 +2101,6 @@ class KnotInfoSeries(UniqueRepresentation):
             print("Defining %s" % (name))
         from sage.repl.user_globals import set_global
         set_global(name, self)
-
-
 
 
 KnotInfo = KnotInfoBase('KnotInfo', db.row_names())

@@ -64,7 +64,7 @@ build/make/Makefile: configure $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 buildbot-python3:
 	$(MAKE)
 
-# Preemptively download all standard upstream source tarballs.
+# Preemptively download all source tarballs of normal packages.
 download:
 	export SAGE_ROOT=$$(pwd) && \
 	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \

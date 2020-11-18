@@ -815,6 +815,7 @@ class Polyhedron_base(Element):
              point=None, line=None, polygon=None,  # None means unspecified by the user
              wireframe='blue', fill='green',
              position=None,
+             orthonormal=True,  # whether to use orthonormal projections
              **kwds):
         """
         Return a graphical representation.
@@ -843,6 +844,9 @@ class Polyhedron_base(Element):
 
         - ``position`` -- positive number; the position to take the projection
           point in Schlegel diagrams.
+
+        - ``orthonormal`` -- Boolean (default: True); whether to use
+          orthonormal projections.
 
         - ``**kwds`` -- optional keyword parameters that are passed to
           all graphics objects.
@@ -1034,22 +1038,30 @@ class Polyhedron_base(Element):
         opts = [merge_options(opt1, opt2, kwds)
                 for opt1, opt2 in zip(opts, [point, line, polygon])]
 
-        def project(polyhedron):
+        def project(polyhedron,ortho):
             if polyhedron.ambient_dim() <= 3:
                 return polyhedron.projection()
+            elif polyhedron.dim() <= 3:
+                if ortho:
+                    return polyhedron.affine_hull_projection(orthonormal=True, extend=True).projection()
+                else:
+                    return polyhedron.affine_hull_projection().projection()
             elif polyhedron.dimension() == 4:
-                # There is no 4-d screen, we must project down to 3d
+                # For 4d-polyhedron, we can use schlegel projections:
                 return polyhedron.schlegel_projection(position=position)
             else:
                 return polyhedron.projection()
 
-        projection = project(self)
+        projection = project(self,orthonormal)
         try:
             plot_method = projection.plot
         except AttributeError:
             # Could not catch a plot method in the ambient dimension,
             # Tries in its affine hull:
-            projection = project(self.affine_hull_projection())
+            if ortho:
+                projection = project(self.affine_hull_projection(orthonormal=True, extend=True))
+            else:
+                projection = project(self.affine_hull_projection())
             try:
                 plot_method = projection.plot
             except AttributeError:

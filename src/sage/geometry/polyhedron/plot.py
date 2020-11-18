@@ -478,7 +478,10 @@ class Projection(SageObject):
         - ``position`` -- a positive number. Determines a relative distance
           from the barycenter of ``facet``. A value close to 0 will place the
           projection point close to the facet and a large value further away.
-          Default is `1`. If the given value is too large, an error is returned.
+          If the given value is too large, an error is returned.
+          If no position is given, it takes the midpoint of the possible 
+          point of views along a line spanned by the barycenter of the facet
+          and a valid point outside the facet.
 
         EXAMPLES::
 
@@ -525,17 +528,24 @@ class Projection(SageObject):
             raise TypeError("{} should be a PolyhedronFace of {}".format(facet, self))
         elif facet.dim() != self.parent_polyhedron.dim() - 1:
             raise ValueError("The face should be a facet of the polyhedron")
-        if position is None:
-            position = 1
-        elif position <= 0:
+        if position is not None and position <= 0:
             raise ValueError("'position' should be a positive number")
 
         barycenter = ZZ.one()*sum([v.vector() for v in facet.vertices()]) / len(facet.vertices())
         locus_polyhedron = facet.stacking_locus()
         repr_point = locus_polyhedron.representative_point()
-        projection_point = (1-position)*barycenter + position*repr_point
-        if not locus_polyhedron.relative_interior_contains(projection_point):
-            raise ValueError("the chosen position is too large")
+        if position is None:
+            # Figure out a somehow canonical point of view inside the locus
+            # polyhedron 
+            from sage.geometry.polyhedron.constructor import Polyhedron
+            the_ray = Polyhedron(vertices=[barycenter],
+                                 rays=[repr_point - barycenter],
+                                 backend=locus_polyhedron.backend()) & locus_polyhedron
+            projection_point = the_ray.representative_point()
+        else:
+            projection_point = (1-position)*barycenter + position*repr_point
+            if not locus_polyhedron.relative_interior_contains(projection_point):
+                raise ValueError("the chosen position is too large")
 
         return self(ProjectionFuncSchlegel(facet, projection_point))
 

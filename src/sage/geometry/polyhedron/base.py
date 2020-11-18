@@ -1056,16 +1056,7 @@ class Polyhedron_base(Element):
         try:
             plot_method = projection.plot
         except AttributeError:
-            # Could not catch a plot method in the ambient dimension,
-            # Tries in its affine hull:
-            if ortho:
-                projection = project(self.affine_hull_projection(orthonormal=True, extend=True))
-            else:
-                projection = project(self.affine_hull_projection())
-            try:
-                plot_method = projection.plot
-            except AttributeError:
-                raise NotImplementedError('plotting of {0}-dimensional polyhedra not implemented'
+            raise NotImplementedError('plotting of {0}-dimensional polyhedra not implemented'
                                           .format(self.ambient_dim()))
         return plot_method(*opts)
 

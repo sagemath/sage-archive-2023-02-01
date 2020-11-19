@@ -1376,7 +1376,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M = Multizetas_iterated(QQ)
             sage: x = Word([1,0])
             sage: M.product_on_basis(x,x)
-            2*I(1010) + 4*I(1100)
+            4*I(1100) + 2*I(1010)
             sage: y = Word([1,1,0])
             sage: M.product_on_basis(y,x)
             I(10110) + 3*I(11010) + 6*I(11100)

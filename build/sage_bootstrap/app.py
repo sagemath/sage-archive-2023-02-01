@@ -171,7 +171,7 @@ class Application(object):
         """
         Download a package or a class of packages
         """
-        pc = PackageClass(package_name_or_class)
+        pc = PackageClass(package_name_or_class, has_files=['checksums.ini'])
         def download_with_args(package):
             return self.download(package, allow_upstream=allow_upstream)
         pc.apply(self.download)

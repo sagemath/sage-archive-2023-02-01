@@ -71,8 +71,7 @@ class Application(object):
         for pkg_name in pc.names:
             if filenames:
                 pkg = Package(pkg_name)
-                if not all(os.path.exists(os.path.join(pkg.path, filename))
-                        for filename in filenames):
+                if not all(pkg.has_file(filename) for filename in filenames):
                     continue
             print(pkg_name)
 

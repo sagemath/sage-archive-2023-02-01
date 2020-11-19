@@ -255,7 +255,13 @@ class Package(object):
         Return the package directory
         """
         return os.path.join(SAGE_ROOT, 'build', 'pkgs', self.name)
-            
+
+    def has_file(self, filename):
+        """
+        Return whether the file exists in the package directory
+        """
+        return os.path.exists(os.path.join(self.path, filename))
+
     def _init_checksum(self):
         """
         Load the checksums from the appropriate ``checksums.ini`` file

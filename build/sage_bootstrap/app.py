@@ -43,7 +43,7 @@ class Application(object):
         from sage_bootstrap.config import Configuration
         print(Configuration())
 
-    def list_cls(self, package_class):
+    def list_cls(self, *package_classes, **filters):
         """
         Print a list of all available packages
 
@@ -54,11 +54,28 @@ class Application(object):
         autotools
         [...]
         zn_poly
+
+        $ sage -package list --has-file=spkg-configure.m4 :experimental:
+        perl_term_readline_gnu
+
+        $ sage -package list --has-file=spkg-configure.m4 --has-file=distros/debian.txt | sort
+        arb
+        boost_cropped
+        brial
+        [...]
+        zn_poly
         """
         log.debug('Listing packages')
-        pc = PackageClass(package_class)
-        for pkg_name in pc.names:
-            print(pkg_name)
+        filenames = filters.pop('has_files', [])
+        for package_class in package_classes:
+            pc = PackageClass(package_class)
+            for pkg_name in pc.names:
+                if filenames:
+                    pkg = Package(pkg_name)
+                    if not all(os.path.exists(os.path.join(pkg.path, filename))
+                            for filename in filenames):
+                        continue
+                print(pkg_name)
 
     def name(self, tarball_filename):
         """

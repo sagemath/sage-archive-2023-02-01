@@ -582,7 +582,6 @@ from functools import reduce
 ## going to be used.
 
 #DEFAULT_FIGSIZE=(6, 3.70820393249937)
-EMBEDDED_MODE = False
 import sage.misc.verbose
 from sage.arith.srange import srange
 

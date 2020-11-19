@@ -2376,7 +2376,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
 cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
     r"""
-    An element of ℚ[i].
+    An element of `\QQ[i]`.
 
     Some methods of this class behave slightly differently than the
     corresponding methods of general elements of quadratic number fields,

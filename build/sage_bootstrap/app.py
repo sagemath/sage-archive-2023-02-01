@@ -157,8 +157,13 @@ class Application(object):
         package.tarball.download(allow_upstream=allow_upstream)
         print(package.tarball.upstream_fqn)
 
-    def download_cls(self, package_name_or_class):
+    def download_cls(self, package_name_or_class, allow_upstream=False):
+        """
+        Download a package or a class of packages
+        """
         pc = PackageClass(package_name_or_class)
+        def download_with_args(package):
+            return self.download(package, allow_upstream=allow_upstream)
         pc.apply(self.download)
 
     def upload(self, package_name):

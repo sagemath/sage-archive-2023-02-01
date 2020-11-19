@@ -303,6 +303,6 @@ class Package(object):
         with open(os.path.join(self.path, 'type')) as f:
             package_type = f.read().strip()
         assert package_type in [
-            'base', 'standard', 'optional', 'experimental', 'script', 'pip'
+            'base', 'standard', 'optional', 'experimental'
         ]
         self.__type = package_type

@@ -203,7 +203,7 @@ def make_parser():
         type=str, default=[':all:'], nargs='*',
         help='Package class like :all: (default) or :standard:')
     parser_list.add_argument(
-        '--has-file', action='append', metavar='FILENAME', dest='has_files',
+        '--has-file', action='append', default=[], metavar='FILENAME', dest='has_files',
         help='Only include packages that have this file')
 
     parser_name = subparsers.add_parser(

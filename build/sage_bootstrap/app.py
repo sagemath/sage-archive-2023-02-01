@@ -66,13 +66,8 @@ class Application(object):
         zn_poly
         """
         log.debug('Listing packages')
-        filenames = filters.pop('has_files', [])
-        pc = PackageClass(*package_classes)
+        pc = PackageClass(*package_classes, **filters)
         for pkg_name in pc.names:
-            if filenames:
-                pkg = Package(pkg_name)
-                if not all(pkg.has_file(filename) for filename in filenames):
-                    continue
             print(pkg_name)
 
     def name(self, tarball_filename):

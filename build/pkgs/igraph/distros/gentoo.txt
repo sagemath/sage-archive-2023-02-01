@@ -1,1 +1,1 @@
-igraph
+dev-libs/igraph

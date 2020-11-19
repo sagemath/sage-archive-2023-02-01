@@ -1,4 +1,3 @@
-$(MP_LIBRARY) glpk $(BLAS)
 
 ----------
 All lines of this file are ignored except the first.

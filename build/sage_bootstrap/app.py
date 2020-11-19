@@ -67,15 +67,14 @@ class Application(object):
         """
         log.debug('Listing packages')
         filenames = filters.pop('has_files', [])
-        for package_class in package_classes:
-            pc = PackageClass(package_class)
-            for pkg_name in pc.names:
-                if filenames:
-                    pkg = Package(pkg_name)
-                    if not all(os.path.exists(os.path.join(pkg.path, filename))
-                            for filename in filenames):
-                        continue
-                print(pkg_name)
+        pc = PackageClass(*package_classes)
+        for pkg_name in pc.names:
+            if filenames:
+                pkg = Package(pkg_name)
+                if not all(os.path.exists(os.path.join(pkg.path, filename))
+                        for filename in filenames):
+                    continue
+            print(pkg_name)
 
     def name(self, tarball_filename):
         """

@@ -140,8 +140,7 @@ Third-party packages in Sage consist of two parts:
    project name contains characters which are not alphanumeric
    and are not an underscore, those characters should be removed
    or replaced by an underscore. For example, the project
-   ``FFLAS-FFPACK`` is called ``fflas_ffpack`` in Sage and ``path.py``
-   is renamed ``pathpy`` in Sage.
+   ``FFLAS-FFPACK`` is called ``fflas_ffpack`` in Sage.
 
 As an example, let us consider a hypothetical FoO project. They
 (upstream) distribute a tarball ``FoO-1.3.tar.gz`` (that will be

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-r"""Algebra of motivic multiple zeta values
+r"""
+Algebra of motivic multiple zeta values
 
 This file contains an implementation of the algebra of motivic
 multiple zeta values.
@@ -1050,6 +1051,40 @@ class Multizetas(CombinatorialFreeModule):
             """
             return self.parent().iterated(self)
 
+        def single_valued(self):
+            """
+            Return the single-valued version of ``self``.
+
+            EXAMPLES::
+
+                sage: M = Multizetas(QQ)
+                sage: x = M((2,))
+                sage: x.single_valued()
+                0
+                sage: x = M((3,))
+                sage: x.single_valued()
+                2*ζ(3)
+                sage: x = M((5,))
+                sage: x.single_valued()
+                2*ζ(5)
+                sage: x = M((2,3))
+                sage: x.single_valued()
+                -11*ζ(5)
+
+                sage: Z = Multizeta
+                sage: Z(3,5).single_valued() == -10*Z(3)*Z(5)
+                True
+                sage: Z(5,3).single_valued() == 14*Z(3)*Z(5)
+                True
+            """
+            phi_im = self.phi()
+            zin = phi_im.parent()
+            BR2 = zin.base_ring()
+            sv = zin.sum_of_terms((w, BR2(cf(0)))
+                                  for (a, b), cf in phi_im.coproduct()
+                                  for w in a.shuffle(b.reversal()))
+            return rho_inverse(sv)
+
         def simplify(self):
             """
             Gather terms using the duality relations.
@@ -1092,12 +1127,23 @@ class Multizetas(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from sage.modular.multiple_zeta import Multizetas_iterated
                 sage: M = Multizeta
                 sage: M(2,2,2) != M(6)
                 True
             """
             return not (self == other)
+
+        def __hash__(self):
+            """
+            Return the hash of ``self``.
+
+            EXAMPLES::
+
+                sage: M = Multizeta
+                sage: hash(M(1,2)) != hash(M(6))
+                True
+            """
+            return hash(self.iterated().phi())
 
         def phi(self):
             """
@@ -1185,7 +1231,7 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M((3,)).n(digits=10)
                 1.202056903
 
-            If you need plan to use intensively numerical approximation at high precision,
+            If you plan to use intensively numerical approximation at high precision,
             you might want to add more values and/or accuracy to the cache::
 
                 sage: from sage.modular.multiple_zeta import MultizetaValues
@@ -1215,7 +1261,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
     Secondary class for the algebra of multiple zeta values.
 
     This is used to represent multiple zeta values as iterated integrals
-    of the differential forms `\omega_0 = \dt/t`and `\omega_1 = \dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t` and `\omega_1 = dt/(t-1)`.
 
     EXAMPLES::
 
@@ -1804,15 +1850,15 @@ class All_iterated(CombinatorialFreeModule):
 
     This is used to represent multiple zeta values as possibly
     divergent iterated integrals
-    of the differential forms `\omega_0 = \dt/t`and `\omega_1 = \dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t` and `\omega_1 = dt/(t-1)`.
 
     This means that the elements are symbols
-    `I(a_0 ; a_1,a_2,...a_m ; a_{n+1})`
+    `I(a_0 ; a_1,a_2,...a_n ; a_{n+1})`
     where all arguments, including the starting and ending points
     can be 0 or 1.
 
     This comes with a "regularise" method mapping
-    to :class:`Multizeta_iterated`.
+    to :class:`Multizetas_iterated`.
 
     EXAMPLES::
 
@@ -2064,7 +2110,7 @@ class All_iterated(CombinatorialFreeModule):
     class Element(CombinatorialFreeModule.Element):
         def conversion(self):
             """
-            Conversion to the :class:`Multizeta_iterated`.
+            Conversion to the :class:`Multizetas_iterated`.
 
             This assumed that the element has been prepared.
 
@@ -2086,7 +2132,7 @@ class All_iterated(CombinatorialFreeModule):
 
         def regularise(self):
             """
-            Conversion to the :class:`Multizeta_iterated`.
+            Conversion to the :class:`Multizetas_iterated`.
 
             This is the regularisation procedure, done in several steps.
 
@@ -2110,7 +2156,7 @@ class All_iterated(CombinatorialFreeModule):
             step2 = P.expand(step1)   # R2
             step3 = P.dual(step2)     # R4
             step4 = P.expand(step3)    # R2
-            return step4.conversion()  # dans Multizeta_iterated
+            return step4.conversion()  # dans Multizetas_iterated
 
 
 # **************** procedures after F. Brown ************
@@ -2545,6 +2591,8 @@ def rho_inverse(elt):
         ζ(3)
         sage: rho_inverse(f(9))
         ζ(9)
+        sage: rho_inverse(f(5)*f(3))
+        -1/5*ζ(3,5)
     """
     pa = elt.parent()
     BR = pa.base_ring().base_ring()

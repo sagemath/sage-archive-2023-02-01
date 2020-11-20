@@ -1,7 +1,10 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 ntl_lzz_p.pyx
 
-Wraps NTL's zz_p type for SAGE
+Wraps NTL's zz_p type for Sage
 
 NOTE: This file is essentially useless. While we provide
 this wrapper for consistency, this should never be used in
@@ -12,20 +15,19 @@ gains you get from working with longs will be TOTALLY
 destroyed by the overhead of having a wrapper.
 
 AUTHORS:
-   - Craig Citro
+
+- Craig Citro
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import absolute_import, division
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -149,7 +151,8 @@ cdef class ntl_zz_p(object):
         """
         Quick and dirty zz_p object creation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ntl.zz_p(23,75)
             sage: y = x*x ## indirect doctest
         """
@@ -163,7 +166,8 @@ cdef class ntl_zz_p(object):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: f = ntl.zz_p(16,244)
             sage: loads(dumps(f)) == f
             True
@@ -183,7 +187,8 @@ cdef class ntl_zz_p(object):
 
     def __add__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) + ntl.zz_p(6,23)
             11
         """
@@ -199,7 +204,8 @@ cdef class ntl_zz_p(object):
 
     def __sub__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) - ntl.zz_p(6,23)
             22
         """
@@ -215,7 +221,8 @@ cdef class ntl_zz_p(object):
 
     def __mul__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) * ntl.zz_p(6,23)
             7
         """
@@ -231,7 +238,8 @@ cdef class ntl_zz_p(object):
 
     def __truediv__(ntl_zz_p self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(5,23) / ntl.zz_p(2,23)
             14
         """
@@ -246,9 +254,6 @@ cdef class ntl_zz_p(object):
         zz_p_div(q.x, self.x, (<ntl_zz_p>other).x)
         sig_off()
         return q
-
-    def __div__(self, other):
-        return self / other
 
     def __pow__(ntl_zz_p self, long n, ignored):
         """
@@ -297,7 +302,8 @@ cdef class ntl_zz_p(object):
         """
         Return the negative of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(5,234)
             sage: -f ## indirect doctest
             229
@@ -343,7 +349,8 @@ cdef class ntl_zz_p(object):
         """
         Return self as an int.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.zz_p(3,next_prime(100)).__int__()
             3
             sage: int(ntl.zz_p(3,next_prime(100)))
@@ -357,7 +364,8 @@ cdef class ntl_zz_p(object):
         """
         Return f*f.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(15,23)
             sage: f*f
             18
@@ -372,7 +380,8 @@ cdef class ntl_zz_p(object):
         """
         Return True exactly if this element is 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(0,20)
             sage: f.is_zero()
             True
@@ -387,7 +396,8 @@ cdef class ntl_zz_p(object):
         """
         Return True exactly if this element is 1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(1,11)
             sage: f.is_one()
             True
@@ -402,7 +412,8 @@ cdef class ntl_zz_p(object):
         """
         Reset this element to 0.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ntl.zz_p(5,102) ; x
             5
             sage: x.clear() ; x
@@ -411,11 +422,13 @@ cdef class ntl_zz_p(object):
         self.c.restore_c()
         zz_p_clear(self.x)
 
+
 def make_zz_p(val, context):
     """
     For unpickling.
 
-    TESTS:
+    TESTS::
+
         sage: f = ntl.zz_p(1, 12)
         sage: loads(dumps(f)) == f
         True

@@ -1,8 +1,8 @@
 """
 Submodules of Hecke modules
 """
-#*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+# ****************************************************************************
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -15,12 +15,12 @@ Submodules of Hecke modules
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
 
 import sage.arith.all as arith
-import sage.misc.misc as misc
+from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp_method, richcmp_not_equal
 import sage.modules.all
@@ -242,7 +242,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def _compute_diamond_matrix(self, d):
         r"""
-        EXAMPLES:
+        EXAMPLES::
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
             sage: a = f.diamond_bracket_operator(2).matrix() # indirect doctest
@@ -356,7 +356,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
         # TODO: optimize in some cases by computing image of
         # complementary factor instead of kernel...?
-        misc.verbose("computing")
+        verbose("computing")
         N = self.level()
         A = self.ambient_hecke_module()
         V = A.free_module()
@@ -366,7 +366,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         while True:
             if anemic:
                 while N % p == 0: p = arith.next_prime(p)
-            misc.verbose("using T_%s"%p)
+            verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
             T = A.hecke_matrix(p)
             g = T.charpoly('x')
@@ -385,7 +385,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         # the following naive approach: decompose the ambient space,
         # decompose self, and sum the pieces of ambient that are not
         # subspaces of self
-        misc.verbose("falling back on naive algorithm")
+        verbose("falling back on naive algorithm")
         D = A.decomposition()
         C = A.zero_submodule()
         for X in D:
@@ -515,12 +515,12 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
         # if we know the complement we can read off the dual module
         if self.complement.is_in_cache():
-            misc.verbose('This module knows its complement already -- cheating in dual_free_module')
+            verbose('This module knows its complement already -- cheating in dual_free_module')
             C = self.complement()
             V = C.basis_matrix().right_kernel()
             return V
 
-        misc.verbose("computing dual")
+        verbose("computing dual")
 
         A = self.ambient_hecke_module()
 
@@ -570,7 +570,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         while True:
             if anemic:
                 while N % p == 0: p = arith.next_prime(p)
-            misc.verbose("using T_%s"%p)
+            verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
             T = A.dual_hecke_matrix(p)
             V = T.kernel_on(V, poly=f, check=False)
@@ -969,9 +969,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return self.ambient_hecke_module().submodule(V, Vdual, check=check)
 
     def hecke_bound(self):
-        """
-        Compute the Hecke bound for self; that is, a number n such that the
-        T_m for m = n generate the Hecke algebra.
+        r"""
+        Compute the Hecke bound for ``self``.
+
+        This is a number `n` such that the `T_m` for `m \leq n`
+        generate the Hecke algebra.
 
         EXAMPLES::
 

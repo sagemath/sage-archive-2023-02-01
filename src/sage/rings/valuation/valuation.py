@@ -179,19 +179,6 @@ class DiscretePseudoValuation(Morphism):
             False
             sage: v != w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if op == op_LT:
             return self <= other and not (self >= other)
@@ -245,19 +232,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v <= w
             True
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         return other >= self
 
@@ -275,19 +249,6 @@ class DiscretePseudoValuation(Morphism):
             sage: w = QQ.valuation(2)
             sage: v >= w
             False
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__richcmp__`. When the valuations
-        do not coerce into a common parent, a rather random comparison of
-        ``id`` happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w <= v # random output
-            True
-            sage: v <= w # random output
-            False
-
         """
         if self == other: return True
         from .scaled_valuation import ScaledValuation_generic
@@ -310,10 +271,11 @@ class DiscretePseudoValuation(Morphism):
         EXAMPLES::
 
             sage: QQ.valuation(2)._test_valuation_inheritance()
-
         """
         tester = self._tester(**options)
-        tester.assertTrue(isinstance(self, InfiniteDiscretePseudoValuation) != isinstance(self, DiscreteValuation))
+        tester.assertNotEqual(isinstance(self, InfiniteDiscretePseudoValuation),
+                              isinstance(self, DiscreteValuation))
+
 
 class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
     r"""
@@ -457,7 +419,7 @@ class DiscreteValuation(DiscretePseudoValuation):
           (with respect to the partial order on valuations defined by comparing
           them pointwise.)
 
-        - ``require_maximal_degree`` -- a boolean (deault: ``False``); whether
+        - ``require_maximal_degree`` -- a boolean (default: ``False``); whether
           to require the last key polynomial of the returned valuation to have
           maximal degree. This is most relevant when using this algorithm to
           compute approximate factorizations of ``G``, when set to ``True``,
@@ -701,12 +663,12 @@ class DiscreteValuation(DiscretePseudoValuation):
         if R.base_ring() is not self.domain():
             raise ValueError("G must be defined over the domain of this valuation")
 
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
         verbose("Approximants of %r on %r towards %r"%(self, self.domain(), G), level=3)
 
         from sage.rings.valuation.gauss_valuation import GaussValuation
 
-        if not all([self(c) >= 0 for c in G.coefficients()]):
+        if not all(self(c) >= 0 for c in G.coefficients()):
             raise ValueError("G must be integral")
 
         if require_maximal_degree:
@@ -747,6 +709,20 @@ class DiscreteValuation(DiscretePseudoValuation):
                              coefficients=node.coefficients,
                              valuations=node.valuations,
                              check=False,
+                             # We do not want to see augmentations that are
+                             # already part of other branches of the tree of
+                             # valuations for obvious performance reasons and
+                             # also because the principal_part_bound would be
+                             # incorrect for these.
+                             allow_equivalent_key=node.valuation.is_gauss_valuation(),
+                             # The length of an edge in the Newton polygon in
+                             # one MacLane step bounds the length of the
+                             # principal part (i.e., the part with negative
+                             # slopes) of the Newton polygons in the next
+                             # MacLane step. Therefore, mac_lane_step does not
+                             # need to compute valuations for coefficients
+                             # beyond that bound as they do not contribute any
+                             # augmentations.
                              principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()
@@ -1014,7 +990,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             raise ValueError("G must be defined over the domain of this valuation")
         if not G.is_monic():
             raise ValueError("G must be monic")
-        if not all([self(c)>=0 for c in G.coefficients()]):
+        if not all(self(c) >= 0 for c in G.coefficients()):
             raise ValueError("G must be integral")
 
         # W contains approximate factors of G

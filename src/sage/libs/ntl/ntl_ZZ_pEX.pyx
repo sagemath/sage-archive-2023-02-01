@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 """
 Wrapper for NTL's polynomials over finite ring extensions of $\Z / p\Z.$
 
@@ -20,7 +23,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import division, absolute_import, print_function
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr
@@ -56,7 +58,8 @@ cdef class ntl_ZZ_pEX(object):
     # See ntl_ZZ_pEX.pxd for definition of data members
     def __init__(self, v=None, modulus=None):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
             sage: a = ntl.ZZ_pE([3,2], c)
             sage: b = ntl.ZZ_pE([1,2], c)
@@ -74,8 +77,7 @@ cdef class ntl_ZZ_pEX(object):
         if modulus is None and v is None:
             raise ValueError("You must specify a modulus when creating a ZZ_pEX.")
 
-        # self.c.restore_c()  ## Restoring the context is taken care of in __new__
-
+        # self.c._assert_is_current_modulus()  ## Restoring the context is taken care of in __new__
         cdef ntl_ZZ_pE cc
         cdef Py_ssize_t i
 
@@ -86,6 +88,7 @@ cdef class ntl_ZZ_pEX(object):
                 x = v[i]
                 if not isinstance(x, ntl_ZZ_pE):
                     cc = ntl_ZZ_pE(x,self.c)
+                    self.c.restore_c()
                 else:
                     if self.c is not (<ntl_ZZ_pE>x).c:
                         raise ValueError("inconsistent moduli")
@@ -138,13 +141,14 @@ cdef class ntl_ZZ_pEX(object):
 
     def __reduce__(self):
         """
-        TESTS:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: loads(dumps(f)) == f
-        True
+        TESTS::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: loads(dumps(f)) == f
+            True
         """
         return make_ZZ_pEX, (self.list(), self.get_modulus_context())
 
@@ -152,13 +156,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Returns a string representation of self.
 
-        TESTS:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f
-        [[3 2] [1 2] [1 2]]
+        TESTS::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f
+            [[3 2] [1 2] [1 2]]
         """
         self.c.restore_c()
         return ccrepr(self.x)
@@ -167,20 +172,21 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return a copy of self.
 
-        TESTS:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f
-        [[3 2] [1 2] [1 2]]
-        sage: y = copy(f)
-        sage: y == f
-        True
-        sage: y is f
-        False
-        sage: f[0] = 0; y
-        [[3 2] [1 2] [1 2]]
+        TESTS::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f
+            [[3 2] [1 2] [1 2]]
+            sage: y = copy(f)
+            sage: y == f
+            True
+            sage: y is f
+            False
+            sage: f[0] = 0; y
+            [[3 2] [1 2] [1 2]]
         """
         cdef ntl_ZZ_pEX r = self._new()
         #self.c.restore_c() ## _new() restores
@@ -191,13 +197,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Returns the structure that holds the underlying NTL modulus.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.get_modulus_context()
-        NTL modulus [1 1 1] (mod 7)
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.get_modulus_context()
+            NTL modulus [1 1 1] (mod 7)
         """
         return self.c
 
@@ -205,13 +212,14 @@ cdef class ntl_ZZ_pEX(object):
         r"""
         Sets the ith coefficient of self to be a.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f[1] = 4; f
-        [[3 2] [4] [1 2]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f[1] = 4; f
+            [[3 2] [4] [1 2]]
         """
         if i < 0:
             raise IndexError("index (i=%s) must be >= 0" % i)
@@ -227,15 +235,16 @@ cdef class ntl_ZZ_pEX(object):
         r"""
         Returns the ith coefficient of self.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f[0]
-        [3 2]
-        sage: f[5]
-        []
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f[0]
+            [3 2]
+            sage: f[5]
+            []
         """
         if i < 0:
             raise IndexError("index (=%s) must be >= 0" % i)
@@ -252,13 +261,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return list of entries as a list of ntl_ZZ_pEs.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.list()
-        [[3 2], [1 2], [1 2]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.list()
+            [[3 2], [1 2], [1 2]]
         """
         # This function could be sped up by using the list API and not restoring the context each time.
         # Or by using self.x.rep directly.
@@ -270,17 +280,18 @@ cdef class ntl_ZZ_pEX(object):
         """
         Adds self and other.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([-b, a])
-        sage: f + g
-        [[2] [4 4] [1 2]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([-b, a])
+            sage: f + g
+            [[2] [4 4] [1 2]]
         """
         if self.c is not other.c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new restores the context
@@ -292,17 +303,18 @@ cdef class ntl_ZZ_pEX(object):
         """
         Subtracts other from self.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([-b, a])
-        sage: f - g
-        [[4 4] [5] [1 2]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([-b, a])
+            sage: f - g
+            [[4 4] [5] [1 2]]
         """
         if self.c is not other.c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new restores the context
@@ -314,23 +326,24 @@ cdef class ntl_ZZ_pEX(object):
         """
         Returns the product self * other.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([-b, a])
-        sage: f * g
-        [[1 3] [1 1] [2 4] [6 4]]
-        sage: c2 = ntl.ZZ_pEContext(ntl.ZZ_pX([4,1,1], 5)) # we can mix up the moduli
-        sage: x = c2.ZZ_pEX([2,4])
-        sage: x^2
-        [[4] [1] [1]]
-        sage: f * g # back to the first one and the ntl modulus gets reset correctly
-        [[1 3] [1 1] [2 4] [6 4]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([-b, a])
+            sage: f * g
+            [[1 3] [1 1] [2 4] [6 4]]
+            sage: c2 = ntl.ZZ_pEContext(ntl.ZZ_pX([4,1,1], 5)) # we can mix up the moduli
+            sage: x = c2.ZZ_pEX([2,4])
+            sage: x^2
+            [[4] [1] [1]]
+            sage: f * g # back to the first one and the ntl modulus gets reset correctly
+            [[1 3] [1 1] [2 4] [6 4]]
         """
         if self.c is not other.c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new() restores the context
@@ -343,21 +356,22 @@ cdef class ntl_ZZ_pEX(object):
         Compute quotient self / other, if the quotient is a polynomial.
         Otherwise an Exception is raised.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a^2, -a*b-a*b, b^2])
-        sage: g = ntl.ZZ_pEX([-a, b])
-        sage: f / g
-        [[4 5] [1 2]]
-        sage: g / f
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: self (=[[4 5] [1 2]]) is not divisible by other (=[[5 1] [2 6] [4]])
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a^2, -a*b-a*b, b^2])
+            sage: g = ntl.ZZ_pEX([-a, b])
+            sage: f / g
+            [[4 5] [1 2]]
+            sage: g / f
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self (=[[4 5] [1 2]]) is not divisible by other (=[[5 1] [2 6] [4]])
         """
         if self.c is not other.c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef int divisible
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
@@ -368,9 +382,6 @@ cdef class ntl_ZZ_pEX(object):
             raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return r
 
-    def __div__(self, other):
-        return self / other
-
     def __mod__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
         """
         Given polynomials a, b in ZZ_pE[X], if p is prime and the defining modulus irreducible,
@@ -380,19 +391,20 @@ cdef class ntl_ZZ_pEX(object):
         If p is not prime or the modulus is not irreducible, this function may raise a
         RuntimeError due to division by a noninvertible element of ZZ_p.
 
-        EXAMPLES:
-        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^10))
-        sage: a = c.ZZ_pE([5, 1])
-        sage: b = c.ZZ_pE([4, 99])
-        sage: f = c.ZZ_pEX([a, b])
-        sage: g = c.ZZ_pEX([a^2, -b, a + b])
-        sage: g % f
-        [[1864280 2123186]]
-        sage: f % g
-        [[5 1] [4 99]]
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^10))
+            sage: a = c.ZZ_pE([5, 1])
+            sage: b = c.ZZ_pE([4, 99])
+            sage: f = c.ZZ_pEX([a, b])
+            sage: g = c.ZZ_pEX([a^2, -b, a + b])
+            sage: g % f
+            [[1864280 2123186]]
+            sage: f % g
+            [[5 1] [4 99]]
         """
         if self.c is not other.c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new() restores the context
@@ -409,19 +421,20 @@ cdef class ntl_ZZ_pEX(object):
         If p is not prime or the modulus is not irreducible, this function may raise a
         RuntimeError due to division by a noninvertible element of ZZ_p.
 
-        EXAMPLES:
-        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^10))
-        sage: a = c.ZZ_pE([5, 1])
-        sage: b = c.ZZ_pE([4, 99])
-        sage: f = c.ZZ_pEX([a, b])
-        sage: g = c.ZZ_pEX([a^2, -b, a + b])
-        sage: g.quo_rem(f)
-        ([[4947544 2492106] [4469276 6572944]], [[1864280 2123186]])
-        sage: f.quo_rem(g)
-        ([], [[5 1] [4 99]])
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^10))
+            sage: a = c.ZZ_pE([5, 1])
+            sage: b = c.ZZ_pE([4, 99])
+            sage: f = c.ZZ_pEX([a, b])
+            sage: g = c.ZZ_pEX([a^2, -b, a + b])
+            sage: g.quo_rem(f)
+            ([[4947544 2492106] [4469276 6572944]], [[1864280 2123186]])
+            sage: f.quo_rem(g)
+            ([], [[5 1] [4 99]])
         """
         if self.c is not other.c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         cdef ntl_ZZ_pEX q = self._new()
         sig_on()
@@ -434,13 +447,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return $f^2$.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.square()
-        [[5 1] [5 1] [2 1] [1] [4]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.square()
+            [[5 1] [5 1] [2 1] [1] [4]]
         """
         # self.c.restore_c() # _new() restores the context
         cdef ntl_ZZ_pEX r = self._new()
@@ -513,16 +527,17 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return True exactly if this polynomial is 0.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.is_zero()
-        False
-        sage: f = ntl.ZZ_pEX([0,0,7], c)
-        sage: f.is_zero()
-        True
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.is_zero()
+            False
+            sage: f = ntl.ZZ_pEX([0,0,7], c)
+            sage: f.is_zero()
+            True
         """
         self.c.restore_c()
         return bool(ZZ_pEX_IsZero(self.x))
@@ -531,16 +546,17 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return True exactly if this polynomial is 1.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.is_one()
-        False
-        sage: f = ntl.ZZ_pEX([1, 0, 0], c)
-        sage: f.is_one()
-        True
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.is_one()
+            False
+            sage: f = ntl.ZZ_pEX([1, 0, 0], c)
+            sage: f.is_one()
+            True
         """
         self.c.restore_c()
         return bool(ZZ_pEX_IsOne(self.x))
@@ -549,16 +565,17 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return True exactly if this polynomial is monic.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.is_monic()
-        False
-        sage: f = ntl.ZZ_pEX([a, b, 1], c)
-        sage: f.is_monic()
-        True
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.is_monic()
+            False
+            sage: f = ntl.ZZ_pEX([a, b, 1], c)
+            sage: f.is_monic()
+            True
         """
         self.c.restore_c()
         # The following line is what we should have.  However, strangely this is *broken*
@@ -575,13 +592,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return the negative of self.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: -f
-        [[4 5] [6 5] [6 5]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: -f
+            [[4 5] [6 5] [6 5]]
         """
         cdef ntl_ZZ_pEX r = self._new()
         # self.c.restore_c() # _new() calls restore
@@ -596,20 +614,21 @@ cdef class ntl_ZZ_pEX(object):
         (in which case self is reduced modulo c.p) or self.c.p should divide c.p
         (in which case self is lifted to something modulo c.p congruent to self modulo self.c.p)
 
-        EXAMPLES:
-        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^20))
-        sage: a = ntl.ZZ_pE([192870, 1928189], c)
-        sage: b = ntl.ZZ_pE([18275,293872987], c)
-        sage: f = ntl.ZZ_pEX([a, b])
-        sage: g = f.convert_to_modulus(ntl.ZZ_pContext(ntl.ZZ(5^5)))
-        sage: g
-        [[2245 64] [2650 1112]]
-        sage: g.get_modulus_context()
-        NTL modulus [3120 0 1] (mod 3125)
-        sage: g^2
-        [[1130 2985] [805 830] [2095 2975]]
-        sage: (f^2).convert_to_modulus(ntl.ZZ_pContext(ntl.ZZ(5^5)))
-        [[1130 2985] [805 830] [2095 2975]]
+        EXAMPLES::
+
+            sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^20))
+            sage: a = ntl.ZZ_pE([192870, 1928189], c)
+            sage: b = ntl.ZZ_pE([18275,293872987], c)
+            sage: f = ntl.ZZ_pEX([a, b])
+            sage: g = f.convert_to_modulus(ntl.ZZ_pContext(ntl.ZZ(5^5)))
+            sage: g
+            [[2245 64] [2650 1112]]
+            sage: g.get_modulus_context()
+            NTL modulus [3120 0 1] (mod 3125)
+            sage: g^2
+            [[1130 2985] [805 830] [2095 2975]]
+            sage: (f^2).convert_to_modulus(ntl.ZZ_pContext(ntl.ZZ(5^5)))
+            [[1130 2985] [805 830] [2095 2975]]
         """
         cdef ntl_ZZ_pEContext_class cE = ntl_ZZ_pEContext(self.c.f.convert_to_modulus(c))
         cE.restore_c()
@@ -625,20 +644,22 @@ cdef class ntl_ZZ_pEX(object):
         Return the polynomial obtained by shifting all coefficients of
         this polynomial to the left n positions.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b]); f
-        [[3 2] [1 2] [1 2]]
-        sage: f.left_shift(2)
-        [[] [] [3 2] [1 2] [1 2]]
-        sage: f.left_shift(5)
-        [[] [] [] [] [] [3 2] [1 2] [1 2]]
+        EXAMPLES::
 
-        A negative left shift is a right shift.
-        sage: f.left_shift(-2)
-        [[1 2]]
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b]); f
+            [[3 2] [1 2] [1 2]]
+            sage: f.left_shift(2)
+            [[] [] [3 2] [1 2] [1 2]]
+            sage: f.left_shift(5)
+            [[] [] [] [] [] [3 2] [1 2] [1 2]]
+
+        A negative left shift is a right shift::
+
+            sage: f.left_shift(-2)
+            [[1 2]]
         """
         # self.c.restore_c() # _new() calls restore
         cdef ntl_ZZ_pEX r = self._new()
@@ -652,20 +673,22 @@ cdef class ntl_ZZ_pEX(object):
         Return the polynomial obtained by shifting all coefficients of
         this polynomial to the right n positions.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b]); f
-        [[3 2] [1 2] [1 2]]
-        sage: f.right_shift(2)
-        [[1 2]]
-        sage: f.right_shift(5)
-        []
+        EXAMPLES::
 
-        A negative right shift is a left shift.
-        sage: f.right_shift(-5)
-        [[] [] [] [] [] [3 2] [1 2] [1 2]]
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b]); f
+            [[3 2] [1 2] [1 2]]
+            sage: f.right_shift(2)
+            [[1 2]]
+            sage: f.right_shift(5)
+            []
+
+        A negative right shift is a left shift::
+
+            sage: f.right_shift(-5)
+            [[] [] [] [] [] [3 2] [1 2] [1 2]]
         """
         # self.c.restore_c() # _new() calls restore
         cdef ntl_ZZ_pEX r = self._new()
@@ -680,20 +703,21 @@ cdef class ntl_ZZ_pEX(object):
 
         NOTE: Does not work if p is not prime or if the modulus is not irreducible.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = f^2
-        sage: h = f^3
-        sage: g.gcd(h)
-        [[2 1] [8 1] [9 1] [2] [1]]
-        sage: f^2
-        [[5 8] [9 8] [6 8] [5] [8]]
-        sage: eight = ntl.ZZ_pEX([[8]], c)
-        sage: f^2 / eight
-        [[2 1] [8 1] [9 1] [2] [1]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = f^2
+            sage: h = f^3
+            sage: g.gcd(h)
+            [[2 1] [8 1] [9 1] [2] [1]]
+            sage: f^2
+            [[5 8] [9 8] [6 8] [5] [8]]
+            sage: eight = ntl.ZZ_pEX([[8]], c)
+            sage: f^2 / eight
+            [[2 1] [8 1] [9 1] [2] [1]]
         """
         #If check = True, need to check that ZZ_pE is a field.
         self.c.restore_c()
@@ -709,20 +733,21 @@ cdef class ntl_ZZ_pEX(object):
 
         Here r is the gcd of self and other.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([a-b, b^2, a])
-        sage: h = ntl.ZZ_pEX([a^2-b, b^4, b,a])
-        sage: r,s,t = (g*f).xgcd(h*f)
-        sage: r
-        [[4 6] [1] [1]]
-        sage: f / ntl.ZZ_pEX([b])
-        [[4 6] [1] [1]]
-        sage: s*f*g+t*f*h
-        [[4 6] [1] [1]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([a-b, b^2, a])
+            sage: h = ntl.ZZ_pEX([a^2-b, b^4, b,a])
+            sage: r,s,t = (g*f).xgcd(h*f)
+            sage: r
+            [[4 6] [1] [1]]
+            sage: f / ntl.ZZ_pEX([b])
+            [[4 6] [1] [1]]
+            sage: s*f*g+t*f*h
+            [[4 6] [1] [1]]
         """
         self.c.restore_c()
         cdef ntl_ZZ_pEX s = self._new()
@@ -738,15 +763,16 @@ cdef class ntl_ZZ_pEX(object):
         Return the degree of this polynomial.  The degree of the 0
         polynomial is -1.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.degree()
-        2
-        sage: ntl.ZZ_pEX([], c).degree()
-        -1
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.degree()
+            2
+            sage: ntl.ZZ_pEX([], c).degree()
+            -1
         """
         self.c.restore_c()
         return ZZ_pEX_deg(self.x)
@@ -755,13 +781,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return the leading coefficient of this polynomial.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.leading_coefficient()
-        [1 2]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.leading_coefficient()
+            [1 2]
         """
         self.c.restore_c()
         cdef long i
@@ -772,13 +799,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return the constant coefficient of this polynomial.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.constant_term()
-        [3 2]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.constant_term()
+            [3 2]
         """
         self.c.restore_c()
         return self[0]
@@ -787,15 +815,16 @@ cdef class ntl_ZZ_pEX(object):
         """
         Set this polynomial to the monomial "x".
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f
-        [[3 2] [1 2] [1 2]]
-        sage: f.set_x(); f
-        [[] [1]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f
+            [[3 2] [1 2] [1 2]]
+            sage: f.set_x(); f
+            [[] [1]]
         """
         self.c.restore_c()
         ZZ_pEX_SetX(self.x)
@@ -804,15 +833,16 @@ cdef class ntl_ZZ_pEX(object):
         """
         True if this is the polynomial "x".
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.is_x()
-        False
-        sage: f.set_x(); f.is_x()
-        True
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.is_x()
+            False
+            sage: f.set_x(); f.is_x()
+            True
         """
         return bool(ZZ_pEX_IsX(self.x))
 
@@ -820,13 +850,14 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return the derivative of this polynomial.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.derivative()
-        [[1 2] [2 4]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.derivative()
+            [[1 2] [2 4]]
         """
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
@@ -870,19 +901,20 @@ cdef class ntl_ZZ_pEX(object):
         of this polynomial.  If hi is set then this function behaves
         as if this polynomial has degree hi.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.reverse()
-        [[1 2] [1 2] [3 2]]
-        sage: f.reverse(hi=5)
-        [[] [] [] [1 2] [1 2] [3 2]]
-        sage: f.reverse(hi=1)
-        [[1 2] [3 2]]
-        sage: f.reverse(hi=-2)
-        []
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.reverse()
+            [[1 2] [1 2] [3 2]]
+            sage: f.reverse(hi=5)
+            [[] [] [] [1 2] [1 2] [3 2]]
+            sage: f.reverse(hi=1)
+            [[1 2] [3 2]]
+            sage: f.reverse(hi=-2)
+            []
         """
         cdef ntl_ZZ_pEX r = self._new()
         if not (hi is None):
@@ -896,15 +928,16 @@ cdef class ntl_ZZ_pEX(object):
         Return the truncation of this polynomial obtained by
         removing all terms of degree >= m.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.truncate(3)
-        [[3 2] [1 2] [1 2]]
-        sage: f.truncate(1)
-        [[3 2]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.truncate(3)
+            [[3 2] [1 2] [1 2]]
+            sage: f.truncate(1)
+            [[3 2]]
         """
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
@@ -917,16 +950,17 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return self*other but with terms of degree >= m removed.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([a - b, b^2, a, a*b])
-        sage: f*g
-        [[6 4] [4 9] [4 6] [7] [1 9] [2 5]]
-        sage: f.multiply_and_truncate(g, 3)
-        [[6 4] [4 9] [4 6]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([a - b, b^2, a, a*b])
+            sage: f*g
+            [[6 4] [4 9] [4 6] [7] [1 9] [2 5]]
+            sage: f.multiply_and_truncate(g, 3)
+            [[6 4] [4 9] [4 6]]
         """
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
@@ -939,15 +973,16 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return self*self but with terms of degree >= m removed.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f^2
-        [[5 8] [9 8] [6 8] [5] [8]]
-        sage: f.square_and_truncate(3)
-        [[5 8] [9 8] [6 8]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f^2
+            [[5 8] [9 8] [6 8] [5] [8]]
+            sage: f.square_and_truncate(3)
+            [[5 8] [9 8] [6 8]]
         """
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
@@ -961,16 +996,17 @@ cdef class ntl_ZZ_pEX(object):
         Compute and return the inverse of self modulo $x^m$.
         The constant term of self must be invertible.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = f.invert_and_truncate(5)
-        sage: g
-        [[8 6] [4 4] [5 9] [1 4] [0 1]]
-        sage: f * g
-        [[1] [] [] [] [] [2 8] [9 10]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = f.invert_and_truncate(5)
+            sage: g
+            [[8 6] [4 4] [5 9] [1 4] [0 1]]
+            sage: f * g
+            [[1] [] [] [] [] [2 8] [9 10]]
         """
         if m < 0:
             raise ArithmeticError("m (=%s) must be positive" % m)
@@ -987,15 +1023,16 @@ cdef class ntl_ZZ_pEX(object):
         Return self*other % modulus.  The modulus must be monic with
         deg(modulus) > 0, and self and other must have smaller degree.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([b^4, a*b^2, a - b])
-        sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
-        sage: f.multiply_mod(g, m)
-        [[10 10] [4 4] [10 3]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([b^4, a*b^2, a - b])
+            sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
+            sage: f.multiply_mod(g, m)
+            [[10 10] [4 4] [10 3]]
         """
         self.c.restore_c()
         cdef ntl_ZZ_pEX r = self._new()
@@ -1010,14 +1047,15 @@ cdef class ntl_ZZ_pEX(object):
         The modulus must be monic, and of positive degree degree bigger
         than the degree of self.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
-        sage: f.trace_mod(m)
-        [8 1]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
+            sage: f.trace_mod(m)
+            [8 1]
         """
         self.c.restore_c()
         cdef ntl_ZZ_pE r = ntl_ZZ_pE(modulus = self.c)
@@ -1032,13 +1070,15 @@ cdef class ntl_ZZ_pEX(object):
     #    monomial x modulo this polynomial for i = 0, ..., deg(f)-1.
     #    This polynomial must be monic.
     #
-    #    EXAMPLES:
+    #    EXAMPLES::
+    #
     #        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
     #        sage: f = c.ZZ_pX([1,2,0,3,0,1])
     #        sage: f.trace_list()
     #        [5, 0, 14, 0, 10]
     #
-    #        The input polynomial must be monic or a ValueError is raised:
+    #    The input polynomial must be monic or a ValueError is raised::
+    #
     #        sage: c=ntl.ZZ_pContext(ntl.ZZ(20))
     #        sage: f = c.ZZ_pX([1,2,0,3,0,2]
     #        sage: f.trace_list()
@@ -1060,16 +1100,17 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return the resultant of self and other.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: g = ntl.ZZ_pEX([a - b, b^2, a, a*b])
-        sage: f.resultant(g)
-        [1]
-        sage: (f*g).resultant(f^2)
-        []
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: g = ntl.ZZ_pEX([a - b, b^2, a, a*b])
+            sage: f.resultant(g)
+            [1]
+            sage: (f*g).resultant(f^2)
+            []
         """
         self.c.restore_c()
         cdef ntl_ZZ_pE r = ntl_ZZ_pE(modulus = self.c)
@@ -1084,14 +1125,15 @@ cdef class ntl_ZZ_pEX(object):
         modulus must be monic, and of positive degree strictly greater
         than the degree of self.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
-        sage: f.norm_mod(m)
-        [9 2]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
+            sage: f.norm_mod(m)
+            [9 2]
         """
         self.c.restore_c()
         cdef ntl_ZZ_pE r = ntl_ZZ_pE(modulus = self.c)
@@ -1108,13 +1150,14 @@ cdef class ntl_ZZ_pEX(object):
         $$
         where m = deg(a), and lc(a) is the leading coefficient of a.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.discriminant()
-        [1 6]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f.discriminant()
+            [1 6]
         """
         self.c.restore_c()
         cdef long m
@@ -1131,14 +1174,15 @@ cdef class ntl_ZZ_pEX(object):
         modulus.  The modulus must be monic of degree bigger than
         self.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
-        sage: f.minpoly_mod(m)
-        [[2 9] [8 2] [3 10] [1]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: m = ntl.ZZ_pEX([a - b, b^2, a, a*b])
+            sage: f.minpoly_mod(m)
+            [[2 9] [8 2] [3 10] [1]]
         """
         self.c.restore_c()
         cdef ntl_ZZ_pEX r = self._new()
@@ -1151,15 +1195,16 @@ cdef class ntl_ZZ_pEX(object):
         """
         Reset this polynomial to 0.  Changes this polynomial in place.
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f
-        [[3 2] [1 2] [1 2]]
-        sage: f.clear(); f
-        []
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f
+            [[3 2] [1 2] [1 2]]
+            sage: f.clear(); f
+            []
         """
         self.c.restore_c()
         sig_on()
@@ -1174,14 +1219,15 @@ cdef class ntl_ZZ_pEX(object):
         the polynomial grows.  (You might save a millisecond with this
         function.)
 
-        EXAMPLES:
-        sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
-        sage: a = ntl.ZZ_pE([3,2], c)
-        sage: b = ntl.ZZ_pE([1,2], c)
-        sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f[10]=ntl.ZZ_pE([1,8],c)  # no new memory is allocated
-        sage: f
-        [[3 2] [1 2] [1 2] [] [] [] [] [] [] [] [1 8]]
+        EXAMPLES::
+
+            sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
+            sage: a = ntl.ZZ_pE([3,2], c)
+            sage: b = ntl.ZZ_pE([1,2], c)
+            sage: f = ntl.ZZ_pEX([a, b, b])
+            sage: f[10]=ntl.ZZ_pE([1,8],c)  # no new memory is allocated
+            sage: f
+            [[3 2] [1 2] [1 2] [] [] [] [] [] [] [] [1 8]]
         """
         self.c.restore_c()
         sig_on()
@@ -1193,13 +1239,14 @@ def make_ZZ_pEX(v, modulus):
     """
     Here for unpickling.
 
-    EXAMPLES:
-    sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
-    sage: a = ntl.ZZ_pE([3,2], c)
-    sage: b = ntl.ZZ_pE([1,2], c)
-    sage: sage.libs.ntl.ntl_ZZ_pEX.make_ZZ_pEX([a,b,b], c)
-    [[3 2] [1 2] [1 2]]
-    sage: type(sage.libs.ntl.ntl_ZZ_pEX.make_ZZ_pEX([a,b,b], c))
-    <type 'sage.libs.ntl.ntl_ZZ_pEX.ntl_ZZ_pEX'>
+    EXAMPLES::
+
+        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5,0,1],25))
+        sage: a = ntl.ZZ_pE([3,2], c)
+        sage: b = ntl.ZZ_pE([1,2], c)
+        sage: sage.libs.ntl.ntl_ZZ_pEX.make_ZZ_pEX([a,b,b], c)
+        [[3 2] [1 2] [1 2]]
+        sage: type(sage.libs.ntl.ntl_ZZ_pEX.make_ZZ_pEX([a,b,b], c))
+        <type 'sage.libs.ntl.ntl_ZZ_pEX.ntl_ZZ_pEX'>
     """
     return ntl_ZZ_pEX(v, modulus)

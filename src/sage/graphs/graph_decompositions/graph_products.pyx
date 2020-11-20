@@ -6,12 +6,6 @@ This module gathers everything related to graph products. At the moment it
 contains an implementation of a recognition algorithm for graphs that can be
 written as a Cartesian product of smaller ones.
 
-References:
-
-  .. [HIK11] Handbook of Product Graphs,
-    R. Hammack, W. Imrich, S. Klavzar,
-    CRC press, 2011
-
 Author:
 
 - Nathann Cohen (May 2012 -- coded while watching the election of Francois
@@ -46,7 +40,7 @@ The problem that is of interest to us in the present module is the following:
 
 This problem can actually be solved, and the resulting factorization is
 unique. What is explained below can be found in the book *Handbook of Product
-Graphs* [HIK11]_.
+Graphs* [HIK2011]_.
 
 Everything is actually based on simple observations. Given a graph `G`, finding
 out whether `G` can be written as the product of several graphs can be attempted
@@ -112,7 +106,7 @@ All that is left to do is to compute the connected components of this new graph,
 as each of them representing the edges of a factor. Of course, only one
 connected component indicates that the graph has no factorization.
 
-Then again, please refer to [HIK11]_ for any technical question.
+Then again, please refer to [HIK2011]_ for any technical question.
 
 To Do
 ^^^^^
@@ -187,14 +181,15 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
     Forgetting the graph's labels, then finding them back::
 
         sage: g.relabel()
-        sage: g.is_cartesian_product(g, relabeling = True)
-        (True, {0: (0, 0), 1: (0, 1), 2: (0, 2), 3: (0, 3),
-                4: (0, 4), 5: (5, 0), 6: (5, 1), 7: (5, 2),
-                8: (5, 3), 9: (5, 4), 10: (10, 0), 11: (10, 1),
-                12: (10, 2), 13: (10, 3), 14: (10, 4), 15: (15, 0),
-                16: (15, 1), 17: (15, 2), 18: (15, 3), 19: (15, 4),
-                20: (20, 0), 21: (20, 1), 22: (20, 2), 23: (20, 3),
-                24: (20, 4)})
+        sage: b,D = g.is_cartesian_product(g, relabeling=True)
+        sage: b
+        True
+        sage: D  # random isomorphism
+        {0: (20, 0), 1: (20, 1), 2: (20, 2), 3: (20, 3), 4: (20, 4),
+         5: (15, 0), 6: (15, 1), 7: (15, 2), 8: (15, 3), 9: (15, 4),
+         10: (10, 0), 11: (10, 1), 12: (10, 2), 13: (10, 3), 14: (10, 4),
+         15: (5, 0), 16: (5, 1), 17: (5, 2), 18: (5, 3), 19: (5, 4),
+         20: (0, 0), 21: (0, 1), 22: (0, 2), 23: (0, 3), 24: (0, 4)}
 
     And of course, we find the factors back when we build a graph from a
     product::
@@ -232,7 +227,7 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
     if not g.is_connected():
         raise NotImplementedError("recognition of Cartesian product is not implemented for disconnected graphs")
 
-    # Of course the number of vertices of g can not be prime !
+    # Of course the number of vertices of g cannot be prime !
     if g.order() <= 3 or Integer(g.order()).is_prime():
         return (False, None) if relabeling else False
 
@@ -299,7 +294,7 @@ def is_cartesian_product(g, certificate=False, relabeling=False):
     # Edges uv and u'v' such that d(u,u')+d(v,v') != d(u,v')+d(v,u') are also
     # equivalent
 
-    cdef list edges = g_int.edges(labels=False, sort=False)
+    cdef list edges = list(g_int.edges(labels=False, sort=False))
     cdef dict d = g_int.distance_all_pairs()
     cdef int uu, vv
     for i, (u, v) in enumerate(edges):

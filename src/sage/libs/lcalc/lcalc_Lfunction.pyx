@@ -1,3 +1,6 @@
+# distutils: libraries = m ntl Lfunction
+# distutils: extra_compile_args = -O3 -ffast-math
+# distutils: language = c++
 r"""
 Rubinstein's lcalc library
 
@@ -20,7 +23,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -30,8 +32,8 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
 
-from sage.rings.complex_number cimport ComplexNumber
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr cimport ComplexNumber
+from sage.rings.complex_mpfr import ComplexField
 CCC = ComplexField()
 
 from sage.rings.real_mpfr cimport RealNumber
@@ -322,7 +324,7 @@ cdef class Lfunction:
           If -1 is passed, then we attempt to compute it. (Use default if in
           doubt)
         - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
-          the explicit fomula for additional confidence that all the zeros
+          the explicit formula for additional confidence that all the zeros
           have been found and are accurate. This is still being tested, so
           using the default is recommended.
 

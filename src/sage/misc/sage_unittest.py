@@ -2,15 +2,15 @@ r"""
 Unit testing for Sage objects
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import unittest
 import sys
@@ -50,6 +50,7 @@ class TestSuite(object):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -152,7 +153,7 @@ class TestSuite(object):
             Test suite for Integer Ring
         """
         from sage.structure.sage_object import SageObject
-        if not isinstance(instance, (SageObject,PythonObjectWithTests)):
+        if not isinstance(instance, (SageObject, PythonObjectWithTests)):
             instance = PythonObjectWithTests(instance)
         self._instance = instance
 
@@ -163,10 +164,10 @@ class TestSuite(object):
             sage: TestSuite(ZZ)
             Test suite for Integer Ring
         """
-        return "Test suite for %s"%self._instance
+        return "Test suite for %s" % self._instance
 
-
-    def run(self, category = None, skip = [], catch = True, raise_on_failure = False, **options):
+    def run(self, category=None, skip=[], catch=True, raise_on_failure=False,
+            **options):
         """
         Run all the tests from this test suite:
 
@@ -281,8 +282,8 @@ class TestSuite(object):
             skip = tuple(skip)
 
         # The class of exceptions that will be caught and reported;
-        # other exceptions will get through. None catches nothing.
-        catch_exception = Exception if catch else None
+        # other exceptions will get through. () catches nothing.
+        catch_exception = Exception if catch else ()
 
         tester = instance_tester(self._instance, **options)
         failed = []
@@ -290,38 +291,40 @@ class TestSuite(object):
             if method_name[0:6] == "_test_" and method_name not in skip:
                 # TODO: improve pretty printing
                 # could use the doc string of the test method?
-                tester.info(tester._prefix+"running .%s() . . ."%method_name, newline = False)
+                tester.info(tester._prefix + "running .%s() . . ." % method_name, newline=False)
                 test_method = getattr(self._instance, method_name)
                 try:
-                    test_method(tester = tester)
+                    test_method(tester=tester)
                     tester.info(" pass")
                 except catch_exception as e:
                     failed.append(method_name)
                     if isinstance(e, TestSuiteFailure):
-                        # The failure occured in a nested testsuite
+                        # The failure occurred in a nested testsuite
                         # which has already reported the details of
                         # that failure
                         if not tester._verbose:
-                            print(tester._prefix+"Failure in {}".format(method_name))
+                            print(tester._prefix + "Failure in {}".format(method_name))
                     else:
                         if tester._verbose:
                             tester.info(" fail")
                         else:
-                            print(tester._prefix+"Failure in {}:".format(method_name))
+                            print(tester._prefix + "Failure in {}:".format(method_name))
                         s = traceback.format_exc()
-                        print(tester._prefix + s.strip().replace("\n", "\n"+tester._prefix))
+                        print(tester._prefix + s.strip().replace("\n", "\n" + tester._prefix))
                         print(tester._prefix + "-" * 60)
-        if len(failed) > 0:
-            print(tester._prefix+"The following tests failed: {}".format(", ".join(failed)))
+        if failed:
+            print(tester._prefix + "The following tests failed: {}".format(", ".join(failed)))
             if raise_on_failure:
                 raise TestSuiteFailure
+
 
 class TestSuiteFailure(AssertionError):
     pass
 
-def instance_tester(instance, tester = None, **options):
+
+def instance_tester(instance, tester=None, **options):
     """
-    Returns a gadget attached to ``instance`` providing testing utilities.
+    Return a gadget attached to ``instance`` providing testing utilities.
 
     EXAMPLES::
 
@@ -356,9 +359,10 @@ def instance_tester(instance, tester = None, **options):
     if tester is None:
         return InstanceTester(instance, **options)
     else:
-        assert len(options) == 0
+        assert not options
         assert tester._instance is instance
         return tester
+
 
 class InstanceTester(unittest.TestCase):
     """
@@ -383,7 +387,8 @@ class InstanceTester(unittest.TestCase):
     # all that much anyways)
     longMessage = False
 
-    def __init__(self, instance, elements = None, verbose = False, prefix = "", max_runs = 4096, max_samples = None, **options):
+    def __init__(self, instance, elements=None, verbose=False, prefix="",
+                 max_runs=4096, max_samples=None, **options):
         """
         A gadget attached to an instance providing it with testing utilities.
 
@@ -420,9 +425,9 @@ class InstanceTester(unittest.TestCase):
         """
         pass
 
-    def info(self, message, newline = True):
+    def info(self, message, newline=True):
         """
-        Displays user information
+        Display user information
 
         EXAMPLES::
 
@@ -442,7 +447,7 @@ class InstanceTester(unittest.TestCase):
         """
         if self._verbose:
             if newline:
-                sys.stdout.write(message+"\n")
+                sys.stdout.write(message + "\n")
             else:
                 sys.stdout.write(message)
             sys.stdout.flush()
@@ -456,14 +461,14 @@ class InstanceTester(unittest.TestCase):
             Testing utilities for Integer Ring
 
         """
-        return "Testing utilities for %s"%self._instance
-
+        return "Testing utilities for %s" % self._instance
 
     def some_elements(self, S=None, repeat=None):
         """
-        Returns a list (or iterable) of elements of the instance on which
-        the tests should be run. This is only meaningful for container
-        objects like parents.
+        Return a list (or iterable) of elements of the instance on which
+        the tests should be run.
+
+        This is only meaningful for container objects like parents.
 
         INPUT:
 
@@ -569,6 +574,7 @@ class InstanceTester(unittest.TestCase):
         S = S or self._elements or self._instance.some_elements()
         from sage.misc.misc import some_tuples
         return list(some_tuples(S, repeat, self._max_runs, self._max_samples))
+
 
 class PythonObjectWithTests(object):
     """

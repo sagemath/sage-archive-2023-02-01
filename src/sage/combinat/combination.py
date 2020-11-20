@@ -7,8 +7,10 @@ AUTHORS:
 
 - Vincent Delecroix (2011): cleaning, bug corrections, doctests
 
+- Antoine Genitrini (2020) : new implementation of the lexicographic unranking of combinations
+
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -20,17 +22,12 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
-from six.moves import range
-
-from sage.interfaces.all import gap
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.rings.all import ZZ, Integer
 from sage.arith.all import binomial
 from .combinat import CombinatorialClass
 from .integer_vector import IntegerVectors
-from sage.misc.misc import uniq
 
 
 def Combinations(mset, k=None):
@@ -157,10 +154,7 @@ def Combinations(mset, k=None):
         sage: Combinations(l).list()
         [[], [(0, 0)], [(0, 1)], [(0, 0), (0, 1)]]
     """
-
-
-
-    #Check to see if everything in mset is unique
+    # Check to see if everything in mset is unique
     if isinstance(mset, (int, Integer)):
         mset = list(range(mset))
     else:
@@ -174,12 +168,13 @@ def Combinations(mset, k=None):
         if k is None:
             return Combinations_set(mset)
         else:
-            return Combinations_setk(mset,k)
+            return Combinations_setk(mset, k)
     else:
         if k is None:
             return Combinations_mset(mset)
         else:
-            return Combinations_msetk(mset,k)
+            return Combinations_msetk(mset, k)
+
 
 class Combinations_mset(CombinatorialClass):
     def __init__(self, mset):
@@ -209,8 +204,7 @@ class Combinations_mset(CombinatorialClass):
         except TypeError:
             return False
 
-        return all(i in self.mset for i in x) and len(uniq(x)) == len(x)
-
+        return all(i in self.mset for i in x) and len(set(x)) == len(x)
 
     def __repr__(self):
         """
@@ -228,7 +222,7 @@ class Combinations_mset(CombinatorialClass):
             sage: Combinations(['a','a','b']).list() #indirect doctest
             [[], ['a'], ['b'], ['a', 'a'], ['a', 'b'], ['a', 'a', 'b']]
         """
-        for k in range(len(self.mset)+1):
+        for k in range(len(self.mset) + 1):
             for comb in Combinations_msetk(self.mset, k):
                 yield comb
 
@@ -246,6 +240,7 @@ class Combinations_mset(CombinatorialClass):
             c += Combinations_msetk(self.mset, k).cardinality()
         return c
 
+
 class Combinations_set(Combinations_mset):
     def __iter__(self):
         """
@@ -257,7 +252,6 @@ class Combinations_set(Combinations_mset):
         for k in range(len(self.mset) + 1):
             for comb in Combinations_setk(self.mset, k):
                 yield comb
-
 
     def unrank(self, r):
         """
@@ -273,10 +267,9 @@ class Combinations_set(Combinations_mset):
         while r >= b:
             r -= b
             k += 1
-            b = binomial(n,k)
+            b = binomial(n, k)
 
         return [self.mset[i] for i in from_rank(r, n, k)]
-
 
     def rank(self, x):
         """
@@ -293,6 +286,7 @@ class Combinations_set(Combinations_mset):
             r += binomial(n, i)
         r += rank(x, n)
         return r
+
 
 class Combinations_msetk(CombinatorialClass):
     def __init__(self, mset, k):
@@ -328,7 +322,6 @@ class Combinations_msetk(CombinatorialClass):
             return False
         return x in Combinations_mset(self.mset) and len(x) == self.k
 
-
     def __repr__(self):
         """
         TESTS::
@@ -345,18 +338,18 @@ class Combinations_msetk(CombinatorialClass):
             sage: Combinations(['a','a','b'],2).list() # indirect doctest
             [['a', 'a'], ['a', 'b']]
         """
-        items = map(self.mset.index, self.mset)
-        indices = uniq(sorted(items))  # this consumes "items" in python3
+        items = [self.mset.index(x) for x in self.mset]
+        indices = sorted(set(items))
         counts = [0] * len(indices)
-        items = map(self.mset.index, self.mset)
         for i in items:
             counts[indices.index(i)] += 1
         for iv in IntegerVectors(self.k, len(indices), outer=counts):
-            yield sum([[self.mset[indices[i]]]*iv[i] for i in range(len(indices))],[])
+            yield sum([[self.mset[indices[i]]] * iv[i]
+                       for i in range(len(indices))], [])
 
     def cardinality(self):
         """
-        Return the size of combinations(mset,k).
+        Return the size of combinations(mset, k).
 
         IMPLEMENTATION: Wraps GAP's NrCombinations.
 
@@ -366,13 +359,14 @@ class Combinations_msetk(CombinatorialClass):
             sage: Combinations(mset,2).cardinality()
             12
         """
+        from sage.libs.gap.libgap import libgap
         items = [self.mset.index(_) for _ in self.mset]
-        return ZZ(gap.eval("NrCombinations({},{})".format(items, ZZ(self.k))))
-
+        nc = libgap.function_factory('NrCombinations')
+        return ZZ(nc(items, ZZ(self.k)))
 
 
 class Combinations_setk(Combinations_msetk):
-    def _iterator(self, items, len_items,  n):
+    def _iterator(self, items, len_items, n):
         """
         An iterator for all the n-combinations of items.
 
@@ -383,12 +377,12 @@ class Combinations_setk(Combinations_msetk):
             [[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
         """
         for i in range(len_items):
-            v = items[i:i+1]
+            v = items[i: i + 1]
             if n == 1:
                 yield v
             else:
-                rest = items[i+1:]
-                for c in self._iterator(rest, len_items-i-1,  n-1):
+                rest = items[i + 1:]
+                for c in self._iterator(rest, len_items - i - 1, n - 1):
                     yield v + c
 
     def _iterator_zero(self):
@@ -427,7 +421,6 @@ class Combinations_setk(Combinations_msetk):
         else:
             return self._iterator(self.mset, len(self.mset), self.k)
 
-
     def list(self):
         """
         EXAMPLES::
@@ -446,7 +439,6 @@ class Combinations_setk(Combinations_msetk):
         """
         return list(self)
 
-
     def unrank(self, r):
         """
         EXAMPLES::
@@ -456,7 +448,6 @@ class Combinations_setk(Combinations_msetk):
             True
         """
         return [self.mset[i] for i in from_rank(r, len(self.mset), self.k)]
-
 
     def rank(self, x):
         """
@@ -521,47 +512,28 @@ def rank(comb, n, check=True):
             if comb[i + 1] <= comb[i]:
                 raise ValueError("comb must be a subword of (0,1,...,n)")
 
-    #Generate the combinadic from the
-    #combination
+    # Generate the combinadic from the combination
 
-    #w = [n-1-comb[i] for i in range(k)]
+    # w = [n-1-comb[i] for i in range(k)]
 
-    #Calculate the integer that is the dual of
-    #the lexicographic index of the combination
+    # Calculate the integer that is the dual of
+    # the lexicographic index of the combination
     r = k
     t = 0
     for i in range(k):
         t += binomial(n - 1 - comb[i], r)
         r -= 1
 
-    return binomial(n,k)-t-1
+    return binomial(n, k) - t - 1
 
-def _comb_largest(a,b,x):
-    r"""
-    Returns the largest `w < a` such that `binomial(w,b) <= x`.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.combination import _comb_largest
-        sage: _comb_largest(6,3,10)
-        5
-        sage: _comb_largest(6,3,5)
-        4
-    """
-    w = a - 1
-
-    while binomial(w,b) > x:
-        w -= 1
-
-    return w
 
 def from_rank(r, n, k):
     r"""
-    Returns the combination of rank ``r`` in the subsets of
+    Return the combination of rank ``r`` in the subsets of
     ``range(n)`` of size ``k`` when listed in lexicographic order.
 
-    The algorithm used is based on combinadics and James McCaffrey's
-    MSDN article. See: :wikipedia:`Combinadic`
+    The algorithm used is based on factoradics and presented in [DGH2020].
+    It is there compared to the other from the literature.
 
     EXAMPLES::
 
@@ -582,30 +554,98 @@ def from_rank(r, n, k):
         (1, 2)
         sage: combination.from_rank(0,3,3)
         (0, 1, 2)
+
+    TESTS::
+
+        sage: from sage.combinat.combination import from_rank
+        sage: def _comb_largest(a,b,x):
+        ....:     w = a - 1
+        ....:     while binomial(w,b) > x:
+        ....:         w -= 1
+        ....:     return w
+        sage: def from_rank_comb_largest(r, n, k):
+        ....:     a = n
+        ....:     b = k
+        ....:     x = binomial(n, k) - 1 - r  # x is the 'dual' of m
+        ....:     comb = [None] * k
+        ....:     for i in range(k):
+        ....:         comb[i] = _comb_largest(a, b, x)
+        ....:         x = x - binomial(comb[i], b)
+        ....:         a = comb[i]
+        ....:         b = b - 1
+        ....:     for i in range(k):
+        ....:         comb[i] = (n - 1) - comb[i]
+        ....:     return tuple(comb)
+        sage: all(from_rank(r, n, k) == from_rank_comb_largest(r, n, k)
+        ....:     for n in range(10) for k in range(n+1) for r in range(binomial(n,k)))
+        True
     """
     if k < 0:
         raise ValueError("k must be > 0")
     if k > n:
         raise ValueError("k must be <= n")
+    if n == 0 or k == 0:
+        return ()
+    if n < 0:
+        raise ValueError("n must be >= 0")
+    B = binomial(n, k)
+    if r < 0 or r >= B:
+        raise ValueError("r must satisfy  0 <= r < binomial(n, k)")
+    if k == 1:
+        return (r,)
 
-    a = n
-    b = k
-    x = binomial(n, k) - 1 - r  # x is the 'dual' of m
-    comb = [None] * k
+    n0 = n
+    D = [0] * k
+    inverse = False
+    if k < n0 / 2:
+        inverse = True
+        k = n - k
+        r = B - 1 - r
 
-    for i in range(k):
-        comb[i] = _comb_largest(a, b, x)
-        x = x - binomial(comb[i], b)
-        a = comb[i]
-        b = b - 1
-
-    for i in range(k):
-        comb[i] = (n - 1) - comb[i]
-
-    return tuple(comb)
+    B = (B * k) // n0
+    m = 0
+    i = 0
+    j = 0
+    m2 = 0
+    d = 0
+    while d < k - 1:
+        if B > r:
+            if i < k - 2:
+                if n0 - 1 - m == 0:
+                    B = 1
+                else:
+                    B = (B * (k - 1 - i)) // (n0 - 1 - m)
+            d += 1
+            if inverse:
+                for e in range(m2, m + i):
+                    D[j] = e
+                    j += 1
+                m2 = m + i + 1
+            else:
+                D[i] = m + i
+            i += 1
+            n0 -= 1
+        else:
+            r -= B
+            if n0 - 1 - m == 0:
+                B = 1
+            else:
+                B = (B * (n0 - m - k + i)) // (n0 - 1 - m)
+            m += 1
+    if inverse:
+        for e in range(m2, n0 + r + i - B):
+            D[j] = e
+            j += 1
+        for e in range(n0 + r + i + 1 - B, n):
+            D[j] = e
+            j += 1
+    else:
+        D[k - 1] = n0 + r + k - 1 - B
+    return tuple(D)
 
 ##########################################################
 # Deprecations
+
 
 class ChooseNK(Combinations_setk):
     def __setstate__(self, state):
@@ -624,6 +664,7 @@ class ChooseNK(Combinations_setk):
         """
         self.__class__ = Combinations_setk
         Combinations_setk.__init__(self, list(range(state['_n'])), state['_k'])
+
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.choose_nk", "ChooseNK", ChooseNK)

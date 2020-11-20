@@ -10,7 +10,6 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .congroup_generic import CongruenceSubgroup
 from sage.misc.all import prod
@@ -235,7 +234,8 @@ class Gamma_class(CongruenceSubgroup):
 
         TESTS::
 
-            sage: G = Gamma(50); all([c == G.reduce_cusp(c) for c in G.cusps()])
+            sage: G = Gamma(50)
+            sage: all(c == G.reduce_cusp(c) for c in G.cusps())
             True
         """
         N = self.level()

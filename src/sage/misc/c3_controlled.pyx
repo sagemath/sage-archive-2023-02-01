@@ -109,9 +109,9 @@ A strategy to solve the problem
 We should recall at this point a design decision that we took for the
 hierarchy of classes derived from categories: *the semantic shall only
 depend on the inheritance order*, not on the specific MRO, and in
-particular not on the order of the bases (see the section
-``On the order of super categories`` in the
-:mod:`category primer <sage.categories.primer>`).
+particular not on the order of the bases (see
+:ref:`On the order of super categories <category-primer-category-order>`).
+
 If a choice needs to be made (for example for efficiency reasons),
 then this should be done explicitly, on a method-by-method basis. In
 practice this design goal is not yet met.
@@ -184,10 +184,10 @@ seamless. Given a hierarchy and a total order on this hierarchy, it
 calculates for each element of the hierarchy the smallest list of
 additional bases that forces ``C3`` to return the desired MRO. This is
 achieved by implementing an instrumented variant of the ``C3``
-algorithm (which we call *instrumented ``C3``*) that detects when
+algorithm (which we call *instrumented* ``C3``) that detects when
 ``C3`` is about to take a wrong decision and adds one base to force
 the right decision. Then, running the standard ``C3`` algorithm with
-the updated list of bases (which we call *controlled ``C3``*) yields
+the updated list of bases (which we call *controlled* ``C3``) yields
 the desired MRO.
 
 EXAMPLES:
@@ -204,7 +204,7 @@ no MRO whatsoever::
 
     sage: P = Poset({10: [9,8,7], 9:[6,1], 8:[5,2], 7:[4,3], 6: [3,2], 5:[3,1], 4: [2,1] }, linear_extension=True, facade=True)
 
-And build a `HierarchyElement` from it::
+And build a :class:`HierarchyElement` from it::
 
     sage: from sage.misc.c3_controlled import HierarchyElement
     sage: x = HierarchyElement(10, P)
@@ -219,7 +219,7 @@ Using the standard ``C3`` algorithm fails::
     sage: x.mro_standard
     Traceback (most recent call last):
     ...
-    ValueError: Can not merge the items 3, 3, 2.
+    ValueError: Cannot merge the items 3, 3, 2.
 
 We also get a failure when we relabel `P` according to another linear
 extension. For easy relabelling, we first need to set an appropriate
@@ -230,17 +230,16 @@ default linear extension for `P`::
     sage: list(P)
     [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
-Now, we play with the fifth linear extension of `P`::
+Now we play with a specific linear extension of `P`::
 
-    sage: L = P.linear_extensions()
-    sage: Q = L[5].to_poset()
+    sage: Q = P.linear_extension([10, 9, 8, 7, 6, 5, 4, 1, 2, 3]).to_poset()
     sage: Q.cover_relations()
     [[10, 9], [10, 8], [10, 7], [9, 6], [9, 3], [8, 5], [8, 2], [7, 4], [7, 1], [6, 2], [6, 1], [5, 3], [5, 1], [4, 3], [4, 2]]
     sage: x = HierarchyElement(10, Q)
     sage: x.mro_standard
     Traceback (most recent call last):
     ...
-    ValueError: Can not merge the items 2, 3, 3.
+    ValueError: Cannot merge the items 2, 3, 3.
 
 On the other hand, both the instrumented ``C3`` algorithm, and the
 controlled ``C3`` algorithm give the desired MRO::
@@ -279,6 +278,7 @@ We now check that the ``C3`` algorithm fails for all linear extensions
 `l` of this poset, whereas both the instrumented and controlled ``C3``
 algorithms succeed; along the way, we collect some statistics::
 
+    sage: L = P.linear_extensions()
     sage: stats = []
     sage: for l in L:
     ....:     x = HierarchyElement(10, l.to_poset())
@@ -331,9 +331,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    94
+    114
     sage: x.all_bases_controlled_len()
-    101
+    117
 
 The following can be used to search through the Sage named categories
 for any that requires the addition of some bases. The output may
@@ -658,7 +658,7 @@ def C3_merge(list lists):
                 break
         if not next_item_found:
             # No head is available
-            raise ValueError("Can not merge the items %s."%', '.join([repr(head) for head in heads]))
+            raise ValueError("Cannot merge the items %s."%', '.join(repr(head) for head in heads))
     return out
 
 cpdef identity(x):
@@ -717,14 +717,14 @@ cpdef tuple C3_sorted_merge(list lists, key=identity):
         sage: C3_sorted_merge([[1],[2]])
         ([2, 1], [2, 1])
 
-    And indeed ``C3_merge`` now returns the desired result::
+    And indeed :func:`C3_merge` now returns the desired result::
 
         sage: C3_merge([[1],[2,1]])
         [2, 1]
 
     From now on, we use this little wrapper that checks that
-    ``C3_merge``, with the suggestion of ``C3_sorted_merge``, returns
-    a sorted list::
+    :func:`C3_merge`, with the suggestion of :func:`C3_sorted_merge`,
+    returns a sorted list::
 
         sage: def C3_sorted_merge_check(lists):
         ....:     result, suggestion = C3_sorted_merge(lists)
@@ -967,8 +967,8 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
     hierarchy, we call the elements just above `x` its *bases*, and
     the linear extension of all elements above `x` its *MRO*.
 
-    By convention, the bases are given as lists of
-    ``HierarchyElement`` s, and MROs are given a list of the
+    By convention, the bases are given as lists of instances of
+    :class:`HierarchyElement`, and MROs are given a list of the
     corresponding values.
 
     INPUT:
@@ -982,7 +982,7 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
 
     .. NOTE::
 
-        Constructing a ``HierarchyElement`` immediately constructs the
+        Constructing a :class:`HierarchyElement` immediately constructs the
         whole hierarchy above it.
 
     EXAMPLES:
@@ -1131,8 +1131,9 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
         """
         The bases of ``self``.
 
-        The bases are given as a list of ``HierarchyElement``s, sorted
-        decreasingly according to the ``key`` function.
+        The bases are given as a list of instances of
+        :class:`HierarchyElement`, sorted decreasingly according to
+        the ``key`` function.
 
         EXAMPLES::
 
@@ -1235,7 +1236,8 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
     @lazy_attribute
     def mro_controlled(self):
         """
-        The MRO for this object, calculated with :meth:`C3_merge`, under control of `C3_sorted_merge`
+        The MRO for this object, calculated with :meth:`C3_merge`, under
+        control of :func:`C3_sorted_merge`
 
         EXAMPLES::
 
@@ -1329,7 +1331,8 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
     @cached_method
     def all_bases(self):
         """
-        Return the set of all the ``HierarchyElement``s above ``self``, ``self`` included.
+        Return the set of all instances of :class:`HierarchyElement` above
+        ``self``, ``self`` included.
 
         EXAMPLES::
 

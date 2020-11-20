@@ -1,24 +1,24 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
-Weighted homogeneous elements of free algebras, in letterplace implementation.
+Weighted homogeneous elements of free algebras, in letterplace implementation
 
 AUTHOR:
 
 - Simon King (2011-03-23): Trac ticket :trac:`7797`
 
 """
-from __future__ import print_function
+
+# ****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.libs.singular.function import lib, singular_function
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from cpython.object cimport PyObject_RichCompare
 
@@ -757,9 +757,8 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             True
             sage: ((x*y)^3+2*z*I.0*z+y*I.1*z-x*I.2*y).normal_form(I) == ((x*y)^3).normal_form(I)
             True
-
         """
         if self._parent != I.ring():
-            raise ValueError("Can not compute normal form wrt an ideal that does not belong to %s" % self._parent)
+            raise ValueError("Cannot compute normal form wrt an ideal that does not belong to %s" % self._parent)
         sdeg = self._poly.degree()
         return self.reduce(self._parent._reductor_(I.groebner_basis(degbound=sdeg).gens(), sdeg))

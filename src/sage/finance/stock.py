@@ -30,7 +30,8 @@ AUTHORS:
 
 TESTS::
 
-    sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+    sage: from sage.finance.stock import OHLC
+    sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
     sage: loads(dumps(ohlc)) == ohlc
     True
 
@@ -38,12 +39,11 @@ Classes and methods
 -------------------
 """
 from __future__ import absolute_import
-from sage.misc.superseded import deprecated_function_alias
+
 from sage.structure.all import Sequence
 from datetime import date
 
-# import compatible with py2 and py3
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 
 
 class OHLC:
@@ -62,12 +62,16 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
              18-Aug-04 100.01 104.06 95.96 100.34   22353092
         """
         self.timestamp = timestamp
-        self.open=float(open); self.high=float(high); self.low=float(low); self.close=float(close)
-        self.volume=int(volume)
+        self.open = float(open)
+        self.high = float(high)
+        self.low = float(low)
+        self.close = float(close)
+        self.volume = int(volume)
 
     def __repr__(self):
         """
@@ -75,10 +79,11 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092).__repr__()
+            sage: from sage.finance.stock import OHLC
+            sage: OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092).__repr__()
             ' 18-Aug-04 100.01 104.06 95.96 100.34   22353092'
         """
-        return '%10s %4.2f %4.2f %4.2f %4.2f %10d'%(self.timestamp, self.open, self.high,
+        return '%10s %4.2f %4.2f %4.2f %4.2f %10d' % (self.timestamp, self.open, self.high,
                    self.low, self.close, self.volume)
 
     def __eq__(self, other):
@@ -87,8 +92,9 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
-            sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc2 = OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
             sage: ohlc == ohlc2
             False
         """
@@ -107,7 +113,8 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
             sage: H = hash(ohlc)
         """
         return hash((self.timestamp,
@@ -123,13 +130,14 @@ class OHLC:
 
         EXAMPLES::
 
-            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
-            sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
+            sage: from sage.finance.stock import OHLC
+            sage: ohlc = OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc2 = OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
             sage: ohlc != ohlc2
             True
         """
         return not (self == other)
-    
+
 
 class Stock:
     """
@@ -173,7 +181,7 @@ class Stock:
             sage: finance.Stock('ibm').__repr__()     # optional -- internet # known bug
             'IBM (...)'
         """
-        return "%s (%s)"%(self.symbol, self.market_value())
+        return "%s (%s)" % (self.symbol, self.market_value())
 
     def market_value(self):
         """
@@ -280,8 +288,6 @@ class Stock:
         data['price_book_ratio'] = values[18]
         data['short_ratio'] = values[19]
         return data
-
-    yahoo = deprecated_function_alias(18355,current_price_data)
 
     def history(self, startdate='Jan+1,+1900', enddate=None, histperiod='daily'):
         """
@@ -396,8 +402,6 @@ class Stock:
         self.__historical = self._load_from_csv(R)
         return self.__historical
 
-    google = deprecated_function_alias(18355,history)
-
     def open(self, *args, **kwds):
         r"""
         Return a time series containing historical opening prices for this
@@ -506,7 +510,7 @@ class Stock:
 
         from .time_series import TimeSeries
 
-        if len(args) != 0:
+        if args:
             return TimeSeries([x.close for x in self.history(*args, **kwds)])
 
         try:
@@ -596,7 +600,7 @@ class Stock:
         for x in reversed(R[1:]):
             try:
                 timestamp, opn, high, low, close, volume = x.split(',')
-                ohlc = OHLC(timestamp, opn,high,low,close,volume)
+                ohlc = OHLC(timestamp, opn, high, low, close, volume)
                 hist_data.append(ohlc)
             except ValueError:
                 pass
@@ -627,9 +631,9 @@ class Stock:
         symbol = self.symbol
         cid = self.cid
         if cid == '':
-            url = 'http://finance.google.com/finance/historical?q=%s%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(exchange, symbol.upper(), startdate, enddate, histperiod)
+            url = 'http://finance.google.com/finance/historical?q=%s%s&startdate=%s&enddate=%s&histperiod=%s&output=csv' % (exchange, symbol.upper(), startdate, enddate, histperiod)
         else:
-            url = 'http://finance.google.com/finance/historical?cid=%s&startdate=%s&enddate=%s&histperiod=%s&output=csv'%(cid, startdate, enddate, histperiod)
+            url = 'http://finance.google.com/finance/historical?cid=%s&startdate=%s&enddate=%s&histperiod=%s&output=csv' % (cid, startdate, enddate, histperiod)
         data = urlopen(url).read()
         if "Bad Request" in data or "The requested URL was not found on this server." in data:
             raise RuntimeError("Google reported a wrong request (did you specify a cid?)")

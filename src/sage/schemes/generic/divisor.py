@@ -41,8 +41,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.misc.all import latex
-from sage.misc.misc import repr_lincomb
+from sage.misc.latex import latex
+from sage.misc.repr import repr_lincomb
 from sage.misc.search import search
 from sage.rings.all import ZZ
 from sage.structure.formal_sum import FormalSum
@@ -295,12 +295,12 @@ class Divisor_curve(Divisor_generic):
             sage: Divisor_curve([(1,P)], parent=DivisorGroup(E))
             (x, y)
         """
-        from sage.schemes.generic.divisor_group import DivisorGroup_generic, DivisorGroup_curve
+        from sage.schemes.generic.divisor_group import DivisorGroup_curve
         if not isinstance(v, (list, tuple)):
             v = [(1,v)]
 
         if parent is None:
-            if len(v) > 0:
+            if v:
                 t = v[0]
                 if isinstance(t, tuple) and len(t) == 2:
                     try:
@@ -312,12 +312,12 @@ class Divisor_curve(Divisor_generic):
                         C = t.scheme()
                     except TypeError:
                         raise TypeError("Argument v (= %s) must consist of multiplicities and points on a scheme.")
-                parent = DivisorGroup(C)
+                parent = DivisorGroup_curve(C)
             else:
                 raise TypeError("Argument v (= %s) must consist of multiplicities and points on a scheme.")
         else:
             if not isinstance(parent, DivisorGroup_curve):
-                raise TypeError("parent (of type %s) must be a DivisorGroup_curve"%type(parent))
+                raise TypeError("parent (of type %s) must be a DivisorGroup_curve" % type(parent))
             C = parent.scheme()
 
         if len(v) < 1:

@@ -17,11 +17,12 @@ AUTHOR:
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ***************************************************************************
 
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from sage.structure.richcmp cimport rich_to_bool_sgn
 from sage.structure.element import coerce_binop
-from sage.structure.richcmp import op_EQ, op_NE, op_LT, op_GT, op_LE, op_GE
 
 from sage.structure.element cimport Element
 from sage.structure.element cimport MonoidElement
@@ -50,7 +51,7 @@ def _pushout_family(elements, initial=ZZ):
 
     - ``initial`` -- a parent
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.tate_algebra_element import _pushout_family
 
@@ -202,6 +203,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent)
 
+    def __nonzero__(self):
+        r"""
+        Return ``True`` if this term is nonzero, ``False`` otherwise.
+
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(Zp(2))
+            sage: t = x.leading_term()
+            sage: bool(t)
+            True
+        """
+        return bool(self._coeff)
+
     def _repr_(self):
         r"""
         Return a string representation of this Tate algebra term.
@@ -347,7 +361,7 @@ cdef class TateAlgebraTerm(MonoidElement):
     #    """
     #    raise NotImplementedError("fraction fields of Tate algebras are not implemented; try inverse_of_unit()")
 
-    cdef int _cmp_c(self, TateAlgebraTerm other):
+    cdef long _cmp_c(self, TateAlgebraTerm other) except? 300:
         r"""
         Compare the Tate algebra term with ``other``.
 
@@ -366,7 +380,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             True
 
         """
-        cdef int c = other._valuation_c() - self._valuation_c()
+        cdef long c = other._valuation_c() - self._valuation_c()
         if not c:
             skey = self._parent._sortkey
             ks = skey(self._exponent)
@@ -426,21 +440,14 @@ cdef class TateAlgebraTerm(MonoidElement):
             False
 
         """
-        if op == op_EQ:
+        if op == Py_EQ:
             return ((<TateAlgebraTerm>self)._coeff == (<TateAlgebraTerm>other)._coeff
                 and (<TateAlgebraTerm>self)._exponent == (<TateAlgebraTerm>other)._exponent)
-        if op == op_NE:
+        if op == Py_NE:
             return ((<TateAlgebraTerm>self)._coeff != (<TateAlgebraTerm>other)._coeff
                  or (<TateAlgebraTerm>self)._exponent != (<TateAlgebraTerm>other)._exponent)
         c = (<TateAlgebraTerm>self)._cmp_c(<TateAlgebraTerm>other)
-        if op == op_LT:
-            return c < 0
-        if op == op_LE:
-            return c <= 0
-        if op == op_GT:
-            return c > 0
-        if op == op_GE:
-            return c >= 0
+        return rich_to_bool_sgn(op, c)
 
     cpdef TateAlgebraTerm monomial(self):
         r"""
@@ -943,7 +950,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         return self._divides_c(other, integral)
-
+    
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral):
         r"""
         Return ``True`` if this term divides ``other``.
@@ -976,8 +983,7 @@ cdef class TateAlgebraTerm(MonoidElement):
                 return False
         return True
 
-    @coerce_binop
-    def __floordiv__(self, other):
+    cpdef _floordiv_(self, other):
         r"""
         Return the result of the exact division of this term by ``other``.
 
@@ -1009,6 +1015,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("the division is not exact")
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
+        
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
         r"""
         Return the result of the exact division of this term by ``other``.
@@ -1538,7 +1545,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``modulus`` -- discarded
 
-        EXEMPLES::
+        EXAMPLES::
 
             sage: R = Zp(3, prec=4, print_mode="digits")
             sage: A.<x,y> = TateAlgebra(R)
@@ -1830,9 +1837,9 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         c = None
         if diff.is_zero():
             c = 0
-        if op == op_EQ:
+        if op == Py_EQ:
             return c is not None
-        if op == op_NE:
+        if op == Py_NE:
             return c is None
         if c is None:
             ts = self.terms()
@@ -1842,14 +1849,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                 if c: break
             else:
                 c = len(ts) - len(to)
-        if op == op_LT:
-            return c < 0
-        if op == op_LE:
-            return c <= 0
-        if op == op_GT:
-            return c > 0
-        if op == op_GE:
-            return c >= 0
+        return rich_to_bool_sgn(op, c)
 
     def __call__(self, *args):
         """
@@ -1993,6 +1993,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             ...0000000001*x^3 + ...0000000001*x + ...00000000010*x^2
             sage: f << 2  # indirect doctest
             ...000000000100*x^3 + ...000000000100*x + ...0000000001000*x^2
+            sage: Ao = A.integer_ring()
+            sage: g = Ao(f).add_bigoh(5); g
+            ...00001*x^3 + ...00001*x + ...00010*x^2 + O(2^5 * <x, y>)
+            sage: g << 2
+            ...0000100*x^3 + ...0000100*x + ...0001000*x^2 + O(2^7 * <x, y>)
 
         """
         cdef dict coeffs = { }
@@ -2011,7 +2016,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             for (e,c) in self._poly.__repn.items():
                 minval = ZZ(e.dotprod(<ETuple>parent._log_radii)).ceil()
                 coeffs[e] = field(base(c) >> (minval-n)) << minval
-            ans._prec = max(ZZ(0), self._prec - n)
+            ans._prec = max(ZZ(0), self._prec + n)
         ans._poly = PolyDict(coeffs, None)
         return ans
 
@@ -2078,9 +2083,26 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return (<TateAlgebraElement>self)._lshift_c(-n)
 
+    def __nonzero__(self):
+        r"""
+        Return ``True`` if this term is nonzero, ``False`` otherwise.
+
+        TESTS::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + y^3
+            sage: bool(f)
+            True
+            sage: bool(f-f)
+            False
+        """
+        cdef list terms = self._terms_c(include_zero=False)
+        return bool(terms) and (<TateAlgebraTerm>terms[0])._valuation_c() < self._prec
+
     def is_zero(self, prec=None):
         r"""
-        Return ``True`` if this series is indistiguishable from zero.
+        Return ``True`` if this series is indistinguishable from zero.
 
         INPUT:
 
@@ -2240,6 +2262,74 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         self._normalize()
         return dict(self._poly.__repn)
+
+    def coefficient(self, exponent):
+        r"""
+        Return the coefficient corresponding to the given exponent
+
+        INPUT:
+
+        - ``exponent`` -- a tuple of integers
+
+        EXAMPLES::
+
+            sage: R = Zp(2, prec=10, print_mode='terse')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 2*x^2 + 53*x*y + y^3
+
+            sage: f.coefficient((2,0))   # coeff in x^2
+            2 + O(2^11)
+            sage: f.coefficient((1,1))   # coeff in x*y
+            53 + O(2^10)
+            sage: f.coefficient((3,0))   # coeff in x^3
+            0
+
+            sage: g = f.add_bigoh(5)
+            sage: g.coefficient((2,0))   # coeff in x^2
+            2 + O(2^5)
+            sage: g.coefficient((1,1))   # coeff in x*y
+            21 + O(2^5)
+            sage: g.coefficient((3,0))   # coeff in x^3
+            O(2^5)
+        """
+        if not self._is_normalized:
+            self._normalize()
+        try:
+            e = ETuple(exponent)
+        except TypeError:
+            raise IndexError("%s is not a correct exponent" % exponent)
+        if len(e) != self.parent().ngens():
+            raise IndexError("lengths do not match")
+        if e in self._poly.__repn:
+            return self._poly.__repn[e]
+        else:
+            return self.base_ring()(0, self.precision_absolute())
+
+    def __getitem__(self, exponent):
+        r"""
+        Return the coefficient corresponding to the given exponent
+
+        INPUT:
+
+        - ``exponent`` -- a tuple of integers
+
+        TESTS::
+
+            sage: R = Zp(2, prec=10, print_mode='terse')
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = 2*x^2 + 53*x*y + y^3
+
+            sage: f['hello']
+            Traceback (most recent call last):
+            ...
+            IndexError: hello is not a correct exponent
+            
+            sage: f[1,2,3]
+            Traceback (most recent call last):
+            ...
+            IndexError: lengths do not match 
+        """
+        return self.coefficient(exponent)
 
     def coefficients(self):
         r"""

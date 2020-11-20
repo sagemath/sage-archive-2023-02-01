@@ -40,7 +40,6 @@ Characters are themselves group elements, and basic arithmetic on them works::
     sage: chi.multiplicative_order()
     +Infinity
 """
-from six.moves import range
 
 import operator
 from sage.structure.element import MultiplicativeGroupElement, parent
@@ -97,7 +96,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
         """
         if self.level() == 0: return
         v = self.parent().subgroup_gens(self.level())
-        if all([self(x) == 1 for x in v]):
+        if all(self(x) == 1 for x in v):
             new_gens = self.parent().unit_gens(self.level() - 1)
             new_values = [self(x) for x in new_gens]
             self._values_on_gens = Sequence(new_values, universe=self.base_ring(), immutable=True)
@@ -194,7 +193,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: chi(QuadraticField(-1,'i').gen())
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 to Rational Field
+            TypeError: no canonical coercion from Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Rational Field
             sage: chi(0)
             Traceback (most recent call last):
             ...
@@ -461,7 +460,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G.coerce(GK.character(0, [4]))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Group of smooth characters of Q_3* with values in Number Field in i with defining polynomial x^2 + 1 to Group of smooth characters of Q_3* with values in Rational Field
+            TypeError: no canonical coercion from Group of smooth characters of Q_3* with values in Number Field in i with defining polynomial x^2 + 1 with i = 1*I to Group of smooth characters of Q_3* with values in Rational Field
             sage: G.character(0, [4]) in GK # indirect doctest
             True
 
@@ -753,9 +752,9 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         for c in range(6):
             gens = self.unit_gens(c)
             exps = self.exponents(c)
-            T.assertTrue(exps[-1] == 0)
-            T.assertTrue(all([u != 0 for u in exps[:-1]]))
-            T.assertTrue(all([u.parent() is self.number_field() for u in gens]))
+            T.assertEqual(exps[-1], 0)
+            T.assertTrue(all(u != 0 for u in exps[:-1]))
+            T.assertTrue(all(u.parent() is self.number_field() for u in gens))
 
             I = self.ideal(c)
             for i in range(len(exps[:-1])):
@@ -772,7 +771,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 if not (g - 1 in I):
                     T.fail("For generator g=%s, g^%s = %s, which is not 1 mod I" % (gens[i], exps[i], g))
             I = self.prime() if self.number_field() == QQ else self.ideal(1)
-            T.assertTrue(gens[-1].valuation(I) == 1)
+            T.assertEqual(gens[-1].valuation(I), 1)
 
             # This implicitly tests that the gens really are gens!
             self.discrete_log(c, -1)
@@ -790,7 +789,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         for c in range(1, 6):
             sgs = self.subgroup_gens(c)
             I2 = self.ideal(c-1)
-            T.assertTrue(all([x-1 in I2 for x in sgs]), "Kernel gens at level %s not in kernel!" % c)
+            T.assertTrue(all(x - 1 in I2 for x in sgs), "Kernel gens at level %s not in kernel!" % c)
 
             # now find the exponent of the kernel
 

@@ -24,15 +24,15 @@ EXAMPLES::
     [[0 : 0 : 1], [1 : 0 : 0], [0 : 1 : 0], [0 : 1 : 1], [0 : 1 : 2]]
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 
 import itertools
@@ -227,12 +227,12 @@ class NaiveFinitePointEnumerator(object):
 
     def _Chow_group_torsion(self):
         r"""
-        Return the relations coming from the torison part of the Chow group
+        Return the relations coming from the torsion part of the Chow group.
 
         OUTPUT:
 
         A tuple containing the non-identity elements of
-        $Hom(A_{d-1,\text{tors}}, F^\times)$
+        `Hom(A_{d-1,\text{tors}}, F^\times)`
 
         EXAMPLES::
 
@@ -437,7 +437,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
 
         A finite field element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: point_set = toric_varieties.P2(base_ring=GF(5^2, 'a')).point_set()
             sage: ffe = point_set._finite_field_enumerator()
@@ -767,7 +767,7 @@ class NaiveSubschemePointEnumerator(object):
 
         INPUT:
 
-        - ``polynomials`` -- list/tuple/iterabel of polynomials. The
+        - ``polynomials`` -- list/tuple/iterable of polynomials. The
           defining polynomials.
 
         - ``ambient`` -- enumerator for ambient space points.
@@ -1031,4 +1031,3 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             for log_t in self.solutions(inhomogeneous, log_range):
                 n += 1
         return n
-

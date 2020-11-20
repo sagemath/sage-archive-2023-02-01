@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -12,7 +15,6 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
@@ -43,7 +45,8 @@ cdef class ntl_GF2EX(object):
         """
         Minimal wrapper of NTL's GF2EX class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: ntl.GF2EX(ctx, '[[1 0] [2 1]]')
             [[1] [0 1]]
@@ -51,7 +54,9 @@ cdef class ntl_GF2EX(object):
         if modulus is None:
             raise ValueError("You must specify a modulus when creating a GF2E.")
 
-        ccreadstr(self.x, str(x))
+        str_x = str(x)  # can cause modulus to change  trac #25790
+        self.c.restore_c()
+        ccreadstr(self.x, str_x)
 
     def __cinit__(self, modulus=None, x=[]):
         #################### WARNING ###################
@@ -99,7 +104,8 @@ cdef class ntl_GF2EX(object):
 
     def __reduce__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0 1] [1 0 0 1] [1]]')
             sage: f == loads(dumps(f))
@@ -140,7 +146,8 @@ cdef class ntl_GF2EX(object):
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: ntl.GF2EX(ctx, '[[1 0] [2 1]]').__repr__()
             '[[1] [0 1]]'
@@ -149,7 +156,8 @@ cdef class ntl_GF2EX(object):
 
     def __mul__(ntl_GF2EX self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0] [2 1]]')
             sage: g = ntl.GF2EX(ctx, '[[1 0 1 1] [0 1 1 0 1] [1 0 1]]')
@@ -168,7 +176,8 @@ cdef class ntl_GF2EX(object):
 
     def __sub__(ntl_GF2EX self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0] [2 1]]')
             sage: g = ntl.GF2EX(ctx, '[[1 0 1 1] [0 1 1 0 1] [1 0 1]]')
@@ -187,7 +196,8 @@ cdef class ntl_GF2EX(object):
 
     def __add__(ntl_GF2EX self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0] [2 1]]')
             sage: g = ntl.GF2EX(ctx, '[[1 0 1 1] [0 1 1 0 1] [1 0 1]]')
@@ -206,7 +216,8 @@ cdef class ntl_GF2EX(object):
 
     def __neg__(ntl_GF2EX self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0] [2 1]]')
             sage: -f ## indirect doctest
@@ -220,7 +231,8 @@ cdef class ntl_GF2EX(object):
 
     def __pow__(ntl_GF2EX self, long e, ignored):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0] [2 1]]')
             sage: f**2 ## indirect doctest

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Overconvergent p-adic modular forms for small primes
+Overconvergent `p`-adic modular forms for small primes
 
 This module implements computations of Hecke operators and `U_p`-eigenfunctions
 on `p`-adic overconvergent modular forms of tame level 1, where `p` is one of
@@ -169,16 +169,13 @@ classical) does not apply.
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
-from sage.misc.misc         import verbose
+from sage.misc.verbose      import verbose
 from sage.misc.cachefunc    import cached_method
-from sage.misc.superseded   import deprecated_function_alias
 from sage.modular.all       import (trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
 from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1
@@ -733,12 +730,10 @@ class OverconvergentModularFormsSpace(Module):
             sage: M10(M(f))
             3-adic overconvergent modular form of weight-character 0 with q-expansion 27*q + 324*q^2 + 2430*q^3 + 13716*q^4 + O(q^5)
         """
-        if isinstance(input, integer_types):
+        if isinstance(input, int):
             input = ZZ(input)
 
         if isinstance(input, OverconvergentModularFormElement):
-            if input.parent() is self:
-                return input
             return self._coerce_from_ocmf(input)
 
         elif isinstance(input, ModularFormElement):
@@ -1018,12 +1013,12 @@ class OverconvergentModularFormsSpace(Module):
                             mat[i,j] = mat[i,j] + mat[i-u-1, j-v-1]*self.recurrence_matrix()[u,v]
 
         else:
-            if( n*self.prime() > self.prec()):
+            if n * self.prime() > self.prec():
                 raise ValueError("n is too large")
             for j in range(self.prime(), n):
                 l = self._convert_to_basis(self.hecke_operator(self._basis_cache[j], m))
                 for i in range(n):
-                    mat[i,j] = l[i]
+                    mat[i, j] = l[i]
         return mat
 
     def slopes(self, n, use_recurrence=False):
@@ -1091,17 +1086,16 @@ class OverconvergentModularFormsSpace(Module):
         eigenfunctions = []
         verbose("Expected %s eigenvalues, got %s" % (n, len(eigenvalues)))
         for (r, d) in eigenvalues:
-            v = r.valuation()
             if d != 1:
                 continue
 
-            mr = (m.__pari__() - r.__pari__())
+            mr = m.__pari__() - r.__pari__()
             # Annoying thing: r isn't quite as precise as it claims to be
             # (bug reported to sage-support list)
             while F(mr.matdet()) != 0:
                 verbose("p-adic solver returned wrong result in slope %s; refining" % r.valuation(), level=2)
                 r = r - cp(r)/cp.derivative()(r)
-                mr2 = (m.__pari__() - r.__pari__())
+                mr2 = m.__pari__() - r.__pari__()
                 if mr2.matdet().valuation(self.prime()) > mr.matdet().valuation(self.prime()):
                     mr = mr2
                 else:

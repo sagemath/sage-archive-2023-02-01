@@ -155,7 +155,9 @@ class p_iter_fork(object):
         """
         n = self.ncpus
         v = list(inputs)
-        import os, sys, signal
+        import os
+        import sys
+        import signal
         from sage.misc.persist import loads
         from sage.misc.temporary_file import tmp_dir
         dir = tmp_dir()
@@ -163,9 +165,9 @@ class p_iter_fork(object):
 
         workers = {}
         try:
-            while len(v) > 0 or len(workers) > 0:
+            while v or workers:
                 # Spawn up to n subprocesses
-                while len(v) > 0 and len(workers) < n:
+                while v and len(workers) < n:
                     v0 = v.pop(0)  # Input value for the next subprocess
                     with ContainChildren():
                         pid = os.fork()
@@ -279,19 +281,24 @@ class p_iter_fork(object):
             sage: F._subprocess(operator.add, tmp_dir(), (1, 2))
             sage: sys.stdout = saved_stdout
         """
-        import imp, os, sys
+        import os
+        import sys
+        try:
+            from importlib import reload
+        except ImportError:
+            from imp import reload
         from sage.misc.persist import save
 
         # Make it so all stdout is sent to a file so it can
         # be displayed.
-        out = os.path.join(dir, '%s.out'%os.getpid())
+        out = os.path.join(dir, '%s.out' % os.getpid())
         sys.stdout = open(out, 'w')
 
         # Run some commands to tell Sage that its
         # pid has changed (forcing a reload of
         # misc).
         import sage.misc.misc
-        imp.reload(sage.misc.misc)
+        reload(sage.misc.misc)
 
         # The pexpect interfaces (and objects defined in them) are
         # not valid.
@@ -302,5 +309,5 @@ class p_iter_fork(object):
         value = f(*args, **kwds)
 
         # And save the result to disk.
-        sobj = os.path.join(dir, '%s.sobj'%os.getpid())
+        sobj = os.path.join(dir, '%s.sobj' % os.getpid())
         save(value, sobj, compress=False)

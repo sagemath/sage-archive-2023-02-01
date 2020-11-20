@@ -14,7 +14,6 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
-from __future__ import absolute_import
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -116,7 +115,7 @@ cdef class SatSolver:
 
         EXAMPLES::
 
-            sage: from six import StringIO # for python 2/3 support
+            sage: from io import StringIO
             sage: file_object = StringIO("c A sample .cnf file.\np cnf 3 2\n1 -3 0\n2 3 -1 0 ")
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
@@ -126,7 +125,7 @@ cdef class SatSolver:
 
         With xor clauses::
 
-            sage: from six import StringIO # for python 2/3 support
+            sage: from io import StringIO
             sage: file_object = StringIO("c A sample .cnf file with xor clauses.\np cnf 3 3\n1 2 0\n3 0\nx1 2 3 0")
             sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat          # optional - cryptominisat
             sage: solver = CryptoMiniSat()                                          # optional - cryptominisat
@@ -138,7 +137,7 @@ cdef class SatSolver:
 
         TESTS::
 
-            sage: from six import StringIO # for python 2/3 support
+            sage: from io import StringIO
             sage: file_object = StringIO("c A sample .cnf file with xor clauses.\np cnf 3 3\n1 2 0\n3 0\nx1 2 3 0")
             sage: from sage.sat.solvers.sat_lp import SatLP
             sage: solver = SatLP()
@@ -327,6 +326,10 @@ def SAT(solver=None, *args, **kwds):
 
         - ``"picosat"`` -- note that the pycosat package must be installed.
 
+        - ``"glucose"`` -- note that the glucose package must be installed.
+        
+        - ``"glucose-syrup"`` -- note that the glucose package must be installed.
+
         - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
           SAT instance.
 
@@ -354,6 +357,16 @@ def SAT(solver=None, *args, **kwds):
 
         sage: SAT(solver="picosat") # optional - pycosat
         PicoSAT solver: 0 variables, 0 clauses.
+
+    Forcing Glucose::
+
+        sage: SAT(solver="glucose")
+        DIMACS Solver: 'glucose -verb=2 {input} {output}'
+
+    Forcing Glucose Syrup::
+
+        sage: SAT(solver="glucose-syrup")
+        DIMACS Solver: 'glucose-syrup -model -verb=2 {input}'
     """
     if solver is None:
         import pkgutil
@@ -373,6 +386,12 @@ def SAT(solver=None, *args, **kwds):
     elif solver == "LP":
         from .sat_lp import SatLP
         return SatLP()
+    elif solver == 'glucose':
+        from .dimacs import Glucose
+        return Glucose(*args, **kwds)
+    elif solver == 'glucose-syrup':
+        from .dimacs import GlucoseSyrup
+        return GlucoseSyrup(*args, **kwds)
     else:
         raise ValueError("Solver '{}' is not available".format(solver))
 

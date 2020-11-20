@@ -19,7 +19,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport *
 from sage.misc.constant_function import ConstantFunction
@@ -266,11 +265,11 @@ cdef class Morphism(Map):
         Caveat: the registration of the coercion must be done before any
         other coercion is registered or discovered::
 
-            sage: phi = Hom(X, Y)(y)
+            sage: phi = Hom(X, Z)(z^2)
             sage: phi.register_as_coercion()
             Traceback (most recent call last):
             ...
-            AssertionError: coercion from Univariate Polynomial Ring in x over Integer Ring to Univariate Polynomial Ring in y over Integer Ring already registered or discovered
+            AssertionError: coercion from Univariate Polynomial Ring in x over Integer Ring to Univariate Polynomial Ring in z over Integer Ring already registered or discovered
 
         """
         self._codomain.register_coercion(self)
@@ -398,10 +397,7 @@ cdef class Morphism(Map):
         try:
             return self._is_nonzero()
         except Exception:
-            if PY_MAJOR_VERSION < 3:
-                return super(Morphism, self).__nonzero__()
-            else:
-                return super().__bool__()
+            return super().__bool__()
 
 
 cdef class FormalCoercionMorphism(Morphism):
@@ -439,10 +435,12 @@ cdef class IdentityMorphism(Morphism):
         return x
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}): 
-        if len(args) == 0 and len(kwds) == 0:
+        if not args and not kwds:
             return x
         cdef Parent C = self._codomain
         if C._element_init_pass_parent:
+            from sage.misc.superseded import deprecation
+            deprecation(26879, "_element_init_pass_parent=True is deprecated. This probably means that _element_constructor_ should be a method and not some other kind of callable")
             return C._element_constructor(C, x, *args, **kwds)
         else:
             return C._element_constructor(x, *args, **kwds)
@@ -602,7 +600,7 @@ cdef class SetMorphism(Morphism):
             sage: f._extra_slots_test()
             {'_codomain': Integer Ring,
              '_domain': Integer Ring,
-             '_function': <built-in function __abs__>,
+             '_function': <built-in function ...abs...>,
              '_is_coercion': False,
              '_repr_type_str': None}
         """

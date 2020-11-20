@@ -102,7 +102,6 @@ This came up in some subtle bug once::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
 from cpython.bool cimport *
@@ -112,22 +111,24 @@ import operator
 from copy import copy
 
 from sage.cpython.type cimport can_assign_class
-from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from .category_object import CategoryObject
-from .coerce cimport parent_is_integers
-from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sage_object cimport SageObject
-from sage.structure.misc import is_extension_type
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
+from sage.misc.lazy_string cimport _LazyString
+from sage.sets.pythonclass cimport Set_PythonType_class, Set_PythonType
+from .category_object import CategoryObject
+from .coerce cimport coercion_model
+from .coerce cimport parent_is_integers
+from .coerce_exceptions import CoercionException
 from .coerce_maps cimport (NamedConvertMap, DefaultConvertMap,
         DefaultConvertMap_unique, CallableConvertMap)
-from sage.sets.pythonclass cimport Set_PythonType_class, Set_PythonType
+from .element cimport parent, Element
 
 
 cdef _record_exception():
@@ -143,8 +144,8 @@ cdef bint is_Integer(x):
 
 def is_Parent(x):
     """
-    Return True if x is a parent object, i.e., derives from
-    sage.structure.parent.Parent and False otherwise.
+    Return ``True`` if x is a parent object, i.e., derives from
+    sage.structure.parent.Parent and ``False`` otherwise.
 
     EXAMPLES::
 
@@ -159,6 +160,7 @@ def is_Parent(x):
     return isinstance(x, Parent)
 
 cdef bint guess_pass_parent(parent, element_constructor):
+    # Returning True here is deprecated, see #26879
     if isinstance(element_constructor, MethodType):
         return False
     elif isinstance(element_constructor, BuiltinMethodType):
@@ -196,12 +198,17 @@ cdef inline bint good_as_coerce_domain(S):
     """
     return isinstance(S,CategoryObject) or isinstance(S,type)
 
+
 cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
+
 cdef class Parent(sage.structure.category_object.CategoryObject):
+    def __cinit__(self):
+        self._action_hash = TripleDict()
+
     def __init__(self, base=None, *, category=None,
-                 names=None, normalize=True, facade=None, **kwds):
+                 names=None, normalize=True, facade=None):
         """
         Base class for all parents.
 
@@ -260,23 +267,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: P.category()
             Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
-        Test various deprecations::
-
-            sage: class MyParent(Parent):
-            ....:     def __init__(self):
-            ....:         Parent.__init__(self, element_constructor=self.make_element, foo=42)
-            ....:     def make_element(self, x):
-            ....:         print("Making element")
-            ....:         return x
-            sage: P = MyParent()
-            doctest:...: DeprecationWarning: the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead
-            See http://trac.sagemath.org/23917 for details.
-            doctest:...: DeprecationWarning: the 'foo' keyword is deprecated: it is currently ignored and will become an error in the future
-            See http://trac.sagemath.org/24109 for details.
-            sage: P(42)
-            Making element
-            42
-
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
         .. automethod:: __mul__
@@ -290,13 +280,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         .. automethod:: _is_coercion_cached
         .. automethod:: _is_conversion_cached
         """
-        if "element_constructor" in kwds:
-            from sage.misc.superseded import deprecation
-            deprecation(23917, "the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead")
-            element_constructor = kwds.pop("element_constructor")
-        else:
-            element_constructor = None
-
         if isinstance(category, (tuple, list)):
             category = Category.join(category)
         if facade is not None and facade is not False:
@@ -312,16 +295,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         CategoryObject.__init__(self, category, base)
 
-        for k in kwds:
-            from sage.misc.superseded import deprecation
-            deprecation(24109, f"the {k!r} keyword is deprecated: it is currently ignored and will become an error in the future")
         if names is not None:
             self._assign_names(names, normalize)
-        if element_constructor is None:
-            self._set_element_constructor()
-        else:
-            self._element_constructor = element_constructor
-            self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
+        self._set_element_constructor()
         self.init_coerce(False)
 
         for cls in self.__class__.mro():
@@ -354,18 +330,16 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         CategoryObject._init_category_(self, category)
 
         # This substitutes the class of this parent to a subclass
-        # which also subclasses the parent_class of the category
+        # which also subclasses the parent_class of the category.
 
-        if category is not None: #isinstance(self._category, Category) and not isinstance(self, Set_generic):
-            category = self._category # CategoryObject may have done some argument processing
-            # Some parent class may readily have their category classes attached
-            # TODO: assert that the category is consistent
-            if can_assign_class(self) and not issubclass(self.__class__, Sets_parent_class):
-                #documentation transfer is handled by dynamic_class
-                self.__class__ = dynamic_class(
-                    '{0}_with_category'.format(self.__class__.__name__),
-                    (self.__class__, category.parent_class),
-                    doccls=self.__class__)
+        # Some parent class may readily have their category classes attached
+        # TODO: assert that the category is consistent
+        if can_assign_class(self) and not isinstance(self, Sets_parent_class):
+            # Documentation transfer is handled by dynamic_class
+            self.__class__ = dynamic_class(
+                f"{type(self).__name__}_with_category",
+                (type(self), self._category.parent_class),
+                doccls=type(self))
 
     def _refine_category_(self, category):
         """
@@ -572,17 +546,27 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         except AttributeError: #else:
             return NotImplemented
 
-
-    def __make_element_class__(self, cls, name = None, module=None, inherit = None):
+    def __make_element_class__(self, cls, name=None, module=None, inherit=None):
         """
         A utility to construct classes for the elements of this
         parent, with appropriate inheritance from the element class of
-        the category (only for pure python types so far).
+        the category.
+
+        It used to be the case that this didn't work for extension
+        types, which used to never support a ``__dict__`` for instances.
+        So for backwards compatibility, we only use dynamic classes by
+        default if the class has a non-zero ``__dictoffset__``. But it
+        works regardless: just pass ``inherit=True`` to
+        ``__make_element_class__``. See also :trac:`24715`.
+
+        When we don't use a dynamic element class, the ``__getattr__``
+        implementation from :class:`Element` provides fake
+        inheritance from categories.
         """
-        # By default, don't fiddle with extension types yet; inheritance from
-        # categories will probably be achieved in a different way
+        if not isinstance(cls, type):
+            raise TypeError(f"element class {cls!r} should be a type")
         if inherit is None:
-            inherit = not is_extension_type(cls)
+            inherit = (cls.__dictoffset__ != 0)
         if inherit:
             if name is None:
                 name = "%s_with_category"%cls.__name__
@@ -733,7 +717,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             self._registered_domains = []
             self._coerce_from_hash = MonoDict()
             self._action_list = []
-            self._action_hash = TripleDict()
             self._convert_from_list = []
             self._convert_from_hash = MonoDict()
             self._embedding = None
@@ -745,8 +728,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         EXAMPLES::
 
             sage: sorted(QQ._introspect_coerce().items())
-            [('_action_hash', <sage.structure.coerce_dict.TripleDict object at ...>),
-             ('_action_list', []),
+            [('_action_list', []),
              ('_coerce_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
              ('_coerce_from_list', []),
              ('_convert_from_hash', <sage.structure.coerce_dict.MonoDict object at ...>),
@@ -761,7 +743,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             '_coerce_from_list': self._coerce_from_list,
             '_coerce_from_hash': self._coerce_from_hash,
             '_action_list': self._action_list,
-            '_action_hash': self._action_hash,
             '_convert_from_list': self._convert_from_list,
             '_convert_from_hash': self._convert_from_hash,
             '_embedding': self._embedding,
@@ -900,7 +881,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             raise NotImplementedError(f"cannot construct elements of {self}")
         cdef Py_ssize_t i
         cdef R = parent(x)
-        cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
+        cdef bint no_extra_args = (not args and not kwds)
         if R is self and no_extra_args:
             return x
 
@@ -920,13 +901,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             else:
                 return mor._call_with_args(x, args, kwds)
 
-        raise TypeError("No conversion defined from %s to %s"%(R, self))
+        raise TypeError(_LazyString(_lazy_format, ("No conversion defined from %s to %s", R, self), {}))
 
     def __mul__(self,x):
         """
         This is a multiplication method that more or less directly
         calls another attribute ``_mul_`` (single underscore). This
-        is because ``__mul__`` can not be implemented via inheritance
+        is because ``__mul__`` cannot be implemented via inheritance
         from the parent methods of the category, but ``_mul_`` can
         be inherited. This is, e.g., used when creating twosided
         ideals of matrix algebras. See :trac:`7797`.
@@ -1081,7 +1062,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             False
 
         because ``2/3`` has no exact representation in ``RIF``. Since
-        ``RIF(2/3)`` is a nontrivial interval, it can not be equal to anything
+        ``RIF(2/3)`` is a nontrivial interval, it cannot be equal to anything
         (not even itself)::
 
             sage: RIF(2/3).is_exact()
@@ -1150,14 +1131,17 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
         """
-        mor = self._internal_coerce_map_from(parent(x))
+        cdef R = parent(x)
+        if R is self:
+            return x
+        mor = self._internal_coerce_map_from(R)
         if mor is None:
             if is_Integer(x) and not x:
                 try:
                     return self(0)
                 except Exception:
                     _record_exception()
-            raise TypeError("no canonical coercion from %s to %s" % (parent(x), self))
+            raise TypeError(_LazyString(_lazy_format, ("no canonical coercion from %s to %s", parent(x), self), {}))
         else:
             return (<map.Map>mor)._call_(x)
 
@@ -1225,7 +1209,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     # Generators and Homomorphisms
     #################################################################################
 
-    def _is_valid_homomorphism_(self, codomain, im_gens):
+    def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
        r"""
        Return True if ``im_gens`` defines a valid homomorphism
        from self to codomain; otherwise return False.
@@ -1279,90 +1263,101 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         return Hom(self, codomain, category)
 
-    def hom(self, im_gens, codomain=None, check=None):
-       r"""
-       Return the unique homomorphism from self to codomain that
-       sends ``self.gens()`` to the entries of ``im_gens``.
-       Raises a TypeError if there is no such homomorphism.
+    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None):
+        r"""
+        Return the unique homomorphism from self to codomain that
+        sends ``self.gens()`` to the entries of ``im_gens``.
+        Raises a TypeError if there is no such homomorphism.
 
-       INPUT:
+        INPUT:
 
-       - ``im_gens`` -- the images in the codomain of the generators
-         of this object under the homomorphism
+        - ``im_gens`` -- the images in the codomain of the generators
+          of this object under the homomorphism
 
-       - ``codomain`` -- the codomain of the homomorphism
+        - ``codomain`` -- the codomain of the homomorphism
 
-       - ``check`` -- whether to verify that the images of generators
-         extend to define a map (using only canonical coercions).
+        - ``base_map`` -- a map from the base ring to the codomain.
+          If not given, coercion is used.
 
-       OUTPUT:
+        - ``check`` -- whether to verify that the images of generators
+          extend to define a map (using only canonical coercions).
 
-       A homomorphism self --> codomain
+        OUTPUT:
 
-       .. NOTE::
+        A homomorphism self --> codomain
 
-          As a shortcut, one can also give an object X instead of
-          ``im_gens``, in which case return the (if it exists)
-          natural map to X.
+        .. NOTE::
 
-       EXAMPLES:
+            As a shortcut, one can also give an object X instead of
+            ``im_gens``, in which case return the (if it exists)
+            natural map to X.
 
-       Polynomial Ring: We first illustrate construction of a few
-       homomorphisms involving a polynomial ring::
+        EXAMPLES:
 
-           sage: R.<x> = PolynomialRing(ZZ)
-           sage: f = R.hom([5], QQ)
-           sage: f(x^2 - 19)
-           6
+        Polynomial Ring: We first illustrate construction of a few
+        homomorphisms involving a polynomial ring::
 
-           sage: R.<x> = PolynomialRing(QQ)
-           sage: f = R.hom([5], GF(7))
-           Traceback (most recent call last):
-           ...
-           ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: f = R.hom([5], QQ)
+            sage: f(x^2 - 19)
+            6
 
-           sage: R.<x> = PolynomialRing(GF(7))
-           sage: f = R.hom([3], GF(49,'a'))
-           sage: f
-           Ring morphism:
-             From: Univariate Polynomial Ring in x over Finite Field of size 7
-             To:   Finite Field in a of size 7^2
-             Defn: x |--> 3
-           sage: f(x+6)
-           2
-           sage: f(x^2+1)
-           3
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = R.hom([5], GF(7))
+            Traceback (most recent call last):
+            ...
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
-       Natural morphism::
+            sage: R.<x> = PolynomialRing(GF(7))
+            sage: f = R.hom([3], GF(49,'a'))
+            sage: f
+            Ring morphism:
+              From: Univariate Polynomial Ring in x over Finite Field of size 7
+              To:   Finite Field in a of size 7^2
+              Defn: x |--> 3
+            sage: f(x+6)
+            2
+            sage: f(x^2+1)
+            3
 
-           sage: f = ZZ.hom(GF(5))
-           sage: f(7)
-           2
-           sage: f
-           Natural morphism:
-             From: Integer Ring
-             To:   Finite Field of size 5
+        Natural morphism::
 
-       There might not be a natural morphism, in which case a
-       ``TypeError`` is raised::
+            sage: f = ZZ.hom(GF(5))
+            sage: f(7)
+            2
+            sage: f
+            Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
 
-           sage: QQ.hom(ZZ)
-           Traceback (most recent call last):
-           ...
-           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
-       """
-       if isinstance(im_gens, Parent):
-           return self.Hom(im_gens).natural_map()
-       from sage.structure.sequence import Sequence_generic, Sequence
-       if codomain is None:
-           im_gens = Sequence(im_gens)
-           codomain = im_gens.universe()
-       if isinstance(im_gens, Sequence_generic):
+        There might not be a natural morphism, in which case a
+        ``TypeError`` is raised::
+
+            sage: QQ.hom(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
+        """
+        if isinstance(im_gens, Parent):
+            return self.Hom(im_gens).natural_map()
+        from sage.structure.sequence import Sequence_generic, Sequence
+        if codomain is None:
+            im_gens = Sequence(im_gens)
+            codomain = im_gens.universe()
+        if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
-       if check is None:
-           return self.Hom(codomain)(im_gens)
-       else:
-           return self.Hom(codomain)(im_gens, check=check)
+        # Not all homsets accept category/check/base_map as arguments
+        kwds = {}
+        if check is not None:
+            kwds['check'] = check
+        if base_map is not None:
+            # Ideally we would have machinery here to determine
+            # how the base map affects the category of the resulting
+            # morphism.  But for now it's not clear how to do this,
+            # so we leave the category as the default for now.
+            kwds['base_map'] = base_map
+        Hom_kwds = {} if category is None else {'category': category}
+        return self.Hom(codomain, **Hom_kwds)(im_gens, **kwds)
 
     #################################################################################
     # New Coercion support functionality
@@ -1407,14 +1402,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self.init_coerce(False)
 
         if not unpickling:
-            if element_constructor is None:
-                try:
-                    element_constructor = self._element_constructor_
-                except AttributeError:
-                    raise RuntimeError("an _element_constructor_ method must be defined")
-            else:
-                from sage.misc.superseded import deprecation
-                deprecation(24363, "the 'element_constructor' keyword of _populate_coercion_lists_ is deprecated: override the _element_constructor_ method or define an Element attribute instead")
+            if element_constructor is not None:
+                raise ValueError("element_constructor can only be given when unpickling is True")
+            try:
+                element_constructor = self._element_constructor_
+            except AttributeError:
+                raise RuntimeError("an _element_constructor_ method must be defined")
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
@@ -1472,30 +1465,14 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self._embedding = None
         self._unset_coercions_used()
 
-    def is_coercion_cached(self, domain):
-        """
-        Deprecated method
-
-        TESTS::
-
-            sage: Parent().is_coercion_cached(QQ)
-            doctest:warning
-            ...
-            DeprecationWarning: is_coercion_cached is deprecated use _is_coercion_cached instead
-            See http://trac.sagemath.org/24254 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(24254, "is_coercion_cached is deprecated use _is_coercion_cached instead")
-        return self._is_coercion_cached(domain)
-
-    cpdef bint _is_coercion_cached(self, domain):
+    def _is_coercion_cached(self, domain):
         r"""
         Test whether the coercion from ``domain`` is already cached.
 
         EXAMPLES::
 
             sage: R.<XX> = QQ
+            sage: R._remove_from_coerce_cache(QQ)
             sage: R._is_coercion_cached(QQ)
             False
             sage: _ = R.coerce_map_from(QQ)
@@ -1504,24 +1481,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return domain in self._coerce_from_hash
 
-    def is_conversion_cached(self, domain):
-        """
-        Deprecated method
-
-        TESTS::
-
-            sage: Parent().is_conversion_cached(QQ)
-            doctest:warning
-            ...
-            DeprecationWarning: is_conversion_cached is deprecated use _is_conversion_cached instead
-            See http://trac.sagemath.org/24254 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(24254, "is_conversion_cached is deprecated use _is_conversion_cached instead")
-        return self._is_conversion_cached(domain)
-
-    cpdef bint _is_conversion_cached(self, domain):
+    def _is_conversion_cached(self, domain):
         r"""
         Test whether the conversion from ``domain`` is already set.
 
@@ -1596,6 +1556,18 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             AssertionError: coercion from Univariate Polynomial Ring in b over Integer Ring to Univariate Polynomial Ring in a over Integer Ring already registered or discovered
+
+        TESTS:
+
+        We check that :trac:`29517` has been fixed::
+
+            sage: A.<x> = ZZ[]
+            sage: B.<y> = ZZ[]
+            sage: B.has_coerce_map_from(A)
+            False
+            sage: B.register_coercion(A.hom([y]))
+            sage: x + y
+            2*y
         """
         if isinstance(mor, map.Map):
             if mor.codomain() is not self:
@@ -1606,7 +1578,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
         D = mor.domain()
 
-        assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from {} to {} already registered or discovered".format(D, self)
+        assert not (self._coercions_used and D in self._coerce_from_hash and
+                    self._coerce_from_hash.get(D) is not None), "coercion from {} to {} already registered or discovered".format(D, self)
         mor._is_coercion = True
         self._coerce_from_list.append(mor)
         self._registered_domains.append(D)
@@ -1664,19 +1637,14 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: G((1, 2)) * t
             2*x + y + 3*z
         """
-        assert not self._coercions_used, "coercions must all be registered up before use"
+        if self._coercions_used:
+            raise RuntimeError("actions and coercions must be registered before use")
         from sage.categories.action import Action
-        if isinstance(action, Action):
-            if action.actor() is self:
-                self._action_list.append(action)
-                self._action_hash.set(action.domain(), action.operation(), action.is_left(), action)
-            elif action.domain() is self:
-                self._action_list.append(action)
-                self._action_hash.set(action.actor(), action.operation(), not action.is_left(), action)
-            else:
-                raise ValueError("Action must involve self")
-        else:
+        if not isinstance(action, Action):
             raise TypeError("actions must be actions")
+        if action.actor() is not self and action.domain() is not self:
+            raise ValueError("action must involve self")
+        self._action_list.append(action)
 
     cpdef register_conversion(self, mor):
         r"""
@@ -1730,21 +1698,21 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: S3 = AlternatingGroup(3)
             sage: G = SL(3, QQ)
             sage: p = S3[2]; p.matrix()
-            [0 1 0]
             [0 0 1]
             [1 0 0]
+            [0 1 0]
 
         In general one can't mix matrices and permutations::
 
             sage: G(p)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert (1,2,3) to a rational
+            TypeError: unable to convert (1,3,2) to a rational
             sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
             sage: phi(p)
-            [0 1 0]
             [0 0 1]
             [1 0 0]
+            [0 1 0]
             sage: S3._unset_coercions_used()
             sage: S3.register_embedding(phi)
 
@@ -1756,9 +1724,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
               From: Alternating group of order 3!/2 as a permutation group
               To:   Special Linear Group of degree 3 over Rational Field
             sage: phi(p)
-            [0 1 0]
             [0 0 1]
             [1 0 0]
+            [0 1 0]
 
         This does not work since matrix groups are still old-style
         parents (see :trac:`14014`)::
@@ -1768,9 +1736,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         Though one can have a permutation act on the rows of a matrix::
 
             sage: G(1) * p
-            [0 1 0]
             [0 0 1]
             [1 0 0]
+            [0 1 0]
 
         Some more advanced examples::
 
@@ -1830,13 +1798,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=1)
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1 with a = -1.465571231876768?
               To:   Real Lazy Field
               Defn: a -> -1.465571231876768?
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
             sage: K.coerce_embedding()
             Generic morphism:
-              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1 with a = 0.2327856159383841? + 0.7925519925154479?*I
               To:   Complex Lazy Field
               Defn: a -> 0.2327856159383841? + 0.7925519925154479?*I
         """
@@ -1913,6 +1881,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             if f is not None:
                 return f
         if self._element_init_pass_parent:
+            # deprecation(26879)
             return DefaultConvertMap(S, self, category=category)
         else:
             return DefaultConvertMap_unique(S, self, category=category)
@@ -2042,7 +2011,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         (in which case it will be wrapped in a Map), or True (in which case
         a generic map will be provided).
         """
-        return None
+        try:
+            # Try possible _coerce_map_from_() methods defined in
+            # ParentMethods classes of categories.
+            return super(Parent, self)._coerce_map_from_(S)
+        except AttributeError:
+            return None
 
     cpdef coerce_map_from(self, S):
         """
@@ -2282,28 +2256,28 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: L = NumberField(x^2+2, 'b', embedding=1/a)
             sage: PolynomialRing(L, 'x').coerce_map_from(L)
             Polynomial base injection morphism:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
             sage: PolynomialRing(K, 'x').coerce_map_from(L)
             Composite map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
               Defn:   Generic morphism:
-                      From: Number Field in b with defining polynomial x^2 + 2
-                      To:   Number Field in a with defining polynomial x^2 + 1/2
+                      From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+                      To:   Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
                       Defn: b -> -2*a
                     then
                       Polynomial base injection morphism:
-                      From: Number Field in a with defining polynomial x^2 + 1/2
-                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+                      From: Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
+                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2 with a = 0.7071067811865475?*I
             sage: MatrixSpace(L, 2, 2).coerce_map_from(L)
             Coercion map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
             Coercion map:
-              From: Number Field in b with defining polynomial x^2 + 2
-              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
+              From: Number Field in b with defining polynomial x^2 + 2 with b = -2*a
+              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2 with b = -2*a
         """
         if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
@@ -2485,20 +2459,20 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         To provide additional actions, override :meth:`_get_action_`.
 
+        .. WARNING::
+
+            This is not the method that you typically want to call.
+            Instead, call ``coercion_model.get_action(...)`` which
+            caches results (this ``Parent.get_action`` method does not).
+
         TESTS::
 
             sage: M = QQ['y']^3
             sage: M.get_action(ZZ['x']['y'])
             Right scalar multiplication by Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring on Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field
-            sage: M.get_action(ZZ['x']) # should be None
+            sage: print(M.get_action(ZZ['x']))
+            None
         """
-        try:
-            if self._action_hash is None: # this is because parent.__init__() does not always get called
-                self.init_coerce()
-            return self._action_hash.get(S, op, self_on_left)
-        except KeyError:
-            pass
-
         action = self._get_action_(S, op, self_on_left)
         if action is None:
             action = self.discover_action(S, op, self_on_left, self_el, S_el)
@@ -2507,8 +2481,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             from sage.categories.action import Action
             if not isinstance(action, Action):
                 raise TypeError("_get_action_ must return None or an Action")
-            # We do NOT add to the list, as this would lead to errors as in
-            # the example above.
 
         self._action_hash.set(S, op, self_on_left, action)
         return action
@@ -2555,6 +2527,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         from .coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
+
         for action in self._action_list:
             if isinstance(action, Action) and action.operation() is op:
                 if self_on_left:
@@ -2563,29 +2536,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 else:
                     if action.right_domain() is not self: continue
                     R = action.left_domain()
-            elif op is operator.mul and isinstance(action, Parent):
-                try:
-                    R = action
-                    _register_pair(self, R, "action") # to kill circular recursion
-                    if self_on_left:
-                        action = LeftModuleAction(R, self, a=S_el, g=self_el) # self is acted on from right
-                    else:
-                        action = RightModuleAction(R, self, a=S_el, g=self_el) # self is acted on from left
-                    ## The following two lines are disabled to prevent the following from working:
-                    ## sage: x, y = var('x,y')
-                    ## sage: parent(ZZ[x][y](1)*vector(QQ[y],[1,2]))
-                    ## sage: parent(ZZ[x](1)*vector(QQ[y],[1,2]))
-                    ## We will hopefully come up with a way to reinsert them, because they increase the scope
-                    ## of discovered actions.
-                    #i = self._action_list.index(R)
-                    #self._action_list[i] = action
-                except CoercionException:
-                    _record_exception()
-                    continue
-                finally:
-                    _unregister_pair(self, R, "action")
             else:
-                continue # only try mul if not specified
+                continue
             if R is S:
                 return action
             else:
@@ -2596,15 +2548,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                     else:
                         return PrecomposedAction(action, connecting, None)
 
-        # We didn't find an action in the list, but maybe the elements
-        # define special action methods
-        if op is operator.mul:
-            # TODO: if _xmul_/_x_action_ code does stuff like
-            # if self == 0:
-            #    return self
-            # then an_element() == 0 could be very bad.
+        if op is operator.mul: # elements define special action methods.
             try:
-                _register_pair(self, S, "action") # this is to avoid possible infinite loops
+                _register_pair(self, S, "action") # avoid possible infinite loops
 
                 # detect actions defined by _rmul_, _lmul_, _act_on_, and _acted_upon_ methods
                 from .coerce_actions import detect_element_action
@@ -2776,6 +2722,44 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return True
 
+    @cached_method
+    def _is_numerical(self):
+        r"""
+        Test if elements of this parent can be numerically evaluated as complex
+        numbers (in a canonical way).
+
+        EXAMPLES::
+
+            sage: [R._is_numerical() for R in [RR, CC, QQ, QuadraticField(-1)]]
+            [True, True, True, True]
+            sage: [R._is_numerical() for R in [SR, QQ['x'], QQ[['x']]]]
+            [False, False, False]
+            sage: [R._is_numerical() for R in [RIF, RBF, CIF, CBF]]
+            [False, False, False, False]
+        """
+        from sage.rings.complex_mpfr import ComplexField
+        from sage.rings.real_mpfr import mpfr_prec_min
+        return ComplexField(mpfr_prec_min()).has_coerce_map_from(self)
+
+    @cached_method
+    def _is_real_numerical(self):
+        r"""
+        Test if elements of this parent can be numerically evaluated as real
+        numbers (in a canonical way).
+
+        EXAMPLES::
+
+            sage: [R._is_real_numerical() for R in [RR, QQ, ZZ, RLF, QuadraticField(2)]]
+            [True, True, True, True, True]
+            sage: [R._is_real_numerical() for R in [CC, QuadraticField(-1)]]
+            [False, False]
+            sage: [R._is_real_numerical() for R in [SR, QQ['x'], QQ[['x']]]]
+            [False, False, False]
+            sage: [R._is_real_numerical() for R in [RIF, RBF, CIF, CBF]]
+            [False, False, False, False]
+        """
+        from sage.rings.real_mpfr import RealField, mpfr_prec_min
+        return RealField(mpfr_prec_min()).has_coerce_map_from(self)
 
 ############################################################################
 # Set base class --
@@ -2894,3 +2878,6 @@ cdef bint _unregister_pair(x, y, tag) except -1:
         _coerce_test_dict.pop(EltPair(x,y,tag), None)
     except (ValueError, CoercionException):
         pass
+
+def _lazy_format(msg, *args):
+    return msg % args

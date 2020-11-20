@@ -18,8 +18,6 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from .unital_algebras import UnitalAlgebras
 
-import six
-
 
 class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -71,6 +69,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
+        running ._test_construction() . . . pass
         running ._test_distributivity() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -155,8 +154,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             #Do the case where the user specifies how to multiply basis elements
             if hasattr(self, '_multiply_basis'):
-                for (left_m, left_c) in six.iteritems(left._monomial_coefficients):
-                    for (right_m, right_c) in six.iteritems(right._monomial_coefficients):
+                for (left_m, left_c) in left._monomial_coefficients.items():
+                    for (right_m, right_c) in right._monomial_coefficients.items():
                         res = self._multiply_basis(left_m, right_m)
                         #Handle the case where the user returns a dictionary
                         #where the keys are the monomials and the values are
@@ -189,7 +188,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             BR = self.base_ring()
             zero = BR(0)
             del_list = []
-            for m, c in six.iteritems(z_elt):
+            for m, c in z_elt.items():
                 if c == zero:
                     del_list.append(m)
             for m in del_list:
@@ -341,10 +340,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 else:
                     return NotImplemented
 
-            #def product_on_basis(self, t1, t2):
+            # def product_on_basis(self, t1, t2):
             # would be easy to implement, but without a special
             # version of module morphism, this would not take
-            # advantage of the bloc structure
+            # advantage of the block structure
 
 
     class TensorProducts(TensorProductsCategory):
@@ -436,3 +435,4 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Implements operations on elements of tensor products of algebras with basis
             """
             pass
+

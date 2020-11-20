@@ -92,14 +92,14 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 """
 from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu> and
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import inspect
 from warnings import warn
@@ -238,8 +238,8 @@ class Category(UniqueRepresentation, SageObject):
         ....:         def fD(self):
         ....:             return "D"
 
-    Categories should always have unique representation; by trac ticket
-    :trac:`12215`, this means that it will be kept in cache, but only
+    Categories should always have unique representation; by :trac:`12215`,
+    this means that it will be kept in cache, but only
     if there is still some strong reference to it.
 
     We check this before proceeding::
@@ -311,7 +311,7 @@ class Category(UniqueRepresentation, SageObject):
         sage: Ds().parent_class.mro()
         [<class '__main__.Ds.parent_class'>, <class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <... 'object'>]
 
-    Note that that two categories in the same class need not have the
+    Note that two categories in the same class need not have the
     same ``super_categories``. For example, ``Algebras(QQ)`` has
     ``VectorSpaces(QQ)`` as super category, whereas ``Algebras(ZZ)``
     only has ``Modules(ZZ)`` as super category. In particular, the
@@ -339,7 +339,7 @@ class Category(UniqueRepresentation, SageObject):
         ....:         Parent.__init__(self, category=Ds())
         ....:     def g(self):
         ....:         return "myparent"
-        ....:     class Element:
+        ....:     class Element(object):
         ....:         pass
         sage: D = myparent()
         sage: D.__class__
@@ -449,18 +449,16 @@ class Category(UniqueRepresentation, SageObject):
 
     def __init__(self, s=None):
         """
-        Initializes this category.
+        Initialize this category.
 
         EXAMPLES::
 
             sage: class SemiprimitiveRings(Category):
             ....:     def super_categories(self):
             ....:         return [Rings()]
-            ....:
             ....:     class ParentMethods:
             ....:         def jacobson_radical(self):
             ....:             return self.ideal(0)
-            ....:
             sage: C = SemiprimitiveRings()
             sage: C
             Category of semiprimitive rings
@@ -753,7 +751,7 @@ class Category(UniqueRepresentation, SageObject):
 
     def is_abelian(self):
         """
-        Returns whether this category is abelian.
+        Return whether this category is abelian.
 
         An abelian category is a category satisfying:
 
@@ -785,6 +783,7 @@ class Category(UniqueRepresentation, SageObject):
             True
             sage: Semigroups().is_abelian()
             Traceback (most recent call last):
+            ...
             NotImplementedError: is_abelian
         """
         raise NotImplementedError("is_abelian")
@@ -794,19 +793,23 @@ class Category(UniqueRepresentation, SageObject):
     ##########################################################################
 
     def category_graph(self):
-         r"""
-         Returns the graph of all super categories of this category
+        r"""
+        Returns the graph of all super categories of this category
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: C = Algebras(QQ)
-             sage: G = C.category_graph()
-             sage: G.is_directed_acyclic()
-             True
-             sage: G.girth()
-             4
-         """
-         return category_graph([self])
+            sage: C = Algebras(QQ)
+            sage: G = C.category_graph()
+            sage: G.is_directed_acyclic()
+            True
+
+        The girth of a directed acyclic graph is infinite, however,
+        the girth of the underlying undirected graph is 4 in this case::
+
+            sage: Graph(G).girth()
+            4
+        """
+        return category_graph([self])
 
     @abstract_method
     def super_categories(self):
@@ -1363,7 +1366,7 @@ class Category(UniqueRepresentation, SageObject):
         Any semigroup morphism between two groups is automatically a
         monoid morphism (in a group the unit is the unique idempotent,
         so it has to be mapped to the unit). Yet, due to the
-        limitation of the model advertised above, Sage currently can't
+        limitation of the model advertised above, Sage currently cannot
         be taught that the category of groups is a full subcategory of
         the category of semigroups::
 
@@ -1403,8 +1406,8 @@ class Category(UniqueRepresentation, SageObject):
 
         """
         tester = self._tester(**options)
-        tester.assertTrue(self.parent_class.mro() == [C.parent_class for C in self._all_super_categories] + [object])
-        tester.assertTrue(self.element_class.mro() == [C.element_class for C in self._all_super_categories] + [object])
+        tester.assertEqual(self.parent_class.mro(), [C.parent_class for C in self._all_super_categories] + [object])
+        tester.assertEqual(self.element_class.mro(), [C.element_class for C in self._all_super_categories] + [object])
 
     def _test_category(self, **options):
         r"""
@@ -1721,13 +1724,12 @@ class Category(UniqueRepresentation, SageObject):
             sage: Algebras(ZZ['t']).element_class is Algebras(ZZ['t','x']).element_class
             True
 
-        These classes are constructed with ``__slots__ = []``, so they
-        behave like extension types::
+        These classes are constructed with ``__slots__ = ()``, so
+        instances may not have a ``__dict__``::
 
             sage: E = FiniteEnumeratedSets().element_class
-            sage: from sage.structure.misc import is_extension_type
-            sage: is_extension_type(E)
-            True
+            sage: E.__dictoffset__
+            0
 
         .. SEEALSO:: :meth:`parent_class`
         """
@@ -2386,7 +2388,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Category.join([Groups() & Posets()], as_list=True)
             [Category of groups, Category of posets]
 
-        Support for axiom categories (TODO: put here meaningfull examples)::
+        Support for axiom categories (TODO: put here meaningful examples)::
 
             sage: Sets().Facade() & Sets().Infinite()
             Category of facade infinite sets
@@ -2536,7 +2538,7 @@ class Category(UniqueRepresentation, SageObject):
         shall be kept to a strict minimum. The object is therefore not
         meant to be used for other applications; most of the time a
         full featured version is available elsewhere in Sage, and
-        should be used insted.
+        should be used instead.
 
         Technical note: by default ``FooBar(...).example()`` is
         constructed by looking up
@@ -2784,7 +2786,7 @@ class CategoryWithParameters(Category):
              and Category of quotient fields
              and Category of metric spaces
             sage: RR.category()
-            Join of Category of fields and Category of complete metric spaces
+            Join of Category of fields and Category of infinite sets and Category of complete metric spaces
             sage: Modules(QQ).parent_class is Modules(RR).parent_class
             False
 
@@ -2895,7 +2897,6 @@ class CategoryWithParameters(Category):
         if not issubclass(C.parent_class, self.parent_class):
             return False
         return Unknown
-
 
 #############################################################
 # Join of several categories

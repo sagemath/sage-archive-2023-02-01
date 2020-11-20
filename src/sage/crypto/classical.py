@@ -42,7 +42,6 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
-from six.moves import range
 
 # TODO: check off this todo list:
 # - methods to cryptanalyze the Hill, substitution, transposition, and
@@ -1506,7 +1505,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         m = self.block_length()
         MatZZ = MatrixSpace(ZZ, m)
         AZ = MatZZ([ [ A[i, j].lift() for j in range(m) ] for i in range(m) ])
-        AZ_adj = AZ.adjoint()
+        AZ_adj = AZ.adjugate()
         u, r, s = xgcd(A.det().lift(), S.ngens())
         if u != 1:
             raise ValueError("Argument:\n\n%s\n\nis not invertible." % (A))

@@ -26,9 +26,7 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
-
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 from .data_structures cimport *
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Matrix
@@ -41,7 +39,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         cdef int i,j
         self.degree = matrix.ncols()
         self.dimension = matrix.nrows()
-        if self.dimension >= (sizeof(int) << 3):
+        if self.dimension >= <int>(sizeof(int) << 3):
             raise NotImplementedError
             # By the time the dimension gets this big, the computation is infeasible anyway...
         self.nwords = 1<<self.dimension
@@ -115,7 +113,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         partition -- an optional list of lists partition of the columns.
             default is the unit partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
 
             sage: B = LinearBinaryCodeStruct(matrix(GF(2),[[1,0,1],[0,1,1]]))
@@ -301,7 +300,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         """
         Calculate whether self is isomorphic to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
 
             sage: B = LinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]]))
@@ -463,7 +463,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         partition -- an optional list of lists partition of the columns.
             default is the unit partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
 
             sage: B = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,0,0,0],[0,0,1,0]]))
@@ -562,7 +563,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         """
         Calculate whether self is isomorphic to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
 
             sage: B = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]]))
@@ -1084,10 +1086,10 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
             C_n = NonlinearBinaryCodeStruct( matrix(GF(2), B_n.nwords, B_n.degree) )
             for j from 0 <= j < B.dimension:
                 for h from 0 <= h < B.degree:
-                    bitset_set_to(&C.basis[j], perm[h], bitset_check(&B.basis[j], h))
+                    bitset_set_to(&C.basis[j], <mp_bitcnt_t> perm[h], bitset_check(&B.basis[j], h))
             for j from 0 <= j < B_n.nwords:
                 for h from 0 <= h < B_n.degree:
-                    bitset_set_to(&C_n.words[j], perm[h], bitset_check(&B_n.words[j], h))
+                    bitset_set_to(&C_n.words[j], <mp_bitcnt_t> perm[h], bitset_check(&B_n.words[j], h))
             # now C is a random permutation of B, and C_n of B_n
             C.run()
             C_n.run()

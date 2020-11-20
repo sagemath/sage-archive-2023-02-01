@@ -12,7 +12,7 @@ AUTHORS:
 * Federico Poloni (2013) - specialized ``rank()``
 * Travis Scrimshaw (2013-02-04) - Refactored to use ``ClonableIntArray``
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
@@ -25,14 +25,13 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import, division
-from six.moves import range
-from six import add_metaclass
 
 from sage.combinat.integer_lists import IntegerListsLex
 from itertools import product
+import numbers
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -429,25 +428,6 @@ def list2func(l, default=None):
         return partial(_default_function, l, default)
 
 
-def constant_func(i):
-    """
-    Return the constant function ``i``.
-
-    EXAMPLES::
-
-        sage: f = sage.combinat.integer_vector.constant_func(3)
-        doctest:...: DeprecationWarning: constant_func is deprecated. Use lambda x: i instead
-        See http://trac.sagemath.org/12453 for details.
-        sage: f(-1)
-        3
-        sage: f('asf')
-        3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(12453, 'constant_func is deprecated. Use lambda x: i instead')
-    return lambda x: i
-
-
 class IntegerVector(ClonableArray):
     """
     An integer vector.
@@ -467,8 +447,7 @@ class IntegerVector(ClonableArray):
             raise ValueError("all entries must be non-negative")
 
 
-@add_metaclass(ClasscallMetaclass)
-class IntegerVectors(Parent):
+class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
     """
     The class of (non-negative) integer vectors.
 
@@ -526,8 +505,8 @@ class IntegerVectors(Parent):
         [5, 0, 0]
         sage: IV53.last()
         [0, 0, 5]
-        sage: IV53.random_element()
-        [4, 0, 1]
+        sage: IV53.random_element().parent() is IV53
+        True
 
     Further examples::
 
@@ -590,7 +569,7 @@ class IntegerVectors(Parent):
         [[4], [3, 1], [2, 2], [1, 3], [0, 4]]
 
     .. SEEALSO::
-    
+
         :class: `sage.combinat.integer_lists.invlex.IntegerListsLex`.
     """
     @staticmethod
@@ -611,6 +590,13 @@ class IntegerVectors(Parent):
             Traceback (most recent call last):
             ...
             ValueError: k and length both specified
+
+        :trac:`29524`::
+
+            sage: IntegerVectors(3, 3/1)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'k' must be an integer or a tuple, got Rational
         """
         if 'length' in kwargs:
             if k is not None:
@@ -626,12 +612,12 @@ class IntegerVectors(Parent):
         if n is None:
             return IntegerVectors_k(k)
 
-        try:
+        if isinstance(k, numbers.Integral):
+            return IntegerVectors_nk(n, k)
+        elif isinstance(k, (tuple, list)):
             return IntegerVectors_nnondescents(n, tuple(k))
-        except TypeError:
-            pass
-
-        return IntegerVectors_nk(n, k)
+        else:
+            raise TypeError("'k' must be an integer or a tuple, got {}".format(type(k).__name__))
 
     def __init__(self, category=None):
         """
@@ -1494,52 +1480,6 @@ def integer_vectors_nk_fast_iter(n, k):
             rem = zero
             yield list(cur)
 
-
-def IntegerVectors_nconstraints(n, **constraints):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.integer_vector.IntegerVectors_nconstraints(2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_n instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors that sum to 2
-        sage: sage.combinat.integer_vector.IntegerVectors_nconstraints(2, min_slope=0)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors that sum to 2 with constraints: min_slope=0
-    """
-    from sage.misc.superseded import deprecation
-    if len(constraints) == 0:
-        deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_n instead')
-        return IntegerVectors_n(n)
-    deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead')
-    return IntegerVectorsConstraints(n, **constraints)
-
-
-def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.integer_vector.IntegerVectors_nkconstraints(3, 2)
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use sage.combinat.integer_vector.IntegerVectors_nk instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors of length 2 that sum to 3
-        sage: sage.combinat.integer_vector.IntegerVectors_nkconstraints(3, 2, min_slope=0)
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use sage.combinat.integer_vector.IntegerVectorsConstraints instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors that sum to 3 with constraints: length=2, min_slope=0
-    """
-    from sage.misc.superseded import deprecation
-    if len(constraints) == 0:
-        if n is None:
-            deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_k instead')
-            return IntegerVectors_k(k)
-        deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_nk instead')
-        return IntegerVectors_nk(n, k)
-    deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead')
-    return IntegerVectorsConstraints(n, k, **constraints)
 
 # October 2012: fixing outdated pickles which use classes being deprecated
 from sage.misc.persist import register_unpickle_override

@@ -7,6 +7,9 @@ The current entries to the catalog are obtained by typing
 ``manifolds.<tab>``, where ``<tab>`` indicates pressing the tab key.
 They are:
 
+- :class:`~sage.manifolds.differentiable.examples.euclidean.EuclideanSpace`: Euclidean space
+- :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`: real line
+- :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`: open interval on the real line
 - :func:`Sphere`: sphere embedded in Euclidean space
 - :func:`Torus`: torus embedded in Euclidean space
 - :func:`Minkowski`: 4-dimensional Minkowski space
@@ -27,12 +30,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 
+# Lazy import from examples folders:
+from sage.misc.lazy_import import lazy_import as _lazy_import
+_lazy_import('sage.manifolds.differentiable.examples.real_line', 'OpenInterval')
+_lazy_import('sage.manifolds.differentiable.examples.real_line', 'RealLine')
+_lazy_import('sage.manifolds.differentiable.examples.euclidean', 'EuclideanSpace')
+
 def Minkowski(positive_spacelike=True, names=None):
     """
     Generate a Minkowski space of dimension 4.
 
     By default the signature is set to `(- + + +)`, but can be changed to
-    `(+ - - -)` by setting the optionnal argument ``positive_spacelike`` to
+    `(+ - - -)` by setting the optional argument ``positive_spacelike`` to
     ``False``. The shortcut operator ``.<,>`` can be used to
     specify the coordinates.
 
@@ -104,8 +113,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         sage: S.<th, ph> = manifolds.Sphere()
         sage: S
-        2-dimensional pseudo-Riemannian submanifold S embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold S embedded in the Euclidean
+         space E^3
         sage: S.atlas()
         [Chart (S, (th, ph))]
         sage: S.metric().display()
@@ -113,19 +122,18 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
 
         sage: S = manifolds.Sphere(2, stereo2d=True)  # long time
         sage: S  # long time
-        2-dimensional pseudo-Riemannian submanifold S embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold S embedded in the Euclidean
+         space E^3
         sage: S.metric().display()  # long time
         gamma = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx
          + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
     """
-    from functools import reduce
     from sage.functions.trig import cos, sin, atan, atan2
     from sage.functions.other import sqrt
     from sage.symbolic.constants import pi
     from sage.misc.misc_c import prod
     from sage.manifolds.manifold import Manifold
-    from sage.manifolds.differentiable.euclidean import EuclideanSpace
+    from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
 
     if dim is None:
         if names is None:
@@ -154,7 +162,8 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         stereoN_to_S = stereoN.transition_map(stereoS,
           (x / (x**2 + y**2), y / (x**2 + y**2)), intersection_name='W',
           restrictions1=x**2 + y**2 != 0, restrictions2=xp**2+yp**2!=0)
-        stereoN_to_S.set_inverse(xp / (xp**2 + yp**2), yp / (xp**2 + yp**2))
+        stereoN_to_S.set_inverse(xp / (xp**2 + yp**2), yp / (xp**2 + yp**2),
+                                 check=False)
         W = U.intersection(V)
         stereoN_W = stereoN.restrict(W)
         stereoS_W = stereoS.restrict(W)
@@ -163,15 +172,16 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
         stereoN_A = stereoN_W.restrict(A)
         if names is None:
             names = tuple(["phi_{}:(0,pi)".format(i) for i in range(dim - 1)] +
-                          ["phi_{}:(-pi,pi)".format(dim - 1)])
+                          ["phi_{}:(-pi,pi):periodic".format(dim - 1)])
         else:
             names = tuple([names[i] + ":(0,pi)" for i in range(dim - 1)] +
-                          [names[dim - 1] + ":(-pi,pi)"])
+                          [names[dim - 1] + ":(-pi,pi):periodic"])
         spher = A.chart(names=names)
         th, ph = spher[:]
         spher_to_stereoN = spher.transition_map(stereoN_A, (sin(th)*cos(ph) / (1-cos(th)),
                                                             sin(th)*sin(ph) / (1-cos(th))))
-        spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi)
+        spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi,
+                                     check=False)
         stereoN_to_S_A = stereoN_to_S.restrict(A)
         stereoN_to_S_A * spher_to_stereoN # generates spher_to_stereoS
         stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)
@@ -195,10 +205,10 @@ def Sphere(dim=None, radius=1, names=None, stereo2d=False, stereo_lim=None):
     M = Manifold(dim, 'S', ambient=E, structure='Riemannian')
     if names is None:
         names = tuple(["phi_{}:(0,pi)".format(i) for i in range(dim-1)] +
-                      ["phi_{}:(-pi,pi)".format(dim-1)])
+                      ["phi_{}:(-pi,pi):periodic".format(dim-1)])
     else:
         names = tuple([names[i]+":(0,pi)"for i in range(dim - 1)] +
-                      [names[dim-1]+":(-pi,pi)"])
+                      [names[dim-1]+":(-pi,pi):periodic"])
     C = M.chart(names=names)
     M._first_ngens = C._first_ngens
     phi = M._first_ngens(dim)[:]
@@ -259,7 +269,7 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
         g = (2/r - 1) dt*dt + r^2/(r^2 - 2*r) dr*dr
          + r^2 dth*dth + r^2*sin(th)^2 dph*dph
         sage: K.default_chart().coord_range()
-        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: (-pi, pi)
+        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: [-pi, pi] (periodic)
 
         sage: m, a = var('m, a')
         sage: K.<t, r, th, ph> = manifolds.Kerr(m, a, coordinates="Kerr")
@@ -280,7 +290,7 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
          + (2*a^2*m*r*sin(th)^2/(a^2*cos(th)^2 + r^2)
          + a^2 + r^2)*sin(th)^2 dph*dph
         sage: K.default_chart().coord_range()
-        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: (-pi, pi)
+        t: (-oo, +oo); r: (0, +oo); th: (0, pi); ph: [-pi, pi] (periodic)
     """
     from sage.functions.other import sqrt
     from sage.functions.trig import cos, sin
@@ -288,10 +298,12 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
     M = Manifold(4, 'M', structure="Lorentzian")
     if coordinates == "Kerr":
         if names is None:
-            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta', r'ph:(-pi,pi):\phi')
+            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta',
+                     r'ph:(-pi,pi):periodic:\phi')
         else:
             names = (names[0]+r':(-oo,+oo)', names[1]+r':(0,+oo)',
-                     names[2]+r':(0,pi):\theta', names[3]+r':(-pi,pi):\phi')
+                     names[2]+r':(0,pi):\theta',
+                     names[3]+r':(-pi,pi):periodic:\phi')
         C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')
@@ -306,10 +318,12 @@ def Kerr(m=1, a=0, coordinates="BL", names=None):
 
     if coordinates == "BL":
         if names is None:
-            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta', r'ph:(-pi,pi):\phi')
+            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta',
+                     r'ph:(-pi,pi):periodic:\phi')
         else:
             names = (names[0]+r':(-oo,+oo)', names[1]+r':(0,+oo)',
-                     names[2]+r':(0,pi):\theta', names[3]+r':(-pi,pi):\phi')
+                     names[2]+r':(0,pi):\theta',
+                     names[3]+r':(-pi,pi):periodic:\phi')
         C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')
@@ -346,12 +360,12 @@ def Torus(R=2, r=1, names=None):
 
         sage: T.<theta, phi> = manifolds.Torus(3, 1)
         sage: T
-        2-dimensional pseudo-Riemannian submanifold M embedded in
-         3-dimensional differentiable manifold E^3
+        2-dimensional Riemannian submanifold T embedded in the Euclidean
+         space E^3
         sage: T.atlas()
-        [Chart (M, (theta, phi))]
+        [Chart (T, (theta, phi))]
         sage: T.embedding().display()
-        M --> E^3
+        T --> E^3
            (theta, phi) |--> (X, Y, Z) = ((cos(theta) + 3)*cos(phi),
                                           (cos(theta) + 3)*sin(phi),
                                           sin(theta))
@@ -360,12 +374,12 @@ def Torus(R=2, r=1, names=None):
     """
     from sage.functions.trig import cos, sin
     from sage.manifolds.manifold import Manifold
-    from sage.manifolds.differentiable.euclidean import EuclideanSpace
+    from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
     E = EuclideanSpace(3, symbols='X Y Z')
-    M = Manifold(2, 'M', ambient=E, structure="Riemannian")
+    M = Manifold(2, 'T', ambient=E, structure="Riemannian")
     if names is None:
         names = ("th", "ph")
-    names = tuple([names[i] + ":(-pi,pi)" for i in range(2)])
+    names = tuple([names[i] + ":(-pi,pi):periodic" for i in range(2)])
     C = M.chart(names=names)
     M._first_ngens = C._first_ngens
     th, ph = C[:]

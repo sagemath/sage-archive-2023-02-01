@@ -1,3 +1,5 @@
+# distutils: libraries = ratpoints
+
 r"""
 Descent on elliptic curves over `\QQ` with a 2-isogeny
 """
@@ -11,8 +13,6 @@ Descent on elliptic curves over `\QQ` with a 2-isogeny
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, print_function
 
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -50,6 +50,7 @@ cdef unsigned long valuation(mpz_t a, mpz_t p):
     mpz_clear(aa)
     return v
 
+
 def test_valuation(a, p):
     """
     Doctest function for cdef long valuation(mpz_t, mpz_t).
@@ -58,7 +59,7 @@ def test_valuation(a, p):
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_valuation as tv
         sage: for i in [1..20]:
-        ....:     print('{:>10} {} {} {}'.format(factor(i), tv(i,2), tv(i,3), tv(i,5)))
+        ....:     print('{:>10} {} {} {}'.format(str(factor(i)), tv(i,2), tv(i,3), tv(i,5)))
                  1 0 0 0
                  2 1 0 0
                  3 0 1 0
@@ -84,6 +85,7 @@ def test_valuation(a, p):
     cdef Integer A = Integer(a)
     cdef Integer P = Integer(p)
     return valuation(A.value, P.value)
+
 
 cdef int padic_square(mpz_t a, mpz_t p):
     """
@@ -897,7 +899,7 @@ cdef int everywhere_locally_soluble(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e)
 
     # RR soluble:
     if mpz_sgn(a)!=1:
-        if len(real_roots(f)) == 0:
+        if not real_roots(f):
             return 0
 
     # Q2 soluble:

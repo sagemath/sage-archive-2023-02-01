@@ -34,7 +34,6 @@ This module implements two classes
 Classes and methods
 -------------------
 """
-from __future__ import print_function
 
 from cysignals.memory cimport check_calloc, sig_free
 
@@ -47,7 +46,10 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
 from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
+
+cdef extern from "Python.h":
+    int unlikely(int) nogil  # Defined by Cython
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -150,7 +152,7 @@ cdef class StaticSparseCGraph(CGraph):
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
         sig_free(self.number_of_loops)
-        if self.g_rev != NULL:
+        if self._directed:
             free_short_digraph(self.g_rev)
 
     cpdef bint has_vertex(self, int v) except -1:
@@ -173,10 +175,10 @@ cdef class StaticSparseCGraph(CGraph):
         return 0 <= v and v < self.g.n
 
     cdef int add_vertex_unsafe(self, int v) except -1:
-        raise ValueError("thou shalt not add a vertex to an immutable graph")
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
     cdef int del_vertex_unsafe(self, int v) except -1:
-        raise ValueError("thou shalt not remove a vertex from an immutable graph")
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
     def add_vertex(self, int k):
         r"""
@@ -189,7 +191,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g.add_vertex(45)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not add a vertex to an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         self.add_vertex_unsafe(k)
 
@@ -204,7 +206,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g.del_vertex(45)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not remove a vertex from an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         self.del_vertex_unsafe(k)
 
@@ -221,7 +223,10 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return list(range(self.g.n))
 
-    cdef int has_arc_unsafe(self, int u, int v) except -1:
+    cdef int has_arc_label_unsafe(self, int u, int v, int l) except -1:
+        """
+        Label is ignored.
+        """
         return ((0 <= u) and
                 (0 <= v) and
                 (u < self.g.n) and
@@ -501,6 +506,81 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         return v in self._vertex_to_int
 
+    def add_edge(self, u, v, l, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.add_edge(1,2,3,True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def add_edges(self, edges, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.add_edges([[1, 2]], True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def add_vertices(self, vertices):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.add_vertices([1, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def del_edge(self, u, v, l, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.set_edge_label(1,2,3,True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
+    def set_edge_label(self, u, v, l, directed):
+        r"""
+        Set edge label. No way.
+
+        TESTS::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: g = StaticSparseBackend(graphs.PetersenGraph())
+            sage: g.set_edge_label(1,2,3,True)
+            Traceback (most recent call last):
+            ...
+            ValueError: graph is immutable; please change a copy instead (use function copy())
+        """
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
+
     def relabel(self, perm, directed):
         r"""
         Relabel the graphs' vertices. No way.
@@ -512,10 +592,9 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g.relabel([],True)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not relabel an immutable graph
-
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
-        raise ValueError("thou shalt not relabel an immutable graph")
+        raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
     def get_edge_label(self, object u, object v):
         """
@@ -907,6 +986,178 @@ cdef class StaticSparseBackend(CGraphBackend):
                 else:
                     yield vi, self._vertex_to_labels[j]
 
+    iterator_unsorted_edges = iterator_edges
+
+    def subgraph_given_vertices(self, CGraphBackend other, object vertices):
+        """
+        Initialize ``other`` to be the subgraph of ``self`` with given vertices.
+
+        INPUT:
+
+        - ``other`` -- a (mutable) subclass of :class:`CGraphBackend`
+        - ``vertices`` -- a list of vertex labels
+
+        .. NOTE:
+
+            ``other`` is assumed to be the empty graph.
+
+        EXAMPLES:
+
+        Make a dense copy::
+
+            sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            sage: G = Graph(loops=True)
+            sage: G.add_edges([[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [7,8], [3,3]])
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=False)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: list(H.iterator_edges(list(range(9)), False)) == list(G.iterator_edges(list(range(9)), False))
+            True
+
+        Make a sparse copy::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, range(9))
+            sage: sorted(list(H.iterator_edges(list(range(9)), False))) == sorted(list(G.iterator_edges(list(range(9)), False)))
+            True
+
+        Initialize a proper subgraph::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_edges(list(range(9)), False))
+            [(2, 3), (3, 3), (3, 4), (4, 5)]
+
+        Loops are removed, if the other graph does not allow loops::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.loops(False)
+            sage: G.subgraph_given_vertices(H, [2,3,4,5])
+            sage: list(H.iterator_edges(list(range(9)), False))
+            [(2, 3), (3, 4), (4, 5)]
+
+        Multiple edges and labels are copied::
+
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d']], False)
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'a'), (0, 1, 'd'), (1, 2, 'b')]
+
+        Multiple edges are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: H.multiple_edges(False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, 'a'), (1, 2, 'b')]
+
+        Labels are removed, if the other graph does not allow them::
+
+            sage: H = sage.graphs.base.dense_graph.DenseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_edges(list(range(4)), True))
+            [(0, 1, None), (1, 2, None)]
+
+        A directed subgraph of an undirected graph is taken by initializing
+        with edges in both directions::
+
+            sage: G = Graph(multiedges=True, loops=True)
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c'], [0,1,'d'], [2,2,'e']])
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=True)
+            sage: H.multiple_edges(True)
+            sage: H.loops(True)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            sage: list(H.iterator_out_edges(list(range(4)), True))
+            [(0, 1, 'a'),
+             (0, 1, 'd'),
+             (1, 0, 'a'),
+             (1, 0, 'd'),
+             (1, 2, 'b'),
+             (2, 1, 'b'),
+             (2, 2, 'e')]
+
+        An undirected subgraph of a directeed graph is not defined::
+
+            sage: G = DiGraph()
+            sage: G.add_edges([[0,1,'a'], [1,2,'b'], [2,3,'c']])
+            sage: G = StaticSparseBackend(G)
+            sage: H = sage.graphs.base.sparse_graph.SparseGraphBackend(0, directed=False)
+            sage: G.subgraph_given_vertices(H, [0,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot obtain an undirected subgraph of a directed graph
+        """
+        cdef object v, l
+        cdef int u_int, prev_u_int, v_int, l_int, l_int_other, tmp
+        cdef StaticSparseCGraph cg = self._cg
+        cdef CGraph cg_other = other.cg()
+        cdef list b_vertices_2
+        cdef FrozenBitset b_vertices
+        cdef int n_vertices = len(vertices)
+        cdef bint loops = other.loops()
+        cdef bint delete_multiple_edges = self.multiple_edges(None) and not other.multiple_edges(None)
+
+        if self._directed and not other._directed:
+            raise ValueError("cannot obtain an undirected subgraph of a directed graph")
+
+        try:
+            b_vertices_2 = [self._vertex_to_int[x] for x in vertices]
+            b_vertices = FrozenBitset(b_vertices_2)
+        except KeyError:
+            raise LookupError("one of the vertices does not belong to the graph")
+        except ValueError:
+            # Avoiding "Bitset must not be empty"
+            # in this case there is nothing to do
+            return
+
+        cdef int length = len(b_vertices)
+        cdef int i
+        cdef int* vertices_translation = <int *> sig_malloc(b_vertices.capacity() * sizeof(int))
+
+        try:
+            # Add the vertices to ``other``.
+            if cg_other.active_vertices.size < length:
+                cg_other.realloc(length)
+            for j in range(n_vertices):
+                i = b_vertices_2[j]
+                if i >= 0:
+                    v = self.vertex_label(i)
+                    vertices_translation[i] = other.check_labelled_vertex(v, False)
+
+            for v_int in b_vertices:
+                prev_u_int = -1
+                for tmp in range(out_degree(cg.g, v_int)):
+                    u_int = cg.g.neighbors[v_int][tmp]
+                    if (u_int < b_vertices.capacity() and bitset_in(b_vertices._bitset, u_int)
+                            and (u_int >= v_int or other._directed)):
+
+                        if unlikely(delete_multiple_edges and u_int == prev_u_int):
+                            # Delete multiple edges, if ``other`` does not allow them.
+                            continue
+                        prev_u_int = u_int
+
+                        if unlikely(not loops and u_int == v_int):
+                            # Delete loops, if ``other`` does not allow them.
+                            continue
+
+                        l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
+
+                        # Will return ``0``, if ``other`` does not support edge labels.
+                        l_int_other = other.new_edge_label(l)
+
+                        cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
+
+        finally:
+            sig_free(vertices_translation)
+
     def degree(self, v, directed):
         r"""
         Return the degree of a vertex
@@ -1139,11 +1390,11 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g.add_vertex(1)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not add a vertex to an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
             sage: g.add_vertices([1,2,3])
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not add a vertex to an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         (<StaticSparseCGraph> self._cg).add_vertex(v)
 
@@ -1157,11 +1408,11 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g.delete_vertex(1)
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not remove a vertex from an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
             sage: g.delete_vertices([1,2,3])
             Traceback (most recent call last):
             ...
-            ValueError: thou shalt not remove a vertex from an immutable graph
+            ValueError: graph is immutable; please change a copy instead (use function copy())
         """
         (<StaticSparseCGraph> self._cg).del_vertex(v)
 

@@ -1,5 +1,5 @@
 r"""
-Group, ring, etc. actions on objects.
+Group, ring, etc. actions on objects
 
 The terminology and notation used is suggestive of groups acting on sets,
 but this framework can be used for modules, algebras, etc.
@@ -53,8 +53,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cpython.tuple cimport PyTuple_GET_ITEM
 
 from .functor cimport Functor
@@ -73,8 +71,8 @@ cdef inline category(x):
     try:
         return x.category()
     except AttributeError:
-        import sage.categories.all
-        return sage.categories.all.Objects()
+        from sage.categories.objects import Objects
+        return Objects()
 
 
 cdef class Action(Functor):
@@ -379,6 +377,7 @@ cdef class InverseAction(Action):
     def _repr_name_(self):
         return "inverse action"
 
+
 cdef class PrecomposedAction(Action):
     """
     A precomposed action first applies given maps, and then applying an action
@@ -398,8 +397,7 @@ cdef class PrecomposedAction(Action):
         sage: v = E.manin_symbol_rep()
         sage: c,x = v[0]
         sage: y = x.modular_symbol_rep()
-        sage: A = y.parent().get_action(QQ, self_on_left=False, op=operator.mul)
-        sage: A
+        sage: coercion_model.get_action(QQ, parent(y), op=operator.mul)
         Left scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
         with precomposition on right by Coercion map:
           From: Abelian Group of all Formal Finite Sums over Integer Ring
@@ -571,5 +569,3 @@ cdef class ActionEndomorphism(Morphism):
                 return ActionEndomorphism(self._action, inv_g)
             else:
                 return (~self._action)(self._g)
-
-

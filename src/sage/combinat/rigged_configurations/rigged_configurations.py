@@ -6,7 +6,7 @@ AUTHORS:
 - Travis Scrimshaw (2010-09-26): Initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010-2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,8 +18,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import itertools
 
@@ -65,8 +65,8 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
         sage: K1 is KirillovReshetikhinCrystal(['A',6,2], 2, 1)
         True
     """
-    from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-    return RiggedConfigurations(cartan_type, [[r,s]])
+    return RiggedConfigurations(cartan_type, [[r, s]])
+
 
 # Note on implementation, this class is used for simply-laced types only
 class RiggedConfigurations(UniqueRepresentation, Parent):
@@ -138,7 +138,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
         All non-simply-laced rigged configurations have not been proven to
         give rise to aligned virtual crystals (i.e. have the correct crystal
-        structure or ismorphic as affine crystals to the tensor product of
+        structure or isomorphic as affine crystals to the tensor product of
         KR tableaux).
 
     INPUT:
@@ -678,7 +678,6 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: ascii_art(RC.classically_highest_weight_vectors())
-            (                    )
             ( (/)  (/)  (/)  (/) )
         """
         return self.module_generators
@@ -795,9 +794,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         """
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -867,9 +866,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     def fermionic_formula(self, q=None, only_highest_weight=False, weight=None):
         r"""
-        Return the fermoinic formula associated to ``self``.
+        Return the fermionic formula associated to ``self``.
 
-        Given a set of rigged configurations `RC(\lambda, L)`, the fermonic
+        Given a set of rigged configurations `RC(\lambda, L)`, the fermionic
         formula is defined as:
 
         .. MATH::
@@ -1135,9 +1134,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
         """
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -1484,9 +1483,9 @@ class RCTypeA2Even(RCNonSimplyLaced):
         """
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -1637,9 +1636,9 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         vac_num = 0
         if "B" in options:
-            for tableau in options["B"]:
-                if len(tableau) == self._rc_index[a]:
-                    vac_num += min(i, len(tableau[0]))
+            for tab in options["B"]:
+                if len(tab) == self._rc_index[a]:
+                    vac_num += min(i, len(tab[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
@@ -1912,8 +1911,3 @@ class RCTypeA2Dual(RCTypeA2Even):
         return self.element_class(self, partitions)
 
     Element = KRRCTypeA2DualElement
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-RiggedConfigurations.global_options=deprecated_function_alias(18555, RiggedConfigurations.options)
-RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)

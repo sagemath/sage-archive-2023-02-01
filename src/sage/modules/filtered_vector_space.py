@@ -107,15 +107,13 @@ Or the algebraic field::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
-from six.moves import range
 
 from sage.rings.all import QQ, ZZ, RDF, RR, Integer
 from sage.rings.infinity import InfinityRing, infinity, minus_infinity
 from sage.categories.fields import Fields
 from sage.modules.free_module import FreeModule_ambient_field, VectorSpace
 from sage.matrix.constructor import matrix
-from sage.misc.all import uniq, cached_method
+from sage.misc.all import cached_method
 
 
 def is_FilteredVectorSpace(X):
@@ -310,14 +308,14 @@ def construct_from_generators(filtration, base_ring, check):
     # convert generator notation to generator+indices
     if len(filtration) == 0:
         raise ValueError('you need to specify at least one ray to deduce the dimension')
-    generators = []
+    generators = set()
     for gens in filtration.values():
-        generators += map(normalize_gen, gens)
-    generators = tuple(uniq(generators))
+        generators.update(normalize_gen(g) for g in gens)
+    generators = tuple(sorted(generators))
 
     # normalize filtration data
     normalized = dict()
-    for deg, gens_deg in iteritems(filtration):
+    for deg, gens_deg in filtration.items():
         indices = [generators.index(normalize_gen(v)) for v in gens_deg]
         normalized[deg] = tuple(indices)
     return construct_from_generators_indices(generators, normalized, base_ring, check)
@@ -376,7 +374,7 @@ def construct_from_generators_indices(generators, filtration, base_ring, check):
 
     # normalize filtration data
     normalized = dict()
-    for deg, gens in iteritems(filtration):
+    for deg, gens in filtration.items():
         deg = normalize_degree(deg)
         gens = [ZZ(i) for i in gens]
         if any(i < 0 or i >= len(generators) for i in gens):
@@ -448,7 +446,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         if check:
             assert matrix(generators).rank() == self.dimension()
             assert isinstance(filtration, dict)
-            for degree, indices in iteritems(filtration):
+            for degree, indices in filtration.items():
                 assert isinstance(degree, Integer) or degree == infinity
                 assert isinstance(indices, tuple)
                 assert all(isinstance(r, Integer) for r in indices)
@@ -760,7 +758,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         filt = self._filt[1:]
         for d, V in filt:
             generators.update(V.echelonized_basis())
-        generators = tuple(generators)
+        generators = tuple(sorted(generators))
 
         filtration = dict()
         for d, V in filt:
@@ -1013,7 +1011,8 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         filtration = dict()
         self_indices = set()
         other_indices = set()
-        for deg in reversed(uniq(list(self_filt) + list(other_filt))):
+        degrees = list(self_filt) + list(other_filt)
+        for deg in sorted(set(degrees), reverse=True):
             self_indices.update(self_filt.get(deg, []))
             other_indices.update(other_filt.get(deg, []))
             gens = join_indices(self_indices, other_indices)
@@ -1227,7 +1226,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         """
         generators, filtration = self.presentation()
         shifted = dict()
-        for d, indices in iteritems(filtration):
+        for d, indices in filtration.items():
             shifted[d + deg] = indices
         return FilteredVectorSpace(generators, shifted, base_ring=self.base_ring())
 

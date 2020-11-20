@@ -54,8 +54,8 @@ AUTHORS:
 - Steven Sivek (2005-12-22): first version
 
 - Steven Sivek (2006-02-07): updated to correctly handle the new
-  search form on the Sloane website, and it's now also smarter about
-  loading the local database in that it doesn't convert a sequence
+  search form on the Sloane website, and it is now also smarter about
+  loading the local database in that it does not convert a sequence
   from string form to a list of integers until absolutely necessary.
   This seems to cut the loading time roughly in half.
 
@@ -72,27 +72,25 @@ Classes and methods
 -------------------
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #
 #      Sage: Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #                               and  Steven Sivek  <ssivek@mit.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import bz2
 import os
 import re
 
-# import compatible with py2 and py3
-from six.moves.urllib.request import urlretrieve
+from urllib.request import urlretrieve
 
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.env import SAGE_SHARE
 from sage.rings.integer_ring import ZZ
-from sage.misc.superseded import deprecation
 
 
 class SloaneEncyclopediaClass:
@@ -119,7 +117,7 @@ class SloaneEncyclopediaClass:
 
     def __iter__(self):
         """
-        Returns an iterator through the encyclopedia. Elements are of the
+        Return an iterator through the encyclopedia. Elements are of the
         form [number, sequence].
         """
         for i in self.__data__:
@@ -137,9 +135,9 @@ class SloaneEncyclopediaClass:
         OUTPUT: list
         """
         self.load()
-        if not N in self.__data__: # sequence N does not exist
+        if N not in self.__data__:  # sequence N does not exist
             return []
-        if self.__data__[N][1] is None: # list N has not been created yet
+        if self.__data__[N][1] is None:  # list N has not been created yet
             list = self.__data__[N][2].strip(',').split(',')
             self.__data__[N][1] = [ZZ(n) for n in list]
         return self.__data__[N][1]
@@ -169,7 +167,7 @@ class SloaneEncyclopediaClass:
         self.load()
 
         answer, nanswer = [], 0
-        pattern = re.sub(r'[\[\]]', ',', str(seq).replace(' ',''))
+        pattern = re.sub(r'[\[\]]', ',', str(seq).replace(' ', ''))
         for i in self.__data__:
             if self.__data__[i][2].find(pattern) != -1:
                 answer.append((i, self[i]))
@@ -198,21 +196,21 @@ class SloaneEncyclopediaClass:
           already installed and overwrite=True, download and install the latest
           version over the installed one.
         """
-        ### See if the encyclopedia already exists
+        # See if the encyclopedia already exists
         if not overwrite and os.path.exists(self.__file__):
             raise IOError("Sloane encyclopedia is already installed")
 
         tm = verbose("Downloading stripped version of Sloane encyclopedia")
         try:
-            fname, _ = urlretrieve(oeis_url);
+            fname, _ = urlretrieve(oeis_url)
         except IOError as msg:
-            raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, oeis_url))
+            raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection." % (msg, oeis_url))
 
-        if not names_url is None:
+        if names_url is not None:
             try:
-                nname, _ = urlretrieve(names_url);
+                nname, _ = urlretrieve(names_url)
             except IOError as msg:
-                raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, names_url))
+                raise IOError("%s\nError fetching the following website:\n    %s\nTry checking your internet connection." % (msg, names_url))
         else:
             nname = None
         verbose("Finished downloading", tm)
@@ -220,7 +218,7 @@ class SloaneEncyclopediaClass:
         self.install_from_gz(fname, nname, overwrite)
         # Delete the temporary downloaded files
         os.remove(fname)
-        if not nname is None:
+        if nname is not None:
             os.remove(nname)
 
     def install_from_gz(self, stripped_file, names_file, overwrite=False):
@@ -243,11 +241,11 @@ class SloaneEncyclopediaClass:
 
         copy_gz_file(stripped_file, self.__file__)
 
-        if not names_file is None:
+        if names_file is not None:
             copy_gz_file(names_file, self.__file_names__)
         else:
             # Delete old copies of names.gz since their sequence numbers
-            # probably won't match the newly installed stripped.gz
+            # probably will not match the newly installed stripped.gz
             if os.path.exists(self.__file_names__):
                 os.remove(self.__file_names__)
 
@@ -270,7 +268,7 @@ class SloaneEncyclopediaClass:
         self.__data__ = {}
 
         tm = verbose("Loading Sloane encyclopedia from disk")
-        entry = re.compile(r'A(?P<num>\d{6}) ,(?P<body>.*),$');
+        entry = re.compile(r'A(?P<num>\d{6}) ,(?P<body>.*),$')
         for L in file_seq:
             if len(L) == 0:
                 continue
@@ -278,14 +276,15 @@ class SloaneEncyclopediaClass:
             if m:
                 seqnum = int(m.group('num'))
                 msg = m.group('body').strip()
-                self.__data__[seqnum] = [seqnum, None, ','+msg+',', None]
+                self.__data__[seqnum] = [seqnum, None, ',' + msg + ',', None]
         file_seq.close()
 
         try:
             file_names = bz2.BZ2File(self.__file_names__, 'r')
-            entry = re.compile(r'A(?P<num>\d{6}) (?P<body>.*)$');
+            entry = re.compile(r'A(?P<num>\d{6}) (?P<body>.*)$')
             for L in file_names:
-                if len(L) == 0: continue
+                if not L:
+                    continue
                 m = entry.search(L)
                 if m:
                     seqnum = int(m.group('num'))
@@ -293,10 +292,10 @@ class SloaneEncyclopediaClass:
             file_names.close()
             self.__loaded_names__ = True
         except KeyError:
-            ### Some sequence in the names file isn't in the database
+            # Some sequence in the names file is not in the database
             raise KeyError("Sloane OEIS sequence and name files do not match.  Try reinstalling, e.g. SloaneEncyclopedia.install(overwrite=True).")
-        except IOError as msg:
-            ### The names database is not installed
+        except IOError:
+            # The names database is not installed
             self.__loaded_names__ = False
 
         verbose("Finished loading", tm)
@@ -304,26 +303,27 @@ class SloaneEncyclopediaClass:
 
     def sequence_name(self, N):
         """
-        Return the name of sequence N in the encyclopedia. If sequence N
-        does not exist, return ''.  If the names database is not installed,
-        raise an IOError.
+        Return the name of sequence ``N`` in the encyclopedia.
+
+        If sequence ``N`` does not exist, return ``''``.  If the names
+        database is not installed, raise an ``IOError``.
 
         INPUT:
 
-        -  ``N`` -- int
+        - ``N`` -- int
 
         OUTPUT: string
 
-        EXAMPLES:
+        EXAMPLES::
 
-        sage: SloaneEncyclopedia.sequence_name(1) # optional - sloane_database
-        'Number of groups of order n.'
+            sage: SloaneEncyclopedia.sequence_name(1) # optional - sloane_database
+            'Number of groups of order n.'
         """
         self.load()
         if not self.__loaded_names__:
             raise IOError("The Sloane OEIS names file is not installed.  Try reinstalling, e.g. SloaneEncyclopedia.install(overwrite=True).")
 
-        if not N in self.__data__: # sequence N does not exist
+        if N not in self.__data__:  # sequence N does not exist
             return ''
         return self.__data__[N][3]
 
@@ -343,7 +343,7 @@ SloaneEncyclopedia = SloaneEncyclopediaClass()
 
 def copy_gz_file(gz_source, bz_destination):
     """
-    Decompress a gzipped file and install the bzipped verson.
+    Decompress a gzipped file and install the bzipped version.
 
     This is used by SloaneEncyclopedia.install_from_gz to install
     several gzipped OEIS database files.

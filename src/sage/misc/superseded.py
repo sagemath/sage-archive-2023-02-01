@@ -20,10 +20,9 @@ Functions and classes
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function, absolute_import
-from six import iteritems
 
 from warnings import warn
 import inspect
@@ -42,7 +41,7 @@ def _check_trac_number(trac_number):
     OUTPUT:
 
     This function returns nothing. A ``ValueError`` or ``TypeError`` is
-    raised if the argument can not be a valid trac number.
+    raised if the argument cannot be a valid trac number.
 
     EXAMPLES::
 
@@ -53,7 +52,6 @@ def _check_trac_number(trac_number):
         ...
         ValueError: 0 is not a valid trac issue number
         sage: _check_trac_number(int(10))
-        sage: _check_trac_number(long(1000))
         sage: _check_trac_number(10.0)
         Traceback (most recent call last):
         ...
@@ -142,7 +140,7 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
         message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
     else:
         message += 'See https://trac.sagemath.org/'+ str(trac_number) + ' for details.'
-        
+
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
     warn(message, warning_class, stacklevel)
@@ -274,7 +272,6 @@ class experimental(object):
         from sage.misc.decorators import sage_wraps
         @sage_wraps(func)
         def wrapper(*args, **kwds):
-            from sage.misc.superseded import experimental_warning
             if not wrapper._already_issued:
                 experimental_warning(self.trac_number,
                             'This class/method/function is marked as '
@@ -288,17 +285,17 @@ class experimental(object):
 
         return wrapper
 
-from sage.structure.sage_object import SageObject
-class __experimental_self_test(SageObject):
+
+class __experimental_self_test(object):
     r"""
     This is a class only to demonstrate with a doc-test that the @experimental
     decorator only issues a warning message once (see :trac:`20601`).
 
     The test below does not issue a warning message because that warning has
     already been issued by a previous doc-test in the @experimental code. Note
-    that this behaviour can not be demonstrated within a single documentation
+    that this behaviour cannot be demonstrated within a single documentation
     string: Sphinx will itself supress multiple issued warnings.
-    
+
     TESTS::
 
         sage: from sage.misc.superseded import __experimental_self_test
@@ -312,16 +309,15 @@ class __experimental_self_test(SageObject):
 
 class DeprecatedFunctionAlias(object):
     """
-    A wrapper around methods or functions which automatically print
-    the correct deprecation message. See
-    :func:`deprecated_function_alias`.
+    A wrapper around methods or functions which automatically prints a
+    deprecation message. See :func:`deprecated_function_alias`.
 
     AUTHORS:
 
     - Florent Hivert (2009-11-23), with the help of Mike Hansen.
     - Luca De Feo (2011-07-11), printing the full module path when different from old path
     """
-    def __init__(self, trac_number, func, module, instance = None, unbound = None):
+    def __init__(self, trac_number, func, module, instance=None, unbound=None):
         r"""
         TESTS::
 
@@ -376,18 +372,19 @@ class DeprecatedFunctionAlias(object):
             ....:     r"        return 1",
             ....:     r"    old_cython_meth = deprecated_function_alias(13109, new_cython_meth)"
             ....: ]))
-            ....:
             sage: cython_cls().old_cython_meth.__name__
             'old_cython_meth'
         """
         # first look through variables in stack frames
         for frame in inspect.stack():
-            for name, obj in iteritems(frame[0].f_globals):
+            for name, obj in frame[0].f_globals.items():
                 if obj is self:
                     return name
         # then search object that contains self as method
-        import gc, copy
+        import gc
+        import copy
         gc.collect()
+
         def is_class(gc_ref):
             if not isinstance(gc_ref, dict):
                 return False
@@ -398,10 +395,10 @@ class DeprecatedFunctionAlias(object):
         for ref in gc.get_referrers(search_for):
             if is_class(ref) and ref is not self.__dict__:
                 ref_copy = copy.copy(ref)
-                for key, val in iteritems(ref_copy):
+                for key, val in ref_copy.items():
                     if val is search_for:
                         return key
-        raise AttributeError("The name of this deprecated function can not be determined")
+        raise AttributeError("The name of this deprecated function cannot be determined")
 
     def __call__(self, *args, **kwds):
         """
@@ -421,7 +418,8 @@ class DeprecatedFunctionAlias(object):
             other = self.func.__name__
 
         deprecation(self.trac_number,
-                    "%s is deprecated. Please use %s instead."%(self.__name__, other))
+                    "{} is deprecated. Please use {} instead.".format(
+                        self.__name__, other))
         if self.instance is None:
             return self.func(*args, **kwds)
         else:
@@ -458,12 +456,18 @@ class DeprecatedFunctionAlias(object):
             3
 
         """
-        return self if (inst is None) else DeprecatedFunctionAlias(self.trac_number, self.func, self.__module__, instance = inst, unbound = self)
+        if inst is None:
+            return self  # Unbound method lookup on class
+        else:
+            # Return a bound method wrapper
+            return DeprecatedFunctionAlias(self.trac_number, self.func,
+                                           self.__module__, instance=inst,
+                                           unbound=self)
 
 
 def deprecated_function_alias(trac_number, func):
     """
-    Create an aliased version of a function or a method which raise a
+    Create an aliased version of a function or a method which raises a
     deprecation warning message.
 
     If f is a function or a method, write
@@ -509,9 +513,12 @@ def deprecated_function_alias(trac_number, func):
      - Florent Hivert (2009-11-23), with the help of Mike Hansen.
      - Luca De Feo (2011-07-11), printing the full module path when different from old path
     """
-    _check_trac_number(trac_number)
-    frame1 = inspect.getouterframes(inspect.currentframe())[1][0]
-    module_name = inspect.getmodulename(frame1.f_code.co_filename)
+    module_name = None
+    frame0 = inspect.currentframe()
+    if frame0:
+        frame1 = frame0.f_back
+        if frame1:
+            module_name = inspect.getmodulename(frame1.f_code.co_filename)
     if module_name is None:
         module_name = '__main__'
     return DeprecatedFunctionAlias(trac_number, func, module_name)

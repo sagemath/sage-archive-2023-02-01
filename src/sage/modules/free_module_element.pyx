@@ -109,7 +109,6 @@ This is a test from :trac:`20211`::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -146,14 +145,15 @@ def is_FreeModuleElement(x):
     """
     return isinstance(x, FreeModuleElement)
 
-def vector(arg0, arg1=None, arg2=None, sparse=None):
+def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     r"""
     Return a vector or free module element with specified entries.
 
     CALL FORMATS:
 
     This constructor can be called in several different ways.
-    In each case, ``sparse=True`` or ``sparse=False`` can be
+    In each case, ``sparse=True`` or ``sparse=False`` as well
+    as ``immutable=True`` or ``immutable=False`` can be
     supplied as an option.  ``free_module_element()`` is an
     alias for ``vector()``.
 
@@ -181,6 +181,9 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 
     - ``sparse`` -- boolean, whether the result should be a sparse
       vector
+
+    - ``immutable`` -- boolean (default: ``False``); whether the result
+      should be an immutable vector
 
     In call format 4, an error is raised if the ``degree`` does not match
     the length of ``object`` so this call can provide some safeguards.
@@ -382,7 +385,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
         sage: v[3].parent()
         Integer Ring
-        sage: v = vector([float(23.4), int(2), complex(2+7*I), long(1)]); v
+        sage: v = vector([float(23.4), int(2), complex(2+7*I), 1]); v
         (23.4, 2.0, 2.0 + 7.0*I, 1.0)
         sage: v[1].parent()
         Complex Double Field
@@ -393,10 +396,10 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
         sage: vector(u).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
         sage: v = vector(K, (0, 1) )
         sage: vector(v).base_ring()
-        Number Field in sqrt3 with defining polynomial x^2 - 3
+        Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?
 
     Constructing a vector from a numpy array behaves as expected::
 
@@ -429,6 +432,36 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         ()
         sage: x.parent()
         Ambient free module of rank 0 over the principal ideal domain Integer Ring
+
+    The ``immutable`` switch allows to create an immutable vector. ::
+
+        sage: v = vector(QQ, {0:1/2, 4:-6, 7:0}, immutable=True); v
+        (1/2, 0, 0, 0, -6, 0, 0, 0)
+        sage: v.is_immutable()
+        True
+
+    The ``immutable`` switch works regardless of the type of valid input to the
+    constructor. ::
+
+        sage: v = vector(ZZ, 4, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: w = vector(ZZ, [1,2,3])
+        sage: v = vector(w, ZZ, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: v = vector(QQ, w, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: import numpy as np
+        sage: w = np.array([1, 2, pi], np.float)
+        sage: v = vector(w, immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: w = np.array([i, 2, 3], np.complex)
+        sage: v = vector(w, immutable=True)
+        sage: v.is_immutable()
+        True
     """
     # We first efficiently handle the important special case of the zero vector
     # over a ring. See trac 11657.
@@ -439,15 +472,24 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
             M = FreeModule(arg0, arg1, sparse=True)
         else:
             M = arg0 ** arg1
-        return M.zero_vector()
+        v = M.zero_vector()
+        if immutable:
+            v.set_immutable()
+        return v
 
     # WARNING TO FUTURE OPTIMIZERS: The following two hasattr's take
     # quite a significant amount of time.
     if hasattr(arg0, '_vector_'):
-        return arg0._vector_(arg1)
+        v = arg0._vector_(arg1)
+        if immutable:
+            v.set_immutable()
+        return v
 
     if hasattr(arg1, '_vector_'):
-        return arg1._vector_(arg0)
+        v = arg1._vector_(arg0)
+        if immutable:
+            v.set_immutable()
+        return v
 
     # consider a possible degree specified in second argument
     degree = None
@@ -491,11 +533,17 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         if (R is None or R is RDF) and v.dtype.kind == 'f':
             V = VectorSpace(RDF, v.shape[0])
             from .vector_real_double_dense import Vector_real_double_dense
-            return Vector_real_double_dense(V, v)
+            v = Vector_real_double_dense(V, v)
+            if immutable:
+                v.set_immutable()
+            return v
         if (R is None or R is CDF) and v.dtype.kind == 'c':
             V = VectorSpace(CDF, v.shape[0])
             from .vector_complex_double_dense import Vector_complex_double_dense
-            return Vector_complex_double_dense(V, v)
+            v = Vector_complex_double_dense(V, v)
+            if immutable:
+                v.set_immutable()
+            return v
         # Use slower conversion via list
         v = list(v)
 
@@ -516,7 +564,11 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         M = FreeModule(R, len(v), sparse=True)
     else:
         M = R ** len(v)
-    return M(v)
+
+    w = M(v)
+    if immutable:
+        w.set_immutable()
+    return w
 
 
 free_module_element = vector
@@ -684,6 +736,7 @@ def zero_vector(arg0, arg1=None):
         TypeError: first argument must be a ring
     """
     if arg1 is None:
+        arg0 = ZZ(arg0)
         # default to a zero vector over the integers (ZZ) if no ring given
         return (ZZ**arg0).zero_vector()
     if is_Ring(arg0):
@@ -959,12 +1012,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         # Get a reference to Magma version of parent.
         R = magma(self.parent())
         # Get list of coefficients.
-        v = ','.join([a._magma_init_(magma) for a in self.list()])
+        v = ','.join(a._magma_init_(magma) for a in self.list())
         return '%s![%s]' % (R.name(), v)
 
     def numpy(self, dtype=object):
         """
-        Converts self to a numpy array.
+        Convert self to a numpy array.
 
         INPUT:
 
@@ -1432,53 +1485,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             (b, d, d, e)
         """
         return self.parent()([ a.subs(in_dict, **kwds) for a in self.list() ])
-
-    def set_immutable(self):
-        """
-        Make this vector immutable. This operation can't be undone.
-
-        EXAMPLES::
-
-            sage: v = vector([1..5]); v
-            (1, 2, 3, 4, 5)
-            sage: v[1] = 10
-            sage: v.set_immutable()
-            sage: v[1] = 10
-            Traceback (most recent call last):
-            ...
-            ValueError: vector is immutable; please change a copy instead (use copy())
-        """
-        self._is_mutable = 0
-
-    def is_mutable(self):
-        """
-        Return True if this vector is mutable, i.e., the entries can be
-        changed.
-
-        EXAMPLES::
-
-            sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
-            True
-            sage: v.set_immutable()
-            sage: v.is_mutable()
-            False
-        """
-        return self._is_mutable
-
-    def is_immutable(self):
-        """
-        Return True if this vector is immutable, i.e., the entries cannot
-        be changed.
-
-        EXAMPLES::
-
-            sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
-            False
-            sage: v.set_immutable()
-            sage: v.is_immutable()
-            True
-        """
-        return not self._is_mutable
 
     def change_ring(self, R):
         """
@@ -2563,8 +2569,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.dot_product(w)
             0
 
-        The cross product is defined for degree seven vectors as well.
-        [Crossproduct]_
+        The cross product is defined for degree seven vectors as well: 
+        see :wikipedia:`Cross_product`.
         The 3-D cross product is achieved using the quaternions,
         whereas the 7-D cross product is achieved using the octonions. ::
 
@@ -2646,14 +2652,13 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Return the matrix which describes a cross product
         between ``self`` and some other vector.
 
-        This operation is sometimes written using the `hat operator`_.
+        This operation is sometimes written using the hat operator:
+        see :wikipedia:`Hat_operator#Cross_product`.
         It is only defined for vectors of length 3 or 7.
         For a vector `v` the cross product matrix `\hat{v}`
         is a matrix which satisfies `\hat{v} \cdot w = v \times w`
         and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
         The basis vectors are assumed to be orthonormal.
-
-        .. _hat operator: :wikipedia:`Hat_operator#Cross_product`
 
         OUTPUT:
 
@@ -3273,7 +3278,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             Full MatrixSpace of 3 by 4 dense matrices over Rational Field
 
         The more general :meth:`sage.matrix.matrix2.tensor_product` is an
-        operation on a pair of matrices.  If we construe a pair of vectors
+        operation on a pair of matrices.  If we construct a pair of vectors
         as a column vector and a row vector, then an outer product and a
         tensor product are identical.  Thus `tensor_product` is a synonym
         for this method.  ::
@@ -3485,10 +3490,44 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         return True
 
+    def _macaulay2_(self, macaulay2=None):
+        r"""
+        Convert this vector to a Macaulay2 vector.
+
+        EXAMPLES::
+
+            sage: vector(QQ, [1, 2, 3])._macaulay2_()  # optional - macaulay2
+            | 1 |
+            | 2 |
+            | 3 |
+            sage: _.ring()                             # optional - macaulay2
+            QQ
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: macaulay2(vector(R, [1, x+y]))  # optional - macaulay2
+            |  1  |
+            | x+y |
+
+        TESTS:
+
+        Entries of the vector get promoted to the base ring::
+
+            sage: R.<x,y> = QQ[]
+            sage: v = macaulay2(vector(R, [1, 2]))      # optional - macaulay2
+            sage: v.ring()._operator('===', R).sage()   # optional - macaulay2
+            True
+        """
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        return (macaulay2(self.base_ring()).matrix([self.list()]).transpose()
+                .vector())
+
     def _mathematica_init_(self):
         """
-        Returns string representation of this vector as a Mathematica
-        list.
+        Return string representation of this vector as a Mathematica list.
 
         EXAMPLES::
 
@@ -3501,7 +3540,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: a._mathematica_init_()
             '{1, x, (x)^(2), Sin[x], Pi}'
         """
-        return '{' + ', '.join([x._mathematica_init_() for x in self.list()]) + '}'
+        return '{' + ', '.join(x._mathematica_init_() for x in self.list()) + '}'
 
     def nonzero_positions(self):
         """
@@ -3575,7 +3614,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         from sage.misc.latex import latex
         vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
-        s += ',\,'.join([latex(a) for a in self.list()])
+        s += ',\,'.join(latex(a) for a in self.list())
         return s + '\\right' + vector_delimiters[1]
 
     def dense_vector(self):
@@ -4882,7 +4921,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert sqrt(2) to an integer
+            TypeError: self must be a numeric expression
 
         ::
 

@@ -2,8 +2,6 @@ r"""
 S-Boxes and Their Algebraic Representations
 """
 from __future__ import print_function, division
-from six.moves import range
-from six import integer_types
 
 from sage.combinat.integer_vector import IntegerVectors
 from sage.crypto.boolean_function import BooleanFunction
@@ -20,7 +18,6 @@ from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 
-from sage.misc.superseded import deprecated_function_alias
 
 class SBox(SageObject):
     r"""
@@ -149,7 +146,7 @@ class SBox(SageObject):
             if R.characteristic() != 2:
                 raise TypeError("Only polynomials over rings with characteristic 2 allowed")
             S = [poly(v) for v in sorted(R)]
-        elif len(args) == 1 and isinstance(args[0], (list, tuple)):
+        elif len(args) == 1:  # iterables
             S = args[0]
         elif len(args) > 1:
             S = args
@@ -357,7 +354,7 @@ class SBox(SageObject):
             sage: S([0,0,0])
             [1, 1]
         """
-        if isinstance(X, integer_types + (Integer,)):
+        if isinstance(X, (Integer, int)):
             return self._S[ZZ(X)]
 
         try:
@@ -470,6 +467,56 @@ class SBox(SageObject):
         for i in range(2**self.input_size()):
             yield self(i)
 
+    def derivative(self, u):
+        r"""
+        Return the derivative in direction of ``u``
+
+        INPUT:
+
+        - ``u`` -- either an integer or a tuple/list of `\GF{2}` elements
+          of length equal to ``m``
+
+
+        The derivative of `F` in direction of `u` is defined as
+        `x \mapsto F(x) + F(x + u)`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sbox import SBox
+            sage: s = SBox(0,1,2,3)
+            sage: s.derivative(1)
+            (1, 1, 1, 1)
+            sage: u = [1,0]
+            sage: s.derivative(u)
+            (1, 1, 1, 1)
+            sage: v = vector(GF(2), [1,0])
+            sage: s.derivative(v)
+            (1, 1, 1, 1)
+            sage: s.derivative(4)
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: from sage.crypto.sboxes import PRESENT
+            sage: PRESENT.derivative(1).max_degree() < PRESENT.max_degree()
+            True
+        """
+        from sage.structure.element import is_Vector
+        nvars = self.m
+
+        if isinstance(u, (tuple, list)):
+            v = ZZ(u, base=2)
+        elif is_Vector(u):
+            if u.base_ring() != GF(2):
+                raise TypeError("base ring of input vector must be GF(2)")
+            elif u.parent().dimension() != nvars:
+                raise TypeError("input vector must be an element of a vector space with dimension %d" % (nvars,))
+            v = ZZ(u.list(), base=2)
+        else:
+            v = u
+
+        return SBox([self(x) ^ self(x ^ v)
+                     for x in range(1 << self.input_size())])
+
     @cached_method
     def difference_distribution_table(self):
         """
@@ -514,8 +561,6 @@ class SBox(SageObject):
         A.set_immutable()
 
         return A
-
-    difference_distribution_matrix = deprecated_function_alias(25708, difference_distribution_table)
 
     def maximal_difference_probability_absolute(self):
         """
@@ -646,8 +691,6 @@ class SBox(SageObject):
         A.set_immutable()
 
         return A
-
-    linear_approximation_matrix = deprecated_function_alias(25708, linear_approximation_table)
 
     def maximal_linear_bias_absolute(self):
         """
@@ -1336,8 +1379,6 @@ class SBox(SageObject):
 
         return A
 
-    autocorrelation_matrix = deprecated_function_alias(25708, autocorrelation_table)
-
     @cached_method
     def boomerang_connectivity_table(self):
         r"""
@@ -1404,8 +1445,6 @@ class SBox(SageObject):
         A = Matrix(ZZ, nrows, ncols, A)
         A.set_immutable()
         return A
-
-    boomerang_connectivity_matrix = deprecated_function_alias(25708, boomerang_connectivity_table)
 
     def boomerang_uniformity(self):
         """

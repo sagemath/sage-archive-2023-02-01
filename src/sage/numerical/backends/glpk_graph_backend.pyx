@@ -68,8 +68,6 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
-
 from cysignals.memory cimport check_allocarray, sig_free
 
 from sage.cpython.string cimport str_to_bytes, char_to_str
@@ -1131,7 +1129,7 @@ cdef class GLPKGraphBackend(object):
         .. NOTE::
 
            This method raises ``MIPSolverException`` exceptions when
-           the solution can not be computed for any reason (none
+           the solution cannot be computed for any reason (none
            exists, or the LP solver was not able to find it, etc...)
 
         EXAMPLES::
@@ -1143,7 +1141,7 @@ cdef class GLPKGraphBackend(object):
             sage: v_dict = {}
             sage: for i, v in enumerate(vs):
             ....:     v_dict[v] = vertices[i]
-            sage: gbe.set_vertices_demand(v_dict.items())
+            sage: gbe.set_vertices_demand(list(v_dict.items()))
             sage: cost = ((8, 6, 10, 9), (9, 12, 13, 7), (14, 9, 16, 5))
 
             sage: for i in range(len(cost)):
@@ -1252,7 +1250,7 @@ cdef class GLPKGraphBackend(object):
             * If the source and sink are identical, a ``ValueError`` is raised.
 
             * This method raises ``MIPSolverException`` exceptions when the
-              solution can not be computed for any reason (none exists, or the
+              solution cannot be computed for any reason (none exists, or the
               LP solver was not able to find it, etc...)
 
         EXAMPLES::

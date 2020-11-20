@@ -3,13 +3,11 @@ Fortran compiler
 """
 from __future__ import absolute_import
 
+import importlib
 import os
 import shutil
+import subprocess
 import sys
-
-import six
-
-from six import iteritems
 
 from sage.misc.temporary_file import tmp_dir
 
@@ -22,7 +20,7 @@ def _import_module_from_path(name, path=None):
     Returns a fully executed module object without inserting that module into
     `sys.modules`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.misc.inline_fortran import _import_module_from_path
         sage: modname = '___test__import_module_from_path'
@@ -49,36 +47,19 @@ def _import_module_from_path(name, path=None):
     return _import_module_from_path_impl(name, path)
 
 
-if six.PY2:
-    import imp
+def _import_module_from_path_impl(name, path):
+    """Implement ``_import_module_from_path for Python 3.4+."""
 
-    def _import_module_from_path_impl(name, path):
-        """Implement ``_import_module_from_path for Python 2."""
-
-        # Note: Raises an ImportError if not found
-        fileobj, pathname, description = imp.find_module(name, path)
-        try:
-            # Executes the module in fileobj using the appropriate loader and
-            # returns the module
-            return imp.load_module(name, fileobj, pathname, description)
-        finally:
-            fileobj.close()
-else:
-    import importlib
-
-    def _import_module_from_path_impl(name, path):
-        """Implement ``_import_module_from_path for Python 3.4+."""
-
-        # This is remarkably tricky to do right, considering that the new
-        # importlib is supposed to make direct interaction with the import
-        # system easier.  I blame the ModuleSpec stuff...
-        finder = importlib.machinery.PathFinder()
-        spec = finder.find_spec(name, path=path)
-        if spec is None:
-            raise ImportError('No module named {}'.format(name))
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        return mod
+    # This is remarkably tricky to do right, considering that the new
+    # importlib is supposed to make direct interaction with the import
+    # system easier.  I blame the ModuleSpec stuff...
+    finder = importlib.machinery.PathFinder()
+    spec = finder.find_spec(name, path=path)
+    if spec is None:
+        raise ImportError('No module named {}'.format(name))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 class InlineFortran:
@@ -140,12 +121,12 @@ class InlineFortran:
 
         TESTS::
 
-            sage: os.chdir(SAGE_ROOT)
+            sage: os.chdir(DOT_SAGE)
             sage: fortran.eval("SYNTAX ERROR !@#$")
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compile Fortran code:...
-            sage: os.getcwd() == SAGE_ROOT
+            sage: os.getcwd() == os.path.realpath(DOT_SAGE)
             True
         """
         if globals is None:
@@ -153,8 +134,6 @@ class InlineFortran:
             if globals is None:
                 from sage.repl.user_globals import get_globals
                 globals = get_globals()
-
-        from numpy import f2py
 
         # Create everything in a temporary directory
         mytmpdir = tmp_dir()
@@ -171,36 +150,44 @@ class InlineFortran:
             else:
                 fortran_file = name + '.f'
 
-            s_lib_path = ""
-            s_lib = ""
-            for s in self.library_paths:
-                s_lib_path = s_lib_path + "-L%s "
+            s_lib_path = ['-L' + p for p in self.library_paths]
+            s_lib = ['-l' + l for l in self.libraries]
 
-            for s in self.libraries:
-                s_lib = s_lib + "-l%s "%s
+            with open(fortran_file, 'w') as fobj:
+                fobj.write(x)
 
-            log = name + ".log"
-            extra_args = ('--quiet --f77exec=sage-inline-fortran '
-                          '--f90exec=sage-inline-fortran {lib_path} {lib} '
-                          '> {log} 2>&1'.format(lib_path=s_lib_path,
-                                                lib=s_lib, log=log))
+            # This is basically the same as what f2py.compile() does, but we
+            # do it manually here in order to customize running the subprocess
+            # a bit more (in particular to capture stderr)
+            cmd = [sys.executable, '-c', 'import numpy.f2py; numpy.f2py.main()']
 
-            f2py.compile(x, name, extra_args=extra_args,
-                         source_fn=fortran_file)
+            # What follows are the arguments to f2py itself (appended later
+            # just for logical separation)
+            cmd += ['-c', '-m', name, fortran_file, '--quiet',
+                    '--f77exec=sage-inline-fortran',
+                    '--f90exec=sage-inline-fortran'] + s_lib_path + s_lib
 
-            with open(log) as fobj:
-                log_string = fobj.read()
+            try:
+                out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as exc:
+                raise RuntimeError(
+                    "failed to compile Fortran code:\n{}".format(exc.output))
 
             # Note that f2py() doesn't raise an exception if it fails.
             # In that case, the import below will fail.
             try:
                 mod = _import_module_from_path(name, [mytmpdir])
-            except ImportError:
-                raise RuntimeError("failed to compile Fortran code:\n" +
-                                   log_string)
+            except ImportError as exc:
+                # Failed to import the module; include any output from building
+                # the module (even though it was ostensibly successful) in case
+                # it might help
+                msg = "failed to load compiled Fortran code: {}".format(exc)
+                if out:
+                    msg += '\n' + out
+                raise RuntimeError(msg)
 
             if self.verbose:
-                print(log_string)
+                print(out)
         finally:
             os.chdir(old_cwd)
 
@@ -214,7 +201,7 @@ class InlineFortran:
                     # This can fail for example over NFS
                     pass
 
-        for k, x in iteritems(mod.__dict__):
+        for k, x in mod.__dict__.items():
             if k[0] != '_':
                 globals[k] = x
 

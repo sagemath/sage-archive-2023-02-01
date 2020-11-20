@@ -59,24 +59,20 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Peter Bruin <P.J.Bruin@math.leidenuniv.nl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import absolute_import, division, print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cypari2.gen cimport Gen as pari_gen
 from cypari2.pari_instance cimport get_var
 from cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 from sage.libs.pari.all import pari
-
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.power_series_ring_element cimport PowerSeries
@@ -678,7 +674,8 @@ cdef class PowerSeries_pari(PowerSeries):
             g = g.truncate()
         if typ(g.g) == t_POL and varn(g.g) == vn:
             # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
-            return [R(g.new_ref(gel(g.g, i))) for i in range(2, lg(g.g))]
+            G = g.fixGEN()
+            return [R(g.new_ref(gel(G, i))) for i in range(2, lg(G))]
         else:
             return [R(g)]
 
@@ -729,6 +726,7 @@ cdef class PowerSeries_pari(PowerSeries):
             return []
 
         cdef pari_gen g = self.g
+        g.fixGEN()
         cdef long l, m
 
         R = self.base_ring()

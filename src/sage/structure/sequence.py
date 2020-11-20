@@ -57,33 +57,23 @@ substantial coercions.  It can be greatly sped up by explicitly
 specifying the universe of the sequence::
 
     sage: v = Sequence(range(10000), universe=ZZ)
-
-TESTS::
-
-    sage: v = Sequence([1..5])
-    sage: loads(dumps(v)) == v
-    True
-
 """
 
-
-##########################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-##########################################################################
-from __future__ import print_function
-from six.moves import range
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+#*****************************************************************************
 
-from sage.misc.latex import list_function as list_latex_function
+from __future__ import print_function
+
 import sage.structure.sage_object
 import sage.structure.coerce
 
-#from mutability import Mutability #we cannot inherit from Mutability and list at the same time
 
 def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=None, use_sage_types=False):
     """
@@ -183,9 +173,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     that.::
 
         sage: v = Sequence(range(10), ZZ, immutable=True)
-        sage: hash(v)
-        1591723448             # 32-bit
-        -4181190870548101704   # 64-bit
+        sage: hash(v) == hash(tuple(range(10)))
+        True
 
 
     If you really know what you are doing, you can circumvent the type
@@ -241,8 +230,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
         x = list(x) # make a copy even if x is a list, we're going to change it
 
         if len(x) == 0:
-            import sage.categories.all
-            universe = sage.categories.all.Objects()
+            from sage.categories.objects import Objects
+            universe = Objects()
         else:
             import sage.structure.element
             if use_sage_types:
@@ -253,8 +242,8 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                 try:
                     x[i], x[i+1] = sage.structure.element.canonical_coercion(x[i],x[i+1])
                 except TypeError:
-                    import sage.categories.all
-                    universe = sage.categories.all.Objects()
+                    from sage.categories.objects import Objects
+                    universe = Objects()
                     x = list(orig_x)
                     check = False  # no point
                     break
@@ -262,7 +251,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                 universe = sage.structure.element.parent(x[len(x)-1])
 
     from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+    from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
     from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
     from sage.rings.quotient_ring import is_QuotientRing
 
@@ -370,9 +359,8 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
     ::
 
         sage: v = Sequence(range(10), ZZ, immutable=True)
-        sage: hash(v)
-        1591723448             # 32-bit
-        -4181190870548101704   # 64-bit
+        sage: hash(v) == hash(tuple(range(10)))
+        True
 
 
     If you really know what you are doing, you can circumvent the type
@@ -650,12 +638,8 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             ValueError: mutable sequences are unhashable
             sage: a[0] = 10
             sage: a.set_immutable()
-            sage: a.__hash__()
-            -123014399  # 32-bit
-            -5823618793256324351  # 64-bit
-            sage: hash(a)
-            -123014399  # 32-bit
-            -5823618793256324351  # 64-bit
+            sage: a.__hash__() == hash(a) == hash(tuple(a))
+            True
         """
         if not self._is_immutable:
             raise ValueError("mutable sequences are unhashable")
@@ -677,7 +661,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             ]
         """
         if self.__cr:
-            return '[\n' + ',\n'.join([repr(x) for x in self]) + '\n]'
+            return '[\n' + ',\n'.join(repr(x) for x in self) + '\n]'
         else:
             return list.__repr__(self)
 
@@ -692,6 +676,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: latex(t)
             \left[\sqrt{x}, e^{x}, x^{x - 1}\right]
         """
+        from sage.misc.latex import list_function as list_latex_function
         return list_latex_function(self)
 
     def __str__(self):
@@ -710,12 +695,14 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             '[\n1,\n2,\n3\n]'
         """
         if self.__cr_str:
-            return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+            return '[\n' + ',\n'.join(str(x) for x in self) + '\n]'
         else:
             return list.__str__(self)
 
     def universe(self):
         """
+        Return the universe of the sequence.
+
         EXAMPLES::
 
             sage: Sequence([1,2/3,-2/5]).universe()
@@ -805,6 +792,26 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         except AttributeError:
             return True
 
+    def __reduce__(self):
+        """
+        Implement pickling for sequences.
+
+        TESTS::
+
+            sage: v = Sequence([1..5])
+            sage: w = loads(dumps(v))
+            sage: v == w
+            True
+            sage: w.is_mutable()
+            True
+            sage: v.set_immutable()
+            sage: w = loads(dumps(v))
+            sage: w.is_mutable()
+            False
+        """
+        args = (list(self), self.__universe, False,
+                self._is_immutable, self.__cr_str)
+        return type(self), args
 
     def __copy__(self):
         """
@@ -816,9 +823,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: t = copy(s)
             sage: t == s
             True
-            sage: t.is_immutable == s.is_immutable
+            sage: t.is_immutable() == s.is_immutable()
             True
-            sage: t.is_mutable == s.is_mutable
+            sage: t.is_mutable() == s.is_mutable()
             True
 
         """

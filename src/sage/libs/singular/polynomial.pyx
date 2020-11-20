@@ -15,7 +15,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -30,7 +29,7 @@ from sage.cpython.string cimport bytes_to_str, str_to_bytes
 from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
 from sage.libs.singular.decl cimport p_Copy, p_Add_q, p_Neg, pp_Mult_nn, p_GetCoeff, p_IsConstant, p_Cmp, pNext
-from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, p_Deg, p_Totaldegree, p_WTotaldegree, p_WDegree
+from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, p_GetExp, p_LDeg
 from sage.libs.singular.decl cimport n_Delete, idInit, fast_map_common_subexp, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
@@ -72,11 +71,13 @@ cdef int singular_polynomial_add(poly **ret, poly *p, poly *q, ring *r):
         sage: x + P(0)
         x
     """
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
     p = p_Copy(p, r)
     q = p_Copy(q, r)
     ret[0] = p_Add_q(p, q, r)
     return 0;
+
 
 cdef int singular_polynomial_sub(poly **ret, poly *p, poly *q, ring *r):
     """
@@ -98,7 +99,8 @@ cdef int singular_polynomial_sub(poly **ret, poly *p, poly *q, ring *r):
         sage: x + P(0)
         x
     """
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
     p = p_Copy(p, r)
     q = p_Copy(q, r)
     ret[0] = p_Add_q(p, p_Neg(q, r), r)
@@ -124,7 +126,8 @@ cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
         sage: P(0)*x
         0
     """
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
     cdef number *_n = sa2si(n, r)
     ret[0] = pp_Mult_nn(p, _n, r)
     n_Delete(&_n, r)
@@ -248,7 +251,8 @@ cdef int singular_polynomial_cmp(poly *p, poly *q, ring *r):
     cdef number *h
     cdef int ret = 0
 
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
 
     # handle special cases first (slight slowdown, as special cases
     # are - well - special
@@ -303,7 +307,8 @@ cdef int singular_polynomial_mul(poly** ret, poly *p, poly *q, ring *r) except -
         sage: x * P(0)
         0
     """
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
     cdef unsigned long le = p_GetMaxExp(p, r)
     cdef unsigned long lr = p_GetMaxExp(q, r)
     cdef unsigned long esum = le + lr
@@ -377,7 +382,8 @@ cdef int singular_polynomial_pow(poly **ret, poly *p, unsigned long exp, ring *r
     v = v * exp
     overflow_check(v, r)
 
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
     cdef int count = singular_polynomial_length_bounded(p,15)
     if count >= 15 or exp > 15:
         sig_on()
@@ -407,9 +413,11 @@ cdef int singular_polynomial_neg(poly **ret, poly *p, ring *r):
         sage: -P(0)
         0
     """
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
     ret[0] = p_Neg(p_Copy(p,r),r)
     return 0
+
 
 cdef object singular_polynomial_str(poly *p, ring *r):
     """
@@ -428,7 +436,8 @@ cdef object singular_polynomial_str(poly *p, ring *r):
         sage: str(10*x)
         '10*x'
     """
-    if(r!=currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
 
     s = bytes_to_str(p_String(p, r, r))
     s = plusminus_pattern.sub("\\1 \\2 ", s)
@@ -460,6 +469,17 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         sage: P.<v,w> = K[]
         sage: latex((z+1)*v*w - z*w^2 + z*v + z^2*w + z + 1)
         \left(z + 1\right) v w - z w^{2} + z v + \left(-z - 1\right) w + z + 1
+
+    Demonstrate that there are no extra blanks in latex expression of multivariate
+    polynomial (:trac:`12908`)::
+
+        sage: R.<X,Y> = ZZ[]
+        sage: latex(X-Y)
+        X - Y
+        sage: latex(X^2-X)
+        X^{2} - X
+        sage: latex(-Y^2-Y)
+        -Y^{2} - Y
     """
     poly = ""
     cdef unsigned long e
@@ -479,11 +499,11 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
 
         # Next determine coefficient of multinomial
         c =  si2sa( p_GetCoeff(p, r), r, base)
-        if len(multi) == 0:
+        if not multi:
             multi = latex(c)
         elif c != 1:
             if  c == -1:
-                multi = "- %s"%(multi)
+                multi = "-%s"%(multi)
             else:
                 sc = latex(c)
                 # Add parenthesis if the coefficient consists of terms divided by +, -
@@ -502,7 +522,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
     poly = poly.lstrip().rstrip()
     poly = poly.replace("+ -","- ")
 
-    if len(poly) == 0:
+    if not poly:
         return "0"
     return poly
 
@@ -531,20 +551,16 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
 
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
     cdef long _deg, deg
+    cdef int dummy
 
     deg = -1
-    _deg = -1 
+    _deg = -1
     if p == NULL:
         return -1
-    if(r != currRing): rChangeCurrRing(r)
+    if r != currRing:
+        rChangeCurrRing(r)
     if x == NULL:
-        while p:  
-            _deg = p_WDegree(p,r)
-          
-            if _deg > deg:
-                deg = _deg
-            p = pNext(p)
-        return deg
+        return p_LDeg(p, &dummy, r)
 
     cdef int i = 0
     for i in range(1,r.N+1):
@@ -609,7 +625,7 @@ cdef int singular_polynomial_subst(poly **p, int var_index, poly *value, ring *r
     cdef unsigned long exp = p_GetExp(p[0], var_index+1, r) * p_GetMaxExp(value, r)
 
     overflow_check(exp, r)
-    if(r != currRing):
+    if r != currRing:
         rChangeCurrRing(r)
 
     cdef int count = singular_polynomial_length_bounded(p[0], 15)

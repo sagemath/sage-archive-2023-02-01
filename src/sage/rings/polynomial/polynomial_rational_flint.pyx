@@ -1,3 +1,5 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
 r"""
 Univariate polynomials over `\QQ` implemented via FLINT
 
@@ -22,6 +24,9 @@ from cysignals.signals cimport sig_on, sig_str, sig_off
 from cpython.int cimport PyInt_AS_LONG
 from sage.arith.long cimport pyobject_to_long
 
+from sage.libs.arb.acb cimport acb_div_fmpz
+from sage.libs.arb.arb cimport arb_div_fmpz
+from sage.libs.arb.arb_fmpz_poly cimport _arb_fmpz_poly_evaluate_arb, _arb_fmpz_poly_evaluate_acb
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.flint.fmpz cimport *
@@ -33,11 +38,13 @@ from sage.interfaces.all import singular as singular_default
 
 from cypari2.gen import Gen as pari_gen
 
+from sage.rings.complex_arb cimport ComplexBall
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.rational cimport Rational
 from sage.rings.rational_field import QQ
+from sage.rings.real_arb cimport RealBall
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
@@ -475,10 +482,18 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: t(-sys.maxsize-1r) == t(-sys.maxsize-1)
             True
+            sage: (t/3)(RealBallField(100)(1))
+            [0.33333333333333333333333333333...]
+            sage: (t/3)(ComplexBallField(10)(1+i))
+            [0.33...] + [0.33...]*I
         """
         cdef Polynomial_rational_flint f
         cdef Rational r
         cdef mpz_t tmpz
+        cdef fmpz_t tmpfz
+        cdef fmpq_t tmpfq
+        cdef RealBall arb_a, arb_z
+        cdef ComplexBall acb_a, acb_z
 
         if len(x) == 1:
             a = x[0]
@@ -504,12 +519,33 @@ cdef class Polynomial_rational_flint(Polynomial):
             elif isinstance(a, int):
                 r = Rational.__new__(Rational)
                 sig_str("FLINT exception")
-                mpz_init(tmpz)
-                mpz_set_si(tmpz, PyInt_AS_LONG(a))
-                fmpq_poly_evaluate_mpz(r.value, self.__poly, tmpz)
-                mpz_clear(tmpz)
+                fmpz_init(tmpfz)
+                fmpq_init(tmpfq)
+                fmpz_set_si(tmpfz, PyInt_AS_LONG(a))
+                fmpq_poly_evaluate_fmpz(tmpfq, self.__poly, tmpfz)
+                fmpq_get_mpq(r.value, tmpfq)
+                fmpq_clear(tmpfq)
+                fmpz_clear(tmpfz)
                 sig_off()
                 return r
+            if isinstance(a, RealBall):
+                arb_a = <RealBall> a
+                arb_z = arb_a._new()
+                sig_on()
+                _arb_fmpz_poly_evaluate_arb(arb_z.value, fmpq_poly_numref(self.__poly),
+                        fmpq_poly_length(self.__poly), arb_a.value, arb_a._parent._prec)
+                arb_div_fmpz(arb_z.value, arb_z.value, fmpq_poly_denref(self.__poly), arb_a._parent._prec)
+                sig_off()
+                return arb_z
+            if isinstance(a, ComplexBall):
+                acb_a = <ComplexBall> a
+                acb_z = acb_a._new()
+                sig_on()
+                _arb_fmpz_poly_evaluate_acb(acb_z.value, fmpq_poly_numref(self.__poly),
+                        fmpq_poly_length(self.__poly), acb_a.value, acb_a._parent._prec)
+                acb_div_fmpz(acb_z.value, acb_z.value, fmpq_poly_denref(self.__poly), acb_a._parent._prec)
+                sig_off()
+                return acb_z
 
         return Polynomial.__call__(self, *x, **kwds)
 
@@ -681,7 +717,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Comparisons                                                             #
     ###########################################################################
 
-    cpdef bint is_zero(self):
+    cpdef bint is_zero(self) except -1:
         """
         Returns whether or not self is the zero polynomial.
 
@@ -696,7 +732,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return fmpq_poly_is_zero(self.__poly)
 
-    cpdef bint is_one(self):
+    cpdef bint is_one(self) except -1:
         r"""
         Returns whether or not this polynomial is one.
 
@@ -1176,6 +1212,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             ...
             RuntimeError: FLINT exception
 
+        Flush the output buffer to get rid of stray output -- see
+        :trac:`28649`::
+
+            sage: from sage.misc.misc_c import cyflush
+            sage: cyflush()
+            ...
+
         Test fractional powers (:trac:`20086`)::
 
             sage: P.<R> = QQ[]
@@ -1433,7 +1476,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def _derivative(self, var = None):
         """
-        Returns the derivative of self with respect to ``var``.
+        Return the derivative of this polynomial with respect to ``var``.
 
         INPUT:
 
@@ -1458,18 +1501,19 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f._derivative(2*x)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot differentiate with respect to 2*x
-            sage: y = var("y")
-            sage: f._derivative(y)
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot differentiate with respect to y
+            ValueError: cannot differentiate with respect to 2*x
+
+        Check that :trac:`28187` is fixed::
+
+            sage: x = var("x")
+            sage: f._derivative(x)
+            4*x^3 - 1
         """
         cdef Polynomial_rational_flint der
         cdef bint do_sig
 
         if var is not None and var != self._parent.gen():
-            raise ValueError("Cannot differentiate with respect to %s" % var)
+            raise ValueError("cannot differentiate with respect to {}".format(var))
 
         der = self._new()
         do_sig = _do_sig(self.__poly)
@@ -2052,11 +2096,11 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: R.<x> = QQ[]
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: G = f.galois_group(); G            # optional - database_gap
+            sage: G = f.galois_group(); G
             Transitive group number 5 of degree 4
-            sage: G.gens()                           # optional - database_gap
+            sage: G.gens()
             [(1,2), (1,2,3,4)]
-            sage: G.order()                          # optional - database_gap
+            sage: G.order()
             24
 
         It is potentially useful to instead obtain the corresponding PARI
@@ -2069,7 +2113,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f = x^4 - 17*x^3 - 2*x + 1
             sage: G = f.galois_group(pari_group=True); G
             PARI group [24, -1, 5, "S4"] of degree 4
-            sage: PermutationGroup(G)                # optional - database_gap
+            sage: PermutationGroup(G)
             Transitive group number 5 of degree 4
 
         You can use KASH to compute Galois groups as well.  The advantage is
@@ -2084,7 +2128,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             Transitive group number 5 of degree 4
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='magma')  # optional - magma database_gap
+            sage: f.galois_group(algorithm='magma')  # optional - magma
             Transitive group number 5 of degree 4
 
         TESTS:
@@ -2117,7 +2161,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if self.degree() > 21 and algorithm == 'kash':
             raise NotImplementedError("Galois group computation is "
                 "supported for degrees up to 11 using PARI, or up to 21 "
-                "if the optional package KASH is installed.  Try "
+                "if KASH is installed.  Try "
                 "algorithm='magma' if you have magma.")
 
         if algorithm == 'pari':
@@ -2141,7 +2185,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 raise NotImplementedError(str(msg) + "\nSorry, " +
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
-                    "the optional free (closed source) KASH package, which " +
+                    "the optional free (closed source) KASH software, which " +
                     "supports degrees up to 21, or use algorithm='magma' if " +
                     "you have magma.")
 

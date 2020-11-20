@@ -12,8 +12,8 @@ These options should be "attached" to one or more classes as an options method.
 .. SEEALSO::
 
     For good examples of :class:`GlobalOptions` in action see
-    :meth:`sage.combinat.partition.Partitions.options` and
-    :meth:`sage.combinat.tableau.Tableaux.options`.
+    :obj:`sage.combinat.partition.Partitions.options` and
+    :obj:`sage.combinat.tableau.Tableaux.options`.
 
 .. _construction_section:
 
@@ -231,7 +231,9 @@ Documentation for options
 
 The documentation for a :class:`GlobalOptions` is automatically generated from
 the supplied options. For example, the generated documentation for the options
-``menu`` defined in :ref:`construction_section` is the following::
+``menu`` defined in :ref:`construction_section` is the following:
+
+.. CODE-BLOCK:: text
 
     Fancy documentation
     -------------------
@@ -297,7 +299,9 @@ If the value of a dispatchable option is set equal to a (user defined) function
 then this function is called instead of a class method.
 
 For example, the options ``MyOptions`` can be used to dispatch the ``_repr_``
-method of the associated class ``MyClass`` as follows::
+method of the associated class ``MyClass`` as follows:
+
+.. CODE-BLOCK:: python
 
     class MyClass(...):
         def _repr_(self):
@@ -317,7 +321,9 @@ and not a method of ``MyClass``. Apart from ``MyOptions``, as it is a method of
 this class, the arguments are the attached class (here ``MyClass``), the prefix
 of the method of ``MyClass`` being dispatched, the option of ``MyOptions``
 which controls the dispatching. All other arguments are passed through to the
-corresponding methods of ``MyClass``. In general, a dispatcher is invoked as::
+corresponding methods of ``MyClass``. In general, a dispatcher is invoked as:
+
+.. CODE-BLOCK:: python
 
     self.options._dispatch(self, dispatch_to, option, *args, **kargs)
 
@@ -334,7 +340,9 @@ customise the default behaviour of this method. See
 The dispatching capabilities of :class:`GlobalOptions` allows options to be
 applied automatically without needing to parse different values of the option
 (the cost is that there must be a method for each value). The dispatching
-capabilities can also be used to make one option control several methods::
+capabilities can also be used to make one option control several methods:
+
+.. CODE-BLOCK:: python
 
     def __le__(self, other):
         return self.options._dispatch(self, '_le_','cmp', other)
@@ -366,7 +374,9 @@ Pickling
 Options classes can only be pickled if they are the options for some standard
 sage class. In this case the class is specified using the arguments to
 :class:`GlobalOptions`. For example
-:meth:`~sage.combinat.partition.Partitions.options` is defined as::
+:meth:`~sage.combinat.partition.Partitions.options` is defined as:
+
+.. CODE-BLOCK:: python
 
      class Partitions(UniqueRepresentation, Parent):
          ...
@@ -498,7 +508,6 @@ AUTHORS:
 
 from __future__ import absolute_import, print_function
 
-from six import iteritems, add_metaclass
 from importlib import import_module
 from pickle import PicklingError
 from textwrap import dedent
@@ -560,7 +569,7 @@ class Option(object):
     def __add__(self, other):
         r"""
         Return the object obtained by adding ``self`` and ``other``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -572,7 +581,7 @@ class Option(object):
     def __radd__(self, other):
         r"""
         Return the object obtained by adding ``other`` and ``self``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -584,7 +593,7 @@ class Option(object):
     def __mul__(self, other):
         r"""
         Return the object obtained by adding ``self`` and ``other``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -596,7 +605,7 @@ class Option(object):
     def __rmul__(self, other):
         r"""
         Return the object obtained by r-adding ``other`` and ``self``, where
-        ``self`` behaves likes it's value.
+        ``self`` behaves like its value.
 
         EXAMPLES::
 
@@ -607,7 +616,7 @@ class Option(object):
 
     def __bool__(self):
         r"""
-        Return the value of ye option interpreted as a boolean.
+        Return the value of this option interpreted as a boolean.
 
         EXAMPLES::
 
@@ -743,6 +752,12 @@ class GlobalOptionsMetaMeta(type):
         # classes, note that Python 2 and Python 3 have different
         # semantics for determining the metaclass when multiple base
         # classes are involved.
+        #
+        # Note: On Python 3 bases is empty if the class was declared
+        # without any explicted bases:
+        if not bases:
+            bases = (object,)
+
         if len(bases) != 1:
             raise TypeError("GlobalOptions must be the only base class")
 
@@ -759,7 +774,7 @@ class GlobalOptionsMetaMeta(type):
         # Split dict in options for instance.__init__ and attributes to
         # insert in the class __dict__
         kwds = {"NAME": name}
-        for key, value in iteritems(dict):
+        for key, value in dict.items():
             if key.startswith("__"):
                 instance.__dict__[key] = value
             else:
@@ -769,8 +784,7 @@ class GlobalOptionsMetaMeta(type):
         return instance
 
 
-@add_metaclass(GlobalOptionsMetaMeta)
-class GlobalOptionsMeta(type):
+class GlobalOptionsMeta(type, metaclass=GlobalOptionsMetaMeta):
     """
     Metaclass for :class:`GlobalOptions`
 
@@ -780,8 +794,7 @@ class GlobalOptionsMeta(type):
 
 
 @instancedoc
-@add_metaclass(GlobalOptionsMeta)
-class GlobalOptions(object):
+class GlobalOptions(metaclass=GlobalOptionsMeta):
     r"""
     The :class:`GlobalOptions` class is a generic class for setting and
     accessing global options for Sage objects.
@@ -887,7 +900,9 @@ class GlobalOptions(object):
         ValueError: p is not a valid value for main in the options for menu
 
     The documentation for the options class is automatically generated from the
-    information which specifies the options::
+    information which specifies the options:
+
+    .. CODE-BLOCK:: text
 
         Fancy documentation
         -------------------
@@ -1265,7 +1280,7 @@ class GlobalOptions(object):
             sage: Partitions.options._reset()
         """
         # open the options for the corresponding "parent" and copy all of
-        # the data from its' options class into unpickle
+        # the data from its options class into unpickle
         options_class = getattr(import_module(state['options_module']), state['option_class'])
         unpickle = options_class.options
         state.pop('option_class')
@@ -1376,7 +1391,7 @@ class GlobalOptions(object):
                         self._legal_values[option] = [val.lower() for val in self._legal_values[option]]
                     if option in self._alias:
                         self._alias[option] = {k.lower():v.lower()
-                                               for k, v in iteritems(self._alias[option])}
+                                               for k, v in self._alias[option].items()}
                 self._case_sensitive[option] = bool(specifications[spec])
             elif spec == 'checker':
                 if not callable(specifications[spec]):
@@ -1680,10 +1695,3 @@ class GlobalOptions(object):
             elif option in self._linked_value:
                 link, linked_opt=self._linked_value[option]
                 link._reset(linked_opt)
-
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-GlobalOptions.default_value=deprecated_function_alias(18555, GlobalOptions._default_value)
-GlobalOptions.dispatch=deprecated_function_alias(18555, GlobalOptions._dispatch)
-GlobalOptions.reset=deprecated_function_alias(18555, GlobalOptions._reset)

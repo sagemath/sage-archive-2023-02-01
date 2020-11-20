@@ -2,25 +2,25 @@
 """
 Eisenstein Series
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import absolute_import
-from six import integer_types
 
-from sage.misc.all import verbose, cputime
+from sage.misc.all import cputime
 import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.all import Integer, CyclotomicField, ZZ, QQ
 from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
 from sage.rings.power_series_ring import PowerSeriesRing
 from .eis_series_cython import eisenstein_series_poly, Ek_ZZ
+
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
     r"""
@@ -214,14 +214,16 @@ def __find_eisen_chars(character, k):
         ((-1, 1), (1, 1), 9),
         ((-1, -1), (1, -1), 1)]
     """
+    from sage.misc.verbose import verbose
+
     N = character.modulus()
     if character.is_trivial():
-        if k%2 != 0:
+        if k % 2:
             return []
         char_inv = ~character
-        V = [(character, char_inv, t) for t in divisors(N) if t>1]
+        V = [(character, char_inv, t) for t in divisors(N) if t > 1]
         if k != 2:
-            V.insert(0,(character, char_inv, 1))
+            V.insert(0, (character, char_inv, 1))
         if is_squarefree(N):
             return V
         # Now include all pairs (chi,chi^(-1)) such that cond(chi)^2 divides N:
@@ -298,7 +300,7 @@ def __find_eisen_chars_gammaH(N, H, k):
     """
     params = []
     for chi in dirichlet.DirichletGroup(N):
-        if all([chi(h) == 1 for h in H]):
+        if all(chi(h) == 1 for h in H):
             params += __find_eisen_chars(chi, k)
     return params
 
@@ -360,17 +362,17 @@ def __find_eisen_chars_gamma1(N, k):
     #end if
 
     triples = []
-    D = divisors(N)
     for chi, psi in pairs:
         c_chi = chi.conductor()
         c_psi = psi.conductor()
-        D = divisors(N/(c_chi * c_psi))
-        if (k==2 and chi.is_trivial() and psi.is_trivial()):
+        D = divisors(N // (c_chi * c_psi))
+        if k == 2 and chi.is_trivial() and psi.is_trivial():
             D.remove(1)
         chi, psi = __common_minimal_basering(chi, psi)
         for t in D:
             triples.append((chi, psi, t))
     return triples
+
 
 def eisenstein_series_lseries(weight, prec=53,
                max_imaginary_part=0,
@@ -484,7 +486,7 @@ def compute_eisenstein_params(character, k):
         sage: len(sage.modular.modform.eis_series.compute_eisenstein_params(GammaH(15, [4]), 3))
         8
     """
-    if isinstance(character, integer_types + (Integer,)):
+    if isinstance(character, (int, Integer)):
         return __find_eisen_chars_gamma1(character, k)
     elif isinstance(character, GammaH_class):
         return __find_eisen_chars_gammaH(character.level(), character._generators_for_H(), k)

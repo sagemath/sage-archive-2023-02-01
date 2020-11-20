@@ -11,7 +11,6 @@ Coerce actions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import operator
 
@@ -19,7 +18,8 @@ from cpython.int cimport *
 from cpython.number cimport *
 from cysignals.signals cimport sig_check
 
-from .element cimport parent, coercion_model, Element, ModuleElement
+from .coerce cimport coercion_model
+from .element cimport parent, Element, ModuleElement
 from .parent cimport Parent
 from .coerce_exceptions import CoercionException
 from sage.categories.action cimport InverseAction, PrecomposedAction
@@ -155,7 +155,7 @@ cdef class ActedUponAction(GenericAction):
 
 def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
     r"""
-    Returns an action of X on Y or Y on X as defined by elements X, if any.
+    Return an action of X on Y as defined by elements of X, if any.
 
     EXAMPLES:
 
@@ -193,6 +193,8 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         RuntimeError: an_element() for <__main__.MyParent object at ...> returned None
     """
     cdef Element x
+
+    # sample elements x and y
     if X_el is None or (parent(X_el) is not X):
         x = an_element(X)
     else:
@@ -208,21 +210,24 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
             raise RuntimeError("an_element() for %s returned None" % Y)
         else:
             return # don't know how to make elements of this type...
+
+    # element x defining _lmul_ or _rmul_
     if isinstance(x, ModuleElement) and isinstance(y, Element):
-        # Elements defining _lmul_ and _rmul_
         try:
             return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X, y, x)
         except CoercionException as msg:
             _record_exception()
+
+    # element x defining _act_on_
     try:
-        # Elements defining _act_on_
         if x._act_on_(y, X_on_left) is not None:
             return ActOnAction(X, Y, X_on_left, False)
     except CoercionException:
         _record_exception()
+
+    # element x defining _acted_upon_
     if isinstance(Y, Parent):
         try:
-            # Elements defining _acted_upon_
             if x._acted_upon_(y, X_on_left) is not None:
                 return ActedUponAction(Y, X, not X_on_left, False)
         except CoercionException:
@@ -252,7 +257,7 @@ cdef class ModuleAction(Action):
     By default, the sample elements of ``S`` and ``G`` are obtained from
     :meth:`~sage.structure.parent.Parent.an_element`, which relies on the
     implementation of an ``_an_element_()`` method. This is not always
-    awailable. But usually, the action is only needed when one already
+    available. But usually, the action is only needed when one already
     *has* two elements. Hence, by :trac:`14249`, the coercion model will
     pass these two elements to the :class:`ModuleAction` constructor.
 
@@ -735,10 +740,17 @@ cdef class IntegerMulAction(IntegerAction):
 
         Check that large multiplications can be interrupted::
 
-            sage: alarm(0.5); (2^(10^7)) * P  # not tested; see trac:#24986
+            sage: alarm(0.5); (2^(10^6)) * P
             Traceback (most recent call last):
             ...
             AlarmInterrupt
+
+        Verify that cysignals correctly detects that the above
+        exception has been handled::
+
+            sage: from cysignals.tests import print_sig_occurred
+            sage: print_sig_occurred()
+            No current exception
         """
         cdef int err = 0
         cdef long n_long

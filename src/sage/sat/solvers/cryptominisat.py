@@ -8,24 +8,29 @@ The ``cryptominisat`` package should be installed on your Sage installation.
 AUTHORS:
 
 - Thierry Monteil (2017): complete rewrite, using upstream Python bindings,
-  works with crypominisat 5.
+  works with cryptominisat 5.
 - Martin Albrecht (2012): first version, as a cython interface, works with
-  crypominisat 2.
+  cryptominisat 2.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Thierry Monteil <sage!lma.metelu.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 # Support of Python 3
 from __future__ import division, absolute_import, print_function, unicode_literals
 
 from .satsolver import SatSolver
+
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('pycryptosat', ['Solver'],
+            feature=PythonModule('pycryptosat', spkg='cryptominisat'))
 
 class CryptoMiniSat(SatSolver):
     r"""
@@ -62,13 +67,8 @@ class CryptoMiniSat(SatSolver):
             from sage.parallel.ncpus import ncpus
             threads = ncpus()
         if confl_limit is None:
-            from sys import maxint
-            confl_limit = maxint
-        try:
-            from pycryptosat import Solver
-        except ImportError:
-            from sage.misc.package import PackageNotFoundError
-            raise PackageNotFoundError("cryptominisat")
+            from sys import maxsize
+            confl_limit = maxsize
         self._solver = Solver(verbose=int(verbosity), confl_limit=int(confl_limit), threads=int(threads))
         self._nvars = 0
         self._clauses = []
@@ -92,7 +92,8 @@ class CryptoMiniSat(SatSolver):
             sage: solver.var()                                              # optional - cryptominisat
             5
         """
-        return self._nvars + 1
+        self._nvars += 1
+        return self._nvars
 
     def nvars(self):
         r"""

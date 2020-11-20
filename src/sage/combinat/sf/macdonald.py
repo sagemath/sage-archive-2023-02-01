@@ -27,7 +27,7 @@ REFERENCES:
 
 .. [LLM1998] \L. Lapointe, A. Lascoux, J. Morse, Determinantal Expressions for
    Macdonald Polynomials, IRMN no. 18 (1998).
-   :arXiv:`math/9808050`.
+   :arxiv:`math/9808050`.
 
 .. [BH2013] \F. Bergeron, M. Haiman, Tableaux Formulas for Macdonald Polynomials,
    Special edition in honor of Christophe Reutenauer 60 birthday, International
@@ -55,12 +55,10 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
 from . import sfa
-from sage.combinat.partition import Partition, Partitions_n, _Partitions
-from sage.combinat.skew_partition import SkewPartitions
+from sage.combinat.partition import Partitions_n, _Partitions
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ
 from sage.misc.all import prod
-from sage.rings.fraction_field import FractionField
 from sage.misc.cachefunc import cached_function
 import functools
 
@@ -78,6 +76,7 @@ _S_to_s_cache = {}
 _s_to_S_cache = {}
 
 _qt_kostka_cache = {}
+
 
 class Macdonald(UniqueRepresentation):
 
@@ -573,10 +572,11 @@ def c1(part, q, t):
         sage: c1(Partition([1,1]),q,t)
         q^2*t - q*t - q + 1
     """
-    res = q.parent().one()
-    for i in range(part.size()):
-        res *= 1-q**(sum(part.arm_lengths(),[])[i]+1)*t**(sum(part.leg_lengths(),[])[i])
-    return res
+    R = q.parent()
+    arms = part.arm_lengths(flat=True)
+    legs = part.leg_lengths(flat=True)
+    return R.prod(1 - q**(a + 1) * t**l for a, l in zip(arms, legs))
+
 
 def c2(part, q, t):
     r"""
@@ -604,10 +604,11 @@ def c2(part, q, t):
         sage: c2(Partition([2,1]),q,t)
         -q*t^4 + 2*q*t^3 - q*t^2 + t^2 - 2*t + 1
     """
-    res = q.parent().one()
-    for i in range(part.size()):
-        res *= 1-q**(sum(part.arm_lengths(),[])[i])*t**(sum(part.leg_lengths(),[])[i]+1)
-    return res
+    R = q.parent()
+    arms = part.arm_lengths(flat=True)
+    legs = part.leg_lengths(flat=True)
+    return R.prod(1 - q**a * t**(l + 1) for a, l in zip(arms, legs))
+
 
 @cached_function
 def cmunu1(mu, nu):

@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -22,7 +25,6 @@
 #    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr
@@ -211,7 +213,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError("You can not perform arithmetic with matrices over different fields.")
+            raise ValueError("You cannot perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_mul(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -237,7 +239,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError("You can not perform arithmetic with matrices over different fields.")
+            raise ValueError("You cannot perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_sub(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -262,7 +264,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError("You can not perform arithmetic with matrices over different fields.")
+            raise ValueError("You cannot perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_add(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -383,7 +385,7 @@ cdef class ntl_mat_GF2E(object):
             raise IndexError("array index out of range")
 
         if not (<ntl_GF2E>x).c is self.c:
-            raise ValueError("You can not assign elements from different fields.")
+            raise ValueError("You cannot assign elements from different fields.")
 
         self.c.restore_c()
 

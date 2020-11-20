@@ -36,12 +36,26 @@ from sage.rings.ring cimport Field
 cdef class NumberField(Field):
     r"""
     Base class for all number fields.
+
+    TESTS::
+
+        sage: z = polygen(QQ)
+        sage: K.<theta, beta> = NumberField([z^3 - 3, z^2 + 1])
+        sage: K.is_finite()
+        False
+        sage: K.order()
+        +Infinity
     """
     # This token docstring is mostly there to prevent Sphinx from pasting in
     # the docstring of the __init__ method inherited from IntegralDomain, which
     # is rather confusing.
     def _pushout_(self, other):
         r"""
+        If ``self`` and/or ``other`` are embedded, use this embedding to
+        discover a common parent.
+
+        Currently embeddings into ``AA`` and ``QQbar` are supported.
+
         TESTS:
 
         Pushout is implemented for number field embedded in ``AA``::
@@ -52,12 +66,12 @@ cdef class NumberField(Field):
             sage: cm.explain(K,L,operator.add)
             Coercion on left operand via
                 Generic morphism:
-                  From: Number Field in a with defining polynomial x^2 - 3
+                  From: Number Field in a with defining polynomial x^2 - 3 with a = 1.732050807568878?
                   To:   Algebraic Real Field
                   Defn: a -> 1.732050807568878?
             Coercion on right operand via
                 Generic morphism:
-                  From: Number Field in b with defining polynomial x^2 - 2
+                  From: Number Field in b with defining polynomial x^2 - 2 with b = 1.414213562373095?
                   To:   Algebraic Real Field
                   Defn: b -> 1.414213562373095?
             Arithmetic performed after coercions.
@@ -78,12 +92,42 @@ cdef class NumberField(Field):
             sage: K.<cbrt2> = NumberField(x^3 - 2, embedding=AA(2)**(1/3))
             sage: (cbrt2 + a) * b
             4.231287179063857?
+            sage: b + QQbar(-3).sqrt()
+            1.414213562373095? + 1.732050807568878?*I
+
+        Pushout is implemented for number field embedded in ``QQbar``::
+
+            sage: Km2.<sqrtm2> = NumberField(x^2 + 2, embedding=QQbar(-2).sqrt())
+            sage: b + sqrtm2
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + b
+            1.414213562373095? + 1.414213562373095?*I
+            sage: sqrtm2 + AA(3).sqrt()
+            1.732050807568878? + 1.414213562373095?*I
         """
-        if isinstance(other, NumberField) and \
-            self._embedded_real and \
-            (<NumberField>other)._embedded_real:
-            from sage.rings.qqbar import AA
+        # Use the embedding of ``self``, if it exists.
+        if self._embedding:
+            codomain_self = self._embedding.codomain()
+        else:
+            codomain_self = self
+
+        # Use the embedding of ``other``, if it exists.
+        if isinstance(other, NumberField):
+            embedding = (<NumberField>other)._embedding
+            if embedding:
+                codomain_other = embedding.codomain()
+            else:
+                codomain_other = other
+        else:
+            codomain_other = other
+
+        from sage.rings.qqbar import AA
+        if codomain_self is AA and codomain_other is AA:
             return AA
+
+        from sage.rings.qqbar import QQbar
+        if codomain_self in (AA, QQbar) and codomain_other in (AA, QQbar):
+            return QQbar
 
     def ring_of_integers(self, *args, **kwds):
         r"""
@@ -119,21 +163,6 @@ cdef class NumberField(Field):
             Maximal Order in Number Field in b with defining polynomial x^3 - 2
         """
         raise NotImplementedError
-
-    def is_finite(self):
-        """
-        Return False since number fields are not finite.
-
-        EXAMPLES::
-
-            sage: z = polygen(QQ)
-            sage: K.<theta, beta> = NumberField([z^3 - 3, z^2 + 1])
-            sage: K.is_finite()
-            False
-            sage: K.order()
-            +Infinity
-        """
-        return False
 
     def is_absolute(self):
         """

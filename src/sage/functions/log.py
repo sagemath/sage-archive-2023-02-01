@@ -8,8 +8,6 @@ AUTHORS:
 - Tomas Kalvoda (2015-04-01): Add :meth:`exp_polar()` (:trac:`18085`)
 
 """
-from six.moves import range
-
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
 from sage.symbolic.constants import pi as const_pi
@@ -22,6 +20,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+
 
 class Function_exp(GinacFunction):
     r"""
@@ -154,7 +153,7 @@ class Function_exp(GinacFunction):
             e^x
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
-                                   conversions=dict(maxima='exp', fricas='exp'))
+                               conversions=dict(maxima='exp', fricas='exp'))
 
 exp = Function_exp()
 
@@ -232,7 +231,7 @@ class Function_log1(GinacFunction):
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
                                conversions=dict(maxima='log', fricas='log',
-                                                mathematica='Log'))
+                                                mathematica='Log', giac='ln'))
 
 ln = function_log = Function_log1()
 
@@ -247,6 +246,13 @@ class Function_log2(GinacFunction):
         sage: from sage.functions.log import logb
         sage: logb(1000,10)
         3
+
+    TESTS::
+
+        sage: logb(7, 2)
+        log(7)/log(2)
+        sage: logb(int(7), 2)
+        log(7)/log(2)
     """
     def __init__(self):
         """
@@ -257,8 +263,8 @@ class Function_log2(GinacFunction):
             log
         """
         GinacFunction.__init__(self, 'log', ginac_name='logb', nargs=2,
-                            latex_name=r'\log',
-                            conversions=dict(maxima='log'))
+                               latex_name=r'\log',
+                               conversions=dict(maxima='log'))
 
 logb = Function_log2()
 
@@ -403,7 +409,7 @@ def log(*args, **kwds):
         -I*log(3)/pi
         sage: log(int(8),2)
         3
-        sage: log(8,int(2))  # known bug, see #21518
+        sage: log(8,int(2))
         3
         sage: log(8,2)
         3
@@ -411,13 +417,18 @@ def log(*args, **kwds):
         -3
         sage: log(1/8,1/2)
         3
-        sage: log(8,1/2)  # known bug, see #21517
+        sage: log(8,1/2)
         -3
 
         sage: log(1000, 10, base=5)
         Traceback (most recent call last):
         ...
         TypeError: Symbolic function log takes at most 2 arguments (3 given)
+    
+    Check if :trac:`29164` is fixed::
+        
+        sage: log(0, 2)
+        -Infinity
     """
     base = kwds.pop('base', None)
     if base:
@@ -436,6 +447,7 @@ def log(*args, **kwds):
         return logb(args[0], args[1])
     except (AttributeError, TypeError):
         return logb(args[0], args[1])
+
 
 class Function_polylog(GinacFunction):
     def __init__(self):
@@ -515,13 +527,10 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1.0)
             1.64493406684823
 
-            sage: BF = RealBallField(100)
-            sage: polylog(2, BF(1/3))
+            sage: polylog(2, RealBallField(100)(1/3))
             [0.36621322997706348761674629766... +/- ...]
-            sage: polylog(2, BF(4/3))
-            [2.27001825336107090380391448586 +/- 5.64e-30] + [-0.90377988538400159956755721265 +/- 8.39e-30]*I
-            sage: parent(_)
-            Complex ball field with 100 bits of precision
+            sage: polylog(2, ComplexBallField(100)(4/3))
+            [2.27001825336107090380391448586 +/- ...] + [-0.90377988538400159956755721265 +/- ...]*I
             sage: polylog(2, CBF(1/3))
             [0.366213229977063 +/- ...]
             sage: parent(_)
@@ -530,14 +539,21 @@ class Function_polylog(GinacFunction):
             [1.644934066848226 +/- ...]
             sage: parent(_)
             Complex ball field with 53 bits of precision
+
+            sage: polylog(1,-1)   # known bug
+            -log(2)
         """
-        GinacFunction.__init__(self, "polylog", nargs=2)
+        GinacFunction.__init__(self, "polylog", nargs=2,
+                conversions=dict(mathematica='PolyLog',
+                                 magma='Polylog',
+                                 matlab='polylog',
+                                 sympy='polylog'))
 
     def _maxima_init_evaled_(self, *args):
         """
         EXAMPLES:
 
-        These are indirect doctests for this function.::
+        These are indirect doctests for this function::
 
             sage: polylog(2, x)._maxima_()
             li[2](_SAGE_VAR_x)
@@ -554,13 +570,23 @@ class Function_polylog(GinacFunction):
                 args_maxima.append(str(a))
 
         n, x = args_maxima
-        if int(n) in [1,2,3]:
-            return 'li[%s](%s)'%(n, x)
+        if int(n) in [1, 2, 3]:
+            return 'li[%s](%s)' % (n, x)
         else:
-            return 'polylog(%s, %s)'%(n, x)
+            return 'polylog(%s, %s)' % (n, x)
 
+    def _method_arguments(self, k, z):
+        r"""
+        TESTS::
+
+            sage: b = RBF(1/2, .0001)
+            sage: polylog(2, b)
+            [0.582 +/- ...]
+        """
+        return [z, k]
 
 polylog = Function_polylog()
+
 
 class Function_dilog(GinacFunction):
     def __init__(self):
@@ -649,7 +675,26 @@ class Function_dilog(GinacFunction):
         """
         GinacFunction.__init__(self, 'dilog',
                 conversions=dict(maxima='li[2]',
+                                 magma='Dilog',
                                  fricas='(x+->dilog(1-x))'))
+
+    def _sympy_(self, z):
+        r"""
+        Special case for sympy, where there is no dilog function.
+
+        EXAMPLES::
+
+            sage: w = dilog(x)._sympy_(); w
+            polylog(2, x)
+            sage: w.diff()
+            polylog(1, x)/x
+            sage: w._sage_()
+            dilog(x)
+        """
+        import sympy
+        from sympy import polylog as sympy_polylog
+        return sympy_polylog(2, sympy.sympify(z, evaluate=False))
+
 
 dilog = Function_dilog()
 
@@ -666,9 +711,9 @@ class Function_lambert_w(BuiltinFunction):
 
     INPUT:
 
-    - ``n`` - an integer. `n=0` corresponds to the principal branch.
+    - ``n`` -- an integer. `n=0` corresponds to the principal branch.
 
-    - ``z`` - a complex number
+    - ``z`` -- a complex number
 
     If called with a single argument, that argument is ``z`` and the branch ``n`` is
     assumed to be 0 (the principal branch).
@@ -792,6 +837,25 @@ class Function_lambert_w(BuiltinFunction):
             return BuiltinFunction.__call__(self, 0, args[0], **kwds)
         else:
             raise TypeError("lambert_w takes either one or two arguments.")
+
+    def _method_arguments(self, n, z):
+        r"""
+        TESTS::
+
+            sage: b = RBF(1, 0.001)
+            sage: lambert_w(b)
+            [0.567 +/- 6.44e-4]
+            sage: lambert_w(CBF(b))
+            [0.567 +/- 6.44e-4]
+            sage: lambert_w(2r, CBF(b))
+            [-2.40 +/- 2.79e-3] + [10.78 +/- 4.91e-3]*I
+            sage: lambert_w(2, CBF(b))
+            [-2.40 +/- 2.79e-3] + [10.78 +/- 4.91e-3]*I
+        """
+        if n == 0:
+            return [z]
+        else:
+            return [z, n]
 
     def _eval_(self, n, z):
         """
@@ -993,7 +1057,7 @@ class Function_exp_polar(BuiltinFunction):
 
         INPUT:
 
-        - ``z`` - a complex number `z = a + ib`.
+        - ``z`` -- a complex number `z = a + ib`.
 
         OUTPUT:
 
@@ -1274,11 +1338,11 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             return harmonic_m1._evalf_(z, parent, algorithm)
 
         from sage.functions.transcendental import zeta, hurwitz_zeta
-        return zeta(m) - hurwitz_zeta(m,z+1)
+        return zeta(m) - hurwitz_zeta(m, z + 1)
 
     def _maxima_init_evaled_(self, n, z):
         """
-        EXAMPLES:
+        EXAMPLES::
 
             sage: maxima_calculus(harmonic_number(x,2))
             gen_harmonic_number(2,_SAGE_VAR_x)
@@ -1361,6 +1425,7 @@ from sage.libs.pynac.pynac import register_symbol
 
 register_symbol(_swap_harmonic,{'maxima':'gen_harmonic_number'})
 register_symbol(_swap_harmonic,{'maple':'harmonic'})
+
 
 class Function_harmonic_number(BuiltinFunction):
     r"""
@@ -1448,7 +1513,7 @@ class Function_harmonic_number(BuiltinFunction):
             1/6*pi^2 - harmonic_number(x, 2)
         """
         from sage.functions.transcendental import zeta
-        return zeta(2)-harmonic_number(z,2)
+        return zeta(2) - harmonic_number(z, 2)
 
     def _print_latex_(self, z):
         """

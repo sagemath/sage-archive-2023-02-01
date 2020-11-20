@@ -17,7 +17,6 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc import six
 from sage.rings.all import ZZ, infinity, LaurentSeries, O
 from sage.functions.all import exp
 from sage.rings.number_field.number_field import QuadraticField
@@ -42,10 +41,8 @@ from .series_constructor import MFSeriesConstructor
 # corresponding operations (e.g. __pow__) even though the category
 # (and class) of the parent is in some cases not
 # CommutativeAlgebras but Modules
-class FormsRingElement(six.with_metaclass(
-        InheritComparisonClasscallMetaclass,
-        CommutativeAlgebraElement, UniqueRepresentation
-    )):
+class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
+                       metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Element of a FormsRing.
     """
@@ -250,7 +247,7 @@ class FormsRingElement(six.with_metaclass(
             f_{\rho}^{3} -  f_{i}^{2}
 
             sage: latex(QuasiModularFormsRing(n=infinity)(x*(x-y^2)*z))
-            - E_{4} f_{i}^{2} E_{2} + E_{4}^{2} E_{2}
+            -E_{4} f_{i}^{2} E_{2} + E_{4}^{2} E_{2}
         """
 
         from sage.misc.latex import latex
@@ -1528,7 +1525,7 @@ class FormsRingElement(six.with_metaclass(
 
         return self.reduced_parent()(self._rat)
 
-    #precision is actually acuracy, maybe add "real precision" meaning number of rel. coef
+    #precision is actually accuracy, maybe add "real precision" meaning number of rel. coef
     @cached_method
     def _q_expansion_cached(self, prec, fix_d, subs_d, d_num_prec, fix_prec = False):
         """
@@ -1920,7 +1917,7 @@ class FormsRingElement(six.with_metaclass(
            #. Substitute ``x=f_rho(tau), y=f_i(tau), z=E2(tau)``
               and the numerical value of ``d`` for ``d``
               in ``self.rat()``. If ``n=infinity`` then
-              subsitute ``x=E4(tau)`` instead.
+              substitute ``x=E4(tau)`` instead.
 
         EXAMPLES::
 

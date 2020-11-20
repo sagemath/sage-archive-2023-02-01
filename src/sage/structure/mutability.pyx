@@ -3,14 +3,13 @@ Mutability Cython Implementation
 """
 ##########################################################################
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 ##########################################################################
-from __future__ import print_function, absolute_import
 
 from sage.misc.decorators import sage_wraps
 
@@ -48,7 +47,7 @@ cdef class Mutability:
 
     def is_immutable(self):
         """
-        Return ``True`` if this object is immutable (can not be changed)
+        Return ``True`` if this object is immutable (cannot be changed)
         and ``False`` if it is not.
 
         To make this object immutable use self.set_immutable().
@@ -69,9 +68,6 @@ cdef class Mutability:
 
     def is_mutable(self):
         return not self._is_immutable
-
-    def __reduce__(self):
-        return Mutability, (self._is_immutable, )
 
 ##########################################################################
 ## Method decorators for mutating methods resp. methods that assume immutability

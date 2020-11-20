@@ -49,13 +49,12 @@ vertex.
    page instead.
 """
 from __future__ import absolute_import
-from six.moves import range
-from six import integer_types
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
 from sage.homology.chains import Chains, Cochains
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix
 from sage.homology.simplicial_complex import Simplex, lattice_paths, SimplicialComplex
@@ -296,7 +295,7 @@ class DeltaComplex(GenericCellComplex):
                     new_data[dim] = s
                     dim += 1
             elif isinstance(data, dict):
-                if all(isinstance(a, (Integer,) + integer_types) for a in data):
+                if all(isinstance(a, (int, Integer)) for a in data):
                     # a dictionary indexed by integers
                     new_data = data
                     if -1 not in new_data:
@@ -426,8 +425,7 @@ class DeltaComplex(GenericCellComplex):
         """
         if isinstance(data, (list, tuple)):
             data = dict(zip(range(len(data)), data))
-        else:
-            data = data
+
         # new_dict: dictionary for constructing the subcomplex
         new_dict = {}
         # new_data: dictionary of all cells in the subcomplex: store

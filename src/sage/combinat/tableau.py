@@ -74,7 +74,7 @@ For display options, see :meth:`Tableaux.options`.
     - Add a class for tableaux of a given shape (eg Tableaux_shape)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2011 Jason Bandlow <jbandlow@gmail.com>
 #
@@ -82,11 +82,8 @@ For display options, see :meth:`Tableaux.options`.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, absolute_import
-from six.moves import range, zip, map
-from six import add_metaclass, text_type
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -107,7 +104,7 @@ import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.all import uniq, prod
+from sage.misc.all import prod
 from sage.misc.misc import powerset
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -117,8 +114,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.posets.posets import Poset
 
 @richcmp_method
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class Tableau(ClonableList):
+class Tableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
     """
     A class to model a tableau.
 
@@ -576,85 +572,9 @@ class Tableau(ClonableList):
             └────┴────┴────┴───┘
             sage: Tableaux.options._reset()
         """
-        if use_unicode:
-            import unicodedata
-            v  = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
-            h  = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
-            dl = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND LEFT')
-            dr = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND RIGHT')
-            ul = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND LEFT')
-            ur = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND RIGHT')
-            vr = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND RIGHT')
-            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND LEFT')
-            uh = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND HORIZONTAL')
-            dh = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND HORIZONTAL')
-            vh = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
-            from sage.typeset.unicode_art import unicode_art as art
-        else:
-            v = '|'
-            h = '-'
-            dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
-            from sage.typeset.ascii_art import ascii_art as art
-
-        if not self:
-            return dr + dl + '\n' + ur + ul
-
-        # Get the widths of the columns
-        str_tab = [[art(_) for _ in row] for row in self]
-        col_widths = [1]*len(str_tab[0])
-        if use_unicode:
-            # Special handling of overline not adding to printed length
-            def get_len(e):
-                return len(e) - list(text_type(e)).count(u"\u0304")
-        else:
-            get_len = len
-        for row in str_tab:
-            for i,e in enumerate(row):
-                col_widths[i] = max(col_widths[i], get_len(e))
-
-        matr = []  # just the list of lines
-        l1 = ""
-        l1 += dr + h*(2+col_widths[0])
-        for w in col_widths[1:]:
-            l1 += dh + h + h + h*w
-        matr.append(l1 + dl)
-        for nrow,row in enumerate(str_tab):
-            l1 = ""; l2 = ""
-            n = len(str_tab[nrow+1]) if nrow+1 < len(str_tab) else 0
-            for i,(e,w) in enumerate(zip(row,col_widths)):
-                if i == 0:
-                    if n:
-                        l1 += vr + h*(2+w)
-                    else:
-                        l1 += ur + h*(2+w)
-                elif i <= n:
-                    l1 += vh + h*(2+w)
-                else:
-                    l1 += uh + h*(2+w)
-                if use_unicode:
-                    l2 += u"{} {:^{width}} ".format(v, e, width=w)
-                else:
-                    l2 += "{} {:^{width}} ".format(v, e, width=w)
-            if i+1 <= n:
-                l1 += vl
-            else:
-                l1 += ul
-            l2 += v
-            matr.append(l2)
-            matr.append(l1)
-
-        if self.parent().options('convention') == "English":
-            return "\n".join(matr)
-        else:
-            output = "\n".join(reversed(matr))
-            if use_unicode:
-                tr = {
-                    ord(dl): ul, ord(dr): ur,
-                    ord(ul): dl, ord(ur): dr,
-                    ord(dh): uh, ord(uh): dh}
-                return output.translate(tr)
-            else:
-                return output
+        from sage.combinat.output import ascii_art_table
+        return ascii_art_table(self, use_unicode=use_unicode,
+                               convention=self.parent().options('convention'))
 
     def _ascii_art_compact(self):
         """
@@ -787,8 +707,6 @@ class Tableau(ClonableList):
 
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
-
-    __div__ = __truediv__
 
     def __call__(self, *cell):
         r"""
@@ -1170,7 +1088,7 @@ class Tableau(ClonableList):
 
         A sign matrix is an `m \times n` matrix of 0's, 1's and -1's such that the
         partial sums of each column is either 0 or 1 and the partial sums of
-        each row is non-negative. [Aval2008]_
+        each row is non-negative. [Ava2007]_
 
         INPUT:
 
@@ -1203,14 +1121,6 @@ class Tableau(ClonableList):
             Traceback (most recent call last):
             ...
             ValueError: the entries must be non-negative integers
-
-
-        REFERENCES:
-
-        .. [Aval2008] Jean-Christope Aval.
-           *Keys and Alternating Sign Matrices*,
-           Seminaire Lotharingien de Combinatoire 59 (2008) B59f
-           :arxiv:`0711.2150`
         """
         from sage.rings.all import ZZ
         from sage.sets.positive_integers import PositiveIntegers
@@ -1387,7 +1297,7 @@ class Tableau(ClonableList):
         The reading word of the standardization is the standardization of
         the reading word::
 
-            sage: T = SemistandardTableaux(shape=[6,3,3,1], max_entry=5)
+            sage: T = SemistandardTableaux(shape=[5,2,2,1], max_entry=4)
             sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T) # long time
             True
         """
@@ -1484,7 +1394,7 @@ class Tableau(ClonableList):
             sage: all(all(t.bender_knuth_involution(k).bender_knuth_involution(l) == t.bender_knuth_involution(l).bender_knuth_involution(k) for k in range(1,5) for l in range(1,5) if abs(k - l) > 1) for t in T)
             True
 
-        Berenstein and Kirillov [BerKilGGI]_ have shown that
+        Berenstein and Kirillov [KB1995]_ have shown that
         `(s_1 s_2)^6 = id` (for tableaux of straight shape)::
 
             sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
@@ -1507,14 +1417,6 @@ class Tableau(ClonableList):
             sage: t = Tableau([])
             sage: t.bender_knuth_involution(3)
             []
-
-        REFERENCES:
-
-        .. [BerKilGGI] \A. N. Kirillov, A. D. Berenstein,
-           *Groups generated by involutions, Gelfand--Tsetlin patterns,
-           and combinatorics of Young tableaux*,
-           Algebra i Analiz, 1995, Volume 7, Issue 1, pp. 92--152.
-           http://math.uoregon.edu/~arkadiy/bk1.pdf
         """
         if check and self not in SemistandardTableaux():
             raise ValueError("the tableau must be semistandard")
@@ -1522,7 +1424,7 @@ class Tableau(ClonableList):
         sk = SkewTableau(self).bender_knuth_involution(k, rows, False)
         return SemistandardTableaux()(list(sk))
 
-    @combinatorial_map(name ='reading word permutation')
+    @combinatorial_map(name='reading word permutation')
     def reading_word_permutation(self):
         """
         Return the permutation obtained by reading the entries of the
@@ -1908,7 +1810,7 @@ class Tableau(ClonableList):
 
         - ``secondtab`` -- a tableau of the same shape as ``self``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: T = Tableau([[1, 2], [3]])
             sage: S = Tableau([[1, 3], [3]])
@@ -1959,16 +1861,6 @@ class Tableau(ClonableList):
 
         This definition is the one used in [Ive2012]_ (p. 12).
 
-        REFERENCES:
-
-        .. [Ive2012] \S. Iveson,
-           *Tableaux on `k + 1`-cores, reduced words for affine
-           permutations, and `k`-Schur expansions*,
-           Operators on `k`-tableaux and the `k`-Littlewood-Richardson
-           rule for a special case,
-           UC Berkeley: Mathematics,  Ph.D. Thesis,
-           https://escholarship.org/uc/item/7pd1v1b5
-
         EXAMPLES::
 
             sage: Tableau([[1,2],[2,3]]).k_weight(1)
@@ -1998,7 +1890,7 @@ class Tableau(ClonableList):
             if new_s == []:
                 res.append(0)
                 continue
-            x = uniq([ (i-j)%(k+1) for i,j in new_s ])
+            x = set((i-j) % (k+1) for i, j in new_s)
             res.append(len(x))
 
         return res
@@ -2489,8 +2381,7 @@ class Tableau(ClonableList):
             return SemistandardTableau(new_t), to_move
         return Tableau(new_t), to_move
 
-
-    def bump_multiply(left, right):
+    def bump_multiply(self, other):
         """
         Multiply two tableaux using Schensted's bump.
 
@@ -2508,18 +2399,18 @@ class Tableau(ClonableList):
             sage: t.bump_multiply(t2)
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
-        if not isinstance(right, Tableau):
-            raise TypeError("right must be a Tableau")
+        if not isinstance(other, Tableau):
+            raise TypeError("other must be a Tableau")
 
-        row = len(right)
-        product = Tableau([list(a) for a in left])   # create deep copy of left
-        while row > 0:
+        row = len(other)
+        product = Tableau([list(a) for a in self])  # create deep copy of self
+        while row:
             row -= 1
-            for i in right[row]:
+            for i in other[row]:
                 product = product.bump(i)
         return product
 
-    def slide_multiply(left, right):
+    def slide_multiply(self, other):
         """
         Multiply two tableaux using jeu de taquin.
 
@@ -2539,14 +2430,14 @@ class Tableau(ClonableList):
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
         st = []
-        if len(left) == 0:
-            return right
+        if len(self) == 0:
+            return other
         else:
-            l = len(left[0])
+            l = len(self[0])
 
-        for row in right:
+        for row in other:
             st.append((None,)*l + row)
-        for row in left:
+        for row in self:
             st.append(row)
 
         from sage.combinat.skew_tableau import SkewTableau
@@ -2682,7 +2573,7 @@ class Tableau(ClonableList):
         usual inverse promotion operator defined on this class.
 
         When ``self`` is a standard tableau of size ``n + 1``, this definition of
-        inverse promotion is the map called "promotion" in [Sg2011]_ (p. 23) and
+        inverse promotion is the map called "promotion" in [Sag2011]_ (p. 23) and
         in [Stan2009]_, and is the inverse of the map called "promotion" in
         [Hai1992]_ (p. 90).
 
@@ -2786,7 +2677,7 @@ class Tableau(ClonableList):
 
         When ``self`` is a standard tableau of size ``n + 1``, this definition of
         promotion is precisely the one given in [Hai1992]_ (p. 90). It is the
-        inverse of the maps called "promotion" in [Sg2011]_ (p. 23) and in [Stan2009]_.
+        inverse of the maps called "promotion" in [Sag2011]_ (p. 23) and in [Stan2009]_.
 
         .. WARNING::
 
@@ -2797,14 +2688,9 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [Hai1992] Mark D. Haiman,
-           *Dual equivalence with applications, including a conjecture of Proctor*,
-           Discrete Mathematics 99 (1992), 79-113,
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+        - [Hai1992]_
 
-        .. [Sg2011] Bruce E. Sagan,
-           *The cyclic sieving phenomenon: a survey*,
-           :arXiv:`1008.0790v3`
+        - [Sag2011]_
 
         EXAMPLES::
 
@@ -3343,14 +3229,8 @@ class Tableau(ClonableList):
         act on each of the resulting tableaux via the
         Lascoux-Schuetzenberger action
         (:meth:`symmetric_group_action_on_values`). This method
-        returns the list of all resulting tableaux. See [LLM01]_ for
+        returns the list of all resulting tableaux. See [LLM2003]_ for
         the purpose of this operator.
-
-        REFERENCES:
-
-        .. [LLM01] \L. Lapointe, A. Lascoux, J. Morse.
-           *Tableau atoms and a new Macdonald positivity conjecture*.
-           :arxiv:`math/0008073v2`.
 
         EXAMPLES::
 
@@ -3370,7 +3250,7 @@ class Tableau(ClonableList):
              [[1, 1, 1, 3], [2, 2]],
              [[1, 1, 1, 2, 3], [2]]]
 
-        The example from [LLM01]_ p. 12::
+        The example from [LLM2003]_ p. 12::
 
             sage: Tableau([[1,1],[2,2]]).promotion_operator(3)
             [[[1, 1, 1], [2, 2], [3, 3]],
@@ -3441,7 +3321,7 @@ class Tableau(ClonableList):
         there are no more opening parentheses standing left of closing
         parentheses. Then, let `a` be the number of opening
         parentheses in the word, and `b` the number of closing
-        parentheses (notice that all opening parentheses are left of
+        parentheses (notice that all opening parentheses are right of
         all closing parentheses). Replace the first `a` parentheses
         by the letters `i`, and replace the remaining `b` parentheses
         by the letters `i+1`. Let `w'` be the resulting word. Let
@@ -3449,11 +3329,11 @@ class Tableau(ClonableList):
         word `w'`. This tableau `T'` can be shown to be semistandard.
         We define the image of `T` under the action of the simple
         transposition `s_i = (i, i+1) \in S_n` to be this tableau `T'`.
-        It can be shown that these actions `s_1, s_2, \ldots, s_{n-1}`
-        satisfy the Moore-Coxeter relations of `S_n`, and thus this
-        extends to a unique action of the symmetric group `S_n` on
-        the set of semistandard tableaux with ceiling `n`. This is the
-        Lascoux-Schuetzenberger action.
+        It can be shown that these actions of the transpositions
+        `s_1, s_2, \ldots, s_{n-1}` satisfy the Moore-Coxeter relations
+        of `S_n`, and thus this extends to a unique action of the
+        symmetric group `S_n` on the set of semistandard tableaux with
+        ceiling `n`. This is the Lascoux-Schuetzenberger action.
 
         This action of the symmetric group `S_n` on the set of all
         semistandard tableaux of given shape `\lambda` with entries
@@ -3574,13 +3454,9 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [LS90] \A. Lascoux, M.-P. Schutzenberger.
-           Keys and standard bases, invariant theory and tableaux.
-           IMA Volumes in Math and its Applications (D. Stanton, ED.).
-           Southend on Sea, UK, 19 (1990). 125-144.
+        - [LS1990]_
 
-        .. [Willis10] \M. Willis. A direct way to find the right key of
-           a semistandard Young tableau. :arxiv:`1110.6184v1`.
+        - [Wil2010]_
 
         EXAMPLES::
 
@@ -3601,11 +3477,11 @@ class Tableau(ClonableList):
 
         The right key tableau of a tableau `T` is a key tableau whose entries
         are weakly greater than the corresponding entries in `T`, and whose column
-        reading word is subject to certain conditions. See [LS90]_ for the full definition.
+        reading word is subject to certain conditions. See [LS1990]_ for the full definition.
 
         ALGORITHM:
 
-        The following algorithm follows [Willis10]_. Note that if `T` is a key tableau
+        The following algorithm follows [Wil2010]_. Note that if `T` is a key tableau
         then the output of the algorithm is `T`.
 
         To compute the right key tableau `R` of a tableau `T` we iterate over the columns
@@ -3638,7 +3514,15 @@ class Tableau(ClonableList):
             True
             sage: t.right_key_tableau() == t
             True
+
+        We check that the empty tableau, which is a key tableau, yields itself::
+
+            sage: Tableau([]).right_key_tableau()
+            []
+
         """
+        if not self:
+            return self
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
 
@@ -3663,11 +3547,11 @@ class Tableau(ClonableList):
 
         The left key tableau of a tableau `T` is the key tableau whose entries
         are weakly lesser than the corresponding entries in `T`, and whose column
-        reading word is subject to certain conditions. See [LS90]_ for the full definition.
+        reading word is subject to certain conditions. See [LS1990]_ for the full definition.
 
         ALGORITHM:
 
-        The following algorithm follows [Willis10]_. Note that if `T` is a key tableau
+        The following algorithm follows [Wil2010]_. Note that if `T` is a key tableau
         then the output of the algorithm is `T`.
 
         To compute the left key tableau `L` of a tableau `T` we iterate over the columns
@@ -3699,7 +3583,15 @@ class Tableau(ClonableList):
             True
             sage: t.left_key_tableau() == t
             True
+
+        We check that the empty tableau, which is a key tableau, yields itself::
+
+            sage: Tableau([]).left_key_tableau()
+            []
+
         """
+        if not self:
+            return self
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
         key[0] = list(cols_list[0])
@@ -3753,7 +3645,7 @@ class Tableau(ClonableList):
 
     def seg(self):
         r"""
-        Return the total number of segments in ``self``, as in [S14]_.
+        Return the total number of segments in ``self``, as in [Sal2014]_.
 
         Let `T` be a tableaux.  We define a `k`-*segment* of `T` (in the `i`-th
         row) to be a maximal consecutive sequence of `k`-boxes in the `i`-th
@@ -3762,9 +3654,7 @@ class Tableau(ClonableList):
 
         REFERENCES:
 
-        .. [S14] \B. Salisbury.
-           The flush statistic on semistandard Young tableaux.
-           :arXiv:`1401.1185`
+        - [Sal2014]_
 
         EXAMPLES::
 
@@ -3781,7 +3671,7 @@ class Tableau(ClonableList):
 
     def flush(self):
         r"""
-        Return the number of flush segments in ``self``, as in [S14]_.
+        Return the number of flush segments in ``self``, as in [Sal2014]_.
 
         Let `1 \le i < k \le r+1` and suppose `\ell` is the smallest integer
         greater than `k` such that there exists an `\ell`-segment in the
@@ -3987,7 +3877,7 @@ class Tableau(ClonableList):
         Return the Brundan-Kleshchev-Wang [BKW2011]_ codegree of the
         standard tableau ``self``.
 
-        The *coderee* of a tableau is an integer that is defined recursively by
+        The *codegree* of a tableau is an integer that is defined recursively by
         successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`
         and at stage adding the number of addable cell of the same residue
         minus the number of removable cells of the same residue as `k` and
@@ -4890,7 +4780,7 @@ class StandardTableau(SemistandardTableau):
         the tableau. This yields a new standard tableau.
 
         This definition of inverse promotion is the map called "promotion" in
-        [Sg2011]_ (p. 23) and in [Stan2009]_, and is the inverse of the map
+        [Sag2011]_ (p. 23) and in [Stan2009]_, and is the inverse of the map
         called "promotion" in [Hai1992]_ (p. 90).
 
         See the :meth:`~sage.combinat.tableau.promotion_inverse` method for a
@@ -4933,7 +4823,7 @@ class StandardTableau(SemistandardTableau):
         promotion operator.
 
         This definition of promotion is precisely the one given in [Hai1992]_
-        (p. 90). It is the inverse of the maps called "promotion" in [Sg2011]_
+        (p. 90). It is the inverse of the maps called "promotion" in [Sag2011]_
         (p. 23) and in [Stan2009]_.
 
         See the :meth:`~sage.combinat.tableau.promotion` method for a
@@ -6528,9 +6418,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
         from sage.rings.all import ZZ
         from sage.matrix.constructor import diagonal_matrix
         from sage.combinat.rsk import RSK
-        kchoose2m1 = self.max_entry * (self.max_entry - 1) / 2 - 1
+        kchoose2m1 = self.max_entry * (self.max_entry - 1) // 2 - 1
         km1 = self.max_entry - 1
-        weights = [binomial(self.size - i + km1, km1) * binomial((i/2) + kchoose2m1, kchoose2m1)
+        weights = [binomial(self.size - i + km1, km1) * binomial((i//2) + kchoose2m1, kchoose2m1)
                    for i in range(0, self.size + 1, 2)]
         randpos = ZZ.random_element(sum(weights))
         tot = weights[0]
@@ -6739,14 +6629,16 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
 
         Uses the algorithm from [Kra1999]_ based on the Novelli-Pak-Stoyanovskii bijection
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
 
         EXAMPLES::
 
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
-            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
-            [[1, 1], [2, 3], [3], [5]]
-            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
-            [[1, 4], [5, 5], [6], [7]]
+            sage: S = SemistandardTableaux([2, 2, 1, 1])
+            sage: S.random_element() in S
+            True
+            sage: S = SemistandardTableaux([2, 2, 1, 1], max_entry=7)
+            sage: S.random_element() in S
+            True
 
         """
         from sage.misc.prandom import randint
@@ -7060,7 +6952,7 @@ class RowStandardTableaux(Tableaux):
     - with a partition argument, the class of all standard tableaux of that
       shape
 
-    A row standard tableau is a tableaux that contains each of the
+    A row standard tableau is a tableau that contains each of the
     entries from `1` to `n` exactly once and is increasing along rows.
 
     All classes of row standard tableaux are iterable.
@@ -7072,20 +6964,20 @@ class RowStandardTableaux(Tableaux):
         sage: ST.first()
         [[1, 2, 3]]
         sage: ST.last()
-        [[1], [2], [3]]
+        [[3], [1], [2]]
         sage: ST.cardinality()
         10
         sage: ST.list()
         [[[1, 2, 3]],
          [[2, 3], [1]],
-         [[1, 3], [2]],
          [[1, 2], [3]],
+         [[1, 3], [2]],
          [[3], [2], [1]],
          [[2], [3], [1]],
-         [[3], [1], [2]],
-         [[2], [1], [3]],
          [[1], [3], [2]],
-         [[1], [2], [3]]]
+         [[1], [2], [3]],
+         [[2], [1], [3]],
+         [[3], [1], [2]]]
 
     .. SEEALSO::
 
@@ -7103,18 +6995,18 @@ class RowStandardTableaux(Tableaux):
         sage: ST = RowStandardTableaux([2,2]); ST
         Row standard tableaux of shape [2, 2]
         sage: ST.first()
-        [[3, 4], [1, 2]]
+        [[2, 4], [1, 3]]
         sage: ST.last()
-        [[1, 2], [3, 4]]
+        [[2, 3], [1, 4]]
         sage: ST.cardinality()
         6
         sage: ST.list()
-        [[[3, 4], [1, 2]],
-         [[2, 4], [1, 3]],
-         [[2, 3], [1, 4]],
+        [[[2, 4], [1, 3]],
+         [[3, 4], [1, 2]],
          [[1, 4], [2, 3]],
          [[1, 3], [2, 4]],
-         [[1, 2], [3, 4]]]
+         [[1, 2], [3, 4]],
+         [[2, 3], [1, 4]]]
         sage: RowStandardTableau([[3,4,5],[1,2]]).residue_sequence(3).standard_tableaux()
         Standard tableaux with 3-residue sequence (2,0,0,1,2) and multicharge (0)
     """
@@ -7245,17 +7137,17 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         [[[1]]]
         sage: [ t for t in RowStandardTableaux(2) ]
         [[[1, 2]], [[2], [1]], [[1], [2]]]
-        sage: RowStandardTableaux(3)[:]
+        sage: list(RowStandardTableaux(3))
         [[[1, 2, 3]],
          [[2, 3], [1]],
-         [[1, 3], [2]],
          [[1, 2], [3]],
+         [[1, 3], [2]],
          [[3], [2], [1]],
          [[2], [3], [1]],
-         [[3], [1], [2]],
-         [[2], [1], [3]],
          [[1], [3], [2]],
-         [[1], [2], [3]]]
+         [[1], [2], [3]],
+         [[2], [1], [3]],
+         [[3], [1], [2]]]
 
     TESTS::
 
@@ -7265,9 +7157,9 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         10
         sage: ns = [1,2,3,4,5,6]
         sage: sts = [RowStandardTableaux(n) for n in ns]
-        sage: all([st.cardinality() == len(st.list()) for st in sts])
+        sage: all(st.cardinality() == len(st.list()) for st in sts)
         True
-        sage: RowStandardTableaux(40).cardinality()  # long time
+        sage: RowStandardTableaux(40).cardinality()  # not tested, too long
         2063837185739279909309355007659204891024472174278
     """
     def __init__(self, n):
@@ -7305,7 +7197,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         TESTS::
 
             sage: ST3 = RowStandardTableaux(3)
-            sage: all([st in ST3 for st in ST3])
+            sage: all(st in ST3 for st in ST3)
             True
             sage: ST4 = RowStandardTableaux(4)
             sage: [x for x in ST4 if x in ST3]
@@ -7359,7 +7251,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         EXAMPLES::
 
             sage: ST = RowStandardTableaux([2,1,1])
-            sage: all([st in ST for st in ST])
+            sage: all(st in ST for st in ST)
             True
             sage: len([x for x in RowStandardTableaux(4) if x in ST])
             12
@@ -7385,23 +7277,23 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         EXAMPLES::
 
             sage: [t for t in RowStandardTableaux([2,2])]
-            [[[3, 4], [1, 2]],
-             [[2, 4], [1, 3]],
-             [[2, 3], [1, 4]],
+            [[[2, 4], [1, 3]],
+             [[3, 4], [1, 2]],
              [[1, 4], [2, 3]],
              [[1, 3], [2, 4]],
-             [[1, 2], [3, 4]]]
+             [[1, 2], [3, 4]],
+             [[2, 3], [1, 4]]]
             sage: [t for t in RowStandardTableaux([3,2])]
-            [[[3, 4, 5], [1, 2]],
-             [[2, 4, 5], [1, 3]],
-             [[2, 3, 5], [1, 4]],
-             [[2, 3, 4], [1, 5]],
+            [[[2, 4, 5], [1, 3]],
+             [[3, 4, 5], [1, 2]],
              [[1, 4, 5], [2, 3]],
              [[1, 3, 5], [2, 4]],
-             [[1, 3, 4], [2, 5]],
              [[1, 2, 5], [3, 4]],
+             [[1, 2, 3], [4, 5]],
              [[1, 2, 4], [3, 5]],
-             [[1, 2, 3], [4, 5]]]
+             [[1, 3, 4], [2, 5]],
+             [[2, 3, 4], [1, 5]],
+             [[2, 3, 5], [1, 4]]]
             sage: st = RowStandardTableaux([2,1])
             sage: st[0].parent() is st
             True
@@ -7414,9 +7306,10 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         for row in self.shape:
             relations += [(m+i,m+i+1) for i in range(row-1)]
             m += row
-
+        P = Poset((range(1,self.shape.size()+1), relations))
+        L = P.linear_extensions()
         # now run through the linear extensions and return the corresponding tableau
-        for lin in Poset((range(1,self.shape.size()+1), relations)).linear_extensions():
+        for lin in L:
             linear_tab = list(permutation.Permutation(lin).inverse())
             tab = [linear_tab[partial_sums[i]:partial_sums[i+1]]
                    for i in range(len(self.shape))]
@@ -7731,8 +7624,12 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: sts = [StandardTableaux(n) for n in ns]
             sage: all(st.cardinality() == len(st.list()) for st in sts)
             True
-            sage: StandardTableaux(50).cardinality()  # long time
-            27886995605342342839104615869259776
+
+        The cardinality can be computed without constructing all elements in
+        this set, so this computation is fast (see also :trac:`28273`)::
+
+            sage: StandardTableaux(500).cardinality()
+            423107565308608549951551753690...221285999236657443927937253376
 
         TESTS::
 
@@ -8037,8 +7934,8 @@ class StandardTableaux_shape(StandardTableaux):
 
             #Convert the tableau vector back to the regular tableau
             #format
-            row_count= [0]*len(pi)
-            tableau = [[None]*n for n in pi]
+            row_count = [0] * len(pi)
+            tableau = [[None] * n for n in pi]
 
             for i in range(size):
                 tableau[tableau_vector[i]][row_count[tableau_vector[i]]] = i+1
@@ -8086,8 +7983,9 @@ class StandardTableaux_shape(StandardTableaux):
 
         EXAMPLES::
 
-            sage: StandardTableaux([2,2]).random_element()
-            [[1, 2], [3, 4]]
+            sage: t = StandardTableaux([2,2]).random_element()
+            sage: t.shape()
+            [2, 2]
             sage: StandardTableaux([]).random_element()
             []
         """
@@ -8130,6 +8028,19 @@ class StandardTableaux_shape(StandardTableaux):
 ##########################
 def unmatched_places(w, open, close):
     """
+    Given a word ``w`` and two letters ``open`` and
+    ``close`` to be treated as opening and closing
+    parentheses (respectively), return a pair ``(xs, ys)``
+    that encodes the positions of the unmatched
+    parentheses after the standard parenthesis matching
+    procedure is applied to ``w``.
+
+    More precisely, ``xs`` will be the list of all ``i``
+    such that ``w[i]`` is an unmatched closing parenthesis,
+    while ``ys`` will be the list of all ``i`` such that
+    ``w[i]`` is an unmatched opening parenthesis. Both
+    lists returned are in increasing order.
+
     EXAMPLES::
 
         sage: from sage.combinat.tableau import unmatched_places
@@ -8163,6 +8074,17 @@ def unmatched_places(w, open, close):
 
 def symmetric_group_action_on_values(word, perm):
     """
+    Return the image of the word ``word`` under the
+    Lascoux-Schuetzenberger action of the permutation
+    ``perm``.
+
+    See :meth:`Tableau.symmetric_group_action_on_values`
+    for the definition of the Lascoux-Schuetzenberger
+    action on semistandard tableaux. The transformation that
+    the reading word of the tableau undergoes in said
+    definition is precisely the Lascoux-Schuetzenberger
+    action on words.
+
     EXAMPLES::
 
         sage: from sage.combinat.tableau import symmetric_group_action_on_values
@@ -8200,7 +8122,7 @@ def symmetric_group_action_on_values(word, perm):
             for i in places_l[:dif]:
                 w[i] = r
         else:
-            for i in places_r[nbr-dif:ma]:
+            for i in places_r[nbr-dif:]:
                 w[i] = l
     return w
 
@@ -9267,12 +9189,12 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
         wt = self.weight
         list_of_partial_inc_tabs = [tab]
         list_of_inc_tabs = []
-        while list_of_partial_inc_tabs != []:
+        while list_of_partial_inc_tabs:
             active_tab = list_of_partial_inc_tabs.pop()
             unfilled_spots = []
-            for (r,c) in active_tab.cells():
+            for (r, c) in active_tab.cells():
                 if active_tab[r][c] == 0:
-                    unfilled_spots.append((r,c))
+                    unfilled_spots.append((r, c))
             if not unfilled_spots:
                 top_value = max(active_tab.entries())
                 if top_value == len(wt) - wt[::-1].index(1):
@@ -9381,9 +9303,3 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_n',  S
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_p',  SemistandardTableaux_shape)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_nmu',  SemistandardTableaux_size_weight)
 register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu',  SemistandardTableaux_shape_weight)
-
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
-

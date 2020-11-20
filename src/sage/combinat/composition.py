@@ -40,7 +40,6 @@ from .combinat import CombinatorialElement
 from sage.categories.cartesian_product import cartesian_product
 
 from .integer_lists import IntegerListsLex
-from six.moves import builtins
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -706,8 +705,6 @@ class Composition(CombinatorialElement):
             ....:                 for I in Compositions(n) )
             sage: all( test_meet(n) for n in range(1, 5) )
             True
-            sage: all( test_meet(n) for n in range(5, 9) )  # long time
-            True
 
         TESTS::
 
@@ -1192,7 +1189,7 @@ class Composition(CombinatorialElement):
             sum_outer += k - overlap
             inner.append(sum_outer + overlap)
 
-        if self != []:
+        if self:
             outer.append(self[-1] + sum_outer + overlap)
         else:
             return SkewPartition([[],[]])
@@ -1200,7 +1197,6 @@ class Composition(CombinatorialElement):
         return SkewPartition(
             [ [x for x in reversed(outer) if x != 0],
               [x for x in reversed(inner) if x != 0] ])
-
 
     def shuffle_product(self, other, overlap=False):
         r"""
@@ -1668,7 +1664,7 @@ class Compositions(UniqueRepresentation, Parent):
         """
         if isinstance(x, Composition):
             return True
-        elif isinstance(x, builtins.list):
+        elif isinstance(x, list):
             for i in x:
                 if (not isinstance(i, (int, Integer))) and i not in ZZ:
                     return False

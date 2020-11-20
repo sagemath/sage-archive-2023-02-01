@@ -26,7 +26,7 @@ from ..real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
 from ..complex_interval_field import ComplexIntervalField_class
 from ..real_mpfr cimport RealNumber
 from ..real_double cimport RealDoubleElement
-from ..complex_number cimport ComplexNumber
+from ..complex_mpfr cimport ComplexNumber
 from ..complex_interval cimport ComplexIntervalFieldElement
 from ..complex_double cimport ComplexDoubleElement
 
@@ -135,11 +135,11 @@ cdef int mpfi_set_sage(mpfi_ptr re, mpfi_ptr im, x, field, int base) except -1:
         if isinstance(x, ComplexDoubleElement):
             zd = <ComplexDoubleElement>x
             if im is NULL:
-                if zd._complex.dat[1] != 0:
+                if zd._complex.imag:
                     raise TypeError(f"unable to convert complex number {x!r} to real interval")
             else:
-                mpfi_set_d(im, zd._complex.dat[1])
-            mpfi_set_d(re, zd._complex.dat[0])
+                mpfi_set_d(im, zd._complex.imag)
+            mpfi_set_d(re, zd._complex.real)
             return 0
     else:  # not a Sage Element
         # Real

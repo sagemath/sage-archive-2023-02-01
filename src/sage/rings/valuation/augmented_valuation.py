@@ -1083,6 +1083,18 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
             sage: w.lift(w.residue_ring().gen())
             (1 + O(2^10))*x
 
+        TESTS:
+
+        Verify that :trac:`30305` has been resolved::
+
+            sage: R.<T> = QQ[]
+            sage: K.<zeta> = NumberField(T^2 + T + 1)
+            sage: R.<x> = K[]
+            sage: v0 = GaussValuation(R, valuations.TrivialValuation(K))
+            sage: v = v0.augmentation(x^2 + x + 2, 1)
+            sage: v.lift(v.reduce(x)) == x
+            True
+
         """
         F = self.residue_ring().coerce(F)
 
@@ -1096,10 +1108,14 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         if self.psi().degree() > 1:
             from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
             from sage.rings.function_field.element import FunctionFieldElement_polymod
+            from sage.rings.number_field.number_field_element import NumberFieldElement_relative
+            from sage.all import PolynomialRing
             if isinstance(F, PolynomialQuotientRingElement):
                 G = F.lift()
             elif isinstance(F, FunctionFieldElement_polymod):
                 G = F.element()
+            elif isinstance(F, NumberFieldElement_relative):
+                G = PolynomialRing(F.base_ring(), 'x')(list(F))
             else:
                 G = F.polynomial()
             assert(G(self._residue_field_generator()) == F)
@@ -1582,7 +1598,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         ret = self._pow(self._Q_reciprocal(1), e, error=v*e, effective_degree=0)
 
         assert self.is_equivalence_unit(ret)
-        # esentially this checks that the reduction of Q'*phi^tau is the
+        # essentially this checks that the reduction of Q'*phi^tau is the
         # generator of the residue field
         assert self._base_valuation.reduce(self._Q(e)*ret)(self._residue_field_generator()).is_one()
 
@@ -1932,14 +1948,13 @@ class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValu
 class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugmentedValuation):
     r"""
     An augmented valuation which is discrete, i.e., which assigns a finite
-    valuation to its last key polynomial, and which can be augmented furter.
+    valuation to its last key polynomial, and which can be augmented further.
 
     EXAMPLES::
 
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, QQ.valuation(2))
         sage: w = v.augmentation(x, 1)
-
     """
     def __init__(self, parent, v, phi, mu):
         r"""

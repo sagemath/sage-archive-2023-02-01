@@ -166,8 +166,6 @@ import bz2 as comp_other
 
 from pickletools import genops
 
-from six import iteritems
-
 import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
 from sage.misc.sage_eval import sage_eval
@@ -248,7 +246,8 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     if pickle is not None:
         p = pickle
     elif file is not None:
-        p = open(file).read()
+        with open(file) as f:
+            p = f.read()
     else:
         raise ValueError("Either pickle or file must be specified")
 
@@ -460,7 +459,7 @@ class PickleExplainer(object):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: pe = PickleExplainer(sib, in_current_sage=True, default_assumptions=False, pedantic=True)
-            sage: sib(pe.run_pickle('T\5\0\0\0hello.'))
+            sage: sib(pe.run_pickle('T\5\0\0\0hello.'))  # py2
             {atomic:'hello'}
         """
         for (op, arg, pos) in genops(p):
@@ -646,7 +645,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(['a'])
+            sage: test_pickle(['a'])    # py2
                 0: \x80 PROTO      2
                 2: ]    EMPTY_LIST
                 3: q    BINPUT     1
@@ -663,7 +662,7 @@ class PickleExplainer(object):
 
             sage: v = []
             sage: v.append(v)
-            sage: test_pickle(v)
+            sage: test_pickle(v)  # py2
                 0: \x80 PROTO      2
                 2: ]    EMPTY_LIST
                 3: q    BINPUT     1
@@ -687,7 +686,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(['a', 'b'])
+            sage: test_pickle(['a', 'b'])  # py2
                 0: \x80 PROTO      2
                 2: ]    EMPTY_LIST
                 3: q    BINPUT     1
@@ -707,7 +706,7 @@ class PickleExplainer(object):
             sage: v = []
             sage: v.append(v)
             sage: v.append(v)
-            sage: test_pickle(v)
+            sage: test_pickle(v)  # py2
                 0: \x80 PROTO      2
                 2: ]    EMPTY_LIST
                 3: q    BINPUT     1
@@ -739,7 +738,7 @@ class PickleExplainer(object):
         an exception, so we can tell that cPickle doesn't call it either)::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(TestAppendList((True,))) # indirect doctest
+            sage: test_pickle(TestAppendList((True,))) # indirect doctest # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle TestAppendList'
                43: q    BINPUT     1
@@ -771,7 +770,7 @@ class PickleExplainer(object):
 
             sage: v = TestAppendNonlist()
             sage: v.list = [False, None]
-            sage: test_pickle(v, verbose_eval=True)
+            sage: test_pickle(v, verbose_eval=True)  # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle TestAppendNonlist'
                46: q    BINPUT     1
@@ -809,7 +808,7 @@ class PickleExplainer(object):
         instead of once.  If we set pedantic=True, then this is fixed.
         (We show only the changed parts of the output)::
 
-            sage: test_pickle(v, verbose_eval=True, pedantic=True)
+            sage: test_pickle(v, verbose_eval=True, pedantic=True)  # py2
                 0: \x80 PROTO      2
             ...
             explain_pickle in_current_sage=True:
@@ -857,7 +856,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(float(pi))
+            sage: test_pickle(float(pi))  # py2
                 0: \x80 PROTO      2
                 2: G    BINFLOAT   3.141592653589793
                11: .    STOP
@@ -874,7 +873,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST + BINPUT + 'x' + POP + BINGET + 'x' + '.')
+            sage: test_pickle(EMPTY_LIST + BINPUT + 'x' + POP + BINGET + 'x' + '.')  # py2
                 0: ]    EMPTY_LIST
                 1: q    BINPUT     120
                 3: 0    POP
@@ -892,7 +891,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(dumps(100000r, compress=False))
+            sage: test_pickle(dumps(100000r, compress=False))  # py2
                 0: \x80 PROTO      2
                 2: J    BININT     100000
                 7: .    STOP
@@ -908,7 +907,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(dumps(100r, compress=False))
+            sage: test_pickle(dumps(100r, compress=False))  # py2
                 0: \x80 PROTO      2
                 2: K    BININT1    100
                 4: .    STOP
@@ -924,7 +923,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(dumps(1000r, compress=False))
+            sage: test_pickle(dumps(1000r, compress=False))  # py2
                 0: \x80 PROTO      2
                 2: M    BININT2    1000
                 5: .    STOP
@@ -941,7 +940,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST + BINPUT + 'x' + POP + BINGET + 'x')
+            sage: test_pickle(EMPTY_LIST + BINPUT + 'x' + POP + BINGET + 'x')  # py2
                 0: ]    EMPTY_LIST
                 1: q    BINPUT     120
                 3: 0    POP
@@ -961,7 +960,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle('T\5\0\0\0hello.')
+            sage: test_pickle('T\5\0\0\0hello.')  # py2
                 0: T    BINSTRING 'hello'
                10: .    STOP
             highest protocol among opcodes = 1
@@ -976,7 +975,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(u'hi\u1234\U00012345')
+            sage: test_pickle(u'hi\u1234\U00012345')  # py2
                 0: \x80 PROTO      2
                 2: X    BINUNICODE u'hi\u1234\U00012345'
                16: q    BINPUT     1
@@ -993,7 +992,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(TestBuild())
+            sage: test_pickle(TestBuild())  # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle TestBuild'
                38: q    BINPUT     1
@@ -1029,7 +1028,7 @@ class PickleExplainer(object):
 
         ::
 
-            sage: test_pickle(TestBuildSetstate(), verbose_eval=True)
+            sage: test_pickle(TestBuildSetstate(), verbose_eval=True)  # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle TestBuildSetstate'
                46: q    BINPUT     1
@@ -1119,7 +1118,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(DICT, args=('mark', 'a', 1, 2, 'b'))
+            sage: test_pickle(DICT, args=('mark', 'a', 1, 2, 'b'))  # py2
                 0: (    MARK
                 1: P        PERSID     '1'
                 4: P        PERSID     '2'
@@ -1142,7 +1141,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST + DUP + TUPLE2 + STOP)
+            sage: test_pickle(EMPTY_LIST + DUP + TUPLE2 + STOP)  # py2
                 0: ]    EMPTY_LIST
                 1: 2    DUP
                 2: \x86 TUPLE2
@@ -1163,7 +1162,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_DICT)
+            sage: test_pickle(EMPTY_DICT)  # py2
                 0: }    EMPTY_DICT
                 1: .    STOP
             highest protocol among opcodes = 1
@@ -1179,7 +1178,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST)
+            sage: test_pickle(EMPTY_LIST)  # py2
                 0: ]    EMPTY_LIST
                 1: .    STOP
             highest protocol among opcodes = 1
@@ -1195,7 +1194,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_TUPLE)
+            sage: test_pickle(EMPTY_TUPLE)  # py2
                 0: )    EMPTY_TUPLE
                 1: .    STOP
             highest protocol among opcodes = 1
@@ -1209,10 +1208,10 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from six.moves.copyreg import *
+            sage: from copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
-            sage: test_pickle(EmptyNewstyleClass())
+            sage: test_pickle(EmptyNewstyleClass())  # py2
                 0: \x80 PROTO      2
                 2: \x82 EXT1       42
                 4: )    EMPTY_TUPLE
@@ -1236,10 +1235,10 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from six.moves.copyreg import *
+            sage: from copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 31415)
-            sage: test_pickle(EmptyNewstyleClass())
+            sage: test_pickle(EmptyNewstyleClass())  # py2
                 0: \x80 PROTO      2
                 2: \x83 EXT2       31415
                 5: )    EMPTY_TUPLE
@@ -1263,10 +1262,10 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from six.moves.copyreg import *
+            sage: from copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 27182818)
-            sage: test_pickle(EmptyNewstyleClass())
+            sage: test_pickle(EmptyNewstyleClass())  # py2
                 0: \x80 PROTO      2
                 2: \x84 EXT4       27182818
                 7: )    EMPTY_TUPLE
@@ -1292,7 +1291,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(FLOAT + '2.71828\n')
+            sage: test_pickle(FLOAT + '2.71828\n')  # py2
                 0: F    FLOAT      2.71828
                 9: .    STOP
             highest protocol among opcodes = 0
@@ -1308,7 +1307,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST + PUT + '1\n' + POP + GET + '1\n' + '.')
+            sage: test_pickle(EMPTY_LIST + PUT + '1\n' + POP + GET + '1\n' + '.')  # py2
                 0: ]    EMPTY_LIST
                 1: p    PUT        1
                 4: 0    POP
@@ -1332,7 +1331,7 @@ class PickleExplainer(object):
 
         ::
 
-            sage: test_pickle(TestGlobalOldName())
+            sage: test_pickle(TestGlobalOldName())  # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle TestGlobalOldName'
                46: q    BINPUT     1
@@ -1365,7 +1364,7 @@ class PickleExplainer(object):
         A class name need not be a valid identifier::
 
             sage: sage.misc.explain_pickle.__dict__['funny$name'] = TestGlobalFunnyName # see comment at end of file
-            sage: test_pickle((TestGlobalFunnyName(), TestGlobalFunnyName()))
+            sage: test_pickle((TestGlobalFunnyName(), TestGlobalFunnyName()))  # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle funny$name'
                39: q    BINPUT     1
@@ -1446,7 +1445,7 @@ class PickleExplainer(object):
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps(EmptyOldstyleClass(), protocol=0))
+            sage: test_pickle(pickle.dumps(EmptyOldstyleClass(), protocol=0))  # py2
                 0: (    MARK
                 1: i        INST       'sage.misc.explain_pickle EmptyOldstyleClass' (MARK at 0)
                46: p    PUT        0
@@ -1479,7 +1478,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(INT + "-12345\n")
+            sage: test_pickle(INT + "-12345\n")  # py2
                 0: I    INT        -12345
                 8: .    STOP
             highest protocol among opcodes = 0
@@ -1489,14 +1488,14 @@ class PickleExplainer(object):
 
         INT can also be used to record True and False::
 
-            sage: test_pickle(INT + "00\n")
+            sage: test_pickle(INT + "00\n")  # py2
                 0: I    INT        False
                 4: .    STOP
             highest protocol among opcodes = 0
             explain_pickle in_current_sage=True/False:
             False
             result: False
-            sage: test_pickle(INT + "01\n")
+            sage: test_pickle(INT + "01\n")  # py2
                 0: I    INT        True
                 4: .    STOP
             highest protocol among opcodes = 0
@@ -1512,7 +1511,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(MARK + NONE + NEWFALSE + LIST)
+            sage: test_pickle(MARK + NONE + NEWFALSE + LIST)  # py2
                 0: (    MARK
                 1: N        NONE
                 2: \x89     NEWFALSE
@@ -1532,7 +1531,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(LONG + "12345678909876543210123456789L\n")
+            sage: test_pickle(LONG + "12345678909876543210123456789L\n")  # py2
                 0: L    LONG       12345678909876543210123456789L
                32: .    STOP
             highest protocol among opcodes = 0
@@ -1547,7 +1546,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(1L)
+            sage: test_pickle(1L)  # py2
                 0: \x80 PROTO      2
                 2: \x8a LONG1      1L
                 5: .    STOP
@@ -1564,7 +1563,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(LONG4 + '\014\0\0\0' + 'hello, world')
+            sage: test_pickle(LONG4 + '\014\0\0\0' + 'hello, world')  # py2
                 0: \x8b LONG4      31079605376604435891501163880L
                17: .    STOP
             highest protocol among opcodes = 2
@@ -1580,7 +1579,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST + LONG_BINPUT + 'Sage' + POP + LONG_BINGET + 'Sage')
+            sage: test_pickle(EMPTY_LIST + LONG_BINPUT + 'Sage' + POP + LONG_BINGET + 'Sage')  # py2
                 0: ]    EMPTY_LIST
                 1: r    LONG_BINPUT 1701273939
                 6: 0    POP
@@ -1599,7 +1598,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST + LONG_BINPUT + 'Sage' + POP + LONG_BINGET + 'Sage')
+            sage: test_pickle(EMPTY_LIST + LONG_BINPUT + 'Sage' + POP + LONG_BINGET + 'Sage')  # py2
                 0: ]    EMPTY_LIST
                 1: r    LONG_BINPUT 1701273939
                 6: 0    POP
@@ -1620,7 +1619,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(MARK + TUPLE)
+            sage: test_pickle(MARK + TUPLE)  # py2
                 0: (    MARK
                 1: t        TUPLE      (MARK at 0)
                 2: .    STOP
@@ -1637,7 +1636,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(NEWFALSE)
+            sage: test_pickle(NEWFALSE)  # py2
                 0: \x89 NEWFALSE
                 1: .    STOP
             highest protocol among opcodes = 2
@@ -1653,7 +1652,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(NEWTRUE)
+            sage: test_pickle(NEWTRUE)  # py2
                 0: \x88 NEWTRUE
                 1: .    STOP
             highest protocol among opcodes = 2
@@ -1668,7 +1667,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EmptyNewstyleClass())
+            sage: test_pickle(EmptyNewstyleClass())  # py2
                 0: \x80 PROTO      2
                 2: c    GLOBAL     'sage.misc.explain_pickle EmptyNewstyleClass'
                47: q    BINPUT     1
@@ -1704,7 +1703,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(NONE)
+            sage: test_pickle(NONE)  # py2
                 0: N    NONE
                 1: .    STOP
             highest protocol among opcodes = 0
@@ -1719,7 +1718,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EmptyOldstyleClass())
+            sage: test_pickle(EmptyOldstyleClass())  # py2
                 0: \x80 PROTO      2
                 2: (    MARK
                 3: c        GLOBAL     'sage.misc.explain_pickle EmptyOldstyleClass'
@@ -1755,7 +1754,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(PERSID + "0\n" + '.', args=('Yo!',))
+            sage: test_pickle(PERSID + "0\n" + '.', args=('Yo!',))  # py2
                 0: P    PERSID     '0'
                 3: .    STOP
             highest protocol among opcodes = 0
@@ -1771,7 +1770,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(INT + "0\n" + BINPERSID + '.', args=('Yo!',))
+            sage: test_pickle(INT + "0\n" + BINPERSID + '.', args=('Yo!',))  # py2
                 0: I    INT        0
                 3: Q    BINPERSID
                 4: .    STOP
@@ -1789,7 +1788,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(INT + "0\n" + POP + INT + "42\n")
+            sage: test_pickle(INT + "0\n" + POP + INT + "42\n")  # py2
                 0: I    INT        0
                 3: 0    POP
                 4: I    INT        42
@@ -1809,7 +1808,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(MARK + NONE + NEWFALSE + POP_MARK + NEWTRUE)
+            sage: test_pickle(MARK + NONE + NEWFALSE + POP_MARK + NEWTRUE)  # py2
                 0: (    MARK
                 1: N        NONE
                 2: \x89     NEWFALSE
@@ -1828,7 +1827,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(0r)
+            sage: test_pickle(0r)  # py2
                 0: \x80 PROTO      2
                 2: K    BININT1    0
                 4: .    STOP
@@ -1846,7 +1845,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_LIST + PUT + '1\n' + POP + GET + '1\n' + '.')
+            sage: test_pickle(EMPTY_LIST + PUT + '1\n' + POP + GET + '1\n' + '.')  # py2
                 0: ]    EMPTY_LIST
                 1: p    PUT        1
                 4: 0    POP
@@ -1867,7 +1866,7 @@ class PickleExplainer(object):
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps(EmptyNewstyleClass(), protocol=1))
+            sage: test_pickle(pickle.dumps(EmptyNewstyleClass(), protocol=1))  # py2
                 0: c    GLOBAL     'copy_reg _reconstructor'
                25: q    BINPUT     0
                27: (    MARK
@@ -1896,7 +1895,7 @@ class PickleExplainer(object):
 
         ::
 
-            sage: test_pickle(TestReduceGetinitargs(), verbose_eval=True)
+            sage: test_pickle(TestReduceGetinitargs(), verbose_eval=True)  # py2
             Running __init__ for TestReduceGetinitargs
                 0: \x80 PROTO      2
                 2: (    MARK
@@ -1927,7 +1926,7 @@ class PickleExplainer(object):
 
         ::
 
-            sage: test_pickle(TestReduceNoGetinitargs(), verbose_eval=True)
+            sage: test_pickle(TestReduceNoGetinitargs(), verbose_eval=True)  # py2
             Running __init__ for TestReduceNoGetinitargs
                 0: \x80 PROTO      2
                 2: (    MARK
@@ -1999,7 +1998,7 @@ class PickleExplainer(object):
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps({'a': 'b'}))
+            sage: test_pickle(pickle.dumps({'a': 'b'}))  # py2
                 0: (    MARK
                 1: d        DICT       (MARK at 0)
                 2: p    PUT        0
@@ -2020,7 +2019,7 @@ class PickleExplainer(object):
 
             sage: value_rec = dict()
             sage: value_rec['circular'] = value_rec
-            sage: test_pickle(pickle.dumps(value_rec))
+            sage: test_pickle(pickle.dumps(value_rec))  # py2
                 0: (    MARK
                 1: d        DICT       (MARK at 0)
                 2: p    PUT        0
@@ -2042,7 +2041,7 @@ class PickleExplainer(object):
             sage: key = EmptyNewstyleClass()
             sage: key.circular = key_rec
             sage: key_rec[key] = 'circular'
-            sage: test_pickle(pickle.dumps(key_rec))
+            sage: test_pickle(pickle.dumps(key_rec))  # py2
                 0: (    MARK
                 1: d        DICT       (MARK at 0)
                 2: p    PUT        0
@@ -2100,7 +2099,7 @@ class PickleExplainer(object):
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps({'a': 'b', 1r : 2r}, protocol=2))
+            sage: test_pickle(pickle.dumps({'a': 'b', 1r : 2r}, protocol=2))  # py2
                 0: \x80 PROTO      2
                 2: }    EMPTY_DICT
                 3: q    BINPUT     0
@@ -2125,7 +2124,7 @@ class PickleExplainer(object):
             sage: key = EmptyOldstyleClass()
             sage: key.recdict = recdict
             sage: recdict[key] = 'circular_key'
-            sage: test_pickle(pickle.dumps(recdict, protocol=2))
+            sage: test_pickle(pickle.dumps(recdict, protocol=2))  # py2
                 0: \x80 PROTO      2
                 2: }    EMPTY_DICT
                 3: q    BINPUT     0
@@ -2178,7 +2177,7 @@ class PickleExplainer(object):
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps({'a': 'b'})) # indirect doctest
+            sage: test_pickle(pickle.dumps({'a': 'b'})) # indirect doctest  # py2
                 0: (    MARK
                 1: d        DICT       (MARK at 0)
                 2: p    PUT        0
@@ -2218,7 +2217,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(dumps('hello', compress=False))
+            sage: test_pickle(dumps('hello', compress=False))  # py2
                 0: \x80 PROTO      2
                 2: U    SHORT_BINSTRING 'hello'
                 9: q    BINPUT     1
@@ -2236,7 +2235,7 @@ class PickleExplainer(object):
 
             sage: from pickle import *
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(EMPTY_TUPLE)
+            sage: test_pickle(EMPTY_TUPLE)  # py2
                 0: )    EMPTY_TUPLE
                 1: .    STOP
             highest protocol among opcodes = 1
@@ -2251,7 +2250,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle("S'Testing...'\n.")
+            sage: test_pickle("S'Testing...'\n.")  # py2
                 0: S    STRING     'Testing...'
                14: .    STOP
             highest protocol among opcodes = 0
@@ -2267,7 +2266,7 @@ class PickleExplainer(object):
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps(('a',)))
+            sage: test_pickle(pickle.dumps(('a',)))  # py2
                 0: (    MARK
                 1: S        STRING     'a'
                 6: p        PUT        0
@@ -2287,7 +2286,7 @@ class PickleExplainer(object):
 
             sage: v = ([],)
             sage: v[0].append(v)
-            sage: test_pickle(pickle.dumps(v))
+            sage: test_pickle(pickle.dumps(v))  # py2
                 0: (    MARK
                 1: (        MARK
                 2: l            LIST       (MARK at 1)
@@ -2317,7 +2316,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(('a',))
+            sage: test_pickle(('a',))  # py2
                 0: \x80 PROTO      2
                 2: U    SHORT_BINSTRING 'a'
                 5: \x85 TUPLE1
@@ -2336,7 +2335,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(('a','b'))
+            sage: test_pickle(('a','b'))  # py2
                 0: \x80 PROTO      2
                 2: U    SHORT_BINSTRING 'a'
                 5: U    SHORT_BINSTRING 'b'
@@ -2357,7 +2356,7 @@ class PickleExplainer(object):
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(('a','b','c'))
+            sage: test_pickle(('a','b','c'))  # py2
                 0: \x80 PROTO      2
                 2: U    SHORT_BINSTRING 'a'
                 5: U    SHORT_BINSTRING 'b'
@@ -2381,7 +2380,7 @@ class PickleExplainer(object):
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps(u'hi\u1234\U00012345'))
+            sage: test_pickle(pickle.dumps(u'hi\u1234\U00012345'))  # py2
                 0: V    UNICODE    u'hi\u1234\U00012345'
                20: p    PUT        0
                23: .    STOP
@@ -2465,12 +2464,12 @@ def unpickle_build(obj, state):
     if state is not None:
         assert(isinstance(state, dict))
         d = obj.__dict__
-        for k, v in iteritems(state):
+        for k, v in state.items():
             d[k] = v
 
     if slots is not None:
         assert(isinstance(slots, dict))
-        for k, v in iteritems(slots):
+        for k, v in slots.items():
             setattr(obj, k, v)
 
 
@@ -2517,13 +2516,13 @@ def unpickle_extension(code):
 
     EXAMPLES::
 
-        sage: from six.moves.copyreg import *
+        sage: from copyreg import *
         sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
         sage: unpickle_extension(42)
         <class 'sage.misc.explain_pickle.EmptyNewstyleClass'>
         sage: remove_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
     """
-    from six.moves.copyreg import _inverted_registry, _extension_cache
+    from copyreg import _inverted_registry, _extension_cache
     # copied from .get_extension() in pickle.py
     nil = []
     obj = _extension_cache.get(code, nil)
@@ -2586,7 +2585,7 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     EXAMPLES::
 
         sage: from sage.misc.explain_pickle import *
-        sage: test_pickle(['a'])
+        sage: test_pickle(['a'])  # py2
             0: \x80 PROTO      2
             2: ]    EMPTY_LIST
             3: q    BINPUT     1
@@ -2834,7 +2833,8 @@ class TestAppendList(list):
             ...
             TypeError: append() takes 1 positional argument but 2 were given
 
-        We can still append by directly using the list method:
+        We can still append by directly using the list method::
+
             sage: list.append(v, 7)
             sage: v
             [7]
@@ -2858,7 +2858,8 @@ class TestAppendList(list):
             ...
             TypeError: extend() takes 1 positional argument but 2 were given
 
-        We can still extend by directly using the list method:
+        We can still extend by directly using the list method::
+
             sage: list.extend(v, (3,1,4,1,5,9))
             sage: v
             [3, 1, 4, 1, 5, 9]
@@ -2922,7 +2923,7 @@ class TestAppendNonlist(object):
             sage: v = TestAppendNonlist()
             sage: v.list = [1,2,3,4]
             sage: v.__reduce__()
-            (<class 'sage.misc.explain_pickle.TestAppendNonlist'>, (), None, <listiterator object at 0x...>)
+            (<class 'sage.misc.explain_pickle.TestAppendNonlist'>, (), None, <...iterator object at 0x...>)
             sage: list(v.__reduce__()[3])
             [1, 2, 3, 4]
             sage: loads(dumps(v))

@@ -68,8 +68,8 @@ EXAMPLES::
     sage: H = Hom(T,S)
     sage: T
     Simplicial complex with 8 vertices and 12 facets
-    sage: T.vertices()
-    ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1))
+    sage: sorted(T.vertices())
+    [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1)]
     sage: f = {(0, 0): 0, (0, 1): 0, (1, 0): 1, (1, 1): 1, (2, 0): 2, (2, 1): 2, (3, 0): 3, (3, 1): 3}
     sage: x = H(f)
     sage: U = simplicial_complexes.Sphere(1)
@@ -81,7 +81,7 @@ EXAMPLES::
     sage: z = y.fiber_product(x)
     sage: z                                     # this is the mapping path space
     Simplicial complex morphism:
-      From: Simplicial complex with 6 vertices and 6 facets
+      From: Simplicial complex with 6 vertices and ... facets
       To:   Minimal triangulation of the 2-sphere
       Defn: ['L0R(0, 0)', 'L0R(0, 1)', 'L1R(1, 0)', 'L1R(1, 1)', 'L2R(2, 0)', 'L2R(2, 1)'] --> [0, 0, 1, 1, 2, 2]
 """
@@ -114,9 +114,10 @@ from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.categories.simplicial_complexes import SimplicialComplexes
 
+
 def is_SimplicialComplexMorphism(x):
     """
-    Returns ``True`` if and only if ``x`` is a morphism of simplicial complexes.
+    Return ``True`` if and only if ``x`` is a morphism of simplicial complexes.
 
     EXAMPLES::
 
@@ -129,7 +130,8 @@ def is_SimplicialComplexMorphism(x):
         True
 
     """
-    return isinstance(x,SimplicialComplexMorphism)
+    return isinstance(x, SimplicialComplexMorphism)
+
 
 class SimplicialComplexMorphism(Morphism):
     """
@@ -160,7 +162,7 @@ class SimplicialComplexMorphism(Morphism):
         """
         if not isinstance(X,SimplicialComplex) or not isinstance(Y,SimplicialComplex):
             raise ValueError("X and Y must be SimplicialComplexes")
-        if not set(f.keys()) == set(X._vertex_set):
+        if not set(f.keys()) == set(X.vertices()):
             raise ValueError("f must be a dictionary from the vertex set of X to single values in the vertex set of Y")
         dim = X.dimension()
         Y_faces = Y.faces()
@@ -171,14 +173,14 @@ class SimplicialComplexMorphism(Morphism):
                 for j in tup:
                     fi.append(f[j])
                 v = Simplex(set(fi))
-            if not v in Y_faces[v.dimension()]:
+            if v not in Y_faces[v.dimension()]:
                 raise ValueError("f must be a dictionary from the vertices of X to the vertices of Y")
         self._vertex_dictionary = f
         Morphism.__init__(self, Hom(X,Y,SimplicialComplexes()))
 
     def __eq__(self,x):
         """
-        Returns ``True`` if and only if ``self == x``.
+        Return ``True`` if and only if ``self == x``.
 
         EXAMPLES::
 
@@ -245,10 +247,10 @@ class SimplicialComplexMorphism(Morphism):
             ((0, 1), -1)
         """
         dim = self.domain().dimension()
-        if not isinstance(x,Simplex) or x.dimension() > dim or not x in self.domain().faces()[x.dimension()]:
+        if not isinstance(x, Simplex) or x.dimension() > dim or x not in self.domain().faces()[x.dimension()]:
             raise ValueError("x must be a simplex of the source of f")
-        tup=x.tuple()
-        fx=[]
+        tup = x.tuple()
+        fx = []
         for j in tup:
             fx.append(self._vertex_dictionary[j])
         if orientation:
@@ -305,7 +307,7 @@ class SimplicialComplexMorphism(Morphism):
 
     def associated_chain_complex_morphism(self,base_ring=ZZ,augmented=False,cochain=False):
         """
-        Returns the associated chain complex morphism of ``self``.
+        Return the associated chain complex morphism of ``self``.
 
         EXAMPLES::
 
@@ -466,7 +468,7 @@ class SimplicialComplexMorphism(Morphism):
 
     def is_surjective(self):
         """
-        Returns ``True`` if and only if ``self`` is surjective.
+        Return ``True`` if and only if ``self`` is surjective.
 
         EXAMPLES::
 
@@ -493,7 +495,7 @@ class SimplicialComplexMorphism(Morphism):
 
     def is_injective(self):
         """
-        Returns ``True`` if and only if ``self`` is injective.
+        Return ``True`` if and only if ``self`` is injective.
 
         EXAMPLES::
 
@@ -553,7 +555,7 @@ class SimplicialComplexMorphism(Morphism):
             return False
         else:
             f = dict()
-            for i in self.domain()._vertex_set:
+            for i in self.domain().vertices():
                 f[i] = i
             if self._vertex_dictionary != f:
                 return False
@@ -581,7 +583,7 @@ class SimplicialComplexMorphism(Morphism):
             sage: z = x.fiber_product(y)
             sage: z
             Simplicial complex morphism:
-              From: Simplicial complex with 4 vertices and facets {('L1R1',), ('L2R0',), ('L0R0', 'L1R2')}
+              From: Simplicial complex with 4 vertices and facets {...}
               To:   Simplicial complex with vertex set (0, 1, 2) and facets {(2,), (0, 1)}
               Defn: L0R0 |--> 0
                     L1R1 |--> 1
@@ -593,8 +595,8 @@ class SimplicialComplexMorphism(Morphism):
         X = self.domain().product(other.domain(),rename_vertices = rename_vertices)
         v = []
         f = dict()
-        eff1 = self.domain()._vertex_set
-        eff2 = other.domain()._vertex_set
+        eff1 = self.domain().vertices()
+        eff2 = other.domain().vertices()
         for i in eff1:
             for j in eff2:
                 if self(Simplex([i])) == other(Simplex([j])):

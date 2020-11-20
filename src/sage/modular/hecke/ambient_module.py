@@ -4,7 +4,7 @@ Ambient Hecke modules
 from __future__ import absolute_import
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -27,8 +27,6 @@ from . import submodule
 import sage.modules.all
 
 import sage.rings.all
-
-import sage.misc.misc as misc
 
 import sage.arith.all as arith
 
@@ -292,20 +290,20 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: d1 = M.degeneracy_map(33); d1
             Hecke module morphism degeneracy map corresponding to f(q) |--> f(q) defined by the matrix
             [ 1  0  0  0 -2 -1]
-            [ 0  0 -2  2  0  0]
+            [ 0 -1  1  0  0  0]
             Domain: Modular Symbols space of dimension 2 for Gamma_0(11) of weight ...
             Codomain: Modular Symbols space of dimension 6 for Gamma_0(33) of weight ...
             sage: M.degeneracy_map(33,3).matrix()
-            [ 3  2  2  0 -2  1]
-            [ 0  2  0 -2  0  0]
+            [ 3  2  0  2 -2  1]
+            [ 0  0 -1  1  0  0]
             sage: M = ModularSymbols(33,sign=1)
             sage: d2 = M.degeneracy_map(11); d2.matrix()
-            [  1   0]
-            [  0 1/2]
-            [  0  -1]
-            [  0   1]
-            [ -1   0]
-            [ -1   0]
+            [ 1  0]
+            [ 0 -2]
+            [ 0  2]
+            [ 0  1]
+            [-1  0]
+            [-1  0]
             sage: (d2*d1).matrix()
             [4 0]
             [0 4]
@@ -519,12 +517,13 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: ModularSymbols(Gamma1(17), 4).hecke_bound() # wrong!
             15
         """
+        from sage.misc.verbose import verbose
         try:
             if self.is_cuspidal():
                 return Gamma0(self.level()).sturm_bound(self.weight())
         except AttributeError:
             pass
-        misc.verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
+        verbose("WARNING: ambient.py -- hecke_bound; returning unproven guess.")
         return Gamma0(self.level()).sturm_bound(self.weight()) + 2*Gamma0(self.level()).dimension_eis(self.weight()) + 5
 
     def hecke_module_of_level(self, level):

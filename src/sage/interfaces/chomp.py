@@ -195,12 +195,11 @@ class CHomP:
         try:
             data = complex._chomp_repr_()
         except AttributeError:
-            raise AttributeError("Complex can not be converted to use with CHomP.")
+            raise AttributeError("Complex cannot be converted to use with CHomP.")
 
         datafile = tmp_filename()
-        f = open(datafile, 'w')
-        f.write(data)
-        f.close()
+        with open(datafile, 'w') as f:
+            f.write(data)
 
         #
         #    subcomplex
@@ -230,11 +229,10 @@ class CHomP:
             try:
                 sub = subcomplex._chomp_repr_()
             except AttributeError:
-                raise AttributeError("Subcomplex can not be converted to use with CHomP.")
+                raise AttributeError("Subcomplex cannot be converted to use with CHomP.")
             subfile = tmp_filename()
-            f = open(subfile, 'w')
-            f.write(sub)
-            f.close()
+            with open(subfile, 'w') as f:
+                f.write(sub)
         else:
             subfile = ''
         if verbose:
@@ -255,7 +253,8 @@ class CHomP:
             print("End of CHomP output")
             print("")
         if generators:
-            gens = open(genfile, 'r').read()
+            with open(genfile, 'r') as f:
+                gens = f.read()
             if verbose:
                 print("Generators:")
                 print(gens)
@@ -421,6 +420,7 @@ class CHomP:
         """
         from subprocess import Popen, PIPE
         print(Popen([program, '-h'], stdout=PIPE).communicate()[0])
+
 
 def homsimpl(complex=None, subcomplex=None, **kwds):
     r"""

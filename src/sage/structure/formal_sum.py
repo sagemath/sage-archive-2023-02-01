@@ -28,9 +28,9 @@ EXAMPLES::
     sage: -B
     -3*1/5
     sage: A + B
-    3*1/5 + 2/3
+    2/3 + 3*1/5
     sage: A - B
-    -3*1/5 + 2/3
+    2/3 - 3*1/5
     sage: B*3
     9*1/5
     sage: 2*A
@@ -44,7 +44,7 @@ TESTS::
     sage: loads(dumps(R)) == R
     True
     sage: a = R(2/3) + R(-5/7); a
-    -5/7 + 2/3
+    2/3 + -5/7
     sage: loads(dumps(a)) == a
     True
 """
@@ -65,9 +65,9 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function
 
-import sage.misc.misc
+from sage.misc.repr import repr_lincomb
 import operator
-import sage.misc.latex
+from collections import OrderedDict
 
 from sage.modules.module import Module
 from sage.structure.element import ModuleElement
@@ -143,7 +143,8 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: for z in FormalSum([(1,2), (5, 1000), (-3, 7)]): print(z)
+            sage: for z in FormalSum([(1, 2), (-3, 7), (5, 1000)]):
+            ....:     print(z)
             (1, 2)
             (-3, 7)
             (5, 1000)
@@ -154,7 +155,7 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: v = FormalSum([(1,2), (5, 1000), (-3, 7)]); v
+            sage: v = FormalSum([(1, 2), (-3, 7), (5, 1000)]); v
             2 - 3*7 + 5*1000
             sage: v[0]
             (1, 2)
@@ -171,8 +172,7 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: v = FormalSum([(1,2), (5, 1000), (-3, 7)]); v
-            2 - 3*7 + 5*1000
+            sage: v = FormalSum([(1, 2), (5, 1000), (-3, 7)])
             sage: len(v)
             3
         """
@@ -187,29 +187,30 @@ class FormalSum(ModuleElement):
             sage: a._repr_()    # random
             '2/3 - 3*4/5 + 7*2'
         """
-        return sage.misc.misc.repr_lincomb([t, c] for c, t in self)
+        return repr_lincomb([t, c] for c, t in self)
 
     def _latex_(self):
         r"""
         EXAMPLES::
 
             sage: latex(FormalSum([(1,2), (5, 8/9), (-3, 7)]))
-            5\cdot \frac{8}{9} + 2 - 3\cdot 7
+            2 + 5\cdot \frac{8}{9} - 3\cdot 7
         """
+        from sage.misc.latex import repr_lincomb
         symbols = [z[1] for z in self]
         coeffs = [z[0] for z in self]
-        return sage.misc.latex.repr_lincomb(symbols, coeffs)
+        return repr_lincomb(symbols, coeffs)
         # TODO: finish merging sage.misc.latex.repr_lincomb and
         # sage.misc.misc.repr_lincomb and use instead:
-        # return sage.misc.misc.repr_lincomb([[t,c] for c,t in self], is_latex=True)
+        # return repr_lincomb([[t,c] for c,t in self], is_latex=True)
 
-    def _richcmp_(left, right, op):
+    def _richcmp_(self, other, op):
         """
-        Compare ``left`` and ``right``.
+        Compare ``self`` and ``other``.
 
         INPUT:
 
-        - ``right`` -- a :class:`FormalSum` with the same parent
+        - ``other`` -- a :class:`FormalSum` with the same parent
 
         - ``op`` -- a comparison operator
 
@@ -227,7 +228,7 @@ class FormalSum(ModuleElement):
             sage: a == 0          # 0 is coerced into a.parent()(0)
             False
         """
-        return richcmp(left._data, right._data, op)
+        return richcmp(self._data, other._data, op)
 
     def _neg_(self):
         """
@@ -295,27 +296,15 @@ class FormalSum(ModuleElement):
             sage: a
             0
         """
-        if len(self) == 0:
-            return
-        v = [(x,c) for c, x in self if c!=0]
-        if len(v) == 0:
-            self._data = v
-            return
-        v.sort()
-        w = []
-        last = v[0][0]
-        coeff = v[0][1]
-        for x, c in v[1:]:
-            if x == last:
-                coeff += c
-            else:
-                if coeff != 0:
-                    w.append((coeff, last))
-                last = x
-                coeff = c
-        if coeff != 0:
-            w.append((coeff,last))
-        self._data = w
+        new = OrderedDict()
+        for coeff, x in self:
+            try:
+                coeff += new[x]
+            except KeyError:
+                pass
+            new[x] = coeff
+        self._data = [(c, x) for (x, c) in new.items() if c]
+
 
 class FormalSums(UniqueRepresentation, Module):
     """
@@ -330,7 +319,7 @@ class FormalSums(UniqueRepresentation, Module):
         sage: FormalSums(GF(7))
         Abelian Group of all Formal Finite Sums over Finite Field of size 7
         sage: FormalSums(ZZ[sqrt(2)])
-        Abelian Group of all Formal Finite Sums over Order in Number Field in sqrt2 with defining polynomial x^2 - 2
+        Abelian Group of all Formal Finite Sums over Order in Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
         sage: FormalSums(GF(9,'a'))
         Abelian Group of all Formal Finite Sums over Finite Field in a of size 3^2
 
@@ -379,7 +368,7 @@ class FormalSums(UniqueRepresentation, Module):
 
             sage: P = FormalSum([(1,2/3)]).parent()
             sage: P([(1,2/3), (5,-2/9)])  # indirect test
-            5*-2/9 + 2/3
+            2/3 + 5*-2/9
         """
         if isinstance(x, FormalSum):
             P = x.parent()

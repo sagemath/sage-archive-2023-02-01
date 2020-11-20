@@ -62,9 +62,6 @@ EXAMPLES::
     sage: simplicial_complexes.MatchingComplex(6).homology()
     {0: 0, 1: Z^16, 2: 0}
 """
-from six import iteritems
-
-from functools import reduce
 
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
@@ -74,7 +71,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.homology.simplicial_complex import Simplex as TrueSimplex
 from sage.sets.set import Set
 from sage.misc.functional import is_even
-from sage.misc.misc import union
 from sage.combinat.subset import Subsets
 import sage.misc.prandom as random
 
@@ -122,9 +118,10 @@ def facets_for_RP4():
                 facets.append(new)
     return facets
 
+
 def facets_for_K3():
     """
-    Returns the facets for a minimal triangulation of the K3 surface.
+    Return the facets for a minimal triangulation of the K3 surface.
 
     This is a pure simplicial complex of dimension 4 with 16
     vertices and 288 facets. The facets are obtained by constructing a
@@ -174,10 +171,11 @@ def matching(A, B):
     for v in A:
         for w in B:
             for M in matching(set(A).difference([v]), set(B).difference([w])):
-                new = M.union([(v,w)])
+                new = M.union([(v, w)])
                 if new not in answer:
                     answer.append(new)
     return answer
+
 
 class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
     """
@@ -239,12 +237,10 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
                     if not isinstance(maximal_faces, (list, tuple, Simplex)):
                         # Convert it into a list (in case it is an iterable)
                         maximal_faces = list(maximal_faces)
-                    if len(maximal_faces) != 0:
-                        vertex_set = reduce(union, maximal_faces)
             if C is not None:
                 maximal_faces = C.facets()
             # Now convert maximal_faces to a tuple of tuples, so that it is hashable.
-            maximal_faces = tuple([tuple(_) for _ in maximal_faces])
+            maximal_faces = tuple(tuple(mf) for mf in maximal_faces)
         return super(UniqueSimplicialComplex, self).__classcall__(self, maximal_faces,
                                                                   name=name,
                                                                   **kwds)
@@ -545,9 +541,10 @@ def ComplexProjectivePlane():
          [9, 7, 2, 3, 6], [7, 8, 3, 1, 4], [8, 9, 1, 2, 5]],
         name='Minimal triangulation of the complex projective plane')
 
+
 def PseudoQuaternionicProjectivePlane():
     r"""
-    Returns a pure simplicial complex of dimension 8 with 490 facets.
+    Return a pure simplicial complex of dimension 8 with 490 facets.
 
     .. WARNING::
 
@@ -834,9 +831,10 @@ def RealProjectiveSpace(n):
         return UniqueSimplicialComplex(list(facets),
                                        name='Triangulation of RP^{}'.format(n))
 
+
 def K3Surface():
     """
-    Returns a minimal triangulation of the K3 surface.
+    Return a minimal triangulation of the K3 surface.
 
     This is a pure simplicial complex of dimension 4 with 16 vertices
     and 288 facets. It was constructed by Casella and Kühnel
@@ -954,9 +952,10 @@ def K3Surface():
             (1, 2, 4, 7, 15), (2, 3, 7, 8, 16), (1, 4, 5, 6, 10)],
         name='Minimal triangulation of the K3 surface')
 
+
 def BarnetteSphere():
     r"""
-    Returns Barnette's triangulation of the 3-sphere.
+    Return Barnette's triangulation of the 3-sphere.
 
     This is a pure simplicial complex of dimension 3 with 8
     vertices and 19 facets, which is a non-polytopal triangulation
@@ -994,9 +993,10 @@ def BarnetteSphere():
             (3,6,4,8)],
           name="Barnette's triangulation of the 3-sphere")
 
+
 def BrucknerGrunbaumSphere():
     r"""
-    Returns Bruckner and Grunbaum's triangulation of the 3-sphere.
+    Return Bruckner and Grunbaum's triangulation of the 3-sphere.
 
     This is a pure simplicial complex of dimension 3 with 8
     vertices and 20 facets, which is a non-polytopal triangulation
@@ -1393,8 +1393,7 @@ def RandomTwoSphere(n):
     EXAMPLES::
 
         sage: G = simplicial_complexes.RandomTwoSphere(6); G
-        Simplicial complex with vertex set (0, 1, 2, 3, 'a', 'b')
-        and 8 facets
+        Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 8 facets
         sage: G.homology()
         {0: 0, 1: 0, 2: Z}
         sage: G.is_pure()
@@ -1409,7 +1408,7 @@ def RandomTwoSphere(n):
     graph = RandomTriangulation(n)
 
     graph = graph.relabel(inplace=False)
-    triangles = [(u, v, w) for u, L in iteritems(graph._embedding)
+    triangles = [(u, v, w) for u, L in graph._embedding.items()
                  for v, w in zip(L, L[1:] + [L[0]]) if u < v and u < w]
 
     return SimplicialComplex(triangles, maximality_check=False)

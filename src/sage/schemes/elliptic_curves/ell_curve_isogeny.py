@@ -56,15 +56,13 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Daniel Shumow <shumow@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from six import itervalues
-from six.moves import range
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from copy import copy
 
@@ -144,7 +142,7 @@ def isogeny_determine_algorithm(E, kernel):
     """
     kernel_is_list = isinstance(kernel, list)
 
-    if not kernel_is_list and kernel in E :
+    if not kernel_is_list and kernel in E:
         kernel = [kernel]
         kernel_is_list = True
 
@@ -399,13 +397,7 @@ def compute_codomain_kohel(E, kernel, degree):
 
     .. NOTE::
 
-       This function uses the formulas of Section 2.4 of [K96]_.
-
-    REFERENCES:
-
-    .. [K96] Kohel, "Endomorphism Rings of Elliptic Curves over Finite
-       Fields", UC Berkeley PhD thesis 1996.
-
+       This function uses the formulas of Section 2.4 of [Koh1996]_.
     """
     # First set up the polynomial ring
 
@@ -461,7 +453,7 @@ def compute_codomain_kohel(E, kernel, degree):
 
             (v,w) = compute_vw_kohel_even_deg3(b2,b4,s1,s2,s3)
 
-    else: # odd degree case
+    else:  # odd degree case
 
         n = psi.degree()
 
@@ -469,15 +461,17 @@ def compute_codomain_kohel(E, kernel, degree):
         b4 = E.b4()
         b6 = E.b6()
 
-        s1 = 0; s2 = 0; s3 = 0
+        s1 = 0
+        s2 = 0
+        s3 = 0
 
-        if (1 <= n):
+        if 1 <= n:
             s1 = -kernel_list[n-1]
 
-        if (2 <= n):
+        if 2 <= n:
             s2 = kernel_list[n-2]
 
-        if (3 <= n):
+        if 3 <= n:
             s3 = -kernel_list[n-3]
 
         # initializing these allows us to calculate E2.
@@ -986,7 +980,7 @@ class EllipticCurveIsogeny(Morphism):
         if not is_EllipticCurve(E):
             raise ValueError("E parameter must be an EllipticCurve.")
 
-        if not isinstance(kernel, list) and kernel in E :
+        if not isinstance(kernel, list) and kernel in E:
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
@@ -1003,7 +997,7 @@ class EllipticCurveIsogeny(Morphism):
             if (degree is None):
                 raise ValueError("If specifying isogeny by domain and codomain, degree parameter must be set.")
 
-            # save the domain/codomain: really used now (trac #7096)
+            # save the codomain: really used now (trac #7096)
             old_codomain = codomain
 
             (pre_isom, post_isom, E, codomain, kernel) = compute_sequence_of_maps(E, codomain, degree)
@@ -1105,19 +1099,19 @@ class EllipticCurveIsogeny(Morphism):
             TypeError: (20 : 90 : 1) fails to convert into the map's domain Elliptic Curve defined by y^2 = x^3 + 7*x over Number Field in th with defining polynomial x^2 + 3, but a `pushforward` method is not properly implemented
 
         """
-        if(P.is_zero()):
+        if P.is_zero():
             return self.__E2(0)
 
         (xP, yP) = P.xy()
         # if there is a pre isomorphism, apply it
-        if (self.__pre_isomorphism is not None):
+        if self.__pre_isomorphism is not None:
             temp_xP = self.__prei_x_coord_ratl_map(xP)
             temp_yP = self.__prei_y_coord_ratl_map(xP, yP)
             (xP, yP) = (temp_xP, temp_yP)
 
-        if ("velu" == self.__algorithm):
+        if "velu" == self.__algorithm:
             outP = self.__compute_via_velu_numeric(xP, yP)
-        elif ("kohel" == self.__algorithm):
+        elif "kohel" == self.__algorithm:
             outP = self.__compute_via_kohel_numeric(xP,yP)
 
         # the intermediate functions return the point at infinity
@@ -1664,7 +1658,7 @@ class EllipticCurveIsogeny(Morphism):
         if ("velu" == self.__algorithm):
             ker_poly_list = self.__init_kernel_polynomial_velu()
         else:
-            raise RuntimeError("The kernel polynomial should already be defined!")
+            raise ValueError("The kernel polynomial should already be defined!")
 
         return ker_poly_list
 
@@ -2093,12 +2087,12 @@ class EllipticCurveIsogeny(Morphism):
         a3 = self.__E1.a3()
 
         # next iterate over the 2torsion points of the kernel
-        for Qvalues in itervalues(ker_2tor):
+        for Qvalues in ker_2tor.values():
             (tX, tY) = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
             X = X + tX
             Y = Y + tY
 
-        for Qvalues in itervalues(ker_non2tor):
+        for Qvalues in ker_non2tor.values():
             (tX, tY) = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
             X = X + tX
             Y = Y + tY
@@ -2164,11 +2158,11 @@ class EllipticCurveIsogeny(Morphism):
 
         psi = poly_ring(1)
 
-        for Qvalues in itervalues(self.__kernel_2tor):
+        for Qvalues in self.__kernel_2tor.values():
             xQ = invX(x=Qvalues[0])
             psi = psi*(x - xQ)
 
-        for Qvalues in itervalues(self.__kernel_non2tor):
+        for Qvalues in self.__kernel_non2tor.values():
             xQ = invX(x=Qvalues[0])
             psi = psi*(x - xQ)
 
@@ -2324,7 +2318,7 @@ class EllipticCurveIsogeny(Morphism):
         """
         #check if the polynomial really divides the two_torsion_polynomial
         if  self.__check and E.division_polynomial(2, x=self.__poly_ring.gen()) % psi_G  != 0 :
-            raise ValueError("The polynomial does not define a finite subgroup of the elliptic curve.")
+            raise ValueError("The polynomial {} does not define a finite subgroup of {}.".format(psi_G,E))
 
         n = psi_G.degree() # 1 or 3
         d = n+1            # 2 or 4
@@ -2434,7 +2428,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: f = (E.isogenies_prime_degree()[0]).kernel_polynomial()
             sage: f.degree()
             81
-            sage: E.isogeny(kernel=f)  # long time (3.6s, 2014)
+            sage: E.isogeny(kernel=f, check=False)
             Isogeny of degree 163 from Elliptic Curve defined by y^2 + y = x^3 - 2174420*x + 1234136692 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - 57772164980*x - 5344733777551611 over Rational Field
         """
         n = psi.degree()
@@ -2442,23 +2436,25 @@ class EllipticCurveIsogeny(Morphism):
 
         # check if the polynomial really divides the torsion polynomial :
         if self.__check:
-            alpha = psi.parent().quotient(psi).gen()
-            if not E.division_polynomial(d, x=alpha).is_zero():
-                raise ValueError("The polynomial does not define a finite subgroup of the elliptic curve.")
+            from .isogeny_small_degree import is_kernel_polynomial
+            if not is_kernel_polynomial(E, d, psi):
+                raise ValueError("The polynomial {} does not define a finite subgroup of {}.".format(psi,E))
 
         b2, b4, b6, _ = E.b_invariants()
 
         psi_coeffs = psi.list()
 
-        s1 = 0; s2 = 0; s3 = 0
+        s1 = 0
+        s2 = 0
+        s3 = 0
 
-        if (1 <= n):
+        if 1 <= n:
             s1 = -psi_coeffs[n-1]
 
-        if (2 <= n):
+        if 2 <= n:
             s2 = psi_coeffs[n-2]
 
-        if (3 <= n):
+        if 3 <= n:
             s3 = -psi_coeffs[n-3]
 
         # initializing these allows us to calculate E2.
@@ -2661,10 +2657,10 @@ class EllipticCurveIsogeny(Morphism):
         """
         # first check if this point is in the kernel:
 
-        if(0 == self.__inner_kernel_polynomial(x=xP)):
+        if 0 == self.__inner_kernel_polynomial(x=xP):
             return self.__intermediate_codomain(0)
 
-        (xP_out, yP_out) = self.__compute_via_kohel(xP,yP)
+        (xP_out, yP_out) = self.__compute_via_kohel(xP, yP)
 
         # xP_out and yP_out do not always get evaluated to field
         # elements but rather constant polynomials, so we do some
@@ -3545,8 +3541,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.is_injective()
             True
         """
-        if (1 < self.__degree): return False
-        return True
+        return not (1 < self.__degree)
 
     def is_surjective(self):
         r"""
@@ -3669,19 +3664,13 @@ def compute_isogeny_starks(E1, E2, ell):
     ALGORITHM:
 
     This function uses Starks Algorithm as presented in section 6.2 of
-    [BMSS]_.
+    [BMSS2006]_.
 
     .. NOTE::
 
-       As published in [BMSS]_, the algorithm is incorrect, and a
+       As published in [BMSS2006]_, the algorithm is incorrect, and a
        correct version (with slightly different notation) can be found
-       in [M09]_.  The algorithm originates in [S72]_.
-
-    REFERENCES:
-
-    .. [BMSS] Boston, Morain, Salvy, Schost, "Fast Algorithms for Isogenies."
-    .. [M09] Moody, "The Diffie-Hellman Problem and Generalization of Verheul's Theorem"
-    .. [S72] Stark, "Class-numbers of complex quadratic fields."
+       in [Mo2009]_.  The algorithm originates in [Sta1973]_.
 
     EXAMPLES::
 
@@ -3717,7 +3706,7 @@ def compute_isogeny_starks(E1, E2, ell):
     R = PolynomialRing(K, 'x')
     x = R.gen()
 
-    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS claim 2*ell is enough, but it is not M09
+    wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS2006 claim 2*ell is enough, but it is not M09
     wp2 = E2.weierstrass_p(prec=4*ell+4)
 
     # viewed them as power series in Z = z^2
@@ -4068,14 +4057,16 @@ def fill_isogeny_matrix(M):
         M0[i,i]=1
 
     def fix(d):
-        if d==0: return Infinity
+        if d == 0:
+            return Infinity
         return d
 
     def fix2(d):
-        if d==Infinity: return 0
+        if d == Infinity:
+            return 0
         return d
 
-    def pr(M1,M2):
+    def pr(M1, M2):
         return Matrix([[fix2(min([fix(M1[i,k]*M2[k,j]) for k in range(n)])) for i in range(n)] for j in range(n)])
 
     M1 = M0

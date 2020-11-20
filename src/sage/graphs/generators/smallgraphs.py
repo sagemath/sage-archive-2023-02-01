@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Small graphs
+Various small graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -15,11 +15,12 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
-import six
-from six.moves import range
 
 # import from Sage library
 from sage.graphs.graph import Graph
+from sage.rings.rational_field import QQ
+from sage.functions.other import sqrt
+
 from math import sin, cos, pi
 
 #######################################################################
@@ -151,12 +152,12 @@ def HarriesGraph(embedding=1):
                   20: 14, 22: 56, 62: 42}
 
         # Position for the vertices from the first copy
-        for v, i in six.iteritems(g_to_p):
+        for v, i in g_to_p.items():
             gpos[v] = ppos[i]
 
         # Position for the vertices in the second copy. Moves the first, too.
         offset = 3.5
-        for v, i in six.iteritems(g_to_g):
+        for v, i in g_to_g.items():
             x, y = gpos[i]
             gpos[v] = (x + offset*0.5, y)
             gpos[i] = (x - offset*0.5, y)
@@ -431,7 +432,6 @@ def Cell600(embedding=1):
         sage: g.is_vertex_transitive()  # long time
         True
     """
-    from sage.rings.rational_field import QQ
     from sage.rings.polynomial.polynomial_ring import polygen
     from sage.rings.number_field.number_field import NumberField
     from sage.modules.free_module import VectorSpace
@@ -507,7 +507,6 @@ def Cell120():
         sage: g.is_vertex_transitive()  # long time
         True
     """
-    from sage.rings.rational_field import QQ
     from sage.rings.polynomial.polynomial_ring import polygen
     from sage.rings.number_field.number_field import NumberField
     from sage.modules.free_module import VectorSpace
@@ -605,7 +604,7 @@ def SuzukiGraph():
     Return the Suzuki Graph.
 
     The Suzuki graph has 1782 vertices, and is strongly regular with parameters
-    `(1782,416,100,96)`. Known as S.15 in [Hu75]_.
+    `(1782,416,100,96)`. Known as S.15 in [Hub1975]_.
 
     .. NOTE::
 
@@ -614,9 +613,9 @@ def SuzukiGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.SuzukiGraph(); g            # optional database_gap internet # not tested
+        sage: g = graphs.SuzukiGraph(); g            # optional internet # not tested
         Suzuki graph: Graph on 1782 vertices
-        sage: g.is_strongly_regular(parameters=True) # optional database_gap internet # not tested
+        sage: g.is_strongly_regular(parameters=True) # optional internet # not tested
         (1782, 416, 100, 96)
     """
     from sage.groups.perm_gps.permgroup_named import SuzukiSporadicGroup
@@ -679,8 +678,8 @@ def HallJankoGraph(from_string=True):
 
     TESTS::
 
-        sage: gg = graphs.HallJankoGraph(from_string=False) # long time
-        sage: g == gg # long time
+        sage: gg = graphs.HallJankoGraph(from_string=False) # long time # optional - internet
+        sage: g.is_isomorphic(gg)                           # long time # optional - internet
         True
     """
 
@@ -733,28 +732,14 @@ def HallJankoGraph(from_string=True):
 
         # The following construction is due to version 3 of the ATLAS of
         # Finite Group Representations, specifically the page at
-        # http://brauer.maths.qmul.ac.uk/Atlas/v3/permrep/J2G1-p100B0 .
+        # http://brauer.maths.qmul.ac.uk/Atlas/v5/permrep/J2G1-p100B0 .
 
-        from sage.interfaces.gap import gap
-        gap.eval("g1 := (1,84)(2,20)(3,48)(4,56)(5,82)(6,67)(7,55)(8,41)"
-                 "(9,35)(10,40)(11,78)(12,100)(13,49)(14,37)(15,94)(16,76)"
-                 "(17,19)(18,44)(21,34)(22,85)(23,92)(24,57)(25,75)(26,28)"
-                 "(27,64)(29,90)(30,97)(31,38)(32,68)(33,69)(36,53)(39,61)"
-                 "(42,73)(43,91)(45,86)(46,81)(47,89)(50,93)(51,96)(52,72)"
-                 "(54,74)(58,99)(59,95)(60,63)(62,83)(65,70)(66,88)(71,87)"
-                 "(77,98)(79,80);")
-
-        gap.eval("g2 := (1,80,22)(2,9,11)(3,53,87)(4,23,78)(5,51,18)"
-                 "(6,37,24)(8,27,60)(10,62,47)(12,65,31)(13,64,19)"
-                 "(14,61,52)(15,98,25)(16,73,32)(17,39,33)(20,97,58)"
-                 "(21,96,67)(26,93,99)(28,57,35)(29,71,55)(30,69,45)"
-                 "(34,86,82)(38,59,94)(40,43,91)(42,68,44)(46,85,89)"
-                 "(48,76,90)(49,92,77)(50,66,88)(54,95,56)(63,74,72)"
-                 "(70,81,75)(79,100,83);")
-
-        gap.eval("G := Group([g1,g2]);")
-        edges = gap('Orbit(G,[1,5],OnSets)').sage()
-        g = Graph([(int(u), int(v)) for u,v in edges])
+        from sage.libs.gap.libgap import libgap
+        libgap.load_package("AtlasRep") # representation of HJ on 100 points
+        G = libgap.AtlasGroup("HJ", libgap.NrMovedPoints, 100)
+        edges = G.Orbit([1,5], libgap.OnSets)
+        g = Graph()
+        g.add_edges(edges)
         g.relabel()
 
     g._circle_embedding(list(range(100)))
@@ -2201,35 +2186,24 @@ def EllinghamHorton54Graph():
 
         sage: g.show() # long time
     """
-    from sage.graphs.generators.basic import CycleGraph
-    up = CycleGraph(16)
-    low = 2*CycleGraph(6)
+    edge_dict = {
+        0: [1, 11, 15], 1: [2, 47], 2: [3, 13], 3: [4, 8], 4: [5, 15],
+        5: [6, 10], 6: [7, 30], 7: [8, 12], 8: [9], 9: [10, 29], 10: [11],
+        11: [12], 12: [13], 13: [14], 14: [48, 15], 16: [17, 21, 28],
+        17: [24, 29], 18: [19, 23, 30], 19: [20, 31], 20: [32, 21], 21: [33],
+        22: [23, 27, 28], 23: [29], 24: [25, 30], 25: [26, 31], 26: [32, 27],
+        27: [33], 28: [31], 32: [52], 33: [53], 34: [35, 39, 46], 35: [42, 47],
+        36: [48, 37, 41], 37: [49, 38], 38: [50, 39], 39: [51],
+        40: [41, 45, 46], 41: [47], 42: [48, 43], 43: [49, 44], 44: [50, 45],
+        45: [51], 46: [49], 50: [52], 51: [53], 52: [53]}
 
-    for v in range(6):
-        low.add_edge(v, v + 12)
-        low.add_edge(v + 6, v + 12)
-    low.add_edge(12, 15)
-    low.delete_edge(1, 2)
-    low.delete_edge(8, 7)
-    low.add_edge(1, 8)
-    low.add_edge(7, 2)
-
+    g = Graph(data=edge_dict, format="dict_of_lists",
+                  name="Ellingham-Horton 54-graph")
 
     # The set of vertices on top is 0..15
     # Bottom left is 16..33
-    # Bottom right is 34..52
-    # The two other vertices are 53, 54
-    g = up + 2*low
-    g.name("Ellingham-Horton 54-graph")
-    g.set_pos({})
-
-    g.add_edges([(15, 4), (3, 8), (7, 12), (11, 0), (2, 13), (5, 10)])
-    g.add_edges([(30, 6), (29, 9), (48, 14), (47, 1)])
-    g.add_edge(32, 52)
-    g.add_edge(50, 52)
-    g.add_edge(33, 53)
-    g.add_edge(51, 53)
-    g.add_edge(52, 53)
+    # Bottom right is 34..51
+    # The two other vertices are 52, 53
 
     # Top
     g._circle_embedding(list(range(16)), center=(0, .5), shift=.5, radius=.5)
@@ -2251,7 +2225,6 @@ def EllinghamHorton54Graph():
     d[28] = (-.8, -.9)
     d[46] = (2.2, -.9)
     d[49] = (.8, -.9)
-
 
     return g
 
@@ -2709,6 +2682,48 @@ def GoldnerHararyGraph():
 
     return Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
 
+def GolombGraph():
+    r"""
+    Return the Golomb graph.
+
+    See the :wikipedia:`Golomb_graph` for more information.
+
+    EXAMPLES:
+
+    The Golomb graph is a planar and Hamiltonian graph with 10 vertices
+    and 18 edges. It has chromatic number 4, diameter 3, radius 2 and
+    girth 3. It can be drawn in the plane as a unit distance graph::
+
+        sage: G = graphs.GolombGraph(); G
+        Golomb graph: Graph on 10 vertices
+        sage: pos = G.get_pos()
+        sage: dist2 = lambda u,v:(u[0]-v[0])**2 + (u[1]-v[1])**2
+        sage: all(dist2(pos[u], pos[v]) == 1 for u, v in G.edge_iterator(labels=None))
+        True
+    """
+    edge_dict = {
+        0: [1, 2, 3],
+        1: [2, 5],
+        2: [7],
+        3: [4, 8, 9],
+        4: [5, 9],
+        5: [6, 9],
+        6: [7, 9],
+        7: [8, 9],
+        8: [9]}
+    pos_dict = {
+        0: [QQ('1/6'), QQ('1/6') * sqrt(11)],
+        1: [QQ('1/12') * sqrt(33) - QQ('1/12'), - sqrt(QQ('1/72') * sqrt(33) + QQ('7/72'))],
+        2: [- QQ('1/12') * sqrt(33) - QQ('1/12'), - sqrt(- QQ('1/72') * sqrt(33) + QQ('7/72'))],
+        3: [1, 0],
+        4: [QQ('1/2'), - QQ('1/2') * sqrt(3)],
+        5: [- QQ('1/2'), - QQ('1/2') * sqrt(3)],
+        6: [-1, 0],
+        7: [- QQ('1/2'), QQ('1/2') * sqrt(3)],
+        8: [QQ('1/2'), QQ('1/2') * sqrt(3)],
+        9: [0, 0]}
+    return Graph(edge_dict, pos=pos_dict, name="Golomb graph")
+
 def GrayGraph(embedding=1):
     r"""
     Return the Gray graph.
@@ -3075,11 +3090,9 @@ def HigmanSimsGraph(relabel=True):
     # Rename to integer vertex labels, creating dictionary
     # Or not, and create identity mapping
     if relabel:
-        vmap = HS.relabel(return_map=True)
+        vmap = HS.relabel(range(100), return_map=True)
     else:
-        vmap={}
-        for v in vlist:
-            vmap[v] = v
+        vmap = {v: v for v in vlist}
     # Layout vertices in a circle
     # In the order given in vlist
     # Using labels from vmap
@@ -3125,23 +3138,23 @@ def HoffmanSingletonGraph():
 
     Note that you get a different layout each time you create the graph.  ::
 
-        sage: HS.layout()[1]
+        sage: HS.layout()[1]  # random
         (-0.844..., 0.535...)
-        sage: graphs.HoffmanSingletonGraph().layout()[1]
+        sage: HS = graphs.HoffmanSingletonGraph()
+        sage: HS.layout()[1]  # random
         (-0.904..., 0.425...)
-
     """
-    H = Graph({ \
-    'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
-    'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'], \
-    'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'], \
-    'q30':['q31'], 'q31':['q32'], 'q32':['q33'], 'q33':['q34'], 'q34':['q30'], \
-    'q40':['q41'], 'q41':['q42'], 'q42':['q43'], 'q43':['q44'], 'q44':['q40'], \
-    'p00':['p02'], 'p02':['p04'], 'p04':['p01'], 'p01':['p03'], 'p03':['p00'], \
-    'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'], \
-    'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'], \
-    'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'], \
-    'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']})
+    H = Graph({
+        'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'],
+        'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'],
+        'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'],
+        'q30':['q31'], 'q31':['q32'], 'q32':['q33'], 'q33':['q34'], 'q34':['q30'],
+        'q40':['q41'], 'q41':['q42'], 'q42':['q43'], 'q43':['q44'], 'q44':['q40'],
+        'p00':['p02'], 'p02':['p04'], 'p04':['p01'], 'p01':['p03'], 'p03':['p00'],
+        'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'],
+        'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'],
+        'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'],
+        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']})
     for j in range(5):
         for i in range(5):
             for k in range(5):
@@ -3170,7 +3183,7 @@ def HoffmanSingletonGraph():
         if len(v):
             s = int(v[0])
         l+=1
-    map = H.relabel(return_map=True)
+    map = H.relabel(range(50), return_map=True)
     pos_dict = {}
     for i in range(50):
         x = float(cos((pi/2) + ((2*pi)/50)*i))
@@ -3271,7 +3284,7 @@ def KrackhardtKiteGraph():
     The Krackhardt kite graph was originally developed by David Krackhardt for
     the purpose of studying social networks (see [Kre2002]_ and
     the :wikipedia:`Krackhardt_kite_graph`). It is used to show the distinction
-    between: degree centrality, betweeness centrality, and closeness
+    between: degree centrality, betweenness centrality, and closeness
     centrality. For more information read the plotting section below in
     conjunction with the example.
 
@@ -3288,7 +3301,7 @@ def KrackhardtKiteGraph():
     other nodes in the graph (i.e.: Closeness Centrality).  Please execute the
     example for visualization.
 
-    EXAMPLES: 
+    EXAMPLES:
 
     Construct and show a Krackhardt kite graph ::
 
@@ -3465,7 +3478,7 @@ def LjubljanaGraph(embedding=1):
         # The vertices of each 8-set are plotted on a circle, and the
         # circles are slowly shifted to obtain a symmetric drawing.
 
-        for i, (u, vertices) in enumerate(six.iteritems(d)):
+        for i, (u, vertices) in enumerate(d.items()):
             g._circle_embedding(vertices, center=dh[u], radius=.1,
                     shift=8.*i/14)
 
@@ -3488,23 +3501,24 @@ def LivingstoneGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.LivingstoneGraph() # optional - gap_packages internet
-        sage: g.order()                     # optional - gap_packages internet
+        sage: g = graphs.LivingstoneGraph() # optional - internet
+        sage: g.order()                     # optional - internet
         266
-        sage: g.size()                      # optional - gap_packages internet
+        sage: g.size()                      # optional - internet
         1463
-        sage: g.girth()                     # optional - gap_packages internet
+        sage: g.girth()                     # optional - internet
         5
-        sage: g.is_vertex_transitive()      # optional - gap_packages internet
+        sage: g.is_vertex_transitive()      # optional - internet
         True
-        sage: g.is_distance_regular()       # optional - gap_packages internet
+        sage: g.is_distance_regular()       # optional - internet
         True
     """
     from sage.groups.perm_gps.permgroup_named import JankoGroup
     from sage.graphs.graph import Graph
     G = JankoGroup(1)
-    edges = map(tuple, G.orbit((1, 24), action="OnSets"))
-    return Graph(edges, name="Livingstone Graph")
+    g = Graph(name="Livingstone Graph")
+    g.add_edges(map(tuple, G.orbit((1, 24), action="OnSets")))
+    return g
 
 def M22Graph():
     r"""
@@ -3732,12 +3746,11 @@ def MoserSpindle():
     r"""
     Return the Moser spindle.
 
-    For more information, see this `MathWorld article on the Moser spindle
-    <http://mathworld.wolfram.com/MoserSpindle.html>`_.
+    For more information, see the :wikipedia:`Moser_spindle`.
 
     EXAMPLES:
 
-    The Moser spindle is a planar graph having 7 vertices and 11 edges. ::
+    The Moser spindle is a planar graph having 7 vertices and 11 edges::
 
         sage: G = graphs.MoserSpindle(); G
         Moser spindle: Graph on 7 vertices
@@ -3748,7 +3761,7 @@ def MoserSpindle():
         sage: G.size()
         11
 
-    It is a Hamiltonian graph with radius 2, diameter 2, and girth 3. ::
+    It is a Hamiltonian graph with radius 2, diameter 2, and girth 3::
 
         sage: G.is_hamiltonian()
         True
@@ -3759,9 +3772,14 @@ def MoserSpindle():
         sage: G.girth()
         3
 
-    The Moser spindle has chromatic number 4 and its automorphism group is
-    isomorphic to the dihedral group `D_4`. ::
+    The Moser spindle can be drawn in the plane as a unit distance graph,
+    has chromatic number 4, and its automorphism group is isomorphic to
+    the dihedral group `D_4`::
 
+        sage: pos = G.get_pos()
+        sage: all(sum((ui-vi)**2 for ui, vi in zip(pos[u], pos[v])) == 1
+        ....:         for u, v in G.edge_iterator(labels=None))
+        True
         sage: G.chromatic_number()
         4
         sage: ag = G.automorphism_group()
@@ -3769,19 +3787,23 @@ def MoserSpindle():
         True
     """
     edge_dict = {
-        0: [1,4,5,6],
-        1: [2,5],
-        2: [3,5],
-        3: [4,6],
+        0: [1, 4, 6],
+        1: [2, 5],
+        2: [3, 5],
+        3: [4, 5, 6],
         4: [6]}
     pos_dict = {
-        0: [0, 2],
-        1: [-1.90211303259031, 0.618033988749895],
-        2: [-1.17557050458495, -1.61803398874989],
-        3: [1.17557050458495, -1.61803398874989],
-        4: [1.90211303259031, 0.618033988749895],
-        5: [1, 0],
-        6: [-1, 0]}
+        0: [QQ('1/2'), 0],
+        1: [- QQ('1/2'), 0],
+        2: [- QQ('1/12') * sqrt(33) - QQ('1/4'),
+            QQ('1/2') * sqrt( QQ('1/6') * sqrt(33) + QQ('17/6'))],
+        3: [0, QQ('1/2') * sqrt(11)],
+        4: [QQ('1/12') * sqrt(33) + QQ('1/4'),
+            QQ('1/2') * sqrt( QQ('1/6') * sqrt(33) + QQ('17/6'))],
+        5: [QQ('1/12') * sqrt(33) - QQ('1/4'),
+            QQ('1/2') * sqrt(- QQ('1/6') * sqrt(33) + QQ('17/6'))],
+        6: [- QQ('1/12') * sqrt(33) + QQ('1/4'),
+            QQ('1/2') * sqrt(- QQ('1/6') * sqrt(33) + QQ('17/6'))]}
     return Graph(edge_dict, pos=pos_dict, name="Moser spindle")
 
 
@@ -4158,7 +4180,7 @@ def SimsGewirtzGraph():
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)
-    edge. It is the only strongly regular graph with parameters `v = 56`, 
+    edge. It is the only strongly regular graph with parameters `v = 56`,
     `k = 10`, `\lambda = 0`, `\mu = 2`
 
     For more information on the Sylvester graph, see
@@ -4198,8 +4220,9 @@ def SousselierGraph():
     Return the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
-    edges. For more information, see the corresponding `Wikipedia page (in
-    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
+    edges. For more information, see :wikipedia:`Sousselier_graph` or
+    the corresponding French
+    `Wikipedia page <https://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
 
     EXAMPLES::
 
@@ -4302,7 +4325,7 @@ def TietzeGraph():
     Return the Tietze Graph.
 
     For more information on the Tietze Graph, see the
-    :wikipedia:`Tietze's_graph`.
+    :wikipedia:`Tietze%27s_graph`.
 
     EXAMPLES::
 
@@ -4583,15 +4606,15 @@ def WatkinsSnarkGraph():
     g._circle_embedding(list(range(5)), shift=.25, radius=1.1)
     return g
 
+
 def WienerArayaGraph():
     r"""
     Return the Wiener-Araya Graph.
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
     67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
-    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
-    `(french) Wikipedia page
-    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or
+    :wikipedia:`Wiener-Araya_graph`.
 
     EXAMPLES::
 
@@ -4643,13 +4666,14 @@ def WienerArayaGraph():
     g.relabel()
     return g
 
+
 def _EllipticLinesProjectivePlaneScheme(k):
     r"""
     Pseudo-cyclic association scheme for action of `O(3,2^k)` on elliptic lines
 
     The group `O(3,2^k)` acts naturally on the `q(q-1)/2` lines of `PG(2,2^k)`
     skew to the conic preserved by it, see Sect. 12.7.B of [BCN1989]_ and
-    Sect. 6.D in [BvL84]_. Compute the orbitals of this action and return them.
+    Sect. 6.D in [BL1984]_. Compute the orbitals of this action and return them.
 
     This is a helper for
     :func:`sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph`.
@@ -4806,7 +4830,7 @@ def JankoKharaghaniGraph(v):
               for R in W]
         D = (D+matrix.block(D2))/2
 
-    return Graph([e for e,v in six.iteritems(D.dict()) if v == 1],
+    return Graph([e for e,v in D.dict().items() if v == 1],
                  multiedges=False,
                  name="Janko-Kharaghani")
 
@@ -4867,7 +4891,7 @@ def JankoKharaghaniTonchevGraph():
     for i,b in ((1,B1),(163,B163)):
         for j in map(lambda x: x[0], st.OrbitsDomain(b)):
             Gamma.add_edges(map(tuple,G.Orbit(libgap.Set([i,j]), libgap.OnSets)))
-    Gamma.relabel()
+    Gamma.relabel(range(Gamma.order()))
     return Gamma
 
 def IoninKharaghani765Graph():
@@ -4987,7 +5011,7 @@ def IoninKharaghani765Graph():
         for i in range(4):
             L[i,phi[i](p)].add(p)
 
-    L = {k:frozenset(v) for k,v in six.iteritems(L)}
+    L = {k:frozenset(v) for k,v in L.items()}
 
     # Defining pi
     pi = {L[i,j]:L[i,(j+1)%3] for (i,j) in L}
@@ -5093,7 +5117,7 @@ def U42Graph540():
     Hermitean form stabilised by `U_4(3)`, points of the 3-dimensional
     projective space over `GF(9)`. There are several possible mergings of
     orbitals, some leading to non-isomorphic graphs with the same parameters. We
-    found the merging here using [COCO]_.
+    found the merging here using [FK1991]_.
 
     EXAMPLES::
 

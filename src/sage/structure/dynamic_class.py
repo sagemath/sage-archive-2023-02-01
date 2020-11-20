@@ -47,7 +47,7 @@ by inheritance::
     class MyPermutation(UniqueRepresentation, PermutationCycleType):
          ...
 
-Finaly, we may want to endow the permutations in `S` with further
+Finally, we may want to endow the permutations in `S` with further
 operations coming from the (algebraic) structure of `S`:
 
 - group operations
@@ -118,6 +118,8 @@ an inheritance can be partially emulated using :meth:`__getattr__`. See
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import copyreg
 
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -211,13 +213,14 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: FooBar.mro()  # py3
         [<class '__main__.FooBar'>, <class '__main__.Bar'>, <class 'object'>]
 
-    If all the base classes are extension types, the dynamic class is
-    also considered to be an extension type (see :trac:`23435`)::
+    If all the base classes have a zero ``__dictoffset__``, the dynamic
+    class also has a zero ``__dictoffset__``. This means that the
+    instances of the class don't have a ``__dict__``
+    (see :trac:`23435`)::
 
         sage: dyn = dynamic_class("dyn", (Integer,))
-        sage: from sage.structure.misc import is_extension_type
-        sage: is_extension_type(dyn)
-        True
+        sage: dyn.__dictoffset__
+        0
 
     .. RUBRIC:: Pickling
 
@@ -306,8 +309,8 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         (<function dynamic_class at ...>, ('FooBar', (<class __main__.Bar at ...>,), <class '__main__.Foo'>, None, None))
         sage: type(FooBar).__reduce__(FooBar)  # py3
         (<function dynamic_class at ...>, ('FooBar', (<class '__main__.Bar'>,), <class '__main__.Foo'>, None, None))
-        sage: from six.moves import cPickle
-        sage: cPickle.loads(cPickle.dumps(FooBar)) == FooBar
+        sage: import pickle
+        sage: pickle.loads(pickle.dumps(FooBar)) == FooBar
         True
 
     We check that instrospection works reasonably::
@@ -395,14 +398,25 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         sage: C2 = sage.structure.dynamic_class.dynamic_class_internal("C2", (UniqueRepresentation, Morphism))
         sage: type(C2)
         <class 'sage.structure.dynamic_class.DynamicInheritComparisonClasscallMetaclass'>
+
+    We check that :trac:`28392` has been resolved::
+
+        sage: class A:
+        ....:     pass
+        sage: Foo1 = sage.structure.dynamic_class.dynamic_class("Foo", (), A)
+        sage: "__weakref__" in Foo1.__dict__
+        False
+        sage: "__dict__" in Foo1.__dict__
+        False
     """
     if reduction is None:
         reduction = (dynamic_class, (name, bases, cls, reduction, doccls))
     if cls is not None:
         methods = dict(cls.__dict__)
         # Anything else that should not be kept?
-        if "__dict__" in methods:
-            methods.__delitem__("__dict__")
+        for key in ["__dict__", "__weakref__"]:
+            if key in methods:
+                del methods[key]
         if prepend_cls_bases:
             cls_bases = cls.__bases__
             all_bases = set()
@@ -431,7 +445,7 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     # NOTE: we need the isinstance(b, type) check to exclude old-style
     # classes.
     if all(isinstance(b, type) and not b.__dictoffset__ for b in bases):
-        methods['__slots__'] = []
+        methods['__slots__'] = ()
 
     metaclass = DynamicMetaclass
     # The metaclass of a class must derive from the metaclasses of its
@@ -517,7 +531,6 @@ class DynamicInheritComparisonClasscallMetaclass(DynamicMetaclass, InheritCompar
     pass
 
 # This registers the appropriate reduction methods (see Trac #5985)
-from six.moves import copyreg
 for M in [DynamicMetaclass,
           DynamicClasscallMetaclass,
           DynamicInheritComparisonMetaclass,

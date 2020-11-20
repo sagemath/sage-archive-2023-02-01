@@ -55,12 +55,12 @@ For `2 \times 2` matrices there are four types::
     [[2, [1]]]
 
 These four types correspond to the regular split semisimple matrices, the
-non-semisimple matrices, the central matrices and the irreducble matrices
+non-semisimple matrices, the central matrices and the irreducible matrices
 respectively.
 
 For any matrix `A` in a given similarity class type, it is possible to calculate
 the number elements in the similarity class of `A`, the dimension of the algebra
-of matrices in `M_n(A)` that commite  with `A`, and the cardinality of the
+of matrices in `M_n(A)` that commute  with `A`, and the cardinality of the
 subgroup of `GL_n(\GF{q})` that commute with `A`. For each similarity
 class type, it is also possible to compute the number of classes of that type
 (and hence, the total number of matrices of that type). All these calculations
@@ -160,7 +160,7 @@ AUTHOR:
   rings of length two
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Amritanshu Prasad <amri@imsc.res.in>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -172,11 +172,9 @@ AUTHOR:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import add_metaclass
 
 from operator import mul
 from itertools import chain, product
@@ -197,7 +195,7 @@ from functools import reduce
 
 
 @cached_function
-def fq(n, q = None):
+def fq(n, q=None):
     r"""
     Return `(1-q^{-1}) (1-q^{-2}) \cdots (1-q^{-n})`.
 
@@ -340,8 +338,8 @@ def centralizer_group_cardinality(la, q = None):
     return q**centralizer_algebra_dim(la)*prod([fq(m, q = q) for m in la.to_exp()])
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class PrimarySimilarityClassType(Element):
+class PrimarySimilarityClassType(Element,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A primary similarity class type is a pair consisting of a partition and a positive
     integer.
@@ -401,7 +399,7 @@ class PrimarySimilarityClassType(Element):
             sage: PrimarySimilarityClassType(2, [3, 2, 1])
             [2, [3, 2, 1]]
         """
-        return "%s"%([self._deg, self._par])
+        return "%s" % ([self._deg, self._par],)
 
     def __hash__(self):
         r"""
@@ -410,15 +408,14 @@ class PrimarySimilarityClassType(Element):
             sage: PT1 = PrimarySimilarityClassType(2, [3, 2, 1])
             sage: PT2 = PrimarySimilarityClassType(3, [3, 2, 1])
             sage: PT3 = PrimarySimilarityClassType(2, [4, 2, 1])
-            sage: hash(PT1)
-            5050909583595644741 # 64-bit
-            1658169157          # 32-bit
-            sage: hash(PT2)
-            5050909583595644740 # 64-bit
-            1658169156          # 32-bit
-            sage: hash(PT3)
-            6312110366011971308 # 64-bit
-            1429493484          # 32-bit
+            sage: hash(PT1) == hash(PrimarySimilarityClassType(2, [3, 2, 1]))
+            True
+            sage: abs(hash(PT1) - hash(PT2)) == 1
+            True
+            sage: hash(PT1) == hash(PT3)
+            False
+            sage: hash(PT2) == hash(PT3)
+            False
         """
         return hash(self._deg) ^ hash(tuple(self._par))
 
@@ -515,7 +512,7 @@ class PrimarySimilarityClassType(Element):
         return self.degree()*centralizer_algebra_dim(self.partition())
 
     @cached_in_parent_method
-    def statistic(self, func, q = None):
+    def statistic(self, func, q=None):
         r"""
         Return `n_{\lambda}(q^d)` where `n_{\lambda}` is the value returned by
         ``func`` upon input `\lambda`, if ``self`` is `(d, \lambda)`.
@@ -793,7 +790,7 @@ class SimilarityClassType(CombinatorialElement):
 
     def as_partition_dictionary(self):
         r"""
-        Return a dictionary whose keys are the partitions of types occuring in
+        Return a dictionary whose keys are the partitions of types occurring in
         ``self`` and the value at the key `\lambda` is the partition formed by
         sorting the degrees of primary types with partition `\lambda`.
 
@@ -1099,7 +1096,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
             for PT in chain(PrimarySimilarityClassTypes(min.size(), min = min), *[PrimarySimilarityClassTypes(k) for k in range(min.size() + 1, n + 1)]): #choose first part
                 if PT.size() == n:
                     yield self.element_class(self, [PT])
-                else:# recursively find all possibilties for what remains of n
+                else:# recursively find all possibilities for what remains of n
                     for smaller_type in SimilarityClassTypes(n - PT.size(), min = PT):
                         yield self.element_class(self, [PT] + list(smaller_type))
 
@@ -1600,4 +1597,3 @@ def matrix_centralizer_cardinalities_length_two(n, q = None, selftranspose = Fal
     for tau in SimilarityClassTypes(n):
         for pair in ext_orbit_centralizers(tau, q = q, selftranspose = selftranspose):
             yield (q**tau.centralizer_algebra_dim()*pair[0], tau.number_of_classes(invertible = invertible, q = q)*pair[1])
-

@@ -70,12 +70,11 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ################################################################################
-from six.moves import range
 # Sage packages
 import sage.misc.latex as latex
-import sage.misc.misc as misc
+from sage.misc.verbose import verbose
 
 import sage.matrix.matrix_space as matrix_space
 from sage.modular.arithgroup.arithgroup_element import M2Z
@@ -85,7 +84,7 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 from sage.rings.all import Integer, QQ, ZZ, Ring
-from sage.arith.all import is_prime, gcd, divisors, number_of_divisors, crt
+from sage.arith.all import is_prime, divisors, number_of_divisors, crt
 import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
@@ -533,10 +532,10 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
             sage: M = ModularSymbols(11,4,1)
             sage: M._action_on_modular_symbols([1,2,3,7])
-            [   0    0  5/2 -3/2]
-            [   0    0  5/2 -3/2]
-            [   0    1    0    0]
-            [   0    1 -1/2  1/2]
+            [0 0 1 0]
+            [0 0 0 1]
+            [0 1 0 0]
+            [0 1 0 0]
 
         """
         if not isinstance(g, list):
@@ -558,15 +557,15 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         OUTPUT:
 
-        (ManinSymbol) the monomial Manin Symbol associated to
-        `[i;(u,v)]`, with `i=0` if not supplied, corresponding to the
-        symbol `[X^i*Y^{k-2-i}, (u,v)]`.
+        (ManinSymbol) the Manin Symbol associated to `[i;(u,v)]`, with
+        `i=0` if not supplied, corresponding to the monomial symbol
+        `[X^i*Y^{k-2-i}, (u,v)]`.
 
         EXAMPLES::
 
             sage: M = ModularSymbols(11,4,1)
             sage: M.manin_symbol([2,5,6])
-            [X^2,(1,10)]
+            -2/3*[X^2,(1,6)] + 5/3*[X^2,(1,9)]
         """
         if check:
             if len(x) == 2:
@@ -612,11 +611,11 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
             sage: M = ModularSymbols(11,4,1)
             sage: M._modular_symbol_0_to_alpha(Cusp(3/5))
-            11*[X^2,(1,7)] + 33*[X^2,(1,9)] - 20*[X^2,(1,10)]
+            11*[X^2,(1,4)] + 40/3*[X^2,(1,6)] - 1/3*[X^2,(1,9)]
             sage: M._modular_symbol_0_to_alpha(Cusp(3/5),1)
-            15/2*[X^2,(1,7)] + 35/2*[X^2,(1,9)] - 10*[X^2,(1,10)]
+            15/2*[X^2,(1,4)] + 20/3*[X^2,(1,6)] + 5/6*[X^2,(1,9)]
             sage: M._modular_symbol_0_to_alpha(Cusp(Infinity))
-            -[X^2,(1,10)]
+            2/3*[X^2,(1,6)] - 5/3*[X^2,(1,9)]
             sage: M._modular_symbol_0_to_alpha(Cusp(Infinity),1)
             0
         """
@@ -850,10 +849,10 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
             sage: M = ModularSymbols(11,4,1)
             sage: M._compute_dual_hecke_matrix(5)
-            [126   0   0   0]
-            [  2  63  38  22]
-            [ 11  33  82 121]
-            [-13  30   6 -17]
+            [  126     0     0     0]
+            [    2    63    62    38]
+            [ 26/3   -20   -27    -4]
+            [-32/3    83    91    92]
         """
         return self.hecke_matrix(n).transpose()
 
@@ -982,7 +981,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             self._hecke_matrices = {}
         except KeyError:
             pass
-        tm = misc.verbose("Computing Hecke operator T_%s"%p)
+        tm = verbose("Computing Hecke operator T_%s"%p)
 
         if is_prime(p):
             H = heilbronn.HeilbronnCremona(p)
@@ -1007,15 +1006,15 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                         # W[j,f] = W[j,f] + s*K(x)
                         W.add_to_entry(j, f, s * K(x))
             j += 1
-        tm = misc.verbose("start matrix multiply",tm)
+        tm = verbose("start matrix multiply",tm)
         if hasattr(W, '_matrix_times_matrix_dense'):
             Tp = W._matrix_times_matrix_dense(R)
-            misc.verbose("done matrix multiply and computing Hecke operator",tm)
+            verbose("done matrix multiply and computing Hecke operator",tm)
         else:
             Tp = W * R
-            tm = misc.verbose("done matrix multiply",tm)
+            tm = verbose("done matrix multiply",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making Hecke operator matrix dense",tm)
+            verbose("done making Hecke operator matrix dense",tm)
         self._hecke_matrices[(p,rows)] = Tp
         return Tp
 
@@ -1255,14 +1254,6 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
             sage: M = ModularSymbols(Gamma1(10), 2)
             sage: w = M.atkin_lehner_operator(2).matrix()
-            sage: w^2
-            [ 0  1  0  0  0  0  0]
-            [ 1  0  0  0  0  0  0]
-            [ 0  0  0  0  1  0  0]
-            [ 0  0  0  0  0  1 -1]
-            [ 0  0  1  0  0  0  0]
-            [ 0  0  0  1  0  0 -1]
-            [ 0  0  0  0  0  0 -1]
             sage: w^2 == M.diamond_bracket_matrix(7)
             True
 
@@ -1296,7 +1287,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         chi = self.character()
         if chi is not None:
             dec = [u for u in chi.decomposition() if chi.modulus().divides(d)]
-            if not all([(u**2).is_trivial() for u in dec]):
+            if not all((u**2).is_trivial() for u in dec):
                 raise ValueError("Atkin-Lehner W_d only defined when d-primary part of character is trivial or quadratic")
 
         if self.sign() != 0:
@@ -1604,9 +1595,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M.T(3)
             Hecke operator T_3 on Modular Symbols space of dimension 4 for Gamma_0(11) of weight 4 with sign 1 over Rational Field
             sage: M.T(3)(M.0)
-            28*[X^2,(0,1)] + 2*[X^2,(1,7)] - [X^2,(1,9)] - [X^2,(1,10)]
+            28*[X^2,(0,1)] + 2*[X^2,(1,4)] + 2/3*[X^2,(1,6)] - 8/3*[X^2,(1,9)]
             sage: M.T(3)(M.0).element()
-            (28, 2, -1, -1)
+            (28, 2, 2/3, -8/3)
         """
         if isinstance(x, ManinSymbol):
             if not x.parent().weight() == self.weight():
@@ -2095,10 +2086,10 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
             sage: M = Newforms(Gamma1(13),names = 'a')[0].modular_symbols(sign=0)
             sage: M.diamond_bracket_operator(4).matrix()
+            [-1  1  1 -1]
+            [-1  0  1  0]
+            [ 0  0  0 -1]
             [ 0  0  1 -1]
-            [-1 -1  0  1]
-            [-1 -1  0  0]
-            [ 0 -1  1 -1]
 
         We check that the result is correctly normalised for weight > 2::
 
@@ -2190,21 +2181,15 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M = ModularSymbols(37,2,0,K)
             sage: M.twisted_winding_element(0,eps)
             2*(1,23) - 2*(1,32) + 2*(1,34)
-
         """
-
         if not dirichlet.is_DirichletCharacter(eps):
             raise TypeError("eps must be a Dirichlet character.")
-        if (i < 0) or (i > self.weight()-2):
+        if (i < 0) or (i > self.weight() - 2):
             raise ValueError("i must be between 0 and k-2.")
 
         m = eps.modulus()
-        s = self(0)
-
-        for a in ([ x for x in range(1,m) if gcd(x, m) == 1 ]):
-            s += eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a/m)])
-
-        return s
+        return self.sum(eps(a) * self.modular_symbol([i, Cusp(0), Cusp(a / m)])
+                        for a in m.coprime_integers(m))
 
     ######################################################################
     # Z-module of integral modular symbols.
@@ -2264,16 +2249,16 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M.integral_structure()
             Free module of degree 10 and rank 10 over Integer Ring
             Echelon basis matrix:
-            [     1      0      0      0      0      0      0      0      0      0]
-            [     0      1      0      0      0      0      0      0      0      0]
-            [     0      0  1/102      0  5/204  1/136  23/24   3/17 43/136 69/136]
-            [     0      0      0   1/48      0   1/48  23/24    1/6    1/8  17/24]
-            [     0      0      0      0   1/24      0  23/24    1/3    1/6    1/2]
-            [     0      0      0      0      0   1/24  23/24    1/3  11/24   5/24]
-            [     0      0      0      0      0      0      1      0      0      0]
-            [     0      0      0      0      0      0      0    1/2      0    1/2]
-            [     0      0      0      0      0      0      0      0    1/2    1/2]
-            [     0      0      0      0      0      0      0      0      0      1]
+            [    1     0     0     0     0     0     0     0     0     0]
+            [    0     1     0     0     0     0     0     0     0     0]
+            [    0     0  1/96  1/32 23/24     0  1/96     0  7/24 67/96]
+            [    0     0     0  1/24 23/24     0     0  1/24   1/4 17/24]
+            [    0     0     0     0     1     0     0     0     0     0]
+            [    0     0     0     0     0   1/6     0  1/48 23/48   1/3]
+            [    0     0     0     0     0     0  1/24  1/24 11/24 11/24]
+            [    0     0     0     0     0     0     0  1/16  7/16   1/2]
+            [    0     0     0     0     0     0     0     0   1/2   1/2]
+            [    0     0     0     0     0     0     0     0     0     1]
         """
         if not self.base_ring() == QQ:
             raise NotImplementedError
@@ -2859,7 +2844,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             self._hecke_matrices = {}
         except KeyError:
             pass
-        tm = misc.verbose("Computing Hecke operator T_%s"%p)
+        tm = verbose("Computing Hecke operator T_%s"%p)
 
         H = heilbronn.HeilbronnCremona(p)
         ##H = heilbronn.HeilbronnMerel(p)
@@ -2873,7 +2858,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         R = self.manin_gens_to_basis()
         W = R.new_matrix(nrows=len(B), ncols = R.nrows())  # the 0 with given number of rows and cols.
         j = 0
-        tm = misc.verbose("Matrix non-reduced", tm)
+        tm = verbose("Matrix non-reduced", tm)
         for i in B:
             # The following step is where most of the time is spent.
             c,d = P1[i]
@@ -2896,17 +2881,17 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
                     if s != 0:
                         W[j,f] = W[j,f] + s*m
             j += 1
-        tm = misc.verbose("done making non-reduced matrix",tm)
-        misc.verbose("start matrix-matrix (%s x %s) times (%s x %s) multiply to get Tp"%(W.nrows(), W.ncols(),
+        tm = verbose("done making non-reduced matrix",tm)
+        verbose("start matrix-matrix (%s x %s) times (%s x %s) multiply to get Tp"%(W.nrows(), W.ncols(),
                                                                                          R.nrows(), R.ncols()))
         if hasattr(W, '_matrix_times_matrix_dense'):
             Tp = W._matrix_times_matrix_dense(R)
-            misc.verbose("done matrix multiply and computing Hecke operator",tm)
+            verbose("done matrix multiply and computing Hecke operator",tm)
         else:
             Tp = W * R
-            tm = misc.verbose("done multiplying",tm)
+            tm = verbose("done multiplying",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making Hecke operator dense", tm)
+            verbose("done making Hecke operator dense", tm)
         if rows is None:
             self._hecke_matrices[(p,rows)] = Tp
         return Tp
@@ -2950,9 +2935,9 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             sage: M.hecke_operator(2)(M.0)
             3*(1,0) - 2*(1,33)
             sage: M._hecke_image_of_ith_basis_vector(6, 1)
-            -2*(1,33)
+            4*(1,31) - 3*(1,33) + 3*(1,39)
             sage: M.hecke_operator(6)(M.1)
-            -2*(1,33)
+            4*(1,31) - 3*(1,33) + 3*(1,39)
         """
         c = self.manin_generators()[self.manin_basis()[i]]
         N = self.level()
@@ -3331,14 +3316,14 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
 
             sage: M = ModularSymbols(GammaH(15,[4]),2)
             sage: M._compute_hecke_matrix_prime_power(2, 3)
-            [10  0  5  0  1  0  0  4  0]
-            [ 0 10  0  0 -4 -5  0 -1  6]
-            [ 5  0 10  0 -4  0  0 -1  0]
-            [ 0  0  0  5 -7  0 10 -3  4]
-            [ 0  0  0  0 -1  0  0 -4  0]
-            [ 0 -5  0  0 -1 10  0 -4 -6]
-            [ 0  0  0 10 -3  0  5 -7 -4]
-            [ 0  0  0  0 -4  0  0 -1  0]
+            [10  0  5  1  0  0  0  4  0]
+            [ 0 10  0  4 10 -5 -5 -4  5]
+            [ 5  0 10 -4  0  0  0 -1  0]
+            [ 0  0  0 -1  0  0  0 -4  0]
+            [ 0  0  0 -7  5  0 10 -3  6]
+            [ 0 -5  0 -6  0 10  5 -4 -1]
+            [ 0  0  0 -3 10  0  5 -7  6]
+            [ 0  0  0 -4  0  0  0 -1  0]
             [ 0  0  0  0  0  0  0  0  3]
             sage: M.hecke_matrix(7)^2  == M.hecke_matrix(49) + 7 * M.diamond_bracket_operator(7).matrix() # indirect doctest
             True

@@ -20,7 +20,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
@@ -33,11 +33,9 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
-import six
-from six import integer_types
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
@@ -140,7 +138,6 @@ def Set(X=[]):
     Set also accepts iterators, but be careful to only give *finite*
     sets::
 
-        sage: from six.moves import range
         sage: sorted(Set(range(1,6)))
         [1, 2, 3, 4, 5]
         sage: sorted(Set(list(range(1,6))))
@@ -226,7 +223,7 @@ class Set_object(Set_generic):
 
     TESTS:
 
-    See trac ticket :trac:`14486`::
+    See :trac:`14486`::
 
         sage: 0 == Set([1]), Set([1]) == 0
         (False, False)
@@ -257,7 +254,7 @@ class Set_object(Set_generic):
             and 'Integer Ring'
         """
         from sage.rings.integer import is_Integer
-        if isinstance(X, integer_types) or is_Integer(X):
+        if isinstance(X, int) or is_Integer(X):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
 
@@ -399,7 +396,7 @@ class Set_object(Set_generic):
         The following is random, illustrating that comparison of
         sets is not the subset relation, when they are not equal::
 
-            sage: Primes() < Set(QQ)             # random
+            sage: Primes() < Set(QQ)             # random  # py2
             True or False
         """
         if not isinstance(right, Set_object):
@@ -706,6 +703,42 @@ class Set_object(Set_generic):
         from sage.combinat.subset import Subsets
         return Subsets(self,size)
 
+    def subsets_lattice(self):
+        """
+        Return the lattice of subsets ordered by containment.
+
+        EXAMPLES::
+
+            sage: X = Set([1,2,3])
+            sage: X.subsets_lattice()
+            Finite lattice containing 8 elements
+            sage: Y = Set()
+            sage: Y.subsets_lattice()
+            Finite lattice containing 1 elements
+
+        """
+        if not self.is_finite():
+            raise NotImplementedError(
+                "this method is only implemented for finite sets")
+        from sage.combinat.posets.lattices import FiniteLatticePoset
+        from sage.graphs.graph import DiGraph
+        from sage.rings.integer import Integer
+        n = self.cardinality()
+        # list, contains at position 0 <= i < 2^n 
+        # the i-th subset of self
+        subset_of_index = [Set([self[i] for i in range(n) if v&(1<<i)])
+                           for v in range(2**n)]
+        # list, contains at position 0 <= i < 2^n
+        # the list of indices of all immediate supersets
+        upper_covers = [[Integer(x|(1<<y)) for y in range(n) if not x&(1<<y)]
+                        for x in range(2**n)]
+        # DiGraph, every subset points to all immediate supersets
+        D = DiGraph({subset_of_index[v] : 
+                     [subset_of_index[w] for w in upper_covers[v]]
+                     for v in range(2**n)})
+        # Lattice poset, defined by hasse diagram D
+        L = FiniteLatticePoset(hasse_diagram=D)
+        return L
 
 class Set_object_enumerated(Set_object):
     """
@@ -803,7 +836,7 @@ class Set_object_enumerated(Set_object):
             sage: latex(S)
             \left\{0, 1\right\}
         """
-        return '\\left\\{' + ', '.join([latex(x) for x in self.set()])  + '\\right\\}'
+        return '\\left\\{' + ', '.join(latex(x) for x in self.set())  + '\\right\\}'
 
     def _repr_(self):
         r"""
@@ -821,12 +854,9 @@ class Set_object_enumerated(Set_object):
             {}
         """
         py_set = self.set()
-        if six.PY3:
-            if not py_set:
-                return "{}"
-            return repr(py_set)
-        else:
-            return "{" + repr(py_set)[5:-2] + "}"
+        if not py_set:
+            return "{}"
+        return repr(py_set)
 
     def list(self):
         """
@@ -892,9 +922,10 @@ class Set_object_enumerated(Set_object):
             TypeError: unhashable type: 'set'
             sage: s = X.frozenset(); s
             frozenset({0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1})
-            sage: hash(s)
-            -1390224788            # 32-bit
-             561411537695332972    # 64-bit
+
+            sage: hash(s) != hash(tuple(X.set()))
+            True
+
             sage: type(s)
             <... 'frozenset'>
         """
@@ -1706,19 +1737,3 @@ class Set_object_symmetric_difference(Set_object_binary):
         """
         return (x in self._X and x not in self._Y) \
                or (x in self._Y and x not in self._X)
-
-def is_Set(x):
-    """
-    Deprecated. Use ``isinstance(x, Set_generic)`` instead.
-
-    TESTS::
-
-        sage: from sage.sets.set import is_Set
-        sage: is_Set(Primes())
-        doctest:...: DeprecationWarning: Please use isinstance(x, Set_generic)
-        See http://trac.sagemath.org/24443 for details.
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(24443, "Please use isinstance(x, Set_generic)")
-    return isinstance(x, Set_generic)

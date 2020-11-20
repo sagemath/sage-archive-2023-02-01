@@ -22,7 +22,6 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.pager import pager
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
-from sage.cpython.string import bytes_to_str
 
 
 class TachyonRT(SageObject):
@@ -75,7 +74,7 @@ class TachyonRT(SageObject):
 
     EXAMPLES:
 
-    
+
     .. automethod:: __call__
     """
     def _repr_(self):
@@ -126,7 +125,7 @@ class TachyonRT(SageObject):
             sage: from sage.env import SAGE_EXTCODE
             sage: filename = os.path.join(SAGE_EXTCODE, 'doctest', 'invalid', 'syntax_error.tachyon')
             sage: with open(filename, 'r') as f:
-            ....:    syntax_error = f.read()
+            ....:     syntax_error = f.read()
             sage: t(syntax_error, outfile=os.devnull)
             Traceback (most recent call last):
             ...
@@ -136,7 +135,8 @@ class TachyonRT(SageObject):
             Aborting render.
         """
         modelfile = tmp_filename(ext='.dat')
-        open(modelfile,'w').write(model)
+        with open(modelfile, 'w') as file:
+            file.write(model)
         cmd = ['tachyon', modelfile]
         ext = outfile[-4:].lower()
         if ext == '.png':
@@ -173,9 +173,14 @@ class TachyonRT(SageObject):
             sage: from sage.interfaces.tachyon import TachyonRT
             sage: t = TachyonRT()
             sage: t.usage(use_pager=False)
-            Tachyon Parallel/Multiprocessor Ray Tracer   Version...
+            ...
+              tachyon modelfile [options]...
+            <BLANKLINE>
+            Model file formats supported:
+              filename.dat ...
         """
-        r = os.popen('tachyon').read()
+        with os.popen('tachyon') as f:
+            r = f.read()
         if use_pager:
             pager()(r)
         else:

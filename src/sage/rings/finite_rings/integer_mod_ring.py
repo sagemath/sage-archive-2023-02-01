@@ -89,6 +89,7 @@ class IntegerModFactory(UniqueFactory):
     - ``is_field`` -- bool (default: ``False``); assert that
       the order is prime and hence the quotient ring belongs to
       the category of fields
+    - ``category`` (optional) - the category that the quotient ring belongs to.
 
     .. NOTE::
 
@@ -187,6 +188,11 @@ class IntegerModFactory(UniqueFactory):
         sage: R in Fields()
         True
 
+    To avoid side-effects of this test on other tests, we clear the cache of
+    the ring factory::
+
+        sage: IntegerModRing._cache.clear()
+
     """
     def get_object(self, version, key, extra_args):
         out = super(IntegerModFactory,self).get_object(version, key, extra_args)
@@ -196,7 +202,7 @@ class IntegerModFactory(UniqueFactory):
             out._factory_data[3]['category'] = category
         return out
 
-    def create_key_and_extra_args(self, order=0, is_field=False):
+    def create_key_and_extra_args(self, order=0, is_field=False, category=None):
         """
         An integer mod ring is specified uniquely by its order.
 
@@ -446,6 +452,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: TestSuite(Z16).run()
             sage: R = Integers(100000)
             sage: TestSuite(R).run()  # long time (17s on sage.math, 2011)
+
+            sage: R = IntegerModRing(18)
+            sage: R.is_finite()
+            True
         """
         order = ZZ(order)
         if order <= 0:
@@ -476,7 +486,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._zero_element = integer_mod.IntegerMod(self, 0)
         self._one_element = integer_mod.IntegerMod(self, 1)
 
-    def _macaulay2_init_(self):
+    def _macaulay2_init_(self, macaulay2=None):
         """
         EXAMPLES::
 
@@ -491,7 +501,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Traceback (most recent call last):
             ...
             TypeError: Error evaluating Macaulay2 code.
-            IN:sage1=ZZ/10;
+            IN:...
             OUT:...error: ZZ/n not implemented yet for composite n
         """
         return "ZZ/{}".format(self.order())
@@ -635,18 +645,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         return tuple(tuple(g.value() for g in H.gens())
                      for H in self.unit_group().subgroups())
 
-    def is_finite(self):
-        r"""
-        Return ``True`` since `\ZZ/N\ZZ` is finite for all positive `N`.
-
-        EXAMPLES::
-
-            sage: R = IntegerModRing(18)
-            sage: R.is_finite()
-            True
-        """
-        return True
-
     def is_integral_domain(self, proof=None):
         """
         Return ``True`` if and only if the order of ``self`` is prime.
@@ -742,6 +740,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             in other parts of Sage. Either it was a mistake of the user,
             or a probabilistic primality test has failed.
             In the latter case, please inform the developers.
+
+        To avoid side-effects of this test on other tests, we clear the cache
+        of the ring factory::
+
+            sage: IntegerModRing._cache.clear()
 
         """
         from sage.categories.fields import Fields
@@ -1312,7 +1315,7 @@ In the latter case, please inform the developers.""".format(self.order()))
 
         """
         # We want that GF(p) and IntegerModRing(p) evaluate unequal.
-        # However, we can not just compare the types, since the
+        # However, we cannot just compare the types, since the
         # choice of a different category also changes the type.
         # But if we go to the base class, we avoid the influence
         # of the category.

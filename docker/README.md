@@ -1,12 +1,12 @@
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/sagemath/sage/COPYING.txt) [![Maintained](https://img.shields.io/maintenance/yes/2018.svg)](https://github.com/sagemath/sage/commits/master)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/sagemath/sage/COPYING.txt)
 
 # Supported tags
 
-* `latest` — the stable `master` branch [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/master.svg)](https://github.com/sagemath/sage/commits/master) [![CircleCI branch](https://img.shields.io/circleci/project/github/sagemath/sage/master.svg)](https://circleci.com/gh/sagemath/sage/tree/master) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/master/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/master)
+* `latest` — the stable `master` branch [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/master.svg)](https://github.com/sagemath/sage/commits/master) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/master/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/master)
 * `x.x` — all stable releases of Sage are tagged with their version number.
 * `x.x.{beta,rc}x` - betas and release candidates of Sage as [tagged in our git repository](https://github.com/sagemath/sage/tags).
-* `develop` — the current development version of Sage which gets merged into the `master` branch when a new version of Sage is released [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/develop.svg)](https://github.com/sagemath/sage/commits/develop) [![CircleCI branch](https://img.shields.io/circleci/project/github/sagemath/sage/master.svg)](https://circleci.com/gh/sagemath/sage/tree/master) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/develop/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/develop)
-
+* `develop` — the current development version of Sage which gets merged into the `master` branch when a new version of Sage is released [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/develop.svg)](https://github.com/sagemath/sage/commits/develop) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/develop/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/develop)
+* `-py3` - until Sage 9.1, we provided Python 2 builds (with no suffix) and Python 3 builds (with the `-py3` suffix). From Sage 9.2.beta0 on, all images we provide are based on Python 3 and the `-py3` suffix survives only for historical reasons: with or without it, you get Python 3.
 
 # What is SageMath
 
@@ -41,12 +41,11 @@ Run `docker build -f docker/Dockerfile --build-arg ARTIFACT_BASE=sagemath/sagema
 
 # How these images get updated
 
-Every push to our [github repository](https://github.com/sagemath/sage) triggers a build in [CircleCI](https://circleci.com) which builds and pushes the docker images.
-A push to master also triggers a "build" on our [Docker Hub](https://hub.docker.com) repositories. The latter build is mostly disabled by the `hooks/` and only updates the `README.md`.
+Every push to our [github repository](https://github.com/sagemath/sage) triggers a "build" on our [Docker Hub](https://hub.docker.com) repositories. This build is mostly disabled by the `hooks/` and only updates the `README.md`.
 
-Every push to our [GitLab repository](https://gitlab.com/sagemath/sage) triggers a pipeline in GitLab CI. This build also pushes images to Docker Hub.
+Every push to our [GitLab repository](https://gitlab.com/sagemath/sage) triggers a pipeline in GitLab CI which pushes the actual images to Docker Hub.
 
-Have a look at `.circleci/` and `.gitlab-ci.yml` if you want to setup either continuous integration service for your own fork of the SageMath repository.
+Have a look at `.circleci/` and `.gitlab-ci.yml` if you want to setup CircleCI or GitLab CI for your own fork of the SageMath repository.
 
 # Report bugs and issues
 

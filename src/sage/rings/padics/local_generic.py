@@ -51,6 +51,17 @@ class LocalGeneric(CommutativeRing):
             sage: R = Zp(5, 5, 'fixed-mod')
             sage: R._repr_option('element_is_atomic')
             False
+
+            sage: R = Zp(3, 10,'fixed-mod')
+            sage: R.is_finite()
+            False
+            sage: R.cardinality()
+            +Infinity
+
+            sage: Qp(11).is_finite()
+            False
+            sage: Qp(11).cardinality()
+            +Infinity
         """
         self._prec = prec
         self.Element = element_class
@@ -59,7 +70,7 @@ class LocalGeneric(CommutativeRing):
             category = CompleteDiscreteValuationFields()
         else:
             category = CompleteDiscreteValuationRings()
-        category = category.Metric().Complete()
+        category = category.Metric().Complete().Infinite()
         if default_category is not None:
             category = check_default_category(default_category, category)
         Parent.__init__(self, base, names=(names,), normalize=False, category=category)
@@ -804,7 +815,7 @@ class LocalGeneric(CommutativeRing):
 
     def e(self):
         """
-        Return the degree of this extension.
+        Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
 
@@ -825,7 +836,7 @@ class LocalGeneric(CommutativeRing):
 
     def ramification_index(self):
         """
-        Return the degree of this extension.
+        Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
 
@@ -1025,25 +1036,6 @@ class LocalGeneric(CommutativeRing):
             5^5 + O(5^25)
         """
         return self.uniformizer_pow(n)
-
-    def is_finite(self):
-        r"""
-        Returns whether this ring is finite, i.e. ``False``.
-
-        INPUT:
-
-        - ``self`` -- a `p`-adic ring
-
-        OUTPUT:
-
-        - boolean -- whether self is finite, i.e., ``False``
-
-        EXAMPLES::
-
-            sage: R = Zp(3, 10,'fixed-mod'); R.is_finite()
-            False
-        """
-        return False
 
     def ext(self, *args, **kwds):
         """
@@ -1562,6 +1554,10 @@ class LocalGeneric(CommutativeRing):
             True
             sage: A.change_ring(QQ).det() == A.det()
             True
+            sage: matrix(Qp(37),[0]).determinant()
+            0
+            sage: matrix(Qp(37),[O(37)]).determinant()
+            O(37)
         """
         n = M.nrows()
     
@@ -1577,18 +1573,22 @@ class LocalGeneric(CommutativeRing):
         shift = sum(shift_rows) + sum(shift_cols)
         det = R(1)
 
-        sign = 1;
-        valdet = 0; val = -Infinity
+        sign = 1
+        valdet = 0
+        val = -Infinity
         for piv in range(n):
-            curval = Infinity
+            pivi = pivj = piv
+            curval = S[pivi, pivj].valuation()
             for i in range(piv,n):
                 for j in range(piv,n):
                     v = S[i,j].valuation()
                     if v < curval:
                         pivi = i; pivj = j
                         curval = v
-                        if v == val: break
-                else: continue
+                        if v == val:
+                            break
+                else:
+                    continue
                 break
             val = curval
             if S[pivi,pivj] == 0:

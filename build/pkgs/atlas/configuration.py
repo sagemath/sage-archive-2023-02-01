@@ -5,7 +5,12 @@
 
 from __future__ import print_function
 
-import platform, os, sys, time, shutil, glob, subprocess
+import platform
+import os
+import sys
+import shutil
+import glob
+import subprocess
 
 
 # this dictionary will hold all configuration information
@@ -33,16 +38,6 @@ conf = dict()
 # 64bit?, 32bit?                                # bits
 # fortran_g95?, fortran_GNU?                    # fortran
 # linker_GNU?, linker_Solaris?, linker_Darwin?  # ld
-
-
-######################################################################
-### Sanity check
-######################################################################
-
-if 'SAGE_LOCAL' not in os.environ:
-    print("SAGE_LOCAL undefined ... exiting")
-    print("Maybe run 'sage -sh'?")
-    sys.exit(1)
 
 
 ######################################################################

@@ -144,8 +144,6 @@ AUTHORS:
 from __future__ import absolute_import
 import inspect
 
-from six import iteritems
-
 from .tri_plot import TrianglePlot
 from .index_face_set import IndexFaceSet
 from .shapes import arrow3d
@@ -1004,7 +1002,8 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: @interact
         ....: def _(which_plot=[A,B,C,D,E]):
         ....:     show(which_plot)
-        <html>...
+        Interactive function <function _ at ...> with 1 widget
+          which_plot: Dropdown(description=u'which_plot', options=(Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object), value=Graphics3d Object)
 
     Now plot a function::
 
@@ -1017,7 +1016,8 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: @interact
         ....: def _(which_plot=[F, G, H, I, J]):
         ....:     show(which_plot)
-        <html>...
+        Interactive function <function _ at ...> with 1 widget
+          which_plot: Dropdown(description=u'which_plot', options=(Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object), value=Graphics3d Object)
 
     TESTS:
 
@@ -1174,7 +1174,7 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
                 span = (len(texture)-1) / (max_z - min_z)    # max to avoid dividing by 0
             parts = P.partition(lambda x, y, z: int((z-min_z)*span))
         all = []
-        for k, G in iteritems(parts):
+        for k, G in parts.items():
             G.set_texture(texture[k], opacity=opacity)
             all.append(G)
         P = Graphics3dGroup(all)

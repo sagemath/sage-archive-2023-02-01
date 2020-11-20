@@ -233,9 +233,9 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       if an open interval `I \subset \RR` (domain of the morphisms),
-      or :class:`~sage.manifolds.differentiable.real_line.RealLine`
+      or :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`
       if `I = \RR`
     - ``codomain`` --
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`;
@@ -406,7 +406,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             sage: TestSuite(H).run()
 
         """
-        from sage.manifolds.differentiable.real_line import OpenInterval
+        from sage.manifolds.differentiable.examples.real_line import OpenInterval
         if not isinstance(domain, OpenInterval):
             raise TypeError("{} is not an open real interval".format(domain))
         DifferentiableManifoldHomset.__init__(self, domain, codomain, name=name,
@@ -525,7 +525,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       open interval `I \subset \RR` with finite boundaries (domain of
       the morphisms)
     - ``codomain`` --
@@ -857,7 +857,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.22732435599328793, 0.0)
+            (0.2273243562383228, 0.0)
             sage: H = IntegratedCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated curve in the Real interval (-1, 2)
@@ -879,7 +879,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (0.840986533989932,)
+            (0.8409865343211089,)
 
         """
 
@@ -994,7 +994,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       open interval `I \subset \RR` with finite boundaries (domain of
       the morphisms)
     - ``codomain`` --
@@ -1309,7 +1309,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.1749660043664451, -0.2499999999999998)
+            (0.1749660044707089, -0.25)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, I)
             sage: c = H._an_element_() ; c
@@ -1335,7 +1335,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (1.0565635215890166,)
+            (1.0565635217644918,)
 
         """
 
@@ -1459,7 +1459,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       open interval `I \subset \RR` with finite boundaries (domain of
       the morphisms)
     - ``codomain`` --
@@ -1765,7 +1765,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: p = c(3) ; p
             Point on the 4-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.2307056927167852, 0.0, 0.0, 0.0)
+            (0.23070569283209164, 0.0, 0.0, 0.0)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, I)
             sage: c = H._an_element_() ; c
@@ -1791,7 +1791,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (1.0565635215890166,)
+            (1.0565635217644918,)
 
         """
 

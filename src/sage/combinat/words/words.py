@@ -3,7 +3,7 @@ r"""
 Set of words
 
 To define a new class of words, please refer to the documentation file:
-sage/combinat/words/notes/word_inheritance_howto.txt
+sage/combinat/words/notes/word_inheritance_howto.rst
 
 AUTHORS:
 
@@ -27,7 +27,7 @@ EXAMPLES::
     sage: InfiniteWords('natural numbers')
     Infinite words over Non negative integers
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
 #                          Sébastien Labbé <slabqc@gmail.com>,
 #                          Franco Saliola <saliola@gmail.com>
@@ -37,14 +37,14 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import itertools
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.persist import register_unpickle_override
 
 from sage.structure.parent import Parent
 
@@ -150,14 +150,20 @@ class AbstractLanguage(Parent):
 
         self._alphabet = alphabet
 
-        if (alphabet.cardinality() == Infinity or
-            (alphabet.cardinality() < 36 and
-             all(alphabet.unrank(i) > alphabet.unrank(j)
-                 for i in range(min(36, alphabet.cardinality()))
-                 for j in range(i)))):
+        # Default sorting key: use rank()
+        self.sortkey_letters = self._sortkey_letters
+
+        # Check if we should use the trivial sorting key
+        N = alphabet.cardinality()
+        if N == Infinity:
             self.sortkey_letters = self._sortkey_trivial
-        else:
-            self.sortkey_letters = self._sortkey_letters
+        elif N < 36:
+            try:
+                if all(alphabet.unrank(i) > alphabet.unrank(j)
+                       for i in range(N) for j in range(i)):
+                    self.sortkey_letters = self._sortkey_trivial
+            except TypeError:
+                pass
 
         if category is None:
             category = Sets()
@@ -587,7 +593,7 @@ class FiniteWords(AbstractLanguage):
            when reloading. Also, most iterators do not support copying and
            should not support pickling by extension.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: W = FiniteWords()
 
@@ -1026,7 +1032,7 @@ class FiniteWords(AbstractLanguage):
 
         INPUT:
 
-        - ``arg`` - (optional, default: None) It can be one of the following :
+        - ``arg`` - (optional, default: ``None``) It can be one of the following:
 
           - ``None`` - then the method iterates through all morphisms.
 
@@ -1039,7 +1045,7 @@ class FiniteWords(AbstractLanguage):
             ``arg`` determines the length of the word mapped to by the i-th
             letter of the (ordered) alphabet.
 
-        - ``codomain`` - (default: None) a combinatorial class of words.
+        - ``codomain`` - (default: ``None``) a combinatorial class of words.
           By default, ``codomain`` is ``self``.
 
         - ``min_length`` - (default: 1) nonnegative integer. If ``arg`` is
@@ -1401,7 +1407,7 @@ class InfiniteWords(AbstractLanguage):
         if data.parent() is self or data.parent() == self:
             return data
         elif data.length() != Infinity:
-            raise ValueError("can not build an infinite word from a finite one")
+            raise ValueError("cannot build an infinite word from a finite one")
 
         ###########################
         # Otherwise, if self is not the parent of `data`, then we try to
@@ -2322,35 +2328,8 @@ class Words_n(Parent):
 ###############
 # old pickles #
 ###############
-class Words_all(FiniteOrInfiniteWords):
-    r"""
-    Deprecated class used for unpickle support only!
-    """
-    _alphabet = build_alphabet()
-
-    def __init__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.words.words import Words_all
-            sage: Words_all()
-            doctest:...: DeprecationWarning: Words_all is deprecated, use
-            FiniteOrInfiniteWords instead
-            See http://trac.sagemath.org/19619 for details.
-            Finite and infinite words over Set of Python objects of class 'object'
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19619, "Words_all is deprecated, use FiniteOrInfiniteWords instead")
-        FiniteOrInfiniteWords.__init__(self, None)
-
-    def _element_constructor_(self):
-        r"""
-        This method exists to make (old) unpickling work.
-        """
-        pass
 
 
-from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.words.words", "Words_over_OrderedAlphabet", FiniteOrInfiniteWords)
 register_unpickle_override("sage.combinat.words.words", "Words_over_Alphabet", FiniteOrInfiniteWords)
 register_unpickle_override("sage.combinat.words.words", "FiniteWords_length_k_over_OrderedAlphabet", Words_n)

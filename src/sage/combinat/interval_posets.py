@@ -28,11 +28,9 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import print_function
-from six.moves import range
-from six import add_metaclass
 
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -56,13 +54,13 @@ from sage.sets.family import Family
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.richcmp import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
+from sage.structure.richcmp import richcmp, op_NE, op_EQ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class TamariIntervalPoset(Element):
+class TamariIntervalPoset(Element,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     The class of Tamari interval-posets.
 
@@ -976,6 +974,46 @@ class TamariIntervalPoset(Element):
         """
         return self._size
 
+    @cached_method
+    def cubical_coordinates(self):
+        """
+        Return the cubical coordinates of ``self``.
+
+        This provides a fast and natural way to order
+        the set of interval-posets of a given size.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(1,2),(2,3)])
+            sage: ip.cubical_coordinates()
+            (-1, -2, 0)
+
+        TESTS::
+
+            sage: ip = TamariIntervalPoset(1,[])
+            sage: ip.cubical_coordinates()
+            ()
+            sage: ip = TamariIntervalPoset(3,[])
+            sage: ip.cubical_coordinates()
+            (0, 0)
+            sage: ip = TamariIntervalPosets(10).random_element()
+            sage: len(ip.cubical_coordinates())
+            9
+            sage: sorted(ip.cubical_coordinates() for ip in TamariIntervalPosets(2))
+            [(-1,), (0,), (1,)]
+
+        REFERENCES:
+
+        - [Com2019]_
+        """
+        tup = [0] * (self.size() - 1)
+        for i, j in self._poset.relations_iterator(strict=True):
+            if i < j:
+                tup[j - 2] -= 1
+            else:
+                tup[j - 1] += 1
+        return tuple(tup)
+
     def complement(self):
         r"""
         Return the complement of the interval-poset ``self``.
@@ -987,7 +1025,7 @@ class TamariIntervalPoset(Element):
         `n + 1 - a` precedes `n + 1 - b` in `P`.
 
         In terms of the Tamari lattice, the *complement* is the symmetric
-        of ``self``. It is formed from the left-right symmeterized of
+        of ``self``. It is formed from the left-right symmetrized of
         the binary trees of the interval (switching left and right
         subtrees, see
         :meth:`~sage.combinat.binary_tree.BinaryTree.left_right_symmetry`).
@@ -1372,6 +1410,13 @@ class TamariIntervalPoset(Element):
 
     def _richcmp_(self, other, op):
         r"""
+        Comparison.
+
+        The comparison is first by size, then
+        using cubical coordinates.
+
+        .. SEEALSO:: :meth:`cubical_coordinates`
+
         TESTS::
 
             sage: TamariIntervalPoset(0,[]) == TamariIntervalPoset(0,[])
@@ -1388,31 +1433,25 @@ class TamariIntervalPoset(Element):
             sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
             sage: ip1 <= ip2
-            True
+            False
             sage: ip1 <= ip1
             True
             sage: ip2 <= ip1
-            False
+            True
 
             sage: ip1 != 33
             True
         """
         if not isinstance(other, TamariIntervalPoset):
-            return op == op_NE
+            return NotImplemented
         if op == op_EQ:
             return (self.size() == other.size() and
                     self._cover_relations == other._cover_relations)
         if op == op_NE:
             return not(self.size() == other.size() and
                        self._cover_relations == other._cover_relations)
-        if op == op_LT:
-            return self.parent().lt(self, other)
-        if op == op_LE:
-            return self.parent().le(self, other)
-        if op == op_GT:
-            return self.parent().gt(self, other)
-        if op == op_GE:
-            return self.parent().ge(self, other)
+        return richcmp((self.size(), self.cubical_coordinates()),
+                       (other.size(), other.cubical_coordinates()), op)
 
     def __iter__(self):
         r"""
@@ -2007,7 +2046,7 @@ class TamariIntervalPoset(Element):
             [[3, 1, 2], [1, 3, 2]]
             sage: ip = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: list(ip.linear_extensions())
-            [[4, 1, 2, 3], [1, 4, 2, 3], [1, 2, 4, 3]]
+            [[4, 1, 2, 3], [1, 2, 4, 3], [1, 4, 2, 3]]
         """
         for ext in self._poset.linear_extensions():
             yield Permutation(ext)
@@ -2036,7 +2075,7 @@ class TamariIntervalPoset(Element):
         size = self._size
         yield self
         r"""
-        we try to add links recursively in this order :
+        we try to add links recursively in this order:
         1 -> 2
         2 -> 3
         1 -> 3
@@ -3289,10 +3328,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         a minimal Schnyder wood, given as a graph with colored and
         oriented edges, without the three exterior unoriented edges
 
-        The three boundary vertices must be 'a', 'b' and 'c'.
+        The three boundary vertices must be -1, -2 and -3.
 
-        One assumes moreover that the embedding around 'a' is the
-        list of neighbors of 'a' and not just a cyclic permutation of that.
+        One assumes moreover that the embedding around -1 is the
+        list of neighbors of -1 and not just a cyclic permutation of that.
 
         Beware that the embedding convention used here is the opposite of
         the one used by the plot method.
@@ -3306,23 +3345,23 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         A small example::
 
             sage: TIP = TamariIntervalPosets
-            sage: G = DiGraph([(0,'a',0),(0,'b',1),(0,'c',2)], format='list_of_edges')
-            sage: G.set_embedding({'a':[0],'b':[0],'c':[0],0:['a','b','c']})
+            sage: G = DiGraph([(0,-1,0),(0,-2,1),(0,-3,2)], format='list_of_edges')
+            sage: G.set_embedding({-1:[0],-2:[0],-3:[0],0:[-1,-2,-3]})
             sage: TIP.from_minimal_schnyder_wood(G)
             The Tamari interval of size 1 induced by relations []
 
         An example from page 14 of [BeBo2009]_::
 
-            sage: c0 = [(0,'a'),(1,0),(2,0),(4,3),(3,'a'),(5,3)]
-            sage: c1 = [(5,'b'),(3,'b'),(4,5),(1,3),(2,3),(0,3)]
-            sage: c2 = [(0,'c'),(1,'c'),(3,'c'),(4,'c'),(5,'c'),(2,1)]
+            sage: c0 = [(0,-1),(1,0),(2,0),(4,3),(3,-1),(5,3)]
+            sage: c1 = [(5,-2),(3,-2),(4,5),(1,3),(2,3),(0,3)]
+            sage: c2 = [(0,-3),(1,-3),(3,-3),(4,-3),(5,-3),(2,1)]
             sage: ed = [(u,v,0) for u,v in c0]
             sage: ed += [(u,v,1) for u,v in c1]
             sage: ed += [(u,v,2) for u,v in c2]
             sage: G = DiGraph(ed, format='list_of_edges')
-            sage: embed = {'a':[3,0],'b':[5,3],'c':[0,1,3,4,5]}
-            sage: data_emb = [[3,2,1,'c','a'],[2,3,'c',0],[3,1,0]]
-            sage: data_emb += [['b',5,4,'c',1,2,0,'a'],[5,'c',3],['b','c',4,3]]
+            sage: embed = {-1:[3,0],-2:[5,3],-3:[0,1,3,4,5]}
+            sage: data_emb = [[3,2,1,-3,-1],[2,3,-3,0],[3,1,0]]
+            sage: data_emb += [[-2,5,4,-3,1,2,0,-1],[5,-3,3],[-2,-3,4,3]]
             sage: for k in range(6):
             ....:     embed[k] = data_emb[k]
             sage: G.set_embedding(embed)
@@ -3331,16 +3370,16 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         An example from page 18 of [BeBo2009]_::
 
-            sage: c0 = [(0,'a'),(1,0),(2,'a'),(3,2),(4,2),(5,'a')]
-            sage: c1 = [(5,'b'),(2,'b'),(4,'b'),(3,4),(1,2),(0,2)]
-            sage: c2 = [(0,'c'),(1,'c'),(3,'c'),(4,'c'),(2,'c'),(5,2)]
+            sage: c0 = [(0,-1),(1,0),(2,-1),(3,2),(4,2),(5,-1)]
+            sage: c1 = [(5,-2),(2,-2),(4,-2),(3,4),(1,2),(0,2)]
+            sage: c2 = [(0,-3),(1,-3),(3,-3),(4,-3),(2,-3),(5,2)]
             sage: ed = [(u,v,0) for u,v in c0]
             sage: ed += [(u,v,1) for u,v in c1]
             sage: ed += [(u,v,2) for u,v in c2]
             sage: G = DiGraph(ed, format='list_of_edges')
-            sage: embed = {'a':[5,2,0],'b':[4,2,5],'c':[0,1,2,3,4]}
-            sage: data_emb = [[2,1,'c','a'],[2,'c',0],[3,'c',1,0,'a',5,'b',4]]
-            sage: data_emb += [[4,'c',2],['b','c',3,2],['b',2,'a']]
+            sage: embed = {-1:[5,2,0],-2:[4,2,5],-3:[0,1,2,3,4]}
+            sage: data_emb = [[2,1,-3,-1],[2,-3,0],[3,-3,1,0,-1,5,-2,4]]
+            sage: data_emb += [[4,-3,2],[-2,-3,3,2],[-2,2,-1]]
             sage: for k in range(6):
             ....:     embed[k] = data_emb[k]
             sage: G.set_embedding(embed)
@@ -3349,15 +3388,15 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         Another small example::
 
-            sage: c0 = [(0,'a'),(2,'a'),(1,0)]
-            sage: c1 = [(2,'b'),(1,'b'),(0,2)]
-            sage: c2 = [(0,'c'),(1,'c'),(2,1)]
+            sage: c0 = [(0,-1),(2,-1),(1,0)]
+            sage: c1 = [(2,-2),(1,-2),(0,2)]
+            sage: c2 = [(0,-3),(1,-3),(2,1)]
             sage: ed = [(u,v,0) for u,v in c0]
             sage: ed += [(u,v,1) for u,v in c1]
             sage: ed += [(u,v,2) for u,v in c2]
             sage: G = DiGraph(ed, format='list_of_edges')
-            sage: embed = {'a':[2,0],'b':[1,2],'c':[0,1]}
-            sage: data_emb = [[2,1,'c','a'],['c',0,2,'b'],['b',1,0,'a']]
+            sage: embed = {-1:[2,0],-2:[1,2],-3:[0,1]}
+            sage: data_emb = [[2,1,-3,-1],[-3,0,2,-2],[-2,1,0,-1]]
             sage: for k in range(3):
             ....:     embed[k] = data_emb[k]
             sage: G.set_embedding(embed)
@@ -3366,8 +3405,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         """
         from sage.graphs.digraph import DiGraph
         from sage.combinat.dyck_word import DyckWord
-        color_a = graph.incoming_edges('a')[0][2]
-        color_b = graph.incoming_edges('b')[0][2]
+        color_a = graph.incoming_edges(-1)[0][2]
+        color_b = graph.incoming_edges(-2)[0][2]
 
         embedding = graph.get_embedding()
         graph0 = DiGraph([e for e in graph.edges(sort=False)
@@ -3380,7 +3419,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         voisins_in = {}
         for u in graph0:
-            if u != 'a':
+            if u != -1:
                 bad_emb = restricted_embedding[u]
                 sortie = graph0.neighbors_out(u)[0]
                 idx = bad_emb.index(sortie)
@@ -3388,7 +3427,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
                 voisins_in[u] = restricted_embedding[u][1:]
             else:
                 voisins_in[u] = list(restricted_embedding[u])
-            voisins_in[u].reverse()  # pour les avoir dans le bon sens
+            voisins_in[u].reverse()  # To have them in the right order
 
         graph0.set_embedding(restricted_embedding)
 
@@ -3410,12 +3449,12 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
                     lbl += [1] + profil(gr, w) + [0]
                 return lbl
 
-        dyckword_bottom = profil(graph0, 'a')
+        dyckword_bottom = profil(graph0, -1)
         # this is the profile of the planar graph graph0
 
-        liste = clockwise_labelling(graph0, 'a')[1:]
+        liste = clockwise_labelling(graph0, -1)[1:]
         relabelling = {l: i for i, l in enumerate(liste)}
-        for l in ['a', 'b', 'c']:
+        for l in [-1, -2, -3]:
             relabelling[l] = l
         new_graph = graph.relabel(relabelling, inplace=False)
 
@@ -3424,7 +3463,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             indegree1 = len([u for u in new_graph.incoming_edges(i)
                              if u[2] == color_b])
             dyckword_top += [1] + [0] * indegree1
-        indegree1 = len([u for u in new_graph.incoming_edges('b')
+        indegree1 = len([u for u in new_graph.incoming_edges(-2)
                          if u[2] == color_b])
         dyckword_top += [1] + [0] * indegree1
 
@@ -3465,11 +3504,12 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
     def le(self, el1, el2):
         r"""
-        Poset stucture on the set of interval-posets through interval
-        containment.
+        Poset structure on the set of interval-posets.
 
-        Return whether the interval represented by ``el1`` is contained in
-        the interval represented by ``el2``.
+        The comparison is first by size, then using the
+        cubical coordinates.
+
+        .. SEEALSO:: :meth:`cubical_coordinates`
 
         INPUT:
 
@@ -3481,12 +3521,13 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
             sage: TamariIntervalPosets().le(ip1,ip2)
-            True
-            sage: TamariIntervalPosets().le(ip2,ip1)
             False
+            sage: TamariIntervalPosets().le(ip2,ip1)
+            True
         """
-        # not a total order : this should be replaced by something better
-        return el2.contains_interval(el1)
+        cc1 = el1.cubical_coordinates()
+        cc2 = el2.cubical_coordinates()
+        return all(x1 <= x2 for x1, x2 in zip(cc1, cc2))
 
 #################################################################
 # Enumerated set of all Tamari Interval-posets
@@ -3736,7 +3777,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         n = self._size
         tri = RandomTriangulation(n + 3)
         TIP = TamariIntervalPosets
-        schnyder = minimal_schnyder_wood(tri, root_edge=('a', 'b'),
+        schnyder = minimal_schnyder_wood(tri, root_edge=(-1, -2),
                                          check=False)
         return TIP.from_minimal_schnyder_wood(schnyder)
 

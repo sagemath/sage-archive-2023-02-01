@@ -47,6 +47,7 @@ INNER_HTML_TEMPLATE = \
 </head>
 <body>
   <script type="text/javascript">
+    delete Jmol._tracker; // Prevent JSmol from phoning home.
     var script = {script};
     var Info = {{
       width: '{width}',
@@ -158,7 +159,7 @@ class JSMolHtml(SageObject):
                     if meshfile not in [b'dots\n', b'mesh\n']:
                         assert (meshfile.startswith(b'"') and
                                 meshfile.endswith(b'"\n'))
-                        meshfile = meshfile[1:-2]    # strip quotes
+                        meshfile = bytes_to_str(meshfile[1:-2])  # strip quotes
                         script += [
                             'pmesh {0} inline "'.format(bytes_to_str(obj)),
                             bytes_to_str(self._zip.open(meshfile).read()),

@@ -67,7 +67,7 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 # *****************************************************************************
 from __future__ import print_function
 
@@ -113,21 +113,21 @@ def it(M, B1, nB1, lps):
     EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers as mph
-        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0],
+        sage: M = Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0],
         ....: [0, 1, 0, 1, 0, 1, 1,0],[0, 0, 1, 1, 1, 0, 1,0]])
-        sage: N=M.simplify()
-        sage: B1=list(N.basis())
-        sage: nB1=list(set(M.simplify().groundset())-set(B1))
-        sage: pts,trilines,nontripts,curvedlines=mph.it(M,
+        sage: N = M.simplify()
+        sage: B1 = list(N.basis())
+        sage: nB1 = list(set(M.simplify().groundset())-set(B1))
+        sage: pts,trilines,nontripts,curvedlines = mph.it(M,
         ....: B1,nB1,M.loops())
-        sage: print(pts)
-        {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0), 4: (0, 0), 5: (1, 2),
-        6: (2, 0)}
-        sage: print(trilines)
+        sage: pts
+        {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0),
+         4: (0, 0), 5: (1, 2), 6: (2, 0)}
+        sage: trilines
         [[3, 4, 5], [2, 5, 6], [1, 4, 6]]
-        sage: print(nontripts)
+        sage: nontripts
         [0]
-        sage: print(curvedlines)
+        sage: curvedlines
         [[0, 1, 5], [0, 2, 4], [0, 3, 6], [1, 2, 3], [1, 4, 6], [2, 5, 6],
          [3, 4, 5]]
 
@@ -198,8 +198,8 @@ def trigrid(tripts):
     EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers
-        sage: points=matroids_plot_helpers.trigrid([[2,1],[4,5],[5,2]])
-        sage: print(points)
+        sage: points = matroids_plot_helpers.trigrid([[2,1],[4,5],[5,2]])
+        sage: points
         [[3.6666666666666665, 2.6666666666666665],
          [3.222222222222222, 2.888888888888889],
          [4.222222222222222, 3.222222222222222],
@@ -210,7 +210,6 @@ def trigrid(tripts):
             This method does NOT do any checks.
 
     """
-    n = 0
     pairs = [[0, 1], [1, 2], [0, 2]]
     cpt = list((float(tripts[0][0]+tripts[1][0]+tripts[2][0])/3,
                float(tripts[0][1]+tripts[1][1]+tripts[2][1])/3))
@@ -348,11 +347,11 @@ def createline(ptsdict, ll, lineorders2=None):
     """
     x, lo = line_hasorder(ll, lineorders2)
     flip = False
-    if x is False:
+    if not x:
         # convert dictionary to list of lists
         linepts = [list(ptsdict[i]) for i in ll]
-        xpts = [x[0] for x in linepts]
-        ypts = [y[1] for y in linepts]
+        xpts = [xx[0] for xx in linepts]
+        ypts = [yy[1] for yy in linepts]
         xdim = (float(max(xpts))-float(min(xpts)))
         ydim = (float(max(ypts))-float(min(ypts)))
         if xdim > ydim:
@@ -368,7 +367,7 @@ def createline(ptsdict, ll, lineorders2=None):
         sortedx = [k[0] for k in linepts]
         sortedy = [k[1] for k in linepts]
 
-    if flip is True:
+    if flip:
         tck, u = scipy.interpolate.splprep([sortedy, sortedx], s=0.0, k=2)
         y_i, x_i = scipy.interpolate.splev(np.linspace(0, 1, 100), tck)
     else:
@@ -427,10 +426,9 @@ def slp(M1, pos_dict=None, B=None):
 
     """
     L = set(M1.loops())
-    sg = sorted(M1.simplify().groundset())
     nP = L | set(M1.simplify().groundset())
     P = set(M1.groundset())-nP
-    if len(P) > 0:
+    if P:
         if pos_dict is not None:
             pcls = list(set([frozenset(set(M1.closure([p])) - L)
                              for p in list(P)]))
@@ -446,7 +444,7 @@ def slp(M1, pos_dict=None, B=None):
             for pcl in pcls:
                 pcl_list = list(pcl)
                 pcl_in_basis = [p for p in pcl_list if p in B]
-                if len(pcl_in_basis) > 0:
+                if pcl_in_basis:
                     newP.extend(list(pcl - set([pcl_in_basis[0]])))
                 else:
                     newP.extend(list(pcl - set([pcl_list[0]])))
@@ -501,10 +499,10 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
     if G is None:
         G = Graphics()
     # deal with loops
-    if len(L) > 0:
+    if L:
         loops = L
-        looptext = ", ".join([str(l) for l in loops])
-        if(limits is None):
+        looptext = ", ".join(str(l) for l in loops)
+        if limits is None:
             rectx = -1
             recty = -1
         else:
@@ -523,10 +521,10 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
                   fontsize=13, color='black')
         limits = tracklims(limits, [rectx, rectx+rectw], [recty, recty+recth])
     # deal with parallel elements
-    if len(P) > 0:
+    if P:
         # create list of lists where inner lists are parallel classes
         pcls = []
-        gnd = sorted(list(M1.groundset()))
+        gnd = sorted(M1.groundset())
         for g in gnd:
             pcl = [g]
             for p in P:
@@ -600,9 +598,10 @@ def line_hasorder(l, lodrs=None):
             This method does NOT do any checks.
     """
     if lodrs is not None:
-        if len(lodrs) > 0:
+        set_l = Set(l)
+        if lodrs:
             for i in lodrs:
-                if Set(i) == Set(l):
+                if Set(i) == set_l:
                     return True, i
     return False, []
 
@@ -637,7 +636,7 @@ def lineorders_union(lineorders1, lineorders2):
         lineorders = lineorders1
         for order in lineorders2:
             x, lo = line_hasorder(order, lineorders1)
-            if x is False:
+            if not x:
                 lineorders.append(order)
                 lineorders.remove(lo)
         return lineorders
@@ -684,7 +683,6 @@ def posdict_is_sane(M1, pos_dict):
             matroid and ``posdict`` is assumed to be a dictionary.
     """
     L = set(M1.loops())
-    sg = sorted(M1.simplify().groundset())
     nP = L | set(M1.simplify().groundset())
     P = set(M1.groundset())-nP
     pcls = list(set([frozenset(set(M1.closure([p])) - L) for p in list(P)]))
@@ -694,7 +692,7 @@ def posdict_is_sane(M1, pos_dict):
             return False
     allP = []
     for pcl in pcls:
-            allP.extend(list(pcl))
+        allP.extend(list(pcl))
     return all(x in pos_dict
                for x in list(set(M1.groundset()) - (L | set(allP))))
 
@@ -745,7 +743,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
       correspond to a basis of ``M1`` and will be placed as vertices of the
       triangle in the geometric representation of ``M1``.
     - ``lineorders1`` -- (optional) A list of ordered lists of elements of
-      ``M1.grondset()`` such that if a line in geometric representation is
+      ``M1.groundset()`` such that if a line in geometric representation is
       setwise same as any of these then points contained will be traversed in
       that order thus overriding internal order deciding heuristic.
     - ``pd`` - (optional) A dictionary mapping ground set elements to their
@@ -782,10 +780,10 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
     if M.rank() == 0:
         limits = None
         loops = L
-        looptext = ", ".join([str(l) for l in loops])
+        looptext = ", ".join(str(l) for l in loops)
         rectx = -1
         recty = -1
-        rectw = 0.5 + 0.4*len(loops) + 0.5  # controlled based on len(loops)
+        rectw = 0.5 + 0.4 * len(loops) + 0.5  # controlled based on len(loops)
         recth = 0.6
         G += polygon2d([[rectx, recty], [rectx, recty+recth],
                         [rectx+rectw, recty+recth], [rectx+rectw, recty]],
@@ -812,14 +810,14 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         pts[gnd[0]] = (1, float(2)/3)
         G += point((1, float(2)/3), size=300, color=Color('#BDBDBD'), zorder=2)
         pt = [1, float(2)/3]
-        if len(P) == 0:
+        if not P:
             G += text(gnd[0], (float(pt[0]), float(pt[1])), color='black',
                       fontsize=13)
         pts2 = pts
         # track limits [xmin,xmax,ymin,ymax]
         pl = [list(x) for x in pts2.values()]
-        lims = tracklims([None, None, None, None], [pt[0] for pt in pl],
-                         [pt[1] for pt in pl])
+        lims = tracklims([None, None, None, None], [pnt[0] for pnt in pl],
+                         [pnt[1] for pnt in pl])
     elif M.rank() == 2:
         nB1 = list(set(list(M.groundset())) - set(B1))
         bline = []
@@ -841,7 +839,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 cc = (float(1)/interval)*(k+1)
                 pts2[bline[k]] = (cc*lpt[0]+(1-cc)*rpt[0],
                                   cc*lpt[1]+(1-cc)*rpt[1])
-            if sp is True:
+            if sp:
                 M._cached_info['plot_positions'] = pts2
         # track limits [xmin,xmax,ymin,ymax]
         pl = [list(x) for x in pts2.values()]
@@ -899,7 +897,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 pt = list(pts2[i])
                 G += text(i, (float(pt[0]), float(pt[1])), color='black',
                           fontsize=13)
-        if sp is True:
+        if sp:
             M1._cached_info['plot_positions'] = pts2
             M1._cached_info['plot_lineorders'] = lineorders1
     # deal with loops and parallel elements

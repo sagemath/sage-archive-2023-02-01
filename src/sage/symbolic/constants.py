@@ -214,13 +214,13 @@ Check that :trac:`8237` is fixed::
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 import math
 from functools import partial
 from sage.rings.infinity import (infinity, minus_infinity,
                                  unsigned_infinity)
+from sage.structure.richcmp import richcmp_method, op_EQ, op_GE, op_LE
 
 constants_table = {}
 constants_name_table = {}
@@ -233,6 +233,9 @@ register_symbol(infinity, {'maxima':'inf'})
 register_symbol(minus_infinity, {'maxima':'minf'})
 register_symbol(unsigned_infinity, {'maxima':'infinity'})
 register_symbol(I, {'mathematica':'I'})
+register_symbol(True, {'giac':'true', 'mathematica':'True', 'maxima':'true'})
+register_symbol(False, {'giac':'false', 'mathematica':'False',
+                        'maxima':'false'})
 
 
 def unpickle_Constant(class_name, name, conversions, latex, mathml, domain):
@@ -263,6 +266,7 @@ def unpickle_Constant(class_name, name, conversions, latex, mathml, domain):
         cls = globals()[class_name]
         return cls(name=name)
 
+@richcmp_method
 class Constant(object):
     def __init__(self, name, conversions=None, latex=None, mathml="",
                  domain='complex'):
@@ -292,7 +296,7 @@ class Constant(object):
 
         register_symbol(self.expression(), self._conversions)
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -306,8 +310,10 @@ class Constant(object):
             sage: p != s
             True
         """
-        return (self.__class__ == other.__class__ and
-                self._name == other._name)
+        if self.__class__ == other.__class__ and self._name == other._name:
+            return op in [op_EQ, op_GE, op_LE]
+        else:
+            return NotImplemented
 
     def __reduce__(self):
         """
@@ -679,6 +685,9 @@ TESTS::
 from sage.symbolic.constants_c import E
 e = E()
 
+# Allow for backtranslation to this symbol from Mathematica (#29833).
+register_symbol(e, {'mathematica': 'E'})
+
 class NotANumber(Constant):
     """
     Not a Number
@@ -947,7 +956,7 @@ class EulerGamma(Constant):
         """
         conversions = dict(kash='EulerGamma(R)', maple='gamma',
                            mathematica='EulerGamma', pari='Euler',
-                           maxima='%gamma', pynac='Euler')
+                           maxima='%gamma', pynac='Euler', giac='euler_gamma')
         Constant.__init__(self, name, conversions=conversions,
                           latex=r'\gamma', domain='positive')
 
@@ -1079,10 +1088,7 @@ class Khinchin(Constant):
         sage: m = mathematica(khinchin); m             # optional - mathematica
         Khinchin
         sage: m.N(200)                                 # optional - mathematica
-            2.6854520010653064453097148354817956938203822939944629530511523455572
-        >    188595371520028011411749318476979951534659052880900828976777164109630517
-        >    925334832596683818523154213321194996260393285220448194096181
-
+        2.685452001065306445309714835481795693820382293...32852204481940961807
     """
     def __init__(self, name='khinchin'):
         """

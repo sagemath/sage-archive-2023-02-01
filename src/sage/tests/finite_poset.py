@@ -8,13 +8,12 @@ be ranked.
 """
 
 from sage.misc.prandom import randint
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from functools import reduce
 
 implications = {
  'doubling_convex': ['doubling_any'],
- 'doubling_interval': ['doubling_lower'],
- 'doubling_interval': ['doubling_upper'],
+ 'doubling_interval': ['doubling_lower', 'doubling_upper'],
  'doubling_lower': ['doubling_convex', 'meet_semidistributive'],
  'doubling_upper': ['doubling_convex', 'join_semidistributive'],
  'cosectionally_complemented': ['complemented', 'coatomic', 'regular'],
@@ -157,7 +156,9 @@ def test_finite_lattice(L):
 
     from sage.misc.prandom import randint
     from sage.misc.flatten import flatten
-    from sage.misc.misc import attrcall
+    from sage.misc.call import attrcall
+
+    from sage.misc.sageinspect import sage_getargspec
 
     if L.cardinality() < 4:
         # Special cases should be tested in specific TESTS-sections.
@@ -200,6 +201,19 @@ def test_finite_lattice(L):
 
     ### Certificates ###
 
+    # Return value must be a pair with correct result as first element.
+    for p_ in all_props:
+        # Dirty fix first
+        if p_[:9] == 'doubling_' or p_[:5] == 'uniq_':
+            continue
+        p = "is_"+p_
+        if 'certificate' in sage_getargspec(getattr(L, p)).args:
+            res = attrcall(p, certificate=True)(L)
+            if type(res) != type((1,2)) or len(res) != 2:
+                raise ValueError("certificate-option does not return a pair in %s" % p)
+            if P[p_] != res[0]:
+                raise ValueError("certificate-option changes result in %s" % p)
+
     # Test for "yes"-certificates
     if P['supersolvable']:
         a = L.is_supersolvable(certificate=True)[1]
@@ -235,7 +249,7 @@ def test_finite_lattice(L):
 
     if not P['complemented']:
         a = L.is_complemented(certificate=True)[1]
-        if L.complements(a) != []:
+        if L.complements(a):
             raise ValueError("compl. error 1")
     if not P['sectionally_complemented']:
         a, b = L.is_sectionally_complemented(certificate=True)[1]
@@ -249,7 +263,7 @@ def test_finite_lattice(L):
         L_ = L.sublattice(L.interval(a, L.top()))
         if L_.is_complemented():
             raise ValueError("cosec. compl. error 1")
-        if len(L_.complements(b)) > 0:
+        if L_.complements(b):
             raise ValueError("cosec. compl. error 2")
     if not P['relatively_complemented']:
         a, b, c = L.is_relatively_complemented(certificate=True)[1]
@@ -322,7 +336,8 @@ def test_finite_lattice(L):
 
     if not P['subdirectly_reducible']:
         x, y = L.is_subdirectly_reducible(certificate=True)[1]
-        a = L.random_element(); b = L.random_element()
+        a = L.random_element()
+        b = L.random_element()
         c = L.congruence([[a, b]])
         if len(c) != L.cardinality():
             for c_ in c:
@@ -420,9 +435,11 @@ def test_finite_lattice(L):
     # Misc misc
     e = L.neutral_elements()
     e = e[randint(0, len(e)-1)]
-    a = L.random_element(); b = L.random_element()
+    a = L.random_element()
+    b = L.random_element()
     if not L.sublattice([e, a, b]).is_distributive():
         raise ValueError("error in neutral_elements")
+
 
 def test_finite_poset(P):
     """
@@ -446,6 +463,8 @@ def test_finite_poset(P):
     from sage.combinat.posets.posets import Poset
     from sage.combinat.subset import Subsets
     from sage.misc.prandom import shuffle
+
+    from sage.misc.call import attrcall
 
     e = P.random_element()
     P_one_less = P.subposet([x for x in P if x != e])
@@ -584,3 +603,17 @@ def test_finite_poset(P):
     level = lev[randint(0, len(lev)-1)]
     if not P.is_antichain_of_poset(level):
         raise ValueError("error in level sets")
+
+    # certificate=True must return a pair
+    bool_with_cert = ['eulerian', 'greedy', 'join_semilattice',
+                      'jump_critical', 'meet_semilattice', 'slender']
+    for p in bool_with_cert:
+        try:  # some properties are not always defined for all posets
+            res1 = attrcall('is_'+p)(P)
+        except ValueError:
+            continue
+        res2 = attrcall('is_'+p, certificate=True)(P)
+        if type(res2) != type((1,2)) or len(res2) != 2:
+            raise ValueError("certificate-option does not return a pair in %s" % p)
+        if res1 != res2[0]:
+            raise ValueError("certificate-option changes result in %s" % p)

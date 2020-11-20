@@ -127,13 +127,12 @@ def enum_projective_rational_field(X, B):
     - John Cremona and Charlie Turner (06-2010)
     """
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if(is_Scheme(X)):
-        if (not is_ProjectiveSpace(X.ambient_space())):
+    if is_Scheme(X):
+        if not is_ProjectiveSpace(X.ambient_space()):
             raise TypeError("ambient space must be projective space over the rational field")
         X = X(X.base_ring())
-    else:
-        if (not is_ProjectiveSpace(X.codomain().ambient_space())):
-            raise TypeError("codomain must be projective space over the rational field")
+    elif not is_ProjectiveSpace(X.codomain().ambient_space()):
+        raise TypeError("codomain must be projective space over the rational field")
 
     n = X.codomain().ambient_space().ngens()
     zero = (0,) * n
@@ -164,7 +163,7 @@ def enum_projective_number_field(X, **kwds):
     ALGORITHM:
 
     This is an implementation of the revised algorithm (Algorithm 4) in
-    [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
+    [DK2013]_. Algorithm 5 is used for imaginary quadratic fields.
     
     INPUT:
 
@@ -286,13 +285,12 @@ def enum_projective_finite_field(X):
     - John Cremona and Charlie Turner (06-2010).
     """
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if(is_Scheme(X)):
-        if (not is_ProjectiveSpace(X.ambient_space())):
+    if is_Scheme(X):
+        if not is_ProjectiveSpace(X.ambient_space()):
             raise TypeError("ambient space must be projective space over a finite")
         X = X(X.base_ring())
-    else:
-        if (not is_ProjectiveSpace(X.codomain().ambient_space())):
-            raise TypeError("codomain must be projective space over a finite field")
+    elif not is_ProjectiveSpace(X.codomain().ambient_space()):
+        raise TypeError("codomain must be projective space over a finite field")
 
     n = X.codomain().ambient_space().ngens()-1
     F = X.value_ring()
@@ -511,9 +509,11 @@ def sieve(X, bound):
                 continue
 
             try:
-                rat_points.add(X(list(A[1]))) # checks if this point lies on X or not
-            except:
+                pt = X(list(A[1]))
+            except TypeError:
                 pass
+            else:
+                rat_points.add(pt)
 
         return [list(_) for _ in rat_points]
 

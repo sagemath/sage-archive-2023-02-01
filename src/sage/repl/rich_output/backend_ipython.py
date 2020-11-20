@@ -397,39 +397,32 @@ class BackendIPythonCommandline(BackendIPython):
         """
         return True
 
-    def threejs_offline_scripts(self):
+    def threejs_offline_script(self):
         """
-        Three.js scripts for the IPython command line
+        Three.js script for the IPython command line
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
             sage: backend = BackendIPythonCommandline()
-            sage: backend.threejs_offline_scripts()
+            sage: backend.threejs_offline_script()
             '...<script ...</script>...'
         """
         from sage.env import THREEJS_DIR
 
-        scripts = [
-            os.path.join(THREEJS_DIR, script)
-            for script in [
-                'build/three.min.js',
-                'examples/js/controls/OrbitControls.js',
-            ]
-        ]
+        script = os.path.join(THREEJS_DIR, 'build/three.min.js')
 
         if sys.platform == 'cygwin':
             import cygwin
             def normpath(p):
                 return 'file:///' + cygwin.cygpath(p, 'w').replace('\\', '/')
-            scripts = [normpath(script) for script in scripts]
+            script = normpath(script)
 
-        return '\n'.join('<script src="{0}"></script>'.format(script)
-                         for script in scripts)
+        return '\n<script src="{0}"></script>'.format(script)
 
 
 IFRAME_TEMPLATE = \

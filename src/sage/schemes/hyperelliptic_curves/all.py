@@ -29,7 +29,6 @@ Tests for deprecations of imports in global namespace from :trac:`28064`::
     See https://trac.sagemath.org/28064 for details.
     ...
 """
-from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
 from .constructor import HyperellipticCurve

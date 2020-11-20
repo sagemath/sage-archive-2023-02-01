@@ -2,7 +2,6 @@
 """
 Non-Commutative Symmetric Functions
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #                     2012 Franco Saliola <saliola@gmail.com>,

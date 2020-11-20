@@ -264,7 +264,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function, absolute_import
 
 from .interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
 from sage.env import DOT_SAGE

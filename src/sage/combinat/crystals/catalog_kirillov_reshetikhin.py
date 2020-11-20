@@ -15,7 +15,6 @@ TESTS::
     sage: 'absolute_import' in dir(crystals.kirillov_reshetikhin)
     False
 """
-from __future__ import absolute_import
 
 from .kirillov_reshetikhin import KashiwaraNakashimaTableaux
 from .kirillov_reshetikhin import KirillovReshetikhinCrystalFromLSPaths as LSPaths

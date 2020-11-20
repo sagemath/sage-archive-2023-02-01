@@ -138,8 +138,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.verbose import verbose

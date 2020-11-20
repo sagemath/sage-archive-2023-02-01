@@ -9,7 +9,6 @@ TESTS::
     sage: 'absolute_import' in dir(groups.matrix)
     False
 """
-from __future__ import absolute_import
 
 # groups imported here will be available
 # via  groups.matrix.<tab>

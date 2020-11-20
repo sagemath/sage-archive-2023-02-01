@@ -39,7 +39,6 @@ AUTHORS:
 ################################################################
 #   Distributed under GNU GPL3, see www.gnu.org
 ################################################################
-from __future__ import absolute_import
 
 #################         numbers and constants      ##############
 

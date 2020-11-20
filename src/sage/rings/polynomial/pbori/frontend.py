@@ -30,7 +30,6 @@ EXAMPLES::
     a
 """
 
-from __future__ import print_function
 
 from . import *
 from .blocks import declare_ring as orig_declare_ring

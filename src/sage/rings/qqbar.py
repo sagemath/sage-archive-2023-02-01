@@ -521,7 +521,6 @@ runs under 5 seconds (used to take ~40sec)::
     sage: cancel_alarm()
 """
 
-from __future__ import absolute_import, print_function, division
 
 import itertools
 import operator

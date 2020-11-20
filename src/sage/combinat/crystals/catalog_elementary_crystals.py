@@ -14,7 +14,6 @@ TESTS::
      sage: 'absolute_import' in dir(crystals.elementary)
      False
 """
-from __future__ import absolute_import
 
 from .elementary_crystals import TCrystal as T
 from .elementary_crystals import RCrystal as R

@@ -56,7 +56,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod

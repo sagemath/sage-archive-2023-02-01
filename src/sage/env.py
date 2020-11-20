@@ -28,7 +28,6 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
 
 import sage
 import glob

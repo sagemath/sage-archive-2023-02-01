@@ -207,7 +207,6 @@ AUTHOR:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule

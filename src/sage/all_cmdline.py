@@ -17,7 +17,6 @@ This is all.py (load all sage functions) plus set-up for the Sage commandline.
 # Future statements which apply to this module. We delete the
 # future globals because we do not want these to appear in the sage.all
 # namespace. This deleting does not affect the parsing of this module.
-from __future__ import absolute_import, division, print_function
 del absolute_import, division, print_function
 
 

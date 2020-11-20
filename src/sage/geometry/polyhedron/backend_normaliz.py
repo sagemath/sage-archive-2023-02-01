@@ -23,7 +23,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
 from sage.misc.all import cached_method, prod

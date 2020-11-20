@@ -28,7 +28,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #              http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets

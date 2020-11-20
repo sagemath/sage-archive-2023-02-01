@@ -18,7 +18,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.misc.all import prod, cached_method
 from sage.arith.all import LCM, fundamental_discriminant

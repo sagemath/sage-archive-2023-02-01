@@ -231,7 +231,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.interfaces.all import (singular as singular_default,
                                  magma as magma_default)

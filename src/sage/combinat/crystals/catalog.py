@@ -80,7 +80,6 @@ TESTS::
     sage: 'absolute_import' in dir(crystals)
     False
 """
-from __future__ import absolute_import
 
 from .letters import CrystalOfLetters as Letters
 from .spins import CrystalOfSpins as Spins

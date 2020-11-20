@@ -24,7 +24,6 @@ using monospace fonts. The difference is that one is restricted to
 #
 #                  https://www.gnu.org/licenses/
 # ******************************************************************************
-from __future__ import print_function
 
 import os
 import sys

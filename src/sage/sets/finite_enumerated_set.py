@@ -15,7 +15,6 @@ Finite Enumerated Sets
 #
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
 
 from sage.structure.element import Element
 from sage.structure.parent import Parent

@@ -357,7 +357,6 @@ AUTHORS:
 - William Stein (2007-07-16): added arithmetic with symbolic equations
 
 """
-from __future__ import print_function
 
 import operator
 

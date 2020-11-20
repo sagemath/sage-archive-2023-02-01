@@ -15,7 +15,6 @@ Paths in Directed Acyclic Graphs
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from .combinat import CombinatorialClass
 import sage.graphs.digraph as digraph

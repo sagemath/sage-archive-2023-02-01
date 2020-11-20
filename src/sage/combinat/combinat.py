@@ -148,7 +148,6 @@ Functions and classes
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity

@@ -8,7 +8,6 @@ TESTS::
     sage: 'absolute_import' in dir(groups.presentation)
     False
 """
-from __future__ import absolute_import
 
 # groups imported here will be available
 # via  groups.presentation.<tab>

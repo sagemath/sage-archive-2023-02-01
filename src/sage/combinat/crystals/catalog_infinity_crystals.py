@@ -23,7 +23,6 @@ TESTS::
     sage: 'absolute_import' in dir(crystals.infinity)
     False
 """
-from __future__ import absolute_import
 
 from .generalized_young_walls import InfinityCrystalOfGeneralizedYoungWalls as GeneralizedYoungWalls
 from .multisegments import InfinityCrystalOfMultisegments as Multisegments

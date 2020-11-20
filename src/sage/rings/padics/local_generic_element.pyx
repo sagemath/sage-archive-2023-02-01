@@ -317,18 +317,16 @@ cdef class LocalGenericElement(CommutativeRingElement):
             0
 
         """
+        if k is None:
+            k = 1
+        if k <= 0:
+            raise ValueError("slice step must be positive")
         if i is None:
             i = self.valuation()
         if j is None or j is infinity:
             j = self.precision_absolute()
-        if k is None:
-            k = 1
-
-        if k<=0:
-            raise ValueError("slice step must be positive")
-        
-        if j is infinity:
-            return self.parent()(0)
+            if j is infinity:
+                return self.parent()(0)
 
         start = i
         stop = j

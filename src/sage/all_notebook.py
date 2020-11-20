@@ -2,12 +2,6 @@
 All imports for the Sage notebook
 """
 
-# Future statements which apply to this module. We delete the
-# future globals because we do not want these to appear in the sage.all
-# namespace. This deleting does not affect the parsing of this module.
-del absolute_import, division, print_function
-
-
 import sys
 from sage.all import *
 from sagenb.notebook.all import *

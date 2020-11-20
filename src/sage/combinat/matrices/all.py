@@ -8,5 +8,3 @@ lazy_import('sage.combinat.matrices.latin',
 lazy_import('sage.combinat.matrices.dlxcpp', 'DLXCPP')
 lazy_import('sage.combinat.matrices.hadamard_matrix',
             ['hadamard_matrix', 'hadamard_matrix_www'])
-
-del absolute_import

@@ -27,5 +27,3 @@ from .voronoi_diagram import VoronoiDiagram
 lazy_import('sage.geometry.ribbon_graph', 'RibbonGraph')
 lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')
-
-del absolute_import

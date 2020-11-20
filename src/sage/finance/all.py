@@ -13,5 +13,3 @@ lazy_import('sage.finance.fractal',
              'fractional_brownian_motion_simulation',
              'multifractal_cascade_random_walk_simulation'])
 lazy_import('sage.finance.option', 'black_scholes')
-
-del absolute_import

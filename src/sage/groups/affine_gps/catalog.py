@@ -1,11 +1,6 @@
 r"""
 Type ``groups.affine.<tab>`` to access examples
 of groups implemented as affine groups.
-
-TESTS::
-
-    sage: 'absolute_import' in dir(groups.affine)
-    False
 """
 
 # groups imported here will be available
@@ -19,6 +14,3 @@ TESTS::
 
 from .affine_group import AffineGroup as Affine
 from .euclidean_group import EuclideanGroup as Euclidean
-
-# We don't want this to appear in tab completion
-del absolute_import

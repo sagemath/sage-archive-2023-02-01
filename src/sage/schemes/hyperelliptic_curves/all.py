@@ -39,5 +39,3 @@ lazy_import('sage.schemes.hyperelliptic_curves.invariants',
             deprecation=28064)
 from .mestre import (Mestre_conic, HyperellipticCurve_from_invariants)
 from . import monsky_washnitzer
-
-del absolute_import

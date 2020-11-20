@@ -73,5 +73,3 @@ if get_display_manager().is_in_terminal():
     from .sage0 import sage0_console
     from .lie import lie_console
     from .r import r_console
-
-del absolute_import

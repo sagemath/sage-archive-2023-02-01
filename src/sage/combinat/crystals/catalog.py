@@ -74,11 +74,6 @@ Functorial constructions:
 
 * :class:`DirectSum <sage.combinat.crystals.direct_sum.DirectSumOfCrystals>`
 * :class:`TensorProduct <sage.combinat.crystals.tensor_product.TensorProductOfCrystals>`
-
-TESTS::
-
-    sage: 'absolute_import' in dir(crystals)
-    False
 """
 
 from .letters import CrystalOfLetters as Letters
@@ -117,6 +112,3 @@ from .direct_sum import DirectSumOfCrystals as DirectSum
 from . import catalog_kirillov_reshetikhin as kirillov_reshetikhin
 from . import catalog_infinity_crystals as infinity
 from . import catalog_elementary_crystals as elementary
-
-# We don't want this to appear in tab completion
-del absolute_import

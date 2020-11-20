@@ -29,5 +29,3 @@ from sage.misc.lazy_import import lazy_import as _lazy_import
 _lazy_import('sage.coding.channel', ['ErrorErasureChannel',
                                      'QarySymmetricChannel',
                                      'StaticErrorRateChannel'])
-# We don't want this to appear in tab completion
-del absolute_import

@@ -206,9 +206,6 @@ cdef class LocalGenericElement(CommutativeRingElement):
         for `i + l \cdot k` between ``i`` and ``j-1`` inclusive, and 
         nonnegative integers `l`. Behaves analogously to the slice 
         function for lists.
-        Currently implemented for padic base-rings, one-step eisenstein
-        or unramified extensions, or two-step (unramified and then eisenstein)
-        extensions.
 
         INPUT:
 

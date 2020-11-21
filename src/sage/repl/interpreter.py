@@ -411,11 +411,11 @@ def SagePreparseTransformer(lines):
 
         sage: from sage.repl.interpreter import SagePreparseTransformer
         sage: spt = SagePreparseTransformer
-        sage: spt(['1+1r+2.3^2.3r'])
-        ["Integer(1)+1+RealNumber('2.3')**2.3"]
+        sage: spt(['1+1r+2.3^2.3r\n'])
+        ["Integer(1)+1+RealNumber('2.3')**2.3\n"]
         sage: preparser(False)
-        sage: spt(['2.3^2'])
-        ['2.3^2']
+        sage: spt(['2.3^2\n'])
+        ['2.3^2\n']
 
     TESTS:
 
@@ -439,20 +439,16 @@ def SagePreparseTransformer(lines):
     Make sure the quote state is carried over across subsequent lines in order
     to avoid interfering with multi-line strings, see :trac:`30417`. ::
 
-        sage: SagePreparseTransformer(["'''", 'abc-1-2', "'''"])
-        ["'''", 'abc-1-2', "'''"]
-        sage: # instead of ["'''", 'abc-Integer(1)-Integer(2)', "'''"]
+        sage: SagePreparseTransformer(["'''\n", 'abc-1-2\n', "'''\n"])
+        ["'''\n", 'abc-1-2\n', "'''\n"]
+        sage: # instead of ["'''\n", 'abc-Integer(1)-Integer(2)\n', "'''\n"]
 
     """
-    lines_out = []
-    reset = True
-    for line in lines:
-        if _do_preparse and not line.startswith('%'):
-            lines_out += [preparse(line, reset=reset)]
-            reset = False
-        else:
-            lines_out += [line]
-    return lines_out
+    if _do_preparse:
+        # IPython ensures the input lines end with a newline, and it expects
+        # the same of the output lines.
+        lines = preparse(''.join(lines)).splitlines(keepends=True)
+    return lines
 
 SagePromptTransformer = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
 

@@ -238,19 +238,20 @@ def list_packages(*pkg_types, **opts):
     if opts:
         raise ValueError("{} are not valid options".format(sorted(opts)))
 
-    installed = installed_packages(exclude_pip)
+    pkgs = {p: {'name': p, 'installed_version': v, 'installed': True,
+                'remote_version': None, 'source': None}
+            for p, v in installed_packages(exclude_pip).items()}
 
+    lp = []
     SAGE_PKGS = sage.env.SAGE_PKGS
-    if not SAGE_PKGS:
-        return {}
+    if SAGE_PKGS:
+        try:
+            lp = os.listdir(SAGE_PKGS)
+        except FileNotFoundError:
+            pass
 
-    try:
-        lp = os.listdir(SAGE_PKGS)
-    except FileNotFoundError:
-        return {}
-
-    pkgs = {}
     for p in lp:
+
         try:
             f = open(os.path.join(SAGE_PKGS, p, "type"))
         except IOError:
@@ -260,9 +261,6 @@ def list_packages(*pkg_types, **opts):
         with f:
             typ = f.read().strip()
 
-        if typ not in pkg_types:
-            continue
-
         if os.path.isfile(os.path.join(SAGE_PKGS, p, "requirements.txt")):
             src = 'pip'
         elif os.path.isfile(os.path.join(SAGE_PKGS, p, "checksums.ini")):
@@ -270,11 +268,19 @@ def list_packages(*pkg_types, **opts):
         else:
             src = 'script'
 
-        if src not in pkg_sources:
+        pkg = pkgs.get(p, dict())
+
+        if typ not in pkg_types or src not in pkg_sources:
+            if pkg:
+                del pkgs[p]
             continue
 
-        pkg = {'name': p, 'type': typ, 'source': src, 'installed_version': installed.get(p)}
-        pkg['installed'] = pkg['installed_version'] is not None
+        pkg.update({'name': p, 'type': typ, 'source': src})
+        if pkg.get('installed_version', None):
+            pkg['installed'] = True
+        else:
+            pkg['installed'] = False
+            pkg['installed_version'] = None
 
         if pkg['source'] == 'pip':
             if exclude_pip:
@@ -289,11 +295,8 @@ def list_packages(*pkg_types, **opts):
             package_filename = os.path.join(SAGE_PKGS, p, "package-version.txt")
             with open(package_filename) as f:
                 pkg['remote_version'] = f.read().strip()
-            pkg['installed_version'] = installed.get(p)
         else:
             pkg['remote_version'] = 'none'
-
-        pkgs[p] = pkg
 
     return pkgs
 

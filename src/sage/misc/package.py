@@ -378,7 +378,7 @@ def is_package_installed(package, exclude_pip=True):
         Use the framework provided by :mod:`sage.features` to check
         whether a library is installed and functional.
     """
-    return any(p.split('-')[0] == package for p in installed_packages(exclude_pip))
+    return any(p == package for p in installed_packages(exclude_pip))
 
 
 def package_versions(package_type, local=False):

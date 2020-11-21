@@ -331,7 +331,8 @@ def installed_packages(exclude_pip=True):
     if SAGE_SPKG_INST:
         try:
             lp = os.listdir(SAGE_SPKG_INST)
-            installed.update(pkgname_split(pkgname) for pkgname in lp)
+            installed.update(pkgname_split(pkgname) for pkgname in lp
+                             if not pkgname.startswith('.'))
         except FileNotFoundError:
             pass
     return installed

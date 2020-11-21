@@ -128,6 +128,9 @@ def pip_installed_packages():
 
     This command returns *all* pip-installed packages. Not only Sage packages.
 
+    The names are normalized in the format as used in ``build/pkgs/``:
+    Dots and dashes are replaced by underscores.
+
     EXAMPLES::
 
         sage: from sage.misc.package import pip_installed_packages
@@ -135,9 +138,11 @@ def pip_installed_packages():
         sage: 'scipy' in d  # optional - build
         True
         sage: d['scipy']  # optional - build
-        u'...'
+        '...'
         sage: d['beautifulsoup4']   # optional - build beautifulsoup4
-        u'...'
+        '...'
+        sage: d['prompt_toolkit']   # optional - build
+        '...'
     """
     with open(os.devnull, 'w') as devnull:
         proc = subprocess.Popen(
@@ -147,7 +152,7 @@ def pip_installed_packages():
         )
         stdout = proc.communicate()[0].decode()
         try:
-            return {package['name'].lower(): package['version']
+            return {package['name'].lower().replace('-', '_').replace('.', '_'): package['version']
                     for package in json.loads(stdout)}
         except json.decoder.JSONDecodeError:
             # Something went wrong while parsing the output from pip.

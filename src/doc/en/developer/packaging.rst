@@ -855,8 +855,8 @@ account.
 
 .. _section-spkg-checksums:
 
-Checksums
----------
+Checksums and Tarball Names
+---------------------------
 
 The ``checksums.ini`` file contains the filename pattern of the
 upstream tarball (without the actual version) and its checksums. So if
@@ -876,8 +876,55 @@ which will modify the ``checksums.ini`` file with the correct
 checksums.
 
 
-Utility script to create package
-================================
+Upstream URLs
+-------------
+
+In addition to these fields in ``checksums.ini``, the optional field
+``upstream_url`` holds an URL to the upstream package archive.
+
+The Release Manager uses the information in ``upstream_url`` to
+download the upstream package archvive and to make it available on the
+Sage mirrors when a new release is prepared.  On Trac tickets
+upgrading a package, the ticket description should no longer contain
+the upstream URL to avoid duplication of information.
+
+Note that, like the ``tarball`` field, the ``upstream_url`` is a
+template; the substring ``VERSION`` is substituted with the actual
+version.
+
+For Python packages available from PyPI, you should use an
+``upstream_url`` from ``pypi.io``, which follows the format
+
+.. CODE-BLOCK:: bash
+
+    upstream_url=https://pypi.io/packages/source/m/matplotlib/matplotlib-VERSION.tar.gz
+
+A package that has the ``upstream_url`` information can be updated by
+simply typing::
+
+    [user@localhost]$ sage --package update numpy 3.14.59
+
+which will automatically download the archive and update the
+information in ``build/pkgs/``.
+
+For Python packages available from PyPI, there is another shortcut::
+
+    [user@localhost]$ sage --package update-latest matplotlib
+    Updating matplotlib: 3.3.0 -> 3.3.1
+    Downloading tarball to ...matplotlib-3.3.1.tar.bz2
+    [...............................................................]
+
+The ``upstream_url`` information serves yet another purpose.
+Developers who wish to test a package update from a Trac branch before
+the archive is available on a Sage mirror can do so by configuring
+their Sage tree using ``./configure
+--enable-download-from-upstream-url``.  Then Sage will fall back to
+downloading package tarballs from the ``upstream_url``.  It is then no
+longer necessary to manually download upstream tarballs.
+
+
+Utility script to create packages
+=================================
 
 Assuming that you have downloaded
 ``$SAGE_ROOT/upstream/FoO-1.3.tar.gz``, you can use::
@@ -886,6 +933,10 @@ Assuming that you have downloaded
 
 to create ``$SAGE_ROOT/build/pkgs/foo/package-version.txt``,
 ``checksums.ini``, and ``type`` in one step.
+
+You can skip the manual downloading of the upstream tarball by using
+the additional argument ``--upstream-url``.  This command will also
+set the ``upstream_url`` field in ``checksums.ini`` described above.
 
 
 .. _section-manual-build:

@@ -9941,6 +9941,15 @@ class Polyhedron_base(Element):
              A vertex at (1.414213562373095?, 0.?e-18, 0.?e-18),
              A vertex at (0.?e-18, 0.?e-18, 0.?e-18))
 
+        With the parameter ``minimal`` one can get a minimal base ring::
+
+            sage: s = polytopes.simplex(3)
+            sage: s_AA = s.affine_hull_projection(orthonormal=True, extend=True)
+            sage: s_AA.base_ring()
+            Algebraic Real Field
+            sage: s_full = s.affine_hull_projection(orthonormal=True, extend=True, minimal=True)
+            sage: s_full.base_ring()
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a = 0.5176380902050415?
 
         More examples with the ``orthonormal`` parameter::
 

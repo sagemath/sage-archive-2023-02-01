@@ -49,6 +49,7 @@ if [ -z "$system" -o -z "$command" ]; then
 fi
 system_packages="$*"
 options=
+env=
 shopt -s extglob
 case $system:$command in
     homebrew*:setup-build-env)
@@ -73,8 +74,8 @@ case $system:$command in
         ;;
     @(debian*|ubuntu*):*)
         [ "$NO_INSTALL_RECOMMENDS" = yes ] && options="$options --no-install-recommends"
-        [ "$YES" = yes ] && options="$options --yes"
-        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}apt-get $command $options $system_packages"
+        [ "$YES" = yes ] && options="$options --yes" env="DEBIAN_FRONTEND=noninteractive "
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}${env}apt-get $command $options $system_packages"
         ;;
     @(fedora*|redhat*|centos*):install)
         [ "$YES" = yes ] && options="$options -y"

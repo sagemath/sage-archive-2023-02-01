@@ -278,13 +278,13 @@ class ProjectionFuncSchlegel():
             sage: TestSuite(proj).run(skip='_test_pickling')
         """
         self.facet = facet
-        ineq = [_ for _ in facet.ambient_Hrepresentation() if _.is_inequality()][0]
+        ineq = [h for h in facet.ambient_Hrepresentation() if h.is_inequality()][0]
         self.full_A = ineq.A()
         self.full_b = ineq.b()
-        A,b = self.facet.as_polyhedron().affine_hull_projection(as_affine_map=True, orthonormal=True,extend=True)
+        A, b = self.facet.as_polyhedron().affine_hull_projection(as_affine_map=True, orthonormal=True, extend=True)
         self.A = A.change_ring(RDF).matrix()
         self.b = b.change_ring(RDF)
-        self.projection_point = vector(RDF,projection_point)
+        self.projection_point = vector(RDF, projection_point)
 
     def __call__(self, x):
         """

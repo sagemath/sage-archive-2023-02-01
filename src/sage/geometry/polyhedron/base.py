@@ -1017,6 +1017,19 @@ class Polyhedron_base(Element):
             <class 'sage.plot.graphics.Graphics'>
             sage: type(Polyhedron([(0,0,0,0), (1,1,1,1), (1,0,0,0)]).plot())
             <class 'sage.plot.graphics.Graphics'>
+
+        TESTS:
+
+        Check that :trac:`30015` is fixed::
+
+            sage: fcube = polytopes.hypercube(4)
+            sage: tfcube = fcube.face_truncation(fcube.faces(0)[0])
+            sage: sp = tfcube.schlegel_projection()
+            sage: for face in tfcube.faces(2): 
+            ....:     vertices = face.ambient_Vrepresentation() 
+            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices] 
+            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices] 
+            ....:     assert Polyhedron(projected_vertices).dim() == 2
         """
         def merge_options(*opts):
             merged = dict()
@@ -1038,7 +1051,7 @@ class Polyhedron_base(Element):
         opts = [merge_options(opt1, opt2, kwds)
                 for opt1, opt2 in zip(opts, [point, line, polygon])]
 
-        def project(polyhedron,ortho):
+        def project(polyhedron, ortho):
             if polyhedron.ambient_dim() <= 3:
                 return polyhedron.projection()
             elif polyhedron.dim() <= 3:
@@ -1052,7 +1065,7 @@ class Polyhedron_base(Element):
             else:
                 return polyhedron.projection()
 
-        projection = project(self,orthonormal)
+        projection = project(self, orthonormal)
         try:
             plot_method = projection.plot
         except AttributeError:

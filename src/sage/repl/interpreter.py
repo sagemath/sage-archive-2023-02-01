@@ -443,6 +443,13 @@ def SagePreparseTransformer(lines):
         ["'''\n", 'abc-1-2\n', "'''\n"]
         sage: # instead of ["'''\n", 'abc-Integer(1)-Integer(2)\n', "'''\n"]
 
+    .. NOTE::
+
+        IPython may call this function more than once for the same input lines.
+        So when debugging the preparser, print outs may be duplicated. If using
+        IPython >= 7.17, try:
+        ``sage.repl.interpreter.SagePreparseTransformer.has_side_effects = True``
+
     """
     if _do_preparse:
         # IPython ensures the input lines end with a newline, and it expects

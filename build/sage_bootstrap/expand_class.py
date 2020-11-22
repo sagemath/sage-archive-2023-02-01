@@ -48,23 +48,23 @@ class PackageClass(object):
                     raise ValueError('Package name cannot start with ":", got %s', package_name_or_class)
                 if package_name_or_class.endswith(':'):
                     raise ValueError('Package name cannot end with ":", got %s', package_name_or_class)
-                self.names += [package_name_or_class]
+                self.names.append(package_name_or_class)
 
     def _init_all(self, predicate):
-        self.names += [pkg.name for pkg in Package.all() if predicate(pkg)]
-            
+        self.names.extend(pkg.name for pkg in Package.all() if predicate(pkg))
+
     def _init_standard(self, predicate):
-        self.names += [pkg.name for pkg in Package.all() if pkg.type == 'standard' and predicate(pkg)]
-            
+        self.names.extend(pkg.name for pkg in Package.all() if pkg.type == 'standard' and predicate(pkg))
+
     def _init_optional(self, predicate):
-        self.names += [pkg.name for pkg in Package.all() if pkg.type == 'optional' and predicate(pkg)]
-            
+        self.names.extend(pkg.name for pkg in Package.all() if pkg.type == 'optional' and predicate(pkg))
+
     def _init_experimental(self, predicate):
-        self.names += [pkg.name for pkg in Package.all() if pkg.type == 'experimental' and predicate(pkg)]
-            
+        self.names.extend(pkg.name for pkg in Package.all() if pkg.type == 'experimental' and predicate(pkg))
+
     def _init_huge(self, predicate):
-        self.names += [pkg.name for pkg in Package.all() if pkg.type == 'huge' and predicate(pkg)]
-            
+        self.names.extend(pkg.name for pkg in Package.all() if pkg.type == 'huge' and predicate(pkg))
+
     def apply(self, function, *args, **kwds):
         for package_name in self.names:
             function(package_name, *args, **kwds)

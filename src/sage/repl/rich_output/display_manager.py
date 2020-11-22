@@ -753,7 +753,7 @@ class DisplayManager(SageObject):
                 text = f.read().replace('\n','')
             version = re.search(r'REVISION="(\d+)"', text).group(1)
             return """
-<script src="https://cdn.jsdelivr.net/gh/paulmasson/threejs-sage@r{0}/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@r{0}/build/three.min.js"></script>
             """.format(version)
         try:
             return self._backend.threejs_offline_script()

@@ -919,8 +919,10 @@ Developers who wish to test a package update from a Trac branch before
 the archive is available on a Sage mirror can do so by configuring
 their Sage tree using ``./configure
 --enable-download-from-upstream-url``.  Then Sage will fall back to
-downloading package tarballs from the ``upstream_url``.  It is then no
-longer necessary to manually download upstream tarballs.
+downloading package tarballs from the ``upstream_url`` after trying all
+Sage mirrors.  (To speed up this process,  trim ``upstream/mirror_list``
+to fewer mirrors.)
+It is then no longer necessary to manually download upstream tarballs.
 
 
 Utility script to create packages

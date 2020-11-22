@@ -9830,7 +9830,8 @@ class Polyhedron_base(Element):
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))
 
-    def affine_hull_projection(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
+    def affine_hull_projection(self, as_affine_map=False, orthogonal=False,
+                               orthonormal=False, extend=False, minimal=False):
         """
         Return the polyhedron projected into its affine hull.
 
@@ -9862,6 +9863,10 @@ class Polyhedron_base(Element):
         - ``extend`` (boolean, default = False) -- if ``True``,
           allow base ring to be extended if necessary. This becomes
           relevant when requiring an orthonormal transformation.
+
+        - ``minimal`` (boolean, default = False) -- if ``True``,
+          when doing an extension, it computes the minimal base ring of the
+          extension, otherwise the base ring is ``AA``.
 
         OUTPUT:
 
@@ -9977,8 +9982,6 @@ class Polyhedron_base(Element):
             (A vertex at (0), A vertex at (2.449489742783178?))
             sage: sqrt(6).n()
             2.44948974278318
-
-
 
         The affine hull is combinatorially equivalent to the input::
 
@@ -10166,6 +10169,10 @@ class Polyhedron_base(Element):
                     raise ValueError('the base ring needs to be extended; try with "extend=True"')
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
+                if minimal:
+                    from sage.rings.qqbar import number_field_elements_from_algebraics
+                    new_ring = number_field_elements_from_algebraics(A.list(),embedded=True,minimal=True)[0]
+                    A = A.change_ring(new_ring)
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), affine_basis[0])
 

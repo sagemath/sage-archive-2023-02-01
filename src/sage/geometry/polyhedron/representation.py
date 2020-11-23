@@ -131,12 +131,70 @@ class PolyhedronRepresentation(SageObject):
             (0, 1, 0)
             sage: ieq != Polyhedron([(0,1,0)]).Vrepresentation(0)
             True
+
+        TESTS:
+
+        Check :trac:`30954`::
+
+            sage: P = (1/2)*polytopes.cube()
+            sage: Q = (1/2)*polytopes.cube(backend='field')
+            sage: for p in P.inequalities():
+            ....:     assert p in Q.inequalities()
         """
         if not isinstance(other, PolyhedronRepresentation):
             return NotImplemented
         if type(self) != type(other):
             return NotImplemented
-        return richcmp(self._vector, other._vector, op)
+        return richcmp(self._vector*self._comparison_scalar(), other._vector*other._comparison_scalar(), op)
+
+    def _comparison_scalar(self):
+        r"""
+        Return a number ``a`` such that ``a*self._vector`` is canonical.
+
+        Except for vertices, ``self._vector`` is only unique up to a positive scalar.
+
+        This is overwritten for the vertex class.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0,0],[1,5]], rays=[[3,4]])
+            sage: P.Vrepresentation()
+            (A vertex at (0, 0), A vertex at (1, 5), A ray in the direction (3, 4))
+            sage: P.Vrepresentation()[0]._comparison_scalar()
+            1
+            sage: P.Vrepresentation()[1]._comparison_scalar()
+            1
+            sage: P.Vrepresentation()[2]._comparison_scalar()
+            1/4
+            sage: P.Hrepresentation()
+            (An inequality (5, -1) x + 0 >= 0,
+             An inequality (-4, 3) x + 0 >= 0,
+             An inequality (4, -3) x + 11 >= 0)
+            sage: P.Hrepresentation()[0]._comparison_scalar()
+            1
+            sage: P.Hrepresentation()[1]._comparison_scalar()
+            1/3
+            sage: P.Hrepresentation()[2]._comparison_scalar()
+            1/3
+
+        ::
+
+            sage: P = Polyhedron(vertices=[[1,3]], lines=[[-1,3]])
+            sage: P.Vrepresentation()
+            (A line in the direction (1, -3), A vertex at (2, 0))
+            sage: P.Vrepresentation()[0]._comparison_scalar()
+            -1/3
+            sage: P.Vrepresentation()[1]._comparison_scalar()
+            1
+        """
+        if self.type() == self.VERTEX:
+            return 1
+
+        lcf = self._vector.leading_coefficient()
+        if self.type() == self.EQUATION or self.type() == self.LINE:
+            return 1/lcf
+        else:
+            return 1/lcf.abs()
 
     def vector(self, base_ring=None):
         """

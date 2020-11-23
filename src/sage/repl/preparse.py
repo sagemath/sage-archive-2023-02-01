@@ -1481,13 +1481,26 @@ def preparse_calculus(code):
 
         sage: preparse("μ(x) = x^2")
         '__tmp__=var("x"); μ = symbolic_expression(x**Integer(2)).function(x)'
+
+    Check that the parameter list can span multiple lines (:trac:`30928`)::
+
+        sage: preparse('''
+        ....: f(a,
+        ....:   b,
+        ....:   c,
+        ....:   d) = a + b*2 + c*3 + d*4
+        ....: ''')
+        '\n__tmp__=var("a,b,c,d"); f = symbolic_expression(a + b*Integer(2) + c*Integer(3) + d*Integer(4)).function(a,b,c,d)\n'
+
     """
     new_code = []
     last_end = 0
     #                                 f         (  vars  )   =      expr
     for m in re.finditer(r";(\s*)([^\W\d]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
         ident, func, vars, expr = m.groups()
-        stripped_vars = [v.strip() for v in vars.split(',')]
+        # Semicolons are removed in order to allow the vars to span multiple lines.
+        # (preparse having converted all \n into ;\n;)
+        stripped_vars = [v.replace(';', '').strip() for v in vars.split(',')]
         # if the variable name starts with numeric_literal_prefix
         # the argument name for the symbolic expression is a numeric literal
         # such as f(2)=5

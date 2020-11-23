@@ -200,8 +200,11 @@ def make_parser():
         help='Print a list of all available packages')
     parser_list.add_argument(
         'package_class',
-        type=str, default=':all:', nargs='?',
+        type=str, default=[':all:'], nargs='*',
         help='Package class like :all: (default) or :standard:')
+    parser_list.add_argument(
+        '--has-file', action='append', default=[], metavar='FILENAME', dest='has_files',
+        help='Only include packages that have this file')
 
     parser_name = subparsers.add_parser(
         'name', epilog=epilog_name,
@@ -300,7 +303,7 @@ def run():
     if args.subcommand == 'config':
         app.config()
     elif args.subcommand == 'list':
-        app.list_cls(args.package_class)
+        app.list_cls(*args.package_class, has_files=args.has_files)
     elif args.subcommand == 'name':
         app.name(args.tarball_filename)
     elif args.subcommand == 'tarball':

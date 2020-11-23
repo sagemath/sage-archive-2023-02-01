@@ -43,7 +43,7 @@ class Application(object):
         from sage_bootstrap.config import Configuration
         print(Configuration())
 
-    def list_cls(self, package_class):
+    def list_cls(self, *package_classes, **filters):
         """
         Print a list of all available packages
 
@@ -54,9 +54,19 @@ class Application(object):
         autotools
         [...]
         zn_poly
+
+        $ sage -package list --has-file=spkg-configure.m4 :experimental:
+        perl_term_readline_gnu
+
+        $ sage -package list --has-file=spkg-configure.m4 --has-file=distros/debian.txt | sort
+        arb
+        boost_cropped
+        brial
+        [...]
+        zn_poly
         """
         log.debug('Listing packages')
-        pc = PackageClass(package_class)
+        pc = PackageClass(*package_classes, **filters)
         for pkg_name in pc.names:
             print(pkg_name)
 
@@ -157,8 +167,13 @@ class Application(object):
         package.tarball.download(allow_upstream=allow_upstream)
         print(package.tarball.upstream_fqn)
 
-    def download_cls(self, package_name_or_class):
-        pc = PackageClass(package_name_or_class)
+    def download_cls(self, package_name_or_class, allow_upstream=False):
+        """
+        Download a package or a class of packages
+        """
+        pc = PackageClass(package_name_or_class, has_files=['checksums.ini'])
+        def download_with_args(package):
+            return self.download(package, allow_upstream=allow_upstream)
         pc.apply(self.download)
 
     def upload(self, package_name):

@@ -8468,6 +8468,32 @@ class FinitePoset(UniqueRepresentation, Parent):
         g = libgap.Poset(L, [self.principal_order_filter(x) for x in L])
         return g
 
+    def _macaulay2_init_(self, macaulay2=None):
+        """
+        Conversion to Macaulay2.
+
+        This uses the ``Posets`` package.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P._macaulay2_init_()
+            'needsPackage "Posets";poset({0,1,2,3,4},{{0,1},{0,2},{1,4},{2,3},{3,4}})'
+
+            sage: P = Poset({1:[2],2:[]})
+            sage: macaulay2('needsPackage "Posets"')   # optional - macaulay2
+            Posets
+            sage: macaulay2(P)   # optional - macaulay2
+            Relation Matrix: | 1 1 |
+                             | 0 1 |
+        """
+        H = self._hasse_diagram
+        txt = 'needsPackage "Posets";'
+        txt += "poset({%s},{" % ','.join(str(x) for x in H)
+        txt += ",".join("{%s,%s}" % (str(x), str(y))
+                        for x, y in H.cover_relations_iterator())
+        return txt + "})"
+
 
 FinitePoset._dual_class = FinitePoset
 

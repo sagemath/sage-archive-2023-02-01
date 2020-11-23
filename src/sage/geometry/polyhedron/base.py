@@ -4789,8 +4789,10 @@ class Polyhedron_base(Element):
             # And that it changes the backend correctly where necessary.
             if self.base_ring() is not AA and AA.has_coerce_map_from(self.base_ring()):
                 R = self*polytopes.regular_polygon(5, exact=True)
+                assert R
             if RDF.has_coerce_map_from(self.base_ring()):
                 R = self*polytopes.regular_polygon(5, exact=False)
+                assert R
 
         if self.base_ring() in (ZZ, QQ):
             # Check that the double description is set up correctly.
@@ -9845,26 +9847,26 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
+        - ``as_affine_map`` -- boolean (default: ``False``); if ``False``, return
           a polyhedron. If ``True``, return the affine transformation,
           that sends the embedded polytope to a fulldimensional one.
           It is given as a pair ``(A, b)``, where A is a linear transformation
           and ``b`` is a vector, and the affine transformation sends ``v`` to
           ``A(v)+b``.
 
-        - ``orthogonal`` (boolean, default = False) -- if ``True``,
+        - ``orthogonal`` -- boolean (default: ``False``); if ``True``,
           provide an orthogonal transformation.
 
-        - ``orthonormal`` (boolean, default = False) -- if ``True``,
+        - ``orthonormal`` -- boolean (default: ``False``); if ``True``,
           provide an orthonormal transformation. If the base ring does not
           provide the necessary square roots, the extend parameter
           needs to be set to ``True``.
 
-        - ``extend`` (boolean, default = False) -- if ``True``,
+        - ``extend`` -- boolean (default: ``False``); if ``True``,
           allow base ring to be extended if necessary. This becomes
           relevant when requiring an orthonormal transformation.
 
-        - ``minimal`` (boolean, default = False) -- if ``True``,
+        - ``minimal`` -- boolean (default: ``False``); if ``True``,
           when doing an extension, it computes the minimal base ring of the
           extension, otherwise the base ring is ``AA``.
 
@@ -10154,8 +10156,11 @@ class Polyhedron_base(Element):
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
-            if as_affine_map:
-                return linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())), self.ambient_space().zero()
+            if as_affine_map: 
+                return linear_transformation(matrix(self.base_ring(), 
+                                                    self.dim(), 
+                                                    self.dim(), 
+                                                    self.base_ring().one())), self.ambient_space().zero()
             return self
 
         if orthogonal or orthonormal:
@@ -10180,7 +10185,7 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
                 if minimal:
                     from sage.rings.qqbar import number_field_elements_from_algebraics
-                    new_ring = number_field_elements_from_algebraics(A.list(),embedded=True,minimal=True)[0]
+                    new_ring = number_field_elements_from_algebraics(A.list(), embedded=True, minimal=True)[0]
                     A = A.change_ring(new_ring)
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), affine_basis[0])

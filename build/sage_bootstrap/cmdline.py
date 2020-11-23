@@ -32,7 +32,12 @@ from sage_bootstrap.app import Application
 
 description = \
 """
-Sage Bootstrap Library
+SageMath Bootstrap Library
+
+Provides scripts to manage the packages of Sage-the-distribution,
+including SageMath's database of equivalent system packages,
+and to download and upload tarballs from/to SageMath servers.
+
 """
 
 

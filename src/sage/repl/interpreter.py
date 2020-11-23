@@ -781,6 +781,7 @@ class SageTerminalApp(TerminalIPythonApp):
         # Load the %lprun extension if available
         try:
             import line_profiler
+            assert line_profiler  # silence pyflakes
         except ImportError:
             pass
         else:

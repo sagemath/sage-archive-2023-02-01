@@ -148,7 +148,7 @@ class Package(object):
         """
         pattern = self.tarball_pattern
         if pattern:
-            return self.tarball_pattern.replace('VERSION', self.version)
+            return pattern.replace('VERSION', self.version)
         else:
             return None
 

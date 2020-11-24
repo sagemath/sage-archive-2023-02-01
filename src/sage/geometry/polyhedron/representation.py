@@ -804,15 +804,23 @@ class Inequality(Hrepresentation):
 
         TESTS::
 
-            sage: p1 = Polyhedron(backend='normaliz', base_ring=QQ, vertices=[(2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3), (QQ(1), QQ(1), QQ(1), 9/10, 4/5, 7/10, 3/5, QQ(0), QQ(0)), (QQ(1), QQ(1), QQ(1), QQ(1), 4/5, 3/5,
-            ....: 1/2, 1/10, QQ(0)), (QQ(1), QQ(1), QQ(1), QQ(1), 9/10, 1/2, 2/5, 1/5, QQ(0)), (QQ(1), QQ(1), QQ(1), QQ(1), QQ(1), 2/5, 3/10, 1/5, 1/10)])
-            sage: p2 = Polyhedron(backend='ppl', base_ring=QQ, vertices=[(2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3), (QQ(1), QQ(1), QQ(1), 9/10, 4/5, 7/10, 3/5, QQ(0), QQ(0)), (QQ(1), QQ(1), QQ(1), QQ(1), 4/5, 3/5, 1/2,
-            ....: 1/10, QQ(0)), (QQ(1), QQ(1), QQ(1), QQ(1), 9/10, 1/2, 2/5, 1/5, QQ(0)), (QQ(1), QQ(1), QQ(1), QQ(1), QQ(1), 2/5, 3/10, 1/5, 1/10)])
-            sage: p2 == p1
+            sage: p1 = Polyhedron(backend='normaliz', base_ring=QQ, vertices=[  # optional - pynormaliz
+            ....:     (2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3),
+            ....:     (1, 1, 1, 9/10, 4/5, 7/10, 3/5, 0, 0),
+            ....:     (1, 1, 1, 1, 4/5, 3/5, 1/2, 1/10, 0),
+            ....:     (1, 1, 1, 1, 9/10, 1/2, 2/5, 1/5, 0),
+            ....:     (1, 1, 1, 1, 1, 2/5, 3/10, 1/5, 1/10)])
+            sage: p2 = Polyhedron(backend='ppl', base_ring=QQ, vertices=[
+            ....:     (2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3),
+            ....:     (1, 1, 1, 9/10, 4/5, 7/10, 3/5, 0, 0),
+            ....:     (1, 1, 1, 1, 4/5, 3/5, 1/2, 1/10, 0),
+            ....:     (1, 1, 1, 1, 9/10, 1/2, 2/5, 1/5, 0),
+            ....:     (1, 1, 1, 1, 1, 2/5, 3/10, 1/5, 1/10)])
+            sage: p2 == p1                                                      # optional - pynormaliz
             True
-            sage: for ieq in p1.inequalities():
+            sage: for ieq in p1.inequalities():                                 # optional - pynormaliz
             ....:     assert ieq.is_facet_defining_inequality(p2)
-            sage: for ieq in p2.inequalities():
+            sage: for ieq in p2.inequalities():                                 # optional - pynormaliz
             ....:     assert ieq.is_facet_defining_inequality(p1)
         """
         from sage.geometry.polyhedron.base import Polyhedron_base
@@ -834,7 +842,7 @@ class Inequality(Hrepresentation):
 
         self_matrix = matrix(self.vector())
 
-        cross_slack_matrix = self_matrix*hom_Vrep
+        cross_slack_matrix = self_matrix * hom_Vrep
 
         # First of all ``self`` should not evaluate negative on anything.
         # If it has the same incidences as an inequality of ``other``,
@@ -843,7 +851,7 @@ class Inequality(Hrepresentation):
             return False
 
         # Also it should evaluate ``0`` on all lines.
-        if any(self.A()*line.vector() for line in other.lines()):
+        if any(self.A() * line.vector() for line in other.lines()):
             return False
 
         incidences = cross_slack_matrix.zero_pattern_matrix(ZZ)

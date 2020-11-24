@@ -1096,15 +1096,7 @@ you. This is influenced by the following environment variable:
 
   - ``SAGE_SERVER/spkg/upstream``
 
-  for clean upstream tarballs, and it searches the directories
-
-  - ``SAGE_SERVER/spkg/standard/``,
-  - ``SAGE_SERVER/spkg/optional/``,
-  - ``SAGE_SERVER/spkg/experimental/``,
-  - ``SAGE_SERVER/spkg/archive/``
-
-  for old-style Sage packages.
-
+  for upstream tarballs.
 
 Here are some of the more commonly used variables affecting the build process:
 

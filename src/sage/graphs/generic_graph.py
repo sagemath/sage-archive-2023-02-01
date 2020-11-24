@@ -10894,23 +10894,9 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: object of type 'sage.rings.integer.Integer' has no len()
         """
-        if loops:
-            self._backend.add_edges(edges, self._directed)
-            return
         if loops is None:
             loops = self.allows_loops()
-
-        for t in edges:
-            try:
-                if len(t) == 3:
-                    u, v, label = t
-                else:
-                    u, v = t
-                    label = None
-            except Exception:
-                raise TypeError("cannot interpret {!r} as graph edge".format(t))
-            if loops or u != v:
-                self._backend.add_edge(u, v, label, self._directed)
+        self._backend.add_edges(edges, self._directed, remove_loops=not loops)
 
     def subdivide_edge(self, *args):
         r"""
@@ -11177,8 +11163,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: K12.size()
             120
         """
-        for e in edges:
-            self.delete_edge(e)
+        self._backend.del_edges(edges, self._directed)
 
     def contract_edge(self, u, v=None, label=None):
         r"""

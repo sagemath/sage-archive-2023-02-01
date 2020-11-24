@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Utility to specify classes of packages like `:all:`
+Utility to manage lists of packages
 """
 
 
@@ -44,10 +44,11 @@ class PackageClass(object):
             elif package_name_or_class == ':huge:':
                 self._init_huge(predicate=included_in_filter)
             else:
-                if package_name_or_class.startswith(':'):
-                    raise ValueError('Package name cannot start with ":", got %s', package_name_or_class)
-                if package_name_or_class.endswith(':'):
-                    raise ValueError('Package name cannot end with ":", got %s', package_name_or_class)
+                if ':' in package_name_or_class:
+                    raise ValueError('a colon may only appear in designators of package types, '
+                                     'which must be one of '
+                                     ':all:, :standard:, :optional:, :experimental:, or :huge:, '
+                                     'got {}'.format(package_name_or_class))
                 self.names.append(package_name_or_class)
 
     def _init_all(self, predicate):

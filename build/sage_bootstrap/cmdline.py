@@ -32,7 +32,12 @@ from sage_bootstrap.app import Application
 
 description = \
 """
-Sage Bootstrap Library
+SageMath Bootstrap Library
+
+Provides scripts to manage the packages of Sage-the-distribution,
+including SageMath's database of equivalent system packages,
+and to download and upload tarballs from/to SageMath servers.
+
 """
 
 
@@ -58,7 +63,7 @@ EXAMPLE:
 
 epilog_list = \
 """
-Print a list of all available packages
+Print a list of packages known to Sage
 
 EXAMPLE:
 
@@ -197,15 +202,17 @@ def make_parser():
     parser_list = subparsers.add_parser(
         'list', epilog=epilog_list,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        help='Print a list of all available packages')
+        help='Print a list of packages known to Sage')
     parser_list.add_argument(
-        'package_class',
+        'package_class', metavar='[package_name|:package_type:]',
         type=str, default=[':all:'], nargs='*',
-        help='Package class like :all: (default) or :standard:')
+        help=('package name or designator for all packages of a given type '
+              '(one of :all:, :standard:, :optional:, :experimental:, and :huge:); '
+              'default: :all:'))
     parser_list.add_argument(
         '--has-file', action='append', default=[], metavar='FILENAME', dest='has_files',
-        help='Only include packages that have this file')
-
+        help=('only include packages that have this file in their metadata directory'
+              '(examples: SPKG.rst, spkg-configure.m4, distros/debian.txt)'))
     parser_name = subparsers.add_parser(
         'name', epilog=epilog_name,
         formatter_class=argparse.RawDescriptionHelpFormatter,

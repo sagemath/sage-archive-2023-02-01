@@ -2140,7 +2140,7 @@ def relative_order_from_ring_generators(gens,
     return RelativeOrder(K, abs_order, check=False, is_maximal=is_maximal)
 
 
-def GaussianIntegers(names="I"):
+def GaussianIntegers(names="I", latex_name="i"):
     r"""
     Return the ring of Gaussian integers.
 
@@ -2163,7 +2163,7 @@ def GaussianIntegers(names="I"):
     """
     from sage.rings.all import CDF, NumberField
     f = ZZ['x']([1, 0, 1])
-    nf = NumberField(f, names, embedding=CDF(0, 1))
+    nf = NumberField(f, names, embedding=CDF(0, 1), latex_name=latex_name)
     return nf.ring_of_integers()
 
 

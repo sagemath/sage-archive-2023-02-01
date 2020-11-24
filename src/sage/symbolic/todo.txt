@@ -100,7 +100,7 @@ Wall time: 0.05 s
 sage: time z = expand((u + v + a + b + c)^100)
 ^C^C^C
 ------------------------------------------------------------
-Unhandled SIGBUS: A bus error occured in Sage.
+Unhandled SIGBUS: A bus error occurred in Sage.
 
 done * pretty serious todo -- all predefined constants in utils.cpp get made wrong:
     // TODO: BECAUSE of Floor division, this gives the wrong answer!!
@@ -143,7 +143,7 @@ For PHASE II: LATER  (Hopefully Burcin)
 done * CRASH:
 sage: f = (Mod(2,7)*x^2 + Mod(2,7))^7
 ------------------------------------------------------------
-Unhandled SIGBUS: A bus error occured in Sage.
+Unhandled SIGBUS: A bus error occurred in Sage.
 
 It works fine with leading coefficient Mod(1,7)
 

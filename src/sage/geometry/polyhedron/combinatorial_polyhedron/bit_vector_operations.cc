@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <algorithm>
 using namespace std;
 
 /*
@@ -49,6 +50,17 @@ inline void intersection(uint64_t *dest, uint64_t *A, uint64_t *B, \
     }
 }
 
+inline void unite(uint64_t *dest, uint64_t *A, uint64_t *B, \
+                         size_t face_length){
+    /*
+    Set ``dest = A | B``, i.e. dest is the union of A and B.
+    ``face_length`` is the length of A, B and dest in terms of uint64_t.
+    */
+    for (size_t i = 0; i < face_length; i++){
+        dest[i] = A[i] | B[i];
+    }
+}
+
 inline size_t count_atoms(const uint64_t* A, size_t face_length){
     /*
     Return the number of atoms/vertices in A.
@@ -65,9 +77,59 @@ inline size_t count_atoms(const uint64_t* A, size_t face_length){
     }
     return count;
 }
+inline int is_zero(uint64_t *A, size_t face_length){
+    for (size_t i = 0; i < face_length; i++){
+        if (A[i]){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length){
+    /*
+    Return whether ``face`` is contained in one of ``faces``.
+    */
+    for(size_t i = 0; i < n_faces; i++){
+        if (is_subset(face, faces[i], face_length))
+            return 1;
+    }
+    return 0;
+}
+
+inline int is_contained_in_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length, size_t skip){
+    /*
+    Return whether ``face`` is contained in one of ``faces``.
+
+    Skips ``faces[skip]``.
+    */
+    return is_contained_in_one(face, faces, skip, face_length) || \
+        is_contained_in_one(face, faces+skip+1, n_faces-skip-1, face_length);
+}
+
+inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length){
+    /*
+    Return whether ``face`` contains one of ``faces``.
+    */
+    for(size_t i = 0; i < n_faces; i++){
+        if (is_subset(faces[i], face, face_length))
+            return 1;
+    }
+    return 0;
+}
+
+inline int contains_one(uint64_t *face, uint64_t **faces, size_t n_faces, size_t face_length, size_t skip){
+    /*
+    Return whether ``face`` contains one of ``faces``.
+
+    Skips ``faces[skip]``.
+    */
+    return contains_one(face, faces, skip, face_length) || \
+        contains_one(face, faces+skip+1, n_faces-skip-1, face_length);
+}
 
 size_t get_next_level(\
-        uint64_t **faces, size_t n_faces, uint64_t **maybe_newfaces, \
+        uint64_t **faces, size_t n_faces, \
         uint64_t **newfaces, uint64_t **visited_all, \
         size_t n_visited_all, size_t face_length){
     /*
@@ -76,9 +138,8 @@ size_t get_next_level(\
 
     INPUT:
 
-    - ``maybe_newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
+    - ``newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
       needs to be ``chunksize``-Bit aligned
-    - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
     - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
     - ``face_length`` -- length of the faces
 
@@ -97,7 +158,7 @@ size_t get_next_level(\
     As we have visited all faces of ``visited_all``, we alter the algorithm
     to not revisit:
     Step 1: Intersect the first ``n_faces-1`` faces of ``faces`` with the last face.
-    Step 2: Out of thosse the inclusion-maximal ones are some of the facets.
+    Step 2: Out of those the inclusion-maximal ones are some of the facets.
             At least we obtain all of those, that we have not already visited.
             Maybe, we get some more.
     Step 3: Only keep those that we have not already visited.
@@ -105,56 +166,21 @@ size_t get_next_level(\
             not visited yet.
     */
 
-    // We keep track, which face in ``maybe_newfaces`` is a new face.
+    // We keep track, which face in ``newfaces`` is a new face.
     int is_not_newface[n_faces -1];
 
     // Step 1:
     for (size_t j = 0; j < n_faces - 1; j++){
-        intersection(maybe_newfaces[j], faces[j], faces[n_faces - 1], face_length);
+        intersection(newfaces[j], faces[j], faces[n_faces - 1], face_length);
         is_not_newface[j] = 0;
     }
 
 
-    // For each face we will Step 2 and Step 3.
+    // For each face we will do Step 2 and Step 3.
     for (size_t j = 0; j < n_faces-1; j++){
-        // Step 2a:
-        for(size_t k = 0; k < j; k++){
-            // Testing if maybe_newfaces[j] is contained in different nextface.
-            if(is_subset(maybe_newfaces[j], maybe_newfaces[k],face_length)){
-                // If so, it is not inclusion-maximal and hence not of codimension 1.
-                is_not_newface[j] = 1;
-                break;
-                }
-            }
-        if (is_not_newface[j]) {
-            // No further tests needed, if it is not of codimension 1.
-            continue;
-        }
-
-        // Step 2b:
-        for(size_t k = j+1; k < n_faces-1; k++){
-            // Testing if maybe_newfaces[j] is contained in different nextface.
-            if(is_subset(maybe_newfaces[j],maybe_newfaces[k], face_length)){
-                // If so, it is not inclusion-maximal and hence not of codimension 1.
-                is_not_newface[j] = 1;
-            break;
-            }
-        }
-        if (is_not_newface[j]) {
-            // No further tests needed, if it is not of codimension 1.
-            continue;
-        }
-
-        // Step 3:
-        for (size_t k = 0; k < n_visited_all; k++){
-            // Testing if maybe_newfaces[j] is contained in one,
-            // we have already completely visited.
-            if(is_subset(maybe_newfaces[j], visited_all[k], face_length)){
-                // If so, we don't want to revisit.
-                is_not_newface[j] = 1;
-                break;
-            }
-        }
+        if (is_contained_in_one(newfaces[j], newfaces, n_faces-1, face_length, j) || \
+                is_contained_in_one(newfaces[j], visited_all, n_visited_all, face_length))
+                    is_not_newface[j] = 1;
     }
 
     // Set ``newfaces`` to point to the correct ones.
@@ -165,7 +191,61 @@ size_t get_next_level(\
             continue;
         }
         // It is a new face of codimension 1.
-        newfaces[n_newfaces] = maybe_newfaces[j];
+        // Either ``n_newfaces == j`` or ``newfaces[n_newfaces]`` is not
+        // a new face.
+        swap(newfaces[n_newfaces], newfaces[j]);
+        n_newfaces++;
+    }
+    return n_newfaces;
+}
+
+size_t get_next_level_simple(\
+        uint64_t **faces, const size_t n_faces, \
+        uint64_t **newfaces, uint64_t **visited_all, \
+        size_t n_visited_all, size_t face_length,
+        uint64_t **faces_coatom_rep, \
+        uint64_t **newfaces_coatom_rep, uint64_t **visited_all_coatom_rep, \
+        size_t face_length_coatom_rep){
+    /*
+    As above, but modified for the case where every interval not containing zero is boolean.
+    */
+
+    // We keep track, which face in ``newfaces`` is a new face.
+    int is_not_newface[n_faces -1];
+
+    // Step 1:
+    for (size_t j = 0; j < n_faces - 1; j++){
+        intersection(newfaces[j], faces[j], faces[n_faces - 1], face_length);
+        unite(newfaces_coatom_rep[j], faces_coatom_rep[j], faces_coatom_rep[n_faces - 1], face_length_coatom_rep);
+        is_not_newface[j] = 0;
+    }
+
+    // For each face we will do Step 2 and Step 3.
+    for (size_t j = 0; j < n_faces-1; j++){
+        // Step 2:
+        // Check if the atom representation is zero.
+        //
+        // and
+        //
+        //
+        // Step 3:
+        if (is_zero(newfaces[j], face_length) || \
+                contains_one(newfaces_coatom_rep[j], visited_all_coatom_rep, n_visited_all, face_length_coatom_rep))
+            is_not_newface[j] = 1;
+    }
+
+    // Set ``newfaces`` to point to the correct ones.
+    size_t n_newfaces = 0;  // length of newfaces2
+    for (size_t j = 0; j < n_faces -1; j++){
+        if (is_not_newface[j]) {
+            // Not a new face of codimension 1.
+            continue;
+        }
+        // It is a new face of codimension 1.
+        // Either ``n_newfaces == j`` or ``newfaces[n_newfaces]`` is not
+        // a new face.
+        swap(newfaces[n_newfaces], newfaces[j]);
+        swap(newfaces_coatom_rep[n_newfaces], newfaces_coatom_rep[j]);
         n_newfaces++;
     }
     return n_newfaces;

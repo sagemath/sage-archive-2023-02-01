@@ -4331,7 +4331,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ## in this way we can move the specific logic of factoring to the
         ## self.parent().base_ring() and get rid of all the ugly
         ## is_SomeType(R) checks and get way nicer structured code
-        ## 200 lines of spagetti code is just way to much!
+        ## 200 lines of spaghetti code is just way to much!
 
         if self.degree() < 0:
             raise ArithmeticError("factorization of {!r} is not defined".format(self))
@@ -9969,10 +9969,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return a `n`-th root of this polynomial.
 
-        This is computed using Newton method in the ring of power series. This
-        method works only when the base ring is an integral domain. Morever, for
-        polynomial whose coefficient of lower degree is different from 1, the
-        elements of the base ring should have a method ``nth_root`` implemented.
+        This is computed using Newton method in the ring of power
+        series. This method works only when the base ring is an
+        integral domain. Moreover, for polynomial whose coefficient of
+        lower degree is different from 1, the elements of the base
+        ring should have a method ``nth_root`` implemented.
 
         EXAMPLES::
 

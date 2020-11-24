@@ -19,11 +19,11 @@ def to_fast_pickable(l):
     Convert a list of polynomials into a builtin Python value, which is fast pickable and compact.
 
     INPUT:
-    
+
     - a list of Boolean polynomials
-    
+
     OUTPUT:
-    
+
     It is converted to a tuple consisting of
     - codes referring to the polynomials
     - list of conversions of nodes.
@@ -108,15 +108,15 @@ def from_fast_pickable(l, r):
     The second argument is ring, in which this polynomial should be created.
 
     INPUT:
-    
+
     See OUTPUT of to_fast_pickable
 
     OUTPUT:
-    
+
     a list of Boolean polynomials
-    
+
     EXAMPLES::
-    
+
         sage: from sage.rings.polynomial.pbori.frontend import *
         sage: from sage.rings.polynomial.pbori.parallel import from_fast_pickable
         sage: r=Ring(1000)
@@ -172,11 +172,13 @@ def _encode_polynomial(poly):
 def pickle_polynomial(self):
     return (_decode_polynomial, (_encode_polynomial(self), ))
 
+
 copyreg.pickle(Polynomial, pickle_polynomial)
 
 
 def pickle_bset(self):
     return (BooleSet, (Polynomial(self), ))
+
 
 copyreg.pickle(BooleSet, pickle_bset)
 
@@ -184,11 +186,13 @@ copyreg.pickle(BooleSet, pickle_bset)
 def pickle_monom(self):
     return (Monomial, ([var for var in self.variables()], ))
 
+
 copyreg.pickle(Monomial, pickle_monom)
 
 
 def pickle_var(self):
     return (Variable, (self.index(), self.ring()))
+
 
 copyreg.pickle(Variable, pickle_var)
 
@@ -242,8 +246,8 @@ def _encode_ring(ring):
     else:
         nvars = ring.n_variables()
         data = (nvars, ring.get_order_code())
-        varnames = '\n'.join([str(ring.variable(idx)) for idx in range(nvars)
-            ])
+        varnames = '\n'.join(str(ring.variable(idx))
+                             for idx in range(nvars))
         blocks = list(ring.blocks())
         code = (identifier, data, compress(varnames), blocks[:-1])
         _polybori_parallel_rings[identifier] = (WeakRingRef(ring), code)
@@ -254,24 +258,25 @@ def _encode_ring(ring):
 def pickle_ring(self):
     return (_decode_ring, (_encode_ring(self), ))
 
+
 copyreg.pickle(Ring, pickle_ring)
 
 
 def groebner_basis_first_finished(I, *l):
     r"""
-    
+
     INPUT:
-    
+
     - ``I`` -- ideal
     - ``l`` -- keyword dictionaries, which will be keyword arguments to groebner_basis.
-    
+
     OUTPUT:
-    
+
     - tries to compute ``groebner_basis(I, **kwd)`` for kwd in l
     - returns the result of the first terminated computation
-    
+
     EXAMPLES::
-    
+
         sage: from sage.rings.polynomial.pbori.PyPolyBoRi import Ring
         sage: r=Ring(1000)
         sage: ideal = [r.variable(1)*r.variable(2)+r.variable(2)+r.variable(1)]

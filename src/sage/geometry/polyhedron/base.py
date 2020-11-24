@@ -4808,8 +4808,10 @@ class Polyhedron_base(Element):
             # And that it changes the backend correctly where necessary.
             if self.base_ring() is not AA and AA.has_coerce_map_from(self.base_ring()):
                 R = self*polytopes.regular_polygon(5, exact=True)
+                assert R
             if RDF.has_coerce_map_from(self.base_ring()):
                 R = self*polytopes.regular_polygon(5, exact=False)
+                assert R
 
         if self.base_ring() in (ZZ, QQ):
             # Check that the double description is set up correctly.
@@ -9854,7 +9856,8 @@ class Polyhedron_base(Element):
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))
 
-    def affine_hull_projection(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
+    def affine_hull_projection(self, as_affine_map=False, orthogonal=False,
+                               orthonormal=False, extend=False, minimal=False):
         """
         Return the polyhedron projected into its affine hull.
 
@@ -9868,24 +9871,28 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
+        - ``as_affine_map`` -- boolean (default: ``False``); if ``False``, return
           a polyhedron. If ``True``, return the affine transformation,
           that sends the embedded polytope to a fulldimensional one.
           It is given as a pair ``(A, b)``, where A is a linear transformation
           and ``b`` is a vector, and the affine transformation sends ``v`` to
           ``A(v)+b``.
 
-        - ``orthogonal`` (boolean, default = False) -- if ``True``,
+        - ``orthogonal`` -- boolean (default: ``False``); if ``True``,
           provide an orthogonal transformation.
 
-        - ``orthonormal`` (boolean, default = False) -- if ``True``,
+        - ``orthonormal`` -- boolean (default: ``False``); if ``True``,
           provide an orthonormal transformation. If the base ring does not
           provide the necessary square roots, the extend parameter
           needs to be set to ``True``.
 
-        - ``extend`` (boolean, default = False) -- if ``True``,
+        - ``extend`` -- boolean (default: ``False``); if ``True``,
           allow base ring to be extended if necessary. This becomes
           relevant when requiring an orthonormal transformation.
+
+        - ``minimal`` -- boolean (default: ``False``); if ``True``,
+          when doing an extension, it computes the minimal base ring of the
+          extension, otherwise the base ring is ``AA``.
 
         OUTPUT:
 
@@ -9960,6 +9967,15 @@ class Polyhedron_base(Element):
              A vertex at (1.414213562373095?, 0.?e-18, 0.?e-18),
              A vertex at (0.?e-18, 0.?e-18, 0.?e-18))
 
+        With the parameter ``minimal`` one can get a minimal base ring::
+
+            sage: s = polytopes.simplex(3)
+            sage: s_AA = s.affine_hull_projection(orthonormal=True, extend=True)
+            sage: s_AA.base_ring()
+            Algebraic Real Field
+            sage: s_full = s.affine_hull_projection(orthonormal=True, extend=True, minimal=True)
+            sage: s_full.base_ring()
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a = 0.5176380902050415?
 
         More examples with the ``orthonormal`` parameter::
 
@@ -10001,8 +10017,6 @@ class Polyhedron_base(Element):
             (A vertex at (0), A vertex at (2.449489742783178?))
             sage: sqrt(6).n()
             2.44948974278318
-
-
 
         The affine hull is combinatorially equivalent to the input::
 
@@ -10166,8 +10180,11 @@ class Polyhedron_base(Element):
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
-            if as_affine_map:
-                return linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())), self.ambient_space().zero()
+            if as_affine_map: 
+                return linear_transformation(matrix(self.base_ring(), 
+                                                    self.dim(), 
+                                                    self.dim(), 
+                                                    self.base_ring().one())), self.ambient_space().zero()
             return self
 
         if orthogonal or orthonormal:
@@ -10190,6 +10207,10 @@ class Polyhedron_base(Element):
                     raise ValueError('the base ring needs to be extended; try with "extend=True"')
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
+                if minimal:
+                    from sage.rings.qqbar import number_field_elements_from_algebraics
+                    new_ring = number_field_elements_from_algebraics(A.list(), embedded=True, minimal=True)[0]
+                    A = A.change_ring(new_ring)
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), affine_basis[0])
 

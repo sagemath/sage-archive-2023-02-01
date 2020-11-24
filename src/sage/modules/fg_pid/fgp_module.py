@@ -127,7 +127,8 @@ which is coerced into M0. ::
 Here we illustrate lifting an element of the image of f, i.e., finding
 an element of M0 that maps to a given element of M1::
 
-    sage: y = f.lift(3*M1.0); y
+    sage: y = f.lift(3*M1.0)
+    sage: y # random
     (0, 13)
     sage: f(y)
     (3)
@@ -1284,7 +1285,7 @@ class FGP_Module_class(Module):
             (0, 4)
             sage: Q.coordinate_vector(x, reduce=True)
             (0, 4)
-            sage: Q.coordinate_vector(-x, reduce=False)
+            sage: Q.coordinate_vector(-x, reduce=False) # random
             (0, -4)
             sage: x == 4*Q.1
             True
@@ -1413,7 +1414,7 @@ class FGP_Module_class(Module):
             Echelon basis matrix:
             [ 0 12  0]
             [ 0  0  4]
-            sage: X
+            sage: X         # random
             [0 4 0]
             [0 1 0]
             [0 0 1]

@@ -1,5 +1,7 @@
 from sage.rings.polynomial.pbori.pbori import mod_mon_set
-from .PyPolyBoRi import *
+from .PyPolyBoRi import (BooleSet, Monomial, Polynomial, Variable,
+                         GroebnerStrategy, ReductionStrategy, parallel_reduce,
+                         easy_linear_factors, BoolePolynomialVector)
 from .easy_polynomials import (easy_linear_polynomials as
                                easy_linear_polynomials_func)
 from .statistics import used_vars_set

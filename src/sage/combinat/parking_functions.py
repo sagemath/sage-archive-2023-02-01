@@ -64,15 +64,19 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.rings.all import QQ
+from sage.rings.all import QQ, NN
 from copy import copy
-from sage.combinat.combinat import (CombinatorialClass, CombinatorialObject,
-                                    InfiniteAbstractCombinatorialClass)
+from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.prandom import randint
 from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.sets_with_grading import SetsWithGrading
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 
 
 def ParkingFunctions(n=None):
@@ -150,6 +154,7 @@ def ParkingFunctions(n=None):
     TESTS::
 
         sage: PF = ParkingFunctions(5)
+        sage: TestSuite(PF).run()
         sage: len(PF.list()) == PF.cardinality()
         True
     """
@@ -187,7 +192,7 @@ def is_a(x, n=None):
     return is_a(A, n)
 
 
-class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
+class ParkingFunctions_all(Parent, UniqueRepresentation):
     def __init__(self):
         """
         TESTS::
@@ -197,7 +202,8 @@ class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
             sage: DW == loads(dumps(DW))
             True
         """
-        pass
+        cat = InfiniteEnumeratedSets() & SetsWithGrading()
+        Parent.__init__(self, category=cat)
 
     def __repr__(self):
         """
@@ -227,22 +233,36 @@ class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
             return True
         return is_a(x)
 
-    def _infinite_cclass_slice(self, n):
+    def graded_component(self, n):
         """
-        Needed by InfiniteAbstractCombinatorialClass to build __iter__.
+        Return the graded component.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: (ParkingFunctions())._infinite_cclass_slice(4) == ParkingFunctions(4)
+            sage: PF = ParkingFunctions()
+            sage: PF.graded_component(4) == ParkingFunctions(4)
             True
             sage: it = iter(ParkingFunctions()) # indirect doctest
             sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [2, 1], [1, 1, 1], [1, 1, 2], [1, 2, 1]]
-         """
+        """
         return ParkingFunctions_n(n)
 
+    def __iter__(self):
+        """
+        Return an iterator.
 
-class ParkingFunctions_n(CombinatorialClass):
+        TESTS::
+
+            sage: it = iter(ParkingFunctions()) # indirect doctest
+            sage: [next(it) for i in range(8)]
+            [[], [1], [1, 1], [1, 2], [2, 1], [1, 1, 1], [1, 1, 2], [1, 2, 1]]
+        """
+        for n in NN:
+            yield from ParkingFunctions_n(n).__iter__()
+
+
+class ParkingFunctions_n(Parent, UniqueRepresentation):
     r"""
     The combinatorial class of parking functions of size `n`.
 
@@ -283,6 +303,7 @@ class ParkingFunctions_n(CombinatorialClass):
             True
         """
         self.n = n
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def __repr__(self):
         """

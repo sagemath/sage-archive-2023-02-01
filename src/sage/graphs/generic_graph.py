@@ -614,38 +614,8 @@ class GenericGraph(GenericGraph_pyx):
             self.size() != other.size() or
             self.weighted() != other.weighted()):
                 return False
-        # Vertices
-        if any(x not in other for x in self):
-            return False
-        # Finally, we are prepared to check edges:
-        if not self.allows_multiple_edges():
-            return all(other.has_edge(*edge)
-                       for edge in self.edge_iterator(labels=self._weighted, sort_vertices=False))
-        # The problem with multiple edges is that labels may not have total
-        # ordering, which makes it difficult to compare lists of labels.
-        seen = set()
-        for e in self.edge_iterator(labels=False, sort_vertices=False):
-            if e in seen:
-                continue
-            seen.add(e)
-            # All labels between e[0] and e[1]
-            labels1 = self.edge_label(*e)
-            try:
-                labels2 = other.edge_label(*e)
-            except LookupError:
-                return False
-            if len(labels1) != len(labels2):
-                return False
-            if self._weighted:
-                # If there is total ordering, sorting will speed up things
-                labels1.sort()
-                labels2.sort()
-                for l in labels1:
-                    try:
-                        labels2.remove(l)
-                    except ValueError:
-                        return False
-        return True
+
+        return self._backend.is_subgraph(other._backend, self, ignore_labels=not self.weighted())
 
     @cached_method
     def __hash__(self):
@@ -14220,10 +14190,12 @@ class GenericGraph(GenericGraph_pyx):
             return False
 
         if induced:
-            return other.subgraph(self) == self
+            # Check whether ``self`` is contained in ``other``
+            # and whether the induced subgraph of ``other`` is contained in ``self``.
+            return (self._backend.is_subgraph(other._backend, self)
+                    and other._backend.is_subgraph(self._backend, self))
         else:
-            self._scream_if_not_simple(allow_loops=True)
-            return all(other.has_edge(e) for e in self.edge_iterator())
+            return self._backend.is_subgraph(other._backend, self)
 
     ### Cluster
 

@@ -1272,6 +1272,17 @@ class InfinityRing_class(Singleton, Ring):
             pass
         return False
 
+    def _pushout_(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: QQbar(-2*i)*infinity
+            (-I)*Infinity
+        """
+        from sage.symbolic.ring import SR
+        if SR.has_coerce_map_from(other):
+            return SR
+
 
 class FiniteNumber(RingElement):
 

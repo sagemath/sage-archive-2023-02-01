@@ -531,18 +531,19 @@ class QuoteStackFrame(SimpleNamespace):
 
             sage: qsf = sage.repl.preparse.QuoteStackFrame("'"); qsf
             QuoteStackFrame(braces=0, brackets=0, delim="'", f_string=False, fmt_spec=False, nested_fmt_spec=False, parens=0, raw=False)
-
         """
-        self.delim = delim
-        self.raw = raw
-        self.f_string = f_string
         self.braces = braces
-        self.parens = parens
         self.brackets = brackets
+        self.delim = delim
+        self.f_string = f_string
         self.fmt_spec = fmt_spec
         self.nested_fmt_spec = nested_fmt_spec
+        self.parens = parens
+        self.raw = raw
+
 
 ssl_search_chars = re.compile(r'[()\[\]\'"#:{}]')
+
 
 def strip_string_literals(code, state=None):
     r"""

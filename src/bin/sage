@@ -97,14 +97,6 @@ if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
     exit 127
 fi
 
-# Check for '--upgrade' before sourcing sage-env: the top-level "make"
-# should be run outside of the Sage shell, see #15517.
-if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
-    shift
-    cd "$SAGE_ROOT"
-    exec local/bin/sage-upgrade "$@"
-fi
-
 # Check for '-i' before sourcing sage-env: running "make"
 # should be run outside of the Sage shell.
 if [ "$1" = '-f' ]; then

@@ -3345,7 +3345,7 @@ class MutablePoset(SageObject):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP([T((1, 3)), T((2, 1)),
             ....:         T((4, 4)), T((1, 2)), T((2, 2))])
-            sage: list(P.minimal_elements())
+            sage: sorted(P.minimal_elements())
             [(1, 2), (2, 1)]
 
         .. SEEALSO::

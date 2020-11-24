@@ -1661,15 +1661,13 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         ...
         FeatureNotPresentError: Cremona's database of elliptic curves is not available.
         '...db' not found in any of [...]
-        ...
-        Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
+        ...Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
         sage: c = CremonaDatabase('should not exist',mini=False)
         Traceback (most recent call last):
         ...
         FeatureNotPresentError: Cremona's database of elliptic curves is not available.
         '...db' not found in any of [...]
-        ...
-        Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
+        ...Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
     """
     if set_global is not None:
         from sage.misc.superseded import deprecation

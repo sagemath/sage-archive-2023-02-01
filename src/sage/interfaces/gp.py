@@ -889,9 +889,9 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: gp(I).sage()
+            sage: gp(SR(I)).sage()
             i
-            sage: gp(I).sage().parent()
+            sage: gp(SR(I)).sage().parent()
             Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         ::
@@ -969,7 +969,7 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: z = gp(1+15*I); z
+            sage: z = gp(SR(1+15*I)); z
             1 + 15*I
             sage: z._complex_mpfr_field_(CC)
             1.00000000000000 + 15.0000000000000*I

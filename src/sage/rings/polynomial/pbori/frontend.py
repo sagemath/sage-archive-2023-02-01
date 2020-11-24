@@ -46,6 +46,7 @@ def block_scheme_names(blocks):
 
     return list(context.keys())
 
+
 ipbname = 'ipbori'
 
 
@@ -60,6 +61,7 @@ def polybori_start(global_context):
 
     print(ipbname + """ -- The interactive command line tool of PolyBoRi/BRiAL %s
 """ % global_context.get("polybori_version", ''))
+
 
 # Here come the defaults
 r = Ring(10000)

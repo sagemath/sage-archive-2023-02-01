@@ -1,6 +1,8 @@
-= jedi =
+jedi
+====
 
-== Description ==
+Description
+-----------
 
 Jedi is a static analysis tool for Python that is typically used in
 IDEs/editors plugins. Jedi has a focus on autocompletion and goto

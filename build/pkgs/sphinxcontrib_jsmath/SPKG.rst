@@ -1,0 +1,14 @@
+.. _sphinxcontrib_jsmath:
+
+sphinxcontrib-jsmath
+====================
+
+Description
+-----------
+
+Sphinx extension which renders display math in HTML via JavaScript
+
+License
+-------
+
+BSD

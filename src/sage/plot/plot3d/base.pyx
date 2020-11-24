@@ -450,7 +450,7 @@ cdef class Graphics3d(SageObject):
             js_options['axesLabels'] = False
 
         from sage.repl.rich_output import get_display_manager
-        scripts = get_display_manager().threejs_scripts(options['online'])
+        scripts = get_display_manager().threejs_script(options['online'])
         styles = ''
         extra_html = ''
 

@@ -716,9 +716,9 @@ class DisplayManager(SageObject):
         buf = OutputBuffer.from_file(filename)
         return output_container(buf)
 
-    def threejs_scripts(self, online):
+    def threejs_script(self, online):
         """
-        Return Three.js script tags for the current backend.
+        Return Three.js script tag for the current backend.
 
         INPUT:
 
@@ -726,20 +726,20 @@ class DisplayManager(SageObject):
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         .. NOTE::
 
             This base method handles ``online=True`` case only, serving CDN
-            script tags. Location of scripts for offline usage is
+            script tag. Location of script for offline usage is
             backend-specific.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output import get_display_manager
-            sage: get_display_manager().threejs_scripts(online=True)
-            '...<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@...'
-            sage: get_display_manager().threejs_scripts(online=False)
+            sage: get_display_manager().threejs_script(online=True)
+            '...<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@...'
+            sage: get_display_manager().threejs_script(online=False)
             Traceback (most recent call last):
             ...
             ValueError: current backend does not support
@@ -749,11 +749,10 @@ class DisplayManager(SageObject):
             import sage.env
             import re
             import os
-            with open(os.path.join(sage.env.THREEJS_DIR, 'build', 'three.min.js')) as f:
-                text = f.read().replace('\n','')
-            version = re.search(r'REVISION="(\d+)"', text).group(1)
+            with open(os.path.join(sage.env.THREEJS_DIR, 'version')) as f:
+                version = f.read().strip()
             return """
-<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@r{0}/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@{0}/build/three.min.js"></script>
             """.format(version)
         try:
             return self._backend.threejs_offline_script()

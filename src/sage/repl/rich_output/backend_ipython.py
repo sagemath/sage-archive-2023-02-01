@@ -583,27 +583,26 @@ class BackendIPythonNotebook(BackendIPython):
         else:
             raise TypeError('rich_output type not supported')
 
-    def threejs_offline_scripts(self):
+    def threejs_offline_script(self):
         """
-        Three.js scripts for the IPython notebook
+        Three.js script for the IPython notebook
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
-            sage: backend.threejs_offline_scripts()
+            sage: backend.threejs_offline_script()
             '...<script src="/nbextensions/threejs/build/three.min...<\\/script>...'
         """
         from sage.repl.rich_output import get_display_manager
-        CDN_scripts = get_display_manager().threejs_scripts(online=True)
+        CDN_script = get_display_manager().threejs_script(online=True)
         return """
 <script src="/nbextensions/threejs/build/three.min.js"></script>
-<script src="/nbextensions/threejs/examples/js/controls/OrbitControls.js"></script>
 <script>
   if ( !window.THREE ) document.write('{}');
 </script>
-        """.format(CDN_scripts.replace('</script>', r'<\/script>').replace('\n', ' \\\n'))
+        """.format(CDN_script.replace('</script>', r'<\/script>').replace('\n', ' \\\n'))

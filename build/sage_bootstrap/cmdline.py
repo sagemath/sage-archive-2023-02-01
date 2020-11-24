@@ -265,14 +265,14 @@ def make_parser():
     parser_fix_checksum.add_argument(
         'package_name', nargs='?', default=None, type=str,
         help='Package name. Default: fix all packages.')
-    
+
     parser_create = subparsers.add_parser(
         'create', epilog=epilog_create,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         help='Create or overwrite package.')
     parser_create.add_argument(
-        'package_name', nargs='?', default=None, type=str,
-        help='Package name. Default: fix all packages.')
+        'package_name', default=None, type=str,
+        help='Package name.')
     parser_create.add_argument(
         '--version', type=str, default=None, help='Package version')
     parser_create.add_argument(

@@ -268,7 +268,7 @@ something like the following to install it:
 
     .. CODE-BLOCK:: text
 
-        exec sage-system-python spkg-install.py
+        exec sage-bootstrap-python spkg-install.py
 
     or
 
@@ -276,7 +276,7 @@ something like the following to install it:
 
         exec sage-python23 spkg-install.py
 
-   In more detail: ``sage-system-python`` runs the version of Python
+   In more detail: ``sage-bootstrap-python`` runs the version of Python
    pre-installed on the machine. Use this if the package may be
    installed before Sage has built its own Python. ``sage-python23``
    runs the version of Python built by Sage, either Python 2 or 3,

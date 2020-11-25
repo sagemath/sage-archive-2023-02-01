@@ -88,6 +88,42 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         self._order = self._degree / domain.absolute_f().gcd(self._power)
         RingHomomorphism.__init__(self, Hom(domain, domain))
 
+    cdef dict _extra_slots(self):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<x> = QQ[]
+            sage: U.<a> = Qp(2).extension(x^2 + x + 1)
+            sage: F = U.frobenius_endomorphism(); F
+            Frobenius endomorphism on 2-adic Unramified Extension Field in a defined by x^2 + x + 1 lifting a |--> a^2 on the residue field
+            sage: copy(F)
+            Frobenius endomorphism on 2-adic Unramified Extension Field in a defined by x^2 + x + 1 lifting a |--> a^2 on the residue field
+        """
+        slots = RingHomomorphism._extra_slots(self)
+        slots['_degree'] = self._degree
+        slots['_power'] = self._power
+        slots['_order'] = self._order
+        return slots
+
+    cdef _update_slots(self, dict slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<x> = ZZ[]
+            sage: U.<a> = Zp(2).extension(x^2 + x + 1)
+            sage: F = U.frobenius_endomorphism(); F
+            Frobenius endomorphism on 2-adic Unramified Extension Ring in a defined by x^2 + x + 1 lifting a |--> a^2 on the residue field
+            sage: loads(dumps(F)) == F
+            True
+        """
+        self._degree = slots['_degree']
+        self._power = slots['_power']
+        self._order = slots['_order']
+        RingHomomorphism._update_slots(self, slots)
 
     def _repr_(self):
         """

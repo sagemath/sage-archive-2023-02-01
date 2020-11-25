@@ -3,12 +3,6 @@ from sage.rings.polynomial.pbori.pbori import (top_index, if_then_else,
 from .PyPolyBoRi import (BooleSet, Polynomial,
                          Monomial, BooleConstant, Variable)
 
-#def all_monomials_of_degree_d(d,variables):
-#    res=all_monomials_of_degree_d_new(d, variables)
-#    ref=all_monomials_of_degree_d_old(d, variables)
-#    assert res==ref, (d, variables)
-#    return res
-
 
 def all_monomials_of_degree_d_old(d, variables):
 
@@ -44,7 +38,7 @@ def all_monomials_of_degree_d(d, variables):
         return Polynomial(1, ring)
 
     deg_variables = variables[-d:]
-    #this ensures sorting by indices
+    # this ensures sorting by indices
     res = Monomial(deg_variables)
 
     for i in range(1, len(variables) - d + 1):
@@ -70,6 +64,7 @@ def power_set(variables):
     for v in variables:
         res = if_then_else(v, res, res)
     return res
+
 
 if __name__ == '__main__':
     from .blocks import declare_ring, Block

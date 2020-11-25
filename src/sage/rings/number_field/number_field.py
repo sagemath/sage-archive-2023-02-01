@@ -1707,6 +1707,22 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: R = QQ.extension(y^2-1/2,'a')['x']
             sage: R("a*x").factor()
             (a) * x
+
+        Check that :trac:`30961` is fixed::
+
+            sage: QQi = i.parent()
+            sage: x = SR.var('x')
+            sage: QQi((x, x))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x to a rational
+
+            sage: QQi(("1", "2"))
+            2*I + 1
+            sage: QQi((RR(1), RR(2)))
+            2*I + 1
+            sage: QQi(vector((RR(1), RR(2))))
+            2*I + 1
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1757,14 +1773,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             return self._convert_from_str(s.replace('!', ''))
         elif isinstance(x,str):
             return self._convert_from_str(x)
-        elif isinstance(x, (tuple, list)) or \
-                (isinstance(x, sage.modules.free_module_element.FreeModuleElement) and
-                 self.base_ring().has_coerce_map_from(x.parent().base_ring())):
+        elif (isinstance(x, (tuple, list)) or
+                isinstance(x, sage.modules.free_module_element.FreeModuleElement)):
             if len(x) != self.relative_degree():
                 raise ValueError("Length must be equal to the degree of this number field")
-            result = x[0]
+            base = self.base_ring()
+            result = base(x[0])
             for i in range(1, self.relative_degree()):
-                result += x[i]*self.gen(0)**i
+                result += base(x[i])*self.gen(0)**i
             return result
         return self._convert_non_number_field_element(x)
 

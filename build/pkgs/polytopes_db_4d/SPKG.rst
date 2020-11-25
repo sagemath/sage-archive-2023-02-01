@@ -1,5 +1,3 @@
-.. _d_reflexive_polytopes_database:
-
 4D Reflexive Polytopes Database
 ===============================
 
@@ -28,13 +26,3 @@ Dependencies
 ------------
 
 None
-
-Changelog
----------
-
-.. _polytopes_db_3d_1.0_volker_braun_2013_april_17:
-
-polytopes_db_3d-1.0 (Volker Braun, 2013 April 17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``* #14467: Initial version``

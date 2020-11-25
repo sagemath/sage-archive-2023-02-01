@@ -17,7 +17,8 @@ Paths in Directed Acyclic Graphs
 #*****************************************************************************
 from __future__ import absolute_import
 
-from .combinat import CombinatorialClass
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.structure.parent import Parent
 import sage.graphs.digraph as digraph
 
 
@@ -112,6 +113,7 @@ def GraphPaths(g, source=None, target=None):
             raise ValueError("target must be in g")
         return GraphPaths_st(g, source, target)
 
+
 class GraphPaths_common:
     def outgoing_edges(self, v):
         """
@@ -159,16 +161,15 @@ class GraphPaths_common:
              [2, 4, 5],
              [2, 4, 5]]
         """
-        source_paths = [ [v] ]
+        source_paths = [[v]]
         for e in self.outgoing_edges(v):
             target = e[1]
             target_paths = self.outgoing_paths(target)
-            target_paths = [ [v]+path  for path in target_paths]
+            target_paths = [[v] + path for path in target_paths]
 
             source_paths += target_paths
 
         return source_paths
-
 
     def incoming_paths(self, v):
         """
@@ -181,11 +182,11 @@ class GraphPaths_common:
             sage: gp.incoming_paths(2)
             [[2], [1, 2], [1, 2]]
         """
-        target_paths = [ [v] ]
+        target_paths = [[v]]
         for e in self.incoming_edges(v):
             source = e[0]
             source_paths = self.incoming_paths(source)
-            source_paths = [ path + [v] for path in source_paths ]
+            source_paths = [path + [v] for path in source_paths]
             target_paths += source_paths
         return target_paths
 
@@ -224,7 +225,7 @@ class GraphPaths_common:
         return paths
 
 
-class GraphPaths_all(CombinatorialClass, GraphPaths_common):
+class GraphPaths_all(Parent, GraphPaths_common):
     """
     EXAMPLES::
 
@@ -239,10 +240,9 @@ class GraphPaths_all(CombinatorialClass, GraphPaths_common):
 
             sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
             sage: p = GraphPaths(G)
-            sage: p == loads(dumps(p))
-            True
         """
         self.graph = g
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def __repr__(self):
         """
@@ -253,7 +253,7 @@ class GraphPaths_all(CombinatorialClass, GraphPaths_common):
             sage: repr(p)
             'Paths in Multi-digraph on 5 vertices'
         """
-        return "Paths in %s"%repr(self.graph)
+        return "Paths in %s" % repr(self.graph)
 
     def list(self):
         """
@@ -267,18 +267,18 @@ class GraphPaths_all(CombinatorialClass, GraphPaths_common):
         """
         return self.paths()
 
-class GraphPaths_t(CombinatorialClass, GraphPaths_common):
+
+class GraphPaths_t(Parent, GraphPaths_common):
     def __init__(self, g, target):
         """
         TESTS::
 
             sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
             sage: p = GraphPaths(G, target=4)
-            sage: p == loads(dumps(p))
-            True
         """
         self.graph = g
         self.target = target
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def __repr__(self):
         """
@@ -289,7 +289,7 @@ class GraphPaths_t(CombinatorialClass, GraphPaths_common):
             sage: repr(p)
             'Paths in Multi-digraph on 5 vertices ending at 4'
         """
-        return "Paths in %s ending at %s"%(repr(self.graph), self.target)
+        return "Paths in %s ending at %s" % (repr(self.graph), self.target)
 
     def list(self):
         """
@@ -310,18 +310,18 @@ class GraphPaths_t(CombinatorialClass, GraphPaths_common):
         """
         return self.incoming_paths(self.target)
 
-class GraphPaths_s(CombinatorialClass, GraphPaths_common):
+
+class GraphPaths_s(Parent, GraphPaths_common):
     def __init__(self, g, source):
         """
         TESTS::
 
             sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
             sage: p = GraphPaths(G, 4)
-            sage: p == loads(dumps(p))
-            True
         """
         self.graph = g
         self.source = source
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def __repr__(self):
         """
@@ -332,7 +332,7 @@ class GraphPaths_s(CombinatorialClass, GraphPaths_common):
             sage: repr(p)
             'Paths in Multi-digraph on 5 vertices starting at 4'
         """
-        return "Paths in %s starting at %s"%(repr(self.graph), self.source)
+        return "Paths in %s starting at %s" % (repr(self.graph), self.source)
 
     def list(self):
         """
@@ -345,7 +345,8 @@ class GraphPaths_s(CombinatorialClass, GraphPaths_common):
         """
         return self.outgoing_paths(self.source)
 
-class GraphPaths_st(CombinatorialClass, GraphPaths_common):
+
+class GraphPaths_st(Parent, GraphPaths_common):
     """
     EXAMPLES::
 
@@ -377,12 +378,11 @@ class GraphPaths_st(CombinatorialClass, GraphPaths_common):
 
             sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
             sage: p = GraphPaths(G,1,2)
-            sage: p == loads(dumps(p))
-            True
         """
         self.graph = g
         self.source = source
         self.target = target
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def __repr__(self):
         """
@@ -393,7 +393,7 @@ class GraphPaths_st(CombinatorialClass, GraphPaths_common):
             sage: repr(p)
             'Paths in Multi-digraph on 5 vertices starting at 1 and ending at 2'
         """
-        return "Paths in %s starting at %s and ending at %s"%(repr(self.graph), self.source, self.target)
+        return "Paths in %s starting at %s and ending at %s" % (repr(self.graph), self.source, self.target)
 
     def list(self):
         """

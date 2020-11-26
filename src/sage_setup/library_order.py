@@ -8,9 +8,10 @@ import os
 # TODO: When #29706 is merged, simplify this module using the expanded cython_aliases.
 
 import pkgconfig
+from sage.env import get_cblas_pc_module_name 
 
-# CBLAS can be one of multiple implementations
-cblas_pc = pkgconfig.parse('cblas')
+# CBLAS
+cblas_pc = pkgconfig.parse(get_cblas_pc_module_name())
 cblas_libs = cblas_pc['libraries']
 cblas_library_dirs = cblas_pc['library_dirs']
 cblas_include_dirs = cblas_pc['include_dirs']

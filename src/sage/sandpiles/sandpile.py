@@ -345,7 +345,8 @@ from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
 from sage.arith.all import falling_factorial, lcm
 from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
-from sage.symbolic.all import I, pi, SR
+from sage.symbolic.constants import I, pi
+from sage.symbolic.ring import SR
 
 # TODO: remove the following line once 4ti2 functions are removed
 path_to_zsolve = os.path.join(SAGE_LOCAL, 'bin', 'zsolve')

@@ -88,8 +88,12 @@ bootstrap () {
                 # Trac #29629: Temporary solution for Sage 9.1: Do not provide
                 # --enable-SPKG options for installing pip packages
                 if [ ! -f "$(dirname $filename)/requirements.txt" ]; then
-                    spkg_configures="$spkg_configures
-SAGE_SPKG_ENABLE([$pkgname], [$pkgtype])"
+                    # Trac #29124: Do not provide --enable-_recommended and similar
+                    case "$pkgname" in
+                        _*) ;;
+                        *)  spkg_configures="$spkg_configures
+SAGE_SPKG_ENABLE([$pkgname], [$pkgtype])" ;;
+                    esac
                 fi
                 ;;
         esac

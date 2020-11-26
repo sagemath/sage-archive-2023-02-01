@@ -140,6 +140,13 @@ class SetShuffleProduct(SageObject):
     def _constructor_(self, x):
         """
         This is used by default to produce elements when iterating.
+
+        TESTS::
+
+            sage: from sage.combinat.shuffle import SetShuffleProduct
+            sage: S = SetShuffleProduct([[1,2],[3,4]], [[1,4]])
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
         """
         return list(x)
 
@@ -281,6 +288,13 @@ class ShuffleProduct(Parent):
     def _constructor_(self, x):
         """
         This is used by default to produce elements when iterating.
+
+        TESTS::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct
+            sage: S = ShuffleProduct([1,2,3],[4,5])
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
         """
         return list(x)
 
@@ -505,6 +519,14 @@ class ShuffleProduct_overlapping_r(Parent):
     def _constructor_(self, x):
         """
         This is used by default to produce elements when iterating.
+
+        TESTS::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+            sage: S = ShuffleProduct_overlapping_r(w,u,1)
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
         """
         return list(x)
 
@@ -706,6 +728,14 @@ class ShuffleProduct_overlapping(CombinatorialClass):
     def _constructor_(self, x):
         """
         This is used by default to produce elements when iterating.
+
+        TESTS::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping
+            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+            sage: S = ShuffleProduct_overlapping(w,u)
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
         """
         return list(x)
 

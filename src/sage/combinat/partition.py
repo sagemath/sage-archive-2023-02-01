@@ -3305,7 +3305,6 @@ class Partition(CombinatorialElement):
                 res *= 1-q**(self[i]-j-1)*t**(nu[j]-i)
         return res
 
-
     def hook_length(self, i, j):
         r"""
         Return the length of the hook of cell `(i,j)` in ``self``.

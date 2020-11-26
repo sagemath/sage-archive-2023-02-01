@@ -1,4 +1,4 @@
-#! /usr/bin/env bash -x
+#! /usr/bin/env bash
 ## Write a Dockerfile to stdout that tests that the packages listed in the debian.txt/fedora.txt files of standard spkg exist
 ## and satisfy the requirements tested by spkg-configure.m4
 ## This is called by $SAGE_ROOT/tox.ini

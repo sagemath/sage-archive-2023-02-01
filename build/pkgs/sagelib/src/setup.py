@@ -79,7 +79,7 @@ log.debug('python_packages = {0}'.format(python_packages))
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 
-from sage_setup.command.sage_install import sage_install
+from sage_setup.command.sage_install import sage_install_and_clean
 
 #########################################################
 ### Distutils
@@ -154,7 +154,6 @@ code = setup(
                  'bin/sage-num-threads.py',
                  'bin/sage-open',
                  'bin/sage-preparse',
-                 'bin/sage-pypkg-location',
                  'bin/sage-python',
                  'bin/sage-rebase.bat',
                  'bin/sage-rebase.sh',
@@ -166,10 +165,9 @@ code = setup(
                  'bin/sage-startuptime.py',
                  'bin/sage-update-src',
                  'bin/sage-update-version',
-                 'bin/sage-upgrade',
                  ],
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,
-                      install=sage_install),
+                      install=sage_install_and_clean),
       ext_modules = cython_modules)

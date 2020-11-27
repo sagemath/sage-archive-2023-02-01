@@ -18,8 +18,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import is_RealField
-from sage.symbolic.constants import pi
-from sage.symbolic.all import I
+from sage.symbolic.constants import pi, I
 
 # ---------------- The Gamma Function  ------------------
 

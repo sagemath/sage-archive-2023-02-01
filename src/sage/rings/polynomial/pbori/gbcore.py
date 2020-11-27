@@ -1,6 +1,6 @@
-
-from .nf import *
-from .PyPolyBoRi import *
+from .nf import GeneratorLimitExceeded, symmGB_F2_C, symmGB_F2_python
+from .PyPolyBoRi import (Monomial, Polynomial,
+                         GroebnerStrategy, OrderCode, ll_red_nf_redsb)
 from .ll import eliminate, ll_encode
 from copy import copy
 from itertools import chain
@@ -43,11 +43,10 @@ def filter_newstyle_options(func, **options):
 
 
 def owns_one_constant(I):
-    """Determines whether I contains the constant one polynomial."""
-    for p in I:
-        if p.is_one():
-            return True
-    return False
+    """
+    Determine whether I contains the constant one polynomial.
+    """
+    return any(p.is_one() for p in I)
 
 
 def want_interpolation_gb(G):

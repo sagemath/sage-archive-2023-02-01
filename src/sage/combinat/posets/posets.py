@@ -4663,16 +4663,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return the chains of the poset.
 
-        A *chain* of a poset is a set of elements of the poset
-        that are pairwise comparable.
+        A *chain* of a poset is an increasing sequence of
+        distinct elements of the poset.
 
         INPUT:
 
         - ``element_constructor`` -- a function taking an iterable as
-          argument (default: ``list``)
+          argument (optional, default: ``list``)
 
         - ``exclude`` -- elements of the poset to be excluded
-          (default: ``None``)
+          (optional, default: ``None``)
 
         OUTPUT:
 
@@ -4705,14 +4705,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO:: :meth:`maximal_chains`, :meth:`antichains`
         """
-        vertex_to_element = self._vertex_to_element
-
-        def f(chain):
-            return element_constructor(vertex_to_element(x) for x in chain)
-        if not(exclude is None):
+        if exclude is not None:
             exclude = [self._element_to_vertex(x) for x in exclude]
-        result = self._hasse_diagram.chains(element_class=f,
-                                            exclude=exclude)
+        result = self._hasse_diagram.chains(element_class=element_constructor,
+                                            exclude=exclude,
+                                            conversion=self._elements)
         result.rename("Set of chains of %s" % self)
         return result
 

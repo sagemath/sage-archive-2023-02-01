@@ -77,7 +77,7 @@ class Image(SageObject):
 
         - ``size`` -- 2-tuple, containing (width, height) in pixels.
 
-        - ``color`` -- string or tuple of numeric. What colour to use
+        - ``color`` -- string, Python integer or tuple of Python integers. What colour to use
           for the image. Default is black.  If given, this should be a
           a tuple with one value per band. When creating RGB images,
           you can also use colour strings as supported by the
@@ -91,7 +91,7 @@ class Image(SageObject):
         EXAMPLES::
 
             sage: from sage.repl.image import Image
-            sage: Image('P', (16, 16), (13,))
+            sage: Image('P', (16, 16), int(13))
             16x16px 8-bit Color image
         """
         self._pil = PIL.Image.new(mode, size, color)
@@ -233,7 +233,7 @@ class Image(SageObject):
         EXAMPLES::
 
             sage: from sage.repl.image import Image
-            sage: img = Image('P', (12, 34), (13,))
+            sage: img = Image('P', (12, 34), int(13))
             sage: filename = tmp_filename(ext='.png')
             sage: img.save(filename)
             sage: with open(filename, 'rb') as f:

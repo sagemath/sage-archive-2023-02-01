@@ -11,7 +11,7 @@ do
     case "$1" in
         --verbose=*)
             IF_VERBOSE=
-            COMMENT=${1#--verbose=}
+            COMMENT="${1#--verbose=}"
             ;;
         --verbose)
             IF_VERBOSE=
@@ -21,7 +21,7 @@ do
             SUDO="sudo "
             ;;
         --prompt=*)
-            PROMPT=${1#--prompt=}
+            PROMPT="${1#--prompt=}"
             ;;
         --prompt)
             PROMPT='  $ '

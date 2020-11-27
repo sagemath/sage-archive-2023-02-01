@@ -7338,7 +7338,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
             sage: RowStandardTableaux([]).cardinality()
             1
         """
-        return multinomial([m for m in self.shape])
+        return Integer(multinomial([m for m in self.shape]))
 
 
 ########################

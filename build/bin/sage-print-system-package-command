@@ -54,7 +54,8 @@ case $system:$command in
     homebrew*:setup-build-env)
         $IF_VERBOSE echo "${COMMENT}"
         $IF_VERBOSE echo "${COMMENT}Homebrew can issue suggestions regarding keg-only packages."
-        $IF_VERBOSE echo "${COMMENT}The following command is to automatically apply these suggestions."
+        $IF_VERBOSE echo "${COMMENT}The following command is to automatically apply these suggestions"
+        $IF_VERBOSE echo "${COMMENT}for packages relevant for Sage to make them available for the build."
         $IF_VERBOSE echo "${COMMENT}Run it once to apply the suggestions for the current session."
         $IF_VERBOSE echo "${COMMENT}Add it to your shell profile to apply them for all future sessions."
         $IF_VERBOSE echo "${COMMENT}"

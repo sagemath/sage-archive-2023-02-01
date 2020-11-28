@@ -114,8 +114,8 @@ def install_scripts(directory=None, ignore_existing=False):
         cmd_inside_sage = have_program(cmd, path=SAGE_BIN)
         cmd_outside_sage = have_program(cmd, path=PATH)
         if not cmd_inside_sage:
-            print("The command '{}' is not available as part ".format(cmd)
-                   + "of Sage; not creating script.")
+            print("The command '{}' is not available as part ".format(cmd) +
+                  "of Sage; not creating script.")
             print()
             continue
         if cmd_outside_sage:
@@ -132,9 +132,9 @@ def install_scripts(directory=None, ignore_existing=False):
         if os.path.exists(target):
             print("The file '{}' already exists; not adding script.".format(target))
         else:
-            o = open(target,'w')
+            o = open(target, 'w')
             o.write('#!/bin/sh\n')
-            o.write('exec sage --%s "$@"\n'%cmd)
+            o.write('exec sage --%s "$@"\n' % cmd)
             o.close()
             print("Created script '{}'".format(target))
             os.system('chmod a+rx {}'.format(target))

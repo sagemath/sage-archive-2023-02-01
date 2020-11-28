@@ -40,6 +40,7 @@ def bool_function(x):
 def str_function(x):
     return 'MATHML version of the string %s' % (x,)
 
+
 # One can add to the latex_table in order to install latexing
 # functionality for other types.
 
@@ -73,4 +74,3 @@ def mathml(x):
             return MathML("MATHML version of 'None'")
 
         return MathML(str_function(str(x)))
-

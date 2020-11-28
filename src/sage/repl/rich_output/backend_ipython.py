@@ -413,8 +413,9 @@ class BackendIPythonCommandline(BackendIPython):
             '...<script ...</script>...'
         """
         from sage.env import THREEJS_DIR
+        from sage.repl.rich_output.display_manager import _required_threejs_version
 
-        script = os.path.join(THREEJS_DIR, 'build/three.min.js')
+        script = os.path.join(THREEJS_DIR, '{}/three.min.js'.format(_required_threejs_version()))
 
         if sys.platform == 'cygwin':
             import cygwin

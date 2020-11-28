@@ -397,7 +397,7 @@ class BackendIPythonCommandline(BackendIPython):
         """
         return True
 
-    def threejs_offline_script(self):
+    def threejs_offline_scripts(self):
         """
         Three.js script for the IPython command line
 
@@ -409,7 +409,7 @@ class BackendIPythonCommandline(BackendIPython):
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
             sage: backend = BackendIPythonCommandline()
-            sage: backend.threejs_offline_script()
+            sage: backend.threejs_offline_scripts()
             '...<script ...</script>...'
         """
         from sage.env import THREEJS_DIR
@@ -583,7 +583,7 @@ class BackendIPythonNotebook(BackendIPython):
         else:
             raise TypeError('rich_output type not supported')
 
-    def threejs_offline_script(self):
+    def threejs_offline_scripts(self):
         """
         Three.js script for the IPython notebook
 
@@ -595,11 +595,11 @@ class BackendIPythonNotebook(BackendIPython):
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
-            sage: backend.threejs_offline_script()
+            sage: backend.threejs_offline_scripts()
             '...<script src="/nbextensions/threejs/build/three.min...<\\/script>...'
         """
         from sage.repl.rich_output import get_display_manager
-        CDN_script = get_display_manager().threejs_script(online=True)
+        CDN_script = get_display_manager().threejs_scripts(online=True)
         return """
 <script src="/nbextensions/threejs/build/three.min.js"></script>
 <script>

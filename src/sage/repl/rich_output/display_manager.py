@@ -716,7 +716,7 @@ class DisplayManager(SageObject):
         buf = OutputBuffer.from_file(filename)
         return output_container(buf)
 
-    def threejs_script(self, online):
+    def threejs_scripts(self, online):
         """
         Return Three.js script tag for the current backend.
 
@@ -737,9 +737,9 @@ class DisplayManager(SageObject):
         EXAMPLES::
 
             sage: from sage.repl.rich_output import get_display_manager
-            sage: get_display_manager().threejs_script(online=True)
+            sage: get_display_manager().threejs_scripts(online=True)
             '...<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@...'
-            sage: get_display_manager().threejs_script(online=False)
+            sage: get_display_manager().threejs_scripts(online=False)
             Traceback (most recent call last):
             ...
             ValueError: current backend does not support
@@ -755,7 +755,7 @@ class DisplayManager(SageObject):
 <script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@{0}/build/three.min.js"></script>
             """.format(version)
         try:
-            return self._backend.threejs_offline_script()
+            return self._backend.threejs_offline_scripts()
         except AttributeError:
             raise ValueError(
                 'current backend does not support offline threejs graphics')

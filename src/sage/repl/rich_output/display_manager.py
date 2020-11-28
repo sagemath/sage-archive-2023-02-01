@@ -52,6 +52,8 @@ def _required_threejs_version():
         sage: _required_threejs_version()
         'r...'
     """
+    import os
+    import sage.env
     with open(os.path.join(sage.env.SAGE_EXTCODE, 'threejs', 'threejs-version.txt')) as f:
         return f.read().strip()
 
@@ -758,9 +760,6 @@ class DisplayManager(SageObject):
             offline threejs graphics
         """
         if online:
-            import sage.env
-            import re
-            import os
             version = _required_threejs_version()
             return """
 <script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@{0}/build/three.min.js"></script>

@@ -597,12 +597,12 @@ class BackendIPythonNotebook(BackendIPython):
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
             sage: backend.threejs_offline_scripts()
-            '...<script src="/nbextensions/threejs/build/three.min...<\\/script>...'
+            '...<script src="/nbextensions/threejs-sage/build/three.min...<\\/script>...'
         """
         from sage.repl.rich_output import get_display_manager
         CDN_script = get_display_manager().threejs_scripts(online=True)
         return """
-<script src="/nbextensions/threejs/build/three.min.js"></script>
+<script src="/nbextensions/threejs-sage/build/three.min.js"></script>
 <script>
   if ( !window.THREE ) document.write('{}');
 </script>

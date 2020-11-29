@@ -2186,7 +2186,7 @@ class IncidenceStructure(object):
 
         TEST::
 
-            # verify that :trac:``???` is fixed
+            # verify that :trac:`30976` is fixed
             sage: I = IncidenceStructure([1,2,3], [[1,2], [2,3]])
             sage: I._latex_()
             ...UserWarning:

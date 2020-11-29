@@ -62,7 +62,6 @@ matrices and Latin squares. See:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space

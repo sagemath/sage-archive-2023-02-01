@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 

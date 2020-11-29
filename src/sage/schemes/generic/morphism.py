@@ -74,7 +74,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import operator
 from sage.structure.element import Element, parent, coercion_model

@@ -22,6 +22,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
 from sage.structure.element import Element
 from sage.misc.all import cached_method, prod
 from sage.features import PythonModule

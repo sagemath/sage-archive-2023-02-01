@@ -15,7 +15,6 @@ Base class for polyhedra
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import division, print_function, absolute_import
 
 import itertools
 from sage.structure.element import Element, coerce_binop, is_Vector, is_Matrix

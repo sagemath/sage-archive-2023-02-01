@@ -5,7 +5,6 @@ A realization `h` of the ring of symmetric functions is multiplicative if for
 a partition `\lambda = (\lambda_1,\lambda_2,\ldots)` we have
 `h_\lambda = h_{\lambda_1} h_{\lambda_2} \cdots`.
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #

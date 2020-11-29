@@ -38,7 +38,6 @@ functions from this definition.
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from . import sfa
 from sage.categories.morphism import SetMorphism

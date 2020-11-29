@@ -98,7 +98,6 @@ We do some arithmetic in a tower of relative number fields::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 from sage.misc.cachefunc import cached_method
 

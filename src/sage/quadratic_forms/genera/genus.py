@@ -18,7 +18,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.misc.lazy_import import lazy_import
 from sage.misc.all import prod, cached_method

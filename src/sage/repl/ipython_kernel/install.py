@@ -146,6 +146,8 @@ class SageKernelSpec(object):
             sage: os.path.isfile(os.path.join(jsmol, "JSmol.min.js"))
             True
         """
+        from sage.misc.superseded import deprecation
+        deprecation(30315, 'Symlinking jsmol is no longer necessary')
         src = os.path.join(JSMOL_DIR)
         dst = os.path.join(self.nbextensions_dir, 'jsmol')
         self.symlink(src, dst)
@@ -275,7 +277,6 @@ class SageKernelSpec(object):
         """
         instance = cls(*args, **kwds)
         instance.use_local_mathjax()
-        instance.use_local_jsmol()
         instance.use_local_threejs()
         instance._install_spec()
         instance._symlink_resources()

@@ -2186,7 +2186,7 @@ class IncidenceStructure(object):
         """
         from sage.functions.trig import arctan2
 
-        from sage.misc.misc import warn
+        from warnings import warn
         warn("\nThe hypergraph is drawn as a set of closed curves. The curve "
              "representing a set S go **THROUGH** the points contained "
              "in S.\n A point which is encircled by a curve but is not located "

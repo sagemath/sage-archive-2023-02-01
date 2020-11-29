@@ -17,10 +17,11 @@ a partition `\lambda = (\lambda_1,\lambda_2,\ldots)` we have
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from . import classical
 import sage.combinat.partition
+
 
 class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra_classical):
     r"""
@@ -36,7 +37,7 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
     monomial basis).
     """
 
-    def _multiply_basis(self, left, right):
+    def product_on_basis(self, left, right):
         """
         Return the product of ``left`` and ``right``.
 
@@ -48,7 +49,7 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
 
         - an element of ``self``
 
-        TESTS::
+        EXAMPLES::
 
             sage: e = SymmetricFunctions(QQ).e()
             sage: e([2,1])^2  # indirect doctest
@@ -75,9 +76,9 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
 
             sage: TestSuite(p).run() # to silence sage -coverage
         """
-        m = list(left)+list(right)
+        m = list(left) + list(right)
         m.sort(reverse=True)
-        return sage.combinat.partition.Partition(m)
+        return self.monomial(sage.combinat.partition.Partition(m))
 
     def coproduct_on_basis(self, mu):
         r"""
@@ -109,4 +110,3 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
         """
         T = self.tensor_square()
         return T.prod(self.coproduct_on_generators(p) for p in mu)
-

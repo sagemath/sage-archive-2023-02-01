@@ -14,7 +14,7 @@ Generic dual bases symmetric functions
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
@@ -22,6 +22,7 @@ from sage.matrix.all import matrix
 import sage.combinat.partition
 import sage.data_structures.blas_dict as blas
 from . import classical
+
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", basis_name=None, prefix=None):
@@ -490,8 +491,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         else:
             return self._inverse_transition_matrices[n]*self._dual_basis.transition_matrix(basis, n)
 
-
-    def _multiply(self, left, right):
+    def product(self, left, right):
         """
         Return product of ``left`` and ``right``.
 
@@ -517,12 +517,10 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: b.dual()
             6*m[1, 1, 1, 1] + 4*m[2, 1, 1] + 3*m[2, 2] + 2*m[3, 1] + m[4]
         """
-
-        #Do the multiplication in the dual basis
-        #and then convert back to self.
+        # Do the multiplication in the dual basis
+        # and then convert back to self.
         eclass = left.__class__
-        d_product = left.dual()*right.dual()
-
+        d_product = left.dual() * right.dual()
         return eclass(self, dual=d_product)
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):

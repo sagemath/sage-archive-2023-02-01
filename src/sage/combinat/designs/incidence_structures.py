@@ -2183,6 +2183,22 @@ class IncidenceStructure(object):
             sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
+
+        TEST::
+
+            # verify that :trac:``???` is fixed
+            sage: I = IncidenceStructure([1,2,3], [[1,2], [2,3]])
+            sage: I._latex_()
+            ...UserWarning:
+            The hypergraph is drawn as a set of closed curves...
+            \begin{tikzpicture}...
+            \draw... -- ...;
+            \draw... -- ...;
+             \draw node...;
+             \draw node...;
+             \draw node...;
+            \end{tikzpicture}
+
         """
         from sage.functions.trig import arctan2
 

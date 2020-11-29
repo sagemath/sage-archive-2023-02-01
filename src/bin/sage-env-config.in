@@ -46,9 +46,9 @@ CONFIGURED_OBJCXX="@OBJCXX@"
 #######################################
 # Other configuration (exported)
 #######################################
-export PYTHON_FOR_VENV="@PYTHON_FOR_VENV@"
 
 #######################################
 # Other configuration (not exported, only used in sage-env)
 #######################################
 SAGE_PKG_CONFIG_PATH="@SAGE_PKG_CONFIG_PATH@"
+SAGE_MACOSX_DEPLOYMENT_TARGET="@SAGE_MACOSX_DEPLOYMENT_TARGET@"

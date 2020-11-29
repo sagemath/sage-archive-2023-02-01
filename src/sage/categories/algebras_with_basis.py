@@ -132,10 +132,12 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         # For backward compatibility
         one = UnitalAlgebras.WithBasis.ParentMethods.one
 
-        # Backward compatibility temporary cruft to help migrating form CombinatorialAlgebra
-        def _product_from_combinatorial_algebra_multiply(self,left,right):
+        # Backward compatibility temporary cruft to help migrating
+        # from CombinatorialAlgebra
+        def _product_from_combinatorial_algebra_multiply(self, left, right):
             r"""
-            Returns left\*right where left and right are elements of self.
+            Return left\*right where left and right are elements of self.
+
             product() uses either _multiply or _multiply basis to carry out
             the actual multiplication.
 
@@ -340,10 +342,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 else:
                     return NotImplemented
 
-            #def product_on_basis(self, t1, t2):
+            # def product_on_basis(self, t1, t2):
             # would be easy to implement, but without a special
             # version of module morphism, this would not take
-            # advantage of the bloc structure
+            # advantage of the block structure
 
 
     class TensorProducts(TensorProductsCategory):

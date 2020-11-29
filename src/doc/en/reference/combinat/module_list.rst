@@ -43,7 +43,6 @@ Comprehensive Module list
     sage/combinat/combinat
     sage/combinat/combinat_cython
     sage/combinat/combination
-    sage/combinat/combinatorial_algebra
     sage/combinat/combinatorial_map
     sage/combinat/composition
     sage/combinat/composition_signed

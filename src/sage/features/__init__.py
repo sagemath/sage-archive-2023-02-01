@@ -673,7 +673,7 @@ class StaticFile(Feature):
             sage: feature.absolute_path() == file_path
             True
 
-        A ``FeatureNotPresentError`` is raised if the file can not be found::
+        A ``FeatureNotPresentError`` is raised if the file cannot be found::
 
             sage: from sage.features import StaticFile
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()  # optional - sage_spkg

@@ -2324,7 +2324,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: 2^a
             Traceback (most recent call last):
             ...
-            TypeError: an embedding into RR or CC must be specified
+            TypeError: no canonical coercion from Number Field in a with defining polynomial x^2 + 1 to Symbolic Ring
         """
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
@@ -3023,6 +3023,25 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: g is f.polynomial()
             False
+
+        Note that in relative number fields, this produces the polynomial of
+        the internal representation of this element::
+
+            sage: R.<y> = K[]
+            sage: L.<b> = K.extension(y^2 - a)
+            sage: b.polynomial()
+            x
+
+        In some cases this might not be what you are looking for::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: R.<y> = K[]
+            sage: L.<b> = K.extension(y^2 + y + 2)
+            sage: b.polynomial()
+            1/2*x^3 + 3*x - 1/2
+            sage: R(list(b))
+            y
+
         """
         from sage.rings.polynomial.polynomial_ring_constructor import _single_variate as Pol
         return Pol(QQ, var)(self._coefficients())

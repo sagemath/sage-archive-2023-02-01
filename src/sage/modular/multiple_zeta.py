@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-r"""Algebra of motivic multiple zeta values
+r"""
+Algebra of motivic multiple zeta values
 
 This file contains an implementation of the algebra of motivic
 multiple zeta values.
@@ -165,6 +166,7 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.richcmp import op_EQ,op_NE
 from sage.algebras.free_zinbiel_algebra import FreeZinbielAlgebra
 from sage.arith.misc import bernoulli
 from sage.categories.cartesian_product import cartesian_product
@@ -1050,6 +1052,40 @@ class Multizetas(CombinatorialFreeModule):
             """
             return self.parent().iterated(self)
 
+        def single_valued(self):
+            """
+            Return the single-valued version of ``self``.
+
+            EXAMPLES::
+
+                sage: M = Multizetas(QQ)
+                sage: x = M((2,))
+                sage: x.single_valued()
+                0
+                sage: x = M((3,))
+                sage: x.single_valued()
+                2*ζ(3)
+                sage: x = M((5,))
+                sage: x.single_valued()
+                2*ζ(5)
+                sage: x = M((2,3))
+                sage: x.single_valued()
+                -11*ζ(5)
+
+                sage: Z = Multizeta
+                sage: Z(3,5).single_valued() == -10*Z(3)*Z(5)
+                True
+                sage: Z(5,3).single_valued() == 14*Z(3)*Z(5)
+                True
+            """
+            phi_im = self.phi()
+            zin = phi_im.parent()
+            BR2 = zin.base_ring()
+            sv = zin.sum_of_terms((w, BR2(cf(0)))
+                                  for (a, b), cf in phi_im.coproduct()
+                                  for w in a.shuffle(b.reversal()))
+            return rho_inverse(sv)
+
         def simplify(self):
             """
             Gather terms using the duality relations.
@@ -1065,9 +1101,33 @@ class Multizetas(CombinatorialFreeModule):
             """
             return self.iterated().simplify().composition()
 
-        def __eq__(self, other):
+        def is_zero(self):
+            r"""
+            Return whether this element is zero.
+
+            EXAMPLES::
+
+                sage: M = Multizeta
+
+                sage: (4*M(2,3) + 6*M(3,2) - 5*M(5)).is_zero()
+                True
+                sage: (3*M(4) - 4*M(2,2)).is_zero()
+                True
+                sage: (4*M(2,3) + 6*M(3,2) + 3*M(4) - 5*M(5) - 4*M(2,2)).is_zero()
+                True
+
+                sage: (4*M(2,3) + 6*M(3,2) - 4*M(5)).is_zero()
+                False
+                sage: (M(4) - M(2,2)).is_zero()
+                False
+                sage: (4*M(2,3) + 6*M(3,2) + 3*M(4) - 4*M(5) - 4*M(2,2)).is_zero()
+                False
             """
-            Test for equality.
+            return self.iterated().is_zero()
+
+        def _richcmp_(self, other, op):
+            """
+            Comparison.
 
             This means equality as motivic multiple zeta value, computed
             using the morphism ``phi``.
@@ -1080,24 +1140,34 @@ class Multizetas(CombinatorialFreeModule):
                 sage: our_pi2 = 6*M(2)
                 sage: Multizeta(2,2,2) == our_pi2**3 / 7.factorial()
                 True
-            """
-            return self.iterated().phi() == other.iterated().phi()
 
-        def __ne__(self, other):
-            """
-            Test for non-equality.
+                sage: M(2,2,2) != M(6)
+                True
 
-            This means non-equality as motivic multiple zeta value, computed
-            using the morphism ``phi``.
+                sage: M(4) == M(66) + M(33,33)
+                False
+                sage: M(33) + M(22,11) == M(3)
+                False
+                sage: M(5) == 1
+                False
+                sage: M() == 1
+                True
+                sage: (0*M()) == 0
+                True
+            """
+            return self.iterated()._richcmp_(other.iterated(), op)
+
+        def __hash__(self):
+            """
+            Return the hash of ``self``.
 
             EXAMPLES::
 
-                sage: from sage.modular.multiple_zeta import Multizetas_iterated
                 sage: M = Multizeta
-                sage: M(2,2,2) != M(6)
+                sage: hash(M(1,2)) != hash(M(6))
                 True
             """
-            return not (self == other)
+            return hash(self.iterated().phi())
 
         def phi(self):
             """
@@ -1137,6 +1207,8 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M = Multizetas(QQ)
                 sage: M((3,2)).phi_as_vector()
                 (9/2, -2)
+                sage: M(0).phi_as_vector()
+                ()
 
             TESTS::
 
@@ -1185,7 +1257,7 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M((3,)).n(digits=10)
                 1.202056903
 
-            If you need plan to use intensively numerical approximation at high precision,
+            If you plan to use intensively numerical approximation at high precision,
             you might want to add more values and/or accuracy to the cache::
 
                 sage: from sage.modular.multiple_zeta import MultizetaValues
@@ -1215,7 +1287,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
     Secondary class for the algebra of multiple zeta values.
 
     This is used to represent multiple zeta values as iterated integrals
-    of the differential forms `\omega_0 = \dt/t`and `\omega_1 = \dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t` and `\omega_1 = dt/(t-1)`.
 
     EXAMPLES::
 
@@ -1304,7 +1376,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M = Multizetas_iterated(QQ)
             sage: x = Word([1,0])
             sage: M.product_on_basis(x,x)
-            2*I(1010) + 4*I(1100)
+            4*I(1100) + 2*I(1010)
             sage: y = Word([1,1,0])
             sage: M.product_on_basis(y,x)
             I(10110) + 3*I(11010) + 6*I(11100)
@@ -1759,7 +1831,31 @@ class Multizetas_iterated(CombinatorialFreeModule):
             """
             return self.parent().phi(self)
 
-        def __eq__(self, other):
+        def is_zero(self):
+            r"""
+            Return whether this element is zero.
+
+            EXAMPLES::
+
+                sage: from sage.modular.multiple_zeta import Multizetas_iterated
+                sage: M = Multizetas_iterated(QQ)
+                sage: M(0).is_zero()
+                True
+                sage: M(1).is_zero()
+                False
+                sage: (M((1,1,0)) - -M((1,0,0))).is_zero()
+                True
+            """
+            P = self.parent()
+            deg = P.degree_on_basis
+            phi = P.phi
+            for d in sorted(set(deg(w) for w in self.support())):
+                z = self.homogeneous_component(d)
+                if not phi(z).is_zero():
+                    return False
+            return True
+
+        def _richcmp_(self, other, op):
             """
             Test for equality.
 
@@ -1779,24 +1875,10 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 sage: a.iterated() == b.iterated() # not tested, long time 20s
                 True
             """
-            return self.phi() == other.phi()
+            if op != op_EQ and op != op_NE:
+                raise NotImplementedError("no comparison available")
 
-        def __ne__(self, other):
-            """
-            Test for non-equality.
-
-            This means non-equality as motivic multiple zeta value, computed
-            using the morphism ``phi``.
-
-            EXAMPLES::
-
-                sage: from sage.modular.multiple_zeta import Multizetas_iterated
-                sage: M = Multizetas_iterated(QQ)
-                sage: M((1,0)) == M((1,0,0))
-                False
-            """
-            return not (self == other)
-
+            return (self - other).is_zero() == (op == op_EQ)
 
 class All_iterated(CombinatorialFreeModule):
     r"""
@@ -1804,15 +1886,15 @@ class All_iterated(CombinatorialFreeModule):
 
     This is used to represent multiple zeta values as possibly
     divergent iterated integrals
-    of the differential forms `\omega_0 = \dt/t`and `\omega_1 = \dt/(t-1)`.
+    of the differential forms `\omega_0 = dt/t` and `\omega_1 = dt/(t-1)`.
 
     This means that the elements are symbols
-    `I(a_0 ; a_1,a_2,...a_m ; a_{n+1})`
+    `I(a_0 ; a_1,a_2,...a_n ; a_{n+1})`
     where all arguments, including the starting and ending points
     can be 0 or 1.
 
     This comes with a "regularise" method mapping
-    to :class:`Multizeta_iterated`.
+    to :class:`Multizetas_iterated`.
 
     EXAMPLES::
 
@@ -2064,7 +2146,7 @@ class All_iterated(CombinatorialFreeModule):
     class Element(CombinatorialFreeModule.Element):
         def conversion(self):
             """
-            Conversion to the :class:`Multizeta_iterated`.
+            Conversion to the :class:`Multizetas_iterated`.
 
             This assumed that the element has been prepared.
 
@@ -2086,7 +2168,7 @@ class All_iterated(CombinatorialFreeModule):
 
         def regularise(self):
             """
-            Conversion to the :class:`Multizeta_iterated`.
+            Conversion to the :class:`Multizetas_iterated`.
 
             This is the regularisation procedure, done in several steps.
 
@@ -2110,7 +2192,7 @@ class All_iterated(CombinatorialFreeModule):
             step2 = P.expand(step1)   # R2
             step3 = P.dual(step2)     # R4
             step4 = P.expand(step3)    # R2
-            return step4.conversion()  # dans Multizeta_iterated
+            return step4.conversion()  # dans Multizetas_iterated
 
 
 # **************** procedures after F. Brown ************
@@ -2454,6 +2536,8 @@ def f_to_vector(elt):
     """
     F = elt.parent()
     BR = F.base_ring().base_ring()
+    if not elt:
+        return vector(BR, [])
     a, b = next(iter(elt))
     N = sum(int(x[1:]) for x in a) + 2 * b.degree()
     W = F.basis().keys()
@@ -2545,6 +2629,8 @@ def rho_inverse(elt):
         ζ(3)
         sage: rho_inverse(f(9))
         ζ(9)
+        sage: rho_inverse(f(5)*f(3))
+        -1/5*ζ(3,5)
     """
     pa = elt.parent()
     BR = pa.base_ring().base_ring()

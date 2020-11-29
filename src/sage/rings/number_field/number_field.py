@@ -979,6 +979,24 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         latex_name = r'\sqrt{%s}' % D
     return NumberField(f, name, check=False, embedding=embedding, latex_name=latex_name, **args)
 
+def GaussianField():
+    r"""
+    The field QQ[i].
+
+    TESTS::
+
+        sage: from sage.rings.number_field.number_field import GaussianField
+        sage: QQi = GaussianField()
+        sage: QQi.coerce_embedding()
+        Generic morphism:
+          From: Number Field in I with defining polynomial x^2 + 1 with I = 1*I
+          To:   Complex Lazy Field
+          Defn: I -> 1*I
+        sage: (I + 1/2).parent() is GaussianField()
+        True
+    """
+    return QuadraticField(-1, 'I', latex_name='i')
+
 def is_AbsoluteNumberField(x):
     """
     Return True if x is an absolute number field.
@@ -11387,8 +11405,11 @@ class NumberField_quadratic(NumberField_absolute):
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._standard_embedding = True
-        self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [QQ(t) for t in self.defining_polynomial().list()]
+        if a.is_one() and b.is_zero() and c.is_one():
+            self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
+        else:
+            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         # set the generator
         Dpoly = b*b - 4*a*c
         D = (Dpoly.numer() * Dpoly.denom()).squarefree_part(bound=10000)

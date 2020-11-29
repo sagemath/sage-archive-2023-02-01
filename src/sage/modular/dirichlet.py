@@ -66,7 +66,7 @@ import sage.modules.free_module_element     as free_module_element
 import sage.rings.all                       as rings
 import sage.rings.number_field.number_field as number_field
 from sage.libs.pari import pari
-        
+
 from sage.categories.map import Map
 from sage.rings.rational_field import is_RationalField
 from sage.rings.complex_mpfr import is_ComplexField
@@ -804,6 +804,238 @@ class DirichletCharacter(MultiplicativeGroupElement):
         return rings.Integer(cond)
 
     @cached_method
+    def fixed_field_polynomial(self, algorithm = "pari"):
+        r"""
+        Given a Dirichlet character this will return a
+        polynomial generating the abelian extension fixed by the kernel
+        of the corresponding Galois character.
+
+        ALGORITHM: (Sage) A formula by Gauss for the products of periods; see Disquisitiones §343. See the source code for more.
+
+        OUTPUT:
+
+        - a polynomial with integer coefficients
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(37)
+            sage: chi = G.0
+            sage: psi = chi^18
+            sage: psi.fixed_field_polynomial()
+            x^2 + x - 9
+
+            sage: G = DirichletGroup(7)
+            sage: chi = G.0^2
+            sage: chi
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> zeta6 - 1
+            sage: chi.fixed_field_polynomial()
+            x^3 + x^2 - 2*x - 1
+
+            sage: G = DirichletGroup(31)
+            sage: chi = G.0
+            sage: chi^6
+            Dirichlet character modulo 31 of conductor 31 mapping 3 |--> zeta30^6
+            sage: psi = chi^6
+            sage: psi.fixed_field_polynomial()
+            x^5 + x^4 - 12*x^3 - 21*x^2 + x + 5
+
+            sage: G = DirichletGroup(7)
+            sage: chi = G.0
+            sage: chi.fixed_field_polynomial()
+            x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+
+            sage: G = DirichletGroup(1001)
+            sage: chi = G.0
+            sage: psi = chi^3
+            sage: psi.order()
+            2
+            sage: psi.fixed_field_polynomial(algorithm="pari")
+            x^2 + x + 2
+
+        With the Sage implementation::
+
+            sage: G = DirichletGroup(37)
+            sage: chi = G.0
+            sage: psi = chi^18
+            sage: psi.fixed_field_polynomial(algorithm="sage")
+            x^2 + x - 9
+
+            sage: G = DirichletGroup(7)
+            sage: chi = G.0^2
+            sage: chi
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> zeta6 - 1
+            sage: chi.fixed_field_polynomial(algorithm="sage")
+            x^3 + x^2 - 2*x - 1
+
+            sage: G = DirichletGroup(31)
+            sage: chi = G.0
+            sage: chi^6
+            Dirichlet character modulo 31 of conductor 31 mapping 3 |--> zeta30^6
+            sage: psi = chi^6
+            sage: psi.fixed_field_polynomial(algorithm="sage")
+            x^5 + x^4 - 12*x^3 - 21*x^2 + x + 5
+
+            sage: G = DirichletGroup(7)
+            sage: chi = G.0
+            sage: chi.fixed_field_polynomial(algorithm="sage")
+            x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+
+            sage: G = DirichletGroup(1001)
+            sage: chi = G.0
+            sage: psi = chi^3
+            sage: psi.order()
+            2
+            sage: psi.fixed_field_polynomial(algorithm="sage")
+            x^2 + x + 2
+
+        The algorithm must be one of `sage` or `pari`::
+
+            sage: G = DirichletGroup(1001)
+            sage: chi = G.0
+            sage: psi = chi^3
+            sage: psi.order()
+            2
+            sage: psi.fixed_field_polynomial(algorithm="banana")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: algorithm must be one of 'pari' or 'sage'
+
+        """
+
+        # this algorithm was written by Francis Clarke see ticket #9407
+
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+        from sage.rings.integer_ring import IntegerRing
+        ZZ = IntegerRing()
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.modules.free_module import FreeModule
+        from sage.matrix.constructor import matrix
+
+        if algorithm == "sage":
+            n = ZZ(self.conductor())
+            if not n.is_prime():
+                raise NotImplementedError('the conductor %s is supposed to be prime' % n)
+
+            d = self.order()
+
+            # check that there will be such a field of degree d inside QQ(zeta_n)
+            if euler_phi(n) % d != 0:
+                raise ValueError('No field exists because %s does not divide %s=phi(%s)' % (d,euler_phi(n),n))
+            f = euler_phi(n)//d
+
+            S = PolynomialRing(ZZ, 'x')
+
+            if f == 1:
+                from sage.misc.functional import cyclotomic_polynomial
+                return cyclotomic_polynomial(n, S.gen())
+
+            if d == 2:
+                if n.mod(4) == 1:
+                    s = -1
+                else:
+                    s = 1
+                return S([s*(n + s)/4, 1, 1])
+
+            # Using the notation of van der Waerden, where $\zeta$ is a primitive
+            # $n$-root of unity,
+            # $$
+            # \eta_i = \sum_{j=0}^{f-1}\zeta^{g^{i+dj}},
+            # $$
+            # is represented by eta[i] as the list of exponents.
+            #
+            # gen_index is a dictionary such that gen_index[r] = i if the exponent r
+            # occurs in eta[i].  Thus $\eta^{(r)} = \eta_i$ in van der Waerden's
+            # notation.
+
+            R = IntegerModRing(n)
+            g = R.unit_gens()[0]
+            gen_index = {}
+            eta = []
+            for i in range(d):
+                eta.append([])
+                for j in range(f):
+                    r = g**(i + d*j)
+                    eta[i].append(r)
+                    gen_index[r] = i
+
+            # Using Gauss's formula
+            # $$
+            # \eta^{(r)}\eta^{(s)} = \sum_{j=0}^{f-1}\eta^{(r+sg^{dj})}
+            # $$
+            # (with $r=1$), we construct the matrix representing multiplication by
+            # $\eta_0=\eta^{(1)}$ with respect to the basis consisting of the $\eta_i$.
+            # Its characteristic polynomial generates the field.  The element
+            # $\eta^(0)$=f=-f\sum_{i=0}^{d-1}\eta_i$ is represented by eta_zero.
+
+            V = FreeModule(ZZ, d)
+            eta_zero = V([-f]*d)
+            m = []
+            for j in range(d):
+                v = 0
+                for e in eta[j]:
+                    try:
+                        s = V.gen(gen_index[1 + e])
+                    except KeyError:
+                        s = eta_zero
+                    v += s
+                m.append(v)
+
+            m = matrix(m)
+
+            xx = S.gen()
+            return m.charpoly(xx)
+
+        elif algorithm == "pari":
+            # Use pari
+            G,chi = self._pari_conversion()
+            K=pari.charker(G,chi)
+            H = pari.galoissubcyclo(G,K);
+            P = PolynomialRing(rings.RationalField(),"x")
+            x = P.gen()
+            return H.sage({"x":x})
+
+        else:
+            raise NotImplementedError("algorithm must be one of 'pari' or 'sage'")
+
+
+    def fixed_field(self):
+        r"""
+        Give a Dirichlet character this will return the abelian extension
+        fixed by the kernel of the corresponding Galois character.
+
+        OUTPUT:
+
+        - a number field
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(37)
+            sage: chi = G.0
+            sage: psi = chi^18
+            sage: psi.fixed_field()
+            Number Field in a with defining polynomial x^2 + x - 9
+
+
+            sage: G = DirichletGroup(7)
+            sage: chi = G.0^2
+            sage: chi
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> zeta6 - 1
+            sage: chi.fixed_field()
+            Number Field in a with defining polynomial x^3 + x^2 - 2*x - 1
+
+            sage: G = DirichletGroup(31)
+            sage: chi = G.0
+            sage: chi^6
+            Dirichlet character modulo 31 of conductor 31 mapping 3 |--> zeta30^6
+            sage: psi = chi^6
+            sage: psi.fixed_field()
+            Number Field in a with defining polynomial x^5 + x^4 - 12*x^3 - 21*x^2 + x + 5
+
+        """
+        from sage.rings.number_field.number_field import NumberField
+        return NumberField(self.fixed_field_polynomial(), 'a')
+
+    @cached_method
     def decomposition(self):
         r"""
         Return the decomposition of self as a product of Dirichlet
@@ -931,8 +1163,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         r"""
         Return the Conrey number for this character.
 
-        This is a positive integer coprime to q that identifies a
-        Dirichlet character of modulus q.
+        This is a positive integer coprime to `q` that identifies a
+        Dirichlet character of modulus `q`.
 
         See https://www.lmfdb.org/knowledge/show/character.dirichlet.conrey
 

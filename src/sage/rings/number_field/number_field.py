@@ -33,6 +33,9 @@ AUTHORS:
 
 - Anna Haensch (2018-03): added :meth:`quadratic_defect`
 
+- Michael Daub, Chris Wuthrich (2020-09-01): adding Dirichlet characters for abelian fields
+
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -233,6 +236,7 @@ CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
 def NumberField(polynomial, name=None, check=True, names=None, embedding=None,
@@ -3291,6 +3295,60 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                     m *= p**(e.valuation(p)+1)
         return m
 
+    def dirichlet_group(self):
+        r"""
+        Given a abelian field `K`, this computes and returns the
+        set of all Dirichlet characters corresponding to the
+        characters of the Galois group of `K/\mathbb{Q}`.
+
+        The output is random if the field is not abelian
+
+        OUTPUT:
+
+        - a list of Dirichlet characters
+
+        EXAMPLES::
+
+            sage: K.<t> = NumberField(x^3+x^2-36*x-4)
+            sage: K.conductor()
+            109
+            sage: K.dirichlet_group()
+            [Dirichlet character modulo 109 of conductor 1 mapping 6 |--> 1,
+            Dirichlet character modulo 109 of conductor 109 mapping 6 |--> zeta3,
+            Dirichlet character modulo 109 of conductor 109 mapping 6 |--> -zeta3 - 1]
+
+            sage: K = CyclotomicField(44)
+            sage: L = K.subfields(5)[0][0]
+            sage: X = L.dirichlet_group()
+            sage: X
+            [Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1,
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta5,
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta5^2,
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta5^3,
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> -zeta5^3 - zeta5^2 - zeta5 - 1]
+            sage: X[4]^2
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta5^3
+            sage: X[4]^2 in X
+            True
+
+        """
+        #todo : turn this into an abelian group rather than a list.
+        from sage.modular.dirichlet import DirichletGroup
+
+        m = self.conductor()
+        d = self.degree()
+        A = _splitting_classes_gens_(self,m,d)
+        # d could be improve to be the exponenent of the Galois group rather than the degree, but I do not see how to how about it already.
+        G = DirichletGroup(m, CyclotomicField(d))
+        H = [G(1)]
+        for chi in G:
+            if len(H) == d:
+                break
+            if chi not in H:
+                if all(chi(a) == 1 for a in A):
+                    H.append(chi)
+        return H
+
     def latex_variable_name(self, name=None):
         """
         Return the latex representation of the variable name for this
@@ -5661,6 +5719,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return True
 
+    @cached_method
     def is_galois(self):
         r"""
         Return True if this number field is a Galois extension of
@@ -10891,6 +10950,18 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         return True
 
+    def is_abelian(self):
+        """
+        Return True since all cyclotomic fields are automatically abelian.
+
+        EXAMPLES::
+
+            sage: CyclotomicField(29).is_abelian()
+            True
+        """
+        return True
+
+
     def is_isomorphic(self, other):
         """
         Return True if the cyclotomic field self is isomorphic as a number
@@ -12005,3 +12076,69 @@ def is_real_place(v):
         return True
     except TypeError:
         return False
+
+def _splitting_classes_gens_(K,m,d):
+    r"""
+    Given a number field `K` of conductor `m` and degree `d`,
+    this returns a set of multiplicative generators of the
+    subgroup of `(\mathbb{Z}/m\mathbb{Z})^{\times}`
+    containing exactly the classes that contain the primes splitting
+    completely in `K`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.number_field.number_field import _splitting_classes_gens_
+        sage: K = CyclotomicField(101)
+        sage: L = K.subfields(20)[0][0]
+        sage: L.conductor()
+        101
+        sage: _splitting_classes_gens_(L,101,20)
+        [95]
+
+        sage: K = CyclotomicField(44)
+        sage: L = K.subfields(4)[0][0]
+        sage: _splitting_classes_gens_(L,44,4)
+        [37]
+
+        sage: K = CyclotomicField(44)
+        sage: L = K.subfields(5)[0][0]
+        sage: K.degree()
+        20
+        sage: L
+        Number Field in zeta44_0 with defining polynomial x^5 - 2*x^4 - 16*x^3 + 24*x^2 + 48*x - 32 with zeta44_0 = 3.837971894457990?
+        sage: L.conductor()
+        11
+        sage: _splitting_classes_gens_(L,11,5)
+        [10]
+
+    """
+    from sage.groups.abelian_gps.abelian_group import AbelianGroup
+
+    R = K.ring_of_integers()
+    Zm = IntegerModRing(m)
+    unit_gens = Zm.unit_gens()
+    Zmstar = AbelianGroup(len(unit_gens), [x.multiplicative_order() for x in unit_gens])
+
+    def map_Zmstar_to_Zm(h):
+        li = h.list()
+        return prod(unit_gens[i]**li[i] for i in range(len(unit_gens)))
+
+    Hgens = []
+    H = Zmstar.subgroup([])
+    p = 0
+    Horder = arith.euler_phi(m)/d
+    for g in Zmstar:
+        if H.order() == Horder:
+            break
+        if g not in H:
+            u = map_Zmstar_to_Zm(g)
+            p = u.lift()
+            while not p.is_prime():
+                p += m
+            f = R.ideal(p).prime_factors()[0].residue_class_degree()
+            h = g**f
+            if h not in H:
+                Hgens += [h]
+                H = Zmstar.subgroup(Hgens)
+
+    return [map_Zmstar_to_Zm(h) for h in Hgens]

@@ -178,12 +178,12 @@ def benchmark(n=-1):
 
     INPUT:
 
-    - n -- int (default: -1) the benchmark number; the default
-           of -1 runs all the benchmarks
+    - ``n`` -- int (default: -1); the benchmark number. The default
+      of -1 runs all the benchmarks.
 
     OUTPUT:
 
-    - list -- summary of timings for each benchmark.
+    - ``list`` -- summary of timings for each benchmark
     """
     import sage.misc.benchmark
     return sage.misc.benchmark.benchmark(n)

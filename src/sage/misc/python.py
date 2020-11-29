@@ -15,9 +15,9 @@ class Python:
 
         INPUT:
 
-        - x -- a string
-        - globals -- a dictionary
-        - locals -- completely IGNORED
+        - ``x`` -- a string
+        - ``globals`` -- a dictionary
+        - ``locals`` -- completely IGNORED
 
         EXAMPLES::
 
@@ -36,7 +36,7 @@ class Python:
             sage: b
             7
 
-        The locals variable is ignored -- it is there only for
+        The ``locals`` variable is ignored -- it is there only for
         completeness.  It is ignored since otherwise the following
         will not work::
 

@@ -2204,7 +2204,7 @@ class IncidenceStructure(object):
 
         from warnings import warn
         warn("\nThe hypergraph is drawn as a set of closed curves. The curve "
-             "representing a set S go **THROUGH** the points contained "
+             "representing a set S goes **THROUGH** the points contained "
              "in S.\n A point which is encircled by a curve but is not located "
              "on its boundary is **NOT** included in the corresponding set.\n"
              "\n"

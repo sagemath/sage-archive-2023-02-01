@@ -17,6 +17,7 @@
 # Always use bash for make rules
 SHELL = @SHELL@
 
+# Check a variable that is only set in build/make/install, but not in sage-env, for example
 ifndef SAGE_PKGCONFIG
 $(error This Makefile needs to be invoked by build/make/install)
 endif

@@ -1,0 +1,21 @@
+INSTALL="yes"
+TARGET="${SAGE_SHARE}/knotinfo"
+VERSION=`cat package-version.txt`
+if [ -d $TARGET ]
+then
+    diff package-version.txt $TARGET > /dev/null 2>&1
+    if [ $? -eq 0 ]
+    then
+        INSTALL="no"
+        echo "Version $VERSION of knotinfo already installed"
+    else
+        OLD_VERSION=`cat $TARGET/package-version.txt`
+        echo "Removing former version $OLD_VERSION of knotinfo"
+        rm -rf $TARGET
+    fi
+fi
+
+if [ "$INSTALL" = "yes" ]
+then
+    exec sage-python23 spkg-install.py
+fi

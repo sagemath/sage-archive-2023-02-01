@@ -5,6 +5,10 @@
 #  This script is typically invoked by giving the command
 #      sage {-i|-p} <options> <package name>...
 #
+#  sage-spkg itself only accepts one <package name>.
+#
+#      sage-spkg <options> <package name> [<installation tree>]
+#
 #  Options can be:
 #   -s: do not delete temporary build directory
 #   -k: do not uninstall existing installation of this package before
@@ -26,7 +30,9 @@
 #
 #      SAGE_ROOT      -- root directory of sage distribution
 #      SAGE_LOCAL     -- prefix where packages are installed (usually $SAGE_ROOT/local)
-#      SAGE_INST_LOCAL-- prefix where to install this package (default: $SAGE_LOCAL)
+#      SAGE_INST_LOCAL-- prefix where to install this package;
+#                        this is set by the optional argument <installation tree>
+#                        and defaults to $SAGE_LOCAL.
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
 #      SAGE_DESTDIR   -- temporary root the package will be installed to
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
@@ -172,22 +178,10 @@ fi
 . sage-env-config
 . sage-env
 
-if [ -z "$SAGE_INST_LOCAL" ]; then
-    export SAGE_INST_LOCAL="$SAGE_LOCAL"
-fi
-
 if [ $? -ne 0 ]; then
     error_msg "Error setting environment variables by sourcing sage-env"
     exit 1
 fi
-
-if [ -z "$SAGE_BUILD_DIR" ]; then
-    export SAGE_BUILD_DIR="$SAGE_INST_LOCAL/var/tmp/sage/build"
-fi
-
-export SAGE_SPKG_INST="$SAGE_INST_LOCAL/var/lib/sage/installed"
-export SAGE_SPKG_SCRIPTS="$SAGE_INST_LOCAL/var/lib/sage/scripts"
-export SAGE_SPKG_WHEELS="$SAGE_INST_LOCAL/var/lib/sage/wheels"
 
 # Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
 # (cf. #10192, #10176):
@@ -267,6 +261,28 @@ if echo "$PKG_SRC" | grep / >/dev/null; then
 fi
 PKG_NAME="$PKG_SRC"
 PKG_BASE=`echo "$PKG_NAME" | sed 's/-.*//'` # strip version number
+
+case $# in
+    1)
+        SAGE_INST_LOCAL="$SAGE_LOCAL"
+        ;;
+    2)
+        SAGE_INST_LOCAL="$2"
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac
+export SAGE_INST_LOCAL
+
+if [ -z "$SAGE_BUILD_DIR" ]; then
+    export SAGE_BUILD_DIR="$SAGE_INST_LOCAL/var/tmp/sage/build"
+fi
+
+export SAGE_SPKG_INST="$SAGE_INST_LOCAL/var/lib/sage/installed"
+export SAGE_SPKG_SCRIPTS="$SAGE_INST_LOCAL/var/lib/sage/scripts"
+export SAGE_SPKG_WHEELS="$SAGE_INST_LOCAL/var/lib/sage/wheels"
 
 # USE_LOCAL_SCRIPTS is a flag that if non-empty will cause
 # this script to try to install the package using local metadata
@@ -507,6 +523,8 @@ for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env-co
         exit 1
     fi
 done
+
+export SAGE_INST_LOCAL="$SAGE_INST_LOCAL"
 
 sdh_guard
 if [ \$? -ne 0 ]; then

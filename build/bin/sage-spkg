@@ -530,7 +530,7 @@ __EOF__
 }
 
 
-WRAPPED_SCRIPTS="build install check preinst postinst legacy-uninstall prerm postrm"
+WRAPPED_SCRIPTS="build install check preinst postinst prerm postrm"
 INSTALLED_SCRIPTS="prerm postrm"
 
 

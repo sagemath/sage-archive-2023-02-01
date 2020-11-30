@@ -167,6 +167,8 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 	doc-clean doc-src-clean doc-output-clean \
 	clean sagelib-clean build-clean python3_venv _clean-broken-gcc
 
+PYTHON_FOR_VENV = @PYTHON_FOR_VENV@
+
 ifneq ($(PYTHON_FOR_VENV),)
 # Special rule for making the Python virtualenv from the system Python (Python
 # 3 only).  $(PYTHON) is set in Makefile to python3_venv.

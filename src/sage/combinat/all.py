@@ -26,7 +26,6 @@ from sage.combinat.designs.all import *
 
 # Free modules and friends
 from .free_module import CombinatorialFreeModule
-from .combinatorial_algebra import CombinatorialAlgebra
 from .debruijn_sequence import DeBruijnSequences
 
 from .schubert_polynomial import SchubertPolynomialRing
@@ -231,10 +230,7 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
 
 # Growth diagrams
-lazy_import('sage.combinat.growth', ['GrowthDiagram',
-                                     'GrowthDiagramRSK', 'GrowthDiagramBurge',
-                                     'GrowthDiagramBinWord', 'GrowthDiagramDomino',
-                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
+lazy_import('sage.combinat.growth', 'GrowthDiagram')
 
 # Path Tableaux
 lazy_import('sage.combinat.path_tableaux', 'catalog', as_='path_tableaux')

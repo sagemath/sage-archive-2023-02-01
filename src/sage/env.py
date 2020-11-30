@@ -198,6 +198,7 @@ var('MAXIMA',                        'maxima')
 var('MAXIMA_FAS')
 var('SAGE_NAUTY_BINS_PREFIX',        '')
 var('ARB_LIBRARY',                   'arb')
+var('CBLAS_PC_MODULES',              'cblas:openblas:blas')
 
 # misc
 var('SAGE_BANNER', '')
@@ -343,8 +344,7 @@ def sage_include_directories(use_sources=False):
 
         sage: import sage.env
         sage: sage.env.sage_include_directories()
-        ['.../python.../site-packages/sage/ext',
-        '.../include/python...',
+        ['.../include/python...',
         '.../python.../numpy/core/include']
 
     To check that C/C++ files are correctly found, we verify that we can
@@ -365,10 +365,16 @@ def sage_include_directories(use_sources=False):
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
     return [TOP,
-            os.path.join(TOP, 'sage', 'ext'),
             distutils.sysconfig.get_python_inc(),
             numpy.get_include()]
 
+def get_cblas_pc_module_name() -> str:
+    """
+    Return the name of the BLAS libraries to be used.
+    """
+    import pkgconfig
+    cblas_pc_modules = CBLAS_PC_MODULES.split(':')
+    return next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
 
 def cython_aliases():
     """
@@ -393,6 +399,8 @@ def cython_aliases():
     for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
                 'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
         var = lib.upper().replace("-", "") + "_"
+        if lib == 'cblas':
+            lib = get_cblas_pc_module_name()
         if lib == 'zlib':
             aliases[var + "CFLAGS"] = ""
             try:

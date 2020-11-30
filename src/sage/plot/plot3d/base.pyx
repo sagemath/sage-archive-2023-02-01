@@ -415,12 +415,18 @@ cdef class Graphics3d(SageObject):
         js_options['frame'] = options.get('frame', True)
         js_options['loop'] = options.get('loop', True)
         js_options['projection'] = options.get('projection', 'perspective')
+        js_options['theme'] = options.get('theme', 'light')
         js_options['viewpoint'] = options.get('viewpoint', False)
 
         if js_options['projection'] not in ['perspective', 'orthographic']:
             import warnings
             warnings.warn('projection={} is not supported; using perspective'.format(js_options['projection']))
             js_options['projection'] = 'perspective'
+
+        if js_options['theme'] not in ['light', 'dark']:
+            import warnings
+            warnings.warn('theme={} is not supported; using light theme'.format(js_options['theme']))
+            js_options['theme'] = 'light'
 
         # Normalization of options values for proper JSONing
         js_options['aspectRatio'] = [float(i) for i in js_options['aspectRatio']]
@@ -434,9 +440,9 @@ cdef class Graphics3d(SageObject):
                 js_options['viewpoint'] = False
             else:
                 if type(js_options['viewpoint']) is tuple:
-                    js_options['viewpoint'] = list(js_options['viewpoint']) 
+                    js_options['viewpoint'] = list(js_options['viewpoint'])
                 if type(js_options['viewpoint'][0]) is tuple:
-                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0]) 
+                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0])
                 js_options['viewpoint'][0] = [float(i) for i in js_options['viewpoint'][0]]
                 js_options['viewpoint'][1] = float(js_options['viewpoint'][1])
 
@@ -1292,11 +1298,7 @@ end_scene""" % (render_params.antialiasing,
         return box_min, box_max
 
     def _prepare_for_jmol(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
-        from sage.plot.plot import EMBEDDED_MODE
-        if EMBEDDED_MODE:
-            s = 6
-        else:
-            s = 3
+        s = 3
         box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(s, frame_aspect_ratio, zoom)
         a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
         return self._transform_to_bounding_box(box_min, box_max, a_min, a_max, frame=frame,
@@ -2172,7 +2174,7 @@ class Graphics3dGroup(Graphics3d):
             <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
         """
-        return "\n".join([g.x3d_str() for g in self.all])
+        return "\n".join(g.x3d_str() for g in self.all)
 
     def obj_repr(self, render_params):
         """

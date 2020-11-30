@@ -367,6 +367,9 @@ class DocTestController(SageObject):
                         if pkg['installed'] and pkg['installed_version'] == pkg['remote_version']:
                             options.optional.add(pkg['name'])
 
+                    from sage.features import package_systems
+                    options.optional.update(system.name for system in package_systems())
+
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
@@ -859,7 +862,7 @@ class DocTestController(SageObject):
             ....:     DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
             sage: DC.sort_sources()
             Sorting sources by runtime so that slower doctests are run first....
-            sage: print("\n".join([source.basename for source in DC.sources]))
+            sage: print("\n".join(source.basename for source in DC.sources))
             sage.doctest.util
             sage.doctest.test
             sage.doctest.sources

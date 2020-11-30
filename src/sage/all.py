@@ -102,6 +102,11 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
     message=r'[\s\S]*See https\?://trac\.sagemath\.org/[0-9]* for details.')
+
+# Ignore Python 3.9 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*ast')
+
 ################ end setup warnings ###############################
 
 
@@ -219,7 +224,6 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
-
 ###########################################################
 #### WARNING:
 # DO *not* import numpy / matplotlib / networkx here!!
@@ -236,6 +240,8 @@ ZZ = IntegerRing()
 true = True
 false = False
 oo = infinity
+from sage.rings.imaginary_unit import I
+i = I
 
 from sage.misc.copying import license
 copying = license

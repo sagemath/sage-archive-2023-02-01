@@ -67,7 +67,7 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: assume(b > 0)
             sage: f = (exp((x-a)/b) + 1)**(-1)
             sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
-            -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
+            -b*log(e^(a/b) + e^(x/b)) + x + b/(e^(-(a - x)/b) + 1)
 
         Check for :trac:`25119`::
 

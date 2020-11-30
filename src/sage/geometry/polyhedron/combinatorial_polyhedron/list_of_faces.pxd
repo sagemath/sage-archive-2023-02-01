@@ -14,7 +14,5 @@ cdef class ListOfFaces:
     cdef uint64_t **data
 
     cpdef int compute_dimension(self) except -2
-    cdef int compute_dimension_loop(self, uint64_t **faces, size_t n_faces,
-                                      size_t face_length) except -2
 
     cpdef ListOfFaces pyramid(self)

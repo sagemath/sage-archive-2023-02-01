@@ -67,7 +67,7 @@ jobs:
               TOKEN="${{ secrets.GITHUB_TOKEN }}"
             fi
             if echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin; then
-              echo "::set-env name=DOCKER_PUSH_REPOSITORY::docker.pkg.github.com/${{ github.repository }}/"
+              echo "DOCKER_PUSH_REPOSITORY=docker.pkg.github.com/${{ github.repository }}/" >> $GITHUB_ENV
             fi
       - run: |
           set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
@@ -239,13 +239,13 @@ jobs:
         if: contains(matrix.tox_system_factor, 'nobootstrap')
       - name: Move homebrew away
         run: |
-          (cd /usr/local && for a in bin etc include lib opt sbin share; do mv $a $a-moved; done)
+          (cd /usr/local && for a in bin etc include lib opt sbin share; do sudo mv $a $a-moved; done)
       - name: Select Xcode version
         run: |
           if [ ${{ matrix.xcode_version_factor }} != default ]; then sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode_version_factor }}.app; fi
       - name: Install test prerequisites
         run: |
-          /usr/bin/python3 -m pip install --user tox
+          sudo /usr/bin/python3 -m pip install tox
       - name: Install python3 from python.org
         # As of 2020-03-30 (https://github.com/actions/virtual-environments/blob/master/images/macos/macos-10.15-Readme.md),
         # Python 3.7.7 is installed on GitHub Actions runners.  But we install our own copy from the python.org binary package.

@@ -27,6 +27,7 @@ from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from sage.plot.primitive import GraphicPrimitive_xydata
 from collections.abc import Iterator
+import numbers
 
 
 # TODO: create _allowed_options for 3D point classes to
@@ -124,7 +125,7 @@ class Point(GraphicPrimitive_xydata):
             options_3d['size'] = options['size']
             del options['size']
         if options.pop('faceted', False):
-            raise NotImplementedError("3D points can not be faceted.")
+            raise NotImplementedError("3D points cannot be faceted.")
         for o in ('marker', 'markeredgecolor'): # remove 2D options
             if o in options:
                 del options[o]
@@ -291,7 +292,7 @@ class Point(GraphicPrimitive_xydata):
 
 def point(points, **kwds):
     """
-    Returns either a 2-dimensional or 3-dimensional point or sum of points.
+    Return either a 2-dimensional or 3-dimensional point or sum of points.
 
     INPUT:
 
@@ -359,7 +360,7 @@ def point2d(points, **options):
 
     INPUT:
 
-    -  ``points`` - either a single point (as a tuple), a list of
+    -  ``points`` -- either a single point (as a tuple), a list of
        points, a single complex number, or a list of complex numbers.
     - ``alpha`` -- How transparent the point is.
     - ``faceted`` -- If True color the edge of the point. (only for 2D plots)
@@ -463,19 +464,24 @@ def point2d(points, **options):
     """
     from sage.plot.plot import xydata_from_point_list
     from sage.plot.all import Graphics
-    from sage.rings.all import CC, CDF
-    if points in CC or points in CDF:
-        pass
-    else:
-        try:
-            l = len(points)
-        except TypeError:
-            # argument is an iterator
-            points = list(points)
-            l = len(points)
 
-        if l == 0:
-            return Graphics()
+    # points could be a single number
+    if isinstance(points, numbers.Complex):
+        points = [(points.real(), points.imag())]
+    elif isinstance(points, numbers.Real):
+        points = [points]
+    elif not isinstance(points, (list, tuple)):
+        points = list(points)  # or an iterator
+
+    l = len(points)
+    if l == 0:
+        return Graphics()
+    elif l == 2:  # special case for a single 2D point
+        if all(isinstance(z, numbers.Real) for z in points):
+            points = [points]
+    elif l == 3:  # special case for a single 3D point
+        if all(isinstance(z, numbers.Real) for z in points):
+            raise TypeError('not a 2D point')
 
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()

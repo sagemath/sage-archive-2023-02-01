@@ -1083,25 +1083,22 @@ class Braid(FiniteTypeArtinGroupElement):
         crossings = [None]*ncross
         for i, cr in enumerate(crossinglist):
             writhe = writhe + sgn(cr)
-
             prevabove = last_crossing_in_row[abs(cr)-1]
             prevbelow = last_crossing_in_row[abs(cr)]
-
-            if prevabove == None:
+            if prevabove is None:
                 first_crossing_in_row[abs(cr)-1] = i
             else:
                 if abs(cr) == abs(crossings[prevabove]["cr"]):
                     crossings[prevabove]["next_above"] = i
                 else:
                     crossings[prevabove]["next_below"] = i
-            if prevbelow == None:
+            if prevbelow is None:
                 first_crossing_in_row[abs(cr)] = i
             else:
                 if abs(cr) == abs(crossings[prevbelow]["cr"]):
                     crossings[prevbelow]["next_below"] = i
                 else:
                     crossings[prevbelow]["next_above"] = i
-
             crossings[i] = {
                     "cr": cr,
                     "prev_above": prevabove,
@@ -1109,10 +1106,8 @@ class Braid(FiniteTypeArtinGroupElement):
                     "next_above": None,
                     "next_below": None
                     }
-
             last_crossing_in_row[abs(cr)-1] = i
             last_crossing_in_row[abs(cr)] = i
-
         # tie up the ends of the list
         for k, i in enumerate(first_crossing_in_row):
             if i != None:
@@ -1144,12 +1139,10 @@ class Braid(FiniteTypeArtinGroupElement):
                     G.add_edge((j, cr["next_below"], abs(cr["cr"])), (j,0))
                     G.add_edge((cr["prev_above"], j, abs(cr["cr"])-1), (j,2))
                     G.add_edge((cr["prev_below"], j, abs(cr["cr"])), (j,2))
-
             # add loops of strands without crossing
             for k, i in enumerate(first_crossing_in_row):
-                if i == None:
+                if i is None:
                     G.add_edge((ncross+k,ncross+k, k),(ncross+k,4))
-
             sm=[]
             for component in G.connected_components(sort=False):
                 circle = set()
@@ -1162,7 +1155,6 @@ class Braid(FiniteTypeArtinGroupElement):
                         circle.add(vertex)
                 trivial = (1-trivial) // 2 # convert to 0 - trivial, 1 - non-trivial
                 sm.append((frozenset(circle), trivial))
-
             smoothings.append((tuple(v), sm))
 
         states = dict()
@@ -1171,7 +1163,6 @@ class Braid(FiniteTypeArtinGroupElement):
             for m in range(2 ** len(sm[1])):
                 m = [2*x-1 for x in Integer(m).bits()]
                 m = m + [-1]*(len(sm[1]) - len(m))
-
                 qgrad = writhe + iindex + sum(m)
                 agrad = sum([x for i,x in enumerate(m) if sm[1][i][1] == 1])
                 circpos = set()
@@ -1181,7 +1172,6 @@ class Braid(FiniteTypeArtinGroupElement):
                         circpos.add(sm[1][i])
                     else:
                         circneg.add(sm[1][i])
-
                 grading = (iindex,qgrad,agrad)
                 if grading in states:
                     states[grading].append((sm[0], circneg, circpos))
@@ -1192,7 +1182,8 @@ class Braid(FiniteTypeArtinGroupElement):
     @cached_method
     def _annular_khovanov_homology_cached(self, qgrad, agrad, ring=IntegerRing()):
         r"""
-        Return the annular Khovanov homology of the braid.
+        Return the annular Khovanov homology of the braid, as defined in
+        :arxiv:`1212.2222`
 
         INPUT:
 
@@ -1205,7 +1196,7 @@ class Braid(FiniteTypeArtinGroupElement):
         The annular Khovanov homology of the braid in the given grading.
         It is given as a dictionary in the homology degree.
 
-        .. Note::
+        .. NOTE::
 
             This method is intended only as the cache for
             :meth:`annular_khovanov_homology`.
@@ -1222,7 +1213,6 @@ class Braid(FiniteTypeArtinGroupElement):
         ncross = len(crossings)
         bases = self._enhanced_states()
         complexes = {}
-
         for i, j, k in bases:
             if (j, k) == (qgrad, agrad):
                 if (i+1,j,k) in bases:
@@ -1263,15 +1253,14 @@ class Braid(FiniteTypeArtinGroupElement):
         as another dictionary whose keys are the homology degrees.
         """
         from sage.rings.rational_field import QQ
-        if qgrad == None and agrad == None:
-            gradings = {(j,k) for i,j,k in self._enhanced_states().keys()}
-        elif qgrad == None:
-            gradings = {(j,k) for i,j,k in self._enhanced_states().keys() if j == qgrad}
-        elif agrad == None:
-            gradings = {(j,k) for i,j,k in self._enhanced_states().keys() if k == agrad}
+        if qgrad is None and agrad is None:
+            gradings = {(j,k) for i,j,k in self._enhanced_states()}
+        elif qgrad is None:
+            gradings = {(j,k) for i,j,k in self._enhanced_states() if j == qgrad}
+        elif agrad is None:
+            gradings = {(j,k) for i,j,k in self._enhanced_states() if k == agrad}
         else:
             gradings = {(qgrad,agrad)}
-
         if poincare_polynomial:
             ring=QQ
         homologies = {(q,a): self._annular_khovanov_homology_cached(q,a,ring) for q,a in gradings}
@@ -1285,12 +1274,6 @@ class Braid(FiniteTypeArtinGroupElement):
             return polynomial
         else:
             return homologies
-
-
-
-
-
-
 
     def _left_normal_form_coxeter(self):
         r"""

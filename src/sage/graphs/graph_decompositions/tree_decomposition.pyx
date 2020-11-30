@@ -38,6 +38,7 @@ treewidth of a tree equal to one.
     :delim: |
 
     :meth:`treewidth` | Compute the tree-width of `G` (and provide a decomposition).
+    :meth:`is_valid_tree_decomposition` | Check whether `T` is a valid tree-decomposition for `G`.
 
 
 .. TODO:
@@ -71,7 +72,132 @@ from sage.misc.cachefunc import cached_function
 from itertools import combinations
 from itertools import chain
 from sage.features import PythonModule
+from sage.sets.disjoint_set import DisjointSet
 
+def is_valid_tree_decomposition(G, T):
+    r"""
+    Check whether `T` is a valid tree-decomposition for `G`.
+
+    INPUT:
+
+    - ``G`` -- a sage Graph
+
+    - ``T`` -- a tree decomposition, i.e., a tree whose vertices are the bags
+      (subsets of vertices) of the decomposition
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
+        sage: K = graphs.CompleteGraph(4)
+        sage: T = Graph()
+        sage: T.add_vertex(Set(K))
+        sage: is_valid_tree_decomposition(K, T)
+        True
+
+        sage: G = graphs.RandomGNP(10, .2)
+        sage: T = G.treewidth(certificate=True)
+        sage: is_valid_tree_decomposition(G, T)
+        True
+
+    The union of the bags is the set of vertices of `G`::
+
+        sage: G = graphs.PathGraph(4)
+        sage: T = G.treewidth(certificate=True)
+        sage: _ = G.add_vertex()
+        sage: is_valid_tree_decomposition(G, T)
+        False
+
+    Each edge of `G` is contained in a bag::
+
+        sage: G = graphs.PathGraph(4)
+        sage: T = G.treewidth(certificate=True)
+        sage: G.add_edge(0, 3)
+        sage: is_valid_tree_decomposition(G, T)
+        False
+
+    The bags containing a vertex `v` form a subtree of `T`::
+
+        sage: G = graphs.PathGraph(4)
+        sage: X1, X2, X3 = Set([0, 1]), Set([1, 2]), Set([2, 3])
+        sage: T = Graph([(X1, X3), (X3, X2)])
+        sage: is_valid_tree_decomposition(G, T)
+        False
+
+    TESTS:
+
+    Check that both parameters are sage graphs::
+
+        sage: is_valid_tree_decomposition("foo", Graph())
+        Traceback (most recent call last):
+        ...
+        ValueError: the first parameter must be a sage Graph
+        sage: is_valid_tree_decomposition(Graph(), "foo")
+        Traceback (most recent call last):
+        ...
+        ValueError: the second parameter must be a sage Graph
+
+    Check that `T` is a tree::
+
+        sage: is_valid_tree_decomposition(Graph(), Graph(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the second parameter must be a tree
+
+    The vertices of `T` must be iterables::
+
+        sage: is_valid_tree_decomposition(Graph(1), Graph(1))
+        Traceback (most recent call last):
+        ...
+        ValueError: the vertices of T must be iterables
+
+    Small cases::
+
+        sage: is_valid_tree_decomposition(Graph(), Graph())
+        True
+        sage: is_valid_tree_decomposition(Graph(1), Graph())
+        False
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(G, Graph):
+        raise ValueError("the first parameter must be a sage Graph")
+    if not isinstance(T, Graph):
+        raise ValueError("the second parameter must be a sage Graph")
+    if not T:
+        return not G
+    elif not T.is_tree():
+        raise ValueError("the second parameter must be a tree")
+
+    for X in T:
+        try:
+            _ = list(X)
+        except:
+            raise ValueError("the vertices of T must be iterables")
+
+    # 1. The union of the bags equals V
+    if set(G) != set(chain(*T)):
+        return False
+
+    # 2. Each edge of G is contained in a bag
+    vertex_to_bags = {u: set() for u in G}
+    for Xi in T:
+        for u in Xi:
+            vertex_to_bags[u].add(Xi)
+
+    for u, v in G.edge_iterator(labels=False):
+        if all(v not in Xi for Xi in vertex_to_bags[u]):
+            return False
+
+    # 3. The bags containing a vertex v form a connected subset of T
+    for X in vertex_to_bags.values():
+        D = DisjointSet(X)
+        for Xi in X:
+            for Xj in T.neighbor_iterator(Xi):
+                if Xj in X:
+                    D.union(Xi, Xj)
+        if D.number_of_subsets() > 1:
+            return False
+
+    return True
 
 def treewidth(self, k=None, certificate=False, algorithm=None):
     r"""
@@ -157,16 +283,21 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
         0
         sage: Graph(0).treewidth()
         -1
-        sage: graphs.PetersenGraph().treewidth(k=2)
+        sage: g = graphs.PetersenGraph()
+        sage: g.treewidth(k=2)
         False
-        sage: graphs.PetersenGraph().treewidth(k=6)
+        sage: g.treewidth(k=6)
         True
-        sage: graphs.PetersenGraph().treewidth(certificate=True).is_tree()
+        sage: g.treewidth(certificate=True).is_tree()
         True
-        sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
+        sage: g.treewidth(k=3, certificate=True)
         False
-        sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
+        sage: T = g.treewidth(k=4,certificate=True)
+        sage: T
         Tree decomposition: Graph on 6 vertices
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
+        sage: is_valid_tree_decomposition(g, T)
+        True
 
     All edges do appear (:trac:`17893`)::
 
@@ -206,7 +337,7 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
         sage: graphs.PetersenGraph().treewidth(k=35,certificate=True)
         Tree decomposition: Graph on 1 vertex
 
-    Bad input:
+    Bad input::
 
         sage: graphs.PetersenGraph().treewidth(k=-3)
         Traceback (most recent call last):

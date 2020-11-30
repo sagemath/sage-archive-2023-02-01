@@ -1182,8 +1182,7 @@ class Braid(FiniteTypeArtinGroupElement):
     @cached_method
     def _annular_khovanov_homology_cached(self, qgrad, agrad, ring=IntegerRing()):
         r"""
-        Return the annular Khovanov homology of the braid, as defined in
-        :arxiv:`1212.2222`
+        Return the annular Khovanov homology of the braid.
 
         INPUT:
 
@@ -1232,7 +1231,9 @@ class Braid(FiniteTypeArtinGroupElement):
 
     def annular_khovanov_homology(self, ring=IntegerRing(), qgrad=None, agrad=None, poincare_polynomial=False):
         r"""
-        Return the annular Khovanov homology of the braid.
+        Return the annular Khovanov homology of the braid, as defined in
+        [BG2013]_
+
 
         INPUT:
 

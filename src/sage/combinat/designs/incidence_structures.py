@@ -2184,11 +2184,12 @@ class IncidenceStructure(object):
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
 
-        TEST::
+        TESTS::
 
             # verify that :trac:`30976` is fixed
-            sage: I = IncidenceStructure([1,2,3], [[1,2], [2,3]])
-            sage: I._latex_()
+            sage: IS = IncidenceStructure([1,2,3], [[1,2], [2,3]])
+            sage: if latex.has_file("tikz.sty"):          # optional - latex
+            ....:     IS._latex_()                        # optional - latex
             ...UserWarning:
             The hypergraph is drawn as a set of closed curves...
             \begin{tikzpicture}...

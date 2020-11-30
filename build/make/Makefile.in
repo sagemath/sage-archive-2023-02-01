@@ -550,8 +550,6 @@ endif
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env-config' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env' && \\
-#         . '$SAGE_ROOT/src/bin/sage-build-env-config' && \\
-#         . '$SAGE_ROOT/src/bin/sage-build-env' && \\
 #         sage-logger -p '$SAGE_ROOT/build/pkgs/<pkgname>/spkg-install' '$(SAGE_LOGS)/<pkgname>.log'
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
@@ -560,8 +558,6 @@ endif
 #     -$(AM_V_at)cd '$SAGE_ROOT' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env-config' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env' && \\
-#         . '$SAGE_ROOT/src/bin/sage-build-env-config' && \\
-#         . '$SAGE_ROOT/src/bin/sage-build-env' && \\
 #         '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'
 
 # Positional arguments:

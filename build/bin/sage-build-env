@@ -25,24 +25,24 @@
 # 1) environment variables
 # 2) flags set at configuration time
 if [ "x$CFLAGS" == "x" ]; then
-    export $ORIGINAL_CFLAGS = "$CONFIGURED_CFLAGS"
+    export $ORIGINAL_CFLAGS="$CONFIGURED_CFLAGS"
 else
-    export $ORIGINAL_CFLAGS = "$CFLAGS"
+    export $ORIGINAL_CFLAGS="$CFLAGS"
 fi
 if [ "x$CXXFLAGS" == "x" ]; then
-    export $ORIGINAL_CXXFLAGS = "$CONFIGURED_CXXFLAGS"
+    export $ORIGINAL_CXXFLAGS="$CONFIGURED_CXXFLAGS"
 else
-    export $ORIGINAL_CXXFLAGS = "$CXXFLAGS"
+    export $ORIGINAL_CXXFLAGS="$CXXFLAGS"
 fi
 if [ "x$FCFLAGS" == "x" ]; then
-    export $ORIGINAL_FCFLAGS = "$CONFIGURED_FCFLAGS"
+    export $ORIGINAL_FCFLAGS="$CONFIGURED_FCFLAGS"
 else
-    export $ORIGINAL_FCFLAGS = "$FCFLAGS"
+    export $ORIGINAL_FCFLAGS="$FCFLAGS"
 fi
 if [ "x$F77FLAGS" == "x" ]; then
-    export $ORIGINAL_F77FLAGS = "$CONFIGURED_F77FLAGS"
+    export $ORIGINAL_F77FLAGS="$CONFIGURED_F77FLAGS"
 else
-    export $ORIGINAL_F77FLAGS = "$F77FLAGS"
+    export $ORIGINAL_F77FLAGS="$F77FLAGS"
 fi
 
 # We optimize according to $SAGE_DEBUG.

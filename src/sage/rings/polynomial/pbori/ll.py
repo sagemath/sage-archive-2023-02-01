@@ -1,6 +1,9 @@
 from sage.rings.polynomial.pbori.pbori import (top_index, if_then_else,
                                                substitute_variables)
-from .PyPolyBoRi import *
+from .PyPolyBoRi import (BooleSet, Polynomial, Monomial, Ring,
+                         BoolePolynomialVector,
+                         ll_red_nf_redsb, ll_red_nf_noredsb,
+                         ll_red_nf_noredsb_single_recursive_call)
 from .statistics import used_vars_set
 from .rank import rank
 

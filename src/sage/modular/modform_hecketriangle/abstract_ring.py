@@ -341,10 +341,10 @@ class FormsRing_abstract(Parent):
             sage: MF.default_num_prec()
             10
             sage: E6 = MF.E6()
-            sage: E6(i + 1e-1000)
+            sage: E6(i + 10^(-1000))
             0.002... - 6.7...e-1000*I
             sage: MF.default_num_prec(100)
-            sage: E6(i + 1e-1000)
+            sage: E6(i + 10^(-1000))
             3.9946838...e-1999 - 6.6578064...e-1000*I
 
             sage: MF = ModularForms(n=5, k=4/3)

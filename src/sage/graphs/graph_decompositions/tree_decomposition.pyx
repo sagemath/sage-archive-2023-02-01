@@ -39,6 +39,7 @@ treewidth of a tree equal to one.
 
     :meth:`treewidth` | Compute the tree-width of `G` (and provide a decomposition).
     :meth:`is_valid_tree_decomposition` | Check whether `T` is a valid tree-decomposition for `G`.
+    :meth:`reduced_tree_decomposition(T)` | Return a reduced tree-decomposition of `T`.
 
 
 .. TODO:
@@ -198,6 +199,77 @@ def is_valid_tree_decomposition(G, T):
             return False
 
     return True
+
+def reduced_tree_decomposition(T):
+    r"""
+    Return a reduced tree-decomposition of `T`.
+
+    We merge all edges between two sets `S` and `S'` where `S` is a subset of
+    `S'`. To do so, we use a simple union-find data structure to record merge
+    operations and the good sets.
+
+    .. WARNING::
+
+        This method assumes that the vertices of the input tree `T` are hashable
+        and have attribute ``issuperset``, e.g., ``frozenset`` or
+        :class:`~sage.sets.set.Set_object_enumerated_with_category`.
+
+    INPUT:
+
+    - ``T`` -- a tree-decomposition
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import reduced_tree_decomposition
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
+        sage: G = graphs.PathGraph(3)
+        sage: T = Graph()
+        sage: T.add_path([Set([0]), Set([0, 1]), Set([1]), Set([1, 2]),  Set([2])])
+        sage: T.order()
+        5
+        sage: is_valid_tree_decomposition(G, T)
+        True
+        sage: T2 = reduced_tree_decomposition(T)
+        sage: is_valid_tree_decomposition(G, T2)
+        True
+        sage: T2.order()
+        2
+
+    TESTS::
+
+        sage: G = graphs.PathGraph(3)
+        sage: T = G.treewidth(certificate=True)
+        sage: is_valid_tree_decomposition(G, T)
+        True
+        sage: T == reduced_tree_decomposition(T)
+        True
+    """
+    def get_ancestor(ancestor, u):
+        if ancestor[u] == u:
+            return u
+        ancestor[u] = get_ancestor(ancestor, ancestor[u])
+        return ancestor[u]
+
+    ancestor = {u: u for u in T}
+    for u, v in T.edge_iterator(labels=False):
+        u = get_ancestor(ancestor, u)
+        v = get_ancestor(ancestor, v)
+        if u == v:
+            continue
+        elif u.issuperset(v):
+            ancestor[v] = u
+        elif v.issuperset(u):
+            ancestor[u] = v
+
+    from sage.graphs.graph import Graph
+    H = Graph(multiedges=False, name="Reduced tree-decomposition of {}".format(T.name()))
+    for u, v in T.edge_iterator(labels=False):
+        u = get_ancestor(ancestor, u)
+        v = get_ancestor(ancestor, v)
+        if u != v:
+            H.add_edge(u, v)
+    return H
+
 
 def treewidth(self, k=None, certificate=False, algorithm=None):
     r"""
@@ -487,20 +559,12 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
     # Building the Tree-Decomposition graph. Its vertices are cuts of the
     # decomposition, and there is an edge from a cut C1 to a cut C2 if C2 is an
     # immediate subcall of C1
-    G = Graph(name="Tree decomposition")
+    G = Graph()
     G.add_edges(((Set(x), Set(y)) for x,y in TD), loops=False)
 
-    # The Tree-Decomposition contains a lot of useless nodes.
-    #
+    # The Tree-Decomposition may contain a lot of useless nodes.
     # We merge all edges between two sets S,S' where S is a subset of S'
-    changed = True
-    while changed:
-        changed = False
-        for v in G.vertices(sort=False):
-            for u in G.neighbor_iterator(v):
-                if u.issuperset(v):
-                    G.merge_vertices([u, v])  # the new vertex is named 'u'
-                    changed = True
-                    break
+    G = reduced_tree_decomposition(G)
 
+    G.name("Tree decomposition")
     return G

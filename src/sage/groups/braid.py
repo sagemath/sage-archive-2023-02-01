@@ -1202,10 +1202,11 @@ class Braid(FiniteTypeArtinGroupElement):
             :meth:`annular_khovanov_homology`.
 
         EXAMPLES::
-            
+
             sage: B = BraidGroup(3)
             sage: B([1,2,1,2])._annular_khovanov_homology_cached(5,-1)
             {1: Z, 2: Z, 3: 0}
+
 
         """
         from sage.homology.chain_complex import ChainComplex
@@ -1251,6 +1252,33 @@ class Braid(FiniteTypeArtinGroupElement):
         The annular Khovanov homology of the braid, given as a dictionary whose 
         keys are the different gradings. For each grading, the homology is given
         as another dictionary whose keys are the homology degrees.
+
+        EXAMPLES::
+
+            sage: B=BraidGroup(3)
+            sage: b=B([1,-2,1,-2])
+            sage: b.annular_khovanov_homology()
+            {(-3, -1): {-2: 0, -1: Z x Z},
+             (3, -1): {2: Z},
+             (-1, -1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
+             (-3, 1): {-2: Z},
+             (3, 1): {1: Z x Z, 2: 0},
+             (-1, 1): {-2: 0, -1: Z x Z},
+             (1, 1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
+             (-3, -3): {0: Z},
+             (1, -1): {1: Z x Z, 2: 0},
+             (5, 1): {2: Z},
+             (3, 3): {0: Z},
+             (-5, -1): {-2: Z}}
+
+        TESTS::
+
+            sage: BraidGroup(2)([]).annular_khovanov_homology()
+            {(2, 2): {0: Z}, (-2, -2): {0: Z}, (0, 0): {0: Z x Z}}
+
+            sage: BraidGroup(3)([-1]).annular_khovanov_homology(ZZ,-4,-1)
+            {(-4, -1): {-1: Z}}
+
         """
         from sage.rings.rational_field import QQ
         if qgrad is None and agrad is None:

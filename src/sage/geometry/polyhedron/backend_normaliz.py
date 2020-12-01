@@ -767,11 +767,11 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         Check that :trac:`30891` is fixed::
 
-            sage: p = Polyhedron(vertices=[(-3,-3), (3,0), (3,3), (0,3)], backend='normaliz')
-            sage: q = loads(p.dumps())
-            sage: q.volume()
+            sage: p = Polyhedron(vertices=[(-3,-3), (3,0), (3,3), (0,3)], backend='normaliz')  # optional - pynormaliz
+            sage: q = loads(p.dumps())                                                         # optional - pynormaliz
+            sage: q.volume()                                                                   # optional - pynormaliz
             18
-            sage: q.ehrhart_series()
+            sage: q.ehrhart_series()                                                           # optional - pynormaliz
             (13*t^2 + 22*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
         """
         if eqns in (True, False, None):

@@ -1459,13 +1459,13 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 w = Word(seq[indices[i]:indices[i + 1] + 1])
                 if len(w) >= 4:
                     value = M_all(w)
-                    L *= value.regularise()
+                    L *= value.regularise().simplify()
             return L
 
         resu = self.tensor_square().zero()
         for indices in terms:
             resu += split_word(indices).tensor(
-                M_all(Word(seq[i] for i in indices)).regularise())
+                M_all(Word(seq[i] for i in indices)).regularise().simplify())
         return resu
 
     @lazy_attribute
@@ -2164,7 +2164,7 @@ class All_iterated(CombinatorialFreeModule):
                 integrals over Rational Field
             """
             M = Multizetas_iterated(self.parent().base_ring())
-            return sum(cf * M.monomial(w[1:-1]) for w, cf in self)
+            return M.sum_of_terms((w[1:-1], cf) for w, cf in self)
 
         def regularise(self):
             """

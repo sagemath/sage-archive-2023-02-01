@@ -1015,11 +1015,11 @@ class Braid(FiniteTypeArtinGroupElement):
 
         - A tuple with the circles marked as positive.
 
-        Each circle represented by a set of tuples of the form 
+        Each circle represented by a set of tuples of the form
         (index of crossing, side where the circle passes the crossing)
 
         EXAMPLES::
-        
+
             sage: B = BraidGroup(2)
             sage: b=B([1,1])
             sage: b._enhanced_states()
@@ -1240,12 +1240,12 @@ class Braid(FiniteTypeArtinGroupElement):
 
         - ``qgrad`` -- the quantum grading of the homology to compute
           if not specified all quantum gradings are computed
-        
+
         - ``agrad`` - the annular grading of the homology to compute
           if not specified all annular gradings are computed
 
         - ``poincare_polynomial`` - If this is true, return the poincare polynomial
-        of the homology instead. This forces the coefficient ring to be set to QQ.
+          of the homology instead. This forces the coefficient ring to be set to QQ.
 
         OUTPUT:
 

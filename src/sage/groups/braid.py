@@ -1209,7 +1209,6 @@ class Braid(FiniteTypeArtinGroupElement):
 
         """
         from sage.homology.chain_complex import ChainComplex
-        crossings = self.Tietze()
         bases = self._enhanced_states()
         complexes = {}
         for i, j, k in bases:

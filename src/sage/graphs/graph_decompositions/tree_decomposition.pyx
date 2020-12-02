@@ -44,8 +44,6 @@ treewidth of a tree equal to one.
 
 .. TODO:
 
-    - Ensure that we use decomposition by clique separators as preprocessing for
-      treewidth
     - Add method to return a *nice* tree decomposition
     - Add methods to compute treelength and examples in the module documentation
       of the difference between treewidth and treelength
@@ -508,9 +506,11 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
                     for u in A:
                         if u.issuperset(C):
                             ua = u
+                            break
                     for u in B:
                         if u.issuperset(C):
                             ub = u
+                            break
                     if ua and ub:
                         A.add_edge(ua, ub)
                     else:

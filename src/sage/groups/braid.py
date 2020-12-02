@@ -1011,17 +1011,17 @@ class Braid(FiniteTypeArtinGroupElement):
 
         - A tuple with the type of smoothing mad at each crossing.
 
-        - A tuple with the circles marked as negative.
+        - A set with the circles marked as negative.
 
-        - A tuple with the circles marked as positive.
+        - A set with the circles marked as positive.
 
-        Each circle represented by a set of tuples of the form
+        Each circle represented by a frozenset of tuples of the form
         (index of crossing, side where the circle passes the crossing)
 
         EXAMPLES::
 
             sage: B = BraidGroup(2)
-            sage: b=B([1,1])
+            sage: b = B([1,1])
             sage: b._enhanced_states()
             {(0,
               0,
@@ -1253,28 +1253,32 @@ class Braid(FiniteTypeArtinGroupElement):
         keys are the different gradings. For each grading, the homology is given
         as another dictionary whose keys are the homology degrees.
 
+        If ``poincare_polynomial`` is true, returns a Poincaré polynomial in the 
+        Laurent polynomial ring in a,q,t where the variables represent the annular,
+        quantum and homological grading respectively.
+
         EXAMPLES::
 
             sage: B=BraidGroup(3)
             sage: b=B([1,-2,1,-2])
             sage: b.annular_khovanov_homology()
-            {(-3, -1): {-2: 0, -1: Z x Z},
-             (3, -1): {2: Z},
-             (-1, -1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
-             (-3, 1): {-2: Z},
-             (3, 1): {1: Z x Z, 2: 0},
-             (-1, 1): {-2: 0, -1: Z x Z},
-             (1, 1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
+            {(-5, -1): {-2: Z},
              (-3, -3): {0: Z},
+             (-3, -1): {-2: 0, -1: Z x Z},
+             (-3, 1): {-2: Z},
+             (-1, -1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
+             (-1, 1): {-2: 0, -1: Z x Z},
              (1, -1): {1: Z x Z, 2: 0},
-             (5, 1): {2: Z},
+             (1, 1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
+             (3, -1): {2: Z},
+             (3, 1): {1: Z x Z, 2: 0},
              (3, 3): {0: Z},
-             (-5, -1): {-2: Z}}
+             (5, 1): {2: Z}}
 
         TESTS::
 
             sage: BraidGroup(2)([]).annular_khovanov_homology()
-            {(2, 2): {0: Z}, (-2, -2): {0: Z}, (0, 0): {0: Z x Z}}
+            {(-2, -2): {0: Z}, (0, 0): {0: Z x Z}, (2, 2): {0: Z}}
 
             sage: BraidGroup(3)([-1]).annular_khovanov_homology(ZZ,-4,-1)
             {(-4, -1): {-1: Z}}

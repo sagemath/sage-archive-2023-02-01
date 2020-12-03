@@ -132,9 +132,7 @@ Obtaining the HOMFLY-PT polynomial::
 
     sage: L.homfly_polynomial()
     -v^-1*z - v^-3*z - v^-3*z^-1 + v^-5*z^-1
-    sage: L.homfly_polynomial(sage_convention=True)
-    L^5*M^-1 - L^3*M - L^3*M^-1 - L*M
-    sage: _ == l.homfly_polynomial(normalization='az')
+    sage: _ == l.homfly_polynomial(normalization='vz')
     True
 
 
@@ -207,7 +205,7 @@ in the KnotInfo database::
     ....:           [17,19,8,18], [9,10,11,14], [10,12,13,11],
     ....:           [12,19,15,13], [20,16,14,15], [16,20,17,2]])
     sage: L.get_knotinfo()
-    (<KnotInfo.K0_1: '0_1'>, False)
+    (<KnotInfo.K0_1: '0_1'>, None)
 
 
 REFERENCES:
@@ -736,6 +734,13 @@ class KnotInfoBase(Enum):
         r"""
         Return the determinant of ``self``.
 
+        .. NOTE::
+
+           KnotInfo's value for the unknot ``0_1`` is zero. This is not
+           compatible whith Sage's result (the value of the Alexander
+           polynomial at -1). Since this method is needed to identify
+           Sage links we take the according value in that case.
+
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
@@ -743,7 +748,12 @@ class KnotInfoBase(Enum):
             4
             sage: KnotInfo.K3_1.determinant()
             3
+            sage: KnotInfo.K0_1.determinant()
+            1
         """
+        if self.crossing_number() == 0:
+            # see note above
+            return 1
         return int(self[self.items.determinant])
 
     @cached_method
@@ -814,9 +824,11 @@ class KnotInfoBase(Enum):
         """
         if not self.is_knot():
             raise NotImplementedError('This is only available for knots')
-        if not self[self.items.symmetry_type] and self.crossing_number() == 0:
+
+        symmetry_type = self[self.items.symmetry_type].strip() # for example K10_88 is a case with trailing whitespaces
+        if not symmetry_type and self.crossing_number() == 0:
             return 'fully amphicheiral'
-        return self[self.items.symmetry_type]
+        return symmetry_type
 
     @cached_method
     def is_reversible(self):
@@ -829,9 +841,10 @@ class KnotInfoBase(Enum):
             sage: KnotInfo.K6_3.is_reversible()
             True
         """
-        if self.symmetry_type() == 'reversible':
+        symmetry_type = self.symmetry_type()
+        if symmetry_type == 'reversible':
             return True
-        if self.symmetry_type() == 'fully amphicheiral':
+        if symmetry_type == 'fully amphicheiral':
             return True
         return False
 
@@ -846,22 +859,36 @@ class KnotInfoBase(Enum):
           if ``self`` is positive or negative amphicheiral (see documentation
           of :meth:`symmetry_type`)
 
+        OUTPUT:
+
+        ``True`` if ``self`` is fully or negative amphicheiral per default. if
+        ``positive`` is set to ``True`` than fully and positive amphicheiral
+        links give ``True``.
+
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: K = KnotInfo.K12a_427             # optional - database_knotinfo
-            sage: K.is_amphicheiral()               # optional - database_knotinfo
+            sage: Kp = KnotInfo.K12a_427             # optional - database_knotinfo
+            sage: Kp.is_amphicheiral()               # optional - database_knotinfo
             False
-            sage: K.is_amphicheiral(positive=True)  # optional - database_knotinfo
+            sage: Kp.is_amphicheiral(positive=True)  # optional - database_knotinfo
             True
+
+            sage: Kn = KnotInfo.K10_88               # optional - database_knotinfo
+            sage: Kn.is_amphicheiral()               # optional - database_knotinfo
+            True
+            sage: Kn.is_amphicheiral(positive=True)  # optional - database_knotinfo
+            False
         """
+        symmetry_type = self.symmetry_type()
         if positive:
-            if self.symmetry_type() == 'positive amphicheiral':
+            if symmetry_type == 'positive amphicheiral':
                 return True
         else:
-            if self.symmetry_type() == 'negative amphicheiral':
+            if symmetry_type == 'negative amphicheiral':
                 return True
-        if self.symmetry_type() == 'fully amphicheiral':
+
+        if symmetry_type == 'fully amphicheiral':
             return True
         return False
 
@@ -1003,7 +1030,7 @@ class KnotInfoBase(Enum):
 
 
     @cached_method
-    def homfly_polynomial(self, var1=None, var2=None, original=False, sage_convention=False):
+    def homfly_polynomial(self, var1='v', var2='z', original=False):
         r"""
         Return the HOMFLY-PT polynomial according to the value of column
         ``homfly_polynomial`` for this knot or link (in the latter case the
@@ -1021,16 +1048,10 @@ class KnotInfoBase(Enum):
 
         INPUT:
 
-        - ``var1`` -- string for the name of the first variable (default depending
-          on keyword ``sage_convention``: ``'v'`` or ``'L'`` if
-          ``sage_convention == True``)
-        - ``var2`` -- string for the name of the second variable (default depending
-          on keyword ``sage_convention``: ``'z'`` or ``'M'`` if
-          ``sage_convention == True``)
+        - ``var1`` -- string (default ``v``) for the name of the first variable
+        - ``var2`` -- string (default ``z``) for the name of the second variable
         - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True``
-          the conversion to Sage's conventions (see the note below) is performed
 
         OUTPUT:
 
@@ -1041,20 +1062,9 @@ class KnotInfoBase(Enum):
         .. NOTE::
 
             The skein-relation for the HOMFLY-PT polynomial given on KnotInfo
-            differs from the ones used in Sage.
-
-            Using Sage's HOMFLY-PT polynomial with ``normalization='az'``
-            the corresponding skein-relation is (see :meth:`Link.homfly_polynomial`
-            of :class:`Link`):
-
-            .. MATH::
-
-                P(O) = 1,\,\,\,    a P(L_+) - a^{-1} P(L_-) = z P(L_0)
-
-            Thus, the HOMFLY-PT polynomial of KnotInfo compares to the one of Sage
-            by replacing ``v`` by ``~a``. To keep them comparable this translation
-            can be performed by setting the keyword ``sage_convention`` to ``True``.
-
+            does not match the default used in Sage. For comparison you have
+            to use the keyword argument ``normalization='vz'`` on the side
+            of Sage.
 
         EXAMPLES::
 
@@ -1064,9 +1074,7 @@ class KnotInfoBase(Enum):
             -v^4 + v^2*z^2 + 2*v^2
             sage: K3_1.homfly_polynomial(original=True)
             '(2*v^2-v^4)+ (v^2)*z^2'
-            sage: PK3_1s = K3_1.homfly_polynomial(sage_convention=True); PK3_1s
-            L^-2*M^2 + 2*L^-2 - L^-4
-            sage: PK3_1s == K3_1.link().homfly_polynomial(normalization='az')
+            sage: PK3_1 == K3_1.link().homfly_polynomial(normalization='vz')
             True
 
         for proper links::
@@ -1074,9 +1082,7 @@ class KnotInfoBase(Enum):
             sage: L4a1_1 = KnotInfo.L4a1_1
             sage: PL4a1_1 = L4a1_1.homfly_polynomial(var1='x', var2='y'); PL4a1_1
             -x^5*y + x^3*y^3 - x^5*y^-1 + 3*x^3*y + x^3*y^-1
-            sage: L4a1_1.homfly_polynomial(var1='x', var2='y', sage_convention=True)
-            x^-3*y^3 + 3*x^-3*y + x^-3*y^-1 - x^-5*y - x^-5*y^-1
-            sage: _ == L4a1_1.link().homfly_polynomial(var1='x', var2='y', normalization='az')
+            sage: _ == L4a1_1.link().homfly_polynomial('x', 'y', 'vz')
             True
 
         check the skein-relation from the KnotInfo description page (applied to one
@@ -1090,21 +1096,9 @@ class KnotInfoBase(Enum):
             sage: ~v*PK3_1 -v*PO == z*PL2a1_1
             True
 
-        check the skein-relation given in the doc string of :meth:`Link.homfly_polynomial`
-        of :class:`Link` (applied to one of the positive crossings of the
-        right-handed trefoil)::
-
-            sage: Rs = PK3_1s.parent()
-            sage: POs = Rs.one()
-            sage: PL2a1_1s = L2a1_1.homfly_polynomial(sage_convention=True)
-            sage: a, z = Rs.gens()
-            sage: a*PK3_1s - ~a*POs == z*PL2a1_1s
-            True
-
-
         TESTS::
 
-            sage: all(L.homfly_polynomial(sage_convention=True) == L.link().homfly_polynomial(normalization='az')\
+            sage: all(L.homfly_polynomial() == L.link().homfly_polynomial(normalization='vz')\
                       for L in KnotInfo if L.crossing_number() > 0 and L.crossing_number() < 7)
             True
 
@@ -1120,26 +1114,12 @@ class KnotInfoBase(Enum):
         if original:
             return homfly_polynomial
 
-        if sage_convention:
-            if not var1:
-                var1='L'
-            if not var2:
-                var2='M'
-        else:
-            if not var1:
-                var1='v'
-            if not var2:
-                var2='z'
-
         R = self._homfly_pol_ring(var1, var2)
         if not homfly_polynomial and self.crossing_number() == 0:
             return R.one()
 
         L, M = R.gens()
-        if sage_convention:
-            lc = {'v': ~L, 'z':M}  # see note above
-        else:
-            lc = {'v': L, 'z':M}
+        lc = {'v': L, 'z':M}
         return eval_knotinfo(homfly_polynomial, locals=lc)
 
     @cached_method
@@ -1227,7 +1207,7 @@ class KnotInfoBase(Enum):
 
 
     @cached_method
-    def jones_polynomial(self, variab=None, skein_normalization=False, puiseux=False, original=False, sage_convention=False):
+    def jones_polynomial(self, variab=None, skein_normalization=False, puiseux=False, original=False, use_sqrt=False):
         r"""
         Return the Jones polynomial according to the value of column
         ``jones_polynomial`` for this knot or link as an element of the symbolic
@@ -1257,8 +1237,7 @@ class KnotInfoBase(Enum):
           is returned
         - ``original`` -- boolean (default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True`` the
-          conversion to Sage's conventions (see the note below) is performed
+        - ``use_sqrt`` -- boolean (default ``False``) see the note below
 
 
         OUTPUT:
@@ -1276,13 +1255,13 @@ class KnotInfoBase(Enum):
 
         .. NOTE::
 
-            The only difference of conventions concerning the Jones polynomial is
-            its representation in the case of proper links. KnotInfo does not
-            display these polynomials in the indeterminate `t` used in the skein
-            relation. Instead a variable `x` is used defined by `x^2 = t`. Sage
-            uses `t` in both cases, knots and proper links. Thus, to obtain the
-            Jones polynomial for a proper link in `t` you have to set the keyword
-            ``sage_convention`` to ``True``.
+            There is a difference to Sage's conventions concerning the Jones
+            polynomial in the case of proper links. KnotInfo does not display
+            these polynomials in the indeterminate `t` used in the skein relation.
+            Instead a variable `x` is used defined by `x^2 = t`. Sage uses `t` in
+            both cases, knots and proper links. Thus, to obtain the Jones polynomial
+            for a proper link in `t` you have to set the keyword ``use_sqrt``
+            to ``True``.
 
         EXAMPLES::
 
@@ -1300,9 +1279,9 @@ class KnotInfoBase(Enum):
             sage: L = KnotInfo.L2a1_1
             sage: Lj = L.jones_polynomial(); Lj
             -x^5 - x
-            sage: Ljt = L.jones_polynomial(sage_convention=True); Ljt
+            sage: Ljt = L.jones_polynomial(use_sqrt=True); Ljt
             -t^(5/2) - sqrt(t)
-            sage: Ljp = L.jones_polynomial(puiseux=True, sage_convention=True); Ljp
+            sage: Ljp = L.jones_polynomial(puiseux=True); Ljp
             -t^(1/2) - t^(5/2)
             sage: Ljs = L.jones_polynomial(skein_normalization=True); Ljs
             -A^2 - A^10
@@ -1384,7 +1363,7 @@ class KnotInfoBase(Enum):
             R = LaurentPolynomialRing(ZZ, variab)
         else:
             if not variab:
-                if sage_convention or self.is_knot():
+                if use_sqrt or self.is_knot() or puiseux:
                     variab='t'
                 else:
                     variab='x'
@@ -1409,7 +1388,7 @@ class KnotInfoBase(Enum):
                 lc = {'t':  t}
             elif puiseux:
                 lc = {'x':  t**(1/2)}
-            elif sage_convention:
+            elif use_sqrt:
                 from sage.functions.other import sqrt
                 lc = {'x':  sqrt(t)}
             else:
@@ -1420,7 +1399,7 @@ class KnotInfoBase(Enum):
 
 
     @cached_method
-    def alexander_polynomial(self, var='t', original=False, sage_convention=False):
+    def alexander_polynomial(self, var='t', original=False, laurent_poly=False):
         r"""
         Return the Alexander polynomial according to the value of column
         ``alexander_polynomial`` for this knot as an instance of
@@ -1442,14 +1421,13 @@ class KnotInfoBase(Enum):
         - ``var`` -- (default: ``'t'``) the variable
         - ``original`` -- boolean (optional, default ``False``) if set to
           ``True`` the original table entry is returned as a string
-        - ``sage_convention`` -- boolean (default ``False``) if set to ``True``
-          the conversion to Sage's conventions (see the note below) is performed
+        - ``laurent_poly`` -- boolean (default ``False``) see the note below
 
         OUTPUT:
 
         A polynomial over the integers, more precisely an instance of
         :class:`~sage.rings.polynomial.polynomial_element.Polynomial`.
-        If ``sage_convention`` is set to ``True`` a Laurent polynomial
+        If ``laurent_poly`` is set to ``True`` a Laurent polynomial
         over the integers, more precisely an instance of
         :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
         is returned. If ``original`` is set to ``True`` then a string
@@ -1461,9 +1439,9 @@ class KnotInfoBase(Enum):
             a unit factor in the Laurent polynomial ring over the integers
             in the indeterminate `t`. While the normalization of the exponents
             in KnotInfo guarantees it to be a proper polynomial, this is
-            not the case for the implementation in Sage. The transition
-            can be made using the keyword ``sage_convention``. But, still
-            there may be a difference in sign (see the example below).
+            not the case for the implementation in Sage. Use the keyword
+            ``laurent_poly`` to achiev a normalization according to Sage.
+            But, still there may be a difference in sign (see the example below).
 
         EXAMPLES::
 
@@ -1477,7 +1455,7 @@ class KnotInfoBase(Enum):
             sage: k = K.link()
             sage: ka = k.alexander_polynomial(); ka
             -t^-1 + 3 - t
-            sage: K.alexander_polynomial(sage_convention=True)
+            sage: K.alexander_polynomial(laurent_poly=True)
             t^-1 - 3 + t
             sage: _ == -ka
             True
@@ -1492,7 +1470,7 @@ class KnotInfoBase(Enum):
         if original:
             return alexander_polynomial
 
-        if sage_convention:
+        if laurent_poly:
             from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
             R = LaurentPolynomialRing(ZZ, var)
         else:
@@ -1505,7 +1483,7 @@ class KnotInfoBase(Enum):
         t, = R.gens()
         lc = {'t':  t}
         ap = R(eval_knotinfo(alexander_polynomial, locals=lc))
-        if not sage_convention or ap.is_constant():
+        if not laurent_poly or ap.is_constant():
             return ap
 
         exp = ap.exponents()
@@ -1671,6 +1649,58 @@ class KnotInfoBase(Enum):
 
         raise ValueError('Link construction using %s not possible' %use_item)
 
+    def _test_recover(self, **options):
+        r"""
+        Check if ``self`` can be recovered from its conversion to Sage links
+        using the ``pd_notation`` and the ``braid_notation`` and their
+        mirror images.
+
+        The method is used by the ``TestSuite`` of the series of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: from sage.misc.sage_unittest import instance_tester
+            sage: K = KnotInfo.K6_1
+            sage: K._test_recover(tester=instance_tester(K))
+        """
+        def recover(mirror, braid):
+            r"""
+            Check if ``self`` can be recovered form its associated
+            Sage link.
+            """
+            if braid:
+                l = self.link(self.items.braid_notation)
+            else:
+                l = self.link()
+            if mirror:
+                l = l.mirror_image()
+
+            def check_result(L):
+                r"""
+                Check a single result from ``get_knotinfo``
+                """
+                if L == (self, None) or L == (self, '?'):
+                    return True
+                if mirror:
+                    return L == (self, True)
+                else:
+                    return L == (self, False)
+
+            try:
+                L = l.get_knotinfo()
+                return check_result(L)
+            except NotImplementedError:
+                Llist = l.get_knotinfo(unique=False)
+                return any(check_result(L) for L in Llist)
+
+        tester = options['tester']
+        tester.assertTrue(recover(False, False))
+        tester.assertTrue(recover(True,  False))
+        tester.assertTrue(recover(False, True))
+        tester.assertTrue(recover(True, True))
+
+
 
     def inject(self, verbose=True):
         """
@@ -1696,6 +1726,7 @@ class KnotInfoBase(Enum):
         from sage.repl.user_globals import set_global
         set_global(name, self)
 
+    @cached_method
     def series(self, oriented=False):
         r"""
         Return the series of links ``self`` belongs to.
@@ -1809,7 +1840,7 @@ class KnotInfoBase(Enum):
 # --------------------------------------------------------------------------------------------
 # KnotInfoSeries
 # --------------------------------------------------------------------------------------------
-class KnotInfoSeries(UniqueRepresentation):
+class KnotInfoSeries(UniqueRepresentation, SageObject):
     r"""
     This class can be used to access knots and links via their index
     according to the series they belong to.
@@ -1859,7 +1890,6 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: L6a = KnotInfoSeries(6, False, True); L6a
             Series of links L6a
-            sage: TestSuite(L6a).run()
         """
         self._crossing_number   = crossing_number
         self._is_knot           = is_knot
@@ -1867,17 +1897,30 @@ class KnotInfoSeries(UniqueRepresentation):
         self._name_unoriented   = name_unoriented
 
     @cached_method
-    def list(self, oriented=False):
+    def list(self, oriented=False, comp=None, det=None, homfly=None):
         r"""
         Return this series as a Python list.
 
         INPUT:
 
-        - ``oriented`` -- boolean (default False) it only affects series of
-          proper links. By default the list items of a series of proper links
-          are again series of links collecting all orientation types of an
+        - ``oriented`` -- boolean (optional, default ``False``) it only affects
+          series of proper links. By default the list items of a series of proper
+          links are again series of links collecting all orientation types of an
           unoriented name. To obtain the list of the individual links this
-          keyword has to be set to ``True``.
+          keyword has to be set to ``True``
+
+        - ``comp`` (optional, default ``None``) if given an integer for this
+          keyword the list is restriced to links having the according number
+          of components. This keyword implies ``oriented=True``
+
+        - ``det`` (optional, default ``None``) if given an integer for this
+          keyword the list is restriced to links having the according value
+          for its determinant. This keyword implies ``oriented=True``
+
+        - ``homfly`` (optional, default ``None``) if given a HOMFLY-PT polynomial
+          having ``normalization='vz'`` for this keyword the list is restriced to
+          links having the according value for its HOMFLY-PT polynomial. This
+          keyword implies ``oriented=True``
 
         EXAMPLES::
 
@@ -1893,6 +1936,23 @@ class KnotInfoSeries(UniqueRepresentation):
             sage: L2a.list(oriented=True)
             [<KnotInfo.L2a1_0: 'L2a1{0}'>, <KnotInfo.L2a1_1: 'L2a1{1}'>]
         """
+        if homfly is not None:
+            # additional restriction to number of components, determinant and
+            # HOMFLY-PT polynomial
+            l = self.list(oriented=True, comp=comp, det=det)
+            return [L for L in l if L.homfly_polynomial() == homfly]
+
+        if det is not None:
+            # additional restriction to number of components and determinant
+            l = self.list(oriented=True, comp=comp)
+            return [L for L in l if L.determinant() == det]
+
+        if comp is not None:
+            # additional restriction to number of components
+            l = self.list(oriented=True)
+            return [L for L in l if L.num_components() == comp]
+
+        # default case
         is_knot  = self._is_knot
         cross_nr = self._crossing_number
         is_alt   = self._is_alternating
@@ -1929,15 +1989,24 @@ class KnotInfoSeries(UniqueRepresentation):
 
 
     @cached_method
-    def lower_list(self, oriented=False):
+    def lower_list(self, oriented=False, comp=None, det=None, homfly=None):
         r"""
         Return this series together with all series with smaller crossing number
         as a Python list.
 
         INPUT:
 
-        - ``oriented`` -- boolean (default False) see the description
-          for :meth:`list`.
+        - ``oriented`` -- boolean (optional, default ``False``) see the
+          description for :meth:`list`
+
+        - ``comp`` (optional, default ``None``) see the description for
+          :meth:`list`
+
+        - ``det`` (optional, default ``None``) see the description for
+          :meth:`list`
+
+        - ``homfly`` (optional, default ``None``) see the description for
+          :meth:`list`
 
         EXAMPLES::
 
@@ -1957,10 +2026,11 @@ class KnotInfoSeries(UniqueRepresentation):
              <KnotInfo.L4a1_1: 'L4a1{1}'>]
         """
         l = []
-        for i in range(self._crossing_number):
-            LS = type(self)(i, self._is_knot, self._is_alternating, self._name_unoriented )
-            l += LS.list(oriented=oriented)
-        return l + self.list(oriented=oriented)
+        cr = self._crossing_number
+        if cr > 0:
+            LS = type(self)(cr - 1, self._is_knot, self._is_alternating, self._name_unoriented )
+            l = LS.lower_list(oriented=oriented, comp=comp, det=det, homfly=homfly)
+        return l + self.list(oriented=oriented, comp=comp, det=det, homfly=homfly)
 
 
     def __repr__(self):
@@ -2076,6 +2146,25 @@ class KnotInfoSeries(UniqueRepresentation):
         else:
             res = 'L%s%s' %(cross_nr, alt)
         return res
+
+    def _test_recover(self, **options):
+        r"""
+        Method used by ``TestSuite``. Tests if all links of the series can be
+        recovered from their conversion to Sage links. It uses :meth:`_test_recover`
+        of :class:`KnotInfoBase`.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: TestSuite(KnotInfo.L5a1_0.series()).run(verbose=True)  # indirec doctest
+            running ._test_category() . . . pass
+            running ._test_new() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
+            running ._test_recover() . . . pass
+        """
+        for L in self:
+            L._test_recover(**options)
 
 
     def inject(self, verbose=True):

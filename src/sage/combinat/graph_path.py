@@ -279,8 +279,7 @@ class GraphPaths_all(Parent, GraphPaths_common):
             True
         """
         self.graph = g
-        Parent.__init__(self, category=FiniteEnumeratedSets().Facade(),
-                        facade=(list,))
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def __repr__(self):
         """
@@ -313,6 +312,8 @@ class GraphPaths_t(Parent, GraphPaths_common):
 
             sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
             sage: p = GraphPaths(G, target=4)
+            sage: p == loads(dumps(p))
+            True
         """
         self.graph = g
         self.target = target
@@ -356,6 +357,8 @@ class GraphPaths_s(Parent, GraphPaths_common):
 
             sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
             sage: p = GraphPaths(G, 4)
+            sage: p == loads(dumps(p))
+            True
         """
         self.graph = g
         self.source = source
@@ -416,6 +419,8 @@ class GraphPaths_st(Parent, GraphPaths_common):
 
             sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
             sage: p = GraphPaths(G,1,2)
+            sage: p == loads(dumps(p))
+            True
         """
         self.graph = g
         self.source = source

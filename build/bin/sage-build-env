@@ -49,44 +49,60 @@ fi
 if [ "x$ORIGINAL_CFLAGS" == "x" ]; then
     # Evaluate SAGE_DEBUG:
     if [ "x$SAGE_DEBUG" == "xyes" ]; then
-        export CFLAGS="-Og -g"
-        export CFLAGS_O3="-Og -g"
+        export CFLAGS_NON_NATIVE="-Og -g"
+        export CFLAGS_O3_NON_NATIVE="-Og -g"
     elif [ "x$SAGE_DEBUG" == "xno" ]; then
-        export CFLAGS="-O2"
-        export CFLAGS_O3="-O3"
+        export CFLAGS_NON_NATIVE="-O2"
+        export CFLAGS_O3_NON_NATIVE="-O3"
     else
-        export CFLAGS="-O2 -g"
-        export CFLAGS_O3="-O3 -g"
+        export CFLAGS_NON_NATIVE="-O2 -g"
+        export CFLAGS_O3_NON_NATIVE="-O3 -g"
     fi
+    export CFLAGS="$CFLAGS_NON_NATIVE $CONFIGURED_SAGE_MARCH"
+    export CFLAGS_O3="$CFLAGS_O3_NON_NATIVE $CONFIGURED_SAGE_MARCH"
 else
     # Respect user environment variable.
     export CFLAGS="$ORIGINAL_CFLAGS"
     export CFLAGS_O3="$ORIGINAL_CFLAGS"
+    export CFLAGS_NON_NATIVE="$ORIGINAL_CFLAGS"
+    export CFLAGS_O3_NON_NATIVE="$ORIGINAL_CFLAGS"
 fi
 
 # Copy to CXXFLAGS if this is not set.
 if [ "x$ORIGINAL_CXXFLAGS" == "x" ]; then
     export CXXFLAGS="$CFLAGS"
     export CXXFLAGS_O3="$CFLAGS_O3"
+    export CXXFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
+    export CXXFLAGS_O3_NON_NATIVE="$CFLAGS_O3_NON_NATIVE"
 else
     export CXXFLAGS="$ORIGINAL_CXXFLAGS"
     export CXXFLAGS_O3="$ORIGINAL_CXXFLAGS"
+    export CXXFLAGS_NON_NATIVE="$ORIGINAL_CXXFLAGS"
+    export CXXFLAGS_O3_NON_NATIVE="$ORIGINAL_CXXFLAGS"
 fi
 
 # Copy CFLAGS to FCFLAGS if this is not set.
 if [ "x$ORIGINAL_FCFLAGS" == "x" ]; then
     export FCFLAGS="$CFLAGS"
     export FCFLAGS_O3="$CFLAGS_O3"
+    export FCFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
+    export FCFLAGS_O3_NON_NATIVE="$CFLAGS_O3_NON_NATIVE"
 else
     export FCFLAGS="$ORIGINAL_FCFLAGS"
     export FCFLAGS_O3="$ORIGINAL_FCFLAGS"
+    export FCFLAGS_NON_NATIVE="$ORIGINAL_FCFLAGS"
+    export FCFLAGS_O3_NON_NATIVE="$ORIGINAL_FCFLAGS"
 fi
 
 # Copy FCFLAGS to F77FLAGS if this is not set.
 if [ "x$ORIGINAL_F77FLAGS" == "x" ]; then
     export F77FLAGS="$FCFLAGS"
     export F77FLAGS_O3="$FCFLAGS_O3"
+    export F77FLAGS_NON_NATIVE="$FCFLAGS_NON_NATIVE"
+    export F77FLAGS_O3_NON_NATIVE="$FCFLAGS_O3_NON_NATIVE"
 else
     export F77FLAGS="$ORIGINAL_F77FLAGS"
     export F77FLAGS_O3="$ORIGINAL_F77FLAGS"
+    export F77FLAGS_NON_NATIVE="$ORIGINAL_F77FLAGS"
+    export F77FLAGS_O3_NON_NATIVE="$ORIGINAL_F77FLAGS"
 fi

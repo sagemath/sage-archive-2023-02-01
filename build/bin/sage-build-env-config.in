@@ -36,6 +36,7 @@ export CONFIGURED_CFLAGS="@CFLAGS@"
 export CONFIGURED_CXXFLAGS="@CXXFLAGS@"
 export CONFIGURED_FCFLAGS="@FCFLAGS@"
 export CONFIGURED_F77FLAGS="@F77FLAGS@"
+export CONFIGURED_SAGE_MARCH="@SAGE_MARCH@"
 
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
 export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"

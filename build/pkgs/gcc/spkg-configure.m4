@@ -212,9 +212,9 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     elif test x$SAGE_FAT_BINARY = xyes; then
         SAGE_MARCH=""
     elif test x$sage_spkg_install_gcc = xyes; then
-        SAGE_MARCH=" -march=native"
+        SAGE_MARCH="-march=native"
     else
-        AX_CHECK_COMPILE_FLAG("-march=native", [SAGE_MARCH=" -march=native"], [SAGE_MARCH=""], [], [])
+        AX_CHECK_COMPILE_FLAG("-march=native", [SAGE_MARCH="-march=native"], [SAGE_MARCH=""], [], [])
     fi
     AC_SUBST(SAGE_MARCH)
 

@@ -789,6 +789,11 @@ def treelength_lowerbound(G):
         2
         sage: G.treelength()
         2
+
+    TESTS::
+
+        sage: treelength_lowerbound(Graph())
+        0
     """
     if G.is_cycle():
         return int(ceil(G.order() / 3.0))
@@ -919,7 +924,7 @@ cdef class TreelengthConnected:
         - ``certificate`` -- boolean (default: ``False``); whether to compute
           the tree-decomposition itself
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
             sage: G = graphs.CycleGraph(4)
@@ -1017,6 +1022,13 @@ cdef class TreelengthConnected:
     def __destroy__(self):
         r"""
         Destroy the object
+
+        TESTS::
+
+            sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+            sage: G = graphs.CycleGraph(4)
+            sage: TreelengthConnected(G).get_length()
+            2
         """
         if self.distances:
             sig_free(self.c_distances)
@@ -1033,7 +1045,7 @@ cdef class TreelengthConnected:
 
         - ``k`` -- integer; indicates the length to be considered
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
             sage: G = graphs.CycleGraph(4)
@@ -1153,7 +1165,11 @@ cdef class TreelengthConnected:
             Traceback (most recent call last):
             ...
             ValueError: no tree decomposition with length <= 1 was found
-            sage: TreelengthConnected(G,certificate=False).get_tree_decomposition()
+
+        TESTS::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: TreelengthConnected(G, certificate=False).get_tree_decomposition()
             Traceback (most recent call last):
             ...
             ValueError: parameter 'certificate' has not been set to True
@@ -1181,6 +1197,11 @@ cdef class TreelengthConnected:
             Traceback (most recent call last):
             ...
             ValueError: no tree decomposition with length <= 1 was found
+
+        TESTS::
+
+            sage: TreelengthConnected(Graph()).get_length()
+            0
         """
         if self.k_is_defined and not self.leq_k:
             raise ValueError("no tree decomposition with length <= {} was found".format(self.k))
@@ -1202,6 +1223,11 @@ cdef class TreelengthConnected:
             Traceback (most recent call last):
             ...
             ValueError: parameter 'k' has not been specified
+
+        TESTS::
+
+            sage: TreelengthConnected(Graph(), k=1).is_less_than_k()
+            True
         """
         if self.k_is_defined:
             return self.leq_k

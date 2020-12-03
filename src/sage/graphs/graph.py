@@ -9579,6 +9579,7 @@ class Graph(GenericGraph):
     from sage.graphs.isoperimetric_inequalities import cheeger_constant, edge_isoperimetric_number, vertex_isoperimetric_number
     from sage.graphs.graph_coloring import fractional_chromatic_number
     from sage.graphs.graph_coloring import fractional_chromatic_index
+    from sage.graphs.hyperbolicity import hyperbolicity
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -9621,7 +9622,8 @@ _additional_categories = {
     "edge_isoperimetric_number" : "Expansion properties",
     "vertex_isoperimetric_number" : "Expansion properties",
     "fractional_chromatic_number" : "Coloring",
-    "fractional_chromatic_index" : "Coloring"
+    "fractional_chromatic_index" : "Coloring",
+    "hyperbolicity"              : "Graph properties",
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

@@ -24,6 +24,40 @@ one, i.e., `\max_{X_i \in X} |X_i| - 1`, and the *treewidth* `tw(G)` of a graph
 that, the size of the largest set is diminished by one in order to make the
 treewidth of a tree equal to one.
 
+The *length* of a tree decomposition, as proposed in [DG2006]_, is the maximum
+*diameter* in `G` of its bags, where the diameter of a bag `X_i` is the largest
+distance in `G` between the vertices in `X_i` (i.e., `\max_{u, v \in X_i}
+dist_G(u, v)`). The *treelength* `tl(G)` of a graph `G` is the minimum length
+among all possible tree decompositions of `G`.
+
+While deciding whether a graph has treelength 1 can be done in linear time
+(equivalant to deciding if the graph is chordal), deciding if it has treelength
+at most `k` for any fixed constant `k \leq 2` is NP-complete [Lokshtanov2009]_.
+
+Treewidth and treelength are different measures of tree-likeness. In particular,
+trees have treewidth and treelength 1::
+
+    sage: T = graphs.RandomTree(20)
+    sage: T.treewidth()
+    1
+    sage: T.treelength()
+    1
+
+However, while the treewidth of a cycle is 2, its treelength is `\lceil n/3 \rceil`::
+
+    sage: [graphs.CycleGraph(n).treewidth() for n in range(3, 11)]
+    [2, 2, 2, 2, 2, 2, 2, 2]
+    sage: [graphs.CycleGraph(n).treelength() for n in range(3, 11)]
+    [1, 2, 2, 2, 3, 3, 3, 4]
+
+The treewidth if a clique is `n-1` while its treelength is 1::
+
+    sage: [graphs.CompleteGraph(n).treewidth() for n in range(3, 11)]
+    [2, 3, 4, 5, 6, 7, 8, 9]
+    sage: [graphs.CompleteGraph(n).treelength() for n in range(3, 11)]
+    [1, 1, 1, 1, 1, 1, 1, 1]
+
+
 .. SEEALSO::
 
     - :wikipedia:`Tree_decomposition`
@@ -37,7 +71,8 @@ treewidth of a tree equal to one.
     :widths: 30, 70
     :delim: |
 
-    :meth:`treewidth` | Compute the tree-width of `G` (and provide a decomposition).
+    :meth:`treewidth` | Compute the treewidth of `G` (and provide a decomposition).
+    :meth:`treelength` | Compute the treelength of `G` (and provide a decomposition).
     :meth:`is_valid_tree_decomposition` | Check whether `T` is a valid tree-decomposition for `G`.
     :meth:`reduced_tree_decomposition(T)` | Return a reduced tree-decomposition of `T`.
 
@@ -45,8 +80,6 @@ treewidth of a tree equal to one.
 .. TODO:
 
     - Add method to return a *nice* tree decomposition
-    - Add methods to compute treelength and examples in the module documentation
-      of the difference between treewidth and treelength
     - Approximation of treelength based on
       :meth:`~sage.graphs.graph.Graph.lex_M`
     - Approximation of treelength based on BFS Layering
@@ -72,6 +105,11 @@ from itertools import combinations
 from itertools import chain
 from sage.features import PythonModule
 from sage.sets.disjoint_set import DisjointSet
+from sage.functions.other import ceil
+from sage.rings.infinity import Infinity
+from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_free
+
 
 def is_valid_tree_decomposition(G, T):
     r"""
@@ -723,3 +761,708 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
 
     G.name("Tree decomposition")
     return G
+
+#
+# Treelength
+#
+
+def treelength_lowerbound(G):
+    r"""
+    Return a lower bound on the treelength of `G`.
+
+    See [DG2006]_ for more details`.
+
+    INPUT:
+
+    - ``G`` -- a sage Graph
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import treelength_lowerbound
+        sage: G = graphs.PetersenGraph()
+        sage: treelength_lowerbound(G)
+        1
+        sage: G.treelength()
+        2
+        sage: G = graphs.CycleGraph(5)
+        sage: treelength_lowerbound(G)
+        2
+        sage: G.treelength()
+        2
+    """
+    if G.is_cycle():
+        return int(ceil(G.order() / 3.0))
+
+    lowerbound = 0
+    girth = G.girth()
+    if girth is not Infinity:
+        lowerbound = max(lowerbound, girth / 3.0)
+
+    return int(lowerbound)
+
+
+cdef class TreelengthConnected:
+    r"""
+    Compute the treelength of a connected graph (and provide a decomposition).
+
+    This class implements an algorithm for computing the treelength of a
+    connected graph that virtually explores the graph of all pairs
+    ``(vertex_cut, connected_component)``, where ``vertex_cut`` is a vertex cut
+    of the graph of length `\leq k`, and ``connected_component`` is a connected
+    component of the graph induced by `G - vertex_cut`.
+
+    We deduce that the pair ``(vertex_cut, connected_component)`` is feasible
+    with treelength `k` if ``connected_component`` is empty, or if a vertex
+    ``v`` from ``vertex_cut`` can be replaced with a vertex from
+    ``connected_component``, such that the pair ``(vertex_cut + v,
+    connected_component - v)`` is feasible.
+
+    INPUT:
+
+    - ``G`` -- a sage Graph
+
+    - ``k`` -- integer (default: ``None``); indicates the length to be
+      considered. When `k` is an integer, the method checks that the graph has
+      treelength `\leq k`. If `k` is ``None`` (default), the method computes the
+      optimal treelength.
+
+    - ``certificate`` -- boolean (default: ``False``); whether to return the
+      tree-decomposition itself
+
+    OUTPUT:
+
+        ``TreelengthConnected(G)`` returns the treelength of `G`. When `k` is
+        specified, it returns ``False`` when no tree-decomposition of length
+        `\leq k` exists or ``True`` otherwise. When ``certificate=True``, the
+        tree-decomposition is also returned.
+
+    EXAMPLES:
+
+    A clique has treelength 1::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+        sage: TreelengthConnected(graphs.CompleteGraph(3)).get_length()
+        1
+        sage: TC = TreelengthConnected(graphs.CompleteGraph(4), certificate=True)
+        sage: TC.get_length()
+        1
+        sage: TC.get_tree_decomposition()
+        Tree decomposition of Complete graph: Graph on 1 vertex
+
+    A cycle has treelength `\lceil n/3 \rceil`::
+
+        sage: TreelengthConnected(graphs.CycleGraph(6)).get_length()
+        2
+        sage: TreelengthConnected(graphs.CycleGraph(7)).get_length()
+        3
+        sage: TreelengthConnected(graphs.CycleGraph(7), k=3).is_less_than_k()
+        True
+        sage: TreelengthConnected(graphs.CycleGraph(7), k=2).is_less_than_k()
+        False
+
+    TESTS:
+
+    The input graph must be connected::
+
+        sage: TreelengthConnected(Graph(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the graph is not connected
+
+    The parameter `k` must be non-negative::
+
+        sage: TreelengthConnected(Graph(1), k=-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: k (= -1) must be a nonnegative integer
+
+    Parameter ``certificate`` must be ``True`` to get a tree decomposition::
+
+        sage: TreelengthConnected(Graph(1), certificate=False).get_tree_decomposition()
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter 'certificate' has not been set to True
+
+    When parameter `k` is specified and ``certificate`` is ``True``, the
+    computed tree decomposition is any valid tree decomposition with length at
+    most `k`. However, this tree decomposition exists only if the treelength of
+    `G` is at most `k` (i.e., `tl(G) \leq k`)::
+
+        sage: G = graphs.Grid2dGraph(2, 3)
+        sage: TC = TreelengthConnected(G, k=2, certificate=True)
+        sage: TC.is_less_than_k()
+        True
+        sage: TC.get_tree_decomposition()
+        Tree decomposition of 2D Grid Graph for [2, 3]: Graph on 3 vertices
+        sage: TC = TreelengthConnected(G, k=1, certificate=True)
+        sage: TC.is_less_than_k()
+        False
+        sage: TC.get_tree_decomposition()
+        Traceback (most recent call last):
+        ...
+        ValueError: no tree decomposition with length <= 1 was found
+    """
+
+    def __init__(self, G, k=None, certificate=False):
+        r"""
+        Initialize this object and compute the treelength of `G`.
+
+        INPUT:
+
+        - ``G`` -- a sage Graph
+
+        - ``k`` -- integer (default: ``None``); indicates the length to be
+          considered. When `k` is an integer, the method checks that the graph
+          has treelength `\leq k`. If `k` is ``None`` (default), the method
+          computes the optimal treelength.
+
+        - ``certificate`` -- boolean (default: ``False``); whether to compute
+          the tree-decomposition itself
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+            sage: G = graphs.CycleGraph(4)
+            sage: TreelengthConnected(G).get_length()
+            2
+        """
+        if k is not None and k < 0:
+            raise ValueError("k (= {}) must be a nonnegative integer".format(k))
+
+        self.certificate = certificate
+        self.k_is_defined = k is not None
+        self.k = k if self.k_is_defined else 0
+
+        if certificate:
+            from sage.graphs.graph import Graph
+            self.name = "Tree decomposition of {}".format(G.name())
+
+        self.n = G.order()
+        self.distances = NULL  # used in the destructor
+
+        # Trivial cases
+        if self.n <= 1:
+            if certificate:
+                if self.n:
+                    self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
+                else:
+                    self.tree = Graph(name=self.name)
+            self.length = 0
+            self.leq_k = True  # We know that k is non negative
+            return
+
+        if not G.is_connected():
+            raise ValueError("the graph is not connected")
+
+        if k == 0:
+            self.leq_k = False
+            return
+
+        if G.is_clique():
+            if certificate:
+                self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
+            self.length = 1
+            self.leq_k = True
+            return
+
+        cdef unsigned int i, j
+
+        # If the vertices are not labeled 0..n-1, we relabel the graph. This
+        # way, the labeling of the vertices matches the rows and columns of the
+        # distance matrix
+        if set(G) == set(range(self.n)):
+            graph = G
+            self.perm_inv = dict()
+        else:
+            graph, perm = G.relabel(inplace=False, return_map=True)
+            self.perm_inv = {i: u for u, i in perm.items()}
+
+        # We compute the distance matrix.
+        self.c_distances = c_distances_all_pairs(graph, vertex_list=list(range(self.n)))
+        self.distances = <unsigned short **>sig_calloc(self.n, sizeof(unsigned short *))
+        for i in range(self.n):
+            self.distances[i] = self.c_distances + i * self.n
+
+        # and the diameter of the graph
+        self.diameter = 0
+        for i in range(self.n):
+            for j in range(i, self.n):
+                self.diameter = max(self.diameter, self.distances[i][j])
+
+        if ((self.k_is_defined and k >= self.diameter) or
+            (not self.k_is_defined and self.diameter == 1)):
+            # All vertices fit in one bag
+            if certificate:
+                self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
+            self.length = self.diameter
+            self.leq_k = True
+            return
+
+        # Forcing k to be defined
+        if not self.k_is_defined:
+            for i in range(treelength_lowerbound(graph), self.diameter + 1):
+                ans = self._treelength(graph, i)
+                if ans:
+                    self.length = i
+                    return
+
+        # If k is defined
+        ans = self._treelength(graph, k)
+        if ans:
+            self.length = k
+            self.leq_k = True
+        else:
+            self.leq_k = False
+
+    def __destroy__(self):
+        r"""
+        Destroy the object
+        """
+        if self.distances:
+            sig_free(self.c_distances)
+            sig_free(self.distances)
+
+
+    def _treelength(self, g, k):
+        r"""
+        Check whether the treelength of `g` is at most `k`.
+
+        INPUT:
+
+        - ``g`` -- a sage Graph
+
+        - ``k`` -- integer; indicates the length to be considered
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+            sage: G = graphs.CycleGraph(4)
+            sage: TreelengthConnected(G, k=2).is_less_than_k()
+            True
+        """
+
+        # This is the recursion described in the method's documentation. All
+        # computations are cached, and depends on the pair ``cut,
+        # connected_component`` only.
+        #
+        # It returns either a boolean or the corresponding tree-decomposition,
+        # as a list of edges between vertex cuts (used to build the complete
+        # tree-decomposition at the end of the _treelength method).
+        @cached_function
+        def rec(cut, cc):
+            if len(cc) == 1:
+                [v] = cc
+                reduced_cut = frozenset([x for x in g.neighbor_iterator(v) if x in cut])
+                if any(self.distances[v][x] > k for x in reduced_cut):
+                    return False
+                if self.certificate:
+                    if cut == reduced_cut:
+                        return [(cut, cut.union(cc))]
+                    # We need to forget some vertices
+                    return [(cut, reduced_cut), (reduced_cut, reduced_cut.union(cc))]
+
+                return True
+
+            # We explore all possible extensions of the cut
+            for v in cc:
+
+                # New cuts and connected components, with v respectively added
+                # and removed
+                cutv = cut.union([v])
+                if any(self.distances[v][x] > k for x in cutv):
+                    continue
+                ccv = cc.difference([v])
+
+                # The values returned by the recursive calls.
+                sons = []
+
+                # Removing v may have disconnected cc. We iterate on its
+                # connected components
+                for cci in g.subgraph(ccv).connected_components():
+                    cci = frozenset(cci)
+
+                    # The recursive subcalls. We remove on-the-fly the vertices
+                    # from the cut which play no role in separating the
+                    # connected component from the rest of the graph.
+                    reduced_cutv = frozenset([x for x in cutv
+                                                  if x == v or any(xx in cci for xx in g.neighbor_iterator(x))])
+                    reduced_cuti = frozenset([x for x in reduced_cutv
+                                                  if any(xx in cci for xx in g.neighbor_iterator(x))])
+                    son = rec(reduced_cuti, cci)
+                    if not son:
+                        break
+
+                    if self.certificate:
+                        sons.append((cut, cutv))
+                        if cutv != reduced_cutv:
+                            sons.append((cutv, reduced_cutv))
+                        if reduced_cutv != reduced_cuti:
+                            sons.append((reduced_cutv, reduced_cuti))
+                        sons.extend(son)
+
+                # Weird Python syntax which is useful once in a lifetime : if break
+                # was never called in the loop above, we return "sons".
+                else:
+                    return sons if self.certificate else True
+
+            return False
+
+        # Main call to rec function, i.e. rec({v}, V-{v})
+        V = list(g)
+        v = frozenset([V.pop()])
+        TD = rec(v, frozenset(V))
+
+        if TD is False:
+            return False
+
+        if not self.certificate:
+            return True
+
+        # Building the Tree-Decomposition graph. Its vertices are cuts of the
+        # decomposition, and there is an edge from a cut C1 to a cut C2 if C2 is an
+        # immediate subcall of C1. If needed, the vertices are relabeled.
+        if self.perm_inv:
+            def good_label(x):
+                return Set([self.perm_inv[i] for i in x])
+        else:
+            def good_label(x):
+                return Set(x)
+
+        from sage.graphs.graph import Graph
+        T = Graph([(good_label(x), good_label(y)) for x, y in TD if x != y],
+                  format="list_of_edges")
+        self.tree = reduced_tree_decomposition(T)
+        self.tree.name(self.name)
+        return True
+
+    def get_tree_decomposition(self):
+        """
+        Return the tree-decomposition.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+            sage: G = graphs.CycleGraph(4)
+            sage: TreelengthConnected(G, certificate=True).get_tree_decomposition()
+            Tree decomposition of Cycle graph: Graph on 2 vertices
+            sage: G.diameter()
+            2
+            sage: TreelengthConnected(G, k=2, certificate=True).get_tree_decomposition()
+            Tree decomposition of Cycle graph: Graph on 1 vertex
+            sage: TreelengthConnected(G, k=1, certificate=True).get_tree_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: no tree decomposition with length <= 1 was found
+            sage: TreelengthConnected(G,certificate=False).get_tree_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter 'certificate' has not been set to True
+        """
+        if self.certificate:
+            if self.k_is_defined and not self.leq_k:
+                raise ValueError("no tree decomposition with length <= {} was found".format(self.k))
+            return self.tree
+        else:
+            raise ValueError("parameter 'certificate' has not been set to True")
+
+    def get_length(self):
+        """
+        Return the length of the tree decomposition.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+            sage: G = graphs.CycleGraph(4)
+            sage: TreelengthConnected(G).get_length()
+            2
+            sage: TreelengthConnected(G, k=2).get_length()
+            2
+            sage: TreelengthConnected(G, k=1).get_length()
+            Traceback (most recent call last):
+            ...
+            ValueError: no tree decomposition with length <= 1 was found
+        """
+        if self.k_is_defined and not self.leq_k:
+            raise ValueError("no tree decomposition with length <= {} was found".format(self.k))
+        return self.length
+
+    def is_less_than_k(self):
+        """
+        Return whether a tree decomposition with length at most `k` was found.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+            sage: G = graphs.CycleGraph(4)
+            sage: TreelengthConnected(G, k=1).is_less_than_k()
+            False
+            sage: TreelengthConnected(G, k=2).is_less_than_k()
+            True
+            sage: TreelengthConnected(G).is_less_than_k()
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter 'k' has not been specified
+        """
+        if self.k_is_defined:
+            return self.leq_k
+        raise ValueError("parameter 'k' has not been specified")
+
+
+def treelength(G, k=None, certificate=False):
+    r"""
+    Compute the tree-length of `G` (and provide a decomposition).
+
+    INPUT:
+
+    - ``G`` -- a sage Graph
+
+    - ``k`` -- integer (default: ``None``); indicates the length to be
+      considered. When `k` is an integer, the method checks that the graph has
+      treelength `\leq k`. If `k` is ``None`` (default), the method computes the
+      optimal treelength.
+
+    - ``certificate`` -- boolean (default: ``False``); whether to return the
+      tree-decomposition itself
+
+    OUTPUT:
+
+        ``G.treelength()`` returns the treelength of `G`. When `k` is specified,
+        it returns ``False`` when no tree-decomposition of length `\leq k`
+        exists or ``True`` otherwise. When ``certificate=True``, the
+        tree-decomposition is also returned.
+
+    ALGORITHM:
+
+        This method virtually explores the graph of all pairs ``(vertex_cut,
+        connected_component)``, where ``vertex_cut`` is a vertex cut of the
+        graph of length `\leq k`, and ``connected_component`` is a
+        connected component of the graph induced by `G - vertex_cut`.
+
+        We deduce that the pair ``(vertex_cut, connected_component)`` is
+        feasible with treelength `k` if ``connected_component`` is empty, or if
+        a vertex ``v`` from ``vertex_cut`` can be replaced with a vertex from
+        ``connected_component``, such that the pair ``(vertex_cut + v,
+        connected_component - v)`` is feasible.
+
+        In practice, this method decomposes the graph by its clique minimal
+        separators into atoms, computes the treelength of each of atom and
+        returns the maximum value over all the atoms. Indeed, we have that
+        `tl(G) = \max_{X \in A} tl(G[X])` where `A` is the set of atoms of the
+        decomposition by clique separators of `G`. When ``certificate == True``,
+        the tree-decompositions of the atoms are connected to each others by
+        adding edges with respect to the clique separators.
+
+    .. SEEALSO::
+
+        - :meth:`treewidth` computes the treewidth of a
+          graph.
+        - :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
+          computes the pathwidth of a graph.
+        - :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
+        - :meth:`~sage.graphs.Graph.atoms_and_clique_separators`
+
+    EXAMPLES:
+
+    The PetersenGraph has treelength 2::
+
+        sage: G = graphs.PetersenGraph()
+        sage: G.treelength()
+        2
+
+    Disconnected graphs have infinite treelength::
+
+        sage: G = Graph(2)
+        sage: G.treelength()
+        +Infinity
+        sage: G.treelength(k=+Infinity)
+        True
+        sage: G.treelength(k=2)
+        False
+        sage: G.treelength(certificate=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: the tree decomposition of a disconnected graph is not defined
+
+    Chordal graphs have treelength 1::
+
+        sage: G = graphs.RandomChordalGraph(30)
+        sage: while not G.is_connected():
+        ....:     G = graphs.RandomChordalGraph(30)
+        sage: G.treelength()
+        1
+
+    Cycles have treelength `\lceil n/3 \rceil`::
+
+        sage: [graphs.CycleGraph(n).treelength() for n in range(3, 11)]
+        [1, 2, 2, 2, 3, 3, 3, 4]
+
+    TESTS::
+
+    Check that the decomposition by clique separators is valid::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
+        sage: G = graphs.Grid2dGraph(2, 3)
+        sage: G.treelength() == TreelengthConnected(G).get_length()
+        True
+        sage: G = graphs.RandomBarabasiAlbert(30, 2)  # long time
+        sage: G.treelength() == TreelengthConnected(G).get_length()  # long time
+        True
+
+    Check that the returned tree is a valid tree decomposition::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
+        sage: G = graphs.RandomBarabasiAlbert(30, 2)  # long time
+        sage: T = G.treelength(certificate=True)      # long time
+        sage: is_valid_tree_decomposition(G, T)       # long time
+        True
+
+    Corner cases::
+
+        sage: Graph().treelength()
+        0
+        sage: Graph().treelength(certificate=True)
+        Tree decomposition: Graph on 0 vertices
+        sage: Graph(1).treelength()
+        0
+        sage: Graph(1).treelength(k=0)
+        True
+        sage: Graph(1).treelength(certificate=True)
+        Tree decomposition: Graph on 1 vertex
+        sage: G = graphs.PathGraph(2)
+        sage: G.treelength()
+        1
+        sage: G.treelength(k=0)
+        False
+        sage: G.treelength(certificate=True)
+        Tree decomposition of Path graph: Graph on 1 vertex
+        sage: G.treelength(certificate=True, k=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: no tree decomposition with length 0 was found
+        sage: G.treelenth(k=-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: k(=-1) must be a nonnegative integer
+    """
+    if G.is_directed():
+        raise ValueError("this method is defined for undirected graphs only")
+
+    if k is not None and k < 0:
+        raise ValueError("k(={}) must be a nonnegative integer".format(k))
+
+    name = "Tree decomposition"
+    if G.name():
+        name += " of {}".format(G.name())
+
+    # Corner cases
+    from sage.graphs.graph import Graph
+    if G.order() <= 1:
+        if certificate:
+            if G:
+                return Graph({Set(G): []}, format="dict_of_lists", name=name)
+            else:
+                return Graph(name=name)
+        elif k is None:
+            return 0
+        else:
+            return True  # We know that k is non negative
+    if not G.is_connected():
+        if certificate:
+            raise ValueError("the tree decomposition of a disconnected graph is not defined")
+        elif k is None:
+            return +Infinity
+        else:
+            return k is Infinity
+    if k == 0:
+        if certificate:
+            raise ValueError("no tree decomposition with length 0 was found")
+        return False
+    if not certificate and G.is_chordal():
+        return 1 if k is None else True
+
+    # We decompose the graph by clique minimal separators into atoms and solve
+    # the problem on each of them
+    atoms, cliques = G.atoms_and_clique_separators()
+
+    # As some atoms might be isomorphic, we use a dictionary keyed by immutable
+    # copies of canonical graphs to store intermediate results.
+    data = dict()
+    result = []
+    tl = 1  # The graph is connected and of order least 2
+
+    for atom in atoms:
+
+        ga = G.subgraph(atom)
+        if ga.is_clique():
+            if certificate:
+                result.append(Graph({Set(atom): []}, format="dict_of_lists"))
+            continue
+
+        gc, certif = ga.canonical_label(certificate=True)
+        gci = gc.copy(immutable=True)
+
+        if gci in data:
+            # We already solved the problem for an isomorphic atom.
+            if certificate:
+                # We deduce the solution for this atom
+                certif_inv = {i: u for u, i in certif.items()}
+                perm = {u: Set([certif_inv[i] for i in u]) for u in data[gci]}
+                result.append(data[gci].relabel(perm=perm, inplace=False, immutable=False))
+            continue
+
+        # We solve the problem for this atom and store the result
+        TC = TreelengthConnected(gci, k=k, certificate=certificate)
+        if certificate:
+            T = TC.get_tree_decomposition()
+            data[gci] = T
+            certif_inv = {i: u for u, i in certif.items()}
+            perm = {u: Set([certif_inv[i] for i in u]) for u in T}
+            result.append(T.relabel(perm=perm, inplace=False, immutable=False))
+        if k is None:
+            tl = max(tl, TC.get_length())
+        elif not TC.is_less_than_k():
+            return False
+
+    if not certificate:
+        if k is None:
+            return tl
+        return True
+
+    # We now build the tree decomposition of the graph by connecting the tree
+    # decompositions of its atoms. This is done in an order that is consistent
+    # with the order of the atoms and cliques returned by method
+    # atoms_and_clique_separators. More precisely, the first clique separates
+    # the first atom from the rest of the graph (call G1 this part of the
+    # graph), the second clique separates (in G1) the second atom from the rest
+    # of the graph G1, etc. So we merge the tree decompositions in the reverse
+    # order of the atoms.
+    T = result.pop()
+    while result:
+        A = result.pop()
+        C = cliques.pop()
+
+        # We search for a vertex in A and T containing clique C
+        ua, ut = None, None
+        for u in A:
+            if u.issuperset(C):
+                ua = u
+                break
+        for u in T:
+            if u.issuperset(C):
+                ut = u
+                break
+        if ua and ut:
+            A.add_edge(ua, ut)
+        else:
+            # This should never happen
+            raise RuntimeError("something goes wrong. Please report the issue "
+                               "to sage-devel@googlegroups.com")
+
+        # We merge T and A
+        T.add_edges(A.edges())
+
+    # The Tree-Decomposition may contain a lot of useless nodes.
+    # We merge all edges between two sets S,S' where S is a subset of S'
+    T = reduced_tree_decomposition(T)
+    T.name(name)
+    return T

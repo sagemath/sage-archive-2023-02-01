@@ -388,14 +388,16 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z.product_on_basis(Word(), Word('y'))
             Z[y]
         """
-        if not x:
-            return self.monomial(y)
         if self._side == '<':
+            if not x:
+                return self.monomial(y)
             x0 = self._indices([x[0]])
             return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
         else:
-            ylast = self._indices([y[-1]])
-            return self.sum_of_monomials(sh + ylast for sh in x.shuffle(y[:-1]))
+            if not y:
+                return self.monomial(x)
+            yf = self._indices([y[-1]])
+            return self.sum_of_monomials(sh + yf for sh in x.shuffle(y[:-1]))
 
     def coproduct_on_basis(self, w):
         """

@@ -88,10 +88,19 @@ if [ "x$ORIGINAL_FCFLAGS" == "x" ]; then
     export FCFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE"
     export FCFLAGS_O3_NON_NATIVE="$CFLAGS_O3_NON_NATIVE"
 else
-    export FCFLAGS="$ORIGINAL_FCFLAGS"
-    export FCFLAGS_O3="$ORIGINAL_FCFLAGS"
-    export FCFLAGS_NON_NATIVE="$ORIGINAL_FCFLAGS"
-    export FCFLAGS_O3_NON_NATIVE="$ORIGINAL_FCFLAGS"
+    # If `FCFLAGS` wasn't set, it might have been set to ` -ffree-form`
+    # during configure.
+    if [ "x$ORIGINAL_FCFLAGS" == "x -ffree-form" ]; then
+        export FCFLAGS="$CFLAGS -ffree-form"
+        export FCFLAGS_O3="$CFLAGS_O3 -ffree-form"
+        export FCFLAGS_NON_NATIVE="$CFLAGS_NON_NATIVE -ffree-form"
+        export FCFLAGS_O3_NON_NATIVE="$CFLAGS_O3_NON_NATIVE -ffree-form"
+    else
+        export FCFLAGS="$ORIGINAL_FCFLAGS"
+        export FCFLAGS_O3="$ORIGINAL_FCFLAGS"
+        export FCFLAGS_NON_NATIVE="$ORIGINAL_FCFLAGS"
+        export FCFLAGS_O3_NON_NATIVE="$ORIGINAL_FCFLAGS"
+    fi
 fi
 
 # Copy FCFLAGS to F77FLAGS if this is not set.

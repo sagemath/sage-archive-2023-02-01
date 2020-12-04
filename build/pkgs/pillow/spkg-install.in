@@ -21,6 +21,7 @@ fi
 sage-python23 setup.py \
        --no-user-cfg \
        bdist_wheel \
+       --bdist-dir ~/temp/bdistwheel \
        build_ext \
        --debug \
        --disable-jpeg \

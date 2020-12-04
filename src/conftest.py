@@ -1,5 +1,5 @@
-from typing import Any
 from __future__ import annotations
+from typing import Any
 import pytest
 
 # Ignore a few test files that are (not yet) using pytest

@@ -2,14 +2,17 @@
 
 import errno
 import os
+import sys
+from types import TracebackType
 
 
 class WorkerDiedException(RuntimeError):
     """Raised if a worker process dies unexpected."""
 
-    def __init__(self, message, original_exception=None):
+    def __init__(self, message, original_exception: BaseException = None, original_traceback: TracebackType = None):
         super(WorkerDiedException, self).__init__(message)
         self.original_exception = original_exception
+        self.original_traceback = original_traceback
 
 
 def build_many(target, args, processes=None):
@@ -113,7 +116,7 @@ def build_many(target, args, processes=None):
         WorkerDiedException: worker for 4 died with non-zero exit code -9
     """
     import multiprocessing
-    from multiprocessing import Process, Queue, cpu_count, set_start_method
+    from multiprocessing import set_start_method
     # With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork'
     # in multiprocessing, and Sage docbuilding doesn't work with
     # 'spawn'. See trac #27754.
@@ -133,8 +136,8 @@ def build_many(target, args, processes=None):
     def run_worker(target, queue, idx, task):
         try:
             result = target(task)
-        except BaseException as exc:
-            queue.put((None, exc))
+        except BaseException:
+            queue.put((None, sys.exc_info()))
         else:
             queue.put((idx, result))
 
@@ -154,13 +157,12 @@ def build_many(target, args, processes=None):
             w._popen.returncode = exitcode
 
         if exitcode != 0:
-            raise WorkerDiedException(
-                "worker for {} died with non-zero exit code "
-                "{}".format(task[1], w.exitcode))
+            raise WorkerDiedException(f"worker for {task[1]} died with non-zero exit code {w.exitcode}")
 
         # Get result from the queue; depending on ordering this may not be
         # *the* result for this worker, but for each completed worker there
         # should be *a* result so let's get it
+        result = None
         try:
             result = result_queue.get_nowait()
         except Empty:
@@ -168,9 +170,13 @@ def build_many(target, args, processes=None):
             # don't worry we'll collect any remaining results at the end.
             pass
 
+        if result is None:
+            return None
+
         if result[0] is None:
             # Indicates that an exception occurred in the target function
-            raise WorkerDiedException('', original_exception=result[1])
+            _, exception, tracback = result[1]
+            raise WorkerDiedException('', original_exception=exception, original_traceback=tracback)
         else:
             results.append(result)
 
@@ -286,7 +292,7 @@ def build_many(target, args, processes=None):
                 # worker died unexpectedly, or the original exception if it's
                 # wrapping one
                 if worker_exc.original_exception:
-                    raise worker_exc.original_exception
+                    raise worker_exc.original_exception.with_traceback(worker_exc.original_traceback)
                 else:
                     raise worker_exc
 

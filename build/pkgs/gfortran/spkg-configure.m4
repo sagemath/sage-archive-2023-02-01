@@ -33,12 +33,12 @@ AC_DEFUN([SAGE_MUST_INSTALL_GFORTRAN], [
 
 dnl This macro saves current FCFLAGS for later use.
 AC_DEFUN([SAGE_SAVE_FCFLAGS], [
-    sage_saved_fcflags=$FCFLAGS
+    sage_saved_fcflags="$FCFLAGS"
 ])
 
 dnl This macro restores saved FCFLAGS.
 AC_DEFUN([SAGE_RESTORE_FCFLAGS], [
-    FCFLAGS=$sage_saved_fcflags
+    FCFLAGS="$sage_saved_fcflags"
 ])
 
 

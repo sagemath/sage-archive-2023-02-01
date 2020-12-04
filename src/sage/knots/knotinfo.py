@@ -234,14 +234,14 @@ AUTHORS:
 
 
 from enum import Enum
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_method
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.groups.braid import BraidGroup
 from sage.knots.knot import Knots
-from sage.databases.knotinfo_db import KnotInfoColumnTypes, KnotInfoColumns, db
+from sage.databases.knotinfo_db import KnotInfoColumns, db
 
 
 

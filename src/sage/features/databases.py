@@ -3,7 +3,6 @@ r"""
 Testing for databases at runtime
 """
 
-import os
 
 from . import StaticFile
 from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR

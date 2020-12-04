@@ -53,3 +53,35 @@ the internet, e.g. https://www.ssh.com/ssh/tunneling/example.
 For further reading you can have a look at the other documents in the
 SageMath documentation at http://doc.sagemath.org/.
 
+
+Setting up SageMath as a Jupyter kernel in an existing Jupyter notebook or JupyterLab installation
+--------------------------------------------------------------------------------------------------
+
+You may already have a global installation of Jupyter.  For added convenience, it is possible to link your installation of SageMath into your Jupyter installation, adding it to the list of available kernels that can be selected in the notebook or JupyterLab interface.
+
+If ``$SAGE_LOCAL`` is the installation prefix of your Sage installation (the default is ``$SAGE_ROOT/local``)
+and you can start the Jupyter notebook by typing ``jupyter notebook``, then the following command will install SageMath as a new kernel.
+
+.. CODE-BLOCK:: bash
+
+    jupyter kernelspec install --user $SAGE_LOCAL/share/jupyter/kernels/sagemath
+
+This installs the kernel under the name ``sagemath``.  If you wish to rename it to something more specific in order to distinguish between different installations of SageMath, you can use the additional option ``--name``, for example
+
+.. CODE-BLOCK:: bash
+
+    jupyter kernelspec install --user $SAGE_LOCAL/share/jupyter/kernels/sagemath --name sagemath-dev-worktree
+
+For the full functionality of the SageMath kernel in your global Jupyter installation, additionally some Notebook Extension packages need to be installed (or linked) into the environment from which the Jupyter installation runs.  You can check the presence of some of these packages using the command
+
+.. CODE-BLOCK:: bash
+
+    jupyter nbextension list
+
+ - For the Sage interacts, you will need the package ``widgetsnbextension`` installed in the Python environment of the Jupyter installation.  If your Jupyter installation is coming from the system package manager, it is best to install ``widgetsnbextension`` in the same way.  Otherwise, install it using ``pip``.
+
+..  - For 3D graphics using Three.js, ...............
+
+..  - For 3D graphics using jsmol, ..............
+
+

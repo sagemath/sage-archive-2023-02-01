@@ -34,6 +34,11 @@ Options currently supported by the viewer:
 - ``axes_labels`` -- (default: ['x','y','z']) list or tuple of three strings;
   set to False to remove all labels
 
+- ``axes_labels_style`` -- (default: None) list of three dicts, one per axis, or
+  a single dict controlling all three axes; supports the same styling options as
+  :func:`~sage.plot.plot3d.shapes2.text3d` such as ``color``, ``opacity``, ``fontsize``,
+  ``fontweight``, ``fontstyle``, and ``fontfamily``
+
 - ``color`` -- (default: 'blue') color of the 3D object
 
 - ``decimals`` -- (default: 2) integer determining decimals displayed in labels

@@ -744,7 +744,14 @@ cdef class PowerSeries(AlgebraElement):
             sage: f = -1/2 * t + 2/3*t^2 - 9/7 * t^15 + O(t^20); f
             -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
             sage: latex(f)
-            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(t^{20})
+            -\frac{1}{2} t + \frac{2}{3} t^{2} - \frac{9}{7} t^{15} + O(t^{20})
+
+        Check that :trac:`26606` is fixed::
+
+            sage: R.<beta> = QQ[]
+            sage: S.<x> = R[[]]
+            sage: latex(beta*x)
+            \beta x
         """
         if self.is_zero():
             if self.prec() is infinity:
@@ -772,7 +779,7 @@ cdef class PowerSeries(AlgebraElement):
                 else:
                     var = ""
                 if n > 0:
-                    s += "%s|%s"%(x,var)
+                    s += "%s| %s"%(x,var)
                 else:
                     s += repr(x)
                 first = False
@@ -791,7 +798,7 @@ cdef class PowerSeries(AlgebraElement):
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh
-        return s[1:]
+        return s.lstrip(" ")
 
 
     def truncate(self, prec=infinity):
@@ -1684,7 +1691,7 @@ cdef class PowerSeries(AlgebraElement):
         - ``n`` -- integer
 
         - ``prec`` -- integer (optional) - precision of the result. Though, if
-          this series has finite precision, then the result can not have larger
+          this series has finite precision, then the result cannot have larger
           precision.
 
         EXAMPLES::

@@ -2700,6 +2700,8 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
+        If the base ring has a method `_matrix_charpoly`, we use it.
+
         In the generic case of matrices over a ring (commutative and with
         unity), there is a division-free algorithm, which can be accessed
         using ``"df"``, with complexity `O(n^4)`.  Alternatively, by
@@ -3377,10 +3379,15 @@ cdef class Matrix(Matrix1):
         if not self.is_square():
             raise TypeError("self must be square")
 
+        self.check_mutability()
+
+        base = self._base_ring
+        if hasattr(base, '_matrix_hessenbergize'):
+            base._matrix_hessenbergize(self)
+            return
+
         if self._base_ring not in _Fields:
             raise TypeError("Hessenbergize only possible for matrices over a field")
-
-        self.check_mutability()
 
         zero = self._base_ring(0)
         one = self._base_ring(1)

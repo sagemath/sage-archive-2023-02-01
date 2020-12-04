@@ -155,7 +155,7 @@ cdef class LaurentSeries(AlgebraElement):
 
         # self is that t^n * u:
         if not f:
-            if n == infinity:
+            if n is infinity:
                 self.__n = 0
                 self.__u = parent._power_series_ring.zero()
             else:
@@ -163,7 +163,7 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = f
         else:
             val = f.valuation()
-            if val == infinity:
+            if val is infinity:
                 self.__n = 0
                 self.__u = f
             elif val == 0:
@@ -328,7 +328,7 @@ cdef class LaurentSeries(AlgebraElement):
             '2 + 2/3*t^3'
         """
         if self.is_zero():
-            if self.prec() == infinity:
+            if self.prec() is infinity:
                 return "0"
             else:
                 return "O(%s^%s)"%(self._parent.variable_name(),self.prec())
@@ -451,7 +451,7 @@ cdef class LaurentSeries(AlgebraElement):
             \left(a + b\right)x
         """
         if self.is_zero():
-            if self.prec() == infinity:
+            if self.prec() is infinity:
                 return "0"
             else:
                 return "0 + \\cdots"
@@ -835,7 +835,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: (t^(-2)).add_bigoh(-3)
             O(t^-3)
         """
-        if prec == infinity or prec >= self.prec():
+        if prec is infinity or prec >= self.prec():
             return self
         P = self._parent
         if not self or prec < self.__n:
@@ -1691,7 +1691,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         if prec is None:
             prec = self.prec()
-            if prec == infinity:
+            if prec is infinity:
                 prec = self.parent().default_prec()
         else:
             prec = min(self.prec(), prec)

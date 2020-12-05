@@ -1,7 +1,7 @@
 cd src
 
 sage-python23 setup.py bdist_wheel \
-       --bdist-dir ~/temp/bdistwheel \
+       --bdist-dir "$(mktemp -d)" \
        --use-pkg-config || sdh_die "Error building wheel for python_igraph"
 
 sdh_store_and_pip_install_wheel .

@@ -11,7 +11,7 @@ cd src/python
 rm gambit/lib/libgambit.cpp
 
 # pip doesn't work (https://github.com/gambitproject/gambit/issues/207)
-sage-python23 setup.py --no-user-cfg bdist_wheel --bdist-dir ~/temp/bdistwheel
+sage-python23 setup.py --no-user-cfg bdist_wheel --bdist-dir "$(mktemp -d)"
 if [ $? -ne 0 ]; then
     echo "Error installing Python API"
     exit 1

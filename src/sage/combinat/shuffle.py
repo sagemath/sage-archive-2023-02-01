@@ -496,6 +496,8 @@ class ShuffleProduct_overlapping_r(Parent):
             sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
             sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
             sage: S = ShuffleProduct_overlapping_r(w,u,1)
+            sage: S == loads(dumps(S))
+            True
         """
         self._w1 = w1
         self._w2 = w2
@@ -540,6 +542,43 @@ class ShuffleProduct_overlapping_r(Parent):
             'Overlapping shuffle product of word: 29 and word: 91 with 1 overlaps'
         """
         return "Overlapping shuffle product of %s and %s with %s overlaps" % (repr(self._w1), repr(self._w2), self.r)
+
+    def __eq__(self, other):
+        """
+        Test for equality
+
+        EXAMPLES::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+            sage: A = ShuffleProduct_overlapping_r(w,u,1)
+            sage: B = ShuffleProduct_overlapping_r(u,w,2)
+            sage: A == A
+            True
+            sage: A == B
+            False
+        """
+        if not isinstance(other, ShuffleProduct_overlapping_r):
+            return False
+        return (self._w1 == other._w1 and self._w2 == other._w2 and
+                self.r == other.r)
+
+    def __ne__(self, other):
+        """
+        Test for unequality
+
+        EXAMPLES::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+            sage: A = ShuffleProduct_overlapping_r(w,u,1)
+            sage: B = ShuffleProduct_overlapping_r(u,w,2)
+            sage: A != A
+            False
+            sage: A != B
+            True
+        """
+        return not (self == other)
 
     def __iter__(self):
         """

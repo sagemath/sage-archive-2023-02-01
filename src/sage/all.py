@@ -107,6 +107,10 @@ warnings.filterwarnings('default', category=DeprecationWarning,
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='.*ast')
 
+# Ignore packaging 20.5 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*packaging')
+
 ################ end setup warnings ###############################
 
 

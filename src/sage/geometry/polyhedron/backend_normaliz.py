@@ -765,6 +765,15 @@ class Polyhedron_normaliz(Polyhedron_base):
             Traceback (most recent call last):
             ...
             ValueError: the specification of this method has changed; please specify the lines as well
+
+        Check that :trac:`30891` is fixed::
+
+            sage: p = Polyhedron(vertices=[(-3,-3), (3,0), (3,3), (0,3)], backend='normaliz')  # optional - pynormaliz
+            sage: q = loads(p.dumps())                                                         # optional - pynormaliz
+            sage: q.volume()                                                                   # optional - pynormaliz
+            18
+            sage: q.ehrhart_series()                                                           # optional - pynormaliz
+            (13*t^2 + 22*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
         """
         if eqns in (True, False, None):
             # Previously, the method had input ``vertices, rays, ieqs, eqns`` (optionally ``verbose``).
@@ -803,7 +812,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 nmz_ieqs.append(A + [b])
 
             from sage.matrix.constructor import Matrix
-            lattice = Matrix(ZZ, nmz_vertices + nmz_rays + nmz_lines).row_space().basis()
+            lattice = Matrix(ZZ, nmz_vertices + nmz_rays + nmz_lines).saturation()
             nmz_lattice = [[x for x in y] for y in lattice]
 
             if Matrix(ZZ, nmz_vertices + nmz_rays).rank() == Matrix(ZZ, nmz_rays).rank() + 1:

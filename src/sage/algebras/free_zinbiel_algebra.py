@@ -248,6 +248,10 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             indices = Words(Alphabet(n, names=names), infinite=False)
             self._n = n
         self._side = side
+        if side == '<':
+            self.product_on_basis = self.product_on_basis_left
+        else:
+            self.product_on_basis = self.product_on_basis_right
         cat = MagmaticAlgebras(R).WithBasis().Graded()
         cat &= CoalgebrasWithBasis(R)
         CombinatorialFreeModule.__init__(self, R, indices, prefix=prefix,
@@ -368,9 +372,12 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         """
         return len(t)
 
-    def product_on_basis(self, x, y):
+    def product_on_basis_left(self, x, y):
         """
-        Return the product of the basis elements indexed by ``x`` and ``y``.
+        Return the product < of the basis elements indexed by ``x`` and ``y``.
+
+        This is one half of the shuffle product, where the first letter
+        comes from the first letter of the first argument.
 
         INPUT:
 
@@ -388,16 +395,38 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z.product_on_basis(Word(), Word('y'))
             Z[y]
         """
-        if self._side == '<':
-            if not x:
-                return self.monomial(y)
-            x0 = self._indices([x[0]])
-            return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
-        else:
-            if not y:
-                return self.monomial(x)
-            yf = self._indices([y[-1]])
-            return self.sum_of_monomials(sh + yf for sh in x.shuffle(y[:-1]))
+        if not x:
+            return self.monomial(y)
+        x0 = self._indices([x[0]])
+        return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
+
+    def product_on_basis_right(self, x, y):
+        """
+        Return the product > of the basis elements indexed by ``x`` and ``y``.
+
+        This is one half of the shuffle product, where the last letter
+        comes from the last letter of the second argument.
+
+        INPUT:
+
+        - ``x``, ``y`` -- two words
+
+        EXAMPLES::
+
+            sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ, side='>')
+            sage: (x*y)*z  # indirect doctest
+            Z[xyz]
+
+        TESTS::
+
+            sage: Z.<x,y> = algebras.FreeZinbiel(QQ, side='>')
+            sage: Z.product_on_basis(Word('x'), Word())
+            Z[x]
+        """
+        if not y:
+            return self.monomial(x)
+        yf = self._indices([y[-1]])
+        return self.sum_of_monomials(sh + yf for sh in x.shuffle(y[:-1]))
 
     def coproduct_on_basis(self, w):
         """

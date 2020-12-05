@@ -868,7 +868,7 @@ def growing_subtrees(T, k):
         sage: len(S)
         10
     """
-    from sage.misc.prandom import sample
+    from sage.misc.prandom import choice
     n = T.order()
     S = []
     for _ in range(n):
@@ -881,7 +881,7 @@ def growing_subtrees(T, k):
             neighbors = set(T.neighbor_iterator(x))
             for j in range(ki - 1):
                 # Select a random neighbor z outside of Ti and add it to Ti
-                z = sample(neighbors, 1)[0]
+                z = choice(tuple(neighbors))
                 Ti.add(z)
                 neighbors.update(y for y in T.neighbor_iterator(z) if y not in Ti)
             Vi = frozenset(Ti)

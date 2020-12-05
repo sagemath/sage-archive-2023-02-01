@@ -16,7 +16,7 @@ jobs:
     - name: Install pycodestyle
       run: pip install tox pycodestyle
     - name: Lint using pycodestyle
-      run: tox -e pycodestyle_minimal
+      run: tox -e pycodestyle-minimal
   lint-relint:
     name: Code style check with relint
     runs-on: ubuntu-latest

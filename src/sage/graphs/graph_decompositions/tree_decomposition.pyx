@@ -279,7 +279,16 @@ def reduced_tree_decomposition(T):
         True
         sage: T == reduced_tree_decomposition(T)
         True
+        sage: G = Graph(1)
+        sage: T = G.treewidth(certificate=True)
+        sage: T.order()
+        1
+        sage: T == reduced_tree_decomposition(T)
+        True
     """
+    if T.order() < 2:
+        return T
+
     def get_ancestor(ancestor, u):
         if ancestor[u] == u:
             return u
@@ -831,8 +840,8 @@ cdef class TreelengthConnected:
       treelength `\leq k`. If `k` is ``None`` (default), the method computes the
       optimal treelength.
 
-    - ``certificate`` -- boolean (default: ``False``); whether to return the
-      tree-decomposition itself
+    - ``certificate`` -- boolean (default: ``False``); whether to also compute
+      the tree-decomposition itself
 
     OUTPUT:
 
@@ -933,6 +942,9 @@ cdef class TreelengthConnected:
         """
         if k is not None and k < 0:
             raise ValueError("k (= {}) must be a nonnegative integer".format(k))
+        G._scream_if_not_simple()
+        if not G.is_connected():
+            raise ValueError("the graph is not connected")
 
         self.certificate = certificate
         self.k_is_defined = k is not None
@@ -946,20 +958,19 @@ cdef class TreelengthConnected:
         self.distances = NULL  # used in the destructor
 
         # Trivial cases
-        if self.n <= 1:
+        if (self.n <= 1 or
+            (self.k_is_defined and self.n <= k)):
             if certificate:
                 if self.n:
                     self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
                 else:
                     self.tree = Graph(name=self.name)
-            self.length = 0
+            self.length = 0 if self.n <= 1 else G.diameter(algorithm='DHV')
             self.leq_k = True  # We know that k is non negative
             return
 
-        if not G.is_connected():
-            raise ValueError("the graph is not connected")
-
-        if k == 0:
+        if self.k_is_defined and k == 0:
+            # We have at least 2 vertices and 1 edges, so tl >= 1
             self.leq_k = False
             return
 
@@ -994,8 +1005,7 @@ cdef class TreelengthConnected:
             for j in range(i, self.n):
                 self.diameter = max(self.diameter, self.distances[i][j])
 
-        if ((self.k_is_defined and k >= self.diameter) or
-            (not self.k_is_defined and self.diameter == 1)):
+        if self.k_is_defined and k >= self.diameter:
             # All vertices fit in one bag
             if certificate:
                 self.tree = Graph({Set(G): []}, format="dict_of_lists", name=self.name)
@@ -1064,9 +1074,12 @@ cdef class TreelengthConnected:
         def rec(cut, cc):
             if len(cc) == 1:
                 [v] = cc
-                reduced_cut = frozenset([x for x in g.neighbor_iterator(v) if x in cut])
-                if any(self.distances[v][x] > k for x in reduced_cut):
-                    return False
+                # We identify the neighbors of v in cut
+                reduced_cut = cut.intersection(g.neighbor_iterator(v))
+                # We can form a new bag with its closed neighborhood, and this
+                # bag has diameter at most 2. Furthermore, if k == 1, we know
+                # that the bag cut has diameter <= 1, and so the new bag has
+                # diameter 1
                 if self.certificate:
                     if cut == reduced_cut:
                         return [(cut, cut.union(cc))]
@@ -1078,11 +1091,12 @@ cdef class TreelengthConnected:
             # We explore all possible extensions of the cut
             for v in cc:
 
-                # New cuts and connected components, with v respectively added
-                # and removed
-                cutv = cut.union([v])
-                if any(self.distances[v][x] > k for x in cutv):
+                # We know that the cut has diameter <= k. So we check is adding
+                # v to the cut does not make its diameter > k
+                if any(self.distances[v][x] > k for x in cut):
                     continue
+                # We add v to the cut and remove it from cc
+                cutv = cut.union([v])
                 ccv = cc.difference([v])
 
                 # The values returned by the recursive calls.
@@ -1095,20 +1109,28 @@ cdef class TreelengthConnected:
 
                     # The recursive subcalls. We remove on-the-fly the vertices
                     # from the cut which play no role in separating the
-                    # connected component from the rest of the graph.
-                    reduced_cutv = frozenset([x for x in cutv
-                                                  if x == v or any(xx in cci for xx in g.neighbor_iterator(x))])
-                    reduced_cuti = frozenset([x for x in reduced_cutv
+                    # connected component from the rest of the graph. That is,
+                    # we identify the vertices of cutv with a neighbor in cci
+                    reduced_cuti = frozenset([x for x in cutv
                                                   if any(xx in cci for xx in g.neighbor_iterator(x))])
+                    if not reduced_cuti:
+                        # This should not happen
+                        break
+
+                    # and we do a recursive call
                     son = rec(reduced_cuti, cci)
                     if not son:
                         break
 
+                    # We get a valid decomposition of cci
                     if self.certificate:
+                        # We connect cut, cutv, reduced_cci and son
                         sons.append((cut, cutv))
-                        if cutv != reduced_cutv:
+                        if v in reduced_cuti:
+                            sons.append((cutv, reduced_cuti))
+                        else:
+                            reduced_cutv = reduced_cuti.union([v])
                             sons.append((cutv, reduced_cutv))
-                        if reduced_cutv != reduced_cuti:
                             sons.append((reduced_cutv, reduced_cuti))
                         sons.extend(son)
 
@@ -1247,8 +1269,8 @@ def treelength(G, k=None, certificate=False):
       treelength `\leq k`. If `k` is ``None`` (default), the method computes the
       optimal treelength.
 
-    - ``certificate`` -- boolean (default: ``False``); whether to return the
-      tree-decomposition itself
+    - ``certificate`` -- boolean (default: ``False``); whether to also return
+      the tree-decomposition itself
 
     OUTPUT:
 
@@ -1338,7 +1360,7 @@ def treelength(G, k=None, certificate=False):
 
         sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
         sage: G = graphs.RandomBarabasiAlbert(30, 2)  # long time
-        sage: T = G.treelength(certificate=True)      # long time
+        sage: tl, T = G.treelength(certificate=True)  # long time
         sage: is_valid_tree_decomposition(G, T)       # long time
         True
 
@@ -1347,32 +1369,35 @@ def treelength(G, k=None, certificate=False):
         sage: Graph().treelength()
         0
         sage: Graph().treelength(certificate=True)
-        Tree decomposition: Graph on 0 vertices
+        (0, Tree decomposition: Graph on 0 vertices)
         sage: Graph(1).treelength()
         0
         sage: Graph(1).treelength(k=0)
         True
         sage: Graph(1).treelength(certificate=True)
-        Tree decomposition: Graph on 1 vertex
+        (0, Tree decomposition: Graph on 1 vertex)
+        sage: Graph(1).treelength(k=0, certificate=True)
+        (True, Tree decomposition: Graph on 1 vertex)
         sage: G = graphs.PathGraph(2)
         sage: G.treelength()
         1
         sage: G.treelength(k=0)
         False
         sage: G.treelength(certificate=True)
-        Tree decomposition of Path graph: Graph on 1 vertex
+        (1, Tree decomposition of Path graph: Graph on 1 vertex)
         sage: G.treelength(certificate=True, k=0)
-        Traceback (most recent call last):
-        ...
-        ValueError: no tree decomposition with length 0 was found
-        sage: G.treelenth(k=-1)
+        (False, None)
+        sage: G.treelength(certificate=True, k=1)
+        (True, Tree decomposition of Path graph: Graph on 1 vertex)
+        sage: G.treelength(certificate=True, k=0)
+        (False, None)
+        sage: G.treelength(k=-1)
         Traceback (most recent call last):
         ...
         ValueError: k(=-1) must be a nonnegative integer
     """
     if G.is_directed():
         raise ValueError("this method is defined for undirected graphs only")
-
     if k is not None and k < 0:
         raise ValueError("k(={}) must be a nonnegative integer".format(k))
 
@@ -1383,15 +1408,13 @@ def treelength(G, k=None, certificate=False):
     # Corner cases
     from sage.graphs.graph import Graph
     if G.order() <= 1:
+        answer = 0 if k is None else True
         if certificate:
             if G:
-                return Graph({Set(G): []}, format="dict_of_lists", name=name)
+                answer = answer, Graph({Set(G): []}, format="dict_of_lists", name=name)
             else:
-                return Graph(name=name)
-        elif k is None:
-            return 0
-        else:
-            return True  # We know that k is non negative
+                answer = answer, Graph(name=name)
+        return answer
     if not G.is_connected():
         if certificate:
             raise ValueError("the tree decomposition of a disconnected graph is not defined")
@@ -1400,9 +1423,7 @@ def treelength(G, k=None, certificate=False):
         else:
             return k is Infinity
     if k == 0:
-        if certificate:
-            raise ValueError("no tree decomposition with length 0 was found")
-        return False
+        return (False, None) if certificate else False
     if not certificate and G.is_chordal():
         return 1 if k is None else True
 
@@ -1410,11 +1431,25 @@ def treelength(G, k=None, certificate=False):
     # the problem on each of them
     atoms, cliques = G.atoms_and_clique_separators()
 
+    if not cliques:
+        # We have a single atom
+        TC = TreelengthConnected(G, k=k, certificate=certificate)
+        if certificate:
+            if k is None:
+                return TC.get_length(), TC.get_tree_decomposition()
+            elif TC.is_less_than_k():
+                return True, TC.get_tree_decomposition()
+            else:
+                return False, None
+        if k is None:
+            return TC.get_length()
+        return TC.is_less_than_k()
+
     # As some atoms might be isomorphic, we use a dictionary keyed by immutable
     # copies of canonical graphs to store intermediate results.
     data = dict()
     result = []
-    tl = 1  # The graph is connected and of order least 2
+    tl = 1  # The graph is connected and of order at least 2
 
     for atom in atoms:
 
@@ -1447,7 +1482,7 @@ def treelength(G, k=None, certificate=False):
         if k is None:
             tl = max(tl, TC.get_length())
         elif not TC.is_less_than_k():
-            return False
+            return False if not certificate else (False, None)
 
     if not certificate:
         if k is None:
@@ -1491,4 +1526,6 @@ def treelength(G, k=None, certificate=False):
     # We merge all edges between two sets S,S' where S is a subset of S'
     T = reduced_tree_decomposition(T)
     T.name(name)
-    return T
+    if k is None:
+        return tl, T
+    return True, T

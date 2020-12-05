@@ -1,5 +1,11 @@
 # pyright: strict
 
+"""Configuration and fixtures for pytest.
+
+This file configures pytest and provides some global fixtures.
+See https://docs.pytest.org/en/latest/index.html for more details.
+"""
+
 from __future__ import annotations
 from typing import Any
 import pytest

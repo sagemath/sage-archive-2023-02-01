@@ -8,6 +8,17 @@
 Additional development and testing tools
 ========================================
 
+Pytest
+===============================
+`Pytest <https://docs.pytest.org/en/stable/>` is a testing framework.
+
+*Installation:* ``pip install -U pytest``, see `documentation <https://docs.pytest.org/en/stable/getting-started.html#installation-and-getting-started>`_ for details.
+*Usage:*
+- Manual: Run ``pytest path/to/the/test_file.py`` or ``pytest`` to run all tests
+- VS Code: Install the `Python <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ extension and follow the `offical documentation <https://code.visualstudio.com/docs/python/testing>`_.
+*Configuration:* ``conftest.py`` in the source folder
+*Documentation:* https://docs.pytest.org/en/stable/index.html
+
 Pyright 
 ===============================
 `Pyright <https://github.com/microsoft/pyright>` is static type checker.

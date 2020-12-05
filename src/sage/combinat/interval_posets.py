@@ -32,6 +32,7 @@ AUTHORS:
 # ****************************************************************************
 from collections.abc import Iterator
 from numbers import Integral
+from typing import List, Tuple
 
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -608,7 +609,7 @@ class TamariIntervalPoset(Element,
         return hash(pair)
 
     @cached_method
-    def increasing_cover_relations(self) -> list:
+    def increasing_cover_relations(self) -> List[Tuple]:
         r"""
         Return the cover relations of the initial forest of ``self``.
 
@@ -749,7 +750,7 @@ class TamariIntervalPoset(Element,
         return parent
 
     @cached_method
-    def decreasing_cover_relations(self) -> list:
+    def decreasing_cover_relations(self) -> List[Tuple]:
         r"""
         Return the cover relations of the final forest of ``self``.
 
@@ -2284,7 +2285,7 @@ class TamariIntervalPoset(Element,
         for it in self.maximal_chain_tamari_intervals():
             yield it.lower_dyck_word()
 
-    def tamari_inversions(self) -> list:
+    def tamari_inversions(self) -> List[Tuple]:
         r"""
         Return the Tamari inversions of ``self``.
 

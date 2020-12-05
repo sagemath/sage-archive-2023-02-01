@@ -4,6 +4,8 @@
 
 This file configures pytest and provides some global fixtures.
 See https://docs.pytest.org/en/latest/index.html for more details.
+
+At the moment, Sage is not yet using any tests based on pytest.
 """
 
 from __future__ import annotations

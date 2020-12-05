@@ -11,6 +11,7 @@ Additional development and testing tools
 Pytest
 ===============================
 `Pytest <https://docs.pytest.org/en/stable/>` is a testing framework.
+At the moment, Sage is not yet using any tests based on pytest.
 
 *Installation:* ``pip install -U pytest``, see `documentation <https://docs.pytest.org/en/stable/getting-started.html#installation-and-getting-started>`_ for details.
 *Usage:*

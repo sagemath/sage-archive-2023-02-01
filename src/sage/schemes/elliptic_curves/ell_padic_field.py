@@ -1,8 +1,7 @@
 """
 Elliptic curves over padic fields
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #                          William Stein   <wstein@gmail.com>
 #
@@ -15,9 +14,8 @@ Elliptic curves over padic fields
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .ell_field import EllipticCurve_field
 from . import ell_point
@@ -27,6 +25,7 @@ from sage.rings.all import PolynomialRing
 # there is an "is a" relationship here, and common implementation with regard
 # Coleman integration.
 from sage.schemes.hyperelliptic_curves.hyperelliptic_padic_field import HyperellipticCurve_padic_field
+
 
 class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_field):
     """
@@ -47,7 +46,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
 
     def frobenius(self, P=None):
         """
-        Returns the Frobenius as a function on the group of points of
+        Return the Frobenius as a function on the group of points of
         this elliptic curve.
 
         EXAMPLES::
@@ -71,7 +70,6 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
             sage: E = EllipticCurve(Qp,[0,1,0,0,1])
             sage: E.frobenius(E(0,1))
             (0 : 1 + O(13^20) : 1 + O(13^20))
-
         """
         try:
             _frob = self._frob
@@ -92,11 +90,11 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
                 x0 = P[0]
                 y0 = P[1]
                 uN = (1 + h(x0)/y0**(2*p)).sqrt()
-                yres=y0**p * uN
-                xres=x0**p
+                yres = y0**p * uN
+                xres = x0**p
                 if (yres-y0).valuation() == 0:
-                    yres=-yres
-                return self.point([xres,yres, K(1)])
+                    yres = -yres
+                return self.point([xres, yres, K(1)])
 
             self._frob = _frob
 

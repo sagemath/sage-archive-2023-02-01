@@ -122,14 +122,18 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     stable_releases = [v for v in info['releases'] if 'a' not in v and 'b' not in v]
     return max(stable_releases)
 
-def pip_installed_packages():
+def pip_installed_packages(normalization=None):
     r"""
     Return a dictionary `name->version` of installed pip packages.
 
     This command returns *all* pip-installed packages. Not only Sage packages.
 
-    The names are normalized in the format as used in ``build/pkgs/``:
-    Dots and dashes are replaced by underscores.
+    INPUT:
+
+    - ``normalization`` -- (optional, default: ``None``) according to which rule to
+      normalize the package name, either ``None`` (as is) or ``'spkg'`` (format
+      as in the Sage distribution in ``build/pkgs/``), i.e., lowercased and
+      dots and dashes replaced by underscores.
 
     EXAMPLES::
 
@@ -141,8 +145,12 @@ def pip_installed_packages():
         '...'
         sage: d['beautifulsoup4']   # optional - build beautifulsoup4
         '...'
-        sage: d['prompt_toolkit']   # optional - build
+        sage: d['prompt-toolkit']   # optional - build
         '...'
+        sage: d = pip_installed_packages(normalization='spkg')  # optional - build
+        sage: d['prompt_toolkit']
+        '...'
+
     """
     with open(os.devnull, 'w') as devnull:
         proc = subprocess.Popen(
@@ -151,8 +159,15 @@ def pip_installed_packages():
             stderr=devnull,
         )
         stdout = proc.communicate()[0].decode()
+        def normalize(name):
+            if normalization is None:
+                return name
+            elif normalization == 'spkg':
+                return name.lower().replace('-', '_').replace('.', '_')
+            else:
+                raise NotImplementedError(f'normalization {normalization} is not implemented')
         try:
-            return {package['name'].lower().replace('-', '_').replace('.', '_'): package['version']
+            return {normalize(package['name']): package['version']
                     for package in json.loads(stdout)}
         except json.decoder.JSONDecodeError:
             # Something went wrong while parsing the output from pip.
@@ -325,7 +340,7 @@ def installed_packages(exclude_pip=True):
     """
     installed = {}
     if not exclude_pip:
-        installed.update(pip_installed_packages())
+        installed.update(pip_installed_packages(normalization='spkg'))
     # Sage packages should override pip packages (Trac #23997)
     SAGE_SPKG_INST = sage.env.SAGE_SPKG_INST
     if SAGE_SPKG_INST:

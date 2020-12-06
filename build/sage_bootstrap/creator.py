@@ -77,16 +77,29 @@ class PackageCreator(object):
             if upstream_contact:
                 f.write('{0}\n\n'.format(upstream_contact))
 
-    def set_python_data_and_scripts(self, pypi_package_name=None):
+    def set_python_data_and_scripts(self, pypi_package_name=None, source='normal'):
         """
-        Write the files ``dependencies``, ``spkg-install.in``, and ``install-requires.txt``
+        Write the file ``dependencies`` and other files for Python packages.
+
+        If ``source`` is ``"normal"``, write the files ``spkg-install.in`` and
+        ``install-requires.txt``.
+
+        If ``source`` is ``"pip"``, write the file ``requirements.txt``.
         """
         if pypi_package_name is None:
             pypi_package_name = self.package_name
         with open(os.path.join(self.path, 'dependencies'), 'w+') as f:
             f.write('$(PYTHON) | $(PYTHON_TOOLCHAIN)\n\n')
             f.write('----------\nAll lines of this file are ignored except the first.\n')
-        with open(os.path.join(self.path, 'spkg-install.in'), 'w+') as f:
-            f.write('cd src\nsdh_pip_install .\n')
-        with open(os.path.join(self.path, 'install-requires.txt'), 'w+') as f:
-            f.write('{0}\n'.format(pypi_package_name))
+        if source == 'normal':
+            with open(os.path.join(self.path, 'spkg-install.in'), 'w+') as f:
+                f.write('cd src\nsdh_pip_install .\n')
+            with open(os.path.join(self.path, 'install-requires.txt'), 'w+') as f:
+                f.write('{0}\n'.format(pypi_package_name))
+        elif source == 'pip':
+            with open(os.path.join(self.path, 'requirements.txt'), 'w+') as f:
+                f.write('{0}\n'.format(pypi_package_name))
+        elif source == 'script':
+            pass
+        else:
+            raise ValueError('package source must be one of normal, script, or pip')

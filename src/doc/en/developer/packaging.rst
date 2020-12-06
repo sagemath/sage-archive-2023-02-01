@@ -949,6 +949,10 @@ The ``dependencies`` file may need editing, and also you may want to set
 lower and upper bounds for acceptable package versions in the file
 ``install-requires.txt``.
 
+To create a pip package rather than a normal package, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --source pip --type optional
+
 
 .. _section-manual-build:
 

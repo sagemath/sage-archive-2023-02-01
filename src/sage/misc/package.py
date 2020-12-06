@@ -289,10 +289,10 @@ def list_packages(*pkg_types, **opts):
             src = 'script'
 
         pkg = pkgs.get(p, dict())
+        pkgs[p] = pkg
 
         if typ not in pkg_types or src not in pkg_sources:
-            if pkg:
-                del pkgs[p]
+            del pkgs[p]
             continue
 
         pkg.update({'name': p, 'type': typ, 'source': src})

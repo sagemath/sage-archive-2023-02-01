@@ -215,13 +215,35 @@ class Application(object):
             print('Updating checksum of {0} (tarball {1})'.format(package_name, pkg.tarball_filename))
             update.fix_checksum()
         
-    def create(self, package_name, version, tarball, pkg_type, upstream_url):
+    def create(self, package_name, version=None, tarball=None, pkg_type=None, upstream_url=None,
+               description=None, license=None, upstream_contact=None, pypi=False):
+        """
+        Create a normal package
+        """
+        if pypi:
+            pypi_version = PyPiVersion(package_name)
+            if not tarball:
+                # Guess the general format of the tarball name.
+                tarball = pypi_version.tarball.replace(pypi_version.version, 'VERSION')
+            if not version:
+                version = pypi_version.version
+            # Use a URL from pypi.io instead of the specific URL received from the PyPI query
+            # because it follows a simple pattern.
+            upstream_url = 'https://pypi.io/packages/source/{0:1.1}/{0}/{1}'.format(package_name, tarball)
+            if not description:
+                description = pypi_version.summary
+            if not license:
+                license = pypi_version.license
+            if not upstream_contact:
+                upstream_contact = pypi_version.package_url
         log.debug('Creating %s: %s, %s, %s', package_name, version, tarball, pkg_type)
         creator = PackageCreator(package_name)
         if version:
             creator.set_version(version)
         if pkg_type:
             creator.set_type(pkg_type)
+        if description or license or upstream_contact:
+            creator.set_description(description, license, upstream_contact)
         if tarball:
             creator.set_tarball(tarball, upstream_url)
             if upstream_url and version:

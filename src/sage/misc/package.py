@@ -202,7 +202,8 @@ def list_packages(*pkg_types, **opts):
       ``'pip'`` type)
 
     - ``exclude_pip`` -- (optional, default: ``False``) if set to ``True``, then
-      pip packages are not considered.
+      pip packages are not considered.  This is the same as removing ``'pip'``
+      from ``pkg_sources``.
 
     - ``ignore_URLError`` -- (default: ``False``) if set to ``True``, then
       connection errors will be ignored
@@ -250,12 +251,14 @@ def list_packages(*pkg_types, **opts):
     local = opts.pop('local', False)
     ignore_URLError = opts.pop('ignore_URLError', False)
     exclude_pip = opts.pop('exclude_pip', False)
+    if exclude_pip:
+        pkg_sources = [s for s in pkg_sources if s != 'pip']
     if opts:
         raise ValueError("{} are not valid options".format(sorted(opts)))
 
     pkgs = {p: {'name': p, 'installed_version': v, 'installed': True,
                 'remote_version': None, 'source': None}
-            for p, v in installed_packages(exclude_pip).items()}
+            for p, v in installed_packages('pip' not in pkg_sources).items()}
 
     lp = []
     SAGE_PKGS = sage.env.SAGE_PKGS
@@ -300,8 +303,6 @@ def list_packages(*pkg_types, **opts):
             pkg['installed_version'] = None
 
         if pkg['source'] == 'pip':
-            if exclude_pip:
-                continue
             if not local:
                 pkg['remote_version'] = pip_remote_version(p, ignore_URLError=ignore_URLError)
             else:

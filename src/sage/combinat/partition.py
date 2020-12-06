@@ -2962,7 +2962,7 @@ class Partition(CombinatorialElement):
 
         The degree of a partition `\lambda` is the sum of the
         `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
-        `e` a poer of the prime `p`. The prime degree gives the exponent of
+        `e` a power of the prime `p`. The prime degree gives the exponent of
         `p` in the Gram determinant of the integral Specht module of the
         symmetric group.
 
@@ -5105,7 +5105,7 @@ class Partition(CombinatorialElement):
 
             def multinomial_with_partitions(sizes,path_counts):
             # count the number of ways of performing the k paths in parallel,
-            # if we know the total length alloted for each of the paths (sizes), and the number
+            # if we know the total length allotted for each of the paths (sizes), and the number
             # of paths for each component. A multinomial picks the ordering of the components where
             # each step is taken.
                 return prod(path_counts) * multinomial(sizes)
@@ -6488,7 +6488,7 @@ class Partitions_n(Partitions):
         elif measure == 'Plancherel':
             return self.random_element_plancherel()
         else:
-            raise ValueError("Unkown measure: %s" % (measure))
+            raise ValueError("Unknown measure: %s" % measure)
 
     def random_element_uniform(self):
         """
@@ -7187,7 +7187,7 @@ class Partitions_starting(Partitions):
 
     def __init__(self, n, starting_partition):
         """
-        Initilizes ``self``.
+        Initialize ``self``.
 
         EXAMPLES::
 

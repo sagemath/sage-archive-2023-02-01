@@ -228,7 +228,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: A2.lift_on_basis(v)
             2*a2(1,1,1) + a2(1,2,0) + a2(1,0,2) + a2(2,1,0) + a2(2,0,1) + a2(0,1,2) + a2(0,2,1)
 
-        This is consistent with the analoguous calculation with symmetric
+        This is consistent with the analogous calculation with symmetric
         Schur functions::
 
             sage: s = SymmetricFunctions(QQ).s()

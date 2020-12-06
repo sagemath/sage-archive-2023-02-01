@@ -232,7 +232,7 @@ List of Poset methods
     :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.coxeter_smith_form` | Return the Smith form of the Coxeter transformation.
 
-**Miscellanous**
+**Miscellaneous**
 
 .. csv-table::
     :class: contentstable

@@ -59,4 +59,20 @@ class PackageCreator(object):
                 f.write('upstream_url={0}'.format(upstream_url))
             f.write('\n')
             
-        
+    def set_description(self, description, license, upstream_contact):
+        """
+        Write the ``SPKG.rst`` file
+        """
+        with open(os.path.join(self.path, 'SPKG.rst'), 'w+') as f:
+            def heading(title, char='-'):
+                return '{0}\n{1}\n\n'.format(title, char * len(title))
+            f.write(heading(self.package_name, '='))
+            f.write(heading('Description'))
+            if description:
+                f.write('{0}\n\n'.format(description))
+            f.write(heading('License'))
+            if license:
+                f.write('{0}\n\n'.format(license))
+            f.write(heading('Upstream Contact'))
+            if upstream_contact:
+                f.write('{0}\n\n'.format(upstream_contact))

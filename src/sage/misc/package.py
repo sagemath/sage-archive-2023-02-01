@@ -259,11 +259,13 @@ def list_packages(*pkg_types, **opts):
 
     lp = []
     SAGE_PKGS = sage.env.SAGE_PKGS
-    if SAGE_PKGS:
-        try:
-            lp = os.listdir(SAGE_PKGS)
-        except FileNotFoundError:
-            pass
+    if not SAGE_PKGS:
+        return pkgs
+
+    try:
+        lp = os.listdir(SAGE_PKGS)
+    except FileNotFoundError:
+        return pkgs
 
     for p in lp:
 

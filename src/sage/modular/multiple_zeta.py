@@ -1455,10 +1455,10 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: from sage.modular.multiple_zeta import Multizetas_iterated
             sage: M = Multizetas_iterated(QQ)
             sage: M.coproduct_on_basis([1,0])
-            I() # I(10) + I(10) # I()
+            I() # I(10)
 
             sage: M.coproduct_on_basis((1,0,1,0))
-            I() # I(1010) + 3*I(10) # I(10) + I(1010) # I()
+            I() # I(1010)
         """
         seq = [0] + list(w) + [1]
         terms = coproduct_iterator(([0], seq))
@@ -1468,15 +1468,20 @@ class Multizetas_iterated(CombinatorialFreeModule):
             L = self.one()
             for i in range(len(indices) - 1):
                 w = Word(seq[indices[i]:indices[i + 1] + 1])
-                if len(w) >= 4:
+                if len(w) == 2:  # this factor is one
+                    continue
+                elif len(w) <= 4 or len(w) == 6 or w[0] == w[-1]:
+                    # vanishing factors
+                    return self.zero()
+                else:
                     value = M_all(w)
-                    L *= value.regularise()
+                    L *= value.regularise().simplify()
             return L
 
         resu = self.tensor_square().zero()
         for indices in terms:
             resu += split_word(indices).tensor(
-                M_all(Word(seq[i] for i in indices)).regularise())
+                M_all(Word(seq[i] for i in indices)).regularise().simplify())
         return resu
 
     @lazy_attribute
@@ -1491,7 +1496,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: a = 3*Multizeta(1,4) + Multizeta(2,3)
             sage: M.coproduct(a.iterated())
             3*I() # I(11000) + I() # I(10100) + 3*I(11000) # I()
-            - I(10) # I(100) + I(10100) # I()
+            + I(10100) # I()
         """
         cop = self.coproduct_on_basis
         return self._module_morphism(cop, codomain=self.tensor_square())
@@ -2179,7 +2184,7 @@ class All_iterated(CombinatorialFreeModule):
                 integrals over Rational Field
             """
             M = Multizetas_iterated(self.parent().base_ring())
-            return sum(cf * M.monomial(w[1:-1]) for w, cf in self)
+            return M.sum_of_terms((w[1:-1], cf) for w, cf in self)
 
         def regularise(self):
             """

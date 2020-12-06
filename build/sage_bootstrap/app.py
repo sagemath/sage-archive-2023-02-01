@@ -244,6 +244,8 @@ class Application(object):
             creator.set_type(pkg_type)
         if description or license or upstream_contact:
             creator.set_description(description, license, upstream_contact)
+        if pypi:
+            creator.set_python_data_and_scripts()
         if tarball:
             creator.set_tarball(tarball, upstream_url)
             if upstream_url and version:

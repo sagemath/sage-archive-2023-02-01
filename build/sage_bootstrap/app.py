@@ -236,6 +236,10 @@ class Application(object):
                 license = pypi_version.license
             if not upstream_contact:
                 upstream_contact = pypi_version.package_url
+        if tarball and not pkg_type:
+            # If we set a tarball, also make sure to create a "type" file,
+            # so that subsequent operations (downloading of tarballs) works.
+            pkg_type = 'optional'
         log.debug('Creating %s: %s, %s, %s', package_name, version, tarball, pkg_type)
         creator = PackageCreator(package_name)
         if version:

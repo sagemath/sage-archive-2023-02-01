@@ -1284,17 +1284,18 @@ def _sage_getargspec_cython(source):
     if varargs is None:
         varargs = ''
     elif not py_units or py_units[-1] == ',':
-        varargs = '*'+varargs
+        varargs = '*' + varargs
     else:
-        varargs = ',*'+varargs
+        varargs = ',*' + varargs
     if keywords is None:
         keywords = ''
     elif varargs or (py_units and py_units[-1] != ','):
-        keywords = ',**'+keywords
+        keywords = ',**' + keywords
     else:
-        keywords = '**'+keywords
-    return _sage_getargspec_from_ast('def dummy('+''.join(py_units)
-                                     +varargs+keywords+'): pass')
+        keywords = '**' + keywords
+    return _sage_getargspec_from_ast('def dummy(' + ''.join(py_units) +
+                                     varargs + keywords + '): pass')
+
 
 def sage_getfile(obj):
     r"""

@@ -220,6 +220,8 @@ class Application(object):
         """
         Create a normal package
         """
+        if '-' in package_name:
+            raise ValueError('package names must not contain dashes, use underscore instead')
         if pypi:
             pypi_version = PyPiVersion(package_name)
             if not tarball:

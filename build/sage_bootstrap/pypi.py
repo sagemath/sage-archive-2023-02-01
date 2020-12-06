@@ -37,6 +37,8 @@ class PyPiVersion(object):
     def __init__(self, package_name):
         self.name = package_name
         self.json = self._get_json()
+        # Replace provided name with the canonical name
+        self.name = self.json['info']['name']
 
     def _get_json(self):
         response = urllib.urlopen(self.json_url)

@@ -77,14 +77,16 @@ class PackageCreator(object):
             if upstream_contact:
                 f.write('{0}\n\n'.format(upstream_contact))
 
-    def set_python_data_and_scripts(self):
+    def set_python_data_and_scripts(self, pypi_package_name=None):
         """
         Write the files ``dependencies``, ``spkg-install.in``, and ``install-requires.txt``
         """
+        if pypi_package_name is None:
+            pypi_package_name = self.package_name
         with open(os.path.join(self.path, 'dependencies'), 'w+') as f:
             f.write('$(PYTHON) | $(PYTHON_TOOLCHAIN)\n\n')
             f.write('----------\nAll lines of this file are ignored except the first.\n')
         with open(os.path.join(self.path, 'spkg-install.in'), 'w+') as f:
             f.write('cd src\nsdh_pip_install .\n')
         with open(os.path.join(self.path, 'install-requires.txt'), 'w+') as f:
-            f.write('{0}\n'.format(self.package_name))
+            f.write('{0}\n'.format(pypi_package_name))

@@ -338,7 +338,7 @@ def _from_tree_decompositions_of_atoms_to_tree_decomposition(T_atoms, cliques):
 
         sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
         sage: G = graphs.Grid2dGraph(2, 3)
-        sage: T = G.treewidth(certificate=True)
+        sage: T = G.treewidth(algorithm='sage', certificate=True)
         sage: is_valid_tree_decomposition(G, T)
         True
 
@@ -397,8 +397,8 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
 
     - ``kmin`` -- integer (default: ``None``); when specified, search for a
       tree-decomposition of width at least ``kmin``. This parameter is useful
-      when the graph can be decomposed into atoms. When parameter ``k`` is
-      specified, this parameter is ignored.
+      when the graph can be decomposed into atoms.  This parameter is ignored
+      when ``k`` is not ``None`` or when ``algorithm == 'tdlib'``.
 
     - ``certificate`` -- boolean (default: ``False``); whether to return the
       tree-decomposition itself.
@@ -461,9 +461,9 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
         sage: g = graphs.PetersenGraph()
         sage: g.treewidth()
         4
-        sage: g.treewidth(kmin=2)
+        sage: g.treewidth(kmin=2, algorithm='sage')
         4
-        sage: g.treewidth(kmin=g.order(), certificate=True)
+        sage: g.treewidth(kmin=g.order(), certificate=True, algorithm='sage')
         Tree decomposition: Graph on 1 vertex
 
     TESTS::
@@ -528,9 +528,9 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
         sage: t.is_tree()
         True
         sage: vertices = set()
-        sage: for s in t.vertices():
+        sage: for s in t:
         ....:     vertices = vertices.union(s)
-        sage: vertices == set(g.vertices())
+        sage: vertices == set(g)
         True
 
     Check that the use of atoms and clique separators is correct
@@ -539,6 +539,10 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
         sage: g = 2 * graphs.Grid2dGraph(2, 3)
         sage: g.treewidth(algorithm='sage')
         2
+        sage: g.treewidth(algorithm='sage', certificate=True)
+        Tree decomposition: Graph on 8 vertices
+        sage: g.treewidth(algorithm='sage', certificate=True, kmin=4)
+        Tree decomposition: Graph on 4 vertices
 
     Trivially true::
 
@@ -621,18 +625,19 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
         if not certificate:
             if k is None:
                 for a in atoms:
-                    kmin = max(kmin, g.subgraph(a).treewidth(kmin=kmin))
+                    kmin = max(kmin, g.subgraph(a).treewidth(algorithm=algorithm, kmin=kmin))
                 return kmin
             elif max(len(c) for c in cliques) - 1 > k:
                 return False
             else:
-                return all(g.subgraph(a).treewidth(k) for a in atoms)
+                return all(g.subgraph(a).treewidth(algorithm=algorithm, k=k) for a in atoms)
         else:
             # We compute the tree decomposition of each atom
             T = []
             for a in atoms:
-                Ta = g.subgraph(a).treewidth(certificate=True, kmin=kmin)
-                kmin = max(kmin, width_of_tree_decomposition(Ta, check=False))
+                ga = g.subgraph(a)
+                Ta = ga.treewidth(algorithm=algorithm, certificate=True, kmin=kmin)
+                kmin = max(kmin, width_of_tree_decomposition(ga, Ta, check=False))
                 T.append(Ta)
             # and merge the resulting trees
             return _from_tree_decompositions_of_atoms_to_tree_decomposition(T, cliques)
@@ -640,7 +645,7 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
     # Forcing k to be defined
     if k is None:
         for i in range(max(kmin, g.clique_number() - 1, min(g.degree())), g.order()):
-            ans = g.treewidth(k=i, certificate=certificate)
+            ans = g.treewidth(algorithm=algorithm, k=i, certificate=certificate)
             if ans:
                 return ans if certificate else i
 

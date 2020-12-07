@@ -189,10 +189,11 @@ class PackageInfo(NamedTuple):
         """
         Only for backwards compatibility to allow dict-like access.
 
-        EXAMPLE:
-        sage: package = PackageInfo("test_package", "optional", "", False, None, None)
-        sage: package["name"]
-        test_package
+        EXAMPLES::
+
+            sage: package = PackageInfo("test_package", "optional", "", False, None, None)
+            sage: package["name"]
+            test_package
         """
         if isinstance(key, str):
             from sage.misc.superseded import deprecation

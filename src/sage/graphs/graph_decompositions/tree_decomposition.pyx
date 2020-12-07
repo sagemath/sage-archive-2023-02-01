@@ -268,17 +268,137 @@ def reduced_tree_decomposition(T):
             H.add_edge(u, v)
     return H
 
-
-def treewidth(self, k=None, certificate=False, algorithm=None):
+def width_of_tree_decomposition(G, T, check=True):
     r"""
-    Computes the tree-width of `G` (and provides a decomposition)
+    Return the width of the tree decomposition `T` of `G`.
+
+    The width of a tree-decomposition is the size of the largest bag minus
+    1. The empty graph and a graph of order 1 have treewidth 0.
 
     INPUT:
+
+    - ``G`` -- a sage Graph
+
+    - ``T`` -- a tree-decomposition for `G`
+
+    - ``check`` -- boolean (default: ``True``); whether to check that the
+      tree-decomposition `T` is valid for `G`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import width_of_tree_decomposition
+        sage: G = graphs.PathGraph(3)
+        sage: T = G.treewidth(certificate=True)
+        sage: width_of_tree_decomposition(G, T, check=True)
+        1
+
+    TESTS::
+
+        sage: G = Graph()
+        sage: T = G.treewidth(certificate=True)
+        sage: width_of_tree_decomposition(G, T, check=True)
+        0
+        sage: width_of_tree_decomposition(Graph(1), T, check=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: the tree-decomposition is not valid for this graph
+    """
+    if check and not is_valid_tree_decomposition(G, T):
+        raise ValueError("the tree-decomposition is not valid for this graph")
+
+    if T:
+        return max(0, max(len(u) for u in T) - 1)
+    return 0
+
+
+def _from_tree_decompositions_of_atoms_to_tree_decomposition(T_atoms, cliques):
+    r"""
+    Return a tree-decomposition formed by the tree_decompositions of the atoms.
+
+    This is a helper method to avoid duplicated code.
+
+    This method builds the tree decomposition of the graph by connecting the
+    tree decompositions of its atoms. This is done in an order that is
+    consistent with the order of the atoms and cliques returned by method
+    :meth:`~Graph.atoms_and_clique_separators`. More precisely, the first clique
+    separates the first atom from the rest of the graph (call G1 this part of
+    the graph), the second clique separates (in G1) the second atom from the
+    rest of the graph G1, etc. So we merge the tree decompositions in the
+    reverse order of the atoms.
+
+    INPUT:
+
+    - ``T_atoms`` -- list of tree-decompositions
+
+    - ``cliques`` -- list of clique separators
+
+    EXAMPLES:
+
+    Indirect doctest::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
+        sage: G = graphs.Grid2dGraph(2, 3)
+        sage: T = G.treewidth(certificate=True)
+        sage: is_valid_tree_decomposition(G, T)
+        True
+
+    TESTS::
+
+        sage: from sage.graphs.graph_decompositions.tree_decomposition import _from_tree_decompositions_of_atoms_to_tree_decomposition
+        sage: _from_tree_decompositions_of_atoms_to_tree_decomposition([], [Set(range(2))])
+        Traceback (most recent call last):
+        ...
+        ValueError: the number of cliques must be one less than the number of tree-decompositions of atoms
+    """
+    if len(T_atoms) != len(cliques) + 1:
+        raise ValueError("the number of cliques must be one less than the "
+                         "number of tree-decompositions of atoms")
+
+    T = T_atoms[-1]
+    for i in range(len(cliques) - 1, -1, -1):
+        A = T_atoms[i]
+        C = cliques[i]
+
+        # We search for a vertex in A and T containing clique C
+        ua, ut = None, None
+        for u in A:
+            if u.issuperset(C):
+                ua = u
+                break
+        for u in T:
+            if u.issuperset(C):
+                ut = u
+                break
+        if ua and ut:
+            # We merge T and A
+            T.add_vertices(A)
+            T.add_edges(A.edges(sort=False))
+            T.add_edge(ua, ut)
+        else:
+            # This should never happen
+            raise RuntimeError("something goes wrong. Please report the issue "
+                               "to sage-devel@googlegroups.com")
+
+    return T
+
+
+def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
+    r"""
+    Computes the tree-width of `g` (and provides a decomposition)
+
+    INPUT:
+
+    - ``g`` -- a sage Graph
 
     - ``k`` -- integer (default: ``None``); indicates the width to be
       considered. When ``k`` is an integer, the method checks that the graph has
       treewidth `\leq k`. If ``k`` is ``None`` (default), the method computes
       the optimal tree-width.
+
+    - ``kmin`` -- integer (default: ``None``); when specified, search for a
+      tree-decomposition of width at least ``kmin``. This parameter is useful
+      when the graph can be decomposed into atoms. When parameter ``k`` is
+      specified, this parameter is ignored.
 
     - ``certificate`` -- boolean (default: ``False``); whether to return the
       tree-decomposition itself.
@@ -335,6 +455,17 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
         sage: graphs.Grid2dGraph(3,5).treewidth()
         3
 
+    When parameter ``kmin`` is specified, the method search for a
+    tree-decomposition of width at least ``kmin``::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.treewidth()
+        4
+        sage: g.treewidth(kmin=2)
+        4
+        sage: g.treewidth(kmin=g.order(), certificate=True)
+        Tree decomposition: Graph on 1 vertex
+
     TESTS::
 
         sage: g = graphs.PathGraph(3)
@@ -357,6 +488,8 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
         sage: g.treewidth(k=2)
         False
         sage: g.treewidth(k=6)
+        True
+        sage: g.treewidth(k=6, kmin=2)
         True
         sage: g.treewidth(certificate=True).is_tree()
         True
@@ -421,8 +554,6 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
         ...
         ValueError: k(=-3) must be a nonnegative integer
     """
-    g = self
-
     # Check Input
     if algorithm is None or algorithm == 'tdlib':
         try:
@@ -458,6 +589,12 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
             return Graph({Set(g): []}, name="Tree decomposition")
         return True
 
+    kmin = 0 if kmin is None else kmin
+    if k is None and kmin >= g.order() - 1:
+        if certificate:
+            return Graph({Set(g): []}, name="Tree decomposition")
+        return kmin
+
     # TDLIB
     if algorithm == 'tdlib':
         if not tdlib_found:
@@ -483,51 +620,26 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
     if cliques:
         if not certificate:
             if k is None:
-                return max(g.subgraph(a).treewidth() for a in atoms)
+                for a in atoms:
+                    kmin = max(kmin, g.subgraph(a).treewidth(kmin=kmin))
+                return kmin
             elif max(len(c) for c in cliques) - 1 > k:
                 return False
             else:
                 return all(g.subgraph(a).treewidth(k) for a in atoms)
         else:
             # We compute the tree decomposition of each atom
-            T = [g.subgraph(a).treewidth(certificate=True) for a in atoms]
+            T = []
+            for a in atoms:
+                Ta = g.subgraph(a).treewidth(certificate=True, kmin=kmin)
+                kmin = max(kmin, width_of_tree_decomposition(Ta))
+                T.append(Ta)
             # and merge the resulting trees
-            while len(T) > 1:
-                A = T.pop()
-                B = T.pop()
-                C = cliques.pop()
-                if not C:
-                    # g is not connected and so some cliques are empty
-                    # We connect the trees by an edge
-                    A.add_edge(next(A.vertex_iterator()), next(B.vertex_iterator()))
-                else:
-                    # We search for a vertex in A and B containing clique C
-                    ua, ub = None, None
-                    for u in A:
-                        if u.issuperset(C):
-                            ua = u
-                            break
-                    for u in B:
-                        if u.issuperset(C):
-                            ub = u
-                            break
-                    if ua and ub:
-                        A.add_edge(ua, ub)
-                    else:
-                        # This should never happen
-                        raise RuntimeError("something goes wrong."
-                                           "Please report the issue to"
-                                           "sage-devel@googlegroups.com")
-
-                # We merge A and B
-                A.add_edges(B.edges())
-                T.append(A)
-
-            return T[0]
+            return _from_tree_decompositions_of_atoms_to_tree_decomposition(T, cliques)
 
     # Forcing k to be defined
     if k is None:
-        for i in range(max(0, g.clique_number() - 1, min(g.degree())), g.order()+1):
+        for i in range(max(kmin, g.clique_number() - 1, min(g.degree())), g.order()):
             ans = g.treewidth(k=i, certificate=certificate)
             if ans:
                 return ans if certificate else i

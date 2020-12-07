@@ -632,7 +632,7 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
             T = []
             for a in atoms:
                 Ta = g.subgraph(a).treewidth(certificate=True, kmin=kmin)
-                kmin = max(kmin, width_of_tree_decomposition(Ta))
+                kmin = max(kmin, width_of_tree_decomposition(Ta, check=False))
                 T.append(Ta)
             # and merge the resulting trees
             return _from_tree_decompositions_of_atoms_to_tree_decomposition(T, cliques)

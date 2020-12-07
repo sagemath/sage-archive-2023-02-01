@@ -43,14 +43,14 @@ trees have treewidth and treelength 1::
     sage: T.treelength()
     1
 
-However, while the treewidth of a cycle is 2, its treelength is `\lceil n/3 \rceil`::
+The treewidth of a cycle is 2 and its treelength is `\lceil n/3 \rceil`::
 
     sage: [graphs.CycleGraph(n).treewidth() for n in range(3, 11)]
     [2, 2, 2, 2, 2, 2, 2, 2]
     sage: [graphs.CycleGraph(n).treelength() for n in range(3, 11)]
     [1, 2, 2, 2, 3, 3, 3, 4]
 
-The treewidth if a clique is `n-1` while its treelength is 1::
+The treewidth of a clique is `n-1` and its treelength is 1::
 
     sage: [graphs.CompleteGraph(n).treewidth() for n in range(3, 11)]
     [2, 3, 4, 5, 6, 7, 8, 9]
@@ -75,6 +75,7 @@ The treewidth if a clique is `n-1` while its treelength is 1::
     :meth:`treelength` | Compute the treelength of `G` (and provide a decomposition).
     :meth:`is_valid_tree_decomposition` | Check whether `T` is a valid tree-decomposition for `G`.
     :meth:`reduced_tree_decomposition(T)` | Return a reduced tree-decomposition of `T`.
+    :meth:`width_of_tree_decomposition` | Return the width of the tree decomposition `T` of `G`.
 
 
 .. TODO:
@@ -1258,7 +1259,7 @@ cdef class TreelengthConnected:
 
 def treelength(G, k=None, certificate=False):
     r"""
-    Compute the tree-length of `G` (and provide a decomposition).
+    Compute the treelength of `G` (and provide a decomposition).
 
     INPUT:
 
@@ -1348,19 +1349,14 @@ def treelength(G, k=None, certificate=False):
     Check that the decomposition by clique separators is valid::
 
         sage: from sage.graphs.graph_decompositions.tree_decomposition import TreelengthConnected
-        sage: G = graphs.Grid2dGraph(2, 3)
-        sage: G.treelength() == TreelengthConnected(G).get_length()
-        True
-        sage: G = graphs.RandomBarabasiAlbert(30, 2)  # long time
-        sage: G.treelength() == TreelengthConnected(G).get_length()  # long time
-        True
-
-    Check that the returned tree is a valid tree decomposition::
-
         sage: from sage.graphs.graph_decompositions.tree_decomposition import is_valid_tree_decomposition
-        sage: G = graphs.RandomBarabasiAlbert(30, 2)  # long time
-        sage: tl, T = G.treelength(certificate=True)  # long time
-        sage: is_valid_tree_decomposition(G, T)       # long time
+        sage: G = graphs.StarGraph(3)
+        sage: G.subdivide_edges(G.edges(sort=False), 2)
+        sage: G = G.cartesian_product(graphs.CycleGraph(3))
+        sage: tl, T = G.treelength(certificate=True)
+        sage: tl == TreelengthConnected(G).get_length()
+        True
+        sage: is_valid_tree_decomposition(G, T)
         True
 
     Corner cases::

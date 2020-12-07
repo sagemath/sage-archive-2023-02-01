@@ -15,7 +15,7 @@ At the moment, Sage is not yet using any tests based on pytest.
 
 *Installation:* ``pip install -U pytest``, see `documentation <https://docs.pytest.org/en/stable/getting-started.html#installation-and-getting-started>`_ for details.
 *Usage:*
-- Manual: Run ``pytest path/to/the/test_file.py`` or ``pytest`` to run all tests
+- Manual: Run ``pytest path/to/the/test_file.py`` or ``pytest`` to run all tests (from a virtual environment with Sage installed)
 - VS Code: Install the `Python <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ extension and follow the `offical documentation <https://code.visualstudio.com/docs/python/testing>`_.
 *Configuration:* ``conftest.py`` in the source folder
 *Documentation:* https://docs.pytest.org/en/stable/index.html

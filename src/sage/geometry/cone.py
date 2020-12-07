@@ -212,9 +212,10 @@ from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, ZZ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
-from ppl import (C_Polyhedron, Generator_System, Constraint_System,
-                 Linear_Expression, ray as PPL_ray, point as PPL_point,
-                 Poly_Con_Relation)
+from sage.misc.lazy_import import lazy_import
+lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Constraint_System',
+                    'Linear_Expression', 'Poly_Con_Relation'])
+lazy_import('ppl', ['ray', 'point'], as_=['PPL_ray', 'PPL_point'])
 from sage.geometry.integral_points import parallelotope_points
 
 

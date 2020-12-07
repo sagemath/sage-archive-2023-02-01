@@ -22,6 +22,6 @@ sdh_setup_bdist_wheel \
        build_ext \
        --debug \
        --disable-jpeg \
-       $extra_build_ext || sdh_die "Error building/installing Pillow"
+       $extra_build_ext
 
 sdh_store_and_pip_install_wheel .

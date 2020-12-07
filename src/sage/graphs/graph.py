@@ -1381,7 +1381,11 @@ class Graph(GenericGraph):
         if n == 1:
             s = '0' * self.size()
         else:
-            v_to_int = {v:i for i,v in enumerate(self)}
+            try:
+                V = sorted(self)
+            except:
+                V = self
+            v_to_int = {v:i for i,v in enumerate(V)}
             edges = [sorted((v_to_int[u], v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
             edges.sort(key=lambda e: (e[1], e[0])) # reverse lexicographic order
 

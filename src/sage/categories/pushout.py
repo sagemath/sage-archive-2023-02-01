@@ -1,7 +1,6 @@
 """
 Coercion via construction functors
 """
-from __future__ import print_function, absolute_import
 
 from sage.misc.lazy_import import lazy_import
 from sage.structure.coerce_exceptions import CoercionException

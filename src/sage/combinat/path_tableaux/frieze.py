@@ -20,7 +20,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.categories.sets_cat import Sets
@@ -30,8 +29,7 @@ from sage.rings.all import QQ, ZZ
 
 ###############################################################################
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class FriezePattern(PathTableau):
+class FriezePattern(PathTableau, metaclass=InheritComparisonClasscallMetaclass):
     """
     A frieze pattern.
 

@@ -1,7 +1,6 @@
 """
 Elliptic curves over padic fields
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>

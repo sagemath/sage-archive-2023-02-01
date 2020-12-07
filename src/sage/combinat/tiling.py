@@ -275,7 +275,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division
 
 import itertools
 from sage.structure.sage_object import SageObject

@@ -11,7 +11,6 @@ This module defines the class ``EllipticCurve_field``, based on
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import sage.rings.all as rings
 from sage.rings.complex_mpfr import is_ComplexField

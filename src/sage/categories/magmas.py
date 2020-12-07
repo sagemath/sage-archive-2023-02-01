@@ -1,7 +1,6 @@
 r"""
 Magmas
 """
-from __future__ import absolute_import
 # ****************************************************************************
 #  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #

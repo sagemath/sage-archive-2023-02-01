@@ -227,7 +227,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 from collections import namedtuple
 
 from sage.misc.lazy_import import lazy_import

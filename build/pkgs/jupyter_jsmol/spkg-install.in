@@ -1,1 +1,4 @@
-cd src && sdh_pip_install .
+cd src
+sage-python23 setup.py bdist_wheel \
+    build --skip-npm
+sdh_store_and_pip_install_wheel .

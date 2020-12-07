@@ -297,10 +297,10 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
         Traceback (most recent call last):
         ...
         ArithmeticError: Error converting arb to mpfi. Overflow?
-        sage: RIF(RBF(2)**(2**100)) # arb218 # indirect doctest # 64-bit
-        [5.8756537891115869e1388255822130839282 .. +infinity]
-        sage: RIF(RBF(2)**(2**100)) # arb218 # indirect doctest # 32-bit
-        [2.098.. +infinity]
+        sage: RIF(RBF(2)**(2**100)) # arb218 # indirect doctest
+        [5.8756537891115869e1388255822130839282 .. +infinity] # 64-bit
+        [2.098... .. +infinity]                               # 32-bit
+
     """
     cdef mpfr_t left
     cdef mpfr_t right

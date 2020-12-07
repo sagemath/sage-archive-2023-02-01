@@ -187,7 +187,7 @@ class PackageInfo(NamedTuple):
 
     def __getitem__(self, key: Union[int, str]):
         """
-        Only for backwards compatibility to allow string-based access.
+        Only for backwards compatibility to allow dict-like access.
 
         EXAMPLE:
         sage: package = PackageInfo("test_package", "optional", "", False, None, None)
@@ -198,10 +198,10 @@ class PackageInfo(NamedTuple):
             from sage.misc.superseded import deprecation
 
             if key == "installed":
-                deprecation(31013, "string-based access via `installed` is deprecated, use `is_installed` instead")
+                deprecation(31013, "dict-like access via `installed` is deprecated, use `is_installed` instead")
                 return self.is_installed()
             else:
-                deprecation(31013, "string-based access is deprecated, use e.g `pkg.name` instead of `pkg[name]`")
+                deprecation(31013, "dict-like access is deprecated, use e.g `pkg.name` instead of `pkg[name]`")
                 return self.__getattribute__(key)
         else:
             return super().__getitem__(key)

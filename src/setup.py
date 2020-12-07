@@ -59,7 +59,7 @@ t = time.time()
 
 distributions = ['']
 
-from sage_setup.optional_extension import is_package_installed_and_updated
+from sage.misc.package import is_package_installed_and_updated
 
 optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
                                      'coxeter3', 'fes', 'sirocco', 'meataxe']

@@ -57,7 +57,7 @@ from sage_setup.command.sage_build_ext import sage_build_ext
 print("Discovering Python/Cython source code....")
 t = time.time()
 
-from sage_setup.optional_extension import is_package_installed_and_updated
+from sage.misc.package import is_package_installed_and_updated
 
 if sdist:
     # No need to compute distributions.  This avoids a dependency on Cython

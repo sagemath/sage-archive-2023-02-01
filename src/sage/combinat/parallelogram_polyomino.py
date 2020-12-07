@@ -16,10 +16,6 @@ parallelogram polyominoes.
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import (
-    division, absolute_import, print_function, unicode_literals
-)
-
 
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation

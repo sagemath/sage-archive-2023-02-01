@@ -28,7 +28,6 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
 
 import sage
 import glob
@@ -158,22 +157,27 @@ var('SAGE_VERSION',        version.version)
 var('SAGE_DATE',           version.date)
 var('SAGE_VERSION_BANNER', version.banner)
 
-# bunch of sage directories and files
-var('SAGE_LOCAL',          os.path.abspath(sys.prefix))
+# virtual environment where sagelib is installed
+var('SAGE_VENV',           os.path.abspath(sys.prefix))
+var('SAGE_LIB',            os.path.dirname(os.path.dirname(sage.__file__)))
+var('SAGE_EXTCODE',        join(SAGE_LIB, 'sage', 'ext_data'))
+
+# prefix hierarchy where non-Python packages are installed
+var('SAGE_LOCAL',          SAGE_VENV)
 var('SAGE_ETC',            join(SAGE_LOCAL, 'etc'))
 var('SAGE_INC',            join(SAGE_LOCAL, 'include'))
 var('SAGE_SHARE',          join(SAGE_LOCAL, 'share'))
 var('SAGE_DOC',            join(SAGE_SHARE, 'doc', 'sage'))
 var('SAGE_SPKG_INST',      join(SAGE_LOCAL, 'var', 'lib', 'sage', 'installed'))
-var('SAGE_LIB',            os.path.dirname(os.path.dirname(sage.__file__)))
-var('SAGE_EXTCODE',        join(SAGE_LIB, 'sage', 'ext_data'))
 
+# source tree of the Sage distribution
 var('SAGE_ROOT')           # no fallback for SAGE_ROOT
 var('SAGE_SRC',            join(SAGE_ROOT, 'src'), SAGE_LIB)
 var('SAGE_DOC_SRC',        join(SAGE_ROOT, 'src', 'doc'), SAGE_DOC)
 var('SAGE_PKGS',           join(SAGE_ROOT, 'build', 'pkgs'))
 var('SAGE_ROOT_GIT',       join(SAGE_ROOT, '.git'))
 
+# ~/.sage
 var('DOT_SAGE',            join(os.environ.get('HOME'), '.sage'))
 var('SAGE_STARTUP_FILE',   join(DOT_SAGE, 'init.sage'))
 
@@ -434,6 +438,8 @@ def cython_aliases():
 
     aliases["LINUX_NOEXECSTACK"] = uname_specific("Linux", ["-Wl,-z,noexecstack"],
                                                   [])
+    aliases["CYGWIN_SQLITE3_LIBS"] = uname_specific("CYGWIN", ["sqlite3"],
+                                                    [])
 
     # LinBox needs special care because it actually requires C++11 with
     # GNU extensions: -std=c++11 does not work, you need -std=gnu++11

@@ -201,7 +201,6 @@ TESTS::
 #
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import division, print_function, absolute_import
 
 import os
 import subprocess

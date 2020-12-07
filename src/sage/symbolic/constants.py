@@ -214,7 +214,6 @@ Check that :trac:`8237` is fixed::
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
-from __future__ import print_function, absolute_import
 
 import math
 from functools import partial

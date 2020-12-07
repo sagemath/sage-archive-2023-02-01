@@ -11,7 +11,6 @@ Root lattice realizations
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.call import attrcall

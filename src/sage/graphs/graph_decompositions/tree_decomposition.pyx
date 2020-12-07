@@ -44,8 +44,6 @@ treewidth of a tree equal to one.
 
 .. TODO:
 
-    - Ensure that we use decomposition by clique separators as preprocessing for
-      treewidth
     - Add method to return a *nice* tree decomposition
     - Add methods to compute treelength and examples in the module documentation
       of the difference between treewidth and treelength
@@ -402,6 +400,13 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
         sage: vertices == set(g.vertices())
         True
 
+    Check that the use of atoms and clique separators is correct
+    (:trac:`30993`)::
+
+        sage: g = 2 * graphs.Grid2dGraph(2, 3)
+        sage: g.treewidth(algorithm='sage')
+        2
+
     Trivially true::
 
         sage: graphs.PetersenGraph().treewidth(k=35)
@@ -470,22 +475,55 @@ def treewidth(self, k=None, certificate=False, algorithm=None):
         else:
             return width <= k
 
-    # Disconnected cases
-    if not g.is_connected():
+    # The treewidth of a graph is the maximum over its atoms. So, we decompose
+    # the graph by clique minimal separators, compute the treewidth of each of
+    # its atoms, and combine the results.
+    # This decomposition also deals with disconnected cases.
+    atoms, cliques = g.atoms_and_clique_separators()
+    if cliques:
         if not certificate:
             if k is None:
-                return max(cc.treewidth() for cc in g.connected_components_subgraphs())
+                return max(g.subgraph(a).treewidth() for a in atoms)
+            elif max(len(c) for c in cliques) - 1 > k:
+                return False
             else:
-                return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
+                return all(g.subgraph(a).treewidth(k) for a in atoms)
         else:
-            T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
-            tree = Graph([list(chain(*T)),
-                          list(chain(*[t.edges(labels=False, sort=False) for t in T]))],
-                         format='vertices_and_edges', name="Tree decomposition")
-            v = next(T[0].vertex_iterator())
-            for t in T[1:]:
-                tree.add_edge(next(t.vertex_iterator()),v)
-            return tree
+            # We compute the tree decomposition of each atom
+            T = [g.subgraph(a).treewidth(certificate=True) for a in atoms]
+            # and merge the resulting trees
+            while len(T) > 1:
+                A = T.pop()
+                B = T.pop()
+                C = cliques.pop()
+                if not C:
+                    # g is not connected and so some cliques are empty
+                    # We connect the trees by an edge
+                    A.add_edge(next(A.vertex_iterator()), next(B.vertex_iterator()))
+                else:
+                    # We search for a vertex in A and B containing clique C
+                    ua, ub = None, None
+                    for u in A:
+                        if u.issuperset(C):
+                            ua = u
+                            break
+                    for u in B:
+                        if u.issuperset(C):
+                            ub = u
+                            break
+                    if ua and ub:
+                        A.add_edge(ua, ub)
+                    else:
+                        # This should never happen
+                        raise RuntimeError("something goes wrong."
+                                           "Please report the issue to"
+                                           "sage-devel@googlegroups.com")
+
+                # We merge A and B
+                A.add_edges(B.edges())
+                T.append(A)
+
+            return T[0]
 
     # Forcing k to be defined
     if k is None:

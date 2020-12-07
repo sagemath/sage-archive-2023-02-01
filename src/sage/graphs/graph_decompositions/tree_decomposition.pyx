@@ -1302,8 +1302,7 @@ def treelength(G, k=None, certificate=False):
 
     .. SEEALSO::
 
-        - :meth:`treewidth` computes the treewidth of a
-          graph.
+        - :meth:`treewidth` computes the treewidth of a graph.
         - :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
           computes the pathwidth of a graph.
         - :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
@@ -1490,37 +1489,8 @@ def treelength(G, k=None, certificate=False):
         return True
 
     # We now build the tree decomposition of the graph by connecting the tree
-    # decompositions of its atoms. This is done in an order that is consistent
-    # with the order of the atoms and cliques returned by method
-    # atoms_and_clique_separators. More precisely, the first clique separates
-    # the first atom from the rest of the graph (call G1 this part of the
-    # graph), the second clique separates (in G1) the second atom from the rest
-    # of the graph G1, etc. So we merge the tree decompositions in the reverse
-    # order of the atoms.
-    T = result.pop()
-    while result:
-        A = result.pop()
-        C = cliques.pop()
-
-        # We search for a vertex in A and T containing clique C
-        ua, ut = None, None
-        for u in A:
-            if u.issuperset(C):
-                ua = u
-                break
-        for u in T:
-            if u.issuperset(C):
-                ut = u
-                break
-        if ua and ut:
-            A.add_edge(ua, ut)
-        else:
-            # This should never happen
-            raise RuntimeError("something goes wrong. Please report the issue "
-                               "to sage-devel@googlegroups.com")
-
-        # We merge T and A
-        T.add_edges(A.edges())
+    # decompositions of its atoms.
+    T = _from_tree_decompositions_of_atoms_to_tree_decomposition(result, cliques)
 
     # The Tree-Decomposition may contain a lot of useless nodes.
     # We merge all edges between two sets S,S' where S is a subset of S'

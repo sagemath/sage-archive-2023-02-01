@@ -803,7 +803,6 @@ Enjoy and please post your best pictures on the
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex

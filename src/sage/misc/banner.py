@@ -11,7 +11,6 @@ SageMath version and banner info
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 import sys
 
 from sage.env import (SAGE_VERSION, SAGE_VERSION_BANNER, SAGE_BANNER)

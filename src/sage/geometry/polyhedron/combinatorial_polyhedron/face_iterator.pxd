@@ -30,13 +30,8 @@ cdef struct iter_struct:
     uint64_t **visited_all
     size_t *n_visited_all
 
-    # ``maybe_newfaces`` is where all possible facets of a face are stored.
-    # In dimension ``dim`` when visiting all faces of some face,
-    # the intersections with other faces are stored in ``newfaces2[dim]``.
-    uint64_t ***maybe_newfaces
-
-    # ``newfaces`` will point to those faces in ``maybe_newfaces``
-    # that are of codimension 1 and not already visited.
+    # ``newfaces`` is where the new faces are stored.
+    # Needs to be long enought to store all possible intersections of a face with all coatoms.
     uint64_t ***newfaces
     size_t *n_newfaces  # number of newfaces for each dimension
 
@@ -52,12 +47,20 @@ cdef struct iter_struct:
     # that have not been visited yet.
     size_t yet_to_visit
 
+    # Some modifications that make things better for simple and simplicial polyhedra.
+    bint is_simple
+    uint64_t *face_coatom_rep
+    size_t face_length_coatom_rep
+    uint64_t **visited_all_coatom_rep
+    uint64_t ***newfaces_coatom_rep
+
 
 cdef class FaceIterator_base(SageObject):
     cdef iter_struct structure
     cdef readonly bint dual         # if 1, then iterate over dual Polyhedron
     cdef MemoryAllocator _mem
-    cdef tuple newfaces_lists       # tuple to hold the ListOfFaces corresponding to maybe_newfaces
+    cdef tuple newfaces_lists       # tuple to hold the ListOfFaces corresponding to newfaces
+    cdef tuple newfaces_lists_coatom_rep
 
     # some copies from ``CombinatorialPolyhedron``
     cdef tuple _Vrep, _facet_names, _equalities
@@ -65,7 +68,7 @@ cdef class FaceIterator_base(SageObject):
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.
-    cdef ListOfFaces atoms, coatoms
+    cdef ListOfFaces atoms, coatoms, coatoms_coatom_rep
 
     cdef inline CombinatorialFace next_face(self)
     cdef inline int next_dimension(self) except -1
@@ -87,6 +90,6 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
 # Nogil definitions of crucial functions.
 
-cdef int next_dimension(iter_struct *structptr) nogil except -1
-cdef int next_face_loop(iter_struct *structptr) nogil except -1
-cdef size_t n_atom_rep(iter_struct *structptr) nogil except -1
+cdef int next_dimension(iter_struct& structure) nogil except -1
+cdef int next_face_loop(iter_struct& structure) nogil except -1
+cdef size_t n_atom_rep(iter_struct& structure) nogil except -1

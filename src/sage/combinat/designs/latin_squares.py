@@ -122,7 +122,6 @@ REFERENCES:
 Functions
 ---------
 """
-from __future__ import print_function, absolute_import
 
 from sage.rings.integer import Integer
 from sage.categories.sets_cat import EmptySetError

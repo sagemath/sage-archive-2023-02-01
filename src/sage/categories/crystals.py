@@ -19,7 +19,6 @@ Catch warnings produced by :func:`check_tkz_graph`::
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method

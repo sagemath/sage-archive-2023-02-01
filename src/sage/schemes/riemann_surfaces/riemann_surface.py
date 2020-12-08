@@ -62,7 +62,6 @@ In fact it is an order in a number field::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division
 
 from scipy.spatial import Voronoi
 from sage.arith.misc import GCD, algdep

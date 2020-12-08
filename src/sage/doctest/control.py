@@ -19,7 +19,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, division, print_function
 
 import random
 import os
@@ -1302,15 +1301,16 @@ def run_doctests(module, options=None):
             raise ValueError("You should not try to run doctests with a debugger from within Sage: IPython objects to embedded shells")
         from IPython import get_ipython
         IP = get_ipython()
-        old_color = IP.colors
-        IP.run_line_magic('colors', 'NoColor')
-        old_config_color = IP.config.TerminalInteractiveShell.colors
-        IP.config.TerminalInteractiveShell.colors = 'NoColor'
+        if IP is not None:
+            old_color = IP.colors
+            IP.run_line_magic('colors', 'NoColor')
+            old_config_color = IP.config.TerminalInteractiveShell.colors
+            IP.config.TerminalInteractiveShell.colors = 'NoColor'
 
     try:
         DC.run()
     finally:
         sage.doctest.DOCTEST_MODE = save_dtmode
-        if not save_dtmode:
+        if not save_dtmode and IP is not None:
             IP.run_line_magic('colors', old_color)
             IP.config.TerminalInteractiveShell.colors = old_config_color

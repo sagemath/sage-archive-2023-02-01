@@ -12,7 +12,6 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)    #
 #                  https://www.gnu.org/licenses/                           #
 ###########################################################################
-from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.databases.cremona', 'cremona_letter_code')

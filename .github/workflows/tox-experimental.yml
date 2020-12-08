@@ -99,20 +99,25 @@ jobs:
 
   local-macos:
 
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       max-parallel: 3
       matrix:
+        os: [ macos-10.15, macos-11.0 ]
         tox_system_factor: [homebrew-macos, homebrew-macos-python3_xcode, homebrew-macos-python3_xcode-nokegonly, homebrew-macos-python3_pythonorg, conda-forge-macos]
         tox_packages_factor: [maximal]
         targets_pattern: [0-g, h-o, p, q-z]
+        xcode_version_factor: [11.7, default, 12.3]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}-${{ matrix.os }}-xcode_${{ matrix.xcode_version_factor }}
       TARGETS_OPTIONAL: "$( echo $(PATH=build/bin:$PATH build/bin/sage-package list :experimental: | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
+      - name: Select Xcode version
+        run: |
+          if [ ${{ matrix.xcode_version_factor }} != default ]; then sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode_version_factor }}.app; fi
       - name: Install test prerequisites
         run: |
           brew install tox

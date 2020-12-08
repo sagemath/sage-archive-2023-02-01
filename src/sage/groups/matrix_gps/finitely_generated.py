@@ -61,7 +61,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
 
 from sage.rings.all import ZZ
 from sage.rings.all import QQbar

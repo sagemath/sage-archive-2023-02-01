@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 "Birch and Swinnerton-Dyer formulas"
-from __future__ import print_function
 
 from sage.arith.misc import prime_divisors
 from sage.rings.all import ZZ, Infinity, QuadraticField

@@ -55,7 +55,6 @@ This module's functions are the following:
 Methods
 ---------
 """
-from __future__ import absolute_import
 
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 from itertools import combinations

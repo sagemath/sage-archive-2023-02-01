@@ -12,8 +12,5 @@ fi
 cd src
 # Need to build a wheel manually because pip does not
 # follow symlinks.
-sage-python23 setup.py \
-        --no-user-cfg \
-       bdist_wheel \
-       || sdh_die "Error building wheel for sage_conf"
+sdh_setup_bdist_wheel
 sdh_store_and_pip_install_wheel .

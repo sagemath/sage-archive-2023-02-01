@@ -28,7 +28,7 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from typing import Optional
+from typing import List, Optional
 
 import sage
 import os
@@ -210,7 +210,7 @@ var('SAGE_BANNER', '')
 var('SAGE_IMPORTALL', 'yes')
 
 
-def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
+def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     """
     Return the full path to a shared library file installed in
     ``$SAGE_LOCAL/lib`` or the directories associated with the
@@ -248,9 +248,9 @@ def _get_shared_lib_path(libname, *additional_libnames) -> Optional[str]:
         True
     """
 
-    for libname in (libname,) + additional_libnames:
-        search_directories: list[Path] = []
-        patterns: list[str] = []
+    for libname in libnames:
+        search_directories: List[Path] = []
+        patterns: List[str] = []
         if sys.platform == 'cygwin':
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
@@ -299,7 +299,7 @@ SINGULAR_SO = _get_shared_lib_path('Singular', 'singular-Singular')
 var('SINGULAR_SO', SINGULAR_SO)
 
 # locate libgap shared object
-GAP_SO = _get_shared_lib_path('gap','')
+GAP_SO = _get_shared_lib_path('gap')
 var('GAP_SO', GAP_SO)
 
 # post process

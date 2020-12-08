@@ -41,7 +41,7 @@ Functions
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
 import sage.env
 
@@ -189,10 +189,14 @@ class PackageInfo(NamedTuple):
         """
         Only for backwards compatibility to allow dict-like access.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: package = PackageInfo("test_package", "optional", "", False, None, None)
+            sage: package = PackageInfo("test_package")
             sage: package["name"]
+            doctest:...: DeprecationWarning: dict-like access is deprecated, use e.g `pkg.name` instead of `pkg[name]`
+                    See https://trac.sagemath.org/31013 for details.
+            test_package
+            sage: package[0]
             test_package
         """
         if isinstance(key, str):
@@ -205,7 +209,7 @@ class PackageInfo(NamedTuple):
                 deprecation(31013, "dict-like access is deprecated, use e.g `pkg.name` instead of `pkg[name]`")
                 return self.__getattribute__(key)
         else:
-            return super().__getitem__(key)
+            return tuple.__getitem__(self, key)
 
 
 def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 'script'],

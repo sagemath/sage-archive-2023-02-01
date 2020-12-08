@@ -15,7 +15,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
-from __future__ import division, print_function, absolute_import
 
 import os
 import pickle

@@ -83,7 +83,6 @@ Constructions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets

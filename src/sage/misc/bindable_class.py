@@ -12,7 +12,6 @@ Bindable classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import functools
 from sage.misc.nested_class import NestedClassMetaclass

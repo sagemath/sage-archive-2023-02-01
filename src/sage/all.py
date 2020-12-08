@@ -107,6 +107,10 @@ warnings.filterwarnings('default', category=DeprecationWarning,
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='.*ast')
 
+# Ignore packaging 20.5 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*packaging')
+
 ################ end setup warnings ###############################
 
 
@@ -224,7 +228,6 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
-
 ###########################################################
 #### WARNING:
 # DO *not* import numpy / matplotlib / networkx here!!
@@ -241,6 +244,8 @@ ZZ = IntegerRing()
 true = True
 false = False
 oo = infinity
+from sage.rings.imaginary_unit import I
+i = I
 
 from sage.misc.copying import license
 copying = license

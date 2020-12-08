@@ -54,7 +54,6 @@ factor `x`.
     sage: M0.T(2).matrix().fcp('x')
     (x - 9)^2 * (x^2 - 2*x - 2)^2
 """
-from __future__ import absolute_import
 
 ################################################################################
 #       Sage: Open Source Mathematical Software

@@ -4,7 +4,6 @@ Homogeneous symmetric functions
 By this we mean the basis formed of the complete homogeneous
 symmetric functions `h_\lambda`, not an arbitrary graded basis.
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>

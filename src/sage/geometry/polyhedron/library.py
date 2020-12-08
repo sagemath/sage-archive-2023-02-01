@@ -78,7 +78,6 @@ The following constructions are available
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import absolute_import, division
 
 import itertools
 

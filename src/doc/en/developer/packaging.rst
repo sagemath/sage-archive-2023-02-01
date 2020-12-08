@@ -371,6 +371,10 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    arguments. If ``$SAGE_DESTDIR`` is not set then the command is run
    with ``$SAGE_SUDO``, if set.
 
+- ``sdh_setup_bdist_wheel [...]``: Runs ``setup.py bdist_wheel`` with
+   the given arguments, as well as additional default arguments used for
+   installing packages into Sage.
+
 - ``sdh_pip_install [...]``: The equivalent of running ``pip install``
    with the given arguments, as well as additional default arguments used for
    installing packages into Sage with pip. The last argument must be

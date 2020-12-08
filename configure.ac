@@ -270,8 +270,8 @@ fi
 
 # Check for system python
 AC_MSG_CHECKING([for Python])
-if SAGE_SYSTEM_PYTHON=$(build/bin/sage-system-python -c "import sys; print(sys.executable)"); then
-    AC_MSG_RESULT([$SAGE_SYSTEM_PYTHON])
+if SAGE_BOOTSTRAP_PYTHON=$(build/bin/sage-bootstrap-python -c "import sys; print(sys.executable)"); then
+    AC_MSG_RESULT([$SAGE_BOOTSTRAP_PYTHON])
 else
     AC_MSG_ERROR([You do not have a suitable version of Python installed])
 fi

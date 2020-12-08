@@ -104,17 +104,15 @@ cdef extern from "bit_vector_operations.cc":
     cdef const size_t chunksize
 
     cdef size_t get_next_level(
-        uint64_t **faces, const size_t n_faces, uint64_t **nextfaces,
-        uint64_t **nextfaces2, uint64_t **visited_all,
-        size_t n_visited_all, size_t face_length)
+        uint64_t **faces, const size_t n_faces, uint64_t **newfaces,
+        uint64_t **visited_all, size_t n_visited_all, size_t face_length)
 #        Set ``newfaces`` to be the facets of ``faces[n_faces -1]``
 #        that are not contained in a face of ``visited_all``.
 
 #        INPUT:
 
-#        - ``maybe_newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
+#        - ``newfaces`` -- quasi of type ``uint64_t[n_faces -1][face_length]``,
 #          needs to be ``chunksize``-Bit aligned
-#        - ``newfaces`` -- quasi of type ``*uint64_t[n_faces -1]
 #        - ``visited_all`` -- quasi of type ``*uint64_t[n_visited_all]
 #        - ``face_length`` -- length of the faces
 
@@ -333,30 +331,10 @@ cdef class ListOfFaces:
         """
         if self.n_faces == 0:
             raise TypeError("at least one face needed")
-        return self.compute_dimension_loop(self.data, self.n_faces, self.face_length)
 
-    cdef int compute_dimension_loop(self, uint64_t **faces, size_t n_faces,
-                                      size_t face_length) except -2:
-        r"""
-        Compute the dimension of a polyhedron by its facets.
-
-        INPUT:
-
-        - ``faces`` -- facets in Bit-representation
-        - ``n_faces`` -- length of facesdata
-        - ``face_length`` -- the length of each face in terms of ``uint64_t``
-
-        OUTPUT:
-
-        - dimension of the polyhedron
-
-        .. SEEALSO::
-
-            :meth:`compute_dimension`
-        """
-        if n_faces == 0:
-            raise TypeError("wrong usage of ``compute_dimension_loop``,\n" +
-                            "at least one face needed.")
+        cdef size_t n_faces = self.n_faces
+        cdef size_t face_length = self.face_length
+        cdef uint64_t **faces = self.data
 
         if n_faces == 1:
             # We expect the face to be the empty polyhedron.
@@ -365,26 +343,23 @@ cdef class ListOfFaces:
             # the number of atoms it contains.
             return count_atoms(faces[0], face_length)
 
-        # ``maybe_newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
+        # ``newfaces`` are all intersection of ``faces[n_faces -1]`` with previous faces.
         # It needs to be allocated to store those faces.
-        cdef ListOfFaces maybe_newfaces_mem = ListOfFaces(n_faces, face_length*64)
-        cdef uint64_t **maybe_newfaces = maybe_newfaces_mem.data
+        cdef ListOfFaces newfaces = ListOfFaces(n_faces, face_length*64)
 
-        # ``newfaces`` point to the actual facets of ``faces[n_faces -1]``.
-        cdef MemoryAllocator newfaces_mem = MemoryAllocator()
-        cdef uint64_t **newfaces = <uint64_t **> newfaces_mem.allocarray(n_faces, sizeof(uint64_t *))
-
-        # Calculating ``maybe_newfaces`` and ``newfaces``
+        # Calculating ``newfaces``
         # such that ``newfaces`` points to all facets of ``faces[n_faces -1]``.
         cdef size_t new_n_faces
         sig_on()
-        new_n_faces = get_next_level(faces, n_faces, maybe_newfaces,
-                                      newfaces, NULL, 0, face_length)
+        new_n_faces = get_next_level(faces, n_faces,
+                                      newfaces.data, NULL, 0, face_length)
         sig_off()
+
+        newfaces.n_faces = new_n_faces
 
         # compute the dimension of the polyhedron,
         # by calculating dimension of one of its faces.
-        return self.compute_dimension_loop(newfaces, new_n_faces, face_length) + 1
+        return newfaces.compute_dimension() + 1
 
     cpdef ListOfFaces pyramid(self):
         r"""

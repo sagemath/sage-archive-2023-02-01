@@ -140,8 +140,7 @@ Third-party packages in Sage consist of two parts:
    project name contains characters which are not alphanumeric
    and are not an underscore, those characters should be removed
    or replaced by an underscore. For example, the project
-   ``FFLAS-FFPACK`` is called ``fflas_ffpack`` in Sage and ``path.py``
-   is renamed ``pathpy`` in Sage.
+   ``FFLAS-FFPACK`` is called ``fflas_ffpack`` in Sage.
 
 As an example, let us consider a hypothetical FoO project. They
 (upstream) distribute a tarball ``FoO-1.3.tar.gz`` (that will be
@@ -269,7 +268,7 @@ something like the following to install it:
 
     .. CODE-BLOCK:: text
 
-        exec sage-system-python spkg-install.py
+        exec sage-bootstrap-python spkg-install.py
 
     or
 
@@ -277,7 +276,7 @@ something like the following to install it:
 
         exec sage-python23 spkg-install.py
 
-   In more detail: ``sage-system-python`` runs the version of Python
+   In more detail: ``sage-bootstrap-python`` runs the version of Python
    pre-installed on the machine. Use this if the package may be
    installed before Sage has built its own Python. ``sage-python23``
    runs the version of Python built by Sage, either Python 2 or 3,
@@ -371,6 +370,10 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    installations. Additional arguments to ``$MAKE`` may be given as
    arguments. If ``$SAGE_DESTDIR`` is not set then the command is run
    with ``$SAGE_SUDO``, if set.
+
+- ``sdh_setup_bdist_wheel [...]``: Runs ``setup.py bdist_wheel`` with
+   the given arguments, as well as additional default arguments used for
+   installing packages into Sage.
 
 - ``sdh_pip_install [...]``: The equivalent of running ``pip install``
    with the given arguments, as well as additional default arguments used for

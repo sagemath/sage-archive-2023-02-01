@@ -315,7 +315,7 @@ def run():
         else:
             app.update_latest(args.package_name)
     elif args.subcommand == 'download':
-        app.download_cls(args.package_name, args.allow_upstream)
+        app.download(args.package_name, args.allow_upstream)
     elif args.subcommand == 'create':
         app.create(args.package_name, args.version, args.tarball, args.type, args.url)
     elif args.subcommand == 'upload':

@@ -1285,7 +1285,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     ## Further methods
     def stretch(self, k):
-        """
+        r"""
         Stretch ``self`` by a given factor.
 
         INPUT:
@@ -1294,7 +1294,7 @@ class InfinitePolynomial_sparse(RingElement):
 
         OUTPUT:
 
-        Replace `v_n` with `v_{n\\cdot k}` for all generators `v_\\ast` occurring in self.
+        Replace `v_n` with `v_{n\\cdot k}` for all generators `v_\ast` occurring in self.
 
         EXAMPLES::
 

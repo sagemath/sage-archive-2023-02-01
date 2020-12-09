@@ -1389,6 +1389,15 @@ class Graph(GenericGraph):
             True
             sage: G_.sparse6_string() == H_.sparse6_string()
             True
+
+        The method can handle vertices with different types (:trac:`31026`)::
+
+            sage: G = Graph([(1, 'a')])
+            sage: H = Graph(G.sparse6_string())
+            sage: G.is_isomorphic(H)
+            True
+            sage: set(G) == set(H)
+            False
         """
         n = self.order()
         if not n:
@@ -1400,7 +1409,7 @@ class Graph(GenericGraph):
         else:
             try:
                 V = sorted(self)
-            except:
+            except TypeError:
                 V = self
             v_to_int = {v:i for i,v in enumerate(V)}
             edges = [sorted((v_to_int[u], v_to_int[v])) for u,v in self.edge_iterator(labels=False)]

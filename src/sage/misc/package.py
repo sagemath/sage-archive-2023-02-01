@@ -325,12 +325,6 @@ def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 's
                 pass
             continue
 
-        pkg = pkgs.get(p, PackageInfo(name=p))
-        pkg.name = p
-        pkg.type = typ
-        pkg.source = src
-
-
         if src == 'pip':
             if not local:
                 remote_version = pip_remote_version(p, ignore_URLError=ignore_URLError)
@@ -345,8 +339,8 @@ def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 's
         else:
             remote_version = None
 
-        pkg.remote_version=remote_version
-        pkgs[p] = pkg
+        pkg = pkgs.get(p, PackageInfo(name=p))
+        pkgs[p] = PackageInfo(p, typ, src, pkg.installed_version, remote_version)
 
     return pkgs
 

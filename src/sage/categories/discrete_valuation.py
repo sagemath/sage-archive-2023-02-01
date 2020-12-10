@@ -64,7 +64,7 @@ class DiscreteValuationRings(Category_singleton):
                 Rational Field
             """
 
-        def _matrix_charpoly(self, M):
+        def _matrix_charpoly(self, M, var):
             r"""
             Return the characteristic polynomial of `M`.
 
@@ -104,7 +104,7 @@ class DiscreteValuationRings(Category_singleton):
                 sage: M.charpoly()
                 ...00001*x^3 + ...44423*x^2 + ...44412*x + ...00000
             """
-            return M._charpoly_hessenberg('x')
+            return M._charpoly_hessenberg(var)
 
     class ElementMethods:
         @abstract_method

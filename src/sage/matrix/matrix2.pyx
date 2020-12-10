@@ -2870,7 +2870,7 @@ cdef class Matrix(Matrix1):
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
                 
             if hasattr(R, '_matrix_charpoly'):
-                f = R._matrix_charpoly(self)
+                f = R._matrix_charpoly(self, var)
             if f is None:
                 if is_NumberField(R):
                     f = self._charpoly_over_number_field(var)

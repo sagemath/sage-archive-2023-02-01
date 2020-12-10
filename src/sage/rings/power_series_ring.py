@@ -1254,14 +1254,18 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                                                  self.base_ring(), self.variable_name(), default_prec=self.default_prec(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
+
 class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
     def fraction_field(self):
         """
-        Return the fraction field of this power series ring, which is
-        defined since this is over a domain.
+        Return the Laurent series ring over the fraction field of the base
+        ring.
 
-        This fraction field is just the Laurent series ring over the
-        fraction field of the base ring.
+        This is actually *not* the fraction field of this ring, but its
+        completion with respect to the topology defined by the valuation.
+        When we are working at finite precision, these two fields are
+        indistinguishable; that is the reason why we allow ourselves to
+        make this confusion here.
 
         EXAMPLES::
 
@@ -1295,6 +1299,7 @@ class PowerSeriesRing_over_field(PowerSeriesRing_domain):
             Laurent Series Ring in t over Finite Field of size 7
         """
         return self.laurent_series_ring()
+
 
 def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
     """

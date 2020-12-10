@@ -33,7 +33,7 @@ that (s)he can remove the flag::
 
     sage: ZZ
     Option ``at_startup=True`` for lazy import ZZ not needed anymore
-    Lazy import of Integer Ring
+    Integer Ring
 
 .. SEEALSO:: :func:`lazy_import`, :class:`LazyImport`
 
@@ -211,7 +211,7 @@ cdef class LazyImport(object):
             sage: my_integer_ring = LazyImport('sage.rings.all', 'ZZ', at_startup=True)
             sage: my_integer_ring
             Option ``at_startup=True`` for lazy import ZZ not needed anymore
-            Lazy import of Integer Ring
+            Integer Ring
         """
         if self._object is not None:
             return self._object
@@ -368,13 +368,13 @@ cdef class LazyImport(object):
             sage: type(lazy_ZZ)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: lazy_ZZ
-            Lazy import of Integer Ring
+            Integer Ring
             sage: repr(lazy_ZZ)
-            'Lazy import of Integer Ring'
+            'Integer Ring'
         """
         try:
             obj = self.get_object()
-            return "Lazy import of " + repr(obj)
+            return repr(obj)
         except FeatureNotPresentError as e:
             return "Failed lazy import:\n" + str(e)
 
@@ -1065,10 +1065,10 @@ def lazy_import(module, names, as_=None, *,
         sage: from sage.features import PythonModule
         sage: lazy_import('ppl', 'equation', feature=PythonModule('ppl', spkg='pplpy'))
         sage: equation
-        Lazy import of <built-in function equation>
+        <built-in function equation>
         sage: lazy_import('PyNormaliz', 'NmzListConeProperties', feature=PythonModule('PyNormaliz', spkg='pynormaliz'))  # optional - pynormaliz
         sage: NmzListConeProperties  # optional - pynormaliz
-        Lazy import of <built-in function NmzListConeProperties>
+        <built-in function NmzListConeProperties>
         sage: lazy_import('foo', 'not_there', feature=PythonModule('foo', spkg='non-existing-package'))
         sage: not_there
         Failed lazy import:

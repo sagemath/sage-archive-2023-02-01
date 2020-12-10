@@ -254,8 +254,8 @@ def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 's
     EXAMPLES::
 
         sage: from sage.misc.package import list_packages
-        sage: L = list_packages('standard')  # optional - build
-        sage: sorted(L.keys())  # optional - build, random
+        sage: L = list_packages('standard')    # optional - build
+        sage: sorted(L.keys())                 # optional - build, random
         ['alabaster',
          'arb',
          'babel',
@@ -263,18 +263,18 @@ def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 's
          'zn_poly',
          'zope_interface']
         sage: sage_conf_info = L['sage_conf']  # optional - build
-        sage: sage_conf_info.type # optional - build
+        sage: sage_conf_info.type              # optional - build
         'standard'
-        sage: sage_conf_info.installed # optional - build
+        sage: sage_conf_info.is_installed()    # optional - build
         True
-        sage: sage_conf_info.source # optional - build
+        sage: sage_conf_info.source            # optional - build
         'script'
 
         sage: L = list_packages(pkg_sources=['pip'], local=True)  # optional - build internet
         sage: bs4_info = L['beautifulsoup4'] # optional - build internet
-        sage: bs4_info.type # optional - build internet
+        sage: bs4_info.type                    # optional - build internet
         'optional'
-        sage: bs4_info.source # optional - build internet
+        sage: bs4_info.source                  # optional - build internet
         'pip'
 
     Check the option ``exclude_pip``::

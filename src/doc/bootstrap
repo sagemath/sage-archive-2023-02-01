@@ -31,7 +31,7 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
     SAGELIB_SYSTEM_PACKAGES=
     SAGELIB_OPTIONAL_SYSTEM_PACKAGES=
     RECOMMENDED_SYSTEM_PACKAGES=
-    for PKG_BASE in $(sage --package list --has-file distros/$SYSTEM.txt); do
+    for PKG_BASE in $(./sage --package list --has-file distros/$SYSTEM.txt); do
                 PKG_SCRIPTS=build/pkgs/$PKG_BASE
                 SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
                 PKG_TYPE=$(cat $PKG_SCRIPTS/type)
@@ -112,7 +112,7 @@ External Packages
    :maxdepth: 1
 
 EOF
-for PKG_BASE in $(sage --package list --has-file SPKG.rst); do
+for PKG_BASE in $(./sage --package list --has-file SPKG.rst); do
             PKG_SCRIPTS=build/pkgs/$PKG_BASE
             # Instead of just copying, we may want to call
             # a version of sage-spkg-info to format extra information.

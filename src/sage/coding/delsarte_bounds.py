@@ -108,6 +108,50 @@ def krawtchouk(n, q, l, x, check=True):
         kraw += jth_term
     return kraw
 
+def eberlein(n, k, l, x, check=True):
+    r"""
+    Compute ``E^{n,l}_k(x)``, the Eberlein polynomial.
+
+    # See :wikipedia:`Eberlein_polynomials`.
+
+    It is defined by the generating function
+
+    .. MATH::
+
+        # (1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l
+
+    and is equal to
+
+    .. MATH::
+
+        E^{n,l}_k(x)=\sum_{j=0}^k (-1)^j \binom{x}{j} \binom{n-x}{k-j}
+        \binom{l-n-x}{k-j},
+
+    INPUT:
+
+    - ``n, k, x`` -- arbitrary numbers
+
+    - ``l`` -- a nonnegative integer
+
+    - ``check`` -- check the input for correctness. ``True`` by
+      default. Otherwise, pass it as it is. Use ``check=False`` at
+      your own risk.
+
+    """
+    from sage.arith.all import binomial
+    from sage.arith.srange import srange
+    if check:
+        from sage.rings.integer_ring import ZZ
+        l0 = ZZ(l)
+        if l0 != l or l0 < 0:
+            raise ValueError('l must be a nonnegative integer')
+        l = l0
+    eber = jth_term = binomial(n-x,k) * binomial(l-n-x,k)
+    for j in srange(1,k+1):
+        jth_term *= (-1) * ((x-j+1)/j) * ((k-j+1)/(n-x-k+j)) * ((k-j+1)/(l-n-x-k+j))
+        eber += jth_term
+    return eber
+
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     """
     LP builder - common for the two functions; not exported.

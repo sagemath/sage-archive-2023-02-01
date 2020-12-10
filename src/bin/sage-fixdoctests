@@ -62,6 +62,14 @@ for block in doctests:
     comma = block.find(', in ')            # we try to extract the line number which gives the test failure
     if line == -1 or comma==-1: continue   # but if something goes wrong we give up
     line_num=eval(block[line+5:comma])
+
+    # Take care of multiline examples.
+    if 'Expected' in block:
+        i1 = block.index('Failed example')
+        i2 = block.index('Expected')
+        example_len = block[i1:i2].count('\n') - 1
+        line_num += example_len - 1
+
     if 'Expected nothing' in block:
         exp = block.find('Expected nothing')
         block='\n'+block[exp+17:]  # so that split('\nGot:\n') does not fail below

@@ -22,18 +22,6 @@ from sage.categories.modules import Modules
 from sage.geometry.polyhedron.base import is_Polyhedron
 from .representation import Inequality, Equation, Vertex, Ray, Line
 
-from sage.misc.lazy_import import lazy_import
-
-lazy_import('sage.geometry.polyhedron.backend_cdd', ['Polyhedron_QQ_cdd',
-                                                     'Polyhedron_RDF_cdd'])
-lazy_import('sage.geometry.polyhedron.backend_ppl', ['Polyhedron_ZZ_ppl',
-                                                     'Polyhedron_QQ_ppl'])
-lazy_import('sage.geometry.polyhedron.backend_normaliz', ['Polyhedron_normaliz',
-                                                          'Polyhedron_ZZ_normaliz',
-                                                          'Polyhedron_QQ_normaliz'])
-lazy_import('sage.geometry.polyhedron.backend_polymake', 'Polyhedron_polymake')
-lazy_import('sage.geometry.polyhedron.backend_field', 'Polyhedron_field')
-
 
 def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *,
               ambient_space=None, base_ring=None):
@@ -1078,6 +1066,11 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
 
 
+from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd, Polyhedron_RDF_cdd
+from sage.geometry.polyhedron.backend_ppl import Polyhedron_ZZ_ppl, Polyhedron_QQ_ppl
+from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz, Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
+from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
+from sage.geometry.polyhedron.backend_field import Polyhedron_field
 
 class Polyhedra_ZZ_ppl(Polyhedra_base):
     Element = Polyhedron_ZZ_ppl

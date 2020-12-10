@@ -49,9 +49,6 @@ Clayton Smith's construction [ClaytonSmith]_.
 Functions
 ---------
 """
-# python3
-from __future__ import division, print_function
-from __future__ import absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown

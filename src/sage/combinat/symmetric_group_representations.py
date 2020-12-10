@@ -27,7 +27,6 @@ Representations of the Symmetric Group
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt

@@ -172,11 +172,13 @@ def _encode_polynomial(poly):
 def pickle_polynomial(self):
     return (_decode_polynomial, (_encode_polynomial(self), ))
 
+
 copyreg.pickle(Polynomial, pickle_polynomial)
 
 
 def pickle_bset(self):
     return (BooleSet, (Polynomial(self), ))
+
 
 copyreg.pickle(BooleSet, pickle_bset)
 
@@ -184,11 +186,13 @@ copyreg.pickle(BooleSet, pickle_bset)
 def pickle_monom(self):
     return (Monomial, ([var for var in self.variables()], ))
 
+
 copyreg.pickle(Monomial, pickle_monom)
 
 
 def pickle_var(self):
     return (Variable, (self.index(), self.ring()))
+
 
 copyreg.pickle(Variable, pickle_var)
 
@@ -242,8 +246,8 @@ def _encode_ring(ring):
     else:
         nvars = ring.n_variables()
         data = (nvars, ring.get_order_code())
-        varnames = '\n'.join([str(ring.variable(idx)) for idx in range(nvars)
-            ])
+        varnames = '\n'.join(str(ring.variable(idx))
+                             for idx in range(nvars))
         blocks = list(ring.blocks())
         code = (identifier, data, compress(varnames), blocks[:-1])
         _polybori_parallel_rings[identifier] = (WeakRingRef(ring), code)
@@ -253,6 +257,7 @@ def _encode_ring(ring):
 
 def pickle_ring(self):
     return (_decode_ring, (_encode_ring(self), ))
+
 
 copyreg.pickle(Ring, pickle_ring)
 

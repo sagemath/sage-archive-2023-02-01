@@ -47,8 +47,6 @@ Functions
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-# python3
-from __future__ import division, print_function, absolute_import
 
 from sage.misc.cachefunc import cached_function
 

@@ -5,7 +5,6 @@ This module defines a HTML fragment class, which holds a piece of
 HTML. This is primarily used in browser-based notebooks, though it
 might be useful for creating static pages as well.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>

@@ -42,7 +42,7 @@ echo "Now generating Makefile for zn_poly..."
 #       'makemakefile.py', and aren't available with vanilla upstream.
 #       Moreover, the generated Makefile now takes CC, CXX and CPP from the
 #       environment, so no need to pass them later explicitly to 'make'.
-sage-system-python makemakefile.py >Makefile \
+sage-bootstrap-python makemakefile.py >Makefile \
     --prefix="$SAGE_LOCAL" --cflags="$CFLAGS" --ldflags="$LDFLAGS" \
     --cppflags="$CPPFLAGS" --cxxflags="$CXXFLAGS" \
     --gmp-prefix="$SAGE_LOCAL" || sdh_die "Error generating Makefile."

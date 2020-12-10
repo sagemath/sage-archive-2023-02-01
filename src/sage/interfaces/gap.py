@@ -175,7 +175,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, print_function
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir

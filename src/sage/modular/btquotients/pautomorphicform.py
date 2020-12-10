@@ -39,7 +39,6 @@ This can then be lifted to an overconvergent `p`-adic modular form::
     sage: A.lift(a) # long time
     p-adic automorphic form of cohomological weight 0
 """
-from __future__ import print_function, division
 
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation

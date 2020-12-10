@@ -57,18 +57,20 @@ from sage_setup.command.sage_build_ext import sage_build_ext
 print("Discovering Python/Cython source code....")
 t = time.time()
 
-distributions = ['']
-
 from sage_setup.optional_extension import is_package_installed_and_updated
 
-optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
-                                     'coxeter3', 'fes', 'sirocco', 'meataxe']
-
-distributions += ['sage-{}'.format(pkg)
-                  for pkg in optional_packages_with_extensions
-                  if is_package_installed_and_updated(pkg)]
-
-log.warn('distributions = {0}'.format(distributions))
+if sdist:
+    # No need to compute distributions.  This avoids a dependency on Cython
+    # just to make an sdist.
+    distributions = None
+else:
+    distributions = ['']
+    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
+                                         'coxeter3', 'fes', 'sirocco', 'meataxe']
+    distributions += ['sage-{}'.format(pkg)
+                      for pkg in optional_packages_with_extensions
+                      if is_package_installed_and_updated(pkg)]
+    log.warn('distributions = {0}'.format(distributions))
 
 from sage_setup.find import find_python_sources
 python_packages, python_modules, cython_modules = find_python_sources(

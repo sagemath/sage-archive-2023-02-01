@@ -8,7 +8,6 @@ TESTS::
     sage: loads(dumps(J1(13))) == J1(13)
     True
 """
-from __future__ import absolute_import
 
 import weakref
 from sage.structure.sequence import Sequence

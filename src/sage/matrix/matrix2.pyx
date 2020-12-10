@@ -2867,8 +2867,6 @@ cdef class Matrix(Matrix1):
         R = self._base_ring
 
         if algorithm is None:
-            from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-                
             if hasattr(R, '_matrix_charpoly'):
                 f = R._matrix_charpoly(self, var)
             if f is None:

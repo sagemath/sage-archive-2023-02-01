@@ -114,9 +114,14 @@ from sage.geometry.point_collection import (PointCollection,
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+
 from sage.misc.lazy_import import lazy_import
-lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Linear_Expression'])
-lazy_import('ppl', 'point', as_='PPL_point')
+from sage.features import PythonModule
+lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Linear_Expression'],
+                    feature=PythonModule("ppl", spkg="pplpy"))
+lazy_import('ppl', 'point', as_='PPL_point',
+                    feature=PythonModule("ppl", spkg="pplpy"))
+
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.misc.all import cached_method, flatten, tmp_filename

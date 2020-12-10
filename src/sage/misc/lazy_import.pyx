@@ -372,7 +372,11 @@ cdef class LazyImport(object):
             sage: repr(lazy_ZZ)
             'Integer Ring'
         """
-        return repr(self.get_object())
+        try:
+            obj = self.get_object()
+            return repr(obj)
+        except FeatureNotPresentError as e:
+            return str(e)
 
     def __str__(self):
         """
@@ -1056,7 +1060,7 @@ def lazy_import(module, names, as_=None, *,
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
 
-    An example of and import relying on a feature::
+    An example of an import relying on a feature::
 
         sage: from sage.features import PythonModule
         sage: lazy_import('ppl', 'equation', feature=PythonModule('ppl', spkg='pplpy'))
@@ -1067,7 +1071,7 @@ def lazy_import(module, names, as_=None, *,
         <built-in function NmzListConeProperties>
         sage: lazy_import('foo', 'not_there', feature=PythonModule('foo', spkg='non-existing-package'))
         sage: not_there
-        <repr(<sage.misc.lazy_import.LazyImport at ...>) failed: sage.features.FeatureNotPresentError: foo is not available.
+        foo is not available.
         Importing not_there failed: No module named 'foo'
         No equivalent system packages for ... are known to Sage.
         ...

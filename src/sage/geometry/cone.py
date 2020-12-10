@@ -212,11 +212,15 @@ from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, ZZ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
-from sage.misc.lazy_import import lazy_import
-lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Constraint_System',
-                    'Linear_Expression', 'Poly_Con_Relation'])
-lazy_import('ppl', ['ray', 'point'], as_=['PPL_ray', 'PPL_point'])
 from sage.geometry.integral_points import parallelotope_points
+
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Constraint_System',
+                    'Linear_Expression', 'Poly_Con_Relation'],
+                    feature=PythonModule("ppl", spkg="pplpy"))
+lazy_import('ppl', ['ray', 'point'], as_=['PPL_ray', 'PPL_point'],
+                    feature=PythonModule("ppl", spkg="pplpy"))
 
 
 def is_Cone(x):

@@ -26,6 +26,9 @@ AUTHORS:
 from sage.structure.element import Element
 from sage.misc.all import cached_method, prod
 from sage.features import PythonModule
+from sage.misc.lazy_import import lazy_import
+lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
+            feature=PythonModule("PyNormaliz", spkg="pynormaliz"))
 
 from sage.rings.all import ZZ, QQ
 from sage.arith.functions import LCM_list
@@ -273,11 +276,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             # coords might be too short which is not accepted by Sage number field
             v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
             return self._normaliz_field(v)
-
-        import PyNormaliz
-        return PyNormaliz.NmzResult(normaliz_cone, property,
-                                    RationalHandler=rational_handler,
-                                    NumberfieldElementHandler=nfelem_handler)
+        return NmzResult(normaliz_cone, property,
+                         RationalHandler=rational_handler,
+                         NumberfieldElementHandler=nfelem_handler)
 
     def _init_from_normaliz_cone(self, normaliz_cone, normaliz_field):
         """
@@ -416,9 +417,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         if verbose:
             print("# Calling {}".format(_format_function_call('PyNormaliz.NmzCone', **data)))
 
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
-        cone = PyNormaliz.NmzCone(**data)
+        cone = NmzCone(**data)
         assert cone, "{} did not return a cone".format(_format_function_call('PyNormaliz.NmzCone', **data))
         return cone
 
@@ -1117,11 +1116,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: NmzResult(nmz_cone, "ExtremeRays")                                           # py3 # optional - pynormaliz
             [[1, 2, 0], [2, 1, 0]]
         """
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
         if verbose:
             print("# Calling PyNormaliz.NmzCone(**{})".format(data))
-        cone = PyNormaliz.NmzCone(**data)
+        cone = NmzCone(**data)
         assert cone, "NmzCone(**{}) did not return a cone".format(data)
         return cone
 
@@ -1253,8 +1250,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         # Make a copy of the cone.
         cone = self._normaliz_cone
-        import PyNormaliz
-        conecopy = PyNormaliz.NmzConeCopy(cone)
+        conecopy = NmzConeCopy(cone)
         other._normaliz_cone = conecopy
         return other
 
@@ -1803,9 +1799,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         """
         cone = self._normaliz_cone
         # Normaliz needs to compute the EhrhartSeries first
-        PythonModule("PyNormaliz", spkg="pynormaliz").require()
-        import PyNormaliz
-        assert PyNormaliz.NmzCompute(cone, ["EhrhartSeries"])
+        assert NmzCompute(cone, ["EhrhartSeries"])
         e = self._nmz_result(cone, "EhrhartQuasiPolynomial")
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

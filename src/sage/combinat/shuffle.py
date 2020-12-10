@@ -64,21 +64,119 @@ from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.abstract_word import Word_class
 from sage.rings.integer import Integer
+#from sage.structure.category_object import CategoryObject
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 
 # TODO: Think about Parent/Element for this and the category
 # sage.categories.finite_enumerated_sets.FiniteEnumeratedSets
 
+class ShuffleProduct_abstract(Parent):
+    """
+    Abstract base class for shuffle products.
+    """
+    def __init__(self, l1, l2, element_constructor=None):
+        """
+        Initialize ``self``.
 
-class SetShuffleProduct(SageObject):
+        TESTS::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct
+            sage: SP = ShuffleProduct([1,2],[4,5,7,8,9])
+            sage: TestSuite(SP).run(skip="_test_an_element")
+        """
+        self._l1 = l1
+        self._l2 = l2
+        if element_constructor is None:
+            self._element_constructor_ = self._constructor_
+        else:
+            self._element_constructor_ = element_constructor
+        Parent.__init__(self, category=FiniteEnumeratedSets())
+
+    def _constructor_(self, x):
+        """
+        This is used by default to produce elements when iterating.
+
+        TESTS::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct
+            sage: S = ShuffleProduct([1,2,3],[4,5])
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
+
+            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping
+            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+            sage: S = ShuffleProduct_overlapping(w,u)
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
+
+            sage: from sage.combinat.shuffle import SetShuffleProduct
+            sage: S = SetShuffleProduct([[1,2],[3,4]], [[1,4]])
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
+
+            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+            sage: S = ShuffleProduct_overlapping_r(w,u,1)
+            sage: S._constructor_((1,2,3))
+            [1, 2, 3]
+        """
+        return list(x)
+
+    def __eq__(self, other):
+        """
+        Test for equality.
+
+        TESTS::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct
+            sage: SP = ShuffleProduct([1,2],[4,5,7,8,9])
+            sage: loads(dumps(SP)) == SP
+            True
+            sage: SP == ShuffleProduct([1,2],[4,5,7])
+            False
+        """
+        if not isinstance(other, type(self)):
+            return False
+        return (self._l1 == other._l1 and self._l2 == other._l2)
+
+    def __ne__(self, other):
+        """
+        Test for unequality
+
+        EXAMPLES::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+            sage: A = ShuffleProduct_overlapping_r(w,u,1)
+            sage: B = ShuffleProduct_overlapping_r(u,w,2)
+            sage: A != A
+            False
+            sage: A != B
+            True
+        """
+        return not (self == other)
+
+    def __contains__(self, x):
+        """
+        Check containment.
+
+        TESTS::
+
+            sage: from sage.combinat.shuffle import ShuffleProduct
+            sage: SP = ShuffleProduct([1,2],[4,5,7])
+            sage: [1,4,5,2,7] in SP
+            True
+            sage: (1,4,5,2,7) in SP
+            False
+            sage: [2,1,4,5,7] in SP
+            False
+        """
+        return x in self.list()
+
+class SetShuffleProduct(ShuffleProduct_abstract):
     """
     The union of all possible shuffle products of two sets of iterables.
-
-    TESTS::
-
-        sage: from sage.combinat.shuffle import SetShuffleProduct
-        sage: TestSuite(SetShuffleProduct).run()
 
     EXAMPLES::
 
@@ -112,43 +210,30 @@ class SetShuffleProduct(SageObject):
         TESTS::
 
             sage: from sage.combinat.shuffle import SetShuffleProduct
-            sage: SetShuffleProduct({(1,2,3), (2,3,4)}, {(5,)})   # random
+            sage: X = SetShuffleProduct({(1,2,3), (2,3,4)}, {(5,)})
+            sage: X   # random
             Shuffle set product of: [(2, 3, 4), (1, 2, 3)] and [(5,)]
+            sage: TestSuite(X).run(skip="_test_an_element")
+
             sage: list(SetShuffleProduct({(1,2,3), (2,3,4)}, {(5,)}))   # random
-            [[2, 3, 4, 5], [2, 5, 3, 4], [5, 2, 3, 4], [2, 3, 5, 4], [1, 2, 3, 5], [1, 5, 2, 3],
-             [5, 1, 2, 3], [1, 2, 5, 3]]
+            [[2, 3, 4, 5], [2, 5, 3, 4], [5, 2, 3, 4], [2, 3, 5, 4],
+             [1, 2, 3, 5], [1, 5, 2, 3], [5, 1, 2, 3], [1, 2, 5, 3]]
         """
         assert(isinstance(l1, Iterable) and
                isinstance(l2, Iterable))
         assert(all(isinstance(elem, Iterable) for elem in l1))
         assert(all(isinstance(elem, Iterable) for elem in l2))
-        self._l1 = list(l1)
-        self._l2 = list(l2)
 
-        if element_constructor is not None:
-            self._element_constructor_ = element_constructor
-        else:
+        if element_constructor is None:
             try:
                 e = next(iter(l1))
                 try:
-                    self._element_constructor_ = e.parent()._element_constructor_
+                    element_constructor = e.parent()._element_constructor_
                 except AttributeError:
-                    self._element_constructor_ = self._constructor_
+                    pass
             except StopIteration:
-                self._element_constructor_ = self._constructor_
-
-    def _constructor_(self, x):
-        """
-        This is used by default to produce elements when iterating.
-
-        TESTS::
-
-            sage: from sage.combinat.shuffle import SetShuffleProduct
-            sage: S = SetShuffleProduct([[1,2],[3,4]], [[1,4]])
-            sage: S._constructor_((1,2,3))
-            [1, 2, 3]
-        """
-        return list(x)
+                pass
+        ShuffleProduct_abstract.__init__(self, list(l1), list(l2), element_constructor)
 
     def _repr_(self):
         """
@@ -178,9 +263,9 @@ class SetShuffleProduct(SageObject):
 
         """
         from sage.typeset.ascii_art import ascii_art
-        return ascii_art("Set shuffle product of:") * \
-            (ascii_art(self._l1) + ascii_art(" and ") +
-             ascii_art(self._l2))
+        return (ascii_art("Set shuffle product of:") *
+                (ascii_art(self._l1) + ascii_art(" and ") +
+                 ascii_art(self._l2)))
 
     def __iter__(self):
         """
@@ -191,7 +276,7 @@ class SetShuffleProduct(SageObject):
             [[], []]
             sage: list(SetShuffleProduct([[1,2],[3]], [[4]]))
             [[1, 2, 4], [4, 1, 2], [1, 4, 2], [3, 4], [4, 3]]
-            sage: list(SetShuffleProduct([[1,2],[3,4]], [[1,4]], element_constructor=set))  #rando
+            sage: list(SetShuffleProduct([[1,2],[3,4]], [[1,4]], element_constructor=set))
             [{1, 2, 4},
              {1, 2, 4},
              {1, 2, 4},
@@ -229,8 +314,7 @@ class SetShuffleProduct(SageObject):
         return sum(comp_binom(el1, el2)
                 for (el1, el2) in itertools.product(self._l1, self._l2))
 
-
-class ShuffleProduct(Parent):
+class ShuffleProduct(ShuffleProduct_abstract):
     """
     Shuffle product of two iterables.
 
@@ -265,38 +349,23 @@ class ShuffleProduct(Parent):
         TESTS::
 
             sage: from sage.combinat.shuffle import ShuffleProduct
-            sage: ShuffleProduct([1,2,3],[4,5])
+            sage: SP = ShuffleProduct([1,2,3],[4,5])
+            sage: SP
             Shuffle product of: [1, 2, 3] and [4, 5]
+            sage: TestSuite(SP).run(skip="_test_an_element")
+
             sage: list(ShuffleProduct(Word("aa"), Word("bbb"), Word))
             [word: aabbb, word: baabb, word: ababb, word: bbaab, word: babab, word: abbab,
              word: bbbaa, word: bbaba, word: babba, word: abbba]
         """
-        assert(isinstance(l1, Iterable) and
-               isinstance(l2, Iterable))
-        self._l1 = list(l1)
-        self._l2 = list(l2)
+        assert(isinstance(l1, Iterable) and isinstance(l2, Iterable))
 
         if element_constructor is None:
             try:
-                self._element_constructor_ = l1.parent()._element_constructor_
+                element_constructor = l1.parent()._element_constructor_
             except AttributeError:
-                self._element_constructor_ = self._constructor_
-        else:
-            self._element_constructor_ = element_constructor
-        Parent.__init__(self, category=FiniteEnumeratedSets())
-
-    def _constructor_(self, x):
-        """
-        This is used by default to produce elements when iterating.
-
-        TESTS::
-
-            sage: from sage.combinat.shuffle import ShuffleProduct
-            sage: S = ShuffleProduct([1,2,3],[4,5])
-            sage: S._constructor_((1,2,3))
-            [1, 2, 3]
-        """
-        return list(x)
+                pass
+        ShuffleProduct_abstract.__init__(self, list(l1), list(l2), element_constructor)
 
     def _repr_(self):
         """
@@ -451,8 +520,8 @@ class ShuffleProduct(Parent):
 
     def cardinality(self):
         r"""
-        Return the number of shuffles of `l_1` and `l_2`, respectively of lengths `m` and
-        `n`, which is `\binom{m+n}{n}`.
+        Return the number of shuffles of `l_1` and `l_2`, respectively of
+        lengths `m` and `n`, which is `\binom{m+n}{n}`.
 
         TESTS::
 
@@ -467,7 +536,7 @@ class ShuffleProduct(Parent):
         return (ll1 + ll2).binomial(ll1)
 
 
-class ShuffleProduct_overlapping_r(Parent):
+class ShuffleProduct_overlapping_r(ShuffleProduct_abstract):
     """
     The overlapping shuffle product of the two words ``w1`` and ``w2``
     with precisely ``r`` overlaps.
@@ -496,11 +565,8 @@ class ShuffleProduct_overlapping_r(Parent):
             sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
             sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
             sage: S = ShuffleProduct_overlapping_r(w,u,1)
-            sage: S == loads(dumps(S))
-            True
+            sage: TestSuite(S).run(skip="_test_an_element")
         """
-        self._w1 = w1
-        self._w2 = w2
         self.r = r
         self.add = add
 
@@ -508,31 +574,15 @@ class ShuffleProduct_overlapping_r(Parent):
             # Special case for words since their parent has a __call__ but
             #   not an _element_constructor_
             if isinstance(w1, Word_class):
-                self._element_constructor_ = w1.parent()
+                element_constructor = w1.parent()
             else:
                 try:
-                    self._element_constructor_ = self._w1.parent()._element_constructor_
+                    element_constructor = w1.parent()._element_constructor_
                 except AttributeError:
-                    self._element_constructor_ = self._constructor_
-        else:
-            self._element_constructor_ = element_constructor
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+                    pass
+        ShuffleProduct_abstract.__init__(self, w1, w2, element_constructor)
 
-    def _constructor_(self, x):
-        """
-        This is used by default to produce elements when iterating.
-
-        TESTS::
-
-            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
-            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
-            sage: S = ShuffleProduct_overlapping_r(w,u,1)
-            sage: S._constructor_((1,2,3))
-            [1, 2, 3]
-        """
-        return list(x)
-
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -541,11 +591,11 @@ class ShuffleProduct_overlapping_r(Parent):
             sage: ShuffleProduct_overlapping_r(w,u,1).__repr__()
             'Overlapping shuffle product of word: 29 and word: 91 with 1 overlaps'
         """
-        return "Overlapping shuffle product of %s and %s with %s overlaps" % (repr(self._w1), repr(self._w2), self.r)
+        return "Overlapping shuffle product of %s and %s with %s overlaps" % (repr(self._l1), repr(self._l2), self.r)
 
     def __eq__(self, other):
         """
-        Test for equality
+        Check equality.
 
         EXAMPLES::
 
@@ -558,27 +608,7 @@ class ShuffleProduct_overlapping_r(Parent):
             sage: A == B
             False
         """
-        if not isinstance(other, ShuffleProduct_overlapping_r):
-            return False
-        return (self._w1 == other._w1 and self._w2 == other._w2 and
-                self.r == other.r)
-
-    def __ne__(self, other):
-        """
-        Test for unequality
-
-        EXAMPLES::
-
-            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
-            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
-            sage: A = ShuffleProduct_overlapping_r(w,u,1)
-            sage: B = ShuffleProduct_overlapping_r(u,w,2)
-            sage: A != A
-            False
-            sage: A != B
-            True
-        """
-        return not (self == other)
+        return ShuffleProduct_abstract.__eq__(self, other) and self.r == other.r
 
     def __iter__(self):
         """
@@ -611,12 +641,12 @@ class ShuffleProduct_overlapping_r(Parent):
         """
         EC = self._element_constructor_
 
-        m = len(self._w1)
-        n = len(self._w2)
+        m = len(self._l1)
+        n = len(self._l2)
         r = self.r
         add = self.add
 
-        wc1, wc2 = self._w1, self._w2
+        wc1, wc2 = self._l1, self._l2
 
         blank = [None] * (m + n - r)
         for iv in IntegerVectors(m, m + n - r, max_part=1):
@@ -650,7 +680,7 @@ class ShuffleProduct_overlapping_r(Parent):
                 yield EC(res)
 
 
-class ShuffleProduct_overlapping(CombinatorialClass):
+class ShuffleProduct_overlapping(ShuffleProduct_abstract):
     r"""
     The overlapping shuffle product of the two words ``w1`` and
     ``w2``.
@@ -744,41 +774,23 @@ class ShuffleProduct_overlapping(CombinatorialClass):
             sage: from sage.combinat.shuffle import ShuffleProduct_overlapping
             sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
             sage: S = ShuffleProduct_overlapping(w,u)
-            sage: S == loads(dumps(S))
-            True
+            sage: TestSuite(S).run(skip="_test_an_element")
         """
-        self._w1 = w1
-        self._w2 = w2
         self._add = add
 
         if element_constructor is None:
             # Special case for words since their parent has a __call__ but
             #   not an _element_constructor_
             if isinstance(w1, Word_class):
-                self._element_constructor_ = w1.parent()
+                element_constructor = w1.parent()
             else:
                 try:
-                    self._element_constructor_ = self._w1.parent()._element_constructor_
+                    element_constructor = self._l1.parent()._element_constructor_
                 except AttributeError:
-                    self._element_constructor_ = self._constructor_
-        else:
-            self._element_constructor_ = element_constructor
+                    pass
+        ShuffleProduct_abstract.__init__(self, w1, w2, element_constructor)
 
-    def _constructor_(self, x):
-        """
-        This is used by default to produce elements when iterating.
-
-        TESTS::
-
-            sage: from sage.combinat.shuffle import ShuffleProduct_overlapping
-            sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
-            sage: S = ShuffleProduct_overlapping(w,u)
-            sage: S._constructor_((1,2,3))
-            [1, 2, 3]
-        """
-        return list(x)
-
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -787,8 +799,8 @@ class ShuffleProduct_overlapping(CombinatorialClass):
             sage: ShuffleProduct_overlapping(w,u).__repr__()
             'Overlapping shuffle product of word: 29 and word: 91'
         """
-        return "Overlapping shuffle product of %s and %s" % (repr(self._w1),
-                                                             repr(self._w2))
+        return "Overlapping shuffle product of %s and %s" % (repr(self._l1),
+                                                             repr(self._l2))
 
     def __iter__(self):
         """
@@ -809,10 +821,10 @@ class ShuffleProduct_overlapping(CombinatorialClass):
              word: 3412, word: 424, word: 154, word: 442, word: 136,
              word: 352, word: 316, word: 46]
         """
-        m = len(self._w1)
-        n = len(self._w2)
+        m = len(self._l1)
+        n = len(self._l2)
         for r in range(min(m, n) + 1):
-            for w in ShuffleProduct_overlapping_r(self._w1, self._w2, r,
-                                                  self._element_constructor_,
-                                                  add=self._add):
-                yield w
+            yield from ShuffleProduct_overlapping_r(self._l1, self._l2, r,
+                                                    self._element_constructor_,
+                                                    add=self._add)
+

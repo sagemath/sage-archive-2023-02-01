@@ -91,11 +91,15 @@ AC_ARG_ENABLE([fat-binary],
               [AC_SUBST(SAGE_FAT_BINARY, "yes")],
               [])
 
+AC_ARG_VAR(SAGE_FAT_BINARY, set to "yes" to build binaries that will run on the widest range of target CPUs (but not relocatable))
+
 AC_ARG_ENABLE([debug],
               [AS_HELP_STRING([--enable-debug={no|symbols|yes}],
                               [controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes")])],
               [AC_SUBST(SAGE_DEBUG, $enableval)],
               [])
+
+AC_ARG_VAR(SAGE_DEBUG, controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes"))
 
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
@@ -313,10 +317,15 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
 ###############################################################################
 
 # Save compiler flags as configured by the user.
+# We have to redo this, because otherwise `AC_PROG_CC` will just overwrite them.
 AC_SUBST(CFLAGS, "$CFLAGS")
 AC_SUBST(CXXFLAGS, "$CXXFLAGS")
 AC_SUBST(FCFLAGS, "$FCFLAGS")
 AC_SUBST(F77FLAGS, "$F77FLAGS")
+AC_ARG_VAR(CFLAGS, C compiler flags)
+AC_ARG_VAR(CXXFLAGS, C compiler flags)
+AC_ARG_VAR(FCFLAGS, Fortran compiler flags)
+AC_ARG_VAR(F77CFLAGS, Fortran 77 compiler flags)
 
 SAGE_CHECK_CONDA_COMPILERS
 

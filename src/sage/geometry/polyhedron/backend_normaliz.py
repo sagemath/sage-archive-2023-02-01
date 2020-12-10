@@ -27,8 +27,7 @@ from sage.structure.element import Element
 from sage.misc.all import cached_method, prod
 from sage.features import PythonModule
 from sage.misc.lazy_import import lazy_import
-lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
-            feature=PythonModule("PyNormaliz", spkg="pynormaliz"))
+from PyNormaliz import NmzResult, NmzCompute, NmzCone, NmzConeCopy
 
 from sage.rings.all import ZZ, QQ
 from sage.arith.functions import LCM_list

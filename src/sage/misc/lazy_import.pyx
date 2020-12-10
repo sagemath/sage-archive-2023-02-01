@@ -1070,9 +1070,7 @@ def lazy_import(module, names, as_=None, *,
         <repr(<sage.misc.lazy_import.LazyImport at ...>) failed: sage.features.FeatureNotPresentError: foo is not available.
         Importing not_there failed: No module named 'foo'
         No equivalent system packages for ... are known to Sage.
-        To install foo using the Sage package manager, you can try to run:
-        !sage -i non-existing-package
-        No equivalent system packages for pip are known to Sage.>
+        ...
     """
     if as_ is None:
         as_ = names

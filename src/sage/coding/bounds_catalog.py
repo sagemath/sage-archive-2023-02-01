@@ -32,6 +32,7 @@ _lazy_import("sage.coding.code_bounds", ["codesize_upper_bound",
 
 _lazy_import("sage.coding.delsarte_bounds",
             ["krawtchouk",
+             "eberlein",
              "delsarte_bound_hamming_space",
              "delsarte_bound_additive_hamming_space"])
 

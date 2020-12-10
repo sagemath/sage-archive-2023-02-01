@@ -82,6 +82,4 @@ For the full functionality of the SageMath kernel in your global Jupyter install
 
 ..  - For 3D graphics using Three.js, ...............
 
-..  - For 3D graphics using jsmol, ..............
-
-
+ - For 3D graphics using jsmol, you will need the package ``jupyter-jsmol`` installed in the Python environment of the Jupyter installation. You can install it using ``pip``.

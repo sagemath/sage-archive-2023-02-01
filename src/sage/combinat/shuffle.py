@@ -60,13 +60,11 @@ import itertools
 import operator
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.abstract_word import Word_class
 from sage.rings.integer import Integer
-#from sage.structure.category_object import CategoryObject
 from sage.structure.parent import Parent
-from sage.structure.sage_object import SageObject
+
 
 # TODO: Think about Parent/Element for this and the category
 # sage.categories.finite_enumerated_sets.FiniteEnumeratedSets
@@ -173,6 +171,7 @@ class ShuffleProduct_abstract(Parent):
             False
         """
         return x in self.list()
+
 
 class SetShuffleProduct(ShuffleProduct_abstract):
     """
@@ -313,6 +312,7 @@ class SetShuffleProduct(ShuffleProduct_abstract):
 
         return sum(comp_binom(el1, el2)
                 for (el1, el2) in itertools.product(self._l1, self._l2))
+
 
 class ShuffleProduct(ShuffleProduct_abstract):
     """
@@ -827,4 +827,3 @@ class ShuffleProduct_overlapping(ShuffleProduct_abstract):
             yield from ShuffleProduct_overlapping_r(self._l1, self._l2, r,
                                                     self._element_constructor_,
                                                     add=self._add)
-

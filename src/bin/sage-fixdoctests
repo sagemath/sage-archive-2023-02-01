@@ -76,9 +76,17 @@ for block in doctests:
     elif 'Expected:' in block:
         exp = block.find('Expected:\n')
         block=block[exp+10:]
+    elif 'Exception raised' in block:
+        exp = block.find('Exception raised')
+        block='\nGot:\n'+block[exp+17:]
     else:
         continue
-    if block[-21:]=='Got:\n    <BLANKLINE>\n':
+    # Error testing.
+    if 'Traceback (most recent call last):' in block:
+        expected, got = block.split('\nGot:\n')
+        got = got.splitlines()
+        got = ['    Traceback (most recent call last):', '    ...', got[-1]]
+    elif block[-21:]=='Got:\n    <BLANKLINE>\n':
         expected=block[:-22]
         got=['']
     else:

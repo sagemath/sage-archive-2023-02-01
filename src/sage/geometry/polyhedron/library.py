@@ -3396,16 +3396,14 @@ class Polytopes():
             sage: TestSuite(P).run()
         """
         from sage.modules.free_module_element import vector
-        from sage.structure.sequence import Sequence
+        from functools import reduce
         generators = [vector(v) for v in generators]
-        V = Sequence(generators).universe()
-        R = V.base_ring()
+        if not generators:
+            return Polyhedron(backend=backend)
 
-        from itertools import combinations
-        par = [V.zero()]
-        par.extend(sum(c) for k in range(1, len(generators) + 1)
-                   for c in combinations(generators, k))
-        return Polyhedron(vertices=par, base_ring=R, backend=backend)
+        zero = generators[0] - generators[0]
+        intervals = [Polyhedron([zero, gen], backend=backend) for gen in generators]
+        return reduce(lambda x,y: x+y, intervals)
 
     zonotope = parallelotope
 

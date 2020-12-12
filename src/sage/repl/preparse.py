@@ -1764,8 +1764,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         quote_state = None
 
     L = line.lstrip()
-    if len(L) > 0 and L[0] in ['#', '!']:
-        return line
 
     if L.startswith('...'):
         i = line.find('...')

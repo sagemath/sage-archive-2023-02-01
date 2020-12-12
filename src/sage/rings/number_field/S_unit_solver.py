@@ -53,7 +53,6 @@ EXAMPLES::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
 
 from sage.rings.all import Infinity
 from sage.calculus.var import var

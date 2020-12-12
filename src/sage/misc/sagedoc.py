@@ -40,8 +40,6 @@ Check that sphinx is not imported at Sage start-up::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 import re

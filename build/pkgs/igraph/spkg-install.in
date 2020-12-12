@@ -1,9 +1,3 @@
-if `pkg-config --modversion libxml-2.0`; then
-    echo "
-You need libxml2 to run igraph. On Ubuntu and Debian Linux, installing the build-essential and the libxml2-dev packages is sufficient."
-    exit 1
-fi
-
 export CFLAGS="$CFLAGS -Wno-strict-prototypes -Wno-implicit-function-declaration"
 cd src
 sdh_configure --with-external-blas --with-external-lapack --with-external-glpk

@@ -114,7 +114,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
 import sage.arith.all as arith

@@ -14,7 +14,6 @@ REFERENCES:
    Adv. Stud. Pure Math., vol. 28, Kinokuniya, Tokyo, 2000, pp 155-220
    :arxiv:`math/9809122v3` [math.q-alg]
 """
-from __future__ import absolute_import
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>

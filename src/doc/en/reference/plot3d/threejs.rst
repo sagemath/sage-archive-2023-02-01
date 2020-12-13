@@ -45,6 +45,9 @@ Options currently supported by the viewer:
 
 - ``opacity`` -- (default: 1) numeric value for transparency of lines and surfaces
 
+- ``page_title`` -- (default: None) string containing the title of the generated HTML page; often
+  displayed in the browser window's title bar, its tab list, and/or the operating system's task bar
+
 - ``projection`` -- (default: 'perspective') the type of camera projection to use;
   'perspective' or 'orthographic'
 

@@ -398,6 +398,13 @@ cdef class Graphics3d(SageObject):
             sage: (css in str) or (html in str)
             False
 
+        If a page title is provided, it is stripped and HTML-escaped::
+
+            sage: d = dodecahedron(page_title='\t"Page" & <Title>\n')
+            sage: str = d._rich_repr_threejs(online=True).html.get_str()
+            sage: '<title>&quot;Page&quot; &amp; &lt;Title&gt;</title>' in str
+            True
+
         """
         options = self._process_viewing_options(kwds)
         options.setdefault('online', False)
@@ -490,6 +497,14 @@ cdef class Graphics3d(SageObject):
             with open(os.path.join(SAGE_EXTCODE, 'threejs', 'animation.js')) as f:
                 extra_html += '<script>' + f.read() + '</script>'
 
+        page_title = options.get('page_title')
+        if page_title is None:
+            page_title = ""
+        else:
+            from html import escape as html_escape
+            page_title = html_escape(str(page_title).strip())
+
+        html = html.replace('SAGE_TITLE', page_title)
         html = html.replace('SAGE_SCRIPTS', scripts)
         html = html.replace('SAGE_STYLES', styles)
         html = html.replace('SAGE_EXTRA_HTML', extra_html)

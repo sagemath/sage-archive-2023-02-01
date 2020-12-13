@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title></title>
+<title>SAGE_TITLE</title>
 <meta charset="utf-8">
 <meta name=viewport content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <style>
@@ -469,8 +469,18 @@ SAGE_SCRIPTS
         var blob = new Blob( [ '<!DOCTYPE html>\n' + document.documentElement.outerHTML ] );
         var a = document.body.appendChild( document.createElement( 'a' ) );
         a.href = window.URL.createObjectURL( blob );
-        a.download = 'graphic.html';
+        a.download = suggestFilename();
         a.click();
+
+        function suggestFilename() {
+            if ( !document.title ) {
+                return 'graphic.html';
+            } else if ( /\.html?$/i.test( document.title ) ) {
+                return document.title; // already ends in .htm or .html
+            } else {
+                return document.title + '.html';
+            }
+        }
 
     }
 

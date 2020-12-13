@@ -61,7 +61,6 @@ with 4 letters divided into 2 blocks::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, division
 
 from functools import reduce
 from itertools import chain

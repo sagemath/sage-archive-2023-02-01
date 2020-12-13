@@ -699,6 +699,15 @@ class Multizetas(CombinatorialFreeModule):
         sage: M = Multizetas(A)
         sage: (u*M((2,))+M((3,)))*M((2,))
         4*u*ζ(1,3) + 6*ζ(1,4) + 2*u*ζ(2,2) + 3*ζ(2,3) + ζ(3,2)
+
+    Check for :trac:`30925`::
+
+        sage: M = Multizetas(QQ)
+        sage: l = [1,2,3]
+        sage: z = M(l)
+        sage: l[0] = 19
+        sage: z
+        ζ(1,2,3)
     """
     def __init__(self, R):
         """
@@ -951,6 +960,8 @@ class Multizetas(CombinatorialFreeModule):
                 assert all(letter >= 1 for letter in x), 'bad letter'
                 assert x[-1] >= 2, 'bad last letter'
             W = self.basis().keys()
+            if isinstance(x, list):
+                x = tuple(x)
             return self.monomial(W(x))
 
         P = x.parent()
@@ -1741,6 +1752,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 assert x[0] == 1, 'bad first letter, should be 1'
                 assert x[-1] == 0, 'bad last letter, should be 0'
             W = self.basis().keys()
+            if isinstance(x, list):
+                x = tuple(x)
             return self.monomial(W(x))
 
         P = x.parent()
@@ -1973,6 +1986,8 @@ class All_iterated(CombinatorialFreeModule):
                 assert all(letter in (0, 1) for letter in x), 'bad letter'
                 # assert len(x) >= 4, 'word too short'
             W = self.basis().keys()
+            if isinstance(x, list):
+                x = tuple(x)
             mot = W(x)
             # conditions R1 de F. Brown
             if mot[0] == mot[-1] or (len(x) >= 4 and

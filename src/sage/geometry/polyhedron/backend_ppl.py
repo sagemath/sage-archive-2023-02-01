@@ -1,7 +1,6 @@
 """
 The PPL (Parma Polyhedra Library) backend for polyhedral computations
 """
-from __future__ import absolute_import
 
 from sage.rings.all import ZZ
 from sage.rings.integer import Integer

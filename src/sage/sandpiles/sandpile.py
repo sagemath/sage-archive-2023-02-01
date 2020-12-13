@@ -312,7 +312,6 @@ Working with sandpile divisors::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, division
 
 from sage.misc.superseded import deprecation
 

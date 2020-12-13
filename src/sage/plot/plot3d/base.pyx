@@ -417,6 +417,7 @@ cdef class Graphics3d(SageObject):
         js_options['autoPlay'] = options.get('auto_play', True)
         js_options['axes'] = options.get('axes', False)
         js_options['axesLabels'] = options.get('axes_labels', ['x','y','z'])
+        js_options['axesLabelsStyle'] = options.get('axes_labels_style')
         js_options['decimals'] = options.get('decimals', 2)
         js_options['delay'] = options.get('delay', 20)
         js_options['frame'] = options.get('frame', True)
@@ -455,6 +456,21 @@ cdef class Graphics3d(SageObject):
 
         if not js_options['frame']:
             js_options['axesLabels'] = False
+            js_options['axesLabelsStyle'] = None
+
+        if js_options['axesLabelsStyle'] is not None:
+            from .shapes import _validate_threejs_text_style
+            style = js_options['axesLabelsStyle']
+            if isinstance(style, dict):
+                style = _validate_threejs_text_style(style)
+                style = [style, style, style]
+            elif isinstance(style, list) and len(style) == 3 and all([isinstance(s, dict) for s in style]):
+                style = [_validate_threejs_text_style(s) for s in style]
+            else:
+                import warnings
+                warnings.warn("axes_labels_style must be a dict or a list of 3 dicts")
+                style = [dict(), dict(), dict()]
+            js_options['axesLabelsStyle'] = style
 
         from sage.repl.rich_output import get_display_manager
         scripts = get_display_manager().threejs_scripts(options['online'])

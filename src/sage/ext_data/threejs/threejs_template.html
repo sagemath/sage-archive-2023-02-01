@@ -211,13 +211,17 @@ SAGE_SCRIPTS
 
         var aspect = window.innerWidth / window.innerHeight;
 
+        // Scale the near and far clipping planes along with the overall plot size.
+        var nearClip = 0.01 * midToCorner;
+        var farClip = 100 * midToCorner;
+
         if ( options.projection === 'orthographic' ) {
-            var camera = new THREE.OrthographicCamera( -1, 1, 1, -1, -1000, 1000 );
+            var camera = new THREE.OrthographicCamera( -1, 1, 1, -1, -farClip, farClip );
             updateCameraAspect( camera, aspect );
             return camera;
         }
 
-        return new THREE.PerspectiveCamera( 45, aspect, 0.1, 1000 );
+        return new THREE.PerspectiveCamera( 45, aspect, nearClip, farClip );
 
     }
 

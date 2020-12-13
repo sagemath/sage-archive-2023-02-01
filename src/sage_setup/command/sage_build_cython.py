@@ -9,9 +9,7 @@ import sys
 import time
 import json
 from distutils import log
-from distutils.cmd import Command
-from distutils.errors import (DistutilsModuleError,
-                              DistutilsOptionError)
+from setuptools import Command
 
 from sage_setup.util import stable_uniq
 from sage_setup.find import find_extra_files
@@ -130,12 +128,12 @@ class sage_build_cython(Command):
         try:
             self.parallel = int(self.parallel)
         except ValueError:
-            raise DistutilsOptionError("parallel should be an integer")
+            raise ValueError("parallel should be an integer")
 
         try:
             import Cython
         except ImportError:
-            raise DistutilsModuleError(
+            raise ImportError(
                 "Cython must be installed and importable in order to run "
                 "the cythonize command")
 

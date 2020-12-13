@@ -31,16 +31,10 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
     SAGELIB_SYSTEM_PACKAGES=
     SAGELIB_OPTIONAL_SYSTEM_PACKAGES=
     RECOMMENDED_SYSTEM_PACKAGES=
-    for PKG_SCRIPTS in build/pkgs/*; do
-        if [ -d $PKG_SCRIPTS ]; then
-            PKG_BASE=$(basename $PKG_SCRIPTS)
-            SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
-            if [ ! -f $PKG_SCRIPTS/type ]; then
-                echo >&2 "Warning: $PKG_SCRIPTS/type is missing."
-                continue
-            fi
-            PKG_TYPE=$(cat $PKG_SCRIPTS/type)
-            if [ -f $SYSTEM_PACKAGES_FILE ]; then
+    for PKG_BASE in $(./sage --package list --has-file distros/$SYSTEM.txt); do
+                PKG_SCRIPTS=build/pkgs/$PKG_BASE
+                SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt
+                PKG_TYPE=$(cat $PKG_SCRIPTS/type)
                 PKG_SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE))
                 if [ -n "PKG_SYSTEM_PACKAGES" ]; then
                     if [ -f $PKG_SCRIPTS/spkg-configure.m4 ]; then
@@ -66,8 +60,6 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
                         esac
                     fi
                 fi
-            fi
-        fi
     done
     if [ "${SYSTEM}" = "conda" ]; then
         if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
@@ -120,16 +112,12 @@ External Packages
    :maxdepth: 1
 
 EOF
-for PKG_SCRIPTS in build/pkgs/*; do
-    if [ -d "$PKG_SCRIPTS" ]; then
-        PKG_BASE=$(basename "$PKG_SCRIPTS")
-        if [ -f "$PKG_SCRIPTS"/SPKG.rst ]; then
+for PKG_BASE in $(./sage --package list --has-file SPKG.rst); do
+            PKG_SCRIPTS=build/pkgs/$PKG_BASE
             # Instead of just copying, we may want to call
             # a version of sage-spkg-info to format extra information.
             cp "$PKG_SCRIPTS"/SPKG.rst "$OUTPUT_DIR"/$PKG_BASE.rst
             echo >> "$OUTPUT_INDEX" "   $PKG_BASE"
-        fi
-    fi
 done
 cat >> "$OUTPUT_INDEX" <<EOF
 .. include:: ../footer.txt

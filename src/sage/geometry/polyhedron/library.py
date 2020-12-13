@@ -3396,14 +3396,13 @@ class Polytopes():
             sage: TestSuite(P).run()
         """
         from sage.modules.free_module_element import vector
-        from functools import reduce
         generators = [vector(v) for v in generators]
         if not generators:
             return Polyhedron(backend=backend)
 
         zero = generators[0] - generators[0]
         intervals = [Polyhedron([zero, gen], backend=backend) for gen in generators]
-        return reduce(lambda x,y: x+y, intervals)
+        return sum(intervals)
 
     zonotope = parallelotope
 

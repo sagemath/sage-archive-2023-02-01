@@ -961,6 +961,20 @@ You can skip the manual downloading of the upstream tarball by using
 the additional argument ``--upstream-url``.  This command will also
 set the ``upstream_url`` field in ``checksums.ini`` described above.
 
+For Python packages available from PyPI, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --type optional
+
+This automatically downloads the most recent version from PyPI and also
+obtains most of the necessary information by querying PyPI.
+The ``dependencies`` file may need editing, and also you may want to set
+lower and upper bounds for acceptable package versions in the file
+``install-requires.txt``.
+
+To create a pip package rather than a normal package, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --source pip --type optional
+
 
 .. _section-manual-build:
 

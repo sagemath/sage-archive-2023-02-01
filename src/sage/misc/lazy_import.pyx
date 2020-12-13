@@ -1073,9 +1073,8 @@ def lazy_import(module, names, as_=None, *,
         sage: not_there
         Failed lazy import:
         foo is not available.
-        Importing not_there failed: No module named 'foo'
-        No equivalent system packages for ... are known to Sage.
-        ...
+        Importing not_there failed: No module named 'foo'...
+        No equivalent system packages for ... are known to Sage...
     """
     if as_ is None:
         as_ = names

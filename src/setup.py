@@ -138,6 +138,7 @@ code = setup(name = 'sage',
                  'bin/sage-massif',
                  'bin/sage-omega',
                  'bin/sage-valgrind',
+                 'bin/sage-venv-config',
                  'bin/sage-version.sh',
                  'bin/sage-cleaner',
                  ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.

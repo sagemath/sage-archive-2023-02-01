@@ -280,6 +280,9 @@ fi
 if [ -n "$SAGE_LOCAL" ]; then
     export PATH="$SAGE_LOCAL/bin:$PATH"
 fi
+if [ -n "$SAGE_VENV" ]; then
+    export PATH="$SAGE_VENV/bin:$PATH"
+fi
 if [ -n "$SAGE_SRC" ]; then
     export PATH="$SAGE_SRC/bin:$PATH"
 fi

@@ -97,6 +97,9 @@ case $system:$command in
         [ "$YES" = yes ] && options="$options --yes"
         [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}xbps-install $options $system_packages"
         ;;
+    opensuse*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}zypper install $system_packages"
+        ;;
     *conda*:install)
         [ "$YES" = yes ] && options="$options --yes"
         [ -n "$system_packages" ] && echo "${PROMPT}conda install $system_packages"

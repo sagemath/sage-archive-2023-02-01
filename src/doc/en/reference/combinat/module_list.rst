@@ -176,6 +176,7 @@ Comprehensive Module list
     sage/combinat/parking_functions
     sage/combinat/path_tableaux/catalog
     sage/combinat/path_tableaux/dyck_path
+    sage/combinat/path_tableaux/frieze
     sage/combinat/path_tableaux/path_tableau
     sage/combinat/plane_partition
     sage/combinat/partition

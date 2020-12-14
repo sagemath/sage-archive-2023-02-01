@@ -7752,6 +7752,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = x^4 + (-5 - 2*t)*x^3 + (-2 + 10*t)*x^2 + (10 + 4*t)*x - 20*t
             sage: p.roots()
             [(5, 1), (2*t, 1)]
+
+        Check that :trac:`31040` is fixed::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = Qq(3).extension(x^2 + 1)
+            sage: (x^2 + 1).roots(K)
+            [(a + O(3^20), 1),
+             (2*a + 2*a*3 + 2*a*3^2 + 2*a*3^3 + 2*a*3^4 + 2*a*3^5 + 2*a*3^6 + 2*a*3^7 + 2*a*3^8 + 2*a*3^9 + 2*a*3^10 + 2*a*3^11 + 2*a*3^12 + 2*a*3^13 + 2*a*3^14 + 2*a*3^15 + 2*a*3^16 + 2*a*3^17 + 2*a*3^18 + 2*a*3^19 + O(3^20),
+              1)]
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
@@ -7950,7 +7959,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     real_field = RealField(L.prec())
 
                 return self.change_ring(real_field).roots(ring=L, multiplicities=multiplicities, algorithm=algorithm)
-            elif is_pAdicRing(L) or is_pAdicField(L):
+            elif (is_pAdicRing(L) or is_pAdicField(L)) and L.absolute_degree() == 1:
                 p = L.prime()
                 n = L.precision_cap()
                 try:

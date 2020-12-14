@@ -378,12 +378,6 @@ def is_package_installed(package, exclude_pip=True):
     Otherwise, installing "pillow" would cause this function to think
     that "pil" is installed, for example.
 
-    Check that the option ``exclude_pip`` is turned on by default::
-
-        sage: from sage.misc.package import list_packages
-        sage: for pkg in list_packages(pkg_sources=('pip'), local=True):  # optional - build
-        ....:     assert not is_package_installed(pkg), "pip package is installed: {}".format(pkg)
-
     .. NOTE::
 
         Do not use this function to check whether you can use a feature from an
@@ -451,8 +445,8 @@ def standard_packages():
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()  # optional - build
         doctest:...: DeprecationWarning: ...
-        sage: installed[0], installed[-1]  # optional - build
-        ('alabaster', 'zn_poly')
+        sage: 'numpy' in installed                            # optional - build
+        True
     """
     from sage.misc.superseded import deprecation
     deprecation(30747,

@@ -1709,9 +1709,9 @@ def _line_graph_generalised_polygon(H):
          sage: H = _line_graph_generalised_polygon(G)
          sage: H.is_distance_regular(True)
          ([16, 8, 8, None], [None, 1, 1, 2])
-         sage: G = graphs.GeneralisedHexagonGraph(3, 3)
-         sage: H = _line_graph_generalised_polygon(G)
-         sage: G.is_isomorphic(H)
+         sage: G = graphs.GeneralisedHexagonGraph(3, 3) # optional - gap_packages internet
+         sage: H = _line_graph_generalised_polygon(G)   # optional - gap_packages internet
+         sage: G.is_isomorphic(H)                       # optional - gap_packages internet
          True
 
     REFERENCES:

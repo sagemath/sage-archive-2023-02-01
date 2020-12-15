@@ -39,22 +39,11 @@ def filter_newstyle_options(func, **options):
     return filtered
 
 
-def owns_one_constant(I):
-    """
-    Determine whether I contains the constant one polynomial.
-    """
-    return any(p.is_one() for p in I)
-
-
 def want_interpolation_gb(G):
-    if not G:
-        return False
-    if G[0].ring().get_order_code() != OrderCode.lp or len(G) != 1:
+    if not G or G[0].ring().get_order_code() != OrderCode.lp or len(G) != 1:
         return False
     p = Polynomial(G[0])
-    if p.lead_deg() <= 1 or p.set().n_nodes() > 1000:
-        return False
-    return True
+    return not (p.lead_deg() <= 1 or p.set().n_nodes() > 1000)
 
 
 def ll_is_good(I):

@@ -1413,14 +1413,23 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         from sage.graphs.graph import DiGraph, Graph
         from sage.matrix.all import Matrix
 
-        curve_max = 1000 # warn users if things are getting big
+        # warn users if things are getting big
+        if l == 2:
+            curve_max = 1000
+        if l == 3:
+            curve_max = 700
+        elif l < 20:
+            curve_max = 200
+        else:
+            curve_max = 50
 
         Es = [self] # list of curves in graph
         A = [] # adjacency matrix
         labels = [] # list of vertex labels
         for (i, E) in enumerate(Es):
             if 0 < curve_max and curve_max < len(Es):
-                warn('More than ' + str(curve_max) + ' curves.')
+                warn('Isogeny graph contains more than '
+                        + str(curve_max) + ' curves.')
                 curve_max = 0
 
             r = [0] * len(Es) # adjacency matrix row
@@ -1452,6 +1461,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
                 labels.append(E._equation_string())
 
         A = Matrix([r + [0] * (len(A) - len(r)) for r in A])
-        G = (DiGraph if directed else Graph)(A, format="adjacency_matrix")
-        G.relabel(labels)
-        return G
+        G = (DiGraph if directed else Graph)(A, format="adjacency_matrix",
+                data_structure="static_sparse")
+        # inplace relabelling is necessary for static_sparse graphs
+        GL = G.relabel(labels, inplace=False)
+        return GL

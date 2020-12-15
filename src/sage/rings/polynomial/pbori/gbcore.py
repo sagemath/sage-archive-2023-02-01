@@ -1,16 +1,16 @@
+from copy import copy
+from itertools import chain
+from inspect import getfullargspec as getargspec
+
 from .nf import GeneratorLimitExceeded, symmGB_F2_C, symmGB_F2_python
 from .PyPolyBoRi import (Monomial, Polynomial,
                          GroebnerStrategy, OrderCode, ll_red_nf_redsb)
 from .ll import eliminate, ll_encode
-from copy import copy
-from itertools import chain
 from .statistics import used_vars_set
 from .heuristics import dense_system, gauss_on_linear
 from .easy_polynomials import easy_linear_polynomials
 from .interpolate import lex_groebner_basis_for_polynomial_via_variety
 from .fglm import _fglm
-
-from inspect import getfullargspec as getargspec
 
 
 def get_options_from_function(f):
@@ -22,7 +22,7 @@ def filter_oldstyle_options(**options):
     filtered = dict()
     for key in options:
         newkey = key
-        for prefix in ['', 'use_', 'opt_allow_', 'opt_']:
+        for prefix in ['use_', 'opt_allow_', 'opt_']:
             newkey = newkey.replace(prefix, '')
         filtered[newkey] = options[key]
     return filtered
@@ -197,13 +197,9 @@ def with_heuristic(heuristic_function):
     return make_wrapper
 
 
-def clean_polys(I):
-    I = list(set((Polynomial(p) for p in I if not Polynomial(p).is_zero())))
-    return I
-
-
 def clean_polys_pre(I):
-    return (clean_polys(I), None)
+    wrap = (Polynomial(p) for p in I)
+    return (list(set(p for p in wrap if not p.is_zero())), None)
 
 
 def gb_with_pre_post_option(option, pre=None,
@@ -259,14 +255,14 @@ def gb_with_pre_post_option(option, pre=None,
 
 
 def redsb_post(I, state):
-    if I == []:
+    if not I:
         return []
     else:
         return I.minimalize_and_tail_reduce()
 
 
 def minsb_post(I, state):
-    if I == []:
+    if not I:
         return []
     else:
         return I.minimalize()

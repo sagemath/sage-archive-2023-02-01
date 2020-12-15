@@ -107,6 +107,14 @@ EOF
         EXISTS="xbps-query"
         INSTALL="xbps-install --yes"
         ;;
+    opensuse*)
+	cat <<EOF
+ARG BASE_IMAGE=opensuse/leap:latest
+FROM \${BASE_IMAGE} as with-system-packages
+EOF
+        UPDATE="zypper refresh &&"
+        INSTALL="zypper --ignore-unknown install --no-confirm --auto-agree-with-licenses --no-recommends --details"
+        ;;
     conda*)
         cat <<EOF
 ARG BASE_IMAGE=continuumio/miniconda3:latest

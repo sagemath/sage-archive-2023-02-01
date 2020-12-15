@@ -389,6 +389,10 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    arguments. If ``$SAGE_DESTDIR`` is not set then the command is run
    with ``$SAGE_SUDO``, if set.
 
+- ``sdh_setup_bdist_wheel [...]``: Runs ``setup.py bdist_wheel`` with
+   the given arguments, as well as additional default arguments used for
+   installing packages into Sage.
+
 - ``sdh_pip_install [...]``: The equivalent of running ``pip install``
    with the given arguments, as well as additional default arguments used for
    installing packages into Sage with pip. The last argument must be
@@ -956,6 +960,20 @@ to create ``$SAGE_ROOT/build/pkgs/foo/package-version.txt``,
 You can skip the manual downloading of the upstream tarball by using
 the additional argument ``--upstream-url``.  This command will also
 set the ``upstream_url`` field in ``checksums.ini`` described above.
+
+For Python packages available from PyPI, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --type optional
+
+This automatically downloads the most recent version from PyPI and also
+obtains most of the necessary information by querying PyPI.
+The ``dependencies`` file may need editing, and also you may want to set
+lower and upper bounds for acceptable package versions in the file
+``install-requires.txt``.
+
+To create a pip package rather than a normal package, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --source pip --type optional
 
 
 .. _section-manual-build:

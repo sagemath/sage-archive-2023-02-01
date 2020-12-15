@@ -15,7 +15,6 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from __future__ import print_function, absolute_import, division
 from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import subprocess
@@ -931,7 +930,7 @@ class GraphGenerators():
         The ``debug`` switch can be used to examine ``geng``'s reaction to the
         input in the ``options`` string.  We illustrate success.  (A failure
         will be a string beginning with ">E".)  Passing the "-q" switch to
-        ``geng`` will supress the indicator of a successful initiation, and so
+        ``geng`` will suppress the indicator of a successful initiation, and so
         the first returned value might be an empty string if ``debug`` is
         ``True``::
 

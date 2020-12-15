@@ -28,7 +28,7 @@ base rings.
     Projective Space of dimension 5 over Complex Field with 53 bits of precision
 
 The third argument specifies the printing names of the generators of the
-homogenous coordinate ring. Using the method `.objgens()` you can obtain both
+homogeneous coordinate ring. Using the method `.objgens()` you can obtain both
 the space and the generators as ready to use variables. ::
 
     sage: P2, vars = ProjectiveSpace(10, QQ, 't').objgens()
@@ -78,7 +78,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,

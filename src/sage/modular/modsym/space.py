@@ -5,10 +5,9 @@ Space of modular symbols (base class)
 All the spaces of modular symbols derive from this class. This class is an
 abstract base class.
 """
-from __future__ import absolute_import
 
 # ****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #

@@ -13,7 +13,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import numbers
 
@@ -273,8 +272,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
             (The cartesian_product functorial construction,
              (Integer Ring, Rational Field))
         """
-        from sage.categories.cartesian_product import cartesian_product
-        return cartesian_product, self.cartesian_factors()
+        from sage.categories.cartesian_product import CartesianProductFunctor
+        return CartesianProductFunctor(self.category()), self.cartesian_factors()
 
     def _coerce_map_from_(self, S):
         r"""

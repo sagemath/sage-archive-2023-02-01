@@ -61,7 +61,6 @@ with 4 letters divided into 2 blocks::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, division
 
 from functools import reduce
 from itertools import chain
@@ -951,15 +950,16 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
             return ()
 
         C = [sorted(self[-1])]
-        for i in range(1,len(self)):
-            lower = []; upper = []
-            for j in self[-1-i]:
+        for i in range(1, len(self)):
+            lower = []
+            upper = []
+            for j in self[-1 - i]:
                 if j <= C[0][0]:
                     lower.append(j)
                 else:
                     upper.append(j)
-            C = [sorted(upper)+sorted(lower)] + C
-        return tuple(map(tuple,C))
+            C = [sorted(upper) + sorted(lower)] + C
+        return tuple(map(tuple, C))
 
     def to_tableaux_words(self):
         r"""
@@ -1415,13 +1415,14 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
         if "alphabet" in constraints:
             A = constraints["alphabet"]
             if A in ZZ:
-                A = range(1, A+1)
+                A = range(1, A + 1)
             constraints["alphabet"] = frozenset(A)
 
-        if len(args) == 2: # treat as `alphabet` & `order`
-            alph = args[0]; order = args[1]
+        if len(args) == 2:  # treat as `alphabet` & `order`
+            alph = args[0]
+            order = args[1]
             if alph in ZZ:
-                alph = range(1,alph+1)
+                alph = range(1, alph + 1)
             if (alph and len(set(alph)) == len(alph)) and (order in ZZ and order >= 0):
                 if "alphabet" in constraints:
                     raise ValueError("cannot pass alphabet as first argument and keyword argument")
@@ -1817,11 +1818,12 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             [{'a','b','c'}, {'a'}, {'b'}]
         """
         from_zero_lst = list(lst_with_zeros)
-        if from_zero_lst[-1] not in {0,'0'}:
+        if from_zero_lst[-1] not in {0, '0'}:
             from_zero_lst += [0]
-        co = []; block=[]
+        co = []
+        block = []
         for a in from_zero_lst:
-            if a in {0,'0'}:
+            if a in {0, '0'}:
                 if block:
                     co.append(block)
                     block = []

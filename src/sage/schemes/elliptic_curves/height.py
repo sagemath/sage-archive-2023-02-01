@@ -26,8 +26,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
-
 import numpy
 import math
 import bisect
@@ -571,7 +569,7 @@ def min_on_disk(f, tol, max_iter=10000):
     OUTPUT:
 
     A 2-tuple `(s,t)`, where `t=f(s)` and `s` is a CIF element
-    contained in the disk `|z|\le1`, at which `f` takes its minumum
+    contained in the disk `|z|\le1`, at which `f` takes its minimum
     value.
 
     EXAMPLES::
@@ -598,7 +596,7 @@ def min_on_disk(f, tol, max_iter=10000):
     fs = f(s)
     L = [(-fs.lower(), fs.relative_diameter(), s, False)]
 
-    # min_max holds the minumum over L of fs.upper().
+    # min_max holds the minimum over L of fs.upper().
 
     min_max = fs.upper()
 
@@ -630,7 +628,7 @@ def min_on_disk(f, tol, max_iter=10000):
                     L = L[unneeded:]
 
             if fs.lower() < min_max: # we may beat the record, cannot yet tell: insert this region
-                                     # into the list at the appropriate palce to maintain sorting
+                                     # into the list at the appropriate place to maintain sorting
                 bisect.insort(L, (-fs.lower(), fs.relative_diameter(), s, s_in_disk))
 
     # If we get here, then even after max_iter iterations the tolerance has not been reached.
@@ -940,7 +938,8 @@ class EllipticCurveCanonicalHeight:
                 dgn = [fast_callable(g.derivative(n)/factorial(n), CDF) for n in range(g.degree()+1)]
                 def max_f_g(s):
                     (a,b),(c,d) = s.real().endpoints(), s.imag().endpoints()
-                    dx = a-b; dy = c-d
+                    dx = a - b
+                    dy = c - d
                     eta = RDF(dx*dx + dy*dy).sqrt()
                     z = CDF(s.center())
                     err_f = sum(eta ** n * abs(df(z)) for n, df in enumerate(dfn) if n)
@@ -949,7 +948,7 @@ class EllipticCurveCanonicalHeight:
                 return max_f_g
             _, min_fg = min_on_disk(pair_max(f, g), tol)
             _, min_FG = min_on_disk(pair_max(F, G), tol)
-            return min(min_fg, min_FG) ** (-1/QQ(3))
+            return min(min_fg, min_FG) ** QQ((-1, 3))
 
     @cached_method
     def e_p(self, p):

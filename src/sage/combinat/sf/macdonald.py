@@ -33,7 +33,6 @@ REFERENCES:
    Special edition in honor of Christophe Reutenauer 60 birthday, International
    Journal of Algebra and Computation, Volume 23, Issue 4, (2013), pp. 833-852.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

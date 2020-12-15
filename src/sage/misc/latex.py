@@ -18,7 +18,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import os
 import random
@@ -174,7 +173,7 @@ def list_function(x):
         6 & 7 & 8
         \end{array}\right)\right]
     """
-    return "\\left[" + ", ".join([latex(v) for v in x]) + "\\right]"
+    return "\\left[" + ", ".join(latex(v) for v in x) + "\\right]"
 
 
 def tuple_function(x, combine_all=False):
@@ -204,8 +203,8 @@ def tuple_function(x, combine_all=False):
         '\\left(1, 2\\right) 3'
     """
     if combine_all:
-        return " ".join([latex(v) for v in x])
-    return "\\left(" + ", ".join([latex(v) for v in x]) + "\\right)"
+        return " ".join(latex(v) for v in x)
+    return "\\left(" + ", ".join(latex(v) for v in x) + "\\right)"
 
 
 def bool_function(x):
@@ -344,7 +343,7 @@ def str_function(x):
 
 def dict_function(x):
     r"""
-    Returns the LaTeX code for a dictionary ``x``.
+    Return the LaTeX code for a dictionary ``x``.
 
     INPUT:
 
@@ -365,6 +364,7 @@ def dict_function(x):
                     ", ".join(r"%s : %s" % (latex(key), latex(value))
                               for key, value in x.items()),
                     r"\right\}"])
+
 
 # One can add to the latex_table in order to install latexing
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
@@ -556,7 +556,7 @@ def has_latex_attr(x):
         sage: T._latex_()
         Traceback (most recent call last):
         ...
-        TypeError: descriptor '_latex_' of 'sage.matrix.matrix0.Matrix' object needs an argument
+        TypeError: ..._latex_... needs an argument
         sage: has_latex_attr(T)
         False
     """

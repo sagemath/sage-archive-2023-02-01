@@ -3,7 +3,7 @@ r"""
 Helper functions for reduction of binary forms.
 
 The algorithm for reducing is from Stoll and Cremona's "On the Reduction Theory of
-Binary Forms" [CS2003]_. This takes a two variable homogenous polynomial and finds a
+Binary Forms" [CS2003]_. This takes a two variable homogeneous polynomial and finds a
 reduced form. This is an `SL(2,\ZZ)`-equivalent binary form whose covariant in
 the upper half plane is in the fundamental domain. Further, the algorithm
 from Hutz and Stoll [HS2018]_ allows the form to be further minimized so that
@@ -13,7 +13,7 @@ AUTHORS:
 
 - Rebecca Lauren Miller -- initial version of reduction as part of GSOC 2016
 
-- Ben Hutz (2018-7) -- improvements to reduce and implement smallest coefficient model 
+- Ben Hutz (2018-7) -- improvements to reduce and implement smallest coefficient model
 """
 
 # ****************************************************************************
@@ -25,7 +25,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division
 
 from sage.calculus.functions import jacobian
 from sage.functions.hyperbolic import cosh, sinh
@@ -34,7 +33,7 @@ from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
 from sage.modules.free_module_element import vector
 from sage.rings.all import CC
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
 from sage.rings.laurent_series_ring import LaurentSeriesRing
@@ -107,7 +106,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
 
     TESTS::
 
-        sage: R.<x,y>=QQ[] 
+        sage: R.<x,y>=QQ[]
         sage: covariant_z0(x^2 + 24*x*y + y^2)
         Traceback (most recent call last):
         ...
@@ -139,7 +138,7 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
     f = F.subs({R.gen(1):1}).univariate_polynomial()
     if f.degree() < d:
         # we have a root at infinity
-        if f.constant_coefficient() != 0: 
+        if f.constant_coefficient() != 0:
             # invert so we find all roots!
             mat = matrix(ZZ,2,2,[0,-1,1,0])
         else:
@@ -265,7 +264,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
 
     The true minimum will be within the computed bound.
     It is computed as the inverse of epsilon_F from [HS2018]_.
-    
+
     INPUT:
 
     - ``F`` -- binary form of degree at least 3 with no multiple roots
@@ -289,7 +288,7 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
         sage: from sage.rings.polynomial.binary_form_reduce import epsinv
         sage: R.<x,y> = QQ[]
         sage: epsinv(-2*x^3 + 2*x^2*y + 3*x*y^2 + 127*y^3, 31.5022020249597) # tol 1e-12
-        4.02520895942207       
+        4.02520895942207
     """
     def coshdelta(z):
         #The cosh of the hyperbolic distance from z = t+uj to j
@@ -551,7 +550,7 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
         #check if it is smaller. If so, we can improve the bound
         count += 1
         if norm_type == 'norm':
-            new_size = sum([abs(i)**2 for i in G.coefficients()]) #euclidean norm squared         
+            new_size = sum([abs(i)**2 for i in G.coefficients()]) #euclidean norm squared
         else: #height
             new_size = exp(max([c.global_height(prec=prec) for c in G.coefficients()]))
         if new_size < current_size:

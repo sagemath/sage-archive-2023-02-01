@@ -2,7 +2,7 @@
 Arbitrary Precision Complex Numbers using GNU MPC
 
 This is a binding for the MPC arbitrary-precision floating point library.
-It is adaptated from ``real_mpfr.pyx`` and ``complex_number.pyx``.
+It is adaptated from ``real_mpfr.pyx`` and ``complex_mpfr.pyx``.
 
 We define a class :class:`MPComplexField`, where each instance of
 ``MPComplexField`` specifies a field of floating-point complex numbers with
@@ -75,8 +75,8 @@ from sage.categories.map cimport Map
 from sage.libs.pari.all import pari
 
 from .integer cimport Integer
-from .complex_number cimport ComplexNumber
-from .complex_field import ComplexField_class
+from .complex_mpfr cimport ComplexNumber
+from .complex_mpfr import ComplexField_class
 
 from sage.misc.randstate cimport randstate, current_randstate
 from .real_mpfr cimport RealField_class, RealNumber
@@ -422,7 +422,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: C20(i*4, 7)
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce to a ComplexNumber: <type 'sage.symbolic.expression.Expression'>
+            TypeError: unable to coerce to a ComplexNumber: <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
 
         Each part can be set with strings (written in base ten)::
 
@@ -863,14 +863,9 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 real, imag = z
             elif isinstance(z, complex):
                 real, imag = z.real, z.imag
-            elif isinstance(z, sage.symbolic.expression.Expression):
-                zz = sage.rings.complex_field.ComplexField(self._parent.prec())(z)
-                self._set(zz)
-                return
             elif type(z) is gmpy2.mpc:
                 mpc_set(self.value, (<gmpy2.mpc>z).c, rnd)
                 return
-            # then, no imaginary part
             elif type(z) is gmpy2.mpfr:
                 mpc_set_fr(self.value, (<gmpy2.mpfr>z).f, rnd)
                 return
@@ -891,8 +886,13 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 mpc_set_si(self.value, z, rnd)
                 return
             else:
-                real = z
-                imag = 0
+                C = sage.rings.complex_mpfr.ComplexField(self._parent.prec())
+                if C.has_coerce_map_from(z.parent()) or isinstance(z, sage.symbolic.expression.Expression):
+                    self._set(C(z))
+                    return
+                else:
+                    real = z
+                    imag = 0
         else:
             real = z
             imag = y

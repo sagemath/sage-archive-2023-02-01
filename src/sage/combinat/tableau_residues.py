@@ -118,7 +118,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 from sage.categories.sets_cat import Sets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass

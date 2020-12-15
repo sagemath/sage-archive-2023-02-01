@@ -1,6 +1,5 @@
 "get_remote_file"
 
-from __future__ import absolute_import
 
 import os
 from urllib.request import Request, urlopen
@@ -27,7 +26,7 @@ def get_remote_file(filename, verbose=True):
         sage: with open(g) as f: print(f.read())           # optional - internet
         print("hi from the net")
         <BLANKLINE>
-        print(2+3)
+        print(2 + 3)
 
     """
     if verbose:

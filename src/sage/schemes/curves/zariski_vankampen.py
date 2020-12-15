@@ -41,7 +41,6 @@ EXAMPLES::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division, absolute_import
 
 from sage.groups.braid import BraidGroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -52,7 +51,7 @@ from sage.parallel.decorate import parallel
 from sage.misc.flatten import flatten
 from sage.groups.free_group import FreeGroup
 from sage.misc.misc_c import prod
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.combinat.permutation import Permutation
 from sage.functions.generalized import sign

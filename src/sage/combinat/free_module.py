@@ -10,7 +10,6 @@ Free modules
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -391,7 +390,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         Regression test for :trac:`10127`: ``self._indices`` needs to be
         set early enough, in case the initialization of the categories
-        use ``self.basis().keys()``. This occured on several occasions
+        use ``self.basis().keys()``. This occurred on several occasions
         in non trivial constructions. In the following example,
         :class:`AlgebrasWithBasis` constructs ``Homset(self,self)`` to
         extend by bilinearity method ``product_on_basis``, which in

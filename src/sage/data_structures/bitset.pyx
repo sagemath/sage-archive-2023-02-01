@@ -31,7 +31,7 @@ linear in ``capacity``.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "bitset.pxi"
+from .bitset_base cimport *
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 

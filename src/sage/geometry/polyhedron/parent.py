@@ -1,7 +1,6 @@
 r"""
 Parents for Polyhedra
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
@@ -96,7 +95,7 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         sage: Polyhedra(RR, 3, backend='field')
         Traceback (most recent call last):
         ...
-        ValueError: the 'field' backend for polyhedron can not be used with non-exact fields
+        ValueError: the 'field' backend for polyhedron cannot be used with non-exact fields
         sage: Polyhedra(RR, 3)
         Traceback (most recent call last):
         ...
@@ -161,7 +160,7 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         return Polyhedra_polymake(base_ring.fraction_field(), ambient_dim, backend)
     elif backend == 'field':
         if not base_ring.is_exact():
-            raise ValueError("the 'field' backend for polyhedron can not be used with non-exact fields")
+            raise ValueError("the 'field' backend for polyhedron cannot be used with non-exact fields")
         return Polyhedra_field(base_ring.fraction_field(), ambient_dim, backend)
     else:
         raise ValueError('No such backend (=' + str(backend) +

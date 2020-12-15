@@ -399,7 +399,7 @@ def distance_3_doubly_truncated_Golay_code_graph():
 
     Compute the binary Golay code and truncate it twice. Compute its coset graph.
     Take a vertex and compute the set of vertices at distance 3
-    from the vertex choosen. This set constitutes the set of vertices of our
+    from the vertex chosen. This set constitutes the set of vertices of our
     distance-regular graph. Moreover we have an edge `(u,v)` if the coset graph
     contains such edge.
 
@@ -796,7 +796,7 @@ def AlternatingFormsGraph(const int n, const int q):
 
 def HermitianFormsGraph(const int n, const int r):
     r"""
-    Return the Hermitian froms graph with the given parameters.
+    Return the Hermitian forms graph with the given parameters.
 
     We build a graph whose vertices are all ``n``x``n`` Hermitian matrices
     over ``GF(r^2)``. Two  vertices are adjacent if the difference of the two
@@ -1035,7 +1035,7 @@ def GrassmannGraph(const int q, const int n, const int input_e):
 
     This builds the Grassmann graph `J_q(n,e)`. That is, for a vector
     space `V = \mathbb F(q)^n` the output is the graph on the subspaces
-    of dimension `e` where two subspaces are adjancent if their intersection
+    of dimension `e` where two subspaces are adjacent if their intersection
     has dimension `e-1`.
 
     This graph is distance-regular with classical parameters
@@ -1590,7 +1590,7 @@ def GeneralisedHexagonGraph(const int s, const int t):
             # now group is our permutation representation
             G = Graph(libgap.Orbit(group, [1, 52], libgap.OnSets),
                       format='list_of_edges')
-            G.name("Generealised hexagon of order (%d, %d)"%(q, q))
+            G.name("Generalised hexagon of order (%d, %d)"%(q, q))
             return G
 
         elif q <= 5:
@@ -1661,7 +1661,7 @@ def _extract_lines(G):
     lines = []
     edges = set(G.edges(labels=False, sort=False))
 
-    while edges :
+    while edges:
         (x, y) = edges.pop()
 
         #compute line
@@ -1682,7 +1682,7 @@ def _extract_lines(G):
         # remove already handled edges
         for u, v in itertools.product(bot2, repeat=2):
             sig_check()
-            try :
+            try:
                 edges.remove((u, v))
             except KeyError:
                 pass  # ignore this
@@ -1711,9 +1711,9 @@ def _line_graph_generalised_polygon(H):
          sage: H = _line_graph_generalised_polygon(G)
          sage: H.is_distance_regular(True)
          ([16, 8, 8, None], [None, 1, 1, 2])
-         sage: G = graphs.GeneralisedHexagonGraph(3, 3)
-         sage: H = _line_graph_generalised_polygon(G)
-         sage: G.is_isomorphic(H)
+         sage: G = graphs.GeneralisedHexagonGraph(3, 3) # optional - gap_packages internet
+         sage: H = _line_graph_generalised_polygon(G)   # optional - gap_packages internet
+         sage: G.is_isomorphic(H)                       # optional - gap_packages internet
          True
 
     REFERENCES:

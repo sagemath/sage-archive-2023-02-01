@@ -1,7 +1,6 @@
 r"""
 Hopf algebras
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                     Nicolas M. Thiery <nthiery at users.sf.net>

@@ -361,6 +361,9 @@ REFERENCES:
 
 **B**
 
+.. [Baer2020] Christian Bär. *The Faddeev-LeVerrier algorithm and the Pfaffian*.
+              :arxiv:`2008.04247`, 2020.
+
 .. [BaKi2001] Bakalov and Kirillov, *Lectures on tensor categories and modular functors*,
             AMS (2001).
 
@@ -643,6 +646,9 @@ REFERENCES:
 
 .. [Ber1987] \M. Berger, *Geometry I*, Springer (Berlin) (1987);
              :doi:`10.1007/978-3-540-93815-6`
+             
+.. [Ber1987a] \M. Berger, *Geometry II*, Springer (Berlin) (1987);
+              :doi:`10.1007/978-3-540-93816-3`
 
 .. [Ber1991] \C. Berger, "Une version effective du théorème de
              Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
@@ -1213,6 +1219,9 @@ REFERENCES:
 .. _ref-C:
 
 **C**
+
+.. [Cal2005] \D. Callan. *On Conjugates for Set Partitions and Integer
+             Compositions*. Preprint, :arxiv:`math/0508052`.
 
 .. [dCa2007] \C. de Canniere: *Analysis and Design of Symmetric Encryption
              Algorithms*, PhD Thesis, 2007.
@@ -1905,6 +1914,13 @@ REFERENCES:
             l'École Normale Supérieure, Sér. 4, 23, no. 3 (1990) p
             469-494
 
+.. [DNB1996] Feodor F. Dragan, Falk Nicolai, Andreas Brandstat.
+               *LexBFS-orderings and powers of graphs*.
+               International Workshop on Graph-Theoretic Concepts in Computer
+               Science, WG 1996. Lecture Notes in Computer Science, vol 1197.
+               Springer, Berlin, Heidelberg.
+               :doi:`10.1007/3-540-62559-3_15`
+
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 
@@ -2400,6 +2416,10 @@ REFERENCES:
              *Algebraic and combinatorial structures on pairs of twin binary trees*,
              :arxiv:`1204.4776v1`.
 
+.. [GiTr1996] P. Gianni and B. Trager. *Square-Free Algorithms in Positive
+              Characteristic*. Applicable Algebra In Engineering, Communication
+              And Computing, 7(1), p. 1-14.
+
 .. [GJ1997] Ewgenij Gawrilow and Michael Joswig, polymake: a framework for
             analyzing convex polytopes, Polytopes—combinatorics and
             computation (Oberwolfach, 1997), DMV Sem., vol. 29, Birkhäuser,
@@ -2497,6 +2517,9 @@ REFERENCES:
 .. [Gol1968] \R. Gold: *Maximal recursive sequences with 3-valued recursive
              crosscorrelation functions*. IEEE Transactions on Information
              Theory, 14, pp. 154-156, 1968.
+
+.. [Gos1972] Bill Gosper, "Continued Fraction Arithmetic"
+             https://perl.plover.com/classes/cftalk/INFO/gosper.txt
 
 .. [Gor1980] Daniel Gorenstein, Finite Groups (New York: Chelsea
              Publishing, 1980)
@@ -2682,6 +2705,10 @@ REFERENCES:
 
 .. [Har1994] Frank Harary. *Graph Theory*. Reading, MA: Addison-Wesley, 1994.
 
+.. [Harako2020] Shuichi Harako. *The second homology group of the commutative
+                case of Kontsevich's symplectic derivation Lie algebra*.
+                Preprint, 2020, :arxiv:`2006.06064`.
+
 .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
             a graph. Publ. Math. Debrecen 13 1966 103-107.
 
@@ -2794,15 +2821,21 @@ REFERENCES:
                 pp. 216--221.
                 :doi:`10.1016/0097-3165(76)90065-0`
 
+.. [HK2002] *Introduction to Quantum Groups and Crystal Bases.*
+            Jin Hong and Seok-Jin Kang. 2002. Volume 42.
+            Graduate Studies in Mathematics. American Mathematical Society.
+
 .. [HM1979]  M. Habib, and M.C. Maurer
           On the X-join decomposition for undirected graphs
           Discrete Applied Mathematics
           vol 1, issue 3, pages 201-207
 
-.. [HK2002] *Introduction to Quantum Groups and Crystal Bases.*
-            Jin Hong and Seok-Jin Kang. 2002. Volume 42.
-            Graduate Studies in Mathematics. American Mathematical Society.
-
+.. [HMPV2000] Michel Habib, Ross McConnell, Christophe Paul, and
+            Laurent Viennot. *Lex-BFS and partition refinement, with
+            applications to transitive orientation, interval graph
+            recognition and consecutive ones testing*.
+            Theoretical Computer Science, 234(1-2): 59-84, 2000.
+            :doi:`10.1016/S0304-3975(97)00241-7`.
 
 .. [HN2006] Florent Hivert and Janvier Nzeutchap. *Dual Graded Graphs
             in Combinatorial Hopf Algebras*.
@@ -3341,6 +3374,8 @@ REFERENCES:
 .. [Knu1995] Donald E. Knuth, *Overlapping Pfaffians*,
              :arxiv:`math/9503234v1`.
 
+.. [Knu1998] Donald E. Knuth *The Art of Computer Programming. Volume 2*
+
 .. [Knu2011] Donald E. Knuth, *The Art of Computer Programming. Volume 4A.
              Combinatorial Algorithms, Part 1*.
 
@@ -3612,6 +3647,9 @@ REFERENCES:
 
 .. [Lew2000] Robert Edward Lewand. *Cryptological Mathematics*. The
              Mathematical Association of America, 2000.
+
+.. [LS1998] Pierre Liardet, Pierre Stambul *Algebraic Computation
+            with Continued Fractions.* J. Number Th. 73, 92-121, 1998.
 
 .. [Li1995] Peter Littelmann, Crystal graphs and Young
             tableaux, J. Algebra 175 (1995), no. 1, 65--87.
@@ -4125,6 +4163,10 @@ REFERENCES:
              *Generating random derangements*
              :doi:`10.1137/1.9781611972986.7`
              http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf
+
+.. [MPPS2020] Jennifer Morse, Jianping Pan, Wencin Poh, Anne Schilling.
+             *A Crystal on Decreasing Factorizations in the 0-Hecke Monoid*
+             Electron. J. Combin., **27(2)** (2020) #P2.29. :arxiv:`1911.08732`.
 
 .. [MR1985] \R. Mathon and A. Rosa,
             *A new strongly regular graph*,
@@ -5578,7 +5620,7 @@ REFERENCES:
              algebra*. Cambridge Studies in Advanced Math., vol. 38,
              Cambridge Univ. Press, 1994.
 
-.. [Wel1988] Codes and Cryptography, Dominic Welsh, Oxford Sciences
+.. [Wel1988] Dominic Welsh, *Codes and Cryptography*. Oxford Sciences
              Publications, 1988
 
 .. [Wer1998] Annette Werner, Local heights on abelian varieties and
@@ -5597,8 +5639,15 @@ REFERENCES:
              pages 150--168, 1932,
              `available on JSTOR <http://www.jstor.org/stable/2371086>`_
 
+.. [Wich1997] Tim Wichmann. Der FGLM Algorithmus - verallgemeinert und implementiert in Singular
+              Diploma Thesis (University of Kaiserslautern), 1997.
+
 .. [Wie2000] \B. Wieland. *A large dihedral symmetry of the set of
              alternating sign matrices*. Electron. J. Combin. 7 (2000).
+
+.. [Wilson2016] \A. T. Wilson. *An extension of MacMahon's Equidistribution
+                Theorem to ordered multiset partitions*. Electron. J. Combin.,
+                **23** (1) (2016).
 
 .. [Wil2010] \M. Willis. A direct way to find the right key of
              a semistandard Young tableau. :arxiv:`1110.6184v1`.

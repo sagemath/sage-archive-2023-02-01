@@ -27,8 +27,7 @@ command inside Sage::
      'arb',
      ...
      'zlib',
-     'zn_poly',
-     'zope_interface']
+     'zn_poly']
 
 Functions
 ---------
@@ -41,7 +40,6 @@ Functions
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import sage.env
 
@@ -49,13 +47,8 @@ import json
 import os
 import subprocess
 import sys
-try:
-    # Python 3.3+
-    from urllib.request import urlopen
-    from urllib.error import URLError
-except ImportError:
-    # Python 2.7
-    from urllib2 import urlopen, URLError
+from urllib.request import urlopen
+from urllib.error import URLError
 
 DEFAULT_PYPI = 'https://pypi.org/pypi'
 
@@ -102,7 +95,8 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
         sage: pypi = 'http://this.is.not.pypi.com/'
         sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=True) # optional - internet
         doctest:...: UserWarning: failed to fetch the version of
-        pkg='hey_this_is_NOT_a_python_package' at http://this.is.not.pypi.com/
+        pkg='hey_this_is_NOT_a_python_package' at
+        http://this.is.not.pypi.com/.../json
         sage: pip_remote_version(nap, pypi_url=pypi, ignore_URLError=False) # optional - internet
         Traceback (most recent call last):
         ...
@@ -143,15 +137,20 @@ def pip_installed_packages():
         sage: d['beautifulsoup4']   # optional - build beautifulsoup4
         u'...'
     """
-    with open(os.devnull, 'w')  as devnull:
+    with open(os.devnull, 'w') as devnull:
         proc = subprocess.Popen(
             [sys.executable, "-m", "pip", "list", "--no-index", "--format", "json"],
             stdout=subprocess.PIPE,
             stderr=devnull,
         )
         stdout = proc.communicate()[0].decode()
-        return {package['name'].lower():package['version']
-                for package in json.loads(stdout)}
+        try:
+            return {package['name'].lower(): package['version']
+                    for package in json.loads(stdout)}
+        except json.decoder.JSONDecodeError:
+            # Something went wrong while parsing the output from pip.
+            # This may happen if pip is not correctly installed.
+            return {}
 
 def list_packages(*pkg_types, **opts):
     r"""
@@ -195,8 +194,7 @@ def list_packages(*pkg_types, **opts):
          'arb',
          'babel',
          ...
-         'zn_poly',
-         'zope_interface']
+         'zn_poly']
         sage: sage_conf_info = L['sage_conf']  # optional - build
         sage: sage_conf_info['type'] # optional - build
         'standard'
@@ -425,9 +423,14 @@ def standard_packages():
 
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()  # optional - build
+        doctest:...: DeprecationWarning: ...
         sage: installed[0], installed[-1]  # optional - build
-        ('alabaster', 'zope_interface')
+        ('alabaster', 'zn_poly')
     """
+    from sage.misc.superseded import deprecation
+    deprecation(30747,
+                'the functions standard_packages, optional_packages, experimental_packages'
+                'are deprecated, use sage.features instead')
     pkgs = list_packages('standard', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
@@ -454,12 +457,17 @@ def optional_packages():
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()  # optional - build
+        doctest:...: DeprecationWarning: ...
         sage: 'beautifulsoup4' in installed+not_installed  # optional - build
         True
 
         sage: 'beautifulsoup4' in installed   # optional - build beautifulsoup4
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(30747,
+                'the functions standard_packages, optional_packages, experimental_packages'
+                'are deprecated, use sage.features instead')
     pkgs = list_packages('optional', local=True)
     pkgs = pkgs.values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
@@ -487,7 +495,12 @@ def experimental_packages():
 
         sage: from sage.misc.package import experimental_packages
         sage: installed, not_installed = experimental_packages()  # optional - build
+        doctest:...: DeprecationWarning: ...
     """
+    from sage.misc.superseded import deprecation
+    deprecation(30747,
+                'the functions standard_packages, optional_packages, experimental_packages'
+                'are deprecated, use sage.features instead')
     pkgs = list_packages('experimental', local=True).values()
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
@@ -546,14 +559,40 @@ class PackageNotFoundError(RuntimeError):
     - The required optional package is installed, but the relevant
       interface to that package is unable to detect the package.
 
+    Raising a ``PackageNotFoundError`` is deprecated.  Use
+    :class:`sage.features.FeatureNotPresentError` instead.
+
+    User code can continue to catch ``PackageNotFoundError`` exceptions
+    for compatibility with older versions of the Sage library.
+    This does not cause deprecation warnings.
+
     EXAMPLES::
 
         sage: from sage.misc.package import PackageNotFoundError
-        sage: raise PackageNotFoundError("my_package")
-        Traceback (most recent call last):
-        ...
-        PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
+        sage: try:
+        ....:     pass
+        ....: except PackageNotFoundError:
+        ....:     pass
+
     """
+
+    def __init__(self, *args):
+        """
+        TESTS::
+
+            sage: from sage.misc.package import PackageNotFoundError
+            sage: raise PackageNotFoundError("my_package")
+            Traceback (most recent call last):
+            ...
+            PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
+        """
+        super().__init__(*args)
+        # We do not deprecate the whole class because we want
+        # to allow user code to handle this exception without causing
+        # a deprecation warning.
+        from sage.misc.superseded import deprecation
+        deprecation(30607, "Instead of raising PackageNotFoundError, raise sage.features.FeatureNotPresentError")
+
     def __str__(self):
         """
         Return the actual error message.
@@ -562,6 +601,7 @@ class PackageNotFoundError(RuntimeError):
 
             sage: from sage.misc.package import PackageNotFoundError
             sage: str(PackageNotFoundError("my_package"))
+            doctest:warning...
             "the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell"
         """
         return ("the package {0!r} was not found. "

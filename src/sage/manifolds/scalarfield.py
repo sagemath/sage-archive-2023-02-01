@@ -286,7 +286,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: zer.set_expr(x)
         Traceback (most recent call last):
         ...
-        AssertionError: the expressions of an immutable element cannot be
+        ValueError: the expressions of an immutable element cannot be
          changed
         sage: one = M.one_scalar_field()
         sage: one.is_immutable()
@@ -294,7 +294,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: one.set_expr(x)
         Traceback (most recent call last):
         ...
-        AssertionError: the expressions of an immutable element cannot be
+        ValueError: the expressions of an immutable element cannot be
          changed
 
     Other scalar fields can be declared immutable, too::
@@ -307,12 +307,12 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: c.set_expr(y^2)
         Traceback (most recent call last):
         ...
-        AssertionError: the expressions of an immutable element cannot be
+        ValueError: the expressions of an immutable element cannot be
          changed
         sage: c.set_name('b')
         Traceback (most recent call last):
         ...
-        AssertionError: the name of an immutable element cannot be changed
+        ValueError: the name of an immutable element cannot be changed
 
     Immutable elements are hashable and can therefore be used as keys for
     dictionaries::
@@ -1543,7 +1543,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the name of an immutable element "
+            raise ValueError("the name of an immutable element "
                                  "cannot be changed")
         if name is not None:
             self._name = name
@@ -1826,19 +1826,19 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: z.set_expr(3*y)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of an immutable element cannot be
+            ValueError: the expressions of an immutable element cannot be
              changed
             sage: one = M.one_scalar_field()
             sage: one.set_expr(3*y)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of an immutable element cannot be
+            ValueError: the expressions of an immutable element cannot be
              changed
 
         """
         if self.is_immutable():
-            raise AssertionError("the expressions of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         if chart is None:
             chart = self._domain._def_chart
         self._express.clear()
@@ -1890,19 +1890,19 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: z.add_expr(cos(u)-sin(v), c_uv)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of an immutable element cannot be
+            ValueError: the expressions of an immutable element cannot be
              changed
             sage: one = M.one_scalar_field()
             sage: one.add_expr(cos(u)-sin(v), c_uv)
             Traceback (most recent call last):
             ...
-            AssertionError: the expressions of an immutable element cannot be
+            ValueError: the expressions of an immutable element cannot be
              changed
 
         """
         if self.is_immutable():
-            raise AssertionError("the expressions of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         if chart is None:
             chart = self._domain._def_chart
         self._express[chart] = chart.function(coord_expression)
@@ -1971,7 +1971,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the expressions of an immutable element "
+            raise ValueError("the expressions of an immutable element "
                                  "cannot be changed")
         if not chart._domain.is_subset(self._domain):
             raise ValueError("the chart is not defined on a subset of " +
@@ -2009,8 +2009,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the expressions of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         if not isinstance(rst, ScalarField):
             raise TypeError("the argument must be a scalar field")
         if not rst._domain.is_subset(self._domain):
@@ -2825,7 +2825,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                         # different chart
                         chart_coords = chart[:]
                         var_not_in_chart = [s for s in var
-                                            if not s in chart_coords]
+                                            if s not in chart_coords]
                         any_in_other_chart = False
                         if var_not_in_chart:
                             for other_chart in self._domain.atlas():

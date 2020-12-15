@@ -37,7 +37,7 @@ We verify Lagrange's four squares identity::
 """
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -52,7 +52,6 @@ We verify Lagrange's four squares identity::
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.element import CommutativeRingElement, coerce_binop
 from sage.misc.all import prod

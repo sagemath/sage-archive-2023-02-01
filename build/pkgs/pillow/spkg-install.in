@@ -13,12 +13,15 @@ if [ "$UNAME" = "Darwin" ] ; then
     export CPATH="$CPATH:`xcrun --show-sdk-path`/usr/include"
 fi
 
+if [ "$CONDA_PREFIX" != "" ]; then
+    extra_build_ext="$extra_build_ext --disable-platform-guessing -I$CONDA_PREFIX/include -L$CONDA_PREFIX/lib"
+fi
+
 # Note: Avoid shared libraries inside egg files, Trac #19467
-sage-python23 setup.py \
-       --no-user-cfg \
+sdh_setup_bdist_wheel \
        build_ext \
        --debug \
        --disable-jpeg \
-       install \
-       --single-version-externally-managed \
-       --root "$SAGE_DESTDIR" || sdh_die "Error building/installing Pillow"
+       $extra_build_ext
+
+sdh_store_and_pip_install_wheel .

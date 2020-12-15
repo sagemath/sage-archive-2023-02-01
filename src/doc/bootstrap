@@ -42,7 +42,7 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
                            *:standard)
                                SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
                                ;;
-                           _recommended:optional)
+                           _recommended:*|pandoc:*)
                                RECOMMENDED_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
                                ;;
                            *)

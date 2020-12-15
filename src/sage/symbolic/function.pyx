@@ -1111,7 +1111,8 @@ cdef class BuiltinFunction(Function):
                 import mpmath as module
                 custom = self._eval_mpmath_
             elif all(isinstance(arg, float) for arg in args):
-                import math as module
+                if self._name != 'factorial':  # delegated to gamma
+                    import math as module
             elif all(isinstance(arg, complex) for arg in args):
                 import cmath as module
 
@@ -1123,7 +1124,7 @@ cdef class BuiltinFunction(Function):
                 if callable(func):
                     try:
                         return func(*args)
-                    except (ValueError,TypeError):
+                    except (ValueError, TypeError):
                         pass
 
             if custom is not None:

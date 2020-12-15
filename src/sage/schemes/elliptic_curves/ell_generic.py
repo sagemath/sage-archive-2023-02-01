@@ -241,8 +241,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             Elliptic Curve defined by y^2  = x^3 + (a^2-3)*x + (-2/3*a+3) over Number Field in a
             with defining polynomial x^3 - 17
         """
-        b = self.ainvs()
-        a = [z._coeff_repr() for z in b]
         s = "Elliptic Curve defined by "
         s += self._equation_string()
         s += " over %s" % self.base_ring()

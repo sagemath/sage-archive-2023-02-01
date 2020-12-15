@@ -198,7 +198,6 @@ Classes and Methods
 # (at your option) any later version.
 # https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
@@ -4045,6 +4044,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -4072,6 +4072,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass

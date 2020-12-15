@@ -90,7 +90,6 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
         sage: v.category()
         Category of elements of Vector space of dimension 3 over Rational Field
 """
-from __future__ import absolute_import
 
 # ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu> and
@@ -2388,7 +2387,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Category.join([Groups() & Posets()], as_list=True)
             [Category of groups, Category of posets]
 
-        Support for axiom categories (TODO: put here meaningfull examples)::
+        Support for axiom categories (TODO: put here meaningful examples)::
 
             sage: Sets().Facade() & Sets().Infinite()
             Category of facade infinite sets
@@ -2897,7 +2896,6 @@ class CategoryWithParameters(Category):
         if not issubclass(C.parent_class, self.parent_class):
             return False
         return Unknown
-
 
 #############################################################
 # Join of several categories

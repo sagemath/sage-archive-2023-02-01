@@ -14,7 +14,12 @@ SAGE_SPKG_CONFIGURE([flint], [
 
               AC_MSG_CHECKING([that GC is not enabled in Flint... ])
               AC_RUN_IFELSE([
-                 AC_LANG_PROGRAM([[#include <flint/flint.h>]], [[return HAVE_GC;]])],
+                 AC_LANG_PROGRAM([[#include <flint/flint.h>]], [
+                                  [#ifdef HAVE_GC]
+                                     [return HAVE_GC;]
+                                  [#else]
+                                     [return 0;]
+                                  [#endif]])],
                  [AC_MSG_RESULT([GC not enabled. Good.])],
 		        [AC_MSG_RESULT([GC enabled. Incompatible with Sage.])
 		         sage_spkg_install_flint=yes])

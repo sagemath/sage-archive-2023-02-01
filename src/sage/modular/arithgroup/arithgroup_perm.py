@@ -97,7 +97,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import print_function, absolute_import
 
 from .all import SL2Z
 from .arithgroup_generic import ArithmeticSubgroup

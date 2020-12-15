@@ -58,7 +58,7 @@ TESTS::
 """
 # ****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2017 Julian Rüth <julian.rueth@fsfe.org>
@@ -69,7 +69,6 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from . import ring
 from . import fraction_field_element
@@ -1256,7 +1255,7 @@ class FractionFieldEmbeddingSection(Section):
         """
         check = kwds.pop('check', True)
         if args or kwds:
-            raise NotImplementedError("__call__ can not be called with additional arguments other than check=True/False")
+            raise NotImplementedError("__call__ cannot be called with additional arguments other than check=True/False")
         return self._call_(x, check=check)
 
     def _richcmp_(self, other, op):

@@ -214,7 +214,6 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from collections import defaultdict
 from itertools import islice, cycle
@@ -548,7 +547,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-        - a list where the `i`-th entry indiciates the multiplicity
+        - a list where the `i`-th entry indicates the multiplicity
           of the `i`-th letter in the alphabet in ``self``
 
         EXAMPLES::
@@ -2686,54 +2685,6 @@ class FiniteWord_class(Word_class):
 
         return lengths_lps, lacunas, palindromes
 
-    def lengths_lps(self, f=None):
-        r"""
-        Return the list of the length of the longest palindromic
-        suffix (lps) for each non-empty prefix of ``self``.
-
-        It corresponds to the function `G_w` defined in [BMBFLR2008]_.
-
-        INPUT:
-
-        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
-          be callable on letters as well as words (e.g. ``WordMorphism``).
-
-        OUTPUT:
-
-        a list -- list of the length of the longest palindromic
-        suffix (lps) for each non-empty prefix of ``self``
-
-        EXAMPLES::
-
-            sage: Word().lengths_lps()
-            doctest:warning
-            ...
-            DeprecationWarning: This method is deprecated. Use lps_lengths
-            See http://trac.sagemath.org/19154 for details.
-            []
-            sage: Word('a').lengths_lps()
-            [1]
-            sage: Word('aaa').lengths_lps()
-            [1, 2, 3]
-            sage: Word('abbabaabbaab').lengths_lps()
-            [1, 1, 2, 4, 3, 3, 2, 4, 2, 4, 6, 8]
-
-        ::
-
-            sage: f = WordMorphism('a->b,b->a')
-            sage: Word('abbabaabbaab').lengths_lps(f)
-            [0, 2, 0, 2, 2, 4, 6, 8, 4, 6, 4, 6]
-
-        ::
-
-            sage: f = WordMorphism({5:[8],8:[5]})
-            sage: Word([5,8,5,5,8,8,5,5,8,8,5,8,5]).lengths_lps(f)
-            [0, 2, 2, 0, 2, 4, 6, 4, 6, 8, 10, 12, 4]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19154, 'This method is deprecated. Use lps_lengths')
-        return self.lps_lengths(f)[1:]
-
     def lacunas(self, f=None):
         r"""
         Return the list of all the lacunas of ``self``.
@@ -3006,16 +2957,15 @@ class FiniteWord_class(Word_class):
             [0, 0, 2, 0, 2, 2, 4, 6, 8]
         """
         LPC = self.lengths_maximal_palindromes(f)
-        LPS = []  # lengths of the longest palindromic suffix of prefixes
-        k = 0
-        LPS.append(0)
+        Nk = LPC[0]
+        LPS = [0]  # lengths of the longest palindromic suffix of prefixes
 
-        for j in range(1, 2*len(self)+1):
-            if j + LPC[j] > k + LPC[k]:
-                for i in range(k + LPC[k] + 1, j + LPC[j] + 1):
-                    if i % 2 == 0:
-                        LPS.append(i-j)
-                    k = j
+        for j in range(1, 2 * len(self) + 1):
+            Nj = j + LPC[j]
+            if Nj > Nk:
+                for i in range(Nk + 2 - (Nk % 2), Nj + 1, 2):
+                    LPS.append(i - j)
+                Nk = Nj
         return LPS
 
     def palindromes(self, f=None):
@@ -4958,13 +4908,13 @@ class FiniteWord_class(Word_class):
         """
         l = self.length()
         if l <= 1:
-           return []
+            return []
         Q = []
         for i in range(1, l - 1):
             return_lengths = [x.length() for x in self.return_words(self[:i])]
-            if return_lengths != []:
-               if (max(return_lengths) <= i and self[l-i:l] == self[:i]):
-                  Q.append(self[:i])
+            if return_lengths:
+                if max(return_lengths) <= i and self[l - i:l] == self[:i]:
+                    Q.append(self[:i])
         return Q
 
     def crochemore_factorization(self):

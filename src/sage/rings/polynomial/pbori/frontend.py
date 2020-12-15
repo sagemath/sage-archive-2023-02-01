@@ -30,7 +30,6 @@ EXAMPLES::
     a
 """
 
-from __future__ import print_function
 
 from . import *
 from .blocks import declare_ring as orig_declare_ring
@@ -40,12 +39,12 @@ def block_scheme_names(blocks):
     r"""
     Helper for Singular interface.
     """
-
     context = dict()
     from .blocks import declare_block_scheme
     declare_block_scheme(blocks, context)
 
     return list(context.keys())
+
 
 ipbname = 'ipbori'
 
@@ -61,6 +60,7 @@ def polybori_start(global_context):
 
     print(ipbname + """ -- The interactive command line tool of PolyBoRi/BRiAL %s
 """ % global_context.get("polybori_version", ''))
+
 
 # Here come the defaults
 r = Ring(10000)

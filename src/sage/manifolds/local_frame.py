@@ -1136,7 +1136,8 @@ class LocalFrame(FreeModuleBasis):
         vbf_frame_bases[self] = basis
         # Update of the change of bases in the fiber:
         for frame_pair, automorph in self._vbundle._frame_changes.items():
-            frame1 = frame_pair[0]; frame2 = frame_pair[1]
+            frame1 = frame_pair[0]
+            frame2 = frame_pair[1]
             if frame1 is self:
                 fr2 = None
                 for frame in vbf_frame_bases:

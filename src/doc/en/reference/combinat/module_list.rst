@@ -43,7 +43,6 @@ Comprehensive Module list
     sage/combinat/combinat
     sage/combinat/combinat_cython
     sage/combinat/combination
-    sage/combinat/combinatorial_algebra
     sage/combinat/combinatorial_map
     sage/combinat/composition
     sage/combinat/composition_signed
@@ -66,6 +65,7 @@ Comprehensive Module list
     sage/combinat/crystals/direct_sum
     sage/combinat/crystals/elementary_crystals
     sage/combinat/crystals/fast_crystals
+    sage/combinat/crystals/fully_commutative_stable_grothendieck
     sage/combinat/crystals/generalized_young_walls
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/induced_structure

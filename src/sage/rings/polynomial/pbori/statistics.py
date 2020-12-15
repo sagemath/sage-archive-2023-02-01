@@ -1,4 +1,5 @@
-from .PyPolyBoRi import Monomial, Polynomial, top_index, BooleConstant
+from sage.rings.polynomial.pbori.pbori import top_index
+from .PyPolyBoRi import Monomial, Polynomial, BooleConstant
 
 
 def used_vars(l, bound=None):

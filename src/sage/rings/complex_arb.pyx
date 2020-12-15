@@ -146,7 +146,6 @@ import operator, sys, warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
-import sage.rings.number_field.number_field as number_field
 
 cimport sage.rings.rational
 
@@ -187,7 +186,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.arith.long cimport is_small_python_int
 
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
 
@@ -549,7 +548,9 @@ class ComplexBallField(UniqueRepresentation, Field):
             return other._prec >= self._prec
         elif isinstance(other, ComplexBallField):
             return other._prec >= self._prec
-        elif isinstance(other, number_field.NumberField_generic):
+
+        import sage.rings.number_field.number_field as number_field
+        if isinstance(other, number_field.NumberField_generic):
             emb = other.coerce_embedding()
             return emb is not None and self.has_coerce_map_from(emb.codomain())
 
@@ -1563,7 +1564,7 @@ cdef class ComplexBall(RingElement):
 
         INPUT:
 
-        - ``parent`` - :class:`~sage.rings.complex_field.ComplexField_class`,
+        - ``parent`` - :class:`~sage.rings.complex_mpfr.ComplexField_class`,
           target parent.
 
         EXAMPLES::
@@ -1903,7 +1904,7 @@ cdef class ComplexBall(RingElement):
 
         OUTPUT:
 
-        :class:`~sage.rings.complex_number.ComplexNumber`, floating-point
+        :class:`~sage.rings.complex_mpfr.ComplexNumber`, floating-point
         complex number formed by the centers of the real and imaginary parts of
         this ball.
 
@@ -1927,7 +1928,7 @@ cdef class ComplexBall(RingElement):
         .. SEEALSO:: :meth:`squash`
         """
         re, im = self.real().mid(), self.imag().mid()
-        field = sage.rings.complex_field.ComplexField(
+        field = sage.rings.complex_mpfr.ComplexField(
                 max(prec(self), re.prec(), im.prec()))
         return field(re, im)
 
@@ -4574,7 +4575,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(2,3).elliptic_pi(CBF(1,1))
-            [0.27029997361983 +/- ...e-15] + [0.715676058329095 +/- ...e-16]*I
+            [0.2702999736198...] + [0.715676058329...]*I
 
         """
         cdef ComplexBall result = self._new()
@@ -4681,17 +4682,21 @@ cdef class ComplexBall(RingElement):
 
             sage: n = CBF(1,1)
             sage: m = CBF(-2/3, 3/5)
-            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb216
             [0.8934793755173 +/- ...e-14] + [0.95707868710750 +/- ...e-15]*I
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb218 - this is a regression, see :trac:28623
+            nan + nan*I
             sage: n.elliptic_pi(m)
-            [0.89347937551733 +/- ...e-15] + [0.95707868710750 +/- ...e-15]*I
+            [0.8934793755173...] + [0.957078687107...]*I
 
             sage: n = CBF(2, 3/7)
             sage: m = CBF(-1/3, 2/9)
-            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb216
             [0.2969588746419 +/- ...e-14] + [1.3188795332738 +/- ...e-14]*I
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m) # arb218 -  this is a regression, see :trac:28623
+            nan + nan*I
             sage: n.elliptic_pi(m)
-            [0.29695887464189 +/- ...e-15] + [1.31887953327376 +/- ...e-15]*I
+            [0.296958874641...] + [1.318879533273...]*I
         """
         cdef ComplexBall result = self._new()
         cdef ComplexBall my_phi = self._parent.coerce(phi)
@@ -4767,7 +4772,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(0,1).elliptic_rj(CBF(-1/2,1), CBF(-1,-1), CBF(2))
-            [1.004386756285733 +/- ...e-16] + [-0.2451626834391645 +/- ...e-17]*I
+            [1.00438675628573...] + [-0.24516268343916...]*I
 
         """
         cdef ComplexBall result = self._new()

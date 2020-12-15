@@ -1,16 +1,14 @@
-from __future__ import print_function
-
-from .PyPolyBoRi import *
+from sage.rings.polynomial.pbori.pbori import (top_index, if_then_else,
+                                               substitute_variables)
+from .PyPolyBoRi import (BooleSet, Polynomial, Monomial, Ring,
+                         BoolePolynomialVector,
+                         ll_red_nf_redsb, ll_red_nf_noredsb,
+                         ll_red_nf_noredsb_single_recursive_call)
 from .statistics import used_vars_set
-
 from .rank import rank
-
-from functools import reduce
 
 lead_index = top_index
 
-#(p):
-#  return iter(p.lex_lead()).next().index()#first index
 
 def combine(reductors, p, reduce=None):
     p_nav = p.navigation()
@@ -30,7 +28,7 @@ def llredsb_Cudd_style(polys):
 
     linear_lead = sorted(polys, key=lead_index, reverse=True)
     assert len(set([p.lex_lead() for p in linear_lead])) == len(polys)
-    assert len([p for p in polys if p.constant()]) == 0
+    assert not any(p.constant() for p in polys)
     assert len([p for p in polys if p.lex_lead_deg() == 1]) == len(polys)
     assert len(set([p.navigation().value() for p in polys])) == len(polys)
     for p in linear_lead:
@@ -42,7 +40,7 @@ def ll_encode(polys, reduce=False, prot=False, reduce_by_linear=True):
     polys = [Polynomial(p) for p in polys]
     linear_lead = sorted(polys, key=lead_index, reverse=True)
     assert len(set([p.lex_lead() for p in linear_lead])) == len(polys)
-    assert len([p for p in polys if p.constant()]) == 0
+    assert not any(p.constant() for p in polys)
     assert len([p for p in polys if p.lex_lead_deg() == 1]) == len(polys)
     assert len(set([p.navigation().value() for p in polys])) == len(polys)
     if (not reduce) and reduce_by_linear:
@@ -56,7 +54,6 @@ def ll_encode(polys, reduce=False, prot=False, reduce_by_linear=True):
         reduce = ll_red_nf_redsb
     else:
         reduce = None
-
 
     if polys:
         reductors = Polynomial(polys[0].ring().one()).set()
@@ -78,7 +75,7 @@ def ll_encode(polys, reduce=False, prot=False, reduce_by_linear=True):
 
 
 def eliminate(polys, on_the_fly=False, prot=False, reduction_function=None,
-    optimized=True):
+              optimized=True):
     r"""
     There exists an optimized variant, which reorders the variable in a different ring.
     """
@@ -99,7 +96,7 @@ def eliminate(polys, on_the_fly=False, prot=False, reduction_function=None,
                 rest.append(p)
         else:
             rest.append(p)
-    if len(linear_leads) == 0:
+    if not linear_leads:
         def identity(p):
             return p
         return (linear_leads, identity, rest)
@@ -116,12 +113,10 @@ def eliminate(polys, on_the_fly=False, prot=False, reduction_function=None,
         return reduction_function(p, reductors)
     reduced_list = []
     if optimized:
-        (llnf, reduced_list) = eliminate_ll_ranked(
-        linear_leads,
-        rest,
-        reduction_function=reduction_function,
-        reduce_ll_system=(not on_the_fly),
-        prot=prot)
+        llnf, reduced_list = eliminate_ll_ranked(linear_leads, rest,
+                                                 reduction_function=reduction_function,
+                                                 reduce_ll_system=(not on_the_fly),
+                                                 prot=prot)
     else:
         reductors = ll_encode(linear_leads, reduce=(not on_the_fly), prot=prot)
         for p in rest:
@@ -156,27 +151,27 @@ def eliminate_ll_ranked(ll_system, to_reduce,
     for v in add_vars:
         ll_ranks[v] = -1
 
-      #pushing variables ignored by ll to the front means,
-      #that the routines will quickly eliminate them
-      #and they won't give any overhead
+        # pushing variables ignored by ll to the front means,
+        # that the routines will quickly eliminate them
+        # and they won't give any overhead
     def sort_key(v):
         return (ll_ranks[v], v.index())
     sorted_vars = sorted(ll_ranks.keys(), key=sort_key)
 
     def var_index(v):
         return next(iter(Monomial(v).variables())).index()
-  #sorted_var_indices=[var_index(v) for v in sorted_vars]
+
     to_ring = Ring(len(sorted_vars))
     map_back_indices = dict([(i, var_index(v)) for (i, v) in enumerate(
         sorted_vars)])
     map_from_indices = dict([(var_index(v), i) for (i, v) in enumerate(
         sorted_vars)])
-  #dict([(v,k) for (k,v) in enumerate(sorted_var_indices)])
+
     var_names = [str(v) for v in sorted_vars]
     try:
         for (i, v) in enumerate(sorted_vars):
             assert var_names[i] == str(v), (var_names[i], v, var_index(v), i)
-      #        _set_variable_name(to_ring, i, var_names[i] + "TO")
+
     finally:
         pass
     try:
@@ -187,8 +182,6 @@ def eliminate_ll_ranked(ll_system, to_reduce,
 
     def map_from(p):
         res = substitute_variables(to_ring, map_from_vec, p)
-      # assert str(p)==str(res), (str(p), str(res), list(map_from_vec),
-      # list(map_back_vec))
         return res
 
     def map_back(p):
@@ -211,7 +204,7 @@ class RingMap(object):
     Define a mapping between two rings by common variable names.
 
     TESTS::
-    
+
         sage: from sage.rings.polynomial.pbori.pbori import *
         sage: from sage.rings.polynomial.pbori.blocks import declare_ring, Block
         sage: to_ring = declare_ring([Block("x", 10)], globals())
@@ -237,7 +230,7 @@ class RingMap(object):
     def __init__(self, to_ring, from_ring):
         r"""
         Initialize map by two given rings.
-        
+
         TESTS::
 
             sage: from sage.rings.polynomial.pbori.pbori import *
@@ -278,7 +271,7 @@ class RingMap(object):
     def __call__(self, poly):
         r"""
         Execute the map to change rings.
-        
+
         TESTS::
 
             sage: from sage.rings.polynomial.pbori.pbori import *

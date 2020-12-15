@@ -1,8 +1,8 @@
-from .PyPolyBoRi import Monomial, random_set, Polynomial, \
-set_random_seed, Ring, ll_red_nf_redsb, Variable
+from .PyPolyBoRi import (Monomial, random_set, Polynomial,
+                         set_random_seed, ll_red_nf_redsb, Variable)
 from .ll import ll_encode
 from random import Random
-from pprint import pprint, pformat
+from pprint import pformat
 from .blocks import declare_ring
 
 
@@ -29,21 +29,24 @@ def gen_random_poly(ring, l, deg, vars_set, seed=123):
     return p
 
 
-def sparse_random_system(ring, number_of_polynomials,
-    variables_per_polynomial, degree, random_seed=None):
+def sparse_random_system(ring, number_of_polynomials, variables_per_polynomial,
+                         degree, random_seed=None):
     r"""
-    Generates a system, which is sparse in the sense, that each polynomial
-    contains only a small subset of variables. In each variable that occurrs 
-    in a polynomial it is dense in the terms up to the given degree 
+    Generates a sparse random system
+
+    Generate a system, which is sparse in the sense, that each polynomial
+    contains only a small subset of variables. In each variable that occurrs
+    in a polynomial it is dense in the terms up to the given degree
     (every term occurs with probability 1/2).
+
     The system will be satisfiable by at least one solution.
 
     TESTS::
-    
-        sage: from sage.rings.polynomial.pbori import *
-        sage: r=Ring(10)
+
+        sage: from sage.rings.polynomial.pbori import Ring, groebner_basis
+        sage: r = Ring(10)
         sage: from sage.rings.polynomial.pbori.randompoly import sparse_random_system
-        sage: s=sparse_random_system(r, number_of_polynomials = 20, variables_per_polynomial = 3, degree=2, random_seed=123)
+        sage: s = sparse_random_system(r, number_of_polynomials=20, variables_per_polynomial=3, degree=2, random_seed=int(123))
         sage: [p.deg() for p in s]
         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
         sage: sorted(groebner_basis(s), reverse=True)
@@ -74,31 +77,19 @@ def sparse_random_system(ring, number_of_polynomials,
     return res
 
 
-def sparse_random_system_data_file_content(
-    number_of_variables, **kwds):
+def sparse_random_system_data_file_content(number_of_variables, **kwds):
     r"""
-    
     TESTS::
-    
-        
-        sage: from sage.rings.polynomial.pbori import *
+
         sage: from sage.rings.polynomial.pbori.randompoly import sparse_random_system_data_file_content
-        sage: sparse_random_system_data_file_content(10, number_of_polynomials = 5, variables_per_polynomial = 3, degree=2, random_seed=123)
+        sage: sparse_random_system_data_file_content(10, number_of_polynomials=5, variables_per_polynomial=3, degree=2, random_seed=int(123))
         "declare_ring(['x'+str(i) for in range(10)])\nideal=\\\n[...]\n\n"
     """
     dummy_dict = dict()
     r = declare_ring(['x' + str(i) for i in range(number_of_variables)],
-        dummy_dict)
+                     dummy_dict)
     polynomials = sparse_random_system(r, **kwds)
     polynomials = pformat(polynomials)
     res = "declare_ring(['x'+str(i) for in range(%s)])\nideal=\\\n%s\n\n" % (
         number_of_variables, polynomials)
     return res
-
-
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()

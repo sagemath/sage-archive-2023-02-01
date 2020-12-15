@@ -164,7 +164,7 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 
 # Defining a pair of vertices as a C struct

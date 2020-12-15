@@ -379,7 +379,6 @@ as Sage's `e` (:trac:`29833`)::
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import os
 import re
@@ -500,7 +499,21 @@ remote connection to a server running Mathematica -- for hints, type
 
   (1) You might have to buy Mathematica (http://www.wolfram.com/).
 
-  (2) * LINUX: The math script comes standard with your Mathematica install.
+  (2) * LINUX: The math script usually comes standard with your Mathematica install.
+        However, on some systems it may be called wolfram, while math is absent.
+        In this case, assuming wolfram is in your PATH,
+          (a) create a file called math (in your PATH):
+              #!/bin/sh
+              /usr/bin/env wolfram $@
+
+          (b) Make the file executable.
+                chmod +x math
+
+      * WINDOWS:
+
+        Install Mathematica for Linux into the VMware virtual machine (sorry,
+        that's the only way at present).
+
 
       * APPLE OS X:
           (a) create a file called math (in your PATH):

@@ -1111,7 +1111,13 @@ cdef class BuiltinFunction(Function):
                 import mpmath as module
                 custom = self._eval_mpmath_
             elif all(isinstance(arg, float) for arg in args):
-                if self._name != 'factorial':  # delegated to gamma
+                # We do not include the factorial here as
+                # factorial(integer-valued float) is deprecated in Python 3.9.
+                # This special case should be removed when
+                # Python always raise an error for factorial(float).
+                # This case will be delegated to the gamma function.
+                # see Trac ticket #30764
+                if self._name != 'factorial':
                     import math as module
             elif all(isinstance(arg, complex) for arg in args):
                 import cmath as module

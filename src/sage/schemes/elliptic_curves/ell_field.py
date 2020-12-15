@@ -1254,7 +1254,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             f=(x**3+E.a4()*x+E.a6())**((p-1)//2)
             return f.coefficients(sparse=False)[p-1]
 
-    def prime_isogeny_graph(self, l, directed=True, label_by_j=False):
+    def isogeny_ell_graph(self, l, directed=True, label_by_j=False):
         """
         Return a graph representing the ``l``-degree ``K``-isogenies between
         ``K``-isomorphism classes of elliptic curves for ``K =
@@ -1286,7 +1286,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         Ordinary curve over finite extension field of degree 2::
 
             sage: E = EllipticCurve(GF(59^2, "i", x^2 + 1), j=5)
-            sage: G = E.prime_isogeny_graph(5, directed=False, label_by_j=True)
+            sage: G = E.isogeny_ell_graph(5, directed=False, label_by_j=True)
             sage: G
             Graph on 20 vertices
             sage: G.vertices()
@@ -1303,7 +1303,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         Supersingular curve over prime field::
 
             sage: E = EllipticCurve(GF(419), j=1728)
-            sage: G3 = E.prime_isogeny_graph(3, directed=False, label_by_j=True)
+            sage: G3 = E.isogeny_ell_graph(3, directed=False, label_by_j=True)
             sage: G3
             Graph on 27 vertices
             sage: G3.vertices()
@@ -1316,7 +1316,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
              ('0', '13', None),
              ...
              ('48*', '98*', None)]
-             sage: G5 = E.prime_isogeny_graph(5, directed=False, label_by_j=True)
+             sage: G5 = E.isogeny_ell_graph(5, directed=False, label_by_j=True)
              sage: G5
              Graph on 9 vertices
              sage: G5.vertices()
@@ -1333,7 +1333,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             sage: E = EllipticCurve(K, j=0)
             sage: E.is_supersingular()
             True
-            sage: G = E.prime_isogeny_graph(2, directed=True, label_by_j=True)
+            sage: G = E.isogeny_ell_graph(2, directed=True, label_by_j=True)
             sage: G
             Looped multi-digraph on 37 vertices
             sage: G.vertices()
@@ -1346,7 +1346,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
              ('0', '125', None),
              ...
              '81*i + 65', None)]
-            sage: H = E.prime_isogeny_graph(2, directed=False, label_by_j=True)
+            sage: H = E.isogeny_ell_graph(2, directed=False, label_by_j=True)
             sage: H
             Looped multi-graph on 37 vertices
             sage: H.vertices()
@@ -1364,7 +1364,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
 
             sage: K.<e> = NumberField(x^2 - 2)
             sage: E = EllipticCurve(K, [1,0,1,4, -6])
-            sage: G2 = E.prime_isogeny_graph(2, directed=False)
+            sage: G2 = E.isogeny_ell_graph(2, directed=False)
             sage: G2.vertices()
             ['y^2 + x*y + y = x^3 + (-130*e-356)*x + (-2000*e-2038)',
              'y^2 + x*y + y = x^3 + (-36)*x + (-70)',
@@ -1377,7 +1377,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
              'y^2 + x*y + y = x^3 + (130*e-356)*x + (2000*e-2038)', None),
              ('y^2 + x*y + y = x^3 + (-36)*x + (-70)',
              'y^2 + x*y + y = x^3 + 4*x + (-6)', None)]
-            sage: G3 = E.prime_isogeny_graph(3, directed=False)
+            sage: G3 = E.isogeny_ell_graph(3, directed=False)
             sage: G3.vertices()
             ['y^2 + x*y + y = x^3 + (-1)*x',
              'y^2 + x*y + y = x^3 + (-171)*x + (-874)',
@@ -1391,19 +1391,19 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         TESTS::
 
             sage: E = EllipticCurve(GF(11), j=0)
-            sage: G0 = E.prime_isogeny_graph(2, directed=False)
+            sage: G0 = E.isogeny_ell_graph(2, directed=False)
             sage: G0.is_directed()
             False
-            sage: G1 = E.prime_isogeny_graph(2, directed=True)
+            sage: G1 = E.isogeny_ell_graph(2, directed=True)
             sage: G1.is_directed()
             True
-            sage: G2 = E.prime_isogeny_graph(2, label_by_j=False)
+            sage: G2 = E.isogeny_ell_graph(2, label_by_j=False)
             sage: G2.vertices()
             ['y^2 = x^3 + 1',
              'y^2 = x^3 + 2',
              'y^2 = x^3 + 5*x',
              'y^2 = x^3 + 7*x']
-            sage: G3 = E.prime_isogeny_graph(2, label_by_j=True)
+            sage: G3 = E.isogeny_ell_graph(2, label_by_j=True)
             sage: G3.vertices()
             ['0', '0*', '1', '1*']
 

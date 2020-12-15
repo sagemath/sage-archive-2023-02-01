@@ -30,7 +30,6 @@ from cypari2.paridecl cimport *
 
 from sage.structure.richcmp cimport (richcmp,
                                      richcmp_not_equal, rich_to_bool)
-from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 from sage.structure.parent cimport Parent
@@ -137,7 +136,7 @@ cdef unsigned int switch_endianess(unsigned int i):
         (<unsigned char*>&ret)[j] = (<unsigned char*>&i)[sizeof(int)-j-1]
     return ret
 
-cdef class Cache_ntl_gf2e(SageObject):
+cdef class Cache_ntl_gf2e(Cache_base):
     """
     This class stores information for an NTL finite field in a Cython
     class so that elements can access it quickly.
@@ -401,7 +400,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         raise ValueError("Cannot coerce element %s to this field." % e)
 
-    cpdef FiniteField_ntl_gf2eElement fetch_int(self, number):
+    cpdef FiniteField_ntl_gf2eElement fetch_int(self, int number):
         """
         Given an integer less than `p^n` with base `2`
         representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns

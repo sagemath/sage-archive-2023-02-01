@@ -113,7 +113,7 @@ cdef class Action(Functor):
 
         TESTS:
 
-        Check that this action is can be pickled (:trac:`29031`)::
+        Check that this action can be pickled (:trac:`29031`)::
 
             sage: P = QQ['x']
             sage: R = (ZZ['x'])['y']
@@ -390,7 +390,7 @@ cdef class InverseAction(Action):
 
         TESTS:
 
-        Check that this action is can be pickled (:trac:`29031`)::
+        Check that this action can be pickled (:trac:`29031`)::
 
             sage: V = QQ^3
             sage: v = V((1, 2, 3))
@@ -474,7 +474,7 @@ cdef class PrecomposedAction(Action):
 
         TESTS:
 
-        Check that this action is can be pickled (:trac:`29031`)::
+        Check that this action can be pickled (:trac:`29031`)::
 
             sage: E = ModularSymbols(11).2
             sage: v = E.manin_symbol_rep()

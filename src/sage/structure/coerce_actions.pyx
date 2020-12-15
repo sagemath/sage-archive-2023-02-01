@@ -371,7 +371,7 @@ cdef class ModuleAction(Action):
 
         TESTS:
 
-        Check that this action is can be pickled (:trac:`29031`)::
+        Check that this action can be pickled (:trac:`29031`)::
 
             sage: A = ZZ['x'].get_action(QQ, self_on_left=False, op=operator.mul)
             sage: loads(dumps(A)) is not None
@@ -675,7 +675,7 @@ cdef class IntegerAction(Action):
 
         TESTS:
 
-        Check that this action is can be pickled (:trac:`29031`)::
+        Check that this action can be pickled (:trac:`29031`)::
 
             sage: from sage.structure.coerce_actions import IntegerMulAction
             sage: act = IntegerMulAction(ZZ, CDF)

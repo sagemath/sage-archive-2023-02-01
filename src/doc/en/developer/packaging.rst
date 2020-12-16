@@ -251,6 +251,24 @@ something like the following to install it:
         sdh_install doc/ "$SAGE_SHARE"/doc/PACKAGE_NAME
     fi
 
+At build time :envvar:`CFLAGS`, :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`,
+and :envvar:`F77FLAGS` are usually set to ``-g -O2``
+(according to `debugging options <../installation/source.html#sage-debug>`_
+and whether building
+`fat binaries <../installation/source.html#sage-fat-binary>`_).
+
+Slightly modified versions are available:
+
+.. CODE-BLOCK:: bash
+
+    # ``-O3`` instead of ``-O2``.
+    export CFLAGS=$CFLAGS_O3
+
+    # Use flags as set by the user, possibly empty.
+    export CFLAGS=$ORIGINAL_CFLAGS
+
+Likewise for :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`, and :envvar:`F77FLAGS`.
+
 .. note::
 
     Prior to Sage 9.1, the script templates were called ``spkg-build``,
@@ -311,8 +329,8 @@ It needs to be an executable shell script; it is not subject to the templating
 described in the previous section.
 
 Sage runs ``spkg-install`` from the directory ``$SAGE_ROOT/build/pkgs/<package>``
-in the environment obtained by sourcing the files ``src/bin/sage-env`` and
-``build/bin/sage-build-env-config``.
+in the environment obtained by sourcing the files ``src/bin/sage-env``,
+``build/bin/sage-build-env-config``, and ``build/bin/sage-build-env``.
 
 .. _section-sdh-helpers:
 
@@ -370,6 +388,10 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    installations. Additional arguments to ``$MAKE`` may be given as
    arguments. If ``$SAGE_DESTDIR`` is not set then the command is run
    with ``$SAGE_SUDO``, if set.
+
+- ``sdh_setup_bdist_wheel [...]``: Runs ``setup.py bdist_wheel`` with
+   the given arguments, as well as additional default arguments used for
+   installing packages into Sage.
 
 - ``sdh_pip_install [...]``: The equivalent of running ``pip install``
    with the given arguments, as well as additional default arguments used for
@@ -687,7 +709,7 @@ For example, considering the layout:
     SAGE_ROOT/build/pkgs/foo
     |-- patches
     |   |-- solaris
-    |   |   |-- solaris.patch 
+    |   |   |-- solaris.patch
     |   |-- bar.patch
     |   `-- baz.patch
 
@@ -742,7 +764,7 @@ When to patch, when to repackage, when to autoconfiscate
 
 - If the upstream Makefile does not build shared libraries,
   don't bother trying to patch it.
-  
+
   Autoconfiscate the package instead and use the standard facilities
   of Automake and Libtool.  This ensures that the shared library build
   is portable between Linux and macOS.
@@ -786,7 +808,7 @@ We recommend the following workflow for maintaining a set of patches.
       rm -Rf SAGE_ROOT/build/pkgs/PACKAGE/patches
       mkdir SAGE_ROOT/build/pkgs/PACKAGE/patches
       git format-patch -o SAGE_ROOT/build/pkgs/PACKAGE/patches/ upstream
-  
+
 - Optionally, create an ``spkg-src`` file in the Sage package's
   directory that regenerates the patch directory using the above
   commands.
@@ -938,6 +960,20 @@ to create ``$SAGE_ROOT/build/pkgs/foo/package-version.txt``,
 You can skip the manual downloading of the upstream tarball by using
 the additional argument ``--upstream-url``.  This command will also
 set the ``upstream_url`` field in ``checksums.ini`` described above.
+
+For Python packages available from PyPI, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --type optional
+
+This automatically downloads the most recent version from PyPI and also
+obtains most of the necessary information by querying PyPI.
+The ``dependencies`` file may need editing, and also you may want to set
+lower and upper bounds for acceptable package versions in the file
+``install-requires.txt``.
+
+To create a pip package rather than a normal package, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --source pip --type optional
 
 
 .. _section-manual-build:

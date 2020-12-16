@@ -39,7 +39,6 @@ def block_scheme_names(blocks):
     r"""
     Helper for Singular interface.
     """
-
     context = dict()
     from .blocks import declare_block_scheme
     declare_block_scheme(blocks, context)

@@ -54,7 +54,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
     def _dual_basis_default(self):
         r"""
-        Returns the dual basis to ``self``.
+        Return the dual basis to ``self``.
 
         INPUT:
 
@@ -100,7 +100,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
     def coproduct_on_generators(self, i):
         r"""
-        Returns the coproduct on `h_i`.
+        Return the coproduct on `h_i`.
 
         INPUT:
 

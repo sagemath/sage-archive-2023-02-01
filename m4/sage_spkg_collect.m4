@@ -230,8 +230,16 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                 message="does not support check for system package; $message"
             ])
         ])
+
+    dnl Trac #29124: Do not talk about underscore club
+    case "$SPKG_NAME" in
+    _*)
+        ;;
+    *)
         formatted_message=$(printf '%-45s%s' "$SPKG_NAME-$SPKG_VERSION:" "$message")
         AC_MSG_RESULT([$formatted_message])
+        ;;
+    esac
 
         AS_VAR_POPDEF([sage_use_system])dnl
         AS_VAR_POPDEF([sage_require])dnl

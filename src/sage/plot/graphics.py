@@ -1626,7 +1626,7 @@ class Graphics(WithEqualityById, SageObject):
             ``(x_pos, y_pos)`` which indicate the relative position of the
             title within the plot. The plot itself can be considered to
             occupy, in relative terms, the region within a unit square
-            `[0,1]\\times[0,1]`.  The title text is centered around the
+            `[0, 1] \times [0, 1]`.  The title text is centered around the
             horizontal factor ``x_pos`` of the plot. The baseline of the
             title text is present at the vertical factor ``y_pos`` of the
             plot. Hence, ``title_pos=(0.5, 0.5)`` will center the title in

@@ -146,7 +146,7 @@ def pip_installed_packages(normalization=None):
         sage: d['prompt-toolkit']   # optional - build
         '...'
         sage: d = pip_installed_packages(normalization='spkg')  # optional - build
-        sage: d['prompt_toolkit']
+        sage: d['prompt_toolkit']   # optional - build
         '...'
 
     """

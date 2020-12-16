@@ -1262,20 +1262,20 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
 
         INPUT:
 
-        - ``l`` -- prime degree of isogenies.
+        - ``l`` -- prime degree of isogenies
 
-        - ``directed`` (default True) -- return a directed graph if ``True``;
-          otherwise return an undirected graph.  In the undirected case, the
-          in-degrees and out-degrees of the vertices must be balanced and
-          therefore the number of out-edges from the vertices corresponding to
-          j-invariants 0 and 1728 (if they are part of the graph) are reduced
-          to match the number of in-edges.
+        - ``directed`` -- boolean (default: ``True``); whether to return a
+          directed or undirected graph.  In the undirected case, the in-degrees
+          and out-degrees of the vertices must be balanced and therefore the
+          number of out-edges from the vertices corresponding to j-invariants 0
+          and 1728 (if they are part of the graph) are reduced to match the
+          number of in-edges.
 
-        - ``label_by_j`` (default False) -- if ``True`` label graph vertices by
-          the j-invariant corresponding to the isomorphism class of curves.  If
-          the j-invariant is not unique in the isogeny class, append ``*`` to
-          it to indicate a twist.  Otherwise, if ``False`` label vertices by the
-          equation of a representative curve.
+        - ``label_by_j`` -- boolean (default: ``False``); whether to label
+          graph vertices by the j-invariant corresponding to the isomorphism
+          class of curves.  If the j-invariant is not unique in the isogeny
+          class, append ``*`` to it to indicate a twist.  Otherwise, if
+          ``False`` label vertices by the equation of a representative curve.
 
         OUTPUT:
 
@@ -1423,19 +1423,19 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         else:
             curve_max = 50
 
-        Es = [self] # list of curves in graph
-        A = [] # adjacency matrix
-        labels = [] # list of vertex labels
+        Es = [self]  # list of curves in graph
+        A = []  # adjacency matrix
+        labels = []  # list of vertex labels
         for (i, E) in enumerate(Es):
             if 0 < curve_max and curve_max < len(Es):
                 warn('Isogeny graph contains more than '
                         + str(curve_max) + ' curves.')
                 curve_max = 0
 
-            r = [0] * len(Es) # adjacency matrix row
+            r = [0] * len(Es)  # adjacency matrix row
             for C in [I.codomain() for I in E.isogenies_prime_degree(l)]:
                 j = next((k for (k, F) in enumerate(Es) if C.is_isomorphic(F)),
-                        -1) # index of curve isomorphic to codomain of isogeny
+                        -1)  # index of curve isomorphic to codomain of isogeny
                 if j >= 0:
                     r[j] += 1
                 else:
@@ -1449,7 +1449,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             # that the same isogeny graphs output are isomorphic as graphs
             # regardless of the starting vertex.
             if not directed and E.j_invariant() in [0, 1728]:
-                m = len(E.automorphisms()) / 2 #multiplicity of out-edges
+                m = len(E.automorphisms()) / 2  # multiplicity of out-edges
                 r = [v if k == i else v / m for (k, v) in enumerate(r)]
 
             A.append(r)

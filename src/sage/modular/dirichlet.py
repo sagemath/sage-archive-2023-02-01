@@ -1508,7 +1508,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         And sums where exactly one character is nontrivial (see :trac:`6393`)::
 
-            sage: G = DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
+            sage: G = DirichletGroup(5); X = G.list(); Y=X[0]; Z=X[1]
             sage: Y.jacobi_sum(Z)
             -1
             sage: Z.jacobi_sum(Y)
@@ -1881,7 +1881,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         A related bug (see :trac:`18086`)::
 
-            sage: K.<a,b>=NumberField([x^2 + 1, x^2 - 3])
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
             sage: chi = DirichletGroup(7, K).0
             sage: chi.minimize_base_ring()
             Dirichlet character modulo 7 of conductor 7 mapping 3 |--> -1/2*b*a + 1/2
@@ -1895,8 +1895,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             K = rings.IntegerModRing(p)
         elif self.order() <= 2:
             K = rings.QQ
-        elif (isinstance(R, number_field.NumberField_generic) and
-              euler_phi(self.order()) < R.absolute_degree()):
+        elif (isinstance(R, number_field.NumberField_generic)
+              and euler_phi(self.order()) < R.absolute_degree()):
             K = rings.CyclotomicField(self.order())
         else:
             return self

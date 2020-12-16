@@ -1455,7 +1455,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             A.append(r)
             if label_by_j:
                 s = str(E.j_invariant())
-                while s in labels: s += "*"
+                while s in labels:
+                    s += "*"
                 labels.append(s)
             else:
                 labels.append(E._equation_string())

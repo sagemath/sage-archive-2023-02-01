@@ -39,27 +39,16 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
-    - name: bootstrap
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
-        choco install $PACKAGES --source cygwin
-    - name: configure
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -109,27 +98,16 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
-    - name: bootstrap
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
-        choco install $PACKAGES --source cygwin
-    - name: configure
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -184,20 +162,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -206,12 +175,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -264,20 +231,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -286,12 +244,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -342,20 +298,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -364,12 +311,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -420,20 +365,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -442,12 +378,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -498,20 +432,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -520,12 +445,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 base-toolchain && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -578,20 +501,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -600,12 +514,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -658,20 +570,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -680,12 +583,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -736,20 +637,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -758,12 +650,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -814,20 +704,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -836,12 +717,10 @@ jobs:
     - name: Extract sage-local artifact
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
-    - name: configure
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
@@ -892,20 +771,11 @@ jobs:
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
-    - name: install cygwin and minimal prerequisites with choco
+    - name: install cygwin and test prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
-        choco install $PACKAGES --source cygwin
-    - name: bootstrap
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && env && ./bootstrap'
-    - name: install additional cygwin packages with choco
-      if: contains(matrix.pkgs, 'standard')
-      shell: bash {0}
-      run: |
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/*/distros/cygwin.txt)
+        PACKAGES="python38 python38-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -913,13 +783,11 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh'
-    - name: configure
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null local'
+    - name: tox
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && ./configure $CONFIGURE_ARGS'
-    - name: make
-      run: |
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'export PATH=/usr/local/bin:/usr/bin && cd $(cygpath -u "$GITHUB_WORKSPACE") && make -k -w V=0 $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |

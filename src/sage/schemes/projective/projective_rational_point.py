@@ -515,7 +515,7 @@ def sieve(X, bound):
 
     def lift_all_points():
         r"""
-        Returns list of all rational points lifted parallelly.
+        Return list of all rational points lifted parallelly.
         """
         normalized_input = []
         points = modulo_points.pop() # remove the list of points corresponding to largest prime

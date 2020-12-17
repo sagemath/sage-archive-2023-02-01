@@ -748,9 +748,9 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
     def _xgcd_univariate_polynomial(self, f, g):
         """
-        Extended gcd for univariate polynomial rings over self.
+        Extended gcd for univariate polynomial rings over ``self``.
 
-        Should not be called directly. Use f.xgcd(g) instead.
+        Should not be called directly. Use ``f.xgcd(g)`` instead.
 
         INPUT:
 
@@ -759,14 +759,13 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         OUTPUT:
 
          - A tuple (a, b, c) which satisfies `a = b*f + c*g`. There
-           is not guarentee that a, b, and c are minimal.
+           is not guarantee that a, b, and c are minimal.
 
         .. WARNING::
 
             The computations are performed using the standard Euclidean
             algorithm which might produce mathematically incorrect results in
             some cases. See :trac:`13439`.
-
 
         EXAMPLES::
 

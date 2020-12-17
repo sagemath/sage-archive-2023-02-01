@@ -249,13 +249,15 @@ class AugmentedValuationFactory(UniqueFactory):
         else:
             return parent.__make_element_class__(InfiniteAugmentedValuation)(parent, base_valuation, phi, mu)
 
+        
 AugmentedValuation = AugmentedValuationFactory("sage.rings.valuation.augmented_valuation.AugmentedValuation")
+
 
 class AugmentedValuation_base(InductiveValuation):
     r"""
     An augmented valuation is a discrete valuation on a polynomial ring. It
     extends another discrete valuation `v` by setting the valuation of a
-    polynomial `f` to the minumum of `v(f_i)i\mu` when writing `f=\sum_i
+    polynomial `f` to the minimum of `v(f_i)i\mu` when writing `f=\sum_i
     f_i\phi^i`.
 
     INPUT:

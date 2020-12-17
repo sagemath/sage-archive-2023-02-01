@@ -141,7 +141,7 @@ Let us pick another particular result::
     sage: s = next(s for s in r if s.statistic().id() == 51); s                 # optional -- internet
     St000051oMp00061oMp00069 (quality [87, 86])
 
-    sage: s.info()
+    sage: s.info()                                                              # optional -- internet
     after applying
         Mp00069: complement: Permutations -> Permutations
         Mp00061: to increasing tree: Permutations -> Binary trees

@@ -1967,7 +1967,7 @@ class FindStatCombinatorialStatistic(SageObject):
         Return the generating functions of the statistic as a dictionary.
 
         The keys of this dictionary are the levels for which the
-        generating function of of the statistic can be computed from
+        generating function of the statistic can be computed from
         the known data.  Each value represents a generating function
         for one level, as a polynomial, as a dictionary, or as a list
         of coefficients.
@@ -4333,7 +4333,7 @@ class FindStatCollection(Element,
             return self._data["Name"]
         if style == "plural":
             return self._data["NamePlural"]
-        raise ValueError("argument 'style' (=%s) must be 'singular' or 'plural'"%style)
+        raise ValueError("argument 'style' (=%s) must be 'singular' or 'plural'" % style)
 
 from collections import namedtuple
 _SupportedFindStatCollection = namedtuple("SupportedFindStatCollection",

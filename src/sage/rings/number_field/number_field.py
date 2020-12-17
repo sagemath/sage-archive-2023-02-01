@@ -4728,14 +4728,18 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         TESTS:
 
-        Verify that `trac`:29364 is fixed::
+        Verify that :trac:`29364` is fixed::
 
             sage: R.<x> = QQ[]
             sage: L.<t> = NumberField(x^2 - 6058)
             sage: S = L.primes_above(2)
-            sage: L._S_class_group_quotient_matrix(tuple(S))
-            [ 4]
-            [-3]
+            sage: M = L._S_class_group_quotient_matrix(tuple(S))
+            sage: M.dimensions()
+            (2, 1)
+            sage: CG = L.class_group()
+            sage: SCG = L.S_class_group(S)
+            sage: SCG(CG.0^M[0,0] * CG.1^M[1,0]) == SCG.0
+            True
         """
         from sage.matrix.constructor import matrix
         S_clgp_gens = self._S_class_group_and_units(S)[1]

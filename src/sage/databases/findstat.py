@@ -116,32 +116,42 @@ maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
     sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2); r  # optional -- internet
-    0: St000476oMp00099oMp00127 (quality [100, 100])
-    1: St001497oMp00119oMp00127 with offset 1 (quality [100, 100])
-    2: St000147oMp00027oMp00127 (quality [96, 100])
-    3: St000054oMp00064oMp00062 with offset 1 (quality [88, 100])
-    4: St000740oMp00062 with offset 1 (quality [87, 100])
+    0: St000740oMp00066 with offset 1 (quality [100, 100])
+    ...
+    7: St000051oMp00061oMp00069 (quality [87, 86])
     ...
 
-Note that some of the matches are up to a global offset, which is
-then given.  For example, we have::
+Note that some of the matches are up to a global offset.  For
+example, we have::
 
-    sage: r[4].info()                                                           # optional -- internet
+    sage: r[0].info()                                                           # optional -- internet
     after adding 1 to every value
     and applying
-        Mp00062: Lehmer-code to major-code bijection: Permutations -> Permutations
+        Mp00066: inverse: Permutations -> Permutations
     to the objects (see `.compound_map()` for details)
     <BLANKLINE>
     your input matches
         St000740: The last entry of a permutation.
     <BLANKLINE>
-    among the values you sent, 87 percent are actually in the database,
+    among the values you sent, 100 percent are actually in the database,
     among the distinct values you sent, 100 percent are actually in the database
 
 Let us pick another particular result::
 
     sage: s = next(s for s in r if s.statistic().id() == 51); s                 # optional -- internet
     St000051oMp00061oMp00069 (quality [87, 86])
+
+    sage: s.info()
+    after applying
+        Mp00069: complement: Permutations -> Permutations
+        Mp00061: to increasing tree: Permutations -> Binary trees
+    to the objects (see `.compound_map()` for details)
+    <BLANKLINE>
+    your input matches
+        St000051: The size of the left subtree of a binary tree.
+    <BLANKLINE>
+    among the values you sent, 87 percent are actually in the database,
+    among the distinct values you sent, 86 percent are actually in the database
 
 To obtain the value of the statistic sent to FindStat on a given
 object, apply the maps in the list in the given order to this object,
@@ -2426,6 +2436,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             id = id.id_str()
         if not isinstance(id, str):
             raise TypeError("the value '%s' is not a valid FindStat statistic identifier, nor a FindStat statistic query" % id)
+        else:
+            id = id.strip()
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundStatistic(id)
         if not re.match(FINDSTAT_STATISTIC_REGEXP, id) or int(id[2:]) <= 0:
@@ -2712,21 +2724,22 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
             id = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id
         elif isinstance(id, FindStatCombinatorialStatistic):
             id = id.id_str()
-        self._id = id
         if domain is not None:
             self._domain = FindStatCollection(domain)
         else:
             self._domain = None
-        composition = id.partition("o")
+        composition = id.partition(FINDSTAT_MAP_SEPARATOR)
         self._statistic = FindStatStatistic(composition[0])
         if composition[2]:
             self._maps = FindStatCompoundMap(composition[2], domain=self._domain)
+            self._id = self._statistic.id_str() + FINDSTAT_MAP_SEPARATOR + self._maps.id_str()
             if self._domain is None:
                 self._domain = self._maps.domain()
         else:
             if self._domain is None:
                 self._domain = self._statistic.domain()
             self._maps = FindStatCompoundMap("", domain=self._domain, codomain=self._domain)
+            self._id = self._statistic.id_str()
         if (check
             and self._maps.codomain() != self._statistic.domain()):
             raise ValueError("the statistic %s cannot be composed with the map %s" % (self._statistic, self._maps))
@@ -3297,6 +3310,8 @@ class FindStatMaps(UniqueRepresentation, Parent):
             id = id.id_str()
         if not isinstance(id, str):
             raise TypeError("the value %s is neither an integer nor a string" % id)
+        else:
+            id = id.strip()
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundMap(id)
         if not re.match(FINDSTAT_MAP_REGEXP, id) or id == FINDSTAT_MAP_PADDED_IDENTIFIER % 0:
@@ -3548,8 +3563,7 @@ class FindStatCompoundMap(Element, FindStatCombinatorialMap):
             self._domain = FindStatCollection(domain)
             self._codomain = self._domain
         else:
-            self._id = id
-            self._maps = [FindStatMap(m) for m in id.split("o")][::-1]
+            self._maps = [FindStatMap(m) for m in id.split(FINDSTAT_MAP_SEPARATOR)][::-1]
             if (check
                 and not all(self._maps[i].codomain() == self._maps[i+1].domain()
                             for i in range(len(self._maps)-1))):
@@ -3562,6 +3576,7 @@ class FindStatCompoundMap(Element, FindStatCombinatorialMap):
                 self._codomain = self._maps[-1].codomain()
             else:
                 self._codomain = FindStatCollection(codomain)
+            self._id = FINDSTAT_MAP_SEPARATOR.join(m.id_str() for m in reversed(self._maps))
 
         Element.__init__(self, FindStatMaps()) # this is not completely correct, but it works
 

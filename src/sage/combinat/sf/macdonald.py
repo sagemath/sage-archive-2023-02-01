@@ -123,8 +123,8 @@ class Macdonald(UniqueRepresentation):
         self.q = Sym.base_ring()(q)
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
-        if str(q) !='q':
-            self._name_suffix += " with q=%s"%q
+        if str(q) != 'q':
+            self._name_suffix += " with q=%s" % q
             if str(t) !='t':
                 self._name_suffix += " and "
         if str(t) !='t':
@@ -616,7 +616,7 @@ def cmunu1(mu, nu):
 
     INPUT:
 
-    - ``mu``, ``nu`` -- partitions with ``nu`` preceeds ``mu``
+    - ``mu``, ``nu`` -- partitions with ``nu`` precedes ``mu``
 
     OUTPUT:
 

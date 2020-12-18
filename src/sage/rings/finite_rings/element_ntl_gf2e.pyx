@@ -93,9 +93,6 @@ cdef int late_import() except -1:
     import sage.rings.finite_rings.integer_mod_ring
     IntegerModRing_generic = sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic
 
-    import sage.rings.integer
-    Integer = sage.rings.integer.Integer
-
     import sage.rings.rational
     Rational = sage.rings.rational.Rational
 
@@ -164,6 +161,9 @@ cdef class Cache_ntl_gf2e(Cache_base):
             GF2_conv_long(c, modulus[i])
             GF2X_SetCoeff(ntl_m, i, c)
         self.F = GF2EContext_c(ntl_m)
+        self.F.restore()
+        self._order = Integer(1) << GF2E_degree()
+        self._degree = Integer(GF2E_degree())
 
     def __init__(self, parent, Py_ssize_t k, modulus):
         """
@@ -254,8 +254,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
             sage: k._cache.order()
             18446744073709551616
         """
-        self.F.restore()
-        return Integer(1) << GF2E_degree()
+        return self._order
 
     def degree(self):
         r"""
@@ -267,8 +266,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
             sage: k._cache.degree()
             64
         """
-        self.F.restore()
-        return Integer(GF2E_degree())
+        return self._degree
 
     def import_data(self, e):
         """
@@ -330,7 +328,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
             return self.fetch_int(ztmp)
 
         elif isinstance(e, (list, tuple)):
-            if len(e) > self.degree():
+            if len(e) > self._degree:
                 # could reduce here...
                 raise ValueError("list is too long")
             ztmp = Integer(e,2)
@@ -425,26 +423,30 @@ cdef class Cache_ntl_gf2e(Cache_base):
             sage: K._cache.fetch_int(0r)
             0
         """
-        cdef FiniteField_ntl_gf2eElement a = self._new()
+        cdef FiniteField_ntl_gf2eElement a
         cdef GF2X_c _a
+        cdef int n
 
         self.F.restore()
 
-        if number < 0 or number >= self.order():
+        if number < 0 or number >= self._order:
             raise TypeError("n must be between 0 and self.order()")
 
         if isinstance(number, int) or isinstance(number, long):
             if not number:
                 n = 0
             else:
-                n = int(Integer(number).nbits()) // 8 + 1
+                n = int(Integer(number).nbits())
+                n = n // 8 + 1
         elif isinstance(number, Integer):
-            n = int(number.nbits()) // 8 + 1
+            n = int(number.nbits())
+            n = n // 8 + 1
         else:
             raise TypeError("number %s is not an integer" % number)
 
         cdef unsigned char* p = <unsigned char*>check_malloc(n)
         cdef long i
+        a = self._new()
         for i in range(n):
             p[i] = (number % 256)
             number = number >> 8
@@ -470,7 +472,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
         self.F.restore()
         cdef int i
 
-        P = -(self._gen**(self.degree()))
+        P = -(self._gen**self._degree)
         _P = GF2E_rep(P.x)
 
         ret = []
@@ -672,7 +674,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         # this really should be handled special, its gf2 linear after
         # all
-        a = self ** (self._cache.order() // 2)
+        a = self ** (self._cache._order // 2)
         if all:
             return [a]
         else:
@@ -1166,14 +1168,15 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         F = self._parent
         if not F.is_conway():
             raise NotImplementedError("conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials.")
-        if F.order() > 65536:
-            raise TypeError("order (=%s) must be at most 65536." % F.order())
+        order = F.order()
+        if order > 65536:
+            raise TypeError("order (=%s) must be at most 65536." % order)
         if self == 0:
-            return '0*Z(%s)'%F.order()
+            return '0*Z(%s)' % order
         assert F.degree() > 1
         g = F.multiplicative_generator()
         n = self.log(g)
-        return 'Z(%s)^%s'%(F.order(), n)
+        return 'Z(%s)^%s' % (order, n)
 
     def __hash__(FiniteField_ntl_gf2eElement self):
         """

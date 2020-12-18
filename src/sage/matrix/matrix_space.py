@@ -750,8 +750,10 @@ class MatrixSpace(UniqueRepresentation, Parent):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=None):
+    def _element_constructor_(self, entries, **kwds):
         """
+        Construct an element of ``self`` from ``entries``.
+
         EXAMPLES::
 
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
@@ -846,8 +848,19 @@ class MatrixSpace(UniqueRepresentation, Parent):
             [t]
             sage: MS(t)       # given as a scalar matrix
             [t]
+
+        Calling a matrix space `M` with a matrix in `M` as argument
+        returns the original matrix unless ``copy=True`` is specified
+        (:trac:`31078`)::
+
+            sage: m = Matrix([[0, 1], [2, 3]])
+            sage: M = m.parent()
+            sage: M(m) is m
+            True
+            sage: M(m, copy=True) is m
+            False
         """
-        return self.element_class(self, entries, copy, coerce)
+        return self.element_class(self, entries, **kwds)
 
     def change_ring(self, R):
         """
@@ -1448,7 +1461,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             weight = 0
             while True:
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
-                    yield self(entries=[base_elements[i] for i in iv])
+                    yield self([base_elements[i] for i in iv])
                 weight += 1
                 base_elements.append( next(base_iter) )
         else:
@@ -1459,7 +1472,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             base_elements = list(base_ring)
             for weight in range((order-1)*number_of_entries+1):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
-                   yield self(entries=[base_elements[i] for i in iv])
+                   yield self([base_elements[i] for i in iv])
 
     def __getitem__(self, x):
         """

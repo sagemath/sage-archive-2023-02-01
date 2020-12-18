@@ -2312,7 +2312,7 @@ cdef class Matrix(Matrix0):
 
         from sage.matrix.matrix_space import MatrixSpace
         MZ = MatrixSpace(ring, self._nrows, self._ncols, sparse=False)
-        cdef Matrix M =  MZ(zero, None, None)  # initialize with zeros
+        cdef Matrix M = MZ(zero, coerce=False)  # initialize with zeros
 
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -2552,11 +2552,10 @@ cdef class Matrix(Matrix0):
         """
         if (sparse is None or self.is_sparse() == sparse):
             if self._nrows == nrows and self._ncols == ncols:
-                return self._parent(entries=entries, coerce=coerce, copy=copy)
+                return self._parent(entries, coerce=coerce, copy=copy)
             elif self._nrows == ncols and self._ncols == nrows:
-                return self._parent.transposed(entries=entries, coerce=coerce, copy=copy)
-        return self.matrix_space(nrows, ncols, sparse)(entries=entries,
-                                             coerce=coerce, copy=copy)
+                return self._parent.transposed(entries, coerce=coerce, copy=copy)
+        return self.matrix_space(nrows, ncols, sparse)(entries, coerce=coerce, copy=copy)
 
     def block_sum(self, Matrix other):
         """

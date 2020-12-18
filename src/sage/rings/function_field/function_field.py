@@ -669,6 +669,12 @@ class FunctionField(Field):
             sage: M.<x> = FunctionField(GaussianIntegers().fraction_field())
             sage: M.has_coerce_map_from(L)
             True
+
+        Check that :trac:`31072` is fixed::
+
+            sage: L.<t> = FunctionField(QQ)
+            sage: L(Sequence([1, 2]))
+            2*t + 1
         """
         from .order import FunctionFieldOrder_base
         if isinstance(source, FunctionFieldOrder_base):

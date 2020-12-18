@@ -23,24 +23,21 @@ access to all the properties recorded in the databases, as well.
 
 Be aware that there are a couple of conventions used differently on KnotInfo as
 in Sage, especially concerning the selection of the symmetry version of the link.
-In our transitions to Sage objects these are translated (by default) in order to
-avoid confusion about exchanged mirror versions.
 
-Briefly, these differences are:
+In this context you should note that the PD notation is recorded counter
+clockwise in KnotInfo (see note in :meth:`KnotInfoBase.link`). In our transition
+to Sage objects this is translated (by default) in order to avoid confusion about
+exchanged mirror versions.
 
-- ``pd_notation`` --        KnotInfo: counter clockwise Sage: clockwise, see note
-  in :meth:`KnotInfoBase.link`
+Also, note that the braid notation is used according to Sage, even thought in
+the source where it is taken from, the braid generators are assumed to have a
+negative crossing which would be opposite to the convention in Sage (see definition
+3 of `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
+<https://arxiv.org/abs/math/0401051>`__).
 
-- ``homfly_polynomial`` --  KnotInfo: ``v``  Sage: `1/a`, see note in
-  :meth:`KnotInfoBase.homfly_polynomial`.
-
-- ``braid_notation``    --  This is used accordingly: The crossing of the braid
-  generators are positive in both systems. Here it is listed because there could
-  arise confusion from the source where they are taken from. There, the braid
-  generators are assumed to have a negative crossing (see definition 3  of
-  `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
-  <https://arxiv.org/abs/math/0401051>`__).
-
+For different conventions regarding normalization of the polynomial invariants see
+the according documentation of :meth:`KnotInfoBase.homfly_polynomial`,
+:meth:`KnotInfoBase.jones_polynomial` and :meth:`KnotInfoBase.alexander_polynomial`.
 
 EXAMPLES::
 
@@ -218,6 +215,8 @@ REFERENCES:
 AUTHORS:
 
 - Sebastian Oehms August 2020: initial version
+
+Thanks to Chuck Livingston and Allison Moore for their support.
 """
 
 
@@ -861,9 +860,18 @@ class KnotInfoBase(Enum):
 
         OUTPUT:
 
-        ``True`` if ``self`` is fully or negative amphicheiral per default. if
+        Boolean or ``None`` if this cannot be determined.
+
+        ``True`` if ``self`` is fully or negative amphicheiral per default. If
         ``positive`` is set to ``True`` than fully and positive amphicheiral
         links give ``True``.
+
+        .. NOTE::
+
+            For proper links this property is not provided in the database.
+            Anyway, we support it here in this case, as well, except for a few
+            items where it cannot be determined easily and where ``None``
+            is returned as answer.
 
         EXAMPLES::
 
@@ -879,18 +887,57 @@ class KnotInfoBase(Enum):
             True
             sage: Kn.is_amphicheiral(positive=True)  # optional - database_knotinfo
             False
+
+            sage: KnotInfo.L4a1_0.is_amphicheiral()
+            False
+            sage: KnotInfo.L10n59_1.is_amphicheiral() # optional - database_knotinfo
+            True
+            sage: KnotInfo.L10n59_0.inject()          # optional - database_knotinfo
+            Defining L10n59_0
+            sage: L10n59_0.is_amphicheiral() is None  # optional - database_knotinfo
+            True
         """
-        symmetry_type = self.symmetry_type()
-        if positive:
-            if symmetry_type == 'positive amphicheiral':
+        if self.is_knot():
+            symmetry_type = self.symmetry_type()
+            if positive:
+                if symmetry_type == 'positive amphicheiral':
+                    return True
+            else:
+                if symmetry_type == 'negative amphicheiral':
+                    return True
+
+            if symmetry_type == 'fully amphicheiral':
                 return True
-        else:
-            if symmetry_type == 'negative amphicheiral':
+            return False
+
+        h = self.homfly_polynomial()
+        v, z = h.parent().gens()
+        hm  = h.subs(v=~v, z=-z)
+        if h != hm:
+            return False
+
+        k = self.kauffman_polynomial()
+        a, z = k.parent().gens()
+        km  = k.subs(a=~a)
+        if k != km:
+            return False
+
+        b = self.braid()
+        bi = ~b
+        if b.is_conjugated(bi):
+            # at least negative amphicheiral
+            if not positive:
                 return True
 
-        if symmetry_type == 'fully amphicheiral':
-            return True
-        return False
+        # revert orientation (back)
+        bit = list(bi.Tietze())
+        bit.reverse()
+        bm = b.parent()(tuple(bit))
+        if b.is_conjugated(bm):
+            if positive:
+                return True
+
+        return None
 
     @cached_method
     def is_alternating(self):
@@ -1099,7 +1146,7 @@ class KnotInfoBase(Enum):
         TESTS::
 
             sage: all(L.homfly_polynomial() == L.link().homfly_polynomial(normalization='vz')\
-                      for L in KnotInfo if L.crossing_number() > 0 and L.crossing_number() < 7)
+                      for L in KnotInfo if L.crossing_number() < 7)
             True
 
         REFERENCES:
@@ -1649,20 +1696,85 @@ class KnotInfoBase(Enum):
 
         raise ValueError('Link construction using %s not possible' %use_item)
 
-    def _test_recover(self, **options):
-        r"""
-        Check if ``self`` can be recovered from its conversion to Sage links
-        using the ``pd_notation`` and the ``braid_notation`` and their
-        mirror images.
 
-        The method is used by the ``TestSuite`` of the series of ``self``.
+    @cached_method
+    def is_unique(self):
+        r"""
+        Return whether there is no other isotopic link in the database or not.
+
+        OUTPUT:
+
+        Boolean or ``None`` if this cannot be determined.
 
         EXAMPLES::
 
             sage: from sage.knots.knotinfo import KnotInfo
-            sage: from sage.misc.sage_unittest import instance_tester
-            sage: K = KnotInfo.K6_1
-            sage: K._test_recover(tester=instance_tester(K))
+            sage: KnotInfo.L4a1_0.is_unique()
+            True
+            sage: KnotInfo.L5a1_0.is_unique()
+            False
+            sage: L = KnotInfo.L7a7_0_0              # optional - database_knotinfo
+            sage: L.series(oriented=True).inject()   # optional - database_knotinfo
+            Defining L7a7
+            sage: [(L,L.is_unique()) for L in L7a7]  # optional - database_knotinfo
+            [(<KnotInfo.L7a7_0_0: 'L7a7{0,0}'>, False),
+             (<KnotInfo.L7a7_1_0: 'L7a7{1,0}'>, None),
+             (<KnotInfo.L7a7_0_1: 'L7a7{0,1}'>, False),
+             (<KnotInfo.L7a7_1_1: 'L7a7{1,1}'>, True)]
+        """
+        # an isotopic pair must have the same unoriented name. So, we can focus
+        # on such series
+        if self.is_knot():
+            return True
+        S  = self.series(oriented=True)
+        hp = self.homfly_polynomial()
+        Sl = S.list(homfly=hp)
+        if len(Sl) == 1:
+            return True
+        kp = self.kauffman_polynomial()
+        Sl = [L for L in Sl if L != self and L.kauffman_polynomial() == kp]
+        if not Sl:
+            return True
+
+        b = self.braid()
+        for L in Sl:
+            Lb = L.braid()
+            if L.braid() == b:
+                return False
+            if Lb.is_conjugated(b):
+                return False
+
+        return None
+
+    @cached_method
+    def is_recoverable(self, unique=True):
+        r"""
+        Return if ``self`` can be recovered from its conversion to Sage links
+        using the ``pd_notation`` and the ``braid_notation`` and their
+        mirror images.
+
+        The method is indirectly used by the ``TestSuite`` of the series of ``self``.
+
+        INPUT:
+
+        - ``unique`` -- boolean (optional, default=``True``) if set to ``False``
+          it is only checked if ``self``is among the recovered items
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.L4a1_0.inject()
+            Defining L4a1_0
+            sage: L4a1_0.is_recoverable()
+            True
+            sage: L4a1_0.is_recoverable(unique=False)
+            True
+            sage: KnotInfo.L5a1_0.inject()
+            Defining L5a1_0
+            sage: L5a1_0.is_recoverable()
+            False
+            sage: L5a1_0.is_recoverable(unique=False)
+            True
         """
         def recover(mirror, braid):
             r"""
@@ -1676,31 +1788,33 @@ class KnotInfoBase(Enum):
             if mirror:
                 l = l.mirror_image()
 
-            def check_result(L):
+            def check_result(L, m):
                 r"""
                 Check a single result from ``get_knotinfo``
                 """
-                if L == (self, None) or L == (self, '?'):
+                if L != self:
+                    return False
+                if m is None or m == '?':
                     return True
                 if mirror:
-                    return L == (self, True)
+                    return m
                 else:
-                    return L == (self, False)
+                    return not m
 
             try:
-                L = l.get_knotinfo()
-                return check_result(L)
+                L, m = l.get_knotinfo()
+                if isinstance(L, KnotInfoBase):
+                    return check_result(L,m)
+                elif unique:
+                    return False
             except NotImplementedError:
-                Llist = l.get_knotinfo(unique=False)
-                return any(check_result(L) for L in Llist)
+                if unique:
+                    return False
+            Llist = l.get_knotinfo(unique=False)
+            return any(check_result(L, m) for (L, m) in Llist)
 
-        tester = options['tester']
-        tester.assertTrue(recover(False, False))
-        tester.assertTrue(recover(True,  False))
-        tester.assertTrue(recover(False, True))
-        tester.assertTrue(recover(True, True))
-
-
+        from sage.misc.misc import some_tuples
+        return all(recover(mirror, braid) for mirror, braid in some_tuples([True, False], 2, 4))
 
     def inject(self, verbose=True):
         """
@@ -2147,11 +2261,48 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
             res = 'L%s%s' %(cross_nr, alt)
         return res
 
+    def is_recoverable(self, unique=True, max_samples=8):
+        r"""
+        Return if all items of ``self`` can be recovered from its conversion to
+        Sage links using the ``pd_notation`` and the ``braid_notation`` and their
+        mirror images.
+
+        The method is indirectly used by the ``TestSuite``.
+
+        INPUT:
+
+        - ``unique`` -- boolean (optional, default=``True``) see :meth:`KnotInfoBase.is_recoverable`
+        - ``max_samples`` non negative integer or ``infinity`` (optional, default `8`) limits the number of
+          items to check (random sample). If set to ``infinity`` then no limit is set.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.L4a1_0.series().inject()
+            Defining L4a
+            sage: L4a.is_recoverable()
+            True
+            sage: L4a.is_recoverable(unique=False)
+            True
+            sage: KnotInfo.L5a1_0.series().inject()
+            Defining L5a
+            sage: L5a.is_recoverable()
+            False
+            sage: L5a.is_recoverable(unique=False)
+            True
+        """
+        from sage.misc.misc import some_tuples
+        l = self.list(oriented=True)
+        bound = len(l)
+        return all(L.is_recoverable(unique=unique) for L, in some_tuples(l, 1, bound, max_samples=max_samples))
+
     def _test_recover(self, **options):
         r"""
         Method used by ``TestSuite``. Tests if all links of the series can be
-        recovered from their conversion to Sage links. It uses :meth:`_test_recover`
-        of :class:`KnotInfoBase`.
+        recovered from their conversion to Sage links. It uses :meth:`is_recoverable`.
+        Thus, per default maximal `8` items (random sample) are tested. Use the
+        option ``max_samples`` to choose another limit or test all
+        (``max_samples=infinity``)
 
         EXAMPLES::
 
@@ -2162,9 +2313,14 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
             running ._test_recover() . . . pass
+            sage: TestSuite(KnotInfo.K6_1.series()).run(max_samples=infinity)  # indirec doctest
         """
-        for L in self:
-            L._test_recover(**options)
+        tester = options['tester']
+        max_samples = tester._max_samples
+        if max_samples:
+            tester.assertTrue(self.is_recoverable(unique=False, max_samples=max_samples))
+        else:
+            tester.assertTrue(self.is_recoverable(unique=False))
 
 
     def inject(self, verbose=True):

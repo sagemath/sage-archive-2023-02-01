@@ -228,7 +228,7 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     For distributions like Debian that use a multiarch layout, we also try the
     multiarch lib paths (i.e. ``/usr/lib/<arch>/``).
 
-    This returns ``None`` if the file does not exist.
+    This returns ``None`` if no matching library file could be found.
 
     EXAMPLES::
 
@@ -255,7 +255,7 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
             search_directories = [
-                _get_sage_local() / 'bin',
+                Path(SAGE_LOCAL) / 'bin',
                 Path(sysconfig.get_config_var('BINDIR')),
             ]
             # Note: The following is not very robust, since if there are multible
@@ -269,7 +269,7 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
             else:
                 ext = 'so'
 
-            search_directories = [_get_sage_local() / 'lib']
+            search_directories = [Path(SAGE_LOCAL) / 'lib']
             libdir = sysconfig.get_config_var('LIBDIR')
             if libdir is not None:
                 libdir = Path(libdir)
@@ -289,9 +289,6 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
 
     # Just return None if no files were found
     return None
-
-def _get_sage_local() -> Path:
-    return Path(SAGE_LOCAL)
 
 # locate singular shared object
 # On Debian it's libsingular-Singular so try that as well

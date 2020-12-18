@@ -197,14 +197,14 @@ Classes and methods
 -------------------
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Martin Rubey <martin.rubey@tuwien.ac.at>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.lazy_list import lazy_list
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -1245,7 +1245,7 @@ def findmap(*args, **kwargs):
         0: Mp00146 (quality [100])
 
         sage: findmap("Dyck paths", "Set partitions", lambda D: [(a+1, b) for a,b in D.tunnels()]) # optional -- internet
-        0: Mp00092oMp00146 (quality [50])
+        0: Mp00092oMp00146 (quality [...])
 
     Finally, we can also retrieve all maps with a given domain or codomain::
 
@@ -3475,7 +3475,6 @@ class FindStatMapQuery(FindStatMap):
                                         "SageCode": ""},
                                   function=function)
         Element.__init__(self, FindStatMaps()) # this is not completely correct, but it works
-
 
     def __repr__(self):
         """

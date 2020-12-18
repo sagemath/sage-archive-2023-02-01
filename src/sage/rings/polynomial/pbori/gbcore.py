@@ -1,6 +1,6 @@
-
-from .nf import *
-from .PyPolyBoRi import *
+from .nf import GeneratorLimitExceeded, symmGB_F2_C, symmGB_F2_python
+from .PyPolyBoRi import (Monomial, Polynomial,
+                         GroebnerStrategy, OrderCode, ll_red_nf_redsb)
 from .ll import eliminate, ll_encode
 from copy import copy
 from itertools import chain
@@ -15,19 +15,16 @@ from inspect import getfullargspec as getargspec
 
 def get_options_from_function(f):
     (argnames, varargs, varopts, defaults) = getargspec(f)[:4]
-    return dict(
-        zip(
-            argnames[-len(defaults):], defaults))
+    return dict(zip(argnames[-len(defaults):], defaults))
 
 
 def filter_oldstyle_options(**options):
     filtered = dict()
-    for key in options.keys():
+    for key in options:
         newkey = key
         for prefix in ['', 'use_', 'opt_allow_', 'opt_']:
             newkey = newkey.replace(prefix, '')
         filtered[newkey] = options[key]
-
     return filtered
 
 
@@ -43,24 +40,19 @@ def filter_newstyle_options(func, **options):
 
 
 def owns_one_constant(I):
-    """Determines whether I contains the constant one polynomial."""
-    for p in I:
-        if p.is_one():
-            return True
-    return False
+    """
+    Determine whether I contains the constant one polynomial.
+    """
+    return any(p.is_one() for p in I)
 
 
 def want_interpolation_gb(G):
     if not G:
         return False
-    if G[0].ring().get_order_code() != OrderCode.lp:
-        return False
-    if len(G) != 1:
+    if G[0].ring().get_order_code() != OrderCode.lp or len(G) != 1:
         return False
     p = Polynomial(G[0])
-    if p.lead_deg() <= 1:
-        return False
-    if p.set().n_nodes() > 1000:
+    if p.lead_deg() <= 1 or p.set().n_nodes() > 1000:
         return False
     return True
 
@@ -441,21 +433,19 @@ def llfirst_post(I, state, prot, kwds):
     for p in I:
         if p.is_one():
             return [p]
-    else:
-        if len(eliminated) > 0:
-            I = list(chain(I, eliminated))
-            # redsb just for safety, as don't know how option is set
-            kwds = copy(kwds)
-            kwds.update(
-                dict(llfirst=False,
-                llfirstonthefly=False,
-                ll_constants=False,
-                deg_bound=False,
-                other_ordering_first=False,
-                eliminate_identical_variables=False, redsb=True))
-            I = groebner_basis(
-                I, **kwds
-            )
+
+    if eliminated:
+        I = list(chain(I, eliminated))
+        # redsb just for safety, as don't know how option is set
+        kwds = copy(kwds)
+        kwds.update(
+            dict(llfirst=False,
+            llfirstonthefly=False,
+            ll_constants=False,
+            deg_bound=False,
+            other_ordering_first=False,
+            eliminate_identical_variables=False, redsb=True))
+        I = groebner_basis(I, **kwds)
     return I
 
 
@@ -464,11 +454,10 @@ def ll_constants_post(I, state):
     for p in I:
         if p.is_one():
             return [p]
-    else:
-        if len(eliminated) > 0:
-            I = list(chain(I, eliminated))
-            # redsb just for safety, as don't know how option is set
-        return I
+    if eliminated:
+        I = list(chain(I, eliminated))
+        # redsb just for safety, as don't know how option is set
+    return I
 
 
 def result_to_list_post(I, state):

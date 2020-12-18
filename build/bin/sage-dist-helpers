@@ -204,7 +204,7 @@ sdh_setup_bdist_wheel() {
     mkdir -p dist
     rm -f dist/*.whl
     BDIST_DIR="$(mktemp -d)"
-    sage-python23 setup.py --no-user-cfg \
+    python3 setup.py --no-user-cfg \
          bdist_wheel --bdist-dir "$BDIST_DIR" \
          "$@" || sdh_die "Error building a wheel for $PKG_NAME"
 }
@@ -221,7 +221,7 @@ sdh_pip_install() {
 
     mkdir -p dist
     rm -f dist/*.whl
-    sage-python23 -m pip wheel --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
+    python3 -m pip wheel --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
         sdh_die "Error building a wheel for $PKG_NAME"
 
     sdh_store_and_pip_install_wheel .

@@ -292,14 +292,13 @@ Likewise for :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`, and :envvar:`F77FLAGS`.
 
     .. CODE-BLOCK:: text
 
-        exec sage-python23 spkg-install.py
+        exec python3 spkg-install.py
 
    In more detail: ``sage-bootstrap-python`` runs the version of Python
    pre-installed on the machine. Use this if the package may be
-   installed before Sage has built its own Python. ``sage-python23``
-   runs the version of Python built by Sage, either Python 2 or 3,
-   depending on how the build was configured; you should use this
-   script if you are installing a Python package, to make sure that
+   installed before Sage has built its own Python. ``python3``
+   runs the version of Python managed by Sage; you should use this
+   if you are installing a Python package to make sure that
    the libraries are installed in the right place.
 
    By the way, there is also a script ``sage-python``. This should be
@@ -536,17 +535,7 @@ Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
 points to the correct ``pip`` for the Python used by Sage, and includes some
 default flags needed for correct installation into Sage.
 
-If pip will not work but a command like ``python setup.py install``
-will, then the ``spkg-install.in`` script template should call
-``sage-python23`` rather than ``python``. This will ensure that the
-correct version of Python is used to build and install the
-package. The same holds for ``spkg-check.in`` script templates; for
-example, the ``scipy`` ``spkg-check.in`` file contains the line
-
-.. CODE-BLOCK:: bash
-
-    exec sage-python23 spkg-check.py
-
+If pip will not work, you may try a command like ``python3 setup.py install``.
 
 .. _section-spkg-SPKG-txt:
 

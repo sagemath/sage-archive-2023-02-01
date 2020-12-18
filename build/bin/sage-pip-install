@@ -17,8 +17,8 @@ pip_install_flags="--ignore-installed --verbose --no-deps --no-index --isolated"
 # Note: We need to take care to specify the full path to Sage's Python here
 # to emphasize that this command should use it, and not the system Python;
 # see https://trac.sagemath.org/ticket/18438
-# But now we delegate this to sage-python23.
-PYTHON=sage-python23
+# But now we delegate this to python3.
+PYTHON=python3
 
 # The PIP variable is only used to determine the name of the lock file.
 PIP=pip3

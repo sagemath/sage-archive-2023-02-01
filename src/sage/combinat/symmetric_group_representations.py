@@ -13,7 +13,7 @@ Representations of the Symmetric Group
     Group"
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -25,14 +25,14 @@ Representations of the Symmetric Group
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.partition import Partition, Partitions
-from sage.combinat.permutation import Permutation, Permutations
+from sage.combinat.permutation import Permutation, Permutations, from_cycles
 from sage.combinat.tableau import StandardTableaux, Tableau
 from sage.combinat.yang_baxter_graph import YangBaxterGraph_partition
 from sage.groups.perm_gps.constructor import PermutationGroupElement as PermutationConstructor
@@ -42,8 +42,12 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSets
 
-##### Constructor function ################################################
+# #### Constructor function ################################################
+
 
 def SymmetricGroupRepresentation(partition, implementation="specht",
         ring=None, cache_matrices=True):
@@ -177,6 +181,7 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
     else:
         raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
 
+
 def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
         cache_matrices=True):
     r"""
@@ -251,9 +256,10 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
     else:
         raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
 
-##### Generic classes for symmetric group representations #################
+# #### Generic classes for symmetric group representations #################
 
-class SymmetricGroupRepresentation_generic_class(SageObject):
+
+class SymmetricGroupRepresentation_generic_class(Element):
     r"""
     Generic methods for a representation of the symmetric group.
     """
@@ -282,9 +288,13 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             True
         """
         self._partition = Partition(partition)
-        self._ring = ring if not ring is None else self._default_ring
-        if cache_matrices is False:
+        self._n = self._partition.size()
+        self._ring = ring if ring is not None else self._default_ring
+        if not cache_matrices:
             self.representation_matrix = self._representation_matrix_uncached
+        Element.__init__(self,
+                         SymmetricGroupRepresentations_class(self._n, ring,
+                                                             cache_matrices))
 
     def __hash__(self):
         r"""
@@ -326,11 +336,10 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             sage: spc.important_info = 'Sage rules'
             sage: spc == SymmetricGroupRepresentation([3])
             True
-
         """
         if not isinstance(other, type(other)):
             return False
-        return (self._ring,self._partition)==(other._ring,other._partition)
+        return (self._ring, self._partition) == (other._ring, other._partition)
 
     def __call__(self, permutation):
         r"""
@@ -356,7 +365,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             sage: list(spc)
             [[1], [-1], [-1], [1], [1], [-1]]
         """
-        for permutation in Permutations(self._partition.size()):
+        for permutation in Permutations(self._n):
             yield self.representation_matrix(permutation)
 
     def verify_representation(self):
@@ -374,23 +383,20 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             sage: spc.verify_representation()
             True
         """
-        n = self._partition.size()
-        transpositions = []
-        for i in range(1, n):
-            si = Permutation(list(range(1,i)) + [i+1,i] + list(range(i+2,n+1)))
-            transpositions.append(si)
-        repn_matrices = [self.representation_matrix(_) for _ in transpositions]
-        for (i,si) in enumerate(repn_matrices):
-            for (j,sj) in enumerate(repn_matrices):
+        n = self._n
+        transpositions = [from_cycles(n, ((i, i + 1),)) for i in range(1, n)]
+        repn_matrices = [self.representation_matrix(t) for t in transpositions]
+        for i, si in enumerate(repn_matrices):
+            for j, sj in enumerate(repn_matrices):
                 if i == j:
-                    if si*sj != si.parent().identity_matrix():
+                    if si * sj != si.parent().identity_matrix():
                         return False, "si si != 1 for i = %s" % (i,)
-                elif abs(i-j) > 1:
-                    if si*sj != sj*si:
-                        return False, "si sj != sj si for (i,j) =(%s,%s)" % (i,j)
+                elif abs(i - j) > 1:
+                    if si * sj != sj * si:
+                        return False, "si sj != sj si for (i,j) =(%s,%s)" % (i, j)
                 else:
-                    if si*sj*si != sj*si*sj:
-                        return False, "si sj si != sj si sj for (i,j) = (%s,%s)" % (i,j)
+                    if si * sj * si != sj * si * sj:
+                        return False, "si sj si != sj si sj for (i,j) = (%s,%s)" % (i, j)
         return True
 
     def to_character(self):
@@ -428,14 +434,14 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             [4, 2, 2, 1, 1, 2, 2, 0, 1, 0, 0, 1, 1, 0, 2, 1, 0, 0, 0, 1, 1, 2, 0, 0]
             sage: [p.to_matrix().trace() for p in Permutations(4)]
             [4, 2, 2, 1, 1, 2, 2, 0, 1, 0, 0, 1, 1, 0, 2, 1, 0, 0, 0, 1, 1, 2, 0, 0]
-
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         Sym = SymmetricGroup(sum(self._partition))
         values = [self(g).trace() for g in Sym.conjugacy_classes_representatives()]
         return Sym.character(values)
 
-class SymmetricGroupRepresentations_class(CombinatorialClass):
+
+class SymmetricGroupRepresentations_class(Parent):
     r"""
     Generic methods for the CombinatorialClass of irreducible
     representations of the symmetric group.
@@ -454,8 +460,10 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
             True
         """
         self._n = n
-        self._ring = ring if not ring is None else self._default_ring
+        self._ring = ring if ring is not None else self._default_ring
         self._cache_matrices = cache_matrices
+        Parent.__init__(self, facade=Partitions(n),
+                        category=FiniteEnumeratedSets())
 
     def __call__(self, partition):
         r"""
@@ -476,6 +484,9 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         return self.object_class(partition, ring=self._ring,
                 cache_matrices=self._cache_matrices)
 
+    def cardinality(self):
+        return Partitions(self._n).cardinality()
+
     def __iter__(self):
         r"""
         Iterate through all the irreducible representations of the
@@ -493,7 +504,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
             yield self.object_class(partition, ring=self._ring,
                     cache_matrices=self._cache_matrices)
 
-##### Young's Seminormal Representation ###################################
+# #### Young's Seminormal Representation ###################################
+
 
 class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
     r"""
@@ -512,15 +524,15 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
             Yang-Baxter graph of [3, 2], with top vertex (0, -1, 2, 1, 0)
         """
         Y = YangBaxterGraph_partition(self._partition)
-        n = self._partition.size()
+        n = self._n
         # relabel vertices with "vector of contents"
-        Y.relabel_vertices(\
-            partition_to_vector_of_contents(self._partition, reverse=True))
+        Y.relabel_vertices(partition_to_vector_of_contents(self._partition,
+                                                           reverse=True))
         # relabel edges with "differences"
         edge_relabel_dict = {}
-        for (u,v,op) in Y.edges():
-            i = op.position()+1
-            edge_relabel_dict[u,v] = (n-i,QQ((1,u[i]-u[i-1])))
+        for u, v, op in Y.edges():
+            i = op.position() + 1
+            edge_relabel_dict[u, v] = (n - i, QQ((1, u[i] - u[i - 1])))
         Y.relabel_edges(edge_relabel_dict)
         return Y
 
@@ -542,11 +554,12 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         """
         # construct a dictionary pairing vertices with tableau
         t = StandardTableaux(self._partition).last()
-        tableau_dict = {self._yang_baxter_graph.root():t}
-        for (u,w,(i,beta)) in self._yang_baxter_graph._edges_in_bfs():
+        tableau_dict = {self._yang_baxter_graph.root(): t}
+        for (u, w, (i, beta)) in self._yang_baxter_graph._edges_in_bfs():
             # TODO: improve the following
-            si = PermutationConstructor((i,i+1))
-            tableau_dict[w] = Tableau([[si(_) for _ in row] for row in tableau_dict[u]])
+            si = PermutationConstructor((i, i + 1))
+            tableau_dict[w] = Tableau([[si(b) for b in row]
+                                       for row in tableau_dict[u]])
         return tableau_dict
 
     @lazy_attribute
@@ -565,10 +578,8 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
              (2, 0, -1, 1, 0): (3, 4, 1, 2, 5),
              (2, 0, 1, -1, 0): (2, 4, 1, 3, 5)}
         """
-        word_dict = {}
-        for (v,t) in self._tableau_dict.items():
-            word_dict[v] = sum(reversed(t), ())
-        return word_dict
+        return {v: sum(reversed(t), ())
+                for v, t in self._tableau_dict.items()}
 
     @cached_method
     def representation_matrix_for_simple_transposition(self, i):
@@ -598,31 +609,31 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         if not(1 <= i < sum(self._partition)):
             raise TypeError
         Y = self._yang_baxter_graph
-        index_lookup = dict((b,a) for (a,b) in enumerate(list(Y)))
+        index_lookup = {b: a for a, b in enumerate(list(Y))}
         digraph = copy(Y._digraph)
-        digraph.delete_edges((u,v) for (u,v,(j,beta))
-                in digraph.edges() if j != i)
+        digraph.delete_edges((u, v) for (u, v, (j, beta)) in digraph.edges()
+                             if j != i)
         M = matrix(self._ring, digraph.num_verts())
         for g in digraph.connected_components_subgraphs():
             if g.num_verts() == 1:
                 [v] = g.vertices()
                 w = self._word_dict[v]
                 trivial = None
-                for (j, a) in enumerate(w):
-                    if a == i and w[j+1]==i+1:
+                for j, a in enumerate(w):
+                    if a == i and w[j + 1] == i + 1:
                         trivial = True
                         break
-                    elif a == i+1:
+                    elif a == i + 1:
                         trivial = False
                         break
                 j = index_lookup[v]
-                M[j,j] = 1 if trivial is True else -1
+                M[j, j] = 1 if trivial is True else -1
             else:
-                [(u,v,(j,beta))] = g.edges()
+                [(u, v, (j, beta))] = g.edges()
                 iu = index_lookup[u]
                 iv = index_lookup[v]
-                M[iu,iu], M[iu,iv], M[iv,iu], M[iv,iv] = \
-                        self._2x2_matrix_entries(beta)
+                M[iu, iu], M[iu, iv], M[iv, iu], M[iv, iv] = \
+                    self._2x2_matrix_entries(beta)
         return M
 
     def _representation_matrix_uncached(self, permutation):
@@ -686,6 +697,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         """
         return self._representation_matrix_uncached(permutation)
 
+
 class YoungRepresentation_Seminormal(YoungRepresentation_generic):
     _default_ring = QQ
 
@@ -717,12 +729,15 @@ class YoungRepresentation_Seminormal(YoungRepresentation_generic):
             sage: snorm._2x2_matrix_entries(1/2)
             (-1/2, 3/2, 1/2, 1/2)
         """
-        return (-beta, 1+beta, 1-beta, beta)
+        return (-beta, 1 + beta, 1 - beta, beta)
+
 
 class YoungRepresentations_Seminormal(SymmetricGroupRepresentations_class):
     _default_ring = QQ
 
     object_class = YoungRepresentation_Seminormal
+
+    Element = YoungRepresentation_Seminormal
 
     def __repr__(self):
         r"""
@@ -736,7 +751,8 @@ class YoungRepresentations_Seminormal(SymmetricGroupRepresentations_class):
         """
         return "Seminormal representations of the symmetric group of order %s! over %s" % (self._n, self._ring)
 
-##### Young's Orthogonal Representation ###################################
+# #### Young's Orthogonal Representation ###################################
+
 
 class YoungRepresentation_Orthogonal(YoungRepresentation_generic):
     _default_ring = SR
@@ -769,12 +785,15 @@ class YoungRepresentation_Orthogonal(YoungRepresentation_generic):
             sage: orth._2x2_matrix_entries(1/2)
             (-1/2, 1/2*sqrt(3), 1/2*sqrt(3), 1/2)
         """
-        return (-beta, sqrt(1-beta**2), sqrt(1-beta**2), beta)
+        return (-beta, sqrt(1 - beta**2), sqrt(1 - beta**2), beta)
+
 
 class YoungRepresentations_Orthogonal(SymmetricGroupRepresentations_class):
     _default_ring = SR
 
     object_class = YoungRepresentation_Orthogonal
+
+    Element = YoungRepresentation_Orthogonal
 
     def __repr__(self):
         r"""
@@ -788,7 +807,8 @@ class YoungRepresentations_Orthogonal(SymmetricGroupRepresentations_class):
         """
         return "Orthogonal representations of the symmetric group of order %s! over %s" % (self._n, self._ring)
 
-##### Specht Representation ###############################################
+# #### Specht Representation ###############################################
+
 
 class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
     def __repr__(self):
@@ -831,7 +851,7 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
             [(3, 3, 0, 0, 0), (3, 0, 3, 0, 0), (3, 0, 0, 3, 0), (0, 3, 3, 0, 0), (0, 3, 0, 3, 0)]
         """
         top = self._yang_baxter_graph.root()
-        exponents = tuple(i-x for (i,x) in enumerate(reversed(top)))[::-1]
+        exponents = tuple(i - x for i, x in enumerate(reversed(top)))[::-1]
         relabelling = self._yang_baxter_graph.vertex_relabelling_dict(exponents)
         return [relabelling[u] for u in self._yang_baxter_graph]
 
@@ -853,7 +873,7 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
             sage: spc.scalar_product((1,0,2,1,0),(3,0,0,3,0))
             0
         """
-        uv = [a + v[i] + 1 for (i,a) in enumerate(u)]
+        uv = [a + v[i] + 1 for i, a in enumerate(u)]
         if uv not in Permutations():
             return 0
         else:
@@ -876,11 +896,11 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
             [ 0  0  1]
         """
         if permutation is None:
-            permutation = Permutation(range(1,1+self._partition.size()))
+            permutation = Permutation(range(1, 1 + self._n))
         Q = matrix(QQ, len(self._yang_baxter_graph))
-        for (i,v) in enumerate(self._dual_vertices):
-            for (j,u) in enumerate(self._yang_baxter_graph):
-                Q[i,j] = self.scalar_product(tuple(permutation.action(v)), u)
+        for i, v in enumerate(self._dual_vertices):
+            for j, u in enumerate(self._yang_baxter_graph):
+                Q[i, j] = self.scalar_product(tuple(permutation.action(v)), u)
         return Q
 
     @lazy_attribute
@@ -901,7 +921,7 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
     @cached_method
     def representation_matrix(self, permutation):
         r"""
-        Returns the matrix representing the ``permutation`` in this
+        Return the matrix representing the ``permutation`` in this
         irreducible representation.
 
         .. NOTE::
@@ -924,7 +944,7 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
 
     def _representation_matrix_uncached(self, permutation):
         r"""
-        Returns the matrix representing the ``permutation`` in this
+        Return the matrix representing the ``permutation`` in this
         irreducible representation.
 
         EXAMPLES::
@@ -942,8 +962,11 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
         R = self.scalar_product_matrix(permutation)
         return self._scalar_product_matrix_inverse * R
 
+
 class SpechtRepresentations(SymmetricGroupRepresentations_class):
     object_class = SpechtRepresentation
+
+    Element = SpechtRepresentation
 
     _default_ring = ZZ
 
@@ -959,11 +982,12 @@ class SpechtRepresentations(SymmetricGroupRepresentations_class):
         """
         return "Specht representations of the symmetric group of order %s! over %s" % (self._n, self._ring)
 
-###### Miscellaneous functions ############################################
+# ##### Miscellaneous functions ############################################
+
 
 def partition_to_vector_of_contents(partition, reverse=False):
     r"""
-    Returns the "vector of contents" associated to ``partition``.
+    Return the "vector of contents" associated to ``partition``.
 
     EXAMPLES::
 
@@ -972,8 +996,8 @@ def partition_to_vector_of_contents(partition, reverse=False):
         (0, 1, 2, -1, 0)
     """
     v = []
-    for (i,p) in enumerate(partition):
-        v.extend(range(-i,-i+p))
+    for i, p in enumerate(partition):
+        v.extend(range(-i, -i + p))
     if reverse:
         return tuple(v)[::-1]
     return tuple(v)

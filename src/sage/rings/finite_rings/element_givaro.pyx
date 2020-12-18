@@ -560,7 +560,7 @@ cdef class Cache_givaro(Cache_base):
         sig_off()
         return r
 
-    cpdef FiniteField_givaroElement fetch_int(self, int n):
+    cpdef FiniteField_givaroElement fetch_int(self, number):
         r"""
         Given an integer ``n`` return a finite field element in ``self``
         which equals ``n`` under the condition that :meth:`gen()` is set to
@@ -576,7 +576,8 @@ cdef class Cache_givaro(Cache_base):
             sage: 2^7 + 2^4 + 2^2 + 2 + 1
             151
         """
-        if n < 0 or n > self.order():
+        cdef int n = number
+        if n < 0 or n > self.order_c():
             raise TypeError("n must be between 0 and self.order()")
 
         cdef int ret = self.int_to_log(n)

@@ -400,7 +400,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
 
         raise ValueError("Cannot coerce element %s to this field." % e)
 
-    cpdef FiniteField_ntl_gf2eElement fetch_int(self, int number):
+    cpdef FiniteField_ntl_gf2eElement fetch_int(self, number):
         """
         Given an integer less than `p^n` with base `2`
         representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns

@@ -236,6 +236,7 @@ from sage.modules.free_module_element import vector
 
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
+from sage.structure.category_object import CategoryObject
 
 from .differential import DifferentialsSpace, DifferentialsSpace_global
 
@@ -678,7 +679,7 @@ class FunctionField(Field):
             K_to_self = self.coerce_map_from(K)
             if source_to_K and K_to_self:
                 return K_to_self * source_to_K
-        if source in FunctionFields():
+        if isinstance(source, CategoryObject) and source in FunctionFields():
             if source.base_field() is source:
                 if self.base_field() is self:
                     # source and self are rational function fields
@@ -4343,7 +4344,6 @@ class RationalFunctionField(FunctionField):
             sage: f(x^2)
             5*y^2 + (x^3 + 6*x + 4)*y + 2*x^3 + 5*x + 4
         """
-        from sage.structure.category_object import CategoryObject
         if isinstance(im_gens, CategoryObject):
             return self.Hom(im_gens).natural_map()
         if not isinstance(im_gens, (list,tuple)):

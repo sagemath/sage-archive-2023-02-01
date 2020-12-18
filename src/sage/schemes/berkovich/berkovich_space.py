@@ -487,7 +487,8 @@ class Berkovich_Cp_Affine(Berkovich_Cp):
             sage: latex(B)
             \text{Affine Berkovich line over } \Bold{C}_{3}
         """
-        return r"\text{Affine Berkovich line over } \Bold{C}_{%s}" %(self.prime())
+        return r"\text{Affine Berkovich line over } \Bold{C}_{%s}" % (self.prime())
+
 
 class Berkovich_Cp_Projective(Berkovich_Cp):
     r"""
@@ -496,7 +497,7 @@ class Berkovich_Cp_Projective(Berkovich_Cp):
     The Berkovich projective line is the one-point compactification
     of the Berkovich affine line.
 
-    We can represent the Berkovich projective line in two saperate ways:
+    We can represent the Berkovich projective line in two separate ways:
     either using a p-adic field to represent elements or using
     a number field to represent elements while storing an ideal
     of the ring of integers of the number field, which specifies

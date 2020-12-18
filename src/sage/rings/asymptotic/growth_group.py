@@ -2128,7 +2128,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
             sage: G_ZZ('x', raw_element=42)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Input is ambiguous: x as well as raw_element=42 are specified.
+            ValueError: input is ambiguous: x as well as raw_element=42 are specified
 
         ::
 
@@ -2212,9 +2212,9 @@ class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
             if raw_element is None:
                 raise ValueError('%s is not in %s.' % (data, self))
         elif not isinstance(data, int) or data != 0:
-            raise ValueError('Input is ambiguous: '
+            raise ValueError('input is ambiguous: '
                              '%s as well as raw_element=%s '
-                             'are specified.' % (data, raw_element))
+                             'are specified' % (data, raw_element))
 
         return self.element_class(self, raw_element)
 

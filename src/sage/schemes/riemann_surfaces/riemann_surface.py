@@ -750,7 +750,7 @@ class RiemannSurface(object):
         A list of points the same length as ``oldw`` corresponding to the new
         newton iterated points.
 
-        However, if the Newton iteration exceedes the allotted attempts,
+        However, if the Newton iteration exceeds the allotted attempts,
         or exits the ``epsilon`` ball, raises a convergence error.
 
         EXAMPLES:
@@ -840,7 +840,7 @@ class RiemannSurface(object):
 
         A complex number, which should be a w-value above ``z0``.
 
-        However, if the Newton iteration exceedes the allotted attempts,
+        However, if the Newton iteration exceeds the allotted attempts,
         or exits the ``epsilon`` ball, raises a convergence error.
 
         EXAMPLES:

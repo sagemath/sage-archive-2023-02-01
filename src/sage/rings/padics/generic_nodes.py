@@ -758,8 +758,8 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
         OUTPUT:
 
-         - A tuple (a, b, c) which satisfies `a = b*f + c*g`. There
-           is not guarantee that a, b, and c are minimal.
+         - A tuple (a, b, c) which satisfies ``a = b*f + c*g``. There
+           is no guarantee that a, b, and c are minimal.
 
         .. WARNING::
 
@@ -820,7 +820,7 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
     def _gcd_univariate_polynomial(self, f, g):
         """
-        gcd for univariate polynomial rings over self.
+        gcd for univariate polynomial rings over ``self``.
 
         INPUT:
 
@@ -837,7 +837,8 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
             sage: h.gcd(h*i)
             (3 + O(3^21))*x + a + O(3^20)
         """
-        return self._xgcd_univariate_polynomial(f , g)[0]
+        return self._xgcd_univariate_polynomial(f, g)[0]
+
 
 def is_pAdicField(R):
     """
@@ -851,6 +852,7 @@ def is_pAdicField(R):
         True
     """
     return isinstance(R, pAdicFieldGeneric)
+
 
 class pAdicFieldGeneric(pAdicGeneric, Field):
     pass

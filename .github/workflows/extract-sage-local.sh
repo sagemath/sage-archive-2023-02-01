@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # to be run from $SAGE_ROOT, with arguments sage-local-${{ env.PREVIOUS_STAGES }}.tar
 
-if [ -z "$PREFIX" ]; then
-    PREFIX=$(pwd)/local
+if [ -z "$SAGE_LOCAL" ]; then
+    SAGE_LOCAL=$(pwd)/local
 fi
 
 # Show all tar files
@@ -17,11 +17,11 @@ done
 
 # We set the installation records to the same mtime so that no rebuilds due to dependencies
 # among these packages are triggered.
-(cd "$PREFIX"/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *)
+(cd "$SAGE_LOCAL"/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *)
 
 # Show what has been built already.
-ls -l "$PREFIX" "$PREFIX"/local/var/lib/sage/installed/
+ls -l "$SAGE_LOCAL" "$SAGE_LOCAL"/local/var/lib/sage/installed/
 df -h
 
 # Rebase!
-src/bin/sage-rebase.sh "$PREFIX"
+src/bin/sage-rebase.sh "$SAGE_LOCAL"

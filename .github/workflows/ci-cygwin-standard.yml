@@ -49,11 +49,11 @@ jobs:
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -71,7 +71,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       # upload-artifact@v2 does not support whitespace in file names.
@@ -108,11 +108,11 @@ jobs:
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -130,7 +130,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --remove-files "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       # upload-artifact@v2 does not support whitespace in file names.
@@ -175,15 +175,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -201,7 +201,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       # upload-artifact@v2 does not support whitespace in file names.
@@ -244,15 +244,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -270,7 +270,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -311,15 +311,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -337,7 +337,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -378,15 +378,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -404,7 +404,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -445,15 +445,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -471,7 +471,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -514,15 +514,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -540,7 +540,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -583,15 +583,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -609,7 +609,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -650,15 +650,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -676,7 +676,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -717,15 +717,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -743,7 +743,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the $SAGE_LOCAL/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -784,15 +784,15 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="$SAGE_LOCAL" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
       shell: bash
       run: |
-        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "$SAGE_LOCAL"/var/tmp/sage/build/*; do if [ -d $a ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename $a).tar" $a; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
+        mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/*  "artifacts/$LOGS_ARTIFACT_NAME"
       if: always()
     - uses: actions/upload-artifact@v2
       with:
@@ -810,7 +810,7 @@ jobs:
       # We specifically use the cygwin tar so that symlinks are saved/restored correctly on Windows.
       # We remove the local/lib64 link, which will be recreated by the next stage.
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "$SAGE_LOCAL"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "$SAGE_LOCAL"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && rm -f "${{ env.SAGE_LOCAL }}"/lib64; tar -cf /tmp/sage-local-${{ env.STAGE }}.tar --listed-incremental=/tmp/sage-local.snar "${{ env.SAGE_LOCAL }}"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:

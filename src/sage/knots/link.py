@@ -1155,7 +1155,42 @@ class Link(SageObject):
             sage: K = Link(b)
             sage: K.khovanov_homology(degree = 2)
             {2: {2: 0}, 4: {2: Z}, 6: {2: Z}}
+
+        TESTS:
+
+        Check that :trac:`31001` is fixed::
+
+            sage: L = Link([])
+            sage: L.khovanov_homology()
+            {-1: {0: Z}, 1: {0: Z}}
+            sage: L.khovanov_homology(height=-1)
+            {-1: {0: Z}}
+            sage: L.khovanov_homology(height=0)
+            {}
+            sage: L.khovanov_homology(QQ, height=1)
+            {1: {0: Vector space of dimension 1 over Rational Field}}
+            sage: L.khovanov_homology(GF(2), degree=0)
+            {-1: {0: Vector space of dimension 1 over Finite Field of size 2},
+             1: {0: Vector space of dimension 1 over Finite Field of size 2}}
+            sage: L.khovanov_homology(degree=1)
+            {}
+            sage: L.khovanov_homology(degree=0, height=1)
+            {1: {0: Z}}
+            sage: L.khovanov_homology(degree=1, height=1)
+            {}
         """
+        if not self.pd_code():  # special case for the unknot with no crossings
+            from sage.homology.homology_group import HomologyGroup
+            homs = {-1: {0: HomologyGroup(1, ring, [0])},
+                    1: {0: HomologyGroup(1, ring, [0])}}
+            if height is not None:
+                if height not in homs:
+                    return {}
+                homs = {height: homs[height]}
+            if degree is not None:
+                homs = {ht: {degree: homs[ht][degree]} for ht in homs if degree in homs[ht]}
+            return homs
+
         if height is not None:
             heights = [height]
         else:
@@ -1886,6 +1921,11 @@ class Link(SageObject):
         We look at the Gauss code if the sign is alternating, ``True``
         is returned else the knot is not alternating ``False`` is returned.
 
+        .. NOTE::
+
+            Links with more than one component are considered to not
+            be alternating (knots).
+
         EXAMPLES::
 
             sage: B = BraidGroup(4)
@@ -1904,10 +1944,20 @@ class Link(SageObject):
             sage: L = Link(B([-1,2,-1,2]))
             sage: L.is_alternating()
             True
+
+        TESTS:
+
+        Check that :trac:`31001` is fixed::
+
+            sage: L = Knot([])
+            sage: L.is_alternating()
+            True
         """
         if not self.is_knot():
             return False
         x = self.gauss_code()
+        if not x:
+            return True
         s = [Integer(i).sign() for i in x[0]]
         return (s == [(-1) ** (i + 1) for i in range(len(x[0]))]
                 or s == [(-1) ** i for i in range(len(x[0]))])
@@ -2349,6 +2399,8 @@ class Link(SageObject):
             1
             sage: b.jones_polynomial()
             -sqrt(t) - 1/sqrt(t)
+            sage: L.jones_polynomial()
+            1
             sage: L.jones_polynomial(algorithm='statesum')
             1
 
@@ -2362,6 +2414,11 @@ class Link(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: bad value of algorithm
+
+        Check that :trac:`31001` is fixed::
+
+            sage: L.jones_polynomial()
+            1
         """
         if algorithm == 'statesum':
             poly = self._bracket()
@@ -2384,7 +2441,14 @@ class Link(SageObject):
                 # We force the result to be in the symbolic ring because of the expand
                 return jones(SR(variab)**(ZZ(1)/ZZ(4))).expand()
         elif algorithm == 'jonesrep':
-            return self.braid().jones_polynomial(variab, skein_normalization)
+            braid = self.braid()
+            # Special case for the trivial knot with no crossings
+            if not braid.Tietze():
+                if skein_normalization:
+                    return LaurentPolynomialRing(ZZ, 'A').one()
+                else:
+                    return SR.one()
+            return braid.jones_polynomial(variab, skein_normalization)
 
         raise ValueError("bad value of algorithm")
 

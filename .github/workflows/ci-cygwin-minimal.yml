@@ -15,7 +15,7 @@ env:
   CYGWIN: winsymlinks:native
   CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url
   SAGE_FAT_BINARY: yes
-  SAGE_LOCAL: /opt/sage-$(git describe --dirty --always)
+  SAGE_LOCAL: /opt/sage-${{ github.sha }}
 
 jobs:
 

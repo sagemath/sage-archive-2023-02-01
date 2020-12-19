@@ -257,7 +257,8 @@ def is_FunctionField(x):
         sage: is_FunctionField(FunctionField(QQ, 't'))
         True
     """
-    if isinstance(x, FunctionField): return True
+    if isinstance(x, FunctionField):
+        return True
     return x in FunctionFields()
 
 
@@ -1311,7 +1312,8 @@ class FunctionField_polymod(FunctionField):
             ...
             IndexError: there is only one generator
         """
-        if n != 0: raise IndexError("there is only one generator")
+        if n != 0:
+            raise IndexError("there is only one generator")
         return self._gen
 
     def ngens(self):

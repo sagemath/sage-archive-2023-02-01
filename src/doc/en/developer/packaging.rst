@@ -294,12 +294,19 @@ Likewise for :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`, and :envvar:`F77FLAGS`.
 
         exec python3 spkg-install.py
 
-   In more detail: ``sage-bootstrap-python`` runs the version of Python
-   pre-installed on the machine. Use this if the package may be
-   installed before Sage has built its own Python. ``python3``
-   runs the version of Python managed by Sage; you should use this
-   if you are installing a Python package to make sure that
-   the libraries are installed in the right place.
+   In more detail: ``sage-bootstrap-python`` runs a version of Python
+   pre-installed on the machine, which is a build prerequisite of Sage.
+   Note that ``sage-bootstrap-python`` accepts a wide range of Python
+   versions, Python >= 2.6 and >= 3.4, see ``SAGE_ROOT/build/tox.ini``
+   for details.  You should only use ``sage-bootstrap-python`` for
+   installation tasks that must be able to run before Sage has made
+   ``python3`` available.  It must not be used for running ``pip`` or
+   ``setup.py`` for any package.
+
+   ``python3`` runs the version of Python managed by Sage (either its
+   own installation of Python 3 from an SPKG or a venv over a system
+   python3.  You should use this if you are installing a Python package
+   to make sure that the libraries are installed in the right place.
 
    By the way, there is also a script ``sage-python``. This should be
    used at runtime, for example in scripts in ``SAGE_LOCAL/bin`` which
@@ -535,7 +542,8 @@ Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
 points to the correct ``pip`` for the Python used by Sage, and includes some
 default flags needed for correct installation into Sage.
 
-If pip will not work, you may try a command like ``python3 setup.py install``.
+If pip will not work, you may use ``sdh_setup_bdist_wheel``, followed by
+``sdh_store_and_pip_install_wheel .``.
 
 .. _section-spkg-SPKG-txt:
 

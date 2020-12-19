@@ -27,7 +27,6 @@ Representations of the Symmetric Group
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt
@@ -292,9 +291,8 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         TESTS::
 
             sage: spc1 = SymmetricGroupRepresentation([3], cache_matrices=True)
-            sage: hash(spc1)
-            -1137003014   # 32-bit
-            3430541866490 # 64-bit
+            sage: hash(spc1) ^^ hash((3,)) == hash(ZZ)
+            True
         """
         return hash(self._ring) ^ hash(self._partition)
 

@@ -11,7 +11,6 @@ Root lattice realizations
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.call import attrcall
@@ -1283,7 +1282,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             .. todo:: add a non simply laced example
 
-            Finaly, here is an affine example::
+            Finally, here is an affine example::
 
                 sage: RootSystem(["A",2,1]).weight_space().alphacheck()
                 Finite family {0: alphacheck[0], 1: alphacheck[1], 2: alphacheck[2]}
@@ -1430,7 +1429,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # We first scale the inverse of the Cartan matrix to be
             # with integer coefficients; then the linear combination
             # of the simple roots is guaranteed to live in this space,
-            # and then we rely on division by d to fail gracefuly.
+            # and then we rely on division by d to fail gracefully.
             M = self.cartan_type().cartan_matrix()
             d = M.det()
             if not d:
@@ -2181,7 +2180,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # result is zero. This is close to be the case for the
             # original matrix and for the current rational
             # approximation. We tidy up the work by replacing the
-            # first colum by the opposite of the sum of the others.
+            # first column by the opposite of the sum of the others.
             if self.dimension()>1: # not needed in the trivial cases
                 m.set_column(0, -sum(m[:,1:].columns()))
             m.set_immutable()
@@ -2620,7 +2619,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def plot_alcoves(self, alcoves=True, alcove_labels=False, wireframe=False, **options):
             r"""
-            Plot the alcoves and optionaly their labels.
+            Plot the alcoves and optionally their labels.
 
             INPUT:
 

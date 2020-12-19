@@ -34,7 +34,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import os
 from math import isnan
@@ -1404,15 +1403,15 @@ class Graphics(WithEqualityById, SageObject):
         if scale == 'linear':
             basex = basey = 10
         elif scale == 'loglog':
-            subplot.set_xscale('log', basex=basex)
-            subplot.set_yscale('log', basey=basey)
+            subplot.set_xscale('log', base=basex)
+            subplot.set_yscale('log', base=basey)
             xscale = yscale = 'log'
         elif scale == 'semilogx':
-            subplot.set_xscale('log', basex=basex)
+            subplot.set_xscale('log', base=basex)
             basey = 10
             xscale = 'log'
         elif scale == 'semilogy':
-            subplot.set_yscale('log', basey=basey)
+            subplot.set_yscale('log', base=basey)
             basex = 10
             yscale = 'log'
 
@@ -1627,7 +1626,7 @@ class Graphics(WithEqualityById, SageObject):
             ``(x_pos, y_pos)`` which indicate the relative position of the
             title within the plot. The plot itself can be considered to
             occupy, in relative terms, the region within a unit square
-            `[0,1]\\times[0,1]`.  The title text is centered around the
+            `[0, 1] \times [0, 1]`.  The title text is centered around the
             horizontal factor ``x_pos`` of the plot. The baseline of the
             title text is present at the vertical factor ``y_pos`` of the
             plot. Hence, ``title_pos=(0.5, 0.5)`` will center the title in
@@ -2349,17 +2348,17 @@ class Graphics(WithEqualityById, SageObject):
             sage: subplot = Figure().add_subplot(111)
             sage: p._objects[0]._render_on_subplot(subplot)
             sage: p._matplotlib_tick_formatter(subplot, **d)
-            (<matplotlib.axes._subplots.AxesSubplot object at ...>,
+            (<AxesSubplot:>,
             <matplotlib.ticker.MaxNLocator object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
-            <matplotlib.ticker.OldScalarFormatter object at ...>,
-            <matplotlib.ticker.OldScalarFormatter object at ...>)
+            <matplotlib.ticker.ScalarFormatter object at ...>,
+            <matplotlib.ticker.ScalarFormatter object at ...>)
         """
         # This function is created to refactor some code that is repeated
         # in the matplotlib function
         from matplotlib.ticker import (FixedLocator, Locator,
                 LogFormatterMathtext, LogLocator, MaxNLocator,
-                MultipleLocator, NullLocator, OldScalarFormatter)
+                MultipleLocator, NullLocator, ScalarFormatter)
 
         x_locator, y_locator = ticks
         #---------------------- Location of x-ticks ---------------------#
@@ -2415,7 +2414,7 @@ class Graphics(WithEqualityById, SageObject):
             if scale[0] == 'log':
                 x_formatter = LogFormatterMathtext(base=base[0])
             else:
-                x_formatter = OldScalarFormatter()
+                x_formatter = ScalarFormatter()
         elif x_formatter in SR:
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
@@ -2440,7 +2439,7 @@ class Graphics(WithEqualityById, SageObject):
             if scale[1] == 'log':
                 y_formatter = LogFormatterMathtext(base=base[1])
             else:
-                y_formatter = OldScalarFormatter()
+                y_formatter = ScalarFormatter()
         elif y_formatter in SR:
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:

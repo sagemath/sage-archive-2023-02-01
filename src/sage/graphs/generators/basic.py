@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Basic Graphs
+Basic graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
@@ -14,7 +14,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -607,6 +606,67 @@ def DiamondGraph():
     pos_dict = {0:(0,1),1:(-1,0),2:(1,0),3:(0,-1)}
     edges = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)]
     return graph.Graph(edges, pos=pos_dict, name="Diamond Graph")
+
+def GemGraph():
+    """
+    Return a gem graph with 5 nodes.
+
+    A gem graph is a fan graph (4,1).
+
+    PLOTTING: Upon construction, the position dictionary is filled to
+    override the spring-layout algorithm. By convention, the gem
+    graph is drawn as a gem, with the sharp part on the bottom.
+
+    EXAMPLES:
+
+    Construct and show a gem graph::
+
+        sage: g = graphs.GemGraph()
+        sage: g.show() # long time
+    """
+    pos_dict = {0:(0.5,0),1:(0,0.75),2:(0.25,1),3:(0.75,1),4:(1,0.75)}
+    edges = [(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (2, 3), (3, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="Gem Graph")
+
+def ForkGraph():
+    """
+    Return a fork graph with 5 nodes.
+
+    A fork graph, sometimes also called chair graph, is 5 vertex tree.
+
+    PLOTTING: Upon construction, the position dictionary is filled to
+    override the spring-layout algorithm. By convention, the fork
+    graph is drawn as a fork, with the sharp part on the bottom.
+
+    EXAMPLES:
+
+    Construct and show a fork graph::
+
+        sage: g = graphs.ForkGraph()
+        sage: g.show() # long time
+    """
+    pos_dict = {0:(0,0),1:(1,0),2:(0,1),3:(1,1),4:(0,2)}
+    edges = [(0, 2), (2, 3), (3, 1), (2, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="Fork Graph")
+
+def DartGraph():
+    """
+    Return a dart graph with 5 nodes.
+
+    PLOTTING: Upon construction, the position dictionary is filled to
+    override the spring-layout algorithm. By convention, the dart
+    graph is drawn as a dart, with the sharp part on the bottom.
+
+    EXAMPLES:
+
+    Construct and show a dart graph::
+
+        sage: g = graphs.DartGraph()
+        sage: g.show() # long time
+    """
+    pos_dict = {0:(0,1),1:(-1,0),2:(1,0),3:(0,-1),4:(0,0)}
+    edges = [(0, 1), (0, 2), (1, 4), (2, 4), (0, 4), (3, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="Dart Graph")
 
 def EmptyGraph():
     """

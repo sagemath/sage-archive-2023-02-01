@@ -1,4 +1,5 @@
 # distutils: extra_compile_args = FFLASFFPACK_CFLAGS
+# distutils: include_dirs = FFLASFFPACK_INCDIR
 # distutils: libraries = FFLASFFPACK_LIBRARIES
 # distutils: library_dirs = FFLASFFPACK_LIBDIR
 # distutils: extra_link_args = FFLASFFPACK_LIBEXTRA

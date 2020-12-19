@@ -322,14 +322,14 @@ OTHER Examples::
     sage: slist2[0].parent()                    # optional - mathematica
     Mathematica
     sage: slist3 = mlist.sage(); slist3         # optional - mathematica
-    [[1, 2], 3.0, I + 4]
+    [[1, 2], 3.00000000000000, I + 4]
 
 ::
 
     sage: mathematica('10.^80')     # optional - mathematica
     1.*^80
     sage: mathematica('10.^80').sage()  # optional - mathematica
-    1e+80
+    1.00000000000000e80
 
 AUTHORS:
 
@@ -379,7 +379,6 @@ as Sage's `e` (:trac:`29833`)::
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import os
 import re
@@ -500,7 +499,21 @@ remote connection to a server running Mathematica -- for hints, type
 
   (1) You might have to buy Mathematica (http://www.wolfram.com/).
 
-  (2) * LINUX: The math script comes standard with your Mathematica install.
+  (2) * LINUX: The math script usually comes standard with your Mathematica install.
+        However, on some systems it may be called wolfram, while math is absent.
+        In this case, assuming wolfram is in your PATH,
+          (a) create a file called math (in your PATH):
+              #!/bin/sh
+              /usr/bin/env wolfram $@
+
+          (b) Make the file executable.
+                chmod +x math
+
+      * WINDOWS:
+
+        Install Mathematica for Linux into the VMware virtual machine (sorry,
+        that's the only way at present).
+
 
       * APPLE OS X:
           (a) create a file called math (in your PATH):
@@ -745,7 +758,7 @@ class MathematicaElement(ExpectElement):
 
             sage: m = mathematica('{{1., 4}, Pi, 3.2e100, I}')  # optional - mathematica
             sage: s = m.sage(); s       # optional - mathematica
-            [[1.0, 4], pi, 3.2*e100, I]
+            [[1.00000000000000, 4], pi, 3.20000000000000*e100, I]
             sage: s[1].n()              # optional - mathematica
             3.14159265358979
             sage: s[3]^2                # optional - mathematica
@@ -793,6 +806,17 @@ class MathematicaElement(ExpectElement):
           sage.calculus.calculus.symbolic_expression_from_string() for greater
           compatibility, while still supporting conversion of symbolic
           expressions.
+
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica('Exp[1000.0]').sage()  # optional - mathematica
+            1.97007111401700e434
+            sage: mathematica('1/Exp[1000.0]').sage()  # optional - mathematica
+            5.07595889754950e-435
+            sage: mathematica(RealField(100)(1/3)).sage()  # optional - mathematica
+            0.3333333333333333333333333333335
         """
         from sage.libs.pynac.pynac import symbol_table
         from sage.symbolic.constants import constants_name_table as constants

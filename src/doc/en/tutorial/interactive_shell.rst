@@ -28,7 +28,7 @@ To quit Sage either press Ctrl-D or type
 ::
 
     sage: quit
-    Exiting SAGE (CPU time 0m0.00s, Wall time 0m0.89s)
+    Exiting Sage (CPU time 0m0.00s, Wall time 0m0.89s)
 
 The wall time is the time that elapsed on the clock hanging from
 your wall. This is relevant, since CPU time does not track time
@@ -189,7 +189,7 @@ file).
     sage: x,y = QQ['x,y'].gens()
     sage: G = E.gens()
     sage:
-    Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
+    Exiting Sage (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
@@ -314,7 +314,7 @@ the ``cputime`` command, as illustrated below:
 
     sage: cputime?
     ...
-        Return the time in CPU second since SAGE started, or with optional
+        Return the time in CPU second since Sage started, or with optional
         argument t, return the time since time t.
         INPUT:
             t -- (optional) float, time in CPU seconds
@@ -945,98 +945,3 @@ Each saved variable is again available. Moreover, the variable
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-The legacy Notebook Interface
-=============================
-
-This section refers to the legacy Sage notebook, or "sagenb".
-
-SageMath is transitioning to using the
-`Jupyter notebook
-<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_
-as a default, which has a different structure.  The most important
-difference for users is that individual worksheets in Jupyter
-are saved on your local system just like any other file, whereas
-in the Sage notebook the main point of access is in the files
-described below via the server.
-
-
-Legacy SageNB Notebook
-----------------------
-
-The Sage notebook is run by choosing it after starting Sage with ``-n`` option.
-This starts the Sage notebook and
-opens your default web browser to view it. The server's state files
-are stored in ``$HOME/.sage/sage\_notebook.sagenb``.
-
-When you start the notebook, it first creates the following files
-in ``$HOME/.sage/sage_notebook.sagenb``:
-
-.. CODE-BLOCK:: text
-
-    conf.pickle
-    openid.pickle
-    twistedconf.tac
-    sagenb.pid
-    users.pickle
-    home/admin/ (a directory for the admin user)
-    home/guest/ (a directory for guests)
-    home/pub/ (a directory for published worksheets)
-
-After creating the above files, the notebook starts a web server.
-
-A "notebook" is a collection of user accounts, each of which can
-have any number of worksheets. When you create a new worksheet, the
-data that defines it is stored in the ``home/username/number``
-directories. In each such directory there is a plain text file
-``worksheet.html`` - if anything ever happens to your worksheets, or Sage,
-or whatever, that human-readable file contains everything needed to
-reconstruct your worksheet.  Each worksheet also has, at a minimum,
-the files/folders:
-
-.. CODE-BLOCK:: text
-
-    cells/
-    worksheet.html
-    data/
-    worksheet_conf.pickle
-
-
-From within Sage, type ``notebook?`` for much more about how to start a
-notebook server.
-
-The following diagram illustrates the architecture of the Sage
-Notebook:
-
-.. CODE-BLOCK:: text
-
-    ----------------------
-    |                    |
-    |                    |
-    |   firefox/safari   |
-    |                    |
-    |     javascript     |
-    |      program       |
-    |                    |
-    |                    |
-    ----------------------
-          |      ^
-          | AJAX |
-          V      |
-    ----------------------
-    |                    |
-    |       sage         |                SAGE process 1
-    |       web          | ------------>  SAGE process 2    (Python processes)
-    |      server        |   pexpect      SAGE process 3
-    |                    |                    .
-    |                    |                    .
-    ----------------------                    .
-
-For help on a Sage command, ``cmd``, in the notebook browser box,
-type ``cmd?`` and now hit ``<tab>`` (not ``<shift-enter>``).
-
-For help on the keyboard shortcuts available in the notebook
-interface, click on the ``Help`` link.

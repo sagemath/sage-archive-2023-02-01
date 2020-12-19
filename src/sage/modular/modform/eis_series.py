@@ -11,7 +11,6 @@ Eisenstein Series
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.all import cputime
 import sage.modular.dirichlet as dirichlet
@@ -362,17 +361,17 @@ def __find_eisen_chars_gamma1(N, k):
     #end if
 
     triples = []
-    D = divisors(N)
     for chi, psi in pairs:
         c_chi = chi.conductor()
         c_psi = psi.conductor()
-        D = divisors(N/(c_chi * c_psi))
-        if (k==2 and chi.is_trivial() and psi.is_trivial()):
+        D = divisors(N // (c_chi * c_psi))
+        if k == 2 and chi.is_trivial() and psi.is_trivial():
             D.remove(1)
         chi, psi = __common_minimal_basering(chi, psi)
         for t in D:
             triples.append((chi, psi, t))
     return triples
+
 
 def eisenstein_series_lseries(weight, prec=53,
                max_imaginary_part=0,

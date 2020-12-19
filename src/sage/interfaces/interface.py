@@ -37,7 +37,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import operator
 
@@ -706,7 +705,8 @@ class InterfaceElement(Element):
     def __init__(self, parent, value, is_name=False, name=None):
         Element.__init__(self, parent)
         self._create = value
-        if parent is None: return     # means "invalid element"
+        if parent is None:
+            return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
@@ -1025,17 +1025,22 @@ class InterfaceElement(Element):
         string = repr(self).replace('\n',' ').replace('\r', '')
         # Translate the external program's function notation to Sage's
         lfd = self.parent()._left_func_delim()
-        if '(' != lfd:  string = string.replace(lfd, '(')
+        if '(' != lfd:
+            string = string.replace(lfd, '(')
         rfd = self.parent()._right_func_delim()
-        if ')' != rfd:  string = string.replace(rfd, ')')
+        if ')' != rfd:
+            string = string.replace(rfd, ')')
         # Translate the external program's list formatting to Sage's
         lld = self.parent()._left_list_delim()
-        if '[' != lld:      string = string.replace(lld, '[')
+        if '[' != lld:
+            string = string.replace(lld, '[')
         rld = self.parent()._right_list_delim()
-        if ']' != rld:      string = string.replace(rld, ']')
+        if ']' != rld:
+            string = string.replace(rld, ']')
         # Translate the external program's exponent formatting
         expl = self.parent()._exponent_symbol()
-        if 'e' != expl: string = string.replace(expl, 'e')
+        if 'e' != expl:
+            string = string.replace(expl, 'e')
         return string
 
     def _sage_(self):
@@ -1099,7 +1104,7 @@ class InterfaceElement(Element):
         To implement a custom string representation, override the method
         ``_repr_``, but do not override this double underscore method.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Here is one example showing that the string representation will
         be cached when requested::

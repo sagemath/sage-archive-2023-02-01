@@ -17,7 +17,6 @@ Matrix Plots
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, suboptions
@@ -35,10 +34,12 @@ class MatrixPlot(GraphicPrimitive):
       the grid
 
     - ``xrange`` - tuple of 2 floats indicating range for horizontal direction
-      (number of columns in the matrix)
+      (number of columns in the matrix). If ``None``, the defaults are used as
+      indicated in :func:`matrix_plot`.
 
     - ``yrange`` - tuple of 2 floats indicating range for vertical direction
-      (number of rows in the matrix)
+      (number of rows in the matrix). If ``None``, the defaults are used as
+      indicated in :func:`matrix_plot`.
 
     - ``options`` - dict of valid plot options to pass to constructor
 
@@ -77,8 +78,8 @@ class MatrixPlot(GraphicPrimitive):
         EXAMPLES::
 
             sage: M = matrix_plot([[mod(i,5)^j for i in range(5)] for j in range(1,6)], cmap='jet')
-            sage: M[0].xrange
-            (0, 5)
+            sage: M[0].get_minmax_data()
+            {'xmax': 4.5, 'xmin': -0.5, 'ymax': 4.5, 'ymin': -0.5}
             sage: M[0].options()['cmap']
             'jet'
             sage: M[0].xy_array_row
@@ -114,13 +115,16 @@ class MatrixPlot(GraphicPrimitive):
             [('xmax', 4.5), ('xmin', -0.5), ('ymax', 4.5), ('ymin', -0.5)]
         """
         from sage.plot.plot import minmax_data
-        limits= minmax_data(self.xrange, self.yrange, dict=True)
-
-        # center the matrix so that, for example, the square representing the
-        # (0,0) entry is centered on the origin.
-        for k, v in limits.items():
-            limits[k] -= 0.5
-        return limits
+        xrange = self.xrange
+        yrange = self.yrange
+        # if xrange/yrange are not specified, add offset to the matrix so that,
+        # for example, the square representing the (0,0) entry is centered on
+        # the origin.
+        if not xrange:
+            xrange = (-.5, self.xy_array_col -.5)
+        if not yrange:
+            yrange = (-.5, self.xy_array_row -.5)
+        return minmax_data(xrange, yrange, dict=True)
 
     def _allowed_options(self):
         """
@@ -177,6 +181,7 @@ class MatrixPlot(GraphicPrimitive):
             import matplotlib
             norm=matplotlib.colors.NoNorm()
 
+        lim=self.get_minmax_data()
         if options['subdivisions']:
             subdiv_options=options['subdivision_options']
             if isinstance(subdiv_options['boundaries'], (list, tuple)):
@@ -196,13 +201,16 @@ class MatrixPlot(GraphicPrimitive):
 
             # Make line objects for subdivisions
             from .line import line2d
-            lim=self.get_minmax_data()
             # First draw horizontal lines representing row subdivisions
             for y in rowsub:
-                l=line2d([(lim['xmin'],y-0.5), (lim['xmax'],y-0.5)], **rowstyle)[0]
+                y = lim['ymin'] + ((lim['ymax'] - lim['ymin'])
+                                   * y / self.xy_array_row)
+                l = line2d([(lim['xmin'], y), (lim['xmax'], y)], **rowstyle)[0]
                 l._render_on_subplot(subplot)
             for x in colsub:
-                l=line2d([(x-0.5, lim['ymin']), (x-0.5, lim['ymax'])], **colstyle)[0]
+                x = lim['xmin'] + ((lim['xmax'] - lim['xmin'])
+                                   * x / self.xy_array_col)
+                l = line2d([(x, lim['ymin']), (x, lim['ymax'])], **colstyle)[0]
                 l._render_on_subplot(subplot)
 
         if hasattr(self.xy_data_array, 'tocoo'):
@@ -213,10 +221,13 @@ class MatrixPlot(GraphicPrimitive):
                 del opts[opt]
             subplot.spy(self.xy_data_array, **opts)
         else:
+            extent = (lim['xmin'], lim['xmax'],
+                      lim['ymax' if flip_y else 'ymin'],
+                      lim['ymin' if flip_y else 'ymax'])
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=('upper' if flip_y else 'lower'),
-                      zorder=options.get('zorder'))
+                      extent=extent, zorder=options.get('zorder'))
             image = subplot.imshow(self.xy_data_array, **opts)
 
             if options.get('colorbar', False):
@@ -238,7 +249,7 @@ class MatrixPlot(GraphicPrimitive):
 @options(aspect_ratio=1, axes=False, cmap='Greys', colorbar=False,
          frame=True, marker='.', norm=None, flip_y=True,
          subdivisions=False, ticks_integer=True, vmin=None, vmax=None)
-def matrix_plot(mat, **options):
+def matrix_plot(mat, xrange=None, yrange=None, **options):
     r"""
     A plot of a given matrix or 2D array.
 
@@ -261,6 +272,21 @@ def matrix_plot(mat, **options):
     INPUT:
 
     - ``mat`` - a 2D matrix or array
+
+    - ``xrange`` - (default: None) tuple of the horizontal extent
+      ``(xmin, xmax)`` of the bounding box in which to draw the matrix.  The
+      image is stretched individually along x and y to fill the box.
+
+      If None, the extent is determined by the following conditions.  Matrix
+      entries have unit size in data coordinates.  Their centers are on integer
+      coordinates, and their center coordinates range from 0 to columns-1
+      horizontally and from 0 to rows-1 vertically.
+
+      If the matrix is sparse, this keyword is ignored.
+
+    - ``yrange`` - (default: None) tuple of the vertical extent
+      ``(ymin, ymax)`` of the bounding box in which to draw the matrix.
+      See ``xrange`` for details.
 
     The following input must all be passed in as named parameters, if
     default not used:
@@ -322,6 +348,11 @@ def matrix_plot(mat, **options):
         sage: matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        P = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))
+        sphinx_plot(P)
+
     Here we make a random matrix over `\RR` and use ``cmap='hsv'``
     to color the matrix elements different RGB colors::
 
@@ -374,6 +405,23 @@ def matrix_plot(mat, **options):
     ``flip_y`` argument::
 
         sage: matrix_plot(identity_matrix(100), flip_y=False)
+        Graphics object consisting of 1 graphics primitive
+
+    A custom bounding box in which to draw the matrix can be specified using
+    the ``xrange`` and ``yrange`` arguments::
+
+        sage: P = matrix_plot(identity_matrix(10), xrange=(0, pi), yrange=(-pi, 0))
+        sage: P
+        Graphics object consisting of 1 graphics primitive
+        sage: P.get_minmax_data()
+        {'xmax': 3.14159..., 'xmin': 0.0, 'ymax': 0.0, 'ymin': -3.14159...}
+
+    If the horizontal and vertical dimension of the image are very different,
+    the default ``aspect_ratio=1`` may be unsuitable and can be changed to
+    ``automatic``::
+
+        sage: matrix_plot(random_matrix(RDF, 2, 2), (-100, 100), (0, 1),
+        ....:             aspect_ratio='automatic')
         Graphics object consisting of 1 graphics primitive
 
     Another random plot, but over `\GF{389}`::
@@ -433,7 +481,7 @@ def matrix_plot(mat, **options):
         sage: matrix_plot(b)
         Traceback (most recent call last):
         ...
-        ValueError: can not convert entries to floating point numbers
+        ValueError: cannot convert entries to floating point numbers
 
     To plot the absolute value of a complex matrix, use the
     ``apply_map`` method::
@@ -523,7 +571,7 @@ def matrix_plot(mat, **options):
             try:
                 data = np.asarray([d for _,d in entries], dtype=float)
             except Exception:
-                raise ValueError("can not convert entries to floating point numbers")
+                raise ValueError("cannot convert entries to floating point numbers")
             positions = np.asarray([[row for (row,col),_ in entries],
                                     [col for (row,col),_ in entries]], dtype=int)
             mat = scipysparse.coo_matrix((data,positions), shape=(mat.nrows(), mat.ncols()))
@@ -543,13 +591,20 @@ def matrix_plot(mat, **options):
     except TypeError:
         raise TypeError("mat must be a Matrix or a two dimensional array")
     except ValueError:
-        raise ValueError("can not convert entries to floating point numbers")
+        raise ValueError("cannot convert entries to floating point numbers")
 
     if len(xy_data_array.shape) < 2:
         raise TypeError("mat must be a Matrix or a two dimensional array")
 
-    xrange = (0, xy_data_array.shape[1])
-    yrange = (0, xy_data_array.shape[0])
+    # Sparse matrices are not plotted with imshow, so extent is not supported,
+    # hence we ignore custom bounds.
+    if sparse:
+        xrange = None
+        yrange = None
+    if xrange:
+        xrange = tuple(float(v) for v in xrange)
+    if yrange:
+        yrange = tuple(float(v) for v in yrange)
 
     if options['subdivisions'] and options['subdivision_options']['boundaries'] is None:
         options['subdivision_options']['boundaries']=orig_mat.get_subdivisions()

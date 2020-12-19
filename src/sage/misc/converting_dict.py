@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Converting Dictionary
 
@@ -44,9 +45,8 @@ result no matter how a generator is identified::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
-import collections
+from collections.abc import Mapping
 
 
 class KeyConvertingDict(dict):
@@ -287,7 +287,7 @@ class KeyConvertingDict(dict):
             if len(args) != 1:
                 raise TypeError("update expected at most 1 argument")
             arg = args[0]
-            if isinstance(arg, collections.Mapping):
+            if isinstance(arg, Mapping):
                 seq = ((f(k), arg[k]) for k in arg)
             else:
                 seq = ((f(k), v) for k, v in arg)

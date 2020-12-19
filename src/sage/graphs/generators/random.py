@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Random Graphs
+Random graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -13,7 +13,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function, division
 
 import sys
 # import from Sage library
@@ -697,9 +696,8 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     We check that the generated graph contains a cycle of order `n`::
 
         sage: G = graphs.RandomNewmanWattsStrogatz(7, 2, 0.2)
-        sage: G.order(), G.size()
-        (7, 9)                      # 64-bit
-        (7, 10)                     # 32-bit
+        sage: G.order()
+        7
         sage: C7 = graphs.CycleGraph(7)
         sage: G.subgraph_search(C7)
         Subgraph of (): Graph on 7 vertices
@@ -869,7 +867,7 @@ def growing_subtrees(T, k):
         sage: len(S)
         10
     """
-    from sage.misc.prandom import sample
+    from sage.misc.prandom import choice
     n = T.order()
     S = []
     for _ in range(n):
@@ -882,7 +880,7 @@ def growing_subtrees(T, k):
             neighbors = set(T.neighbor_iterator(x))
             for j in range(ki - 1):
                 # Select a random neighbor z outside of Ti and add it to Ti
-                z = sample(neighbors, 1)[0]
+                z = choice(tuple(neighbors))
                 Ti.add(z)
                 neighbors.update(y for y in T.neighbor_iterator(z) if y not in Ti)
             Vi = frozenset(Ti)
@@ -1012,7 +1010,7 @@ def pruned_tree(T, f, s):
     - ``T`` -- a tree
 
     - ``f`` -- a rational number; the edge deletion fraction. This value must be
-      choosen in `[0..1]`.
+      chosen in `[0..1]`.
 
     - ``s`` -- a real number between 0 and 1; selection barrier for the size of
       trees
@@ -1123,7 +1121,7 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
       :meth:`~sage.graphs.generators.random.connecting_nodes` for more details.
 
     - ``f`` -- a rational number (default: ``None``); the edge deletion
-      fraction. This value must be choosen in `[0..1]`. If not specified, this
+      fraction. This value must be chosen in `[0..1]`. If not specified, this
       parameter is set to `\frac{1}{n-1}`.
       This parameter is used only when ``algorithm="pruned"``.
       See :meth:`~sage.graphs.generators.random.pruned_tree` for more details.
@@ -1256,12 +1254,20 @@ def RandomLobster(n, p, q, seed=None):
       number generator (default: ``None``).
 
 
-    EXAMPLES: We show the edge list of a random graph with 3 backbone
+    EXAMPLES:
+
+    We check a random graph with 12 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
-        sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
-        []                                                                  # 32-bit
-        [(0, 1), (0, 5), (1, 2), (1, 6), (2, 3), (2, 7), (3, 4), (3, 8)]    # 64-bit
+        sage: G = graphs.RandomLobster(12, 0.7, 0.3)
+        sage: leaves = [v for v in G.vertices() if G.degree(v) == 1]
+        sage: G.delete_vertices(leaves)                                 # caterpillar
+        sage: leaves = [v for v in G.vertices() if G.degree(v) == 1]
+        sage: G.delete_vertices(leaves)                                 # path
+        sage: s = G.degree_sequence()
+        sage: if G:
+        ....:     assert s[-2:] == [1, 1]
+        ....:     assert all(d == 2 for d in s[:-2])
 
     ::
 

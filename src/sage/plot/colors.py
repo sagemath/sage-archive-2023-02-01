@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Colors
 
 This module defines a :class:`Color` object and helper functions (see,
@@ -27,18 +28,16 @@ These are imported from matplotlib's cm_ module.
 .. _cm: http://matplotlib.sourceforge.net/api/cm_api.html
 """
 
-from __future__ import division
-
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import math
-import collections
+from collections.abc import MutableMapping
 from colorsys import hsv_to_rgb, hls_to_rgb, rgb_to_hsv, rgb_to_hls
 
 
@@ -1440,7 +1439,7 @@ def check_color_data(cfcm):
         raise ValueError('color data must be (color function, colormap)')
 
 
-class Colormaps(collections.MutableMapping):
+class Colormaps(MutableMapping):
     """
     A dict-like collection of lazily-loaded matplotlib color maps.
     For a list of map names, evaluate::

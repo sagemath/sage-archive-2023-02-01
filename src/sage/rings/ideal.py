@@ -25,7 +25,6 @@ a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from types import GeneratorType
 
@@ -33,7 +32,6 @@ import sage.misc.latex as latex
 import sage.rings.ring
 from sage.structure.element import MonoidElement
 from sage.structure.richcmp import rich_to_bool, richcmp
-from sage.interfaces.singular import singular as singular_default
 import sage.rings.infinity
 from sage.structure.sequence import Sequence
 
@@ -260,7 +258,8 @@ class Ideal_generic(MonoidElement):
             gens = [ring(x) for x in gens]
 
         gens = tuple(gens)
-        if len(gens)==0: gens=(ring.zero(),)
+        if len(gens) == 0:
+            gens = (ring.zero(),)
         self.__gens = gens
         MonoidElement.__init__(self, ring.ideal_monoid())
 
@@ -537,13 +536,13 @@ class Ideal_generic(MonoidElement):
             sage: latex(3*ZZ) # indirect doctest
             \left(3\right)\Bold{Z}
         """
-        return '\\left(%s\\right)%s'%(", ".join([latex.latex(g) for g in \
-                                                 self.gens()]),
-                                      latex.latex(self.ring()))
+        return '\\left(%s\\right)%s' % (", ".join(latex.latex(g)
+                                                  for g in self.gens()),
+                                        latex.latex(self.ring()))
 
     def ring(self):
         """
-        Returns the ring containing this ideal.
+        Return the ring containing this ideal.
 
         EXAMPLES::
 
@@ -1654,7 +1653,7 @@ class Ideal_fractional(Ideal_generic):
 # constructors for standard (benchmark) ideals, written uppercase as
 # these are constructors
 
-def Cyclic(R, n=None, homog=False, singular=singular_default):
+def Cyclic(R, n=None, homog=False, singular=None):
     """
     Ideal of cyclic ``n``-roots from 1-st ``n`` variables of ``R`` if ``R`` is
     coercible to :class:`Singular <sage.interfaces.singular.Singular>`.
@@ -1706,7 +1705,11 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
     else:
         n = R.ngens()
 
-    singular.lib("poly")
+    if singular is None:
+        from sage.interfaces.singular import singular as singular_default
+        singular = singular_default
+
+    singular.lib("polylib")
     R2 = R.change_ring(RationalField())
     R2._singular_().set_ring()
 
@@ -1716,7 +1719,7 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
         I = singular.cyclic(n).homog(R2.gen(n-1))
     return R2.ideal(I).change_ring(R)
 
-def Katsura(R, n=None, homog=False, singular=singular_default):
+def Katsura(R, n=None, homog=False, singular=None):
     """
     ``n``-th katsura ideal of ``R`` if ``R`` is coercible to
     :class:`Singular <sage.interfaces.singular.Singular>`.
@@ -1753,7 +1756,11 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
             raise ArithmeticError("n must be <= R.ngens().")
     else:
         n = R.ngens()
-    singular.lib("poly")
+
+    if singular is None:
+        from sage.interfaces.singular import singular as singular_default
+        singular = singular_default
+    singular.lib("polylib")
     R2 = R.change_ring(RationalField())
     R2._singular_().set_ring()
 

@@ -6,7 +6,7 @@ symbols classes to compute presentations of spaces in terms of generators and
 relations, using the standard methods based on Manin symbols.
 """
 # ****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -21,7 +21,6 @@ relations, using the standard methods based on Manin symbols.
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 import sage.matrix.matrix_space as matrix_space
 from sage.rings.all import Ring
@@ -561,7 +560,7 @@ def sparse_2term_quotient(rels, n, F):
     ZERO = F.zero()
     coef = [ONE for i in range(n)]
     related_to_me = [[] for i in range(n)]
-    for v0, v1 in rels:
+    for v0, v1 in sorted(rels):
         c0 = coef[v0[0]] * F(v0[1])
         c1 = coef[v1[0]] * F(v1[1])
 

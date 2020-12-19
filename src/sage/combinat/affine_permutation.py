@@ -2,16 +2,14 @@ r"""
 Affine Permutations
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Tom Denton <sdenton4@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, division
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.misc.constant_function import ConstantFunction
@@ -30,9 +28,10 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.composition import Composition
 from sage.combinat.partition import Partition
 
+
 class AffinePermutation(ClonableArray):
     r"""
-    An affine permutation, representated in the window notation, and
+    An affine permutation, represented in the window notation, and
     considered as a bijection from `\ZZ` to `\ZZ`.
 
     EXAMPLES::
@@ -709,11 +708,15 @@ class AffinePermutationTypeA(AffinePermutation):
             y = self.clone().apply_simple_reflection(i,side)
             T = [i]
             j = i
-            for count in range(1,self.k):
-                if (typ[0],side[0]) == ('d','r'):  j=(j+1)%(k+1)
-                if (typ[0],side[0]) == ('i','r'):  j=(j-1)%(k+1)
-                if (typ[0],side[0]) == ('d','l'):  j=(j-1)%(k+1)
-                if (typ[0],side[0]) == ('i','l'):  j=(j+1)%(k+1)
+            for count in range(1, self.k):
+                if (typ[0],side[0]) == ('d', 'r'):
+                    j=(j+1)%(k+1)
+                if (typ[0],side[0]) == ('i', 'r'):
+                    j=(j-1)%(k+1)
+                if (typ[0],side[0]) == ('d', 'l'):
+                    j=(j-1)%(k+1)
+                if (typ[0],side[0]) == ('i', 'l'):
+                    j=(j+1)%(k+1)
                 if y.has_descent(j, side):
                     y=y.apply_simple_reflection(j,side)
                     T.append(j%(k+1))
@@ -853,7 +856,8 @@ class AffinePermutationTypeA(AffinePermutation):
                     b=self(j)
                     #A small rotation is necessary for the reduced word from
                     #the lehmer code to match the element.
-                    if a<b: code[i-1]+=((b-a)//(self.k+1)+1)
+                    if a < b:
+                        code[i-1]+=((b-a)//(self.k+1)+1)
         elif typ[0] == 'i' and side[0] == 'l':
             #Find number of positions to the right of i smaller than i, then
             #cyclically shift the resulting vector.
@@ -2331,7 +2335,8 @@ class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):
                     ll.append(residue)
                     l[pos] = [residue]
                     D[pos] -= 1
-            if side[0]=='l': ll.reverse()
+            if side[0] == 'l':
+                ll.reverse()
             listy.append(ll)
             row += 1
         if side[0] == 'r':

@@ -854,7 +854,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RealField(100).complex_field()
             Complex Field with 100 bits of precision
         """
-        from sage.rings.complex_field import ComplexField
+        from sage.rings.complex_mpfr import ComplexField
         return ComplexField(self.prec())
 
     def algebraic_closure(self):
@@ -1586,6 +1586,39 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self.str(truncate=True)
 
+    def __format__(self, format_spec):
+        """
+        Return a formatted string representation of this real number.
+
+        EXAMPLES::
+
+            sage: format(RR(32/3), '.4f')
+            '10.6667'
+            sage: '{:.4e}'.format(RR(2/3))
+            '6.6667e-1'
+            sage: format(RealField(240)(1/7), '.60f')
+            '0.142857142857142857142857142857142857142857142857142857142857'
+
+        TESTS::
+
+            sage: format(RR(oo), '.4')
+            'Infinity'
+            sage: format(RR(-oo), '.4')
+            '-Infinity'
+            sage: format(RR(NaN), '.4')
+            'NaN'
+            sage: '{}'.format(RR(oo))
+            '+infinity'
+        """
+        if not format_spec:
+            # Since there are small formatting differences between RR and
+            # Decimal, we avoid converting to Decimal when spec is empty, which
+            # commonly occurs in f-strings. This could be improved by fully
+            # parsing format_spec in order to avoid using Decimal altogether.
+            return repr(self)
+        from decimal import Decimal
+        return format(Decimal(repr(self)), format_spec)
+
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
@@ -1628,6 +1661,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
         """
         return self.str(10, no_sci=True)
+
+    def _mathematica_init_(self):
+        """
+        TESTS:
+
+        Check that :trac:`28814` is fixed::
+
+            sage: mathematica(3.5e-15)           # optional - mathematica
+            3.5*^-15
+            sage: mathematica.Log(3.5e6).sage()  # optional - mathematica
+            15.06827352645964
+        """
+        return self.str(10, e='*^')
 
     def _sage_input_(self, sib, coerced):
         r"""
@@ -1978,7 +2024,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: x.str(digits=-10)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to size_t
+            OverflowError: can...t convert negative value to size_t
             sage: x.str(base=16, truncate=True)
             Traceback (most recent call last):
             ...
@@ -3141,7 +3187,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: parent(RR(pi)._complex_number_())
             Complex Field with 53 bits of precision
         """
-        from sage.rings.complex_field import ComplexField
+        from sage.rings.complex_mpfr import ComplexField
         return ComplexField(self.prec())(self)
 
     def _axiom_(self, axiom):

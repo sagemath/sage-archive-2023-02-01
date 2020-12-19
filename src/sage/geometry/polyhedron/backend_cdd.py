@@ -14,7 +14,6 @@ The cdd backend for polyhedral computations
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
 
 from subprocess import Popen, PIPE
 from sage.rings.all import ZZ
@@ -63,7 +62,7 @@ class Polyhedron_cdd(Polyhedron_base):
         s = self._run_cdd(s, '--repall', verbose=verbose)
         self._init_from_cdd_output(s)
         if not self.base_ring().is_exact():
-            # cdd's parser can not handle the full output of --repall, so we
+            # cdd's parser cannot handle the full output of --repall, so we
             # need to extract the first block before we feed it back into cdd
             s = s.splitlines()
             s = s[:s.index('end')+1]
@@ -108,8 +107,18 @@ class Polyhedron_cdd(Polyhedron_base):
             ....:            backend='cdd', base_ring=QQ)  # indirect doctest
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
+
+        TESTS:
+
+        The polyhedron with zero inequalities can be initialized from Hrepresentation;
+        see :trac:`29899`::
+
+            sage: Polyhedron(ieqs=[], ambient_dim=5, backend='cdd')
+            A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 1 vertex and 5 lines
         """
         from .cdd_file_format import cdd_Hrepresentation
+        # We have to add a trivial inequality, in case the polyhedron is the universe.
+        ieqs = tuple(ieqs) + ((1,) + tuple(0 for _ in range(self.ambient_dim())),)
         s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
         s = self._run_cdd(s, '--redcheck', verbose=verbose)
         s = self._run_cdd(s, '--repall', verbose=verbose)
@@ -119,7 +128,7 @@ class Polyhedron_cdd(Polyhedron_base):
                 # cdd (reasonably) refuses to handle empty polyhedra, so we
                 # skip this check
                 return
-            # cdd's parser can not handle the full output of --repall, so we
+            # cdd's parser cannot handle the full output of --repall, so we
             # need to extract the first block before we feed it back into cdd
             s = s.splitlines()
             s = s[:s.index('end')+1]
@@ -252,7 +261,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_H_representation(intro, data):
             if '_Hrepresentation' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             self._Hrepresentation = []
             # we drop some entries in cdd's output and this changes the numbering; this dict keeps track of that
             self._cdd_H_to_sage_H = {}
@@ -280,7 +289,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_V_representation(intro, data):
             if '_Vrepresentation' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             self._Vrepresentation = []
             # we drop some entries in cdd's output and this changes the numbering; this dict keeps track of that
             self._cdd_V_to_sage_V = {}
@@ -338,7 +347,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_vertex_adjacency(intro, data):
             if '_V_adjacency_matrix' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             N = len(self._Vrepresentation)
             self._V_adjacency_matrix = parse_adjacency(intro, data, N, N, self._cdd_V_to_sage_V)
             for i, v in enumerate(self._Vrepresentation):
@@ -354,7 +363,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_facet_adjacency(intro, data):
             if '_H_adjacency_matrix' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             N = len(self._Hrepresentation)
             self._H_adjacency_matrix = parse_adjacency(intro, data, N, N, self._cdd_H_to_sage_H)
             self._H_adjacency_matrix.set_immutable()
@@ -362,7 +371,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_incidence_matrix(intro, data):
             if 'incidence_matrix' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             N = len(self._Hrepresentation)
             M = len(self._Vrepresentation)
             inc_mat = parse_adjacency(intro, data, M, N, self._cdd_V_to_sage_V, self._cdd_H_to_sage_H)
@@ -551,6 +560,22 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
             sage: R = 2*P
             sage: P.is_combinatorially_isomorphic(R)
             True
+
+        The polyhedron with zero inequalities works correctly; see :trac:`29899`::
+
+            sage: Vrep = [[], [], [[1.0]]]
+            sage: Hrep = [[], []]
+            sage: p = Polyhedron_RDF_cdd(parent, Vrep, Hrep,
+            ....:                        Vrep_minimal=True, Hrep_minimal=True)  # indirect doctest
+            sage: p
+            A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex and 1 line
+
+        Test that :trac:`30330` is fixed::
+
+            sage: P1 = polytopes.regular_polygon(5, exact=False)
+            sage: P2 = Polyhedron()
+            sage: P1*P2
+            The empty polyhedron in RDF^2
         """
         def parse_Vrep(intro, data):
             count = int(data[0][0])
@@ -585,8 +610,11 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
                 from .cdd_file_format import cdd_Vrepresentation
                 s = cdd_Vrepresentation(self._cdd_type, vertices, rays, lines)
             else:
+                # We have to add a trivial inequality, in case the polyhedron is the universe.
+                new_ieqs = ieqs + ((1,) + tuple(0 for _ in range(self.ambient_dim())),)
+
                 from .cdd_file_format import cdd_Hrepresentation
-                s = cdd_Hrepresentation(self._cdd_type, ieqs, eqns)
+                s = cdd_Hrepresentation(self._cdd_type, new_ieqs, eqns)
 
             s = self._run_cdd(s, '--redcheck', verbose=verbose)
             s = self._run_cdd(s, '--repall', verbose=verbose)
@@ -598,6 +626,11 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
         vertices, rays, lines = (tuple(x) for x in Vrep)
         ieqs, eqns            = (tuple(x) for x in Hrep)
+
+        if not (vertices or rays or lines):
+            # cdd refuses to handle empty polyhedra.
+            self._init_empty_polyhedron()
+            return
 
         # We prefer the shorter representation.
         # Note that for the empty polyhedron we prefer Hrepresentation.

@@ -39,7 +39,6 @@ EXAMPLES::
     sage: a.T(7)
     Hecke operator T_7 on Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3
 """
-from __future__ import absolute_import
 
 # ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>

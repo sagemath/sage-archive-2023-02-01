@@ -46,7 +46,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division
 
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -2585,6 +2584,12 @@ class Link(SageObject):
             sage: L2.homfly_polynomial('a', 'z', 'az')
             a*z^-1 - a^-1*z^-1
 
+        Check that :trac:`30346` is fixed::
+
+            sage: L = Link([])
+            sage: L.homfly_polynomial()
+            1
+
         REFERENCES:
 
         - :wikipedia:`HOMFLY_polynomial`
@@ -2604,6 +2609,8 @@ class Link(SageObject):
             return fact
         s = '{}'.format(self.number_of_components())
         ogc = self.oriented_gauss_code()
+        if not ogc[0]:
+            return L.one()
         for comp in ogc[0]:
             s += ' {}'.format(len(comp))
             for cr in comp:
@@ -2947,7 +2954,7 @@ class Link(SageObject):
             sage: L = Link([[2,1,4,5], [5,6,7,3], [6,4,1,9], [9,2,3,7]])
             sage: L.plot(solver='GLPK')
             Graphics object consisting of ... graphics primitives
-            sage: L.plot(solver='Coin')    # optional - cbc
+            sage: L.plot(solver='Coin')    # optional - sage_numerical_backends_coin
             Graphics object consisting of ... graphics primitives
             sage: L.plot(solver='CPLEX')   # optional - CPLEX
             Graphics object consisting of ... graphics primitives

@@ -27,7 +27,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 from sage.categories.homset import End
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
@@ -36,6 +35,7 @@ from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affin
 from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.qqbar import AlgebraicField_common
+from sage.schemes.berkovich.berkovich_space import is_Berkovich_Cp
 from sage.rings.rational_field import QQ
 from copy import copy
 
@@ -164,6 +164,9 @@ class DynamicalSystem(SchemeMorphism_polynomial,
             if is_AffineSpace(domain) or isinstance(domain, AlgebraicScheme_subscheme_affine):
                 from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
                 return DynamicalSystem_affine(morphism_or_polys, domain)
+            if is_Berkovich_Cp(domain):
+                from sage.dynamics.arithmetic_dynamics.berkovich_ds import DynamicalSystem_Berkovich
+                return DynamicalSystem_Berkovich(morphism_or_polys,domain)
 
         from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
         return DynamicalSystem_projective(morphism_or_polys, domain, names)
@@ -472,16 +475,16 @@ class DynamicalSystem(SchemeMorphism_polynomial,
             [(0 : 1), (1 : 0), (1 : 1)]
             sage: N.<a> = f.field_of_definition_periodic(3); N
             Number Field in a with defining polynomial x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
-            sage: f.periodic_points(3,minimal=False, R=N)
-            [(0 : 1),
-             (a : 1),
-             (a^5 : 1),
-             (a^2 : 1),
-             (-a^5 - a^4 - a^3 - a^2 - a - 1 : 1),
-             (a^4 : 1),
+            sage: sorted(f.periodic_points(3,minimal=False, R=N), key=str)
+            [(-a^5 - a^4 - a^3 - a^2 - a - 1 : 1),
+             (0 : 1),
              (1 : 0),
+             (1 : 1),
+             (a : 1),
+             (a^2 : 1),
              (a^3 : 1),
-             (1 : 1)]
+             (a^4 : 1),
+             (a^5 : 1)]
 
         ::
 

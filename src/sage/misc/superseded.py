@@ -22,7 +22,6 @@ Functions and classes
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function, absolute_import
 
 from warnings import warn
 import inspect
@@ -41,7 +40,7 @@ def _check_trac_number(trac_number):
     OUTPUT:
 
     This function returns nothing. A ``ValueError`` or ``TypeError`` is
-    raised if the argument can not be a valid trac number.
+    raised if the argument cannot be a valid trac number.
 
     EXAMPLES::
 
@@ -293,7 +292,7 @@ class __experimental_self_test(object):
 
     The test below does not issue a warning message because that warning has
     already been issued by a previous doc-test in the @experimental code. Note
-    that this behaviour can not be demonstrated within a single documentation
+    that this behaviour cannot be demonstrated within a single documentation
     string: Sphinx will itself supress multiple issued warnings.
 
     TESTS::
@@ -381,8 +380,10 @@ class DeprecatedFunctionAlias(object):
                 if obj is self:
                     return name
         # then search object that contains self as method
-        import gc, copy
+        import gc
+        import copy
         gc.collect()
+
         def is_class(gc_ref):
             if not isinstance(gc_ref, dict):
                 return False
@@ -396,7 +397,7 @@ class DeprecatedFunctionAlias(object):
                 for key, val in ref_copy.items():
                     if val is search_for:
                         return key
-        raise AttributeError("The name of this deprecated function can not be determined")
+        raise AttributeError("The name of this deprecated function cannot be determined")
 
     def __call__(self, *args, **kwds):
         """

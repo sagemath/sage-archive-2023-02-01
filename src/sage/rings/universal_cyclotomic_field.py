@@ -162,7 +162,6 @@ AUTHORS:
 - Sebastian Oehms (2018): deleting the method is_finite since it returned the wrong result (see :trac:`25686`)
 - Sebastian Oehms (2019): add :meth:`_factor_univariate_polynomial` (see :trac:`28631`)
 """
-from __future__ import absolute_import, print_function
 
 from sage.misc.cachefunc import cached_method
 
@@ -532,8 +531,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: SR(1+E(4))
             I + 1
         """
-        from sage.symbolic.constants import pi
-        from sage.symbolic.all import i as I
+        from sage.symbolic.constants import pi, I
         k = ZZ(self._obj.Conductor())
         coeffs = self._obj.CoeffsCyc(k).sage()
         s = R.zero()
@@ -615,9 +613,8 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UCF = UniversalCyclotomicField()
             sage: hash(UCF.zero())  # indirect doctest
             0
-            sage: hash(UCF.gen(3,2))
-            313156239               # 32-bit
-            1524600308199219855     # 64-bit
+            sage: hash(UCF.gen(3,2)) == hash((3,0,0,1))
+            True
 
         TESTS:
 

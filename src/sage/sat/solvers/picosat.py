@@ -20,9 +20,13 @@ AUTHORS:
 #*****************************************************************************
 
 # Support of Python 3
-from __future__ import division, absolute_import, print_function, unicode_literals
 
 from .satsolver import SatSolver
+
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('pycosat', ['solve'],
+            feature=PythonModule('pycosat', spkg='pycosat'))
 
 class PicoSAT(SatSolver):
     r"""
@@ -55,12 +59,7 @@ class PicoSAT(SatSolver):
             self._prop_limit = 0
         else:
             self._prop_limit = int(prop_limit)
-        try:
-            import pycosat
-        except ImportError:
-            from sage.misc.package import PackageNotFoundError
-            raise PackageNotFoundError("pycosat")
-        self._solve = pycosat.solve
+        self._solve = solve
         self._nvars = 0
         self._clauses = []
 

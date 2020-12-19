@@ -196,7 +196,7 @@ which only work in dimension two or three)::
     [(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), 2]*
     [(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), 1]*
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Franco Saliola <saliola@gmail.com>
 #                          Vincent Delecroix <20100.delecroix@gmail.com>
 #                          Timo Jolivet <timo.jolivet@gmail.com>
@@ -206,8 +206,8 @@ which only work in dimension two or three)::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
@@ -290,11 +290,11 @@ class Face(SageObject):
 
         if color is None:
             if self._type == 1:
-                color = Color((1,0,0))
+                color = Color((1, 0, 0))
             elif self._type == 2:
-                color = Color((0,1,0))
+                color = Color((0, 1, 0))
             elif self._type == 3:
-                color = Color((0,0,1))
+                color = Color((0, 0, 1))
             else:
                 color = Color()
         self._color = Color(color)
@@ -334,7 +334,7 @@ class Face(SageObject):
         """
         return (isinstance(other, Face) and
                 self.vector() == other.vector() and
-                self.type() == other.type() )
+                self.type() == other.type())
 
     def _lt(self, other):
         r"""
@@ -501,13 +501,14 @@ class Face(SageObject):
 
         if len(v) == 2:
             if t == 1:
-                G += line([v, v + vector([0,1])], rgbcolor=self.color(), thickness=1.5, alpha=opacity)
+                G += line([v, v + vector([0, 1])], rgbcolor=self.color(), thickness=1.5, alpha=opacity)
             elif t == 2:
-                G += line([v, v + vector([1,0])], rgbcolor=self.color(), thickness=1.5, alpha=opacity)
+                G += line([v, v + vector([1, 0])], rgbcolor=self.color(), thickness=1.5, alpha=opacity)
 
         elif len(v) == 3:
-            G += polygon([projmat*(u+v) for u in face_contour[t]], alpha=opacity,
-                   thickness=1, rgbcolor=self.color())
+            G += polygon([projmat * (u + v)
+                          for u in face_contour[t]], alpha=opacity,
+                         thickness=1, rgbcolor=self.color())
 
         else:
             raise NotImplementedError("Plotting is implemented only for patches in two or three dimensions.")
@@ -533,8 +534,9 @@ class Face(SageObject):
         v = self.vector()
         t = self.type()
         c = self.color()
-        G = polygon([u+v for u in face_contour[t]], rgbcolor=c)
+        G = polygon([u + v for u in face_contour[t]], rgbcolor=c)
         return G
+
 
 class Patch(SageObject):
     r"""
@@ -608,14 +610,17 @@ class Patch(SageObject):
         else:
             self._dimension = len(f0.vector())
 
-        if not face_contour is None:
+        if face_contour is not None:
             self._face_contour = face_contour
 
         else:
             self._face_contour = {
-                    1: [vector(_) for _ in [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]],
-                    2: [vector(_) for _ in [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]],
-                    3: [vector(_) for _ in [(0,0,0),(1,0,0),(1,1,0),(0,1,0)]]
+                1: [vector(_) for _ in [(0, 0, 0), (0, 1, 0),
+                                        (0, 1, 1), (0, 0, 1)]],
+                2: [vector(_) for _ in [(0, 0, 0), (0, 0, 1),
+                                        (1, 0, 1), (1, 0, 0)]],
+                3: [vector(_) for _ in [(0, 0, 0), (1, 0, 0),
+                                        (1, 1, 0), (0, 1, 0)]]
             }
 
     def __eq__(self, other):
@@ -794,10 +799,10 @@ class Patch(SageObject):
         """
         if len(self) <= 20:
             L = list(self)
-            L.sort(key=lambda x : (x.vector(),x.type()))
-            return "Patch: %s"%L
+            L.sort(key=lambda x: (x.vector(), x.type()))
+            return "Patch: %s" % L
         else:
-            return "Patch of %s faces"%len(self)
+            return "Patch of %s faces" % len(self)
 
     def union(self, other):
         r"""
@@ -886,8 +891,8 @@ class Patch(SageObject):
 
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
-            sage: P.faces_of_vector([1,2,0])
-            [[(1, 2, 0), 3]*, [(1, 2, 0), 1]*]
+            sage: sorted(P.faces_of_vector([1,2,0]))
+            [[(1, 2, 0), 1]*, [(1, 2, 0), 3]*]
         """
         v = vector(v)
         return [f for f in self if f.vector() == v]
@@ -904,7 +909,7 @@ class Patch(SageObject):
 
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
-            sage: P.faces_of_type(1)
+            sage: sorted(P.faces_of_type(1))
             [[(0, 0, 0), 1]*, [(1, 2, 0), 1]*]
         """
         return [f for f in self if f.type() == t]
@@ -921,7 +926,7 @@ class Patch(SageObject):
 
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1, 'red'), Face((1,2,0),3, 'blue'), Face((1,2,0),1, 'red')])
-            sage: P.faces_of_color('red')
+            sage: sorted(P.faces_of_color('red'))
             [[(0, 0, 0), 1]*, [(1, 2, 0), 1]*]
         """
         color = tuple(Color(color))
@@ -943,7 +948,7 @@ class Patch(SageObject):
             Patch: [[(-1, -2, 0), 1]*, [(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
         """
         v = vector(v)
-        return Patch(Face(f.vector()+v, f.type(), f.color()) for f in self)
+        return Patch(Face(f.vector() + v, f.type(), f.color()) for f in self)
 
     def occurrences_of(self, other):
         r"""
@@ -986,8 +991,8 @@ class Patch(SageObject):
         positions = []
         for f in L:
             y = f.vector()
-            if other.translate(y-x)._faces.issubset(self._faces):
-                positions.append(y-x)
+            if other.translate(y - x)._faces.issubset(self._faces):
+                positions.append(y - x)
         return positions
 
     def repaint(self, cmap='Set1'):
@@ -1043,7 +1048,7 @@ class Patch(SageObject):
             sage: P.plot()                   #not tested
         """
         if cmap == {}:
-            cmap = {1: 'red', 2:'green', 3:'blue'}
+            cmap = {1: 'red', 2: 'green', 3: 'blue'}
 
         if isinstance(cmap, dict):
             for f in self:
@@ -1060,15 +1065,15 @@ class Patch(SageObject):
             if not cm:
                 from matplotlib import cm
 
-            if not cmap in cm.datad:
+            if cmap not in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % cmap)
             cmap = cm.__dict__[cmap]
             dim = float(len(self))
-            for i,f in enumerate(self):
-                f.color(cmap(i/dim)[:3])
+            for i, f in enumerate(self):
+                f.color(cmap(i / dim)[:3])
 
         else:
-            raise TypeError("Type of cmap (=%s) must be dict, list or str" %cmap)
+            raise TypeError("Type of cmap (=%s) must be dict, list or str" % cmap)
 
     def plot(self, projmat=None, opacity=0.75):
         r"""
@@ -1133,7 +1138,9 @@ class Patch(SageObject):
 
         if self.dimension() == 3:
             if projmat is None:
-                projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
+                projmat = matrix(2, [-1.7320508075688772 * 0.5,
+                                     1.7320508075688772 * 0.5,
+                                     0, -0.5, -0.5, 1])
 
             G = Graphics()
             for face in self:
@@ -1293,11 +1300,13 @@ class Patch(SageObject):
             raise NotImplementedError("Tikz Plotting is implemented only for patches in three dimensions.")
 
         if projmat is None:
-            projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])*scale
+            projmat = matrix(2, [-1.7320508075688772 * 0.5,
+                                 1.7320508075688772 * 0.5,
+                                 0, -0.5, -0.5, 1]) * scale
 
-        e1 = projmat*vector([1,0,0])
-        e2 = projmat*vector([0,1,0])
-        e3 = projmat*vector([0,0,1])
+        e1 = projmat * vector([1, 0, 0])
+        e2 = projmat * vector([0, 1, 0])
+        e3 = projmat * vector([0, 0, 1])
         face_contour = self._face_contour
         color = ()
 
@@ -1306,7 +1315,7 @@ class Patch(SageObject):
 
         if print_tikz_env:
             s += '\\begin{tikzpicture}\n'
-            s += '[x={(%fcm,%fcm)}, y={(%fcm,%fcm)}, z={(%fcm,%fcm)}]\n'%(e1[0], e1[1], e2[0], e2[1], e3[0], e3[1])
+            s += '[x={(%fcm,%fcm)}, y={(%fcm,%fcm)}, z={(%fcm,%fcm)}]\n' % (e1[0], e1[1], e2[0], e2[1], e3[0], e3[1])
 
         s += extra_code_before
 
@@ -1314,11 +1323,11 @@ class Patch(SageObject):
             t = f.type()
             x, y, z = f.vector()
 
-            if tuple(color) != tuple(f.color()): #tuple is needed, comparison for RGB fails
+            if tuple(color) != tuple(f.color()):  # tuple is needed, comparison for RGB fails
                 color = f.color()
-                s += '\\definecolor{facecolor}{rgb}{%.3f,%.3f,%.3f}\n'%(color[0], color[1], color[2])
+                s += '\\definecolor{facecolor}{rgb}{%.3f,%.3f,%.3f}\n' % (color[0], color[1], color[2])
 
-            s += '\\fill[fill=facecolor, draw=%s, shift={(%d,%d,%d)}]\n'%(edgecolor, x, y, z)
+            s += '\\fill[fill=facecolor, draw=%s, shift={(%d,%d,%d)}]\n' % (edgecolor, x, y, z)
             s += ' -- '.join(map(str, face_contour[t])) + ' -- cycle;\n'
 
         s += extra_code_after
@@ -1332,6 +1341,7 @@ class Patch(SageObject):
         return LatexExpr(s)
 
     _latex_ = plot_tikz
+
 
 class E1Star(SageObject):
     r"""
@@ -1393,17 +1403,17 @@ class E1Star(SageObject):
             E_1^*(1->12, 2->13, 3->1)
         """
         if not isinstance(sigma, WordMorphism):
-            raise TypeError("sigma (=%s) must be an instance of WordMorphism"%sigma)
+            raise TypeError("sigma (=%s) must be an instance of WordMorphism" % sigma)
 
         if sigma.domain().alphabet() != sigma.codomain().alphabet():
-            raise ValueError("The domain and codomain of (%s) must be the same."%sigma)
+            raise ValueError("The domain and codomain of (%s) must be the same." % sigma)
 
         if abs(det(matrix(sigma))) != 1:
-            raise ValueError("The substitution (%s) must be unimodular."%sigma)
+            raise ValueError("The substitution (%s) must be unimodular." % sigma)
 
         first_letter = sigma.codomain().alphabet()[0]
         if not (first_letter in ZZ) or (first_letter < 1):
-            raise ValueError("The substitution (%s) must be defined on positive integers."%sigma)
+            raise ValueError("The substitution (%s) must be defined on positive integers." % sigma)
 
         self._sigma = WordMorphism(sigma)
         self._d = self._sigma.domain().alphabet().cardinality()
@@ -1416,14 +1426,14 @@ class E1Star(SageObject):
             subst_im = self._sigma.image(k)
             for n, letter in enumerate(subst_im):
                 if method == 'suffix':
-                    image_word = subst_im[n+1:]
+                    image_word = subst_im[n + 1:]
                 elif method == 'prefix':
                     image_word = subst_im[:n]
                 else:
                     raise ValueError("Option 'method' can only be 'prefix' or 'suffix'.")
-                if not letter in X:
+                if letter not in X:
                     X[letter] = []
-                v = self.inverse_matrix()*vector(image_word.abelian_vector())
+                v = self.inverse_matrix() * vector(image_word.abelian_vector())
                 X[letter].append((v, k))
         self._base_iter = X
 

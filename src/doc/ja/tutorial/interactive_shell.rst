@@ -28,7 +28,7 @@ Sageを終了するには，Ctrl-Dと押すか， コマンド ``quit`` ある�
 ::
 
     sage: quit
-    Exiting SAGE (CPU time 0m0.00s, Wall time 0m0.89s)
+    Exiting Sage (CPU time 0m0.00s, Wall time 0m0.89s)
 
 
 "Wall time"は，CPUタイムではなく外界の実経過時間を示している．
@@ -179,7 +179,7 @@ Sageセッションのロギングと，セッションの保存(:ref:`section-s
     sage: x,y = QQ['x,y'].gens()
     sage: G = E.gens()
     sage:
-    Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
+    Exiting Sage (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
@@ -288,7 +288,7 @@ GMPの方が速いが，その差はわずかだ(Sage用にビルドされたPAR
 
    sage: cputime?
     ...
-        Return the time in CPU second since SAGE started, or with optional
+        Return the time in CPU second since Sage started, or with optional
         argument t, return the time since time t.
         INPUT:
             t -- (optional) float, time in CPU seconds
@@ -885,96 +885,4 @@ Sageは，セッション全体を保存し再ロードするための非常に�
     19
     sage: a
     389
-
-
-
-.. _section-notebook:
-
-ノートブックインターフェイス
-==================================
-
-Sageノートブックを起動するには、Sageコマンドライン上で
-
-.. skip
-
-::
-
-    sage: notebook()
-
-と実行する．
-これでSageノートブックが起動すると同時に，閲覧用のデフォルトWebブラウザが開かれる．
-ノートブックサーバが使用する状態ファイル群は， ``$HOME/.sage/sage\_notebook.sagenb`` に保存される．
-
-
-起動時に指定できるオプションとして
-
-.. skip
-
-
-::
-
-    sage: notebook("ディレクトリ名")
-
-
-とすると，標準ディレクトリ ``$HOME/.sage/sage_notebook.sagenb`` ではなく指定した ``ディレクトリ名.sagenb`` のディレクトリにある状態ファイル群を使って新しくノートブックサーバを起動する．
-このオプションは，特定のプロジェクトに多数のワークシート群がぶら下がっていたり，同時に複数のノートブックサーバを動かしたい場合に便利だ．
-
-ノートブックを起動すると、まず ``$HOME/.sage/sage_notebook.sagenb`` 内に以下のようなファイル群が生成される:
-
-
-::
-
-    conf.pickle
-    openid.pickle
-    twistedconf.tac
-    sagenb.pid
-    users.pickle
-    home/admin/
-    home/guest/
-    home/pub/
-
-上のファイル群の作成後，ノートブックはWebサーバの起動を行なう．
-
-
-「ノートブック」(notebook)とはユーザーアカウントの集合であって，各ノートブックにはワークシートを好きな数だけ保持することができる．
-ワークシートを新規に作成すると，そのワークシートを定義するデータが ``home/username/number`` ディレクトリに保存される．
-これらのディレクトリに必ず出来ているのがファイル ``worksheet.html`` である．
-このプレーンテキストからなるファイルには，ワークシートやSageその他に何によらず変更が加えられた場合，元のワークシートを復元するために必要な全情報が可読形式で保存されている．
-
-
-Sage上で ``notebook?`` と入力すると，ノートブックサーバを起動する方法に関する詳しい情報が得られる．
-
-
-次の図を見ると，Sageノートブックの構造が分る:
-
-::
-
-    ----------------------
-    |                    |
-    |                    |
-    |   firefox/safari   |
-    |                    |
-    |     javascript     |
-    |      program       |
-    |                    |
-    |                    |
-    ----------------------
-          |      ^
-          | AJAX |
-          V      |
-    ----------------------
-    |                    |
-    |       sage         |                SAGE process 1
-    |       web          | ------------>  SAGE process 2    (Python processes)
-    |      server        |   pexpect      SAGE process 3
-    |                    |                    .
-    |                    |                    .
-    ----------------------                    .
-
-
-
-ノートブックからSageコマンド  ``コマンド名`` のヘルプを見たければ，ブラウザ表示画面内入力ボックスで ``コマンド名?`` と入力し， ``<tab>`` を押せばよい(``<shift-enter>`` ではない)．
-
-
-ノートブック上で通用するキーボードショートカットを確認するには， ``Help`` リンクをクリックする．
 

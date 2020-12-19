@@ -1653,7 +1653,6 @@ TESTS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import importlib
 import re
@@ -1680,7 +1679,9 @@ all_axioms += ("Flying", "Blue",
                "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
                "Nilpotent",
-               "FiniteDimensional", "Connected", "WithBasis",
+               "FiniteDimensional", "Connected",
+               "FinitelyGeneratedAsLambdaBracketAlgebra",
+               "WithBasis",
                "Irreducible",
                "Supercommutative", "Supercocommutative",
                "Commutative", "Cocommutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors", "Cellular",
@@ -2283,6 +2284,8 @@ class CategoryWithAxiom(Category):
                 result = result.replace("homsets", "endsets", 1)
             elif axiom == "FinitelyGeneratedAsMagma" and \
                  not base_category.is_subcategory(AdditiveMagmas()):
+                result = "finitely generated " + result
+            elif axiom == "FinitelyGeneratedAsLambdaBracketAlgebra":
                 result = "finitely generated " + result
             else:
                 result = uncamelcase(axiom) + " " + result

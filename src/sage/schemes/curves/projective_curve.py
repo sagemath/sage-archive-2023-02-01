@@ -123,7 +123,7 @@ AUTHORS:
 
 - Grayson Jorgenson (2016-08)
 
-- Kwankyu Lee (2019-05): added integral projecive curves
+- Kwankyu Lee (2019-05): added integral projective curves
 
 """
 # ****************************************************************************
@@ -135,7 +135,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division, absolute_import
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method

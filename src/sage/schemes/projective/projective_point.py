@@ -31,7 +31,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
@@ -369,12 +368,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
-            sage: hash(P([1, 1]))
-            1300952125                      # 32-bit
-            3713081631935493181             # 64-bit
-            sage: hash(P.point([2, 2], False))
-            1300952125                      # 32-bit
-            3713081631935493181             # 64-bit
+            sage: hash(P([1, 1])) == hash(P.point([2, 2], False))
+            True
 
         ::
 
@@ -382,12 +377,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: K.<w> = NumberField(x^2 + 3)
             sage: O = K.maximal_order()
             sage: P.<x,y> = ProjectiveSpace(O, 1)
-            sage: hash(P([1+w, 2]))
-            -1562365407                    # 32-bit
-            1251212645657227809            # 64-bit
-            sage: hash(P([2, 1-w]))
-            -1562365407                    # 32-bit
-            1251212645657227809            # 64-bit
+            sage: hash(P([1+w, 2])) == hash(P([2, 1-w]))
+            True
 
         TESTS::
 
@@ -653,7 +644,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.dehomogenize(2)
             Traceback (most recent call last):
             ...
-            ValueError: can't dehomogenize at 0 coordinate
+            ValueError: can...t dehomogenize at 0 coordinate
         """
         if self[n] == 0:
             raise ValueError("can't dehomogenize at 0 coordinate")
@@ -1097,12 +1088,8 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: hash(P([1/2, 1]))
-            -1503642134                     # 32-bit
-            -6819944855328768534            # 64-bit
-            sage: hash(P.point([1, 2], False))
-            -1503642134                     # 32-bit
-            -6819944855328768534            # 64-bit
+            sage: hash(P([1/2, 1])) == hash(P.point([1, 2], False))
+            True
         """
         P = copy(self)
         P.normalize_coordinates()

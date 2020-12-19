@@ -10,12 +10,13 @@ Modules
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.morphism import SetMorphism
 from sage.categories.homsets import HomsetsCategory
+from sage.categories.homset import Hom
 from .category import Category
 from .category_types import Category_module
 from sage.categories.tensor import TensorProductsCategory, tensor
@@ -521,6 +522,38 @@ class Modules(Category_module):
                            at_startup=True)
 
     class ParentMethods:
+
+        def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
+            r"""
+            Return the linear combination `\lambda_1 v_1 + \cdots +
+            \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
+            \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
+            through the sequence `((\lambda_1, v_1), ..., (\lambda_k, v_k))`.
+
+            INPUT:
+
+            - ``iter_of_elements_coeff`` -- iterator of pairs
+              ``(element, coeff)`` with ``element`` in ``self`` and
+              ``coeff`` in ``self.base_ring()``
+
+            - ``factor_on_left`` -- (optional) if ``True``, the coefficients
+              are multiplied from the left; if ``False``, the coefficients
+              are multiplied from the right
+
+            EXAMPLES::
+
+                sage: m = matrix([[0,1],[1,1]])
+                sage: J.<a,b,c> = JordanAlgebra(m)
+                sage: J.linear_combination(((a+b, 1), (-2*b + c, -1)))
+                1 + (3, -1)
+            """
+            if factor_on_left:
+                return self.sum(coeff * element
+                                for element, coeff in iter_of_elements_coeff)
+            else:
+                return self.sum(element * coeff
+                                for element, coeff in iter_of_elements_coeff)
+
         @cached_method
         def tensor_square(self):
             """
@@ -537,6 +570,41 @@ class Modules(Category_module):
                  group of order 6 as a permutation group over Rational Field
             """
             return tensor([self, self])
+
+        def module_morphism(self, *, function, category=None, codomain, **keywords):
+            r"""
+            Construct a module morphism from ``self`` to ``codomain``.
+
+            Let ``self`` be a module `X` over a ring `R`.
+            This constructs a morphism `f: X \to Y`.
+
+            INPUT:
+
+            - ``self`` -- a parent `X` in ``Modules(R)``.
+
+            - ``function`` -- a function `f` from `X` to `Y`
+
+            - ``codomain`` -- the codomain `Y` of the morphism (default:
+              ``f.codomain()`` if it's defined; otherwise it must be specified)
+
+            - ``category`` -- a category or ``None`` (default: ``None``)
+
+            EXAMPLES::
+
+                sage: V = FiniteRankFreeModule(QQ, 2)
+                sage: e = V.basis('e'); e
+                Basis (e_0,e_1) on the 2-dimensional vector space over the Rational Field
+                sage: neg = V.module_morphism(function=operator.neg, codomain=V); neg
+                Generic endomorphism of 2-dimensional vector space over the Rational Field
+                sage: neg(e[0])
+                Element -e_0 of the 2-dimensional vector space over the Rational Field
+
+            """
+            # Make sure that we only create a module morphism, even if
+            # domain and codomain have more structure
+            if category is None:
+                category = Modules(self.base_ring())
+            return SetMorphism(Hom(self, codomain, category), function)
 
     class ElementMethods:
         pass

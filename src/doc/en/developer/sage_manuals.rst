@@ -45,9 +45,6 @@ Sage's manuals are written in `ReST <http://docutils.sourceforge.net/rst.html>`_
 Editing the documentation
 =========================
 
-(*Do you want to convert a Sage worksheet into documentation?* `Click here
-<../thematic_tutorials/sws2rst.html>`_)
-
 After modifying some files in the Sage tutorial
 (``SAGE_ROOT/src/doc/en/tutorial/``), you will want to visualize the result. In
 order to build a **html** version of this document, type::
@@ -136,6 +133,16 @@ by Sage, you can link toward it without specifying its full path:
 
 **http links:** copy/pasting a http link in the documentation works. If you want
 a specific link name, use ```link name <http://www.example.com>`_``
+
+**Anonymous hyperlinks:** Using a single underscore creates an *explicit target
+name* ``"link name"`` which needs to be unique in the current page. Using the
+same target name twice in the same page creates an error while building the
+documentation saying ``WARNING: Duplicate explicit target name: ...``. To
+avoid this issue, one can change the target names to be all different or
+another option is to use `anonymous hyperlinks
+<https://stackoverflow.com/questions/27420317/>`__ with two underscores, as in
+``see `this page <http://www.example.com>`__ or `this page
+<http://www.example2.com>`__``.
 
 **Broken links:** Sphinx can report broken links. See
 :ref:`section-building-manuals`.

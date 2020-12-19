@@ -24,7 +24,6 @@ test.spyx
 --help
 --info
 --ipython
---kash
 --lisp
 --maxima
 --min
@@ -39,7 +38,6 @@ test.spyx
 --rst2ipynb
 --ipynb2rst
 --rst2txt
---rst2sws
 --sh
 --singular
 --sqlite3
@@ -541,14 +539,6 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret  # optional - gdb
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--kash", "-b", "3^33;\n"])  # optional - kash
-        sage: out.find("5559060566555523") >= 0  # optional - kash
-        True
-        sage: err  # optional - kash
-        ''
-        sage: ret  # optional - kash
-        0
-
         sage: (out, err, ret) = test_executable(["sage", "--mwrank", "-v0", "-q", "-o"], "0 0 1 -7 6 0 0 0 0 0\n")
         sage: out
         'Curve [0,0,1,-7,6] :\tRank = 3\n[[3],[[1,-1],[-2,3],[-7/4,25/8]]]\n\n\n'
@@ -794,49 +784,6 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         4
         }}}
 
-    Test ``sage --rst2sws file.rst file.sws`` on a ReST file::
-
-        sage: s = "Thetitle\n--------\n\n::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
-        sage: input = tmp_filename(ext='.rst')
-        sage: output = tmp_filename(ext='.sws')
-        sage: with open(input, 'w') as F:
-        ....:     _ = F.write(s)
-        sage: test_executable(["sage", "--rst2sws", input, output]) # py2 # optional -- sagenb
-        ('', '', 0)
-        sage: import tarfile # py2
-        sage: f = tarfile.open(output, 'r') # py2 # optional -- sagenb
-        sage: print(f.extractfile('sage_worksheet/worksheet.html').read()) # py2 # optional -- sagenb
-        <h1 class="title">Thetitle</h1>
-        <BLANKLINE>
-        {{{id=0|
-        2^10
-        ///
-        1024
-        }}}
-        <BLANKLINE>
-        {{{id=1|
-        2 + 2
-        ///
-        4
-        }}}
-        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read()) # py2 # optional -- sagenb
-        Thetitle
-        system:sage
-        <BLANKLINE>
-        <BLANKLINE>
-        <h1 class="title">Thetitle</h1>
-        <BLANKLINE>
-        {{{id=0|
-        2^10
-        ///
-        1024
-        }}}
-        <BLANKLINE>
-        {{{id=1|
-        2 + 2
-        ///
-        4
-        }}}
     """
     pexpect_env = dict(os.environ)
     try:

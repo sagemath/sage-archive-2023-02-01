@@ -88,7 +88,7 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python 3, 3.3 or later, or Python 2 (deprecated), 2.6 or later.
+- **python**: Python 3, 3.6 or later, or Python 2.7 (deprecated).
 
 Other versions of these may work, but they are untested.
 
@@ -167,6 +167,20 @@ that your assembler understands all instructions for your
 processor. On Linux, this means you need a recent version of
 ``binutils``; on macOS you need a recent version of Xcode.
 
+Python for venv
+^^^^^^^^^^^^^^^
+
+By default, Sage will try to use system's `python3` to set up a virtual
+environment, a.k.a. `venv <https://docs.python.org/3.7/library/venv.html>`_
+rather than building a Python 3 installation from scratch.
+Use the configure option ``--without-system-python3`` in case you want Python 3
+built from scratch.
+
+You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
+``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
+a number of Python modules to be availabe within the Python in question. Currently,
+for Sage 9.2, these modules are as follows: sqlite3, ctypes, math, hashlib, crypt,
+readline, socket, zlib, distutils.core - they will be checked for by configure.
 
 Other notes
 ^^^^^^^^^^^
@@ -395,30 +409,31 @@ On other systems, check the documentation for your particular operating system.
 
 .. _section_conda_compilers:
 
-Notes on using Anaconda/Miniconda
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using conda
+^^^^^^^^^^^
 
 If Conda is installed (check by typing ``conda info``), there are two ways to
 prepare for installing SageMath from source:
 
-- Make sure that a Conda environment is active (for the current shell session)
-  that has at least the following Conda packages required for building SageMath::
+  - Create a new conda environment with standard packages::
 
-    c-compiler cxx-compiler fortran-compiler
+      $ conda env create -f environment.yml
 
-  - Activate a Conda environment that has these packages, using::
+  - Or create a new conda environment with standard and optional packages::
 
-      $ conda activate ENVIRONMENT
+      $ conda env create -f environment-optional.yml
 
-  - The packages can be installed into the current Conda environment using::
+  - Then SageMath will be built using the compilers provided by Conda::
 
-      $ conda install c-compiler cxx-compiler fortran-compiler
+      $ ./bootstrap
+      $ ./configure --prefix=$CONDA_PREFIX
+      $ make
 
-  - Optionally, install additional Conda packages.
 
-  Then SageMath will be built using the compilers provided by Conda.
+Notes on using conda
+^^^^^^^^^^^^^^^^^^^^
 
-- Deactivate conda (for the current shell session).
+If you don't want conda to be used by sage, deactivate conda (for the current shell session).
 
   - Type::
 
@@ -489,7 +504,7 @@ in order to check that Sage will not try to build GCC. Namely, there should be l
        ...
        gfortran-7.2.0 will not be installed (configure check)
 
-indicating that Sage will no attempt to build ``gcc/g++/gfortran``.
+indicating that Sage will not attempt to build ``gcc/g++/gfortran``.
 
 If you are interested in working on support for commercial compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
@@ -1082,15 +1097,7 @@ you. This is influenced by the following environment variable:
 
   - ``SAGE_SERVER/spkg/upstream``
 
-  for clean upstream tarballs, and it searches the directories
-
-  - ``SAGE_SERVER/spkg/standard/``,
-  - ``SAGE_SERVER/spkg/optional/``,
-  - ``SAGE_SERVER/spkg/experimental/``,
-  - ``SAGE_SERVER/spkg/archive/``
-
-  for old-style Sage packages.
-
+  for upstream tarballs.
 
 Here are some of the more commonly used variables affecting the build process:
 
@@ -1171,7 +1178,9 @@ Here are some of the more commonly used variables affecting the build process:
   building ccache for Sage, so that Sage can pull down the necessary
   sources.
 
-- :envvar:`SAGE_DEBUG` - controls debugging support.
+- .. _sage_debug:
+
+  :envvar:`SAGE_DEBUG` - controls debugging support.
   There are three different possible values:
 
   * Not set (or set to anything else than "yes" or "no"): build binaries with
@@ -1187,6 +1196,9 @@ Here are some of the more commonly used variables affecting the build process:
     with a different memory manager).
     These will be notably slower but, for example, make it much easier to
     pinpoint memory allocation problems.
+
+  Instead of using :envvar:`SAGE_DEBUG` one can configure with
+  ``--enable-debug={no|symbols|yes}``.
 
 - :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
   to ``yes``, profiling support is enabled where possible. Note that
@@ -1276,9 +1288,12 @@ Here are some of the more commonly used variables affecting the build process:
       So you can set this variable to ``yes`` instead of using the ``-s`` flag
       for ``sage -i`` and ``sage -f``.
 
-- :envvar:`SAGE_FAT_BINARY` - to build binaries that will run on the
+- .. _sage_fat_binary:
+
+  :envvar:`SAGE_FAT_BINARY` - to build binaries that will run on the
   widest range of target CPUs set this variable to ``yes`` before
-  building Sage. This does not make the binaries relocatable, it only
+  building Sage or configure with ``--enable-fat-binary``.
+  This does not make the binaries relocatable, it only
   avoids newer CPU instruction set extensions. For relocatable (=can
   be moved to a different directory) binaries, you must use
   https://github.com/sagemath/binary-pkg

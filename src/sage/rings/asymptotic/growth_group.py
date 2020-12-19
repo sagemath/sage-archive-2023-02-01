@@ -227,7 +227,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 from collections import namedtuple
 
 from sage.misc.lazy_import import lazy_import
@@ -4548,7 +4547,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: forget()
         """
         from sage.rings.complex_arb import ComplexBallField
-        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.complex_mpfr import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
@@ -4741,7 +4740,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         from sage.groups.misc_gps.argument_groups import AbstractArgumentGroup
         from sage.groups.misc_gps.argument_groups import ArgumentGroup
         from sage.rings.complex_arb import ComplexBallField
-        from sage.rings.complex_field import ComplexField_class
+        from sage.rings.complex_mpfr import ComplexField_class
         from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.number_field.number_field import NumberField_cyclotomic
         from sage.rings.qqbar import QQbar, AA
@@ -5239,6 +5238,7 @@ class GrowthGroupFactory(UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -5267,6 +5267,7 @@ class GrowthGroupFactory(UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -5295,6 +5296,7 @@ class GrowthGroupFactory(UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass

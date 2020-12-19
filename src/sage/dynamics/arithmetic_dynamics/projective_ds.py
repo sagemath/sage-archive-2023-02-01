@@ -51,7 +51,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.arith.misc import is_prime
 from sage.categories.fields import Fields
@@ -70,7 +69,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import Integer
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
 from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -2335,7 +2334,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _nth_preimage_tree_helper(self, Q, n, m, **kwds):
         r"""
-        A recusive method to fill in ``n``-th preimage tree.
+        A recursive method to fill in ``n``-th preimage tree.
 
         This helper function is used by ``nth_preimage_tree`` below to actually compute the
         points of the tree and populate the dictionary used to create a ``DiGraph``
@@ -2419,7 +2418,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``numerical`` -- (default: ``False``) boolean; calculate pre-images numerically. Note if this
           is set to ``True``, preimage points are displayed as complex numbers
 
-        - ``prec`` -- (default: 100) postive integer; the precision of the ``ComplexField`` if
+        - ``prec`` -- (default: 100) positive integer; the precision of the ``ComplexField`` if
           we compute the preimage points numerically
 
         - ``display_labels`` -- (default: ``True``) boolean; whether to display vertex labels. Since labels
@@ -3145,10 +3144,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<w> = CyclotomicField(3)
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: D6 = DynamicalSystem_projective([y^2,x^2])
-            sage: D6.automorphism_group()
+            sage: sorted(D6.automorphism_group())
             [
-            [1 0]  [0 w]  [0 1]  [w 0]  [-w - 1      0]  [     0 -w - 1]
-            [0 1], [1 0], [1 0], [0 1], [     0      1], [     1      0]
+            [-w - 1      0]  [     0 -w - 1]  [w 0]  [0 w]  [0 1]  [1 0]
+            [     0      1], [     1      0], [0 1], [1 0], [1 0], [0 1]
             ]
         """
         alg = kwds.get('algorithm', None)
@@ -3352,12 +3351,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         C = F.critical_subscheme()
         ram_type = {}
         fc = C.defining_ideal().gens()[0]
-        for f, e in fc.factor():
+        for f, m in fc.factor():
             c = F(F.domain().subscheme(f))  # critical value
             if c in ram_type:
-                ram_type[c].append(e + 1)
+                ram_type[c].append(m + 1)
             else:
-                ram_type[c] = [e + 1]
+                ram_type[c] = [m + 1]
         return sorted(ram_type.values())
 
     def is_postcritically_finite(self, err=0.01, use_algebraic_closure=True):
@@ -3748,14 +3747,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K.<s> = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
-            sage: f.preperiodic_points(0,1)
-            [(-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
-            (-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
-            (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
-            (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1),
-            (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
-            (1 : 1 : 1),
-            (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1)]
+            sage: sorted(f.preperiodic_points(0,1), key=str)
+            [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
+             (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
+             (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
+             (1 : 1 : 1),
+             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1),
+             (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1)]
 
         ::
 
@@ -3969,14 +3968,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: K = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1,'s')
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
-            sage: f.periodic_points(1)
-            [(-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
-             (-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
+            sage: sorted(f.periodic_points(1), key=str)
+            [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
              (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
-             (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1),
-             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+             (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
              (1 : 1 : 1),
-             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1)]
+             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1),
+             (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1)]
 
         ::
 
@@ -5391,7 +5390,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([x^2+ y^2, x*y])
-            sage: f.all_periodic_points(algorithm="dnyatomic")
+            sage: f.all_periodic_points(algorithm="banana")
             Traceback (most recent call last):
             ...
             ValueError: algorithm must be 'dynatomic' or 'lifting'
@@ -5570,10 +5569,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<w> = NumberField(x^2-x+1)
             sage: P.<u,v> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
-            sage: f.rational_periodic_points()
+            sage: sorted(f.rational_periodic_points())
             doctest:warning
             ...
-            [(w : 1), (1 : 0), (-w + 1 : 1)]
+            [(-w + 1 : 1), (w : 1), (1 : 0)]
         """
         from sage.misc.superseded import deprecation
         deprecation(28109, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_periodic_points instead")
@@ -6010,19 +6009,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: PS.<x,y> = ProjectiveSpace(1,K)
             sage: f = DynamicalSystem_projective([x^2 - 29/16*y^2, y^2])
             sage: P = PS([w,1])
-            sage: f.connected_rational_component(P)
-            [(w : 1),
-             (w^2 - 29/16 : 1),
-             (-w^2 - w + 25/16 : 1),
-             (w^2 + w - 25/16 : 1),
+            sage: sorted(f.connected_rational_component(P), key=str)
+            [(-w - 1/2 : 1),
              (-w : 1),
-             (-w^2 + 29/16 : 1),
-             (w + 1/2 : 1),
-             (-w - 1/2 : 1),
              (-w^2 + 21/16 : 1),
-             (w^2 - 21/16 : 1),
+             (-w^2 + 29/16 : 1),
+             (-w^2 - w + 25/16 : 1),
+             (-w^2 - w + 33/16 : 1),
+             (w + 1/2 : 1),
+             (w : 1),
+             (w^2 + w - 25/16 : 1),
              (w^2 + w - 33/16 : 1),
-             (-w^2 - w + 33/16 : 1)]
+             (w^2 - 21/16 : 1),
+             (w^2 - 29/16 : 1)]
 
         ::
 
@@ -6144,10 +6143,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: f.conjugating_set(g) # long time
+            sage: sorted(f.conjugating_set(g)) # long time
             [
-            [1 1]  [-1 -1]
-            [2 1], [ 2  1]
+            [-1 -1]  [1 1]
+            [ 2  1], [2 1]
             ]
 
         ::
@@ -6907,6 +6906,142 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if return_conjugation:
             return gccc, m * mc * mc2, psi
         return gccc
+
+    def potential_good_reduction(self, prime):
+        r"""
+        Return if this dynamical system has potential good reduction at ``prime``.
+
+        A dynamical system has good reduction at ``prime`` if after the coefficients
+        are reduced modulo ``prime`` the degree remains the same. A dynamical system
+        `f` has `\textit{potential}` good reduction if there exists
+        `\phi \in PGL(n,\overline{K})` such that `\phi^{-1} \circ f \circ \phi`
+        has good reduction.
+
+        If this dynamical system `f` has potential good reduction at ``prime``,
+        a dynamical system `g = \phi^{-1} \circ f \circ \phi` which has good
+        reduction at ``prime`` is returned.
+
+        This dynamical system must have as its domain `\mathbb{P}^1(K)`, where
+        `K` is a number field.
+
+        INPUT:
+
+        - ``prime`` -- a prime ideal of the field of definition of the fixed
+          points of the map, or a prime number in `\QQ` if the field of definition
+          of the fixed points is `\QQ`.
+
+        OUTPUT:
+
+        - ``False`` if this dynamical system does not have good reduction
+        - If this dynamical system `f` has potential good reduction, a
+          dynamical system `g` such that `g = \phi^{-1} \circ f \circ \phi`
+          and `g` has good reduction at ``prime``.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([x^2-y^2, 2*x*y])
+            sage: prime = system.field_of_definition_periodic(1).prime_above(2)
+            sage: new_system = system.potential_good_reduction(prime)
+            sage: new_system
+            Dynamical System of Projective Space of dimension 1 over Number Field
+            in a with defining polynomial x^2 + 1
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2)
+
+        Note that this map has good reduction at 2::
+
+            sage: new_system.resultant()
+            1
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([3^4*x^3+3*x*y^2+y^3, 3^6*y^3])
+            sage: prime = system.field_of_definition_periodic(1).prime_above(3)
+            sage: system.potential_good_reduction(prime)
+            False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([x^5-x*y^4, 5*y^5])
+            sage: prime = system.field_of_definition_periodic(1).prime_above(5)
+            sage: system.potential_good_reduction(prime)
+            False
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: R.<z> = QQ[]
+            sage: A.<a> = NumberField(z^2 + 1)
+            sage: prime = A.prime_above(2)
+            sage: system = DynamicalSystem_projective([x^2 - y^2, 2*x*y])
+            sage: system.potential_good_reduction(prime)
+            Dynamical System of Projective Space of dimension 1 over Number Field
+            in a with defining polynomial x^2 + 1
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2)
+        """
+        if self.domain().base_ring() not in NumberFields:
+            raise ValueError('dynamical system must be defined over number field')
+
+        field_of_definition_periodic = self.field_of_definition_periodic(1)
+
+        if not (isinstance(prime, NumberFieldFractionalIdeal) or prime in QQ):
+            raise TypeError('prime must be an ideal of a number field or an element of QQ')
+        if prime not in QQ:
+            if prime.number_field() != field_of_definition_periodic:
+                K = prime.number_field()
+                old_parent = K.defining_polynomial().parent()
+                new_parent = field_of_definition_periodic.defining_polynomial().parent()
+                hom = old_parent.hom([new_parent.gens()[0]])
+                if hom(K.defining_polynomial()) != \
+                    field_of_definition_periodic.defining_polynomial():
+                    raise ValueError('prime ideal of %s ' %K + \
+                        'but field of definition of fixed points is %s. ' %L + \
+                        'see documentation for examples')
+                embedding = K.embeddings(field_of_definition_periodic)[0]
+                prime = embedding(prime)
+        else:
+            if field_of_definition_periodic is not QQ:
+                raise ValueError('field of definition of fixed ' + \
+                    'points is %s but prime is in QQ. ' %field_of_definition_periodic)
+
+        system = self.change_ring(field_of_definition_periodic)
+        fixed_points = system.periodic_points(1)
+        multipliers = [system.multiplier(i, 1)[0][0] for i in fixed_points]
+        indifferent_point = None
+        for mult in multipliers:
+            if field_of_definition_periodic is not QQ:
+                valuation = mult.valuation(prime) / prime.absolute_ramification_index()
+            else:
+                valuation = mult.valuation(prime)
+            if valuation < 0:
+                return False
+            elif valuation == 0:
+                indifferent_point = fixed_points[multipliers.index(mult)]
+        if indifferent_point is not None:
+            point = indifferent_point
+            field_of_definition = system.field_of_definition_preimage(point, 2)
+            system = system.change_ring(field_of_definition)
+            point = indifferent_point.change_ring(field_of_definition)
+            preimages = [point]
+            for i in [1,2]:
+                preimages_of_point = system.rational_preimages(point, 1)
+                for preimage in preimages_of_point:
+                    if preimage != point:
+                        preimages.append(preimage)
+                        point = preimage
+                        break
+        else:
+            preimages = [fixed_points[0], fixed_points[1], fixed_points[2]]
+            field_of_definition = field_of_definition_periodic
+        P = ProjectiveSpace(field_of_definition,1)
+        preimages = [P(i) for i in preimages]
+        conjugation = P.point_transformation_matrix(preimages,[P(0),P(1),P([1,0])])
+        new_system = system.change_ring(field_of_definition)
+        return new_system.conjugate(conjugation)
 
     def reduce_base_field(self):
         """

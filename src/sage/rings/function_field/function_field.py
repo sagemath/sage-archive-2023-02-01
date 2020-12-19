@@ -211,7 +211,6 @@ AUTHORS:
 - Brent Baccala (2019-12-20): added function fields over number fields and QQbar
 
 """
-from __future__ import absolute_import
 # ****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>

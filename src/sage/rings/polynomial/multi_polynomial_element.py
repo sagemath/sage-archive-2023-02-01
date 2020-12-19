@@ -37,7 +37,7 @@ We verify Lagrange's four squares identity::
 """
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -52,7 +52,6 @@ We verify Lagrange's four squares identity::
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.element import CommutativeRingElement, coerce_binop
 from sage.misc.all import prod
@@ -1000,7 +999,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f.exponents()
             [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
 
-        Be default the list of exponents is a list of ETuples::
+        By default the list of exponents is a list of ETuples::
 
             sage: type(f.exponents()[0])
             <type 'sage.rings.polynomial.polydict.ETuple'>

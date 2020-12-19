@@ -471,9 +471,10 @@ http://sourceforge.net/projects/dvipng/ and as part of
 `Ghostscript <http://www.ghostscript.com/>`_.
 
 Rendering combinatorial graphs requires a recent version of the
-PGF library, and the files ``tkz-graph.sty``, ``tkz-arith.sty``
-and perhaps ``tkz-berge.sty``, all from the `Altermundus site
-<http://altermundus.com/pages/tkz/graph/>`_.
+PGF library, the file ``tkz-graph.sty`` from
+https://www.ctan.org/pkg/tkz-graph, and the files ``tkz-arith.sty``
+and perhaps ``tkz-berge.sty`` from
+https://www.ctan.org/pkg/tkz-berge.
 
 External Programs
 =================
@@ -491,21 +492,3 @@ mathematics examination can maintain a correct correspondence
 between questions and answers by using sagetex to have Sage
 compute one from the other.  See :ref:`sec-sagetex` for more
 information.
-
-
-tex2sws begins with a LaTeX document, but defines extra
-environments for the placement of Sage code.  When processed with
-the right tools, the result is a Sage worksheet, with content
-properly formatted for MathJax and the Sage code incorporated as
-input cells.  So a textbook or article can be authored in
-LaTeX, blocks of Sage code included, and the whole
-document can be transformed into a Sage worksheet where the
-mathematical text is nicely formatted and the blocks of Sage code
-are "live."  Currently in development, see `tex2sws @ BitBucket
-<http://bitbucket.org/rbeezer/tex2sws/>`_ for more information.
-
-sws2tex reverses the process by beginning with a Sage worksheet
-and converting it to legitimate LaTeX for subsequent
-processing with all the tools available for LaTeX
-documents.  Currently in development, see `sws2tex @ BitBucket
-<http://bitbucket.org/whuss/sws2tex/>`_ for more information.

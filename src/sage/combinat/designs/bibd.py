@@ -49,9 +49,6 @@ Clayton Smith's construction [ClaytonSmith]_.
 Functions
 ---------
 """
-# python3
-from __future__ import division, print_function
-from __future__ import absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -98,7 +95,7 @@ def biplane(n, existence=False):
         sage: designs.biplane(9)
         (56,11,2)-Balanced Incomplete Block Design
 
-    Check all knwon biplanes::
+    Check all known biplanes::
 
         sage: [n for n in [0,1,2,3,4,7,9,11] if designs.biplane(n, existence=True) is True]
         [0, 1, 2, 3, 4, 7, 9, 11]
@@ -155,11 +152,9 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
         [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
         sage: B = designs.balanced_incomplete_block_design(66, 6, 1, use_LJCR=True) # optional - internet
         sage: B                                                              # optional - internet
-        Incidence structure with 66 points and 143 blocks
+        (66,6,1)-Balanced Incomplete Block Design
         sage: B.blocks()                                                     # optional - internet
         [[0, 1, 2, 3, 4, 65], [0, 5, 22, 32, 38, 58], [0, 6, 21, 30, 43, 48], ...
-        sage: designs.balanced_incomplete_block_design(66, 6, 1, use_LJCR=True)  # optional - internet
-        Incidence structure with 66 points and 143 blocks
         sage: designs.balanced_incomplete_block_design(216, 6, 1)
         Traceback (most recent call last):
         ...
@@ -240,12 +235,12 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if v == 1:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, [], check=False)
+        return BIBD(v, [], check=False)
 
     if k == v:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, [list(range(v)) for _ in range(lambd)],lambd=lambd, check=False, copy=False)
+        return BIBD(v, [list(range(v)) for _ in range(lambd)],lambd=lambd, check=False, copy=False)
 
     # Non-existence of BIBD
     if (v < k or
@@ -273,7 +268,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if k == 2:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, [[x, y] for _ in range(lambd) for x in range(v) for y in range(x+1, v) if x != y], lambd=lambd, check=False, copy=True)
+        return BIBD(v, [[x, y] for _ in range(lambd) for x in range(v) for y in range(x+1, v) if x != y], lambd=lambd, check=False, copy=True)
     if k == 3 and lambd == 1:
         if existence:
             return v%6 == 1 or v%6 == 3
@@ -281,11 +276,11 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if k == 4 and lambd == 1:
         if existence:
             return v%12 == 1 or v%12 == 4
-        return BalancedIncompleteBlockDesign(v, v_4_1_BIBD(v), copy=False)
+        return BIBD(v, v_4_1_BIBD(v), copy=False)
     if k == 5 and lambd == 1:
         if existence:
             return v%20 == 1 or v%20 == 5
-        return BalancedIncompleteBlockDesign(v, v_5_1_BIBD(v), copy=False)
+        return BIBD(v, v_5_1_BIBD(v), copy=False)
 
     from .difference_family import difference_family
     from .database import BIBD_constructions
@@ -293,49 +288,58 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
     if (v, k, lambd) in BIBD_constructions:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v,BIBD_constructions[(v, k, lambd)](), lambd=lambd, copy=False)
+        return BIBD(v,BIBD_constructions[(v, k, lambd)](), lambd=lambd, copy=False)
     if lambd == 1 and BIBD_from_arc_in_desarguesian_projective_plane(v, k, existence=True):
         if existence:
             return True
         B = BIBD_from_arc_in_desarguesian_projective_plane(v, k)
-        return BalancedIncompleteBlockDesign(v, B, copy=False)
+        return BIBD(v, B, copy=False)
     if lambd == 1 and BIBD_from_TD(v, k, existence=True) is True:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, BIBD_from_TD(v, k), copy=False)
+        return BIBD(v, BIBD_from_TD(v, k), copy=False)
     if lambd == 1 and v == (k-1)**2+k and is_prime_power(k-1):
         if existence:
             return True
         from .block_design import projective_plane
-        return BalancedIncompleteBlockDesign(v, projective_plane(k-1),copy=False)
+        return BIBD(v, projective_plane(k-1),copy=False)
     if difference_family(v, k, l=lambd, existence=True) is True:
         if existence:
             return True
         G, D = difference_family(v, k, l=lambd)
-        return BalancedIncompleteBlockDesign(v, BIBD_from_difference_family(G, D, check=False), lambd=lambd, copy=False)
+        return BIBD(v, BIBD_from_difference_family(G, D, check=False), lambd=lambd, copy=False)
     if lambd == 1 and use_LJCR:
         from .covering_design import best_known_covering_design_www
-        B = best_known_covering_design_www(v, k, 2)
+        values_in_db = False
+        try:
+            B = best_known_covering_design_www(v, k, 2)
+            values_in_db = True
+        except ValueError:
+            # the parameters are not in the LJCR database
+            pass
 
-        # Is it a BIBD or just a good covering ?
-        expected_n_of_blocks = binomial(v, 2)//binomial(k, 2)
-        if B.low_bd() > expected_n_of_blocks:
-            if existence:
-                return False
-            raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
-        B = B.incidence_structure()
-        if B.num_blocks() == expected_n_of_blocks:
-            if existence:
-                return True
-            else:
-                return B
+        if values_in_db:
+            # Is it a BIBD or just a good covering?
+            expected_n_of_blocks = binomial(v, 2) // binomial(k, 2)
+            if B.low_bd() > expected_n_of_blocks:
+                if existence:
+                    return False
+                raise EmptySetError(f"there exists no ({v},{k},{lambd})-BIBD")
+            B = B.incidence_structure()
+            if B.num_blocks() == expected_n_of_blocks:
+                if existence:
+                    return True
+                else:
+                    return BIBD(B.ground_set(), B.blocks(), k=k, lambd=1, copy=False)
+
 
     if ( (k+lambd)*(k+lambd-1) == lambd*(v+k+lambd-1) and
          balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd, existence=True) is True):
         # By removing a block and all points of that block from the
         # symmetric (v+k+lambd, k+lambd, lambd) BIBD
         # we get a (v, k, lambd) BIBD
-        if existence: return True
+        if existence:
+            return True
 
         D = balanced_incomplete_block_design(v+k+lambd, k+lambd, lambd)
         Br = D.blocks()[0]  # block to remove
@@ -510,7 +514,7 @@ def steiner_triple_system(n):
     # apply T and remove duplicates
     sts = set(frozenset(T(xx) for xx in x) for x in sts)
 
-    return BalancedIncompleteBlockDesign(n, sts, name=name,check=False)
+    return BIBD(n, sts, name=name,check=False)
 
 
 def BIBD_from_TD(v,k,existence=False):
@@ -519,16 +523,16 @@ def BIBD_from_TD(v,k,existence=False):
 
     INPUT:
 
-    - ``v,k`` (integers) -- computes a `(v,k,1)`-BIBD.
+    - ``v,k`` -- (integers) computes a `(v,k,1)`-BIBD.
 
-    - ``existence`` (boolean) -- instead of building the design, return:
+    - ``existence``  -- (boolean) instead of building the design, return:
 
-        - ``True`` -- meaning that Sage knows how to build the design
+      - ``True`` -- meaning that Sage knows how to build the design
 
-        - ``Unknown`` -- meaning that Sage does not know how to build the
-          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+      - ``Unknown`` -- meaning that Sage does not know how to build the
+        design, but that the design may exist (see :mod:`sage.misc.unknown`)
 
-        - ``False`` -- meaning that the design does not exist.
+      - ``False`` -- meaning that the design does not exist
 
     This method implements three constructions:
 
@@ -1189,19 +1193,27 @@ def _get_r_s_t_u(v):
     s = r//150
     x = r%150
 
-    if   x == 0:   t,u = 30*s-5,  25
-    elif x == 1:   t,u = 30*s-5,  26
-    elif x <= 21:  t,u = 30*s+1,  x-5
-    elif x == 25:  t,u = 30*s+5,  0
-    elif x == 26:  t,u = 30*s+5,  1
-    elif x == 30:  t,u = 30*s+5,  5
-    elif x <= 51:  t,u = 30*s+5,  x-25
-    elif x <= 66:  t,u = 30*s+11, x-55
-    elif x <= 96:  t,u = 30*s+11, x-55
-    elif x <= 121: t,u = 30*s+11, x-55
-    elif x <= 146: t,u = 30*s+25, x-125
+    if   x == 0:
+        t,u = 30*s-5,  25
+    elif x == 1:
+        t,u = 30*s-5,  26
+    elif x <= 21:
+        t,u = 30*s+1,  x-5
+    elif x == 25:
+        t,u = 30*s+5,  0
+    elif x == 26:
+        t,u = 30*s+5,  1
+    elif x == 30:
+        t,u = 30*s+5,  5
+    elif x <= 51:
+        t,u = 30*s+5,  x-25
+    elif x <= 121:
+        t,u = 30*s+11, x-55
+    elif x <= 146:
+        t,u = 30*s+25, x-125
 
     return r,s,t,u
+
 
 def PBD_from_TD(k,t,u):
     r"""
@@ -1273,9 +1285,10 @@ def BIBD_5q_5_for_q_prime_power(q):
 
     return B
 
+
 def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     r"""
-    Returns a `(n,k,1)`-BIBD from a maximal arc in a projective plane.
+    Return a `(n,k,1)`-BIBD from a maximal arc in a projective plane.
 
     This function implements a construction from Denniston [Denniston69]_, who
     describes a maximal :meth:`arc
@@ -1624,3 +1637,5 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             p.add_constraint(p.sum(b[k] for k in i) <= s)
         p.solve(log=verbose)
         return [self._points[i] for (i,j) in p.get_values(b).items() if j == 1]
+
+BIBD = BalancedIncompleteBlockDesign

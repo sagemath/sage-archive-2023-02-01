@@ -87,6 +87,14 @@ warnings.filterwarnings('ignore', category=RuntimeWarning,
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic|jedi)')
+
+# scipy 1.18 introduced reprecation warnings on a number of things they are moving to
+# numpy, e.g. DeprecationWarning: scipy.array is deprecated
+#             and will be removed in SciPy 2.0.0, use numpy.array instead
+# This affects networkx 2.2 up and including 2.4 (cf. :trac:29766)
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*(scipy|networkx)')
+
 # Ignore collections.abc warnings, there are a lot of them but they are
 # harmless.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
@@ -94,6 +102,15 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
     message=r'[\s\S]*See https\?://trac\.sagemath\.org/[0-9]* for details.')
+
+# Ignore Python 3.9 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*ast')
+
+# Ignore packaging 20.5 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*packaging')
+
 ################ end setup warnings ###############################
 
 
@@ -211,7 +228,6 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
-
 ###########################################################
 #### WARNING:
 # DO *not* import numpy / matplotlib / networkx here!!
@@ -228,6 +244,8 @@ ZZ = IntegerRing()
 true = True
 false = False
 oo = infinity
+from sage.rings.imaginary_unit import I
+i = I
 
 from sage.misc.copying import license
 copying = license

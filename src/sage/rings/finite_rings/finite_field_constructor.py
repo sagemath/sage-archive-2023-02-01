@@ -165,7 +165,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.category_object import normalize_names
 
@@ -519,7 +518,7 @@ class FiniteFieldFactory(UniqueFactory):
         if proof is None:
             proof = arithmetic()
         for key, val in kwds.items():
-            if key not in ['structure', 'implementation', 'prec', 'embedding']:
+            if key not in ['structure', 'implementation', 'prec', 'embedding', 'latex_names']:
                 raise TypeError("create_key_and_extra_args() got an unexpected keyword argument '%s'"%key)
             if not (val is None or isinstance(val, list) and all(c is None for c in val)):
                 raise NotImplementedError("ring extension with prescribed %s is not implemented"%key)

@@ -47,7 +47,7 @@ abstract base classes.
                                     EuclideanDomainElement
                         FieldElement
                         CommutativeAlgebraElement
-                    AlgebraElement   (note -- can't derive from module, since no multiple inheritance)
+                    AlgebraElement
                         Matrix
                     InfinityElement
                 AdditiveGroupElement
@@ -294,14 +294,14 @@ from cpython.ref cimport PyObject
 from sage.ext.stdsage cimport *
 
 import types
-cdef add, sub, mul, truediv, floordiv, mod, pow
+cdef add, sub, mul, truediv, floordiv, mod, matmul, pow
 cdef iadd, isub, imul, itruediv, ifloordiv, imod, ipow
-from operator import (add, sub, mul, truediv, floordiv, mod, pow,
-                      iadd, isub, imul, itruediv, ifloordiv, imod, ipow)
+from operator import (add, sub, mul, truediv, floordiv, mod, matmul, pow,
+                      iadd, isub, imul, itruediv, ifloordiv, imod, imatmul, ipow)
 
 cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', truediv='/', floordiv='//', mod='%', pow='^',
-        iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', ipow='^')
+        add='+', sub='-', mul='*', truediv='/', floordiv='//', mod='%', matmul='@', pow='^',
+        iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', imatmul='@', ipow='^')
 
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element, coercion_model
@@ -315,6 +315,7 @@ from sage.arith.long cimport integer_check_long_py
 from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.misc.decorators import sage_wraps
+from sage.misc.superseded import deprecation
 
 
 def make_element(_class, _dict, parent):
@@ -373,7 +374,6 @@ cdef class Element(SageObject):
     Subtypes must either call ``__init__()`` to set ``_parent``, or may
     set ``_parent`` themselves if that would be more efficient.
 
-    .. automethod:: _cmp_
     .. automethod:: _richcmp_
     .. automethod:: __add__
     .. automethod:: __sub__
@@ -1075,18 +1075,12 @@ cdef class Element(SageObject):
         return self.parent(), str(self)
 
     ####################################################################
-    # In a Cython or a Python class, you must define either _cmp_
-    # (if your subclass is totally ordered), _richcmp_ (if your subclass
-    # is partially ordered), or both (if your class has both a total order
-    # and a partial order, or if that gives better performance).
+    # In a Cython or a Python class, you must define _richcmp_
     #
-    # Rich comparisons (like a < b) will default to using _richcmp_,
-    # three-way comparisons (like cmp(a,b)) will default to using
-    # _cmp_. But if you define just one of _richcmp_ and _cmp_, it will
-    # be used for all kinds of comparisons.
+    # Rich comparisons (like a < b) will use _richcmp_
     #
-    # In the _cmp_ and _richcmp_ methods, you can assume that both
-    # arguments have identical parents.
+    # In the _richcmp_ method, you can assume that both arguments have
+    # identical parents.
     ####################################################################
     def __richcmp__(self, other, int op):
         """
@@ -1118,13 +1112,12 @@ cdef class Element(SageObject):
 
     cpdef _richcmp_(left, right, int op):
         r"""
-        Default implementation of rich comparisons for elements with
+        Basic default implementation of rich comparisons for elements with
         equal parents.
 
-        It tries to see if ``_cmp_`` is implemented. Otherwise it does a
-        comparison by id for ``==`` and ``!=``. Calling this default method
-        with ``<``, ``<=``, ``>`` or ``>=`` will raise a
-        ``NotImplementedError``.
+        It does a comparison by id for ``==`` and ``!=``. Calling this
+        default method with ``<``, ``<=``, ``>`` or ``>=`` will return
+        ``NotImplemented``.
 
         EXAMPLES::
 
@@ -1139,7 +1132,7 @@ cdef class Element(SageObject):
             sage: e1 < e2     # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <... 'sage.structure.element.Element'>
+            TypeError: '<' not supported between instances of 'sage.structure.element.Element' and 'sage.structure.element.Element'
 
         We now create an ``Element`` class where we define ``_richcmp_``
         and check that comparison works::
@@ -1160,44 +1153,23 @@ cdef class Element(SageObject):
             sage: b = FloatCmp(2)
             sage: a <= b, b <= a
             (True, False)
-
-        This works despite ``_cmp_`` not being implemented::
-
-            sage: a._cmp_(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: comparison not implemented for <... '...FloatCmp'>
         """
         # Obvious case
         if left is right:
             return rich_to_bool(op, 0)
-
-        cdef int c
-        try:
-            c = left._cmp_(right)
-        except NotImplementedError:
-            # Check equality by id(), knowing that left is not right
-            if op == Py_EQ:
-                return False
-            if op == Py_NE:
-                return True
-            raise
-        assert -1 <= c <= 1
-        return rich_to_bool(op, c)
+        # Check equality by id(), knowing that left is not right
+        if op == Py_EQ:
+            return False
+        if op == Py_NE:
+            return True
+        return NotImplemented
 
     cpdef int _cmp_(left, right) except -2:
         """
-        Default three-way comparison method which only checks for a
-        Python class defining ``__cmp__``.
+        This was the old comparison framework. Now deprecated. Do not use.
         """
-        try:
-            left_cmp = left.__cmp__
-        except AttributeError:
-            pass
-        else:
-            return left_cmp(right)
-        msg = LazyFormat("comparison not implemented for %r") % type(left)
-        raise NotImplementedError(msg)
+        deprecation(30130, "please use _richcmp_ for comparison methods")
+        raise NotImplementedError("__cmp__ and _cmp_ are deprecated")
 
     ##################################################
     # Arithmetic using the coercion model
@@ -1605,6 +1577,98 @@ cdef class Element(SageObject):
             (42, 42)
         """
         return coercion_model.bin_op(self, n, mul)
+
+    def __matmul__(left, right):
+        """
+        Top-level matrix multiplication operator for :class:`Element`
+        invoking the coercion model.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _matmul_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: from operator import matmul
+            sage: matmul(e, e)
+            42
+
+        TESTS::
+
+            sage: e = Element(Parent())
+            sage: matmul(e, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
+            sage: matmul(1, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
+            sage: matmul(e, 1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
+            sage: matmul(int(1), e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'int' and 'sage.structure.element.Element'
+            sage: matmul(e, int(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'sage.structure.element.Element' and 'int'
+            sage: matmul(None, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'NoneType' and 'sage.structure.element.Element'
+            sage: matmul(e, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'sage.structure.element.Element' and 'NoneType'
+        """
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._matmul_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, matmul)
+
+        try:
+            return coercion_model.bin_op(left, right, matmul)
+        except TypeError:
+            return NotImplemented
+
+    cdef _matmul_(self, other):
+        """
+        Virtual matrix multiplication method for elements with
+        identical parents.
+
+        This default Cython implementation of ``_matmul_`` calls the
+        Python method ``self._matmul_`` if it exists. This method may
+        be defined in the ``ElementMethods`` of the category of the
+        parent. If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._matmul_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_matmul_'
+        """
+        try:
+            python_op = (<object>self)._matmul_
+        except AttributeError:
+            raise bin_op_exception('@', self, other)
+        else:
+            return python_op(other)
 
     def __truediv__(left, right):
         """
@@ -2109,7 +2173,7 @@ cdef class ElementWithCachedMethod(Element):
     slower (for :class:`~sage.structure.parent.Parent`) or the cache would
     even break (for :class:`Element`).
 
-    This class should be used if you write an element class, can not provide
+    This class should be used if you write an element class, cannot provide
     it with attribute assignment, but want that it inherits a cached method
     from the category. Under these conditions, your class should inherit
     from this class rather than :class:`Element`. Then, the cache will work,
@@ -2377,6 +2441,69 @@ cdef class ModuleElement(Element):
         Return the additive order of self.
         """
         raise NotImplementedError
+
+cdef class ModuleElementWithMutability(ModuleElement):
+    """
+    Generic element of a module with mutability.
+    """
+
+    def __init__(self, parent):
+        """
+        EXAMPLES::
+
+            sage: v = sage.modules.free_module_element.FreeModuleElement(QQ^3)
+            sage: type(v)
+            <type 'sage.modules.free_module_element.FreeModuleElement'>
+        """
+        self._parent = parent
+        self._is_mutable = 1
+
+    def set_immutable(self):
+        """
+        Make this vector immutable. This operation can't be undone.
+
+        EXAMPLES::
+
+            sage: v = vector([1..5]); v
+            (1, 2, 3, 4, 5)
+            sage: v[1] = 10
+            sage: v.set_immutable()
+            sage: v[1] = 10
+            Traceback (most recent call last):
+            ...
+            ValueError: vector is immutable; please change a copy instead (use copy())
+        """
+        self._is_mutable = 0
+
+    cpdef bint is_mutable(self):
+        """
+        Return True if this vector is mutable, i.e., the entries can be
+        changed.
+
+        EXAMPLES::
+
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
+            True
+            sage: v.set_immutable()
+            sage: v.is_mutable()
+            False
+        """
+        return self._is_mutable
+
+    cpdef bint is_immutable(self):
+        """
+        Return True if this vector is immutable, i.e., the entries cannot
+        be changed.
+
+        EXAMPLES::
+
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
+            False
+            sage: v.set_immutable()
+            sage: v.is_immutable()
+            True
+        """
+        return not self._is_mutable
 
 ########################################################################
 # Monoid
@@ -2922,8 +3049,8 @@ cdef class CommutativeRingElement(RingElement):
             sage: f.mod(x + 1)
             -1
 
-        When little is implemented about a given ring, then mod may
-        return simply return `f`.
+        When little is implemented about a given ring, then ``mod`` may
+        simply return `f`.
 
         EXAMPLES: Multivariate polynomials
         We reduce a polynomial in two variables modulo a polynomial
@@ -3127,7 +3254,7 @@ cdef class CommutativeRingElement(RingElement):
 
     ##############################################
 
-cdef class Vector(ModuleElement):
+cdef class Vector(ModuleElementWithMutability):
     cdef bint is_sparse_c(self):
         raise NotImplementedError
 
@@ -3355,6 +3482,21 @@ cdef class Vector(ModuleElement):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent(left), parent(right)))
 
     def __truediv__(self, right):
+        """
+        Divide this vector by a scalar, vector or matrix.
+
+        TESTS::
+
+            sage: A = matrix([[1, 2], [0, 3]])
+            sage: b = vector([0, 1])
+            sage: x = b / A; x
+            (0, 1/3)
+            sage: x == b * ~A
+            True
+            sage: A = matrix([[1, 2], [0, 3], [1, 5]])
+            sage: (b / A) * A == b
+            True
+        """
         right = py_scalar_to_element(right)
         if isinstance(right, RingElement):
             # Let __mul__ do the job
@@ -3368,6 +3510,8 @@ cdef class Vector(ModuleElement):
                     raise ZeroDivisionError("division by zero vector")
                 else:
                     raise ArithmeticError("vector is not in free module")
+        if is_Matrix(right):
+            return right.solve_left(self)
         raise bin_op_exception('/', self, right)
 
     def _magma_init_(self, magma):
@@ -3704,9 +3848,23 @@ cdef class Matrix(ModuleElement):
             sage: operator.truediv(c, a)
             [-5/2  3/2]
             [-1/2  5/2]
+
+        TESTS::
+
+            sage: a = matrix(ZZ, [[1, 2], [0, 3]])
+            sage: b = matrix(ZZ, 3, 2, range(6))
+            sage: x = b / a; x
+            [   0  1/3]
+            [   2 -1/3]
+            [   4   -1]
+            sage: x == b * ~a
+            True
+            sage: a = matrix(ZZ, [[1, 2], [0, 3], [1, 5]])
+            sage: (b / a) * a == b
+            True
         """
-        if have_same_parent(left, right):
-            return left * ~right
+        if is_Matrix(right):
+            return right.solve_left(left)
         return coercion_model.bin_op(left, right, truediv)
 
     cdef _vector_times_matrix_(matrix_right, Vector vector_left):
@@ -3750,15 +3908,78 @@ def is_PrincipalIdealDomainElement(x):
     return isinstance(x, PrincipalIdealDomainElement)
 
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
+    def gcd(self, right):
+        r"""
+        Return the greatest common divisor of ``self`` and ``other``.
+
+        TESTS:
+
+        :trac:`30849`::
+
+            sage: 2.gcd(pari(3))
+            1
+            sage: type(2.gcd(pari(3)))
+            <class 'sage.rings.integer.Integer'>
+
+            sage: 2.gcd(pari('1/3'))
+            1/3
+            sage: type(2.gcd(pari('1/3')))
+            <class 'sage.rings.rational.Rational'>
+
+            sage: import gmpy2
+            sage: 2.gcd(gmpy2.mpz(3))
+            1
+            sage: type(2.gcd(gmpy2.mpz(3)))
+            <class 'sage.rings.integer.Integer'>
+
+            sage: 2.gcd(gmpy2.mpq(1,3))
+            1/3
+            sage: type(2.gcd(pari('1/3')))
+            <class 'sage.rings.rational.Rational'>
+        """
+        # NOTE: in order to handle nicely pari or gmpy2 integers we do not rely only on coercion
+        if not isinstance(right, Element):
+            right = py_scalar_to_element(right)
+            if not isinstance(right, Element):
+                right = right.sage()
+        if not ((<Element>right)._parent is self._parent):
+            from sage.arith.all import gcd
+            return coercion_model.bin_op(self, right, gcd)
+        return self._gcd(right)
+
     def lcm(self, right):
         """
         Return the least common multiple of ``self`` and ``right``.
+
+        TESTS:
+
+        :trac:`30849`::
+
+            sage: 2.lcm(pari(3))
+            6
+            sage: type(2.lcm(pari(3)))
+            <class 'sage.rings.integer.Integer'>
+
+            sage: 2.lcm(pari('1/3'))
+            2
+            sage: type(2.lcm(pari('1/3')))
+            <class 'sage.rings.rational.Rational'>
+
+            sage: import gmpy2
+            sage: 2.lcm(gmpy2.mpz(3))
+            6
+            sage: type(2.lcm(gmpy2.mpz(3)))
+            <class 'sage.rings.integer.Integer'>
         """
-        if not isinstance(right, Element) or not ((<Element>right)._parent is self._parent):
+        # NOTE: in order to handle nicely pari or gmpy2 integers we do not rely only on coercion
+        if not isinstance(right, Element):
+            right = py_scalar_to_element(right)
+            if not isinstance(right, Element):
+                right = right.sage()
+        if not ((<Element>right)._parent is self._parent):
             from sage.arith.all import lcm
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
-
 
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
@@ -4173,7 +4394,7 @@ def coerce_binop(method):
         sage: x.test_add(CC(2))
         Traceback (most recent call last):
         ...
-        AttributeError: 'sage.rings.complex_number.ComplexNumber' object has no attribute 'test_add'
+        AttributeError: 'sage.rings.complex_mpfr.ComplexNumber' object has no attribute 'test_add'
 
     TESTS:
 

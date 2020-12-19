@@ -11,7 +11,6 @@ Hecke modules
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import sage.rings.all
 import sage.arith.all as arith

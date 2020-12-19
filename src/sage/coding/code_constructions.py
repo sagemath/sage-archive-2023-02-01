@@ -39,7 +39,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.all import prod
 from sage.arith.all import quadratic_residues, gcd

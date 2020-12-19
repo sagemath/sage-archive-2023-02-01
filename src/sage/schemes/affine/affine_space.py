@@ -9,7 +9,6 @@ Affine `n` space over a ring
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
@@ -449,7 +448,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         if polys is None:
             polys = self.gens()
-        return '(%s)'%(", ".join([str(f) for f in polys]))
+        return '(%s)' % (", ".join(str(f) for f in polys))
 
     def _latex_generic_point(self, v=None):
         """
@@ -469,7 +468,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         if v is None:
             v = self.gens()
-        return '\\left(%s\\right)'%(", ".join([str(latex(f)) for f in v]))
+        return '\\left(%s\\right)' % (", ".join(str(latex(f)) for f in v))
 
     def _check_satisfies_equations(self, v):
         """

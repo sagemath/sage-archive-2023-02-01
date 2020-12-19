@@ -11,6 +11,8 @@ AUTHORS:
 
 - Paul Masson (2016): Three.js support
 
+- Joshua Campbell (2020): Three.js animation support
+
 .. TODO::
 
     finish integrating tachyon -- good default lights, camera
@@ -53,7 +55,7 @@ from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.temporary_file import tmp_filename
-from .texture import Texture, is_Texture
+from .texture import Texture
 from .transform cimport Transformation, point_c, face_c
 include "point_c.pxi"
 
@@ -362,18 +364,66 @@ cdef class Graphics3d(SageObject):
 
             sage: sphere(online=True)._rich_repr_threejs()
             OutputSceneThreejs container
+
+        TESTS::
+
+            sage: js = '// animation.js'
+            sage: css = '/* animation.css */'
+            sage: html = '<!-- animation.html -->'
+            sage: d = dodecahedron()
+            sage: i = icosahedron()
+            sage: g1 = animate([d]).interactive()
+            sage: g2 = animate([d, i]).interactive()
+
+        Animation files are only included when at least 2 frames are present::
+
+            sage: str = g1._rich_repr_threejs(online=True).html.get_str()
+            sage: (js in str) or (css in str) or (html in str)
+            False
+            sage: str = g2._rich_repr_threejs(online=True).html.get_str()
+            sage: (js in str) and (css in str) and (html in str)
+            True
+
+        Animation can be explicitly disabled by setting animate=False::
+
+            sage: str = g2._rich_repr_threejs(online=True, animate=False).html.get_str()
+            sage: (js in str) or (css in str) or (html in str)
+            False
+
+        Animation CSS and HTML are not included when animation_controls=False::
+
+            sage: str = g2._rich_repr_threejs(online=True, animation_controls=False).html.get_str()
+            sage: js in str
+            True
+            sage: (css in str) or (html in str)
+            False
+
+        If a page title is provided, it is stripped and HTML-escaped::
+
+            sage: d = dodecahedron(page_title='\t"Page" & <Title>\n')
+            sage: str = d._rich_repr_threejs(online=True).html.get_str()
+            sage: '<title>&quot;Page&quot; &amp; &lt;Title&gt;</title>' in str
+            True
+
         """
         options = self._process_viewing_options(kwds)
         options.setdefault('online', False)
 
         js_options = {} # options passed to Three.js template
 
+        js_options['animate'] = options.get('animate', True)
+        js_options['animationControls'] = options.get('animation_controls', True)
         js_options['aspectRatio'] = options.get('aspect_ratio', [1,1,1])
+        js_options['autoPlay'] = options.get('auto_play', True)
         js_options['axes'] = options.get('axes', False)
         js_options['axesLabels'] = options.get('axes_labels', ['x','y','z'])
+        js_options['axesLabelsStyle'] = options.get('axes_labels_style')
         js_options['decimals'] = options.get('decimals', 2)
+        js_options['delay'] = options.get('delay', 20)
         js_options['frame'] = options.get('frame', True)
+        js_options['loop'] = options.get('loop', True)
         js_options['projection'] = options.get('projection', 'perspective')
+        js_options['theme'] = options.get('theme', 'light')
         js_options['viewpoint'] = options.get('viewpoint', False)
 
         if js_options['projection'] not in ['perspective', 'orthographic']:
@@ -381,9 +431,15 @@ cdef class Graphics3d(SageObject):
             warnings.warn('projection={} is not supported; using perspective'.format(js_options['projection']))
             js_options['projection'] = 'perspective'
 
+        if js_options['theme'] not in ['light', 'dark']:
+            import warnings
+            warnings.warn('theme={} is not supported; using light theme'.format(js_options['theme']))
+            js_options['theme'] = 'light'
+
         # Normalization of options values for proper JSONing
         js_options['aspectRatio'] = [float(i) for i in js_options['aspectRatio']]
         js_options['decimals'] = int(js_options['decimals'])
+        js_options['delay'] = int(js_options['delay'])
 
         if js_options['viewpoint']:
             if len(js_options['viewpoint']) != 2 or len(js_options['viewpoint'][0]) != 3:
@@ -392,17 +448,34 @@ cdef class Graphics3d(SageObject):
                 js_options['viewpoint'] = False
             else:
                 if type(js_options['viewpoint']) is tuple:
-                    js_options['viewpoint'] = list(js_options['viewpoint']) 
+                    js_options['viewpoint'] = list(js_options['viewpoint'])
                 if type(js_options['viewpoint'][0]) is tuple:
-                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0]) 
+                    js_options['viewpoint'][0] = list(js_options['viewpoint'][0])
                 js_options['viewpoint'][0] = [float(i) for i in js_options['viewpoint'][0]]
                 js_options['viewpoint'][1] = float(js_options['viewpoint'][1])
 
         if not js_options['frame']:
             js_options['axesLabels'] = False
+            js_options['axesLabelsStyle'] = None
+
+        if js_options['axesLabelsStyle'] is not None:
+            from .shapes import _validate_threejs_text_style
+            style = js_options['axesLabelsStyle']
+            if isinstance(style, dict):
+                style = _validate_threejs_text_style(style)
+                style = [style, style, style]
+            elif isinstance(style, list) and len(style) == 3 and all([isinstance(s, dict) for s in style]):
+                style = [_validate_threejs_text_style(s) for s in style]
+            else:
+                import warnings
+                warnings.warn("axes_labels_style must be a dict or a list of 3 dicts")
+                style = [dict(), dict(), dict()]
+            js_options['axesLabelsStyle'] = style
 
         from sage.repl.rich_output import get_display_manager
         scripts = get_display_manager().threejs_scripts(options['online'])
+        styles = ''
+        extra_html = ''
 
         b = self.bounding_box()
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
@@ -416,8 +489,11 @@ cdef class Graphics3d(SageObject):
         import json
 
         reprs = {'point': [], 'line': [], 'text': [], 'surface': []}
+        frame_count = 0
         for kind, desc in self.threejs_repr(self.default_render_params()):
             reprs[kind].append(desc)
+            keyframe = int(desc.get('keyframe', -1))
+            frame_count = max(frame_count, keyframe + 1)
         reprs = {kind: json.dumps(descs) for kind, descs in reprs.items()}
 
         from sage.env import SAGE_EXTCODE
@@ -425,7 +501,29 @@ cdef class Graphics3d(SageObject):
                 SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
             html = f.read()
 
+        js_options['animate'] = js_options['animate'] and frame_count > 1
+        if js_options['animate']:
+            if js_options['animationControls']:
+                with open(os.path.join(SAGE_EXTCODE, 'threejs', 'animation.css')) as f:
+                    css = f.read()
+                    css = css.replace('SAGE_FRAME_COUNT', str(frame_count))
+                    styles += '<style>' + css + '</style>'
+                with open(os.path.join(SAGE_EXTCODE, 'threejs', 'animation.html')) as f:
+                    extra_html += f.read()
+            with open(os.path.join(SAGE_EXTCODE, 'threejs', 'animation.js')) as f:
+                extra_html += '<script>' + f.read() + '</script>'
+
+        page_title = options.get('page_title')
+        if page_title is None:
+            page_title = ""
+        else:
+            from html import escape as html_escape
+            page_title = html_escape(str(page_title).strip())
+
+        html = html.replace('SAGE_TITLE', page_title)
         html = html.replace('SAGE_SCRIPTS', scripts)
+        html = html.replace('SAGE_STYLES', styles)
+        html = html.replace('SAGE_EXTRA_HTML', extra_html)
         html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
@@ -436,7 +534,7 @@ cdef class Graphics3d(SageObject):
         html = html.replace('SAGE_SURFACES', str(reprs['surface']))
 
         from sage.repl.rich_output.output_catalog import OutputSceneThreejs
-        return OutputSceneThreejs(html);
+        return OutputSceneThreejs(html)
 
     def __str__(self):
         """
@@ -1231,11 +1329,7 @@ end_scene""" % (render_params.antialiasing,
         return box_min, box_max
 
     def _prepare_for_jmol(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
-        from sage.plot.plot import EMBEDDED_MODE
-        if EMBEDDED_MODE:
-            s = 6
-        else:
-            s = 3
+        s = 3
         box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(s, frame_aspect_ratio, zoom)
         a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
         return self._transform_to_bounding_box(box_min, box_max, a_min, a_max, frame=frame,
@@ -1586,6 +1680,8 @@ end_scene""" % (render_params.antialiasing,
         - a Sage object file (of type ``.sobj``) that you can load back later
           (a pickle),
 
+        - an HTML file depicting the graphic using the Three.js viewer,
+
         - a data file (of type: X3D, STL, AMF, PLY) for export and use in
           other software.
 
@@ -1631,6 +1727,12 @@ end_scene""" % (render_params.antialiasing,
 
             sage: open(f).read().splitlines()[7]
             "<Shape><Box size='0.5 0.5 0.5'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>"
+
+        Producing a Three.js-based HTML file::
+
+            sage: f = tmp_filename(ext='.html')
+            sage: G.save(f, frame=False, online=True)
+
         """
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
@@ -1654,6 +1756,8 @@ end_scene""" % (render_params.antialiasing,
         elif ext == '.ply':
             with open(filename, 'w') as outfile:
                 outfile.write(self.ply_ascii_string())
+        elif ext == '.html':
+            self._rich_repr_threejs(**kwds).html.save_as(filename)
         else:
             raise ValueError('filetype {} not supported by save()'.format(ext))
 
@@ -2101,7 +2205,7 @@ class Graphics3dGroup(Graphics3d):
             <Shape><Sphere radius='1.0'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             </Transform>
         """
-        return "\n".join([g.x3d_str() for g in self.all])
+        return "\n".join(g.x3d_str() for g in self.all)
 
     def obj_repr(self, render_params):
         """
@@ -2515,6 +2619,58 @@ class TransformGroup(Graphics3dGroup):
         return Graphics3d.transform(self, **kwds)
 
 
+class KeyframeAnimationGroup(Graphics3dGroup):
+    """A group of objects, each depicting a single frame of animation"""
+    def __init__(self, all=(), **kwds):
+        r"""
+        EXAMPLES::
+
+            sage: frames = [dodecahedron(), icosahedron(), tetrahedron()]
+            sage: sage.plot.plot3d.base.KeyframeAnimationGroup(frames)
+            Graphics3d Object
+
+        They are usually constructed from an class:`~sage.plot.animate.Animation`::
+
+            sage: type(animate(frames).interactive())
+            <class 'sage.plot.plot3d.base.KeyframeAnimationGroup'>
+
+        """
+        Graphics3dGroup.__init__(self, all)
+        self._extra_kwds.update(kwds)
+
+    def threejs_repr(self, render_params):
+        r"""
+        Adds keyframe information to the representations of the group's contents.
+
+        EXAMPLES::
+
+            sage: a = point3d((0, 0, 1))
+            sage: b = point3d((0, 1, 0))
+            sage: c = point3d((1, 0, 0))
+            sage: g = sage.plot.plot3d.base.KeyframeAnimationGroup([a, b, c])
+            sage: g.threejs_repr(g.default_render_params())
+            [('point', {..., 'keyframe': 0, ..., 'point': (0.0, 0.0, 1.0), ...}),
+             ('point', {..., 'keyframe': 1, ..., 'point': (0.0, 1.0, 0.0), ...}),
+             ('point', {..., 'keyframe': 2, ..., 'point': (1.0, 0.0, 0.0), ...})]
+
+        Only top-level objects get a unique keyframe. Nested objects share the
+        same keyframe::
+
+            sage: g = sage.plot.plot3d.base.KeyframeAnimationGroup([a + b, c])
+            sage: g.threejs_repr(g.default_render_params())
+            [('point', {..., 'keyframe': 0, ..., 'point': (0.0, 0.0, 1.0), ...}),
+             ('point', {..., 'keyframe': 0, ..., 'point': (0.0, 1.0, 0.0), ...}),
+             ('point', {..., 'keyframe': 1, ..., 'point': (1.0, 0.0, 0.0), ...})]
+
+        """
+        reprs = []
+        for i, g in enumerate(self.all):
+            for (kind, desc) in g.threejs_repr(render_params):
+                desc['keyframe'] = i
+                reprs.append((kind, desc))
+        return reprs
+
+
 class Viewpoint(Graphics3d):
     """
     This class represents a viewpoint, necessary for x3d.
@@ -2550,7 +2706,7 @@ cdef class PrimitiveObject(Graphics3d):
     def __init__(self, **kwds):
         if 'texture' in kwds:
             self.texture = kwds['texture']
-            if not is_Texture(self.texture):
+            if not isinstance(self.texture, Texture):
                 self.texture = Texture(self.texture)
         else:
             self.texture = Texture(kwds)
@@ -2564,7 +2720,7 @@ cdef class PrimitiveObject(Graphics3d):
             sage: G.set_texture(color='yellow'); G
             Graphics3d Object
         """
-        if not is_Texture(texture):
+        if not isinstance(texture, Texture):
             texture = Texture(texture, **kwds)
         self.texture = texture
 

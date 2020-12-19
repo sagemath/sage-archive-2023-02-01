@@ -137,7 +137,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             r"""
             Return left\*right where left and right are elements of self.
 
-            product() uses either _multiply or _multiply basis to carry out
+            product() uses _multiply basis to carry out
             the actual multiplication.
 
             DO NOT USE, see :trac:`30959`.
@@ -174,35 +174,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                 z_elt[ m ] = z_elt[m] + left_c * right_c * res[m]
                             else:
                                 z_elt[ m ] = left_c * right_c * res[m]
+                return self._from_dict(z_elt)
 
-            #We assume that the user handles the multiplication correctly on
-            #his or her own, and returns a dict with monomials as keys and
-            #coefficients as values
-            else:
-                m = self._multiply(left, right)
-                if isinstance(m, self._element_class):
-                    return m
-                if not isinstance(m, dict):
-                    z_elt = m.monomial_coefficients()
-                else:
-                    z_elt = m
-
-            #Remove all entries that are equal to 0
-            BR = self.base_ring()
-            zero = BR(0)
-            del_list = []
-            for m, c in z_elt.items():
-                if c == zero:
-                    del_list.append(m)
-            for m in del_list:
-                del z_elt[m]
-
-            return self._from_dict(z_elt)
-
-        #def _test_product(self, **options):
-        #    tester = self._tester(**options)
-        #    tester.assertTrue(self.product is not None)
-        #    could check that self.product is in Hom( self x self, self)
+            # the usage of "_multiply" is no longer allowed.
+            raise NotImplementedError('using _multiply is no longer allowed')
 
         def hochschild_complex(self, M):
             """

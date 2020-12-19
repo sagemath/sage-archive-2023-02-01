@@ -2306,13 +2306,12 @@ cdef class Matrix(Matrix0):
             from sage.rings.all import ZZ
             ring = ZZ
 
-        cdef object zero = ring.zero()
         cdef object one = ring.one()
         cdef Py_ssize_t i, j
 
         from sage.matrix.matrix_space import MatrixSpace
         MZ = MatrixSpace(ring, self._nrows, self._ncols, sparse=False)
-        cdef Matrix M = MZ(zero, coerce=False)  # initialize with zeros
+        cdef Matrix M = MZ(ring.zero())
 
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:

@@ -7041,6 +7041,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         preimages = [P(i) for i in preimages]
         conjugation = P.point_transformation_matrix(preimages,[P(0),P(1),P([1,0])])
         new_system = system.change_ring(field_of_definition)
+        res = new_system.resultant()
+        if res.valuation(field_of_definition.prime_above(prime)) != 0:
+            return False
         return new_system.conjugate(conjugation)
 
     def reduce_base_field(self):

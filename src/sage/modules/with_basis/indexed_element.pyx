@@ -371,7 +371,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                ├┤      └┘       └┘       └┴┘
                └┘
 
-        The following test failed before :trac:`26850` ::
+        The following test failed before :trac:`26850`::
 
             sage: unicode_art([M.zero()])  # indirect doctest
             [ 0 ]

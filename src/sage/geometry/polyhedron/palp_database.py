@@ -27,7 +27,6 @@ EXAMPLES::
     5 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     6 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
 """
-from __future__ import print_function
 
 import os
 
@@ -131,7 +130,7 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: polygons._palp_Popen()
-            <subprocess.Popen object at 0x...>
+            <...Popen...>
         """
 
         return Popen(["class.x", "-b2a", "-di", self._data_basename],
@@ -458,7 +457,7 @@ class Reflexive4dHodge(PALPreader):
             sage: from sage.geometry.polyhedron.palp_database import Reflexive4dHodge
             sage: polygons = Reflexive4dHodge(1, 101)   # optional - polytopes_db_4d
             sage: polygons._palp_Popen()                # optional - polytopes_db_4d
-            <subprocess.Popen object at 0x...>
+            <...Popen...>
         """
 
         return Popen(['class-4d.x', '-He',

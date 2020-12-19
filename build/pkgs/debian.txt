@@ -16,7 +16,8 @@ make
 m4
 perl
 # python3-minimal is not enough on debian buster, ubuntu bionic - it does not have urllib
-python3    # system python for bootstrapping the build
+# system python for bootstrapping the build
+python3
 tar
 bc
 gcc

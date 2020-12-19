@@ -90,7 +90,7 @@ related ?
 
 ::
 
-    sage: p.cross_references(fetch=True)                # optional -- internet
+    sage: p.cross_references(fetch=True)        # optional -- internet   # random
     0: A000798: Number of different quasi-orders (or topologies, or transitive digraphs) with n labeled elements.
     1: A001035: Number of partially ordered sets ("posets") with n labeled elements (or labeled acyclic transitive digraphs).
     2: A001930: Number of topologies, or transitive digraphs with n unlabeled nodes.
@@ -157,7 +157,6 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 from urllib.request import urlopen
 from urllib.parse import urlencode
 
@@ -244,7 +243,17 @@ def _urls(html_string):
     return urls
 
 
-to_tuple = lambda string: tuple(Integer(x) for x in string.split(",") if x)
+def to_tuple(string):
+    """
+    Convert a string to a tuple of integers.
+
+    EXAMPLES::
+
+        sage: from sage.databases.oeis import to_tuple
+        sage: to_tuple('12,55,273')
+        (12, 55, 273)
+    """
+    return tuple(Integer(x) for x in string.split(",") if x)
 
 
 class OEIS:
@@ -280,9 +289,9 @@ class OEIS:
       description corresponds to the query. Those sequences can be used
       without the need to fetch the database again.
 
-    - if ``query`` is a list of integers, returns a tuple of OEIS sequences
-      containing it as a subsequence. Those sequences can be used without
-      the need to fetch the database again.
+    - if ``query`` is a list or tuple of integers, returns a tuple of
+      OEIS sequences containing it as a subsequence. Those sequences
+      can be used without the need to fetch the database again.
 
     EXAMPLES::
 
@@ -363,6 +372,11 @@ class OEIS:
 
         Indeed, due to some caching mechanism, the sequence is not re-created
         when called from its ID.
+
+    TESTS::
+
+        sage: oeis((1,2,5,16,61))    # optional -- internet
+        0: A000111: ...
     """
 
     def __call__(self, query, max_results=3, first_result=0):
@@ -507,7 +521,7 @@ class OEIS:
 
         INPUT:
 
-        - ``subsequence`` -- a list of integers.
+        - ``subsequence`` -- a list or tuple of integers.
 
         - ``max_results`` -- (integer, default: 3), the maximum of results requested.
 
@@ -526,7 +540,7 @@ class OEIS:
 
             sage: oeis.find_by_subsequence([2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377]) # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A212804: Expansion of (1-x)/(1-x-x^2).
+            1: A212804: Expansion of (1 - x)/(1 - x - x^2).
             2: A177194: Fibonacci numbers whose decimal expansion does not contain any digit 0.
 
             sage: fibo = _[0] ; fibo                    # optional -- internet
@@ -973,7 +987,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             A000053: Local stops on New York City Broadway line (IRT #1) subway.
 
             sage: f.keywords()                          # optional -- internet
-            ('nonn', 'fini', 'full')
+            ('nonn', 'fini', ...)
 
         TESTS::
 
@@ -1556,7 +1570,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: type(HTML)
             <class 'sage.misc.html.HtmlFragment'>
         """
-        url_absolute = lambda s: re.sub(r'\"\/', '\"' + oeis_url, s)
+        def url_absolute(s):
+            return re.sub(r'\"\/', '\"' + oeis_url, s)
         if browse is None:
             if format == 'guess':
                 if embedded():
@@ -1909,7 +1924,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
                      ('mathematica', FancyTuple(self._field('t')))]
         else:
             table = []
-        
+
         def is_starting_line(line):
             """
             Help to split the big OEIS code block into blocks by language.

@@ -173,9 +173,11 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
     - [Git] Alternatively, clone the Sage git repository:
 
-            $ git clone -c core.symlinks=true --branch master git://trac.sagemath.org/sage.git
+            $ git clone -c core.symlinks=true --branch master https://github.com/sagemath/sage.git
 
-      This will create the subdirectory `sage`.
+      This will create the subdirectory `sage`. `cd sage/` and pick the branch you need
+      by doing `git checkout` - typically you want the latest development branch, thus do
+      `git checkout develop`.
 
     - [Windows] The Sage source tree contains symbolic links, and the
       build will not work if Windows line endings rather than UNIX
@@ -218,7 +220,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
      ``ExtUtils::MakeMaker``), `ranlib`, `git`, `tar`, `bc`
 
    * Any version of `python` (full installation including `urllib`),
-     but ideally version 3.7.x, which will avoid having to build Sage's
+     but ideally version 3.7.x or 3.8.x, which will avoid having to build Sage's
      own copy of Python 3.
 
    We have collected lists of system packages that provide these build
@@ -254,11 +256,6 @@ Guide](https://doc.sagemath.org/html/en/installation).
    perform a parallel compilation of Sage using 4 jobs. On some
    powerful machines, you might even consider `-j16`, as building with
    more jobs than CPU cores can speed things up further.
-
-   If you want to run the test suite for each individual Sage package
-   as it gets installed, type `export SAGE_CHECK="yes"`. This will run
-   each test suite, raising an error if any failure occurs.  If set to
-   ``warn``, then only a warning is printed in this case.
 
    To reduce the terminal output during the build, type `export V=0`.
    (`V` stands for "verbosity".)

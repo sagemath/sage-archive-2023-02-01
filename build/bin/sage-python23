@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 
 # Run the Python interpreter that we are currently building Sage with
@@ -11,11 +11,7 @@
 # using for installing Python packages if at all possible.
 
 
-if [ "$SAGE_PYTHON3" = yes ]; then
-   PYTHON="$SAGE_LOCAL/bin/python3"
-else
-   PYTHON="$SAGE_LOCAL/bin/python2"
-fi
+PYTHON="$SAGE_LOCAL/bin/python3"
 
 # Check that Python is actually installed and issue an error message if not--in
 # particular if this was run from an spkg-install before Python is installed

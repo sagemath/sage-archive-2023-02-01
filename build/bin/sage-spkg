@@ -10,10 +10,10 @@
 #   -k: do not uninstall existing installation of this package before
 #       installing; instead simply overwrite existing files.
 #   -c: after installing, run the test suite for the spkg. This should
-#       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       override the settings of SAGE_CHECK.
 #       Exit with an error if the test suite fails.
 #   -w: after installing, run the test suite for the spkg. This should
-#       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
+#       override the settings of SAGE_CHECK.
 #       Print a warning if the test suite fails.
 #   -d: only download the package
 #   -y: automatically reply "y" for all prompts regarding
@@ -69,8 +69,10 @@
 
 # Avoid surprises with character ranges [a-z] in regular expressions
 # See Trac #15791; some locales can produce different results for
-# character ranges (use C.UTF-8 to ensure UTF-8 default encoding in Python)
-export LC_ALL=C.UTF-8
+# character ranges; using C.UTF-8 to ensure UTF-8 default encoding in Python
+# introduces extra complications, see #30053, so we don't do it, but
+# assume we are on Python3.x,  for x at least 7.
+export LC_ALL=C
 
 usage()
 {
@@ -166,11 +168,19 @@ fi
 # The following sets environment variables for building packages.
 # Since this is sourced, it returns a non-zero value on errors rather
 # than exiting.  Using dot suggested by W. Cheung.
+. sage-env-config
 . sage-env
-
 
 if [ $? -ne 0 ]; then
     error_msg "Error setting environment variables by sourcing sage-env"
+    exit 1
+fi
+
+. sage-build-env-config
+. sage-build-env
+
+if [ $? -ne 0 ]; then
+    error_msg "Error setting environment variables by sourcing sage-build-env"
     exit 1
 fi
 
@@ -178,6 +188,9 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 
+export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"
+export SAGE_SPKG_WHEELS="$SAGE_LOCAL/var/lib/sage/wheels"
 
 # Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
 # (cf. #10192, #10176):
@@ -227,10 +240,8 @@ while true; do
         -s)
             export SAGE_KEEP_BUILT_SPKGS=yes;;
         -c|--check)
-            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=yes;;
         -w|--check-warning-only)
-            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=warn;;
         -k|--keep-existing)
             KEEP_EXISTING=yes;;
@@ -485,12 +496,13 @@ export SAGE_ROOT="$SAGE_ROOT"
 export SAGE_SRC="$SAGE_SRC"
 export SAGE_PKG_DIR="$script_dir"
 export SAGE_SPKG_SCRIPTS="$SAGE_SPKG_SCRIPTS"
+export SAGE_SPKG_WHEELS="$SAGE_SPKG_WHEELS"
 
 export PKG_NAME="$PKG_NAME"
 export PKG_BASE="$PKG_BASE"
 export PKG_VER="$PKG_VER"
 
-for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env" "\$SAGE_ROOT/build/bin/sage-build-env-config"; do
+for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env-config" "\$SAGE_SRC/bin/sage-env" "\$SAGE_ROOT/build/bin/sage-build-env-config"; do
     source "\$lib"
     if [ \$? -ne 0 ]; then
         echo >&2 "Error: failed to source \$lib"
@@ -521,7 +533,7 @@ __EOF__
 }
 
 
-WRAPPED_SCRIPTS="build install check preinst postinst legacy-uninstall prerm postrm"
+WRAPPED_SCRIPTS="build install check preinst postinst prerm postrm"
 INSTALLED_SCRIPTS="prerm postrm"
 
 
@@ -566,26 +578,6 @@ if [ ! -f spkg-install ]; then
     fi
     chmod +x spkg-install
 fi
-
-
-# SAGE_CHECK_PACKAGES: if this contains "!pkg", skip tests for "pkg",
-# so set SAGE_CHECK=no.  If this contains "pkg", run tests, so set
-# SAGE_CHECK=yes.  Check this now and export SAGE_CHECK so that the
-# package's spkg-install script can use this variable.
-#
-# Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.  However, if SAGE_CHECK=warn, we do not
-# do that.
-if [ x"$SAGE_CHECK" = xyes -a -z "$SAGE_CHECK_PACKAGES" ]; then
-    SAGE_CHECK_PACKAGES='!python2,!python3'
-fi
-# Allow spaces, commas, or colons as separator (the documentation suggests commas).
-if echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]\!$PKG_BASE[ ,:]" > /dev/null ; then
-    export SAGE_CHECK=no
-elif echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]$PKG_BASE[ ,:]" > /dev/null ; then
-    export SAGE_CHECK=yes
-fi
-
 
 echo "****************************************************"
 echo "Host system:"

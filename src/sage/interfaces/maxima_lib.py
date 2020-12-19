@@ -84,8 +84,6 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from sage.symbolic.ring import SR
 
@@ -535,6 +533,7 @@ class MaximaLib(MaximaAbstract):
         """
         try:
             self.eval('kill(%s)$'%var)
+            ecl_eval("(unintern '$%s)"%var)
         except (TypeError, AttributeError):
             pass
 

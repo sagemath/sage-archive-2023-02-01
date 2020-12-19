@@ -279,8 +279,8 @@ class CoxeterGroups(Category_singleton):
                 sage: sorted(W.braid_orbit(word))
                 [[0, 1, 2, 1], [0, 2, 1, 2], [2, 0, 1, 2]]
 
-                sage: W.braid_orbit([2,1,1,2,1])
-                [[2, 2, 1, 2, 2], [2, 1, 1, 2, 1], [1, 2, 1, 1, 2], [2, 1, 2, 1, 2]]
+                sage: sorted(W.braid_orbit([2,1,1,2,1]))
+                [[1, 2, 1, 1, 2], [2, 1, 1, 2, 1], [2, 1, 2, 1, 2], [2, 2, 1, 2, 2]]
 
                 sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])  # optional - gap3
                 sage: w = W.long_element()                                   # optional - gap3
@@ -605,6 +605,25 @@ class CoxeterGroups(Category_singleton):
             order_side = "left" if side == "right" else "right"
             return self.weak_order_ideal(attrcall("is_grassmannian", side=side),
                                          side=order_side)
+
+        def fully_commutative_elements(self):
+            r"""
+            Return the set of fully commutative elements in this Coxeter group.
+
+            .. SEEALSO::
+
+                :class:`~sage.combinat.fully_commutative_elements.FullyCommutativeElements`
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 3]).fully_commutative_elements()
+                Fully commutative elements of Finite Coxeter group over Integer Ring with Coxeter matrix:
+                [1 3 2]
+                [3 1 3]
+                [2 3 1]
+            """
+            from sage.combinat.fully_commutative_elements import FullyCommutativeElements
+            return FullyCommutativeElements(self)
 
         def _test_reduced_word(self, **options):
             """
@@ -1186,8 +1205,8 @@ class CoxeterGroups(Category_singleton):
 
         def first_descent(self, side='right', index_set=None, positive=False):
             """
-            Returns the first left (resp. right) descent of self, as
-            ane element of ``index_set``, or ``None`` if there is none.
+            Return the first left (resp. right) descent of self, as
+            an element of ``index_set``, or ``None`` if there is none.
 
             See :meth:`.descents` for a description of the options.
 

@@ -22,7 +22,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -870,8 +869,9 @@ class PlanePartitions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = PlanePartitions((4,3,5))
-            sage: P.random_element()
-            Plane partition [[4, 3, 3], [4, 0, 0], [2, 0, 0], [0, 0, 0]]
+            sage: p = P.random_element()
+            sage: p.parent() is P
+            True
         """
         def leq(thing1, thing2):
             return all(thing1[i] <= thing2[i] for i in range(len(thing1)))

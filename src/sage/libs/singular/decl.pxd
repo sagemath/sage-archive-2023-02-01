@@ -1,3 +1,4 @@
+# distutils: include_dirs = SINGULAR_INCDIR
 # distutils: extra_compile_args = SINGULAR_CFLAGS
 # distutils: libraries = SINGULAR_LIBRARIES
 # distutils: library_dirs = SINGULAR_LIBDIR
@@ -577,7 +578,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     poly *p_Homogen (poly *p, int varnum, ring *r)
 
-    # return whether a polynomial is homogenous
+    # return whether a polynomial is homogeneous
 
     int p_IsHomogeneous(poly *p, const  ring *r)
 
@@ -1023,10 +1024,10 @@ cdef extern from "singular/polys/sbuckets.h":
     #sBucket is actually a class, but we handle it opaquely, so we call it a "struct" here.
     ctypedef struct sBucket:
         pass
-    
+
     #create an sBucket
     sBucket *sBucketCreate(ring *r)
-    
+
     #destroy an sBucket (note: pointer to pointer)
     void sBucketDestroy(sBucket **bucket);
 
@@ -1034,7 +1035,7 @@ cdef extern from "singular/polys/sbuckets.h":
     #(use when monomials are distinct).
     #assumes length <= 0 || pLength(p) == length
     void sBucketClearMerge(sBucket *bucket, poly **p, int *length)
-    
+
     #add contents of sBucket into polynomial an clear bucket
     #(can handle repeated monomials)
     void sBucketClearAdd(sBucket *bucket, poly **p, int *length)
@@ -1042,10 +1043,10 @@ cdef extern from "singular/polys/sbuckets.h":
     #inline versions that in addition clear the pointer bucket afterwards
     void sBucketDestroyMerge(sBucket *bucket, poly **p, int *length)
     void sBucketDestroyAdd(sBucket *bucket, poly *p, int *length)
-    
+
     #delete bucket constant and clear pointer
     void sBucketDeleteAndDestroy(sBucket **bucket_pt);
-    
+
     #merge p into bucket (distinct monomials assumed)
     #destroys poly in the process
     void sBucket_Merge_p(sBucket *bucket, poly *p, int lp);

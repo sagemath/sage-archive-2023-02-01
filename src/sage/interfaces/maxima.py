@@ -463,11 +463,11 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 import os
 import re
 import pexpect
+import shlex
 
 from random import randrange
 
@@ -545,7 +545,7 @@ class Maxima(MaximaAbstract, Expect):
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = r'\(\%i[0-9]+\) ',
-                        command = '"{0}" -p "{1}"'.format(MAXIMA, STARTUP),
+                        command = '{0} -p {1}'.format(MAXIMA, shlex.quote(STARTUP)),
                         env = {'TMPDIR': str(ECL_TMP)},
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,

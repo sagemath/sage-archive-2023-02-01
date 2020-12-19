@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Linear codes
+Generic structures for linear codes over the Hamming metric
 
 Linear Codes
 ============
@@ -201,7 +201,6 @@ TESTS::
 #
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import division, print_function, absolute_import
 
 import os
 import subprocess
@@ -479,17 +478,17 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             0
             sage: C = codes.HammingCode(GF(4, 'z'), 3)
             sage: C.automorphism_group_gens()
-            ([((1, z, z + 1, z, z, 1, 1, z, z + 1, z, z, 1, z, z + 1, z, z, 1, z, z + 1, z, z); (1,5,18,7,11,8)(2,12,21)(3,20,14,10,19,15)(4,9)(13,17,16), Ring endomorphism of Finite Field in z of size 2^2
+            ([((1, 1, 1, 1, 1, z + 1, z, z + 1, z, z, z, 1, 1, z + 1, z + 1, z, z + 1, z, z + 1, z + 1, z + 1); (1,14,6,7,4,10,11,19)(2,8,16,13,3,17,21,15)(9,12,18,20), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z + 1),
-              ((1, 1, z, z + 1, z, z, z + 1, z + 1, z, 1, 1, z, z, z + 1, z + 1, 1, z, z, 1, z, z + 1); (2,11)(3,13)(4,14)(5,20)(6,17)(8,15)(16,19), Ring endomorphism of Finite Field in z of size 2^2
-                Defn: z |--> z + 1),
+              ((z + 1, 1, 1, z, z + 1, z, z, z + 1, z + 1, z + 1, 1, z + 1, z, z, 1, z + 1, 1, z, z + 1, z + 1, z); (1,18,6,19,2,9,17,10,13,14,21,11,4,5,12)(3,20,7,16,8), Ring endomorphism of Finite Field in z of size 2^2
+                Defn: z |--> z),
               ((z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z); (), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z)],
              362880)
             sage: C.automorphism_group_gens(equivalence="linear")
-            ([((z, 1, 1, z, z + 1, z, z, z + 1, z + 1, z + 1, 1, z + 1, z, z, 1, 1, 1, z, z, z + 1, z); (1,6)(2,20,9,16)(3,10,8,11)(4,15,21,5)(12,17)(13,14,19,18), Ring endomorphism of Finite Field in z of size 2^2
+            ([((z + 1, 1, z + 1, z + 1, z + 1, z, 1, z, 1, 1, 1, 1, z + 1, z + 1, z + 1, z, z, 1, z, z, z); (1,15,2,8,16,18,3)(4,9,12,13,20,10,11)(5,21,14,6,7,19,17), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z),
-              ((1, z, z + 1, z, z, z, z + 1, z + 1, 1, z, z, z, 1, z, 1, z + 1, z, z + 1, z, z + 1, 1); (1,15,20,5,8,6,12,14,13,7,16,11,19,3,21,4,9,10,18,17,2), Ring endomorphism of Finite Field in z of size 2^2
+              ((z + 1, z + 1, z + 1, z + 1, z + 1, 1, z, 1, z, z, z, 1, z, 1, 1, 1, z + 1, z + 1, z + 1, 1, z); (1,15,21,8,9)(2,18,5,3,11,16,7,10,19,13,12,4,17,6,20), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z),
               ((z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1, z + 1); (), Ring endomorphism of Finite Field in z of size 2^2
                 Defn: z |--> z)],
@@ -624,7 +623,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
     # non-zero example.
     def binomial_moment(self, i):
         r"""
-        Returns the i-th binomial moment of the `[n,k,d]_q`-code `C`:
+        Return the i-th binomial moment of the `[n,k,d]_q`-code `C`:
 
         .. MATH::
 
@@ -705,10 +704,10 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C_iso == aut_group_can_label.get_canonical_form()
             True
             sage: aut_group_can_label.get_autom_gens()
-            [((1, z, z + 1, z, z, 1, 1, z, z + 1, z, z, 1, z, z + 1, z, z, 1, z, z + 1, z, z); (1,5,18,7,11,8)(2,12,21)(3,20,14,10,19,15)(4,9)(13,17,16), Ring endomorphism of Finite Field in z of size 2^2
+            [((1, 1, 1, 1, 1, z + 1, z, z + 1, z, z, z, 1, 1, z + 1, z + 1, z, z + 1, z, z + 1, z + 1, z + 1); (1,14,6,7,4,10,11,19)(2,8,16,13,3,17,21,15)(9,12,18,20), Ring endomorphism of Finite Field in z of size 2^2
                Defn: z |--> z + 1),
-             ((1, 1, z, z + 1, z, z, z + 1, z + 1, z, 1, 1, z, z, z + 1, z + 1, 1, z, z, 1, z, z + 1); (2,11)(3,13)(4,14)(5,20)(6,17)(8,15)(16,19), Ring endomorphism of Finite Field in z of size 2^2
-               Defn: z |--> z + 1),
+             ((z + 1, 1, 1, z, z + 1, z, z, z + 1, z + 1, z + 1, 1, z + 1, z, z, 1, z + 1, 1, z, z + 1, z + 1, z); (1,18,6,19,2,9,17,10,13,14,21,11,4,5,12)(3,20,7,16,8), Ring endomorphism of Finite Field in z of size 2^2
+               Defn: z |--> z),
              ((z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z, z); (), Ring endomorphism of Finite Field in z of size 2^2
                Defn: z |--> z)]
         """
@@ -785,7 +784,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def characteristic(self):
         r"""
-        Returns the characteristic of the base ring of ``self``.
+        Return the characteristic of the base ring of ``self``.
 
         EXAMPLES::
 
@@ -797,7 +796,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def characteristic_polynomial(self):
         r"""
-        Returns the characteristic polynomial of a linear code, as defined in
+        Return the characteristic polynomial of a linear code, as defined in
         [Lin1999]_.
 
         EXAMPLES::
@@ -818,7 +817,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def chinen_polynomial(self):
         """
-        Returns the Chinen zeta polynomial of the code.
+        Return the Chinen zeta polynomial of the code.
 
         EXAMPLES::
 
@@ -923,7 +922,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def divisor(self):
         r"""
-        Returns the greatest common divisor of the weights of the nonzero codewords.
+        Return the greatest common divisor of the weights of the nonzero codewords.
 
         EXAMPLES::
 
@@ -940,7 +939,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         V = VectorSpace(QQ,n+1)
         S = V(A).nonzero_positions()
         S0 = [S[i] for i in range(1,len(S))]
-        if len(S)>1: return GCD(S0)
+        if len(S)>1:
+            return GCD(S0)
         return 1
 
     def is_projective(self):
@@ -988,9 +988,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def direct_sum(self, other):
         """
-        Direct sum of the codes ``self`` and ``other``
+        Return the direct sum of the codes ``self`` and ``other``.
 
-        Returns the code given by the direct sum of the codes ``self`` and
+        This returns the code given by the direct sum of the codes ``self`` and
         ``other``, which must be linear codes defined over the same base ring.
 
         EXAMPLES::
@@ -1001,7 +1001,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C3 = C1.direct_sum(C2); C3
             [21, 12] linear code over GF(2)
         """
-        C1 = self; C2 = other
+        C1 = self
+        C2 = other
         G1 = C1.generator_matrix()
         G2 = C2.generator_matrix()
         F = C1.base_ring()
@@ -1038,9 +1039,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def u_u_plus_v_code(self, other):
         r"""
-        The `(u|u+v)`-construction with ``self=u`` and ``other=v``
+        Return the `(u|u+v)`-construction with ``self=u`` and ``other=v``.
 
-        Returns the code obtained through `(u|u+v)`-construction with ``self`` as `u`
+        This returns the code obtained through `(u|u+v)`-construction with ``self`` as `u`
         and ``other`` as `v`. Note that `u` and `v` must have equal lengths.
         For `u` a `[n, k_1, d_1]`-code and `v` a `[n, k_2, d_2]`-code this returns
         a `[2n, k_1+k_2, d]`-code, where `d=\min(2d_1,d_2)`.
@@ -1157,63 +1158,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         G = left.augment(right)
         return LinearCode(G)
 
-    def __eq__(self, right):
-        """
-        Checks if ``self`` is equal to ``right``.
-
-        EXAMPLES::
-
-            sage: C1 = codes.HammingCode(GF(2), 3)
-            sage: C2 = codes.HammingCode(GF(2), 3)
-            sage: C1 == C2
-            True
-
-        TESTS:
-
-        We check that :trac:`16644` is fixed::
-
-            sage: C = codes.HammingCode(GF(2), 3)
-            sage: C == ZZ
-            False
-        """
-        if not (isinstance(right, LinearCode)\
-                and self.length() == right.length()\
-                and self.dimension() == right.dimension()\
-                and self.base_ring() == right.base_ring()):
-            return False
-        Ks = self.parity_check_matrix().right_kernel()
-        rbas = right.gens()
-        if not all(c in Ks for c in rbas):
-            return False
-        Kr = right.parity_check_matrix().right_kernel()
-        sbas = self.gens()
-        if not all(c in Kr for c in sbas):
-            return False
-        return True
-
-    def __ne__(self, other):
-        r"""
-        Tests inequality of ``self`` and ``other``.
-
-        This is a generic implementation, which returns the inverse of ``__eq__`` for self.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C1 = LinearCode(G)
-            sage: C2 = LinearCode(G)
-            sage: C1 != C2
-            False
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,1,1]])
-            sage: C2 = LinearCode(G)
-            sage: C1 != C2
-            True
-        """
-        return not self == other
-
     def extended_code(self):
         r"""
-        Returns `self` as an extended code.
+        Return `self` as an extended code.
 
         See documentation of :class:`sage.coding.extended_code.ExtendedCode`
         for details.
@@ -1273,7 +1220,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def genus(self):
         r"""
-        Returns the "Duursma genus" of the code, `\gamma_C = n+1-k-d`.
+        Return the "Duursma genus" of the code, `\gamma_C = n+1-k-d`.
 
         EXAMPLES::
 
@@ -1297,7 +1244,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def is_permutation_equivalent(self,other,algorithm=None):
         """
-        Returns ``True`` if ``self`` and ``other`` are permutation equivalent
+        Return ``True`` if ``self`` and ``other`` are permutation equivalent
         codes and ``False`` otherwise.
 
         The ``algorithm="verbose"`` option also returns a permutation (if
@@ -1378,7 +1325,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
     @cached_method
     def minimum_distance(self, algorithm=None):
         r"""
-        Returns the minimum distance of ``self``.
+        Return the minimum distance of ``self``.
 
         .. NOTE::
 
@@ -1457,7 +1404,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def _minimum_weight_codeword(self, algorithm = None):
         r"""
-        Returns a minimum weight codeword of ``self``.
+        Return a minimum weight codeword of ``self``.
 
         INPUT:
 
@@ -1739,7 +1686,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def punctured(self, L):
         r"""
-        Returns a :class:`sage.coding.punctured_code` object from ``L``.
+        Return a :class:`sage.coding.punctured_code` object from ``L``.
 
         INPUT:
 
@@ -1760,7 +1707,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def _punctured_form(self, points):
         r"""
-        Returns a representation of self as a :class:`LinearCode` punctured in ``points``.
+        Return a representation of self as a :class:`LinearCode` punctured in ``points``.
 
         INPUT:
 
@@ -1794,7 +1741,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def shortened(self, L):
         r"""
-        Returns the code shortened at the positions ``L``, where
+        Return the code shortened at the positions ``L``, where
         `L \subset \{1,2,...,n\}`.
 
         Consider the subcode `C(L)` consisting of all codewords `c\in C` which
@@ -1827,7 +1774,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
     @cached_method
     def weight_distribution(self, algorithm=None):
         r"""
-        Returns the weight distribution, or spectrum, of ``self`` as a list.
+        Return the weight distribution, or spectrum, of ``self`` as a list.
 
         The weight distribution a code of length `n` is the sequence `A_0,
         A_1,..., A_n` where `A_i` is the number of codewords of weight `i`.
@@ -1929,7 +1876,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def support(self):
         r"""
-        Returns the set of indices `j` where `A_j` is nonzero, where
+        Return the set of indices `j` where `A_j` is nonzero, where
         `A_j` is the number of codewords in `self` of Hamming weight `j`.
 
         OUTPUT:
@@ -2010,7 +1957,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def zeta_polynomial(self, name="T"):
         r"""
-        Returns the Duursma zeta polynomial of this code.
+        Return the Duursma zeta polynomial of this code.
 
         Assumes that the minimum distances of this code and its dual are
         greater than 1.  Prints a warning to ``stdout`` otherwise.
@@ -2078,7 +2025,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
     def zeta_function(self, name="T"):
         r"""
-        Returns the Duursma zeta function of the code.
+        Return the Duursma zeta function of the code.
 
         INPUT:
 
@@ -2099,6 +2046,117 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         RT = PolynomialRing(QQ,"%s"%name)
         T = RT.gen()
         return P/((1-T)*(1-q*T))
+
+    def cosetGraph(self):
+        r"""
+        Return the coset graph of this linear code.
+
+        The coset graph of a linear code `C` is the graph whose vertices
+        are the cosets of `C`, considered as a subgroup of the additive
+        group of the ambient vector space, and two cosets are adjacent
+        if they have representatives that differ in exactly one coordinate.
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(3))
+            sage: G = C.cosetGraph()
+            sage: G.is_distance_regular()
+            True
+            sage: C = codes.KasamiCode(8,2)
+            sage: G = C.cosetGraph()
+            sage: G.is_distance_regular()
+            True
+
+        ALGORITHM:
+
+        Instead of working with cosets we compute a (direct sum) complement
+        of `C`. Let `P` be the projection of the cosets to the newly found
+        subspace. Then two vectors are adjacent if they differ by
+        `\lambda P(e_i)` for some `i`.
+
+        TESTS::
+
+            sage: C = codes.KasamiCode(4,2)
+            sage: C.cosetGraph()
+            Hamming Graph with parameters 4,2: Graph on 16 vertices
+            sage: M = matrix.identity(GF(3), 7)
+            sage: C = LinearCode(M)
+            sage: G = C.cosetGraph()
+            sage: G.vertices()
+            [0]
+            sage: G.edges()
+            []
+        """
+        from sage.matrix.constructor import matrix
+        from sage.graphs.graph import Graph
+
+        F = self.base_field()
+
+        def e(i):
+            v = [0]*self.length()
+            v[i-1] = 1
+            return vector(F, v, immutable=True)
+
+        # Handle special cases
+        if len(self.basis()) == self.length():
+            G = Graph(1)
+            G.name(f"coset graph of {self.__repr__()}")
+            return G
+        if len(self.basis()) == 0:
+            from sage.graphs.graph_generators import GraphGenerators
+            return GraphGenerators.HammingGraph(self.length(), F.order())
+
+        # we need to find a basis for the complement
+        M = matrix(F, self.basis())
+        M.echelonize()
+        C_basis = M.rows()
+
+        # we use Steinitz exchange lemma on [e_1, ..., e_n]
+        # to obtain a basis of V which includes C_basis
+        U_basis = list(range(self.length()))  # i represents e_{i+1}
+        for v in C_basis:
+            i = v.support()[0]
+            U_basis.remove(i)  # swap e_{i+1} with v
+        U_basis = [e(i+1) for i in U_basis]
+
+        V = VectorSpace(F, self.length())
+        U = V.span(U_basis)
+        vertices = list(U)
+
+        # build matrix whose columns are the basis of U and C
+        A = matrix(F, U_basis)
+        A = A.stack(matrix(F, C_basis))
+        A = A.transpose()
+        Ainv = A.inverse()
+
+        Pei = []  # projection of e_i on U
+        for i in range(1, self.length()+1):
+            ei = e(i)
+            if ei in U:
+                Pei.append(ei)
+            else:
+                a = Ainv * ei
+                # get zero vector and sum a[i]u_i to it
+                v = vector(F, [0]*self.length())
+                for i in range(len(U_basis)):
+                    v += a[i]*U_basis[i]
+                if not v.is_zero():  # don't care about 0 vectors
+                    v.set_immutable()
+                    Pei.append(v)
+
+        lPei = [l*u for l in F for u in Pei if not l.is_zero()]
+
+        edges = []
+        for v in vertices:
+            v.set_immutable()
+            for u in lPei:
+                w = v + u
+                w.set_immutable()
+                edges.append((v, w))
+
+        G = Graph(edges, format='list_of_edges')
+        G.name(f"coset graph of {self.__repr__()}")
+        return G
 
 
 ############################ linear codes python class ########################
@@ -2312,7 +2370,7 @@ class LinearCode(AbstractLinearCode):
 
     def generator_matrix(self, encoder_name=None, **kwargs):
         r"""
-        Returns a generator matrix of ``self``.
+        Return a generator matrix of ``self``.
 
         INPUT:
 
@@ -2382,7 +2440,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -2396,7 +2454,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -2411,7 +2469,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
     @cached_method
     def generator_matrix(self):
         r"""
-        Returns a generator matrix of the associated code of ``self``.
+        Return a generator matrix of the associated code of ``self``.
 
         EXAMPLES::
 
@@ -2542,7 +2600,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         sage: D = C.decoder("Syndrome", maximum_error_weight = 5) # long time
         sage: D.decoder_type() # long time
         {'complete', 'hard-decision', 'might-error'}
-        sage: D.decoding_radius() # long time 
+        sage: D.decoding_radius() # long time
         4
 
     In that case, the decoder might still return an unexpected codeword, but
@@ -2799,8 +2857,8 @@ class LinearCodeSyndromeDecoder(Decoder):
             ....:   [0, 0, 1, 0, 2, 0, 0, 2],
             ....:   [0, 0, 0, 1, 0, 2, 0, 1]])
             sage: C = LinearCode(G)
-            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 2)
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C, maximum_error_weight = 1)
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 1)
             sage: c = C.random_element()
             sage: r = Chan(c)
             sage: c == D.decode_to_code(r)
@@ -2819,7 +2877,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     def maximum_error_weight(self):
         r"""
-        Returns the maximal number of errors a received word can have
+        Return the maximal number of errors a received word can have
         and for which ``self`` is guaranteed to return a most likely codeword.
 
         Same as ``self.decoding_radius``.
@@ -2836,7 +2894,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
     def decoding_radius(self):
         r"""
-        Returns the maximal number of errors a received word can have
+        Return the maximal number of errors a received word can have
         and for which ``self`` is guaranteed to return a most likely codeword.
 
         EXAMPLES::
@@ -2911,7 +2969,7 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -2925,7 +2983,7 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 

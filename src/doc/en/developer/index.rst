@@ -134,6 +134,14 @@ Testing on multiple platforms
 
    portability_testing
 
+Additional development and testing tools
+----------------------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   tools
+
 Contributing to Manuals and Tutorials
 -------------------------------------
 
@@ -159,14 +167,6 @@ Packaging Third-Party Code
    :maxdepth: 3
 
    packaging
-
-Sage Notebook Developer Guide
-=============================
-
-.. toctree::
-   :maxdepth: 3
-
-   sagenb/index
 
 
 Indices and tables

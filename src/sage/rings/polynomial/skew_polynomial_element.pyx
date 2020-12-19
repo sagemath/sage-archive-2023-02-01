@@ -145,7 +145,7 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
 
         INPUT:
 
-        - ``exp`` -- an Integer
+        - ``exp`` -- an integer
 
         - ``modulus`` -- a skew polynomial in the same ring as ``self``
 
@@ -169,17 +169,34 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
             sage: a = x + t
-            sage: b = a^10  # short form for ``a._pow_(10)``
-            sage: b == a*a*a*a*a*a*a*a*a*a
+            sage: b = a^5  # indirect doctest
+            sage: b
+            x^5 + (2*t^2 + 4)*x^4 + (t^2 + 2)*x^3 + 2*x^2 + (4*t^2 + 2)*x + 2*t^2 + 4*t + 4
+            sage: b == a * a * a * a * a
             True
+
             sage: modulus = x^3 + t*x^2 + (t+3)*x - 2
-            sage: br = a.right_power_mod(10,modulus); br
-            (t^2 + t)*x^2 + (3*t^2 + 1)*x + t^2 + t
-            sage: rq, rr = b.right_quo_rem(modulus)
-            sage: br == rr
+            sage: br = a.right_power_mod(5, modulus); br
+            (t + 1)*x^2 + (2*t^2 + t + 1)*x + 2*t^2 + 4*t + 2
+            sage: br == b % modulus
             True
-            sage: a.right_power_mod(100,modulus)
+
+            sage: a.right_power_mod(100, modulus)
             (2*t^2 + 3)*x^2 + (t^2 + 4*t + 2)*x + t^2 + 2*t + 1
+
+        Negative exponents are supported:
+
+            sage: a^(-5)
+            (x^5 + (2*t^2 + 4)*x^4 + (t^2 + 2)*x^3 + 2*x^2 + (4*t^2 + 2)*x + 2*t^2 + 4*t + 4)^(-1)
+            sage: b * a^(-5)
+            1
+
+        However, they cannot be combined with modulus::
+
+            sage: a.right_power_mod(-10, modulus)
+            Traceback (most recent call last):
+            ...
+            ValueError: modulus cannot be combined with negative exponent
         """
         cdef SkewPolynomial_generic_dense r
         if not isinstance(exp, Integer):
@@ -193,7 +210,9 @@ cdef class SkewPolynomial_generic_dense(OrePolynomial_generic_dense):
         if exp == 0:
             return self.parent().one()
         if exp < 0:
-            return (~self).right_power_mod(-exp, modulus)
+            if modulus:
+                raise ValueError("modulus cannot be combined with negative exponent")
+            return ~(self.right_power_mod(-exp, None))
 
         if self == self.parent().gen():
             P = self.parent()

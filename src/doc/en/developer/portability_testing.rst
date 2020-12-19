@@ -213,6 +213,8 @@ Let's just follow this helpful hint::
   ...
 
 
+.. _section-equiv-distro-packages:
+
 Using Sage's database of equivalent distribution packages
 ---------------------------------------------------------
 
@@ -309,10 +311,10 @@ Generating Dockerfiles
 Sage also provides a script for generating a ``Dockerfile``, which is
 a recipe for automatically building a new image::
 
-  [mkoeppe@sage sage]$ build/bin/write-dockerfile.sh debian "@(standard|optional)" > Dockerfile
+  [mkoeppe@sage sage]$ build/bin/write-dockerfile.sh debian ":standard: :optional:" > Dockerfile
 
-(The second argument is a bash extglob pattern for the package type.)
-  
+(The second argument is passed to ``sage -package list`` to find packages for the listed package types.)
+
 .. this interface should be improved obviously. See #29146 - Refactor tox.ini and build/bin/write_dockerfile.sh
 
 The ``Dockerfile`` instructs the command ``docker build`` to build a
@@ -369,7 +371,7 @@ command ``docker build``.  For example::
   [mkoeppe@sage sage]$ docker build . -f Dockerfile \
     --build-arg BASE_IMAGE=ubuntu:latest \
     --build-arg NUMPROC=4 \
-    --build-arg EXTRA_CONFIGURE_ARGS="--with-python=2"
+    --build-arg EXTRA_CONFIGURE_ARGS="--with-python=/usr/bin/python3.42"
 
 These arguments (and their default values) are defined using ``ARG``
 commands in the ``Dockerfile``.
@@ -614,9 +616,6 @@ such as ``debian-buster-standard`` and ``centos-7-i386-minimal``.
 Finally, the **configuration** factor (which is allowed to be empty)
 controls how the ``configure`` script is run.
 
-- ``python2`` adds the argument ``--with-python=2`` to the
-  ``configure`` run.
-
 The factors are connected by a hyphen to name a tox environment.  (The
 order of the factors does not matter; however, for consistency and
 because the ordered name is used for caching purposes, we recommend to
@@ -625,7 +624,7 @@ use the factors in the listed order.)
 To run an environment::
 
   [mkoeppe@sage sage]$ tox -e docker-slackware-14.2-minimal
-  [mkoeppe@sage sage]$ tox -e docker-ubuntu-bionic-standard-python2
+  [mkoeppe@sage sage]$ tox -e docker-ubuntu-bionic-standard
   
 Arbitrary extra arguments to ``docker build`` can be supplied through
 the environment variable ``EXTRA_DOCKER_BUILD_ARGS``.  For example,
@@ -777,8 +776,7 @@ keep the source tree clean to the extent possible. In particular:
   tox environment directory, and a symbolic link.
 
 This makes it possible for advanced users to test several ``local``
-tox environments (such as ``local-direct`` and
-``local-direct-python2``) out of one worktree.  However, because a
+tox environments (such as ``local-direct``) out of one worktree.  However, because a
 build still writes configuration scripts and build artefacts (such as
 ``config.status``) into the worktree, only one ``local`` build can run
 at a time in a given worktree.

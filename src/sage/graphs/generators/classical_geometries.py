@@ -15,7 +15,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         https://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import absolute_import, division
 
 from sage.graphs.graph import Graph
 from sage.arith.all import is_prime_power
@@ -758,7 +757,7 @@ def UnitaryDualPolarGraph(m, q):
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_graph(m, q**2, libgap.GeneralUnitaryGroup(m, q),
-            intersection_size=(q**(2*(m//2-1))-1)/(q**2-1))
+                     intersection_size=int((q**(2*(m//2-1))-1)/(q**2-1)))
     G.relabel()
     G.name("Unitary Dual Polar Graph DU" + str((m, q)))
     if m==4:
@@ -799,7 +798,7 @@ def SymplecticDualPolarGraph(m, q):
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_graph(m, q, libgap.SymplecticGroup(m, q),
-             intersection_size=(q**(m/2-1)-1)/(q-1))
+                     intersection_size=int((q**(m/2-1)-1)/(q-1)))
 
     G.relabel()
     G.name("Symplectic Dual Polar Graph DSp" + str((m, q)))
@@ -1394,7 +1393,6 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
         hyperoval = [x for x in Pi
                      if (x[0] + x[1] * x[2] == 0) or
                         (x[0] == 1 and x[1] == x[2] == 0)]
-        O = set(hyperoval)
     else:
         for v in hyperoval:
             v.set_immutable()
@@ -1405,7 +1403,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
                 raise RuntimeError("incorrect hyperoval size")
             for L in Theta.blocks():
                 if set(L).issubset(Pi):
-                    if not len(O.intersection(L)) in [0,2]:
+                    if len(O.intersection(L)) not in [0, 2]:
                         raise RuntimeError("incorrect hyperoval")
     M = matrix(hyperoval)
     F_0 = F.zero()
@@ -1413,7 +1411,145 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 
     for x in C:
         x.set_immutable()
-    G = Graph([C, lambda x,y: not F.zero() in x+y])
+    G = Graph([C, lambda x,y: F.zero() not in x+y])
     G.name('Nowhere0WordsTwoWeightCodeGraph('+str(q)+')')
     G.relabel()
+    return G
+
+
+def OrthogonalDualPolarGraph(e, d, q):
+    r"""
+    Return dual polar graph on $GO^e(n,q)$ of diameter `d`.
+    The value of `n` is determined by `d` and `e`.
+
+    The graph is distance-regular with classical parameters
+    `(d, q, 0, q^e)`.
+
+    INPUT:
+
+    - ``e`` -- integer; type of the orthogonal polar space to consider;
+      must be `-1, 0` or  `1`.
+
+    - ``d`` -- integer; diameter of the graph
+
+    - ``q`` -- integer; prime power; order of the finite field over which to
+      build the polar space
+
+    EXAMPLES::
+
+        sage: G = graphs.OrthogonalDualPolarGraph(1,3,2)
+        sage: G.is_distance_regular(True)
+        ([7, 6, 4, None], [None, 1, 3, 7])
+        sage: G = graphs.OrthogonalDualPolarGraph(0,3,3)
+        sage: G.is_distance_regular(True)
+        ([39, 36, 27, None], [None, 1, 4, 13])
+        sage: G.order()
+        1120
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 274-279 or [VDKT2016]_ p. 22.
+
+    TESTS::
+
+        sage: G = graphs.OrthogonalDualPolarGraph(0,3,2)
+        sage: G.is_distance_regular(True)
+        ([14, 12, 8, None], [None, 1, 3, 7])
+        sage: G = graphs.OrthogonalDualPolarGraph(-1,3,2)
+        sage: G.is_distance_regular(True)
+        ([28, 24, 16, None], [None, 1, 3, 7])
+        sage: G = graphs.OrthogonalDualPolarGraph(1,3,4)
+        sage: G.is_distance_regular(True)
+        ([21, 20, 16, None], [None, 1, 5, 21])
+        sage: G = graphs.OrthogonalDualPolarGraph(1,4,2)
+        sage: G.is_distance_regular(True)
+        ([15, 14, 12, 8, None], [None, 1, 3, 7, 15])
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.matrix.constructor import Matrix
+    from sage.modules.free_module import VectorSpace
+    from sage.rings.finite_rings.finite_field_constructor import GF
+    import itertools
+
+    def hashable(v):
+        v.set_immutable()
+        return v
+
+    if e not in {0, 1, -1}:
+        raise ValueError("e must by 0, +1 or -1")
+
+    m = 2*d + 1 - e
+
+    group = libgap.GeneralOrthogonalGroup(e, m, q)
+    M = Matrix(libgap.InvariantQuadraticForm(group)["matrix"])
+    # Q(x) = xMx is our quadratic form
+
+    # we need to find a totally isotropic subspace of dimension d
+    K = M.kernel()
+    isotropicBasis = list(K.basis())
+
+    # extend K to a maximal isotropic subspace
+    if K.dimension() < d:
+        V = VectorSpace(GF(q), m)
+
+        # get all projective points not in K
+        candidates = set(map(hashable, [P.basis()[0] for P in V.subspaces(1)]))
+        hashableK = map(hashable, [P.basis()[0] for P in K.subspaces(1)])
+        candidates = candidates.difference(hashableK)
+
+        nonZeroScalars = [x for x in GF(q) if not x.is_zero()]
+        while K.dimension() < d:
+            found = False
+            while not found:
+                v = candidates.pop()
+                if v*M*v == 0:
+                    # found another isotropic point
+                    # check if we can add it to K
+                    found  = True
+                    for w in isotropicBasis:
+                        if w*M*v + v*M*w != 0:
+                            found  = False
+                            break
+            # here we found a valid point
+            isotropicBasis.append(v)
+
+            # remove new points of K
+            newVectors = map(hashable,
+                             [k + l*v for k in K for l in nonZeroScalars])
+            candidates.difference(newVectors)
+            K = V.span(isotropicBasis)
+
+        # here K is a totally isotropic subspace of dimension d
+        isotropicBasis = list(K.basis())
+
+    W = libgap.FullRowSpace(libgap.GF(q), m)
+    isoS = libgap.Subspace(W, isotropicBasis)  # gap version of K
+
+    allIsoPoints = libgap.Orbit(group, isotropicBasis[0], libgap.OnLines)
+    permutation = libgap.Action(group, allIsoPoints, libgap.OnLines)
+    # this is the permutation group generated by GO^e(n,q) acting on
+    # projective isotropic points
+
+    # convert isoS into a list of ints representing the projective points
+    isoSPoints = [libgap.Elements(libgap.Basis(x))[0]
+                  for x in libgap.Elements(isoS.Subspaces(1))]
+    isoSPointsInt = libgap.Set([libgap.Position(allIsoPoints, x)
+                                for x in isoSPoints])
+
+    # all isotropic subspaces of dimension d
+    allIsoSubspaces = libgap.Orbit(permutation, isoSPointsInt, libgap.OnSets)
+
+    # number of projective points in a (d-1)-subspace
+    intersection_size = (q**(d-1) - 1) // (q-1)
+
+    edges = []
+    n = len(allIsoSubspaces)
+    for i, j in itertools.combinations(range(n), 2):
+        if libgap.Size(libgap.Intersection(allIsoSubspaces[i],
+                                           allIsoSubspaces[j])) \
+                                           == intersection_size:
+                edges.append((i, j))
+
+    G = Graph(edges, format="list_of_edges")
+    G.name("Dual Polar Graph on Orthogonal group (%d, %d, %d)"%(e, m, q))
     return G

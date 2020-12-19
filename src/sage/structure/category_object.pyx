@@ -509,8 +509,8 @@ cdef class CategoryObject(SageObject):
             [0 0]
 
         """
-        #old = self._names, self._latex_names
-        # We can not assume that self *has* _latex_variable_names.
+        # old = self._names, self._latex_names
+        # We cannot assume that self *has* _latex_variable_names.
         # But there is a method that returns them and sets
         # the attribute at the same time, if needed.
         # Simon King: It is not necessarily the case that variable
@@ -791,6 +791,7 @@ cdef class CategoryObject(SageObject):
             running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
             running ._test_characteristic() . . . pass
+            running ._test_construction() . . . pass
             running ._test_distributivity() . . . pass
             running ._test_divides() . . . pass
             running ._test_elements() . . .
@@ -813,7 +814,7 @@ cdef class CategoryObject(SageObject):
             running ._test_euclidean_degree() . . . pass
             running ._test_fraction_field() . . . pass
             running ._test_gcd_vs_xgcd() . . . pass
-            running ._test_metric() . . . pass
+            running ._test_metric_function() . . . pass
             running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
@@ -864,6 +865,7 @@ cdef class CategoryObject(SageObject):
             _test_cardinality
             _test_category
             _test_characteristic
+            _test_construction
             _test_distributivity
             _test_divides
             _test_elements
@@ -878,7 +880,7 @@ cdef class CategoryObject(SageObject):
             _test_euclidean_degree
             _test_fraction_field
             _test_gcd_vs_xgcd
-            _test_metric
+            _test_metric_function
             _test_new
             _test_not_implemented_methods
             _test_one

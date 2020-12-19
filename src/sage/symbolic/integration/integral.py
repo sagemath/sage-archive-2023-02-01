@@ -1,7 +1,6 @@
 """
 Symbolic Integration
 """
-
 # ****************************************************************************
 #       Copyright (C) 2009 Golam Mortuza Hossain <gmhossain@gmail.com>
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>
@@ -12,8 +11,6 @@ Symbolic Integration
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************`
-from __future__ import print_function
-
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.symbolic.function import BuiltinFunction
 
@@ -70,7 +67,12 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: assume(b > 0)
             sage: f = (exp((x-a)/b) + 1)**(-1)
             sage: (f*f).integrate(x, algorithm="mathematica_free") # optional -- internet
-            -b*log(e^(-(a - x)/b) + 1) + x + b/(e^(-(a - x)/b) + 1)
+            -b*log(e^(a/b) + e^(x/b)) + x + b/(e^(-(a - x)/b) + 1)
+
+        Check for :trac:`25119`::
+
+            sage: integrate(sqrt(x^2)/x,x)
+            x*sgn(x)
         """
         # The automatic evaluation routine will try these integrators
         # in the given order. This is an attribute of the class instead of
@@ -115,7 +117,8 @@ class IndefiniteIntegral(BuiltinFunction):
         for integrator in self.integrators:
             try:
                 A = integrator(f, x)
-            except (NotImplementedError, TypeError, AttributeError):
+            except (NotImplementedError, TypeError,
+                    AttributeError, RuntimeError):
                 pass
             except ValueError:
                 # maxima is telling us something
@@ -218,7 +221,8 @@ class DefiniteIntegral(BuiltinFunction):
         for integrator in self.integrators:
             try:
                 A = integrator(*args)
-            except (NotImplementedError, TypeError, AttributeError):
+            except (NotImplementedError, TypeError,
+                    AttributeError, RuntimeError):
                 pass
             except ValueError:
                 # maxima is telling us something
@@ -859,11 +863,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(cos(w+T) / (1+c*cos(T))^2, T, 0, 2*pi)
         2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
 
-    Check that :trac:`13733` is fixed::
+    Check that :trac:`13733` is fixed (but the bug reappeared, see :trac:`30063`)::
 
-        sage: a = integral(log(cot(x) - 1), x, 0, pi/4); a  # long time (about 6 s)
+        sage: a = integral(log(cot(x) - 1), x, 0, pi/4); a  # long time (about 6 s) # known bug
         -1/4*pi*log(2) - 1/2*I*dilog(I + 1) + 1/2*I*dilog(-I + 1) + 1/2*I*dilog(1/2*I + 1/2) - 1/2*I*dilog(-1/2*I + 1/2)
-        sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time
+        sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time # known bug
         True
 
     Check that :trac:`17968` is fixed::
@@ -952,6 +956,14 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: integrate(sqrt(1-4*sin(x)^2),x, algorithm='maxima')
         integrate(sqrt(-4*sin(x)^2 + 1), x)
+
+    Check that :trac:`30353` is fixed::
+
+        sage: a = SR.var('a')
+        sage: assume(a > 0)
+        sage: assume(a < 1)
+        sage: integrate(x*log(1/(a*x+(1-x)^2)), x, 0, 1, algorithm='maxima')
+        1/4*a^2*log(a) + 1/2*sqrt(-a^2 + 4*a)*a*arctan(sqrt(-a^2 + 4*a)*(a - 2)/(a^2 - 4*a)) - 1/2*sqrt(-a^2 + 4*a)*a*arctan(sqrt(-a^2 + 4*a)/(a - 4)) - a*log(a) - sqrt(-a^2 + 4*a)*arctan(sqrt(-a^2 + 4*a)*(a - 2)/(a^2 - 4*a)) + sqrt(-a^2 + 4*a)*arctan(sqrt(-a^2 + 4*a)/(a - 4)) - 1/2*a + 3/2
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

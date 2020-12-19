@@ -12,7 +12,6 @@ Check that gamma function imports are deprecated (:trac:`24411`)::
     See http://trac.sagemath.org/24411 for details.
     beta(x, x)
 """
-from __future__ import print_function
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.gamma',
@@ -25,6 +24,7 @@ from sage.libs.pynac.pynac import (register_symbol, symbol_table, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.misc.latex import latex
+from sage.structure.element import Element
 import math
 
 from sage.structure.element import coercion_model
@@ -920,20 +920,19 @@ class Function_real_nth_root(BuiltinFunction):
 
     EXAMPLES::
 
-        sage: v = real_nth_root(2, 3)
-        sage: v
-        real_nth_root(2, 3)
-        sage: v^3
-        2
-        sage: v = real_nth_root(-2, 3)
-        sage: v
-        real_nth_root(-2, 3)
-        sage: v^3
-        -2
+        sage: real_nth_root(2, 3)
+        2^(1/3)
+        sage: real_nth_root(-2, 3)
+        -2^(1/3)
         sage: real_nth_root(8, 3)
         2
         sage: real_nth_root(-8, 3)
         -2
+
+        sage: real_nth_root(-2, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: no real nth root of negative real number with even n
 
     For numeric input, it gives a numerical approximation. ::
 
@@ -953,7 +952,6 @@ class Function_real_nth_root(BuiltinFunction):
         integrate((abs(x)^3)^(1/5)*sgn(x^3), x)
         sage: _.diff()
         (abs(x)^3)^(1/5)*sgn(x^3)
-
     """
     def __init__(self):
         r"""
@@ -992,14 +990,10 @@ class Function_real_nth_root(BuiltinFunction):
         """
         TESTS::
 
-            sage: real_nth_root(RIF(2), 3)
-            1.259921049894873?
-            sage: real_nth_root(RBF(2), 3)
-            [1.259921049894873 +/- 3.92e-16]
-            sage: real_nth_root(-2, 4)
-            Traceback (most recent call last):
-            ...
-            ValueError: no real nth root of negative real number with even n
+            sage: real_nth_root(RDF(-2), 3)
+            -1.25992104989487...
+            sage: real_nth_root(Reals(100)(2), 2)
+            1.4142135623730950488016887242
         """
         negative = base < 0
 
@@ -1023,6 +1017,11 @@ class Function_real_nth_root(BuiltinFunction):
             x
             sage: real_nth_root(x, 3)
             real_nth_root(x, 3)
+
+            sage: real_nth_root(RIF(2), 3)
+            1.259921049894873?
+            sage: real_nth_root(RBF(2), 3)
+            [1.259921049894873 +/- 3.92e-16]
         """
         if not isinstance(base, Expression) and not isinstance(exp, Expression):
             if isinstance(base, Integer):
@@ -1030,7 +1029,7 @@ class Function_real_nth_root(BuiltinFunction):
                     return base.nth_root(exp)
                 except ValueError:
                     pass
-            self._evalf_(base, exp, parent=s_parent(base))
+            return self._evalf_(base, exp, parent=s_parent(base))
 
         if isinstance(exp, Integer) and exp.is_one():
             return base
@@ -1639,12 +1638,11 @@ class Function_factorial(GinacFunction):
         elif isinstance(x, Rational):
             from sage.functions.gamma import gamma
             return gamma(x + 1)
+        elif isinstance(x, Element) and hasattr(x.parent(), 'precision'):
+            return (x + 1).gamma()
         elif self._is_numerical(x):
-            try:
-                return (x + 1).gamma()
-            except AttributeError:
-                from sage.functions.gamma import gamma
-                return gamma(x + 1)
+            from sage.functions.gamma import gamma
+            return gamma(x + 1)
 
 factorial = Function_factorial()
 

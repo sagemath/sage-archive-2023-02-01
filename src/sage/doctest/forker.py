@@ -33,7 +33,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function, division
 
 import os
 import sys
@@ -63,11 +62,11 @@ from sage.repl.user_globals import set_globals
 from sage.cpython.atexit import restore_atexit
 from sage.cpython.string import bytes_to_str, str_to_bytes
 
-
-# All doctests run as if the following future imports are present
-import __future__
-MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
-
+# With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork' in
+# multiprocessing, and Sage doctesting doesn't work with 'spawn'. See
+# trac #27754.
+if os.uname().sysname == 'Darwin':
+    multiprocessing.set_start_method('fork', force=True)
 
 # These lists are used on Python 3+ only for backwards compatibility with
 # Python 2 in traceback parsing
@@ -115,7 +114,7 @@ def _sorted_dict_pprinter_factory(start, end):
     return inner
 
 
-def init_sage():
+def init_sage(controller=None):
     """
     Import the Sage library.
 
@@ -195,8 +194,16 @@ def init_sage():
     from sage.cpython._py2_random import Random
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
-    import sage.repl.ipython_kernel.all_jupyter
-    sage.interfaces.quit.invalidate_all()
+    if controller is None:
+        import sage.repl.ipython_kernel.all_jupyter
+    else:
+        controller.load_environment()
+
+    try:
+        from sage.interfaces.quit import invalidate_all
+        invalidate_all()
+    except ModuleNotFoundError:
+        pass
 
     # Disable cysignals debug messages in doctests: this is needed to
     # make doctests pass when cysignals was built with debugging enabled
@@ -829,7 +836,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         self.total_performed_tests += tries
         return TestResults(failures, tries)
 
-    def run(self, test, compileflags=None, out=None, clear_globs=True):
+    def run(self, test, compileflags=0, out=None, clear_globs=True):
         """
         Runs the examples in a given doctest.
 
@@ -841,11 +848,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         - ``test`` -- an instance of :class:`doctest.DocTest`
 
-        - ``compileflags`` -- the set of compiler flags used to
-          execute examples (passed in to the :func:`compile`).  If
-          None, they are filled in from the result of
-          :func:`doctest._extract_future_flags` applied to
-          ``test.globs``.
+        - ``compileflags`` -- int (default: 0) the set of compiler flags used to
+          execute examples (passed in to the :func:`compile`).
 
         - ``out`` -- a function for writing the output (defaults to
           :func:`sys.stdout.write`).
@@ -875,13 +879,10 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             TestResults(failed=0, attempted=4)
         """
         self.setters = {}
-        randstate.set_random_seed(0)
+        randstate.set_random_seed(self.options.random_seed)
         warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test
-        if compileflags is None:
-            compileflags = doctest._extract_future_flags(test.globs)
-        compileflags |= MANDATORY_COMPILE_FLAGS
         # We use this slightly modified version of Pdb because it
         # interacts better with the doctesting framework (like allowing
         # doctests for sys.settrace()). Since we already have output
@@ -1085,7 +1086,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
-            sage: compiler = lambda ex: compile(ex.source, '<doctest sage.doctest.forker[0]>', 'single', 32768, 1)
+            sage: flags = 32768 if sys.version_info.minor < 8 else 524288
+            sage: compiler = lambda ex: compile(ex.source, '<doctest sage.doctest.forker[0]>', 'single', flags, 1)
             sage: DTR.compile_and_execute(ex0, compiler, globs)
             1764
             sage: globs['doctest_var']
@@ -1098,7 +1100,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         Now we can execute some more doctests to see the dependencies. ::
 
             sage: ex1 = doctests[0].examples[1]
-            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[1]>', 'single', flags, 1)
             sage: DTR.compile_and_execute(ex1, compiler, globs)
             sage: sorted(list(globs.set))
             ['R', 'a']
@@ -1110,7 +1112,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         ::
 
             sage: ex2 = doctests[0].examples[2]
-            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[2]>', 'single', flags, 1)
             sage: DTR.compile_and_execute(ex2, compiler, globs)
             a + 42
             sage: list(globs.set)
@@ -1653,7 +1655,7 @@ class DocTestDispatcher(SageObject):
             <sage.doctest.forker.DocTestDispatcher object at ...>
         """
         self.controller = controller
-        init_sage()
+        init_sage(controller)
 
     def serial_dispatch(self):
         """
@@ -2042,7 +2044,7 @@ class DocTestWorker(multiprocessing.Process):
     """
     The DocTestWorker process runs one :class:`DocTestTask` for a given
     source. It returns messages about doctest failures (or all tests if
-    verbose doctesting) though a pipe and returns results through a
+    verbose doctesting) through a pipe and returns results through a
     ``multiprocessing.Queue`` instance (both these are created in the
     :meth:`start` method).
 
@@ -2346,7 +2348,7 @@ class DocTestWorker(multiprocessing.Process):
             True
             sage: W.killed
             True
-            sage: time.sleep(0.2)  # Worker doesn't die
+            sage: time.sleep(float(0.2))  # Worker doesn't die
             sage: W.kill()         # Worker dies now
             True
             sage: time.sleep(1)
@@ -2534,7 +2536,8 @@ class DocTestTask(object):
         """
         # Import Jupyter globals to doctest the Jupyter
         # implementation of widgets and interacts
-        import sage.repl.ipython_kernel.all_jupyter as sage_all
+        from importlib import import_module
+        sage_all = import_module(options.environment)
         dict_all = sage_all.__dict__
         # Remove '__package__' item from the globals since it is not
         # always in the globals in an actual Sage session.

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Families of graphs
+Various families of graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -17,7 +17,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, division
 
 from copy import copy
 from math import sin, cos, pi
@@ -2741,7 +2740,7 @@ def SierpinskiGasketGraph(n):
 
     .. SEEALSO::
 
-        There is another familly of graphs called Sierpinski graphs,
+        There is another family of graphs called Sierpinski graphs,
         where all vertices but 3 have valence 3. They are available using
         ``graphs.HanoiTowerGraph(3, n)``.
 

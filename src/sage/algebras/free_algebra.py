@@ -139,7 +139,6 @@ Note that the letterplace implementation can only be used if the corresponding
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
 
 from sage.categories.rings import Rings
 
@@ -200,7 +199,7 @@ class FreeAlgebraFactory(UniqueFactory):
     By :trac:`7797`, we provide a different implementation of free
     algebras, based on Singular's "letterplace rings". Our letterplace
     wrapper allows for choosing positive integral degree weights for the
-    generators of the free algebra. However, only (weighted) homogenous
+    generators of the free algebra. However, only (weighted) homogeneous
     elements are supported. Of course, isomorphic algebras in different
     implementations are not identical::
 
@@ -757,7 +756,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.monomial(x * y)
 
-    def quotient(self, mons, mats=None, names=None):
+    def quotient(self, mons, mats=None, names=None, **args):
         """
         Return a quotient algebra.
 

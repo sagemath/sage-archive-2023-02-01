@@ -3,22 +3,24 @@
 Representations of objects
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import types
 from io import StringIO
 
 from IPython.lib.pretty import (
-    _safe_getattr, _baseclass_reprs,
+    _safe_getattr,
     _type_pprinters,
 )
+
+_baseclass_reprs = (object.__repr__,)
 
 from sage.repl.display.util import format_list
 
@@ -199,11 +201,14 @@ class LargeMatrixHelpRepr(ObjectReprABC):
         if not p.toplevel():
             # Do not print the help for matrices inside containers
             return False
-        from sage.matrix.matrix1 import Matrix
+        try:
+            from sage.matrix.matrix1 import Matrix
+        except ModuleNotFoundError:
+            return False
         if not isinstance(obj, Matrix):
             return False
-        from sage.matrix.matrix0 import max_rows, max_cols
-        if obj.nrows() < max_rows and obj.ncols() < max_cols:
+        from sage.matrix.constructor import options
+        if obj.nrows() <= options.max_rows() and obj.ncols() <= options.max_cols():
             return False
         p.text(
             repr(obj) + " (use the '.str()' method to see the entries)"
@@ -271,7 +276,8 @@ class PlainPythonRepr(ObjectReprABC):
             try:
                 output = repr(obj)
             except Exception:
-                import sys, traceback
+                import sys
+                import traceback
                 objrepr = object.__repr__(obj).replace("object at", "at")
                 exc = traceback.format_exception_only(sys.exc_info()[0], sys.exc_info()[1])
                 exc = (''.join(exc)).strip()

@@ -41,7 +41,7 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
             echo '#include <complex>' >conftest.cpp
             echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
 
-            if ! bash -c "source '$SAGE_SRC/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
+            if ! bash -c "source '$SAGE_SRC/bin/sage-env-config' && source '$SAGE_SRC/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
                 SAGE_BROKEN_GCC=yes
             fi
             rm -f conftest.*
@@ -147,8 +147,8 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
                     # Install our own GCC if the system-provided one is older than gcc-4.8.
                     SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old])
                 ],
-                [1?.*], [
-                    # Install our own GCC if the system-provided one is newer than 9.x.
+                [1[[1-9]].*], [
+                    # Install our own GCC if the system-provided one is newer than 10.x.
                     # See https://trac.sagemath.org/ticket/29456
                     SAGE_SHOULD_INSTALL_GCC([$CXX is g++ version $GXX_VERSION, which is too recent for this version of Sage])
                 ])

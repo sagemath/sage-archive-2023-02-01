@@ -88,15 +88,12 @@ class FreeMonoidElement(MonoidElement):
         TESTS::
 
             sage: R.<x,y> = FreeMonoid(2)
-            sage: hash(x)
-            1914282862589934403  # 64-bit
-            139098947            # 32-bit
-            sage: hash(y)
-            2996819001369607946  # 64-bit
-            13025034             # 32-bit
-            sage: hash(x*y)
-            7114093379175463612  # 64-bit
-            2092317372           # 32-bit
+            sage: hash(x) == hash(((0, 1),))
+            True
+            sage: hash(y) == hash(((1, 1),))
+            True
+            sage: hash(x*y) == hash(((0, 1), (1, 1)))
+            True
         """
         return hash(tuple(self._element_list))
 
@@ -143,7 +140,17 @@ class FreeMonoidElement(MonoidElement):
             'a_{0}^{5}a_{1}^{2}a_{0}^{12}a_{1}^{2}'
             sage: F.<alpha,beta,gamma> = FreeMonoid(3)
             sage: latex(alpha*beta*gamma)
-            \alpha\beta\gamma
+            \alpha \beta \gamma
+
+        Check that :trac:`14509` is fixed::
+
+            sage: K.< alpha,b > = FreeAlgebra(SR)
+            sage: latex(alpha*b)
+            \alpha b
+            sage: latex(b*alpha)
+            b \alpha
+            sage: "%s"%latex(alpha*b)                                                                                                                                                                                       
+            '\\alpha b'
         """
         s = ""
         v = self._element_list
@@ -152,9 +159,10 @@ class FreeMonoidElement(MonoidElement):
             g = x[int(v[i][0])]
             e = v[i][1]
             if e == 1:
-                s += "%s"%(g,)
+                s += "%s "%(g,)
             else:
                 s += "%s^{%s}"%(g,e)
+        s = s.rstrip(" ") # strip the trailing whitespace caused by adding a space after each element name
         if len(s) == 0:
             s = "1"
         return s

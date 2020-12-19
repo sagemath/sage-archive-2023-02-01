@@ -31,7 +31,7 @@ linear in ``capacity``.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "bitset.pxi"
+from .bitset_base cimport *
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 
@@ -278,7 +278,7 @@ cdef class FrozenBitset:
         sage: FrozenBitset("110110", capacity=-2)
         Traceback (most recent call last):
         ...
-        OverflowError: can't convert negative value to mp_bitcnt_t
+        OverflowError: can...t convert negative value to mp_bitcnt_t
     """
     def __cinit__(self, iter=None, capacity=None):
         """

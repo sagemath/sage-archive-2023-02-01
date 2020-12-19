@@ -94,7 +94,6 @@ AUTHORS:
 - Brent Baccala (2019-12-20): support orders in characteristic zero
 
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>

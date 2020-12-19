@@ -195,7 +195,6 @@ AUTHORS:
 - Darij Grinberg (2013) Sym over rings that are not characteristic 0
 
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Anne Schilling <anne at math.ucdavis.edu>
@@ -970,8 +969,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                from sage.arith.all import Moebius, squarefree_divisors
-                mu = Moebius()
+                from sage.arith.all import moebius, squarefree_divisors
+                mu = moebius
                 def component(i, g): # == h_g[L_i]
                     L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
                                           for d in squarefree_divisors(i)],
@@ -2273,7 +2272,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
              ([2, 1], [([1, 1, 1], 2), ([2, 1], 1)]),
              ([3], [([1, 1, 1], 1), ([2, 1], 1), ([3], 1)])]
         """
-        BR = self.base_ring(); one = BR.one()
+        BR = self.base_ring()
+        one = BR.one()
         p = self.realization_of().p()
 
         # Create a function which converts x and y to the power-sum basis and applies

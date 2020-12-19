@@ -22,36 +22,40 @@ AUTHORS:
 
 EXAMPLES:
 
-Forest structure
-----------------
+No hypothesis on the structure
+------------------------------
 
-The set of words over the alphabet `\{a,b\}` can be generated from the
-empty word by appending letter `a` or `b` as a successor function. This set
-has a forest structure::
+What we mean by "no hypothesis" is that the the set is not known
+to be a forest, symmetric, or graded. However, it may have other
+structure, like not containing an oriented cycle, that does not
+help with the enumeration.
 
-    sage: seeds = ['']
-    sage: succ = lambda w: [w+'a', w+'b']
-    sage: C = RecursivelyEnumeratedSet(seeds, succ, structure='forest')
+In this example, the seed is 0 and the successor function is either ``+2``
+or ``+3``. This is the set of non negative linear combinations of 2 and 3::
+
+    sage: succ = lambda a:[a+2,a+3]
+    sage: C = RecursivelyEnumeratedSet([0], succ)
     sage: C
-    An enumerated set with a forest structure
+    A recursively enumerated set (breadth first search)
 
-Depth first search iterator::
-
-    sage: it = C.depth_first_search_iterator()
-    sage: [next(it) for _ in range(6)]
-    ['', 'a', 'aa', 'aaa', 'aaaa', 'aaaaa']
-
-Breadth first search iterator::
+Breadth first search::
 
     sage: it = C.breadth_first_search_iterator()
-    sage: [next(it) for _ in range(6)]
-    ['', 'a', 'b', 'aa', 'ab', 'ba']
+    sage: [next(it) for _ in range(10)]
+    [0, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+Depth first search::
+
+    sage: it = C.depth_first_search_iterator()
+    sage: [next(it) for _ in range(10)]
+    [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
 
 Symmetric structure
 -------------------
 
 The origin ``(0, 0)`` as seed and the upper, lower, left and right lattice
-point as successor function. This function is symmetric::
+point as successor function. This function is symmetric since `p` is a
+successor of `q` if and only if `q` is a successor or `p`::
 
     sage: succ = lambda a: [(a[0]-1,a[1]), (a[0],a[1]-1), (a[0]+1,a[1]), (a[0],a[1]+1)]
     sage: seeds = [(0,0)]
@@ -132,48 +136,174 @@ Graded components (set of elements of the same depth)::
     sage: sorted(R.graded_component(10))
     [[5, 4, 3, 2, 1]]
 
-No hypothesis on the structure
-------------------------------
+Forest structure
+----------------
 
-By "no hypothesis" is meant neither a forest nor symmetric nor
-graded, it may have other structure like not containing an oriented cycle but
-this does not help for enumeration.
+The set of words over the alphabet `\{a,b\}` can be generated from the
+empty word by appending letter `a` or `b` as a successor function. This set
+has a forest structure::
 
-In this example, the seed is 0 and the successor function is either ``+2``
-or ``+3``. This is the set of non negative linear combinations of 2 and 3::
-
-    sage: succ = lambda a:[a+2,a+3]
-    sage: C = RecursivelyEnumeratedSet([0], succ)
+    sage: seeds = ['']
+    sage: succ = lambda w: [w+'a', w+'b']
+    sage: C = RecursivelyEnumeratedSet(seeds, succ, structure='forest')
     sage: C
-    A recursively enumerated set (breadth first search)
+    An enumerated set with a forest structure
 
-Breadth first search::
-
-    sage: it = C.breadth_first_search_iterator()
-    sage: [next(it) for _ in range(10)]
-    [0, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-Depth first search::
+Depth first search iterator::
 
     sage: it = C.depth_first_search_iterator()
-    sage: [next(it) for _ in range(10)]
-    [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
+    sage: [next(it) for _ in range(6)]
+    ['', 'a', 'aa', 'aaa', 'aaaa', 'aaaaa']
 
+Breadth first search iterator::
+
+    sage: it = C.breadth_first_search_iterator()
+    sage: [next(it) for _ in range(6)]
+    ['', 'a', 'b', 'aa', 'ab', 'ba']
+
+Example: Forest structure
+-------------------------
+
+This example was provided by Florent Hivert.
+
+How to define a set using those classes?
+
+Only two things are necessary to define a set using a
+:class:`RecursivelyEnumeratedSet` object (the other
+classes being very similar):
+
+.. MATH::
+
+    \begin{picture}(-300,0)(600,0)
+    % Root
+    \put(0,0){\circle*{7}}
+    \put(0,10){\makebox(0,10){``\ ''}}
+    % First Children
+    \put(-150,-60){\makebox(0,10){``a''}}
+    \put(0,-60){\makebox(0,10){``b''}}
+    \put(150,-60){\makebox(0,10){``c''}}
+    \multiput(-150,-70)(150,0){3}{\circle*{7}}
+    % Second children
+    \put(-200,-130){\makebox(0,10){``aa''}}
+    \put(-150,-130){\makebox(0,10){``ab''}}
+    \put(-100,-130){\makebox(0,10){``ac''}}
+    \put(-50,-130){\makebox(0,10){``ba''}}
+    \put(0,-130){\makebox(0,10){``bb''}}
+    \put(50,-130){\makebox(0,10){``bc''}}
+    \put(100,-130){\makebox(0,10){``ca''}}
+    \put(150,-130){\makebox(0,10){``cb''}}
+    \put(200,-130){\makebox(0,10){``cc''}}
+    \multiput(-200,-140)(50,0){9}{\circle*{7}}
+    % Legend
+    \put(100,-5){\makebox(0,10)[l]{1) An initial element}}
+    \put(-250,-5){\makebox(0,10)[l]{2) A function of an element enumerating}}
+    \put(-235,-20){\makebox(0,10)[l]{its children (if any)}}
+    % Arrows
+    \thicklines
+    \put(0,-10){\vector(0,-1){30}}
+    \put(-15,-5){\vector(-2,-1){110}}
+    \put(15,-5){\vector(2,-1){110}}
+    \multiput(-150,-80)(150,0){3}{\vector(0,-1){30}}
+    \multiput(-160,-80)(150,0){3}{\vector(-1,-1){30}}
+    \multiput(-140,-80)(150,0){3}{\vector(1,-1){30}}
+    \put(90,0){\vector(-1,0){70}}
+    \put(-215,-30){\vector(1,-1){40}}
+    \end{picture}
+
+For the previous example, the two necessary pieces of information are:
+
+- the initial element ``""``;
+
+- the function::
+
+      lambda x: [x + letter for letter in ['a', 'b', 'c']
+
+This would actually describe an **infinite** set, as such rules describes
+"all words" on 3 letters. Hence, it is a good idea to replace the function by::
+
+    lambda x: [x + letter for letter in ['a', 'b', 'c']] if len(x) < 2 else []
+
+or even::
+
+    sage: def children(x):
+    ....:     if len(x) < 2:
+    ....:         for letter in ['a', 'b', 'c']:
+    ....:             yield x+letter
+
+We can then create the :class:`RecursivelyEnumeratedSet` object with either::
+
+    sage: S = RecursivelyEnumeratedSet([''],
+    ....:     lambda x: [x+letter for letter in ['a', 'b', 'c']]
+    ....:               if len(x) < 2 else [],
+    ....:     structure='forest', enumeration='depth',
+    ....:     category=FiniteEnumeratedSets())
+    sage: S.list()
+    ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
+
+or::
+
+    sage: S = RecursivelyEnumeratedSet([''], children,
+    ....:     structure='forest', enumeration='depth',
+    ....:     category=FiniteEnumeratedSets())
+    sage: S.list()
+    ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
+
+Example: Forest structure 2
+---------------------------
+
+This example was provided by Florent Hivert.
+
+Here is a little more involved example. We want to iterate through all
+permutations of a given set `S`. One solution is to take elements of `S` one
+by one an insert them at every positions. So a node of the generating tree
+contains two pieces of information:
+
+- the list ``lst`` of already inserted element;
+- the set ``st`` of the yet to be inserted element.
+
+We want to generate a permutation only if ``st`` is empty (leaves on the
+tree). Also suppose for the sake of the example, that instead of list we want
+to generate tuples. This selection of some nodes and final mapping of a
+function to the element is done by the ``post_process = f`` argument. The
+convention is that the generated elements are the ``s := f(n)``, except when
+``s`` not ``None`` when no element is generated at all. Here is the code::
+
+    sage: def children(node):
+    ....:     (lst, st) = node
+    ....:     st = set(st) # make a copy
+    ....:     if st:
+    ....:        el = st.pop()
+    ....:        for i in range(0, len(lst)+1):
+    ....:            yield (lst[0:i]+[el]+lst[i:], st)
+    sage: list(children(([1,2], {3,7,9})))
+    [([9, 1, 2], {3, 7}), ([1, 9, 2], {3, 7}), ([1, 2, 9], {3, 7})]
+    sage: def post_process(node):
+    ....:     (l, s) = node
+    ....:     return tuple(l) if not s else None
+    sage: S = RecursivelyEnumeratedSet( [([], {1,3,6,8})],
+    ....:     children, post_process=post_process,
+    ....:     structure='forest', enumeration='depth',
+    ....:     category=FiniteEnumeratedSets())
+    sage: S.list()
+    [(6, 3, 1, 8), (3, 6, 1, 8), (3, 1, 6, 8), (3, 1, 8, 6), (6, 1, 3, 8),
+     (1, 6, 3, 8), (1, 3, 6, 8), (1, 3, 8, 6), (6, 1, 8, 3), (1, 6, 8, 3),
+     (1, 8, 6, 3), (1, 8, 3, 6), (6, 3, 8, 1), (3, 6, 8, 1), (3, 8, 6, 1),
+     (3, 8, 1, 6), (6, 8, 3, 1), (8, 6, 3, 1), (8, 3, 6, 1), (8, 3, 1, 6),
+     (6, 8, 1, 3), (8, 6, 1, 3), (8, 1, 6, 3), (8, 1, 3, 6)]
+    sage: S.cardinality()
+    24
 """
+
 # ****************************************************************************
 #       Copyright (C) 2014 Sebastien Labbe <slabqc at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
 from sage.structure.parent cimport Parent
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.abstract_method import abstract_method
@@ -1122,8 +1252,8 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
 
         .. TODO::
 
-            Can ``collections.OrderedDict`` can help maintain the breadth
-            first search enumeration for each graded component?
+            Can :class:`collections.OrderedDict` help maintain the
+            breadth first search enumeration for each graded component?
 
         EXAMPLES::
 
@@ -1337,8 +1467,8 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
 
         .. TODO::
 
-            Can ``collections.OrderedDict`` can help maintain the breadth
-            first search enumeration for each graded component?
+            Can :class:`collections.OrderedDict` help maintain the
+            breadth first search enumeration for each graded component?
 
         EXAMPLES::
 

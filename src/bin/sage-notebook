@@ -54,7 +54,10 @@ class NotebookJupyterlab(object):
         except ImportError:
             print("Jupyterlab is not installed (at least not in this Sage installation).")
             print("You can install it by running")
-            print("  sage --pip install jupyterlab")
+            print("  sage -i jupyterlab_widgets")
+            print("which includes support for interacts and the ability to download and")
+            print("install other Jupyterlab extensions. For a minimal installation, run")
+            print("  sage -i jupyterlab")
             raise SystemExit(1)
         self.print_banner()
         main(argv)

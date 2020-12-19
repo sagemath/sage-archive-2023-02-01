@@ -6985,9 +6985,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            P.<x,y> = ProjectiveSpace(QQ, 1)
-            system = DynamicalSystem_projective([3^5*x^3 + x^2*y - 3^5*x*y^2 , -3^5*x^2*y + x*y^2 + 3^5*y^3])
-            system.potential_good_reduction(3)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([3^5*x^3 + x^2*y - 3^5*x*y^2 , -3^5*x^2*y + x*y^2 + 3^5*y^3])
+            sage: system.potential_good_reduction(3)
             False
         """
         if self.domain().base_ring() not in NumberFields:

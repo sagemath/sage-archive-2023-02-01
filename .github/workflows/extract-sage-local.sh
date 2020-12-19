@@ -20,7 +20,7 @@ done
 (cd "$SAGE_LOCAL"/var/lib/sage/installed/ && touch .dummy && touch --reference=.dummy *)
 
 # Show what has been built already.
-ls -l "$SAGE_LOCAL" "$SAGE_LOCAL"/local/var/lib/sage/installed/
+ls -l "$SAGE_LOCAL" "$SAGE_LOCAL"/var/lib/sage/installed/
 df -h
 
 # Rebase!

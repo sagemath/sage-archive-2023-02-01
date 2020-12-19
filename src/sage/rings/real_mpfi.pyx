@@ -265,6 +265,7 @@ from sage.arith.constants cimport LOG_TEN_TWO_PLUS_EPSILON
 
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.element cimport have_same_parent
 from sage.structure.parent cimport Parent
 from sage.structure.richcmp cimport richcmp
 
@@ -285,6 +286,7 @@ import operator
 
 from sage.cpython.string cimport char_to_str, bytes_to_str
 
+from sage.misc.superseded import deprecation
 import sage.rings.infinity
 
 #*****************************************************************************
@@ -2567,6 +2569,107 @@ cdef class RealIntervalFieldElement(RingElement):
     ########################
     #   Basic Arithmetic
     ########################
+
+    def __add__(left, right):
+        r"""
+        TESTS::
+
+            sage: RIF(1) + RR(1)
+            doctest:...:
+            DeprecationWarning: automatic conversions from floating-point numbers to intervals are deprecated
+            See http://trac.sagemath.org/15114 for details.
+            2
+            sage: import warnings; warnings.resetwarnings()
+        """
+        cdef RealIntervalFieldElement _left = (<RealIntervalFieldElement> left)
+        if have_same_parent(left, right):
+            return _left._add_(right)
+        if (type(right) is RealNumber
+                and _left._parent.prec() <= right.parent().prec()):
+            deprecation(15114, "automatic conversions from floating-point "
+                        "numbers to intervals are deprecated")
+            return left + _left._parent(right)
+        elif isinstance(left, RealIntervalFieldElement):
+            return Element.__add__(left, right)
+        else:
+            return Element.__radd__(right, left)
+
+    def __sub__(left, right):
+        r"""
+        TESTS::
+
+            sage: RIF(2) - RR(1)
+            doctest:...:
+            DeprecationWarning: automatic conversions from floating-point numbers to intervals are deprecated
+            See http://trac.sagemath.org/15114 for details.
+            1
+            sage: import warnings; warnings.resetwarnings()
+        """
+        cdef RealIntervalFieldElement _left = (<RealIntervalFieldElement> left)
+        if have_same_parent(left, right):
+            return _left._sub_(right)
+        if (type(right) is RealNumber
+                and _left._parent.prec() <= right.parent().prec()):
+            deprecation(15114, "automatic conversions from floating-point "
+                        "numbers to intervals are deprecated")
+            return left - _left._parent(right)
+        elif isinstance(left, RealIntervalFieldElement):
+            return Element.__sub__(left, right)
+        else:
+            return Element.__rsub__(right, left)
+
+    def __mul__(left, right):
+        r"""
+        TESTS::
+
+            sage: RIF(1) * RR(1)
+            doctest:...:
+            DeprecationWarning: automatic conversions from floating-point numbers to intervals are deprecated
+            See http://trac.sagemath.org/15114 for details.
+            1
+            sage: import warnings; warnings.resetwarnings()
+        """
+        cdef RealIntervalFieldElement _left = (<RealIntervalFieldElement> left)
+        if have_same_parent(left, right):
+            return _left._mul_(right)
+        if (type(right) is RealNumber
+                and _left._parent.prec() <= right.parent().prec()):
+            deprecation(15114, "automatic conversions from floating-point "
+                        "numbers to intervals are deprecated")
+            return left * _left._parent(right)
+        elif isinstance(left, RealIntervalFieldElement):
+            return Element.__mul__(left, right)
+        else:
+            return Element.__rmul__(right, left)
+
+    def __truediv__(left, right):
+        r"""
+        TESTS::
+
+            sage: RIF(1) / RR(1/2)
+            doctest:...:
+            DeprecationWarning: automatic conversions from floating-point numbers to intervals are deprecated
+            See http://trac.sagemath.org/15114 for details.
+            2
+            sage: import warnings; warnings.resetwarnings()
+        """
+        cdef RealIntervalFieldElement _left = (<RealIntervalFieldElement> left)
+        if have_same_parent(left, right):
+            return _left._div_(right)
+        if (type(right) is RealNumber
+                and _left._parent.prec() <= right.parent().prec()):
+            deprecation(15114, "automatic conversions from floating-point "
+                        "numbers to intervals are deprecated")
+            return left / _left._parent(right)
+        elif (type(left) is RealNumber
+                and left.parent().prec() >= right.parent().prec()):
+            deprecation(15114, "automatic conversions from floating-point "
+                        "numbers to intervals are deprecated")
+            return right.parent()(left)/right
+        elif isinstance(left, RealIntervalFieldElement):
+            return Element.__truediv__(left, right)
+        else:
+            return Element.__rtruediv__(right, left)
 
     cpdef _add_(self, other):
         """

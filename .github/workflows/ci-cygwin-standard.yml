@@ -709,7 +709,7 @@ jobs:
     env:
       STAGE: v-a
       PREVIOUS_STAGES: iv
-      TARGETS: ptest
+      TARGETS: ptest-nodoc
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -977,7 +977,7 @@ jobs:
     env:
       STAGE: v-e
       PREVIOUS_STAGES: iv
-      TARGETS:
+      TARGETS: doc-html
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 

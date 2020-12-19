@@ -6982,6 +6982,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             in a with defining polynomial x^2 + 1
               Defn: Defined on coordinates by sending (x : y) to
                     ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2)
+
+        ::
+
+            P.<x,y> = ProjectiveSpace(QQ, 1)
+            system = DynamicalSystem_projective([3^5*x^3 + x^2*y - 3^5*x*y^2 , -3^5*x^2*y + x*y^2 + 3^5*y^3])
+            system.potential_good_reduction(3)
+            False
         """
         if self.domain().base_ring() not in NumberFields:
             raise ValueError('dynamical system must be defined over number field')
@@ -7041,10 +7048,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         preimages = [P(i) for i in preimages]
         conjugation = P.point_transformation_matrix(preimages,[P(0),P(1),P([1,0])])
         new_system = system.change_ring(field_of_definition)
+        new_system = new_system.conjugate(conjugation)
         res = new_system.resultant()
         if res.valuation(field_of_definition.prime_above(prime)) != 0:
             return False
-        return new_system.conjugate(conjugation)
+        return new_system
 
     def reduce_base_field(self):
         """

@@ -470,8 +470,8 @@ class LaurentPolynomialIdeal( Ideal_generic ):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = P.ideal((p*q^2, y-z^2))
             sage: I.associated_primes()
-            (Ideal (y + 1, z^2 + 1) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field,
-             Ideal (z^2 - y, y*z + 2, y^2 + 2*z) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field)
+            (Ideal (z^2 - y, y*z + 2, y^2 + 2*z) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field,
+             Ideal (y + 1, z^2 + 1) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field)
         """
         l = self.polynomial_ideal(saturate=False).associated_primes()
         l2 = [self.ring().ideal(I.gens(), hint=I) for I in l]
@@ -490,8 +490,8 @@ class LaurentPolynomialIdeal( Ideal_generic ):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = P.ideal((p*q^2, y-z^2))
             sage: I.minimal_associated_primes()
-            (Ideal (z^2 + 1, -z^2 + y) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field,
-             Ideal (z^3 + 2, -z^2 + y) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field)
+            (Ideal (z^3 + 2, -z^2 + y) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field,
+             Ideal (z^2 + 1, -z^2 + y) of Multivariate Laurent Polynomial Ring in x, y, z over Rational Field)
         """
         l = self.polynomial_ideal(saturate=saturate).minimal_associated_primes()
         l2 = [self.ring().ideal(I.gens(), hint=I) for I in l]

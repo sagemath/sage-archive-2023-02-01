@@ -155,14 +155,14 @@ Using Sage's database of distribution prerequisites
 
 The source code of the Sage distribution contains a database of
 package names in various distributions' package managers.  For
-example, the file ``build/pkgs/debian.txt`` contains the following
+example, the file ``build/pkgs/_prereq/distros/debian.txt`` contains the following
 
 .. code-block:: yaml
 
-  # This file, build/pkgs/debian.txt, contains names of Debian/Ubuntu packages
-  # needed for installation of Sage from source.
+  # This file, build/pkgs/_prereq/distros/debian.txt, contains names
+  # of Debian/Ubuntu packages needed for installation of Sage from source.
   #
-  # In addition, the files build/pkgs/SPKG/debian.txt contain the names
+  # In addition, the files build/pkgs/SPKG/distros/debian.txt contain the names
   # of packages that provide the equivalent of SPKG.
   #
   # Everything on a line after a # character is ignored.
@@ -700,7 +700,7 @@ Let us try a first variant of the ``local`` technology, the tox
 environment called ``local-direct``.  Because all builds with tox
 begin by bootstrapping the source tree, you will need autotools and
 other prerequisites installed in your system.  See
-``build/pkgs/*-bootstrap.txt`` for a list of system packages that
+``build/pkgs/_bootstrap/distros/*.txt`` for a list of system packages that
 provide these prerequisites.
 
 We start by creating a fresh (distclean) git worktree.

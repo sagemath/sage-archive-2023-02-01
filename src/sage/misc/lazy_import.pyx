@@ -127,9 +127,8 @@ cpdef test_fake_startup():
         sage: from sage.misc.lazy_import import lazy_import
         sage: lazy_import('sage.rings.all', 'ZZ', 'my_ZZ')
         sage: my_ZZ(123)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: resolving lazy import ZZ during startup
+        Resolving lazy import ZZ during startup
+        123
         sage: sage.misc.lazy_import.finish_startup()
     """
     global startup_guard

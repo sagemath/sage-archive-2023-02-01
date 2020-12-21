@@ -30,7 +30,6 @@ Representations of the Symmetric Group
 
 from sage.symbolic.ring import SR
 from sage.functions.all import sqrt
-from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.permutation import Permutation, Permutations, from_cycles
 from sage.combinat.tableau import StandardTableaux, Tableau
@@ -41,9 +40,9 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSets
 
 # #### Constructor function ################################################
@@ -60,14 +59,15 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
     - ``partition`` -- a partition of a positive integer
 
     - ``implementation`` -- string (default: ``"specht"``), one of:
-        - ``"seminormal"`` - for Young's seminormal representation
-        - ``"orthogonal"`` - for Young's orthogonal representation
-        - ``"specht"`` - for Specht's representation
 
-    - ``ring`` -- the ring over which the representation is defined.
+      * ``"seminormal"`` - for Young's seminormal representation
+      * ``"orthogonal"`` - for Young's orthogonal representation
+      * ``"specht"`` - for Specht's representation
+
+    - ``ring`` -- the ring over which the representation is defined
 
     - ``cache_matrices`` -- boolean (default: ``True``) if ``True``, then any
-      representation matrices that are computed are cached.
+      representation matrices that are computed are cached
 
     EXAMPLES:
 
@@ -103,7 +103,7 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
         [          0           0           0           1           0]
         [          0           0           0           0          -1]
 
-    The Specht Representation::
+    The Specht representation::
 
         sage: spc = SymmetricGroupRepresentation([3,2], "specht")
         sage: spc.scalar_product_matrix(Permutation([1,2,3,4,5]))
@@ -143,7 +143,7 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
         [ 0  1 -1 -1  1]
         [ 0  1  0 -1  1]}
 
-    This can be turned off with the keyword cache_matrices::
+    This can be turned off with the keyword ``cache_matrices``::
 
         sage: spc = SymmetricGroupRepresentation([3,2], "specht", cache_matrices=False)
         sage: spc([5,4,3,2,1])
@@ -169,18 +169,9 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
     - Franco Saliola (2009-04-23)
     """
     partition = Partition(partition)
-    if implementation == "seminormal":
-        return YoungRepresentation_Seminormal(partition, ring=ring,
-                cache_matrices=cache_matrices)
-    elif implementation == "orthogonal":
-        return YoungRepresentation_Orthogonal(partition, ring=ring,
-                cache_matrices=cache_matrices)
-    elif implementation == "specht":
-        return SpechtRepresentation(partition, ring=ring,
-                cache_matrices=cache_matrices)
-    else:
-        raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
-
+    Rep = SymmetricGroupRepresentations(sum(partition), implementation=implementation,
+                                        ring=ring, cache_matrices=cache_matrices)
+    return Rep(partition)
 
 def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
         cache_matrices=True):
@@ -192,14 +183,15 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
     - ``n`` -- positive integer
 
     - ``implementation`` -- string (default: ``"specht"``), one of:
-        - ``"seminormal"`` - for Young's seminormal representation
-        - ``"orthogonal"`` - for Young's orthogonal representation
-        - ``"specht"`` - for Specht's representation
 
-    - ``ring`` -- the ring over which the representation is defined.
+      * ``"seminormal"`` - for Young's seminormal representation
+      * ``"orthogonal"`` - for Young's orthogonal representation
+      * ``"specht"`` - for Specht's representation
+
+    - ``ring`` -- the ring over which the representation is defined
 
     - ``cache_matrices`` -- boolean (default: ``True``) if ``True``, then any
-      representation matrices that are computed are cached.
+      representation matrices that are computed are cached
 
     EXAMPLES:
 
@@ -210,7 +202,9 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
         sage: orth = SymmetricGroupRepresentations(3, "orthogonal"); orth
         Orthogonal representations of the symmetric group of order 3! over Symbolic Ring
         sage: orth.list()
-        [Orthogonal representation of the symmetric group corresponding to [3], Orthogonal representation of the symmetric group corresponding to [2, 1], Orthogonal representation of the symmetric group corresponding to [1, 1, 1]]
+        [Orthogonal representation of the symmetric group corresponding to [3],
+         Orthogonal representation of the symmetric group corresponding to [2, 1],
+         Orthogonal representation of the symmetric group corresponding to [1, 1, 1]]
         sage: orth([2,1])([1,2,3])
         [1 0]
         [0 1]
@@ -248,11 +242,11 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
     - Franco Saliola (2009-04-23)
     """
     if implementation == "seminormal":
-        return YoungRepresentations_Seminormal(n, ring=ring)
+        return YoungRepresentations_Seminormal(n, ring=ring, cache_matrices=cache_matrices)
     elif implementation == "orthogonal":
-        return YoungRepresentations_Orthogonal(n, ring=ring)
+        return YoungRepresentations_Orthogonal(n, ring=ring, cache_matrices=cache_matrices)
     elif implementation == "specht":
-        return SpechtRepresentations(n, ring=ring)
+        return SpechtRepresentations(n, ring=ring, cache_matrices=cache_matrices)
     else:
         raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
 
@@ -265,7 +259,7 @@ class SymmetricGroupRepresentation_generic_class(Element):
     """
     _default_ring = None
 
-    def __init__(self, partition, ring=None, cache_matrices=True):
+    def __init__(self, parent, partition):
         r"""
         An irreducible representation of the symmetric group corresponding
         to ``partition``.
@@ -288,13 +282,11 @@ class SymmetricGroupRepresentation_generic_class(Element):
             True
         """
         self._partition = Partition(partition)
-        self._n = self._partition.size()
-        self._ring = ring if ring is not None else self._default_ring
-        if not cache_matrices:
+        self._n = parent._n
+        self._ring = parent._ring
+        if not parent._cache_matrices:
             self.representation_matrix = self._representation_matrix_uncached
-        Element.__init__(self,
-                         SymmetricGroupRepresentations_class(self._n, ring,
-                                                             cache_matrices))
+        Element.__init__(self, parent)
 
     def __hash__(self):
         r"""
@@ -327,6 +319,8 @@ class SymmetricGroupRepresentation_generic_class(Element):
             sage: spc4 = loads(dumps(spc3))
             sage: spc3 == spc4
             True
+            sage: spc1 == spc3
+            True
 
         TESTS:
 
@@ -340,6 +334,24 @@ class SymmetricGroupRepresentation_generic_class(Element):
         if not isinstance(other, type(other)):
             return False
         return (self._ring, self._partition) == (other._ring, other._partition)
+
+    def __ne__(self, other):
+        """
+        Test for inequality.
+
+        EXAMPLES::
+
+            sage: spc1 = SymmetricGroupRepresentation([3], cache_matrices=True)
+            sage: loads(dumps(spc1)) != spc1
+            False
+            sage: spc2 = SymmetricGroupRepresentation([2,1])
+            sage: spc1 != spc2
+            True
+            sage: spc3 = SymmetricGroupRepresentation([3], cache_matrices=False)
+            sage: spc1 != spc3
+            False
+        """
+        return not (self == other)
 
     def __call__(self, permutation):
         r"""
@@ -366,7 +378,7 @@ class SymmetricGroupRepresentation_generic_class(Element):
             [[1], [-1], [-1], [1], [1], [-1]]
         """
         for permutation in Permutations(self._n):
-            yield self.representation_matrix(permutation)
+             yield self.representation_matrix(permutation)
 
     def verify_representation(self):
         r"""
@@ -441,7 +453,7 @@ class SymmetricGroupRepresentation_generic_class(Element):
         return Sym.character(values)
 
 
-class SymmetricGroupRepresentations_class(Parent):
+class SymmetricGroupRepresentations_class(UniqueRepresentation,Parent):
     r"""
     Generic methods for the CombinatorialClass of irreducible
     representations of the symmetric group.
@@ -462,12 +474,11 @@ class SymmetricGroupRepresentations_class(Parent):
         self._n = n
         self._ring = ring if ring is not None else self._default_ring
         self._cache_matrices = cache_matrices
-        Parent.__init__(self, facade=Partitions(n),
-                        category=FiniteEnumeratedSets())
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
-    def __call__(self, partition):
+    def _element_constructor_(self, partition):
         r"""
-        Return the irreducible representation corresponding to partition.
+        Return the irreducible representation corresponding to ``partition``.
 
         EXAMPLES::
 
@@ -481,10 +492,18 @@ class SymmetricGroupRepresentations_class(Parent):
         """
         if Partition(partition).size() != self._n:
             raise TypeError("not a partition of %s" % self._n)
-        return self.object_class(partition, ring=self._ring,
-                cache_matrices=self._cache_matrices)
+        return self.element_class(self, partition)
 
     def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: sp = SymmetricGroupRepresentations(4, "specht")
+            sage: sp.cardinality()
+            5
+        """
         return Partitions(self._n).cardinality()
 
     def __iter__(self):
@@ -501,8 +520,7 @@ class SymmetricGroupRepresentations_class(Parent):
             Orthogonal representation of the symmetric group corresponding to [1, 1, 1]
         """
         for partition in Partitions(self._n):
-            yield self.object_class(partition, ring=self._ring,
-                    cache_matrices=self._cache_matrices)
+            yield self.element_class(self, partition)
 
 # #### Young's Seminormal Representation ###################################
 
@@ -695,37 +713,36 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
             [-1/2  3/2]
             [ 1/2  1/2]
         """
-        return self._representation_matrix_uncached(permutation)
+        ret = self._representation_matrix_uncached(permutation)
+        ret.set_immutable()
+        return ret
 
 
 class YoungRepresentation_Seminormal(YoungRepresentation_generic):
-    _default_ring = QQ
-
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.symmetric_group_representations import YoungRepresentation_Seminormal
-            sage: YoungRepresentation_Seminormal([2,1]).__repr__()
-            'Seminormal representation of the symmetric group corresponding to [2, 1]'
+            sage: SymmetricGroupRepresentation([2,1], "seminormal")
+            Seminormal representation of the symmetric group corresponding to [2, 1]
         """
-        return "Seminormal representation of the symmetric group corresponding to %s" % self._partition
+        return "Seminormal representation of the symmetric group corresponding to {}".format(self._partition)
 
     def _2x2_matrix_entries(self, beta):
         r"""
         Young's representations are constructed by combining
-        `2\times2`-matrices that depend on ``beta``. For the seminormal
-        representation, this is the following matrix.:
+        `2 \times 2`-matrices that depend on ``beta``.
 
-            ``[  -beta     1+beta ]``
-            ``[ 1-beta      beta  ]``
+        For the seminormal representation, this is the following matrix::
+
+            [  -beta     1+beta ]
+            [ 1-beta      beta  ]
 
         EXAMPLES::
 
-            sage: from sage.combinat.symmetric_group_representations import YoungRepresentation_Seminormal
-            sage: snorm = YoungRepresentation_Seminormal([2,1])
+            sage: snorm = SymmetricGroupRepresentation([2,1], "seminormal")
             sage: snorm._2x2_matrix_entries(1/2)
             (-1/2, 3/2, 1/2, 1/2)
         """
@@ -735,19 +752,17 @@ class YoungRepresentation_Seminormal(YoungRepresentation_generic):
 class YoungRepresentations_Seminormal(SymmetricGroupRepresentations_class):
     _default_ring = QQ
 
-    object_class = YoungRepresentation_Seminormal
-
     Element = YoungRepresentation_Seminormal
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.symmetric_group_representations import YoungRepresentations_Seminormal
-            sage: YoungRepresentations_Seminormal(3).__repr__()
-            'Seminormal representations of the symmetric group of order 3! over Rational Field'
+            sage: YoungRepresentations_Seminormal(3)
+            Seminormal representations of the symmetric group of order 3! over Rational Field
         """
         return "Seminormal representations of the symmetric group of order %s! over %s" % (self._n, self._ring)
 
@@ -755,33 +770,30 @@ class YoungRepresentations_Seminormal(SymmetricGroupRepresentations_class):
 
 
 class YoungRepresentation_Orthogonal(YoungRepresentation_generic):
-    _default_ring = SR
-
-    def __repr__(self):
+    def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.symmetric_group_representations import YoungRepresentation_Orthogonal
-            sage: YoungRepresentation_Orthogonal([2,1]).__repr__()
-            'Orthogonal representation of the symmetric group corresponding to [2, 1]'
+            sage: SymmetricGroupRepresentation([2,1], "orthogonal")
+            Orthogonal representation of the symmetric group corresponding to [2, 1]
         """
-        return "Orthogonal representation of the symmetric group corresponding to %s" % self._partition
+        return "Orthogonal representation of the symmetric group corresponding to {}".format(self._partition)
 
     def _2x2_matrix_entries(self, beta):
         r"""
         Young's representations are constructed by combining
-        `2\times2`-matrices that depend on ``beta`` For the orthogonal
-        representation, this is the following matrix::
+        `2 \times 2`-matrices that depend on ``beta``.
 
-            ``[     -beta       sqrt(1-beta^2) ]``
-            ``[ sqrt(1-beta^2)       beta      ]``
+        For the orthogonal representation, this is the following matrix::
+
+            [     -beta       sqrt(1-beta^2) ]
+            [ sqrt(1-beta^2)       beta      ]
 
         EXAMPLES::
 
-            sage: from sage.combinat.symmetric_group_representations import YoungRepresentation_Orthogonal
-            sage: orth = YoungRepresentation_Orthogonal([2,1])
+            sage: orth = SymmetricGroupRepresentation([2,1], "orthogonal")
             sage: orth._2x2_matrix_entries(1/2)
             (-1/2, 1/2*sqrt(3), 1/2*sqrt(3), 1/2)
         """
@@ -791,19 +803,17 @@ class YoungRepresentation_Orthogonal(YoungRepresentation_generic):
 class YoungRepresentations_Orthogonal(SymmetricGroupRepresentations_class):
     _default_ring = SR
 
-    object_class = YoungRepresentation_Orthogonal
-
     Element = YoungRepresentation_Orthogonal
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.symmetric_group_representations import YoungRepresentations_Orthogonal
-            sage: YoungRepresentations_Orthogonal(3).__repr__()
-            'Orthogonal representations of the symmetric group of order 3! over Symbolic Ring'
+            sage: YoungRepresentations_Orthogonal(3)
+            Orthogonal representations of the symmetric group of order 3! over Symbolic Ring
         """
         return "Orthogonal representations of the symmetric group of order %s! over %s" % (self._n, self._ring)
 
@@ -811,17 +821,16 @@ class YoungRepresentations_Orthogonal(SymmetricGroupRepresentations_class):
 
 
 class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.symmetric_group_representations import SpechtRepresentation
-            sage: SpechtRepresentation([2,1]).__repr__()
-            'Specht representation of the symmetric group corresponding to [2, 1]'
+            sage: SymmetricGroupRepresentation([2,1], "specht")
+            Specht representation of the symmetric group corresponding to [2, 1]
         """
-        return "Specht representation of the symmetric group corresponding to %s" % self._partition
+        return "Specht representation of the symmetric group corresponding to {}".format(self._partition)
 
     _default_ring = ZZ
 
@@ -940,7 +949,9 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
             [0 1 0]
             [1 0 0]
         """
-        return self._representation_matrix_uncached(permutation)
+        ret = self._representation_matrix_uncached(permutation)
+        ret.set_immutable()
+        return ret 
 
     def _representation_matrix_uncached(self, permutation):
         r"""
@@ -964,21 +975,19 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
 
 
 class SpechtRepresentations(SymmetricGroupRepresentations_class):
-    object_class = SpechtRepresentation
+    _default_ring = ZZ
 
     Element = SpechtRepresentation
 
-    _default_ring = ZZ
-
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation of ``self``.
 
         EXAMPLES::
 
             sage: spc = SymmetricGroupRepresentations(4)
-            sage: spc.__repr__()
-            'Specht representations of the symmetric group of order 4! over Integer Ring'
+            sage: spc
+            Specht representations of the symmetric group of order 4! over Integer Ring
         """
         return "Specht representations of the symmetric group of order %s! over %s" % (self._n, self._ring)
 
@@ -1001,3 +1010,4 @@ def partition_to_vector_of_contents(partition, reverse=False):
     if reverse:
         return tuple(v)[::-1]
     return tuple(v)
+

@@ -58,8 +58,8 @@ if [ "x$ORIGINAL_CFLAGS" == "x" ]; then
         export CFLAGS_NON_NATIVE="-O2 -g"
         export CFLAGS_O3_NON_NATIVE="-O3 -g"
     fi
-    export CFLAGS="$CFLAGS_NON_NATIVE $CONFIGURED_SAGE_MARCH"
-    export CFLAGS_O3="$CFLAGS_O3_NON_NATIVE $CONFIGURED_SAGE_MARCH"
+    export CFLAGS="$CFLAGS_NON_NATIVE $CFLAGS_MARCH"
+    export CFLAGS_O3="$CFLAGS_O3_NON_NATIVE $CFLAGS_MARCH"
 else
     # Respect user environment variable.
     export CFLAGS="$ORIGINAL_CFLAGS"

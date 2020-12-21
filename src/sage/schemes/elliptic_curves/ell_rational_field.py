@@ -49,7 +49,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function, division, absolute_import
 
 from . import constructor
 from . import BSD

@@ -214,7 +214,6 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from collections import defaultdict
 from itertools import islice, cycle
@@ -548,7 +547,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-        - a list where the `i`-th entry indiciates the multiplicity
+        - a list where the `i`-th entry indicates the multiplicity
           of the `i`-th letter in the alphabet in ``self``
 
         EXAMPLES::

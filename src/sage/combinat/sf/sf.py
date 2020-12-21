@@ -1,7 +1,6 @@
 """
 Symmetric functions, with their multiple realizations
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2009-2012 Jason Bandlow <jbandlow@gmail.com>

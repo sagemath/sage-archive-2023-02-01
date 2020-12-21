@@ -151,7 +151,6 @@ overview can also be found in Chapter 4 of [Rüt2014]_.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from .inductive_valuation import _lift_to_maximal_precision
 from .inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation

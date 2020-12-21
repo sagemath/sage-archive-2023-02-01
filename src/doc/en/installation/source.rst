@@ -409,30 +409,31 @@ On other systems, check the documentation for your particular operating system.
 
 .. _section_conda_compilers:
 
-Notes on using Anaconda/Miniconda
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using conda
+^^^^^^^^^^^
 
 If Conda is installed (check by typing ``conda info``), there are two ways to
 prepare for installing SageMath from source:
 
-- Make sure that a Conda environment is active (for the current shell session)
-  that has at least the following Conda packages required for building SageMath::
+  - Create a new conda environment with standard packages::
 
-    c-compiler cxx-compiler fortran-compiler
+      $ conda env create -f environment.yml
 
-  - Activate a Conda environment that has these packages, using::
+  - Or create a new conda environment with standard and optional packages::
 
-      $ conda activate ENVIRONMENT
+      $ conda env create -f environment-optional.yml
 
-  - The packages can be installed into the current Conda environment using::
+  - Then SageMath will be built using the compilers provided by Conda::
 
-      $ conda install c-compiler cxx-compiler fortran-compiler
+      $ ./bootstrap
+      $ ./configure --prefix=$CONDA_PREFIX
+      $ make
 
-  - Optionally, install additional Conda packages.
 
-  Then SageMath will be built using the compilers provided by Conda.
+Notes on using conda
+^^^^^^^^^^^^^^^^^^^^
 
-- Deactivate conda (for the current shell session).
+If you don't want conda to be used by sage, deactivate conda (for the current shell session).
 
   - Type::
 
@@ -1096,15 +1097,7 @@ you. This is influenced by the following environment variable:
 
   - ``SAGE_SERVER/spkg/upstream``
 
-  for clean upstream tarballs, and it searches the directories
-
-  - ``SAGE_SERVER/spkg/standard/``,
-  - ``SAGE_SERVER/spkg/optional/``,
-  - ``SAGE_SERVER/spkg/experimental/``,
-  - ``SAGE_SERVER/spkg/archive/``
-
-  for old-style Sage packages.
-
+  for upstream tarballs.
 
 Here are some of the more commonly used variables affecting the build process:
 
@@ -1185,7 +1178,9 @@ Here are some of the more commonly used variables affecting the build process:
   building ccache for Sage, so that Sage can pull down the necessary
   sources.
 
-- :envvar:`SAGE_DEBUG` - controls debugging support.
+- .. _sage_debug:
+
+  :envvar:`SAGE_DEBUG` - controls debugging support.
   There are three different possible values:
 
   * Not set (or set to anything else than "yes" or "no"): build binaries with
@@ -1201,6 +1196,9 @@ Here are some of the more commonly used variables affecting the build process:
     with a different memory manager).
     These will be notably slower but, for example, make it much easier to
     pinpoint memory allocation problems.
+
+  Instead of using :envvar:`SAGE_DEBUG` one can configure with
+  ``--enable-debug={no|symbols|yes}``.
 
 - :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
   to ``yes``, profiling support is enabled where possible. Note that
@@ -1290,9 +1288,12 @@ Here are some of the more commonly used variables affecting the build process:
       So you can set this variable to ``yes`` instead of using the ``-s`` flag
       for ``sage -i`` and ``sage -f``.
 
-- :envvar:`SAGE_FAT_BINARY` - to build binaries that will run on the
+- .. _sage_fat_binary:
+
+  :envvar:`SAGE_FAT_BINARY` - to build binaries that will run on the
   widest range of target CPUs set this variable to ``yes`` before
-  building Sage. This does not make the binaries relocatable, it only
+  building Sage or configure with ``--enable-fat-binary``.
+  This does not make the binaries relocatable, it only
   avoids newer CPU instruction set extensions. For relocatable (=can
   be moved to a different directory) binaries, you must use
   https://github.com/sagemath/binary-pkg

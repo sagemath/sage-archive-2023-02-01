@@ -96,6 +96,7 @@ cdef class CGraphBackend(GenericGraphBackend):
     cdef bint _multiple_edges
     cdef CGraph cg(self)
     cpdef add_edge(self, object u, object v, object l, bint directed)
+    cpdef del_edge(self, object u, object v, object l, bint directed)
     cdef bint _has_labeled_edge_unsafe(self, int, int, object) except -1
     cdef bint _delete_edge_before_adding(self)
     cdef int new_edge_label(self, object l) except -1

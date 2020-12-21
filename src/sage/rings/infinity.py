@@ -214,8 +214,6 @@ We check that :trac:`17990` is fixed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-# python3
-from __future__ import division
 
 from sys import maxsize
 from sage.rings.ring import Ring

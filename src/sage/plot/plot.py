@@ -572,6 +572,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
 from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a

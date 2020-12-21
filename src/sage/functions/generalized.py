@@ -407,6 +407,11 @@ class FunctionSignum(BuiltinFunction):
         sage: sgn(x)._giac_()
         sign(x)
 
+    Test for :trac:`31085`::
+
+        sage: fricas(sign(x)).eval(x=-3)  # optional - fricas
+        - 1
+
     REFERENCES:
 
     - :wikipedia:`Sign_function`

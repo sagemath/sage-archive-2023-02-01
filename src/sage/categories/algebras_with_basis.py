@@ -176,8 +176,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                 z_elt[ m ] = left_c * right_c * res[m]
                 return self._from_dict(z_elt)
 
-            # the usage of "_multiply" is no longer allowed.
-            raise NotImplementedError('using _multiply is no longer allowed')
+            # the usage of "_multiply" is no longer allowed, see ticket 31081
+            raise TypeError('using _multiply is no longer allowed')
 
         def hochschild_complex(self, M):
             """

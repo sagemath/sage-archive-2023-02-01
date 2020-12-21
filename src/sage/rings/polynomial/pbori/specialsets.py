@@ -93,9 +93,7 @@ if __name__ == '__main__':
 
 
 def monomial_from_indices(ring, indices):
-    l = sorted(indices, reverse=True)
     res = Monomial(ring)
-    for i in l:
+    for i in sorted(indices, reverse=True):
         res = res * ring.variable(i)
-
     return res

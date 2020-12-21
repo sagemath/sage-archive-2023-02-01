@@ -31,7 +31,8 @@ EXAMPLES::
 """
 
 
-from . import *
+from .PyPolyBoRi import Ring, Monomial, Polynomial
+from .pbori import VariableFactory
 from .blocks import declare_ring as orig_declare_ring
 
 

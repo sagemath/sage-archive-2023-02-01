@@ -2946,12 +2946,22 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
             <BLANKLINE>
             among the values you sent, 17 percent are actually in the database,
             among the distinct values you sent, 83 percent are actually in the database
+
+            sage: r = FindStatMatchingStatistic("St000042", 1, [17, 83])        # optional -- internet
+            sage: r.info()                                                      # optional -- internet
+            after adding 1 to every value
+            <BLANKLINE>
+            your input matches
+                St000042: The number of crossings of a perfect matching.
+            <BLANKLINE>
+            among the values you sent, 17 percent are actually in the database,
+            among the distinct values you sent, 83 percent are actually in the database
         """
         if self.offset() < 0:
             print("after subtracting %s from every value" % (-self.offset()))
         if self.offset() > 0:
             print("after adding %s to every value" % self.offset())
-        if self.compound_map():
+        if len(self.compound_map()):
             if self.offset():
                 print("and applying")
             else:

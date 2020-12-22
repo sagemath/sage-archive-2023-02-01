@@ -987,7 +987,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             A000053: Local stops on New York City Broadway line (IRT #1) subway.
 
             sage: f.keywords()                          # optional -- internet
-            ('nonn', 'fini', 'full')
+            ('nonn', 'fini', ...)
 
         TESTS::
 

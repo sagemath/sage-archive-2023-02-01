@@ -1758,7 +1758,7 @@ class KnotInfoBase(Enum):
         INPUT:
 
         - ``unique`` -- boolean (optional, default=``True``) if set to ``False``
-          it is only checked if ``self``is among the recovered items
+          it is only checked if ``self`` is among the recovered items
 
         EXAMPLES::
 
@@ -1790,7 +1790,7 @@ class KnotInfoBase(Enum):
 
             def check_result(L, m):
                 r"""
-                Check a single result from ``get_knotinfo``
+                Check a single result from ``get_knotinfo``.
                 """
                 if L != self:
                     return False
@@ -2271,9 +2271,11 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``unique`` -- boolean (optional, default=``True``) see :meth:`KnotInfoBase.is_recoverable`
-        - ``max_samples`` non negative integer or ``infinity`` (optional, default `8`) limits the number of
-          items to check (random sample). If set to ``infinity`` then no limit is set.
+        - ``unique`` -- boolean (optional, default=``True``) see
+          :meth:`KnotInfoBase.is_recoverable`
+        - ``max_samples`` -- non negative integer or ``infinity`` (optional,
+          default ``8``) limits the number of items to check (random sample).
+          If set to ``infinity`` then no limit is set.
 
         EXAMPLES::
 

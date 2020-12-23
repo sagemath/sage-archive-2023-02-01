@@ -1044,6 +1044,18 @@ the license information for that package is up-to-date, both in its
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
 
+If an upstream tarball of a package cannot be redistributed for license
+reasons, rename it to include the string ``do-not-distribute``.  This
+will keep the release management scripts from uploading it to the Sage mirrors.
+For an example, see the ``scipoptsuite`` package, which has an "academic"
+proprietary license.
+
+Sometimes an upstream tarball contains some distributable parts using
+a free software license and some non-free parts.  In this case, it can
+be a good solution to make a custom tarball consisting of only the free
+parts; see :ref:`section-spkg-src` and the ``giac`` package as an example.
+
+
 Prerequisites for New Standard Packages
 ---------------------------------------
 

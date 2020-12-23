@@ -4221,10 +4221,10 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
         .. note::
 
-           If self has dimension d, then this is a polynomial of
-           degree d. It is not of degree 2\*d, so it is the square
-           root of the characteristic polynomial of the Hecke operator
-           on integral or rational homology (which has degree 2\*d).
+            If self has dimension d, then this is a polynomial of
+            degree d. It is not of degree 2\*d, so it is the square
+            root of the characteristic polynomial of the Hecke operator
+            on integral or rational homology (which has degree 2\*d).
 
         EXAMPLES::
 
@@ -4243,7 +4243,8 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             sage: factor(J0(43).hecke_operator(2).charpoly())
             (x + 2) * (x^2 - 2)
         """
-        return sqrt_poly(self.modular_symbols().hecke_polynomial(n, var))
+        b, r = self.modular_symbols().hecke_polynomial(n, var).is_square(True)
+        return r
 
     def _integral_hecke_matrix(self, n, sign=0):
         """
@@ -4956,9 +4957,9 @@ def sqrt_poly(f):
 
     .. note::
 
-       At some point something like this should be a member of the
-       polynomial class. For now this is just used internally by some
-       charpoly functions above.
+        At some point something like this should be a member of the
+        polynomial class. For now this is just used internally by some
+        charpoly functions above.
 
     EXAMPLES::
 
@@ -4980,12 +4981,12 @@ def sqrt_poly(f):
     if not f.is_monic():
         raise ValueError("f must be monic")
     try:
-        return prod([g**(e // Integer(2)) for g, e in f.factor()])
+        return prod([g**Integer(e / Integer(2)) for g, e in f.factor()])
     except TypeError:
         raise ValueError("f must be a perfect square")
 
 
-####################################################################################################
+##############################################################################
 # Useful for decomposing exactly the sort of modular symbols spaces that come up here.
 
 

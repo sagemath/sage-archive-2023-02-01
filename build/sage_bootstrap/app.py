@@ -195,6 +195,7 @@ class Application(object):
         pc = PackageClass(package_name_or_class)
         pc.apply(self.upload)
         fs = FileServer()
+        log.info('Publishing')
         fs.publish()
         
     def fix_all_checksums(self):

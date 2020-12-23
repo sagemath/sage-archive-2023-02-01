@@ -588,6 +588,12 @@ class Link(SageObject):
 
         OUTPUT: an element in the braid group
 
+        .. WARNING::
+
+            For the unknot with no crossings, this returns the identity
+            of the braid group with 2 strands because this disregards
+            strands with no crossings.
+
         EXAMPLES::
 
             sage: L = Link([[2, 3, 1, 4], [4, 1, 3, 2]])
@@ -1921,10 +1927,16 @@ class Link(SageObject):
         We look at the Gauss code if the sign is alternating, ``True``
         is returned else the knot is not alternating ``False`` is returned.
 
+        .. WARNING::
+
+            This does not check if a knot admits an alternating diagram
+            or not. Thus, this term is used differently than in some of
+            the literature, such as in Hoste-Thistlethwaite table.
+
         .. NOTE::
 
             Links with more than one component are considered to not
-            be alternating (knots).
+            be alternating (knots) even when such a diagram exists.
 
         EXAMPLES::
 
@@ -1944,6 +1956,18 @@ class Link(SageObject):
             sage: L = Link(B([-1,2,-1,2]))
             sage: L.is_alternating()
             True
+
+        We give the `5_2` knot with an alternating diagram and a
+        non-alternating diagram::
+
+            sage: K5_2 = Link([[1, 4, 2, 5], [3, 8, 4, 9], [5, 10, 6, 1],
+            ....:              [7, 2, 8, 3], [9, 6, 10, 7]])
+            sage: K5_2.is_alternating()
+            True
+
+            sage: K5_2b = Link(K5_2.braid())
+            sage: K5_2b.is_alternating()
+            False
 
         TESTS:
 

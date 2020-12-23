@@ -187,6 +187,10 @@ class Application(object):
         if not os.path.exists(package.tarball.upstream_fqn):
             log.debug('Skipping %s because there is no local tarball', package_name)
             return
+        if not package.tarball.is_distributable():
+            log.info('Skipping %s because the tarball is marked as not distributable',
+                     package_name)
+            return
         log.info('Uploading %s', package.tarball.upstream_fqn)
         fs = FileServer()
         fs.upload(package)

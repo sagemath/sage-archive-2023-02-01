@@ -3809,6 +3809,14 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         79
         sage: n3 = len(adaptive_refinement(f, (0,0), (pi,0), adaptive_tolerance=0.001)); n3
         26
+
+    Exclusion points will be added if ``excluded`` is set::
+
+        sage: f(x) = 1/x
+        sage: adaptive_refinement(f, (-1, -1), (3, 1/3), adaptive_recursion=2, excluded=False)
+        [(1.0, 1.0), (2.0, 0.5)]
+        sage: adaptive_refinement(f, (-1, -1), (3, 1/3), adaptive_recursion=2, excluded=True)
+        [(0.0, 'NaN'), (1.0, 1.0), (2.0, 0.5)]
     """
     if level >= adaptive_recursion:
         return []
@@ -3837,12 +3845,14 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         return adaptive_refinement(f, p1, (x, y),
                     adaptive_tolerance=adaptive_tolerance,
                     adaptive_recursion=adaptive_recursion,
-                    level=level+1) \
+                    level=level+1,
+                    excluded=excluded) \
                     + [(x, y)] + \
             adaptive_refinement(f, (x, y), p2,
                     adaptive_tolerance=adaptive_tolerance,
                     adaptive_recursion=adaptive_recursion,
-                    level=level+1)
+                    level=level+1,
+                    excluded=excluded)
     else:
         return []
 
@@ -3926,6 +3936,13 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
         sage: [len(generate_plot_points(f, (-pi, pi), plot_points=16, adaptive_recursion=i, randomize=False)) for i in [5, 10, 15]]
         [97, 499, 2681]
+
+    Excluded points will be added, if ``exclusion`` is set::
+
+        sage: generate_plot_points(log, (0, 1), plot_points=2, adaptive_recursion=0)
+        [(1.0, 0.0)]
+        sage: generate_plot_points(log, (0, 1), plot_points=2, adaptive_recursion=0, excluded=True)
+        ([(1.0, 0.0)], [0.0])
     """
     from sage.plot.misc import setup_for_eval_on_grid
     ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)

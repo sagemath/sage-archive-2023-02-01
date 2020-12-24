@@ -2300,22 +2300,19 @@ def _plot(funcs, xrange, parametric=False,
             log_initial_points = None
         else:
             log_initial_points = [log(x) for x in initial_points]
-        data = generate_plot_points(f_exp, log_xrange, plot_points,
-                                    adaptive_tolerance, adaptive_recursion,
-                                    randomize, log_initial_points)
-        average_distance_between_points = abs(log_xrange[1] - log_xrange[0])/plot_points
+        data, extra_excluded = generate_plot_points(
+            f_exp, log_xrange, plot_points,
+            adaptive_tolerance, adaptive_recursion,
+            randomize, log_initial_points,
+            excluded=True)
     else:
-        data = generate_plot_points(f, xrange, plot_points,
-                                    adaptive_tolerance, adaptive_recursion,
-                                    randomize, initial_points)
-        average_distance_between_points = abs(xrange[1] - xrange[0])/plot_points
+        data, extra_excluded = generate_plot_points(
+            f, xrange, plot_points,
+            adaptive_tolerance, adaptive_recursion,
+            randomize, initial_points,
+            excluded=True)
 
-    for i in range(len(data)-1):
-        # If the difference between consecutive x-values is more than
-        # 2 times the average difference between two consecutive plot points, then
-        # add an exclusion point.
-        if abs(data[i+1][0] - data[i][0]) > 2*average_distance_between_points:
-            excluded_points.append((data[i][0] + data[i+1][0])/2)
+    excluded_points += extra_excluded
 
     # If we did a change in variables, undo it now
     if is_log_scale:
@@ -3755,7 +3752,7 @@ def minmax_data(xdata, ydata, dict=False):
         return xmin, xmax, ymin, ymax
 
 
-def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0):
+def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0, excluded=False):
     r"""
     The adaptive refinement algorithm for plotting a function ``f``. See
     the docstring for plot for a description of the algorithm.
@@ -3777,11 +3774,16 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
        for more information.  See the documentation for :func:`plot` for more
        information on how the adaptive refinement algorithm works.
 
+    - ``excluded`` - (default: False) add a list of discovered points, for
+      which ``f`` is not defined
+
     OUTPUT:
 
 
     -  ``list`` - a list of points to insert between ``p1`` and
-       ``p2`` to get a better linear approximation between them
+       ``p2`` to get a better linear approximation between them;
+       if ``excluded`` also points for which the calculation failed are given
+       with value ``'NaN'``
 
 
     TESTS::
@@ -3819,11 +3821,15 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         if str(y) in ['nan', 'NaN', 'inf', '-inf']:
             sage.misc.verbose.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
             # give up for this branch
+            if excluded:
+                return [(x, 'NaN')]
             return []
 
     except (ZeroDivisionError, TypeError, ValueError, OverflowError) as msg:
         sage.misc.verbose.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
         # give up for this branch
+        if excluded:
+            return [(x, 'NaN')]
         return []
 
     # this distance calculation is not perfect.
@@ -3841,7 +3847,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         return []
 
 
-def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None):
+def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None, excluded=False):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a
@@ -3869,10 +3875,14 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     - ``initial_points`` - (default: None) a list of points that should be evaluated.
 
+    - ``excluded`` - (default: False) add a list of discovered points, for
+      which ``f`` is not defined
+
     OUTPUT:
 
     - a list of points (x, f(x)) in the interval xrange, which approximate
       the function f.
+    - if ``excluded`` a tuple consisting of the above and a list of not-defined values
 
     TESTS::
 
@@ -3920,26 +3930,28 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     from sage.plot.misc import setup_for_eval_on_grid
     ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)
     xmin, xmax, delta = ranges[0]
-    data = srange(*ranges[0], include_endpoint=True)
+    values = srange(*ranges[0], include_endpoint=True)
 
     random = current_randstate().python_random().random
 
-    for i in range(len(data)):
-        xi = data[i]
+    for i in range(len(values)):
+        xi = values[i]
         # Slightly randomize the interior sample points if
         # randomize is true
         if randomize and i > 0 and i < plot_points-1:
             xi += delta*(random() - 0.5)
-            data[i] = xi
+            values[i] = xi
 
     # add initial points
     if isinstance(initial_points, list):
-        data = sorted(data + initial_points)
+        values = sorted(values + initial_points)
+
+    data = [None]*len(values)
 
     exceptions = 0
     exception_indices = []
-    for i in range(len(data)):
-        xi = data[i]
+    for i in range(len(values)):
+        xi = values[i]
 
         try:
             data[i] = (float(xi), float(f(xi)))
@@ -3989,6 +4001,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                 exception_indices.append(i)
 
     data = [data[i] for i in range(len(data)) if i not in exception_indices]
+    excluded_points = [values[i] for i in exception_indices]
 
     # calls adaptive refinement
     i, j = 0, 0
@@ -3996,15 +4009,21 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     adaptive_recursion = int(adaptive_recursion)
 
     while i < len(data) - 1:
-       for p in adaptive_refinement(f, data[i], data[i+1],
+        for p in adaptive_refinement(f, data[i], data[i+1],
                                      adaptive_tolerance=adaptive_tolerance,
-                                     adaptive_recursion=adaptive_recursion):
-            data.insert(i+1, p)
-            i += 1
-       i += 1
+                                     adaptive_recursion=adaptive_recursion,
+                                     excluded=True):
+            if p[1] == "NaN":
+                excluded_points.append(p[0])
+            else:
+                data.insert(i+1, p)
+                i += 1
+        i += 1
 
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
         sage.misc.verbose.verbose("WARNING: When plotting, failed to evaluate function at %s points." % exceptions, level=0)
         sage.misc.verbose.verbose("Last error message: '%s'" % msg, level=0)
 
+    if excluded:
+        return data, excluded_points
     return data

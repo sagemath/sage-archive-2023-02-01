@@ -45,6 +45,7 @@ from .padic_base_leaves import (pAdicRingCappedRelative,
                                 pAdicFieldCappedRelative,
                                 pAdicFieldFloatingPoint,
                                 pAdicFieldLattice)
+from .padic_lazy import pAdicRingLazy
 from . import padic_printing
 
 ######################################################
@@ -696,7 +697,7 @@ class Qp_class(UniqueFactory):
             check = True
         if label is not None and type not in ['lattice-cap','lattice-float']:
             raise ValueError("label keyword only supported for lattice precision")
-        return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point', 'lattice-cap', 'lattice-float'], label)
+        return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point', 'lattice-cap', 'lattice-float', 'lazy'], label)
 
     def create_object(self, version, key):
         r"""
@@ -1873,7 +1874,7 @@ class Zp_class(UniqueFactory):
             raise ValueError("label keyword only supported for lattice precision")
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet,
                             print_max_terms, show_prec, check,
-                            ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice-cap', 'lattice-float'],
+                            ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice-cap', 'lattice-float', 'lazy'],
                             label=label)
 
     def create_object(self, version, key):
@@ -1902,7 +1903,7 @@ class Zp_class(UniqueFactory):
             # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series'
             # that are identical except for different 'print_alphabet' now return the same object.
             key = get_key_base(p, prec, type, print_mode, name, None, print_pos, print_sep, print_alphabet,
-                               print_max_terms, None, False, ['capped-rel', 'fixed-mod', 'capped-abs', 'lattice-cap', 'lattice-float'])
+                               print_max_terms, None, False, ['capped-rel', 'fixed-mod', 'capped-abs', 'lattice-cap', 'lattice-float', 'lazy'])
             try:
                 obj = self._cache[version, key]()
                 if obj is not None:
@@ -1922,6 +1923,8 @@ class Zp_class(UniqueFactory):
         elif type == 'floating-point':
             return pAdicRingFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                      'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
+        elif type == 'lazy':
+            return pAdicRingLazy(p, prec)
         elif type[:8] == 'lattice-':
             subtype = type[8:]
             return pAdicRingLattice(p, prec, subtype, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
@@ -2888,6 +2891,9 @@ def ZpLF(p, prec=None, *args, **kwds):
         :func:`ZpLC`
     """
     return Zp(p, prec, 'lattice-float', *args, **kwds)
+
+def ZpL(p, prec=None, *args, **kwds):
+    return Zp(p, prec, 'lazy', *args, **kwds)
 
 
 #######################################################################################################

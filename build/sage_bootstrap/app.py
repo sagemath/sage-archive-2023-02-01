@@ -20,7 +20,7 @@ import logging
 log = logging.getLogger()
 
 from sage_bootstrap.package import Package
-from sage_bootstrap.tarball import Tarball
+from sage_bootstrap.tarball import Tarball, FileNotMirroredError
 from sage_bootstrap.updater import ChecksumUpdater, PackageUpdater
 from sage_bootstrap.creator import PackageCreator
 from sage_bootstrap.pypi import PyPiVersion, PyPiNotFound
@@ -167,13 +167,21 @@ class Application(object):
         package.tarball.download(allow_upstream=allow_upstream)
         print(package.tarball.upstream_fqn)
 
-    def download_cls(self, package_name_or_class, allow_upstream=False):
+    def download_cls(self, package_name_or_class, allow_upstream=False, on_error='stop'):
         """
         Download a package or a class of packages
         """
         pc = PackageClass(package_name_or_class, has_files=['checksums.ini'])
         def download_with_args(package):
-            return self.download(package, allow_upstream=allow_upstream)
+            try:
+                self.download(package, allow_upstream=allow_upstream)
+            except FileNotMirroredError:
+                if on_error == 'stop':
+                    raise
+                elif on_error == 'warn':
+                    log.warn('Unable to download tarball of %s', package)
+                else:
+                    raise ValueError('on_error must be one of "stop" and "warn"')
         pc.apply(download_with_args)
 
     def upload(self, package_name):

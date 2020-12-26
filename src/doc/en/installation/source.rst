@@ -409,25 +409,64 @@ On other systems, check the documentation for your particular operating system.
 
 .. _section_conda_compilers:
 
-Using conda
-^^^^^^^^^^^
+Using conda to provide system dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If Conda is installed (check by typing ``conda info``), there are two ways to
 prepare for installing SageMath from source:
 
+  - If you are using a git checkout::
+
+      $ ./bootstrap
+
   - Create a new conda environment with standard packages::
 
-      $ conda env create -f environment.yml
+      $ conda env create -f environment.yml -n sage-build
 
   - Or create a new conda environment with standard and optional packages::
 
-      $ conda env create -f environment-optional.yml
+      $ conda env create -f environment-optional.yml -n sage-build
+
+  - Activate the environment::
+
+      $ conda activate sage-build
 
   - Then SageMath will be built using the compilers provided by Conda::
 
-      $ ./bootstrap
       $ ./configure --prefix=$CONDA_PREFIX
       $ make
+
+Using conda to provide all SPKGs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Note that this is an experimental feature and may not work as intended.
+
+  - If you are using a git checkout::
+
+      $ ./bootstrap
+
+  - Create a new conda environment with standard packages::
+
+      $ conda env create -f src/environment.yml -n sage-build
+
+  - Or create a new conda environment with standard and optional packages::
+
+      $ conda env create -f src/environment-optional.yml -n sage-build
+
+  - Activate the environment::
+
+      $ conda activate sage-build
+
+  - Then SageMath will be built using the compilers provided by Conda::
+
+      $ ./configure --prefix=$CONDA_PREFIX
+      $ cd src
+      $ python setup.py install
+
+Although you will get a working version of sage faster because all dependencies
+are provided by conda, this will invalidate the use of sage-the-distribution
+commands such as `sage -i` commands as sage-the-distribution does not know about
+the dependencies unlike in the previous section where it did.
 
 
 Notes on using conda

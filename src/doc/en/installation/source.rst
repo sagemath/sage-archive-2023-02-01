@@ -424,11 +424,11 @@ prepare for installing SageMath from source:
       $ conda create -n sage-build
       $ conda activate sage-build
 
-  - Install standard packages::
+  - Install standard packages recognized by sage's ``spkg-configure`` mechanism::
 
       $ conda env update --file environment.yml -n sage-build
 
-  - Or install all standard and optional packages::
+  - Or install all standard and optional packages recognized by sage::
 
       $ conda env update --file environment-optional.yml -n sage-build
 
@@ -469,7 +469,7 @@ Note that this is an experimental feature and may not work as intended.
 
 Although you will get a working version of sage faster because all dependencies
 are provided by conda, this will invalidate the use of sage-the-distribution
-commands such as `sage -i` commands as sage-the-distribution does not know about
+commands such as ``sage -i`` because sage-the-distribution does not know about
 the dependencies unlike in the previous section where it did.
 
 

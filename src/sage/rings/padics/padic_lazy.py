@@ -69,7 +69,7 @@ Equality test works but equality is only checked up to the
     True
 
 A quite interesting feature with lazy p-adics is the possibility to
-create (in somes cases) self-referrent numbers. Here is an example.
+create (in somes cases) self-referent numbers. Here is an example.
 We first declare a new variable as follows::
 
     sage: x = R()
@@ -98,7 +98,7 @@ As a comparison, the following produces an error::
     ...
     RecursionError: definition looks circular
 
-Previous self-referrent definitions also work with system of equations::
+Self-referent definitions also work with systems of equations::
 
     sage: u = R(); v = R(); w = R()
 

@@ -138,6 +138,9 @@ class pAdicLazyElement(pAdicGenericElement):
     def __invert__(self):
         return pAdicLazyElement_div(self.parent(), None, self)
 
+    def sqrt(self):
+        return pAdicLazyElement_sqrt(self.parent(), self)
+
     def convert(self, ring, prec=None):
         if prec is None:
             prec = self.parent().prec()
@@ -294,6 +297,38 @@ class pAdicLazyElement_div(pAdicLazyElement):
         else:
             num = pAdicLazyElement_add(parent, [self._x], [u])
         self._definition = num - (denom >> 1) * (self << 1)
+
+    def next(self):
+        if not self._ready:
+            self._bootstrap()
+            self._ready = True
+        self._digits.append(self._definition[self._precision])
+        self._precision += 1
+
+
+# Square root
+
+class pAdicLazyElement_sqrt(pAdicLazyElement):
+    def __init__(self, parent, x):
+        if parent.prime() == 2:
+            raise NotImplementedError
+        pAdicLazyElement.__init__(self, parent)
+        self._x = x
+        try:
+            self._bootstrap()
+            self._ready = True
+        except PrecisionError:
+            self._ready = False
+
+    def _bootstrap(self):
+        parent = self.parent()
+        a = parent.residue_field()(self._x[0])
+        if a == 0:
+            raise NotImplementedError
+        b = ZZ(a.sqrt(extend=False))
+        c = b + (self._x - ZZ(a)) / (2*b)
+        s1 = self >> 1
+        self._definition = c - ((s1**2 / (2*b)) << 2)
 
     def next(self):
         if not self._ready:

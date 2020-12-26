@@ -467,10 +467,14 @@ Note that this is an experimental feature and may not work as intended.
       $ cd src
       $ python setup.py install
 
-Although you will get a working version of sage faster because all dependencies
-are provided by conda, this will invalidate the use of sage-the-distribution
-commands such as ``sage -i`` because sage-the-distribution does not know about
-the dependencies unlike in the previous section where it did.
+Note that ``make`` is not used at all.  All dependencies
+(including all Python packages) are provided by conda.
+
+Thus, you will get a working version of Sage much faster.  However,
+note that this will invalidate the use of Sage-the-distribution
+commands such as ``sage -i`` because sage-the-distribution does not
+know about the dependencies unlike in the previous section where
+it did.
 
 
 Notes on using conda

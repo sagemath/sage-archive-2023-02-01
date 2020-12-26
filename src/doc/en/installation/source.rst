@@ -433,6 +433,7 @@ prepare for installing SageMath from source:
 
   - Then SageMath will be built using the compilers provided by Conda::
 
+      $ ./bootstrap
       $ ./configure --prefix=$CONDA_PREFIX
       $ make
 
@@ -459,6 +460,7 @@ Note that this is an experimental feature and may not work as intended.
 
   - Then SageMath will be built using the compilers provided by Conda::
 
+      $ ./bootstrap
       $ ./configure --prefix=$CONDA_PREFIX
       $ cd src
       $ python setup.py install

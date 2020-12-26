@@ -187,11 +187,11 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
         p.add_constraint(A[i]==0)
     for j in range(1,n+1):
         rhs = sum([krawtchouk(n,q,j,r,check=False)*A[r] for r in range(n+1)])
-        p.add_constraint(0*A[0] <= rhs)
+        p.add_constraint(0 <= rhs)
         if j >= d_star:
-          p.add_constraint(0*A[0] <= rhs)
+          p.add_constraint(0 <= rhs)
         else: # rhs is proportional to j-th weight of the dual code
-          p.add_constraint(0*A[0] == rhs)
+          p.add_constraint(0 == rhs)
 
     if maxc > 0:
         p.add_constraint(sum([A[r] for r in range(n+1)]), max=maxc)

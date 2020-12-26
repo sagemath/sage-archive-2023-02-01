@@ -419,17 +419,18 @@ prepare for installing SageMath from source:
 
       $ ./bootstrap
 
-  - Create a new conda environment with standard packages::
+  - Create a new empty environment and activate::
 
-      $ conda env create -f environment.yml -n sage-build
-
-  - Or create a new conda environment with standard and optional packages::
-
-      $ conda env create -f environment-optional.yml -n sage-build
-
-  - Activate the environment::
-
+      $ conda create -n sage-build
       $ conda activate sage-build
+
+  - Install standard packages::
+
+      $ conda env update --file environment.yml -n sage-build
+
+  - Or install all standard and optional packages::
+
+      $ conda env update --file environment-optional.yml -n sage-build
 
   - Then SageMath will be built using the compilers provided by Conda::
 
@@ -446,17 +447,18 @@ Note that this is an experimental feature and may not work as intended.
 
       $ ./bootstrap
 
-  - Create a new conda environment with standard packages::
+  - Create a new empty environment and activate::
 
-      $ conda env create -f src/environment.yml -n sage-build
-
-  - Or create a new conda environment with standard and optional packages::
-
-      $ conda env create -f src/environment-optional.yml -n sage-build
-
-  - Activate the environment::
-
+      $ conda create -n sage-build
       $ conda activate sage-build
+
+  - Install standard packages::
+
+      $ conda env update --file src/environment.yml -n sage-build
+
+  - Or install all standard and optional packages::
+
+      $ conda env update --file src/environment-optional.yml -n sage-build
 
   - Then SageMath will be built using the compilers provided by Conda::
 

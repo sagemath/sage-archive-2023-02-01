@@ -108,11 +108,11 @@ jobs:
         xcode_version_factor: [11.7, default, 12.3]
         include:
           - tox_system_factor: conda-forge-macos
-            tox_packages_factor: environment_yml
+            tox_packages_factor: environment
             xcode_version_factor: default
             os: macos-11.0
           - tox_system_factor: conda-forge-macos
-            tox_packages_factor: environment_yml-optional
+            tox_packages_factor: environment-optional
             xcode_version_factor: default
             os: macos-11.0
     env:
@@ -161,7 +161,7 @@ jobs:
       max-parallel: 1
       matrix:
         tox_system_factor: [conda-forge-ubuntu]
-        tox_packages_factor: [minimal, standard, environment_yml, environment_yml-optional]
+        tox_packages_factor: [minimal, standard, environment, environment-optional]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}

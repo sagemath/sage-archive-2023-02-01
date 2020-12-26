@@ -181,4 +181,13 @@ if __name__ == "__main__":
     DC = DocTestController(options, args)
     err = DC.run()
 
-    sys.exit(err)
+    import pytest
+    pytest_options = []
+    if options.verbose:
+        pytest_options.append("-v")
+    exit_code_pytest = pytest.main(pytest_options + args)
+
+    if err == 0:
+        sys.exit(exit_code_pytest)
+    else:
+        sys.exit(err)

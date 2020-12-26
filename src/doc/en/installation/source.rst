@@ -449,16 +449,16 @@ Note that this is an experimental feature and may not work as intended.
 
   - Create a new empty environment and activate::
 
-      $ conda create -n sage-build
-      $ conda activate sage-build
+      $ conda create -n sage
+      $ conda activate sage
 
   - Install standard packages::
 
-      $ conda env update --file src/environment.yml -n sage-build
+      $ conda env update --file src/environment.yml -n sage
 
   - Or install all standard and optional packages::
 
-      $ conda env update --file src/environment-optional.yml -n sage-build
+      $ conda env update --file src/environment-optional.yml -n sage
 
   - Then SageMath will be built using the compilers provided by Conda::
 

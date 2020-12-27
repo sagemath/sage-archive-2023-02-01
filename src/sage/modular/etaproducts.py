@@ -419,19 +419,6 @@ class EtaGroup_class(Parent, UniqueRepresentation):
         self._N = level
         Parent.__init__(self, category=Groups().Commutative())
 
-    def __reduce__(self):
-        r"""
-        Return the data used to construct ``self``.
-
-        Used for pickling.
-
-        EXAMPLES::
-
-            sage: EtaGroup(13).__reduce__()
-            (<function EtaGroup at ...>, (13,))
-        """
-        return (EtaGroup, (self.level(),))
-
     def _repr_(self) -> str:
         r"""
         String representation of ``self``.
@@ -454,7 +441,7 @@ class EtaGroup_class(Parent, UniqueRepresentation):
         """
         return self({})
 
-    def __call__(self, dic):
+    def _element_constructor_(self, dic):
         r"""
         Create an element of this group (an eta product object) with
         exponents from the given dictionary.
@@ -470,7 +457,7 @@ class EtaGroup_class(Parent, UniqueRepresentation):
             sage: EtaGroup(2).__call__({1:24, 2:-24})
             Eta product of level 2 : (eta_1)^24 (eta_2)^-24
         """
-        return EtaGroupElement(self, dic)
+        return self.element_class(self, dic)
 
     def level(self) -> Integral:
         r"""

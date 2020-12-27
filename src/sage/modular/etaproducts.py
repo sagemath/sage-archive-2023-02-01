@@ -379,7 +379,7 @@ class EtaGroupElement(Element):
         return self._rdict.get(d, 0)
 
 
-class EtaGroup_class(Parent, UniqueRepresentation):
+class EtaGroup_class(UniqueRepresentation, Parent):
     r"""
     The group of eta products of a given level under multiplication.
 

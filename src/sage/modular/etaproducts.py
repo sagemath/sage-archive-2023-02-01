@@ -1,5 +1,5 @@
 r"""
-Eta-products on modular curves :math:`X_0(N)`
+Eta-products on modular curves `X_0(N)`
 
 This package provides a class for representing eta-products, which
 are meromorphic functions on modular curves of the form
@@ -8,9 +8,11 @@ are meromorphic functions on modular curves of the form
 
     \prod_{d | N} \eta(q^d)^{r_d}
 
-where
-:math:`\eta(q)` is Dirichlet's eta function
-:math:`q^{1/24} \prod_{n = 1}^\infty(1-q^n)`.
+where `\eta(q)` is Dirichlet's eta function
+
+.. MATH::
+
+    q^{1/24} \prod_{n = 1}^\infty(1-q^n) .
 
 These are useful for obtaining explicit models of modular curves.
 
@@ -30,21 +32,24 @@ AUTHOR:
 # ***************************************************************************
 from numbers import Integral
 
-from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import richcmp, richcmp_method, op_EQ, op_NE
-from sage.rings.power_series_ring import PowerSeriesRing
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.arith.all import divisors, prime_divisors, euler_phi, is_square, gcd
-from sage.rings.all import Integer, ZZ, QQ
-from sage.structure.element import MultiplicativeGroupElement
-from sage.structure.formal_sum import FormalSum
-from sage.structure.parent import Parent
+from sage.arith.misc import divisors, prime_divisors, euler_phi, is_square, gcd
 from sage.categories.groups import Groups
+from sage.matrix.constructor import matrix
+from sage.misc.misc import union
+from sage.modules.free_module import FreeModule
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.matrix.constructor import matrix
-from sage.modules.free_module import FreeModule
-from sage.misc.misc import union
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.rational_field import QQ
+from sage.structure.element import Element
+from sage.structure.formal_sum import FormalSum
+from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp, richcmp_method, op_EQ, op_NE
+from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
 
 import weakref
 
@@ -77,9 +82,320 @@ def EtaGroup(level):
     return G
 
 
-class EtaGroup_class(Parent):
+class EtaGroupElement(Element):
+
+    def __init__(self, parent, rdict):
+        r"""
+        Create an eta product object. Usually called implicitly via
+        EtaGroup_class.__call__ or the EtaProduct factory function.
+
+        EXAMPLES::
+
+            sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
+            Eta product of level 8 : (eta_1)^24 (eta_2)^-24
+            sage: g = _; g == loads(dumps(g))
+            True
+        """
+        Element.__init__(self, parent)
+
+        self._N = self.parent().level()
+        N = self._N
+
+        if isinstance(rdict, EtaGroupElement):
+            rdict = rdict._rdict
+            # Note: This is needed because the "x in G" test tries to call G(x)
+            # and see if it returns an error. So sometimes this will be getting
+            # called with rdict being an eta product, not a dictionary.
+
+        if rdict == 1:
+            rdict = {}
+        # Check Ligozat criteria
+        sumR = sumDR = sumNoverDr = 0
+        prod = 1
+
+        for d in rdict:
+            if N % d:
+                raise ValueError("%s does not divide %s" % (d, N))
+
+        for d in list(rdict):
+            if rdict[d] == 0:
+                rdict.pop(d)
+                continue
+            sumR += rdict[d]
+            sumDR += rdict[d] * d
+            sumNoverDr += rdict[d] * N / d
+            prod *= (N // d)**rdict[d]
+
+        if sumR != 0:
+            raise ValueError("sum r_d (=%s) is not 0" % sumR)
+        if sumDR % 24:
+            raise ValueError("sum d r_d (=%s) is not 0 mod 24" % sumDR)
+        if sumNoverDr % 24:
+            raise ValueError("sum (N/d) r_d (=%s) is not 0 mod 24" % sumNoverDr)
+        if not is_square(prod):
+            raise ValueError("product (N/d)^(r_d) (=%s) is not a square" % prod)
+
+        self._sumDR = ZZ(sumDR)  # this is useful to have around
+        self._rdict = rdict
+        self._keys = list(rdict)  # avoid factoring N every time
+
+    def _mul_(self, other):
+        r"""
+        Return the product of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: eta1, eta2 = EtaGroup(4).basis() # indirect doctest
+            sage: eta1 * eta2
+            Eta product of level 4 : (eta_1)^8 (eta_4)^-8
+        """
+        newdict = {d: self.r(d) + other.r(d)
+                   for d in union(self._keys, other._keys)}
+        return EtaProduct(self.level(), newdict)
+
+    def _div_(self, other):
+        r"""
+        Return `self * other^{-1}`.
+
+        EXAMPLES::
+
+            sage: eta1, eta2 = EtaGroup(4).basis()
+            sage: eta1 / eta2 # indirect doctest
+            Eta product of level 4 : (eta_1)^-24 (eta_2)^48 (eta_4)^-24
+            sage: (eta1 / eta2) * eta2 == eta1
+            True
+        """
+        newdict = {d: self.r(d) - other.r(d)
+                   for d in union(self._keys, other._keys)}
+        return EtaProduct(self.level(), newdict)
+
+    def __invert__(self):
+        r"""
+        Return the inverse of ``self``.
+
+        EXAMPLES::
+
+            sage: eta1, eta2 = EtaGroup(4).basis()
+            sage: ~eta2  # indirect doctest
+            Eta product of level 4 : (eta_1)^-16 (eta_2)^24 (eta_4)^-8
+        """
+        newdict = {d: -self.r(d) for d in self._keys}
+        return EtaProduct(self.level(), newdict)
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare ``self`` to ``other``.
+
+        Eta products are compared according to their rdicts.
+
+        EXAMPLES::
+
+            sage: EtaProduct(2, {2:24,1:-24}) == 1
+            False
+            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:-24, 2:24})
+            True
+            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:24, 2:-24})
+            False
+            sage: EtaProduct(6, {1:-24, 2:24}) < EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24})
+            True
+            sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
+            False
+        """
+        if op in [op_EQ, op_NE]:
+            test = (self.level() == other.level() and
+                    self._rdict == other._rdict)
+            return test == (op == op_EQ)
+        return richcmp((self.level(), sorted(self._rdict.items())),
+                       (other.level(), sorted(other._rdict.items())), op)
+
+    def _short_repr(self) -> str:
+        r"""
+        A short string representation of ``self``, which does not specify the
+        level.
+
+        EXAMPLES::
+
+            sage: EtaProduct(3, {3:12, 1:-12})._short_repr()
+            '(eta_1)^-12 (eta_3)^12'
+        """
+        if self.degree() == 0:
+            return "1"
+        return " ".join("(eta_%s)^%s" % (d, exp)
+                        for d, exp in sorted(self._rdict.items()))
+
+    def _repr_(self) -> str:
+        r"""
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: EtaProduct(3, {3:12, 1:-12})._repr_()
+            'Eta product of level 3 : (eta_1)^-12 (eta_3)^12'
+        """
+        return "Eta product of level %s : " % self.level() + self._short_repr()
+
+    def level(self) -> Integral:
+        r"""
+        Return the level of this eta product.
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(3, {3:12, 1:-12})
+            sage: e.level()
+            3
+            sage: EtaProduct(12, {6:6, 2:-6}).level() # not the lcm of the d's
+            12
+            sage: EtaProduct(36, {6:6, 2:-6}).level() # not minimal
+            36
+        """
+        return self._N
+
+    def q_expansion(self, n):
+        r"""
+        Return the `q`-expansion of ``self`` at the cusp at infinity.
+
+        INPUT:
+
+        - ``n`` (integer): number of terms to calculate
+
+        OUTPUT:
+
+        -  a power series over `\ZZ` in
+           the variable `q`, with a *relative* precision of
+           `1 + O(q^n)`.
+
+        ALGORITHM: Calculates eta to (n/m) terms, where m is the smallest
+        integer dividing self.level() such that self.r(m) != 0. Then
+        multiplies.
+
+        EXAMPLES::
+
+            sage: EtaProduct(36, {6:6, 2:-6}).q_expansion(10)
+            q + 6*q^3 + 27*q^5 + 92*q^7 + 279*q^9 + O(q^11)
+            sage: R.<q> = ZZ[[]]
+            sage: EtaProduct(2,{2:24,1:-24}).q_expansion(100) == delta_qexp(101)(q^2)/delta_qexp(101)(q)
+            True
+        """
+        R, q = PowerSeriesRing(ZZ, 'q').objgen()
+        pr = R.one().O(n)
+        if self == self.parent().one():
+            return pr
+        eta_n = max(n // d for d in self._keys if self.r(d))
+        eta = qexp_eta(R, eta_n)
+        for d in self._keys:
+            rd = self.r(d)
+            if rd:
+                pr *= eta(q ** d) ** ZZ(rd)
+        return pr * q**(self._sumDR // 24)
+
+    def qexp(self, n):
+        """
+        Alias for ``self.q_expansion()``.
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(36, {6:8, 3:-8})
+            sage: e.qexp(10)
+            q + 8*q^4 + 36*q^7 + O(q^10)
+            sage: e.qexp(30) == e.q_expansion(30)
+            True
+        """
+        return self.q_expansion(n)
+
+    def order_at_cusp(self, cusp: 'CuspFamily') -> Integral:
+        r"""
+        Return the order of vanishing of ``self`` at the given cusp.
+
+        INPUT:
+
+        -  ``cusp`` --  a :class:`CuspFamily` object
+
+        OUTPUT:
+
+        - an integer
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(2, {2:24, 1:-24})
+            sage: e.order_at_cusp(CuspFamily(2, 1)) # cusp at infinity
+            1
+            sage: e.order_at_cusp(CuspFamily(2, 2)) # cusp 0
+            -1
+        """
+        if not isinstance(cusp, CuspFamily):
+            raise TypeError("Argument (=%s) should be a CuspFamily" % cusp)
+        if cusp.level() != self.level():
+            raise ValueError("Cusp not on right curve!")
+        sigma = sum(ell * self.r(ell) / cusp.width() *
+                    (gcd(cusp.width(), self.level() // ell))**2
+                    for ell in self._keys)
+        return sigma / ZZ(24) / gcd(cusp.width(), self.level() // cusp.width())
+
+    def divisor(self):
+        r"""
+        Return the divisor of ``self``, as a formal sum of CuspFamily objects.
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(12, {1:-336, 2:576, 3:696, 4:-216, 6:-576, 12:-144})
+            sage: e.divisor() # FormalSum seems to print things in a random order?
+            -131*(Inf) - 50*(c_{2}) + 11*(0) + 50*(c_{6}) + 169*(c_{4}) - 49*(c_{3})
+            sage: e = EtaProduct(2^8, {8:1,32:-1})
+            sage: e.divisor() # random
+            -(c_{2}) - (Inf) - (c_{8,2}) - (c_{8,3}) - (c_{8,4}) - (c_{4,2}) - (c_{8,1}) - (c_{4,1}) + (c_{32,4}) + (c_{32,3}) + (c_{64,1}) + (0) + (c_{32,2}) + (c_{64,2}) + (c_{128}) + (c_{32,1})
+        """
+        return FormalSum([(self.order_at_cusp(c), c)
+                          for c in AllCusps(self.level())])
+
+    def degree(self) -> Integral:
+        r"""
+        Return the degree of ``self`` as a map `X_0(N) \to \mathbb{P}^1`.
+
+        This is the sum of all the positive coefficients in the divisor
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(12, {1:-336, 2:576, 3:696, 4:-216, 6:-576, 12:-144})
+            sage: e.degree()
+            230
+        """
+        return sum(self.order_at_cusp(c)
+                   for c in AllCusps(self.level())
+                   if self.order_at_cusp(c) > 0)
+
+    def r(self, d) -> Integral:
+        r"""
+        Return the exponent `r_d` of `\eta(q^d)` in ``self``.
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(12, {2:24, 3:-24})
+            sage: e.r(3)
+            -24
+            sage: e.r(4)
+            0
+        """
+        return self._rdict.get(d, 0)
+
+
+class EtaGroup_class(Parent, UniqueRepresentation):
     r"""
     The group of eta products of a given level under multiplication.
+
+    TESTS::
+
+        sage: TestSuite(EtaGroup(12)).run()
+
+            sage: EtaGroup(12) == EtaGroup(12)
+            True
+            sage: EtaGroup(12) == EtaGroup(13)
+            False
+
+            sage: EtaGroup(12) != EtaGroup(12)
+            False
+            sage: EtaGroup(12) != EtaGroup(13)
+            True
     """
 
     def __init__(self, level):
@@ -116,39 +432,6 @@ class EtaGroup_class(Parent):
         """
         return (EtaGroup, (self.level(),))
 
-    def __eq__(self, other) -> bool:
-        r"""
-        Check that ``self`` is equal to ``other``.
-
-        If other is not an EtaGroup, return ``False``.
-
-        Otherwise compare the levels. EtaGroups of the same level
-        compare as identical.
-
-        EXAMPLES::
-
-            sage: EtaGroup(12) == EtaGroup(12)
-            True
-            sage: EtaGroup(12) == EtaGroup(13)
-            False
-        """
-        if not isinstance(other, EtaGroup_class):
-            return False
-        return self.level() == other.level()
-
-    def __ne__(self, other) -> bool:
-        """
-        Check that ``self`` is not equal to ``other``.
-
-        EXAMPLES::
-
-            sage: EtaGroup(12) != EtaGroup(12)
-            False
-            sage: EtaGroup(12) != EtaGroup(13)
-            True
-        """
-        return not (self == other)
-
     def _repr_(self) -> str:
         r"""
         String representation of ``self``.
@@ -171,19 +454,23 @@ class EtaGroup_class(Parent):
         """
         return self({})
 
-    def __call__(self, dict):
+    def __call__(self, dic):
         r"""
         Create an element of this group (an eta product object) with
         exponents from the given dictionary.
 
-        See the docstring of :func:`EtaProduct` for how dict is used.
+        INPUT:
+
+        - ``dic`` -- a dictionary
+
+        See the docstring of :func:`EtaProduct` for how ``dic`` is used.
 
         EXAMPLES::
 
             sage: EtaGroup(2).__call__({1:24, 2:-24})
             Eta product of level 2 : (eta_1)^24 (eta_2)^-24
         """
-        return EtaGroupElement(self, dict)
+        return EtaGroupElement(self, dic)
 
     def level(self) -> Integral:
         r"""
@@ -312,14 +599,16 @@ class EtaGroup_class(Parent):
         short_etas = []
         for shortvect in rred.rows():
             bv = A.coordinates(shortvect)
-            dict = {d: sum(bv[i] * long_etas[i].r(d)
-                           for i in range(r.nrows()))
-                    for d in divisors(N)}
-            short_etas.append(self(dict))
+            dic = {d: sum(bv[i] * long_etas[i].r(d)
+                          for i in range(r.nrows()))
+                   for d in divisors(N)}
+            short_etas.append(self(dic))
         return short_etas
 
+    Element = EtaGroupElement
 
-def EtaProduct(level, dict) -> 'EtaGroupElement':
+
+def EtaProduct(level, dic) -> 'EtaGroupElement':
     r"""
     Create an :class:`EtaGroupElement` object representing the function
     `\prod_{d | N} \eta(q^d)^{r_d}`.
@@ -332,7 +621,7 @@ def EtaProduct(level, dict) -> 'EtaGroupElement':
     -  ``level`` -- (integer): the N such that this eta
        product is a function on X_0(N).
 
-    -  ``dict`` -- (dictionary): a dictionary indexed by
+    -  ``dic`` -- (dictionary): a dictionary indexed by
        divisors of N such that the coefficient of `\eta(q^d)` is
        r[d]. Only nonzero coefficients need be specified. If Ligozat's
        criteria are not satisfied, a ``ValueError`` will be raised.
@@ -343,9 +632,9 @@ def EtaProduct(level, dict) -> 'EtaGroupElement':
        the EtaGroup of level N and whose coefficients are the given
        dictionary.
 
-    .. note::
+    .. NOTE::
 
-        The dictionary dict does not uniquely specify N. It is
+        The dictionary ``dic`` does not uniquely specify N. It is
         possible for two EtaGroupElements with different `N`'s to
         be created with the same dictionary, and these represent different
         objects (although they will have the same `q`-expansion at
@@ -364,291 +653,7 @@ def EtaProduct(level, dict) -> 'EtaGroupElement':
         ...
         ValueError: 4 does not divide 3
     """
-    return EtaGroup(level)(dict)
-
-
-class EtaGroupElement(MultiplicativeGroupElement):
-
-    def __init__(self, parent, rdict):
-        r"""
-        Create an eta product object. Usually called implicitly via
-        EtaGroup_class.__call__ or the EtaProduct factory function.
-
-        EXAMPLES::
-
-            sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
-            Eta product of level 8 : (eta_1)^24 (eta_2)^-24
-            sage: g = _; g == loads(dumps(g))
-            True
-        """
-        MultiplicativeGroupElement.__init__(self, parent)
-
-        self._N = self.parent().level()
-        N = self._N
-
-        if isinstance(rdict, EtaGroupElement):
-            rdict = rdict._rdict
-            # Note: This is needed because the "x in G" test tries to call G(x)
-            # and see if it returns an error. So sometimes this will be getting
-            # called with rdict being an eta product, not a dictionary.
-
-        if rdict == 1:
-            rdict = {}
-        # Check Ligozat criteria
-        sumR = sumDR = sumNoverDr = 0
-        prod = 1
-
-        for d in rdict:
-            if N % d:
-                raise ValueError("%s does not divide %s" % (d, N))
-
-        for d in list(rdict):
-            if rdict[d] == 0:
-                rdict.pop(d)
-                continue
-            sumR += rdict[d]
-            sumDR += rdict[d] * d
-            sumNoverDr += rdict[d] * N / d
-            prod *= (N // d)**rdict[d]
-
-        if sumR != 0:
-            raise ValueError("sum r_d (=%s) is not 0" % sumR)
-        if sumDR % 24:
-            raise ValueError("sum d r_d (=%s) is not 0 mod 24" % sumDR)
-        if sumNoverDr % 24:
-            raise ValueError("sum (N/d) r_d (=%s) is not 0 mod 24" % sumNoverDr)
-        if not is_square(prod):
-            raise ValueError("product (N/d)^(r_d) (=%s) is not a square" % prod)
-
-        self._sumDR = sumDR  # this is useful to have around
-        self._rdict = rdict
-        self._keys = list(rdict)  # avoid factoring N every time
-
-    def _mul_(self, other):
-        r"""
-        Return the product of ``self`` and ``other``.
-
-        EXAMPLES::
-
-            sage: eta1, eta2 = EtaGroup(4).basis() # indirect doctest
-            sage: eta1 * eta2
-            Eta product of level 4 : (eta_1)^8 (eta_4)^-8
-        """
-        newdict = {d: self.r(d) + other.r(d)
-                   for d in union(self._keys, other._keys)}
-        return EtaProduct(self.level(), newdict)
-
-    def _div_(self, other):
-        r"""
-        Return `self * other^{-1}`.
-
-        EXAMPLES::
-
-            sage: eta1, eta2 = EtaGroup(4).basis()
-            sage: eta1 / eta2 # indirect doctest
-            Eta product of level 4 : (eta_1)^-24 (eta_2)^48 (eta_4)^-24
-            sage: (eta1 / eta2) * eta2 == eta1
-            True
-        """
-        newdict = {d: self.r(d) - other.r(d)
-                   for d in union(self._keys, other._keys)}
-        return EtaProduct(self.level(), newdict)
-
-    def _richcmp_(self, other, op):
-        r"""
-        Compare ``self`` to ``other``.
-
-        Eta products are compared according to their rdicts.
-
-        EXAMPLES::
-
-            sage: EtaProduct(2, {2:24,1:-24}) == 1
-            False
-            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:-24, 2:24})
-            True
-            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:24, 2:-24})
-            False
-            sage: EtaProduct(6, {1:-24, 2:24}) < EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24})
-            True
-            sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
-            False
-        """
-        if op in [op_EQ, op_NE]:
-            test = (self.level() == other.level() and
-                    self._rdict == other._rdict)
-            return test == (op == op_EQ)
-        return richcmp((self.level(), sorted(self._rdict.items())),
-                       (other.level(), sorted(other._rdict.items())), op)
-
-    def _short_repr(self) -> str:
-        r"""
-        A short string representation of ``self``, which does not specify the
-        level.
-
-        EXAMPLES::
-
-            sage: EtaProduct(3, {3:12, 1:-12})._short_repr()
-            '(eta_1)^-12 (eta_3)^12'
-        """
-        if self.degree() == 0:
-            return "1"
-        return " ".join("(eta_%s)^%s" % (d, exp)
-                        for d, exp in sorted(self._rdict.items()))
-
-    def _repr_(self) -> str:
-        r"""
-        Return the string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: EtaProduct(3, {3:12, 1:-12})._repr_()
-            'Eta product of level 3 : (eta_1)^-12 (eta_3)^12'
-        """
-        return "Eta product of level %s : " % self.level() + self._short_repr()
-
-    def level(self) -> Integral:
-        r"""
-        Return the level of this eta product.
-
-        EXAMPLES::
-
-            sage: e = EtaProduct(3, {3:12, 1:-12})
-            sage: e.level()
-            3
-            sage: EtaProduct(12, {6:6, 2:-6}).level() # not the lcm of the d's
-            12
-            sage: EtaProduct(36, {6:6, 2:-6}).level() # not minimal
-            36
-        """
-        return self._N
-
-    def q_expansion(self, n):
-        r"""
-        Return the `q`-expansion of ``self`` at the cusp at infinity.
-
-        INPUT:
-
-        - ``n`` (integer): number of terms to calculate
-
-        OUTPUT:
-
-        -  a power series over `\ZZ` in
-           the variable `q`, with a *relative* precision of
-           `1 + O(q^n)`.
-
-        ALGORITHM: Calculates eta to (n/m) terms, where m is the smallest
-        integer dividing self.level() such that self.r(m) != 0. Then
-        multiplies.
-
-        EXAMPLES::
-
-            sage: EtaProduct(36, {6:6, 2:-6}).q_expansion(10)
-            q + 6*q^3 + 27*q^5 + 92*q^7 + 279*q^9 + O(q^11)
-            sage: R.<q> = ZZ[[]]
-            sage: EtaProduct(2,{2:24,1:-24}).q_expansion(100) == delta_qexp(101)(q^2)/delta_qexp(101)(q)
-            True
-        """
-        R, q = PowerSeriesRing(ZZ, 'q').objgen()
-        pr = R.one().O(n)
-        if self == self.parent().one():
-            return pr
-        eta_n = max(n // d for d in self._keys if self.r(d))
-        eta = qexp_eta(R, eta_n)
-        for d in self._keys:
-            rd = self.r(d)
-            if rd:
-                pr *= eta(q ** d) ** ZZ(rd)
-        return pr * q**ZZ(self._sumDR / ZZ(24))
-
-    def qexp(self, n):
-        """
-        Alias for ``self.q_expansion()``.
-
-        EXAMPLES::
-
-            sage: e = EtaProduct(36, {6:8, 3:-8})
-            sage: e.qexp(10)
-            q + 8*q^4 + 36*q^7 + O(q^10)
-            sage: e.qexp(30) == e.q_expansion(30)
-            True
-        """
-        return self.q_expansion(n)
-
-    def order_at_cusp(self, cusp: 'CuspFamily') -> Integral:
-        r"""
-        Return the order of vanishing of ``self`` at the given cusp.
-
-        INPUT:
-
-        -  ``cusp`` --  a :class:`CuspFamily` object
-
-        OUTPUT:
-
-        - an integer
-
-        EXAMPLES::
-
-            sage: e = EtaProduct(2, {2:24, 1:-24})
-            sage: e.order_at_cusp(CuspFamily(2, 1)) # cusp at infinity
-            1
-            sage: e.order_at_cusp(CuspFamily(2, 2)) # cusp 0
-            -1
-        """
-        if not isinstance(cusp, CuspFamily):
-            raise TypeError("Argument (=%s) should be a CuspFamily" % cusp)
-        if cusp.level() != self.level():
-            raise ValueError("Cusp not on right curve!")
-        sigma = sum(ell * self.r(ell) / cusp.width() *
-                    (gcd(cusp.width(), self.level() // ell))**2
-                    for ell in self._keys)
-        return sigma / ZZ(24) / gcd(cusp.width(), self.level() // cusp.width())
-
-    def divisor(self):
-        r"""
-        Return the divisor of ``self``, as a formal sum of CuspFamily objects.
-
-        EXAMPLES::
-
-            sage: e = EtaProduct(12, {1:-336, 2:576, 3:696, 4:-216, 6:-576, 12:-144})
-            sage: e.divisor() # FormalSum seems to print things in a random order?
-            -131*(Inf) - 50*(c_{2}) + 11*(0) + 50*(c_{6}) + 169*(c_{4}) - 49*(c_{3})
-            sage: e = EtaProduct(2^8, {8:1,32:-1})
-            sage: e.divisor() # random
-            -(c_{2}) - (Inf) - (c_{8,2}) - (c_{8,3}) - (c_{8,4}) - (c_{4,2}) - (c_{8,1}) - (c_{4,1}) + (c_{32,4}) + (c_{32,3}) + (c_{64,1}) + (0) + (c_{32,2}) + (c_{64,2}) + (c_{128}) + (c_{32,1})
-        """
-        return FormalSum([(self.order_at_cusp(c), c)
-                          for c in AllCusps(self.level())])
-
-    def degree(self) -> Integral:
-        r"""
-        Return the degree of ``self`` as a map `X_0(N) \to \mathbb{P}^1`.
-
-        This is the sum of all the positive coefficients in the divisor
-        of ``self``.
-
-        EXAMPLES::
-
-            sage: e = EtaProduct(12, {1:-336, 2:576, 3:696, 4:-216, 6:-576, 12:-144})
-            sage: e.degree()
-            230
-        """
-        return sum(self.order_at_cusp(c)
-                   for c in AllCusps(self.level())
-                   if self.order_at_cusp(c) > 0)
-
-    def r(self, d) -> Integral:
-        r"""
-        Return the exponent `r_d` of `\eta(q^d)` in ``self``.
-
-        EXAMPLES::
-
-            sage: e = EtaProduct(12, {2:24, 3:-24})
-            sage: e.r(3)
-            -24
-            sage: e.r(4)
-            0
-        """
-        return self._rdict.get(d, 0)
+    return EtaGroup(level)(dic)
 
 
 def num_cusps_of_width(N, d) -> Integral:

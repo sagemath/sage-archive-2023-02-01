@@ -234,7 +234,7 @@ class Monoids(CategoryWithAxiom):
 
             INPUT:
 
-            - ``left``, ``right`` -- two elements of the same unital magma
+            - ``left``, ``right`` -- two elements of the same unital monoid
 
             .. SEEALSO:: :meth:`__div__`
 

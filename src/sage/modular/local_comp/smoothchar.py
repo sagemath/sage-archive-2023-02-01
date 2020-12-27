@@ -10,7 +10,7 @@ the local components of modular forms.
 This module contains classes to represent such characters when `F` is `\QQ_p`
 or a quadratic extension. In the latter case, we choose a quadratic extension
 `K` of `\QQ` whose completion at `p` is `F`, and use Sage's wrappers of the
-Pari ``idealstar`` and ``ideallog`` methods to work in the finite group
+Pari :pari:`idealstar` and :pari:`ideallog` methods to work in the finite group
 `\mathcal{O}_K / p^c` for `c \ge 0`.
 
 An example with characters of `\QQ_7`::

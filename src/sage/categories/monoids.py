@@ -1,7 +1,7 @@
 r"""
 Monoids
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
@@ -9,8 +9,8 @@ Monoids
 #                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
@@ -224,12 +224,48 @@ class Monoids(CategoryWithAxiom):
                 sage: M2 = R.subsemigroup([R(3),R(5)], one=R.one())
                 sage: M2 is M
                 True
-
-
             """
             return self.subsemigroup(generators, one=self.one())
 
     class ElementMethods:
+        def _div_(left, right):
+            r"""
+            Default implementation of division, multiplying (on the right) by the inverse.
+
+            INPUT:
+
+            - ``left``, ``right`` -- two elements of the same unital magma
+
+            .. SEEALSO:: :meth:`__div__`
+
+            EXAMPLES::
+
+                sage: G = FreeGroup(2)
+                sage: x0, x1 = G.group_generators()
+                sage: c1 = cartesian_product([x0, x1])
+                sage: c2 = cartesian_product([x1, x0])
+                sage: c1._div_(c2)
+                (x0*x1^-1, x1*x0^-1)
+
+            With this implementation, division will fail as soon
+            as ``right`` is not invertible, even if ``right``
+            actually divides ``left``::
+
+                sage: x = cartesian_product([2, 1])
+                sage: y = cartesian_product([1, 1])
+                sage: x / y
+                (2, 1)
+                sage: x / x
+                Traceback (most recent call last):
+                ...
+                TypeError: no conversion of this rational to integer
+
+            TESTS::
+
+                sage: c1._div_.__module__
+                'sage.categories.monoids'
+            """
+            return left * ~right
 
         def is_one(self):
             r"""
@@ -574,6 +610,7 @@ class Monoids(CategoryWithAxiom):
                 """
                 F = self.cartesian_factors()
                 ids = tuple(M.one() for M in F)
+
                 def lift(i, gen):
                     cur = list(ids)
                     cur[i] = gen
@@ -584,7 +621,8 @@ class Monoids(CategoryWithAxiom):
                 cat = FiniteEnumeratedSets()
                 if all(M.monoid_generators() in cat
                        or isinstance(M.monoid_generators(), (tuple, list)) for M in F):
-                    ret = [lift(i, gen) for i,M in enumerate(F) for gen in M.monoid_generators()]
+                    ret = [lift(i, gen) for i, M in enumerate(F)
+                           for gen in M.monoid_generators()]
                     return Family(ret)
 
                 # Infinitely generated
@@ -593,6 +631,5 @@ class Monoids(CategoryWithAxiom):
                 from sage.categories.cartesian_product import cartesian_product
                 gens_prod = cartesian_product([Family(M.monoid_generators(),
                                                       lambda g: (i, g))
-                                               for i,M in enumerate(F)])
+                                               for i, M in enumerate(F)])
                 return Family(gens_prod, lift, name="gen")
-

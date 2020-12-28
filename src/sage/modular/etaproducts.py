@@ -91,14 +91,13 @@ class EtaGroupElement(Element):
 
         EXAMPLES::
 
-            sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
+            sage: EtaProduct(8, {1:24, 2:-24})
             Eta product of level 8 : (eta_1)^24 (eta_2)^-24
             sage: g = _; g == loads(dumps(g))
             True
+            sage: TestSuite(g).run()
         """
-        Element.__init__(self, parent)
-
-        self._N = self.parent().level()
+        self._N = parent.level()
         N = self._N
 
         if isinstance(rdict, EtaGroupElement):
@@ -113,11 +112,10 @@ class EtaGroupElement(Element):
         sumR = sumDR = sumNoverDr = 0
         prod = 1
 
-        for d in rdict:
+        for d in list(rdict):
             if N % d:
                 raise ValueError("%s does not divide %s" % (d, N))
 
-        for d in list(rdict):
             if rdict[d] == 0:
                 rdict.pop(d)
                 continue
@@ -139,6 +137,8 @@ class EtaGroupElement(Element):
         self._rdict = rdict
         self._keys = list(rdict)  # avoid factoring N every time
 
+        Element.__init__(self, parent)
+
     def _mul_(self, other):
         r"""
         Return the product of ``self`` and ``other``.
@@ -151,7 +151,8 @@ class EtaGroupElement(Element):
         """
         newdict = {d: self.r(d) + other.r(d)
                    for d in union(self._keys, other._keys)}
-        return EtaProduct(self.level(), newdict)
+        P = self.parent()
+        return P.element_class(P, newdict)
 
     def _div_(self, other):
         r"""
@@ -167,7 +168,8 @@ class EtaGroupElement(Element):
         """
         newdict = {d: self.r(d) - other.r(d)
                    for d in union(self._keys, other._keys)}
-        return EtaProduct(self.level(), newdict)
+        P = self.parent()
+        return P.element_class(P, newdict)
 
     def __invert__(self):
         r"""
@@ -180,7 +182,8 @@ class EtaGroupElement(Element):
             Eta product of level 4 : (eta_1)^-16 (eta_2)^24 (eta_4)^-8
         """
         newdict = {d: -self.r(d) for d in self._keys}
-        return EtaProduct(self.level(), newdict)
+        P = self.parent()
+        return P.element_class(P, newdict)
 
     def _richcmp_(self, other, op):
         r"""
@@ -342,7 +345,9 @@ class EtaGroupElement(Element):
             -131*(Inf) - 50*(c_{2}) + 11*(0) + 50*(c_{6}) + 169*(c_{4}) - 49*(c_{3})
             sage: e = EtaProduct(2^8, {8:1,32:-1})
             sage: e.divisor() # random
-            -(c_{2}) - (Inf) - (c_{8,2}) - (c_{8,3}) - (c_{8,4}) - (c_{4,2}) - (c_{8,1}) - (c_{4,1}) + (c_{32,4}) + (c_{32,3}) + (c_{64,1}) + (0) + (c_{32,2}) + (c_{64,2}) + (c_{128}) + (c_{32,1})
+            -(c_{2}) - (Inf) - (c_{8,2}) - (c_{8,3}) - (c_{8,4}) - (c_{4,2})
+             - (c_{8,1}) - (c_{4,1}) + (c_{32,4}) + (c_{32,3}) + (c_{64,1})
+             + (0) + (c_{32,2}) + (c_{64,2}) + (c_{128}) + (c_{32,1})
         """
         return FormalSum([(self.order_at_cusp(c), c)
                           for c in AllCusps(self.level())])
@@ -387,15 +392,15 @@ class EtaGroup_class(UniqueRepresentation, Parent):
 
         sage: TestSuite(EtaGroup(12)).run()
 
-            sage: EtaGroup(12) == EtaGroup(12)
-            True
-            sage: EtaGroup(12) == EtaGroup(13)
-            False
+        sage: EtaGroup(12) == EtaGroup(12)
+        True
+        sage: EtaGroup(12) == EtaGroup(13)
+        False
 
-            sage: EtaGroup(12) != EtaGroup(12)
-            False
-            sage: EtaGroup(12) != EtaGroup(13)
-            True
+        sage: EtaGroup(12) != EtaGroup(12)
+        False
+        sage: EtaGroup(12) != EtaGroup(13)
+        True
     """
 
     def __init__(self, level):
@@ -407,8 +412,7 @@ class EtaGroup_class(UniqueRepresentation, Parent):
 
             sage: G = EtaGroup(12); G # indirect doctest
             Group of eta products on X_0(12)
-            sage: G is loads(dumps(G))
-            True
+            sage: TestSuite(G).run()
         """
         try:
             level = ZZ(level)
@@ -487,16 +491,16 @@ class EtaGroup_class(UniqueRepresentation, Parent):
             [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
             sage: EtaGroup(12).basis()
             [Eta product of level 12 : (eta_1)^2 (eta_2)^1 (eta_3)^2 (eta_4)^-1 (eta_6)^-7 (eta_12)^3,
-            Eta product of level 12 : (eta_1)^-4 (eta_2)^2 (eta_3)^4 (eta_6)^-2,
-            Eta product of level 12 : (eta_1)^-1 (eta_2)^3 (eta_3)^3 (eta_4)^-2 (eta_6)^-9 (eta_12)^6,
-            Eta product of level 12 : (eta_1)^1 (eta_2)^-1 (eta_3)^-3 (eta_4)^-2 (eta_6)^7 (eta_12)^-2,
-            Eta product of level 12 : (eta_1)^-6 (eta_2)^9 (eta_3)^2 (eta_4)^-3 (eta_6)^-3 (eta_12)^1]
+             Eta product of level 12 : (eta_1)^-4 (eta_2)^2 (eta_3)^4 (eta_6)^-2,
+             Eta product of level 12 : (eta_1)^-1 (eta_2)^3 (eta_3)^3 (eta_4)^-2 (eta_6)^-9 (eta_12)^6,
+             Eta product of level 12 : (eta_1)^1 (eta_2)^-1 (eta_3)^-3 (eta_4)^-2 (eta_6)^7 (eta_12)^-2,
+             Eta product of level 12 : (eta_1)^-6 (eta_2)^9 (eta_3)^2 (eta_4)^-3 (eta_6)^-3 (eta_12)^1]
             sage: EtaGroup(12).basis(reduce=False) # much bigger coefficients
             [Eta product of level 12 : (eta_2)^24 (eta_12)^-24,
-            Eta product of level 12 : (eta_1)^-336 (eta_2)^576 (eta_3)^696 (eta_4)^-216 (eta_6)^-576 (eta_12)^-144,
-            Eta product of level 12 : (eta_1)^-8 (eta_2)^-2 (eta_6)^2 (eta_12)^8,
-            Eta product of level 12 : (eta_1)^1 (eta_2)^9 (eta_3)^13 (eta_4)^-4 (eta_6)^-15 (eta_12)^-4,
-            Eta product of level 12 : (eta_1)^15 (eta_2)^-24 (eta_3)^-29 (eta_4)^9 (eta_6)^24 (eta_12)^5]
+             Eta product of level 12 : (eta_1)^-336 (eta_2)^576 (eta_3)^696 (eta_4)^-216 (eta_6)^-576 (eta_12)^-144,
+             Eta product of level 12 : (eta_1)^-8 (eta_2)^-2 (eta_6)^2 (eta_12)^8,
+             Eta product of level 12 : (eta_1)^1 (eta_2)^9 (eta_3)^13 (eta_4)^-4 (eta_6)^-15 (eta_12)^-4,
+             Eta product of level 12 : (eta_1)^15 (eta_2)^-24 (eta_3)^-29 (eta_4)^9 (eta_6)^24 (eta_12)^5]
 
         ALGORITHM: An eta product of level `N` is uniquely
         determined by the integers `r_d` for `d | N` with
@@ -575,7 +579,7 @@ class EtaGroup_class(UniqueRepresentation, Parent):
 
             sage: EtaGroup(4).reduce_basis([ EtaProduct(4, {1:8,2:24,4:-32}), EtaProduct(4, {1:8, 4:-8})])
             [Eta product of level 4 : (eta_1)^8 (eta_4)^-8,
-            Eta product of level 4 : (eta_1)^-8 (eta_2)^24 (eta_4)^-16]
+             Eta product of level 4 : (eta_1)^-8 (eta_2)^24 (eta_4)^-16]
         """
         N = self.level()
         cusps = AllCusps(N)
@@ -731,11 +735,11 @@ class CuspFamily(SageObject):
         self._N = N
         self._width = width
         if N % width:
-            raise ValueError("Bad width")
+            raise ValueError("bad width")
         if num_cusps_of_width(N, width) > 1 and label is None:
-            raise ValueError("There are %s > 1 cusps of width %s on X_0(%s): specify a label" % (num_cusps_of_width(N, width), width, N))
+            raise ValueError("there are %s > 1 cusps of width %s on X_0(%s): specify a label" % (num_cusps_of_width(N, width), width, N))
         if num_cusps_of_width(N, width) == 1 and label is not None:
-            raise ValueError("There is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N))
+            raise ValueError("there is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N))
         self.label = label
 
     @property
@@ -960,7 +964,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1', 'x2'],
         [x1^3*x2 - 13*x1^3 - 4*x1^2*x2 - 4*x1*x2 - x2^2 + x2]
     """
     if len(eta_elements) > 2:
-        raise NotImplementedError("Don't know how to find relations between more than two elements")
+        raise NotImplementedError("do not know how to find relations between more than two elements")
 
     eta1, eta2 = eta_elements
 
@@ -1039,3 +1043,4 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
                      for c in V.basis()]
         id = R.ideal(relations)
         return id.groebner_basis()
+

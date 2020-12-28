@@ -1556,7 +1556,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         Return whether we should delete edges before adding any.
 
         This is in particular required if the backend theoretically allows
-        multiple edges but the graph should not have multiple egdes.
+        multiple edges but the graph should not have multiple edges.
         """
         return not self._multiple_edges
 

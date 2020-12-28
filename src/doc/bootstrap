@@ -42,7 +42,7 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
                            *:standard)
                                SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
                                ;;
-                           _recommended:optional)
+                           _recommended:*|pandoc:*)
                                RECOMMENDED_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
                                ;;
                            *)
@@ -73,7 +73,7 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
         for pkg in $SYSTEM_PACKAGES; do
             echo "  - $pkg" >> environment.yml
         done
-        cp environment.yml src/environment.yml
+        sed 's/name: sage-build/name: sage/' environment.yml > src/environment.yml
         for pkg in $SAGELIB_SYSTEM_PACKAGES; do
             echo "  - $pkg" >> src/environment.yml
         done

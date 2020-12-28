@@ -420,7 +420,7 @@ SAGE_SPKG_COLLECT()
 
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile])
-AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])
+AC_CONFIG_FILES([src/bin/sage-env-config src/bin/sage-src-env-config build/bin/sage-build-env-config])
 
 AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])
 

@@ -820,7 +820,7 @@ class GenericGraph(GenericGraph_pyx):
 
         try:
             V = sorted(self)
-        except:
+        except TypeError:
             V = self
         v_to_int = {v: i for i, v in enumerate(V)}
         for u,v,_ in self.edge_iterator():
@@ -13066,7 +13066,7 @@ class GenericGraph(GenericGraph_pyx):
             120
 
         If we define the graph `T_k` (the transitive tournament on `k` vertices)
-        as the graph on `\{0, ..., k-1\}` such that `ij \in T_k` iif `i<j`, how
+        as the graph on `\{0, ..., k-1\}` such that `ij \in T_k` if `i<j`, how
         many directed triangles can be found in `T_5` ? The answer is of course
         `0`::
 

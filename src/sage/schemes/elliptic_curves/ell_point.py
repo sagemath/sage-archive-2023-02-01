@@ -261,9 +261,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             v = list(v)
         elif v == 0:
             # some of the code assumes that E(0) has integral entries
-            # irregardless of the base ring...
-            #R = self.base_ring()
-            #v = (R.zero(),R.one(),R.zero())
+            # regardless of the base ring...
+            # R = self.base_ring()
+            # v = (R.zero(),R.one(),R.zero())
             v = (0, 1, 0)
         if check:
             # mostly from SchemeMorphism_point_projective_field
@@ -976,7 +976,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P._order
             3
 
-        When we sucessfully divide a point known to have infinite
+        When we successfully divide a point known to have infinite
         order, the points returned know that they also have infinite
         order::
 
@@ -989,7 +989,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
            sage: [(Q,Q._order) for Q in pts]
            [((0 : -1 : 1), +Infinity)]
 
-        When we sucessfully divide a point of known finite order `n`,
+        When we successfully divide a point of known finite order `n`,
         the points returned know that they also have finite order `nk`
         for some divisor `k` of `m`::
 

@@ -166,7 +166,7 @@ fi
 if [ -z "$CC" ]; then
     if [ -n "$SAGE_LOCAL" -a -x "$SAGE_LOCAL/bin/gcc" ]; then
         CC=gcc
-    else
+    elif [ -n "$CONFIGURED_CC" ]; then
         CC="$CONFIGURED_CC"
     fi
     export CC
@@ -174,7 +174,7 @@ fi
 if [ -z "$CXX" ]; then
     if [  -n "$SAGE_LOCAL" -a -x "$SAGE_LOCAL/bin/g++" ]; then
         CXX=g++
-    else
+    elif [ -n "$CONFIGURED_CXX" ]; then
         CXX="$CONFIGURED_CXX"
     fi
     export CXX
@@ -182,7 +182,7 @@ fi
 if [ -z "$FC" ]; then
     if [ -n "$SAGE_LOCAL" -a -x "$SAGE_LOCAL/bin/gfortran" ]; then
         FC=gfortran
-    else
+    elif [ -n "$CONFIGURED_FC" ]; then
         FC="$CONFIGURED_FC"
     fi
     export FC
@@ -280,6 +280,9 @@ fi
 if [ -n "$SAGE_LOCAL" ]; then
     export PATH="$SAGE_LOCAL/bin:$PATH"
 fi
+if [ -n "$SAGE_VENV" ]; then
+    export PATH="$SAGE_VENV/bin:$PATH"
+fi
 if [ -n "$SAGE_SRC" ]; then
     export PATH="$SAGE_SRC/bin:$PATH"
 fi
@@ -344,8 +347,10 @@ if [ -n "$SAGE_LOCAL" ]; then
     export CPATH="$SAGE_LOCAL/include${CPATH}"
 fi
 
-SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
-SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+if [ -n "$SAGE_LOCAL" ]; then
+    SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
+    SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+fi
 
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     SAGE_REPO_ANONYMOUS="https://gitlab.com/sagemath/dev/tracmirror.git"
@@ -483,7 +488,9 @@ if [ -d "$DOT_SAGE" ] ; then
     fi
 fi
 
-export MAXIMA_PREFIX="$SAGE_LOCAL"
+if [ -n "$SAGE_LOCAL" ]; then
+    export MAXIMA_PREFIX="$SAGE_LOCAL"
+fi
 export MAXIMA_USERDIR="$DOT_SAGE/maxima"
 
 if [ -n "$SAGE_LOCAL" ]; then

@@ -252,7 +252,7 @@ something like the following to install it:
     fi
 
 At build time :envvar:`CFLAGS`, :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`,
-and :envvar:`F77FLAGS` are usually set to ``-g -O2``
+and :envvar:`F77FLAGS` are usually set to ``-g -O2 -march=native``
 (according to `debugging options <../installation/source.html#sage-debug>`_
 and whether building
 `fat binaries <../installation/source.html#sage-fat-binary>`_).
@@ -260,6 +260,9 @@ and whether building
 Slightly modified versions are available:
 
 .. CODE-BLOCK:: bash
+
+    # No ``-march=native``.
+    export CFLAGS=$CFLAGS_NON_NATIVE
 
     # ``-O3`` instead of ``-O2``.
     export CFLAGS=$CFLAGS_O3
@@ -388,6 +391,10 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    installations. Additional arguments to ``$MAKE`` may be given as
    arguments. If ``$SAGE_DESTDIR`` is not set then the command is run
    with ``$SAGE_SUDO``, if set.
+
+- ``sdh_setup_bdist_wheel [...]``: Runs ``setup.py bdist_wheel`` with
+   the given arguments, as well as additional default arguments used for
+   installing packages into Sage.
 
 - ``sdh_pip_install [...]``: The equivalent of running ``pip install``
    with the given arguments, as well as additional default arguments used for
@@ -957,6 +964,20 @@ You can skip the manual downloading of the upstream tarball by using
 the additional argument ``--upstream-url``.  This command will also
 set the ``upstream_url`` field in ``checksums.ini`` described above.
 
+For Python packages available from PyPI, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --type optional
+
+This automatically downloads the most recent version from PyPI and also
+obtains most of the necessary information by querying PyPI.
+The ``dependencies`` file may need editing, and also you may want to set
+lower and upper bounds for acceptable package versions in the file
+``install-requires.txt``.
+
+To create a pip package rather than a normal package, you can use::
+
+    [user@localhost]$ sage -package create scikit_spatial --pypi --source pip --type optional
+
 
 .. _section-manual-build:
 
@@ -1025,6 +1046,18 @@ the license information for that package is up-to-date, both in its
 ``SPKG.rst`` or ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
+
+If an upstream tarball of a package cannot be redistributed for license
+reasons, rename it to include the string ``do-not-distribute``.  This
+will keep the release management scripts from uploading it to the Sage mirrors.
+For an example, see the ``scipoptsuite`` package, which has an "academic"
+proprietary license.
+
+Sometimes an upstream tarball contains some distributable parts using
+a free software license and some non-free parts.  In this case, it can
+be a good solution to make a custom tarball consisting of only the free
+parts; see :ref:`section-spkg-src` and the ``giac`` package as an example.
+
 
 Prerequisites for New Standard Packages
 ---------------------------------------

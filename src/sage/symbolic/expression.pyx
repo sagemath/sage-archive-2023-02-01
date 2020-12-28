@@ -955,7 +955,7 @@ cdef class Expression(CommutativeRingElement):
             sage: unicode_art(SR(13 - I))
             13 - ⅈ
             sage: unicode_art(SR(1.3 - I))
-            1.3 - 1.0⋅ⅈ
+            1.3 - ⅈ
             sage: unicode_art(cos(I))
             cosh(1)
 

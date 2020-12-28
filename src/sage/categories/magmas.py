@@ -21,6 +21,7 @@ from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
 from sage.cpython.getattr import raw_getattr
 
+
 class Magmas(Category_singleton):
     """
     The category of (multiplicative) magmas.
@@ -282,7 +283,7 @@ class Magmas(Category_singleton):
             subcategory of both :class:`Magmas` and
             :class:`AdditiveMagmas` and upgrades it to a subcategory
             of :class:`MagmasAndAdditiveMagmas` before applying the
-            axiom. It complains overwise, since the ``Distributive``
+            axiom. It complains otherwise, since the ``Distributive``
             axiom does not make sense for a plain magma.
 
             EXAMPLES::
@@ -365,7 +366,6 @@ class Magmas(Category_singleton):
             """
             from sage.categories.magmatic_algebras import MagmaticAlgebras
             return [MagmaticAlgebras(self.base_ring())]
-
 
         class ParentMethods:
             def is_field(self, proof=True):

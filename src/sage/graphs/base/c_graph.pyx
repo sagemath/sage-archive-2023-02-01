@@ -47,6 +47,7 @@ from sage.data_structures.bitset_base cimport *
 from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue
+from libcpp.queue cimport queue
 from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
 from cysignals.memory cimport check_allocarray, sig_free
@@ -4683,18 +4684,17 @@ cdef class Search_iterator:
     - ``graph`` -- a graph whose vertices are to be iterated over.
 
     - ``direction`` -- integer; this determines the position at which vertices
-      to be visited are removed from the list ``stack``. For breadth-first
-      search (BFS), element removal occurs at the start of the list, as
-      signified by the value ``direction=0``. This is because in implementations
-      of BFS, the list of vertices to visit are usually maintained by a queue,
-      so element insertion and removal follow a first-in first-out (FIFO)
-      protocol. For depth-first search (DFS), element removal occurs at the end
-      of the list, as signified by the value ``direction=-1``. The reason is
-      that DFS is usually implemented using a stack to maintain the list of
-      vertices to visit. Hence, element insertion and removal follow a last-in
-      first-out (LIFO) protocol.
+      to be visited are removed from the list. For breadth-first search (BFS),
+      element removal follow a first-in first-out (FIFO) protocol, as signified
+      by the value ``direction=0``. We use a queue to maintain the list of
+      vertices to visit in this case. For depth-first search (DFS), element
+      removal follow a last-in first-out (LIFO) protocol, as signified by the
+      value ``direction=-1``. In this case, we use a stack to maintain the list
+      of vertices to visit.
 
-    - ``stack`` -- a list of vertices to visit
+    - ``stack`` -- a list of vertices to visit, used only when ``direction=-1``
+
+    - ``queue`` -- a queue of vertices to visit, used only when ``direction=0``
 
     - ``seen`` -- a list of vertices that are already visited
 
@@ -4717,6 +4717,7 @@ cdef class Search_iterator:
     cdef CGraphBackend graph
     cdef int direction
     cdef list stack
+    cdef queue[int] fifo
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
@@ -4734,17 +4735,14 @@ cdef class Search_iterator:
         - ``v`` -- a vertex in ``graph`` from which to start the traversal
 
         - ``direction`` -- integer (default: ``0``); this determines the
-          position at which vertices to be visited are removed from the list
-          ``stack`` of vertices to visit. For breadth-first search (BFS),
-          element removal occurs at the start of the list, as signified by the
-          value ``direction=0``. This is because in implementations of BFS, the
-          list of vertices to visit are usually maintained by a queue, so
-          element insertion and removal follow a first-in first-out (FIFO)
-          protocol. For depth-first search (DFS), element removal occurs at the
-          end of the list, as signified by the value ``direction=-1``. The
-          reason is that DFS is usually implemented using a stack to maintain
-          the list of vertices to visit. Hence, element insertion and removal
-          follow a last-in first-out (LIFO) protocol.
+          position at which vertices to be visited are removed from the
+          list. For breadth-first search (BFS), element removal follow a
+          first-in first-out (FIFO) protocol, as signified by the value
+          ``direction=0``. We use a queue to maintain the list of vertices to
+          visit in this case. For depth-first search (DFS), element removal
+          follow a last-in first-out (LIFO) protocol, as signified by the value
+          ``direction=-1``. In this case, we use a stack to maintain the list of
+          vertices to visit.
 
         - ``reverse`` -- boolean (default: ``False``); this is only relevant to
           digraphs. If ``graph`` is a digraph, consider the reversed graph in
@@ -4793,7 +4791,10 @@ cdef class Search_iterator:
         if v_id == -1:
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(repr(v)))
 
-        self.stack = [v_id]
+        if direction == 0:
+            self.fifo.push(v_id)
+        else:
+            self.stack = [v_id]
 
         if not self.graph._directed:
             ignore_direction = False
@@ -4801,7 +4802,7 @@ cdef class Search_iterator:
         self.test_out = (not reverse) or ignore_direction
         self.test_in = reverse or ignore_direction
 
-        if self.test_in: # How do we list in_neighbors ?
+        if self.test_in:  # How do we list in_neighbors ?
             self.in_neighbors = self.graph.cg().in_neighbors
 
     def __dealloc__(self):
@@ -4822,9 +4823,9 @@ cdef class Search_iterator:
         """
         return self
 
-    def __next__(self):
+    def next_breadth_first_search(self):
         r"""
-        Return the next vertex in a traversal of a graph.
+        Return the next vertex in a breadth first search traversal of a graph.
 
         EXAMPLES::
 
@@ -4837,8 +4838,43 @@ cdef class Search_iterator:
         cdef int v_int
         cdef int w_int
 
+        while not self.fifo.empty():
+            v_int = self.fifo.front()
+            self.fifo.pop()
+
+            if bitset_not_in(self.seen, v_int):
+                value = self.graph.vertex_label(v_int)
+                bitset_add(self.seen, v_int)
+
+                if self.test_out:
+                    for w_int in self.graph.cg().out_neighbors(v_int):
+                        self.fifo.push(w_int)
+                if self.test_in:
+                    for w_int in self.in_neighbors(v_int):
+                        self.fifo.push(w_int)
+
+                break
+        else:
+            raise StopIteration
+
+        return value
+
+    def next_depth_first_search(self):
+        r"""
+        Return the next vertex in a depth first search traversal of a graph.
+
+        EXAMPLES::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.depth_first_search(0)
+            <generator object ...depth_first_search at ...
+            sage: next(g.depth_first_search(0))
+            0
+        """
+        cdef int v_int
+
         while self.stack:
-            v_int = self.stack.pop(self.direction)
+            v_int = self.stack.pop()
 
             if bitset_not_in(self.seen, v_int):
                 value = self.graph.vertex_label(v_int)
@@ -4855,6 +4891,21 @@ cdef class Search_iterator:
 
         return value
 
+    def __next__(self):
+        r"""
+        Return the next vertex in a breadth first search traversal of a graph.
+
+        EXAMPLES::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.breadth_first_search(0)
+            <generator object ...breadth_first_search at ...
+            sage: next(g.breadth_first_search(0))
+            0
+        """
+        if self.direction == 0:
+            return self.next_breadth_first_search()
+        return self.next_depth_first_search()
 
 ##############################
 # Functions to simplify edge iterator.

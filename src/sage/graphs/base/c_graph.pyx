@@ -47,7 +47,6 @@ from sage.data_structures.bitset_base cimport *
 from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue
-from libcpp.queue cimport queue
 from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
 from cysignals.memory cimport check_allocarray, sig_free
@@ -4717,7 +4716,10 @@ cdef class Search_iterator:
     cdef CGraphBackend graph
     cdef int direction
     cdef list stack
-    cdef queue[int] fifo
+    cdef int* queue
+    cdef int queue_begin
+    cdef int queue_end
+    cdef int n
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
@@ -4783,7 +4785,8 @@ cdef class Search_iterator:
         self.graph = graph
         self.direction = direction
 
-        bitset_init(self.seen, self.graph.cg().active_vertices.size)
+        self.n = self.graph.cg().active_vertices.size
+        bitset_init(self.seen, self.n)
         bitset_set_first_n(self.seen, 0)
 
         cdef int v_id = self.graph.get_vertex(v)
@@ -4792,7 +4795,11 @@ cdef class Search_iterator:
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(repr(v)))
 
         if direction == 0:
-            self.fifo.push(v_id)
+            self.queue = <int*>sig_malloc(self.n * sizeof(int))
+            self.queue_begin = 0
+            self.queue_end = 0
+            self.queue[0] = v_id
+            bitset_add(self.seen, v_id)
         else:
             self.stack = [v_id]
 
@@ -4809,6 +4816,8 @@ cdef class Search_iterator:
         r"""
         Freeing the memory
         """
+        if self.direction == 0:
+            sig_free(self.queue)
         bitset_free(self.seen)
 
     def __iter__(self):
@@ -4838,22 +4847,24 @@ cdef class Search_iterator:
         cdef int v_int
         cdef int w_int
 
-        while not self.fifo.empty():
-            v_int = self.fifo.front()
-            self.fifo.pop()
+        if self.queue_begin <= self.queue_end:
+            v_int = self.queue[self.queue_begin]
+            self.queue_begin += 1
+            value = self.graph.vertex_label(v_int)
 
-            if bitset_not_in(self.seen, v_int):
-                value = self.graph.vertex_label(v_int)
-                bitset_add(self.seen, v_int)
+            if self.test_out:
+                for w_int in self.graph.cg().out_neighbors(v_int):
+                    if bitset_not_in(self.seen, w_int):
+                        bitset_add(self.seen, w_int)
+                        self.queue_end += 1
+                        self.queue[self.queue_end] = w_int
+            if self.test_in:
+                for w_int in self.in_neighbors(v_int):
+                    if bitset_not_in(self.seen, w_int):
+                        bitset_add(self.seen, w_int)
+                        self.queue_end += 1
+                        self.queue[self.queue_end] = w_int
 
-                if self.test_out:
-                    for w_int in self.graph.cg().out_neighbors(v_int):
-                        self.fifo.push(w_int)
-                if self.test_in:
-                    for w_int in self.in_neighbors(v_int):
-                        self.fifo.push(w_int)
-
-                break
         else:
             raise StopIteration
 

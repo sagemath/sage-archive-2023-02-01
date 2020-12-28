@@ -2,12 +2,19 @@
 #  this interpreter will be replaced by the interpreter in the venv
 #  during installation.
 
+VERSION = 'unknown'
+
 try:
     from sage_conf import *
 except ImportError:
     pass
 
 from sys import prefix as SAGE_VENV
+
+try:
+    from sage.version import version as VERSION
+except ImportError:
+    pass
 
 def _main():
     from argparse import ArgumentParser

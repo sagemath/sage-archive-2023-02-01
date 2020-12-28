@@ -213,7 +213,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #
 #                               Sage
 #
@@ -229,8 +229,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.interfaces.all import (singular as singular_default,
                                  magma as magma_default)
@@ -3086,7 +3086,7 @@ class MPolynomialIdeal_macaulay2_repr:
         INPUT:
 
         - ``strategy`` -- (default: ``'gb'``) argument specifying the strategy
-          to be used by Macaulay2; possiblities: ``'f4'``, ``'gb'``, ``'mgb'``.
+          to be used by Macaulay2; possibilities: ``'f4'``, ``'gb'``, ``'mgb'``.
 
         EXAMPLES::
 

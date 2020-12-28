@@ -185,7 +185,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
             sage: d.size() == None
             True
         """
-        # Delte empty blocks
+        # Delete empty blocks
         co = [block for block in data if block]
         if not _has_nonempty_sets(co):
             raise ValueError("cannot view %s as an ordered partition of %s"%(co, parent._Xtup))

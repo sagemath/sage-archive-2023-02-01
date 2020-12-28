@@ -424,7 +424,7 @@ cdef class PuiseuxSeries(AlgebraElement):
 
     cpdef _rmul_(self, Element c):
         """
-        Return the rigth scalar multiplication.
+        Return the right scalar multiplication.
 
         EXAMPLES::
 
@@ -516,8 +516,9 @@ cdef class PuiseuxSeries(AlgebraElement):
 
         We say two approximate Puiseux series are equal, if they agree for
         all coefficients up to the *minimum* of the precisions of each.
+
         Comparison is done in dictionary order going from lowest degree
-        to highest degree coefficients with respect to the correspondig
+        to highest degree coefficients with respect to the corresponding
         Laurent series. That means that comparison is performed for
         corresponding `LaurentSeries` instances obtained for the common
         ramification index.

@@ -782,9 +782,9 @@ class FGP_Module_class(Module):
 
     def is_submodule(self, A):
         """
-        Return True if self is a submodule of A.
+        Return ``True`` if ``self`` is a submodule of ``A``.
 
-        More precisely, this returns True if if ``self.V()`` is a
+        More precisely, this returns ``True`` if ``self.V()`` is a
         submodule of ``A.V()``, with ``self.W()`` equal to ``A.W()``.
 
         Compare :meth:`.has_canonical_map_to`.

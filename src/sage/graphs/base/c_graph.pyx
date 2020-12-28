@@ -4846,6 +4846,8 @@ cdef class Search_iterator:
         """
         cdef int v_int
         cdef int w_int
+        cdef int l
+        cdef CGraph cg = self.graph.cg()
 
         if self.queue_begin <= self.queue_end:
             v_int = self.queue[self.queue_begin]
@@ -4853,17 +4855,21 @@ cdef class Search_iterator:
             value = self.graph.vertex_label(v_int)
 
             if self.test_out:
-                for w_int in self.graph.cg().out_neighbors(v_int):
+                w_int = cg.next_out_neighbor_unsafe(v_int, -1, &l)
+                while w_int != -1:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
                         self.queue_end += 1
                         self.queue[self.queue_end] = w_int
+                    w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
             if self.test_in:
-                for w_int in self.in_neighbors(v_int):
+                w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
+                while w_int != -1:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
                         self.queue_end += 1
                         self.queue[self.queue_end] = w_int
+                    w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
 
         else:
             raise StopIteration

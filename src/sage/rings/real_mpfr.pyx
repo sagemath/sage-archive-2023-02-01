@@ -208,32 +208,36 @@ def mpfr_prec_min():
         3.0
         sage: R(4) + R(1)
         4.0
+
         sage: R = RealField(0)
         Traceback (most recent call last):
         ...
-        ValueError: prec (=0) must be >= 1 and <= 2147483391
+        ValueError: prec (=0) must be >= 1 and <= ...
     """
     return MPFR_PREC_MIN
 
 # see Trac #11666 for the origin of this magical constant
-cdef int MY_MPFR_PREC_MAX = 2147483647 - 256   # = 2^31-257
 def mpfr_prec_max():
     """
-    TESTS::
+    Return the mpfr variable ``MPFR_PREC_MAX``.
+
+    EXAMPLES::
 
         sage: from sage.rings.real_mpfr import mpfr_prec_max
         sage: mpfr_prec_max()
-        2147483391
-        sage: R = RealField(2^31-257)
-        sage: R
+        2147483391              # 32-bit
+        9223372036854775551     # 64-bit
+
+        sage: R = RealField(2^31-257); R
         Real Field with 2147483391 bits of precision
+
         sage: R = RealField(2^31-256)
-        Traceback (most recent call last):
-        ...
-        ValueError: prec (=2147483392) must be >= 1 and <= 2147483391
+        Traceback (most recent call last):                     # 32-bit
+        ...                                                    # 32-bit
+        ValueError: prec (=...) must be >= 1 and <= ...        # 32-bit
     """
-    global MY_MPFR_PREC_MAX
-    return MY_MPFR_PREC_MAX
+    return MPFR_PREC_MAX
+
 
 def mpfr_get_exp_min():
     """
@@ -372,7 +376,7 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 
 cdef object RealField_cache = sage.misc.weak_dict.WeakValueDictionary()
 
-cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
+cpdef RealField(mpfr_prec_t prec=53, int sci_not=0, rnd=MPFR_RNDN):
     """
     RealField(prec, sci_not, rnd):
 
@@ -461,7 +465,7 @@ cdef class RealField_class(sage.rings.ring.Field):
     See the documentation for the module :mod:`sage.rings.real_mpfr` for more
     details.
     """
-    def __init__(self, int prec=53, int sci_not=0, long rnd=MPFR_RNDN):
+    def __init__(self, mpfr_prec_t prec=53, int sci_not=0, long rnd=MPFR_RNDN):
         """
         Initialize ``self``.
 
@@ -520,10 +524,9 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RealField(10).is_finite()
             False
         """
-        global MY_MPFR_PREC_MAX
-        if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
+        if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
             raise ValueError("prec (=%s) must be >= %s and <= %s" % (
-                prec, MPFR_PREC_MIN, MY_MPFR_PREC_MAX))
+                prec, MPFR_PREC_MIN, MPFR_PREC_MAX))
         self.__prec = prec
         self.sci_not = sci_not
 
@@ -991,7 +994,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RealField(20).precision()
             20
         """
-        return self.__prec
+        return Integer(self.__prec)
 
     prec=precision # an alias
 
@@ -2305,7 +2308,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if sgn == 0:
             return z
 
-        cdef int prec = (<RealField_class>self._parent).__prec
+        cdef mpfr_prec_t prec = (<RealField_class>self._parent).__prec
 
         if mpfr_inf_p(self.value):
             mpz_set_ui(z.value, EXP_MAX+1-EXP_MIN)
@@ -2675,7 +2678,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(101)(-1).precision()
             101
         """
-        return (<RealField_class>self._parent).__prec
+        return Integer((<RealField_class>self._parent).__prec)
 
     prec = precision # alias
 
@@ -3277,7 +3280,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # wordsize for PARI
         cdef unsigned long wordsize = sizeof(long)*8
 
-        cdef int prec
+        cdef mpfr_prec_t prec
         prec = (<RealField_class>self._parent).__prec
 
         # We round up the precision to the nearest multiple of wordsize.
@@ -3613,7 +3616,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         from .real_mpfi import RealIntervalField
 
         cdef mpfr_rnd_t rnd = (<RealField_class>self._parent).rnd
-        cdef int prec = (<RealField_class>self._parent).__prec
+        cdef mpfr_prec_t prec = (<RealField_class>self._parent).__prec
 
         cdef RealNumber low, high
         cdef int odd
@@ -5553,7 +5556,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         from .real_mpfi import RealIntervalField
 
-        cdef int prec = fld.__prec + 10
+        cdef mpfr_prec_t prec = fld.__prec + 10
 
         cdef RealNumber lower
         cdef RealNumber upper

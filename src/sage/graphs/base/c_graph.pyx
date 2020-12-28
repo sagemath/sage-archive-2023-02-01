@@ -4842,7 +4842,7 @@ cdef class Search_iterator:
         cdef int l
         cdef CGraph cg = self.graph.cg()
 
-        while not self.fifo.empty():
+        if not self.fifo.empty():
             v_int = self.fifo.front()
             self.fifo.pop()
             value = self.graph.vertex_label(v_int)

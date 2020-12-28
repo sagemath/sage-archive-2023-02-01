@@ -19,7 +19,10 @@ SHELL = @SHELL@
 
 # Check a variable that is only set in build/make/install, but not in sage-env, for example
 ifndef SAGE_PKGCONFIG
+# Set by build/bin/sage-sdist
+ifndef SAGE_SPKG_COPY_UPSTREAM
 $(error This Makefile needs to be invoked by build/make/install)
+endif
 endif
 
 # Directory to keep track of which packages are installed

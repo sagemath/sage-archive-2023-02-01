@@ -4837,7 +4837,6 @@ cdef class Search_iterator:
         """
         cdef int v_int
         cdef int w_int
-        cdef int l
 
         while not self.fifo.empty():
             v_int = self.fifo.front()
@@ -4848,15 +4847,11 @@ cdef class Search_iterator:
                 bitset_add(self.seen, v_int)
 
                 if self.test_out:
-                    w_int = self.graph.cg().next_out_neighbor_unsafe(v_int, -1, &l)
-                    while w_int != -1:
+                    for w_int in self.graph.cg().out_neighbors(v_int):
                         self.fifo.push(w_int)
-                        w_int = self.graph.cg().next_out_neighbor_unsafe(v_int, w_int, &l)
                 if self.test_in:
-                    w_int = self.graph.cg().next_in_neighbor_unsafe(v_int, -1, &l)
-                    while w_int != -1:
+                    for w_int in self.in_neighbors(v_int):
                         self.fifo.push(w_int)
-                        w_int = self.graph.cg().next_in_neighbor_unsafe(v_int, w_int, &l)
 
                 break
         else:

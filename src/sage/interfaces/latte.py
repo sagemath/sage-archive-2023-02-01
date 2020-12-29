@@ -321,12 +321,14 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
     Testing the runtime error::
 
-        sage: P = Polyhedron(rays=[[0,1], [1,0]])
-        sage: cddin = P.cdd_Hrepresentation()
-        sage: ans = integrate(cddin, cdd=True, raw_output=True, verbose=True)  # optional - latte_int
+        sage: P = Polyhedron(rays=[[1,0],[0,1]])
+        sage: P._volume_latte()  # optional - latte_int
         Traceback (most recent call last):
         ...
-        RuntimeError: ...
+        RuntimeError: LattE integrale program failed (exit code -6):
+        This is LattE integrale ...
+        ...
+        determinant: nonsquare matrix
     """
     # Check that LattE is present
     Latte().require()

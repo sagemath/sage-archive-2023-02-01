@@ -4825,7 +4825,7 @@ cdef class Search_iterator:
         """
         return self
 
-    def next_breadth_first_search(self):
+    cdef inline next_breadth_first_search(self):
         r"""
         Return the next vertex in a breadth first search traversal of a graph.
 

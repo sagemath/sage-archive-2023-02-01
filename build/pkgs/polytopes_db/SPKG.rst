@@ -21,6 +21,12 @@ License
 
 GPL
 
+Upstream Contact
+----------------
+
+http://hep.itp.tuwien.ac.at/~kreuzer/CY/CYpalp.html
+
+
 Dependencies
 ------------
 

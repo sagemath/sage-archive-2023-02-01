@@ -4,7 +4,7 @@ LinBox
 Description
 -----------
 
-From http://linalg.org/: LinBox is a C++ template library for exact,
+LinBox is a C++ template library for exact,
 high-performance linear algebra computation with dense, sparse, and
 structured matrices over the integers and over finite fields.
 
@@ -17,6 +17,7 @@ LGPL V2 or later
 Upstream Contact
 ----------------
 
+-  https://linalg.org/
 -  <linbox-devel@googlegroups.com>
 -  <linbox-use@googlegroups.com>
 

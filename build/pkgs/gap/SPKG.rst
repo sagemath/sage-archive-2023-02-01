@@ -4,6 +4,8 @@ GAP
 Description
 -----------
 
+Groups, Algorithms, Programming - a system for computational discrete algebra
+
 GAP is a system for computational discrete algebra, with particular
 emphasis on Computational Group Theory. GAP provides a programming
 language, a library of thousands of functions implementing algebraic
@@ -21,6 +23,8 @@ architecture-independent, are in a separate package.
 
 Upstream Contact
 ----------------
+
+http://www.gap-system.org
 
 David Joyner, wdjoyner@gmail.com (on the GAP team, but Steve Linton,
 sal@dcs.st-and.ac.uk, is basically the lead developer)

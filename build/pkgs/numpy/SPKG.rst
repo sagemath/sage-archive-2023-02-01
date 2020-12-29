@@ -11,6 +11,7 @@ capabilities to python.
 Upstream Contact
 ----------------
 
+-  https://numpy.org/
 -  Travis Oliphant
 -  Fernando Perez
 -  Brian Granger

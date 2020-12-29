@@ -16,6 +16,7 @@ GPL V2+
 Upstream Contact
 ----------------
 
+-  http://pynac.org
 -  Burcin Erocal - burcin spam.erocal.org
 -  William Stein - wstein spam.gmail.com
 -  Mike Hansen - mhansen spam.gmail.com

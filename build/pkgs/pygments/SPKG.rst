@@ -33,7 +33,7 @@ Upstream Contact
 ----------------
 
 - Author: Georg Brandl
-- Home Page: http://pygments.org
+- Home Page: https://pygments.org
 
 Dependencies
 ------------

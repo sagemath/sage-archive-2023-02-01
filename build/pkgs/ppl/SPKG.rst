@@ -35,8 +35,7 @@ GPL v3+
 Upstream Contact
 ----------------
 
-- http://www.cs.unipr.it/ppl/ 
-- BUGSENG srl (http://bugseng.com)
+- https://www.bugseng.com/ppl
 
 Core Development Team
 

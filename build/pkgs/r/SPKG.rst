@@ -22,6 +22,7 @@ License
 Upstream Contact
 ----------------
 
+-  https://www.r-project.org
 -  R mailing list, #R in IRC
 
 Dependencies

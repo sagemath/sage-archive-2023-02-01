@@ -35,7 +35,9 @@ Dan Drake (dr.dan.drake at gmail) and SageMath developers
 Upstream Contact
 ----------------
 
-Author: Dan Drake. Web: https://github.com/sagemath/sagetex
+Author: Dan Drake.
+
+Web: https://github.com/sagemath/sagetex
 
 Dependencies
 ------------

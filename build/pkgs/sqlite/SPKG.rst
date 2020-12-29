@@ -16,7 +16,7 @@ Public Domain
 Upstream contact
 ----------------
 
--  http://www.sqlite.org
+-  https://www.sqlite.org
 
 Dependencies
 ------------

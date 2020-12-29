@@ -6,7 +6,7 @@ Description
 
 Littlewood-Richardson Calculator
 
-http://math.rutgers.edu/~asbuch/lrcalc/
+http://sites.math.rutgers.edu/~asbuch/lrcalc/
 
 License
 -------

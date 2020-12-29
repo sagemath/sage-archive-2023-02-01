@@ -4,6 +4,8 @@ gsl
 Description
 -----------
 
+The GNU Scientific Library
+
 Website: http://www.gnu.org/software/gsl/
 
 From the website above: The GNU Scientific Library (GSL) is a numerical

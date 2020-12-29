@@ -4,6 +4,8 @@ gd
 Description
 -----------
 
+Dynamic graphics generation tool
+
 GD is an open source code library for the dynamic creation of images by
 programmers. GD is written in C, and "wrappers" are available for Perl,
 PHP and other languages. GD creates PNG, JPEG, GIF, WebP, XPM, BMP
@@ -21,6 +23,7 @@ License
 Upstream Contact
 ----------------
 
+-  https://libgd.github.io
 -  Pierre Joye (http://blog.thepimp.net)
 -  http://libgd.bitbucket.org/
 

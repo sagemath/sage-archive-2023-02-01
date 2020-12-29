@@ -11,6 +11,8 @@ Jason Grout. Since April 2012 it also contains the ISGCI graph database.
 Upstream Contact
 ----------------
 
+-  https://jasongrout.org/graph_database
+
 -  For ISGCI:
 
    H.N. de Ridder (hnridder@graphclasses.org)

@@ -4,8 +4,10 @@ symmetrica
 Description
 -----------
 
-Symmetrica is a program developed by Lehrstuhl Mathematik II of the
-University of Bayreuth. It has routines to handle the following topics
+Symmetrica is a Collection of C routines for representation theory.
+
+It is a program developed by Lehrstuhl Mathematik II of the
+University of Bayreuth. It has routines to handle the following topics:
 
 -  ordinary representation theory of the symmetric group and related
    groups (2/11/04)

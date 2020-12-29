@@ -19,6 +19,7 @@ Upstream Contact
 ----------------
 
 - Author: Alex Clark <aclark@aclark.net>
+- https://python-pillow.org/
 - Homepage: http://python-imaging.github.io/
 
 Dependencies

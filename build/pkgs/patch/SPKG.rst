@@ -24,10 +24,13 @@ later version.
 Upstream Contact
 ----------------
 
-Main web site: http://savannah.gnu.org/projects/patch/ Bug database at
-http://savannah.gnu.org/bugs/?group=patch Submit bugs at
-http://savannah.gnu.org/bugs/?func=additem&group=patch Mailing lists
-bug-patch@gnu.org
+Main web site: http://savannah.gnu.org/projects/patch/
+
+Bug database: http://savannah.gnu.org/bugs/?group=patch
+
+Submit bugs: http://savannah.gnu.org/bugs/?func=additem&group=patch
+
+Mailing lists: bug-patch@gnu.org
 
 Dependencies
 ------------

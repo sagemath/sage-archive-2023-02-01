@@ -15,7 +15,7 @@ GPL version 2 or version 3
 Upstream Contact
 ----------------
 
-http://gcc.gnu.org/
+https://gcc.gnu.org/
 
 Dependencies
 ------------

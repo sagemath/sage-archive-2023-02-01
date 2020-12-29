@@ -4,6 +4,8 @@ scipy
 Description
 -----------
 
+Scientific tools for Python.
+
 SciPy (pronounced "Sigh Pie") is open-source software for mathematics,
 science, and engineering. The SciPy library depends on NumPy, which
 provides convenient and fast N-dimensional array manipulation. The SciPy
@@ -24,7 +26,7 @@ under the BSD terms. See http://www.scipy.org/License_Compatibility
 Upstream Contact
 ----------------
 
-   http://www.scipy.org/
+   https://www.scipy.org/
 
 Dependencies
 ------------

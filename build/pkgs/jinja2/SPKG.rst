@@ -21,7 +21,9 @@ Modified BSD License
 Upstream Contact
 ----------------
 
-Author: Pocoo Team <http://pocoo.org> Homepage: http://jinja.pocoo.org/
+Author: Pocoo Team <http://pocoo.org>
+
+Homepage: http://jinja.pocoo.org/
 
 Dependencies
 ------------

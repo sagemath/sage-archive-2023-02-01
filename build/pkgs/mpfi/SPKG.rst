@@ -31,6 +31,8 @@ a modified MPFI is provided.
 Upstream Contact
 ----------------
 
+http://perso.ens-lyon.fr/nathalie.revol/software.html
+
 The MPFI website is located at http://mpfi.gforge.inria.fr/
 
 The MPFI team can be contacted via the MPFI mailing list:

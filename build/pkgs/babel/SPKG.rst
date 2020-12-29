@@ -1,10 +1,8 @@
-babel
-=====
+babel: Internationalization utilities for Python
+================================================
 
 Description
 -----------
-
-Internationalization utilities
 
 A collection of tools for internationalizing Python applications.
 

@@ -1,5 +1,5 @@
-alabaster
-=========
+alabaster: Default theme for the Sphinx documentation system
+============================================================
 
 Description
 -----------

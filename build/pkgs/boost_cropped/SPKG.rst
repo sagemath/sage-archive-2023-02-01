@@ -1,5 +1,5 @@
-Boost
-=====
+boost_cropped: Portable C++ libraries (subset needed for Sage)
+==============================================================
 
 Description
 -----------

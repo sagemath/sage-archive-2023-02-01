@@ -1,5 +1,5 @@
-ATLAS
-=====
+atlas: Automatically Tuned Linear Algebra Software (BLAS implementation)
+========================================================================
 
 Description
 -----------

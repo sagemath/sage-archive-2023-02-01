@@ -1,5 +1,5 @@
-arb
-===
+arb: Arbitrary-precision floating-point ball arithmetic
+=======================================================
 
 Description
 -----------

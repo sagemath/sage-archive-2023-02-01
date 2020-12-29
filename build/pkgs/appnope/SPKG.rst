@@ -1,5 +1,5 @@
-appnope
-=======
+appnope: Disable App Nap on OS X
+================================
 
 Description
 -----------

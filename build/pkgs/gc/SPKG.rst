@@ -1,5 +1,5 @@
-gc
-==
+gc: The Boehm-Demers-Weiser conservative garbage collector
+==========================================================
 
 Description
 -----------

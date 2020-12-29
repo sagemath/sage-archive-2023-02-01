@@ -137,6 +137,7 @@ from .tableau_tuple import (StandardTableaux_residue,
 # Residue sequences
 # -------------------------------------------------
 
+
 # needed for __classcall_private__
 class ResidueSequence(ClonableArray,
         metaclass=InheritComparisonClasscallMetaclass):
@@ -439,7 +440,7 @@ class ResidueSequence(ClonableArray,
         - ``i`` and ``j`` -- two integers between `1` and the length of
           the residue sequence
 
-        If residue sequence ``self`` is of Te form `(r_1, \ldots, r_n)`, and
+        If residue sequence ``self`` is of the form `(r_1, \ldots, r_n)`, and
         `i < j`, then the residue sequence
         `(r_1, \ldots, r_j, \ldots, r_i, \ldots, r_m)`, with the same
         :meth:`quantum_characteristic` and :meth:`multicharge`, is returned.

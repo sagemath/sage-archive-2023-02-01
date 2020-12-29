@@ -1046,7 +1046,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
             ones = sorted([pos for pos, elt in read_word if elt == 1], key=lambda x: x[1])
 
-            # f_{-1} acts as zero if tableau cotnains no entries equal to 1
+            # f_{-1} acts as zero if tableau contains no entries equal to 1
             if len(ones) == 0:
                 return None
             # otherwise, f_{-1} changes last 1 in first row to 2' (if off diagonal) or 2 (if on diagonal)

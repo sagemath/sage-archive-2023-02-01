@@ -1642,8 +1642,9 @@ def IGraph(n, j, k):
     r"""
     Return an I-graph with `2n` nodes.
 
-    The variables `n`, `j`, `k` are integers such that `n > 2` and
-    `0 < j, k \leq \lfloor (n - 1) / 2 \rfloor`.
+    The I-Graph family as been proposed in [BCMS1988]_ as a generalization of
+    the generalized Petersen graphs.  The variables `n`, `j`, `k` are integers
+    such that `n > 2` and `0 < j, k \leq \lfloor (n - 1) / 2 \rfloor`.
     When `j = 1` the resulting graph is isomorphic to the generalized Petersen
     graph with the same `n` and `k`.
 
@@ -1651,11 +1652,11 @@ def IGraph(n, j, k):
 
     - ``n`` -- the number of nodes is `2 * n`
 
-    - ``j`` -- integer `0 < j \leq \lfloor (n-1) / 2 \rfloor`. Decides how outer
-      vertices are connected.
+    - ``j`` -- integer such that `0 < j \leq \lfloor (n-1) / 2 \rfloor`
+      determining how outer vertices are connected
 
-    - ``k`` -- integer `0 < k \leq \lfloor (n-1) / 2 \rfloor`. Decides how inner
-      vertices are connected.
+    - ``k`` -- integer such that `0 < k \leq \lfloor (n-1) / 2 \rfloor`
+      determining how inner vertices are connected
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the I-graphs are displayed as an
@@ -1673,6 +1674,37 @@ def IGraph(n, j, k):
         sage: g2 = graphs.GeneralizedPetersenGraph(7,2)
         sage: g.is_isomorphic(g2)
         True
+
+    The IGraph with parameters `(n, j, k)` is isomorphic to the IGraph with
+    parameters `(n, k, j)`::
+
+        sage: g = graphs.IGraph(7, 2, 3)
+        sage: h = graphs.IGraph(7, 3, 2)
+        sage: g.is_isomorphic(h)
+        True
+
+    TESTS::
+
+        sage: graphs.IGraph(1, 1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be larger than 2
+        sage: graphs.IGraph(3, 0, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: j must be in 1 <= j <= floor((n - 1) / 2)
+        sage: graphs.IGraph(3, 33, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: j must be in 1 <= j <= floor((n - 1) / 2)
+        sage: graphs.IGraph(3, 1, 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: k must be in 1 <= k <= floor((n - 1) / 2)
+        sage: graphs.IGraph(3, 1, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: k must be in 1 <= k <= floor((n - 1) / 2)
     """
     if n < 3:
         raise ValueError("n must be larger than 2")
@@ -1694,42 +1726,59 @@ def DoubleGeneralizedPetersenGraph(n, k):
     r"""
     Return a double generalized Petersen graph with `4n` nodes.
 
-    The variables `n`, `k` are integers such that `n > 2` and 
-    `0 < k \leq \lfloor (n-1) / 2 \rfloor`.
+    The double generalized Petersen graphs is a family of graphs proposed in
+    [ZF2012]_ as a variant of generalized Petersen graphs.  The variables `n`,
+    `k` are integers such that `n > 2` and `0 < k \leq \lfloor (n-1) / 2
+    \rfloor`.
 
     INPUT:
 
-    - ``n`` - the number of nodes is `4 * n`.
-    - ``k`` - integer 0 < k \leq \lfloor (n-1) / 2 \rfloor`. Decides how
-      vertices on second and third inner rims are connected.
+    - ``n`` -- the number of nodes is `4 * n`
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the double
-    generalized Petersen graphs are displayed as 4 cocentric cycles,
-    with  the first n nodes drawn on the outer circle.
-    The first (0) node is drawn at the top of the outer-circle, moving
-    counterclockwise after that. The second circle is drawn with the
-    (n)th node at the top, then counterclockwise as well. The tird
-    cycle is drawn with the (2n)th node at the top, then counterclockwise.
-    And the fourth cycle is drawn with the (3n)th node at the top, then
-    again counterclockwise.
+    - ``k`` -- integer such that `0 < k \leq \lfloor (n-1) / 2 \rfloor`
+      determining how vertices on second and third inner rims are connected
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the double generalized Petersen
+    graphs are displayed as 4 cocentric cycles, with the first n nodes drawn on
+    the outer circle.  The first (0) node is drawn at the top of the
+    outer-circle, moving counterclockwise after that. The second circle is drawn
+    with the (n)th node at the top, then counterclockwise as well. The tird
+    cycle is drawn with the (2n)th node at the top, then counterclockwise.  And
+    the fourth cycle is drawn with the (3n)th node at the top, then again
+    counterclockwise.
 
     EXAMPLES:
 
-    When `n` is even the resulting graph will be isomorphic to a double generalized
-    Petersen graph with `k' = n / 2 - k`::
+    When `n` is even the resulting graph will be isomorphic to a double
+    generalized Petersen graph with `k' = n / 2 - k`::
 
         sage: g = graphs.DoubleGeneralizedPetersenGraph(10, 2)
         sage: g2 = graphs.DoubleGeneralizedPetersenGraph(10, 3)
         sage: g.is_isomorphic(g2)
         True
+
+    TESTS::
+
+        sage: graphs.DoubleGeneralizedPetersenGraph(1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be larger than 2
+        sage: graphs.DoubleGeneralizedPetersenGraph(3, 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: k must be in 1 <= k <= floor((n - 1) / 2)
+        sage: graphs.DoubleGeneralizedPetersenGraph(3, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: k must be in 1 <= k <= floor((n - 1) / 2)
     """
     if n < 3:
             raise ValueError("n must be larger than 2")
     if k < 1 or k > (n - 1) // 2 :
             raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
 
-    G = Graph(4 * n,  name="Double generalized Petersen graph (n={}, k={})".format(n, k))
+    G = Graph(4 * n, name="Double generalized Petersen graph (n={}, k={})".format(n, k))
     for i in range(n):
         G.add_edge(i, (i + 1) % n)
         G.add_edge(i + 3 * n, (i + 1) % n + 3 * n)
@@ -1743,100 +1792,196 @@ def DoubleGeneralizedPetersenGraph(n, k):
     G._circle_embedding(list(range(3 * n, 4 * n)), radius=0.5, angle=pi/2)
     return G
 
-def RoseWindowGraph(n, a, k):
+def RoseWindowGraph(n, a, r):
     r"""
     Return a rose window graph with `2n` nodes.
 
-    The variables `n`, `a`, `k` are integers such that `n > 2` and
-    `0 < k \leq \lfloor (n - 1) / 2 \rfloor` and `a \neq k, n/2`,
-    `0 < a \leq n`.
-
+    The rose window graphs is a family of tetravalant graphs introduced in
+    [Wilson2008]_. The parameters `n`, `a` and `r` are integers such that
+    `n > 2`, `1 \leq a, r < n`, and `r \neq n / 2`.
 
     INPUT:
 
-    - ``n`` -- the number of nodes is `2 * n`,
+    - ``n`` -- the number of nodes is `2 * n`
 
-    - ``a`` - integer `a \neq k`, `a \neq n / 2`, `0 < a < n`, determines a-spoke edges,
+    - ``a`` -- integer such that `1 \leq a < n` determing a-spoke edges
 
-    - ``k`` -- integer `0 < k \leq \lfloor (n-1)/2 \rfloor`. Decides how inner
-      vertices are connected.
+    - ``r`` -- integer such that `1 \leq r < n` and `r \neq n / 2` determing how
+      inner vertices are connected
 
     PLOTTING: Upon construction, the position dictionary is filled to override
-    the spring-layout algorithm. By convention, the rose window graphs are displayed
-    as an inner and outer cycle pair, with the first n nodes drawn on the outer
-    circle.  The first (0) node is drawn at the top of the outer-circle, moving
-    counterclockwise after that. The inner circle is drawn with the (n)th node
-    at the top, then counterclockwise as well.
-    Vertices in the outer circle are connected in the circular manner, vertices
-    in the inner circle are connected when their label have difference `k` (mod n).
-    Vertices on the outer rim are connected with the vertices on the inner rim when
-    they are at the same position and when they are `a` apart.
+    the spring-layout algorithm. By convention, the rose window graphs are
+    displayed as an inner and outer cycle pair, with the first n nodes drawn on
+    the outer circle.  The first (0) node is drawn at the top of the
+    outer-circle, moving counterclockwise after that. The inner circle is drawn
+    with the (n)th node at the top, then counterclockwise as well.  Vertices in
+    the outer circle are connected in the circular manner, vertices in the inner
+    circle are connected when their label have difference `r` (mod n).  Vertices
+    on the outer rim are connected with the vertices on the inner rim when they
+    are at the same position and when they are `a` apart.
 
+    EXAMPLES:
+
+    The vertices of a rose window graph have all degree 4::
+
+        sage: G = graphs.RoseWindowGraph(5, 1, 2)
+        sage: all(G.degree(u) == 4 for u in G)
+        True
+
+    The smallest rose window graph as parameters `(3, 2, 1)`::
+
+        sage: G = graphs.RoseWindowGraph(3, 2, 1)
+        sage: all(G.degree(u) == 4 for u in G)
+        True
+
+    TESTS:
+
+        sage: graphs.RoseWindowGraph(1, 1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be larger than 2
+        sage: graphs.RoseWindowGraph(6, 0, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: a must be an integer such that 1 <= a < n
+        sage: graphs.RoseWindowGraph(6, 6, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: a must be an integer such that 1 <= a < n
+        sage: graphs.RoseWindowGraph(6, 3, 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: r must be an integer such that 1 <= r < n
+        sage: graphs.RoseWindowGraph(6, 3, 6)
+        Traceback (most recent call last):
+        ...
+        ValueError: r must be an integer such that 1 <= r < n
+        sage: graphs.RoseWindowGraph(6, 3, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: r must be different than n / 2
     """
     if n < 3:
         raise ValueError("n must be larger than 2")
-    if a < 1 or a = k or a = n / 2 or a >= n :
-        raise ValueError("a must be bigger than 1, different than k, n / 2 and smaller than n")
-    if k < 1 or k > (n - 1) // 2:
-        raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
+    if a < 1 or a >= n:
+        raise ValueError("a must be an integer such that 1 <= a < n")
+    if r < 1 or r >= n:
+        raise ValueError("r must be an integer such that 1 <= r < n")
+    if r == n / 2:
+        raise ValueError("r must be different than n / 2")
 
-    G = Graph(2 * n, name="rose window graph (n={}, a={}, k={})".format(n, a, k))
+    G = Graph(2 * n, name="rose window graph (n={}, a={}, r={})".format(n, a, r))
     for i in range(n):
         G.add_edge(i, (i + 1) % n)
         G.add_edge(i, i + n)
-        G.add_edge(i + n, n + (i + k) % n)
-        G.add_edge(i, (i + a) % n + n)
+        G.add_edge((i + a) % n, i + n)
+        G.add_edge(i + n, (i + r) % n + n)
     G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
     G._circle_embedding(list(range(n, 2 * n)), radius=0.5, angle=pi/2)
     return G
 
-
-def TabacjnGraph(n, a, b, k):
+def TabacjnGraph(n, a, b, r):
     r"""
     Return a Tabačjn graph with `2n` nodes.
 
-    The variables `n`, `a`, `b`, `k` are integers such that `n > 2`,
-    `0 < k \leq \lfloor (n - 1) / 2 \rfloor`, `a, b \neq k, n/2`,
-    `0 < a, b \leq n` and `a \neq b`.
-
+    The Tabačjn graphs is a family of pentavalent bicirculants graphs proposed
+    in [AHKOS2014]_ as a generalization of generalized Petersen graphs. The
+    parameters `n`, `a`, `b`, `r` are integers such that `n \geq 3`, `1 \leq a,
+    b, r \leq n - 1`, with `a \neq b` and `r \neq n / 2`.
 
     INPUT:
 
-    - ``n`` -- the number of nodes is `2 * n`,
+    - ``n`` -- the number of nodes is `2 * n`
 
-    - ``a`` - integer `a \neq k, b`, `a \neq n / 2`, `0 < a < n`, determines a-spoke edges,
+    - ``a`` -- integer such that `0 < a < n` and `a \neq b`, that determines
+      a-spoke edges
 
-    - ``b`` - integer `b \neq k, a`, `b \neq n / 2`, `0 < b < n`, determines b-spoke edges,
+    - ``b`` -- integer such that `0 < b < n` and `b \neq a`, that determines
+      b-spoke edges
 
-    - ``k`` -- integer `0 < k \leq \lfloor (n-1)/2 \rfloor`. Decides how inner
-      vertices are connected.
+    - ``r`` -- integer such that `0 < r < n` and `r \neq n/2` determining how
+      inner vertices are connected
 
     PLOTTING: Upon construction, the position dictionary is filled to override
-    the spring-layout algorithm. By convention, the rose window graphs are displayed
-    as an inner and outer cycle pair, with the first n nodes drawn on the outer
-    circle.  The first (0) node is drawn at the top of the outer-circle, moving
-    counterclockwise after that. The inner circle is drawn with the (n)th node
-    at the top, then counterclockwise as well.
-    Vertices in the outer circle are connected in the circular manner, vertices
-    in the inner circle are connected when their label have difference `k` (mod n).
-    Vertices on the outer rim are connected with the vertices on the inner rim when
-    they are at the same position and when they are `a` and `b` apart.
+    the spring-layout algorithm. By convention, the rose window graphs are
+    displayed as an inner and outer cycle pair, with the first n nodes drawn on
+    the outer circle.  The first (0) node is drawn at the top of the
+    outer-circle, moving counterclockwise after that. The inner circle is drawn
+    with the (n)th node at the top, then counterclockwise as well. Vertices in
+    the outer circle are connected in the circular manner, vertices in the inner
+    circle are connected when their label have difference `r` (mod n). Vertices
+    on the outer rim are connected with the vertices on the inner rim when they
+    are at the same position and when they are `a` and `b` apart.
 
+    EXAMPLES::
+
+        sage: G = graphs.TabacjnGraph(3, 1, 2, 1)
+        sage: G.degree()
+        [5, 5, 5, 5, 5, 5]
+        sage: G.is_isomorphic(graphs.CompleteGraph(6))
+        True
+        sage: G = graphs.TabacjnGraph(6, 1, 5, 2)
+        sage: I = graphs.IcosahedralGraph()
+        sage: G.is_isomorphic(I)
+        True
+
+    TESTS:
+
+        sage: graphs.TabacjnGraph(1, 1, 1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be larger than 2
+        sage: graphs.TabacjnGraph(3, 0, 1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: a must be an integer such that 1 <= a < n
+        sage: graphs.TabacjnGraph(3, 3, 1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: a must be an integer such that 1 <= a < n
+        sage: graphs.TabacjnGraph(3, 1, 0, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: b must be an integer such that 1 <= b < n
+        sage: graphs.TabacjnGraph(3, 1, 3, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: b must be an integer such that 1 <= b < n
+        sage: graphs.TabacjnGraph(3, 1, 1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: a must be different than b
+        sage: graphs.TabacjnGraph(3, 1, 2, 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: r must be an integer such that 1 <= r < n
+        sage: graphs.TabacjnGraph(3, 1, 2, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: r must be an integer such that 1 <= r < n
+        sage: graphs.TabacjnGraph(4, 1, 2, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: r must be different than n / 2
     """
     if n < 3:
         raise ValueError("n must be larger than 2")
-    if a < 1 or a = k or a = b or a = n / 2 or a >= n :
-        raise ValueError("a must be bigger than 1, different than k, b, n / 2 and smaller than n")
-    if b < 1 or b = k or b = a or b = n / 2 or b >= n :
-        raise ValueError("b must be bigger than 1, different than k, a, n / 2 and smaller than n")
-    if k < 1 or k > (n - 1) // 2:
-        raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
+    if a < 1 or a >= n:
+        raise ValueError("a must be an integer such that 1 <= a < n")
+    if b < 1 or b >= n:
+        raise ValueError("b must be an integer such that 1 <= b < n")
+    if a == b:
+        raise ValueError("a must be different than b")
+    if r < 1 or r >= n:
+        raise ValueError("r must be an integer such that 1 <= r < n")
+    if r == n/2:
+        raise ValueError("r must be different than n / 2")
 
-    G = Graph(2 * n, name="Tabačjn graph (n={}, a={}, b={}, k={})".format(n, a, b, k))
+    G = Graph(2 * n, name="Tabačjn graph (n={}, a={}, b={}, r={})".format(n, a, b, r))
     for i in range(n):
         G.add_edge(i, (i + 1) % n)
         G.add_edge(i, i + n)
-        G.add_edge(i + n, n + (i + k) % n)
+        G.add_edge(i + n, n + (i + r) % n)
         G.add_edge(i, (i + a) % n + n)
         G.add_edge(i, (i + b) % n + n)
     G._circle_embedding(list(range(n)), radius=1, angle=pi/2)

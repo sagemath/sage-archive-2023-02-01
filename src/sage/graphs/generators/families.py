@@ -1775,7 +1775,7 @@ def DoubleGeneralizedPetersenGraph(n, k):
     """
     if n < 3:
             raise ValueError("n must be larger than 2")
-    if k < 1 or k > (n - 1) // 2 :
+    if k < 1 or k > (n - 1) // 2:
             raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
 
     G = Graph(4 * n, name="Double generalized Petersen graph (n={}, k={})".format(n, k))

@@ -1,0 +1,8 @@
+\_recommended
+=============
+
+Description
+-----------
+
+Script package representing a list of system packages recommended to be
+installed for additional functionality.

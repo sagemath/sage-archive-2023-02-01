@@ -1,5 +1,7 @@
-= backcall =
+backcall
+========
 
-== Description ==
+Description
+-----------
 
 Specifications for callback functions passed in to an API

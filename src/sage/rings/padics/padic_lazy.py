@@ -156,8 +156,6 @@ class pAdicRingLazy(pAdicRingGeneric):
             return True
 
     def _element_constructor_(self, x, prec=None):
-        if type(x) is int and x == 0:
-            return pAdicLazyElement_selfref(self)
         if isinstance(x, pAdicLazyElement):
             return x
         if isinstance(x, pAdicGenericElement):
@@ -176,6 +174,9 @@ class pAdicRingLazy(pAdicRingGeneric):
             x = num / denom
             x.jump(prec)
             return x
+
+    def selfref(self):
+        return pAdicLazyElement_selfref(self)
 
     def _an_element_(self):
         return pAdicLazyElement_value(self, 0)

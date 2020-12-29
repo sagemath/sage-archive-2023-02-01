@@ -78,9 +78,13 @@ class pAdicLazyElement(pAdicGenericElement):
         return self.equal_at_current_precision(other)
 
     def __lshift__(self, s):
+        if s == 0:
+            return self
         return pAdicLazyElement_shift(self.parent(), self, ZZ(s))
 
     def __rshift__(self, s):
+        if s == 0:
+            return self
         return pAdicLazyElement_shift(self.parent(), self, ZZ(-s))
 
     def _add_(self, other):

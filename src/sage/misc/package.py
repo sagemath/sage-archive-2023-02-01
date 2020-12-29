@@ -157,6 +157,7 @@ def pip_installed_packages(normalization=None):
             stderr=devnull,
         )
         stdout = proc.communicate()[0].decode()
+
         def normalize(name):
             if normalization is None:
                 return name
@@ -164,6 +165,7 @@ def pip_installed_packages(normalization=None):
                 return name.lower().replace('-', '_').replace('.', '_')
             else:
                 raise NotImplementedError(f'normalization {normalization} is not implemented')
+
         try:
             return {normalize(package['name']): package['version']
                     for package in json.loads(stdout)}

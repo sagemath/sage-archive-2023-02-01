@@ -233,9 +233,10 @@ from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
 from .encoder import Encoder
 from .decoder import Decoder
 
-#******************************************************************************
+# *****************************************************************************
 # coding theory functions
-#******************************************************************************
+# *****************************************************************************
+
 
 def _dump_code_in_leon_format(C):
     r"""
@@ -1302,13 +1303,12 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C.is_galois_closed()
             False
         """
-        F = self.base_ring()
-        p = F.characteristic()
+        p = self.base_ring().characteristic()
         return self == self.galois_closure(GF(p))
 
     def _magma_init_(self, magma):
         r"""
-        Retun a string representation in Magma of this linear code.
+        Return a string representation in Magma of this linear code.
 
         EXAMPLES::
 
@@ -1316,11 +1316,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: Cm = magma(C)                 # optional - magma, indirect doctest
             sage: Cm.MinimumWeight()            # optional - magma
             3
-
         """
         G = magma(self.generator_matrix())._ref()
-        s = 'LinearCode(%s)' % G
-        return s
+        return 'LinearCode(%s)' % G
 
     @cached_method
     def minimum_distance(self, algorithm=None):

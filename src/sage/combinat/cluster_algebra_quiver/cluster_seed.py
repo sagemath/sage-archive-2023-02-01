@@ -2572,7 +2572,7 @@ class ClusterSeed(SageObject):
                 if k is None:
                     raise ValueError("variable provided is not in our cluster")
             else:
-                raise ValueError('Why wasnt this caught earlier? Cannot mutate in direction ' + str(k) + '.')
+                raise ValueError('Should not happen. Cannot mutate in direction ' + str(k) + '.')
 
             if seed._use_fpolys:
                 seed._f_mutate(k)

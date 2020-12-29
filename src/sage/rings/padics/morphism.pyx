@@ -314,15 +314,13 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         """
         return self.power() == 0
 
-
     def __hash__(self):
-        """
+        r"""
         Return a hash of this morphism.
 
         It is the hash of ``(domain, codomain, ('Frob', power)``
-        where ``power`` is the smalles integer `n` such that
-        this morphism acts by `x \mapsto x^(p^n)` on the
-        residue field
+        where ``power`` is the smallest integer `n` such that
+        this morphism acts by `x \mapsto x^(p^n)` on the residue field.
 
         EXAMPLES::
 
@@ -333,7 +331,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         """
         domain = self.domain()
         codomain = self.codomain()
-        return hash((domain,codomain,('Frob',self._power)))
+        return hash((domain, codomain, ('Frob', self._power)))
 
     cpdef _richcmp_(left, right, int op):
         """

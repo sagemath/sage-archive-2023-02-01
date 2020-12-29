@@ -109,15 +109,15 @@ def eliminate(polys, on_the_fly=False, prot=False, reduction_function=None,
         else:
             reduction_function = ll_red_nf_redsb
 
-    def llnf(p):
-        return reduction_function(p, reductors)
-    reduced_list = []
     if optimized:
         llnf, reduced_list = eliminate_ll_ranked(linear_leads, rest,
                                                  reduction_function=reduction_function,
                                                  reduce_ll_system=(not on_the_fly),
                                                  prot=prot)
     else:
+        def llnf(p):
+            return reduction_function(p, reductors)
+        reduced_list = []
         reductors = ll_encode(linear_leads, reduce=(not on_the_fly), prot=prot)
         for p in rest:
             p = reduction_function(p, reductors)

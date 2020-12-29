@@ -347,8 +347,10 @@ if [ -n "$SAGE_LOCAL" ]; then
     export CPATH="$SAGE_LOCAL/include${CPATH}"
 fi
 
-SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
-SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+if [ -n "$SAGE_LOCAL" ]; then
+    SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
+    SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+fi
 
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     SAGE_REPO_ANONYMOUS="https://gitlab.com/sagemath/dev/tracmirror.git"
@@ -486,7 +488,9 @@ if [ -d "$DOT_SAGE" ] ; then
     fi
 fi
 
-export MAXIMA_PREFIX="$SAGE_LOCAL"
+if [ -n "$SAGE_LOCAL" ]; then
+    export MAXIMA_PREFIX="$SAGE_LOCAL"
+fi
 export MAXIMA_USERDIR="$DOT_SAGE/maxima"
 
 if [ -n "$SAGE_LOCAL" ]; then

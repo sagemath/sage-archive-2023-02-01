@@ -80,11 +80,12 @@ different installations of SageMath, you can use the additional option
 
     jupyter kernelspec install --user $SAGE_LOCAL/share/jupyter/kernels/sagemath --name sagemath-dev-worktree
 
-For the full functionality of the SageMath kernel in your global
-Jupyter installation, additionally some Notebook Extension packages
-need to be installed (or linked) into the environment from which the
-Jupyter installation runs.  You can check the presence of some of
-these packages using the command
+To get the full functionality of the SageMath kernel in your global
+Jupyter installation, the following Notebook Extension packages also
+need to be installed (or linked) in the environment from which the
+Jupyter installation runs.
+
+You can check the presence of some of these packages using the command
 
 .. CODE-BLOCK:: bash
 

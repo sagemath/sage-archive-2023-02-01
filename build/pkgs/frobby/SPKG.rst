@@ -18,16 +18,13 @@ License
 
 -  GPL version 2.0 or later
 
-Maintainers
------------
-
--  Bjarke Hammersholt Roune (www.broune.com)
-
 
 Upstream Contact
 ----------------
 
--  Bjarke Hammersholt Roune (www.broune.com)
+- http://www.broune.com/frobby/
+
+- https://github.com/Macaulay2/frobby
 
 Dependencies
 ------------

@@ -4,7 +4,7 @@ fpylll
 Description
 -----------
 
-A Python interface for https://github.com/fplll/fplll
+A Python interface for https://github.com/fplll/fplll (Lattice algorithms using floating-point arithmetic)
 
 License
 -------

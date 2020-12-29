@@ -4,6 +4,8 @@ FreeType
 Description
 -----------
 
+Software library to render fonts.
+
 From the documentation:
 
 FreeType is a software font engine that is designed to be small,

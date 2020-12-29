@@ -47,6 +47,7 @@ from sage.data_structures.bitset_base cimport *
 from sage.rings.integer cimport Integer
 from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue, queue
+from libcpp.stack cimport stack
 from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
 from cysignals.memory cimport check_allocarray, sig_free
@@ -4715,7 +4716,7 @@ cdef class Search_iterator:
 
     cdef CGraphBackend graph
     cdef int direction
-    cdef list stack
+    cdef stack[int] lifo
     cdef queue[int] fifo
     cdef int n
     cdef bitset_t seen
@@ -4796,7 +4797,7 @@ cdef class Search_iterator:
             self.fifo.push(v_id)
             bitset_add(self.seen, v_id)
         else:
-            self.stack = [v_id]
+            self.lifo.push(v_id)
 
         if not self.graph._directed:
             ignore_direction = False
@@ -4867,7 +4868,7 @@ cdef class Search_iterator:
 
         return value
 
-    def next_depth_first_search(self):
+    cdef inline next_depth_first_search(self):
         r"""
         Return the next vertex in a depth first search traversal of a graph.
 
@@ -4880,20 +4881,30 @@ cdef class Search_iterator:
             0
         """
         cdef int v_int
+        cdef int w_int
+        cdef int l
+        cdef CGraph cg = self.graph.cg()
 
-        while self.stack:
-            v_int = self.stack.pop()
+        while not self.lifo.empty():
+            v_int = self.lifo.top()
+            self.lifo.pop()
 
             if bitset_not_in(self.seen, v_int):
                 value = self.graph.vertex_label(v_int)
                 bitset_add(self.seen, v_int)
 
                 if self.test_out:
-                    self.stack.extend(self.graph.cg().out_neighbors(v_int))
+                    w_int = cg.next_out_neighbor_unsafe(v_int, -1, &l)
+                    while w_int != -1:
+                        self.lifo.push(w_int)
+                        w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
                 if self.test_in:
-                    self.stack.extend(self.in_neighbors(v_int))
-
+                    w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
+                    while w_int != -1:
+                        self.lifo.push(w_int)
+                        w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
                 break
+
         else:
             raise StopIteration
 

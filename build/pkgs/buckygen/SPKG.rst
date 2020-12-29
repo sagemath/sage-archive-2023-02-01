@@ -12,15 +12,16 @@ faces are pentagons or hexagons.
 License
 -------
 
-Buckygen is licensed under the GNU General Public License v3 ( June 2007
-)
+Buckygen is licensed under the GNU General Public License v3 (June 2007)
 
 
 Upstream Contact
 ----------------
 
 Buckygen was mainly written by Jan Goedgebeur,
-jan.goedgebeur[at]ugent.be. http://caagt.ugent.be/buckygen/
+jan.goedgebeur[at]ugent.be.
+
+http://caagt.ugent.be/buckygen/
 
 Dependencies
 ------------

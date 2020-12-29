@@ -18,7 +18,9 @@ Modified BSD
 Upstream Contact
 ----------------
 
-Author: David Goodger Home Page: http://docutils.sourceforge.net/
+Author: David Goodger
+
+Home Page: http://docutils.sourceforge.net/
 
 Dependencies
 ------------

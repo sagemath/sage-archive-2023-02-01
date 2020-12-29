@@ -4,7 +4,7 @@ BRiAl
 Description
 -----------
 
-BRiAl is the successor to PolyBoRi.
+BRiAl ("Boolean Ring Algebra") is the successor to PolyBoRi.
 
 The core of PolyBoRi is a C++ library, which provides high-level data
 types for Boolean polynomials and monomials, exponent vectors, as well

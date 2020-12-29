@@ -20,7 +20,7 @@ Upstream Contact
 -  J. Dahl <dahl.joachim@gmail.com>
 -  L. Vandenberghe <vandenbe@ee.ucla.edu>
 
-Downloaded from http://cvxopt.org
+https://cvxopt.org/
 
 License
 -------

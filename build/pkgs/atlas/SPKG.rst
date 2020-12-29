@@ -4,7 +4,7 @@ ATLAS
 Description
 -----------
 
-This spkg builds ATLAS for Sage.
+Automatically Tuned Linear Algebra Software
 
 License
 -------
@@ -15,6 +15,7 @@ License
 Upstream Contact
 ----------------
 
+-  http://math-atlas.sourceforge.net
 -  Atlas devel mailing list.
 -  Clint Whaley has frequently answered questions from the Sage project
 

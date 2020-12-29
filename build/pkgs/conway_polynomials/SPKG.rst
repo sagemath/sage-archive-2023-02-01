@@ -5,9 +5,14 @@ Conway Polynomials Database
 Description
 -----------
 
-   Contains a small database of Conway polynomials.
+Frank Lübeck's tables of Conway polynomials over finite fields.
 
 Dependencies
 ------------
 
 -  Sage library
+
+Upstream contact
+----------------
+
+http://www.math.rwth-aachen.de/~Frank.Luebeck/data/ConwayPol/

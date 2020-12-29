@@ -265,7 +265,7 @@ cdef class StaticSparseCGraph(CGraph):
             A caller may not alter ``l``.
             It is used to keep track of the current position.
         """
-        cdef int degree = self.g.neighbors[u+1] - self.g.neighbors[u]
+        cdef int degree = out_degree(self.g, u)
         if v == -1:
             l[0] = -1
         for i in range(l[0] + 1, degree):
@@ -290,7 +290,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         if not self._directed:
             return self.next_out_neighbor_unsafe(u, v, l)
-        cdef int degree = self.g_rev.neighbors[u+1] - self.g.neighbors[u]
+        cdef int degree = out_degree(self.g_rev, u)
         if v == -1:
             l[0] = -1
         for i in range(l[0] + 1, degree):

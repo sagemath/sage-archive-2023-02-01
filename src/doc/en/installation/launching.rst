@@ -97,13 +97,22 @@ these packages using the command
    ``widgetsnbextension`` in the same way.  Otherwise, install it
    using ``pip``.
 
-..   To verify that interacts work correctly, use......
+   To verify that interacts work correctly, you can evaluate the following code
+   in the notebook::
+
+     @interact
+     def _(k=slider(vmin=-1.0, vmax= 3.0, step_size=0.1, default=0), auto_update=True):
+     plot([lambda u:u^2-1, lambda u:u+k], (-2,2),
+          ymin=-1, ymax=3, fill={1:[0]}, fillalpha=0.5).show()
 
  - For 3D graphics using Three.js, by default, internet connectivity
    is needed, as SageMath's custom build of the Javascript package
    Three.js is retrieved from a content delivery network.
 
-..   To verify that online 3D graphics with Three.js works correctly....
+   To verify that online 3D graphics with Three.js works correctly,
+   you can evaluate the following code in the notebook::
+
+     plot3d(lambda u,v:(u^2+v^2)/4-2,(-2,2),(-2,2)).show()
 
    However, it is possible to configure graphics with Three.js for
    offline use.  In this case, the Three.js installation from the Sage
@@ -114,11 +123,17 @@ these packages using the command
    Sage distribution.  It is not supported to use several Jupyter
    kernels corresponding to different versions of the Sage distribution.
 
-..   To verify that offline 3D graphics with Three.js works correctly.....
+   To verify that offline 3D graphics with Three.js works correctly,
+   you can evaluate the following code in the notebook::
+
+     plot3d(lambda u,v:(u^2+v^2)/4-2,(-2,2),(-2,2), online=False).show()
 
  - For 3D graphics using jsmol, you will need the package
    ``jupyter-jsmol`` installed in the Python environment of the
    Jupyter installation. You can install it using ``pip``.
    (Alternatively, you can copy or symlink it.)
 
-..   To verify that jsmol graphics work correctly.....
+   To verify that jsmol graphics work correctly, you can evaluate the
+   following code in the notebook::
+
+     plot3d(lambda u,v:(u^2+v^2)/4-2,(-2,2),(-2,2)).show(viewer="jmol")

@@ -110,6 +110,17 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         sage: count(cddin, cdd=True, raw_output=False)  # optional - latte_int
         1
 
+    Testing the runtime error::
+
+        sage: P = Polyhedron(rays=[[0,1], [1,0]])
+        sage: cddin = P.cdd_Hrepresentation()
+        sage: count(cddin, cdd=True, raw_output=False)  # optional - latte_int
+        Traceback (most recent call last):
+        ...
+        RuntimeError: LattE integrale program failed (exit code 1):
+        This is LattE integrale ...
+        ...
+        The polyhedron is unbounded.
     """
     # Check that LattE is present
     Latte().require()
@@ -307,6 +318,15 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         ...
         Invocation: integrate --valuation=volume --triangulate --redundancy-check=none --cdd /dev/stdin
         ...
+
+    Testing the runtime error::
+
+        sage: P = Polyhedron(rays=[[0,1], [1,0]])
+        sage: cddin = P.cdd_Hrepresentation()
+        sage: ans = integrate(cddin, cdd=True, raw_output=True, verbose=True)  # optional - latte_int
+        Traceback (most recent call last):
+        ...
+        RuntimeError: ...
     """
     # Check that LattE is present
     Latte().require()
@@ -366,6 +386,8 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
                        cwd=str(SAGE_TMP))
 
     ans, err = latte_proc.communicate(arg)
+    if err:
+        err = bytes_to_str(err)
     ret_code = latte_proc.poll()
     if ret_code:
         if err is None:

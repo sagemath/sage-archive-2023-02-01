@@ -112,7 +112,7 @@ External Packages
    :maxdepth: 1
 
 EOF
-for PKG_BASE in $(./sage --package list --has-file SPKG.rst); do
+for PKG_BASE in $(./sage --package list --has-file SPKG.rst | sort); do
             PKG_SCRIPTS=build/pkgs/$PKG_BASE
             # Instead of just copying, we may want to call
             # a version of sage-spkg-info to format extra information.

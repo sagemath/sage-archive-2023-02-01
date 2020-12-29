@@ -91,6 +91,7 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
         sage: sage.env.SAGE_ENV = dict()
         sage: os.environ['SAGE_FOO'] = 'foo'
         sage: sage.env.var('SAGE_FOO', 'unused')
+        'foo'
         sage: sage.env.SAGE_FOO
         'foo'
         sage: sage.env.SAGE_ENV['SAGE_FOO']
@@ -101,6 +102,7 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
 
         sage: _ = os.environ.pop('SAGE_BAR', None)  # ensure that SAGE_BAR does not exist
         sage: sage.env.var('SAGE_BAR', 'bar')
+        'bar'
         sage: sage.env.SAGE_BAR
         'bar'
         sage: sage.env.SAGE_ENV['SAGE_BAR']
@@ -109,6 +111,7 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
     Test multiple fallbacks::
 
         sage: sage.env.var('SAGE_BAR', None, 'yes', 'no')
+        'yes'
         sage: sage.env.SAGE_BAR
         'yes'
 
@@ -125,9 +128,11 @@ def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[st
 
         sage: os.environ['SAGE_FOO'] = 'foo'
         sage: sage.env.var('SAGE_FOO', 'forced', force=True)
+        'forced'
         sage: sage.env.SAGE_FOO
         'forced'
         sage: sage.env.var('SAGE_FOO', 'forced', force=False)
+        'foo'
         sage: sage.env.SAGE_FOO
         'foo'
     """

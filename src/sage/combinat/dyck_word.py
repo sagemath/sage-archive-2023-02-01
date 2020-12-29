@@ -3476,7 +3476,7 @@ class DyckWords_all(DyckWords):
     """
     def __init__(self):
         """
-        Intialize ``self``.
+        Initialize ``self``.
 
         EXAMPLES::
 

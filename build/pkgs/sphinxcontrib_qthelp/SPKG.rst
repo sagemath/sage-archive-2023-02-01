@@ -1,6 +1,4 @@
-.. _sphinxcontrib_qthelp:
-
-sphinxcontrib-qthelp
+sphinxcontrib_qthelp
 ====================
 
 Description

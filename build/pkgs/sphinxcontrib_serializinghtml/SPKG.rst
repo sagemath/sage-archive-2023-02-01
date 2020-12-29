@@ -1,6 +1,4 @@
-.. _sphinxcontrib_serializinghtml:
-
-sphinxcontrib-serializinghtml
+sphinxcontrib_serializinghtml
 =============================
 
 Description

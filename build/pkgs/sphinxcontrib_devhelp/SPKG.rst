@@ -1,5 +1,3 @@
-.. _sphinxcontrib_devhelp:
-
 sphinxcontrib-devhelp
 =====================
 

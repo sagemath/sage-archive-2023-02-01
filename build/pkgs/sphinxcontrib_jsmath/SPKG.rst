@@ -1,6 +1,4 @@
-.. _sphinxcontrib_jsmath:
-
-sphinxcontrib-jsmath
+sphinxcontrib_jsmath
 ====================
 
 Description

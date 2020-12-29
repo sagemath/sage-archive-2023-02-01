@@ -4,17 +4,16 @@ pycparser
 Description
 -----------
 
-development website: https://github.com/eliben/pycparser PyPI page:
-https://pypi.org/project/pycparser/
+development website: https://github.com/eliben/pycparser
+
+PyPI page: https://pypi.org/project/pycparser/
 
 License
 -------
 
-``* BSD``
-
-.. _upstream_contact:
+BSD
 
 Upstream Contact
 ----------------
 
-``* ``\ ```https://github.com/eliben/pycparser`` <https://github.com/eliben/pycparser>`__
+https://github.com/eliben/pycparser

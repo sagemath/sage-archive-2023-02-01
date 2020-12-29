@@ -1,6 +1,4 @@
-.. _sphinxcontrib_applehelp:
-
-sphinxcontrib-applehelp
+sphinxcontrib_applehelp
 =======================
 
 Description

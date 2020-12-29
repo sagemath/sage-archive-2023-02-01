@@ -1,6 +1,4 @@
-.. _sphinxcontrib_htmlhelp:
-
-sphinxcontrib-htmlhelp
+sphinxcontrib_htmlhelp
 ======================
 
 Description

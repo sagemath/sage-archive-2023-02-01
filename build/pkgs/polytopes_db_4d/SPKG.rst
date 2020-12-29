@@ -15,8 +15,6 @@ License
 
 GPL v2+
 
-.. _spkg_maintainers:
-
 SPKG Maintainers
 ----------------
 

@@ -1638,6 +1638,212 @@ def GeneralizedPetersenGraph(n, k):
     G._circle_embedding(list(range(n, 2*n)), radius=.5, angle=pi/2)
     return G
 
+def IGraph(n, j, k):
+    r"""
+    Return an I-graph with `2n` nodes.
+
+    The variables `n`, `j`, `k` are integers such that `n > 2` and
+    `0 < j, k \leq \lfloor (n - 1) / 2 \rfloor`.
+    When `j = 1` the resulting graph is isomorphic to the generalized Petersen
+    graph with the same `n` and `k`.
+
+    INPUT:
+
+    - ``n`` -- the number of nodes is `2 * n`
+
+    - ``j`` -- integer `0 < j \leq \lfloor (n-1) / 2 \rfloor`. Decides how outer
+      vertices are connected.
+
+    - ``k`` -- integer `0 < k \leq \lfloor (n-1) / 2 \rfloor`. Decides how inner
+      vertices are connected.
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the I-graphs are displayed as an
+    inner and outer cycle pair, with the first n nodes drawn on the outer
+    circle.  The first (0) node is drawn at the top of the outer-circle, moving
+    counterclockwise after that. The inner circle is drawn with the (n)th node
+    at the top, then counterclockwise as well.
+
+    EXAMPLES:
+
+    When `j = 1` the resulting graph will be isomorphic to a generalized
+    Petersen graph::
+
+        sage: g = graphs.IGraph(7,1,2)
+        sage: g2 = graphs.GeneralizedPetersenGraph(7,2)
+        sage: g.is_isomorphic(g2)
+        True
+    """
+    if n < 3:
+        raise ValueError("n must be larger than 2")
+    if j < 1 or j > (n - 1) // 2:
+        raise ValueError("j must be in 1 <= j <= floor((n - 1) / 2)")
+    if k < 1 or k > (n - 1) // 2:
+        raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
+
+    G = Graph(2 * n, name="I-graph (n={}, j={}, k={})".format(n, j, k))
+    for i in range(n):
+        G.add_edge(i, (i + j) % n)
+        G.add_edge(i, i + n)
+        G.add_edge(i + n, n + (i + k) % n)
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
+    G._circle_embedding(list(range(n, 2 * n)), radius=.5, angle=pi/2)
+    return G
+
+def DoubleGeneralizedPetersenGraph(n, k):
+    r"""
+    Return a double generalized Petersen graph with `4n` nodes.
+
+    The variables `n`, `k` are integers such that `n > 2` and 
+    `0 < k \leq \lfloor (n-1) / 2 \rfloor`.
+
+    INPUT:
+
+    - ``n`` - the number of nodes is `4 * n`.
+    - ``k`` - integer 0 < k \leq \lfloor (n-1) / 2 \rfloor`. Decides how
+      vertices on second and third inner rims are connected.
+
+    PLOTTING: Upon construction, the position dictionary is filled to
+    override the spring-layout algorithm. By convention, the double
+    generalized Petersen graphs are displayed as 4 cocentric cycles,
+    with  the first n nodes drawn on the outer circle.
+    The first (0) node is drawn at the top of the outer-circle, moving
+    counterclockwise after that. The second circle is drawn with the
+    (n)th node at the top, then counterclockwise as well. The tird
+    cycle is drawn with the (2n)th node at the top, then counterclockwise.
+    And the fourth cycle is drawn with the (3n)th node at the top, then
+    again counterclockwise.
+
+    EXAMPLES:
+
+    When `n` is even the resulting graph will be isomorphic to a double generalized
+    Petersen graph with `k' = n / 2 - k`::
+
+        sage: g = graphs.DoubleGeneralizedPetersenGraph(10, 2)
+        sage: g2 = graphs.DoubleGeneralizedPetersenGraph(10, 3)
+        sage: g.is_isomorphic(g2)
+        True
+    """
+    if n < 3:
+            raise ValueError("n must be larger than 2")
+    if k < 1 or k > (n - 1) // 2 :
+            raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
+
+    G = Graph(4 * n,  name="Double generalized Petersen graph (n={}, k={})".format(n, k))
+    for i in range(n):
+        G.add_edge(i, (i + 1) % n)
+        G.add_edge(i + 3 * n, (i + 1) % n + 3 * n)
+        G.add_edge(i, i + n)
+        G.add_edge(i + 2 * n, i + 3 * n)
+        G.add_edge(i + n, (i + k) % n + 2 * n)
+        G.add_edge(i+ 2 * n, (i + k) % n + n)
+    G._circle_embedding(list(range(n)), radius=3, angle=pi/2)
+    G._circle_embedding(list(range(n, 2 * n)), radius=2, angle=pi/2)
+    G._circle_embedding(list(range(2 * n, 3 * n)), radius=1.5, angle=pi/2)
+    G._circle_embedding(list(range(3 * n, 4 * n)), radius=0.5, angle=pi/2)
+    return G
+
+def RoseWindowGraph(n, a, k):
+    r"""
+    Return a rose window graph with `2n` nodes.
+
+    The variables `n`, `a`, `k` are integers such that `n > 2` and
+    `0 < k \leq \lfloor (n - 1) / 2 \rfloor` and `a \neq k, n/2`,
+    `0 < a \leq n`.
+
+
+    INPUT:
+
+    - ``n`` -- the number of nodes is `2 * n`,
+
+    - ``a`` - integer `a \neq k`, `a \neq n / 2`, `0 < a < n`, determines a-spoke edges,
+
+    - ``k`` -- integer `0 < k \leq \lfloor (n-1)/2 \rfloor`. Decides how inner
+      vertices are connected.
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the rose window graphs are displayed
+    as an inner and outer cycle pair, with the first n nodes drawn on the outer
+    circle.  The first (0) node is drawn at the top of the outer-circle, moving
+    counterclockwise after that. The inner circle is drawn with the (n)th node
+    at the top, then counterclockwise as well.
+    Vertices in the outer circle are connected in the circular manner, vertices
+    in the inner circle are connected when their label have difference `k` (mod n).
+    Vertices on the outer rim are connected with the vertices on the inner rim when
+    they are at the same position and when they are `a` apart.
+
+    """
+    if n < 3:
+        raise ValueError("n must be larger than 2")
+    if a < 1 or a = k or a = n / 2 or a >= n :
+        raise ValueError("a must be bigger than 1, different than k, n / 2 and smaller than n")
+    if k < 1 or k > (n - 1) // 2:
+        raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
+
+    G = Graph(2 * n, name="rose window graph (n={}, a={}, k={})".format(n, a, k))
+    for i in range(n):
+        G.add_edge(i, (i + 1) % n)
+        G.add_edge(i, i + n)
+        G.add_edge(i + n, n + (i + k) % n)
+        G.add_edge(i, (i + a) % n + n)
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
+    G._circle_embedding(list(range(n, 2 * n)), radius=0.5, angle=pi/2)
+    return G
+
+
+def TabacjnGraph(n, a, b, k):
+    r"""
+    Return a Tabačjn graph with `2n` nodes.
+
+    The variables `n`, `a`, `b`, `k` are integers such that `n > 2`,
+    `0 < k \leq \lfloor (n - 1) / 2 \rfloor`, `a, b \neq k, n/2`,
+    `0 < a, b \leq n` and `a \neq b`.
+
+
+    INPUT:
+
+    - ``n`` -- the number of nodes is `2 * n`,
+
+    - ``a`` - integer `a \neq k, b`, `a \neq n / 2`, `0 < a < n`, determines a-spoke edges,
+
+    - ``b`` - integer `b \neq k, a`, `b \neq n / 2`, `0 < b < n`, determines b-spoke edges,
+
+    - ``k`` -- integer `0 < k \leq \lfloor (n-1)/2 \rfloor`. Decides how inner
+      vertices are connected.
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the rose window graphs are displayed
+    as an inner and outer cycle pair, with the first n nodes drawn on the outer
+    circle.  The first (0) node is drawn at the top of the outer-circle, moving
+    counterclockwise after that. The inner circle is drawn with the (n)th node
+    at the top, then counterclockwise as well.
+    Vertices in the outer circle are connected in the circular manner, vertices
+    in the inner circle are connected when their label have difference `k` (mod n).
+    Vertices on the outer rim are connected with the vertices on the inner rim when
+    they are at the same position and when they are `a` and `b` apart.
+
+    """
+    if n < 3:
+        raise ValueError("n must be larger than 2")
+    if a < 1 or a = k or a = b or a = n / 2 or a >= n :
+        raise ValueError("a must be bigger than 1, different than k, b, n / 2 and smaller than n")
+    if b < 1 or b = k or b = a or b = n / 2 or b >= n :
+        raise ValueError("b must be bigger than 1, different than k, a, n / 2 and smaller than n")
+    if k < 1 or k > (n - 1) // 2:
+        raise ValueError("k must be in 1 <= k <= floor((n - 1) / 2)")
+
+    G = Graph(2 * n, name="Tabačjn graph (n={}, a={}, b={}, k={})".format(n, a, b, k))
+    for i in range(n):
+        G.add_edge(i, (i + 1) % n)
+        G.add_edge(i, i + n)
+        G.add_edge(i + n, n + (i + k) % n)
+        G.add_edge(i, (i + a) % n + n)
+        G.add_edge(i, (i + b) % n + n)
+    G._circle_embedding(list(range(n)), radius=1, angle=pi/2)
+    G._circle_embedding(list(range(n, 2 * n)), radius=0.5, angle=pi/2)
+    return G
+
+
 def HararyGraph( k, n ):
     r"""
     Returns the Harary graph on `n` vertices and connectivity `k`, where

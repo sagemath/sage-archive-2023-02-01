@@ -1,5 +1,5 @@
-Cython
-======
+cython: C-Extensions for Python, an optimizing static compiler
+==============================================================
 
 Description
 -----------

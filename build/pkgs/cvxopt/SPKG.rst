@@ -1,5 +1,5 @@
-CVXOPT
-======
+cvxopt: Python software for convex optimization
+===============================================
 
 Description
 -----------

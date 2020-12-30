@@ -1,5 +1,5 @@
-docutils
-========
+docutils: Processing plaintext documentation into useful formats, such as HTML or LaTeX
+=======================================================================================
 
 Description
 -----------

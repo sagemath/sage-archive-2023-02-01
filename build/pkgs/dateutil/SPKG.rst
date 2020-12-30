@@ -1,5 +1,5 @@
-dateutil
-========
+dateutil: Extensions to the standard Python module datetime
+===========================================================
 
 Description
 -----------

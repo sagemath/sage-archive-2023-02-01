@@ -15,12 +15,26 @@ for ext in rst txt; do
 done
 if [ -r "$PKG_SCRIPTS/type" ] ; then
     echo
-    echo "== Type =="
+    echo "Type"
+    echo "----"
     echo
     cat "$PKG_SCRIPTS/type"
     echo
 fi
-echo "== Equivalent System Packages =="
+echo
+echo "Version Information"
+echo "-------------------"
+echo
+for a in package-version.txt requirements.txt install-requires.txt; do
+    if [ -f "$PKG_SCRIPTS"/"$a" ]; then
+        echo "$a::"
+        echo
+        sed 's/^/    /' "$PKG_SCRIPTS/$a"
+        echo
+    fi
+done
+echo "Equivalent System Packages"
+echo "--------------------------"
 echo
 PKG_DISTROS="$PKG_SCRIPTS"/distros
 for system_package_file in "$PKG_DISTROS"/*.txt; do
@@ -40,8 +54,15 @@ for system_package_file in "$PKG_DISTROS"/*.txt; do
                 echo "$system:"
                 ;;
         esac
-        printf "  "
-        sage-print-system-package-command $system --prompt --sudo install $system_packages
+        if [ -n "$OUTPUT_RST" ]; then
+            echo
+            echo ".. CODE-BLOCK:: bash"
+            echo
+        fi
+        sage-print-system-package-command $system --prompt='    $ ' --sudo install $system_packages
+        if [ -n "$OUTPUT_RST" ]; then
+            echo
+        fi
     fi
 done
 if [ -z "$system" ]; then

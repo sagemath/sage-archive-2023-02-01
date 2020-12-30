@@ -1,5 +1,5 @@
-IPython
-=======
+ipython: Interactive computing environment with an enhanced interactive Python shell
+====================================================================================
 
 Description
 -----------

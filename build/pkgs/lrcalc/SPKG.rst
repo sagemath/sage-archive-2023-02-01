@@ -1,5 +1,5 @@
-lrcalc
-======
+lrcalc: Littlewood-Richardson calculator
+========================================
 
 Description
 -----------

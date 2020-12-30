@@ -1,10 +1,8 @@
-gd
-==
+gd: Dynamic graphics generation tool
+====================================
 
 Description
 -----------
-
-Dynamic graphics generation tool
 
 GD is an open source code library for the dynamic creation of images by
 programmers. GD is written in C, and "wrappers" are available for Perl,

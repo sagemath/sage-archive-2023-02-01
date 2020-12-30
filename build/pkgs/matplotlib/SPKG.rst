@@ -1,5 +1,5 @@
-matplotlib
-==========
+matplotlib: Python 2D plotting library
+======================================
 
 Description
 -----------

@@ -1,6 +1,5 @@
-
-Jmol for Sage
-=============
+jmol: Java viewer for chemical structures in 3D
+===============================================
 
 Description
 -----------

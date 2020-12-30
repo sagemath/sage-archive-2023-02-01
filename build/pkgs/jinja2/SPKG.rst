@@ -1,5 +1,5 @@
-Jinja2
-======
+jinja2: General purpose template engine for Python
+==================================================
 
 Description
 -----------

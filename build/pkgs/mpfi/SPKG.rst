@@ -1,5 +1,5 @@
-MPFI
-====
+mpfi: Multiple precision interval arithmetic library based on MPFR
+==================================================================
 
 Description
 -----------

@@ -1,10 +1,8 @@
-IML
-===
+iml: Integer Matrix Library
+===========================
 
 Description
 -----------
-
-Integer Matrix Library
 
 IML is a free library of C source code which implements algorithms for
 computing exact solutions to dense systems of linear equations over the

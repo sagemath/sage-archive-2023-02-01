@@ -1,5 +1,5 @@
-gfan
-====
+gfan: Groebner fans and tropical varieties
+==========================================
 
 Description
 -----------

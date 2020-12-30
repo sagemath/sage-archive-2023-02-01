@@ -1,5 +1,5 @@
-Givaro
-======
+givaro: C++ library for arithmetic and algebraic computations
+=============================================================
 
 Description
 -----------

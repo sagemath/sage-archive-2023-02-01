@@ -1,5 +1,5 @@
-gsl
-===
+gsl: The GNU Scientific Library
+===============================
 
 Description
 -----------

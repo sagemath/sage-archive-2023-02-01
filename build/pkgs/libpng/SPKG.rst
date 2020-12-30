@@ -1,10 +1,8 @@
-libpng
-======
+libpng: Bitmap image support
+============================
 
 Description
 -----------
-
-Bitmap image support
 
 libpng is the official PNG reference library. It supports almost all PNG
 features, is extensible, and has been extensively tested for over 13

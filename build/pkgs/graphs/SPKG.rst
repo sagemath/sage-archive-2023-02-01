@@ -1,5 +1,5 @@
-graphs
-======
+graphs: A database of combinatorial graphs
+==========================================
 
 Description
 -----------

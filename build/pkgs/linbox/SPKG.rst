@@ -1,5 +1,5 @@
-LinBox
-======
+linbox: Linear algebra with dense, sparse, structured matrices over the integers and finite fields
+==================================================================================================
 
 Description
 -----------

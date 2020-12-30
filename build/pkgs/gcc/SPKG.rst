@@ -1,5 +1,5 @@
-gcc
-===
+gcc: The GNU Compiler Collection, including the C, C++ and Fortran compiler
+===========================================================================
 
 Description
 -----------

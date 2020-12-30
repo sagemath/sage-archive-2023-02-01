@@ -1,5 +1,5 @@
-beautifulsoup4
-==============
+beautifulsoup4: A screen-scraping library
+=========================================
 
 Description
 -----------

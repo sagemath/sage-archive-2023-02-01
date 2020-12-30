@@ -1,5 +1,5 @@
-biopython
-=========
+biopython: Tools for computational molecular biology
+====================================================
 
 Description
 -----------

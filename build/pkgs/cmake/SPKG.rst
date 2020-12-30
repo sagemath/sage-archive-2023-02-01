@@ -1,5 +1,5 @@
-CMake
-=====
+cmake: A cross-platform build system generator
+==============================================
 
 Description
 -----------

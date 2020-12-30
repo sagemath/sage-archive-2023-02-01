@@ -1,5 +1,5 @@
-cffi
-====
+cffi: Foreign Function Interface for Python calling C code
+==========================================================
 
 Description
 -----------

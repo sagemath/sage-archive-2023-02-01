@@ -1,5 +1,5 @@
-Buckygen
-========
+buckygen: Efficient generation of nonisomorphic fullerenes
+==========================================================
 
 Description
 -----------

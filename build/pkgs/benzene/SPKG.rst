@@ -1,5 +1,5 @@
-Benzene
-=======
+benzene: Generate fusenes and benzenoids with a given number of faces
+=====================================================================
 
 Description
 -----------

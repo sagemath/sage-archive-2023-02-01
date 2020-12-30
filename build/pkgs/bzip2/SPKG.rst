@@ -1,5 +1,5 @@
-bzip2
-=====
+bzip2: High-quality data compressor
+===================================
 
 Description
 -----------

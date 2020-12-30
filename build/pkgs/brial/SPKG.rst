@@ -1,5 +1,5 @@
-BRiAl
-=====
+brial: Boolean Ring Algebra implementation using binary decision diagrams
+=========================================================================
 
 Description
 -----------

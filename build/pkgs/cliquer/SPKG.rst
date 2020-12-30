@@ -1,5 +1,5 @@
-Cliquer
-=======
+cliquer: Routines for clique searching
+======================================
 
 Description
 -----------

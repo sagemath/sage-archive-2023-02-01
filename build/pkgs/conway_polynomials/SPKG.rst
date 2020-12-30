@@ -1,6 +1,5 @@
-
-Conway Polynomials Database
-===========================
+conway_polynomials: Tables of Conway polynomials over finite fields
+===================================================================
 
 Description
 -----------

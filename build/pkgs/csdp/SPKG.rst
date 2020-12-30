@@ -1,5 +1,5 @@
-csdp
-====
+csdp: Solver for semidefinite programs
+======================================
 
 Description
 -----------

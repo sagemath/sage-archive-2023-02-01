@@ -1,5 +1,5 @@
-eclib
-=====
+eclib: Enumerating and computing with elliptic curves defined over the rational numbers
+=======================================================================================
 
 Description
 -----------

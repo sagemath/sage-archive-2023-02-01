@@ -1,5 +1,5 @@
-FFLAS/FFPACK
-============
+fflas_ffpack: Dense linear algebra over word-size finite fields
+===============================================================
 
 Description
 -----------

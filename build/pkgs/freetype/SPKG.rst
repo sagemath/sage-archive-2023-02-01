@@ -1,10 +1,8 @@
-FreeType
-========
+freetype: A free, high-quality, and portable font engine
+========================================================
 
 Description
 -----------
-
-Software library to render fonts.
 
 From the documentation:
 

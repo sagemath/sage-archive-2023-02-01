@@ -1,10 +1,8 @@
-GAP
-===
+gap: Groups, Algorithms, Programming - a system for computational discrete algebra
+==================================================================================
 
 Description
 -----------
-
-Groups, Algorithms, Programming - a system for computational discrete algebra
 
 GAP is a system for computational discrete algebra, with particular
 emphasis on Computational Group Theory. GAP provides a programming

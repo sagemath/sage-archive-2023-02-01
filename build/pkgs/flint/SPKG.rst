@@ -1,5 +1,5 @@
-flint
-=====
+flint: Fast Library for Number Theory
+=====================================
 
 Description
 -----------

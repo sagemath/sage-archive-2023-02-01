@@ -227,6 +227,8 @@ on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <https://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
 
+.. _sec-installation-from-sources-linux-recommended-installation:
+
 Linux recommended installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -398,6 +400,25 @@ Optional packages that are also known to be installable via system packages
 include:
 
 .. literalinclude:: cygwin-optional.txt
+
+Ubuntu on Windows Subsystem for Linux (WSL) prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). These instuctions describe a fresh install of Ubuntu 20.10, but other distibutions or installation methods should work too.
+
+- Enable hardware-assisted virtualization in the EFI or BIOS of your system. Refer to your system (or motherboard) maker's documentation for instructions on how to do this.
+
+- Set up WSL by following the `official WSL setup guide <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be sure to do the steps to install WSL2 and set it as default.
+
+- Go to the Microsoft Store and install Ubuntu.
+            
+- Start Ubuntu from the start menu. I'd recommend that you update all packages to the latest version, and consider `upgrading to the latest release <https://linuxconfig.org/how-to-upgrade-ubuntu-to-20-10>`_.
+
+- Reboot the Ubuntu system by going (in Windows) to Services and restarting the LxssManager service, then reopen it from the start menu.
+
+From this point on, follow the instructions in the :ref:`sec-installation-from-sources-linux-recommended-installation` section.
+
+When the installation is complete, you may be interested in :ref:`sec-launching-wsl-post-installation`.
 
 Other platforms
 ^^^^^^^^^^^^^^^
@@ -1611,4 +1632,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in May 2020 (Sage 9.1).**
+**This page was last updated in December 2020 (Sage 9.3).**

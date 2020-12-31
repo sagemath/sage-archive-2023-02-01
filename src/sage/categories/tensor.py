@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
 """
 Tensor Product Functorial Construction
 
 AUTHORS:
 
- - Nicolas M. Thiery (2008-2010): initial revision and refactorization
+- Nicolas M. Thiéry (2008-2010): initial revision and refactorization
 """
 # ****************************************************************************
-#  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2008-2010 Nicolas M. Thiéry <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/

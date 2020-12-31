@@ -5,14 +5,15 @@ AUTHORS:
 
 - Travis Scrimshaw (2019-07): initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2019 Travis Scrimshaw <tcscrims at gamil.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
+
 
 class SignedTensorProductFunctor(CovariantFunctorialConstruction):
     """
@@ -51,6 +52,7 @@ class SignedTensorProductFunctor(CovariantFunctorialConstruction):
     _functor_name = "tensor"
     _functor_category = "SignedTensorProducts"
     symbol = " # "
+    unicode_symbol = " ⨂ "
 
     def _repr_(self):
         """
@@ -64,7 +66,9 @@ class SignedTensorProductFunctor(CovariantFunctorialConstruction):
         #   default _repr_
         return "The signed tensor functorial construction"
 
+
 tensor_signed = SignedTensorProductFunctor()
+
 
 class SignedTensorProductsCategory(CovariantConstructionCategory):
     r"""
@@ -110,4 +114,3 @@ class SignedTensorProductsCategory(CovariantConstructionCategory):
             Integer Ring
         """
         return self.base_category().base()
-

@@ -1311,7 +1311,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                                                for module in modules]).map(tuple)
             CombinatorialFreeModule.__init__(self, modules[0].base_ring(), indices, **options)
             # the following is not the best option, but it's better than nothing.
-            self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
+            if 'tensor_symbol' in options:
+                self._print_options['tensor_symbol'] = options['tensor_symbol']
 
         def _repr_(self):
             r"""
@@ -1381,7 +1382,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: R = NonCommutativeSymmetricFunctions(QQ).R()
                 sage: Partitions.options(diagram_str="#", convention="french")
                 sage: s = unicode_art(tensor((R[1,2], R[3,1,2]))); s
-                R    # R
+                R    ⨂ R
                  ┌┐     ┌┬┬┐
                  ├┼┐    └┴┼┤
                  └┴┘      ├┼┐
@@ -1395,9 +1396,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             if hasattr(self, "_print_options"):
                 symb = self._print_options['tensor_symbol']
                 if symb is None:
-                    symb = tensor.symbol
+                    symb = tensor.unicode_symbol
             else:
-                symb = tensor.symbol
+                symb = tensor.unicode_symbol
             return unicode_art(*(module._unicode_art_term(t)
                                  for module, t in zip(self._sets, term)),
                                sep=UnicodeArt([symb], breakpoints=[len(symb)]))

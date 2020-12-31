@@ -5,14 +5,15 @@ AUTHORS:
 
  - Nicolas M. Thiery (2008-2010): initial revision and refactorization
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008-2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
+
 
 class TensorProductFunctor(CovariantFunctorialConstruction):
     """
@@ -46,8 +47,12 @@ class TensorProductFunctor(CovariantFunctorialConstruction):
     _functor_name = "tensor"
     _functor_category = "TensorProducts"
     symbol = " # "
+    unicode_symbol = " ⨂ "
+
 
 tensor = TensorProductFunctor()
+
+
 """
 The tensor product functorial construction
 
@@ -58,6 +63,7 @@ EXAMPLES::
     sage: tensor
     The tensor functorial construction
 """
+
 
 class TensorProductsCategory(CovariantConstructionCategory):
     r"""
@@ -100,4 +106,3 @@ class TensorProductsCategory(CovariantConstructionCategory):
             Integer Ring
         """
         return self.base_category().base()
-

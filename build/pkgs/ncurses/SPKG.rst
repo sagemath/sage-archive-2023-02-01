@@ -1,4 +1,4 @@
-Ncurses: Classic terminal output library
+ncurses: Classic terminal output library
 ========================================
 
 Description

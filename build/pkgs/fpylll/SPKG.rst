@@ -1,5 +1,5 @@
-fpylll
-======
+fpylll: Python interface for FPLLL
+==================================
 
 Description
 -----------

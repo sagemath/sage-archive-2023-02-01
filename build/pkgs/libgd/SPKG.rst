@@ -1,5 +1,5 @@
-gd: Dynamic graphics generation tool
-====================================
+libgd: Dynamic graphics generation tool
+=======================================
 
 Description
 -----------

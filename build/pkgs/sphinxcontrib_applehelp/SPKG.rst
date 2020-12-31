@@ -1,5 +1,5 @@
-sphinxcontrib_applehelp
-=======================
+sphinxcontrib_applehelp: Sphinx extension which outputs Apple help book
+=======================================================================
 
 Description
 -----------

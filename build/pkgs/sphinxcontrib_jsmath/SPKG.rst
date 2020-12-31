@@ -1,5 +1,5 @@
-sphinxcontrib_jsmath
-====================
+sphinxcontrib_jsmath: Sphinx extension which renders display math in HTML via JavaScript
+========================================================================================
 
 Description
 -----------

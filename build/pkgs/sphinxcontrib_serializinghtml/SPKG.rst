@@ -1,5 +1,5 @@
-sphinxcontrib_serializinghtml
-=============================
+sphinxcontrib_serializinghtml: Sphinx extension which outputs serialized HTML files
+===================================================================================
 
 Description
 -----------

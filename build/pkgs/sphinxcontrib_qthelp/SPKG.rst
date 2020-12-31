@@ -1,5 +1,5 @@
-sphinxcontrib_qthelp
-====================
+sphinxcontrib_qthelp: Sphinx extension which outputs QtHelp documents
+=====================================================================
 
 Description
 -----------

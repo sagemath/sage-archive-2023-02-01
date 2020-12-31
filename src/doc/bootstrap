@@ -108,6 +108,48 @@ cat > "$OUTPUT_INDEX" <<EOF
 External Packages
 =================
 
+Standard Packages
+-----------------
+
+EOF
+for PKG_BASE in $(./sage --package list --has-file SPKG.rst :standard: | sort); do
+    echo "* :ref:\`spkg_$PKG_BASE\`"
+done >> "$OUTPUT_INDEX"
+cat >> "$OUTPUT_INDEX" <<EOF
+
+Optional Packages
+-----------------
+
+EOF
+for PKG_BASE in $(./sage --package list --has-file SPKG.rst :optional: | sort); do
+    echo "* :ref:\`spkg_$PKG_BASE\`"
+done >> "$OUTPUT_INDEX"
+cat >> "$OUTPUT_INDEX" <<EOF
+
+Experimental Packages
+---------------------
+
+EOF
+for PKG_BASE in $(./sage --package list --has-file SPKG.rst :experimental: | sort); do
+    echo "* :ref:\`spkg_$PKG_BASE\`"
+done >> "$OUTPUT_INDEX"
+cat >> "$OUTPUT_INDEX" <<EOF
+
+Detailed Listing of External Packages
+-------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   index_alph
+
+EOF
+
+OUTPUT_INDEX="$OUTPUT_DIR"/index_alph.rst
+cat >> "$OUTPUT_INDEX" <<EOF
+External Packages (alphabetical order)
+======================================
+
 .. toctree::
    :maxdepth: 1
 
@@ -116,12 +158,10 @@ for PKG_BASE in $(./sage --package list --has-file SPKG.rst | sort); do
             PKG_SCRIPTS=build/pkgs/$PKG_BASE
             # Instead of just copying, we may want to call
             # a version of sage-spkg-info to format extra information.
-            OUTPUT_RST=1 ./sage --info $PKG_BASE > "$OUTPUT_DIR"/$PKG_BASE.rst
+
+            (echo ".. _spkg_$PKG_BASE:" && echo && OUTPUT_RST=1 ./sage --info $PKG_BASE) > "$OUTPUT_DIR"/$PKG_BASE.rst
             echo >> "$OUTPUT_INDEX" "   $PKG_BASE"
 done
-cat >> "$OUTPUT_INDEX" <<EOF
-.. include:: ../footer.txt
-EOF
 
 # #30064: Create the directory first
 OUTPUT_DIR="src/doc/en/reference/repl"

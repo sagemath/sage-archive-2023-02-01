@@ -209,8 +209,9 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
         c = RCF.zero()
         u, t = RCF.gens()
         for l in L:
-            a += u**2 / ((t - l) * (t - l.conjugate()) + u**2)
-            c += (t - l.real()) / ((t - l) * (t - l.conjugate()) + u**2)
+            denom = ((t - l) * (t - l.conjugate()) + u**2)
+            a += u**2 / denom
+            c += (t - l.real()) / denom
         # Newton's Method, to find solutions. Error bound is less than diameter of our z
         err = z.diameter()
         zz = z.diameter()
@@ -225,12 +226,17 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
             NJinv = NJ.inverse()
             # inverse for CIF matrix seems to return fractions not CIF elements, fix them
             if NJinv.base_ring() != CF:
-                NJinv = matrix(CF, 2, 2, [CF(zw.numerator()/zw.denominator()) for zw in NJinv.list()])
+                NJinv = matrix(CF, 2, 2, [CF(zw.numerator() / zw.denominator())
+                                          for zw in NJinv.list()])
             w = z
             v0 = v0 - NJinv*G.subs({u: v0[0], t: v0[1]})
             z = v0[1].constant_coefficient() + v0[0].constant_coefficient()*CF.gen(0)
             err = z.diameter()  # precision
             zz = (w - z).abs()  # difference in w and z
+        else:
+            # despite there is no break, this happens
+            if err > error_limit or err.is_NaN():
+                raise ValueError("accuracy of Newton's root not within tolerance(%s > %s), increase precision" % (err, error_limit))
         if z.imag() <= z.diameter():
             raise ArithmeticError("Newton's method converged to z not in the upper half plane")
         z = z.center()
@@ -362,10 +368,10 @@ def epsinv(F, target, prec=53, target_tol=0.001, z=None, emb=None):
     vl = vu
     du = dn
     vu = vn
-    while (du-dl).abs() >= target_tol or max(vl, vu) < target:
+    while (du - dl).abs() >= target_tol or max(vl, vu) < target:
         l2 = (vu.log() - logt).n(prec=prec)
         l1 = (vl.log() - logt).n(prec=prec)
-        dn = (dl*l2 - du*l1)/(l2 - l1)
+        dn = (dl * l2 - du * l1) / (l2 - l1)
         vn = epsF(dn)
         dl = du
         vl = vu
@@ -540,7 +546,7 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
     count = 0
     pts = [[G, v0, rep, MG, coshdelta(v0), 0]]  # label - 0:None, 1:S, 2:T, 3:T^(-1)
     current_min = [G, v0, rep, MG, coshdelta(v0)]
-    while pts != []:
+    while pts:
         G, v, rep, M, D, label = pts.pop()
         # apply ST and keep z, Sz
         if D > R:

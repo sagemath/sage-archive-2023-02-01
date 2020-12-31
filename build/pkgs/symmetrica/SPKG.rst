@@ -1,5 +1,5 @@
-symmetrica
-==========
+symmetrica: Library for representation theory
+=============================================
 
 Description
 -----------

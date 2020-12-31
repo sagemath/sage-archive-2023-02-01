@@ -1,5 +1,5 @@
-numpy
-=====
+numpy: Package for scientific computing with Python
+===================================================
 
 Description
 -----------

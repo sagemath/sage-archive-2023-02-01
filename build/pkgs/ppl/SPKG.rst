@@ -1,6 +1,5 @@
-
-Parma Polyhedra Library
-=======================
+ppl: Parma Polyhedra Library
+============================
 
 Description
 -----------

@@ -1,5 +1,5 @@
-rpy2
-====
+rpy2: Python interface to R
+===========================
 
 Description
 -----------

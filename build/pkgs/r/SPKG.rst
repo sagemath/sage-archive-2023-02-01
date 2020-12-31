@@ -1,5 +1,5 @@
-R
-=
+r: A free software environment for statistical computing and graphics
+=====================================================================
 
 Description
 -----------

@@ -1,5 +1,5 @@
-Singular
-========
+singular: Computer algebra system for polynomial computations, algebraic geometry, singularity theory
+=====================================================================================================
 
 Description
 -----------

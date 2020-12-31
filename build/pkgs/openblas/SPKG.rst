@@ -1,5 +1,5 @@
-OpenBLAS
-========
+openblas: An optimized implementation of BLAS (Basic Linear Algebra Subprograms)
+================================================================================
 
 Description
 -----------

@@ -1,5 +1,5 @@
-Pygments
-========
+pygments: Generic syntax highlighter
+====================================
 
 Description
 -----------

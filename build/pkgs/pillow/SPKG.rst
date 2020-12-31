@@ -1,5 +1,5 @@
-Pillow
-======
+pillow: Python Imaging Library
+==============================
 
 Description
 -----------

@@ -1,10 +1,8 @@
-scipy
-=====
+scipy: Scientific tools for Python
+==================================
 
 Description
 -----------
-
-Scientific tools for Python.
 
 SciPy (pronounced "Sigh Pie") is open-source software for mathematics,
 science, and engineering. The SciPy library depends on NumPy, which

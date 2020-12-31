@@ -1,5 +1,5 @@
-ratpoints
-=========
+ratpoints: Find rational points on hyperelliptic curves
+=======================================================
 
 Description
 -----------

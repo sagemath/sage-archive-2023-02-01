@@ -1,5 +1,5 @@
-Sphinx
-======
+sphinx: Python documentation generator
+======================================
 
 Description
 -----------

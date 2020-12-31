@@ -1,5 +1,5 @@
-patch
-=====
+patch: Applies diffs and patches to files
+=========================================
 
 Description
 -----------
@@ -9,7 +9,7 @@ the 'diff' program and applies those differences to one or more original
 files, producing patched versions.
 
 The version of 'patch' included is the GNU one. Some of the 'diff' files
-produced by GNU 'diff' are not acceptble to some versions of the 'patch'
+produced by GNU 'diff' are not acceptable to some versions of the 'patch'
 command, such as the 'patch' command that comes with Solaris.
 
 License

@@ -1,5 +1,5 @@
-tachyon
-=======
+tachyon: A ray tracing system
+=============================
 
 Description
 -----------

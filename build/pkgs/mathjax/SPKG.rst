@@ -1,5 +1,5 @@
-MathJax
-=======
+mathjax: A JavaScript library for displaying mathematical formulas
+==================================================================
 
 Description
 -----------

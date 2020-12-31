@@ -1,5 +1,5 @@
-mpmath
-======
+mpmath: Pure Python library for multiprecision floating-point arithmetic
+========================================================================
 
 Description
 -----------

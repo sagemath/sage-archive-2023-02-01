@@ -1,5 +1,5 @@
-SageTeX
-=======
+sagetex: Embed code, results of computations, and plots from Sage into LaTeX documents
+======================================================================================
 
 Description
 -----------

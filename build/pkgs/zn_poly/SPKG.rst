@@ -1,5 +1,5 @@
-zn_poly
-=======
+zn_poly: C library for polynomial arithmetic in Z/nZ[x]
+=======================================================
 
 Description
 -----------

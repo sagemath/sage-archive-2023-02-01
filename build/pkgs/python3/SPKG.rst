@@ -1,5 +1,5 @@
-python3
-=======
+python3: The Python programming language
+========================================
 
 Description
 -----------

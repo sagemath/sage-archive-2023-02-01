@@ -1,5 +1,5 @@
-pynac
-=====
+pynac: A fork of the symbolic computation software GiNaC that uses Python objects
+=================================================================================
 
 Description
 -----------

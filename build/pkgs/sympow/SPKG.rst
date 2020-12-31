@@ -1,5 +1,5 @@
-sympow
-======
+sympow: Computes special values of symmetric power elliptic curve L-functions
+=============================================================================
 
 Description
 -----------

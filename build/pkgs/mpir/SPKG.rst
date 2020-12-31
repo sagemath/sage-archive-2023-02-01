@@ -1,5 +1,5 @@
-MPIR
-====
+mpir: Multiple precision integers and rationals (fork of GMP)
+=============================================================
 
 Description
 -----------

@@ -1,5 +1,5 @@
-SQLite
-======
+sqlite: An SQL database engine
+==============================
 
 Description
 -----------

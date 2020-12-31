@@ -1,5 +1,5 @@
-rubiks
-======
+rubiks: Programs for Rubik's cube
+=================================
 
 Description
 -----------

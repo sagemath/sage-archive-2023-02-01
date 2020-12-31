@@ -1,5 +1,5 @@
-SymPy
-=====
+sympy: Python library for symbolic mathematics
+==============================================
 
 Description
 -----------

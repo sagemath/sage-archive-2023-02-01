@@ -1,5 +1,5 @@
-4D Reflexive Polytopes Database
-===============================
+polytopes_db_4d: Database of 4-dimensional reflexive polytopes
+==============================================================
 
 Description
 -----------

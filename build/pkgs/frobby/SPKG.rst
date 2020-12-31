@@ -1,5 +1,5 @@
-Frobby
-======
+frobby: Computations on monomial ideals
+=======================================
 
 Description
 -----------

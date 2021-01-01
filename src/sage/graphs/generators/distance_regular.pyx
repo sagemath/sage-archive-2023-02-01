@@ -2173,6 +2173,153 @@ def graph_with_classical_parameters(int d, int b, alpha_in, beta_in, int gamma):
 
     raise ValueError("Incorrect family of graphs")
 
+def is_pseudo_partition_graph(list arr):
+    r"""
+    Return `(m, a)` if the intersection array given satisfies:
+    `b_i = (m - i)(1 + a(m - 1 - i))` for `0 \leq i < d`
+    `c_i = i(1 + a(i - 1))` for `0 \leq i < d`
+    `c_d = (2d + 2 - m) d (1 + a(d - 1))` where `d` is the diameter of the graph.
+
+    If such pair `(m, a)` doesn't exist or the diameter is less than 3, then
+    this function returns ``False``.
+
+    These graphs are called pseudo partition graphs in [BCN1989]_ chapter 6.3.
+
+    INPUT:
+
+    - ``arr`` -- list; intersection array
+
+    OUTPUT:
+
+    A pair `(m, a)` of integers or ``False`` if such pair doesn't exist.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: is_pseudo_partition_graph([36, 25, 16, 1, 4, 18])
+        (6, 1)
+        sage: pseudo_partition_graph(6, 1)
+        Folded Johnson graph with parameters 12,6: Graph on 462 vertices
+        sage: _.is_distance_regular(True)
+        ([36, 25, 16, None], [None, 1, 4, 18])
+
+    REFERENCE:
+
+    See [BCN1989]_ pp. 197, 198 or [VDKT2016]_ pp. 38, 39.
+
+    TESTS::
+
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: is_pseudo_partition_graph([])
+        False
+        sage: is_pseudo_partition_graph([36, 25, 16, 1, 0, 18])
+        False
+        sage: is_pseudo_partition_graph([217, 156, 105, 1, 12, 33])
+        (7, 5)
+        sage: pseudo_partition_graph(7, 5)
+        Traceback (most recent call last):
+        ...
+        ValueError: No known graph exists
+    """
+    d = len(arr)
+    if d % 2 != 0:
+        return False
+
+    d = d // 2
+
+    if d < 3 :
+        return False
+
+    # c_2 = 2 (1+a)
+    c2 = arr[d+1]
+    if c2 % 2 != 0:
+        return False
+    a = c2//2 - 1
+
+    cd = arr[2*d - 1]
+    K = d * (1+a * (d-1))
+    if cd % K != 0:
+        return False
+
+    gamma = cd // K
+    m = 2*d + 2 - gamma
+
+    # we must have m = 2*d or 2*d +1
+    if m not in {2*d, 2*d + 1}:
+        return False
+
+    newArr = [(m-i) * (1 + a * (m-1-i)) for i in range(d)] + \
+             [i * (1 + a * (i-1)) for i in range(1, d)] + \
+             [(2*d + 2 - m) * d * (1 + a * (d-1))]
+
+    if arr == newArr:
+        return (m, a)
+
+    return False
+
+def pseudo_partition_graph(int m, int a):
+    r"""
+    Return a pseudo partition graph with the given parameters.
+
+    A graph is a pseudo partition graph if it is distance-regular with
+    diameter at least 3 and whose intersection numbers satisfy:
+    `b_i = (m - i)(1 + a(m - 1 - i))` for `0 \leq i < d`
+    `c_i = i(1 + a(i - 1))` for `0 \leq i < d`
+    `c_d = (2d + 2 - m) d (1 + a(d - 1))` where `d` is the diameter of the graph.
+
+    INPUT:
+
+    - ``m, a`` -- integers; parameters of the graph
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: pseudo_partition_graph(6, 1)
+        Folded Johnson graph with parameters 12,6: Graph on 462 vertices
+
+    Not all graphs built with this function are psuedo partition graphs as
+    intended by
+    :func:`sage.graphs.generators.distance_regular.is_pseudo_partition_graph`,
+    since that function requires the diameter to be at least 3::
+
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: pseudo_partition_graph(3, 1)
+        Folded Johnson graph with parameters 6,3: Graph on 10 vertices
+        sage: G=_; G.is_distance_regular(True)
+        ([9, None], [None, 1])
+        sage: is_pseudo_partition_graph([9, 1])
+        False
+
+    REFERENCES:
+
+    See [BCN1989]_ pp. 197, 198 or [VDKT2016]_ pp. 38, 39 for a discussion of
+    known pseudo partition graphs.
+
+    TESTS::
+
+        sage: from sage.graphs.generators.distance_regular import *
+        sage: pseudo_partition_graph(3, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: No known graph exists
+        sage: pseudo_partition_graph(8, 0).is_distance_regular(True)
+        ([8, 7, 6, 5, None], [None, 1, 2, 3, 8])
+        sage: pseudo_partition_graph(6, 2).is_distance_regular(True)
+        ([66, 45, 28, None], [None, 1, 6, 30])
+    """
+    from sage.graphs.generators.families import JohnsonGraph, FoldedCubeGraph
+    from sage.graphs.bipartite_graph import BipartiteGraph
+
+    if a == 0:
+        return FoldedCubeGraph(m)
+    elif a == 1:
+        return JohnsonGraph(2 * m, m).folded_graph()
+    elif a == 2:
+        return BipartiteGraph(FoldedCubeGraph(2 * m)).project_left()
+
+    raise ValueError("No known graph exists")
+
+
 
 # dictionary intersection_array (as tuple)  -> construction
 # of spordaic distance-regular graphs
@@ -2239,6 +2386,7 @@ _sporadic_graph_database = {
 
 _infinite_families_database = [
     (is_classical_parameters_graph, graph_with_classical_parameters),
+    (is_pseudo_partition_graph, pseudo_partition_graph),
     (is_from_GQ_spread, graph_from_GQ_spread),
 ]
 
@@ -2296,6 +2444,8 @@ def distance_regular_graph(list arr, existence=False, check=True):
         sage: graphs.distance_regular_graph([14, 12, 10, 8, 6, 4, 2,
         ....: 1, 2, 3, 4, 5, 6, 7])
         Hamming Graph with parameters 7,3: Graph on 2187 vertices
+        sage: graphs.distance_regular_graph([66, 45, 28, 1, 6, 30])
+        Graph on 1024 vertices
         sage: graphs.distance_regular_graph([64, 60, 1, 1, 15, 64], check=True)
         Graph on 325 vertices
     """

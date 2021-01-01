@@ -404,7 +404,7 @@ include:
 Ubuntu on Windows Subsystem for Linux (WSL) prerequisite installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). These instuctions describe a fresh install of Ubuntu 20.10, but other distibutions or installation methods should work too.
+Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). These instructions describe a fresh install of Ubuntu 20.10, but other distibutions or installation methods should work too, though have not been tested.
 
 - Enable hardware-assisted virtualization in the EFI or BIOS of your system. Refer to your system (or motherboard) maker's documentation for instructions on how to do this.
 
@@ -412,9 +412,16 @@ Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). T
 
 - Go to the Microsoft Store and install Ubuntu.
             
-- Start Ubuntu from the start menu. I'd recommend that you update all packages to the latest version, and consider `upgrading to the latest release <https://linuxconfig.org/how-to-upgrade-ubuntu-to-20-10>`_.
+- Start Ubuntu from the start menu. Update all packages to the latest version.
 
-- Reboot the Ubuntu system by going (in Windows) to Services and restarting the LxssManager service, then reopen it from the start menu.
+- Reboot the all running WSL instances one of the following ways:
+
+  - Open Windows Services and restart the LxssManager service.
+  - Open the Command Prompt or Powershell and enter this command::
+
+      wsl --shutdown
+
+- `Upgrade to the Ubuntu 20.10 <https://linuxconfig.org/how-to-upgrade-ubuntu-to-20-10>`_. This step will not be necessary once Ubuntu 20.10 is available in the Microsoft Store.
 
 From this point on, follow the instructions in the :ref:`sec-installation-from-sources-linux-recommended-installation` section.
 

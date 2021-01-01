@@ -111,6 +111,10 @@ External Packages
 Standard Packages
 -----------------
 
+The Sage distribution includes most programs and libraries on which
+Sage depends.  It installs them automatically if it does not find
+equivalent system packages.
+
 EOF
 for PKG_BASE in $(./sage --package list --has-file SPKG.rst :standard: | sort); do
     echo "* :ref:\`spkg_$PKG_BASE\`"
@@ -120,6 +124,9 @@ cat >> "$OUTPUT_INDEX" <<EOF
 Optional Packages
 -----------------
 
+For additional functionality, you can install some of the following
+optional packages.
+
 EOF
 for PKG_BASE in $(./sage --package list --has-file SPKG.rst :optional: | sort); do
     echo "* :ref:\`spkg_$PKG_BASE\`"
@@ -128,6 +135,10 @@ cat >> "$OUTPUT_INDEX" <<EOF
 
 Experimental Packages
 ---------------------
+
+Some packages that provide additional functionality are marked as
+"experimental".  Developers are needed in order to improve the
+integration of these packages into the Sage distribution.
 
 EOF
 for PKG_BASE in $(./sage --package list --has-file SPKG.rst :experimental: | sort); do

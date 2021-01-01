@@ -230,14 +230,9 @@ def coproduct_iterator(paire):
 
         sage: from sage.modular.multiple_zeta import coproduct_iterator
         sage: list(coproduct_iterator(([0],[0,1,0,1])))
-        [[0, 1, 2, 3], [0, 3]]
+        [[0, 1, 2, 3]]
         sage: list(coproduct_iterator(([0],[0,1,0,1,1,0,1])))
-        [[0, 1, 2, 3, 4, 5, 6],
-         [0, 1, 2, 6],
-         [0, 1, 5, 6],
-         [0, 3, 4, 5, 6],
-         [0, 4, 5, 6],
-         [0, 6]]
+        [[0, 1, 2, 3, 4, 5, 6], [0, 1, 2, 6], [0, 1, 5, 6], [0, 4, 5, 6], [0, 6]]
     """
     head, tail = paire
     n = len(tail)
@@ -247,7 +242,9 @@ def coproduct_iterator(paire):
     start_value = tail[0]
     last_index = head[-1]
     yield from coproduct_iterator((head + [last_index + 1], tail[1:]))
-    for step in range(3, n):
+    for step in range(4, n):
+        if step == 5:
+            continue
         if tail[step] != start_value:
             yield from coproduct_iterator((head + [last_index + step],
                                            tail[step:]))

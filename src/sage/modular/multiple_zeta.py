@@ -168,7 +168,7 @@ REFERENCES:
 import numbers
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.richcmp import op_EQ,op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 from sage.structure.element import parent
 from sage.algebras.free_zinbiel_algebra import FreeZinbielAlgebra
 from sage.arith.misc import bernoulli
@@ -1241,7 +1241,7 @@ class Multizetas(CombinatorialFreeModule):
                 if v:
                     Bd = basis(d)
                     P = matrix(QQ, [z.phi_as_vector() for z in Bd])
-                    result += sum(x*z for x,z in zip(P.solve_left(v), Bd))
+                    result += sum(x * z for x, z in zip(P.solve_left(v), Bd))
             return result
 
         def __bool__(self):
@@ -1949,6 +1949,20 @@ class Multizetas_iterated(CombinatorialFreeModule):
             return summing(minimize_term(w, cf)
                            for w, cf in self.monomial_coefficients().items())
 
+        def coproduct(self):
+            """
+            Return the coproduct of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.modular.multiple_zeta import Multizetas_iterated
+                sage: M = Multizetas_iterated(QQ)
+                sage: a = 3*Multizeta(1,3) + Multizeta(2,3)
+                sage: a.iterated().coproduct()
+                3*I() # I(1100) + I() # I(10100) + I(10100) # I() + 3*I(100) # I(10)
+            """
+            return self.parent().coproduct(self)
+
         def composition(self):
             """
             Convert to the algebra of multiple zeta values of composition style.
@@ -2064,6 +2078,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 raise TypeError('invalid comparison for multizetas')
             return (self - other).is_zero() == (op == op_EQ)
 
+
 class All_iterated(CombinatorialFreeModule):
     r"""
     Auxiliary class for multiple zeta value as generalized iterated integrals.
@@ -2168,7 +2183,7 @@ class All_iterated(CombinatorialFreeModule):
         w = W(x)
         # condition R1 of F. Brown
         if w[0] == w[-1] or (len(w) >= 4 and
-                                 all(x == w[1] for x in w[2:-1])):
+                             all(x == w[1] for x in w[2:-1])):
             return self.zero()
         return self.monomial(w)
 
@@ -2287,10 +2302,9 @@ class All_iterated(CombinatorialFreeModule):
         if w[1] == 1:
             return self(w)
 
-        mot = w[1:-1]
         n_zeros = []
         k = 0
-        for x in mot:
+        for x in w[1:-1]:
             if x == 0:
                 k += 1
             else:

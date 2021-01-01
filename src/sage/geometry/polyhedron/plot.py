@@ -122,7 +122,7 @@ def cyclic_sort_vertices_2d(Vlist):
                 break
         else:
             result += chain
-            chain = [ Vlist.pop() ]
+            chain = [Vlist.pop()]
     result += chain
     return result
 
@@ -182,16 +182,16 @@ class ProjectionFuncStereographic():
         self.psize = norm(pproj)
         if (self.psize).is_zero():
             raise ValueError("projection direction must be a non-zero vector.")
-        v = vector(RDF, [0.0]*(self.dim-1) + [-self.psize]) - pproj
+        v = vector(RDF, [0.0] * (self.dim - 1) + [-self.psize]) - pproj
         polediff = matrix(RDF, v).transpose()
-        denom = RDF((polediff.transpose()*polediff)[0][0])
+        denom = RDF((polediff.transpose() * polediff)[0][0])
         if denom.is_zero():
             self.house = identity_matrix(RDF, self.dim)
         else:
             house = identity_matrix(RDF, self.dim) \
             - 2*polediff*polediff.transpose()/denom   # Householder reflector
             # Make it preserve orientation (chirality):
-            self.house = diagonal_matrix(RDF,[1]*(self.dim - 1) + [-1] ) * house
+            self.house = diagonal_matrix(RDF, [1] * (self.dim - 1) + [-1]) * house
 
     def __call__(self, x):
         """
@@ -225,11 +225,11 @@ class ProjectionFuncStereographic():
             (0.5, 0.0)
         """
         img = self.house * x
-        denom = self.psize-img[self.dim-1]
+        denom = self.psize - img[self.dim - 1]
         if denom.is_zero():
-            raise ValueError('Point cannot coincide with ' \
-                'coordinate singularity at ' + repr(x))
-        return vector(RDF, [img[i]/denom for i in range(self.dim-1)])
+            raise ValueError('Point cannot coincide with '
+                             'coordinate singularity at ' + repr(x))
+        return vector(RDF, [img[i] / denom for i in range(self.dim - 1)])
 
 
 class ProjectionFuncSchlegel():
@@ -359,7 +359,7 @@ class Projection(SageObject):
         self.parent_polyhedron = polyhedron
         self.coords = Sequence([])
         self.points = Sequence([])
-        self.lines  = Sequence([])
+        self.lines = Sequence([])
         self.arrows = Sequence([])
         self.polygons = Sequence([])
         self.polyhedron_ambient_dim = polyhedron.ambient_dim()
@@ -478,7 +478,7 @@ class Projection(SageObject):
           from the barycenter of ``facet``. A value close to 0 will place the
           projection point close to the facet and a large value further away.
           If the given value is too large, an error is returned.
-          If no position is given, it takes the midpoint of the possible 
+          If no position is given, it takes the midpoint of the possible
           point of views along a line spanned by the barycenter of the facet
           and a valid point outside the facet.
 
@@ -530,12 +530,12 @@ class Projection(SageObject):
         if position is not None and position <= 0:
             raise ValueError("'position' should be a positive number")
 
-        barycenter = ZZ.one()*sum([v.vector() for v in facet.vertices()]) / len(facet.vertices())
+        barycenter = ZZ.one() * sum([v.vector() for v in facet.vertices()]) / len(facet.vertices())
         locus_polyhedron = facet.stacking_locus()
         repr_point = locus_polyhedron.representative_point()
         if position is None:
             # Figure out a somehow canonical point of view inside the locus
-            # polyhedron 
+            # polyhedron
             from sage.geometry.polyhedron.constructor import Polyhedron
             the_ray = Polyhedron(vertices=[barycenter],
                                  rays=[repr_point - barycenter],
@@ -682,7 +682,7 @@ class Projection(SageObject):
             [0, 1, 2, 3]
         """
         for v in polyhedron.vertex_generator():
-            self.points.append( self.coord_index_of(v.vector()) )
+            self.points.append(self.coord_index_of(v.vector()))
 
     def _init_lines_arrows(self, polyhedron):
         """
@@ -703,9 +703,10 @@ class Projection(SageObject):
         """
         obj = polyhedron.Vrepresentation()
         for i in range(len(obj)):
-            if not obj[i].is_vertex(): continue
+            if not obj[i].is_vertex():
+                continue
             for j in range(len(obj)):
-                if polyhedron.vertex_adjacency_matrix()[i,j] == 0:
+                if polyhedron.vertex_adjacency_matrix()[i, j] == 0:
                     continue
                 if i < j and obj[j].is_vertex():
                     l = [obj[i].vector(), obj[j].vector()]
@@ -743,8 +744,10 @@ class Projection(SageObject):
 
         def adjacent_vertices(i):
             n = len(vertices)
-            if vertices[(i-1) % n].is_vertex(): yield vertices[(i-1) % n]
-            if vertices[(i+1) % n].is_vertex(): yield vertices[(i+1) % n]
+            if vertices[(i-1) % n].is_vertex():
+                yield vertices[(i-1) % n]
+            if vertices[(i+1) % n].is_vertex():
+                yield vertices[(i+1) % n]
 
         for i in range(len(vertices)):
             v = vertices[i]
@@ -764,8 +767,8 @@ class Projection(SageObject):
             aline = next(polyhedron.line_generator())
             for shift in [aline(), -aline()]:
                 for i in range(len(coords)):
-                    polygons.append( [ coords[i-1],coords[i],
-                                       coords[i]+shift, coords[i-1]+shift ] )
+                    polygons.append([coords[i - 1], coords[i],
+                                     coords[i] + shift, coords[i - 1] + shift])
 
         if polyhedron.n_lines() == 2:
             [line1, line2] = [l for l in polyhedron.lines()]
@@ -856,9 +859,9 @@ class Projection(SageObject):
             l1 = line1()
             l2 = line2()
             for v in polyhedron.vertex_generator():
-                polygons.append( [v()-l1-l2, v()+l1-l2, v()+l1+l2, v()-l1+l2] )
+                polygons.append([v()-l1-l2, v()+l1-l2, v()+l1+l2, v()-l1+l2])
 
-        self.polygons.extend( [self.coord_indices_of(p) for p in polygons] )
+        self.polygons.extend([self.coord_indices_of(p) for p in polygons])
 
     def render_points_1d(self, **kwds):
         """
@@ -938,10 +941,10 @@ class Projection(SageObject):
         wireframe = []
         for l in self.lines:
             l_coords = self.coordinates_of(l)
-            wireframe.append( line2d(l_coords, **kwds) )
+            wireframe.append(line2d(l_coords, **kwds))
         for a in self.arrows:
             a_coords = self.coordinates_of(a)
-            wireframe.append( arrow(a_coords[0], a_coords[1], **kwds) )
+            wireframe.append(arrow(a_coords[0], a_coords[1], **kwds))
         return sum(wireframe)
 
     def render_fill_2d(self, **kwds):
@@ -958,7 +961,7 @@ class Projection(SageObject):
             0.8
         """
         poly = [polygon2d(self.coordinates_of(p), **kwds)
-                 for p in self.polygons]
+                for p in self.polygons]
         return sum(poly)
 
     def render_vertices_3d(self, **kwds):
@@ -990,7 +993,7 @@ class Projection(SageObject):
         wireframe = []
         for l in self.lines:
             l_coords = self.coordinates_of(l)
-            wireframe.append( line3d(l_coords, **kwds))
+            wireframe.append(line3d(l_coords, **kwds))
         for a in self.arrows:
             a_coords = self.coordinates_of(a)
             wireframe.append(arrow3d(a_coords[0], a_coords[1], **kwds))
@@ -1011,7 +1014,7 @@ class Projection(SageObject):
         N = max([-1] + [i for p in polys for i in p]) + 1
         return polygons3d(polys, self.coordinates_of(range(N)), **kwds)
 
-    def render_0d(self, point_opts={}, line_opts={}, polygon_opts={}):
+    def render_0d(self, point_opts=None, line_opts=None, polygon_opts=None):
         """
         Return 0d rendering of the projection of a polyhedron into
         2-dimensional ambient space.
@@ -1032,15 +1035,21 @@ class Projection(SageObject):
             sage: print(Polyhedron(ieqs=[(1,)]).projection().render_0d().description())
             Point set defined by 1 point(s):    [(0.0, 0.0)]
         """
+        if point_opts is None:
+            point_opts = {}
+        if line_opts is None:
+            line_opts = {}
+        if polygon_opts is None:
+            polygon_opts = {}
         if isinstance(point_opts, dict):
             point_opts.setdefault('zorder', 2)
             point_opts.setdefault('pointsize', 10)
         if self.points:
-            return point2d([0,0], **point_opts)
+            return point2d([0, 0], **point_opts)
         else:
             return Graphics()
 
-    def render_1d(self, point_opts={}, line_opts={}, polygon_opts={}):
+    def render_1d(self, point_opts=None, line_opts=None, polygon_opts=None):
         """
         Return 1d rendering of the projection of a polyhedron into
         2-dimensional ambient space.
@@ -1060,6 +1069,12 @@ class Projection(SageObject):
             Graphics object consisting of 2 graphics primitives
         """
         plt = Graphics()
+        if point_opts is None:
+            point_opts = {}
+        if line_opts is None:
+            line_opts = {}
+        if polygon_opts is None:
+            polygon_opts = {}
         if isinstance(point_opts, dict):
             point_opts.setdefault('zorder', 2)
             point_opts.setdefault('pointsize', 10)
@@ -1069,7 +1084,7 @@ class Projection(SageObject):
             plt += self.render_line_1d(**line_opts)
         return plt
 
-    def render_2d(self, point_opts={}, line_opts={}, polygon_opts={}):
+    def render_2d(self, point_opts=None, line_opts=None, polygon_opts=None):
         """
         Return 2d rendering of the projection of a polyhedron into
         2-dimensional ambient space.
@@ -1088,6 +1103,12 @@ class Projection(SageObject):
             Graphics object consisting of 17 graphics primitives
          """
         plt = Graphics()
+        if point_opts is None:
+            point_opts = {}
+        if line_opts is None:
+            line_opts = {}
+        if polygon_opts is None:
+            polygon_opts = {}
         if isinstance(point_opts, dict):
             point_opts.setdefault('zorder', 2)
             point_opts.setdefault('pointsize', 10)
@@ -1100,7 +1121,7 @@ class Projection(SageObject):
             plt += self.render_fill_2d(**polygon_opts)
         return plt
 
-    def render_3d(self, point_opts={}, line_opts={}, polygon_opts={}):
+    def render_3d(self, point_opts=None, line_opts=None, polygon_opts=None):
         """
         Return 3d rendering of a polyhedron projected into
         3-dimensional ambient space.
@@ -1146,6 +1167,12 @@ class Projection(SageObject):
         pplt = None
         lplt = None
         pgplt = None
+        if point_opts is None:
+            point_opts = {}
+        if line_opts is None:
+            line_opts = {}
+        if polygon_opts is None:
+            polygon_opts = {}
         if isinstance(point_opts, dict):
             point_opts.setdefault('width', 3)
             pplt = self.render_vertices_3d(**point_opts)
@@ -1341,10 +1368,10 @@ class Projection(SageObject):
         edges = ''
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
+            v_vect = str(['%.5f' % i for i in v]).replace('\'', '')
             v_vect = v_vect.replace('[', '(')
             v_vect = v_vect.replace(']', ')')
-            tag = '%s' %v_vect
+            tag = '%s' % v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
             coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
@@ -1362,7 +1389,7 @@ class Projection(SageObject):
         tikz_pic += '\t[scale=%f,\n' % scale
         tikz_pic += '\tback/.style={loosely dotted, thin},\n'
         tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
-        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
+        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color, opacity)
         tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
         tikz_pic += 'fill=%s!75!black,thick}]\n%%\n%%\n' % vertex_color
 
@@ -1480,10 +1507,10 @@ class Projection(SageObject):
         edges = ''
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
-            v_vect = v_vect.replace('[','(')
-            v_vect = v_vect.replace(']',')')
-            tag = '%s' %v_vect
+            v_vect = str(['%.5f' % i for i in v]).replace('\'', '')
+            v_vect = v_vect.replace('[', '(')
+            v_vect = v_vect.replace(']', ')')
+            tag = '%s' % v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
             coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
@@ -1507,7 +1534,7 @@ class Projection(SageObject):
         tikz_pic += '\tscale=%f,\n' % scale
         tikz_pic += '\tback/.style={loosely dotted, thin},\n'
         tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
-        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
+        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color, opacity)
         tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
         tikz_pic += 'fill=%s!75!black,thick}]\n%%\n%%\n' % vertex_color
 
@@ -1664,12 +1691,12 @@ class Projection(SageObject):
 
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
-            v_vect = v_vect.replace('[','(')
-            v_vect = v_vect.replace(']',')')
-            tag = '%s' %v_vect
+            v_vect = str(['%.5f' % i for i in v]).replace('\'', '')
+            v_vect = v_vect.replace('[', '(')
+            v_vect = v_vect.replace(']', ')')
+            tag = '%s' % v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\\coordinate %s at %s;\n' %(tag, tag)
+            coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         # Separate the edges between back and front
@@ -1684,10 +1711,14 @@ class Projection(SageObject):
 
             # The back edge has to be between two vertices in the Back
             # AND such that the 2 facets touching them are in the Back
-            if index1 in back_vertices and index2 in back_vertices and len(H_v12)==2:
-                back_part += "\\draw[%s,back] %s -- %s;\n" % ('edge', dict_drawing[index1][2], dict_drawing[index2][2])
+            if index1 in back_vertices and index2 in back_vertices and len(H_v12) == 2:
+                back_part += "\\draw[%s,back] %s -- %s;\n" % ('edge',
+                                                              dict_drawing[index1][2],
+                                                              dict_drawing[index2][2])
             else:
-                front_part += "\\draw[%s] %s -- %s;\n" % ('edge',dict_drawing[index1][2],dict_drawing[index2][2])
+                front_part += "\\draw[%s] %s -- %s;\n" % ('edge',
+                                                          dict_drawing[index1][2],
+                                                          dict_drawing[index2][2])
 
         # Start to write the output
         tikz_pic = ''
@@ -1701,7 +1732,7 @@ class Projection(SageObject):
         tikz_pic += '\tscale=%f,\n' % scale
         tikz_pic += '\tback/.style={loosely dotted, thin},\n'
         tikz_pic += '\tedge/.style={color=%s, thick},\n' % edge_color
-        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color,opacity)
+        tikz_pic += '\tfacet/.style={fill=%s,fill opacity=%f},\n' % (facet_color, opacity)
         tikz_pic += '\tvertex/.style={inner sep=1pt,circle,draw=%s!25!black,' % vertex_color
         tikz_pic += 'fill=%s!75!black,thick}]\n%%\n%%\n' % vertex_color
 
@@ -1737,7 +1768,7 @@ class Projection(SageObject):
         # Draw the vertices on top of the back-edges
         tikz_pic += '%%\n%%\n%% Drawing vertices in the back\n%%\n'
         for v in back_vertices:
-            if not v in front_vertices and v in dict_drawing:
+            if v not in front_vertices and v in dict_drawing:
                 tikz_pic += dict_drawing[v][0]
 
         # Draw the facets in the front by going in cycles for every facet.

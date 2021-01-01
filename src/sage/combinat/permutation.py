@@ -749,8 +749,8 @@ class Permutation(CombinatorialElement):
 
         #Starting from the end, find the first o such that
         #p[o] < p[o+1]
-        for i in reversed(range(0,n-1)):
-            if p[i] < p[i+1]:
+        for i in reversed(range(n - 1)):
+            if p[i] < p[i + 1]:
                 first = i
                 break
 
@@ -809,8 +809,8 @@ class Permutation(CombinatorialElement):
 
         #Starting from the end, find the first o such that
         #p[o] > p[o+1]
-        for i in reversed(range(0, n-1)):
-            if p[i] > p[i+1]:
+        for i in reversed(range(n - 1)):
+            if p[i] > p[i + 1]:
                 first = i
                 break
 
@@ -1389,15 +1389,9 @@ class Permutation(CombinatorialElement):
             True
         """
         n = len(self)
-
         factoradic = self.to_lehmer_code()
-
-        #Compute the index
-        rank = 0
-        for i in reversed(range(0, n)):
-            rank += factoradic[n-1-i]*factorial(i)
-
-        return rank
+        return sum(factoradic[n - 1 - i] * factorial(i)
+                   for i in reversed(range(n))
 
     ##############
     # Inversions #
@@ -2704,7 +2698,7 @@ class Permutation(CombinatorialElement):
         n = len(p)
         cocode = [0] * n
         for i in range(1, n):
-            for j in range(0, i):
+            for j in range(i):
                 if p[j] > p[i]:
                     cocode[i] += 1
         return cocode
@@ -3799,7 +3793,7 @@ class Permutation(CombinatorialElement):
         P = Permutations()
         succ = []
         if side == "right":
-            rise = lambda perm: [i for i in range(0,n-1) if perm[i] < perm[i+1]]
+            rise = lambda perm: [i for i in range(n - 1) if perm[i] < perm[i+1]]
             for i in rise(p):
                 pp = p[:]
                 pp[i] = p[i+1]

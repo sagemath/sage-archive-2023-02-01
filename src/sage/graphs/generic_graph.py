@@ -17234,8 +17234,9 @@ class GenericGraph(GenericGraph_pyx):
 
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
-                and hasattr(self._backend, "breadth_first_search") and not report_distance and not edges):
-            yield from self._backend.breadth_first_search(start, ignore_direction=ignore_direction)
+                and hasattr(self._backend, "breadth_first_search") and not edges):
+            yield from self._backend.breadth_first_search(
+                    start, ignore_direction=ignore_direction, report_distance=report_distance)
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:

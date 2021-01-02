@@ -44,7 +44,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # ****************************************************************************
 
 from sage.data_structures.bitset_base cimport *
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, smallInteger
 from sage.arith.long cimport pyobject_to_long
 from libcpp.queue cimport priority_queue, queue
 from libcpp.stack cimport stack
@@ -4288,7 +4288,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                                reverse=reverse,
                                ignore_direction=ignore_direction)
 
-    def breadth_first_search(self, v, reverse=False, ignore_direction=False):
+    def breadth_first_search(self, v, reverse=False, ignore_direction=False, report_distance=False):
         r"""
         Return a breadth-first search from vertex ``v``.
 
@@ -4303,6 +4303,11 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``ignore_direction`` -- boolean (default: ``False``); this is only
           relevant to digraphs. If this is a digraph, ignore all orientations
           and consider the graph as undirected.
+
+        - ``report_distance`` -- boolean (default ``False``); if ``True``,
+          reports pairs ``(vertex, distance)`` where ``distance`` is the
+          distance from the ``start`` nodes. If ``False`` only the vertices are
+          reported.
 
         ALGORITHM:
 
@@ -4360,7 +4365,8 @@ cdef class CGraphBackend(GenericGraphBackend):
                                v,
                                direction=0,
                                reverse=reverse,
-                               ignore_direction=ignore_direction)
+                               ignore_direction=ignore_direction,
+                               report_distance=report_distance)
 
     ###################################
     # Connectedness
@@ -4717,15 +4723,16 @@ cdef class Search_iterator:
     cdef CGraphBackend graph
     cdef int direction
     cdef stack[int] lifo
-    cdef queue[int] fifo
+    cdef queue[pair[int, int]] fifo
     cdef int n
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
+    cdef bint report_distance
     cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
-                 ignore_direction=False):
+                 ignore_direction=False, report_distance=False):
         r"""
         Initialize an iterator for traversing a (di)graph.
 
@@ -4752,6 +4759,12 @@ cdef class Search_iterator:
         - ``ignore_direction`` -- boolean (default: ``False``); this is only
           relevant to digraphs. If ``graph`` is a digraph, ignore all
           orientations and consider the graph as undirected.
+
+        - ``report_distance`` -- boolean (default ``False``); if ``True``,
+          reports pairs ``(vertex, distance)`` where ``distance`` is the
+          distance from the ``start`` nodes. If ``False`` only the vertices are
+          reported.
+          Only allowed for ``direction=0``, i.e. BFS.
 
         EXAMPLES::
 
@@ -4783,6 +4796,9 @@ cdef class Search_iterator:
         """
         self.graph = graph
         self.direction = direction
+        if direction != 0 and report_distance:
+            raise ValueError("can only report distance for breadth first search")
+        self.report_distance = report_distance
 
         self.n = self.graph.cg().active_vertices.size
         bitset_init(self.seen, self.n)
@@ -4794,7 +4810,7 @@ cdef class Search_iterator:
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(repr(v)))
 
         if direction == 0:
-            self.fifo.push(v_id)
+            self.fifo.push((v_id, 0))
             bitset_add(self.seen, v_id)
         else:
             self.lifo.push(v_id)
@@ -4838,13 +4854,19 @@ cdef class Search_iterator:
             sage: next(g.breadth_first_search(0))
             0
         """
-        cdef int v_int
+        cdef int v_int, v_dist
         cdef int w_int
         cdef int l
         cdef CGraph cg = self.graph.cg()
 
+        # Efficient packing/unpacking of pairs not yet supported in cython (#1429).
+        # So we must do it by hand.
+        cdef pair[int, int] tmp
+
         if not self.fifo.empty():
-            v_int = self.fifo.front()
+            tmp = self.fifo.front()
+            v_int = tmp.first
+            v_dist = tmp.second
             self.fifo.pop()
             value = self.graph.vertex_label(v_int)
 
@@ -4853,19 +4875,25 @@ cdef class Search_iterator:
                 while w_int != -1:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
-                        self.fifo.push(w_int)
+                        tmp.first = w_int
+                        tmp.second = v_dist + 1
+                        self.fifo.push(tmp)
                     w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
             if self.test_in:
                 w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
                 while w_int != -1:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
-                        self.fifo.push(w_int)
+                        tmp.first = w_int
+                        tmp.second = v_dist + 1
+                        self.fifo.push(tmp)
                     w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
 
         else:
             raise StopIteration
 
+        if self.report_distance:
+            return value, smallInteger(v_dist)
         return value
 
     cdef inline next_depth_first_search(self):

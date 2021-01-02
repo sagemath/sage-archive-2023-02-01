@@ -17235,8 +17235,7 @@ class GenericGraph(GenericGraph_pyx):
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list) and distance is None
                 and hasattr(self._backend, "breadth_first_search") and not report_distance and not edges):
-            for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
-                yield v
+            yield from self._backend.breadth_first_search(start, ignore_direction=ignore_direction)
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:
@@ -17388,8 +17387,7 @@ class GenericGraph(GenericGraph_pyx):
         # Preferably use the Cython implementation
         if (neighbors is None and not isinstance(start, list)
                 and hasattr(self._backend, "depth_first_search") and not edges):
-            for v in self._backend.depth_first_search(start, ignore_direction=ignore_direction):
-                yield v
+            yield from self._backend.depth_first_search(start, ignore_direction=ignore_direction)
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:

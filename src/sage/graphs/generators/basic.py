@@ -573,9 +573,11 @@ def CompleteMultipartiteGraph(l):
                 positions[counter] = (x, y)
                 counter += 1
 
-        g = Graph()
+        g = Graph(sum(l))
+        s = 0
         for i in l:
-            g.add_clique(range(g.order(), g.order() + i))
+            g.add_clique(range(s, s + i))
+            s += i
 
         g = g.complement()
         g.set_pos(positions)

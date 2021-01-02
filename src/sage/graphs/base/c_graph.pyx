@@ -4724,7 +4724,8 @@ cdef class Search_iterator:
     cdef int direction
     cdef stack[int] lifo
     cdef queue[int] fifo
-    cdef queue[int] fifo_dist
+    cdef int first_with_new_distance
+    cdef int current_distance
     cdef int n
     cdef bitset_t seen
     cdef bint test_out
@@ -4812,7 +4813,8 @@ cdef class Search_iterator:
 
         if direction == 0:
             self.fifo.push(v_id)
-            self.fifo_dist.push(0)
+            self.first_with_new_distance = -1
+            self.current_distance = 0
             bitset_add(self.seen, v_id)
         else:
             self.lifo.push(v_id)
@@ -4864,9 +4866,9 @@ cdef class Search_iterator:
         if not self.fifo.empty():
             v_int = self.fifo.front()
             self.fifo.pop()
-            if self.report_distance:
-                v_dist = self.fifo_dist.front()
-                self.fifo_dist.pop()
+            if v_int == self.first_with_new_distance:
+                self.current_distance += 1
+                self.first_with_new_distance = -1
             value = self.graph.vertex_label(v_int)
 
             if self.test_out:
@@ -4875,8 +4877,8 @@ cdef class Search_iterator:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
                         self.fifo.push(w_int)
-                        if self.report_distance:
-                            self.fifo_dist.push(v_dist + 1)
+                        if self.first_with_new_distance == -1:
+                            self.first_with_new_distance = w_int
                     w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
             if self.test_in:
                 w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
@@ -4884,15 +4886,15 @@ cdef class Search_iterator:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
                         self.fifo.push(w_int)
-                        if self.report_distance:
-                            self.fifo_dist.push(v_dist + 1)
+                        if self.first_with_new_distance == -1:
+                            self.first_with_new_distance = w_int
                     w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
 
         else:
             raise StopIteration
 
         if self.report_distance:
-            return value, smallInteger(v_dist)
+            return value, smallInteger(self.current_distance)
         return value
 
     cdef inline next_depth_first_search(self):

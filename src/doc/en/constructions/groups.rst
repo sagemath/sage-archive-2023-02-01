@@ -287,7 +287,7 @@ homomorphism) is a group whose underlying set is the cartersian product of
 
     (h_1, k_1) (h_2, k_2) = (h_1 h_2, k_1^{\phi(h_2)} k_2).
 
-The output is not the group explicity described in the definition of the
+The output is not the group explicitly described in the definition of the
 operation, but rather an isomorphic group of permutations. In the routine
 below, assume ``H`` and ``K`` already have been defined and initialized in
 Sage. Also, ``phi`` is a list containing two sublists that define the

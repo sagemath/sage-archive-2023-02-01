@@ -130,40 +130,52 @@ Self-referent definitions also work with systems of equations::
 
 
 from sage.rings.all import ZZ, QQ
-from sage.rings.padics.generic_nodes import pAdicRingGeneric
+from sage.rings.infinity import Infinity
+from sage.rings.padics.generic_nodes import pAdicRingBaseGeneric
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 
-from sage.rings.padics.padic_lazy_element import pAdicLazyElement
-from sage.rings.padics.padic_lazy_element import pAdicLazyElement_value
-from sage.rings.padics.padic_lazy_element import pAdicLazyElement_random
-from sage.rings.padics.padic_lazy_element import pAdicLazyElement_selfref
+from sage.rings.padics.padic_lazy_element import *
 
 
-class pAdicRingLazy(pAdicRingGeneric):
-    def __init__(self, p, prec):
-        pAdicRingGeneric.__init__(self, ZZ, p, prec, None, None, None)
+class pAdicRingLazy(pAdicRingBaseGeneric):
+    def __init__(self, p, prec, print_mode, names):
+        pAdicRingBaseGeneric.__init__(self, p, 0, print_mode, names, None)
         self._p = p
+        self._zero_element = pAdicLazyElement_zero(self)
+        self._default_prec = ZZ(prec)
 
     def prime(self):
         return self._p
 
-    def _repr_(self):
-        return "Lazy %s-adic Ring" % self.prime()
+    def _prec_type(self):
+        return "lazy"
+
+    def is_lazy(self):
+        return True
+
+    def default_prec(self):
+        return self._default_prec
+
+    def precision_cap(self):
+        return Infinity
 
     def _coerce_map_from_(self, R):
         # why do I need this?
         if R is ZZ:
             return True
 
-    def _element_constructor_(self, x, prec=None):
+    def _element_constructor_(self, x):
         if isinstance(x, pAdicLazyElement):
             return x
         if isinstance(x, pAdicGenericElement):
-            return pAdicLazyElement_value(self, ZZ(x), prec, maxprec=x.precision_absolute())
-        if prec is None:
-            prec = self.precision_cap()
+            return pAdicLazyElement_value(self, ZZ(x), maxprec=x.precision_absolute())
         if x in ZZ:
-            return pAdicLazyElement_value(self, ZZ(x), prec)
+            if x == 0:
+                return self._zero_element
+            elif x == 1:
+                return pAdicLazyElement_one(self)
+            else:
+                return pAdicLazyElement_value(self, ZZ(x))
         if x in QQ:
             num = x.numerator()
             denom = x.denominator()

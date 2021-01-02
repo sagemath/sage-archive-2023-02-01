@@ -4723,12 +4723,13 @@ cdef class Search_iterator:
     cdef CGraphBackend graph
     cdef int direction
     cdef stack[int] lifo
-    cdef queue[pair[int, int]] fifo
+    cdef queue[int] fifo
+    cdef queue[int] fifo_dist
     cdef int n
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
-    cdef bint report_distance
+    cdef bint report_distance  # assumed to be constant after initialization
     cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
@@ -4810,7 +4811,8 @@ cdef class Search_iterator:
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(repr(v)))
 
         if direction == 0:
-            self.fifo.push((v_id, 0))
+            self.fifo.push(v_id)
+            self.fifo_dist.push(0)
             bitset_add(self.seen, v_id)
         else:
             self.lifo.push(v_id)
@@ -4859,15 +4861,12 @@ cdef class Search_iterator:
         cdef int l
         cdef CGraph cg = self.graph.cg()
 
-        # Efficient packing/unpacking of pairs not yet supported in cython (#1429).
-        # So we must do it by hand.
-        cdef pair[int, int] tmp
-
         if not self.fifo.empty():
-            tmp = self.fifo.front()
-            v_int = tmp.first
-            v_dist = tmp.second
+            v_int = self.fifo.front()
             self.fifo.pop()
+            if self.report_distance:
+                v_dist = self.fifo_dist.front()
+                self.fifo_dist.pop()
             value = self.graph.vertex_label(v_int)
 
             if self.test_out:
@@ -4875,18 +4874,18 @@ cdef class Search_iterator:
                 while w_int != -1:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
-                        tmp.first = w_int
-                        tmp.second = v_dist + 1
-                        self.fifo.push(tmp)
+                        self.fifo.push(w_int)
+                        if self.report_distance:
+                            self.fifo_dist.push(v_dist + 1)
                     w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
             if self.test_in:
                 w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
                 while w_int != -1:
                     if bitset_not_in(self.seen, w_int):
                         bitset_add(self.seen, w_int)
-                        tmp.first = w_int
-                        tmp.second = v_dist + 1
-                        self.fifo.push(tmp)
+                        self.fifo.push(w_int)
+                        if self.report_distance:
+                            self.fifo_dist.push(v_dist + 1)
                     w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
 
         else:

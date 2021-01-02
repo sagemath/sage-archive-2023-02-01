@@ -4288,7 +4288,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                                reverse=reverse,
                                ignore_direction=ignore_direction)
 
-    def breadth_first_search(self, v, reverse=False, ignore_direction=False, report_distance=False):
+    def breadth_first_search(self, v, reverse=False, ignore_direction=False, report_distance=False, edges=False):
         r"""
         Return a breadth-first search from vertex ``v``.
 
@@ -4308,6 +4308,13 @@ cdef class CGraphBackend(GenericGraphBackend):
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
+
+        - ``edges`` -- boolean (default ``False``); whether to return the edges
+          of the BFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
+
+          Note that parameters ``edges`` and ``report_distance`` cannot be
+          ``True`` simultaneously.
 
         ALGORITHM:
 
@@ -4366,7 +4373,8 @@ cdef class CGraphBackend(GenericGraphBackend):
                                direction=0,
                                reverse=reverse,
                                ignore_direction=ignore_direction,
-                               report_distance=report_distance)
+                               report_distance=report_distance,
+                               edges=edges)
 
     ###################################
     # Connectedness
@@ -4724,6 +4732,7 @@ cdef class Search_iterator:
     cdef int direction
     cdef stack[int] lifo
     cdef queue[int] fifo
+    cdef queue[int] fifo_edges
     cdef int first_with_new_distance
     cdef int current_distance
     cdef int n
@@ -4731,10 +4740,11 @@ cdef class Search_iterator:
     cdef bint test_out
     cdef bint test_in
     cdef bint report_distance  # assumed to be constant after initialization
+    cdef bint edges            # assumed to be constant after initialization
     cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
-                 ignore_direction=False, report_distance=False):
+                 ignore_direction=False, report_distance=False, edges=False):
         r"""
         Initialize an iterator for traversing a (di)graph.
 
@@ -4767,6 +4777,14 @@ cdef class Search_iterator:
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
           Only allowed for ``direction=0``, i.e. BFS.
+
+        - ``edges`` -- boolean (default ``False``); whether to return the edges
+          of the BFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
+          Only allowed for ``direction=0``, i.e. BFS.
+
+          Note that parameters ``edges`` and ``report_distance`` cannot be
+          ``True`` simultaneously.
 
         EXAMPLES::
 
@@ -4801,6 +4819,11 @@ cdef class Search_iterator:
         if direction != 0 and report_distance:
             raise ValueError("can only report distance for breadth first search")
         self.report_distance = report_distance
+        if direction != 0 and edges:
+            raise ValueError("can only list edges for breadth first search")
+        if report_distance and edges:
+            raise ValueError("cannot report distance while returning the edges of the BFS tree")
+        self.edges = edges
 
         self.n = self.graph.cg().active_vertices.size
         bitset_init(self.seen, self.n)
@@ -4816,6 +4839,8 @@ cdef class Search_iterator:
             self.first_with_new_distance = -1
             self.current_distance = 0
             bitset_add(self.seen, v_id)
+            if self.edges:
+                self.fifo_edges.push(-1)
         else:
             self.lifo.push(v_id)
 
@@ -4827,6 +4852,10 @@ cdef class Search_iterator:
 
         if self.test_in:  # How do we list in_neighbors ?
             self.in_neighbors = self.graph.cg().in_neighbors
+
+        if self.edges:
+            # The root is not the end of any edge and must therefore be ignored.
+            self.next_breadth_first_search()
 
     def __dealloc__(self):
         r"""
@@ -4871,6 +4900,11 @@ cdef class Search_iterator:
                 self.first_with_new_distance = -1
             value = self.graph.vertex_label(v_int)
 
+            if self.edges:
+                prev_int = self.fifo_edges.front()
+                self.fifo_edges.pop()
+                value_prev = self.graph.vertex_label(prev_int) if prev_int != -1 else None
+
             if self.test_out:
                 w_int = cg.next_out_neighbor_unsafe(v_int, -1, &l)
                 while w_int != -1:
@@ -4879,6 +4913,8 @@ cdef class Search_iterator:
                         self.fifo.push(w_int)
                         if self.first_with_new_distance == -1:
                             self.first_with_new_distance = w_int
+                        if self.edges:
+                            self.fifo_edges.push(v_int)
                     w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
             if self.test_in:
                 w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
@@ -4888,6 +4924,8 @@ cdef class Search_iterator:
                         self.fifo.push(w_int)
                         if self.first_with_new_distance == -1:
                             self.first_with_new_distance = w_int
+                        if self.edges:
+                            self.fifo_edges.push(v_int)
                     w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
 
         else:
@@ -4895,6 +4933,8 @@ cdef class Search_iterator:
 
         if self.report_distance:
             return value, smallInteger(self.current_distance)
+        elif self.edges:
+            return value_prev, value
         return value
 
     cdef inline next_depth_first_search(self):

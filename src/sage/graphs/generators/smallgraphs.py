@@ -4,7 +4,7 @@ Various small graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
-#*****************************************************************************
+# ****************************************************************************
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
 #                              and Emily A. Kirkman
 #           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
@@ -13,7 +13,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -22,10 +22,9 @@ from sage.functions.other import sqrt
 
 from math import sin, cos, pi
 
-#######################################################################
+# ****************************************************************************
 #   Named Graphs
-#######################################################################
-
+# ****************************************************************************
 
 def HarborthGraph():
     r"""
@@ -43,7 +42,7 @@ def HarborthGraph():
         True
 
     """
-    g = Graph(':s_OGKI?@_?g[QABAo__YEFCp@?iIEbqHWuWLbbh?}[OfcXpGhNHdYPY_SgdYX]'+
+    g = Graph(':s_OGKI?@_?g[QABAo__YEFCp@?iIEbqHWuWLbbh?}[OfcXpGhNHdYPY_SgdYX]'
               'pZkfJPuo[lfZHys^mFcDs}`pG{UNNgoHC}DIgrI[qjMhTyDQrQlVydrBYmWkn',
               loops=False, multiedges=False)
 
@@ -68,15 +67,14 @@ def HarborthGraph():
     g.name("Harborth Graph")
     return g
 
-
 def HarriesGraph(embedding=1):
     r"""
     Return the Harries Graph.
 
-    The Harries graph is a Hamiltonian 3-regular graph on 70
-    vertices. See the :wikipedia:`Harries_graph`.
+    The Harries graph is a Hamiltonian 3-regular graph on 70 vertices.
+    See the :wikipedia:`Harries_graph`.
 
-    The default embedding here is to emphasize the graph's 4 orbits.  This graph
+    The default embedding here is to emphasize the graph's 4 orbits. This graph
     actually has a funny construction. The following procedure gives an idea of
     it, though not all the adjacencies are being properly defined.
 
@@ -97,8 +95,8 @@ def HarriesGraph(embedding=1):
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be selected by
-      setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- integer (default: ``1``); two embeddings are available,
+      and can be selected by setting ``embedding`` to 1 or 2
 
     EXAMPLES::
 
@@ -120,7 +118,6 @@ def HarriesGraph(embedding=1):
         Traceback (most recent call last):
         ...
         ValueError: the value of embedding must be 1 or 2
-
     """
     from sage.graphs.generators.families import LCFGraph
     g = LCFGraph(70, [-29, -19, -13, 13, 21, -27, 27, 33, -13, 13,
@@ -132,7 +129,7 @@ def HarriesGraph(embedding=1):
         ppos = PetersenGraph().get_pos()
 
         # The graph's four orbits
-        o = [None]*4
+        o = [None] * 4
         o[0] = [0, 2, 6, 8, 14, 16, 20, 22, 28, 30, 34, 36, 42, 44, 48, 50,
                 56, 58, 62, 64]
         o[1] = [1, 3, 5, 7, 9, 13, 15, 17, 19, 21, 23, 27, 29, 31, 33, 35,
@@ -195,29 +192,29 @@ def HarriesWongGraph(embedding=1):
     different orbits. In order to understand this better, one can picture the
     graph as being built in the following way:
 
-        #. One first creates a 3-dimensional cube (8 vertices, 12 edges), whose
-           vertices define the first orbit of the final graph.
+    #. One first creates a 3-dimensional cube (8 vertices, 12 edges), whose
+      vertices define the first orbit of the final graph.
 
-        #. The edges of this graph are subdivided once, to create 12 new
-           vertices which define a second orbit.
+    #. The edges of this graph are subdivided once, to create 12 new vertices
+      which define a second orbit.
 
-        #. The edges of the graph are subdivided once more, to create 24 new
-           vertices giving a third orbit.
+    #. The edges of the graph are subdivided once more, to create 24 new
+      vertices giving a third orbit.
 
-        #. 4 vertices are created and made adjacent to the vertices of the
-           second orbit so that they have degree 3. These 4 vertices also define
-           a new orbit.
+    #. 4 vertices are created and made adjacent to the vertices of the second
+      orbit so that they have degree 3. These 4 vertices also define a new
+      orbit.
 
-        #. In order to make the vertices from the third orbit 3-regular (they
-           all miss one edge), one creates a binary tree on 1 + 3 + 6 + 12
-           vertices. The leaves of this new tree are made adjacent to the 12
-           vertices of the third orbit, and the graph is now 3-regular. This
-           binary tree contributes 4 new orbits to the Harries-Wong graph.
+    #. In order to make the vertices from the third orbit 3-regular (they all
+      miss one edge), one creates a binary tree on 1 + 3 + 6 + 12 vertices. The
+      leaves of this new tree are made adjacent to the 12 vertices of the third
+      orbit, and the graph is now 3-regular. This binary tree contributes 4 new
+      orbits to the Harries-Wong graph.
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be selected by
-      setting ``embedding`` to 1 or 2.
+    - ``embedding`` -- integer (default: ``1``); two embeddings are available,
+      and can be selected by setting ``embedding`` to 1 or 2
 
     EXAMPLES::
 
@@ -230,12 +227,12 @@ def HarriesWongGraph(embedding=1):
         10
         sage: g.diameter()
         6
-        sage: orbits = g.automorphism_group(orbits=True)[-1] # long time
-        sage: g.show(figsize=[15, 15], partition=orbits)     # long time
+        sage: orbits = g.automorphism_group(orbits=True)[-1]  # long time
+        sage: g.show(figsize=[15, 15], partition=orbits)  # long time
 
     Alternative embedding::
 
-        sage: graphs.HarriesWongGraph(embedding=2).show()
+        sage: graphs.HarriesWongGraph(embedding=2).show()  # long time
 
     TESTS::
 
@@ -244,7 +241,6 @@ def HarriesWongGraph(embedding=1):
         ...
         ValueError: the value of embedding must be 1 or 2
     """
-
     L = [9, 25, 31, -17, 17, 33, 9, -29, -15, -9, 9, 25, -25, 29, 17, -9,
          9, -27, 35, -9, 9, -17, 21, 27, -29, -9, -25, 13, 19, -9, -33,
          -17, 19, -31, 27, 11, -25, 29, -33, 13, -13, 21, -29, -21, 25,
@@ -301,7 +297,6 @@ def HarriesWongGraph(embedding=1):
     else:
         raise ValueError("the value of embedding must be 1 or 2")
 
-
 def WellsGraph():
     r"""
     Return the Wells graph.
@@ -309,13 +304,13 @@ def WellsGraph():
     For more information on the Wells graph (also called Armanios-Wells graph),
     see `this page <https://www.win.tue.nl/~aeb/graphs/Wells.html>`_.
 
-    The implementation follows the construction given on page 266 of
-    [BCN1989]_. This requires to create intermediate graphs and run a small
-    isomorphism test, while everything could be replaced by a pre-computed list
-    of edges : I believe that it is better to keep "the recipe" in the code,
-    however, as it is quite unlikely that this could become the most
-    time-consuming operation in any sensible algorithm, and .... "preserves
-    knowledge", which is what open-source software is meant to do.
+    The implementation follows the construction given on page 266 of [BCN1989]_.
+    This requires to create intermediate graphs and run a small isomorphism
+    test, while everything could be replaced by a pre-computed list of edges.
+    I believe that it is better to keep "the recipe" in the code, however, as it
+    is quite unlikely that this could become the most time-consuming operation
+    in any sensible algorithm, and .... "preserves knowledge", which is what
+    open-source software is meant to do.
 
     EXAMPLES::
 
@@ -353,9 +348,9 @@ def WellsGraph():
     _, labels = distance3.is_isomorphic(b, certificate=True)
 
     # The relabeling that the books claims to exist.
-    for v,new_name in labels.items():
-        x,y = new_name
-        labels[v] = (x%5,y%5)
+    for v, new_name in labels.items():
+        x, y = new_name
+        labels[v] = (x % 5, y % 5)
 
     dodecahedron.relabel(labels)
 
@@ -368,7 +363,7 @@ def WellsGraph():
             if (u[0] != v[0]) and (u[1] != v[1]):
                 continue
 
-            if dodecahedron.distance(u,v) != 3:
+            if dodecahedron.distance(u, v) != 3:
                 raise ValueError("there is something wrong going on !")
 
     # The graph we will return, starting from the dodecahedron
@@ -376,13 +371,13 @@ def WellsGraph():
 
     # Good ! Now adding 12 new vertices
     for i in range(5):
-        g.add_edge((i,'+'),('inf','+'))
-        g.add_edge((i,'-'),('inf','-'))
+        g.add_edge((i, '+'), ('inf', '+'))
+        g.add_edge((i, '-'), ('inf', '-'))
         for k in range(5):
             if k == i:
                 continue
-            g.add_edge((i,'+'),(i,k))
-            g.add_edge((i,'-'),(k,i))
+            g.add_edge((i, '+'), (i, k))
+            g.add_edge((i, '-'), (k, i))
 
     g.name("Wells graph")
 
@@ -409,7 +404,6 @@ def WellsGraph():
 
     return g
 
-
 def Cell600(embedding=1):
     r"""
     Return the 600-Cell graph.
@@ -419,7 +413,8 @@ def Cell600(embedding=1):
 
     INPUT:
 
-    - ``embedding`` (1 (default) or 2) -- two different embeddings for a plot.
+    - ``embedding`` -- integer (default: ``1); two different embeddings for a
+      plot
 
     EXAMPLES::
 
@@ -487,7 +482,6 @@ def Cell600(embedding=1):
     g._circle_embedding(pos)
 
     return g
-
 
 def Cell120():
     r"""
@@ -597,7 +591,6 @@ def Cell120():
 
     return g
 
-
 def SuzukiGraph():
     r"""
     Return the Suzuki Graph.
@@ -612,18 +605,17 @@ def SuzukiGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.SuzukiGraph(); g            # optional internet # not tested
+        sage: g = graphs.SuzukiGraph(); g  # optional internet # not tested
         Suzuki graph: Graph on 1782 vertices
-        sage: g.is_strongly_regular(parameters=True) # optional internet # not tested
+        sage: g.is_strongly_regular(parameters=True)  # optional internet # not tested
         (1782, 416, 100, 96)
     """
     from sage.groups.perm_gps.permgroup_named import SuzukiSporadicGroup
     g = Graph()
-    g.add_edges(SuzukiSporadicGroup().orbit((1,2),"OnSets"))
+    g.add_edges(SuzukiSporadicGroup().orbit((1, 2), "OnSets"))
     g.relabel()
     g.name("Suzuki graph")
     return g
-
 
 def HallJankoGraph(from_string=True):
     r"""
@@ -640,9 +632,9 @@ def HallJankoGraph(from_string=True):
 
     INPUT:
 
-    - ``from_string`` (boolean) -- whether to build the graph from its sparse6
-      string or through GAP. The two methods return the same graph though doing
-      it through GAP takes more time. It is set to ``True`` by default.
+    - ``from_string`` -- boolean (default: ``True``); whether to build the graph
+      from its sparse6 string or through GAP. The two methods return the same
+      graph though doing it through GAP takes more time.
 
     EXAMPLES::
 
@@ -677,66 +669,63 @@ def HallJankoGraph(from_string=True):
 
     TESTS::
 
-        sage: gg = graphs.HallJankoGraph(from_string=False) # long time # optional - internet
-        sage: g.is_isomorphic(gg)                           # long time # optional - internet
+        sage: gg = graphs.HallJankoGraph(from_string=False)  # long time # optional - internet
+        sage: g.is_isomorphic(gg)  # long time # optional - internet
         True
     """
-
-    string = (":~?@c__E@?g?A?w?A@GCA_?CA`OWF`W?EAW?@?_OD@_[GAgcIaGGB@OcIA"
-              "wCE@o_K_?GB@?WGAouC@OsN_?GB@O[GB`A@@_e?@OgLB_{Q_?GC@O[GAOs"
-              "OCWGBA?kKBPA@?_[KB_{OCPKT`o_RD`]A?o[HBOwODW?DA?cIB?wRDP[X`"
-              "ogKB_{QD@]B@o_KBPWXE`mC@o_JB?{PDPq@?oWGA_{OCPKTDp_YEwCA@_c"
-              "IBOwOC`OX_OGB@?WPDPcYFg?C@_gKBp?SE@cYF`{_`?SGAOoOC`_\\FwCE"
-              "A?gKBO{QD@k[FqI??_OFA_oQE@k\\Fq?`GgCB@pGRD@_XFP{a_?SE@ocIA"
-              "ooNCPOUEqU@?oODA?cJB_{UEqYC@_kLC@CREPk]GAGbHgCA@?SMBpCSD`["
-              "YFq?`Ga]BA?gPC`KSD`_\\Fa?cHWGB@?[IAooPD`[WF@s^HASeIg?@@OcP"
-              "C`KYF@w^GQ[h`O[HAooMC@CQCpSVEPk\\GaSeIG?FA?kLB_{OC`OVE@cYG"
-              "QUA@?WLBp?PC`KVEqKgJg?DA?sMBpCSDP[WEQKfIay@?_KD@_[GC`SUE@k"
-              "[FaKdHa[k_?OLC@CRD@WVEpo^HAWfIAciIqoo_?CB@?kMCpOUE`o\\GAKg"
-              "IQgq_?GD@_[GB?{OCpWVE@cYFACaHAWhJR?q_?CC@_kKBpC\\GACdHa[kJ"
-              "a{o_?CA?oOFBpGRD@o\\GaKdIQonKrOt_?WHA`?PC`KTD`k]FqSeIaolJr"
-              "CqLWCA@OkKCPGRDpcYGAKdIAgjJAsmJr?t__OE@ogJB_{XEps`HA[gIQwn"
-              "KWKGAOoMBpGUE`k[Fa?aHqckJbSuLw?@?_SHA_kLC@OTFPw^GaOkLg?B@?"
-              "[HA_{PDP_XFaCbHa[gIqooKRWx_?CFBpOTE@cZFPw^GACcHQgoKrSvMwWG"
-              "BOwQCp_YFP{`HASfJAwnKRSx_OSSDP[WEq?aGqSfIQsoKR_zNWCE@o_HA_"
-              "sREPg^GAGcHQWfIAciKbOxNg?A@__IAooMC`KTD`g\\GAKcIasoKrOtLb["
-              "wMbyCA?cKBp?TD`[WE`s^GQGbHqcjJrK{NRw~_oODA?sNC@CQCpOZF@s]G"
-              "QOfIaolJrGsLbk}_?OFA_sRD@SVE`k[HQcjJa{qLb[xMb|?_OOFA?cIAos"
-              "RDP_ZFa?aGqOfIAsuMbk{Ns@@OsQAA_sPDPWXE`o\\FqKdIQkkJrCuLr_x"
-              "Mro}NsDAPG?@@OWFApKUE@o`IQolKRKsLrc|NsQC@OWGAOgJCpOWE`o_GQ"
-              "KiIqwnKr_~OcLCPS]A?oWHA_oMBpKSDP[\\FagjKBWxMbk{OSQ@@O_IAoo"
-              "LBpCSD`g\\FaGbHQWgIQgmKRKwMRl?PgGC@OWHB@KSE@c[FqCaGqSeIAkk"
-              "KBCqLBSuMBpGQWCA@?cKBOwRDPWVE@k^GqOfJr?pKbKtLrs}OSHDQwKIBO"
-              "wPD@WWEQ?`HQWfIQglKBOtLbo}Ns@@OsTE_?kLCpWWHA[gIqomKBGwMRgz"
-              "NBw~OSPDPc\\H_?CFAOoLCPSVE`o\\GAOeJAwpKbKtMrx?Qcq??OKFA?gJ"
-              "B`?QDpcYEpo]FqKfIAgjJB?qKr_{NS@A__SE@o_HBO{PC`OTD`{_HaciIq"
-              "{vMbt?OcPFQCeB@?SKBOwRD@SXE`k[FPw`HQ_lKRKxNRxBPC\\HQclK_?K"
-              "EB?sOC`OTDa?`GqWgJRCrNBw~OSHFQStMRtDQ_?KC@OoQE`k_GaOdHa[gI"
-              "q{tMBg|Nb|?OcPMSDDQSwCB@_cJB_{OCpOVFP{dHa[jJQwqKrk}NsHBQCd"
-              "MRtMA?oSEA_wPDp_YEpo]GAOeIq{pLBk}NsLEQCtNTDU??OKEA_oLC@[[G"
-              "aKnKBOtLbk~OCPFQStNSDLSTgGKC@GSD`[WEpw_GQGcIAciJAwpKb_xMbk"
-              "~QShJRc|R`_wNCPcZF@s^GAGbHA_hJR?qKrOvMRg|NsDEPsxTTgCB@?gJB"
-              "?sMC@CUDp_]FqCaHQcjJQwtLrhCPS\\IRCtQTw?B@?SHA_wPC`_aGqOiJa"
-              "{oKRKvMRpFQChKRtXVUTi??ocNC@KUE@cYFaGdHa_mJrKsLb[yMro|OcXI"
-              "RdPTTddZaOgJB@?UEPk[FQCfIaolJrSvMBczNR|AOsXFQCtOTtaB@?WGAP"
-              "?TEPo\\GAGdHqgmKBCqLR[xMb|?PC`HQs|TTt`XUtu@?o[HB?sNCPGXF@{"
-              "_GQKcIqolJb_yNCLDPs`MRtDRTTdYUwSEA?kLB`CWF@s]FqGgIqooLRgzN"
-              "RxFQSlMSDDQTDXVUTi@?_KDAOoLBpKUEQOfIa{oLB_xMrt?Os\\HQcpMST"
-              "HSTtl[VT}A@ocJBOwSD`_XEpo_Ha_mJrKtLbgzNSTGQspLRtDUUDp\\WG["
-              "HB`CQCp[WFQGgIQgkJQ{rLbc{Nc@APsdLRt@PSt\\WUtt_Wn")
-
     if from_string:
-        g = Graph(string, loops = False, multiedges = False)
+        string = (":~?@c__E@?g?A?w?A@GCA_?CA`OWF`W?EAW?@?_OD@_[GAgcIaGGB@OcIA"
+                  "wCE@o_K_?GB@?WGAouC@OsN_?GB@O[GB`A@@_e?@OgLB_{Q_?GC@O[GAOs"
+                  "OCWGBA?kKBPA@?_[KB_{OCPKT`o_RD`]A?o[HBOwODW?DA?cIB?wRDP[X`"
+                  "ogKB_{QD@]B@o_KBPWXE`mC@o_JB?{PDPq@?oWGA_{OCPKTDp_YEwCA@_c"
+                  "IBOwOC`OX_OGB@?WPDPcYFg?C@_gKBp?SE@cYF`{_`?SGAOoOC`_\\FwCE"
+                  "A?gKBO{QD@k[FqI??_OFA_oQE@k\\Fq?`GgCB@pGRD@_XFP{a_?SE@ocIA"
+                  "ooNCPOUEqU@?oODA?cJB_{UEqYC@_kLC@CREPk]GAGbHgCA@?SMBpCSD`["
+                  "YFq?`Ga]BA?gPC`KSD`_\\Fa?cHWGB@?[IAooPD`[WF@s^HASeIg?@@OcP"
+                  "C`KYF@w^GQ[h`O[HAooMC@CQCpSVEPk\\GaSeIG?FA?kLB_{OC`OVE@cYG"
+                  "QUA@?WLBp?PC`KVEqKgJg?DA?sMBpCSDP[WEQKfIay@?_KD@_[GC`SUE@k"
+                  "[FaKdHa[k_?OLC@CRD@WVEpo^HAWfIAciIqoo_?CB@?kMCpOUE`o\\GAKg"
+                  "IQgq_?GD@_[GB?{OCpWVE@cYFACaHAWhJR?q_?CC@_kKBpC\\GACdHa[kJ"
+                  "a{o_?CA?oOFBpGRD@o\\GaKdIQonKrOt_?WHA`?PC`KTD`k]FqSeIaolJr"
+                  "CqLWCA@OkKCPGRDpcYGAKdIAgjJAsmJr?t__OE@ogJB_{XEps`HA[gIQwn"
+                  "KWKGAOoMBpGUE`k[Fa?aHqckJbSuLw?@?_SHA_kLC@OTFPw^GaOkLg?B@?"
+                  "[HA_{PDP_XFaCbHa[gIqooKRWx_?CFBpOTE@cZFPw^GACcHQgoKrSvMwWG"
+                  "BOwQCp_YFP{`HASfJAwnKRSx_OSSDP[WEq?aGqSfIQsoKR_zNWCE@o_HA_"
+                  "sREPg^GAGcHQWfIAciKbOxNg?A@__IAooMC`KTD`g\\GAKcIasoKrOtLb["
+                  "wMbyCA?cKBp?TD`[WE`s^GQGbHqcjJrK{NRw~_oODA?sNC@CQCpOZF@s]G"
+                  "QOfIaolJrGsLbk}_?OFA_sRD@SVE`k[HQcjJa{qLb[xMb|?_OOFA?cIAos"
+                  "RDP_ZFa?aGqOfIAsuMbk{Ns@@OsQAA_sPDPWXE`o\\FqKdIQkkJrCuLr_x"
+                  "Mro}NsDAPG?@@OWFApKUE@o`IQolKRKsLrc|NsQC@OWGAOgJCpOWE`o_GQ"
+                  "KiIqwnKr_~OcLCPS]A?oWHA_oMBpKSDP[\\FagjKBWxMbk{OSQ@@O_IAoo"
+                  "LBpCSD`g\\FaGbHQWgIQgmKRKwMRl?PgGC@OWHB@KSE@c[FqCaGqSeIAkk"
+                  "KBCqLBSuMBpGQWCA@?cKBOwRDPWVE@k^GqOfJr?pKbKtLrs}OSHDQwKIBO"
+                  "wPD@WWEQ?`HQWfIQglKBOtLbo}Ns@@OsTE_?kLCpWWHA[gIqomKBGwMRgz"
+                  "NBw~OSPDPc\\H_?CFAOoLCPSVE`o\\GAOeJAwpKbKtMrx?Qcq??OKFA?gJ"
+                  "B`?QDpcYEpo]FqKfIAgjJB?qKr_{NS@A__SE@o_HBO{PC`OTD`{_HaciIq"
+                  "{vMbt?OcPFQCeB@?SKBOwRD@SXE`k[FPw`HQ_lKRKxNRxBPC\\HQclK_?K"
+                  "EB?sOC`OTDa?`GqWgJRCrNBw~OSHFQStMRtDQ_?KC@OoQE`k_GaOdHa[gI"
+                  "q{tMBg|Nb|?OcPMSDDQSwCB@_cJB_{OCpOVFP{dHa[jJQwqKrk}NsHBQCd"
+                  "MRtMA?oSEA_wPDp_YEpo]GAOeIq{pLBk}NsLEQCtNTDU??OKEA_oLC@[[G"
+                  "aKnKBOtLbk~OCPFQStNSDLSTgGKC@GSD`[WEpw_GQGcIAciJAwpKb_xMbk"
+                  "~QShJRc|R`_wNCPcZF@s^GAGbHA_hJR?qKrOvMRg|NsDEPsxTTgCB@?gJB"
+                  "?sMC@CUDp_]FqCaHQcjJQwtLrhCPS\\IRCtQTw?B@?SHA_wPC`_aGqOiJa"
+                  "{oKRKvMRpFQChKRtXVUTi??ocNC@KUE@cYFaGdHa_mJrKsLb[yMro|OcXI"
+                  "RdPTTddZaOgJB@?UEPk[FQCfIaolJrSvMBczNR|AOsXFQCtOTtaB@?WGAP"
+                  "?TEPo\\GAGdHqgmKBCqLR[xMb|?PC`HQs|TTt`XUtu@?o[HB?sNCPGXF@{"
+                  "_GQKcIqolJb_yNCLDPs`MRtDRTTdYUwSEA?kLB`CWF@s]FqGgIqooLRgzN"
+                  "RxFQSlMSDDQTDXVUTi@?_KDAOoLBpKUEQOfIa{oLB_xMrt?Os\\HQcpMST"
+                  "HSTtl[VT}A@ocJBOwSD`_XEpo_Ha_mJrKtLbgzNSTGQspLRtDUUDp\\WG["
+                  "HB`CQCp[WFQGgIQgkJQ{rLbc{Nc@APsdLRt@PSt\\WUtt_Wn")
+        g = Graph(string, loops=False, multiedges=False)
     else:
-
         # The following construction is due to version 3 of the ATLAS of
         # Finite Group Representations, specifically the page at
         # http://brauer.maths.qmul.ac.uk/Atlas/v5/permrep/J2G1-p100B0 .
 
         from sage.libs.gap.libgap import libgap
-        libgap.load_package("AtlasRep") # representation of HJ on 100 points
+        libgap.load_package("AtlasRep")  # representation of HJ on 100 points
         G = libgap.AtlasGroup("HJ", libgap.NrMovedPoints, 100)
-        edges = G.Orbit([1,5], libgap.OnSets)
+        edges = G.Orbit([1, 5], libgap.OnSets)
         g = Graph()
         g.add_edges(edges)
         g.relabel()
@@ -744,7 +733,6 @@ def HallJankoGraph(from_string=True):
     g._circle_embedding(list(range(100)))
     g.name("Hall-Janko graph")
     return g
-
 
 def Balaban10Cage(embedding=1):
     r"""
@@ -772,8 +760,8 @@ def Balaban10Cage(embedding=1):
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be selected by
-      setting ``embedding`` to be either 1 or 2.
+    - ``embedding`` -- integer (default: ``1``); two embeddings are available,
+      and can be selected by setting ``embedding`` to be either 1 or 2
 
     EXAMPLES::
 
@@ -795,7 +783,6 @@ def Balaban10Cage(embedding=1):
         ...
         ValueError: the value of embedding must be 1 or 2
     """
-
     L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
           21, 9,-13, -31, -9, 25, 17, 9, -31, 27, -9, 17, -19, -29, 27,
           -17, -9, -29, 33, -25,25, -21, 17, -17, 29, 35, -29, 17, -17,
@@ -832,7 +819,7 @@ def Balaban10Cage(embedding=1):
 
     return g
 
-def Balaban11Cage(embedding = 1):
+def Balaban11Cage(embedding=1):
     r"""
     Return the Balaban 11-cage.
 
@@ -840,8 +827,8 @@ def Balaban11Cage(embedding = 1):
 
     INPUT:
 
-    - ``embedding`` -- three embeddings are available, and can be selected by
-      setting ``embedding`` to be 1, 2, or 3.
+    - ``embedding`` -- integer (default: ``1``); three embeddings are available,
+      and can be selected by setting ``embedding`` to be 1, 2, or 3
 
       - The first embedding is the one appearing on page 9 of the Fifth Annual
         Graph Drawing Contest report [EMMN1998]_. It separates vertices based on
@@ -885,7 +872,7 @@ def Balaban11Cage(embedding = 1):
 
     Proof that the embeddings are the same graph::
 
-        sage: g1.is_isomorphic(g2) # g2 and g3 are obviously isomorphic
+        sage: g1.is_isomorphic(g2)  # g2 and g3 are obviously isomorphic
         True
 
     TESTS::
@@ -1030,7 +1017,7 @@ def BidiakisCube():
     EXAMPLES:
 
     The Bidiakis cube is a 3-regular graph having 12 vertices and 18 edges. This
-    means that each vertex has a degree of 3. ::
+    means that each vertex has a degree of 3::
 
         sage: g = graphs.BidiakisCube(); g
         Bidiakis cube: Graph on 12 vertices
@@ -1088,8 +1075,8 @@ def BiggsSmithGraph(embedding=1):
 
     INPUT:
 
-    - ``embedding`` -- two embeddings are available, and can be selected by
-      setting ``embedding`` to be 1 or 2.
+    - ``embedding`` -- integer (default: ``1``); two embeddings are available,
+      and can be selected by setting ``embedding`` to be 1 or 2
 
     EXAMPLES:
 
@@ -1110,7 +1097,7 @@ def BiggsSmithGraph(embedding=1):
 
     The other embedding::
 
-        sage: graphs.BiggsSmithGraph(embedding=2).show() # long time
+        sage: graphs.BiggsSmithGraph(embedding=2).show()  # long time
 
     TESTS::
 
@@ -1191,14 +1178,13 @@ def BlanusaFirstSnarkGraph():
         sage: g.automorphism_group().cardinality()
         8
     """
-    g = Graph({17:[4,7,1],0:[5],
-               3:[8],13:[9],12:[16],
-               10:[15],11:[6],14:[2]},
+    g = Graph({17: [4, 7, 1], 0: [5], 3: [8], 13: [9], 12: [16],
+               10: [15], 11: [6], 14: [2]},
               name="Blanusa First Snark Graph")
 
     g.add_cycle(list(range(17)))
     g._circle_embedding(list(range(17)), shift=0.25)
-    g.get_pos()[17] = (0,0)
+    g.get_pos()[17] = (0, 0)
     return g
 
 def BlanusaSecondSnarkGraph():
@@ -1266,7 +1252,7 @@ def BrinkmannGraph():
     EXAMPLES:
 
     The Brinkmann graph is a 4-regular graph having 21 vertices and 42
-    edges. This means that each vertex has degree 4. ::
+    edges. This means that each vertex has degree 4::
 
         sage: G = graphs.BrinkmannGraph(); G
         Brinkmann graph: Graph on 21 vertices
@@ -1278,7 +1264,7 @@ def BrinkmannGraph():
         sage: G.is_regular(4)
         True
 
-    It is an Eulerian graph with radius 3, diameter 3, and girth 5. ::
+    It is an Eulerian graph with radius 3, diameter 3, and girth 5::
 
         sage: G.is_eulerian()
         True
@@ -1363,7 +1349,7 @@ def BrouwerHaemersGraph():
 
     It is indeed strongly regular with parameters `(81,20,1,6)`::
 
-        sage: g.is_strongly_regular(parameters = True) # long time
+        sage: g.is_strongly_regular(parameters=True)  # long time
         (81, 20, 1, 6)
 
     Its has as eigenvalues `20,2` and `-7`::
@@ -1382,7 +1368,7 @@ def BrouwerHaemersGraph():
     V = VectorSpace(F,d)
     M = Matrix(F,identity_matrix(d))
     M[1,1]=-1
-    G = Graph([[tuple(_) for _ in V], lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
+    G = Graph([[tuple(_) for _ in V], lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops=False)
     G.relabel()
     ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                 18, 19, 20, 21, 22, 23, 24, 25, 26, 48, 49, 50, 51, 52, 53,
@@ -1396,7 +1382,7 @@ def BrouwerHaemersGraph():
 
 def BuckyBall():
     r"""
-    Create the Bucky Ball graph.
+    Return the Bucky Ball graph.
 
     This graph is a 3-regular 60-vertex planar graph. Its vertices and edges
     correspond precisely to the carbon atoms and bonds in buckminsterfullerene.
@@ -1405,14 +1391,14 @@ def BuckyBall():
 
     EXAMPLES:
 
-    The Bucky Ball is planar. ::
+    The Bucky Ball is planar::
 
         sage: g = graphs.BuckyBall()
         sage: g.is_planar()
         True
 
     The Bucky Ball can also be created by extracting the 1-skeleton of the Bucky
-    Ball polyhedron, but this is much slower. ::
+    Ball polyhedron, but this is much slower::
 
         sage: g = polytopes.buckyball().vertex_graph()
         sage: g.remove_loops()
@@ -1420,10 +1406,10 @@ def BuckyBall():
         sage: g.is_isomorphic(h)
         True
 
-    The graph is returned along with an attractive embedding. ::
+    The graph is returned along with an attractive embedding::
 
-        sage: g = graphs.BuckyBall()
-        sage: g.plot(vertex_labels=False, vertex_size=10).show() # long time
+        sage: g = graphs.BuckyBall()  # long time
+        sage: g.plot(vertex_labels=False, vertex_size=10).show()  # long time
     """
     edges = [(0, 2), (0, 48), (0, 59), (1, 3), (1, 9), (1, 58),
              (2, 3), (2, 36), (3, 17), (4, 6), (4, 8), (4, 12),

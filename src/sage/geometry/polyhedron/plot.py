@@ -758,7 +758,7 @@ class Projection(SageObject):
                     coords.append(a() + v())
 
         if polyhedron.n_lines() == 0:
-            self.polygons.append( self.coord_indices_of(coords) )
+            self.polygons.append(self.coord_indices_of(coords))
             return
 
         polygons = []
@@ -776,9 +776,9 @@ class Projection(SageObject):
             v = coords[0]
             l1 = line1()
             l2 = line2()
-            polygons = [ [v-l1-l2, v+l1-l2, v+l1+l2, v-l1+l2] ]
+            polygons = [[v-l1-l2, v+l1-l2, v+l1+l2, v-l1+l2]]
 
-        polygons = [ self.coord_indices_of(p) for p in polygons ]
+        polygons = [self.coord_indices_of(p) for p in polygons]
         self.polygons.extend(polygons)
 
     def _init_solid_3d(self, polyhedron):
@@ -851,8 +851,8 @@ class Projection(SageObject):
             for shift in [aline(), -aline()]:
                 for coords in faces:
                     assert len(coords) == 2, "There must be two points."
-                    polygons.append( [ coords[0],coords[1],
-                                       coords[1]+shift, coords[0]+shift ] )
+                    polygons.append([coords[0], coords[1],
+                                     coords[1] + shift, coords[0] + shift])
 
         if polyhedron.n_lines() == 2:
             [line1, line2] = [l for l in polyhedron.line_generator()]
@@ -1037,10 +1037,6 @@ class Projection(SageObject):
         """
         if point_opts is None:
             point_opts = {}
-        if line_opts is None:
-            line_opts = {}
-        if polygon_opts is None:
-            polygon_opts = {}
         if isinstance(point_opts, dict):
             point_opts.setdefault('zorder', 2)
             point_opts.setdefault('pointsize', 10)
@@ -1073,8 +1069,6 @@ class Projection(SageObject):
             point_opts = {}
         if line_opts is None:
             line_opts = {}
-        if polygon_opts is None:
-            polygon_opts = {}
         if isinstance(point_opts, dict):
             point_opts.setdefault('zorder', 2)
             point_opts.setdefault('pointsize', 10)
@@ -1680,7 +1674,7 @@ class Projection(SageObject):
             A = facets[index_facet].vector()[1:]
             B = facets[index_facet].vector()[0]
             for v in self.points:
-                if A*self.coords[v]+B < 0.0005 and v not in back_vertices:
+                if A * self.coords[v] + B < 0.0005 and v not in back_vertices:
                     back_vertices += [v]
 
         # Creates the nodes, coordinate and tag for every vertex of the polytope.

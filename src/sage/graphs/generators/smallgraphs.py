@@ -413,7 +413,7 @@ def Cell600(embedding=1):
 
     INPUT:
 
-    - ``embedding`` -- integer (default: ``1); two different embeddings for a
+    - ``embedding`` -- integer (default: ``1``); two different embeddings for a
       plot
 
     EXAMPLES::

@@ -1,5 +1,5 @@
-deformation
-===========
+deformation: Count points on hypersurfaces using the deformation method
+=======================================================================
 
 Description
 -----------

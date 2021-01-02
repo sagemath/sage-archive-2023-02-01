@@ -19,7 +19,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 from math import sin, cos, pi
 
 def BullGraph():
@@ -85,7 +84,7 @@ def BullGraph():
     """
     edge_list = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 4)]
     pos_dict = {0: (0, 0), 1: (-1, 1), 2: (1, 1), 3: (-2, 2), 4: (2, 2)}
-    return graph.Graph(edge_list, pos=pos_dict, name="Bull graph")
+    return Graph(edge_list, pos=pos_dict, name="Bull graph")
 
 def ButterflyGraph():
     r"""
@@ -220,7 +219,7 @@ def ClawGraph():
     """
     edge_list = [(0, 1), (0, 2), (0, 3)]
     pos_dict = {0: (0, 1), 1: (-1, 0), 2: (0, 0), 3: (1, 0)}
-    return graph.Graph(edge_list, pos=pos_dict, name="Claw graph")
+    return Graph(edge_list, pos=pos_dict, name="Claw graph")
 
 def CycleGraph(n):
     r"""
@@ -381,7 +380,7 @@ def CompleteGraph(n):
         sage: spring23.show()  # long time
         sage: posdict23.show()  # long time
     """
-    G = graph.Graph(n, name="Complete graph")
+    G = Graph(n, name="Complete graph")
     if n == 1:
         G.set_pos({0: (0, 0)})
     else:

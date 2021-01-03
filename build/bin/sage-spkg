@@ -119,8 +119,10 @@ cat >&2 <<MESSAGE
 $1
 ************************************************************************
 Please email sage-devel (http://groups.google.com/group/sage-devel)
-explaining the problem and including the log file
+explaining the problem and including the log files
   $SAGE_LOGS/$PKG_NAME.log
+and
+  $SAGE_ROOT/config.log
 Describe your computer, operating system, etc.
 MESSAGE
 

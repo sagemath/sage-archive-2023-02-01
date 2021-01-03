@@ -1,5 +1,5 @@
-yasm
-====
+yasm: An assembler for the x86 and AMD64 instruction sets
+=========================================================
 
 Description
 -----------

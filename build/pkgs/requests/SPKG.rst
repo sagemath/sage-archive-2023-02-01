@@ -1,5 +1,5 @@
-requests
-========
+requests: An HTTP library for Python
+====================================
 
 Description
 -----------

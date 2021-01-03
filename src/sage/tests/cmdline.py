@@ -217,7 +217,6 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
-        Found local metadata for sqlite-...
         SQLite
         ======
         ...
@@ -231,7 +230,6 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
-        Found local metadata for sqlite-...
         SQLite
         ======
         ...

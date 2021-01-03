@@ -28,6 +28,7 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, division
 
 def krawtchouk(n, q, l, x, check=True):
     r"""
@@ -148,6 +149,7 @@ def eberlein(n, k, l, x, check=True):
         l = l0
     eber = jth_term = binomial(n-x,k) * binomial(l-n-x,k)
     for j in srange(1,k+1):
+        print("n-x-k+j={}, l-n-x-k+j={}".format(n-x-k+j,l-n-x-k+j))
         jth_term *= (-1) * ((x-j+1)/j) * ((k-j+1)/(n-x-k+j)) * ((k-j+1)/(l-n-x-k+j))
         eber += jth_term
     return eber
@@ -196,6 +198,98 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     if maxc > 0:
         p.add_constraint(sum([A[r] for r in range(n+1)]), max=maxc)
     return A, p
+
+def _delsarte_cwc_LP_building(n, d, w, q, solver, isinteger):
+    """
+    LP builder for Delsarte's LP for constant weight codes, used in
+    delsarte_bound_constant_weight_code; not exported.
+
+    INPUT:
+
+    - ``n`` -- the code length
+
+    - ``w`` -- the weight of the code
+
+    - ``d`` -- the (lower bound on) minimal distance of the code
+
+    - ``solver`` -- the LP/ILP solver to be used. Defaults to
+      ``PPL``. It is arbitrary precision, thus there will be no
+      rounding errors. With other solvers (see
+      :class:`MixedIntegerLinearProgram` for the list), you are on
+      your own!
+
+    - ``isinteger`` -- if ``True``, uses an integer programming solver
+      (ILP), rather that an LP solver. Can be very slow if set to
+      ``True``.
+
+    EXAMPLES: 
+    ....
+
+    """
+    from sage.numerical.mip import MixedIntegerLinearProgram
+    from sage.arith.all import binomial
+
+    p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+    A = p.new_variable(integer=isinteger, nonnegative=True)
+    p.set_objective(sum([A[r] for r in range(n+1)]))
+    p.add_constraint(A[0]==1)
+    for j in range(1,n):
+        if j<d or 2*w<j: p.add_constraint(A[j]==0)
+    for k in range(1,n+1): # could be range(d/2,n+1)
+        # could make more efficient calculation of the binomials in the future
+        # by keeping track of the divisor
+        print("eberlein args: w={}, n={}, k={}, d/2={} ".format(w,n,k,d/2))
+        p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k)
+            / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,k+1)]), min=-1)
+
+    return A, p
+
+
+def delsarte_bound_constant_weight_code(n, d, w, q, 
+return_data=False, solver="PPL", isinteger=False):
+    """
+    Find the Delsarte bound on a constant weight code of weight w, length n,
+    ...d
+
+    INPUT:
+
+    - ``n`` -- the code length
+
+    - ``d`` -- the (lower bound on) minimal distance of the code
+
+    - ``q`` -- the size of the alphabet
+
+    - ``return_data`` -- if ``True``, return a triple
+      ``(W,LP,bound)``, where ``W`` is a weights vector, and ``LP``
+      the Delsarte upper bound LP; both of them are Sage LP data.
+      ``W`` need not be a weight distribution of a code.
+
+    - ``solver`` -- the LP/ILP solver to be used. Defaults to
+      ``PPL``. It is arbitrary precision, thus there will be no
+      rounding errors. With other solvers (see
+      :class:`MixedIntegerLinearProgram` for the list), you are on
+      your own!
+
+    - ``isinteger`` -- if ``True``, uses an integer programming solver
+      (ILP), rather that an LP solver. Can be very slow if set to
+      ``True``.
+
+    """
+    from sage.numerical.mip import MIPSolverException
+
+    A, p = _delsarte_cwc_LP_building(n, w, d, q, solver, isinteger)
+    try:
+        bd = p.solve()
+    except MIPSolverException as exc:
+        print("Solver exception: {}".format(exc))
+        if return_data:
+            return A,p,False
+        return False
+
+    if return_data:
+        return A,p,bd
+    else:
+        return bd
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
     """

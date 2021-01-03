@@ -86,10 +86,7 @@ need to be installed (or linked) in the environment from which the
 Jupyter installation runs.
 
 You can check the presence of some of these packages using the command
-
-.. CODE-BLOCK:: bash
-
-    jupyter nbextension list
+``jupyter nbextension list``.
 
  - For the Sage interacts, you will need the package
    ``widgetsnbextension`` installed in the Python environment of the

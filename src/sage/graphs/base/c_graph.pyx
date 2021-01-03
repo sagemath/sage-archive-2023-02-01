@@ -4304,12 +4304,12 @@ cdef class CGraphBackend(GenericGraphBackend):
           relevant to digraphs. If this is a digraph, ignore all orientations
           and consider the graph as undirected.
 
-        - ``report_distance`` -- boolean (default ``False``); if ``True``,
+        - ``report_distance`` -- boolean (default: ``False``); if ``True``,
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
 
-        - ``edges`` -- boolean (default ``False``); whether to return the edges
+        - ``edges`` -- boolean (default: ``False``); whether to return the edges
           of the BFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.
 
@@ -4772,13 +4772,13 @@ cdef class Search_iterator:
           relevant to digraphs. If ``graph`` is a digraph, ignore all
           orientations and consider the graph as undirected.
 
-        - ``report_distance`` -- boolean (default ``False``); if ``True``,
+        - ``report_distance`` -- boolean (default: ``False``); if ``True``,
           reports pairs ``(vertex, distance)`` where ``distance`` is the
           distance from the ``start`` nodes. If ``False`` only the vertices are
           reported.
           Only allowed for ``direction=0``, i.e. BFS.
 
-        - ``edges`` -- boolean (default ``False``); whether to return the edges
+        - ``edges`` -- boolean (default: ``False``); whether to return the edges
           of the BFS tree in the order of visit or the vertices (default).
           Edges are directed in root to leaf orientation of the tree.
           Only allowed for ``direction=0``, i.e. BFS.

@@ -1,0 +1,12 @@
+sphinxcontrib_qthelp
+====================
+
+Description
+-----------
+
+Sphinx extension which outputs QtHelp documents
+
+License
+-------
+
+BSD

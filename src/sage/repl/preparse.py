@@ -1762,9 +1762,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     Check that multi-line strings starting with a comment are still preparsed
     (:trac:`31043`)::
 
-        sage: preparse('''# some comment
-        ....: some_function(some_var) = some_var''')
-        '# some comment\n__tmp__=var("some_var"); some_function = symbolic_expression(some_var).function(some_var)'
+        sage: print(preparse('''# some comment
+        ....: f(x) = x + 1'''))
+        # some comment
+        __tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)
 
     """
     global quote_state

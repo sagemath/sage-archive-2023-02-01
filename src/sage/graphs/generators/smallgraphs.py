@@ -190,26 +190,26 @@ def HarriesWongGraph(embedding=1):
 
     The default embedding is an attempt to emphasize the graph's 8 (!!!)
     different orbits. In order to understand this better, one can picture the
-    graph as being built in the following way:
+    graph as being built in the following way.
 
-    #. One first creates a 3-dimensional cube (8 vertices, 12 edges), whose
-      vertices define the first orbit of the final graph.
+    #. One first creates a 3-dimensional cube (8 vertices, 12 edges),
+       whose vertices define the first orbit of the final graph.
 
     #. The edges of this graph are subdivided once, to create 12 new vertices
-      which define a second orbit.
+       which define a second orbit.
 
     #. The edges of the graph are subdivided once more, to create 24 new
-      vertices giving a third orbit.
+       vertices giving a third orbit.
 
     #. 4 vertices are created and made adjacent to the vertices of the second
-      orbit so that they have degree 3. These 4 vertices also define a new
-      orbit.
+       orbit so that they have degree 3. These 4 vertices also define a new
+       orbit.
 
     #. In order to make the vertices from the third orbit 3-regular (they all
-      miss one edge), one creates a binary tree on 1 + 3 + 6 + 12 vertices. The
-      leaves of this new tree are made adjacent to the 12 vertices of the third
-      orbit, and the graph is now 3-regular. This binary tree contributes 4 new
-      orbits to the Harries-Wong graph.
+       miss one edge), one creates a binary tree on 1 + 3 + 6 + 12 vertices. The
+       leaves of this new tree are made adjacent to the 12 vertices of the third
+       orbit, and the graph is now 3-regular. This binary tree contributes 4 new
+       orbits to the Harries-Wong graph.
 
     INPUT:
 

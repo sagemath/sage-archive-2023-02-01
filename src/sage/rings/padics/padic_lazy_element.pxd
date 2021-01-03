@@ -12,9 +12,9 @@ cdef class pAdicLazyElement(pAdicGenericElement):
     cdef slong _valuation
     cdef slong _precrel
 
-    cpdef jump(self, prec)
-    cdef bint next(self) except -1
-    cdef Integer _digit(self, i)
+    cdef bint _jump_c(self, slong prec)
+    cdef bint _next_c(self) except -1
+    cdef Integer _digit(self, slong i)
 
     cdef bint _is_equal(self, pAdicLazyElement right, slong prec)
 
@@ -45,7 +45,8 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
 cdef class pAdicLazyElement_mul(pAdicLazyElement):
     cdef pAdicLazyElement _x
     cdef pAdicLazyElement _y
-    cdef fmpz_poly_t _tmp
+    cdef fmpz_t _tmp_coeff
+    cdef fmpz_poly_t _tmp_poly
     
 #cdef class pAdicLazyElement_div(pAdicLazyElement)
 #cdef class pAdicLazyElement_sqrt(pAdicLazyElement)

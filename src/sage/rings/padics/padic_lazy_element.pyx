@@ -34,7 +34,6 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
-MAXORDP = ZZ(maxordp)
 
 
 cdef class pAdicLazyElement(pAdicGenericElement):
@@ -54,16 +53,24 @@ cdef class pAdicLazyElement(pAdicGenericElement):
     def prime(self):
         return self._parent.prime()
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         raise NotImplementedError("must be implemented in subclasses")
 
-    cpdef jump(self, prec):
+    cdef bint _jump_c(self, slong prec):
         cdef slong i, stop
         stop = min(prec, maxordp) - self._precrel - self._valuation
         for i in range(stop):
-            if not self.next():
+            if not self._next_c():
                 return False
         return prec < maxordp
+
+    def jump(self, prec):
+        if prec not in ZZ:
+            raise ValueError("precision must be an integer")
+        prec = ZZ(prec)
+        if prec >= maxordp:
+            raise OverflowError
+        return self._jump_c(long(prec))
 
     def expansion(self, n=None):
         if n is None:
@@ -71,12 +78,29 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         if isinstance(n, slice):
             if n.step is not None:
                 raise NotImplementedError
-            return ExpansionIter(self, n.start, n.stop)
+            if n.start is None:
+                start = 0
+            elif n.start in ZZ:
+                start = ZZ(n.start)
+            else:
+                raise ValueError
+            if n.stop is None:
+                stop = None
+            elif n.stop in ZZ:
+                start = ZZ(n.stop)
+            else:
+                raise ValueError
+            return ExpansionIter(self, start, stop)
         else:
-            return self._digit(n)
+            if n not in ZZ:
+                raise IndexError("index must be an integer")
+            n = ZZ(n)
+            if n >= maxordp:
+                raise OverflowError
+            return self._digit(long(n))
 
-    cdef Integer _digit(self, i):
-        if not self.jump(i+1):
+    cdef Integer _digit(self, slong i):
+        if not self._jump_c(i+1):
             raise PrecisionError
         cdef Integer ans = PY_NEW(Integer)
         cdef fmpz* coeff = get_coeff(self._digits, i - self._valuation)
@@ -89,8 +113,8 @@ cdef class pAdicLazyElement(pAdicGenericElement):
 
     cdef bint _is_equal(self, pAdicLazyElement right, slong prec):
         cdef slong i
-        self.jump(prec)
-        right.jump(prec)
+        self._jump_c(prec)
+        right._jump_c(prec)
         if self._valuation >= prec:
             return right._valuation >= prec
         if right._valuation >= prec:
@@ -139,19 +163,15 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             raise PrecisionError
         return self >> self._valuation
 
-    def __lshift__(self, s):
-        cdef slong shift = long(s)
-        if shift:
-            return pAdicLazyElement_shift((<pAdicLazyElement>self)._parent, self, -shift)
-        else:
-            return self
-
     def __rshift__(self, s):
         cdef slong shift = long(s)
         if shift:
-            return pAdicLazyElement_shift((<pAdicLazyElement>self)._parent, self, shift)
+            return pAdicLazyElement_shift((<pAdicLazyElement>self)._parent, self, shift, True)
         else:
             return self
+
+    def __lshift__(self, s):
+        return self.__rshift__(-s)
 
     cpdef _add_(self, other):
         cdef list summands
@@ -224,10 +244,10 @@ cdef class pAdicLazyElement_zero(pAdicLazyElement):
         pAdicLazyElement.__init__(self, parent)
         self._valuation = maxordp
 
-    cpdef jump(self, prec):
+    cdef bint _jump_c(self, slong prec):
         return True
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         return True
 
 
@@ -238,12 +258,12 @@ cdef class pAdicLazyElement_one(pAdicLazyElement):
         pAdicLazyElement.__init__(self, parent)
         fmpz_poly_set_ui(self._digits, 1)
 
-    cpdef jump(self, prec):
+    cdef bint _jump_c(self, slong prec):
         if self._precrel < prec:
             self._precrel = prec
         return True
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         self._precrel += 1
         return True
 
@@ -257,7 +277,7 @@ cdef class pAdicLazyElement_value(pAdicLazyElement):
         fmpz_poly_set_mpz(self._digits, x.value)
         self._maxprec = maxprec
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         if (self._maxprec is not None) and (self._valuation + self._precrel >= self._maxprec):
             return False
         reduce_coeff(self._digits, self._precrel, self._prime)
@@ -281,7 +301,7 @@ cdef class pAdicLazyElement_random(pAdicLazyElement):
     def __init__(self, parent):
         pAdicLazyElement.__init__(self, parent)
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         cdef fmpz_t r;
         fmpz_randm(r, self._randstate, self._prime)
         if self._precrel == 0 and fmpz_is_zero(r):
@@ -298,20 +318,31 @@ cdef class pAdicLazyElement_random(pAdicLazyElement):
 # Shift
 
 cdef class pAdicLazyElement_shift(pAdicLazyElement):
-    def __init__(self, parent, pAdicLazyElement x, slong s):
+    def __init__(self, parent, pAdicLazyElement x, slong s, bint truncate):
+        cdef slong start = 0
+        cdef fmpz_poly_t digits;
         pAdicLazyElement.__init__(self, parent)
         self._x = x
         self._shift = s
-        self._valuation = x._valuation - s
-        self._precrel = x._precrel
-        fmpz_poly_set(self._digits, x._digits)
+        if truncate and x._valuation < s:
+            start = s - x._valuation
+            self._valuation = 0
+            self._precrel = x._precrel - start
+        else:
+            self._valuation = x._valuation - s
+            self._precrel = x._precrel
+        if self._precrel < 0:
+            self._precrel = 0
+        else:
+            get_slice(digits, x._digits, start, self._precrel)
+            fmpz_poly_set(self._digits, digits)
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         cdef slong n = self._valuation + self._precrel
         cdef pAdicLazyElement x = self._x
         cdef fmpz* digit
 
-        if not x.jump(n + self._shift + 1):
+        if not x._jump_c(n + self._shift + 1):
             return False
         digit = get_coeff(x._digits, n + self._shift - x._valuation)
         fmpz_poly_set_coeff_fmpz(self._digits, self._precrel, digit)
@@ -331,12 +362,12 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
         self._summands = summands
         self._signs = signs
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         cdef pAdicLazyElement summand
         cdef slong n = self._valuation + self._precrel
         cdef fmpz* coeff
         for summand in self._summands:
-            if not summand.jump(n+1):
+            if not summand._jump_c(n+1):
                 return False
         cdef slong i
         for i in range(len(self._summands)):
@@ -359,10 +390,12 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
 
 cdef class pAdicLazyElement_mul(pAdicLazyElement):
     def __cinit__(self):
-        fmpz_poly_init(self._tmp)
+        fmpz_init(self._tmp_coeff)
+        fmpz_poly_init(self._tmp_poly)
 
     def __dealloc__(self):
-        fmpz_poly_clear(self._tmp)
+        fmpz_clear(self._tmp_coeff)
+        fmpz_poly_clear(self._tmp_poly)
 
     def __init__(self, parent, x, y):
         pAdicLazyElement.__init__(self, parent)
@@ -370,13 +403,13 @@ cdef class pAdicLazyElement_mul(pAdicLazyElement):
         self._y = <pAdicLazyElement?>y
         self._valuation = self._x._valuation + self._y._valuation
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         cdef pAdicLazyElement x = self._x
         cdef pAdicLazyElement y = self._y
         cdef slong n = self._valuation + self._precrel
 
-        cdef bint success = (x.jump(n - y._valuation + 1) 
-                         and y.jump(n - x._valuation + 1))
+        cdef bint success = (x._jump_c(n - y._valuation + 1) 
+                         and y._jump_c(n - x._valuation + 1))
         if self._precrel == 0:
             self._valuation = x._valuation + y._valuation
             if self._valuation > n:
@@ -387,23 +420,28 @@ cdef class pAdicLazyElement_mul(pAdicLazyElement):
             return False
 
         n = self._precrel
+        fmpz_mul(self._tmp_coeff, get_coeff(x._digits, 0), get_coeff(y._digits, n))
+        iadd_coeff(self._digits, self._tmp_coeff, n)
+        if n:
+            fmpz_mul(self._tmp_coeff, get_coeff(x._digits, n), get_coeff(y._digits, 0))
+            iadd_coeff(self._digits, self._tmp_coeff, n)
+
         cdef slong m = n + 2
         cdef slong len = 1
         cdef fmpz_poly_t slicex, slicey
-        while m > 1:
+        while (m & 1 == 0) and (m > 3):
+            m >>= 1
+            len <<= 1
             get_slice(slicex, x._digits, len - 1, len)
             get_slice(slicey, y._digits, (m-1)*len - 1, len)
-            fmpz_poly_mul(self._tmp, slicex, slicey)
-            iadd_shifted(self._digits, self._tmp, n)
+            fmpz_poly_mul(self._tmp_poly, slicex, slicey)
+            iadd_shifted(self._digits, self._tmp_poly, n)
             if m > 2:
                 get_slice(slicex, x._digits, (m-1)*len - 1, len)
                 get_slice(slicey, y._digits, len - 1, len)
-                fmpz_poly_mul(self._tmp, slicex, slicey)
-                iadd_shifted(self._digits, self._tmp, n)
-            if m & 1:
-                break
-            m >>= 1
-            len <<= 1
+                fmpz_poly_mul(self._tmp_poly, slicex, slicey)
+                iadd_shifted(self._digits, self._tmp_poly, n)
+
         reduce_coeff(self._digits, self._precrel, self._prime)
         self._precrel += 1
         return True
@@ -434,7 +472,7 @@ cdef class pAdicLazyElement_selfref(pAdicLazyElement):
             raise ValueError("this self-referent number is already defined")
         self._definition = <pAdicLazyElement?>self._parent(definition)
         try:
-            self.next()
+            self._next_c()
         except RecursionError:
             self._definition = None
             self._valuation = 0
@@ -447,7 +485,7 @@ cdef class pAdicLazyElement_selfref(pAdicLazyElement):
             return True
         return pAdicLazyElement.__eq__(self, other)
 
-    cdef bint next(self) except -1:
+    cdef bint _next_c(self) except -1:
         cdef pAdicLazyElement definition = self._definition
         cdef fmpz* digit
 
@@ -457,7 +495,7 @@ cdef class pAdicLazyElement_selfref(pAdicLazyElement):
             raise RecursionError("definition looks circular")
 
         self._next = True
-        success = definition.jump(self._valuation + self._precrel + 1)
+        success = definition._jump_c(self._valuation + self._precrel + 1)
         if success:
             if definition._valuation > self._valuation:
                 self._valuation = definition._valuation
@@ -483,10 +521,14 @@ cdef class ExpansionIter(object):
         if start is None:
             self.start = 0
         else:
+            if start >= maxordp:
+                raise OverflowError
             self.start = long(start)
         if stop is None:
             self.stop = self.start - 1
         else: 
+            if stop >= maxordp:
+                raise OverflowError
             self.stop = long(stop)
             if self.stop <= self.start:
                 self.stop = self.start

@@ -150,7 +150,7 @@ class DocTestDefaults(SageObject):
         for k in sorted(dict_difference(self.__dict__, DocTestDefaults().__dict__).keys()):
             if s[-1] != "(":
                 s += ", "
-            s += str(k) + "=" + repr(getattr(self,k))
+            s += str(k) + "=" + repr(getattr(self, k))
         s += ")"
         return s
 
@@ -172,7 +172,7 @@ class DocTestDefaults(SageObject):
 
     def __ne__(self, other):
         """
-        Test for unequality.
+        Test for non-equality.
 
         EXAMPLES::
 
@@ -1268,6 +1268,7 @@ def run_doctests(module, options=None):
     """
     import sys
     sys.stdout.flush()
+
     def stringify(x):
         if isinstance(x, (list, tuple)):
             F = [stringify(a) for a in x]

@@ -170,7 +170,7 @@ for PKG_BASE in $(./sage --package list --has-file SPKG.rst | sort); do
             # Instead of just copying, we may want to call
             # a version of sage-spkg-info to format extra information.
 
-            (echo ".. _spkg_$PKG_BASE:" && echo && OUTPUT_RST=1 ./sage --info $PKG_BASE) > "$OUTPUT_DIR"/$PKG_BASE.rst
+            (echo ".. _spkg_$PKG_BASE:" && echo && OUTPUT_RST=1 sage-spkg-info $PKG_BASE) > "$OUTPUT_DIR"/$PKG_BASE.rst
             echo >> "$OUTPUT_INDEX" "   $PKG_BASE"
 done
 

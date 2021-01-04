@@ -29,8 +29,6 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 # ****************************************************************************
 
 from typing import List, Optional
-
-from typing import Optional
 import sage
 import os
 import socket

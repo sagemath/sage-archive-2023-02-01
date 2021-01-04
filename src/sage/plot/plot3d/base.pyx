@@ -13,9 +13,27 @@ AUTHORS:
 
 - Joshua Campbell (2020): Three.js animation support
 
+- Günter Rote (2021): camera and light for tachyon (needs cleanup)
+
 .. TODO::
 
-    finish integrating tachyon -- good default lights, camera
+    finish integrating tachyon -- good default lights
+"""
+
+##### BUGS?? tachyon scales everything to a unit box
+# threejs does not distort, by default.
+"""
+p=plot3d(lambda u,v:(cos(u)-cos(v)), (-0.2,0.2),(-0.2,0.2))
+p.show()
+p.show(viewer="tachyon")
+p.show(viewer="tachyon",zoom=0.5)
+"""
+"""
+Warning:
+        camera_center
+        light_position
+are relative to some
+they are, for example affected by zoom.??
 """
 
 # ****************************************************************************
@@ -203,13 +221,18 @@ cdef class Graphics3d(SageObject):
         opts = self._process_viewing_options(kwds)
         T = self._prepare_for_tachyon(
             opts['frame'], opts['axes'], opts['frame_aspect_ratio'],
-            opts['aspect_ratio'], opts['zoom']
+            opts['aspect_ratio'],
+            1 # opts['zoom']
+            # let zoom be handled by tachyon.
+            # We don't want the perspective to change by zooming
         )
-        x, y = opts['figsize'][0]*100, opts['figsize'][1]*100
-        if DOCTEST_MODE:
-            x, y = 10, 10
-        tachyon_rt(T.tachyon(), filename, opts['verbosity'],
-                   '-res %s %s' % (x, y))
+#        x, y = opts['figsize'][0]*100, opts['figsize'][1]*100
+#        if DOCTEST_MODE:
+#            x, y = 10, 10
+
+        tachyon_args = dict((key,val) for key,val in opts.items() if key in Graphics3d.tachyon_keywords)
+        tachyon_rt(T.tachyon(**tachyon_args), filename, opts['verbosity'])
+#                   '-res %s %s' % (x, y)) ## handled by the tachyon method.
         from sage.repl.rich_output.buffer import OutputBuffer
         import sage.repl.rich_output.output_catalog as catalog
         import PIL.Image as Image
@@ -931,9 +954,41 @@ cdef class Graphics3d(SageObject):
 </X3D>
 """%(self.viewpoint().x3d_str(), self.x3d_str())
 
-    def tachyon(self):
+
+################ TACHYON ################
+
+        ####### insertion of camera parameters
+
+    tachyon_keywords = ("antialiasing",# "aspectratio",
+                        "zoom", # zoom is already handled directly by scaling the scene: DISABLED
+                        "raydepth", "figsize", "light_position",
+                        "camera_center","updir",
+                        #"look_at", # omit look_at. viewdir is sufficient
+                        "viewdir")
+    # The tachyon "aspectratio" parameter is outdated for normal users:
+    # From the tachyon documentation:
+    # "By using the aspect ratio parameter, one can produce images which look correct on
+    # any screen.  Aspect ratio alters the relative width of the image plane, while keeping
+    # the height of the image plane constant.  Ingeneral, most workstation displays
+    # have an aspect ratio of 1.0."
+
+    # aspectratio should rather be set to match nonsquare drawing area in "figsize"
+    
+    def tachyon(self,
+        zoom=1.0, # parameters are stolen from tachyion.py
+        antialiasing=False,
+#        aspectratio=1.0,
+        figsize=(4,4), # resolution = 100*figsize
+        raydepth=8,
+        camera_center=(2.3, 2.4, 2.0), # old default values
+        updir=(0, 0, 1),
+  #      look_at=(0, 0, 0),
+        light_position=(4.0, 3.0, 2.0),
+        viewdir=None,
+        #projection='PERSPECTIVE',
+    ):
         """
-        An tachyon input file (as a string) containing the this object.
+        A tachyon input file (as a string) containing the this object.
 
         EXAMPLES::
 
@@ -972,40 +1027,71 @@ cdef class Graphics3d(SageObject):
         render_params = self.default_render_params()
         # switch from LH to RH coords to be consistent with java rendition
         render_params.push_transform(Transformation(scale=[1,-1,1]))
+
+        if len(camera_center)!=3:
+            raise ValueError('Camera center must consist of three numbers')
+
+        if viewdir is None:
+#            viewdir = [float(look_at[i] - camera_center[i]) for i in range(3)]
+            viewdir = [float(- camera_center[i]) for i in range(3)]
+            if viewdir == [0.0,0.0,0.0]:
+                # print("Warning: camera_center and look_at coincide")
+                #print("Warning: camera_center at origin")
+                viewdir = (1,0,0)
+
+        # switch from LH to RH coords to be consistent with java rendition
+        viewdir = flip_orientation(viewdir)
+        updir = flip_orientation(updir)
+        camera_center = flip_orientation(camera_center)
+        light_position = flip_orientation(light_position)
+       
         return """
 begin_scene
-resolution 400 400
+resolution {resolution_x:d} {resolution_y:d}
 
          camera
-            zoom 1.0
-            aspectratio 1.0
-            antialiasing %s
-            raydepth 8
-            center  2.3 2.4 2.0
-            viewdir  -2.3 -2.4 -2.0
-            updir  0.0 0.0 1.0
+            zoom {zoom:f}
+            aspectratio {aspectratio:f}
+            antialiasing {antialiasing:d}
+            raydepth {raydepth:d}
+            center {camera_center}
+            viewdir {viewdir}
+            updir {updir}
          end_camera
 
-
-      light center  4.0 3.0 2.0
+      light center {light_position}
             rad 0.2
             color  1.0 1.0 1.0
 
       plane
-        center -2000 -1000 -500
-        normal 2.3 2.4 2.0
+        center {viewdir1000}
+        normal {viewdir}
         TEXTURE
-            AMBIENT 1.0 DIFFUSE 1.0 SPECULAR 1.0 OPACITY 1.0
+            AMBIENT 1.0 DIFFUSE 0.0 SPECULAR 0.0 OPACITY 1.0
             COLOR 1.0 1.0 1.0
             TEXFUNC 0
 
-    %s
+    {scene}
 
-    %s
+    {render_parameters}
 
-end_scene""" % (render_params.antialiasing,
-               "\n".join(sorted([t.tachyon_str() for t in self.texture_set()])),
-               "\n".join(flatten_list(self.tachyon_repr(render_params))))
+end_scene""".format(
+    #render_params.antialiasing, this only provided the default value of 8
+    scene =  "\n".join(sorted([t.tachyon_str() for t in self.texture_set()])),
+    render_parameters =
+             "\n".join(flatten_list(self.tachyon_repr(render_params))),
+    viewdir1000=_tostring(1000*vector(viewdir).normalized()),
+    viewdir=_tostring(viewdir),
+    camera_center=_tostring(camera_center),
+    updir=_tostring(updir),
+    light_position=_tostring(light_position),
+    zoom=zoom,
+    antialiasing=antialiasing,
+    resolution_x=figsize[0]*100,
+    resolution_y=figsize[1]*100,
+    aspectratio=float(figsize[1])/float(figsize[0]),
+    raydepth=raydepth,
+                   )
 
     def obj(self):
         """
@@ -3145,3 +3231,20 @@ def optimal_extra_kwds(v):
         for k, w in b.iteritems():
             a[k] = w
     return a
+
+def _tostring(s):
+    r"""
+    Converts vector information to a space-separated string.
+
+    EXAMPLES::
+
+        sage: _tostring((1.0,1.0,1.0))
+        '1.0 1.0 1.0'
+    """
+#    if isinstance(s, str):
+#        return s
+    return ' '.join(map(str,s))
+
+def flip_orientation(v):
+    "switch from LH to RH coords to be consistent with java rendition"
+    return (v[0],-v[1],v[2])

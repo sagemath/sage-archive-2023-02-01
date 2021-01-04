@@ -1,9 +1,9 @@
 r"""
 This module provides basic support for lazy p-adic integers.
 
-    sage: R = ZpL(5)
+    sage: R = ZpL(5, print_mode="digits")
     sage: R
-    Lazy 5-adic Ring
+    5-adic Ring with lazy precision
 
 One creates elements as usual::
 
@@ -131,7 +131,7 @@ Self-referent definitions also work with systems of equations::
 
 from sage.rings.all import ZZ, QQ
 from sage.rings.infinity import Infinity
-from sage.rings.padics.generic_nodes import pAdicRingBaseGeneric
+from sage.rings.padics.generic_nodes import pAdicRingBaseGeneric, pAdicFieldBaseGeneric
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 
 from sage.rings.padics.padic_lazy_element import *
@@ -139,13 +139,9 @@ from sage.rings.padics.padic_lazy_element import *
 
 class pAdicRingLazy(pAdicRingBaseGeneric):
     def __init__(self, p, prec, print_mode, names):
-        pAdicRingBaseGeneric.__init__(self, p, 0, print_mode, names, None)
-        self._p = p
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, None)
         self._zero_element = pAdicLazyElement_zero(self)
         self._default_prec = ZZ(prec)
-
-    def prime(self):
-        return self._p
 
     def _prec_type(self):
         return "lazy"
@@ -159,11 +155,6 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
     def precision_cap(self):
         return Infinity
 
-    def _coerce_map_from_(self, R):
-        # why do I need this?
-        if R is ZZ:
-            return True
-
     def _element_constructor_(self, x):
         if isinstance(x, pAdicLazyElement):
             return x
@@ -176,22 +167,80 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
                 return pAdicLazyElement_one(self)
             else:
                 return pAdicLazyElement_value(self, ZZ(x))
+        raise TypeError("unable to convert '%s' to a lazy %s-adic number" % (x, self.prime()))
+
+    def selfref(self, valuation=0):
+        if valuation not in ZZ or valuation < 0:
+            raise ValueError("valuation must be a nonnegative integer")
+        valuation = ZZ(valuation)
+        if valuation >= MAXORDP:
+            raise OverflowError("valuation is too large (maximum is %s)" % MAXORDP)
+        return pAdicLazyElement_selfref(self, valuation)
+
+    def _an_element_(self):
+        return self._zero_element
+
+    def random_element(self):
+        return pAdicLazyElement_random(self, True)
+
+
+class pAdicFieldLazy(pAdicFieldBaseGeneric):
+    def __init__(self, p, prec, print_mode, names):
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, None)
+        self._zero_element = pAdicLazyElement_zero(self)
+        self._default_prec = ZZ(prec)
+
+    def _prec_type(self):
+        return "lazy"
+
+    def is_lazy(self):
+        return True
+
+    def default_prec(self):
+        return self._default_prec
+
+    def precision_cap(self):
+        return Infinity
+
+    def _element_constructor_(self, x):
+        if isinstance(x, pAdicLazyElement):
+            if x.parent() is self:
+                return x
+            return pAdicLazyElement_shift(self, x, 0, False)
+        if isinstance(x, pAdicGenericElement):
+            return pAdicLazyElement_value(self, ZZ(x), maxprec=x.precision_absolute())
+        if x in ZZ:
+            if x == 0:
+                return self._zero_element
+            elif x == 1:
+                return pAdicLazyElement_one(self)
+            else:
+                return pAdicLazyElement_value(self, ZZ(x))
         if x in QQ:
             num = x.numerator()
             denom = x.denominator()
-            if denom % self._p == 0:
+            if denom % self.prime() == 0:
                 raise ValueError("denominator is not a unit")
             num = pAdicLazyElement_value(self, num)
             denom = pAdicLazyElement_value(self, denom)
-            x = num / denom
-            x.jump(prec)
-            return x
+            return num / denom
+        raise TypeError("unable to convert '%s' to a lazy %s-adic number" % (x, self.prime()))
 
-    def selfref(self):
-        return pAdicLazyElement_selfref(self)
+    def selfref(self, valuation=0):
+        if valuation not in ZZ:
+            raise ValueError("valuation must be an integer")
+        valuation = ZZ(valuation)
+        if valuation >= MAXORDP:
+            raise OverflowError("valuation is too large (maximum is %s)" % MAXORDP)
+        return pAdicLazyElement_selfref(self, valuation)
 
     def _an_element_(self):
-        return pAdicLazyElement_value(self, 0)
+        return self._zero_element
 
-    def random_element(self):
-        return pAdicLazyElement_random(self)
+    def random_element(self, integral=True):
+        return pAdicLazyElement_random(self, integral)
+
+    def sum(self, summands):
+        n = len(summands)
+        signs = n * [True]
+        return pAdicLazyElement_add(self, summands, signs)

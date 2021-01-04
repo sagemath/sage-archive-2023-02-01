@@ -52,6 +52,9 @@ class pAdicBaseGeneric(pAdicGeneric):
             elif self.is_lattice_prec():
                 coerce_list = [QQ]
                 convert_list = []
+            elif self.is_lazy():
+                coerce_list = [QQ]
+                convert_list = []
             else:
                 raise RuntimeError
         elif self.is_capped_relative():

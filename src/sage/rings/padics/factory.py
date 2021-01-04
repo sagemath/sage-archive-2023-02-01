@@ -45,7 +45,7 @@ from .padic_base_leaves import (pAdicRingCappedRelative,
                                 pAdicFieldCappedRelative,
                                 pAdicFieldFloatingPoint,
                                 pAdicFieldLattice)
-from .padic_lazy import pAdicRingLazy
+from .padic_lazy import pAdicRingLazy, pAdicFieldLazy
 from . import padic_printing
 
 ######################################################
@@ -747,6 +747,13 @@ class Qp_class(UniqueFactory):
             else:
                 return pAdicFieldFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                          'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
+        elif type == 'lazy':
+            if print_mode == 'terse':
+                return pAdicFieldLazy(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                'ram_name': name, 'max_terse_terms': print_max_terms, 'show_prec': show_prec}, name)
+            else:
+                return pAdicFieldLazy(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                                                'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
         elif type[:8] == 'lattice-':
             subtype = type[8:]
             if print_mode == 'terse':
@@ -1396,6 +1403,8 @@ def QpLF(p, prec = None, *args, **kwds):
     """
     return Qp(p, prec, 'lattice-float', *args, **kwds)
 
+def QpL(p, prec=None, *args, **kwds):
+    return Qp(p, prec, 'lazy', *args, **kwds)
 
 #######################################################################################################
 #

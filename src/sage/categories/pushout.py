@@ -2351,7 +2351,7 @@ class CompletionFunctor(ConstructionFunctor):
     """
     rank = 4
     _real_types = ['Interval', 'Ball', 'MPFR', 'RDF', 'RLF', 'RR']
-    _dvr_types = [None, 'fixed-mod', 'floating-point', 'capped-abs', 'capped-rel', 'lattice-cap', 'lattice-float']
+    _dvr_types = [None, 'fixed-mod', 'floating-point', 'capped-abs', 'capped-rel', 'lattice-cap', 'lattice-float', 'lazy']
 
     def __init__(self, p, prec, extras=None):
         """

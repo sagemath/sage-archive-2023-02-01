@@ -6,14 +6,19 @@ from sage.rings.integer cimport Integer
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 
+cpdef lazy_sum(parent, summands)
+
+
 cdef class pAdicLazyElement(pAdicGenericElement):
     cdef fmpz_t _prime
     cdef fmpz_poly_t _digits
     cdef slong _valuation
     cdef slong _precrel
 
-    cdef bint _jump_c(self, slong prec)
-    cdef bint _next_c(self) except -1
+    #cdef pAdicLazyElement _new_c(self, type cls)
+
+    cdef int _jump_c(self, slong prec)
+    cdef int _next_c(self)
     cdef Integer _digit(self, slong i)
 
     cdef bint _is_equal(self, pAdicLazyElement right, slong prec)
@@ -56,3 +61,5 @@ cdef class pAdicLazyElement_mul(pAdicLazyElement):
 cdef class pAdicLazyElement_selfref(pAdicLazyElement):
     cdef pAdicLazyElement _definition
     cdef bint _next
+
+    cpdef set(self, pAdicLazyElement definition)

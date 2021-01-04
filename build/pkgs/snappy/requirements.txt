@@ -1,0 +1,3 @@
+# The --no-deps flag is just there to prevent it from pulling in cypari (!= cypari2).
+# In fact, just sage -pip install snappy does the trick but installs the (unused even by SnapPy in this context) cypari module.
+--no-deps snappy spherogram plink FXrays snappy_manifolds

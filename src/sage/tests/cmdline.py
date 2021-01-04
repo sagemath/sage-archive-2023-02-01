@@ -217,9 +217,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
-        SQLite
-        ======
-        ...
+        sqlite...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
@@ -230,9 +228,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
 
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
         sage: print(out)  # optional - build
-        SQLite
-        ======
-        ...
+        sqlite...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...

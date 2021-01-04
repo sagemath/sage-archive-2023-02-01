@@ -468,7 +468,7 @@ cdef class Cache_givaro(Cache_base):
                 g = self.objectptr.indeterminate()
                 x = self.objectptr.one
 
-                for i in range(degpol(t)):
+                for i in range(degpol(t) + 1):
                     c = gtolong(gel(t, i + 2))
                     self.objectptr.axpyin(res, self.int_to_log(c), x)
                     self.objectptr.mulin(x, g)

@@ -38,7 +38,7 @@ cdef class pAdicLazyElement_value(pAdicLazyElement):
     cdef _maxprec
 
 cdef class pAdicLazyElement_random(pAdicLazyElement):
-    cdef flint_rand_t _randstate
+    pass
 
 
 
@@ -53,8 +53,20 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
 cdef class pAdicLazyElement_mul(pAdicLazyElement):
     cdef pAdicLazyElement _x
     cdef pAdicLazyElement _y
+
+cdef class pAdicLazyElement_muldigit(pAdicLazyElement):
+    cdef fmpz* _x
+    cdef pAdicLazyElement _y
     
-#cdef class pAdicLazyElement_div(pAdicLazyElement)
+cdef class pAdicLazyElement_div(pAdicLazyElement):
+    cdef slong _maxprec
+    cdef fmpz_t _inverse
+    cdef pAdicLazyElement _num
+    cdef pAdicLazyElement _denom
+    cdef pAdicLazyElement _definition
+
+    cdef int _bootstrap_c(self)
+
 #cdef class pAdicLazyElement_sqrt(pAdicLazyElement)
 
 

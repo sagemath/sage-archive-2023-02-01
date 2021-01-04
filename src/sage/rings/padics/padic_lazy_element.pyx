@@ -26,6 +26,8 @@ cdef extern from "sage/rings/padics/padic_lazy_element_helper.c":
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.structure.element import coerce_binop
+from sage.structure.element cimport have_same_parent
+from sage.structure.coerce cimport coercion_model
 
 from sage.rings.all import ZZ
 from sage.rings.integer cimport Integer
@@ -180,9 +182,13 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         return self._is_equal(other, long(prec))
 
     def __eq__(self, other):
-        prec = min(self.precision_absolute(), other.precision_absolute())
-        prec = max(prec, self._parent.default_prec())
-        return self.is_equal_at_precision(other, prec)
+        if have_same_parent(self, other):
+            prec = min(self.precision_absolute(), other.precision_absolute())
+            prec = max(prec, self._parent.default_prec())
+            return self.is_equal_at_precision(other, prec)
+        else:
+            a, b = coercion_model.canonical_coercion(self, other)
+            return a == b
 
     cpdef bint _is_exact_zero(self) except -1:
         return isinstance(self, pAdicLazyElement_zero)

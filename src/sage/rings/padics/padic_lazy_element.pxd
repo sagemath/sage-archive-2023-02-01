@@ -3,14 +3,17 @@ from sage.libs.flint.types cimport flint_rand_t
 from sage.libs.flint.types cimport fmpz, fmpz_t, fmpz_poly_t
 
 from sage.rings.integer cimport Integer
+from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
+
 
 
 cpdef lazy_sum(parent, summands)
 
 
 cdef class pAdicLazyElement(pAdicGenericElement):
-    cdef fmpz_t _prime
+    cdef PowComputer_flint prime_pow
+
     cdef fmpz_poly_t _digits
     cdef slong _valuation
     cdef slong _precrel
@@ -50,8 +53,6 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
 cdef class pAdicLazyElement_mul(pAdicLazyElement):
     cdef pAdicLazyElement _x
     cdef pAdicLazyElement _y
-    cdef fmpz_t _tmp_coeff
-    cdef fmpz_poly_t _tmp_poly
     
 #cdef class pAdicLazyElement_div(pAdicLazyElement)
 #cdef class pAdicLazyElement_sqrt(pAdicLazyElement)

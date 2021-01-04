@@ -8,6 +8,7 @@
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.misc.misc import walltime
 
 from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
@@ -30,6 +31,7 @@ from sage.rings.all import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import Infinity
 
+from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 
@@ -38,9 +40,12 @@ MAXORDP = ZZ(maxordp)
 
 
 cpdef lazy_sum(parent, summands):
+    if not summands:
+        return parent.zero()
     n = len(summands)
     signs = n * [True]
     return pAdicLazyElement_add(parent, summands, signs)
+
 
 
 cdef class pAdicLazyElement(pAdicGenericElement):
@@ -52,11 +57,9 @@ cdef class pAdicLazyElement(pAdicGenericElement):
 
     def __init__(self, parent):
         pAdicGenericElement.__init__(self, parent)
+        self.prime_pow = <PowComputer_flint>self._parent.prime_pow
         self._valuation = 0
         self._precrel = 0
-        # should find something better (prime_pow?)
-        cdef Integer p = self._parent.prime()
-        fmpz_set_mpz(self._prime, p.value)
 
     def prime(self):
         return self._parent.prime()
@@ -295,7 +298,7 @@ cdef class pAdicLazyElement_value(pAdicLazyElement):
     cdef int _next_c(self):
         if (self._maxprec is not None) and (self._valuation + self._precrel >= self._maxprec):
             return 1
-        reduce_coeff(self._digits, self._precrel, self._prime)
+        reduce_coeff(self._digits, self._precrel, self.prime_pow.fprime)
         if self._precrel == 0 and fmpz_is_zero(get_coeff(self._digits, 0)):
             self._valuation += 1
             fmpz_poly_shift_right(self._digits, self._digits, 1)
@@ -318,7 +321,7 @@ cdef class pAdicLazyElement_random(pAdicLazyElement):
 
     cdef int _next_c(self):
         cdef fmpz_t r;
-        fmpz_randm(r, self._randstate, self._prime)
+        fmpz_randm(r, self._randstate, self.prime_pow.fprime)
         if self._precrel == 0 and fmpz_is_zero(r):
             self._valuation += 1
         else:
@@ -398,7 +401,7 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
                 iadd_coeff(self._digits, coeff, n - self._valuation)
             else:
                 isub_coeff(self._digits, coeff, n - self._valuation)
-        reduce_coeff(self._digits, self._precrel, self._prime)
+        reduce_coeff(self._digits, self._precrel, self.prime_pow.fprime)
         if self._precrel == 0 and fmpz_is_zero(get_coeff(self._digits, 0)):
             self._valuation += 1
             fmpz_poly_shift_right(self._digits, self._digits, 1)
@@ -407,17 +410,15 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
         return 0
 
 
+
 # Multiplication
 
+cdef fmpz_t mul_tmp_coeff
+cdef fmpz_poly_t mul_tmp_poly
+fmpz_init(mul_tmp_coeff)
+fmpz_poly_init(mul_tmp_poly)
+
 cdef class pAdicLazyElement_mul(pAdicLazyElement):
-    def __cinit__(self):
-        fmpz_init(self._tmp_coeff)
-        fmpz_poly_init(self._tmp_poly)
-
-    def __dealloc__(self):
-        fmpz_clear(self._tmp_coeff)
-        fmpz_poly_clear(self._tmp_poly)
-
     def __init__(self, parent, x, y):
         pAdicLazyElement.__init__(self, parent)
         self._x = <pAdicLazyElement?>x
@@ -425,6 +426,7 @@ cdef class pAdicLazyElement_mul(pAdicLazyElement):
         self._valuation = self._x._valuation + self._y._valuation
 
     cdef int _next_c(self):
+        global mul_tmp_coeff, mul_tmp_poly
         cdef pAdicLazyElement x = self._x
         cdef pAdicLazyElement y = self._y
         cdef slong n = self._valuation + self._precrel
@@ -444,11 +446,11 @@ cdef class pAdicLazyElement_mul(pAdicLazyElement):
             return max(errorx, errory)
 
         n = self._precrel
-        fmpz_mul(self._tmp_coeff, get_coeff(x._digits, 0), get_coeff(y._digits, n))
-        iadd_coeff(self._digits, self._tmp_coeff, n)
+        fmpz_mul(mul_tmp_coeff, get_coeff(x._digits, 0), get_coeff(y._digits, n))
+        iadd_coeff(self._digits, mul_tmp_coeff, n)
         if n:
-            fmpz_mul(self._tmp_coeff, get_coeff(x._digits, n), get_coeff(y._digits, 0))
-            iadd_coeff(self._digits, self._tmp_coeff, n)
+            fmpz_mul(mul_tmp_coeff, get_coeff(x._digits, n), get_coeff(y._digits, 0))
+            iadd_coeff(self._digits, mul_tmp_coeff, n)
 
         cdef slong m = n + 2
         cdef slong len = 1
@@ -458,15 +460,15 @@ cdef class pAdicLazyElement_mul(pAdicLazyElement):
             len <<= 1
             get_slice(slicex, x._digits, len - 1, len)
             get_slice(slicey, y._digits, (m-1)*len - 1, len)
-            fmpz_poly_mul(self._tmp_poly, slicex, slicey)
-            iadd_shifted(self._digits, self._tmp_poly, n)
+            fmpz_poly_mul(mul_tmp_poly, slicex, slicey)
+            iadd_shifted(self._digits, mul_tmp_poly, n)
             if m > 2:
                 get_slice(slicex, x._digits, (m-1)*len - 1, len)
                 get_slice(slicey, y._digits, len - 1, len)
-                fmpz_poly_mul(self._tmp_poly, slicex, slicey)
-                iadd_shifted(self._digits, self._tmp_poly, n)
+                fmpz_poly_mul(mul_tmp_poly, slicex, slicey)
+                iadd_shifted(self._digits, mul_tmp_poly, n)
 
-        reduce_coeff(self._digits, self._precrel, self._prime)
+        reduce_coeff(self._digits, self._precrel, self.prime_pow.fprime)
         self._precrel += 1
         return 0
 
@@ -498,7 +500,7 @@ cdef class pAdicLazyElement_selfref(pAdicLazyElement):
     cpdef set(self, pAdicLazyElement definition):
         if self._definition is not None:
             raise ValueError("this self-referent number is already defined")
-        self._definition = <pAdicLazyElement>definition
+        self._definition = definition
         cdef slong valsve = self._valuation
         cdef int error = self._jump_c(self._valuation + self._parent.default_prec())
         if error == 2:

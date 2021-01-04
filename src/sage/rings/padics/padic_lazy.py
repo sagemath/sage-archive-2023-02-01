@@ -133,6 +133,7 @@ from sage.rings.all import ZZ, QQ
 from sage.rings.infinity import Infinity
 from sage.rings.padics.generic_nodes import pAdicRingBaseGeneric, pAdicFieldBaseGeneric
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
+from sage.rings.padics.pow_computer_flint import PowComputer_flint
 
 from sage.rings.padics.padic_lazy_element import *
 
@@ -142,6 +143,7 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, None)
         self._zero_element = pAdicLazyElement_zero(self)
         self._default_prec = ZZ(prec)
+        self.prime_pow = PowComputer_flint(p, 1, 1, 1, False)
 
     def _prec_type(self):
         return "lazy"
@@ -189,6 +191,7 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, None)
         self._zero_element = pAdicLazyElement_zero(self)
         self._default_prec = ZZ(prec)
+        self.prime_pow = PowComputer_flint(p, 1, 1, 1, True)
 
     def _prec_type(self):
         return "lazy"

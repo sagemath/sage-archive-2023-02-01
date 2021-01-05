@@ -1,8 +1,25 @@
+# -*- coding: utf-8 -*-
+r"""
+Morphic words
+
+This modules implements morphic words (letter-to-letter coding of fixed
+point of a morphism).
+
+AUTHORS:
+
+- Jana Lepsova (January 2021): initial version
+
+EXAMPLES:
+
+Creation of a morphism::
+
+    sage: n = WordMorphism(...)
+
+"""
+
 from sage.combinat.words.word_datatypes import WordDatatype
 from sage.rings.all import Infinity
 from sage.modules.free_module_element import vector
-import itertools
-
 
 class WordDatatype_morphic(WordDatatype):
     r"""
@@ -60,7 +77,6 @@ class WordDatatype_morphic(WordDatatype):
         else:
             self._coding = coding
             
-
     def representation(self, n):
         """
         EXAMPLES::
@@ -100,10 +116,86 @@ class WordDatatype_morphic(WordDatatype):
             letter_k = a
             k -= 1
         return path
+
     def __getitem__(self, key):
+        """
+        EXAMPLES::
+        
+            sage: print('add doc + examples here')
+        """
         letter = self._letter
         for a in self.representation(key):
             letter = (self._morphism(letter))[a]
         if key == 0: 
             return self._coding[letter]
         return self._coding[letter]
+
+    def __iter__(self):
+        r"""
+        Returns an iterator of the letters of the fixed point of ``self``
+        starting with ``letter``.
+
+        If w is the iterated word, then this iterator: outputs the elements
+        of morphism[ w[i] ], appends morphism[ w[i+1] ] to w, increments i.
+
+        INPUT:
+
+        - ``self`` - an endomorphism, must be prolongable on
+           letter
+
+        - ``letter`` - a letter in the domain of ``self``
+
+        OUTPUT:
+
+        - iterator of the fixed point
+
+        EXAMPLES::
+
+            sage: m = WordMorphism('a->abc,b->,c->')
+            sage: list(m._fixed_point_iterator('a'))
+            ['a', 'b', 'c']
+            sage: print('update the examples here')
+
+        The morphism must be prolongable on the letter or the iterator will
+        be empty::
+
+            sage: list(m._fixed_point_iterator('b'))
+            []
+
+        The morphism must be an endomorphism::
+
+            sage: m = WordMorphism('a->ac,b->aac')
+            sage: list(m._fixed_point_iterator('a'))
+            Traceback (most recent call last):
+            ...
+            KeyError: 'c'
+
+        We check that :trac:`8595` is fixed::
+
+            sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
+            sage: it = s._fixed_point_iterator(('a',1))
+            sage: next(it)
+            ('a', 1)
+
+        This shows that ticket :trac:`13668` has been resolved::
+
+            sage: s = WordMorphism({1:[1,2],2:[2,3],3:[4],4:[5],5:[6],6:[7],7:[8],8:[9],9:[10],10:[1]})
+            sage: (s^7).fixed_points()
+            [word: 1223234234523456234567234567823456789234...,
+             word: 2,3,4,5,6,7,8,9,10,1,1,2,1,2,2,3,1,2,2,3,2,3,4,1,2,2,3,2,3,4,2,3,4,5,1,2,2,3,2,3,...]
+            sage: (s^7).reversal().fixed_points()
+            []
+        """
+        from itertools import chain
+        w = iter(self._morphism.image(self._letter))
+        while True:
+            try:
+                for a in self._morphism.image(next(w)):
+                    yield self._coding[a]
+                else:
+                    next_w = next(w)
+                    w = chain([next_w], w, self._morphism.image(next_w))
+            except StopIteration:
+                return
+
+

@@ -34,6 +34,7 @@ from .word_infinite_datatypes import (
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
                             WordDatatype_callable)
+from .morphic import WordDatatype_morphic
 from sage.monoids.free_monoid_element import FreeMonoidElement
 
 # TODO. Word needs to be replaced by Word. Consider renaming
@@ -679,6 +680,91 @@ class Word_iter(WordDatatype_iter, Word_class):
         word: abcdabcdabcdabcdabcdabcdabcdabcdabcdabcd...
 
     Pickle is not supported for word of unknown length defined by an iterator::
+
+        sage: dumps(w)
+        Traceback (most recent call last):
+        ...
+        TypeError: can...t...pickle...generator...object...
+    """
+    pass
+
+##### Morphic Words #####
+class Word_morphic(WordDatatype_morphic, Word_class):
+    r"""
+    Morphic word of unknown length (finite or infinite).
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: w = 34
+        sage: w
+        word: 1149114911491149114911491149114911491149...
+
+    TESTS:
+
+    Pickle is not supported for word of unknown length defined by an iterator::
+
+        sage: dumps(w)
+
+        sage:
+        Traceback (most recent call last):
+        ...
+        TypeError: can...t...pickle...generator...object...
+    """
+    pass
+
+class FiniteWord_morphic(WordDatatype_morphic, FiniteWord_class):
+    r"""
+    Finite morphic word.
+
+    For such word `w`, type  ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    EXAMPLES::
+
+        sage: print('update')
+
+    TESTS::
+
+        sage: print('update')
+        sage: w = 22222
+        sage: type(w)
+        <class 'sage.combinat.words.word.FiniteWord_iter'>
+        sage: z = loads(dumps(w))
+        sage: w == z
+        True
+        sage: type(z)
+        <class 'sage.combinat.words.word.FiniteWord_list'>
+    """
+    pass
+
+class InfiniteWord_morphic(WordDatatype_morphic, InfiniteWord_class):
+    r"""
+    Morphic word of infinite length.
+
+    For such word `w`, type ``w.`` and hit TAB key to see the list of
+    functions defined on `w`.
+
+    Infinite words behave like a Python list : they can be sliced using
+    square braquets to define for example a prefix or a factor.
+
+    EXAMPLES::
+
+        sage: m = WordMorphism('a->ab,b->a')
+        sage: w = m.fixed_point('a')
+        sage: w
+
+    TESTS:
+
+    Pickle is not supported for infinite word defined by an iterator::
+
+        sage: dumps(w)
+
 
         sage: dumps(w)
         Traceback (most recent call last):

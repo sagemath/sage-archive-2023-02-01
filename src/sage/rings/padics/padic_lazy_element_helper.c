@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "flint/flint.h"
 #include "flint/fmpz.h"
 #include "flint/fmpz_poly.h"
@@ -104,7 +102,9 @@ void iadd_shifted(fmpz_poly_t poly, fmpz_poly_t summand, slong shift)
         for ( ; cpoly < last; cpoly++, csummand++)
             fmpz_set(cpoly, csummand);
         poly->length = len;
-    } else {
+    }
+    else
+    {
         cpoly = poly->coeffs + shift;
         last = cpoly + summand->length;
         for ( ; cpoly < last; cpoly++, csummand++)

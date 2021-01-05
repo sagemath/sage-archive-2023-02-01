@@ -32,6 +32,7 @@ from sage.structure.coerce cimport coercion_model
 from sage.rings.all import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import Infinity
+from sage.rings.finite_rings.finite_field_constructor import GF
 
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -111,10 +112,12 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             return error
 
     def _error(self, error):
-        if error & 32:
+        if error & 64:
             raise RecursionError("definition looks circular")
-        if error & 16:
+        if error & 32:
             raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
+        if error & 16:
+            raise ValueError("not a square")
         if error & 8:
             raise OverflowError
         if error & 6:
@@ -158,10 +161,12 @@ cdef class pAdicLazyElement(pAdicGenericElement):
 
     def _repr_(self):
         error = self.jump(raise_error=False)
-        if error & 32:
+        if error & 64:
             return "Error: definition looks circular"
-        if error & 16:
+        if error & 32:
             return "Error: division by something indistinguishable from zero"
+        if error & 16:
+            return "Error: not a square"
         if error & 8:
             return "Error: overflow"
         if error & 1:
@@ -186,11 +191,11 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             j = 0
         prec -= self._valuation
         while i < prec:
-            if self._precrel <= i:
+            while self._precrel <= i:
                 error = self._next_c()
                 if error:
                     self._error(error)
-            if right._precrel <= j:
+            while right._precrel <= j:
                 error = right._next_c()
                 if error:
                     self._error(error)
@@ -205,13 +210,28 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         return self._is_equal(other, min(prec, maxordp))
 
     def __eq__(self, other):
-        if have_same_parent(self, other):
-            prec = min(self.precision_absolute(), other.precision_absolute())
-            prec = max(prec, self._parent.default_prec())
-            return self.is_equal_at_precision(other, prec)
-        else:
+        if not have_same_parent(self, other):
             a, b = coercion_model.canonical_coercion(self, other)
             return a == b
+        cdef pAdicLazyElement right = <pAdicLazyElement?>other
+        if self._valuation <= -maxordp:
+            error = self._next_c()           
+            if error:
+                self._error(error)
+        if right._valuation <= -maxordp:
+            error = right._next_c()           
+            if error:
+                right._error(error)
+        minprec = min(self.precision_absolute(), right.precision_absolute())
+        default_prec = self._parent.default_prec()
+        if self.prime_pow.in_field:
+            prec = self._valuation + default_prec
+            if not self._is_equal(right, max(minprec, prec)):
+                return False
+            if self._valuation < prec:
+                return self._is_equal(right, max(minprec, self._valuation + default_prec))
+        else:
+            return self._is_equal(right, max(minprec, default_prec))
 
     cpdef bint _is_exact_zero(self) except -1:
         return isinstance(self, pAdicLazyElement_zero)
@@ -330,6 +350,9 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             return self
         return pAdicLazyElement_div(self._parent.fraction_field(), self._parent.one(), self)
 
+    def sqrt(self):
+        return pAdicLazyElement_sqrt(self._parent, self)
+
 
 # Assignations
 ##############
@@ -401,8 +424,6 @@ cdef class pAdicLazyElement_value(pAdicLazyElement):
         self._finished = fmpz_is_zero(get_coeff(self._digits, self._precrel))
         return 0
 
-    def is_finished(self):
-        return bool(self._finished)
 
 # Random
 
@@ -611,7 +632,7 @@ cdef class pAdicLazyElement_div(pAdicLazyElement):
         else:
             self._maxprec = denom._valuation + self._parent.default_prec()
         cdef int error = self._bootstrap_c()
-        if error & 16:
+        if error & 32:
             raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
         if error:
             self._valuation = -maxordp
@@ -626,7 +647,7 @@ cdef class pAdicLazyElement_div(pAdicLazyElement):
             error = denom._next_c()
             if error:
                 if error & 4:
-                    error |= 16
+                    error |= 32
                 return error
             if self._maxprec > maxordp and denom._valuation > -maxordp:
                 self._maxprec = denom._valuation + self._parent.default_prec()
@@ -667,7 +688,87 @@ cdef class pAdicLazyElement_div(pAdicLazyElement):
 
 # Square root
 
-#cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
+cdef bint fmpz_modp_sqrt(fmpz* ans, fmpz* x, fmpz* p):
+    # Need to do something better
+    cdef Integer zx = PY_NEW(Integer)
+    fmpz_get_mpz(zx.value, x)
+    cdef Integer zp = PY_NEW(Integer)
+    fmpz_get_mpz(zp.value, p)
+    cdef Integer zans
+    k = GF(zp)
+    try:
+        zans = ZZ(k(zx).sqrt(extend=False))
+    except ValueError:
+        return 1
+    fmpz_set_mpz(ans, zans.value)
+    return 0
+
+
+cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
+    def __init__(self, parent, pAdicLazyElement x):
+        pAdicLazyElement.__init__(self, parent)
+        if parent.prime() == 2:
+            raise NotImplementedError
+        self._x = x
+        if x._valuation <= -maxordp:
+            self._valuation = -maxordp
+            self._maxprec = maxordp + 1
+        else:
+            self._valuation = x._valuation >> 1
+            self._maxprec = x._valuation + 2*self._parent.default_prec()
+        cdef int error = self._bootstrap_c()
+        if error & 16:
+            raise ValueError("not a square")
+
+    cdef int _bootstrap_c(self):
+        cdef pAdicLazyElement x = self._x
+        while x._valuation < self._maxprec and x._precrel == 0:
+            error = x._next_c()
+            if error:
+                return error
+            if self._maxprec > maxordp and x._valuation > -maxordp:
+                self._maxprec = x._valuation + 2*self._parent.default_prec()
+        if x._valuation > -maxordp:
+            self._valuation = x._valuation >> 1
+        if x._precrel == 0:
+            return 1
+
+        if x._valuation & 1 != 0:
+            return 16
+        cdef fmpz_t digit
+        fmpz_init(digit)
+        if fmpz_modp_sqrt(digit, get_coeff(x._digits, 0), self.prime_pow.fprime):
+            return 16
+
+        fmpz_poly_set_coeff_fmpz(self._digits, 0, digit)
+        cdef parent = self._parent
+        cdef slong val = self._valuation
+        cdef Integer zd = PY_NEW(Integer)
+        fmpz_get_mpz(zd.value, digit)
+        cdef pAdicLazyElement u = pAdicLazyElement_shift(parent, self, val + 1, True)
+        cdef pAdicLazyElement y = pAdicLazyElement_shift(parent, x, 2*val + 2, False)
+        cdef pAdicLazyElement c = pAdicLazyElement_value(parent, zd*zd, shift=-2)
+        cdef pAdicLazyElement d = pAdicLazyElement_value(parent, 2*zd, shift=-val-2)
+        self._definition = (y + c - u*u) / d
+        self._precrel = 1
+        return 0
+
+    cdef int _next_c(self):
+        cdef pAdicLazyElement x = self._x
+        cdef pAdicLazyElement definition = self._definition
+        cdef slong n = self._valuation + self._precrel
+        cdef int error
+        if definition is None:
+            error = self._bootstrap_c()
+            if error:
+                return error
+        else:
+            error = definition._jump_c(n+1)
+            if error:
+                return error
+            fmpz_poly_set_coeff_fmpz(self._digits, self._precrel, get_coeff(definition._digits, self._precrel))
+            self._precrel += 1
+        return 0
 
 
 
@@ -687,7 +788,7 @@ cdef class pAdicLazyElement_selfref(pAdicLazyElement):
         self._definition = definition
         cdef slong valsve = self._valuation
         cdef int error = self._jump_c(self._valuation + self._parent.default_prec())
-        if error & 32:
+        if error & 64:
             self._definition = None
             self._valuation = valsve
             self._precrel = 0
@@ -708,7 +809,7 @@ cdef class pAdicLazyElement_selfref(pAdicLazyElement):
         if definition is None:
             return 2
         if self._next:
-            return 32
+            return 64
 
         self._next = True
         error = definition._jump_c(self._valuation + self._precrel + 1)

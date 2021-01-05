@@ -66,11 +66,13 @@ cdef class pAdicLazyElement_div(pAdicLazyElement):
     cdef pAdicLazyElement _num
     cdef pAdicLazyElement _denom
     cdef pAdicLazyElement _definition
-
     cdef int _bootstrap_c(self)
 
-#cdef class pAdicLazyElement_sqrt(pAdicLazyElement)
-
+cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
+    cdef slong _maxprec
+    cdef pAdicLazyElement _x
+    cdef pAdicLazyElement _definition
+    cdef int _bootstrap_c(self)
 
 
 cdef class pAdicLazyElement_selfref(pAdicLazyElement):

@@ -121,6 +121,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         if error & 8:
             raise OverflowError
         if error & 6:
+            print(error)
             raise PrecisionError("not enough precision")
         if error & 1:
             raise PrecisionError("cannot prove that the divisor does not vanish; try to increase the precision by hand")
@@ -140,7 +141,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             if n.stop is None:
                 stop = None
             elif n.stop in ZZ:
-                start = ZZ(n.stop)
+                stop = ZZ(n.stop)
             else:
                 raise ValueError
             return ExpansionIter(self, start, stop)
@@ -254,17 +255,34 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             raise PrecisionError("no lower bound on the valuation is known")
         return ZZ(self._precrel)
 
-    def valuation(self):
+    def valuation(self, secure=False):
         if self._is_exact_zero():
             return Infinity
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
+        if secure and self._precrel == 0:
+            raise PrecisionError("cannot determine the valuation; try to increase the precision")
         return ZZ(self._valuation)
 
     def unit_part(self):
         if self._precrel == 0:
-            raise PrecisionError
+            raise PrecisionError("cannot determine the valuation; try to increase the precision")
         return self >> self._valuation
+
+    def lift(self):
+        if self._precrel == 0:
+            return ZZ(0)
+        cdef fmpz_t fans
+        fmpz_init(fans)
+        cdef fmpz_poly_t digits
+        get_slice(digits, self._digits, 0, self._precrel)
+        fmpz_poly_evaluate_fmpz(fans, digits, self.prime_pow.fprime)
+        cdef Integer ans = PY_NEW(Integer)
+        fmpz_get_mpz(ans.value, fans)
+        fmpz_clear(fans)
+        if self._valuation:
+            ans *= self._parent.prime() ** self._valuation
+        return ans
 
     def __rshift__(self, s):
         cdef slong shift = long(s)
@@ -550,7 +568,7 @@ cdef class pAdicLazyElement_mul(pAdicLazyElement):
 
         cdef int errorx = x._jump_c(n - y._valuation + 1)
         cdef int errory = y._jump_c(n - x._valuation + 1)
-        cdef int error = errorx & errory
+        cdef int error = errorx | errory
         if self._precrel == 0:
             self._valuation = x._valuation + y._valuation
             if self._valuation > n:

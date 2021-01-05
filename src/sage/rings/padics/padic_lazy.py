@@ -154,33 +154,36 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
     def default_prec(self):
         return self._default_prec
 
-    def max_prec(self):
-        return 5 * self._default_prec
-
     def precision_cap(self):
         return Infinity
 
     def _element_constructor_(self, x):
-        if isinstance(x, pAdicLazyElement):
-            return x
-        if isinstance(x, pAdicGenericElement):
+        if isinstance(x, pAdicLazyElement) and x.prime() == self.prime():
+            if x.parent() is self:
+                return x
+            if not x.is_equal_at_precision(self._zero_element, 0):
+                raise ValueError("negative valuation")
+            return pAdicLazyElement_shift(self, x, 0, False)
+        elif isinstance(x, pAdicGenericElement) and x.parent().prime() == self.prime():
+            if x.valuation() < 0:
+                raise ValueError("negative valuation")
             return pAdicLazyElement_value(self, ZZ(x), maxprec=x.precision_absolute())
-        if x in ZZ:
+        elif x in ZZ:
             if x == 0:
                 return self._zero_element
             elif x == 1:
                 return pAdicLazyElement_one(self)
             else:
                 return pAdicLazyElement_value(self, ZZ(x))
-        if x in QQ:
+        elif x in QQ:
             num = x.numerator()
             denom = x.denominator()
             if denom % self.prime() == 0:
-                raise ValueError("denominator is not a unit")
+                raise ValueError("negative valuation")
             num = pAdicLazyElement_value(self, num)
             denom = pAdicLazyElement_value(self, denom)
-            return num / denom
-        raise TypeError("unable to convert '%s' to a lazy %s-adic number" % (x, self.prime()))
+            return pAdicLazyElement_div(self, num, denom)
+        raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
 
     def selfref(self, start_val=0):
         if start_val not in ZZ or start_val < 0:
@@ -213,37 +216,33 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
     def default_prec(self):
         return self._default_prec
 
-    def max_prec(self):
-        return 5 * self._default_prec
-
     def precision_cap(self):
         return Infinity
 
     def _coerce_map_from_(self, R):
-        if self is R.fraction_field():
+        if isinstance(R, pAdicRingLazy) and self is R.fraction_field():
             return True
 
     def _element_constructor_(self, x):
-        if isinstance(x, pAdicLazyElement):
+        if isinstance(x, pAdicLazyElement) and x.prime() == self.prime():
             if x.parent() is self:
                 return x
             return pAdicLazyElement_shift(self, x, 0, False)
-        if isinstance(x, pAdicGenericElement):
-            return pAdicLazyElement_value(self, ZZ(x), maxprec=x.precision_absolute())
-        if x in ZZ:
+        elif isinstance(x, pAdicGenericElement) and x.parent().prime() == self.prime():
+            val, u = x.val_unit()
+            return pAdicLazyElement_value(self, ZZ(u), shift=val, maxprec=x.precision_absolute())
+        elif x in ZZ:
             if x == 0:
                 return self._zero_element
             elif x == 1:
                 return pAdicLazyElement_one(self)
             else:
                 return pAdicLazyElement_value(self, ZZ(x))
-        if x in QQ:
+        elif x in QQ:
             x = QQ(x)
-            num = x.numerator()
-            denom = x.denominator()
-            num = pAdicLazyElement_value(self, num)
-            denom = pAdicLazyElement_value(self, denom)
-            return num / denom
+            num = pAdicLazyElement_value(self, x.numerator())
+            denom = pAdicLazyElement_value(self, x.denominator())
+            return pAdicLazyElement_div(self, num, denom)
         raise TypeError("unable to convert '%s' to a lazy %s-adic number" % (x, self.prime()))
 
     def selfref(self, start_val=0):

@@ -90,18 +90,26 @@ void isub_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
 void iadd_shifted(fmpz_poly_t poly, fmpz_poly_t summand, slong shift)
 {
     slong len = shift + summand->length;
+    fmpz *cpoly, *last;
+    fmpz* csummand = summand->coeffs;
 
     if (poly->length < len)
     {
         fmpz_poly_fit_length(poly, len);
+        cpoly = poly->coeffs + shift;
+        last = poly->coeffs + poly->length;
+        for ( ; cpoly < last; cpoly++, csummand++)
+            fmpz_add(cpoly, cpoly, csummand);
+        last = poly->coeffs + shift + summand->length;
+        for ( ; cpoly < last; cpoly++, csummand++)
+            fmpz_set(cpoly, csummand);
         poly->length = len;
+    } else {
+        cpoly = poly->coeffs + shift;
+        last = cpoly + summand->length;
+        for ( ; cpoly < last; cpoly++, csummand++)
+            fmpz_add(cpoly, cpoly, csummand);
     }
-
-    fmpz* cpoly = poly->coeffs + shift;
-    fmpz* lcpoly = cpoly + summand->length;
-    fmpz* csummand = summand->coeffs;
-    for ( ; cpoly < lcpoly; cpoly++, csummand++)
-        fmpz_add(cpoly, cpoly, csummand);
 }
 
 

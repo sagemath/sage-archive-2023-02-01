@@ -24,7 +24,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
     cdef int _next_c(self)
     cdef Integer _digit(self, slong i)
 
-    cdef bint _is_equal(self, pAdicLazyElement right, slong prec)
+    cdef bint _is_equal(self, pAdicLazyElement right, slong prec) except -1
 
 
 
@@ -35,7 +35,9 @@ cdef class pAdicLazyElement_one(pAdicLazyElement):
     pass
 
 cdef class pAdicLazyElement_value(pAdicLazyElement):
-    cdef _maxprec
+    cdef slong _maxprec
+    cdef slong _shift
+    cdef bint _finished
 
 cdef class pAdicLazyElement_random(pAdicLazyElement):
     pass

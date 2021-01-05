@@ -64,7 +64,7 @@ def DegreeSequence(deg_sequence):
     import networkx
     return Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
 
-def DegreeSequenceBipartite(s1 , s2):
+def DegreeSequenceBipartite(s1, s2):
     r"""
     Return a bipartite graph whose two sets have the given degree sequences.
 

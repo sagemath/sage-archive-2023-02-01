@@ -256,7 +256,7 @@ cdef class Cache_givaro(Cache_base):
 
     def order(self):
         """
-        Returns the order of this field.
+        Return the order of this field.
 
         EXAMPLES::
 
@@ -268,7 +268,7 @@ cdef class Cache_givaro(Cache_base):
 
     cpdef int order_c(self):
         """
-        Returns the order of this field.
+        Return the order of this field.
 
         EXAMPLES::
 
@@ -280,7 +280,7 @@ cdef class Cache_givaro(Cache_base):
 
     cpdef int exponent(self):
         r"""
-        Returns the degree of this field over `\GF{p}`.
+        Return the degree of this field over `\GF{p}`.
 
         EXAMPLES::
 
@@ -481,7 +481,7 @@ cdef class Cache_givaro(Cache_base):
 
     cpdef FiniteField_givaroElement gen(self):
         """
-        Returns a generator of the field.
+        Return a generator of the field.
 
         EXAMPLES::
 
@@ -819,8 +819,7 @@ cdef class FiniteField_givaro_iterator:
             sage: next(i)
             a
         """
-
-        self.iterator = self.iterator + 1
+        self.iterator += 1
 
         if self.iterator == self._cache.order_c():
             self.iterator = -1

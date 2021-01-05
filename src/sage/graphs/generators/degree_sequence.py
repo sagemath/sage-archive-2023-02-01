@@ -64,7 +64,7 @@ def DegreeSequence(deg_sequence):
     import networkx
     return Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
 
-def DegreeSequenceBipartite(s1 ,s2 ):
+def DegreeSequenceBipartite(s1 , s2):
     r"""
     Return a bipartite graph whose two sets have the given degree sequences.
 
@@ -142,8 +142,8 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
     - ``deg_sequence`` -- list of integers with each entry corresponding to the
       expected degree of a different vertex
 
-    - ``seed`` -- a ``random.Random`` seed or a Python ``int`` for the random
-      number generator (default: ``None``)
+    - ``seed`` -- (optional) a ``random.Random`` seed or a Python ``int`` for
+      the random number generator
 
     EXAMPLES::
 
@@ -213,8 +213,8 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
     - ``deg_sequence`` -- list of integers with each entry corresponding to the
       expected degree of a different vertex
 
-    - ``seed`` -- a ``random.Random`` seed or a Python ``int`` for the random
-      number generator (default: ``None``)
+    - ``seed`` -- (optional) a ``random.Random`` seed or a Python ``int`` for
+      the random number generator
 
     EXAMPLES::
 

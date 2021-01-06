@@ -66,13 +66,13 @@ void ex::print(const print_context & c, unsigned level) const
 	bp->print(c, level);
 }
 
-/** Little wrapper arount print to be called within a debugger. */
+/** Little wrapper around print to be called within a debugger. */
 void ex::dbgprint() const
 {
 	bp->dbgprint();
 }
 
-/** Little wrapper arount printtree to be called within a debugger. */
+/** Little wrapper around printtree to be called within a debugger. */
 void ex::dbgprinttree() const
 {
 	bp->dbgprinttree();
@@ -259,7 +259,7 @@ void ex::traverse_postorder(visitor & v) const
 	accept(v);
 }
 
-/** Return modifyable operand/member at position i. */
+/** Return modifiable operand/member at position i. */
 ex & ex::let_op(size_t i)
 {
 	makewriteable();

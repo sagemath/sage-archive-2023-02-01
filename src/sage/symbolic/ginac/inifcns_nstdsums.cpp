@@ -2188,7 +2188,7 @@ bool convert_parameter_H_to_Li(const lst& l, lst& m, lst& s, ex& pf)
 }
 
 
-// recursivly transforms H to corresponding multiple polylogarithms
+// recursively transforms H to corresponding multiple polylogarithms
 struct map_trafo_H_convert_to_Li : public map_function
 {
 	ex operator()(const ex& e)
@@ -2227,7 +2227,7 @@ struct map_trafo_H_convert_to_Li : public map_function
 };
 
 
-// recursivly transforms H to corresponding zetas
+// recursively transforms H to corresponding zetas
 struct map_trafo_H_convert_to_zeta : public map_function
 {
 	ex operator()(const ex& e)

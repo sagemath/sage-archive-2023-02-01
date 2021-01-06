@@ -1322,7 +1322,7 @@ static ex atan_series(const ex &arg,
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	// method:
 	// Taylor series where there is no pole or cut falls back to atan_deriv.
-	// There are two branch cuts, one runnig from I up the imaginary axis and
+	// There are two branch cuts, one running from I up the imaginary axis and
 	// one running from -I down the imaginary axis.  The points I and -I are
 	// poles.
 	// On the branch cuts and the poles series expand

@@ -65,7 +65,7 @@ public:
 		pattern_is_product = 0x0004,     ///< used internally by expairseq::subschildren()
 		pattern_is_not_product = 0x0008, ///< used internally by expairseq::subschildren()
 		no_index_renaming = 0x0010,
-		// To indicate that we want to substitue an index by something that is
+		// To indicate that we want to substitute an index by something that is
 		// is not an index. Without this flag the index value would be
 		// substituted in that case.
 		really_subs_idx = 0x0020,

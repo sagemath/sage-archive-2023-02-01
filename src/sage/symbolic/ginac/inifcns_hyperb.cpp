@@ -893,7 +893,7 @@ static ex atanh_series(const ex &arg,
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	// method:
 	// Taylor series where there is no pole or cut falls back to atanh_deriv.
-	// There are two branch cuts, one runnig from 1 up the real axis and one
+	// There are two branch cuts, one running from 1 up the real axis and one
 	// one running from -1 down the real axis.  The points 1 and -1 are poles
 	// On the branch cuts and the poles series expand
 	//     (log(1+x)-log(1-x))/2

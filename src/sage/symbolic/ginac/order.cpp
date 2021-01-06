@@ -220,7 +220,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 		//print fderivatives after everything else
 		return -1;
 	else if (typeid_rh == fderivative_id())
-		//print fderivatives after everything esle
+		//print fderivatives after everything else
 		return 1;
 	else if (typeid_lh == function_id())
 		//print functions before fderivatives, after anything else
@@ -292,7 +292,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 		//print pseries after everything else
 		return -1;
 	else if (typeid_rh == pseries_id())
-		//print pseries after everything esle
+		//print pseries after everything else
 		return 1;
         return generic_compare(typeid_lh, typeid_rh);
 }
@@ -374,7 +374,7 @@ int print_order::compare_mul_power(const mul &lh, const power &rh) const
 }
 
 // compare two mul objects
-// same behavior wihtin mul and add objects:
+// same behavior within mul and add objects:
 // first we compare total degrees
 // if equal we compare the basis of the smallest items
 // then their exponents
@@ -424,7 +424,7 @@ int print_order::compare_same_type_mul(const mul &lh, const mul &rh) const
 }
 
 // compare an add and a symbol objects
-// same behavior wihtin mul and add objects:
+// same behavior within mul and add objects:
 // the coefficient of the symbol is 1
 int print_order::compare_add_symbol(const add &lh, const symbol &rh) const
 {
@@ -480,7 +480,7 @@ int print_order::compare_add_mul(const add &lh,
 }
 
 // compare an add and a pow objects
-// same behavior wihtin mul and add objects:
+// same behavior within mul and add objects:
 // the coefficient of the power object is 1
 int print_order::compare_add_power(const add &lh,
 		const power &rh) const
@@ -508,7 +508,7 @@ int print_order::compare_add_power(const add &lh,
 }
 
 // compare two add objects
-// same behavior wihtin mul and add objects:
+// same behavior within mul and add objects:
 // first we compare the basis of the biggest items
 // then their coefficients
 // and so on
@@ -632,7 +632,7 @@ int print_order::compare_same_type_power(const power &lh, const power &rh) const
 }
 
 // compare two symbol objects
-// same behavior wihtin mul and add objects:
+// same behavior within mul and add objects:
 // we compare names
 int print_order::compare_same_type_symbol(const symbol &lh, const symbol &rh) const
 {
@@ -662,7 +662,7 @@ int print_order::compare_same_type_container(const container<C> &lh,
 }
 
 // compare two function objects
-// same behavior wihtin mul and add objects:
+// same behavior within mul and add objects:
 // we compare names
 int print_order::compare_same_type_function(const function &lh,
 					    const function &rh) const
@@ -675,7 +675,7 @@ int print_order::compare_same_type_function(const function &lh,
 }
 
 // compare two fderivative objects
-// same behavior wihtin mul and add objects:
+// same behavior within mul and add objects:
 // we compare names
 int print_order::compare_same_type_fderivative(const fderivative &lh,
 					       const fderivative &rh) const

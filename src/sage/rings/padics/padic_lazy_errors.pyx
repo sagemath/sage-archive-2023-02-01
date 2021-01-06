@@ -12,7 +12,7 @@ cdef inline int ERROR_CIRCULAR     = 1 << 6
 cdef inline int ERROR_UNKNOWN      = 1 << 30
 
 
-def raise_error(error):
+def raise_error(error, permissive=False):
     if error & ERROR_UNKNOWN:  # should never occur
         raise RuntimeError
     if error & ERROR_CIRCULAR:
@@ -21,15 +21,16 @@ def raise_error(error):
         raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
     if error & ERROR_NOTSQUARE:
         raise ValueError("not a square")
-    if error & ERROR_OVERFLOW:
-        raise OverflowError
-    if error & (ERROR_PRECISION | ERROR_NOTDEFINED):
-        raise PrecisionError("not enough precision")
-    if error & ERROR_ABANDON:
-        raise PrecisionError("computation has been abandonned; try to increase precision by hand")
+    if not permissive:
+        if error & ERROR_OVERFLOW:
+            raise OverflowError
+        if error & (ERROR_PRECISION | ERROR_NOTDEFINED):
+            raise PrecisionError("not enough precision")
+        if error & ERROR_ABANDON:
+            raise PrecisionError("computation has been abandonned; try to increase precision by hand")
 
 
-def error_to_str(error):
+def error_to_str(error, permissive=False):
     if error & ERROR_UNKNOWN:  # should never occur
         raise RuntimeError
     if error & ERROR_CIRCULAR:
@@ -38,9 +39,10 @@ def error_to_str(error):
         return "Error: cannot divide by something indistinguishable from zero"
     if error & ERROR_NOTSQUARE:
         return "Error: not a square"
-    if error & ERROR_OVERFLOW:
-        return "Error: overflow"
-    if error & (ERROR_PRECISION | ERROR_NOTDEFINED):
-        return "Error: not enough precision"
-    if error & ERROR_ABANDON:
-        return "Abandon; try to increase precision by hand"
+    if not permissive:
+        if error & ERROR_OVERFLOW:
+            return "Error: overflow"
+        if error & (ERROR_PRECISION | ERROR_NOTDEFINED):
+            return "Error: not enough precision"
+        if error & ERROR_ABANDON:
+            return "Abandon; try to increase precision by hand"

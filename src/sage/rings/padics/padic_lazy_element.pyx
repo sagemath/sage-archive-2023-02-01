@@ -66,6 +66,9 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         self._valuation = 0
         self._precrel = 0
 
+    cpdef bint _is_base_elt(self, p) except -1:
+        return True
+
     def prime(self):
         return self._parent.prime()
 
@@ -86,6 +89,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
 
     def jump(self, prec=None, quiet=False):
         if prec is None:
+            permissive = True
             default_prec = self._parent.default_prec()
             error = 0
             if self._valuation <= -maxordp:
@@ -101,6 +105,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         elif prec not in ZZ:
             raise ValueError("precision must be an integer")
         else:
+            permissive = False
             prec = ZZ(prec)
             if prec >= maxordp:
                 raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
@@ -110,7 +115,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         if quiet:
             return error
         else:
-            raise_error(error)
+            raise_error(error, permissive)
 
     def expansion(self, n=None):
         if n is None:
@@ -148,8 +153,9 @@ cdef class pAdicLazyElement(pAdicGenericElement):
 
     def _repr_(self):
         error = self.jump(quiet=True)
-        if error:
-            return error_to_str(error)
+        s = error_to_str(error, permissive=True)
+        if s is not None:
+            return s
         if self._valuation <= -maxordp:
             return "valuation not known"
         return pAdicGenericElement._repr_(self)
@@ -401,6 +407,9 @@ cdef class pAdicLazyElement_value(pAdicLazyElement):
     cdef int _jump_c(self, slong prec):
         if not self._finished:
             return pAdicLazyElement._jump_c(self, prec)
+        if (self._maxprec is not None) and (prec > self._maxprec):
+            self._precrel = self._maxprec - self._valuation
+            return ERROR_PRECISION
         cdef slong precrel = min(prec, maxordp) - self._valuation
         if precrel > self._precrel:
             self._precrel = precrel
@@ -410,7 +419,7 @@ cdef class pAdicLazyElement_value(pAdicLazyElement):
 
     cdef int _next_c(self):
         if (self._maxprec is not None) and (self._valuation + self._precrel >= self._maxprec):
-            return 4
+            return ERROR_PRECISION
         reduce_coeff(self._digits, self._precrel, self.prime_pow.fprime)
         if self._precrel == 0 and fmpz_is_zero(get_coeff(self._digits, 0)):
             self._valuation += 1
@@ -603,12 +612,6 @@ cdef class pAdicLazyElement_muldigit(pAdicLazyElement):
         self._precrel += 1
         return 0
 
-    def digits(self):
-        return fmpz_poly_get_str(self._digits)
-
-    def next(self):
-        return self._next_c()
-
 
 # Division
 
@@ -791,7 +794,7 @@ cdef class pAdicLazyElement_selfref(pAdicLazyElement):
             self._valuation = valsve
             self._precrel = 0
             self._next = False
-            raise RecursionError("definition looks circular")
+        raise_error(error, permissive=True)
 
     def __eq__(self, other):
         if self._definition is None:

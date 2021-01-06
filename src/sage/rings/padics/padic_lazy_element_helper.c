@@ -41,7 +41,7 @@ void get_slice(fmpz_poly_t slice, fmpz_poly_t poly, slong start, slong length)
 }
 
 
-void iadd_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
+void iadd_coeff(fmpz_poly_t poly, const fmpz_t summand, slong i)
 {
     fmpz *coeff;
     slong len = i + 1;
@@ -49,12 +49,7 @@ void iadd_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
         return;
 
     if (poly->length < len)
-    {
-        fmpz_poly_fit_length(poly, len);
-        poly->length = len;
-        coeff = poly->coeffs + i;
-        fmpz_set(coeff, summand);
-    }
+        fmpz_poly_set_coeff_fmpz(poly, i, summand);
     else
     {
         coeff = poly->coeffs + i;
@@ -63,7 +58,7 @@ void iadd_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
 }
 
 
-void isub_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
+void isub_coeff(fmpz_poly_t poly, const fmpz_t summand, slong i)
 {
     fmpz *coeff;
     slong len = i + 1;
@@ -72,10 +67,9 @@ void isub_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
 
     if (poly->length < len)
     {
-        fmpz_poly_fit_length(poly, len);
-        poly->length = len;
+        fmpz_poly_set_coeff_fmpz(poly, i, summand);
         coeff = poly->coeffs + i;
-        fmpz_neg(coeff, summand);
+        fmpz_neg(coeff, coeff);
     }
     else
     {
@@ -85,7 +79,7 @@ void isub_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
 }
 
 
-void iadd_shifted(fmpz_poly_t poly, fmpz_poly_t summand, slong shift)
+void iadd_shifted(fmpz_poly_t poly, const fmpz_poly_t summand, slong shift)
 {
     slong len = shift + summand->length;
     fmpz *cpoly, *last;
@@ -113,7 +107,7 @@ void iadd_shifted(fmpz_poly_t poly, fmpz_poly_t summand, slong shift)
 }
 
 
-void reduce_coeff(fmpz_poly_t poly, slong i, fmpz_t modulus)
+void reduce_coeff(fmpz_poly_t poly, slong i, const fmpz_t modulus)
 {
     if (i < poly->length)
     {

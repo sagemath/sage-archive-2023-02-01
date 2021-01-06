@@ -1,4 +1,4 @@
-$(PYTHON) decorator future ipython cypari | $(PYTHON_TOOLCHAIN) sagelib
+$(PYTHON) decorator ipython cypari | $(PYTHON_TOOLCHAIN) sagelib
 
 ----------
 All lines of this file are ignored except the first.

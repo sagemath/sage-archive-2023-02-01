@@ -3752,7 +3752,8 @@ def minmax_data(xdata, ydata, dict=False):
         return xmin, xmax, ymin, ymax
 
 
-def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0, excluded=False):
+def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01,
+                        adaptive_recursion=5, level=0, excluded=False):
     r"""
     The adaptive refinement algorithm for plotting a function ``f``. See
     the docstring for plot for a description of the algorithm.
@@ -3760,30 +3761,30 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     INPUT:
 
 
-    -  ``f`` - a function of one variable
+    - ``f`` -- a function of one variable
 
-    -  ``p1, p2`` - two points to refine between
+    - ``p1, p2`` -- two points to refine between
 
-    -  ``adaptive_recursion`` - (default: 5) how many
-       levels of recursion to go before giving up when doing adaptive
-       refinement. Setting this to 0 disables adaptive refinement.
+    - ``adaptive_recursion`` -- (default: 5); how many
+      levels of recursion to go before giving up when doing adaptive
+      refinement. Setting this to 0 disables adaptive refinement.
 
-    -  ``adaptive_tolerance`` - (default: 0.01) how large
-       a relative difference should be before the adaptive refinement
-       code considers it significant; see documentation for generate_plot_points
-       for more information.  See the documentation for :func:`plot` for more
-       information on how the adaptive refinement algorithm works.
+    - ``adaptive_tolerance`` -- (default: 0.01); how large
+      a relative difference should be before the adaptive refinement
+      code considers it significant; see documentation for generate_plot_points
+      for more information.  See the documentation for :func:`plot` for more
+      information on how the adaptive refinement algorithm works.
 
-    - ``excluded`` - (default: False) add a list of discovered points, for
-      which ``f`` is not defined
+    - ``excluded`` -- (default: False); also return locations where it has been
+      discovered that the function is not defined
+      (y-value will be ``'NaN'`` in this case)
 
     OUTPUT:
 
-
-    -  ``list`` - a list of points to insert between ``p1`` and
-       ``p2`` to get a better linear approximation between them;
-       if ``excluded`` also points for which the calculation failed are given
-       with value ``'NaN'``
+    A list of points to insert between ``p1`` and
+    ``p2`` to get a better linear approximation between them.
+    If ``excluded``, also x-values for which the calculation failed are given
+    with ``'NaN'`` as y-value.
 
 
     TESTS::
@@ -3857,7 +3858,9 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         return []
 
 
-def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None, excluded=False):
+def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
+                         adaptive_recursion=5, randomize=True,
+                         initial_points=None, excluded=False):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a
@@ -3865,34 +3868,34 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     INPUT:
 
-    - ``f`` - a function of one variable
+    - ``f`` -- a function of one variable
 
-    - ``p1, p2`` - two points to refine between
+    - ``p1, p2`` -- two points to refine between
 
-    - ``plot_points`` - (default: 5) the minimal number of plot points. (Note
+    - ``plot_points`` -- (default: 5); the minimal number of plot points. (Note
       however that in any actual plot a number is passed to this, with default
       value 200.)
 
-    - ``adaptive_recursion`` - (default: 5) how many levels of recursion to go
+    - ``adaptive_recursion`` -- (default: 5); how many levels of recursion to go
       before giving up when doing adaptive refinement.  Setting this to 0
       disables adaptive refinement.
 
-    - ``adaptive_tolerance`` - (default: 0.01) how large the relative difference
+    - ``adaptive_tolerance`` -- (default: 0.01); how large the relative difference
       should be before the adaptive refinement code considers it significant.  If
       the actual difference is greater than adaptive_tolerance*delta, where delta
       is the initial subinterval size for the given xrange and plot_points, then
       the algorithm will consider it significant.
 
-    - ``initial_points`` - (default: None) a list of points that should be evaluated.
+    - ``initial_points`` -- (default: None); a list of points that should be evaluated.
 
-    - ``excluded`` - (default: False) add a list of discovered points, for
+    - ``excluded`` -- (default: False); add a list of discovered x-values, for
       which ``f`` is not defined
 
     OUTPUT:
 
     - a list of points (x, f(x)) in the interval xrange, which approximate
       the function f.
-    - if ``excluded`` a tuple consisting of the above and a list of not-defined values
+    - if ``excluded`` a tuple consisting of the above and a list of not-defined x-values
 
     TESTS::
 
@@ -3937,7 +3940,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         sage: [len(generate_plot_points(f, (-pi, pi), plot_points=16, adaptive_recursion=i, randomize=False)) for i in [5, 10, 15]]
         [97, 499, 2681]
 
-    Excluded points will be added, if ``exclusion`` is set::
+    Excluded x-values will be added, if ``exclusion`` is set::
 
         sage: generate_plot_points(log, (0, 1), plot_points=2, adaptive_recursion=0)
         [(1.0, 0.0)]
@@ -3947,28 +3950,28 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     from sage.plot.misc import setup_for_eval_on_grid
     ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)
     xmin, xmax, delta = ranges[0]
-    values = srange(*ranges[0], include_endpoint=True)
+    x_values = srange(*ranges[0], include_endpoint=True)
 
     random = current_randstate().python_random().random
 
-    for i in range(len(values)):
-        xi = values[i]
+    for i in range(len(x_values)):
+        xi = x_values[i]
         # Slightly randomize the interior sample points if
         # randomize is true
         if randomize and i > 0 and i < plot_points-1:
             xi += delta*(random() - 0.5)
-            values[i] = xi
+            x_values[i] = xi
 
     # add initial points
     if isinstance(initial_points, list):
-        values = sorted(values + initial_points)
+        x_values = sorted(x_values + initial_points)
 
-    data = [None]*len(values)
+    data = [None]*len(x_values)
 
     exceptions = 0
     exception_indices = []
-    for i in range(len(values)):
-        xi = values[i]
+    for i in range(len(x_values)):
+        xi = x_values[i]
 
         try:
             data[i] = (float(xi), float(f(xi)))
@@ -4018,7 +4021,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                 exception_indices.append(i)
 
     data = [data[i] for i in range(len(data)) if i not in exception_indices]
-    excluded_points = [values[i] for i in exception_indices]
+    excluded_points = [x_values[i] for i in exception_indices]
 
     # calls adaptive refinement
     i, j = 0, 0

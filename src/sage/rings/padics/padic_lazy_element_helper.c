@@ -1,9 +1,19 @@
+/*****************************************************************************
+        Copyright (C) 2021 Xavier Caruso <xavier.caruso@normalesup.org>
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 2 of the License, or
+  (at your option) any later version.
+                   http://www.gnu.org/licenses/
+ *****************************************************************************/
+
+
 #include "flint/flint.h"
 #include "flint/fmpz.h"
 #include "flint/fmpz_poly.h"
 
 #define slong mp_limb_signed_t
-
 
 
 fmpz* get_coeff (fmpz_poly_t poly, slong i)

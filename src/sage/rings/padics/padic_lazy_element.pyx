@@ -8,8 +8,6 @@
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.misc.misc import walltime
-
 from sage.libs.flint.types cimport *
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
@@ -712,8 +710,8 @@ cdef bint fmpz_modp_sqrt(fmpz* ans, fmpz* x, fmpz* p):
 cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
     def __init__(self, parent, pAdicLazyElement x):
         pAdicLazyElement.__init__(self, parent)
-        if parent.prime() == 2:
-            raise NotImplementedError
+        #if parent.prime() == 2:
+        #    raise NotImplementedError
         self._x = x
         if x._valuation <= -maxordp:
             self._valuation = -maxordp
@@ -737,25 +735,50 @@ cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
             self._valuation = x._valuation >> 1
         if x._precrel == 0:
             return ERROR_ABANDON
-
         if x._valuation & 1 != 0:
             return ERROR_NOTSQUARE
-        cdef fmpz_t digit
-        fmpz_init(digit)
-        if fmpz_modp_sqrt(digit, get_coeff(x._digits, 0), self.prime_pow.fprime):
-            return ERROR_NOTSQUARE
 
-        fmpz_poly_set_coeff_fmpz(self._digits, 0, digit)
         cdef parent = self._parent
         cdef slong val = self._valuation
-        cdef Integer zd = PY_NEW(Integer)
-        fmpz_get_mpz(zd.value, digit)
-        cdef pAdicLazyElement u = pAdicLazyElement_shift(parent, self, val + 1, True)
-        cdef pAdicLazyElement y = pAdicLazyElement_shift(parent, x, 2*val + 2, False)
-        cdef pAdicLazyElement c = pAdicLazyElement_value(parent, zd*zd, shift=-2)
-        cdef pAdicLazyElement d = pAdicLazyElement_value(parent, 2*zd, shift=-val-2)
-        self._definition = (y + c - u*u) / d
-        self._precrel = 1
+        cdef fmpz_t digit
+        cdef Integer zd
+        cdef pAdicLazyElement u, y, c, d
+
+        if fmpz_equal_ui(self.prime_pow.fprime, 2):
+            fmpz_poly_set_coeff_ui(self._digits, 0, 1)
+            self._precrel = 1
+            if x._precrel == 1:
+                error = x._next_c()
+                if error:
+                    return error
+            if not fmpz_equal_ui(get_coeff(x._digits, 1), 0):
+                return ERROR_NOTSQUARE
+            if x._precrel == 2:
+                error = x._next_c()
+                if error:
+                    return error
+            if not fmpz_equal_ui(get_coeff(x._digits, 2), 0):
+                return ERROR_NOTSQUARE
+            zd = Integer(1)
+            u = pAdicLazyElement_shift(parent, self, val + 2, True) 
+            y = pAdicLazyElement_shift(parent, x, val + 1, False) 
+            c = pAdicLazyElement_value(parent, zd, shift=val-1) 
+            d = pAdicLazyElement_shift(parent, u*u, -val-3, False) 
+            self._definition = y + c - d
+        else:
+            fmpz_init(digit)
+            if fmpz_modp_sqrt(digit, get_coeff(x._digits, 0), self.prime_pow.fprime):
+                return ERROR_NOTSQUARE
+            fmpz_poly_set_coeff_fmpz(self._digits, 0, digit)
+            self._precrel = 1
+            zd = PY_NEW(Integer)
+            fmpz_get_mpz(zd.value, digit)
+            fmpz_clear(digit)
+            u = pAdicLazyElement_shift(parent, self, val + 1, True)
+            y = pAdicLazyElement_shift(parent, x, 2*val + 2, False)
+            c = pAdicLazyElement_value(parent, zd*zd, shift=-2)
+            d = pAdicLazyElement_value(parent, 2*zd, shift=-val-2)
+            self._definition = (y + c - u*u) / d
         return 0
 
     cdef int _next_c(self):
@@ -775,6 +798,8 @@ cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
             self._precrel += 1
         return 0
 
+    def next(self):
+        return self._next_c()
 
 
 # Self-referent definitions

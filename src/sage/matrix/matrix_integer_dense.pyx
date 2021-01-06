@@ -3001,7 +3001,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
           instead of Lovász's condition, ignored by NTL
 
         - ``transformation`` -- (default: ``False``) also return transformation
-           matrix. Not implemented in case of NTL.
+           matrix.
 
         - ``**kwds`` -- keywords to be passed to :mod:`fpylll`.  See
           :meth:`fpylll.LLL.reduction` for details.
@@ -3066,7 +3066,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: L[-1]
             (-100, -3, -1, 13, -1, -4, 2, 3, 4, 5, -1)
 
-        We return the transformation matrix:
+        We return the transformation matrix::
 
             sage: A = random_matrix(ZZ, 10, 20)
             sage: R, U = A.LLL(transformation=True)

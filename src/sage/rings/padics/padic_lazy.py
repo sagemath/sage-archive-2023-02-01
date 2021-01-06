@@ -14,20 +14,17 @@ One creates elements as usual::
     sage: R.random_element()  # random
     ...21013213133412431402
 
-By default, 20 digits of precision are computed (and printed).
-If more (or less) digits are needed, one can specify it as follows::
-
-    sage: b = R(42/17, prec=30)
-    sage: b
-    ...104201213402432310420121340301
-
-Alternatively, one can increase the precision using the method meth:`jump`::
+By default, 20 digits of precision are printed.
+If more digits are needed, one can increase the precision by using the
+meth:`jump`::
 
     sage: a.jump(30)
     sage: a
     ...244200244200244200244200244201
 
 Standard operations are implemented::
+
+    sage: b = R(42/17)
 
     sage: a + b
     ...03232011214322140002
@@ -39,8 +36,18 @@ Standard operations are implemented::
     sage: a / b
     ...12442142113021233401
 
-We observe again that only 20 digits are computed.
-If we need more, we have to create a new variable::
+We observe again that only 20 digits are printed, even if the precision
+on the operands is higher::
+
+    sage: b.jump(30)
+    sage: a
+    ...244200244200244200244200244201
+    sage: b
+    ...104201213402432310420121340301
+    sage: a / b
+    ...12442142113021233401
+
+If more digits are needed, we have to create a new variable::
 
     sage: c = a / b
     sage: c.jump(40)
@@ -54,27 +61,15 @@ Note that this automatically increases the precision on `a` and `b`::
     sage: b
     ...2134024323104201213402432310420121340301
 
-Equality test works but equality is only checked up to the
-*minimal* current precision of the elements::
-
-    sage: c == R(289/1764, prec=100)
-    True
-    sage: c == R(289/1764 + 5^50, prec=100)
-    True
-
-    sage: c.jump(100)
-    sage: c == R(289/1764 + 5^50, prec=100)
-    False
-    sage: c == R(289/1764 + 5^50)
-    True
+::
 
 A quite interesting feature with lazy p-adics is the possibility to
 create (in somes cases) self-referent numbers. Here is an example.
 We first declare a new variable as follows::
 
-    sage: x = R()
+    sage: x = R.selfref()
     sage: x
-    O(1)
+    ...?.0
 
 We then write down an equation satisfied by `x`::
 
@@ -92,7 +87,7 @@ defining equation only involves the `i`-th digits of `x` with `i < n`
 
 As a comparison, the following produces an error::
 
-    sage: y = R()
+    sage: y = R.selfref()
     sage: y == 1 + 3*y^2
     Traceback (most recent call last):
     ...
@@ -100,21 +95,23 @@ As a comparison, the following produces an error::
 
 Self-referent definitions also work with systems of equations::
 
-    sage: u = R(); v = R(); w = R()
+    sage: u = R.selfref()
+    sage: v = R.selfref()
+    sage: w = R.selfref()
 
     sage: u == 1 + 2*v + 3*w^2 + 5*u*v*w
     True
-    sage: v == 2 + 4/w^3 + 10*(u + v + w)^2
+    sage: v == 2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w)
     True
     sage: w == 3 + 25*(u*v + v*w + u*w)
     True
 
     sage: u
-    ...21111231040212114001
+    ...31203130103131131433
     sage: v
-    ...04313122332303332234
+    ...33441043031103114240
     sage: w
-    ...30020001022124410403
+    ...30212422041102444403
 
 """
 

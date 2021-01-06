@@ -24,7 +24,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
     cdef int _next_c(self)
     cdef Integer _digit(self, slong i)
 
-    cdef bint _is_equal(self, pAdicLazyElement right, slong prec) except -1
+    cdef bint _is_equal(self, pAdicLazyElement right, slong prec, bint permissive) except -1
 
 
 

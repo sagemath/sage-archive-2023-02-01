@@ -160,15 +160,13 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             return "valuation not known"
         return pAdicGenericElement._repr_(self)
 
-    cdef bint _is_equal(self, pAdicLazyElement right, slong prec) except -1:
+    cdef bint _is_equal(self, pAdicLazyElement right, slong prec, bint permissive) except -1:
         if self._valuation <= -maxordp:
             error = self._next_c()
-            if error:
-                self._error(error)
+            raise_error(error)
         if right._valuation <= -maxordp:
             error = right._next_c()
-            if error:
-                self._error(error)
+            raise_error(error)
         cdef slong i = 0
         cdef slong j = self._valuation - right._valuation
         if j > 0:
@@ -178,12 +176,14 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         while i < prec:
             while self._precrel <= i:
                 error = self._next_c()
-                if error:
-                    self._error(error)
+                raise_error(error, permissive)
+                if error:   # not enough precision
+                    return True
             while right._precrel <= j:
                 error = right._next_c()
-                if error:
-                    self._error(error)
+                raise_error(error, permissive)
+                if error:   # not enough precision
+                    return True
             if not fmpz_equal(get_coeff(self._digits, i), get_coeff(right._digits, j)):
                 return False
             i += 1
@@ -192,7 +192,7 @@ cdef class pAdicLazyElement(pAdicGenericElement):
 
     @coerce_binop
     def is_equal_at_precision(self, other, prec):
-        return self._is_equal(other, min(prec, maxordp))
+        return self._is_equal(other, min(prec, maxordp), False)
 
     def __eq__(self, other):
         if not have_same_parent(self, other):
@@ -201,22 +201,20 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         cdef pAdicLazyElement right = <pAdicLazyElement?>other
         if self._valuation <= -maxordp:
             error = self._next_c()           
-            if error:
-                self._error(error)
+            raise_error(error, permissive=True)
         if right._valuation <= -maxordp:
             error = right._next_c()           
-            if error:
-                right._error(error)
+            raise_error(error, permissive=True)
         minprec = min(self.precision_absolute(), right.precision_absolute())
         default_prec = self._parent.default_prec()
         if self.prime_pow.in_field:
             prec = self._valuation + default_prec
-            if not self._is_equal(right, max(minprec, prec)):
+            if not self._is_equal(right, max(minprec, prec), True):
                 return False
             if self._valuation < prec:
-                return self._is_equal(right, max(minprec, self._valuation + default_prec))
+                return self._is_equal(right, max(minprec, self._valuation + default_prec), True)
         else:
-            return self._is_equal(right, max(minprec, default_prec))
+            return self._is_equal(right, max(minprec, default_prec), True)
 
     cpdef bint _is_exact_zero(self) except -1:
         return isinstance(self, pAdicLazyElement_zero)
@@ -239,6 +237,9 @@ cdef class pAdicLazyElement(pAdicGenericElement):
             raise PrecisionError("no lower bound on the valuation is known")
         return ZZ(self._precrel)
 
+    cdef long valuation_c(self):
+        return self._valuation
+
     def valuation(self, secure=False):
         if self._is_exact_zero():
             return Infinity
@@ -252,6 +253,9 @@ cdef class pAdicLazyElement(pAdicGenericElement):
         if self._precrel == 0:
             raise PrecisionError("cannot determine the valuation; try to increase the precision")
         return self >> self._valuation
+
+    cpdef val_unit(self):
+        return self.valuation(), self.unit_part()
 
     def lift(self):
         if self._precrel == 0:

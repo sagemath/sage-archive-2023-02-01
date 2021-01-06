@@ -109,7 +109,9 @@ def krawtchouk(n, q, l, x, check=True):
         kraw += jth_term
     return kraw
 
-def eberlein(n, k, l, x, check=True):
+
+# TODO: fix efficient implementation
+def eberlein(n, k, l, x, check=True, inef=False):
     r"""
     Compute ``E^{n,l}_k(x)``, the Eberlein polynomial.
 
@@ -141,6 +143,11 @@ def eberlein(n, k, l, x, check=True):
     """
     from sage.arith.all import binomial
     from sage.arith.srange import srange
+
+    if inef:
+        return sum([(-1)**j*binomial(x,j)*binomial(n-x,k-j)*binomial(l-n-x,k-j)
+            for j in srange(0,k+1)])
+
     if check:
         from sage.rings.integer_ring import ZZ
         l0 = ZZ(l)
@@ -239,7 +246,7 @@ def _delsarte_cwc_LP_building(n, d, w, q, solver, isinteger):
         # could make more efficient calculation of the binomials in the future
         # by keeping track of the divisor
         print("eberlein args: w={}, n={}, k={}, d/2={} ".format(w,n,k,d/2))
-        p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k)
+        p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k, inef=True)
             / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,k+1)]), min=-1)
 
     return A, p

@@ -3726,7 +3726,7 @@ def minmax_data(xdata, ydata, dict=False):
         return xmin, xmax, ymin, ymax
 
 def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01,
-                        adaptive_recursion=5, level=0, excluded=False):
+                        adaptive_recursion=5, level=0, *, excluded=False):
     r"""
     The adaptive refinement algorithm for plotting a function ``f``. See
     the docstring for plot for a description of the algorithm.
@@ -3830,7 +3830,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01,
 
 def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
                          adaptive_recursion=5, randomize=True,
-                         initial_points=None, excluded=False):
+                         initial_points=None, *, excluded=False):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a

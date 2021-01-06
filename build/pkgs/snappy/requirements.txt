@@ -4,5 +4,7 @@
 # and will remain completely unused (wastes 30M).  Snappy is about 165M.
 # See https://trac.sagemath.org/ticket/31180
 snappy
+# cypari 2.4.0 has a broken sdist, https://trac.sagemath.org/ticket/31180
+cypari !=2.4.0
 # An optional database (110M uncompressed)
 snappy_15_knots

@@ -440,14 +440,21 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from __future__ import annotations
+from typing import Optional, TYPE_CHECKING
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
+from sage.manifolds.differentiable.diff_map import DiffMap
+from sage.manifolds.structure import RealDifferentialStructure
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.manifolds.manifold import TopologicalManifold
 from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
+
+if TYPE_CHECKING:
+  from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 
 ###############################################################################
 
@@ -624,7 +631,7 @@ class DifferentiableManifold(TopologicalManifold):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, field, structure, base_manifold=None,
+    def __init__(self, n, name, field='real', structure=RealDifferentialStructure(), base_manifold=None,
                  diff_degree=infinity, latex_name=None, start_index=0,
                  category=None, unique_tag=None):
         r"""
@@ -1204,7 +1211,7 @@ class DifferentiableManifold(TopologicalManifold):
                                                            l, dest_map=dest_map)
         return self._tensor_bundles[dest_map][(k, l)]
 
-    def vector_field_module(self, dest_map=None, force_free=False):
+    def vector_field_module(self, dest_map: Optional[DiffMap] = None, force_free: bool = False) -> VectorFieldModule:
         r"""
         Return the set of vector fields defined on ``self``, possibly
         with values in another differentiable manifold, as a module over the
@@ -2420,6 +2427,18 @@ class DifferentiableManifold(TopologicalManifold):
         if comp is not None:
             resu[:] = comp
         return resu
+
+    def symplectic_form(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+        r"""
+        Construct a symplectic form on the current vector field module.
+        """
+        return self.vector_field_module().symplectic_form(name, latex_name)
+        
+    def poisson_tensor(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+        r"""
+        Construct a Poisson tensor on the current vector field module.
+        """
+        return self.vector_field_module().poisson_tensor(name, latex_name)
 
     def automorphism_field(self, *comp, **kwargs):
         r"""

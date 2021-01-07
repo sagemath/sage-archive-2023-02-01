@@ -38,6 +38,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from typing import Optional
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
@@ -1122,6 +1123,20 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
         return PseudoRiemannianMetric(self, name, signature=signature[0]-signature[1],
                                       latex_name=latex_name)
+
+    def symplectic_form(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+        r"""
+        Construct a symplectic form on the current vector field module.
+        """
+        from sage.manifolds.differentiable.symplectic_form import SymplecticForm
+        return SymplecticForm(self, name, latex_name)
+
+    def poisson_tensor(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+        r"""
+        Construct a Poisson tensor on the current vector field module.
+        """
+        from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
+        return PoissonTensorField(self, name, latex_name)
 
 
 #******************************************************************************
@@ -2282,3 +2297,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         return PseudoRiemannianMetricParal(self, name,
                                            signature=signature[0]-signature[1],
                                            latex_name=latex_name)
+
+    def symplectic_form(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+        r"""
+        Construct a symplectic form on the current vector field module.
+        """
+        from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+        return SymplecticFormParal(self, name, latex_name)
+
+    def poisson_tensor(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+        r"""
+        Construct a Poisson tensor on the current vector field module.
+        """
+        from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
+        return PoissonTensorFieldParal(self, name, latex_name)

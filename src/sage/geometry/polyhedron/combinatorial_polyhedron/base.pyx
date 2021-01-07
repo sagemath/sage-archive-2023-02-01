@@ -3042,7 +3042,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._mem_tuple += (mem,)
             sig_unblock()
 
-    cdef size_t _compute_edges_or_ridges_with_iterator(self, FaceIterator face_iter, bint do_atom_rep, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1:
+    cdef size_t _compute_edges_or_ridges_with_iterator(
+            self, FaceIterator face_iter, bint do_atom_rep, size_t ***edges_pt,
+            size_t *counter_pt, size_t *current_length_pt,
+            MemoryAllocator mem) except -1:
         r"""
         See :meth:`CombinatorialPolyhedron._compute_edges`.
         """
@@ -3050,7 +3053,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef int dim = self.dimension()
         cdef output_dimension = 1 if do_atom_rep else dim - 2
 
-        while (face_iter.next_dimension() == output_dimension):
+        while face_iter.next_dimension() == output_dimension:
             if do_atom_rep:
                 # Set up face_iter.atom_rep
                 face_iter.set_atom_rep()

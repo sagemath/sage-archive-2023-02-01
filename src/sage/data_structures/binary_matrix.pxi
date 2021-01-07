@@ -20,7 +20,7 @@ from sage.data_structures.binary_matrix cimport *
 from sage.data_structures.bitset_base cimport *
 
 
-cdef inline binary_matrix_init(binary_matrix_t m, Py_ssize_t n_rows, Py_ssize_t n_cols):
+cdef inline int binary_matrix_init(binary_matrix_t m, Py_ssize_t n_rows, Py_ssize_t n_cols) except -1:
     r"""
     Allocate an empty binary matrix with ``n_rows`` rows and ``n_cols`` columns.
     """
@@ -34,6 +34,27 @@ cdef inline binary_matrix_init(binary_matrix_t m, Py_ssize_t n_rows, Py_ssize_t 
 
     for i in range(n_rows):
         bitset_init(m.rows[i], n_cols)
+
+cdef inline int binary_matrix_realloc(binary_matrix_t m, Py_ssize_t n_rows, Py_ssize_t n_cols) except -1:
+    r"""
+    Reallocate a binary matrix to have ``n_rows`` rows and ``n_cols`` columns.
+
+    Possibly new positions do not contain extra bits.
+    """
+    cdef Py_ssize_t i
+    for i in range(n_rows, m.n_rows):
+        bitset_free(m.rows[i])
+
+    m.rows = <bitset_t *>sig_realloc(m.rows, n_rows * sizeof(bitset_t))
+
+    for i in range(min(n_rows, m.n_rows)):
+        bitset_realloc(m.rows[i], n_cols)
+
+    for i in range(m.n_rows, n_rows):
+        bitset_init(m.rows[i], n_cols)
+
+    m.n_cols = n_cols
+    m.n_rows = n_rows
 
 cdef inline binary_matrix_free(binary_matrix_t m):
     r"""

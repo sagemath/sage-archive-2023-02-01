@@ -41,6 +41,7 @@ from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.manifolds.utilities import ExpressionNice
 from sage.misc.cachefunc import cached_method
 from sage.symbolic.ring import SR
+from sage.structure.mutability import Mutability
 import sympy
 
 
@@ -2751,7 +2752,7 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
     is_field = is_integral_domain
 
 
-class MultiCoordFunction(SageObject):
+class MultiCoordFunction(SageObject, Mutability):
     r"""
     Coordinate function to some Cartesian power of the base field.
 
@@ -3264,44 +3265,4 @@ class MultiCoordFunction(SageObject):
         """
         for func in self._functions:
             func.set_immutable()
-        self._is_immutable = True
-
-    def is_immutable(self):
-        r"""
-        Return ``True`` if this object is immutable, i.e. its expressions
-        cannot be chanced, and ``False`` if it is not.
-
-        To set a coordinate function immutable, use :meth:`set_immutable`.
-
-        EXAMPLES::
-
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: X.<x,y,z> = M.chart()
-            sage: f = X.multifunction(x+y+z, x*y*z)
-            sage: f.is_immutable()
-            False
-            sage: f.set_immutable()
-            sage: f.is_immutable()
-            True
-
-        """
-        return self._is_immutable
-
-    def is_mutable(self):
-        r"""
-        Return ``True`` if this object is mutable, i.e. its expressions can
-        be changed, and ``False`` if it is not.
-
-        EXAMPLES::
-
-            sage: M = Manifold(3, 'M', structure='topological')
-            sage: X.<x,y,z> = M.chart()
-            sage: f = X.multifunction(x+y+z, x*y*z)
-            sage: f.is_mutable()
-            True
-            sage: f.set_immutable()
-            sage: f.is_mutable()
-            False
-
-        """
-        return not self._is_immutable
+        Mutability.set_immutable(self)

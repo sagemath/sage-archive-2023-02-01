@@ -3073,7 +3073,7 @@ class DifferentiableManifold(TopologicalManifold):
             Vector field f_0 on the 2-dimensional differentiable manifold M
 
         Thanks to the keywords ``dest_map`` and ``from_frame``, one can also
-        define a vector frame from one prexisting on another manifold, via a
+        define a vector frame from one preexisting on another manifold, via a
         differentiable map (here provided by the curve ``c``)::
 
             sage: fc = I.vector_frame(dest_map=c, from_frame=f); fc

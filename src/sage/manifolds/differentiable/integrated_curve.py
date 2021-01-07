@@ -2951,7 +2951,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     line of latitude.
 
     Now, set an affine connection with respect to such fields that are
-    parallely transported in all directions, that is:
+    parallelly transported in all directions, that is:
     `\nabla \hat{e}_{\theta} = \nabla \hat{e}_{\phi} = 0`.
     This is equivalent to setting all the connection coefficients to
     zero with respect to this frame::

@@ -1225,7 +1225,7 @@ class BundleConnection(SageObject):
                     raise TypeError("in case of [:] syntax, the list/tuple "
                                     "of value must contain lists/tuples")
                 else:
-                    # check lenghts:
+                    # check lengths:
                     rk = vb._rank
                     if len(value) != rk:
                         raise ValueError("value must have "

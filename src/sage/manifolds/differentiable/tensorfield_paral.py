@@ -2362,8 +2362,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             [ 0  0  e  1]
 
         """
-        ser = self.series_expansion(symbol, order)
-        return sum(symbol**i*s for (i, s) in enumerate(ser))
+        series = self.series_expansion(symbol, order)
+        return sum(symbol**i * s for i, s in enumerate(series))
 
     def set_calc_order(self, symbol, order, truncate=False):
         r"""

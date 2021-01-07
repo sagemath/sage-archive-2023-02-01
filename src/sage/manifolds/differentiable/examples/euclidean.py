@@ -790,7 +790,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
                 if coordinates == 'Cartesian':
                     symbols = 'x'
                 else:
-                    raise TypeError("unkown coordinate type")
+                    raise TypeError("unknown coordinate type")
             elif n > 3:
                 if coordinates == 'Cartesian':
                     symbols = ''
@@ -798,7 +798,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
                         symbols += "x{}".format(i) + r":x_{" + str(i) + r"} "
                     symbols = symbols[:-1]
                 else:
-                    raise TypeError("unkown coordinate type")
+                    raise TypeError("unknown coordinate type")
             else:
                 raise NotImplementedError("dimension not implemented yet")
         self._cartesian_chart = None  # to be constructed later if necessary
@@ -1195,7 +1195,7 @@ class EuclideanPlane(EuclideanSpace):
 
         """
         if coordinates not in ['Cartesian', 'polar']:
-            raise TypeError("unkown coordinate type")
+            raise TypeError("unknown coordinate type")
         if symbols is None:
             if coordinates == 'Cartesian':
                 symbols = 'x y'
@@ -1723,7 +1723,7 @@ class Euclidean3dimSpace(EuclideanSpace):
 
         """
         if coordinates not in ['Cartesian', 'spherical', 'cylindrical']:
-            raise TypeError("unkown coordinate type")
+            raise TypeError("unknown coordinate type")
         if symbols is None:
             if coordinates == 'Cartesian':
                 symbols = 'x y z'

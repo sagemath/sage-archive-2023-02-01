@@ -16,7 +16,6 @@ A ``binary_matrix_t`` structure contains:
 
 """
 
-from sage.data_structures.binary_matrix cimport *
 from sage.data_structures.bitset_base cimport *
 
 cdef struct binary_matrix_s:

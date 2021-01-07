@@ -62,7 +62,7 @@ cdef inline int binary_matrix_realloc(binary_matrix_t m, Py_ssize_t n_rows, Py_s
     m.n_cols = n_cols
     m.n_rows = n_rows
 
-cdef inline binary_matrix_free(binary_matrix_t m):
+cdef inline void binary_matrix_free(binary_matrix_t m):
     r"""
     Free the memory allocated by the matrix
     """
@@ -72,7 +72,7 @@ cdef inline binary_matrix_free(binary_matrix_t m):
         bitset_free(m.rows[i])
     sig_free(m.rows)
 
-cdef inline binary_matrix_fill(binary_matrix_t m, bint bit):
+cdef inline void binary_matrix_fill(binary_matrix_t m, bint bit):
     r"""
     Fill the whole matrix with a bit
     """
@@ -85,7 +85,7 @@ cdef inline binary_matrix_fill(binary_matrix_t m, bint bit):
         for i in range(m.n_rows):
             bitset_clear(m.rows[i])
 
-cdef inline binary_matrix_complement(binary_matrix_t m):
+cdef inline void binary_matrix_complement(binary_matrix_t m):
     r"""
     Complement all of the matrix' bits.
     """

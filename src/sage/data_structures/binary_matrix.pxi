@@ -45,7 +45,7 @@ cdef inline int binary_matrix_realloc(binary_matrix_t m, Py_ssize_t n_rows, Py_s
     for i in range(n_rows, m.n_rows):
         bitset_free(m.rows[i])
 
-    m.rows = <bitset_t *>sig_realloc(m.rows, n_rows * sizeof(bitset_t))
+    m.rows = <bitset_t *>check_reallocarray(m.rows, n_rows, sizeof(bitset_t))
 
     for i in range(min(n_rows, m.n_rows)):
         bitset_realloc(m.rows[i], n_cols)

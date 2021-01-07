@@ -87,25 +87,25 @@ cdef inline binary_matrix_complement(binary_matrix_t m):
     for i in range(m.n_rows):
         bitset_complement(m.rows[i], m.rows[i])
 
-cdef inline binary_matrix_set1(binary_matrix_t m, Py_ssize_t row, Py_ssize_t col):
+cdef inline void binary_matrix_set1(binary_matrix_t m, mp_bitcnt_t row, mp_bitcnt_t col):
     r"""
     Set an entry to 1
     """
     bitset_add(m.rows[row], col)
 
-cdef inline binary_matrix_set0(binary_matrix_t m, Py_ssize_t row, Py_ssize_t col):
+cdef inline void binary_matrix_set0(binary_matrix_t m, mp_bitcnt_t row, mp_bitcnt_t col):
     r"""
     Set an entry to 0
     """
     bitset_discard(m.rows[row], col)
 
-cdef inline binary_matrix_set(binary_matrix_t m, Py_ssize_t row, Py_ssize_t col, bint value):
+cdef inline void binary_matrix_set(binary_matrix_t m, mp_bitcnt_t row, mp_bitcnt_t col, bint value):
     r"""
     Set an entry
     """
     bitset_set_to(m.rows[row],col,value)
 
-cdef inline bint binary_matrix_get(binary_matrix_t m, Py_ssize_t row, Py_ssize_t col):
+cdef inline bint binary_matrix_get(binary_matrix_t m, mp_bitcnt_t row, mp_bitcnt_t col):
     r"""
     Return the value of a given entry
     """

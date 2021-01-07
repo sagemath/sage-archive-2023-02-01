@@ -112,11 +112,10 @@ It also contains the following variables::
 from sage.data_structures.bitset_base cimport *
 
 from cysignals.memory cimport sig_calloc, sig_realloc, sig_free
+from sage.data_structures.binary_matrix cimport *
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
-
-include "sage/data_structures/binary_matrix.pxi"
 
 cdef class DenseGraph(CGraph):
     """

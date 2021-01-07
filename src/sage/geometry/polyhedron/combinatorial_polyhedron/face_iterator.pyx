@@ -233,7 +233,7 @@ cdef class FaceIterator_base(SageObject):
         self.structure.lowest_dimension = 0
 
         if output_dimension is not None:
-            if not output_dimension in range(0,self.structure.dimension):
+            if output_dimension not in range(self.structure.dimension):
                 raise ValueError("``output_dimension`` must be the dimension of proper faces")
             if self.dual:
                 # In dual mode, the dimensions are reversed.
@@ -1257,9 +1257,9 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
 
     if new_faces_counter:
         # ``faces[n_faces]`` contains new faces.
-        # We will visted them on next call, starting with codimension 1.
+        # We will visit them on next call, starting with codimension 1.
 
-        # Setting the variables correclty for next call of ``next_face_loop``.
+        # Setting the variables correctly for next call of ``next_face_loop``.
         structure.current_dimension -= 1
         structure.first_time[structure.current_dimension] = True
         structure.visited_all[structure.current_dimension][0] = visited_all[0][0]

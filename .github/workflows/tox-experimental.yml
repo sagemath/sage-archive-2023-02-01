@@ -24,6 +24,7 @@ on:
     tags:
       - '*'
   workflow_dispatch:
+    # Allow to run manually
 
 env:
   TARGETS_PRE: build/make/Makefile

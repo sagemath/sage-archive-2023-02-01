@@ -17,19 +17,22 @@ cdef inline int ERROR_NOTDEFINED   = 1 << 1
 cdef inline int ERROR_PRECISION    = 1 << 2
 cdef inline int ERROR_OVERFLOW     = 1 << 3
 cdef inline int ERROR_NOTSQUARE    = 1 << 4  # maybe we should have something more generic here
-cdef inline int ERROR_DIVISION     = 1 << 5
-cdef inline int ERROR_CIRCULAR     = 1 << 6
+cdef inline int ERROR_INTEGRAL     = 1 << 6
+cdef inline int ERROR_DIVISION     = 1 << 7
+cdef inline int ERROR_CIRCULAR     = 1 << 8
 
-cdef inline int ERROR_UNKNOWN      = 1 << 30
+cdef inline int ERROR_UNEXPECTED   = 1 << 30
 
 
 def raise_error(error, permissive=False):
-    if error & ERROR_UNKNOWN:  # should never occur
-        raise RuntimeError
+    if error & ERROR_UNEXPECTED:
+        raise RuntimeError("error code = %s" % error)
     if error & ERROR_CIRCULAR:
         raise RecursionError("definition looks circular")
     if error & ERROR_DIVISION:
         raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
+    if error & ERROR_INTEGRAL:
+        raise ValueError("not in the ring of integers")
     if error & ERROR_NOTSQUARE:
         raise ValueError("not a square")
     if not permissive:
@@ -42,12 +45,14 @@ def raise_error(error, permissive=False):
 
 
 def error_to_str(error, permissive=False):
-    if error & ERROR_UNKNOWN:  # should never occur
-        raise RuntimeError
+    if error & ERROR_UNEXPECTED:
+        raise RuntimeError("error code = %s" % error)
     if error & ERROR_CIRCULAR:
         return "Error: definition looks circular"
     if error & ERROR_DIVISION:
         return "Error: cannot divide by something indistinguishable from zero"
+    if error & ERROR_INTEGRAL:
+        return "Error: not in the ring of integers"
     if error & ERROR_NOTSQUARE:
         return "Error: not a square"
     if not permissive:

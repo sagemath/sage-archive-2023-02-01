@@ -54,11 +54,15 @@ cdef class pAdicLazyElement_add(pAdicLazyElement):
 
 cdef class pAdicLazyElement_mul(pAdicLazyElement):
     cdef pAdicLazyElement _x
+    cdef fmpz_t _lastdigit_x
     cdef pAdicLazyElement _y
+    cdef fmpz_t _lastdigit_y
+    cdef int _update_last_digit(self)
 
 cdef class pAdicLazyElement_muldigit(pAdicLazyElement):
     cdef fmpz* _x
     cdef pAdicLazyElement _y
+    cdef void _erase_first_digit(self)
     
 cdef class pAdicLazyElement_div(pAdicLazyElement):
     cdef slong _maxprec
@@ -74,9 +78,15 @@ cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
     cdef pAdicLazyElement _definition
     cdef int _bootstrap_c(self)
 
+cdef class pAdicLazyElement_teichmuller(pAdicLazyElement):
+    cdef bint _trivial
+    cdef list _xns
+    cdef pAdicLazyElement _xbar
+    cdef pAdicLazyElement _xp
+    cdef int _bootstrap_c(self)
+
 
 cdef class pAdicLazyElement_selfref(pAdicLazyElement):
     cdef pAdicLazyElement _definition
     cdef bint _next
-
     cpdef set(self, pAdicLazyElement definition)

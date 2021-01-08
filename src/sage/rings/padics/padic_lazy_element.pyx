@@ -34,6 +34,7 @@ from sage.rings.all import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import Infinity
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.rings.finite_rings.integer_mod_ring import Integers
 
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -262,6 +263,29 @@ cdef class pAdicLazyElement(pAdicGenericElement):
 
     cpdef val_unit(self):
         return self.valuation(), self.unit_part()
+
+    def residue(self, slong prec=1, field=None):
+        if prec >= maxordp:
+            raise OverflowError
+        if prec < 0:
+            raise ValueError("cannot reduce modulo a negative power of p")
+        error = self._jump_c(prec)
+        if error:
+            raise_error(error)
+        if self._valuation < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue")
+        cdef fmpz_t fans
+        fmpz_init(fans)
+        cdef fmpz_poly_t digits
+        get_slice(digits, self._digits, 0, prec - self._valuation)
+        fmpz_poly_evaluate_fmpz(fans, digits, self.prime_pow.fprime)
+        cdef Integer ans = PY_NEW(Integer)
+        fmpz_get_mpz(ans.value, fans)
+        fmpz_clear(fans)
+        if field and prec == 1:
+            return self._parent.residue_class_field()(ans)
+        else:
+            return Integers(self.prime()**prec)(ans)
 
     def lift(self):
         if self._precrel == 0:

@@ -199,6 +199,10 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
     def teichmuller(self, x):
         return pAdicLazyElement_teichmuller(self, ZZ(x))
 
+    def teichmuller_system(self):
+        R = self.residue_class_field()
+        return [ self.teichmuller(ZZ(i)) for i in R if i != 0 ]
+
 
 class pAdicFieldLazy(pAdicFieldBaseGeneric):
     def __init__(self, p, prec, print_mode, names):
@@ -261,3 +265,7 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
 
     def teichmuller(self, x):
         return pAdicLazyElement_teichmuller(self, ZZ(x))
+
+    def teichmuller_system(self):
+        R = self.residue_class_field()
+        return [ self.teichmuller(ZZ(i)) for i in R if i != 0 ]

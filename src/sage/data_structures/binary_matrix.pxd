@@ -77,6 +77,7 @@ cdef inline void binary_matrix_copy(binary_matrix_t dst, binary_matrix_t src):
 
     We assume that ``dst.n_rows == src.n_rows`` and ``dst.n_cols == src.n_cols``.
     """
+    cdef mp_bitcnt_t i
     for i in range(dst.n_rows):
         bitset_copy(dst.rows[i], src.rows[i])
 

@@ -1092,7 +1092,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.nth_iterate(0,0)
             (0 : 1)
         """
-        n = ZZ(n)
+        n = Integer(n)
         if n < 0:
             raise TypeError("must be a forward orbit")
         return self.orbit(P, [n,n+1], **kwds)[0]
@@ -1316,8 +1316,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         """
         if not isinstance(N,(list,tuple)):
             N = [0,N]
-        N[0] = ZZ(N[0])
-        N[1] = ZZ(N[1])
+        N[0] = Integer(N[0])
+        N[1] = Integer(N[1])
         if N[0] < 0 or N[1] < 0:
             raise TypeError("orbit bounds must be non-negative")
         if N[0] > N[1]:
@@ -2248,7 +2248,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         while Q[index] == 0:
             index -= 1
         indexlist.append(index)
-        for i in range(0, n):
+        for i in range(n):
             F = []
             R = self(Q)
             R.normalize_coordinates()
@@ -2313,7 +2313,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         while Q[index] % p == 0:
             index -= 1
         indexlist.append(index)
-        for i in range(0, n):
+        for i in range(n):
             F = []
             R = self(Q, False)
             g = gcd(R._coords)
@@ -3451,7 +3451,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 F = self.change_ring(Kbar)
             else:
                 embeds = K.embeddings(Kbar)
-                if len(embeds) != 0:
+                if embeds:
                     F = self.change_ring(embeds[0])
                 else:
                     raise ValueError("no embeddings of base field to algebraic closure")
@@ -3561,7 +3561,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 F = self.change_ring(Kbar)
             else:
                 embeds = K.embeddings(Kbar)
-                if len(embeds) != 0:
+                if embeds:
                     F = self.change_ring(embeds[0])
                 else:
                     raise ValueError("no embeddings of base field to algebraic closure")
@@ -3657,7 +3657,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 F = self.change_ring(Kbar)
             else:
                 embeds = K.embeddings(Kbar)
-                if len(embeds) != 0:
+                if embeds:
                     F = self.change_ring(embeds[0])
                 else:
                     raise ValueError("no embeddings of base field to algebraic closure")
@@ -3856,7 +3856,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         N = PS.dimension_relative() + 1
         F_1 = f.nth_iterate_map(n+m)
         F_2 = f.nth_iterate_map(m)
-        L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(0,N)
+        L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(N)
                 for j in range(i+1, N)]
         X = PS.subscheme(L + list(dom.defining_polynomials()))
         minimal = kwds.pop('minimal',True)
@@ -4107,7 +4107,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 raise TypeError("ring must be finite to generate cyclegraph")
         elif algorithm == 'variety':
             F = f.nth_iterate_map(n)
-            L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(0,N)
+            L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(N)
                  for j in range(i+1, N)]
             L = [t for t in L if t != 0]
             X = PS.subscheme(L + list(dom.defining_polynomials()))
@@ -4310,7 +4310,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 f = self.change_ring(Kbar)
             else:
                 embeds = K.embeddings(Kbar)
-                if len(embeds) != 0:
+                if embeds:
                     f = self.change_ring(embeds[0])
                 else:
                     raise ValueError("no embeddings of base field to algebraic closure")
@@ -6122,7 +6122,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         - Original algorithm written by Xander Faber, Michelle Manes,
           Bianca Viray [FMV2014]_.
 
-        - Implimented by Rebecca Lauren Miller, as part of GSOC 2016.
+        - Implemented by Rebecca Lauren Miller, as part of GSOC 2016.
 
         EXAMPLES::
 
@@ -6396,7 +6396,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         - Original algorithm written by Xander Faber, Michelle Manes,
           Bianca Viray [FMV2014]_.
 
-        - Implimented by Rebecca Lauren Miller as part of GSOC 2016.
+        - Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
         EXAMPLES::
 

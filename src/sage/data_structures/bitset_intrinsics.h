@@ -90,11 +90,7 @@ static inline long _bitset_first_in_limb(mp_limb_t limb){
     */
     if (limb == 0)
         return -1;
-#if (__BMI__) && (GMP_LIMB_BITS == 64) && (INTPTR_MAX == INT64_MAX)
-    return _tzcnt_u64(limb);
-#else
-    return mpn_scan1(&limb, 0);
-#endif
+    return _bitset_first_in_limb_nonzero(limb);
 }
 
 static inline long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs){

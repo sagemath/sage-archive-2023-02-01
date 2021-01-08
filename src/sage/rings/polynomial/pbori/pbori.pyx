@@ -389,15 +389,15 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
                                      "(deglex and degneglex) for block orders.")
 
         if pb_order_code is pbdp:
-            for i from 0 <= i < n:
-                self.pbind[i] = n - i -1
+            for i in range(n):
+                self.pbind[i] = n - i - 1
             pb_order_code = pbdp_asc
         elif pb_order_code is pbblock_dp:
             bstart = 0
-            for i from 0 <= i < len(order.blocks()):
+            for i in range(len(order.blocks())):
                 bsize = len(order[i])
-                for j from 0 <= j < bsize:
-                    self.pbind[bstart + j] = bstart + bsize - j -1
+                for j in range(bsize):
+                    self.pbind[bstart + j] = bstart + bsize - j - 1
                 bstart += bsize
             pb_order_code = pbblock_dp_asc
         else:                           # native PolyBoRi ordering
@@ -890,8 +890,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
                 self.base_ring().has_coerce_map_from(other.parent()):
             if self.base_ring()(other).is_zero():
                 return self._zero_element
-            else:
-                return self._one_element
+            return self._one_element
         else:
             raise TypeError("cannot coerce from %s to %s" %
                             (type(other), str(self)))
@@ -7632,7 +7631,7 @@ def gauss_on_polys(inp):
         sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
         sage: from sage.rings.polynomial.pbori.pbori import *
         sage: l = [B.random_element() for _ in range(B.ngens())]
-        sage: A, v = Sequence(l,B).coefficient_matrix()
+        sage: A, v = Sequence(l, B).coefficient_matrix()
         sage: A
         [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
         [0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
@@ -7642,7 +7641,7 @@ def gauss_on_polys(inp):
         [0 1 0 0 1 0 1 0 0 0 0 0 1 0 0 0 0 1]
 
         sage: e = gauss_on_polys(l)
-        sage: E, v = Sequence(e,B).coefficient_matrix()
+        sage: E, v = Sequence(e, B).coefficient_matrix()
         sage: E
         [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
         [0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 1 0 1]

@@ -77,6 +77,9 @@ static inline long _bitset_first_in_limb_nonzero(mp_limb_t limb){
     nonzero bit.
     */
 #if (__BMI__) && (GMP_LIMB_BITS == 64) && (INTPTR_MAX == INT64_MAX)
+    // If available we use intrinsics trailing zero count.
+    // Also we check that ``mp_bitcnt_t`` is in fact 8 bytes long
+    // and the architecture is 64-bit.
     return _tzcnt_u64(limb);
 #else
     return mpn_scan1(&limb, 0);
@@ -98,6 +101,9 @@ static inline long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs){
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     */
 #if (__POPCNT__) && (GMP_LIMB_BITS == 64) && (INTPTR_MAX == INT64_MAX)
+    // If available we use intrinsics popcount.
+    // Also we check that ``mp_bitcnt_t`` is in fact 8 bytes long
+    // and the architecture is 64-bit.
     mp_bitcnt_t i;
     uint64_t count = 0;
     for (i=0; i<limbs; i++){

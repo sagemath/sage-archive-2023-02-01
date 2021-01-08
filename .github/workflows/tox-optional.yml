@@ -23,6 +23,7 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 
 env:
   TARGETS_PRE: build/make/Makefile

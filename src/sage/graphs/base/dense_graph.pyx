@@ -113,6 +113,7 @@ from sage.data_structures.bitset_base cimport *
 
 from cysignals.memory cimport sig_calloc, sig_realloc, sig_free
 from sage.data_structures.binary_matrix cimport *
+from libc.string cimport memcpy
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -445,6 +446,21 @@ cdef class DenseGraph(CGraph):
                 return i
             i = bitset_next(self.active_vertices, i+1)
         return -1
+
+cdef void copy_dense_graph(DenseGraph dest, DenseGraph src):
+    r"""
+    Unsafely copy ``dest`` over ``src``.
+
+    .. WARNING::
+
+        ``dest.active_vertices`` and ``src.active_vertices`` must be of same size!
+    """
+    memcpy(dest.in_degrees,  src.in_degrees,  src.active_vertices.size * sizeof(int))
+    memcpy(dest.out_degrees, src.out_degrees, src.active_vertices.size * sizeof(int))
+    binary_matrix_copy(dest.edges, src.edges)
+    bitset_copy(dest.active_vertices, src.active_vertices)
+    dest.num_verts = src.num_verts
+    dest.num_arcs  = src.num_arcs
 
 ##############################
 # Further tests. Unit tests for methods, functions, classes defined with cdef.

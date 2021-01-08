@@ -17,6 +17,8 @@ cdef class DenseGraph(CGraph):
     cdef inline int _add_arc_unsafe(self, int, int) except -1
     cdef inline int _del_arc_unsafe(self, int u, int v) except -1
 
+cdef void copy_dense_graph(DenseGraph dest, DenseGraph src)
+
 cdef class DenseGraphBackend(CGraphBackend):
     cdef DenseGraph _cg
     cdef inline CGraph cg(self):

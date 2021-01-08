@@ -880,7 +880,7 @@ def plot(funcs, *args, **kwds):
     - ``ymax`` -- ending y value in the rendered figure. This parameter is passed
       directly to the ``show`` procedure and it could be overwritten.
 
-    - ``detect_poles`` -- (Default: False) If set to True poles are detected.
+    - ``detect_poles`` -- (default: ``False``) If set to ``True`` poles are detected.
       If set to "show" vertical asymptotes are drawn.
 
     - ``legend_label`` -- a (TeX) string serving as the label for `X` in the legend.
@@ -1011,9 +1011,9 @@ def plot(funcs, *args, **kwds):
 
     FILLING OPTIONS:
 
-    - ``fill`` - (Default: False) One of:
+    - ``fill`` - (default: ``False``) One of:
 
-      - "axis" or True: Fill the area between the function and the x-axis.
+      - "axis" or ``True``: Fill the area between the function and the x-axis.
 
       - "min": Fill the area between the function and its minimal value.
 
@@ -1030,7 +1030,7 @@ def plot(funcs, *args, **kwds):
         the j-th function in the list.  (But if ``d[i] == j``: Fill the area
         between the i-th function in the list and the horizontal line y = j.)
 
-    - ``fillalpha`` - (default: 0.5) How transparent the fill is.
+    - ``fillalpha`` - (default: `0.5`) How transparent the fill is.
       A number between 0 and 1.
 
     MATPLOTLIB STYLE SHEET OPTION:
@@ -3874,7 +3874,8 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
     - a list of points (x, f(x)) in the interval xrange, which approximate
       the function f.
 
-    - if ``excluded`` a tuple consisting of the above and a list of not-defined x-values
+    - if ``excluded`` a tuple consisting of the above and a list of x-values
+      at which ``f`` is not defined
 
     TESTS::
 

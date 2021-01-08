@@ -144,6 +144,10 @@ def eberlein(n, k, l, x, check=True, inef=False):
     from sage.arith.all import binomial
     from sage.arith.srange import srange
 
+    if not (k>=0 and n>=k and l>=n):
+        print("Wrong Arguments")
+        return -1
+
     if inef:
         return sum([(-1)**j*binomial(x,j)*binomial(n-x,k-j)*binomial(l-n-x,k-j)
             for j in srange(0,k+1)])
@@ -155,10 +159,15 @@ def eberlein(n, k, l, x, check=True, inef=False):
             raise ValueError('l must be a nonnegative integer')
         l = l0
     eber = jth_term = binomial(n-x,k) * binomial(l-n-x,k)
+    if jth_term==0:jth_term=1
+    print("jth_term = {}".format(jth_term))
     for j in srange(1,k+1):
         print("n-x-k+j={}, l-n-x-k+j={}".format(n-x-k+j,l-n-x-k+j))
-        jth_term *= (-1) * ((x-j+1)/j) * ((k-j+1)/(n-x-k+j)) * ((k-j+1)/(l-n-x-k+j))
+        jth_term *= (-1) * ((x-j+1)/j) * ((k-j+1)/(n-x-k+j) if n-x-k+j!=0 else
+                1) * ((k-j+1)/(l-n-x-k+j) if l-n-x-k+j!=0 else 1)
+        print("jth_term = {}".format(jth_term))
         eber += jth_term
+        if jth_term==0:jth_term=1
     return eber
 
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
@@ -242,13 +251,13 @@ def _delsarte_cwc_LP_building(n, d, w, q, solver, isinteger):
     p.add_constraint(A[0]==1)
     for j in range(1,n):
         if j<d or 2*w<j: p.add_constraint(A[j]==0)
-    for k in range(1,n+1): # could be range(d/2,n+1)
+    for k in range(1,w+1): # could be range(d/2,n+1)
         # could make more efficient calculation of the binomials in the future
         # by keeping track of the divisor
         print("eberlein args: w={}, n={}, k={}, d/2={} ".format(w,n,k,d/2))
         p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k, inef=True)
             / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,k+1)]), min=-1)
-
+    p.show()
     return A, p
 
 

@@ -107,8 +107,11 @@ modules = list((Extension("config_check_distutils_cxx", list(("conftest.cpp",)),
 setup(name="config_check_distutils_cxx", ext_modules=modules)
 exit(0)
 EOF
-                                    AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ],
-                                      [COMMANDS_IF_GOOD], [
+                                    AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+                                        AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C[PX]*\|LD\)FLAGS *=.*[" ]-[IL]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                                            AC_MSG_WARN([this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132])
+                                        ])
+                                        COMMANDS_IF_GOOD], [
                                         AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build a C++ 11 extension])
                                     ])
                                 ], [

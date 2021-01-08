@@ -1,5 +1,10 @@
 #include "gmp.h"
 
+#if __POPCNT__ || __BMI__
+    #include <immintrin.h>
+#endif
+
+
 // This file contains functions of ``bitset_base.pxd``
 // that can be optimized using intrinsics.
 
@@ -66,6 +71,18 @@ static inline int _bitset_are_disjoint(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t l
 #############################################################################
 */
 
+static inline long _bitset_first_in_limb_nonzero(mp_limb_t limb){
+    /*
+    Given a non-zero limb of a bitset, return the index of the first
+    nonzero bit.
+    */
+#if (__BMI__) && (GMP_LIMB_BITS == 64) && (INTPTR_MAX == INT64_MAX)
+    return _tzcnt_u64(limb);
+#else
+    return mpn_scan1(&limb, 0);
+#endif
+}
+
 static inline long _bitset_first_in_limb(mp_limb_t limb){
     /*
     Given a limb of a bitset, return the index of the first nonzero
@@ -73,22 +90,27 @@ static inline long _bitset_first_in_limb(mp_limb_t limb){
     */
     if (limb == 0)
         return -1;
+#if (__BMI__) && (GMP_LIMB_BITS == 64) && (INTPTR_MAX == INT64_MAX)
+    return _tzcnt_u64(limb);
+#else
     return mpn_scan1(&limb, 0);
-}
-
-static inline long _bitset_first_in_limb_nonzero(mp_limb_t limb){
-    /*
-    Given a non-zero limb of a bitset, return the index of the first
-    nonzero bit.
-    */
-    return mpn_scan1(&limb, 0);
+#endif
 }
 
 static inline long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs){
     /*
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     */
+#if (__POPCNT__) && (GMP_LIMB_BITS == 64) && (INTPTR_MAX == INT64_MAX)
+    mp_bitcnt_t i;
+    uint64_t count = 0;
+    for (i=0; i<limbs; i++){
+        count += _mm_popcnt_u64(bits[i]);
+    }
+    return count;
+#else
     return mpn_popcount(bits, limbs);
+#endif
 }
 
 /*

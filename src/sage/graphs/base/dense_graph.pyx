@@ -457,6 +457,8 @@ cdef int copy_dense_graph(DenseGraph dest, DenseGraph src) except -1:
     """
     if unlikely(dest.active_vertices.size != src.active_vertices.size):
         raise ValueError("``dest.active_vertices`` and ``src.active_vertices`` must be of same size")
+    if unlikely(dest.edges.n_rows != src.edges.n_rows or dest.edges.n_cols != src.edges.n_cols):
+        raise ValueError("the edges are not of same size")
     memcpy(dest.in_degrees,  src.in_degrees,  src.active_vertices.size * sizeof(int))
     memcpy(dest.out_degrees, src.out_degrees, src.active_vertices.size * sizeof(int))
     binary_matrix_copy(dest.edges, src.edges)

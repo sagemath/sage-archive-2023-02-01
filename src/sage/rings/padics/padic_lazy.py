@@ -196,6 +196,9 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
     def random_element(self):
         return pAdicLazyElement_random(self, True)
 
+    def teichmuller(self, x):
+        return pAdicLazyElement_teichmuller(self, ZZ(x))
+
 
 class pAdicFieldLazy(pAdicFieldBaseGeneric):
     def __init__(self, p, prec, print_mode, names):
@@ -255,3 +258,6 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
 
     def random_element(self, integral=False):
         return pAdicLazyElement_random(self, integral)
+
+    def teichmuller(self, x):
+        return pAdicLazyElement_teichmuller(self, ZZ(x))

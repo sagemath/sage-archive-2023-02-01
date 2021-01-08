@@ -83,7 +83,6 @@ cdef class pAdicLazyElement_teichmuller(pAdicLazyElement):
     cdef list _xns
     cdef pAdicLazyElement _xbar
     cdef pAdicLazyElement _xp
-    cdef int _bootstrap_c(self)
 
 
 cdef class pAdicLazyElement_selfref(pAdicLazyElement):

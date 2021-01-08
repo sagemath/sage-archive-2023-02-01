@@ -365,9 +365,6 @@ cdef class pAdicLazyElement(pAdicGenericElement):
     def sqrt(self):
         return pAdicLazyElement_sqrt(self._parent, self)
 
-    def teichmuller(self):
-        return pAdicLazyElement_teichmuller(self._parent, self)
-
 
 # Assignations
 ##############
@@ -859,38 +856,24 @@ cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
 # Teichmüller lifts
 
 cdef class pAdicLazyElement_teichmuller(pAdicLazyElement):
-    def __init__(self, parent, pAdicLazyElement xbar):
+    def __init__(self, parent, Integer xbar):
         pAdicLazyElement.__init__(self, parent)
-        self._xbar = xbar
-        self._xns = [ ]
-        self._trivial = False
-        cdef int error = self._bootstrap_c()
-        if error & ERROR_INTEGRAL:
-            raise ValueError("not in the integer ring")
-
-    cdef int _bootstrap_c(self):
-        cdef int error
-        cdef pAdicLazyElement xbar = self._xbar
-        while xbar._valuation + xbar._precrel < 1:
-            error = xbar._next_c()
-            if error:
-                return error
-            if xbar._valuation < 0 and xbar._precrel > 0:
-                return ERROR_INTEGRAL
-
-        cdef fmpz* digit
-        if xbar._valuation == 0:
-            digit = get_coeff(xbar._digits, 0)
+        cdef fmpz_t digit
+        fmpz_init(digit)
+        fmpz_set_mpz(digit, xbar.value)
+        fmpz_mod(digit, digit, self.prime_pow.fprime)
+        if fmpz_equal_ui(digit, 0):
+            self._trivial = True
+            self._valuation = maxordp
+        else:
             fmpz_poly_set_coeff_fmpz(self._digits, 0, digit)
             self._trivial = fmpz_equal_ui(digit, 1)
             self._precrel += 1
-        else:
-            self._trivial = True
-            self._valuation = maxordp
 
         cdef pAdicLazyElement xn = self
         cdef slong size = fmpz_bits(self.prime_pow.fprime)
         cdef slong i = size - 2
+        self._xns = [ ]
         while i >= 0:
             xn = xn * xn
             self._xns.append(xn)
@@ -901,8 +884,7 @@ cdef class pAdicLazyElement_teichmuller(pAdicLazyElement):
         self._xp = xn
         error = self._xp._next_c()
         if error or self._xp._precrel != 1:
-            return error | ERROR_UNEXPECTED
-        return 0
+            raise_error(ERROR_UNEXPECTED)
 
     cdef int _jump_c(self, slong prec):
         if self._trivial:
@@ -919,18 +901,13 @@ cdef class pAdicLazyElement_teichmuller(pAdicLazyElement):
         cdef int error
         cdef pAdicLazyElement xp = self._xp
         cdef pAdicLazyElement_mul xn
-        if self._xp is None:
-            error = self._bootstrap_c()
+        self._precrel += 1
+        xp._next_c()
+        fmpz_poly_set_coeff_fmpz(self._digits, self._precrel - 1, get_coeff(xp._digits, self._precrel - 1))
+        for xn in self._xns:
+            error = xn._update_last_digit()
             if error:
-                return error
-        else:
-            self._precrel += 1
-            xp._next_c()
-            fmpz_poly_set_coeff_fmpz(self._digits, self._precrel - 1, get_coeff(xp._digits, self._precrel - 1))
-            for xn in self._xns:
-                error = xn._update_last_digit()
-                if error:
-                    return error
+                return error | ERROR_UNEXPECTED
         return 0
 
 

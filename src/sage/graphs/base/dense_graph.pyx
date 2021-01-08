@@ -447,14 +447,16 @@ cdef class DenseGraph(CGraph):
             i = bitset_next(self.active_vertices, i+1)
         return -1
 
-cdef void copy_dense_graph(DenseGraph dest, DenseGraph src):
+cdef int copy_dense_graph(DenseGraph dest, DenseGraph src) except -1:
     r"""
     Unsafely copy ``dest`` over ``src``.
 
-    .. WARNING::
+    .. NOTE::
 
         ``dest.active_vertices`` and ``src.active_vertices`` must be of same size!
     """
+    if unlikely(dest.active_vertices.size != src.active_vertices.size):
+        raise ValueError("``dest.active_vertices`` and ``src.active_vertices`` must be of same size")
     memcpy(dest.in_degrees,  src.in_degrees,  src.active_vertices.size * sizeof(int))
     memcpy(dest.out_degrees, src.out_degrees, src.active_vertices.size * sizeof(int))
     binary_matrix_copy(dest.edges, src.edges)

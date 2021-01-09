@@ -43,7 +43,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -113,7 +113,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -188,7 +188,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -268,7 +268,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -346,7 +346,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -424,7 +424,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -502,7 +502,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -582,7 +582,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -662,7 +662,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -740,7 +740,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -818,7 +818,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |
@@ -896,7 +896,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/cygwin.txt ./build/pkgs/cygwin-bootstrap.txt)
+        PACKAGES=$(sed 's/#.*//;' ./build/pkgs/_prereq/distros/cygwin.txt ./build/pkgs/_prereq/distros/cygwin-bootstrap.txt)
         choco install $PACKAGES --source cygwin
     - name: bootstrap
       run: |

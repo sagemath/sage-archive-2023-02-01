@@ -21,11 +21,19 @@ cdef class Mutability:
 
     def _require_mutable(self):
         if self._is_immutable:
-            raise ValueError("object is immutable; please change a copy instead.")
+            raise ValueError("object is immutable; please change a copy instead")
+
+    def _require_immutable(self):
+        if not self._is_immutable:
+            raise ValueError("object is mutable; please make it immutable first")
 
     cdef _require_mutable_cdef(self):
         if self._is_immutable:
-            raise ValueError("object is immutable; please change a copy instead.")
+            raise ValueError("object is immutable; please change a copy instead")
+
+    cdef _require_immutable_cdef(self):
+        if self._is_immutable:
+            raise ValueError("object is mutable; please make it immutable first")
 
     def set_immutable(self):
         """
@@ -45,7 +53,7 @@ cdef class Mutability:
         """
         self._is_immutable = 1
 
-    def is_immutable(self):
+    cpdef bint is_immutable(self):
         """
         Return ``True`` if this object is immutable (cannot be changed)
         and ``False`` if it is not.
@@ -66,7 +74,7 @@ cdef class Mutability:
         """
         return self._is_immutable
 
-    def is_mutable(self):
+    cpdef bint is_mutable(self):
         return not self._is_immutable
 
 ##########################################################################
@@ -75,6 +83,11 @@ cdef class Mutability:
 def require_mutable(f):
     """
     A decorator that requires mutability for a method to be called.
+
+    .. NOTE::
+
+        Objects whose methods use this decorator should have an attribute
+        ``_is_immutable``. Otherwise, the object is assumed to be mutable.
 
     EXAMPLES::
 
@@ -112,9 +125,9 @@ def require_mutable(f):
     - Simon King <simon.king@uni-jena.de>
     """
     @sage_wraps(f)
-    def new_f(self, *args,**kwds):
+    def new_f(self, *args, **kwds):
         if getattr(self, '_is_immutable', False):
-            raise ValueError("%s instance is immutable, %s must not be called" % (type(self), repr(f)))
+            raise ValueError("{} instance is immutable, {} must not be called".format(type(self), repr(f)))
         return f(self, *args, **kwds)
     return new_f
 
@@ -122,6 +135,11 @@ def require_mutable(f):
 def require_immutable(f):
     """
     A decorator that requires immutability for a method to be called.
+
+    .. NOTE::
+
+        Objects whose methods use this decorator should have an attribute
+        ``_is_immutable``. Otherwise, the object is assumed to be mutable.
 
     EXAMPLES::
 
@@ -159,8 +177,8 @@ def require_immutable(f):
     - Simon King <simon.king@uni-jena.de>
     """
     @sage_wraps(f)
-    def new_f(self, *args,**kwds):
+    def new_f(self, *args, **kwds):
         if not getattr(self,'_is_immutable',False):
-            raise ValueError("%s instance is mutable, %s must not be called" % (type(self), repr(f)))
-        return f(self, *args,**kwds)
+            raise ValueError("{} instance is mutable, {} must not be called".format(type(self), repr(f)))
+        return f(self, *args, **kwds)
     return new_f

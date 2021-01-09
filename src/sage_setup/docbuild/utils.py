@@ -2,17 +2,54 @@
 
 import errno
 import os
-import sys
-from types import TracebackType
+import traceback
+from typing import Optional
 
+class RemoteException(Exception):
+    """
+    Raised if an exception occurred in one of the child processes.
+    """
+    tb: str
+    def __init__(self, tb: str):
+        self.tb = tb
+
+    def __str__(self):
+        return self.tb
+
+class RemoteExceptionWrapper:
+    """
+    Used by child processes to capture exceptions thrown during execution and 
+    report them to the main process, including the correct traceback.
+    """
+    exc: BaseException
+    tb: str
+
+    def __init__(self, exc: BaseException):
+        # We cannot pickle the traceback, thus convert it to a string.
+        # Later on unpickling, we set the original tracback as the cause of the exception
+        # This approach is taken from https://bugs.python.org/issue13831 
+        tb = traceback.format_exception(type(exc), exc, exc.__traceback__)
+        tb = ''.join(tb)
+        self.exc = exc
+        self.tb = f'\n"""\n{tb}"""'
+
+    def __reduce__(self):
+        return _rebuild_exc, (self.exc, self.tb)
+
+def _rebuild_exc(exc: BaseException, tb: str):
+    """
+    Reconstructs the exception, putting the original exception as cause. 
+    """
+    exc.__cause__ = RemoteException(tb)
+    return exc
 
 class WorkerDiedException(RuntimeError):
     """Raised if a worker process dies unexpected."""
+    original_exception: Optional[BaseException]
 
-    def __init__(self, message, original_exception: BaseException = None, original_traceback: TracebackType = None):
-        super(WorkerDiedException, self).__init__(message)
+    def __init__(self, message: Optional[str], original_exception: Optional[BaseException] = None):
+        super().__init__(message)
         self.original_exception = original_exception
-        self.original_traceback = original_traceback
 
 
 def build_many(target, args, processes=None):
@@ -94,6 +131,10 @@ def build_many(target, args, processes=None):
         sage: build_many(target, range(8), processes=8)
         Traceback (most recent call last):
         ...
+            raise ZeroDivisionError("rational division by zero")
+         ZeroDivisionError: rational division by zero
+        ...
+            raise worker_exc.original_exception
         ZeroDivisionError: rational division by zero
 
     Similarly, if one of the worker processes dies unexpectedly otherwise exits
@@ -136,8 +177,8 @@ def build_many(target, args, processes=None):
     def run_worker(target, queue, idx, task):
         try:
             result = target(task)
-        except BaseException:
-            queue.put((None, sys.exc_info()))
+        except BaseException as exc:
+            queue.put((None, RemoteExceptionWrapper(exc)))
         else:
             queue.put((idx, result))
 
@@ -175,8 +216,8 @@ def build_many(target, args, processes=None):
 
         if result[0] is None:
             # Indicates that an exception occurred in the target function
-            _, exception, tracback = result[1]
-            raise WorkerDiedException('', original_exception=exception, original_traceback=tracback)
+            exception = result[1]
+            raise WorkerDiedException('', original_exception=exception)
         else:
             results.append(result)
 
@@ -291,8 +332,8 @@ def build_many(target, args, processes=None):
                 # Re-raise the RuntimeError from bring_out_yer_dead set if a
                 # worker died unexpectedly, or the original exception if it's
                 # wrapping one
-                if worker_exc.original_exception:
-                    raise worker_exc.original_exception.with_traceback(worker_exc.original_traceback)
+                if worker_exc.original_exception is not None:
+                    raise worker_exc.original_exception
                 else:
                     raise worker_exc
 

@@ -15,7 +15,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.misc.latex import latex
 from sage.misc.misc_c import prod

@@ -506,7 +506,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         return v in self._vertex_to_int
 
-    def add_edge(self, u, v, l, directed):
+    cpdef add_edge(self, object u, object v, object l, bint directed):
         r"""
         Set edge label. No way.
 
@@ -551,7 +551,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
-    def del_edge(self, u, v, l, directed):
+    cpdef del_edge(self, object u, object v, object l, bint directed):
         r"""
         Set edge label. No way.
 

@@ -572,6 +572,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
 from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
@@ -2095,6 +2096,11 @@ def _plot(funcs, xrange, parametric=False,
         sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
         Graphics object consisting of 2 graphics primitives
 
+    Verify that :trac:`31089` is fixed::
+
+        sage: plot(x, -1, 1, detect_poles=True)
+        Graphics object consisting of 1 graphics primitive
+
     """
     from sage.plot.colors import Color
     from sage.plot.misc import setup_for_eval_on_grid
@@ -2412,9 +2418,12 @@ def _plot(funcs, xrange, parametric=False,
         pole_options['rgbcolor'] = '#ccc'
 
         # setup for exclusion points
-        exclusion_point = 0
         if excluded_points:
             exclusion_point = excluded_points.pop()
+        else:
+            # default value of exclusion point must be outside the plot interval
+            # (see :trac:`31089`)
+            exclusion_point = xmax + 1
 
         flag = True
         for i in range(len(data)-1):

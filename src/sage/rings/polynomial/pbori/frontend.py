@@ -30,9 +30,9 @@ EXAMPLES::
     a
 """
 
-from __future__ import print_function
 
-from . import *
+from .PyPolyBoRi import Ring, Monomial, Polynomial
+from .pbori import VariableFactory
 from .blocks import declare_ring as orig_declare_ring
 
 
@@ -40,7 +40,6 @@ def block_scheme_names(blocks):
     r"""
     Helper for Singular interface.
     """
-
     context = dict()
     from .blocks import declare_block_scheme
     declare_block_scheme(blocks, context)

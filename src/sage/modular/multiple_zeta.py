@@ -165,14 +165,18 @@ REFERENCES:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+import numbers
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import op_EQ,op_NE
+from sage.structure.element import parent
 from sage.algebras.free_zinbiel_algebra import FreeZinbielAlgebra
 from sage.arith.misc import bernoulli
 from sage.categories.cartesian_product import cartesian_product
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.rings import Rings
 from sage.categories.domains import Domains
+from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.partition import Partitions
@@ -185,11 +189,11 @@ from sage.misc.cachefunc import cached_function, cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.modules.free_module_element import vector
+from sage.modules.free_module import VectorSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.semirings.non_negative_integer_semiring import NN
-
 
 # multiplicative generators for weight <= 17
 # using the following convention
@@ -504,18 +508,35 @@ class MultizetaValues(UniqueRepresentation):
         TESTS::
 
             sage: from sage.modular.multiple_zeta import MultizetaValues
-            sage: M = MultizetaValues()
-            sage: M((3,2))
+
+            sage: V = MultizetaValues()
+            sage: V((3,2))
             0.7115661975505724320969738060864026120925612044383392364...
-            sage: M((3,2), reverse=False)
+            sage: V((3,2), reverse=False)
             0.2288103976033537597687461489416887919325093427198821602...
-            sage: M((3,2), prec=128)
+            sage: V((3,2), prec=128)
             0.71156619755057243209697380608640261209
-            sage: M((3,2), prec=128, reverse=False)
+            sage: V((3,2), prec=128, reverse=False)
             0.22881039760335375976874614894168879193
+
+            sage: V((1,3))
+            0.2705808084277845478790009241352919756936877379796817269...
+            sage: V((3,1), reverse=False)
+            0.2705808084277845478790009241352919756936877379796817269...
+
+            sage: V((3,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: divergent zeta value
+            sage: V((1,3), reverse=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: divergent zeta value
         """
         if reverse:
             index = list(reversed(index))
+        if index[0] == 1:
+            raise ValueError("divergent zeta value")
         if prec is None:
             prec = self.prec
         weight = sum(index)
@@ -699,6 +720,15 @@ class Multizetas(CombinatorialFreeModule):
         sage: M = Multizetas(A)
         sage: (u*M((2,))+M((3,)))*M((2,))
         4*u*ζ(1,3) + 6*ζ(1,4) + 2*u*ζ(2,2) + 3*ζ(2,3) + ζ(3,2)
+
+    Check for :trac:`30925`::
+
+        sage: M = Multizetas(QQ)
+        sage: l = [1,2,3]
+        sage: z = M(l)
+        sage: l[0] = 19
+        sage: z
+        ζ(1,2,3)
     """
     def __init__(self, R):
         """
@@ -741,6 +771,17 @@ class Multizetas(CombinatorialFreeModule):
              ζ(2,3)
         """
         return "ζ(" + ','.join(str(letter) for letter in m) + ")"
+
+    def _latex_term(self, m):
+        r"""
+        Return a custom latex representation for the monomials.
+
+        EXAMPLES::
+
+            sage: latex(Multizeta(2,3) - 3/5 * Multizeta(1,1,2))  # indirect doctest
+            -\frac{3}{5}\zeta(1,1,2) + \zeta(2,3)
+        """
+        return "\\zeta(" + ','.join(str(letter) for letter in m) + ")"
 
     @cached_method
     def one_basis(self):
@@ -945,29 +986,30 @@ class Multizetas(CombinatorialFreeModule):
             ζ(2,3)
             sage: M(x) == x
             True
+
+            sage: M() == M(0) == M.zero()
+            True
+            sage: M([]) == M(1) == M.one()
+            True
+
+            sage: M('heyho')
+            Traceback (most recent call last):
+            ...
+            TypeError: invalid input for building a multizeta value
         """
         if isinstance(x, (FiniteWord_class, tuple, list)):
-            if x:
-                assert all(letter >= 1 for letter in x), 'bad letter'
-                assert x[-1] >= 2, 'bad last letter'
+            if not all(isinstance(letter, numbers.Integral) for letter in x):
+                raise ValueError('invalid input for building a multizeta value')
+            if x and x[-1] == 1:
+                raise ValueError('divergent zeta value')
             W = self.basis().keys()
+            if isinstance(x, list):
+                x = tuple(x)
             return self.monomial(W(x))
-
-        P = x.parent()
-        if isinstance(P, Multizetas):
-            if P is self:
-                return x
-            if P is not self.base_ring():
-                return self.element_class(self, x.monomial_coefficients())
-        elif isinstance(P, Multizetas_iterated):
+        elif isinstance(parent(x), Multizetas_iterated):
             return x.composition()
-
-        R = self.base_ring()
-        # coercion via base ring
-        x = R(x)
-        if x == 0:
-            return self.element_class(self, {})
-        return self.from_base_ring_from_one_basis(x)
+        else:
+            raise TypeError('invalid input for building a multizeta value')
 
     def algebra_generators(self, n):
         """
@@ -1036,6 +1078,68 @@ class Multizetas(CombinatorialFreeModule):
         return [self(tuple(c))
                 for c in IntegerVectors(n, min_part=2, max_part=3)]
 
+    @cached_method
+    def basis_filtration(self, d, reverse=False):
+        r"""
+        Return a module basis of the homogeneous components of weight ``d`` compatible with
+        the length filtration.
+
+        INPUT:
+
+        - ``d`` -- (non-negative integer) the weight
+
+        - ``reverse`` -- (boolean, default ``False``) change the ordering of compositions
+
+        EXAMPLES::
+
+            sage: M = Multizetas(QQ)
+
+            sage: M.basis_filtration(5)
+            [ζ(5), ζ(1,4)]
+            sage: M.basis_filtration(6)
+            [ζ(6), ζ(1,5)]
+            sage: M.basis_filtration(8)
+            [ζ(8), ζ(1,7), ζ(2,6), ζ(1,1,6)]
+            sage: M.basis_filtration(8, reverse=True)
+            [ζ(8), ζ(6,2), ζ(5,3), ζ(5,1,2)]
+
+            sage: M.basis_filtration(0)
+            [ζ()]
+            sage: M.basis_filtration(1)
+            []
+        """
+        if d < 0:
+            raise ValueError('d must be a non-negative integer')
+        if d == 0:
+            return [self([])]
+        elif d == 1:
+            return []
+
+        Values.reset(max_weight=d)
+        dim = len(self((d,)).phi_as_vector())
+        V = VectorSpace(QQ, dim)
+        U = V.subspace([])
+        basis = []
+        k = 1
+        while len(basis) < dim:
+            for c in Compositions(d, length=k):
+                if reverse:
+                    if c[-1] == 1:
+                        continue
+                    c = tuple(c)
+                else:
+                    if c[0] == 1:
+                        continue
+                    c = tuple(c[::-1])
+                v = self(c).phi_as_vector()
+                if v in U:
+                    continue
+                else:
+                    U = V.subspace(U.basis() + [v])
+                    basis.append(c)
+            k += 1
+        return [self(c) for c in basis]
+
     class Element(CombinatorialFreeModule.Element):
         def iterated(self):
             """
@@ -1101,6 +1205,56 @@ class Multizetas(CombinatorialFreeModule):
             """
             return self.iterated().simplify().composition()
 
+        def simplify_full(self, basis=None):
+            r"""
+            Rewrite the term in a given basis.
+
+            INPUT:
+
+            - ``basis`` (optional) - either ``None`` or a function such that
+              ``basis(d)`` is a basis of the weight ``d`` multiple zeta values.
+              If ``None``, the Hoffman basis is used.
+
+            EXAMPLES::
+
+                sage: z = Multizeta(5) + Multizeta(1,4) + Multizeta(3,2) - 5 * Multizeta(2,3)
+                sage: z.simplify_full()
+                -22/5*ζ(2,3) + 12/5*ζ(3,2)
+                sage: z.simplify_full(basis=z.parent().basis_filtration)
+                18*ζ(1,4) - ζ(5)
+
+                sage: z == z.simplify_full() == z.simplify_full(basis=z.parent().basis_filtration)
+                True
+
+            Be careful, that this does not optimize the number of terms::
+
+                sage: Multizeta(7).simplify_full()
+                352/151*ζ(2,2,3) + 672/151*ζ(2,3,2) + 528/151*ζ(3,2,2)
+            """
+            if basis is None:
+                basis = self.parent().basis_brown
+            support = set(sum(d) for d in self.support())
+            result = self.parent().zero()
+            for d in sorted(support):
+                h = self.homogeneous_component(d)
+                v = h.phi_as_vector()
+                if v:
+                    Bd = basis(d)
+                    P = matrix(QQ, [z.phi_as_vector() for z in Bd])
+                    result += sum(x*z for x,z in zip(P.solve_left(v), Bd))
+            return result
+
+        def __bool__(self):
+            r"""
+            EXAMPLES::
+
+                sage: bool(Multizeta(2))
+                True
+                sage: bool(3*Multizeta(4) - 4*Multizeta(2,2))
+                False
+            """
+            return bool(self.iterated())
+
         def is_zero(self):
             r"""
             Return whether this element is zero.
@@ -1123,7 +1277,7 @@ class Multizetas(CombinatorialFreeModule):
                 sage: (4*M(2,3) + 6*M(3,2) + 3*M(4) - 4*M(5) - 4*M(2,2)).is_zero()
                 False
             """
-            return self.iterated().is_zero()
+            return not self
 
         def _richcmp_(self, other, op):
             """
@@ -1155,6 +1309,8 @@ class Multizetas(CombinatorialFreeModule):
                 sage: (0*M()) == 0
                 True
             """
+            if op != op_EQ and op != op_NE:
+                raise TypeError('invalid comparison for multizetas')
             return self.iterated()._richcmp_(other.iterated(), op)
 
         def __hash__(self):
@@ -1266,6 +1422,11 @@ class Multizetas(CombinatorialFreeModule):
                 sage: M
                 Cached multiple zeta values at precision 2048 up to weight 9
                 sage: M.reset()  # restore precision for the other doctests
+
+            TESTS::
+
+                sage: Multizetas(QQ).zero().n()
+                0.000000000000000
             """
             if prec is None:
                 if digits:
@@ -1275,6 +1436,8 @@ class Multizetas(CombinatorialFreeModule):
                     prec = 53
             if algorithm is not None:
                 raise ValueError("unknown algorithm")
+            if not self.monomial_coefficients():
+                return ZZ(0).n(prec=prec, digits=digits, algorithm=algorithm)
             if prec < Values.prec:
                 s = sum(cf * Values(tuple(w)) for w, cf in self.monomial_coefficients().items())
                 return s.n(prec=prec)
@@ -1444,10 +1607,10 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: from sage.modular.multiple_zeta import Multizetas_iterated
             sage: M = Multizetas_iterated(QQ)
             sage: M.coproduct_on_basis([1,0])
-            I() # I(10) + I(10) # I()
+            I() # I(10)
 
             sage: M.coproduct_on_basis((1,0,1,0))
-            I() # I(1010) + 3*I(10) # I(10) + I(1010) # I()
+            I() # I(1010)
         """
         seq = [0] + list(w) + [1]
         terms = coproduct_iterator(([0], seq))
@@ -1457,15 +1620,20 @@ class Multizetas_iterated(CombinatorialFreeModule):
             L = self.one()
             for i in range(len(indices) - 1):
                 w = Word(seq[indices[i]:indices[i + 1] + 1])
-                if len(w) >= 4:
+                if len(w) == 2:  # this factor is one
+                    continue
+                elif len(w) <= 4 or len(w) == 6 or w[0] == w[-1]:
+                    # vanishing factors
+                    return self.zero()
+                else:
                     value = M_all(w)
-                    L *= value.regularise()
+                    L *= value.regularise().simplify()
             return L
 
         resu = self.tensor_square().zero()
         for indices in terms:
             resu += split_word(indices).tensor(
-                M_all(Word(seq[i] for i in indices)).regularise())
+                M_all(Word(seq[i] for i in indices)).regularise().simplify())
         return resu
 
     @lazy_attribute
@@ -1480,7 +1648,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: a = 3*Multizeta(1,4) + Multizeta(2,3)
             sage: M.coproduct(a.iterated())
             3*I() # I(11000) + I() # I(10100) + 3*I(11000) # I()
-            - I(10) # I(100) + I(10100) # I()
+            + I(10100) # I()
         """
         cop = self.coproduct_on_basis
         return self._module_morphism(cop, codomain=self.tensor_square())
@@ -1741,6 +1909,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 assert x[0] == 1, 'bad first letter, should be 1'
                 assert x[-1] == 0, 'bad last letter, should be 0'
             W = self.basis().keys()
+            if isinstance(x, list):
+                x = tuple(x)
             return self.monomial(W(x))
 
         P = x.parent()
@@ -1831,6 +2001,28 @@ class Multizetas_iterated(CombinatorialFreeModule):
             """
             return self.parent().phi(self)
 
+        def __bool__(self):
+            r"""
+            TESTS::
+
+                sage: from sage.modular.multiple_zeta import Multizetas_iterated
+                sage: M = Multizetas_iterated(QQ)
+                sage: bool(M(0))
+                False
+                sage: bool(M(1))
+                True
+                sage: bool(M((1,0,0)))
+                True
+            """
+            P = self.parent()
+            deg = P.degree_on_basis
+            phi = P.phi
+            for d in sorted(set(deg(w) for w in self.support())):
+                z = self.homogeneous_component(d)
+                if not phi(z).is_zero():
+                    return True
+            return False
+
         def is_zero(self):
             r"""
             Return whether this element is zero.
@@ -1846,14 +2038,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 sage: (M((1,1,0)) - -M((1,0,0))).is_zero()
                 True
             """
-            P = self.parent()
-            deg = P.degree_on_basis
-            phi = P.phi
-            for d in sorted(set(deg(w) for w in self.support())):
-                z = self.homogeneous_component(d)
-                if not phi(z).is_zero():
-                    return False
-            return True
+            return not self
 
         def _richcmp_(self, other, op):
             """
@@ -1876,8 +2061,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 True
             """
             if op != op_EQ and op != op_NE:
-                raise NotImplementedError("no comparison available")
-
+                raise TypeError('invalid comparison for multizetas')
             return (self - other).is_zero() == (op == op_EQ)
 
 class All_iterated(CombinatorialFreeModule):
@@ -1967,18 +2151,26 @@ class All_iterated(CombinatorialFreeModule):
             I(1;10;0)
             sage: y == M(y)
             True
+
+            sage: M((1,0,1,0,1))
+            0
+            sage: M((1,0,0,0,0))
+            0
         """
-        if isinstance(x, (str, (FiniteWord_class, tuple, list))):
-            if x:
-                assert all(letter in (0, 1) for letter in x), 'bad letter'
-                # assert len(x) >= 4, 'word too short'
-            W = self.basis().keys()
-            mot = W(x)
-            # conditions R1 de F. Brown
-            if mot[0] == mot[-1] or (len(x) >= 4 and
-                                     all(x == mot[1] for x in mot[2:-1])):
-                return self.zero()
-            return self.monomial(mot)
+        if not isinstance(x, (FiniteWord_class, tuple, list)):
+            raise TypeError('invalid input for building iterated integral')
+        if not x:
+            return self.zero()
+        if any(letter not in (0, 1) for letter in x):
+            raise ValueError('bad letter')
+
+        W = self.basis().keys()
+        w = W(x)
+        # condition R1 of F. Brown
+        if w[0] == w[-1] or (len(w) >= 4 and
+                                 all(x == w[1] for x in w[2:-1])):
+            return self.zero()
+        return self.monomial(w)
 
     def dual_on_basis(self, w):
         """
@@ -2164,7 +2356,7 @@ class All_iterated(CombinatorialFreeModule):
                 integrals over Rational Field
             """
             M = Multizetas_iterated(self.parent().base_ring())
-            return sum(cf * M.monomial(w[1:-1]) for w, cf in self)
+            return M.sum_of_terms((w[1:-1], cf) for w, cf in self)
 
         def regularise(self):
             """

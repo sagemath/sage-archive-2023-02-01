@@ -419,7 +419,6 @@ Methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 from copy import copy
 
@@ -821,7 +820,7 @@ class GenericGraph(GenericGraph_pyx):
 
         try:
             V = sorted(self)
-        except:
+        except TypeError:
             V = self
         v_to_int = {v: i for i, v in enumerate(V)}
         for u,v,_ in self.edge_iterator():
@@ -10894,23 +10893,9 @@ class GenericGraph(GenericGraph_pyx):
             ...
             TypeError: object of type 'sage.rings.integer.Integer' has no len()
         """
-        if loops:
-            self._backend.add_edges(edges, self._directed)
-            return
         if loops is None:
             loops = self.allows_loops()
-
-        for t in edges:
-            try:
-                if len(t) == 3:
-                    u, v, label = t
-                else:
-                    u, v = t
-                    label = None
-            except Exception:
-                raise TypeError("cannot interpret {!r} as graph edge".format(t))
-            if loops or u != v:
-                self._backend.add_edge(u, v, label, self._directed)
+        self._backend.add_edges(edges, self._directed, remove_loops=not loops)
 
     def subdivide_edge(self, *args):
         r"""
@@ -11177,8 +11162,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: K12.size()
             120
         """
-        for e in edges:
-            self.delete_edge(e)
+        self._backend.del_edges(edges, self._directed)
 
     def contract_edge(self, u, v=None, label=None):
         r"""
@@ -13082,7 +13066,7 @@ class GenericGraph(GenericGraph_pyx):
             120
 
         If we define the graph `T_k` (the transitive tournament on `k` vertices)
-        as the graph on `\{0, ..., k-1\}` such that `ij \in T_k` iif `i<j`, how
+        as the graph on `\{0, ..., k-1\}` such that `ij \in T_k` if `i<j`, how
         many directed triangles can be found in `T_5` ? The answer is of course
         `0`::
 

@@ -374,7 +374,8 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             sage: loads(dumps(N(1,2,3)))
             N(1, 2, 3)
         """
-        return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
+        return (unpickle_v1, (self._parent, self.list(), self._degree,
+                              self._is_immutable))
 
     def plot(self, **options):
         r"""
@@ -401,7 +402,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         return tp.plot_points([self])
 
 
-def unpickle_v1(parent, entries, degree, is_mutable):
+def unpickle_v1(parent, entries, degree, is_immutable):
     """
     Unpickle a :class:`ToricLatticeElement`
 
@@ -413,8 +414,8 @@ def unpickle_v1(parent, entries, degree, is_mutable):
 
     - ``degree`` -- integer. the dimension of the toric lattice.
 
-    - ``is_mutable`` -- boolean. Whether the lattice element is
-      mutable.
+    - ``is_immutable`` -- boolean. Whether the lattice element is
+      immutable.
 
     OUTPUT:
 
@@ -437,5 +438,5 @@ def unpickle_v1(parent, entries, degree, is_mutable):
     for i in range(degree):
         z = Integer(entries[i])
         mpz_set(v._entries[i], z.value)
-    v._is_mutable = is_mutable
+    v._is_immutable = is_immutable
     return v

@@ -890,7 +890,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         self._parent = parent
         self._degree = parent.degree()
-        self._is_mutable = 1
+        self._is_immutable = 0
 
     def _giac_init_(self):
         """
@@ -1094,7 +1094,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.set_immutable()
             sage: v.__hash__()   # random output
         """
-        if self._is_mutable:
+        if not self._is_immutable:
             raise TypeError("mutable vectors are unhashable")
         return hash(tuple(self))
 
@@ -1792,7 +1792,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v
             (5, 2/3, 8)
         """
-        if not self._is_mutable:
+        if self._is_immutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
         cdef Py_ssize_t d = self._degree
         cdef Py_ssize_t start, stop, step, slicelength
@@ -3967,7 +3967,7 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
 
 
 @cython.binding(True)
-def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
+def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_immutable):
     """
     EXAMPLES::
 
@@ -3991,7 +3991,7 @@ def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable)
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_mutable = is_mutable
+    v._is_immutable = is_immutable
     return v
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
@@ -4035,7 +4035,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         cdef type t = type(self)
         cdef FreeModuleElement_generic_dense x = t.__new__(t)
-        x._is_mutable = 1
+        x._is_immutable = 0
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -4257,7 +4257,9 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v.__reduce__()
             (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
         """
-        return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
+        return (make_FreeModuleElement_generic_dense_v1, (self._parent,
+                                                          self._entries,
+                                                          self._degree, self._is_immutable))
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -4417,7 +4419,7 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
 
 
 @cython.binding(True)
-def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
+def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_immutable):
     """
     EXAMPLES::
 
@@ -4431,7 +4433,7 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_mutable = is_mutable
+    v._is_immutable = is_immutable
     return v
 
 
@@ -4478,7 +4480,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         cdef type t = type(self)
         cdef FreeModuleElement_generic_sparse x = t.__new__(t)
-        x._is_mutable = 1
+        x._is_immutable = 0
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -4816,7 +4818,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.__reduce__()
             (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
         """
-        return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
+        return (make_FreeModuleElement_generic_sparse_v1, (self._parent,
+                                                           self._entries,
+                                                           self._degree, self._is_immutable))
 
     @cython.cdivision(True)
     def __getitem__(self, i):

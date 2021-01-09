@@ -247,16 +247,15 @@ def _delsarte_cwc_LP_building(n, d, w, q, solver, isinteger):
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
     A = p.new_variable(integer=isinteger, nonnegative=True)
-    p.set_objective(sum([A[r] for r in range(n+1)]))
-    p.add_constraint(A[0]==1)
-    for j in range(1,n):
-        if j<d or 2*w<j: p.add_constraint(A[j]==0)
+    p.set_objective(sum([A[2*r] for r in range(d/2,w+1)])+1)
+    # p.add_constraint(A[0]==1)
+    # for j in range(1,n):
+        # if j<d or 2*w<j: p.add_constraint(A[j]==0)
     for k in range(1,w+1): # could be range(d/2,n+1)
         # could make more efficient calculation of the binomials in the future
         # by keeping track of the divisor
-        print("eberlein args: w={}, n={}, k={}, d/2={} ".format(w,n,k,d/2))
         p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k, inef=True)
-            / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,k+1)]), min=-1)
+            / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
     p.show()
     return A, p
 

@@ -449,7 +449,7 @@ def milnor_multiplication_odd(m1,m2,p):
         for mono in old_answer:
             if k not in mono[0]:
                 q_mono = set(mono[0])
-                if len(q_mono) > 0:
+                if q_mono:
                     ind = len(q_mono.intersection(range(k,1+max(q_mono))))
                 else:
                     ind = 0
@@ -465,7 +465,7 @@ def milnor_multiplication_odd(m1,m2,p):
             for i in range(1,1+len(mono[1])):
                 if (k+i not in mono[0]) and (p**k <= mono[1][i-1]):
                     q_mono = set(mono[0])
-                    if len(q_mono) > 0:
+                    if q_mono:
                         ind = len(q_mono.intersection(range(k+i,1+max(q_mono))))
                     else:
                         ind = 0

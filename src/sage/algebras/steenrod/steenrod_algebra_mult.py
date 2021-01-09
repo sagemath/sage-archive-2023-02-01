@@ -765,11 +765,14 @@ def adem(a, b, c=0, p=2, generic=None):
         True
     """
     if generic is None:
-        generic = False if p==2 else True
+        generic = (p != 2)
     if not generic:
-        if b == 0: return {(a,): 1}
-        elif a == 0: return {(b,): 1}
-        elif a >= 2*b: return {(a,b): 1}
+        if b == 0:
+            return {(a,): 1}
+        elif a == 0:
+            return {(b,): 1}
+        elif a >= 2*b:
+            return {(a,b): 1}
         result = {}
         for c in range(1 + a//2):
             if binomial_mod2(b-c-1, a-2*c) == 1:

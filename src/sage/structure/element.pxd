@@ -193,7 +193,7 @@ cdef class ModuleElement(Element):
     cpdef _rmul_(self, Element left)
 
 cdef class ModuleElementWithMutability(ModuleElement):
-    cdef bint _is_mutable
+    cdef bint _is_immutable
     cpdef bint is_immutable(self)
     cpdef bint is_mutable(self)
 

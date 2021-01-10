@@ -619,7 +619,7 @@ ex mul::eval(int level) const
 		GINAC_ASSERT(!is_exactly_a<numeric>(recombine_pair_to_ex(elem)));
 		/* for paranoia */
 		//   The following test will fail on sage: exp(x)*exp(x)
-		//   Thats probably not an issue, but should be investigated.
+		//   That's probably not an issue, but should be investigated.
 		// expair p = split_ex_to_pair(recombine_pair_to_ex(*i));
 		// GINAC_ASSERT(p.rest.is_equal(i->rest));
 		// GINAC_ASSERT(p.coeff.is_equal(i->coeff));
@@ -914,7 +914,7 @@ bool tryfactsubs(const ex & origfactor, const ex & patternfactor, int & nummatch
 	return true;
 }
 
-/** Checks wheter e matches to the pattern pat and the (possibly to be updated)
+/** Checks whether e matches to the pattern pat and the (possibly to be updated)
   * list of replacements repls. This matching is in the sense of algebraic
   * substitutions. Matching starts with pat.op(factor) of the pattern because
   * the factors before this one have already been matched. The (possibly
@@ -1365,7 +1365,7 @@ ex mul::expand(unsigned options) const
 				// Multiply explicitly all non-numeric terms of add1 and add2:
                                 for (const auto & elem2 : add2.seq) {
 					// We really have to combine terms here in order to compactify
-					// the result.  Otherwise it would become waayy tooo bigg.
+					// the result.  Otherwise it would become *way too big*.
 					numeric oc(*_num0_p);
 					epvector distrseq2;
 					distrseq2.reserve(add1.seq.size());

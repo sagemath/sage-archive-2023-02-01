@@ -62,7 +62,7 @@ private:
 static library_init library_initializer;
 
 /** Rotate bits of unsigned value by one bit to the left.
-  * This can be necesary if the user wants to define its own hashes. */
+  * This can be necessary if the user wants to define its own hashes. */
 inline unsigned rotate_left(unsigned n)
 {
 	return (n & 0x80000000U) ? (n << 1 | 0x00000001U) : (n << 1);

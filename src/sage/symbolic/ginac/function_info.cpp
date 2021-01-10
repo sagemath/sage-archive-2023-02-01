@@ -380,13 +380,13 @@ bool function::info(unsigned inf) const
                 {binomial_SERIAL::serial, &binomial_info},
                 {factorial_SERIAL::serial, &factorial_info},
         }};
-        static bool initalized = false;
-        if (not initalized) {
+        static bool initialized = false;
+        if (not initialized) {
                 auto ser = function::find_function("min", 0);
                 funcmap.insert(std::pair<unsigned int,ifun_t*>(ser, &min_info));
                 ser = function::find_function("max", 0);
                 funcmap.insert(std::pair<unsigned int,ifun_t*>(ser, &max_info));
-                initalized = true;
+                initialized = true;
         }
 
         auto search = funcmap.find(serial);

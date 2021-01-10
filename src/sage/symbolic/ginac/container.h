@@ -800,7 +800,7 @@ std::unique_ptr<typename container<C>::STLT> container<C>::subschildren(const ex
 				++cit;
 			}
 
-			return std::move(s);
+			return s;
 		}
 
 		++cit;

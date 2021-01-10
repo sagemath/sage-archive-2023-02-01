@@ -119,7 +119,7 @@ const giac::polynome num_to_polynome(const numeric& num,
                 else
                         im_p = replace_with_symbol(im, map, revmap);
                 giac::polynome r = re_p + im_p * replace_with_symbol(I, map, revmap);
-                return std::move(r);
+                return r;
         }
 }
 
@@ -135,7 +135,7 @@ const giac::polynome ex::to_polynome(ex_int_map& map, exvector& revmap) const
                         p = p + a.recombine_pair_to_ex(termex).to_polynome(map, revmap);
                 }
                 p = p + num_to_polynome(a.overall_coeff, map, revmap);
-                return std::move(p);
+                return p;
         }
         else if (is_exactly_a<numeric>(*this))
         {
@@ -149,7 +149,7 @@ const giac::polynome ex::to_polynome(ex_int_map& map, exvector& revmap) const
                         p *= m.recombine_pair_to_ex(termex).to_polynome(map, revmap);
                 }
                 p *= num_to_polynome(m.overall_coeff, map, revmap);
-                return std::move(p);
+                return p;
         }
         else if (is_exactly_a<power>(*this))
         {

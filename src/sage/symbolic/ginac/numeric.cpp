@@ -50,6 +50,7 @@
  */
 
 #define register
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <longintrepr.h>
 #include "flint/fmpz.h"

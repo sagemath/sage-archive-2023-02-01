@@ -23,9 +23,11 @@ import os
 import pickle
 import shutil
 import sphinx
+from sphinx.application import Sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
 from sage.misc.misc import sage_makedirs
+from pathlib import Path
 
 logger = sphinx.util.logging.getLogger(__name__)
 
@@ -212,44 +214,48 @@ def fix_path_html(app, pagename, templatename, ctx, event_arg):
     ctx['pathto'] = sage_pathto
 
 
-def citation_dir(app):
-    # Split app.outdir in 3 parts: SAGE_DOC/TYPE/TAIL where TYPE
-    # is a single directory and TAIL can contain multiple directories.
-    # The citation dir is then SAGE_DOC/inventory/TAIL.
-    assert app.outdir.startswith(SAGE_DOC)
-    rel = app.outdir[len(SAGE_DOC):]
-    dirs = rel.split(os.sep)
-    # If SAGE_DOC does not end with a slash, rel will start with
-    # a slash giving an empty dirs[0]. Remove this:
-    if not dirs[0]:
-        dirs.pop(0)
-    dirs = [SAGE_DOC, "inventory"] + dirs[1:]
-    citedir = os.path.join(*dirs)
+def citation_dir(app: Sphinx) -> Path:
+    outdir = Path(app.outdir).resolve()
+    sage_doc = Path(SAGE_DOC).resolve()
+    if sage_doc in outdir.parents:
+        # Split app.outdir in 3 parts: SAGE_DOC/TYPE/TAIL where TYPE
+        # is a single directory and TAIL can contain multiple directories.
+        # The citation dir is then SAGE_DOC/inventory/TAIL.
+        rel = outdir.relative_to(sage_doc)
+        dirs = list(rel.parts)
+        # If SAGE_DOC does not end with a slash, rel will start with
+        # a slash. Remove this:
+        if dirs[0] == '/':
+            dirs.pop(0)
+        tail = dirs[1:]
+        citedir = (sage_doc / "inventory").joinpath(*tail) 
+    else:
+        citedir = outdir / "inventory"
     sage_makedirs(citedir)
     return citedir
 
 
-def write_citations(app, citations):
+def write_citations(app: Sphinx, citations):
     """
     Pickle the citation in a file.
     """
     from sage.misc.temporary_file import atomic_write
     outdir = citation_dir(app)
-    with atomic_write(os.path.join(outdir, CITE_FILENAME), binary=True) as f:
+    with atomic_write(outdir / CITE_FILENAME, binary=True) as f:
         pickle.dump(citations, f)
     logger.info("Saved pickle file: %s" % CITE_FILENAME)
 
 
-def fetch_citation(app, env):
+def fetch_citation(app: Sphinx, env):
     """
     Fetch the global citation index from the refman to allow for cross
     references.
     """
     logger.info(bold('loading cross citations... '), nonl=1)
-    filename = os.path.join(citation_dir(app), '..', CITE_FILENAME)
-    if not os.path.isfile(filename):
+    file = citation_dir(app).parent / CITE_FILENAME
+    if not file.is_file():
         return
-    with open(filename, 'rb') as f:
+    with open(file, 'rb') as f:
         cache = pickle.load(f)
     logger.info("done (%s citations)."%len(cache))
     cite = env.domaindata['citation'].get('citations', dict())
@@ -310,7 +316,7 @@ def init_subdoc(app):
 
 
 
-def setup(app):
+def setup(app: Sphinx):
     app.add_config_value('multidocs_is_master', True, True)
     app.add_config_value('multidocs_subdoc_list', [], True)
     app.add_config_value('multidoc_first_pass', 0, False)   # 1 = deactivate the loading of the inventory

@@ -1245,9 +1245,10 @@ cdef class ntl_mat_ZZ(object):
         cdef ZZ_c *det2
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_LLL_U(&det2, &self.x, &U.x, int(a), int(b), int(verbose)))
+
             return rank, make_ZZ_sig_off(det2), U
         else:
             sig_on()
@@ -1330,7 +1331,7 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_LLL_FP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
             sig_off()
@@ -1354,7 +1355,7 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_LLL_QP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
             sig_off()
@@ -1379,7 +1380,7 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_LLL_XD_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
             sig_off()
@@ -1434,7 +1435,7 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_G_LLL_FP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
             sig_off()
@@ -1452,7 +1453,7 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_G_LLL_QP_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
             sig_off()
@@ -1471,7 +1472,7 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_G_LLL_XD_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
             sig_off()
@@ -1490,7 +1491,7 @@ cdef class ntl_mat_ZZ(object):
         """
         cdef ntl_mat_ZZ U
         if return_U:
-            U = ntl_mat_ZZ.__new__(ntl_mat_ZZ)
+            U = ntl_mat_ZZ(self.__nrows, self.__nrows)
             sig_on()
             rank = int(mat_ZZ_G_LLL_RR_U(self.x, U.x, float(delta), 0, 0, int(verbose)))
             sig_off()

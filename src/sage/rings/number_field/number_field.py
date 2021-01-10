@@ -6745,7 +6745,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return generators for the unit group modulo torsion.
 
-        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
+        ALGORITHM: Uses PARI's :pari:`bnfinit` command.
 
         INPUT:
 
@@ -6811,8 +6811,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except AttributeError:
                 pass
 
-        # get PARI to compute the units
-        B = self.pari_bnf(proof).bnfunit()
+        # get PARI to compute the fundamental units
+        B = self.pari_bnf(proof).bnf_get_fu()
         B = tuple(self(b, check=False) for b in B)
         if proof:
             # cache the provable results and return them
@@ -6827,7 +6827,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return the unit group (including torsion) of this number field.
 
-        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
+        ALGORITHM: Uses PARI's :pari:`bnfinit` command.
 
         INPUT:
 

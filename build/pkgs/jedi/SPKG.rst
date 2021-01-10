@@ -1,5 +1,5 @@
-jedi
-====
+jedi: Static analysis tool providing IDE support for Python
+===========================================================
 
 Description
 -----------

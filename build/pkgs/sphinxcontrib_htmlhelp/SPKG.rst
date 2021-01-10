@@ -1,5 +1,5 @@
-sphinxcontrib_htmlhelp
-======================
+sphinxcontrib_htmlhelp: Sphinx extension which outputs HTML help book
+=====================================================================
 
 Description
 -----------

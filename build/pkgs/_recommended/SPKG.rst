@@ -1,5 +1,5 @@
-\_recommended
-=============
+\_recommended: Represents system packages recommended for additional functionality
+==================================================================================
 
 Description
 -----------

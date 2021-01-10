@@ -1,5 +1,5 @@
-parso
-=====
+parso: A Python parser
+======================
 
 Description
 -----------

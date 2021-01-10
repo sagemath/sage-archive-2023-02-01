@@ -1,5 +1,5 @@
-pycparser
-=========
+pycparser: Parser of the C language in Python
+=============================================
 
 Description
 -----------

@@ -1,5 +1,5 @@
-libnauty
-========
+libnauty: Find automorphism groups of graphs, generate non-isomorphic graphs (callable library)
+===============================================================================================
 
 Description
 -----------

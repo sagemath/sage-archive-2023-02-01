@@ -1,5 +1,5 @@
-libxml2
-=======
+libxml2: XML parser and toolkit
+===============================
 
 Description
 -----------

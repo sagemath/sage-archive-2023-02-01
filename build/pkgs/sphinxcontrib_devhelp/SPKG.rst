@@ -1,5 +1,5 @@
-sphinxcontrib-devhelp
-=====================
+sphinxcontrib_devhelp: Sphinx extension which outputs Devhelp documents
+=======================================================================
 
 Description
 -----------

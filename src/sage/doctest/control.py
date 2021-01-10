@@ -641,33 +641,6 @@ class DocTestController(SageObject):
         self.logger.write(s + end)
         self.logger.flush()
 
-    def test_safe_directory(self, dir=None):
-        """
-        Test that the given directory is safe to run Python code from.
-
-        TESTS::
-
-            sage: from sage.doctest.control import DocTestDefaults, DocTestController
-            sage: DD = DocTestDefaults()
-            sage: DC = DocTestController(DD, [])
-            sage: DC.test_safe_directory()
-            sage: d = os.path.join(tmp_dir(), "test")
-            sage: os.mkdir(d)
-            sage: os.chmod(d, 0o777)
-            sage: DC.test_safe_directory(d)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: refusing to run doctests...
-        """
-        import stat
-        is_world_writeable = bool(os.stat(dir or os.getcwd()).st_mode & stat.S_IWOTH)
-        if is_world_writeable:
-            raise RuntimeError(
-                  "refusing to run doctests from the current "
-                  "directory '{}' since untrusted users could put files in "
-                  "this directory, making it unsafe to run Sage code from"
-                  .format(os.getcwd()))
-
     def create_run_id(self):
         """
         Creates the run id.
@@ -1207,7 +1180,6 @@ class DocTestController(SageObject):
                 return 2
             return self.run_val_gdb()
         else:
-            self.test_safe_directory()
             self.create_run_id()
             from sage.env import SAGE_ROOT_GIT
             # SAGE_ROOT_GIT can be None on distributions which typically

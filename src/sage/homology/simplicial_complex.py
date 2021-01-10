@@ -1032,8 +1032,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self.__contractible = copy(C.__contractible)
             self.__enlarged = copy(C.__enlarged)
             self._graph = copy(C._graph)
-            self._is_immutable = is_immutable
             self._vertex_to_index = copy(C._vertex_to_index)
+            self._is_immutable = False
+            if not is_mutable or is_immutable:
+                self.set_immutable()
             return
 
         try:

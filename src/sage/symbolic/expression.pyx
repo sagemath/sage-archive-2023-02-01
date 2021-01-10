@@ -1231,13 +1231,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: latex(1+x^(2/3)+x^(-2/3))
             x^{\frac{2}{3}} + \frac{1}{x^{\frac{2}{3}}} + 1
-
-        Check that pynac understands rational powers (:trac:`30446`)::
-
-            sage: QQ((24*sqrt(3))^(100/50))==1728
-            True
-            sage: float((24*sqrt(3))^(100/51))
-            1493.0092154...
         """
         return self._parent._latex_element_(self)
 
@@ -4131,6 +4124,21 @@ cdef class Expression(CommutativeRingElement):
             sage: elem = SR(2)^n
             sage: (elem, elem.parent())
             (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
+
+        Check that pynac understands rational powers (:trac:`30446`,
+        :trac:`28620`, :trac:`30304`, and :trac:`30786`)::
+
+            sage: QQ((24*sqrt(3))^(100/50))==1728
+            True
+            sage: float((24*sqrt(3))^(100/51))
+            1493.0092154...
+            sage: t=((1/10)*I/pi)^(3/2)
+            sage: t^2
+            -1/1000*I/pi^3
+            sage: (2*pi)^QQ(2)
+            4*pi^2
+            sage: exp(-3*ln(-9*x)/3)
+            -1/9/x
         """
         cdef Expression nexp = <Expression>other
         cdef GEx x

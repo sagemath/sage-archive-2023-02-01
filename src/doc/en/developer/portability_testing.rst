@@ -911,6 +911,36 @@ The environments use the conda-forge channel and use the ``python``
 package and the compilers from this channel.
 
 
+Options for build testing with the local technology
+---------------------------------------------------
+
+The environments using the ``local`` technology can be customized
+by setting environment variables.
+
+ - If ``SKIP_SYSTEM_PKG_INSTALL`` is set to ``1`` (or ``yes``),
+   then all steps of installing system packages are skipped in this run.
+   When reusing a previously created tox environment, this option can
+   save time and also give developers more control for experiments
+   with system packages.
+
+ - If ``SKIP_BOOTSTRAP`` is set to ``1`` (or ``yes``), then the
+   bootstrapping phase is skipped.  When reusing a previously created
+   tox environment, this option can save time.
+
+ - If ``SKIP_CONFIGURE`` is set to ``1`` (or ``yes``), then the
+   ``configure`` script is not run explicitly.  When reusing a
+   previously created tox environment, this option can save time.
+   (The ``Makefile`` may still rerun configuration using
+   ``config.status --recheck``.)
+
+The ``local`` technology also defines a special target ``bash``:
+Instead of building anything with ``make``, it just starts an
+interactive shell.  For example, in combination with the above
+options::
+
+  [mkoeppe@sage worktree-local]$ SKIP_SYSTEM_PKG_INSTALL=yes SKIP_BOOTSTRAP=1 SKIP_CONFIGURE=1 tox -e local-homebrew-macos-minimal -- bash
+
+
 Automatic parallel tox runs on GitHub Actions
 ---------------------------------------------
 

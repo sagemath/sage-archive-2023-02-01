@@ -10064,7 +10064,7 @@ class Polyhedron_base(Element):
             sage: Pnormal.volume()
             1.53406271079097?
             sage: Pgonal.volume()/Adet.sqrt(extend=True)
-            (1/4*sqrt5 + 5/4)*sq
+            -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
             sage: Pgonal.volume()/AA(Adet).sqrt().n(digits=20)
             1.5340627107909646813
             sage: AA(Pgonal.volume()^2) == (Pnormal.volume()^2)*AA(Adet)

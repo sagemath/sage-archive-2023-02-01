@@ -2179,20 +2179,17 @@ cdef class NumberFieldElement(FieldElement):
         infinity = sage.rings.infinity.infinity
         return self.parent().quadratic_defect(self, P, check=check) == infinity
 
-    def sqrt(self, all=False, extend=True, name=None):
+    def sqrt(self, all=False, extend=True):
         """
         Return the square root of this number in the given number field.
 
         INPUT:
 
-        - ``all`` -- optional boolean (default ``False``) whether to return
+        - ``all`` -- optional boolean (default ``False``); whether to return
           both square roots
 
-        - ``extend`` -- optional boolean (default ``True``) whether to extend
-          the field by adding the square roots if needed;
-
-        - ``name`` -- optional string (default ``"sq"``) for the variable
-          used in the field extension
+        - ``extend`` -- optional boolean (default ``True``); whether to extend
+          the field by adding the square roots if needed
 
         EXAMPLES::
 
@@ -2230,16 +2227,9 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K = QuadraticField(-5)
             sage: z = K(-7).sqrt(extend=True); z
-            sq
-            sage: z**2
-            -7
-            sage: z.parent()
-            Number Field in sq with defining polynomial t^2 + 7 over ...
+            sqrt(-7)
             sage: CyclotomicField(4)(4).sqrt(extend=False)
             2
-            sage: K = QuadraticField(-7)
-            sage: z = K(-17).sqrt(extend=True, name='u'); z
-            u
 
         If ``extend=False`` an error is raised, if ``self`` is not a square::
 
@@ -2257,10 +2247,14 @@ cdef class NumberFieldElement(FieldElement):
         f = R([-self, 0, 1])
         roots = f.roots()
         if extend and not roots:
-            if name is None:
-                name = "sq"
-            K_ext = K.extension(f, name)
-            roots = f.base_extend(K_ext).roots()
+            try:
+                # This is what integers, rationals do...
+                from sage.functions.other import sqrt
+                from sage.symbolic.ring import SR
+                root = sqrt(SR(self))
+                roots = [[root, 1], [-root, 1]]
+            except TypeError:
+                raise ValueError("%s not a square in %s"%(self, self._parent))
         if all:
             return [r[0] for r in roots]
         elif roots:

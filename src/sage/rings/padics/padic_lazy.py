@@ -132,12 +132,17 @@ from sage.rings.padics.generic_nodes import pAdicRingBaseGeneric, pAdicFieldBase
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.rings.padics.pow_computer_flint import PowComputer_flint
 
-from sage.rings.padics.padic_lazy_element import *
+from sage.rings.padics.padic_lazy_element import pAdicLazyElement
+from sage.rings.padics.padic_lazy_element import pAdicLazyElement_zero
+from sage.rings.padics.padic_lazy_element import pAdicLazyElement_random
+from sage.rings.padics.padic_lazy_element import pAdicLazyElement_selfref
+from sage.rings.padics.padic_lazy_element import pAdicLazyElement_teichmuller
+from sage.rings.padics.padic_lazy_element import element_constructor
 
 
 class pAdicRingLazy(pAdicRingBaseGeneric):
     def __init__(self, p, prec, print_mode, names):
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, None)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicLazyElement)
         self._zero_element = pAdicLazyElement_zero(self)
         self._default_prec = ZZ(prec)
         self.prime_pow = PowComputer_flint(p, 1, 1, 1, False)
@@ -154,33 +159,11 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
     def precision_cap(self):
         return Infinity
 
+    def _an_element_(self):
+        return self._zero_element
+
     def _element_constructor_(self, x):
-        if isinstance(x, pAdicLazyElement) and x.prime() == self.prime():
-            if x.parent() is self:
-                return x
-            if not x.is_equal_at_precision(self._zero_element, 0):
-                raise ValueError("negative valuation")
-            return pAdicLazyElement_shift(self, x, 0, False)
-        elif isinstance(x, pAdicGenericElement) and x.parent().prime() == self.prime():
-            if x.valuation() < 0:
-                raise ValueError("negative valuation")
-            return pAdicLazyElement_value(self, ZZ(x), maxprec=x.precision_absolute())
-        elif x in ZZ:
-            if x == 0:
-                return self._zero_element
-            elif x == 1:
-                return pAdicLazyElement_one(self)
-            else:
-                return pAdicLazyElement_value(self, ZZ(x))
-        elif x in QQ:
-            num = x.numerator()
-            denom = x.denominator()
-            if denom % self.prime() == 0:
-                raise ValueError("negative valuation")
-            num = pAdicLazyElement_value(self, num)
-            denom = pAdicLazyElement_value(self, denom)
-            return pAdicLazyElement_div(self, num, denom)
-        raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
+        return element_constructor(self, x)
 
     def selfref(self, start_val=0):
         if start_val not in ZZ or start_val < 0:
@@ -189,9 +172,6 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
         if start_val >= MAXORDP:
             raise OverflowError("valuation is too large (maximum is %s)" % MAXORDP)
         return pAdicLazyElement_selfref(self, start_val)
-
-    def _an_element_(self):
-        return self._zero_element
 
     def random_element(self):
         return pAdicLazyElement_random(self, True)
@@ -206,7 +186,7 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
 
 class pAdicFieldLazy(pAdicFieldBaseGeneric):
     def __init__(self, p, prec, print_mode, names):
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, None)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicLazyElement)
         self._zero_element = pAdicLazyElement_zero(self)
         self._default_prec = ZZ(prec)
         self.prime_pow = PowComputer_flint(p, 1, 1, 1, True)
@@ -227,27 +207,11 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
         if isinstance(R, pAdicRingLazy) and self is R.fraction_field():
             return True
 
+    def _an_element_(self):
+        return self._zero_element
+
     def _element_constructor_(self, x):
-        if isinstance(x, pAdicLazyElement) and x.prime() == self.prime():
-            if x.parent() is self:
-                return x
-            return pAdicLazyElement_shift(self, x, 0, False)
-        elif isinstance(x, pAdicGenericElement) and x.parent().prime() == self.prime():
-            val, u = x.val_unit()
-            return pAdicLazyElement_value(self, ZZ(u), shift=val, maxprec=x.precision_absolute())
-        elif x in ZZ:
-            if x == 0:
-                return self._zero_element
-            elif x == 1:
-                return pAdicLazyElement_one(self)
-            else:
-                return pAdicLazyElement_value(self, ZZ(x))
-        elif x in QQ:
-            x = QQ(x)
-            num = pAdicLazyElement_value(self, x.numerator())
-            denom = pAdicLazyElement_value(self, x.denominator())
-            return pAdicLazyElement_div(self, num, denom)
-        raise TypeError("unable to convert '%s' to a lazy %s-adic number" % (x, self.prime()))
+        return element_constructor(self, x)
 
     def selfref(self, start_val=0):
         if start_val not in ZZ:
@@ -256,9 +220,6 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
         if start_val >= MAXORDP:
             raise OverflowError("valuation is too large (maximum is %s)" % MAXORDP)
         return pAdicLazyElement_selfref(self, start_val)
-
-    def _an_element_(self):
-        return self._zero_element
 
     def random_element(self, integral=False):
         return pAdicLazyElement_random(self, integral)

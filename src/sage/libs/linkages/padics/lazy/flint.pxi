@@ -30,6 +30,8 @@ from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 
 from sage.ext.stdsage cimport PY_NEW
 
+from sage.rings.finite_rings.finite_field_constructor import GF
+
 
 cdef flint_rand_t flint_randstate 
 flint_randinit(flint_randstate)
@@ -103,7 +105,7 @@ cdef bint digit_sqrt(cdigit_ptr ans, cdigit_ptr x, PowComputer_class prime_pow):
     cdef Integer zp = digit_get_sage((<PowComputer_flint>prime_pow).fprime)
     try:
         k = GF(zp)
-        zans = ZZ(k(zx).sqrt(extend=False))
+        zans = Integer(k(zx).sqrt(extend=False))
     except ValueError:
         return 1
     digit_set_sage(ans, zans)

@@ -15,11 +15,8 @@ from sage.structure.element import coerce_binop
 from sage.structure.element cimport have_same_parent
 from sage.structure.coerce cimport coercion_model
 
-from sage.rings.all import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import Infinity
-from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.rings.finite_rings.integer_mod_ring import Integers
 
 from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -28,7 +25,7 @@ from sage.rings.padics.padic_lazy_errors cimport *
 from sage.rings.padics.padic_lazy_errors import raise_error, error_to_str
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
-MAXORDP = ZZ(maxordp)
+MAXORDP = Integer(maxordp)
 
 
 cdef cdigit tmp_digit
@@ -36,6 +33,45 @@ cdef celement tmp_poly
 digit_init(tmp_digit)
 element_init(tmp_poly)
 
+
+def element_constructor(parent, x):
+    xparent = x.parent()
+    if xparent is parent:
+        return x
+    elif isinstance(x, LazyElement):
+        if xparent.Element is parent.Element:
+            if not parent.is_field() and x.valuation() < 0:
+                raise ValueError("negative valuation")
+            return lazy_class_shift(parent, x, 0, False)
+        raise NotImplementedError
+    elif isinstance(x, pAdicGenericElement):
+        if parent._convert_map_from_(xparent):
+            if not parent.is_field() and x.valuation() < 0:
+                raise ValueError("negative valuation")
+            return lazy_class_value(parent, x.lift(), maxprec=x.precision_absolute())
+    elif x == 0:
+        return parent._zero_element
+    elif x == 1:
+        return lazy_class_one(parent)
+    else:
+        try:
+            x = parent.exact_ring()(x)
+            return lazy_class_value(parent, x)
+        except (TypeError, ValueError):
+            pass
+        try:
+            x = parent.exact_field()(x)
+            num = x.numerator()
+            denom = x.denominator()
+        except (TypeError, ValueError, AttributeError):
+            pass
+        else:
+            if denom % parent.prime() == 0:
+                raise ValueError("negative valuation")
+            num = lazy_class_value(parent, num)
+            denom = lazy_class_value(parent, denom)
+            return lazy_class_div(parent, num, denom)
+    raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, parent.prime()))
 
 cdef class LazyElement(pAdicGenericElement):
     def __cinit__(self):
@@ -86,11 +122,9 @@ cdef class LazyElement(pAdicGenericElement):
                         error = self._jump_c(self._valuation + default_prec)
                 else:
                     error = self._jump_c(default_prec)
-        elif prec not in ZZ:
-            raise ValueError("precision must be an integer")
         else:
             permissive = False
-            prec = ZZ(prec)
+            prec = Integer(prec)
             if prec >= maxordp:
                 raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
             if prec < -maxordp:
@@ -109,21 +143,15 @@ cdef class LazyElement(pAdicGenericElement):
                 raise NotImplementedError("step is not allowed")
             if n.start is None:
                 start = 0
-            elif n.start in ZZ:
-                start = ZZ(n.start)
             else:
-                raise ValueError("invalid slice")
+                start = Integer(n.start)
             if n.stop is None:
                 stop = None
-            elif n.stop in ZZ:
-                stop = ZZ(n.stop)
             else:
-                raise ValueError("invalid slice")
+                stop = Integer(n.stop)
             return ExpansionIter(self, start, stop)
         else:
-            if n not in ZZ:
-                raise IndexError("index must be an integer")
-            n = ZZ(n)
+            n = Integer(n)
             if n >= maxordp:
                 raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
             return self._digit(long(n))
@@ -212,12 +240,12 @@ cdef class LazyElement(pAdicGenericElement):
             return Infinity
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
-        return ZZ(self._precrel + self._valuation)
+        return Integer(self._precrel + self._valuation)
 
     def precision_relative(self):
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
-        return ZZ(self._precrel)
+        return Integer(self._precrel)
 
     cdef long valuation_c(self):
         return self._valuation
@@ -229,7 +257,7 @@ cdef class LazyElement(pAdicGenericElement):
             raise PrecisionError("no lower bound on the valuation is known")
         if secure and self._precrel == 0:
             raise PrecisionError("cannot determine the valuation; try to increase the precision")
-        return ZZ(self._valuation)
+        return Integer(self._valuation)
 
     def unit_part(self):
         if self._precrel == 0:
@@ -255,11 +283,11 @@ cdef class LazyElement(pAdicGenericElement):
         if field and prec == 1:
             return self._parent.residue_class_field()(ans)
         else:
-            return Integers(self.prime()**prec)(ans)
+            return self._parent.residue_ring(prec)(ans)
 
     def lift(self):
         if self._precrel == 0:
-            return ZZ(0)
+            return Integer(0)
         cdef celement digits
         element_get_slice(digits, self._digits, 0, self._precrel)
         cdef Integer ans = element_get_sage(digits, self.prime_pow)
@@ -434,7 +462,7 @@ cdef class LazyElement_random(LazyElement):
     def __init__(self, parent, integral):
         LazyElement.__init__(self, parent)
         if not integral:
-            self._valuation = ZZ.random_element()
+            self._valuation = Integer.random_element()
 
     cdef int _next_c(self):
         cdef cdigit r
@@ -971,7 +999,7 @@ cdef class ExpansionIter(object):
     def __len__(self):
         if self.stop < self.start:
             raise NotImplementedError("infinite sequence")
-        return ZZ(self.stop - self.start)
+        return Integer(self.stop - self.start)
 
     def __iter__(self):
         return self

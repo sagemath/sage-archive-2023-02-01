@@ -64,7 +64,7 @@ cdef inline void digit_quorem(cdigit quo, cdigit rem, cdigit a, PowComputer_clas
     pass
 
 cdef inline void digit_inv(cdigit res, cdigit a, PowComputer_class prime_pow):
-_    pass
+    pass
 
 cdef bint digit_sqrt(cdigit_ptr ans, cdigit_ptr x, PowComputer_class prime_pow):
     pass

@@ -284,7 +284,7 @@ cdef class LazyElement(pAdicGenericElement):
             return other
         if isinstance(other, LazyElement_zero):
             return self
-        if isinstance(self, lazy_class_add):
+        if isinstance(self, LazyElement_add):
             summands = list((<LazyElement_add>self)._summands)
             signs = list((<LazyElement_add>self)._signs)
         else:

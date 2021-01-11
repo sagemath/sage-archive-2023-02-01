@@ -141,10 +141,9 @@ Debian-derived distributions is called, we can ask Sage for a
 reminder::
 
   root@39d693b2a75d:/sage# build/bin/sage-print-system-package-command debian install gcc
-  sudo apt-get install gcc
+  apt-get install gcc
 
-We are already root, so we can drop the ``sudo``, of course.
-And we remember that we need to fetch the current package lists
+We remember that we need to fetch the current package lists
 from the server first::
 
   root@39d693b2a75d:/sage# apt-get update
@@ -600,15 +599,20 @@ installed on the system before building Sage:
 
 - ``minimal`` installs the system packages known to Sage to provide
   minimal prerequisites for bootstrapping and building the Sage
-  distribution.
-  
+  distribution.  This corresponds to the packages ``_bootstrap`` and
+  ``_prereq``.
+
 - ``standard`` additionally installs all known system packages that
   are equivalent to standard packages of the Sage distribution, for
   which the mechanism ``spkg-configure.m4`` is implemented.
-  This corresponds to the type pattern ``@(standard)``.
+  This corresponds to the packages listed by::
+
+    [mkoeppe@sage sage]$ sage --package list --has-file=spkg-configure.m4 :standard:
 
 - ``maximal`` does the same for all standard and optional packages.
-  This corresponds to the type pattern ``@(standard|optional)``.
+  This corresponds to the packages listed by::
+
+    [mkoeppe@sage sage]$ sage --package list :standard: :optional:
 
 The factors are connected by a hyphen to name a system configuration,
 such as ``debian-buster-standard`` and ``centos-7-i386-minimal``.

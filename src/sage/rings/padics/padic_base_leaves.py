@@ -197,7 +197,8 @@ from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFloatingPointRingGeneric, \
                           pAdicFloatingPointFieldGeneric, \
-                          pAdicLatticeGeneric
+                          pAdicLatticeGeneric, \
+                          pAdicLazyGeneric
 from .padic_capped_relative_element import pAdicCappedRelativeElement
 from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
 from .padic_fixed_mod_element import pAdicFixedModElement
@@ -1095,3 +1096,47 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
         if relcap < prec:
             prec = relcap
         return self._element_class(self, x*(p**val), prec=prec)
+
+# Lazy
+######
+
+class pAdicRingLazy(pAdicLazyGeneric, pAdicRingBaseGeneric):
+    def __init__(self, p, prec, print_mode, names):
+        from sage.rings.padics import padic_lazy_element
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
+        self._element_classes = {
+            'generic': padic_lazy_element.pAdicLazyElement,
+            'zero': padic_lazy_element.pAdicLazyElement_zero,
+            'one': padic_lazy_element.pAdicLazyElement_one,
+            'value': padic_lazy_element.pAdicLazyElement_value,
+            'random': padic_lazy_element.pAdicLazyElement_random,
+            'shift': padic_lazy_element.pAdicLazyElement_shift,
+            'add': padic_lazy_element.pAdicLazyElement_add,
+            'mul': padic_lazy_element.pAdicLazyElement_mul,
+            'muldigit': padic_lazy_element.pAdicLazyElement_muldigit,
+            'div': padic_lazy_element.pAdicLazyElement_div,
+            'sqrt': padic_lazy_element.pAdicLazyElement_sqrt,
+            'teichmuller': padic_lazy_element.pAdicLazyElement_teichmuller,
+            'selfref': padic_lazy_element.pAdicLazyElement_selfref
+        }
+
+class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
+    def __init__(self, p, prec, print_mode, names):
+        from sage.rings.padics import padic_lazy_element
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
+        self._element_classes = {
+            'generic': padic_lazy_element.pAdicLazyElement,
+            'zero': padic_lazy_element.pAdicLazyElement_zero,
+            'one': padic_lazy_element.pAdicLazyElement_one,
+            'value': padic_lazy_element.pAdicLazyElement_value,
+            'random': padic_lazy_element.pAdicLazyElement_random,
+            'shift': padic_lazy_element.pAdicLazyElement_shift,
+            'add': padic_lazy_element.pAdicLazyElement_add,
+            'mul': padic_lazy_element.pAdicLazyElement_mul,
+            'muldigit': padic_lazy_element.pAdicLazyElement_muldigit,
+            'div': padic_lazy_element.pAdicLazyElement_div,
+            'sqrt': padic_lazy_element.pAdicLazyElement_sqrt,
+            'teichmuller': padic_lazy_element.pAdicLazyElement_teichmuller,
+            'selfref': padic_lazy_element.pAdicLazyElement_selfref
+        }
+

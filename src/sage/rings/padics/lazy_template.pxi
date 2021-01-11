@@ -25,7 +25,6 @@ from sage.rings.padics.padic_lazy_errors cimport *
 from sage.rings.padics.padic_lazy_errors import raise_error, error_to_str
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
-MAXORDP = Integer(maxordp)
 
 
 cdef cdigit tmp_digit
@@ -33,45 +32,6 @@ cdef celement tmp_poly
 digit_init(tmp_digit)
 element_init(tmp_poly)
 
-
-def element_constructor(parent, x):
-    xparent = x.parent()
-    if xparent is parent:
-        return x
-    elif isinstance(x, LazyElement):
-        if xparent.Element is parent.Element:
-            if not parent.is_field() and x.valuation() < 0:
-                raise ValueError("negative valuation")
-            return lazy_class_shift(parent, x, 0, False)
-        raise NotImplementedError
-    elif isinstance(x, pAdicGenericElement):
-        if parent._convert_map_from_(xparent):
-            if not parent.is_field() and x.valuation() < 0:
-                raise ValueError("negative valuation")
-            return lazy_class_value(parent, x.lift(), maxprec=x.precision_absolute())
-    elif x == 0:
-        return parent._zero_element
-    elif x == 1:
-        return lazy_class_one(parent)
-    else:
-        try:
-            x = parent.exact_ring()(x)
-            return lazy_class_value(parent, x)
-        except (TypeError, ValueError):
-            pass
-        try:
-            x = parent.exact_field()(x)
-            num = x.numerator()
-            denom = x.denominator()
-        except (TypeError, ValueError, AttributeError):
-            pass
-        else:
-            if denom % parent.prime() == 0:
-                raise ValueError("negative valuation")
-            num = lazy_class_value(parent, num)
-            denom = lazy_class_value(parent, denom)
-            return lazy_class_div(parent, num, denom)
-    raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, parent.prime()))
 
 cdef class LazyElement(pAdicGenericElement):
     def __cinit__(self):
@@ -298,7 +258,7 @@ cdef class LazyElement(pAdicGenericElement):
     def __rshift__(self, s):
         cdef slong shift = long(s)
         if shift:
-            return lazy_class_shift((<LazyElement>self)._parent, self, shift, not (<LazyElement>self)._parent.is_field())
+            return element_class_shift((<LazyElement>self)._parent, self, shift, not (<LazyElement>self)._parent.is_field())
         else:
             return self
 
@@ -324,7 +284,7 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             summands.append(other)
             signs.append(True)
-        return lazy_class_add(self._parent, summands, signs)
+        return element_class_add(self._parent, summands, signs)
 
     cpdef _sub_(self, other):
         cdef list summands
@@ -345,7 +305,7 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             summands.append(other)
             signs.append(False)
-        return lazy_class_add(self._parent, summands, signs)
+        return element_class_add(self._parent, summands, signs)
 
     cpdef _neg_(self):
         cdef list summands
@@ -356,31 +316,31 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             summands = [self]
             signs = [False]
-        return lazy_class_add(self._parent, summands, signs)
+        return element_class_add(self._parent, summands, signs)
 
     cpdef _mul_(self, other):
         if isinstance(self, LazyElement_zero) or isinstance(other, LazyElement_one):
             return self
         if isinstance(self, LazyElement_one) or isinstance(other, LazyElement_zero):
             return other
-        return lazy_class_mul(self._parent, self, <LazyElement>other)
+        return element_class_mul(self._parent, self, <LazyElement>other)
 
     cpdef _div_(self, other):
         if isinstance(other, LazyElement_zero):
             return ZeroDivisionError("cannot divide by zero")
         if isinstance(other, LazyElement_one):
             return self
-        return lazy_class_div(self._parent.fraction_field(), self, <LazyElement>other)
+        return element_class_div(self._parent.fraction_field(), self, <LazyElement>other)
 
     def __invert__(self):
         if isinstance(self, LazyElement_zero):
             return ZeroDivisionError("cannot divide by zero")
         if isinstance(self, LazyElement_one):
             return self
-        return lazy_class_div(self._parent.fraction_field(), self._parent.one(), self)
+        return element_class_div(self._parent.fraction_field(), self._parent.one(), self)
 
     def sqrt(self):
-        return lazy_class_sqrt(self._parent, self)
+        return element_class_sqrt(self._parent, self)
 
 
 # Assignations
@@ -724,8 +684,8 @@ cdef class LazyElement_div(LazyElement):
             return ERROR_ABANDON
         self._valuation = num._valuation - denom._valuation
         digit_inv(self._inverse, element_get_digit(denom._digits, 0), self.prime_pow)
-        cdef LazyElement_muldigit a = lazy_class_muldigit(self._parent, self, num)
-        cdef LazyElement_muldigit b = lazy_class_muldigit(self._parent, self, denom)
+        cdef LazyElement_muldigit a = element_class_muldigit(self._parent, self, num)
+        cdef LazyElement_muldigit b = element_class_muldigit(self._parent, self, denom)
         error = b._next_c()
         if error or b._precrel != 1:
             return error | ERROR_UNEXPECTED
@@ -809,10 +769,10 @@ cdef class LazyElement_sqrt(LazyElement):
             if not digit_equal_ui(element_get_digit(x._digits, 2), 0):
                 return ERROR_NOTSQUARE
             zd = Integer(1)
-            u = lazy_class_shift(parent, self, val + 2, True) 
-            y = lazy_class_shift(parent, x, val + 1, False) 
-            c = lazy_class_value(parent, zd, shift=val-1) 
-            d = lazy_class_shift(parent, u*u, -val-3, False) 
+            u = element_class_shift(parent, self, val + 2, True) 
+            y = element_class_shift(parent, x, val + 1, False) 
+            c = element_class_value(parent, zd, shift=val-1) 
+            d = element_class_shift(parent, u*u, -val-3, False) 
             self._definition = y + c - d
         else:
             digit_init(digit)
@@ -822,10 +782,10 @@ cdef class LazyElement_sqrt(LazyElement):
             element_set_digit(self._digits, digit, 0)
             self._precrel = 1
             zd = digit_get_sage(digit)
-            u = lazy_class_shift(parent, self, val + 1, True)
-            y = lazy_class_shift(parent, x, 2*val + 2, False)
-            c = lazy_class_value(parent, zd*zd, shift=-2)
-            d = lazy_class_value(parent, 2*zd, shift=-val-2)
+            u = element_class_shift(parent, self, val + 1, True)
+            y = element_class_shift(parent, x, 2*val + 2, False)
+            c = element_class_value(parent, zd*zd, shift=-2)
+            d = element_class_value(parent, 2*zd, shift=-val-2)
             self._definition = (y + c - u*u) / d
         return 0
 
@@ -914,8 +874,10 @@ cdef class LazyElement_teichmuller(LazyElement):
 ###########################
 
 cdef class LazyElement_selfref(LazyElement):
-    def __init__(self, parent, valuation):
+    def __init__(self, parent, Integer valuation):
         LazyElement.__init__(self, parent)
+        if valuation >= maxordp:
+            raise OverflowError("valuation is too large (maximum is %s)" % maxordp)
         self._valuation = valuation
         self._definition = None
         self._next = False

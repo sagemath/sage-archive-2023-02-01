@@ -40,7 +40,11 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(5) #indirect doctest
         """
-        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field(), self._prec_type())
+        if self.is_lazy():
+            from sage.rings.padics.pow_computer_flint import PowComputer_flint
+            self.prime_pow = PowComputer_flint(p, 1, 1, 1, self.is_field())
+        else:
+            self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field(), self._prec_type())
         pAdicGeneric.__init__(self, self, p, prec, print_mode, names, element_class)
         if self.is_field():
             if self.is_capped_relative():

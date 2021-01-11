@@ -699,6 +699,81 @@ class pAdicLatticeGeneric(pAdicGeneric):
         # We return the created elements
         return ans
 
+class pAdicLazyGeneric(pAdicGeneric):
+    def _prec_type(self):
+        return "lazy"
+
+    def is_lazy(self):
+        return True
+
+    def default_prec(self):
+        return self._prec
+
+    def precision_cap(self):
+        return infinity
+
+    def _coerce_map_from_(self, R):
+        if isinstance(R, pAdicLazyGeneric) and self is R.fraction_field():
+            return True
+
+    def _element_constructor_(self, x):
+        parent = x.parent()
+        if parent is self:
+            return x
+        elif isinstance(parent, pAdicLazyGeneric):
+            if parent.Element is self.Element:
+                if not self.is_field() and x.valuation() < 0:
+                    raise ValueError("negative valuation")
+                return self._element_classes['shift'](self, x, 0, False)
+            raise NotImplementedError
+        elif isinstance(parent, pAdicGeneric):
+            if not self.is_field() and x.valuation() < 0:
+                raise ValueError("negative valuation")
+            return self._element_classes['value'](self, x.lift(), maxprec=x.precision_absolute())
+        elif x == 0:
+            return self._element_classes['zero'](self)
+        elif x == 1:
+            return self._element_classes['one'](self)
+        else:
+            try:
+                x = self.exact_ring()(x)
+                return self._element_classes['value'](self, x)
+            except (TypeError, ValueError):
+                pass
+            try:
+                x = self.exact_field()(x)
+                num = x.numerator()
+                denom = x.denominator()
+            except (TypeError, ValueError, AttributeError):
+                pass
+            else:
+                if denom % self.prime() == 0:
+                    raise ValueError("negative valuation")
+                num = self._element_classes['value'](self, num)
+                denom = self._element_classes['value'](self, denom)
+                return self._element_classes['div'](self, num, denom)
+        raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
+
+    def selfref(self, start_val=0):
+        if start_val not in ZZ:
+            raise ValueError("valuation must be an integer")
+        start_val = ZZ(start_val)
+        if self.is_field() and start_val < 0:
+            raise ValueError("valuation must be nonnegative")
+        return self._element_classes['selfref'](self, start_val)
+
+    def random_element(self, integral=False):
+        integral = integral or (not self.is_field())
+        return self._element_classes['random'](self, integral)
+
+    def teichmuller(self, x):
+        return self._element_classes['teichmuller'](self, ZZ(x))
+
+    def teichmuller_system(self):
+        R = self.residue_class_field()
+        return [ self.teichmuller(ZZ(i)) for i in R if i != 0 ]
+
+
 def is_pAdicRing(R):
     """
     Returns ``True`` if and only if ``R`` is a `p`-adic ring (not a

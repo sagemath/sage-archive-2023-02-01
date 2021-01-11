@@ -337,75 +337,138 @@ You can do arithmetic in this Eisenstein extension::
 
 Note that the precision cap increased by a factor of 5, since the
 ramification index of this extension over `\ZZ_p` is 5.
+
+Lazy Rings and Fields
+---------------------
+
+The model for lazy elements is quite different from any of the
+other types of `p`-adics. In addition to storing a finite
+approximation, one also stores a method for increasing the
+precision.
+
+Lazy p-adic rings are created by the constructor :func:`ZpL`::
+
+    sage: R = ZpL(5, print_mode="digits")
+    sage: R
+    5-adic Ring with lazy precision
+
+Observe that the precision is not capped on `R`::
+
+    sage: R.precision_cap()
+    +Infinity
+
+However, a default precision is settled. This is the precision
+at which all the computations will be carried out before printing::
+
+    sage: R.default_prec()
+    20
+
+One creates elements as usual::
+
+    sage: a = R(17/42)
+    sage: a
+    ...00244200244200244201
+
+    sage: R.random_element()  # random
+    ...21013213133412431402
+
+Here we notice that 20 digits (that is the default precision) are printed.
+If more digits are needed, one can increase the precision by using the
+meth:`jump`::
+
+    sage: a.jump(30)
+    sage: a
+    ...244200244200244200244200244201
+
+We can of course perform all standard operations::
+
+    sage: b = R(42/17)
+
+    sage: a + b
+    ...03232011214322140002
+    sage: a - b
+    ...42311334324023403400
+
+    sage: a * b
+    ...00000000000000000001
+    sage: a / b
+    ...12442142113021233401
+
+We observe again that only 20 digits are printed.
+This is actually the case even if the precision on the operands is higher::
+
+    sage: b.jump(30)
+    sage: a
+    ...244200244200244200244200244201
+    sage: b
+    ...104201213402432310420121340301
+    sage: a / b
+    ...12442142113021233401
+
+If more digits are needed, we need to create a new variable::
+
+    sage: c = a / b
+    sage: c.jump(40)
+    sage: c
+    ...4230030104200433321312442142113021233401
+
+Note that this automatically increases the precision on `a` and `b`::
+
+    sage: a
+    ...4200244200244200244200244200244200244201
+    sage: b
+    ...2134024323104201213402432310420121340301
+
+::
+
+A quite interesting feature with lazy p-adics is the possibility to
+create (in somes cases) self-referent numbers. Here is an example.
+We first declare a new variable as follows::
+
+    sage: x = R.selfref()
+    sage: x
+    ...?.0
+
+We then write down an equation satisfied by `x`::
+
+    sage: x == 1 + 5*x^2
+    True
+
+The variable `x` now contains the unique solution of the above equation::
+
+    sage: x
+    ...04222412141121000211
+
+This works because the `n`-th digit of the right hand size of the
+defining equation only involves the `i`-th digits of `x` with `i < n`
+(this is due to the factor `5`).
+
+As a comparison, the following produces an error::
+
+    sage: y = R.selfref()
+    sage: y == 1 + 3*y^2
+    Traceback (most recent call last):
+    ...
+    RecursionError: definition looks circular
+
+Self-referent definitions also work with systems of equations::
+
+    sage: u = R.selfref()
+    sage: v = R.selfref()
+    sage: w = R.selfref()
+
+    sage: u == 1 + 2*v + 3*w^2 + 5*u*v*w
+    True
+    sage: v == 2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w)
+    True
+    sage: w == 3 + 25*(u*v + v*w + u*w)
+    True
+
+    sage: u
+    ...31203130103131131433
+    sage: v
+    ...33441043031103114240
+    sage: w
+    ...30212422041102444403
+
 """
-
-# Lazy Rings and Fields
-# ---------------------
-
-# The model for lazy elements is quite different from any of the
-# other types of `p`-adics. In addition to storing a finite
-# approximation, one also stores a method for increasing the
-# precision. The interface supports two ways to do this:
-# ``set_precision_relative`` and ``set_precision_absolute``.
-
-# ::
-
-#     #sage: R = Zp(5, prec = 10, type = 'lazy', print_mode = 'series', halt = 30)
-#     #sage: R
-#     #Lazy 5-adic Ring
-#     #sage: R.precision_cap()
-#     #10
-#     #sage: R.halting_parameter()
-#     #30
-#     #sage: K = Qp(5, type = 'lazy')
-#     #sage: K.precision_cap()
-#     #20
-#     #sage: K.halting_parameter()
-#     #40
-
-# There are two parameters that are set at the creation of a lazy
-# ring or field. The first is ``prec``, which controls the precision
-# to which elements are initially computed. When computing with lazy
-# rings, sometimes situations arise where the unsolvability of the
-# halting problem gives us problems. For example,
-
-# ::
-
-#     #sage: a = R(16)
-#     #sage: b = a.log().exp() - a
-#     #sage: b
-#     #O(5^10)
-#     #sage: b.valuation()
-#     #Traceback (most recent call last):
-#     #...
-#     #HaltingError: Stopped computing sum: set halting parameter higher if you want computation to continue
-
-# Setting the halting parameter controls to what absolute precision
-# one computes in such a situation.
-
-# The interesting feature of lazy elements is that one can perform
-# computations with them, discover that the answer does not have the
-# desired precision, and then ask for more precision. For example,
-
-# ::
-
-#     #sage: a = R(6).log() * 15
-#     #sage: b = a.exp()
-#     #sage: c = b / R(15).exp()
-#     #sage: c
-#     #1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + O(5^11)
-#     #sage: c.set_precision_absolute(15)
-#     #sage: c
-#     #1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + 4*5^11 + 2*5^12 + 4*5^13 + 3*5^14 + O(5^15)
-
-# There can be a performance penalty to using lazy `p`-adics
-# in this way. When one does computations with them, the computer
-# constructs an expression tree. As you compute, values of these
-# elements are cached, and the overhead is reasonably low (though
-# obviously higher than for a fixed modulus element for example). But
-# when you set the precision, the computer has to reset precision
-# throughout the expression tree for that element, and thus setting
-# precision can take the same order of magnitude of time as doing the
-# initial computation. However, lazy `p`-adics can be quite
-# useful when experimenting.
-

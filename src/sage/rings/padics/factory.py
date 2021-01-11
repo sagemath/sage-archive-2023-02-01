@@ -42,10 +42,11 @@ from .padic_base_leaves import (pAdicRingCappedRelative,
                                 pAdicRingFixedMod,
                                 pAdicRingFloatingPoint,
                                 pAdicRingLattice,
+                                pAdicRingLazy,
                                 pAdicFieldCappedRelative,
                                 pAdicFieldFloatingPoint,
-                                pAdicFieldLattice)
-from .padic_lazy import pAdicRingLazy, pAdicFieldLazy
+                                pAdicFieldLattice,
+                                pAdicFieldLazy)
 from . import padic_printing
 
 ######################################################

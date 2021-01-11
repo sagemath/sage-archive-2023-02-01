@@ -31,9 +31,9 @@ cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 MAXORDP = ZZ(maxordp)
 
 
-cdef cdigit tmp_coeff
+cdef cdigit tmp_digit
 cdef celement tmp_poly
-digit_init(tmp_coeff)
+digit_init(tmp_digit)
 element_init(tmp_poly)
 
 
@@ -130,7 +130,7 @@ cdef class LazyElement(pAdicGenericElement):
 
     cdef Integer _digit(self, slong i):
         self.jump(i+1)
-        cdef cdigit_ptr coeff = element_get_coeff(self._digits, i - self._valuation)
+        cdef cdigit_ptr coeff = element_get_digit(self._digits, i - self._valuation)
         return digit_get_sage(coeff)
 
     def _repr_(self):
@@ -166,7 +166,7 @@ cdef class LazyElement(pAdicGenericElement):
                 raise_error(error, permissive)
                 if error:   # not enough precision
                     return True
-            if not digit_equal(element_get_coeff(self._digits, i), element_get_coeff(right._digits, j)):
+            if not digit_equal(element_get_digit(self._digits, i), element_get_digit(right._digits, j)):
                 return False
             i += 1
             j += 1
@@ -377,7 +377,7 @@ cdef class LazyElement_zero(LazyElement):
 cdef class LazyElement_one(LazyElement):
     def __init__(self, parent):
         LazyElement.__init__(self, parent)
-        element_set_coeff_ui(self._digits, 1, 0)
+        element_set_digit_ui(self._digits, 1, 0)
 
     cdef int _jump_c(self, slong prec):
         if self._precrel < prec:
@@ -394,7 +394,7 @@ cdef class LazyElement_one(LazyElement):
 cdef class LazyElement_value(LazyElement):
     def __init__(self, parent, Integer value, slong shift=0, maxprec=None):
         LazyElement.__init__(self, parent)
-        element_set_coeff_sage(self._digits, value, 0)
+        element_set_digit_sage(self._digits, value, 0)
         if maxprec is None:
             self._maxprec = maxordp
         else:
@@ -418,13 +418,13 @@ cdef class LazyElement_value(LazyElement):
     cdef int _next_c(self):
         if (self._maxprec is not None) and (self._valuation + self._precrel >= self._maxprec):
             return ERROR_PRECISION
-        element_reduce_coeff(self._digits, self._precrel, self.prime_pow)
-        if self._precrel == 0 and digit_is_zero(element_get_coeff(self._digits, 0)):
+        element_reduce_digit(self._digits, self._precrel, self.prime_pow)
+        if self._precrel == 0 and digit_is_zero(element_get_digit(self._digits, 0)):
             self._valuation += 1
             element_shift_right(self._digits)
         else:
             self._precrel += 1
-        self._finished = digit_is_zero(element_get_coeff(self._digits, self._precrel))
+        self._finished = digit_is_zero(element_get_digit(self._digits, self._precrel))
         return 0
 
 
@@ -443,7 +443,7 @@ cdef class LazyElement_random(LazyElement):
             self._valuation += 1
             digit_clear(r)
         else:
-            element_set_coeff(self._digits, r, self._precrel)
+            element_set_digit(self._digits, r, self._precrel)
             self._precrel += 1
         return 0
 
@@ -482,9 +482,9 @@ cdef class LazyElement_shift(LazyElement):
         error = x._jump_c(n + self._shift + 1)
         if error:
             return error
-        digit = element_get_coeff(x._digits, n + self._shift - x._valuation)
-        element_set_coeff(self._digits, digit, self._precrel)
-        if self._precrel == 0 and digit_is_zero(element_get_coeff(self._digits, 0)):
+        digit = element_get_digit(x._digits, n + self._shift - x._valuation)
+        element_set_digit(self._digits, digit, self._precrel)
+        if self._precrel == 0 and digit_is_zero(element_get_digit(self._digits, 0)):
             self._valuation += 1
             element_shift_right(self._digits)
         else:
@@ -514,13 +514,13 @@ cdef class LazyElement_add(LazyElement):
         cdef slong i
         for i in range(len(self._summands)):
             summand = self._summands[i]
-            coeff = element_get_coeff(summand._digits, n - summand._valuation)
+            coeff = element_get_digit(summand._digits, n - summand._valuation)
             if self._signs[i]:
-                element_iadd_coeff(self._digits, coeff, n - self._valuation)
+                element_iadd_digit(self._digits, coeff, n - self._valuation)
             else:
-                element_isub_coeff(self._digits, coeff, n - self._valuation)
-        element_reduce_coeff(self._digits, self._precrel, self.prime_pow)
-        if self._precrel == 0 and digit_is_zero(element_get_coeff(self._digits, 0)):
+                element_isub_digit(self._digits, coeff, n - self._valuation)
+        element_reduce_digit(self._digits, self._precrel, self.prime_pow)
+        if self._precrel == 0 and digit_is_zero(element_get_digit(self._digits, 0)):
             self._valuation += 1
             element_shift_right(self._digits)
         else:
@@ -547,7 +547,7 @@ cdef class LazyElement_mul(LazyElement):
         self._valuation = self._x._valuation + self._y._valuation
 
     cdef int _next_c(self):
-        global tmp_coeff, tmp_poly
+        global tmp_digit, tmp_poly
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
         cdef slong n = self._valuation + self._precrel
@@ -565,13 +565,13 @@ cdef class LazyElement_mul(LazyElement):
             return error
 
         n = self._precrel
-        digit_set(self._lastdigit_x, element_get_coeff(x._digits, n))
-        digit_set(self._lastdigit_y, element_get_coeff(y._digits, n))
-        digit_mul(tmp_coeff, element_get_coeff(x._digits, 0), self._lastdigit_y)
-        element_iadd_coeff(self._digits, tmp_coeff, n)
+        digit_set(self._lastdigit_x, element_get_digit(x._digits, n))
+        digit_set(self._lastdigit_y, element_get_digit(y._digits, n))
+        digit_mul(tmp_digit, element_get_digit(x._digits, 0), self._lastdigit_y)
+        element_iadd_digit(self._digits, tmp_digit, n)
         if n:
-            digit_mul(tmp_coeff, self._lastdigit_x, element_get_coeff(y._digits, 0))
-            element_iadd_coeff(self._digits, tmp_coeff, n)
+            digit_mul(tmp_digit, self._lastdigit_x, element_get_digit(y._digits, 0))
+            element_iadd_digit(self._digits, tmp_digit, n)
 
         cdef slong m = n + 2
         cdef slong len = 1
@@ -589,7 +589,7 @@ cdef class LazyElement_mul(LazyElement):
                 element_mul(tmp_poly, slicex, slicey)
                 element_iadd_slice(self._digits, tmp_poly, n)
 
-        element_reduce_coeff(self._digits, n, self.prime_pow)
+        element_reduce_digit(self._digits, n, self.prime_pow)
         self._precrel += 1
         return 0
 
@@ -607,23 +607,23 @@ cdef class LazyElement_mul(LazyElement):
             len <<= 1
         len -= 1
 
-        digit_sub(tmp_coeff, element_get_coeff(x._digits, n), self._lastdigit_x)
+        digit_sub(tmp_digit, element_get_digit(x._digits, n), self._lastdigit_x)
         element_get_slice(slice, y._digits, 0, len)
-        element_scalarmul(tmp_poly, slice, tmp_coeff)
+        element_scalarmul(tmp_poly, slice, tmp_digit)
         element_iadd_slice(self._digits, tmp_poly, n)
         if m == 2:
             len -= 1
-        digit_sub(tmp_coeff, element_get_coeff(y._digits, n), self._lastdigit_y)
+        digit_sub(tmp_digit, element_get_digit(y._digits, n), self._lastdigit_y)
         element_get_slice(slice, x._digits, 0, len)
-        element_scalarmul(tmp_poly, slice, tmp_coeff)
+        element_scalarmul(tmp_poly, slice, tmp_digit)
         element_iadd_slice(self._digits, tmp_poly, n)
         if m == 2:
-            digit_mul(tmp_coeff, tmp_coeff, self._lastdigit_x)
-            element_iadd_coeff(self._digits, tmp_coeff, 2*len)
-        element_reduce_coeff(self._digits, n, self.prime_pow)
+            digit_mul(tmp_digit, tmp_digit, self._lastdigit_x)
+            element_iadd_digit(self._digits, tmp_digit, 2*len)
+        element_reduce_digit(self._digits, n, self.prime_pow)
 
-        digit_set(self._lastdigit_x, element_get_coeff(x._digits, n))
-        digit_set(self._lastdigit_y, element_get_coeff(y._digits, n))
+        digit_set(self._lastdigit_x, element_get_digit(x._digits, n))
+        digit_set(self._lastdigit_y, element_get_digit(y._digits, n))
         return 0
 
 
@@ -640,9 +640,9 @@ cdef class LazyElement_muldigit(LazyElement):
         cdef int error = self._y._jump_c(n+1)
         if error:
             return error
-        digit_mul(tmp_coeff, self._x, element_get_coeff(self._y._digits, n - self._y._valuation))
-        element_iadd_coeff(self._digits, tmp_coeff, self._precrel)
-        element_reduce_coeff(self._digits, self._precrel, self.prime_pow)
+        digit_mul(tmp_digit, self._x, element_get_digit(self._y._digits, n - self._y._valuation))
+        element_iadd_digit(self._digits, tmp_digit, self._precrel)
+        element_reduce_digit(self._digits, self._precrel, self.prime_pow)
         self._precrel += 1
         return 0
 
@@ -695,7 +695,7 @@ cdef class LazyElement_div(LazyElement):
         if denom._precrel == 0:
             return ERROR_ABANDON
         self._valuation = num._valuation - denom._valuation
-        digit_inv(self._inverse, element_get_coeff(denom._digits, 0), self.prime_pow)
+        digit_inv(self._inverse, element_get_digit(denom._digits, 0), self.prime_pow)
         cdef LazyElement_muldigit a = lazy_class_muldigit(self._parent, self, num)
         cdef LazyElement_muldigit b = lazy_class_muldigit(self._parent, self, denom)
         error = b._next_c()
@@ -720,8 +720,8 @@ cdef class LazyElement_div(LazyElement):
             if definition._valuation > val:
                 self._valuation = definition._valuation - self._denom._valuation
             else:
-                digit = element_get_coeff(definition._digits, self._precrel)
-                element_set_coeff(self._digits, digit, self._precrel)
+                digit = element_get_digit(definition._digits, self._precrel)
+                element_set_digit(self._digits, digit, self._precrel)
                 self._precrel += 1
         return 0
 
@@ -766,19 +766,19 @@ cdef class LazyElement_sqrt(LazyElement):
         cdef LazyElement u, y, c, d
 
         if p == 2:
-            element_set_coeff_ui(self._digits, 1, 0)
+            element_set_digit_ui(self._digits, 1, 0)
             self._precrel = 1
             if x._precrel == 1:
                 error = x._next_c()
                 if error:
                     return error
-            if not digit_equal_ui(element_get_coeff(x._digits, 1), 0):
+            if not digit_equal_ui(element_get_digit(x._digits, 1), 0):
                 return ERROR_NOTSQUARE
             if x._precrel == 2:
                 error = x._next_c()
                 if error:
                     return error
-            if not digit_equal_ui(element_get_coeff(x._digits, 2), 0):
+            if not digit_equal_ui(element_get_digit(x._digits, 2), 0):
                 return ERROR_NOTSQUARE
             zd = Integer(1)
             u = lazy_class_shift(parent, self, val + 2, True) 
@@ -788,10 +788,10 @@ cdef class LazyElement_sqrt(LazyElement):
             self._definition = y + c - d
         else:
             digit_init(digit)
-            if digit_sqrt(digit, element_get_coeff(x._digits, 0), self.prime_pow):
+            if digit_sqrt(digit, element_get_digit(x._digits, 0), self.prime_pow):
                 digit_clear(digit)
                 return ERROR_NOTSQUARE
-            element_set_coeff(self._digits, digit, 0)
+            element_set_digit(self._digits, digit, 0)
             self._precrel = 1
             zd = digit_get_sage(digit)
             u = lazy_class_shift(parent, self, val + 1, True)
@@ -814,7 +814,7 @@ cdef class LazyElement_sqrt(LazyElement):
             error = definition._jump_c(n+1)
             if error:
                 return error
-            element_set_coeff(self._digits, element_get_coeff(definition._digits, self._precrel), self._precrel)
+            element_set_digit(self._digits, element_get_digit(definition._digits, self._precrel), self._precrel)
             self._precrel += 1
         return 0
 
@@ -836,7 +836,7 @@ cdef class LazyElement_teichmuller(LazyElement):
             self._trivial = True
             self._valuation = maxordp
             return
-        element_set_coeff(self._digits, digit, 0)
+        element_set_digit(self._digits, digit, 0)
         self._trivial = digit_equal_ui(digit, 1)
         self._precrel += 1
 
@@ -874,7 +874,7 @@ cdef class LazyElement_teichmuller(LazyElement):
         cdef LazyElement_mul xn
         self._precrel += 1
         xp._next_c()
-        element_set_coeff(self._digits, element_get_coeff(xp._digits, self._precrel - 1), self._precrel - 1)
+        element_set_digit(self._digits, element_get_digit(xp._digits, self._precrel - 1), self._precrel - 1)
         for xn in self._xns:
             error = xn._update_last_digit()
             if error:
@@ -928,11 +928,11 @@ cdef class LazyElement_selfref(LazyElement):
             if diffval < 0:
                 self._valuation = definition._valuation
             else:
-                digit = element_get_coeff(definition._digits, self._precrel + diffval)
+                digit = element_get_digit(definition._digits, self._precrel + diffval)
                 if self._precrel == 0 and digit_is_zero(digit):
                     self._valuation += 1
                 else:
-                    element_set_coeff(self._digits, digit, self._precrel)
+                    element_set_digit(self._digits, digit, self._precrel)
                     self._precrel += 1
         self._next = False
         return error

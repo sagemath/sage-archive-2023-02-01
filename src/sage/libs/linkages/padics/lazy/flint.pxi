@@ -1,3 +1,13 @@
+# ****************************************************************************
+#       Copyright (C) 2021 Xavier Caruso <xavier.caruso@normalesup.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.libs.flint.types cimport flint_rand_t
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
@@ -24,7 +34,9 @@ from sage.ext.stdsage cimport PY_NEW
 cdef flint_rand_t flint_randstate 
 flint_randinit(flint_randstate)
 
+
 # Operations on digits (intended to be small elements in the exact subring)
+###########################################################################
 
 cdef inline void digit_init(cdigit a):
     fmpz_init(a)
@@ -32,28 +44,34 @@ cdef inline void digit_init(cdigit a):
 cdef inline void digit_clear(cdigit a):
     fmpz_clear(a)
 
+# get and set
+
+cdef inline Integer digit_get_sage(cdigit a):
+    cdef Integer elt = PY_NEW(Integer)
+    fmpz_get_mpz(elt.value, a)
+    return elt
+
 cdef inline void digit_set(cdigit a, cdigit b):
     fmpz_set(a, b)
 
 cdef inline void digit_set_ui(cdigit a, slong b):
     fmpz_set_ui(a, b)
 
+cdef inline void digit_set_sage(cdigit a, Integer elt):
+    fmpz_set_mpz(a, elt.value)
+
+# comparisons
+
 cdef inline bint digit_equal(cdigit a, cdigit b):
     return fmpz_equal(a, b)
-
-cdef inline bint digit_is_zero(cdigit a):
-    return fmpz_is_zero(a)
 
 cdef inline bint digit_equal_ui(cdigit a, slong b):
     return fmpz_equal_ui(a, b)
 
-cdef inline void digit_set_sage(cdigit a, Integer elt):
-    fmpz_set_mpz(a, elt.value)
+cdef inline bint digit_is_zero(cdigit a):
+    return fmpz_is_zero(a)
 
-cdef inline Integer digit_get_sage(cdigit a):
-    cdef Integer elt = PY_NEW(Integer)
-    fmpz_get_mpz(elt.value, a)
-    return elt
+# operations
 
 cdef inline void digit_random(cdigit res, PowComputer_class prime_pow):
     fmpz_randm(res, flint_randstate, (<PowComputer_flint>prime_pow).fprime)
@@ -93,6 +111,7 @@ cdef bint digit_sqrt(cdigit_ptr ans, cdigit_ptr x, PowComputer_class prime_pow):
 
 
 # Operations on elements (represented as series of digits)
+##########################################################
 
 cdef inline void element_init(celement x):
     fmpz_poly_init(x)
@@ -100,20 +119,7 @@ cdef inline void element_init(celement x):
 cdef inline void element_clear(celement x):
     fmpz_poly_clear(x)
 
-cdef inline void element_set(celement x, celement y):
-    fmpz_poly_set(x, y)
-
-cdef inline void element_set_coeff(celement x, cdigit a, slong i):
-    fmpz_poly_set_coeff_fmpz(x, i, a)
-
-cdef inline void element_set_coeff_ui(celement x, slong a, slong i):
-    fmpz_poly_set_coeff_ui(x, i, a)
-
-cdef inline void element_set_coeff_sage(celement x, Integer a, slong i):
-    fmpz_poly_set_coeff_mpz(x, i, a.value)
-
-cdef inline cdigit_ptr element_get_coeff(celement x, slong i):
-    return get_coeff(x, i)
+# get and set
 
 cdef inline Integer element_get_sage(celement x, PowComputer_class prime_pow):
     cdef fmpz_t value
@@ -123,16 +129,35 @@ cdef inline Integer element_get_sage(celement x, PowComputer_class prime_pow):
     fmpz_clear(value)
     return ans
 
-cdef inline Integer element_get_coeff_sage(celement x, slong i):
+cdef inline void element_set(celement x, celement y):
+    fmpz_poly_set(x, y)
+
+# get and set digits
+
+cdef inline cdigit_ptr element_get_digit(celement x, slong i):
+    return get_coeff(x, i)
+
+cdef inline Integer element_get_digit_sage(celement x, slong i):
     return digit_get_sage(get_coeff(x, i))
 
 cdef inline void element_get_slice(celement res, celement x, slong start, slong length):
     get_slice(res, x, start, length)
 
-cdef inline void element_iadd_coeff(celement x, cdigit a, slong i):
+cdef inline void element_set_digit(celement x, cdigit a, slong i):
+    fmpz_poly_set_coeff_fmpz(x, i, a)
+
+cdef inline void element_set_digit_ui(celement x, slong a, slong i):
+    fmpz_poly_set_coeff_ui(x, i, a)
+
+cdef inline void element_set_digit_sage(celement x, Integer a, slong i):
+    fmpz_poly_set_coeff_mpz(x, i, a.value)
+
+# operations
+
+cdef inline void element_iadd_digit(celement x, cdigit a, slong i):
     iadd_coeff(x, a, i)
 
-cdef inline void element_isub_coeff(celement x, cdigit a, slong i):
+cdef inline void element_isub_digit(celement x, cdigit a, slong i):
     isub_coeff(x, a, i)
 
 cdef inline void element_iadd_slice(celement x, celement slice, slong start):
@@ -147,7 +172,7 @@ cdef inline void element_scalarmul(celement res, celement x, cdigit a):
 cdef inline void element_mul(celement res, celement x, celement y):
     fmpz_poly_mul(res, x, y)
 
-cdef inline void element_reduce_coeff(celement x, slong i, PowComputer_class prime_pow):
+cdef inline void element_reduce_digit(celement x, slong i, PowComputer_class prime_pow):
     reduce_coeff(x, i, (<PowComputer_flint>prime_pow).fprime)
 
 cdef inline void element_shift_right(celement x):

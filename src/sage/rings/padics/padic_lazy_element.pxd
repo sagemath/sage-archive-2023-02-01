@@ -1,91 +1,48 @@
-from sage.libs.flint.types cimport slong
-from sage.libs.flint.types cimport flint_rand_t
 from sage.libs.flint.types cimport fmpz, fmpz_t, fmpz_poly_t
 
-from sage.rings.integer cimport Integer
-from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
-from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
+ctypedef fmpz_t cdigit
+ctypedef fmpz* cdigit_ptr
+ctypedef fmpz_poly_t celement
 
 
-
-cpdef lazy_sum(parent, summands)
-
-
-cdef class pAdicLazyElement(pAdicGenericElement):
-    cdef PowComputer_flint prime_pow
-
-    cdef fmpz_poly_t _digits
-    cdef slong _valuation
-    cdef slong _precrel
-
-    #cdef pAdicLazyElement _new_c(self, type cls)
-
-    cdef int _jump_c(self, slong prec)
-    cdef int _next_c(self)
-    cdef Integer _digit(self, slong i)
-
-    cdef bint _is_equal(self, pAdicLazyElement right, slong prec, bint permissive) except -1
+include "lazy_template_header.pxi"
 
 
-
-cdef class pAdicLazyElement_zero(pAdicLazyElement):
+cdef class pAdicLazyElement(LazyElement):
     pass
 
-cdef class pAdicLazyElement_one(pAdicLazyElement):
+cdef class pAdicLazyElement_zero(LazyElement_zero):
     pass
 
-cdef class pAdicLazyElement_value(pAdicLazyElement):
-    cdef slong _maxprec
-    cdef slong _shift
-    cdef bint _finished
-
-cdef class pAdicLazyElement_random(pAdicLazyElement):
+cdef class pAdicLazyElement_one(LazyElement_one):
     pass
 
+cdef class pAdicLazyElement_value(LazyElement_value):
+    pass
 
+cdef class pAdicLazyElement_random(LazyElement_random):
+    pass
 
-cdef class pAdicLazyElement_shift(pAdicLazyElement):
-    cdef pAdicLazyElement _x
-    cdef slong _shift
+cdef class pAdicLazyElement_shift(LazyElement_shift):
+    pass
 
-cdef class pAdicLazyElement_add(pAdicLazyElement):
-    cdef list _summands
-    cdef list _signs
+cdef class pAdicLazyElement_add(LazyElement_add):
+    pass
 
-cdef class pAdicLazyElement_mul(pAdicLazyElement):
-    cdef pAdicLazyElement _x
-    cdef fmpz_t _lastdigit_x
-    cdef pAdicLazyElement _y
-    cdef fmpz_t _lastdigit_y
-    cdef int _update_last_digit(self)
+cdef class pAdicLazyElement_mul(LazyElement_mul):
+    pass
 
-cdef class pAdicLazyElement_muldigit(pAdicLazyElement):
-    cdef fmpz* _x
-    cdef pAdicLazyElement _y
-    cdef void _erase_first_digit(self)
-    
-cdef class pAdicLazyElement_div(pAdicLazyElement):
-    cdef slong _maxprec
-    cdef fmpz_t _inverse
-    cdef pAdicLazyElement _num
-    cdef pAdicLazyElement _denom
-    cdef pAdicLazyElement _definition
-    cdef int _bootstrap_c(self)
+cdef class pAdicLazyElement_muldigit(LazyElement_muldigit):
+    pass
 
-cdef class pAdicLazyElement_sqrt(pAdicLazyElement):
-    cdef slong _maxprec
-    cdef pAdicLazyElement _x
-    cdef pAdicLazyElement _definition
-    cdef int _bootstrap_c(self)
+cdef class pAdicLazyElement_div(LazyElement_div):
+    pass
 
-cdef class pAdicLazyElement_teichmuller(pAdicLazyElement):
-    cdef bint _trivial
-    cdef list _xns
-    cdef pAdicLazyElement _xbar
-    cdef pAdicLazyElement _xp
+cdef class pAdicLazyElement_sqrt(LazyElement_sqrt):
+    pass
 
+cdef class pAdicLazyElement_teichmuller(LazyElement_teichmuller):
+    pass
 
-cdef class pAdicLazyElement_selfref(pAdicLazyElement):
-    cdef pAdicLazyElement _definition
-    cdef bint _next
-    cpdef set(self, pAdicLazyElement definition)
+cdef class pAdicLazyElement_selfref(LazyElement_selfref):
+    pass

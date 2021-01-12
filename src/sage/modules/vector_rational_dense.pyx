@@ -253,7 +253,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
 
     def __reduce__(self):
         return (unpickle_v1, (self._parent, self.list(), self._degree,
-                              self._is_immutable))
+                              not self._is_immutable))
 
     cpdef _add_(self, right):
         cdef Vector_rational_dense z, r
@@ -374,7 +374,7 @@ def unpickle_v0(parent, entries, degree):
         mpq_set(v._entries[i], z.value)
     return v
 
-def unpickle_v1(parent, entries, degree, is_immutable):
+def unpickle_v1(parent, entries, degree, is_mutable):
     cdef Vector_rational_dense v
     v = Vector_rational_dense.__new__(Vector_rational_dense)
     v._init(degree, parent)
@@ -383,5 +383,5 @@ def unpickle_v1(parent, entries, degree, is_immutable):
     for i in range(degree):
         z = Rational(entries[i])
         mpq_set(v._entries[i], z.value)
-    v._is_immutable = is_immutable
+    v._is_immutable = not is_mutable
     return v

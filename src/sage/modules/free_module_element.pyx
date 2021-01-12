@@ -3967,15 +3967,15 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
 
 
 @cython.binding(True)
-def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_immutable):
+def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
 
-        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_dense_v1(QQ^3, [1,2,-3/7], 3, False); v
+        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_dense_v1(QQ^3, [1,2,-3/7], 3, True); v
         (1, 2, -3/7)
         sage: v[0] = 10; v
         (10, 2, -3/7)
-        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_dense_v1(QQ^3, [1,2,-3/7], 3, True); v
+        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_dense_v1(QQ^3, [1,2,-3/7], 3, False); v
         (1, 2, -3/7)
         sage: v[0] = 10
         Traceback (most recent call last):
@@ -3991,7 +3991,7 @@ def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_immutabl
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_immutable = is_immutable
+    v._is_immutable = not is_mutable
     return v
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
@@ -4255,11 +4255,10 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: v.__reduce__()
-            (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>,
-             (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, False))
+            (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
         """
         return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries,
-                                                          self._degree, self._is_immutable))
+                                                          self._degree, not self._is_immutable))
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -4419,14 +4418,12 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
 
 
 @cython.binding(True)
-def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_immutable):
+def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
     """
     EXAMPLES::
 
-        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_sparse_v1(QQ^3, {2:5/2}, 3, True); v
+        sage: v = sage.modules.free_module_element.make_FreeModuleElement_generic_sparse_v1(QQ^3, {2:5/2}, 3, False); v
         (0, 0, 5/2)
-        sage: v.is_immutable()
-        True
         sage: v.is_mutable()
         False
     """
@@ -4435,7 +4432,7 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_immutab
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_immutable = is_immutable
+    v._is_immutable = not is_mutable
     return v
 
 
@@ -4818,11 +4815,10 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
             sage: v = vector([1,2/3,pi], sparse=True)
             sage: v.__reduce__()
-            (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>,
-             (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, False))
+            (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
         """
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries,
-                                                           self._degree, self._is_immutable))
+                                                           self._degree, not self._is_immutable))
 
     @cython.cdivision(True)
     def __getitem__(self, i):

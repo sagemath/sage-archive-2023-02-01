@@ -10136,7 +10136,7 @@ cdef class Matrix(Matrix1):
             hip = v.hermitian_inner_product(v)
             if hip != 0:
                 try:
-                    scale = sqrt(hip, extend=False)
+                    scale = sqrt(hip)
                     q = (1/scale)*v
                     Q.append(q)
                     R[row,i] = scale
@@ -10144,7 +10144,7 @@ cdef class Matrix(Matrix1):
                         R[row,j] = q.hermitian_inner_product(V[j])
                         V[j] = V[j] - R[row,j]*q
                     row = row + 1
-                except (ValueError, TypeError, ArithmeticError):
+                except TypeError:
                     raise TypeError('QR decomposition unable to compute square roots in %s' % F)
         # complete to full orthonormal basis, or reduce to truncated R
         if full:

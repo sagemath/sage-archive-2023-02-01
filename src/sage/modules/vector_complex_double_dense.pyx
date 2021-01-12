@@ -80,7 +80,7 @@ cdef class Vector_complex_double_dense(Vector_double_dense):
             True
         """
         return (unpickle_v1, (self._parent, self.list(), self._degree,
-                              not self._is_mutable))
+                              not self._is_immutable))
 
 
 # For backwards compatibility, we must keep the function unpickle_v0

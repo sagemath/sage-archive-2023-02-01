@@ -165,7 +165,7 @@ cdef inline bint is_not_maximal_fused(face_list_t faces, size_t j, algorithm_var
     cdef size_t i
     if algorithm_variant is standard:
         for i in range(j):
-            if (not is_not_new_face[j]) and face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
+            if (not is_not_new_face[i]) and face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
                 # It suffices to check those faces, that are maximal.
                 # This way, if multiple identical faces are maximal,
                 # exactly the last one is considered maximal.

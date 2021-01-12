@@ -777,10 +777,11 @@ cdef class FaceIterator(FaceIterator_base):
                 # Any facet in ``maybe_new_faces`` of ``one_face``
                 # is inclusion maximal.
                 maybe_new_faces2 = []
-                for face1 in maybe_new_faces:
+                for i, face1 in enumerate(maybe_new_faces):
                     # ``face1`` is a facet of ``one_face``,
                     # iff it is not contained in another facet.
-                    if all(not face1 < face2 for face2 in maybe_new_faces):
+                    if (all(not face1 < face2 for face2 in maybe_new_faces[:i])
+                            and all(not face1 <= face2 for face2 in maybe_new_faces[i+1:])):
                         maybe_new_faces2.append(face1)
 
                 # ``maybe_new_faces2`` contains only facets of ``one_face``

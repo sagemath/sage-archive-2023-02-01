@@ -1004,8 +1004,10 @@ class Braid(FiniteTypeArtinGroupElement):
 
         The states are collected in a dictionary, where the dictionary
         keys are tuples of quantum and annular grading.
-        Each dictionary value is a list of enhanced states with the
-        corresponding quantum and annular grading.
+        Each dictionary value is itself a dictionary with the
+        dictionary keys being the homological grading, and the values
+        a list of enhanced states with the corresponding homology,
+        quantum and annular grading.
 
         Each enhanced state is represented as a tuple containing:
 
@@ -1024,51 +1026,41 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: b = B([1,1])
             sage: b._enhanced_states()
             {(0,
-              0,
-              -2): [((0, 0),
-               {(frozenset({(0, 1), (1, 1)}), 1), (frozenset({(0, 3), (1, 3)}), 1)},
-               set())],
-             (0,
-              2,
-              0): [((0, 0),
-               {(frozenset({(0, 3), (1, 3)}), 1)},
-               {(frozenset({(0, 1), (1, 1)}), 1)}), ((0, 0),
-               {(frozenset({(0, 1), (1, 1)}), 1)},
-               {(frozenset({(0, 3), (1, 3)}), 1)})],
-             (0,
-              4,
-              2): [((0, 0),
-               set(),
-               {(frozenset({(0, 1), (1, 1)}), 1), (frozenset({(0, 3), (1, 3)}), 1)})],
-             (1,
-              2,
-              0): [((1, 0),
-               {(frozenset({(0, 0), (0, 2), (1, 1), (1, 3)}), 0)},
-               set()), ((0,
-                1), {(frozenset({(0, 1), (0, 3), (1, 0), (1, 2)}), 0)}, set())],
-             (1,
-              4,
-              0): [((1, 0),
-               set(),
-               {(frozenset({(0, 0), (0, 2), (1, 1), (1, 3)}), 0)}), ((0,
-                1), set(), {(frozenset({(0, 1), (0, 3), (1, 0), (1, 2)}), 0)})],
+              -2): {0: [((0, 0),
+                {(frozenset({(0, 1), (1, 1)}), 1), (frozenset({(0, 3), (1, 3)}), 1)},
+                set())]},
              (2,
-              2,
-              0): [((1, 1),
-               {(frozenset({(0, 2), (1, 0)}), 0), (frozenset({(0, 0), (1, 2)}), 0)},
-               set())],
-             (2,
-              4,
-              0): [((1, 1),
-               {(frozenset({(0, 2), (1, 0)}), 0)},
-               {(frozenset({(0, 0), (1, 2)}), 0)}), ((1, 1),
-               {(frozenset({(0, 0), (1, 2)}), 0)},
-               {(frozenset({(0, 2), (1, 0)}), 0)})],
-             (2,
-              6,
-              0): [((1, 1),
-               set(),
-               {(frozenset({(0, 2), (1, 0)}), 0), (frozenset({(0, 0), (1, 2)}), 0)})]}
+              0): {0: [((0, 0),
+                {(frozenset({(0, 3), (1, 3)}), 1)},
+                {(frozenset({(0, 1), (1, 1)}), 1)}),
+               ((0, 0),
+                {(frozenset({(0, 1), (1, 1)}), 1)},
+                {(frozenset({(0, 3), (1, 3)}), 1)})], 1: [((1, 0),
+                {(frozenset({(0, 0), (0, 2), (1, 1), (1, 3)}), 0)},
+                set()),
+               ((0, 1),
+                {(frozenset({(0, 1), (0, 3), (1, 0), (1, 2)}), 0)},
+                set())], 2: [((1, 1), {(frozenset({(0, 2), (1, 0)}), 0),
+                 (frozenset({(0, 0), (1, 2)}), 0)}, set())]},
+             (4,
+              0): {1: [((1, 0), set(), {(frozenset({(0, 0), (0, 2), (1, 1), (1, 3)}), 0)}),
+               ((0, 1),
+                set(),
+                {(frozenset({(0, 1), (0, 3), (1, 0), (1, 2)}), 0)})], 2: [((1,
+                 1), {(frozenset({(0, 2), (1, 0)}), 0)}, {(frozenset({(0, 0), (1, 2)}),
+                  0)}),
+               ((1, 1),
+                {(frozenset({(0, 0), (1, 2)}), 0)},
+                {(frozenset({(0, 2), (1, 0)}), 0)})]},
+             (4,
+              2): {0: [((0, 0),
+                set(),
+                {(frozenset({(0, 1), (1, 1)}), 1), (frozenset({(0, 3), (1, 3)}), 1)})]},
+             (6,
+              0): {2: [((1, 1),
+                set(),
+                {(frozenset({(0, 2), (1, 0)}), 0), (frozenset({(0, 0), (1, 2)}), 0)})]}}
+
         """
         from sage.graphs.graph import Graph
         from sage.functions.generalized import sgn
@@ -1163,8 +1155,8 @@ class Braid(FiniteTypeArtinGroupElement):
             for m in range(2 ** len(sm[1])):
                 m = [2*x-1 for x in Integer(m).bits()]
                 m = m + [-1]*(len(sm[1]) - len(m))
-                qgrad = writhe + iindex + sum(m)
-                agrad = sum([x for i,x in enumerate(m) if sm[1][i][1] == 1])
+                qagrad = (writhe + iindex + sum(m),
+                        sum([x for i,x in enumerate(m) if sm[1][i][1] == 1]))
                 circpos = set()
                 circneg = set()
                 for i, x in enumerate(m):
@@ -1172,139 +1164,186 @@ class Braid(FiniteTypeArtinGroupElement):
                         circpos.add(sm[1][i])
                     else:
                         circneg.add(sm[1][i])
-                grading = (iindex,qgrad,agrad)
-                if grading in states:
-                    states[grading].append((sm[0], circneg, circpos))
+
+                if qagrad in states:
+                    if iindex in states[qagrad]:
+                        states[qagrad][iindex].append((sm[0], circneg, circpos))
+                    else:
+                        states[qagrad][iindex] = [(sm[0], circneg, circpos)]
                 else:
-                    states[grading] = [(sm[0], circneg, circpos)]
+                    states[qagrad] = {iindex: [(sm[0], circneg, circpos)]}
         return states
 
     @cached_method
-    def _annular_khovanov_homology_cached(self, qgrad, agrad, ring=IntegerRing()):
+    def _annular_khovanov_complex_cached(self, qagrad, ring=IntegerRing()):
         r"""
-        Return the annular Khovanov homology of the braid.
+        Return the annular Khovanov complex of the braid.
 
         INPUT:
 
-        - ``qgrad`` -- the quantum grading of the homology to compute
-        - ``agrad`` -- the annular grading of the homology to compute
+        - ``qagrad`` -- a tuple of the quantum and annular grading to compute
+
         - ``ring`` -- (default: ``ZZ``) the coefficient ring
 
         OUTPUT:
 
-        The annular Khovanov homology of the braid in the given grading.
-        It is given as a dictionary in the homology degree.
+        The annular Khovanov complex of the braid in the given grading.
 
         .. NOTE::
 
             This method is intended only as the cache for
-            :meth:`annular_khovanov_homology`.
+            :meth:`annular_khovanov_complex`.
 
         EXAMPLES::
 
             sage: B = BraidGroup(3)
-            sage: B([1,2,1,2])._annular_khovanov_homology_cached(5,-1)
+            sage: B([1,2,1,2])._annular_khovanov_complex_cached((5,-1)).homology()
             {1: Z, 2: Z, 3: 0}
 
 
         """
         from sage.homology.chain_complex import ChainComplex
-        bases = self._enhanced_states()
-        complexes = {}
-        for i, j, k in bases:
-            if (j, k) == (qgrad, agrad):
-                if (i+1,j,k) in bases:
-                    m = matrix(ring, len(bases[i,j,k]), len(bases[i+1,j,k]))
-                    for ii in range(m.nrows()):
-                        source = bases[i,j,k][ii]
-                        for jj in range(m.ncols()):
-                            target = bases[i+1,j,k][jj]
-                            difs = [index for index, value in enumerate(source[0]) if value != target[0][index]]
-                            if len(difs) == 1 and not (target[2].intersection(source[1]) or target[1].intersection(source[2])):
-                                m[ii,jj] = (-1)**sum(target[0][:difs[0]])
-                else:
-                    m = matrix(ring, len(bases[i,j,k]), 0)
-                complexes[i] = m.transpose()
-        return ChainComplex(complexes).homology()
+        states = self._enhanced_states()
+        if qagrad in states:
+            bases = states[qagrad]
+        else:
+            # return trivial chain complexx
+            return ChainComplex()
+        C_differentials = {}
+        for i in bases:
+            if i+1 in bases:
+                m = matrix(ring, len(bases[i+1]), len(bases[i]), sparse=True)
+                for ii in range(m.nrows()):
+                    source = bases[i+1][ii]
+                    for jj in range(m.ncols()):
+                        target = bases[i][jj]
+                        difs = [index for index, value in enumerate(source[0]) if value != target[0][index]]
+                        if len(difs) == 1 and not (target[2].intersection(source[1]) or target[1].intersection(source[2])):
+                            m[ii,jj] = (-1)**sum(target[0][:difs[0]])
+            else:
+                m = matrix(ring, 0, len(bases[i]), sparse=True)
+            C_differentials[i] = m
+        return ChainComplex(C_differentials)
 
-    def annular_khovanov_homology(self, ring=IntegerRing(), qgrad=None, agrad=None, poincare_polynomial=False):
+    def annular_khovanov_complex(self, qagrad=None, ring=IntegerRing()):
         r"""
-        Return the annular Khovanov homology of the braid, as defined in
-        [BG2013]_
+        Return the annular Khovanov complex of the closure of a braid,
+        as defined in [BG2013]_
 
 
         INPUT:
 
+        - ``qagrad`` -- tuple of quantum and annular grading for which to compute
+          the chain complex. If not specified all gradings are computed.
+
         - ``ring`` -- (default: ``ZZ``) the coefficient ring.
-
-        - ``qgrad`` -- the quantum grading of the homology to compute
-          if not specified all quantum gradings are computed
-
-        - ``agrad`` - the annular grading of the homology to compute
-          if not specified all annular gradings are computed
-
-        - ``poincare_polynomial`` - If this is true, return the poincare polynomial
-          of the homology instead. This forces the coefficient ring to be set to QQ.
 
         OUTPUT:
 
-        The annular Khovanov homology of the braid, given as a dictionary whose 
-        keys are the different gradings. For each grading, the homology is given
-        as another dictionary whose keys are the homology degrees.
-
-        If ``poincare_polynomial`` is true, returns a Poincaré polynomial in the 
-        Laurent polynomial ring in a,q,t where the variables represent the annular,
-        quantum and homological grading respectively.
+        The annular Khovanov complex of the braid, given as a dictionary whose
+        keys are tuples of quantum and annular grading.
+        If ``qagrad`` is specified only return the chain complex of that grading.
 
         EXAMPLES::
 
             sage: B=BraidGroup(3)
             sage: b=B([1,-2,1,-2])
-            sage: b.annular_khovanov_homology()
-            {(-5, -1): {-2: Z},
-             (-3, -3): {0: Z},
-             (-3, -1): {-2: 0, -1: Z x Z},
-             (-3, 1): {-2: Z},
-             (-1, -1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
-             (-1, 1): {-2: 0, -1: Z x Z},
-             (1, -1): {1: Z x Z, 2: 0},
-             (1, 1): {-2: 0, -1: 0, 0: Z x Z, 1: 0, 2: 0},
-             (3, -1): {2: Z},
-             (3, 1): {1: Z x Z, 2: 0},
-             (3, 3): {0: Z},
-             (5, 1): {2: Z}}
+            sage: C=b.annular_khovanov_complex()
+            sage: C
+            {(-5, -1): Trivial chain complex over Integer Ring,
+             (-3, -3): Trivial chain complex over Integer Ring,
+             (-3, -1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (-3, 1): Trivial chain complex over Integer Ring,
+             (-1, -1): Chain complex with at most 5 nonzero terms over Integer Ring,
+             (-1, 1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (1, -1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (1, 1): Chain complex with at most 5 nonzero terms over Integer Ring,
+             (3, -1): Trivial chain complex over Integer Ring,
+             (3, 1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (3, 3): Trivial chain complex over Integer Ring,
+             (5, 1): Trivial chain complex over Integer Ring}
+            sage: C[1,-1].homology()
+            {1: Z x Z, 2: 0}
 
         TESTS::
 
-            sage: BraidGroup(2)([]).annular_khovanov_homology()
+            sage: C=BraidGroup(2)([]).annular_khovanov_complex()
+            sage: {qa: C[qa].homology() for qa in C}
             {(-2, -2): {0: Z}, (0, 0): {0: Z x Z}, (2, 2): {0: Z}}
 
-            sage: BraidGroup(3)([-1]).annular_khovanov_homology(ZZ,-4,-1)
-            {(-4, -1): {-1: Z}}
+            sage: BraidGroup(3)([-1]).annular_khovanov_complex((0,1), ZZ).differential()
+            {-1: [0]
+             [1]
+             [1],
+             0: [],
+             -2: []}
 
         """
-        from sage.rings.rational_field import QQ
-        if qgrad is None and agrad is None:
-            gradings = {(j,k) for i,j,k in self._enhanced_states()}
-        elif qgrad is None:
-            gradings = {(j,k) for i,j,k in self._enhanced_states() if j == qgrad}
-        elif agrad is None:
-            gradings = {(j,k) for i,j,k in self._enhanced_states() if k == agrad}
+        if qagrad is None:
+            return {qa: self._annular_khovanov_complex_cached(qa,ring) for qa in self._enhanced_states()}
         else:
-            gradings = {(qgrad,agrad)}
-        if poincare_polynomial:
-            ring=QQ
-        homologies = {(q,a): self._annular_khovanov_homology_cached(q,a,ring) for q,a in gradings}
-        if poincare_polynomial:
-            R = LaurentPolynomialRing(IntegerRing(),'a,q,t', order='lex')
-            a,q,t = R.gens()
-            polynomial = 0
-            for (j,k),hom in homologies.items():
-                for i,V in hom.items():
-                    polynomial+= V.dimension() * t**i * q**j * a**k
-            return polynomial
+           return self._annular_khovanov_complex_cached(qagrad,ring)
+
+    def annular_khovanov_homology(self, qagrad=None, ring=IntegerRing()):
+        """r
+        Return the annular Khovanov homology of a closure of a braid.
+
+        INPUT:
+
+        - ``qagrad`` -- tuple of quantum and annular grading for which to
+          compute the homology. If this is ``None`` (default), then
+          compute for all gradings.
+
+        - ``ring`` -- (default: ``ZZ``) the coefficient ring.
+
+        OUTPUT:
+
+        If ``qagrad`` is ``None``, return a dictionary of homogies in all
+        gradings indexed by grading. If qagrad is specified, return homology
+        of that grading.
+
+        .. NOTE::
+            This is a simple wrapper around :meth:`annular_khovanov_complex`
+            to compute homology from it.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1,3,-2])
+            sage: b.annular_khovanov_homology()
+            {(-3, -4): {0: Z},
+             (-3, -2): {-1: Z},
+             (-1, -2): {-1: 0, 0: Z x Z x Z, 1: 0},
+             (-1, 0): {-1: Z x Z},
+             (1, -2): {1: Z x Z},
+             (1, 0): {-1: 0, 0: Z x Z x Z x Z, 1: 0, 2: 0},
+             (1, 2): {-1: Z},
+             (3, 0): {1: Z x Z x Z, 2: 0},
+             (3, 2): {-1: 0, 0: Z x Z x Z, 1: 0},
+             (5, 0): {2: Z},
+             (5, 2): {1: Z x Z},
+             (5, 4): {0: Z}}
+
+            sage: B = BraidGroup(2)
+            sage: b = B([1,1,1])
+            sage: b.annular_khovanov_homology((7,0))
+            {2: 0, 3: C2}
+
+        TESTS::
+
+            sage: b = BraidGroup(4)([1,-3])
+            sage: b.annular_khovanov_homology((-4,-2))
+            {-1: Z}
+            sage: b.annular_khovanov_homology((0,2))
+            {-1: Z}
+
+        """
+        if qagrad is None:
+            C = self.annular_khovanov_complex(qagrad, ring)
+            return {qa: C[qa].homology() for qa in C}
         else:
-            return homologies
+            return self.annular_khovanov_complex(qagrad, ring).homology()
+
 
     def _left_normal_form_coxeter(self):
         r"""

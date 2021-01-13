@@ -79,7 +79,7 @@ SAGE_SPKG_CONFIGURE([python3], [
             dnl Trac #31228
             AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C compiler configured for building extensions for $PYTHON_FOR_VENV])
             SAGE_PYTHON_DISTUTILS_C_CONFTEST
-            AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+            AS_IF([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
                 AC_MSG_RESULT([yes])
             ], [
                 AC_MSG_RESULT([no, disabling use of "$CFLAGS_MARCH"])
@@ -89,7 +89,7 @@ SAGE_SPKG_CONFIGURE([python3], [
         AS_IF([test -n "$CFLAGS_MARCH"], [
             AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C++ compiler configured for building extensions for $PYTHON_FOR_VENV])
             SAGE_PYTHON_DISTUTILS_CXX_CONFTEST
-            AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+            AS_IF([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
                 AC_MSG_RESULT([yes])
             ], [
                 AC_MSG_RESULT([no, disabling use of "$CFLAGS_MARCH"])

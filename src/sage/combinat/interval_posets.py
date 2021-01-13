@@ -1459,7 +1459,7 @@ class TamariIntervalPoset(Element,
         return richcmp((self.size(), self.cubical_coordinates()),
                        (other.size(), other.cubical_coordinates()), op)
 
-    def __iter__(self) -> Iterator[int]:
+    def __iter__(self) -> Iterator:
         r"""
         Iterate through the vertices of ``self``.
 
@@ -2034,7 +2034,7 @@ class TamariIntervalPoset(Element,
             add(perm, i)
         return Permutation(perm)
 
-    def linear_extensions(self) -> Iterator[Permutation]:
+    def linear_extensions(self) -> Iterator:
         r"""
         Return an iterator on the permutations which are linear
         extensions of ``self``.
@@ -2056,7 +2056,7 @@ class TamariIntervalPoset(Element,
         for ext in self._poset.linear_extensions():
             yield Permutation(ext)
 
-    def lower_contained_intervals(self) -> Iterator[TIP]:
+    def lower_contained_intervals(self) -> Iterator:
         r"""
         If ``self`` represents the interval `[t_1, t_2]` of the Tamari
         lattice, return an iterator on all intervals `[t_1,t]` with
@@ -2203,7 +2203,7 @@ class TamariIntervalPoset(Element,
         for ip in self.lower_contained_intervals():
             yield ip.upper_dyck_word()
 
-    def maximal_chain_tamari_intervals(self) -> Iterator[TIP]:
+    def maximal_chain_tamari_intervals(self) -> Iterator:
         r"""
         Return an iterator on the upper contained intervals of one
         longest chain of the Tamari interval represented by ``self``.
@@ -2350,7 +2350,7 @@ class TamariIntervalPoset(Element,
         """
         return list(self.tamari_inversions_iter())
 
-    def tamari_inversions_iter(self) -> Iterator[Tuple[int, int]]:
+    def tamari_inversions_iter(self) -> Iterator:
         r"""
         Iterate over the Tamari inversions of ``self``, in
         lexicographic order.
@@ -3685,7 +3685,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         return (2 * binomial(4 * n + 1, n - 1)) // (n * (n + 1))
         # return Integer(2 * factorial(4*n+1)/(factorial(n+1)*factorial(3*n+2)))
 
-    def __iter__(self) -> Iterator[TIP]:
+    def __iter__(self) -> Iterator:
         r"""
         Recursive generation: we iterate through all interval-posets of
         size ``size - 1`` and add all possible relations to the last

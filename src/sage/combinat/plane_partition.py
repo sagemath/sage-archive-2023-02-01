@@ -7,7 +7,7 @@ AUTHORS:
 - Jang Soo Kim (2016): Initial implementation
 - Jessica Striker (2016): Added additional methods
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Jang Soo Kim <jangsookim@skku.edu>,
 #                     2016 Jessica Striker <jessicapalencia@gmail.com>
 #
@@ -20,8 +20,9 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from typing import NewType, Iterator, Tuple
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -32,6 +33,9 @@ from sage.combinat.posets.posets import Poset
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.combinat.tableau import Tableau
+
+
+PP = NewType('PP', 'PlanePartition')
 
 
 class PlanePartition(ClonableArray,
@@ -115,7 +119,7 @@ class PlanePartition(ClonableArray,
         if self[0][0] > self.parent()._box[2]:
             raise ValueError("too big in x direction")
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         Return a string representation of ``self``.
 
@@ -126,7 +130,7 @@ class PlanePartition(ClonableArray,
         """
         return "Plane partition {}".format(list(self))
 
-    def to_tableau(self):
+    def to_tableau(self) -> Tableau:
         r"""
         Return the tableau class of ``self``.
 
@@ -183,7 +187,7 @@ class PlanePartition(ClonableArray,
             X[C[1]][C[2]] += 1
         return X
 
-    def cells(self):
+    def cells(self) -> list:
         r"""
         Return the list of cells inside ``self``.
 
@@ -197,10 +201,10 @@ class PlanePartition(ClonableArray,
         for r in range(len(self)):
             for c in range(len(self[r])):
                 for h in range(self[r][c]):
-                    L.append([r,c,h])
+                    L.append([r, c, h])
         return L
 
-    def _repr_diagram(self, show_box=False, use_unicode=False):
+    def _repr_diagram(self, show_box=False, use_unicode=False) -> str:
         r"""
         Return a string of the 3D diagram of ``self``.
 
@@ -257,10 +261,10 @@ class PlanePartition(ClonableArray,
         def add_topside(i, j, k):
             X = z + j - k
             Y = 2 * x - 2 * i + j + k
-            superpose(X, Y-2, hori)
-            superpose(X, Y-1, hori)
-            superpose(X + 1, Y-2, down)
-            superpose(X + 1, Y-1, hori)
+            superpose(X, Y - 2, hori)
+            superpose(X, Y - 1, hori)
+            superpose(X + 1, Y - 2, down)
+            superpose(X + 1, Y - 1, hori)
             superpose(X + 1, Y, down)
 
         def add_rightside(i, j, k):
@@ -392,7 +396,8 @@ class PlanePartition(ClonableArray,
         """
         print(self._repr_diagram(show_box))
 
-    def _latex_(self, show_box=False, colors=["white","lightgray","darkgray"]):
+    def _latex_(self, show_box=False,
+                colors=["white", "lightgray", "darkgray"]) -> str:
         r"""
         Return latex code for ``self``, which uses TikZ package to draw
         the plane partition.
@@ -427,13 +432,13 @@ class PlanePartition(ClonableArray,
 
         ret = "\\begin{tikzpicture}\n"
 
-        def add_topside(i,j,k):
+        def add_topside(i, j, k):
             return "\\draw[fill={},shift={{(210:{})}},shift={{(-30:{})}},shift={{(90:{})}}]\n(0,0)--(-30:1)--(0,-1)--(210:1)--(0,0);\n".format(colors[0],i,j,k)
 
-        def add_leftside(j,k,i):
+        def add_leftside(j, k, i):
             return "\\draw[fill={},shift={{(210:{})}},shift={{(-30:{})}},shift={{(90:{})}}]\n(0,0)--(0,1)--(30:1)--(-30:1)--(0,0);\n".format(colors[1],i,j,k)
 
-        def add_rightside(k,i,j):
+        def add_rightside(k, i, j):
             return "\\draw[fill={},shift={{(210:{})}},shift={{(-30:{})}},shift={{(90:{})}}]\n(0,0)--(210:1)--(150:1)--(0,1)--(0,0);\n".format(colors[2],i,j,k)
         funcs = [add_topside, add_rightside, add_leftside]
         tableaux = [self.z_tableau(), self.y_tableau(), self.x_tableau()]
@@ -446,7 +451,7 @@ class PlanePartition(ClonableArray,
                         ret += f(r, c, tab[r][c])
         return ret + "\\end{tikzpicture}"
 
-    def plot(self, show_box=False, colors=["white","lightgray","darkgray"]):
+    def plot(self, show_box=False, colors=["white", "lightgray", "darkgray"]):
         r"""
         Return a plot of ``self``.
 
@@ -468,11 +473,14 @@ class PlanePartition(ClonableArray,
         from sage.plot.polygon import polygon
         from sage.symbolic.constants import pi
         from sage.plot.plot import plot
-        Uside = [[0,0], [cos(-pi/6),sin(-pi/6)], [0,-1], [cos(7*pi/6),sin(7*pi/6)]]
-        Lside = [[0,0], [cos(-pi/6),sin(-pi/6)], [cos(pi/6),sin(pi/6)], [0,1]]
-        Rside = [[0,0], [0,1], [cos(5*pi/6),sin(5*pi/6)], [cos(7*pi/6),sin(7*pi/6)]]
-        Xdir = [cos(7*pi/6), sin(7*pi/6)]
-        Ydir = [cos(-pi/6), sin(-pi/6)]
+        Uside = [[0, 0], [cos(-pi / 6), sin(-pi / 6)],
+                 [0, -1], [cos(7 * pi / 6), sin(7 * pi / 6)]]
+        Lside = [[0, 0], [cos(-pi / 6), sin(-pi / 6)],
+                 [cos(pi / 6), sin(pi / 6)], [0, 1]]
+        Rside = [[0, 0], [0, 1], [cos(5 * pi / 6), sin(5 * pi / 6)],
+                 [cos(7 * pi / 6), sin(7 * pi / 6)]]
+        Xdir = [cos(7 * pi / 6), sin(7 * pi / 6)]
+        Ydir = [cos(-pi / 6), sin(-pi / 6)]
         Zdir = [0, 1]
 
         def move(side, i, j, k):
@@ -482,8 +490,10 @@ class PlanePartition(ClonableArray,
 
         def add_topside(i, j, k):
             return polygon(move(Uside,i,j,k), edgecolor="black", color=colors[0])
+
         def add_leftside(i, j, k):
             return polygon(move(Lside,i,j,k), edgecolor="black", color=colors[1])
+
         def add_rightside(i, j, k):
             return polygon(move(Rside,i,j,k), edgecolor="black", color=colors[2])
         TP = plot([])
@@ -549,7 +559,7 @@ class PlanePartition(ClonableArray,
         else:
             return type(self)(self.parent(), T, check=False)
 
-    def is_SPP(self):
+    def is_SPP(self) -> bool:
         r"""
         Return whether ``self`` is a symmetric plane partition.
 
@@ -576,22 +586,20 @@ class PlanePartition(ClonableArray,
             sage: PP = PlanePartition([[3,2],[2,0],[0,0]])
             sage: PP.is_SPP()
             True
-
-
         """
         Z = self.z_tableau()
         c1 = len(Z)
         c2 = len(Z[0])
         size = max(c1, c2)
-        T = [[0 for i in range(0,size)] for j in range(0,size)]
-        for i in range(0,c1):
-            for j in range(0,c2):
-                T[i][j]=Z[i][j]
+        T = [[0 for i in range(size)] for j in range(size)]
+        for i in range(c1):
+            for j in range(c2):
+                T[i][j] = Z[i][j]
         return all(T[r][c] == T[c][r]
-            for r in range(0,size)
+            for r in range(size)
             for c in range(r, size))
 
-    def is_CSPP(self):
+    def is_CSPP(self) -> bool:
         r"""
         Return whether ``self`` is a cyclically symmetric plane partition.
 
@@ -611,7 +619,7 @@ class PlanePartition(ClonableArray,
             return True
         return False
 
-    def is_TSPP(self):
+    def is_TSPP(self) -> bool:
         r"""
         Return whether ``self`` is a totally symmetric plane partition.
 
@@ -629,7 +637,7 @@ class PlanePartition(ClonableArray,
         """
         return self.is_CSPP() and self.is_SPP()
 
-    def is_SCPP(self):
+    def is_SCPP(self) -> bool:
         r"""
         Return whether ``self`` is a self-complementary plane partition.
 
@@ -644,7 +652,7 @@ class PlanePartition(ClonableArray,
         """
         return self.z_tableau() == self.complement(True)
 
-    def is_TCPP(self):
+    def is_TCPP(self) -> bool:
         r"""
         Return whether ``self`` is a transpose-complementary plane partition.
 
@@ -659,7 +667,7 @@ class PlanePartition(ClonableArray,
         """
         return self.transpose(True) == self.complement(True)
 
-    def is_SSCPP(self):
+    def is_SSCPP(self) -> bool:
         r"""
         Return whether ``self`` is a symmetric, self-complementary
         plane partition.
@@ -684,7 +692,7 @@ class PlanePartition(ClonableArray,
         """
         return self.is_SPP() and self.is_SCPP()
 
-    def is_CSTCPP(self):
+    def is_CSTCPP(self) -> bool:
         r"""
         Return whether ``self`` is a cyclically symmetric and
         transpose-complementary plane partition.
@@ -700,7 +708,7 @@ class PlanePartition(ClonableArray,
         """
         return self.is_CSPP() and self.is_TCPP()
 
-    def is_CSSCPP(self):
+    def is_CSSCPP(self) -> bool:
         r"""
         Return whether ``self`` is a cyclically symmetric and
         self-complementary plane partition.
@@ -716,7 +724,7 @@ class PlanePartition(ClonableArray,
         """
         return self.is_CSPP() and self.is_SCPP()
 
-    def is_TSSCPP(self):
+    def is_TSSCPP(self) -> bool:
         r"""
         Return whether ``self`` is a totally symmetric self-complementary
         plane partition.
@@ -731,6 +739,7 @@ class PlanePartition(ClonableArray,
             True
         """
         return self.is_TSPP() and self.is_SCPP()
+
 
 class PlanePartitions(UniqueRepresentation, Parent):
     r"""
@@ -784,7 +793,7 @@ class PlanePartitions(UniqueRepresentation, Parent):
         self._box = box_size
         Parent.__init__(self, category=FiniteEnumeratedSets())
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         Return a string representation of ``self``.
 
@@ -794,9 +803,9 @@ class PlanePartitions(UniqueRepresentation, Parent):
             Plane partitions inside a 4 x 3 x 2 box
         """
         return "Plane partitions inside a {} x {} x {} box".format(
-                    self._box[0], self._box[1], self._box[2])
+            self._box[0], self._box[1], self._box[2])
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         Iterate over ``self``.
 
@@ -811,14 +820,14 @@ class PlanePartitions(UniqueRepresentation, Parent):
         B = self._box[1]
         C = self._box[2]
         from sage.combinat.tableau import SemistandardTableaux
-        for T in SemistandardTableaux([B for i in range(A)], max_entry=C+A):
+        for T in SemistandardTableaux([B for i in range(A)], max_entry=C + A):
             PP = [[0 for i in range(B)] for j in range(A)]
             for r in range(A):
                 for c in range(B):
                     PP[A-1-r][B-1-c] = T[r][c] - r - 1
             yield self.element_class(self, PP, check=False)
 
-    def cardinality(self):
+    def cardinality(self) -> Integer:
         r"""
         Return the cardinality of ``self``.
 
@@ -839,11 +848,12 @@ class PlanePartitions(UniqueRepresentation, Parent):
         A = self._box[0]
         B = self._box[1]
         C = self._box[2]
-        return Integer(prod( Integer(i+j+k-1) / Integer(i+j+k-2)
-                             for i in range(1, A+1) for j in range(1, B+1)
-                             for k in range(1, C+1) ))
+        return Integer(prod(Integer(i + j + k - 1) / Integer(i + j + k - 2)
+                            for i in range(1, A + 1)
+                            for j in range(1, B + 1)
+                            for k in range(1, C + 1)))
 
-    def box(self):
+    def box(self) -> Tuple:
         """
         Return the sizes of the box of the plane partitions of ``self``
         are contained in.
@@ -856,7 +866,7 @@ class PlanePartitions(UniqueRepresentation, Parent):
         """
         return self._box
 
-    def random_element(self):
+    def random_element(self) -> PP:
         r"""
         Return a uniformly random element of ``self``.
 
@@ -875,7 +885,8 @@ class PlanePartitions(UniqueRepresentation, Parent):
         """
         def leq(thing1, thing2):
             return all(thing1[i] <= thing2[i] for i in range(len(thing1)))
-        elem = [(i,j,k) for i in range(self._box[0]) for j in range(self._box[1])
+        elem = [(i, j, k) for i in range(self._box[0])
+                for j in range(self._box[1])
                 for k in range(self._box[2])]
         myposet = Poset((elem, leq))
         R = myposet.random_order_ideal()

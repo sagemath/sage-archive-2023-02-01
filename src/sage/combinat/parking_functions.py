@@ -355,7 +355,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
         """
         return Integer((self.n + 1) ** (self.n - 1))
 
-    def __iter__(self) -> Iterator[PF]:
+    def __iter__(self) -> Iterator:
         """
         Return an iterator for parking functions of size `n`.
 

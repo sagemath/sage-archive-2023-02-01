@@ -1,10 +1,11 @@
-sage_flatsurf
-=============
+sage_flatsurf: computation with flat surfaces
+=============================================
 
 Description
 -----------
 
-flat surfaces
+SageMath package for studying the geometry of flat surfaces and the
+dynamics of their foliations.
 
 License
 -------

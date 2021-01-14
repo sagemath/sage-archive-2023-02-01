@@ -619,8 +619,9 @@ class EuclideanSpace(PseudoRiemannianManifold):
     space::
 
         sage: E.category()
-        Join of Category of smooth manifolds over Real Field with 53 bits of
-         precision and Category of complete metric spaces
+        Join of Category of connected manifolds over Real Field with 53 bits of
+         precision and Category of smooth manifolds over Real Field with 53 bits
+         of precision and Category of complete metric spaces
         sage: dim(E)
         4
 
@@ -776,7 +777,8 @@ class EuclideanSpace(PseudoRiemannianManifold):
             if latex_name is None:
                 latex_name = r'\mathbb{E}^{' + str(n) + '}'
         if category is None:
-            category = Manifolds(RR).Smooth() & MetricSpaces().Complete()
+            category = Manifolds(RR).Smooth() & MetricSpaces().Complete() & \
+                       Manifolds(RR).Connected()
             # NB: RR is a proxy for the field of real numbers, until
             #     Trac #24456 is ready
         PseudoRiemannianManifold.__init__(self, n, name, metric_name=metric_name,
@@ -1136,8 +1138,9 @@ class EuclideanPlane(EuclideanSpace):
     space::
 
         sage: E.category()
-        Join of Category of smooth manifolds over Real Field with 53 bits of
-         precision and Category of complete metric spaces
+        Join of Category of connected manifolds over Real Field with 53 bits of
+         precision and Category of smooth manifolds over Real Field with 53 bits
+         of precision and Category of complete metric spaces
         sage: dim(E)
         2
 
@@ -1664,8 +1667,9 @@ class Euclidean3dimSpace(EuclideanSpace):
     space::
 
         sage: E.category()
-        Join of Category of smooth manifolds over Real Field with 53 bits of
-         precision and Category of complete metric spaces
+        Join of Category of connected manifolds over Real Field with 53 bits of
+         precision and Category of smooth manifolds over Real Field with 53 bits
+         of precision and Category of complete metric spaces
         sage: dim(E)
         3
 

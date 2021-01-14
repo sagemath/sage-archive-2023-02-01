@@ -253,9 +253,10 @@ class Sphere(PseudoRiemannianSubmanifold):
     Each `n`-sphere is a compact manifold and a complete metric space::
 
         sage: S2.category()
-        Join of Category of compact topological spaces and Category of
-         smooth manifolds over Real Field with 53 bits of precision and
-         Category of complete metric spaces
+        Join of Category of compact topological spaces and Category of connected
+         manifolds over Real Field with 53 bits of precision and Category of
+         smooth manifolds over Real Field with 53 bits of precision and Category
+         of complete metric spaces
 
     If not stated otherwise, each `n`-sphere is automatically endowed with
     spherical coordinates::
@@ -377,7 +378,7 @@ class Sphere(PseudoRiemannianSubmanifold):
                     latex_name += r'({})'.format(center._latex_name)
         if category is None:
             category = Manifolds(RR).Smooth() & MetricSpaces().Complete() & \
-                       TopologicalSpaces().Compact()
+                       TopologicalSpaces().Compact() & Manifolds(RR).Connected()
         # initialize
         PseudoRiemannianSubmanifold.__init__(self, n, name,
                                              ambient=ambient_space,

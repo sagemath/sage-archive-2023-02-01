@@ -252,7 +252,7 @@ class ParametrizedSurface3D(SageObject):
         sage: K(u1,u2) = ellipsoid.gauss_curvature()
         sage: # Make array of K values
         sage: K_array = [K(uu[0],uu[1]) for uu in u_array]
-        sage: # Find minimum and max of the gauss curvature
+        sage: # Find minimum and max of the Gauss curvature
         sage: K_max = max(K_array)
         sage: K_min = min(K_array)
         sage: # Make the array of color coefficients

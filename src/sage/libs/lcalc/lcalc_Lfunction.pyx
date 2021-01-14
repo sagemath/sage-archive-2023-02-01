@@ -418,7 +418,7 @@ cdef class Lfunction_I(Lfunction):
     - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
       periodic and 0 otherwise.
 
-    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+    - ``dirichlet_coefficient`` - List of Dirichlet coefficients of the
       L-function. Only first `M` coefficients are needed if they are periodic.
 
     - ``period`` - If the coefficients are periodic, this should be the
@@ -502,7 +502,7 @@ cdef class Lfunction_I(Lfunction):
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
-            number of dirichlet coefficients = 5
+            number of Dirichlet coefficients = 5
             coefficients are periodic
             b[1] = 1
             b[2] = -1
@@ -555,7 +555,7 @@ cdef class Lfunction_D(Lfunction):
     - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
       periodic and 0 otherwise.
 
-    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+    - ``dirichlet_coefficient`` - List of Dirichlet coefficients of the
       L-function. Only first `M` coefficients are needed if they are periodic.
 
     - ``period`` - If the coefficients are periodic, this should be the
@@ -640,7 +640,7 @@ cdef class Lfunction_D(Lfunction):
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
-            number of dirichlet coefficients = 5
+            number of Dirichlet coefficients = 5
             coefficients are periodic
             b[1] = 1
             b[2] = -1
@@ -694,7 +694,7 @@ cdef class Lfunction_C:
     - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
       periodic and 0 otherwise.
 
-    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+    - ``dirichlet_coefficient`` - List of Dirichlet coefficients of the
       L-function. Only first `M` coefficients are needed if they are periodic.
 
     - ``period`` - If the coefficients are periodic, this should be the
@@ -785,7 +785,7 @@ cdef class Lfunction_C:
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
-            number of dirichlet coefficients = 5
+            number of Dirichlet coefficients = 5
             coefficients are periodic
             b[1] = (1,0)
             b[2] = (0,1)

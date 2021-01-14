@@ -657,7 +657,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
             return true()
         M = rshcd_from_prime_power_and_conference_matrix(sqn+1)
 
-    # Recursive construction: the kronecker product of two RSHCD is a RSHCD
+    # Recursive construction: the Kronecker product of two RSHCD is a RSHCD
     else:
         from itertools import product
         for n1,e1 in product(divisors(n)[1:-1],[-1,1]):

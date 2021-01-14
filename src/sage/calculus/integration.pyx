@@ -136,7 +136,7 @@ def numerical_integral(func, a, b=None,
         sage: (sin(x)^3+sin(x)).integral(x,0,pi)
         10/3
 
-    If we want to change the error tolerances and gauss rule used::
+    If we want to change the error tolerances and Gauss rule used::
 
         sage: f = x^2
         sage: numerical_integral(f, 0, 1, max_points=200, eps_abs=1e-7, eps_rel=1e-7, rule=4)

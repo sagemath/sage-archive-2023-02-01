@@ -1486,7 +1486,7 @@ cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
         sage: abs(m.riemann_map(.5)-analytic_interior(.5, 20, .3)) < 10^-6
         True
     """
-    # evaluates the cauchy integral of the boundary, split into the real
+    # evaluates the Cauchy integral of the boundary, split into the real
     # and imaginary results because numerical_integral can't handle complex data.
     rp = 1/(TWOPI)*numerical_integral(cauchy_kernel,0,2*pi,
         params = [epsilon,z,n,'i'])[0]

@@ -306,7 +306,8 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
         sage: E = Hom(R, R) ; E
         Set of Morphisms from Real number line R to Real number line R in
-         Category of smooth manifolds over Real Field with 53 bits of precision
+         Category of smooth connected manifolds over Real Field with 53 bits of
+         precision
         sage: E.category()
         Category of endsets of topological spaces
         sage: E.is_endomorphism_set()
@@ -344,8 +345,9 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
         sage: EI = Hom(I, I) ; EI
         Set of Morphisms from Real interval (0, 1) to Real interval (0, 1) in
-         Join of Category of subobjects of sets and
-             Category of smooth manifolds over Real Field with 53 bits of precision
+         Join of Category of subobjects of sets and Category of connected
+         manifolds over Real Field with 53 bits of precision and Category of
+         smooth manifolds over Real Field with 53 bits of precision
         sage: EI.category()
         Category of endsets of subobjects of sets and topological spaces
         sage: EI is End(I)
@@ -389,8 +391,8 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             True
             sage: H = Hom(R, R); H
             Set of Morphisms from Real number line R to Real number line R in
-             Category of smooth manifolds over Real Field with 53 bits of
-             precision
+             Category of smooth connected manifolds over Real Field with 53 bits
+             of precision
             sage: TestSuite(H).run()
             sage: I = R.open_interval(-1, 2)
             sage: H = Hom(I, M); H
@@ -400,8 +402,9 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             sage: TestSuite(H).run()
             sage: H = Hom(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval (-1, 2)
-             in Join of Category of subobjects of sets and Category of smooth
-             manifolds over Real Field with 53 bits of precision
+             in Join of Category of subobjects of sets and Category of connected
+             manifolds over Real Field with 53 bits of precision and Category of
+             smooth manifolds over Real Field with 53 bits of precision
             sage: TestSuite(H).run()
 
         """

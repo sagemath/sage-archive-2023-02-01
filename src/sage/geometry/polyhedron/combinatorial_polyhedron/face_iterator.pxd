@@ -45,6 +45,8 @@ cdef struct iter_s:
     # The number of elements in newfaces[current_dimension],
     # that have not been visited yet.
     size_t yet_to_visit
+    size_t current_job_id
+    size_t n_coatoms
 
 ctypedef iter_s iter_t[1]
 
@@ -82,6 +84,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
 # Nogil definitions of crucial functions.
 
-cdef int next_dimension(iter_t structure) nogil except -1
+cdef int next_dimension(iter_t structure, size_t parallelization_depth=?) nogil except -1
 cdef int next_face_loop(iter_t structure) nogil except -1
 cdef size_t n_atom_rep(iter_t structure) nogil except -1
+cdef int parallel_f_vector(iter_t *structures, size_t parallelization_depth, size_t n_threads, size_t *f_vector) except -1

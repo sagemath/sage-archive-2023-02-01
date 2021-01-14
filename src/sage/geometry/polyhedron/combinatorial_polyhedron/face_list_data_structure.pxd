@@ -273,12 +273,10 @@ cdef inline size_t get_next_level(
         face_list_t visited_all) nogil except -1:
 
     cdef size_t output
-    sig_on()
     if faces.polyhedron_is_simple:
         output = get_next_level_fused(faces, new_faces, visited_all, <simple> 0)
     else:
         output = get_next_level_fused(faces, new_faces, visited_all, <standard> 0)
-    sig_off()
     return output
 
 cdef inline size_t bit_rep_to_coatom_rep(face_t face, face_list_t coatoms, size_t *output):

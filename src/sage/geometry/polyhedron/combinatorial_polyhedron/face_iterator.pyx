@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = -fopenmp
+# distutils: extra_link_args = -fopenmp
 r"""
 Face iterator for polyhedra
 
@@ -183,6 +185,9 @@ from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 from .face_list_data_structure cimport *
 
+from cython.parallel cimport prange
+cimport openmp
+
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
@@ -308,6 +313,9 @@ cdef class FaceIterator_base(SageObject):
         self.structure.yet_to_visit = self.coatoms.n_faces()
         self.structure._index = 0
 
+        self.structure.current_job_id = 0
+        self.structure.n_coatoms = self.coatoms.n_faces()
+
         if C.is_bounded() and ((dual and C.is_simplicial()) or (not dual and C.is_simple())):
             # We are in the comfortable situation that for our iterator
             # all intervals not containing the 0 element are boolean.
@@ -351,6 +359,7 @@ cdef class FaceIterator_base(SageObject):
 
         self.structure.yet_to_visit = self.coatoms.n_faces()
         self.structure._index = 0
+        self.structure.current_job_id = 0
 
     def __next__(self):
         r"""
@@ -1187,11 +1196,14 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
 # Nogil definitions of crucial functions.
 
-cdef inline int next_dimension(iter_t structure) nogil except -1:
+cdef inline int next_dimension(iter_t structure, size_t parallelization_depth=0) nogil except -1:
     r"""
     See :meth:`FaceIterator.next_dimension`.
+
+    ``parallelization_depth`` determines when to stop,
+    e.g. if it is ``1`` it will stop after having yield all faces of a facet
     """
-    cdef int dim = structure.dimension
+    cdef int dim = structure.dimension - parallelization_depth
     structure.face_status = 0
     while (not next_face_loop(structure)) and (structure.current_dimension < dim):
         sig_check()
@@ -1205,7 +1217,8 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
     if unlikely(structure.current_dimension == structure.dimension):
         # The function is not supposed to be called,
         # just prevent it from crashing.
-        raise StopIteration
+        with gil:
+            raise StopIteration
 
     # Getting ``[faces, n_faces, n_visited_all]`` according to dimension.
     cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
@@ -1285,3 +1298,151 @@ cdef inline size_t n_atom_rep(iter_t structure) nogil except -1:
 
     # The face was not initialized properly.
     raise LookupError("``FaceIterator`` does not point to a face")
+
+cdef int parallel_f_vector(iter_t *structures, size_t parallelization_depth, size_t n_threads, size_t *f_vector) except -1:
+    cdef size_t n_jobs = structures[0].n_coatoms ** parallelization_depth
+    cdef size_t i
+    cdef size_t thread_id
+    for i in prange(n_jobs, schedule='dynamic', chunksize=1, num_threads=n_threads, nogil=True):
+        _parallel_f_vector(structures[openmp.omp_get_thread_num()], parallelization_depth, f_vector, i)
+
+cdef int _parallel_f_vector(iter_t structure, size_t parallelization_depth, size_t *f_vector, size_t job_id) nogil except -1:
+    cdef int max_dimension = structure.dimension - parallelization_depth
+    cdef int d
+    if prepare_face_iterator_for_partial_job(structure, parallelization_depth, job_id, f_vector):
+        d = next_dimension(structure, parallelization_depth)
+        while (d < max_dimension):
+            sig_check()
+            f_vector[d+1] += 1
+            d = next_dimension(structure, parallelization_depth)
+
+cdef inline int prepare_face_iterator_for_partial_job(iter_t structure, size_t parallelization_depth, size_t job_id, size_t* f_vector=NULL) nogil except -1:
+    if not structure.first_time[structure.current_dimension]:
+        # Act as if we had not visited this face.
+        # Thus the job id is correct again.
+        structure.first_time[structure.current_dimension] = True
+        structure.new_faces[structure.current_dimension].n_faces += 1
+    cdef size_t n_coatoms = structure.n_coatoms
+    cdef size_t current_depth
+    cdef size_t job_id_i
+    cdef size_t current_job_id_i
+    cdef size_t test_id
+    cdef size_t i
+    for current_depth in range(1, parallelization_depth + 1):
+        job_id_i = job_id_get(job_id, current_depth - 1, parallelization_depth, n_coatoms)
+        current_job_id_i = job_id_get(structure.current_job_id, current_depth - 1, parallelization_depth, n_coatoms)
+        if job_id_i > current_job_id_i:
+            job_id_set(&structure.current_job_id, job_id_i, current_depth - 1, parallelization_depth, n_coatoms)
+            structure.current_dimension = structure.dimension - current_depth
+            for i in range(current_job_id_i, job_id_i):
+                if not skip_next_face(structure):
+                    job_id_set(&structure.current_job_id, i, current_depth - 1, parallelization_depth, n_coatoms)
+                    # This job id does not exist.
+                    return 0
+
+        if job_id_i < current_job_id_i:
+            job_id_set(&structure.current_job_id, job_id_i, current_depth - 1, parallelization_depth, n_coatoms)
+            structure.current_dimension = structure.dimension - current_depth
+            for i in range(job_id_i, current_job_id_i):
+                repeat_last_face(structure)
+
+        # Appparently the face exists. We add it to the f-vector, if it is the very first job for the face.
+        test_id = job_id
+        job_id_set(&test_id, job_id_i, current_depth - 1, parallelization_depth, n_coatoms)
+        if test_id == job_id:
+            f_vector[structure.dimension - current_depth + 1] += 1
+
+        if structure.current_dimension == structure.dimension - current_depth:
+            structure.yet_to_visit = 0
+            next_face_loop(structure)
+            if structure.current_dimension != structure.dimension - current_depth - 1:
+                return 0
+
+    if structure.current_dimension != structure.dimension - parallelization_depth - 1:
+        return 0
+
+    return 1
+
+cdef inline int skip_next_face(iter_t structure) nogil except -1:
+    """
+    Moves the iterator to the state it would be after having visited all
+    subfaces of ``structure.new_faces[structure.current_dimension]``.
+
+    Return ``0`` if no farther faces of this dimension exist.
+    Return ``1`` otherwise.
+
+    .. WARNING::
+
+        This is rather unsafe. It should be called only in two scenarios:
+        - ``structure.current_dimension`` was manually raised
+        - ``next_dimesion`` returned ``dimension - parallelization_depth``
+          for ``parallelization_depth > 0``
+    """
+    cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
+    cdef face_list_t* visited_all = &structure.visited_all[structure.current_dimension]
+
+    if faces[0].n_faces == 0:
+        return 0
+
+    if not structure.first_time[structure.current_dimension]:
+        # In this case there exists ``faces[0].faces[n_faces]``, of which we
+        # have visited all faces, but which was not added to
+        # ``visited_all`` yet.
+        add_face_shallow(visited_all[0], faces[0].faces[faces[0].n_faces])
+    else:
+        # Once we have visited all faces of ``faces[n_faces]``, we want
+        # to add it to ``visited_all``.
+        structure.first_time[structure.current_dimension] = False
+    faces[0].n_faces -= 1
+    if faces[0].n_faces == 0:
+        return 0
+    return 1
+
+cdef inline int repeat_last_face(iter_t structure) nogil except -1:
+    """
+    The inverse function to ``skip_next_face``.
+    """
+    cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
+    cdef face_list_t* visited_all = &structure.visited_all[structure.current_dimension]
+    if unlikely(faces[0].n_faces == faces[0].total_n_faces):
+        with gil:
+            raise MemoryError("wrong usage")
+
+    if structure.first_time[structure.current_dimension]:
+        # faces[n_faces] is already in visited_all.
+        # As we want to revisit it, we should remove it from ``visited_all``.
+        visited_all[0].n_faces -= 1
+
+    faces[0].n_faces += 1
+    # faces[n_faces] is already in visited_all and should not be readded.
+    structure.first_time[structure.current_dimension] = True
+
+# Basically, ``job_id`` represents an element in `[0,n_coatoms-1]^(parallelization_depth)`.
+# We deal with this by obtaining/setting digits with base ``n_coatoms``.
+
+cdef inline size_t job_id_get(size_t job_id, size_t pos, size_t parallelization_depth, size_t n_coatoms) nogil:
+    """
+    Get the digit ``pos`` of ``job_id`` with base ``n_coatoms``
+    padding the number of digits to ``parallelization_depth``.
+
+    Digits are enumerated started with ``0``.
+    """
+    # Remove the last ``parallelization_depth - pos - 1`` digits.
+    cdef size_t current_output = job_id // n_coatoms**(parallelization_depth - pos - 1)
+
+    # Remove all digits before our current digit, which is digit ``pos``.
+    return current_output % n_coatoms
+
+cdef inline void job_id_set(size_t* job_id, size_t val, size_t pos, size_t parallelization_depth, size_t n_coatoms) nogil:
+    """
+    Set the digit ``pos`` of ``job_id`` with base ``n_coatoms``
+    padding the number of digits to ``parallelization_depth``.
+
+    Set all further digits to ``0``.
+
+    Digits are enumerated started with ``0``.
+    """
+    cdef size_t trailing = job_id[0] % n_coatoms**(parallelization_depth - pos)
+    job_id[0] -= trailing
+    job_id[0] += val * n_coatoms**(parallelization_depth - pos - 1)
+

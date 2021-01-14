@@ -2451,8 +2451,7 @@ class IntegratedCurve(DifferentiableCurve):
                 chart = self._chart
             else:
                 if not isinstance(chart, RealChart):
-                    raise TypeError("{} is not a real " +
-                                    "chart".format(chart))
+                    raise TypeError("{} is not a real chart".format(chart))
                 mapping = self.codomain().identity_map()
         else:
             i0 = mapping.codomain().start_index()

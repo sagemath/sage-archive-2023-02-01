@@ -1,0 +1,3 @@
+sage-flatsurf
+# Optional requirement
+surface_dynamics

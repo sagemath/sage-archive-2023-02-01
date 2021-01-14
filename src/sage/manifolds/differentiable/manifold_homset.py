@@ -395,9 +395,8 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             sage: I = R.open_interval(-1, 2)
             sage: H = Hom(I, M); H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Join of Category of subobjects of
-             sets and Category of smooth manifolds over Real Field with 53 bits
-             of precision
+             differentiable manifold M in Category of smooth manifolds over Real
+             Field with 53 bits of precision
             sage: TestSuite(H).run()
             sage: H = Hom(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval (-1, 2)
@@ -564,9 +563,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedCurveSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         curves
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated curves
         sage: eqns_rhs = [1,1]
         sage: vels = X.symbolic_velocities()
         sage: t = var('t')
@@ -609,9 +607,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: J = R.open_interval(a, b)
         sage: H = IntegratedCurveSet(J, M) ; H
         Set of Morphisms from Real interval (a, b) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         curves
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated curves
 
     A "typical" element of ``H`` is a curve in ``M``::
 
@@ -717,9 +714,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated curves
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated curves
             sage: TestSuite(H).run()
             sage: H = IntegratedCurveSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
@@ -768,9 +764,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated curves
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated curves
 
         """
         description = "Set of Morphisms "
@@ -966,9 +961,9 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             Traceback (most recent call last):
             ...
             TypeError: Set of Morphisms from Real interval (-1, 2) to
-             3-dimensional differentiable manifold M in Category of
-             homsets of subobjects of sets and topological spaces which
-             actually are integrated curves is not a monoid
+             3-dimensional differentiable manifold M in Category of homsets of
+             topological spaces which actually are integrated curves is not a
+             monoid
             sage: H = IntegratedCurveSet(I, I)
             sage: H.one()
             Traceback (most recent call last):
@@ -1034,9 +1029,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         autoparallel curves with respect to a certain affine connection
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated autoparallel curves with respect to a
+         certain affine connection
         sage: nab = M.affine_connection('nabla')
         sage: nab[0,1,0], nab[0,0,1] = 1,2
         sage: nab.torsion()[:]
@@ -1158,10 +1153,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually are
-             integrated autoparallel curves with respect to a certain
-             affine connection
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated autoparallel curves with
+             respect to a certain affine connection
             sage: TestSuite(H).run()
             sage: H = IntegratedAutoparallelCurveSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
@@ -1211,10 +1205,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated autoparallel curves with respect to a certain
-             affine connection
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated autoparallel curves with
+             respect to a certain affine connection
 
         """
 
@@ -1497,9 +1490,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedGeodesicSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         geodesics with respect to a certain metric
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated geodesics with respect to a certain
+         metric
         sage: g = M.metric('g')
         sage: g[0,0], g[1,1], g[0,1] = 1, 1, 2
         sage: t = var('t')
@@ -1617,9 +1610,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated geodesics with respect to a certain metric
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated geodesics with respect to a
+             certain metric
             sage: TestSuite(H).run()
             sage: H = IntegratedGeodesicSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
@@ -1668,9 +1661,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated geodesics with respect to a certain metric
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated geodesics with respect to a
+             certain metric
 
         """
         description = "Set of Morphisms "

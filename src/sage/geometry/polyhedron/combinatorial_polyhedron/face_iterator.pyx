@@ -313,7 +313,6 @@ cdef class FaceIterator_base(SageObject):
         self.structure.yet_to_visit = self.coatoms.n_faces()
         self.structure._index = 0
 
-        self.structure.current_job_id = 0
         self.structure.n_coatoms = self.coatoms.n_faces()
 
         if C.is_bounded() and ((dual and C.is_simplicial()) or (not dual and C.is_simple())):
@@ -359,7 +358,6 @@ cdef class FaceIterator_base(SageObject):
 
         self.structure.yet_to_visit = self.coatoms.n_faces()
         self.structure._index = 0
-        self.structure.current_job_id = 0
 
     def __next__(self):
         r"""
@@ -1217,8 +1215,8 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
     if unlikely(structure.current_dimension == structure.dimension):
         # The function is not supposed to be called,
         # just prevent it from crashing.
-        with gil:
-            raise StopIteration
+        # Actually raising an error here results in a bad branch prediction.
+        return -1
 
     # Getting ``[faces, n_faces, n_visited_all]`` according to dimension.
     cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
@@ -1272,7 +1270,7 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
         # ``faces[n_faces]`` contains new faces.
         # We will visted them on next call, starting with codimension 1.
 
-        # Setting the variables correclty for next call of ``next_face_loop``.
+        # Setting the variables correctly for next call of ``next_face_loop``.
         structure.current_dimension -= 1
         structure.first_time[structure.current_dimension] = True
         structure.visited_all[structure.current_dimension][0] = visited_all[0][0]
@@ -1299,123 +1297,135 @@ cdef inline size_t n_atom_rep(iter_t structure) nogil except -1:
     # The face was not initialized properly.
     raise LookupError("``FaceIterator`` does not point to a face")
 
+cdef struct parallel_f_s:
+    size_t* f_vector
+    size_t* current_job_id
+    size_t* original_n_faces
+    size_t* original_n_visited_all
+
+ctypedef parallel_f_s parallel_f_t[1]
+
 cdef int parallel_f_vector(iter_t *structures, size_t parallelization_depth, size_t n_threads, size_t *f_vector) except -1:
     cdef size_t n_jobs = structures[0].n_coatoms ** parallelization_depth
     cdef size_t i
+    cdef int j
+    cdef int dim = structures[0].dimension
     cdef size_t thread_id
-    for i in prange(n_jobs, schedule='dynamic', chunksize=1, num_threads=n_threads, nogil=True):
-        _parallel_f_vector(structures[openmp.omp_get_thread_num()], parallelization_depth, f_vector, i)
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef parallel_f_t* parallel_structs = <parallel_f_t*> mem.allocarray(n_threads, sizeof(parallel_f_t))
+    cdef parallel_f_s* parallel_structs_s = <parallel_f_s*> mem.allocarray(n_threads, sizeof(parallel_f_s))
+    for i in range(n_threads):
+        parallel_structs[i][0] = parallel_structs_s[i]
+        parallel_structs[i].f_vector = <size_t*> mem.calloc(dim+2, sizeof(size_t))
+        parallel_structs[i].current_job_id = <size_t*> mem.calloc(parallelization_depth+1, sizeof(size_t))
+        parallel_structs[i].original_n_faces = <size_t*> mem.calloc(parallelization_depth+1, sizeof(size_t))
+        parallel_structs[i].original_n_faces[0] = structures[0].new_faces[dim - 1].n_faces
+        parallel_structs[i].original_n_visited_all = <size_t*> mem.calloc(parallelization_depth+1, sizeof(size_t))
+        parallel_structs[i].original_n_visited_all[0] = structures[0].visited_all[dim - 1].n_faces
 
-cdef int _parallel_f_vector(iter_t structure, size_t parallelization_depth, size_t *f_vector, size_t job_id) nogil except -1:
+    for i in prange(n_jobs, schedule='dynamic', chunksize=1, num_threads=n_threads, nogil=True):
+        _parallel_f_vector(structures[openmp.omp_get_thread_num()],
+                           parallelization_depth,
+                           parallel_structs[openmp.omp_get_thread_num()],
+                           i)
+
+    # Gather the results.
+    for i in range(n_threads):
+        for j in range(structures[0].dimension + 2):
+            f_vector[j] += parallel_structs[i].f_vector[j]
+
+cdef int _parallel_f_vector(iter_t structure, size_t parallelization_depth, parallel_f_t parallel_struct, size_t job_id) nogil except -1:
     cdef int max_dimension = structure.dimension - parallelization_depth
     cdef int d
-    if prepare_face_iterator_for_partial_job(structure, parallelization_depth, job_id, f_vector):
+    if prepare_face_iterator_for_partial_job(structure, parallelization_depth, parallel_struct, job_id):
         d = next_dimension(structure, parallelization_depth)
         while (d < max_dimension):
-            sig_check()
-            f_vector[d+1] += 1
+            #sig_check()
+            parallel_struct.f_vector[d+1] += 1
             d = next_dimension(structure, parallelization_depth)
 
-cdef inline int prepare_face_iterator_for_partial_job(iter_t structure, size_t parallelization_depth, size_t job_id, size_t* f_vector=NULL) nogil except -1:
-    if not structure.first_time[structure.current_dimension]:
-        # Act as if we had not visited this face.
-        # Thus the job id is correct again.
-        structure.first_time[structure.current_dimension] = True
-        structure.new_faces[structure.current_dimension].n_faces += 1
-    cdef size_t n_coatoms = structure.n_coatoms
+cdef inline int prepare_face_iterator_for_partial_job(iter_t structure, size_t parallelization_depth, parallel_f_t parallel_struct, size_t job_id) nogil except -1:
+    cdef int d
     cdef size_t current_depth
-    cdef size_t job_id_i
-    cdef size_t current_job_id_i
-    cdef size_t test_id
-    cdef size_t i
-    for current_depth in range(1, parallelization_depth + 1):
-        job_id_i = job_id_get(job_id, current_depth - 1, parallelization_depth, n_coatoms)
-        current_job_id_i = job_id_get(structure.current_job_id, current_depth - 1, parallelization_depth, n_coatoms)
-        if job_id_i > current_job_id_i:
-            job_id_set(&structure.current_job_id, job_id_i, current_depth - 1, parallelization_depth, n_coatoms)
-            structure.current_dimension = structure.dimension - current_depth
-            for i in range(current_job_id_i, job_id_i):
-                if not skip_next_face(structure):
-                    job_id_set(&structure.current_job_id, i, current_depth - 1, parallelization_depth, n_coatoms)
-                    # This job id does not exist.
-                    return 0
+    if (not structure.first_time[structure.current_dimension]
+            and structure.current_dimension == structure.dimension - parallelization_depth):
+        # Act as if we had not visited faces in the last depth.
+        d = structure.dimension - parallelization_depth
+        current_depth = parallelization_depth
+        structure.new_faces[d].n_faces = parallel_struct.original_n_faces[current_depth -1]
+        structure.new_faces[d].n_faces = parallel_struct.original_n_visited_all[current_depth -1]
+        parallel_struct.current_job_id[current_depth -1] = 0
+        parallel_struct.current_job_id[current_depth] = 0
+        structure.first_time[d] = True
+        structure.yet_to_visit = 0  # just to be on the safe side
 
-        if job_id_i < current_job_id_i:
-            job_id_set(&structure.current_job_id, job_id_i, current_depth - 1, parallelization_depth, n_coatoms)
-            structure.current_dimension = structure.dimension - current_depth
-            for i in range(job_id_i, current_job_id_i):
-                repeat_last_face(structure)
+    cdef size_t n_coatoms = structure.n_coatoms
+    cdef size_t job_id_c
+    cdef size_t i
+    cdef size_t diff
+    cdef size_t new_faces_counter
+
+    for current_depth in range(1, parallelization_depth + 1):
+        d = structure.dimension - current_depth
+        job_id_c = job_id_get(job_id, current_depth - 1, parallelization_depth, n_coatoms)
+        if job_id_c != parallel_struct.current_job_id[current_depth -1]:
+            structure.current_dimension = d
+            structure.new_faces[d].n_faces = parallel_struct.original_n_faces[current_depth -1]
+            structure.visited_all[d].n_faces = parallel_struct.original_n_visited_all[current_depth -1]
+            parallel_struct.current_job_id[current_depth -1] = 0
+            parallel_struct.current_job_id[current_depth] = 0
+            structure.first_time[d] = True
+            structure.yet_to_visit = 0  # just to be on the safe side
+        elif parallel_struct.current_job_id[current_depth] == -1:
+            # The job does not exist, we already settled this.
+            return 0
+
+        if job_id_c > parallel_struct.current_job_id[current_depth -1]:
+            if job_id_c >= structure.new_faces[d].n_faces:
+                # The job does not exist.
+                return 0
+
+            for i in range(job_id_c):
+                # Fast forwarding the jobs.
+                add_face_shallow(structure.visited_all[d], structure.new_faces[d].faces[structure.new_faces[d].n_faces -1])
+                structure.new_faces[d].n_faces -= 1
+
+            parallel_struct.current_job_id[current_depth -1] = job_id_c
 
         # Appparently the face exists. We add it to the f-vector, if it is the very first job for the face.
-        test_id = job_id
-        job_id_set(&test_id, job_id_i, current_depth - 1, parallelization_depth, n_coatoms)
-        if test_id == job_id:
-            f_vector[structure.dimension - current_depth + 1] += 1
+        if job_id == 0 or job_id_get(job_id -1, current_depth -1, parallelization_depth, n_coatoms) != job_id_c:
+            parallel_struct.f_vector[structure.dimension - current_depth + 1] += 1
 
-        if structure.current_dimension == structure.dimension - current_depth:
+        if structure.current_dimension == d:
             structure.yet_to_visit = 0
-            next_face_loop(structure)
-            if structure.current_dimension != structure.dimension - current_depth - 1:
+
+            if structure.new_faces[d].n_faces <= 1:
+                # The job will not exist.
+                parallel_struct.current_job_id[current_depth] = -1
+                return 0
+
+            new_faces_counter = get_next_level(
+                structure.new_faces[d], structure.new_faces[d-1], structure.visited_all[d])
+
+            if new_faces_counter:
+                # Setting the variables correctly, for the next call.
+                structure.current_dimension -= 1
+                structure.first_time[d-1] = True
+                structure.visited_all[d-1][0] = structure.visited_all[d][0]
+                structure.yet_to_visit = new_faces_counter
+                for i in range(current_depth, parallelization_depth + 1):
+                    parallel_struct.current_job_id[i] = 0
+                parallel_struct.original_n_faces[current_depth] = new_faces_counter
+                parallel_struct.original_n_visited_all[current_depth] = structure.visited_all[d-1].n_faces
+            else:
+                # The job does not exist.
+                parallel_struct.current_job_id[current_depth] = -1
                 return 0
 
     if structure.current_dimension != structure.dimension - parallelization_depth - 1:
         return 0
 
     return 1
-
-cdef inline int skip_next_face(iter_t structure) nogil except -1:
-    """
-    Moves the iterator to the state it would be after having visited all
-    subfaces of ``structure.new_faces[structure.current_dimension]``.
-
-    Return ``0`` if no farther faces of this dimension exist.
-    Return ``1`` otherwise.
-
-    .. WARNING::
-
-        This is rather unsafe. It should be called only in two scenarios:
-        - ``structure.current_dimension`` was manually raised
-        - ``next_dimesion`` returned ``dimension - parallelization_depth``
-          for ``parallelization_depth > 0``
-    """
-    cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
-    cdef face_list_t* visited_all = &structure.visited_all[structure.current_dimension]
-
-    if faces[0].n_faces == 0:
-        return 0
-
-    if not structure.first_time[structure.current_dimension]:
-        # In this case there exists ``faces[0].faces[n_faces]``, of which we
-        # have visited all faces, but which was not added to
-        # ``visited_all`` yet.
-        add_face_shallow(visited_all[0], faces[0].faces[faces[0].n_faces])
-    else:
-        # Once we have visited all faces of ``faces[n_faces]``, we want
-        # to add it to ``visited_all``.
-        structure.first_time[structure.current_dimension] = False
-    faces[0].n_faces -= 1
-    if faces[0].n_faces == 0:
-        return 0
-    return 1
-
-cdef inline int repeat_last_face(iter_t structure) nogil except -1:
-    """
-    The inverse function to ``skip_next_face``.
-    """
-    cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
-    cdef face_list_t* visited_all = &structure.visited_all[structure.current_dimension]
-    if unlikely(faces[0].n_faces == faces[0].total_n_faces):
-        with gil:
-            raise MemoryError("wrong usage")
-
-    if structure.first_time[structure.current_dimension]:
-        # faces[n_faces] is already in visited_all.
-        # As we want to revisit it, we should remove it from ``visited_all``.
-        visited_all[0].n_faces -= 1
-
-    faces[0].n_faces += 1
-    # faces[n_faces] is already in visited_all and should not be readded.
-    structure.first_time[structure.current_dimension] = True
 
 # Basically, ``job_id`` represents an element in `[0,n_coatoms-1]^(parallelization_depth)`.
 # We deal with this by obtaining/setting digits with base ``n_coatoms``.
@@ -1432,17 +1442,3 @@ cdef inline size_t job_id_get(size_t job_id, size_t pos, size_t parallelization_
 
     # Remove all digits before our current digit, which is digit ``pos``.
     return current_output % n_coatoms
-
-cdef inline void job_id_set(size_t* job_id, size_t val, size_t pos, size_t parallelization_depth, size_t n_coatoms) nogil:
-    """
-    Set the digit ``pos`` of ``job_id`` with base ``n_coatoms``
-    padding the number of digits to ``parallelization_depth``.
-
-    Set all further digits to ``0``.
-
-    Digits are enumerated started with ``0``.
-    """
-    cdef size_t trailing = job_id[0] % n_coatoms**(parallelization_depth - pos)
-    job_id[0] -= trailing
-    job_id[0] += val * n_coatoms**(parallelization_depth - pos - 1)
-

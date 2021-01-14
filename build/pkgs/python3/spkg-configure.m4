@@ -73,9 +73,32 @@ SAGE_SPKG_CONFIGURE([python3], [
     dnl PRE
 ], [
     dnl POST
-    AS_IF([test x$sage_spkg_install_python3 = xno],
-          [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"],
-          [SAGE_MACOSX_DEPLOYMENT_TARGET=legacy])
+    AS_IF([test x$sage_spkg_install_python3 = xno], [
+        PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"
+        AS_IF([test -n "$CFLAGS_MARCH"], [
+            dnl Trac #31228
+            AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C compiler configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_DISTUTILS_C_CONFTEST
+            AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, disabling use of "$CFLAGS_MARCH"])
+                CFLAGS_MARCH=""
+            ])
+        ])
+        AS_IF([test -n "$CFLAGS_MARCH"], [
+            AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C++ compiler configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_DISTUTILS_CXX_CONFTEST
+            AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, disabling use of "$CFLAGS_MARCH"])
+                CFLAGS_MARCH=""
+            ])
+        ])
+    ], [
+        SAGE_MACOSX_DEPLOYMENT_TARGET=legacy
+    ])
     AC_SUBST([PYTHON_FOR_VENV])
     AC_SUBST([SAGE_MACOSX_DEPLOYMENT_TARGET])
 

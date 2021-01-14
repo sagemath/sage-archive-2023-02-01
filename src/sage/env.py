@@ -204,7 +204,7 @@ var('MAXIMA_FAS')
 var('SAGE_NAUTY_BINS_PREFIX',        '')
 var('ARB_LIBRARY',                   'arb')
 var('CBLAS_PC_MODULES',              'cblas:openblas:blas')
-var('ECL_CONFIG')
+var('ECL_CONFIG',                    'ecl-config')
 
 # misc
 var('SAGE_BANNER', '')

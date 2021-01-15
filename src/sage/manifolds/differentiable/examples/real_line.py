@@ -528,8 +528,8 @@ class OpenInterval(DifferentiableManifold):
             sage: M = Manifold(3, 'M')
             sage: H = I._Hom_(M); H
             Set of Morphisms from Real interval (-1, 1) to 3-dimensional
-             differentiable manifold M in Category of smooth connected manifolds
-             over Real Field with 53 bits of precision
+             differentiable manifold M in Category of smooth manifolds over Real
+             Field with 53 bits of precision
             sage: H is Hom(I, M)
             True
 

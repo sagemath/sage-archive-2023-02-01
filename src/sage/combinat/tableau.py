@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 r"""
 Tableaux
 
@@ -4312,14 +4312,34 @@ class SemistandardTableau(Tableau):
         if t not in Tableaux():
             raise ValueError('%s is not a tableau' % t)
 
-        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
-            raise ValueError("entries must be positive integers" % t)
+        for (rix, row) in enumerate(t):
+            for (cix, v) in enumerate(row):
+                if not isinstance(v, (int, Integer)):
+                    raise ValueError("expected entry to be an integer at (row=%s, col=%s)" % (rix, cix))
+                if v <= 0:
+                    raise ValueError("expected entry to be a positive integer at (row=%s, col=%s). Found (%s)" % (rix, cix, v))
 
-        if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
-            raise ValueError("The rows of %s are not weakly increasing" % t)
+        for (rix, row) in enumerate(t):
+            for cix in range(len(row)-1):
+                if row[cix] > row[cix+1]:
+                    raise ValueError("row (%s) is not weakly increasing between columns (%s, %s)" % (rix, cix, cix+1))
 
         # If we're still here ``t`` cannot be column strict
-        raise ValueError('%s is not a column strict tableau' % t)
+        for rix in range(len(t)-1):
+            rcur = t[rix]
+            rnext = t[rix+1]
+
+            # check that SST is strictly increasing in columns
+            # we know that len(rnext) < len(rcur) as the SST cannot have
+            # more columns in the next row than the current row.
+            assert (len(rnext) <= len(rcur))
+
+            for cix in range(len(rnext)):
+                if rnext[cix] <= rcur[cix]:
+                    raise ValueError("column (%s) is not strictly increasing between rows (%s, %s)" % (cix, rix, rix+1))
+
+        # we should have found an error by now.
+        raise ValueError('We should have found an error by now in tableau %s' % t)
 
     def check(self):
         """
@@ -4330,17 +4350,17 @@ class SemistandardTableau(Tableau):
             sage: SemistandardTableau([[1,2,3],[1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: [[1, 2, 3], [1]] is not a column strict tableau
+            ValueError: column (0) is not strictly increasing between rows (0, 1)
 
             sage: SemistandardTableau([[1,2,1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: The rows of [[1, 2, 1]] are not weakly increasing
+            ValueError: row (0) is not weakly increasing between columns (1, 2)
 
             sage: SemistandardTableau([[0,1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: entries must be positive integers
+            ValueError: expected entry to be a positive integer at (row=0, col=0). Found (0)
         """
         super(SemistandardTableau, self).check()
 

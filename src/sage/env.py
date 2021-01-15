@@ -461,7 +461,7 @@ def cython_aliases():
         pass
 
     # Determine ecl-specific compiler arguments using the ecl-config script
-    ecl_cflags = subprocess.run([ECL_CONFIG, "--cflags"], check=True, capture_output=True, text=True).stdout.split()
+    ecl_cflags = subprocess.run([ECL_CONFIG, "--cflags"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.split()
     aliases["ECL_CFLAGS"] = list(filter(lambda s: not s.startswith('-I'), ecl_cflags))
     aliases["ECL_INCDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-I'), ecl_cflags)))
     ecl_libs = subprocess.run([ECL_CONFIG, "--libs"], check=True, capture_output=True, text=True).stdout.split()

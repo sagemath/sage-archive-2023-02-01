@@ -81,9 +81,10 @@ cdef class FaceIterator_geom(FaceIterator_base):
     cdef object _requested_dim  # Dimension requested on init.
     cdef readonly object P      # The original polyhedron.
 
+cdef int parallel_f_vector(iter_t* structures, size_t num_threads, size_t parallelization_depth, size_t *f_vector) except -1
+
 # Nogil definitions of crucial functions.
 
 cdef int next_dimension(iter_t structure, size_t parallelization_depth=?) nogil except -1
 cdef int next_face_loop(iter_t structure) nogil except -1
 cdef size_t n_atom_rep(iter_t structure) nogil except -1
-cdef int parallel_f_vector(iter_t *structures, size_t parallelization_depth, size_t n_threads, size_t *f_vector) except -1

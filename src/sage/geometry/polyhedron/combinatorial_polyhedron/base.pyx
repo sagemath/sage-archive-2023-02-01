@@ -1555,12 +1555,19 @@ cdef class CombinatorialPolyhedron(SageObject):
         return DiGraph([vertices, edges], format='vertices_and_edges', immutable=True)
 
     @cached_method
-    def f_vector(self, num_threads=1, parallelization_depth=0):
+    def f_vector(self, num_threads=None, parallelization_depth=None):
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
         The ``f_vector`` contains the number of faces of dimension `k`
         for each `k` in ``range(-1, self.dimension() + 1)``.
+
+        INPUT:
+
+        - ``num_threads`` -- integer (optional); specify the number of threads
+
+        - ``parallelization_depth`` -- integer (optional); specify
+          how deep in the lattice the parallelization is done
 
         .. NOTE::
 
@@ -1579,11 +1586,33 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.f_vector()
             (1, 10, 45, 120, 185, 150, 50, 1)
 
+        Using two threads::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.f_vector(num_threads=2)
+            (1, 120, 240, 150, 30, 1)
+
         TESTS::
 
             sage: type(C.f_vector())
             <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         """
+        if num_threads is None:
+            from sage.parallel.ncpus import ncpus
+            num_threads = ncpus()
+
+        if parallelization_depth is None:
+            # Setting some reasonable defaults.
+            if num_threads == 0:
+                parallelization_depth = 0
+            elif num_threads <= 3:
+                parallelization_depth = 1
+            elif num_threads <= 8:
+                parallelization_depth = 2
+            else:
+                parallelization_depth = 3
+
         if not self._f_vector:
             self._compute_f_vector(num_threads, parallelization_depth)
         if not self._f_vector:
@@ -2918,20 +2947,20 @@ cdef class CombinatorialPolyhedron(SageObject):
             # In this case the dual approach is faster.
             dual = True
 
-        face_iters = [self._face_iter(dual, -2) for _ in range(num_threads)]
         cdef FaceIterator face_iter
         cdef iter_t* structs = <iter_t*> mem.allocarray(num_threads, sizeof(iter_t))
         cdef size_t i
+
+        # For each thread an independent structure.
+        face_iters = [self._face_iter(dual, -2) for _ in range(num_threads)]
         for i in range(num_threads):
             face_iter = face_iters[i]
             structs[i][0] = face_iter.structure[0]
 
         # Initialize ``f_vector``.
         cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
-        f_vector[0] = 1         # Face iterator will only visit proper faces.
-        f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
 
-        parallel_f_vector(structs, parallelization_depth, num_threads, f_vector)
+        parallel_f_vector(structs, num_threads, parallelization_depth, f_vector)
 
         # Copy ``f_vector``.
         if dual:

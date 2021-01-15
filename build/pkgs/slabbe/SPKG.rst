@@ -1,5 +1,5 @@
-slabbe : Sébastien Labbé's Research code
-========================================
+slabbe: Sébastien Labbé's Research code
+=======================================
 
 Description
 -----------

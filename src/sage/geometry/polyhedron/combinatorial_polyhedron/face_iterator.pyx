@@ -1326,6 +1326,7 @@ cdef int parallel_f_vector(iter_t* structures, size_t num_threads, size_t parall
 
     - ``f_vector`` -- where the ``f_vector`` is output
     """
+    # One job per face of codimension ``parallelization_depth``.
     cdef size_t n_jobs = structures[0].n_coatoms ** parallelization_depth
     cdef size_t i
     cdef int j

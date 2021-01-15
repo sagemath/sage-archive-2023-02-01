@@ -1,4 +1,4 @@
-admcycles : computation in the tautological ring of the moduli space of curves
+admcycles: Computation in the tautological ring of the moduli space of curves
 ==============================================================================
 
 Description

@@ -74,7 +74,7 @@ static inline int _bitset_eq(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     }
     return 1;
 #elif __SSE4_1__
-    for(i = 0; i + LIMBS_PER64 < limbs; i += 2*LIMBS_PER_64){
+    for(i = 0; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
         if (!_mm_testc_si128(A, B) || !_mm_testc_si128(B, A))
@@ -104,7 +104,7 @@ static inline int _bitset_issubset(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs
             return 0;
     }
 #elif __SSE4_1__
-    for(i; i + LIMBS_PER64 < limbs; i += 2*LIMBS_PER_64){
+    for(i; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
         if (!_mm_testc_si128(B, A)) // Need to be opposite order!
@@ -131,7 +131,7 @@ static inline int _bitset_are_disjoint(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t l
             return 0;
     }
 #elif __SSE4_1__
-    for(i; i + LIMBS_PER64 < limbs; i += 2*LIMBS_PER_64){
+    for(i; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
         if (!_mm_testz_si128(A, B))
@@ -217,11 +217,11 @@ static inline void _bitset_intersection(mp_limb_t* dst, mp_limb_t* a, mp_limb_t*
         dst[i] = a[i] & b[i];
     }
 #elif __SSE4_1__
-    for(i = 0; i + LIMBS_PER64 < limbs; i += 2*LIMBS_PER_64){
+    for(i = 0; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
-        __m128i d = _mm_and_si128(A, B);
-        _mm_storeu_si128((__m256i*)&dst[i], D);
+        __m128i D = _mm_and_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D);
     }
     for(i; i < limbs; i++){
         dst[i] = a[i] & b[i];
@@ -247,11 +247,11 @@ static inline void _bitset_union(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_
         dst[i] = a[i] | b[i];
     }
 #elif __SSE4_1__
-    for(i = 0; i + LIMBS_PER64 < limbs; i += 2*LIMBS_PER_64){
+    for(i = 0; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
-        __m128i d = _mm_or_si128(A, B);
-        _mm_storeu_si128((__m256i*)&dst[i], D);
+        __m128i D = _mm_or_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D);
     }
     for(i; i < limbs; i++){
         dst[i] = a[i] | b[i];
@@ -278,11 +278,11 @@ static inline void _bitset_difference(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b
         dst[i] = a[i] & ~b[i];
     }
 #elif __SSE4_1__
-    for(i = 0; i + LIMBS_PER64 < limbs; i += 2*LIMBS_PER_64){
+    for(i = 0; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
-        __m128i d = _mm_andnot_si128(B, A);  // Need to be opposite order.
-        _mm_storeu_si128((__m256i*)&dst[i], D);
+        __m128i D = _mm_andnot_si128(B, A);  // Need to be opposite order.
+        _mm_storeu_si128((__m128i*)&dst[i], D);
     }
     for(i; i < limbs; i++){
         dst[i] = a[i] & ~b[i];
@@ -308,11 +308,11 @@ static inline void _bitset_symmetric_difference(mp_limb_t* dst, mp_limb_t* a, mp
         dst[i] = a[i] ^ b[i];
     }
 #elif __SSE4_1__
-    for(i = 0; i + LIMBS_PER64 < limbs; i += 2*LIMBS_PER_64){
+    for(i = 0; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
-        __m128i d = _mm_xor_si128(A, B);
-        _mm_storeu_si128((__m256i*)&dst[i], D);
+        __m128i D = _mm_xor_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D);
     }
     for(i; i < limbs; i++){
         dst[i] = a[i] ^ b[i];

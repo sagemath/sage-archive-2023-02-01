@@ -7,22 +7,22 @@ Rubinstein's lcalc library
 This is a wrapper around Michael Rubinstein's lcalc.
 See http://oto.math.uwaterloo.ca/~mrubinst/L_function_public/CODE/.
 
-AUTHORS: 
+AUTHORS:
 
 - Rishikesh (2010): added compute_rank() and hardy_z_function()
 - Yann Laigle-Chapuy (2009): refactored
 - Rishikesh (2009): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -410,36 +410,35 @@ cdef class Lfunction_I(Lfunction):
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
-
     See (23) in :arxiv:`math/0412181`
 
     INPUT:
 
-    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-      periodic and 0 otherwise.
+    - ``what_type_L`` -- integer, this should be set to 1 if the coefficients
+      are periodic and 0 otherwise.
 
-    - ``dirichlet_coefficient`` - List of Dirichlet coefficients of the
+    - ``dirichlet_coefficient`` -- List of Dirichlet coefficients of the
       L-function. Only first `M` coefficients are needed if they are periodic.
 
-    - ``period`` - If the coefficients are periodic, this should be the
+    - ``period`` -- If the coefficients are periodic, this should be the
       period of the coefficients.
 
-    - ``Q`` - See above
+    - ``Q`` -- See above
 
-    - ``OMEGA`` - See above
+    - ``OMEGA`` -- See above
 
-    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` -- List of the values of `\kappa_j` in the functional equation
 
-    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``gamma`` -- List of the values of `\gamma_j` in the functional equation
 
-    - ``pole`` - List of the poles of L-function
+    - ``pole`` -- List of the poles of L-function
 
-    - ``residue`` - List of the residues of the L-function
+    - ``residue`` -- List of the residues of the L-function
 
     .. NOTE::
 
-        If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
-        by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
+         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
+         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
 
     def __init__(self, name, what_type_L, dirichlet_coefficient,

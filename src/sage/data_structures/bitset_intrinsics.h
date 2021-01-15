@@ -73,18 +73,6 @@ static inline int _bitset_eq(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
             return 0;
     }
     return 1;
-#elif __SSE4_1__
-    for(i = 0; i + LIMBS_PER_64 < limbs; i += 2*LIMBS_PER_64){
-        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
-        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
-        if (!_mm_testc_si128(A, B) || !_mm_testc_si128(B, A))
-            return 0;
-    }
-    for(i; i < limbs; i++){
-        if (a[i] != b[i])
-            return 0;
-    }
-    return 1;
 #else
     return mpn_cmp(a, b, limbs) == 0;
 #endif

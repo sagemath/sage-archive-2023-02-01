@@ -353,8 +353,8 @@ cdef class Matrix_double_dense(Matrix_dense):
     # def _unpickle(self, data, int version):   # use version >= 0 #unsure how to implement
     ######################################################################
     cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
-        """
-        Multiply self*right as matrices.
+        r"""
+        Multiply ``self * right`` as matrices.
 
         EXAMPLES::
 
@@ -364,12 +364,19 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 38.0  44.0  50.0  56.0]
             [ 83.0  98.0 113.0 128.0]
             [128.0 152.0 176.0 200.0]
+
+        TESTS:
+
+        Check that :trac:`31234` is fixed::
+
+            sage: matrix.identity(QQ, 4) * matrix(RDF, 4, 0)                                                                          
+            []
         """
         if self._ncols != right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right")
 
         if self._nrows == 0 or self._ncols == 0 or right._nrows == 0 or right._ncols == 0:
-            return self.matrix_space(self._nrows, right._ncols).zero_matrix()
+            return self._new(self._nrows, right._ncols)
 
         cdef Matrix_double_dense M, _right, _left
         M = self._new(self._nrows, right._ncols)

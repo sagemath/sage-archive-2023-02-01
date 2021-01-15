@@ -240,13 +240,13 @@ class OpenInterval(DifferentiableManifold):
     category of subobjects of smooth manifolds::
 
         sage: J.category()
-        Join of Category of subobjects of sets and Category of connected
-         manifolds over Real Field with 53 bits of precision and Category of
-         smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of subobjects of sets and Category of smooth manifolds
+         over Real Field with 53 bits of precision and Category of connected
+         manifolds over Real Field with 53 bits of precision
         sage: K.category()
-        Join of Category of subobjects of sets and Category of connected
-         manifolds over Real Field with 53 bits of precision and Category of
-         smooth manifolds over Real Field with 53 bits of precision
+        Join of Category of subobjects of sets and Category of smooth manifolds
+         over Real Field with 53 bits of precision and Category of connected
+         manifolds over Real Field with 53 bits of precision
 
     On the contrary, ``I``, which has not been created as a subinterval,
     is in the category of smooth manifolds (see
@@ -355,7 +355,7 @@ class OpenInterval(DifferentiableManifold):
             ambient_manifold = ambient_interval.manifold()
         field = 'real'
         structure = RealDifferentialStructure()
-        category = Manifolds(RR).Smooth() & Manifolds(RR).Connected()
+        category = Manifolds(RR).Smooth().Connected()
         DifferentiableManifold.__init__(self, 1, name, field, structure,
                                         base_manifold=ambient_manifold,
                                         latex_name=latex_name,

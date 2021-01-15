@@ -1520,7 +1520,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``linear_extension`` -- (default: ``None``) a list of the
           elements of ``self``
-        - ``check`` -- a boolean (default: True);
+        - ``check`` -- a boolean (default: ``True``);
           whether to check that ``linear_extension`` is indeed a
           linear extension of ``self``.
 

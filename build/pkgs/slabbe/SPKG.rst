@@ -1,10 +1,16 @@
-slabbe
-======
+slabbe : Sebastien Labbe's Research code
+========================================
 
 Description
 -----------
 
-Sebastien Labbe's Research code
+This SageMath package contains various modules for experimentation with
+
+- discrete dynamical systems
+- combinatorics
+- digital geometry
+- visualization
+- miscellaneous development tools
 
 License
 -------

@@ -1204,7 +1204,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.unwrap(x) is x
             True
 
-        This method is useful in code where we don't know if ``P`` is
+        This method is useful in code where we do not know if ``P`` is
         a facade poset or not.
         """
         if self._is_facade:
@@ -3197,7 +3197,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return ``True`` if the poset is connected, and ``False`` otherwise.
 
-        A poset is connected if it's Hasse diagram is connected.
+        A poset is connected if its Hasse diagram is connected.
 
         If a poset is not connected, then it can be divided to parts
         `S_1` and `S_2` so that every element of `S_1` is incomparable to
@@ -3821,7 +3821,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if len(self) <= 2:
             return True
         # Let's work with the Hasse diagram in order to avoid some
-        # indirection (the output doesn't depend on the vertex labels).
+        # indirection (the output does not depend on the vertex labels).
         hasse = self._hasse_diagram
         rf = hasse.rank_function()
         if rf is None:
@@ -6712,7 +6712,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
+            sage: P = Poset({'a':['b', 'c'], 'b':['d','e']})
             sage: [sorted(anti) for anti in P.maximal_antichains()]
             [['a'], ['b', 'c'], ['c', 'd', 'e']]
 
@@ -6774,7 +6774,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``on_ints`` -- a boolean (default: False)
+        - ``on_ints`` -- a boolean (default: ``False``)
 
         OUTPUT:
 
@@ -7103,7 +7103,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         the maximum of `P`, where `\rho` is the rank function of `P`
         (normalized to satisfy `\rho(\min P) = 0`), and where
         `n` is the rank of `\max P`. (Note that the indeterminate
-        `x_0` doesn't actually appear in the polynomial.)
+        `x_0` does not actually appear in the polynomial.)
 
         For technical reasons, the polynomial is returned in the
         slightly larger ring `\ZZ[x_0, x_1, x_2, \cdots, x_{n+1}]` by
@@ -8683,7 +8683,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
     .. WARNING::
 
         This method is tailor-made for its use in the
-        :meth:`FinitePoset.greene_shape()` method of a finite poset. It's not
+        :meth:`FinitePoset.greene_shape()` method of a finite poset. It is not
         very useful in general. First of all, as said above, the iterator
         does not know when to halt. Second, `G` needs to be acyclic for it
         to correctly work. This must be amended if this method is ever to be
@@ -8739,7 +8739,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
 
     # f: flow function as a dictionary.
     f = { (u, v): 0 for (u, v, l) in G.edge_iterator() }
-    # val: value of the flow f. (Can't call it v due to Python's asinine
+    # val: value of the flow f. (Cannot call it v due to Python's asinine
     # handling of for loops.)
     val = 0
 

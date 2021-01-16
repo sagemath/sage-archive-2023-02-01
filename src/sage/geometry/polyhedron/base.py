@@ -7038,7 +7038,8 @@ class Polyhedron_base(Element):
 
         TESTS:
 
-        The offset is taken correctly::
+        Equations are not considered by the combinatorial polyhedron.
+        We check that the index corresponds to the Hrepresentation index::
 
             sage: P = polytopes.permutahedron(3, backend='field')
             sage: P.Hrepresentation()
@@ -7049,8 +7050,20 @@ class Polyhedron_base(Element):
              An inequality (1, 0, 1) x - 3 >= 0,
              An inequality (1, 1, 0) x - 3 >= 0,
              An equation (1, 1, 1) x - 6 == 0)
-            sage: P.meet_of_facets(0)
-            A 1-dimensional face of a Polyhedron in QQ^3 defined as the convex hull of 2 vertices
+            sage: P.meet_of_facets(0).ambient_Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0, An inequality (0, 0, 1) x - 1 >= 0)
+
+            sage: P = polytopes.permutahedron(3, backend='ppl')
+            sage: P.Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0,
+             An inequality (1, 1, 0) x - 3 >= 0,
+             An inequality (-1, -1, 0) x + 5 >= 0,
+             An inequality (0, 1, 0) x - 1 >= 0,
+             An inequality (-1, 0, 0) x + 3 >= 0,
+             An inequality (1, 0, 0) x - 1 >= 0,
+             An inequality (0, -1, 0) x + 3 >= 0)
+            sage: P.meet_of_facets(1).ambient_Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0, An inequality (1, 1, 0) x - 3 >= 0)
         """
         from sage.geometry.polyhedron.representation import Inequality
         from sage.geometry.polyhedron.face import PolyhedronFace

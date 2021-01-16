@@ -23,7 +23,6 @@ AC_DEFUN([SAGE_CHECK_PYTHON_FOR_VENV], [
                                 dnl (echo "***ENV***:"; env; echo "***SYSCONFIG***"; conftest_venv/bin/python3 -m sysconfig) >& AS_MESSAGE_LOG_FD
                                 echo CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD
                                 AS_IF([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
-                                    rm -rf conftest.*
                                     SAGE_PYTHON_DISTUTILS_CXX_CONFTEST
                                     AS_IF([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
                                         COMMANDS_IF_GOOD], [
@@ -56,6 +55,7 @@ AC_DEFUN([SAGE_CHECK_PYTHON_FOR_VENV], [
 
 dnl Write conftest.py and conftest.c
 AC_DEFUN([SAGE_PYTHON_DISTUTILS_C_CONFTEST], [
+                                rm -rf conftest.*
                                 AC_LANG_PUSH([C])
                                 AC_LANG_CONFTEST([
                                     AC_LANG_SOURCE([[
@@ -95,6 +95,7 @@ EOF
 
 dnl Write conftest.py and conftest.cpp
 AC_DEFUN([SAGE_PYTHON_DISTUTILS_CXX_CONFTEST], [
+                                    rm -rf conftest.*
                                     AC_LANG_PUSH([C++])
                                     AC_LANG_CONFTEST([
                                         AC_LANG_SOURCE([[

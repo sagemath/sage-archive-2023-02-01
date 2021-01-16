@@ -1,4 +1,4 @@
-$(PYTHON) cysignals pplpy | $(PYTHON_TOOLCHAIN)
+$(PYTHON) cysignals pplpy | $(PYTHON_TOOLCHAIN) $(SAGERUNTIME)
 
 ----------
 All lines of this file are ignored except the first.

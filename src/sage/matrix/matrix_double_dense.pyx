@@ -369,7 +369,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         Check that :trac:`31234` is fixed::
 
-            sage: matrix.identity(QQ, 4) * matrix(RDF, 4, 0)                                                                          
+            sage: matrix.identity(QQ, 4) * matrix(RDF, 4, 0)
             []
         """
         if self._ncols != right._nrows:

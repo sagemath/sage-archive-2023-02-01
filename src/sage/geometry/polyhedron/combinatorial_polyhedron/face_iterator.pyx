@@ -487,7 +487,7 @@ cdef class FaceIterator_base(SageObject):
 
         This is the largest face contained in all facets with the given indices.
 
-        The iterator must be reseted if not newly initialized.
+        The iterator must be reset if not newly initialized.
 
         EXAMPLES::
 
@@ -527,7 +527,7 @@ cdef class FaceIterator_base(SageObject):
             ...
             IndexError: coatoms out of range
 
-        If the iterator has already been used, it must be reseted before::
+        If the iterator has already been used, it must be reset before::
 
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator()
@@ -554,11 +554,11 @@ cdef class FaceIterator_base(SageObject):
 
         This is the smallest face containing all Vrepresentatives with the given indices.
 
-        The iterator must be reseted if not newly initialized.
+        The iterator must be reset if not newly initialized.
 
         .. NOTE::
 
-            In case of unbounded polyhedra, the smallest face containing given Vrepresentatives
+            In the case of unbounded polyhedra, the smallest face containing given Vrepresentatives
             may not te well defined.
 
         EXAMPLES::
@@ -589,7 +589,7 @@ cdef class FaceIterator_base(SageObject):
             ...
             IndexError: coatoms out of range
 
-        If the iterator has already been used, it must be reseted before::
+        If the iterator has already been used, it must be reset before::
 
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator()
@@ -604,7 +604,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it.join_of_Vrep(1,10).ambient_V_indices()
             (1, 10)
 
-        In case of an unbounded polyhedron, we try to make sense of the input::
+        In the case of an unbounded polyhedron, we try to make sense of the input::
 
             sage: P = polytopes.cube()*Polyhedron(lines=[[1]])
             sage: it = P.face_generator()
@@ -646,7 +646,7 @@ cdef class FaceIterator_base(SageObject):
         r"""
         Construct the meet of the coatoms indicated by the indices.
 
-        The iterator must be reseted if not newly initialized.
+        The iterator must be reset if not newly initialized.
 
         .. SEEALSO::
 
@@ -754,7 +754,7 @@ cdef class FaceIterator_base(SageObject):
         r"""
         Construct the join of atoms indicated by the indices.
 
-        The iterator must be reseted if not newly initialized.
+        The iterator must be reset if not newly initialized.
 
         .. SEEALSO::
 
@@ -785,7 +785,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it._join_of_atoms(1)
             A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
 
-        If the iterator has already been used, it must be reseted before::
+        If the iterator has already been used, it must be reset before::
 
             sage: P = polytopes.dodecahedron()
             sage: it = P.face_generator()

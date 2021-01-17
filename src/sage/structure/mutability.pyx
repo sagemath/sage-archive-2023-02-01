@@ -13,26 +13,50 @@ Mutability Cython Implementation
 
 from sage.misc.decorators import sage_wraps
 
-
 cdef class Mutability:
+    r"""
+    Class to mix in mutability feature.
+
+    EXAMPLES::
+
+        sage: class A(SageObject, Mutability):
+        ....:     def __init__(self, val):
+        ....:         self._val = val
+        ....:     def change(self, val):
+        ....:         self._require_mutable()
+        ....:         self._val = val
+        ....:     def __hash__(self):
+        ....:         self._require_immutable()
+        ....:         return hash(self._val)
+        ....:
+        sage: a = A(4)
+        sage: a._val
+        4
+        sage: a.change(6); a._val
+        6
+        sage: hash(a)
+        Traceback (most recent call last):
+        ...
+        ValueError: object is mutable; please make it immutable first
+        sage: a.set_immutable()
+        sage: a.change(4)
+        Traceback (most recent call last):
+        ...
+        ValueError: object is immutable; please change a copy instead
+        sage: hash(a)
+        6
+
+    """
 
     def __init__(self, is_immutable=False):
         self._is_immutable = is_immutable
 
-    def _require_mutable(self):
+    cpdef _require_mutable(self):
         if self._is_immutable:
             raise ValueError("object is immutable; please change a copy instead")
 
-    def _require_immutable(self):
+    cpdef _require_immutable(self):
         if not self._is_immutable:
-            raise ValueError("object is mutable; please make it immutable first")
-
-    cdef _require_mutable_cdef(self):
-        if self._is_immutable:
-            raise ValueError("object is immutable; please change a copy instead")
-
-    cdef _require_immutable_cdef(self):
-        if self._is_immutable:
             raise ValueError("object is mutable; please make it immutable first")
 
     def set_immutable(self):
@@ -75,6 +99,24 @@ cdef class Mutability:
         return self._is_immutable
 
     cpdef bint is_mutable(self):
+        """
+        Return ``True`` if this object is mutable (can be changed)
+        and ``False`` if it is not.
+        
+        To make this object immutable use ``self.set_immutable()``.
+        
+        EXAMPLES::
+        
+            sage: v = Sequence([1,2,3,4/5])
+            sage: v[0] = 5
+            sage: v
+            [5, 2, 3, 4/5]
+            sage: v.is_mutable()
+            True
+            sage: v.set_immutable()
+            sage: v.is_mutable()
+            False
+        """
         return not self._is_immutable
 
 ##########################################################################

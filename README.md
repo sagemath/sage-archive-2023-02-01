@@ -328,8 +328,9 @@ version that you are installing.
 Please do not hesitate to ask for help in the [SageMath forum
 ](https://ask.sagemath.org/questions/) or the [sage-support mailing
 list](https://groups.google.com/forum/#!forum/sage-support).  The
-[Troubleshooting section in the Sage Installation Guide]() provides
-instructions on what information to provide so that we can provide
+[Troubleshooting section in the Sage Installation Guide
+](https://doc.sagemath.org/html/en/installation/troubles.html)
+provides instructions on what information to provide so that we can provide
 help more effectively.
 
 Contributing to Sage

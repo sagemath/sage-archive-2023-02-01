@@ -1,5 +1,5 @@
-termcap
-=======
+termcap: Terminal control library
+=================================
 
 Description
 -----------

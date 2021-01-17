@@ -118,13 +118,13 @@ this with the solver we wrote in the section on f2py.
         print(num_iter)
         print(sol)
 
-For small grid sizes this will be slower than a straightforward
-serial implementation, this is because there is overhead from the
+For small grid sizes, this will be slower than a straightforward
+serial implementation. This is because there is overhead from the
 communication, and for small grids the interprocess communication
 takes more time than just doing the iteration. However, on a
 1000x1000 grid I find that using 4 processors, the parallel version
 takes only 6 seconds while the serial version we wrote earlier
 takes 20 seconds.
 
-Excercise: Rewrite the above using f2py, so that each process 
+Exercise: Rewrite the above using f2py, so that each process 
 compiles a fortran function and uses that, how fast can you get this?

@@ -17,16 +17,18 @@
 # Always use bash for make rules
 SHELL = @SHELL@
 
-ifndef SAGE_SPKG_INST
-ifndef DEBUG_RULES
+# Check a variable that is only set in build/make/install, but not in sage-env, for example
+ifndef SAGE_PKGCONFIG
+# Set by build/bin/sage-sdist, which invokes the Makefile directly in
+# order to download upstream packages for distribution.
+ifndef SAGE_SPKG_COPY_UPSTREAM
 $(error This Makefile needs to be invoked by build/make/install)
-else
-# A dummy value for this variable for debugging purposes
-SAGE_SPKG_INST=installed
 endif
 endif
 
 # Directory to keep track of which packages are installed
+SAGE_SPKG_INST = $(SAGE_LOCAL)/var/lib/sage/installed
+
 INST = $(SAGE_SPKG_INST)
 
 # Aliases for mutually exclusive standard packages selected at configure time
@@ -360,6 +362,49 @@ _clean-broken-gcc:
 	   echo "Cleaned up old broken GCC install"; \
 	fi
 
+#==============================================================================
+# Setting SAGE_CHECK... variables
+#==============================================================================
+ifeq "$(origin SAGE_CHECK)" "undefined"
+SAGE_CHECK := no
+endif
+
+define SET_SAGE_CHECK
+$(eval SAGE_CHECK_$(1) := $(2))
+endef
+# Set defaults
+$(foreach pkgname, $(NORMAL_PACKAGES),\
+	$(eval $(call SET_SAGE_CHECK,$(pkgname),$(SAGE_CHECK))))
+
+# Parsing the SAGE_CHECK_PACKAGES variable:
+# - if this contains "!pkg", set SAGE_CHECK_pkg=no.
+# - if this contains "?pkg", set SAGE_CHECK_pkg=warn.
+# - if this contains "pkg",  set SAGE_CHECK_pkg=yes.
+#
+# We check this now and export SAGE_CHECK_pkg for
+# dependencies and the Makefile rules.
+#
+# Since Python's self-tests seem to fail on all platforms, we disable
+# its test suite by default.
+# However, if SAGE_CHECK=warn, we do not do that.
+SAGE_CHECK_PACKAGES_DEFAULT_yes := !python3
+SAGE_CHECK_PACKAGES_DEFAULT_warn :=
+SAGE_CHECK_PACKAGES_DEFAULT_no :=
+comma := ,
+ifeq "$(origin SAGE_CHECK_PACKAGES)" "undefined"
+SAGE_CHECK_PACKAGES := $(SAGE_CHECK_PACKAGES_DEFAULT_$(SAGE_CHECK))
+endif
+SAGE_CHECK_PACKAGES_sep := $(subst $(comma), ,$(SAGE_CHECK_PACKAGES))
+SAGE_CHECK_PACKAGES_sep := $(subst :, ,$(SAGE_CHECK_PACKAGES_sep))
+$(foreach clause, $(SAGE_CHECK_PACKAGES_sep),					\
+     $(if $(findstring !,$(clause)),						\
+	  $(eval $(call SET_SAGE_CHECK,$(subst !,,$(clause)),no)),		\
+	  $(if $(findstring ?,$(clause)),					\
+	       $(eval $(call SET_SAGE_CHECK,$(subst ?,,$(clause)),warn)),	\
+	       $(eval $(call SET_SAGE_CHECK,$(clause),yes)))))
+debug-check:
+	@echo $(foreach pkgname, $(NORMAL_PACKAGES), SAGE_CHECK_$(pkgname) = $(SAGE_CHECK_$(pkgname)))
+
 
 #==============================================================================
 # Rules generated from pkgs/<package>/dependencies files
@@ -436,12 +481,7 @@ pkg_deps = \
 #     $(2): package version
 #     $(3): package dependencies
 
-ifeq "$(origin SAGE_CHECK)" "undefined"
-SAGE_CHECK := no
-endif
-
 define NORMAL_PACKAGE_templ ##########################################
-SAGE_CHECK_$(1) := $(SAGE_CHECK)
 
 $(1)-build-deps: $(3)
 
@@ -472,38 +512,6 @@ $(foreach pkgname, $(NORMAL_PACKAGES),\
 	$(info $(call NORMAL_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
 	                                   $(call pkg_deps,$(pkgname)))))
 endif
-
-# Parsing the SAGE_CHECK_PACKAGES variable:
-# - if this contains "!pkg", set SAGE_CHECK_pkg=no.
-# - if this contains "?pkg", set SAGE_CHECK_pkg=warn.
-# - if this contains "pkg",  set SAGE_CHECK_pkg=yes.
-#
-# We check this now and export SAGE_CHECK_pkg for
-# dependencies and the Makefile rules.
-#
-# Since Python's self-tests seem to fail on all platforms, we disable
-# its test suite by default.
-# However, if SAGE_CHECK=warn, we do not do that.
-SAGE_CHECK_PACKAGES_DEFAULT_yes := !python3
-SAGE_CHECK_PACKAGES_DEFAULT_warn :=
-SAGE_CHECK_PACKAGES_DEFAULT_no :=
-comma := ,
-ifeq "$(origin SAGE_CHECK_PACKAGES)" "undefined"
-SAGE_CHECK_PACKAGES := $(SAGE_CHECK_PACKAGES_DEFAULT$(SAGE_CHECK))
-endif
-SAGE_CHECK_PACKAGES_sep := $(subst $(comma), ,$(SAGE_CHECK_PACKAGES))
-SAGE_CHECK_PACKAGES_sep := $(subst :, ,$(SAGE_CHECK_PACKAGES_sep))
-define SET_SAGE_CHECK
-$(eval SAGE_CHECK_$(1) := $(2))
-endef
-$(foreach clause, $(SAGE_CHECK_PACKAGES_sep),					\
-     $(if $(findstring !,$(clause)),						\
-	  $(eval $(call SET_SAGE_CHECK,$(subst !,,$(clause)),no)),		\
-	  $(if $(findstring ?,$(clause)),					\
-	       $(eval $(call SET_SAGE_CHECK,$(subst ?,,$(clause)),warn)),	\
-	       $(eval $(call SET_SAGE_CHECK,$(clause),yes)))))
-debug-check:
-	@echo $(foreach pkgname, $(NORMAL_PACKAGES), SAGE_CHECK_$(pkgname) = $(SAGE_CHECK_$(pkgname)))
 
 # ================================ pip packages ===============================
 # Generate build rules for 'pip' packages; this template is used to generate
@@ -550,6 +558,8 @@ endif
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env-config' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env' && \\
+#         . '$SAGE_ROOT/build/bin/sage-build-env-config' && \\
+#         . '$SAGE_ROOT/build/bin/sage-build-env' && \\
 #         sage-logger -p '$SAGE_ROOT/build/pkgs/<pkgname>/spkg-install' '$(SAGE_LOGS)/<pkgname>.log'
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
@@ -558,6 +568,8 @@ endif
 #     -$(AM_V_at)cd '$SAGE_ROOT' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env-config' && \\
 #         . '$SAGE_ROOT/src/bin/sage-env' && \\
+#         . '$SAGE_ROOT/build/bin/sage-build-env-config' && \\
+#         . '$SAGE_ROOT/build/bin/sage-build-env' && \\
 #         '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'
 
 # Positional arguments:
@@ -577,6 +589,9 @@ $(1)-no-deps:
 		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
+		. '$$(SAGE_ROOT)/build/bin/sage-build-env' && \
+		SAGE_SPKG_WHEELS=$$(SAGE_LOCAL)/var/lib/sage/wheels \
+		SAGE_INST_LOCAL=$$(SAGE_LOCAL) \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log'
 	touch "$$(INST)/$(1)-$(2)"
 
@@ -585,6 +600,7 @@ $(1)-uninstall:
 		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
+		. '$$(SAGE_ROOT)/build/bin/sage-build-env' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 	-rm -f "$$(INST)/$(1)-$(2)"
 

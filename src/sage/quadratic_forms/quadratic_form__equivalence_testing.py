@@ -5,7 +5,6 @@ AUTHORS:
 
 - Anna Haensch (2014-12-01): added test for rational isometry
 """
-from __future__ import print_function, absolute_import
 
 from sage.arith.all import hilbert_symbol, prime_divisors, is_prime, valuation, GCD, legendre_symbol
 from sage.rings.integer_ring import ZZ
@@ -534,7 +533,7 @@ def is_rationally_isometric(self, other, return_matrix=False):
     F, f_diagonal_transform = other.rational_diagonal_form(True)
 
     # Call the method that does all the work to compute the transformation.
-    transform = _diagonal_isometry(Q,F)
+    transform = _diagonal_isometry(Q, F)
 
     return f_diagonal_transform * transform * q_diagonal_transform.inverse()
 
@@ -544,9 +543,11 @@ def _diagonal_isometry(V, W):
     Given two diagonal, rationally equivalent quadratic forms, computes a
     transition matrix mapping from one to the other.
 
-    Note: This function is an auxilliary method of ``isometry``, which is the
-    method that should be called as it performs error-checking that isn't present
-    in this function.
+    .. NOTE::
+
+        This function is an auxiliary method of ``isometry``, which is
+        the method that should be called as it performs error-checking
+        that is not present in this function.
 
     INPUT:
 

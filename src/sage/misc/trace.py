@@ -1,7 +1,6 @@
 """
 Interactively tracing execution of a command
 """
-from __future__ import print_function
 
 
 def trace(code, preparse=True):
@@ -66,8 +65,8 @@ def trace(code, preparse=True):
 
         sage: print(s.before[s.before.find(b'--'):].decode())
         --...
-        ipdb> c
-        2 * 5
+        ...ipdb> c
+        ...2 * 5...
 
     Re-enable garbage collection::
 

@@ -64,7 +64,7 @@ cdef class Mutability:
             sage: v.is_immutable()
             True
         """
-        self._is_immutable
+        return self._is_immutable
 
     def is_mutable(self):
         return not self._is_immutable

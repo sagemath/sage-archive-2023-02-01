@@ -4330,7 +4330,7 @@ class SemistandardTableau(Tableau):
             rnext = t[rix+1]
 
             # check that SST is strictly increasing in columns
-            # we know that len(rnext) < len(rcur) as the SST cannot have
+            # we know that len(rnext) <= len(rcur) as the SST cannot have
             # more columns in the next row than the current row.
             assert (len(rnext) <= len(rcur))
 

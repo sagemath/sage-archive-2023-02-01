@@ -118,6 +118,23 @@ cdef class Mutability:
         """
         return not self._is_immutable
 
+    def __getstate__(self):
+        r"""
+        Get the current state of ``self`` including the mutability status.
+        """
+        state = getattr(self, '__dict__', {})
+        state['_is_immutable'] = self._is_immutable
+        return state
+
+    def __setstate__(self, state):
+        r"""
+        Set the state of ``self`` from the dictionary ``state`` including the
+        mutability status.
+        """
+        if hasattr(self, '__dict__'):
+            self.__dict__ = state
+        self._is_immutable = state['_is_immutable']
+
 ##########################################################################
 ## Method decorators for mutating methods resp. methods that assume immutability
 

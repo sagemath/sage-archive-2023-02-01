@@ -1347,12 +1347,8 @@ cdef int parallel_f_vector(iter_t* structures, size_t num_threads, size_t parall
     # Setting up for each thread some storage space.
     cdef parallel_f_t* parallel_structs = \
             <parallel_f_t*> mem.allocarray(num_threads, sizeof(parallel_f_t))
-    cdef parallel_f_s* parallel_structs_s = \
-            <parallel_f_s*> mem.allocarray(num_threads, sizeof(parallel_f_s))
 
     for i in range(num_threads):
-        parallel_structs[i][0] = parallel_structs_s[i]
-
         # Partial f-vectors.
         parallel_structs[i].f_vector = \
                 <size_t*> mem.calloc(dim+2, sizeof(size_t))

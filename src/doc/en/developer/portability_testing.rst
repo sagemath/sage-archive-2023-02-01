@@ -10,7 +10,7 @@ Testing on multiple platforms
 
 Sage is intended to build and run on a variety of platforms,
 including all major Linux distributions, as well as MacOS, and
-Windows (with Cygwin).
+Windows (with Cygwin and WSL).
 
 There is considerable variation among these platforms.
 To ensure that Sage continues to build correctly on users'
@@ -934,7 +934,16 @@ workflow have finished.  Each job generates one tarball.
 during the build.
 
 The following procedure triggers a run of tests with the default set of
-system configurations.  Let's assume that ``github`` is the name of
+system configurations.
+
+- Push your changes to trac.
+- Go to the `Actions page on the GitHub mirror <https://github.com/sagemath/sagetrac-mirror/actions>`_ and select the workflow you would like to run.
+- Click on "Run workflow" above the list of workflow runs and select the branch where the workflow will run.
+
+For more information, see the `GitHub documentation <https://docs.github.com/en/free-pro-team@latest/actions/managing-workflow-runs/manually-running-a-workflow>`_.
+
+Alternatively, you can create and push a custom tag in order to trigger a run of tests as follows. 
+Let's assume that ``github`` is the name of
 the remote corresponding to your GitHub fork of the Sage repository::
 
   $ git remote -v | grep /my-github

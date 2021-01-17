@@ -6,6 +6,8 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
+    # Allow to run manually
 
 env:
   MAKE: make -j8

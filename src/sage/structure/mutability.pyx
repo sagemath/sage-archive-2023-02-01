@@ -28,7 +28,6 @@ cdef class Mutability:
         ....:     def __hash__(self):
         ....:         self._require_immutable()
         ....:         return hash(self._val)
-        ....:
         sage: a = A(4)
         sage: a._val
         4

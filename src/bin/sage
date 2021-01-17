@@ -58,7 +58,8 @@ usage() {
 # 'usage_advanced', which prints a longer help message, is defined
 # below, after sourcing sage-env.
 
-# Determine SAGE_ROOT and SAGE_LOCAL.
+# Determine SAGE_ROOT, SAGE_LOCAL, and SAGE_VENV.
+unset SAGE_VENV
 if [ -x "$0-config" ]; then
     # optional sage-config console script, installed by sage_conf
     export SAGE_ROOT=$("$0-config" SAGE_ROOT)
@@ -68,7 +69,7 @@ if [ -f "$0-src-env-config" ]; then
     # Not installed script, present only in src/bin/
     . "$0-src-env-config" >&2
 fi
-if [ -x "$0-venv-config" ]; then
+if [ -z "$SAGE_VENV" -a -x "$0-venv-config" ]; then
     # installed by setup.py
     export SAGE_VENV=$("$0-venv-config" SAGE_VENV)
 fi

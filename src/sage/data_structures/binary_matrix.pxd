@@ -71,6 +71,16 @@ cdef inline void binary_matrix_free(binary_matrix_t m):
         bitset_free(m.rows[i])
     sig_free(m.rows)
 
+cdef inline void binary_matrix_copy(binary_matrix_t dst, binary_matrix_t src):
+    """
+    Copy the binary matrix src over to the binary matrix dst, overwriting dst.
+
+    We assume that ``dst.n_rows == src.n_rows`` and ``dst.n_cols == src.n_cols``.
+    """
+    cdef mp_bitcnt_t i
+    for i in range(dst.n_rows):
+        bitset_copy(dst.rows[i], src.rows[i])
+
 cdef inline void binary_matrix_fill(binary_matrix_t m, bint bit):
     r"""
     Fill the whole matrix with a bit

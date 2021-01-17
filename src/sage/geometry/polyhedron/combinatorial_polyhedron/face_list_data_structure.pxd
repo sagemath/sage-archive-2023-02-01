@@ -249,7 +249,6 @@ cdef inline size_t get_next_level_fused(
     face_list_intersection_fused(new_faces, faces, faces.faces[n_faces], algorithm)
 
     cdef size_t j
-    sig_check()
     for j in range(n_faces):
         sig_check()
         if (is_not_maximal_fused(new_faces, j, algorithm) or  # Step 2
@@ -278,7 +277,6 @@ cdef inline size_t get_next_level(
         face_list_t visited_all) nogil except -1:
 
     cdef size_t output
-    sig_check()
     if faces.polyhedron_is_simple:
         output = get_next_level_fused(faces, new_faces, visited_all, <simple> 0)
     else:

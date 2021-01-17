@@ -11,9 +11,12 @@ Inline cython methods for lists of faces.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+cdef extern from "Python.h":
+    int unlikely(int) nogil  # Defined by Cython
+
 from .face_data_structure             cimport *
 from libc.string                      cimport memset
-from cysignals.signals                cimport sig_on, sig_off
+from cysignals.signals                cimport sig_check
 
 cdef struct face_list_s:
     face_t* faces
@@ -89,9 +92,9 @@ cdef inline int add_face_shallow(face_list_t faces, face_t face) nogil except -1
     """
     Add a face to faces.
     """
-    if not faces.total_n_faces >= faces.n_faces + 1:
-        with gil:
-            raise AssertionError
+    if unlikely(not faces.total_n_faces >= faces.n_faces + 1):
+        # Actually raising an error here results in a bad branch prediction.
+        return -1
     faces.faces[faces.n_faces][0] = face[0]
     faces.n_faces += 1
 
@@ -158,14 +161,17 @@ cdef inline bint is_contained_in_one_fused(face_t face, face_list_t faces, algor
             return True
     return False
 
-cdef inline bint is_not_maximal_fused(face_list_t faces, size_t j, algorithm_variant algorithm) nogil:
+cdef inline bint is_not_maximal_fused(face_list_t faces, size_t j, algorithm_variant algorithm, bint* is_not_new_face) nogil:
     """
     Return whether face ``j`` is not maximal in ``faces``.
     """
     cdef size_t i
     if algorithm_variant is standard:
         for i in range(j):
-            if face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
+            if (not is_not_new_face[i]) and face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
+                # It suffices to check those faces, that are maximal.
+                # This way, if multiple identical faces are maximal,
+                # exactly the last one is considered maximal.
                 return True
         for i in range(j+1, faces.n_faces):
             if face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
@@ -184,12 +190,12 @@ cdef inline int face_list_intersection_fused(face_list_t dest, face_list_t A, fa
     """
     Set ``dest`` to be the intersection of each face of ``A`` with ``b``.
     """
-    if not dest.total_n_faces >= A.n_faces:
-        with gil:
-            raise AssertionError
-    if not dest.n_atoms >= A.n_atoms:
-        with gil:
-            raise AssertionError
+    if unlikely(not dest.total_n_faces >= A.n_faces):
+        # Actually raising an error here results in a bad branch prediction.
+        return -1
+    if unlikely(not dest.n_atoms >= A.n_atoms):
+        # Actually raising an error here results in a bad branch prediction.
+        return -1
     dest.n_faces = A.n_faces
     dest.polyhedron_is_simple = A.polyhedron_is_simple
 
@@ -247,7 +253,8 @@ cdef inline size_t get_next_level_fused(
 
     cdef size_t j
     for j in range(n_faces):
-        if (is_not_maximal_fused(new_faces, j, algorithm) or  # Step 2
+        sig_check()
+        if (is_not_maximal_fused(new_faces, j, algorithm, is_not_new_face) or  # Step 2
                 is_contained_in_one_fused(new_faces.faces[j], visited_all, algorithm)):  # Step 3
             is_not_new_face[j] = True
 
@@ -273,12 +280,10 @@ cdef inline size_t get_next_level(
         face_list_t visited_all) nogil except -1:
 
     cdef size_t output
-    sig_on()
     if faces.polyhedron_is_simple:
         output = get_next_level_fused(faces, new_faces, visited_all, <simple> 0)
     else:
         output = get_next_level_fused(faces, new_faces, visited_all, <standard> 0)
-    sig_off()
     return output
 
 cdef inline size_t bit_rep_to_coatom_rep(face_t face, face_list_t coatoms, size_t *output):

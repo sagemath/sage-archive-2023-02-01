@@ -1024,10 +1024,10 @@ class Polyhedron_base(Element):
             sage: fcube = polytopes.hypercube(4)
             sage: tfcube = fcube.face_truncation(fcube.faces(0)[0])
             sage: sp = tfcube.schlegel_projection()
-            sage: for face in tfcube.faces(2): 
-            ....:     vertices = face.ambient_Vrepresentation() 
-            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices] 
-            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices] 
+            sage: for face in tfcube.faces(2):
+            ....:     vertices = face.ambient_Vrepresentation()
+            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices]
+            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices]
             ....:     assert Polyhedron(projected_vertices).dim() == 2
         """
         def merge_options(*opts):
@@ -6892,9 +6892,17 @@ class Polyhedron_base(Element):
         return self.faces(self.dimension()-1)
 
     @cached_method(do_pickle=True)
-    def f_vector(self):
+    def f_vector(self, num_threads=None, parallelization_depth=None):
         r"""
         Return the f-vector.
+
+        INPUT:
+
+        - ``num_threads`` -- integer (optional); specify the number of threads;
+          otherwise determined by :func:`~sage.parallel.ncpus.ncpus`
+
+        - ``parallelization_depth`` -- integer (optional); specify
+          how deep in the lattice the parallelization is done
 
         OUTPUT:
 
@@ -6951,7 +6959,7 @@ class Polyhedron_base(Element):
             sage: Q.f_vector.is_in_cache()
             True
         """
-        return self.combinatorial_polyhedron().f_vector()
+        return self.combinatorial_polyhedron().f_vector(num_threads, parallelization_depth)
 
     def flag_f_vector(self, *args):
         r"""
@@ -10179,10 +10187,10 @@ class Polyhedron_base(Element):
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
-            if as_affine_map: 
-                return linear_transformation(matrix(self.base_ring(), 
-                                                    self.dim(), 
-                                                    self.dim(), 
+            if as_affine_map:
+                return linear_transformation(matrix(self.base_ring(),
+                                                    self.dim(),
+                                                    self.dim(),
                                                     self.base_ring().one())), self.ambient_space().zero()
             return self
 

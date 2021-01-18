@@ -42,4 +42,8 @@ cdef struct sparse_bitset_s:
     # The individual bits of a bitset.
     mp_limb_t* bits
 
+    bint non_zero_chunks_are_initialized
+    mp_bitcnt_t* non_zero_chunks
+    mp_bitcnt_t n_non_zero_chunks
+
 ctypedef sparse_bitset_s sparse_bitset_t[1]

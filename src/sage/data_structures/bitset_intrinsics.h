@@ -106,6 +106,33 @@ static inline int _bitset_issubset(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs
     return 1;
 }
 
+static inline int _sparse_bitset_issubset(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b){
+    /*
+    Test whether a is a subset of b (i.e., every element in a is also
+    in b).
+    */
+    mp_bitcnt_t i,j;
+    for(j = 0; j < a_n_non_zero_chunks; j++){
+        i = a_non_zero_chunks[j];
+#if __AVX__
+        __m256i A = _mm256_loadu_si256((const __m256i*)&a[i]);
+        __m256i B = _mm256_loadu_si256((const __m256i*)&b[i]);
+        if (!_mm256_testc_si256(B, A)) // Need to be opposite order!
+            return 0;
+
+#elif __SSE4_1__
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        if (!_mm_testc_si128(B, A)) // Need to be opposite order!
+            return 0;
+#else
+        if ((a[i] & ~b[i]) != 0)
+            return 0;
+#endif
+    }
+    return 1;
+}
+
 static inline int _bitset_are_disjoint(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
     /*
     Tests whether ``a`` and ``b`` have an empty intersection.
@@ -308,6 +335,286 @@ static inline void _bitset_symmetric_difference(mp_limb_t* dst, mp_limb_t* a, mp
 #else
     mpn_xor_n(dst, a, b, limbs);
 #endif
+}
+
+/*
+#############################################################################
+# Bitset Arithmetic for sparse bitsets.
+#############################################################################
+*/
+
+static inline mp_bitcnt_t _set_non_zero(mp_limb_t* bits, mp_bitcnt_t* non_zero_chunks, mp_bitcnt_t limbs){
+    /*
+    Set dst to the intersection of a and b, overwriting dst.
+    */
+    mp_bitcnt_t i;
+    mp_bitcnt_t pos = 0;
+#if __AVX__
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m256i A = _mm256_loadu_si256((const __m256i*)&bits[i]);
+        if (!_mm256_testz_si256(A, A)){
+            non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __SSE4_1__
+    for(i = 0; i < limbs; i +=2*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&bits[i]);
+        if (!_mm_testz_si128(A, A)){
+            non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#else
+    for(i = 0; i < limbs; i++){
+        if (a[i]){
+            non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#endif
+    return pos;
+}
+
+static inline mp_bitcnt_t _sparse_bitset_intersection(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+    /*
+    Set dst to the intersection of a and b, overwriting dst.
+
+    Set dst_non_zero_chunks according to the non zero chunks of dst.
+
+    Return the number of non zero chunks.
+    */
+    mp_bitcnt_t i;
+    mp_bitcnt_t pos = 0;
+#if __AVX2__
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m256i A = _mm256_loadu_si256((const __m256i*)&a[i]);
+        __m256i B = _mm256_loadu_si256((const __m256i*)&b[i]);
+        __m256i D = _mm256_and_si256(A, B);
+        _mm256_storeu_si256((__m256i*)&dst[i], D);
+        if (!_mm256_testz_si256(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __AVX__
+    // We will take the chunksize corresponding to subset check etc.
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D1 = _mm_and_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D1);
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i+2*LIMBS_PER_64]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i+2*LIMBS_PER_64]);
+        __m128i D2 = _mm_and_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i+2*LIMBS_PER_64], D2);
+        if (!_mm_testz_si128(D1, D1) || !_mm_testz_si128(D2, D2)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __SSE4_1__
+    for(i = 0; i < limbs; i +=2*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D = _mm_and_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D);
+        if (!_mm_testz_si128(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#else
+    for(i = 0; i < limbs; i++){
+        dst[i] = a[i] & b[i];
+        if (dst[i]){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#endif
+    return pos;
+}
+
+static inline mp_bitcnt_t _sparse_bitset_union(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+    /*
+    Set dst to the union of a and b, overwriting dst.
+
+    Set dst_non_zero_chunks according to the non zero chunks of dst.
+
+    Return the number of non zero chunks.
+    */
+    mp_bitcnt_t i;
+    mp_bitcnt_t pos = 0;
+#if __AVX2__
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m256i A = _mm256_loadu_si256((const __m256i*)&a[i]);
+        __m256i B = _mm256_loadu_si256((const __m256i*)&b[i]);
+        __m256i D = _mm256_or_si256(A, B);
+        _mm256_storeu_si256((__m256i*)&dst[i], D);
+        if (!_mm256_testz_si256(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __AVX__
+    // We will take the chunksize corresponding to subset check etc.
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D1 = _mm_or_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D1);
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i+2*LIMBS_PER_64]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i+2*LIMBS_PER_64]);
+        __m128i D2 = _mm_or_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i+2*LIMBS_PER_64], D2);
+        if (!_mm_testz_si128(D1, D1) || !_mm_testz_si128(D2, D2)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __SSE4_1__
+    for(i = 0; i < limbs; i +=2*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D = _mm_or_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D);
+        if (!_mm_testz_si128(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#else
+    for(i = 0; i < limbs; i++){
+        dst[i] = a[i] | b[i];
+        if (dst[i]){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#endif
+    return pos;
+}
+
+static inline mp_bitcnt_t _sparse_bitset_difference(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+    /*
+    Set dst to the difference of a and b (i.e., things in a that are not
+    in b), overwriting dst.
+
+    Set dst_non_zero_chunks according to the non zero chunks of dst.
+
+    Return the number of non zero chunks.
+    */
+    mp_bitcnt_t i;
+    mp_bitcnt_t pos = 0;
+#if __AVX2__
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m256i A = _mm256_loadu_si256((const __m256i*)&a[i]);
+        __m256i B = _mm256_loadu_si256((const __m256i*)&b[i]);
+        __m256i D = _mm256_andnot_si256(B, A);  // Need to be opposite order.
+        _mm256_storeu_si256((__m256i*)&dst[i], D);
+        if (!_mm256_testz_si256(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __AVX__
+    // We will take the chunksize corresponding to subset check etc.
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D = _mm256_andnot_si128(B, A);  // Need to be opposite order.
+        _mm_storeu_si128((__m128i*)&dst[i], D1);
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i+2*LIMBS_PER_64]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i+2*LIMBS_PER_64]);
+        __m128i D2 = _mm_andnot_si128(B, A); // Need to be opposite order.
+        _mm_storeu_si128((__m128i*)&dst[i+2*LIMBS_PER_64], D2);
+        if (!_mm_testz_si128(D1, D1) || !_mm_testz_si128(D2, D2)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __SSE4_1__
+    for(i = 0; i < limbs; i +=2*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D2 = _mm_andnot_si128(B, A); // Need to be opposite order.
+        _mm_storeu_si128((__m128i*)&dst[i], D);
+        if (!_mm_testz_si128(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#else
+    for(i = 0; i < limbs; i++){
+        dst[i] = a[i] & ~b[i];
+        if (dst[i]){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#endif
+    return pos;
+}
+
+static inline mp_bitcnt_t _sparse_bitset_symmetric_difference(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs){
+    /*
+    Set dst to the symmetric difference of a and b, overwriting dst.
+
+    Set dst_non_zero_chunks according to the non zero chunks of dst.
+
+    Return the number of non zero chunks.
+    */
+    mp_bitcnt_t i;
+    mp_bitcnt_t pos = 0;
+#if __AVX2__
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m256i A = _mm256_loadu_si256((const __m256i*)&a[i]);
+        __m256i B = _mm256_loadu_si256((const __m256i*)&b[i]);
+        __m256i D = _mm256_xor_si256(A, B);
+        _mm256_storeu_si256((__m256i*)&dst[i], D);
+        if (!_mm256_testz_si256(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __AVX__
+    // We will take the chunksize corresponding to subset check etc.
+    for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D1 = _mm_xor_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D1);
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i+2*LIMBS_PER_64]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i+2*LIMBS_PER_64]);
+        __m128i D2 = _mm_xor_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i+2*LIMBS_PER_64], D2);
+        if (!_mm_testz_si128(D1, D1) || !_mm_testz_si128(D2, D2)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#elif __SSE4_1__
+    for(i = 0; i < limbs; i +=2*LIMBS_PER_64){
+        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
+        __m128i D = _mm_xor_si128(A, B);
+        _mm_storeu_si128((__m128i*)&dst[i], D);
+        if (!_mm_testz_si128(D, D)){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#else
+    for(i = 0; i < limbs; i++){
+        dst[i] = a[i] ^ b[i];
+        if (dst[i]){
+            dst_non_zero_chunks[pos] = i;
+            pos++;
+        }
+    }
+#endif
+    return pos;
 }
 
 #endif

@@ -1250,18 +1250,18 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: b=B([1,-2,1,-2])
             sage: C=b.annular_khovanov_complex()
             sage: C
-            {(-5, -1): Trivial chain complex over Integer Ring,
-             (-3, -3): Trivial chain complex over Integer Ring,
+            {(-5, -1): Chain complex with at most 1 nonzero terms over Integer Ring,
+             (-3, -3): Chain complex with at most 1 nonzero terms over Integer Ring,
              (-3, -1): Chain complex with at most 2 nonzero terms over Integer Ring,
-             (-3, 1): Trivial chain complex over Integer Ring,
+             (-3, 1): Chain complex with at most 1 nonzero terms over Integer Ring,
              (-1, -1): Chain complex with at most 5 nonzero terms over Integer Ring,
              (-1, 1): Chain complex with at most 2 nonzero terms over Integer Ring,
              (1, -1): Chain complex with at most 2 nonzero terms over Integer Ring,
              (1, 1): Chain complex with at most 5 nonzero terms over Integer Ring,
-             (3, -1): Trivial chain complex over Integer Ring,
+             (3, -1): Chain complex with at most 1 nonzero terms over Integer Ring,
              (3, 1): Chain complex with at most 2 nonzero terms over Integer Ring,
-             (3, 3): Trivial chain complex over Integer Ring,
-             (5, 1): Trivial chain complex over Integer Ring}
+             (3, 3): Chain complex with at most 1 nonzero terms over Integer Ring,
+             (5, 1): Chain complex with at most 1 nonzero terms over Integer Ring}
             sage: C[1,-1].homology()
             {1: Z x Z, 2: 0}
 
@@ -1272,11 +1272,11 @@ class Braid(FiniteTypeArtinGroupElement):
             {(-2, -2): {0: Z}, (0, 0): {0: Z x Z}, (2, 2): {0: Z}}
 
             sage: BraidGroup(3)([-1]).annular_khovanov_complex((0,1), ZZ).differential()
-            {-1: [0]
+            {-2: [],
+             -1: [0]
              [1]
              [1],
-             0: [],
-             -2: []}
+             0: []}
 
         """
         if qagrad is None:

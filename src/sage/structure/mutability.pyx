@@ -48,13 +48,72 @@ cdef class Mutability:
     """
 
     def __init__(self, is_immutable=False):
+        r"""
+        TESTS::
+
+            sage: class A(SageObject, Mutability):
+            ....:     def __init__(self, val):
+            ....:         self._val = val
+            ....:     def change(self, val):
+            ....:         self._require_mutable()
+            ....:         self._val = val
+            ....:     def __hash__(self):
+            ....:         self._require_immutable()
+            ....:         return hash(self._val)
+            sage: a = A(4)
+            sage: TestSuite(a).run(skip ="_test_pickling")
+
+        """
         self._is_immutable = is_immutable
 
     cpdef _require_mutable(self):
+        r"""
+        Whenever mutability is required, this method can be called.
+    
+        EXAMPLES::
+    
+            sage: class A(SageObject, Mutability):
+            ....:     def __init__(self, val):
+            ....:         self._val = val
+            ....:     def change(self, val):
+            ....:         self._require_mutable()
+            ....:         self._val = val
+            ....:     def __hash__(self):
+            ....:         self._require_immutable()
+            ....:         return hash(self._val)
+            sage: a = A(4)
+            sage: a.set_immutable()
+            sage: a.change(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead
+    
+        """
         if self._is_immutable:
             raise ValueError("object is immutable; please change a copy instead")
 
     cpdef _require_immutable(self):
+        r"""
+        Whenever immutability is required, this method can be called.
+        
+        EXAMPLES::
+        
+            sage: class A(SageObject, Mutability):
+            ....:     def __init__(self, val):
+            ....:         self._val = val
+            ....:     def change(self, val):
+            ....:         self._require_mutable()
+            ....:         self._val = val
+            ....:     def __hash__(self):
+            ....:         self._require_immutable()
+            ....:         return hash(self._val)
+            sage: a = A(4)
+            sage: hash(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: object is mutable; please make it immutable first
+        
+        """
         if not self._is_immutable:
             raise ValueError("object is mutable; please make it immutable first")
 

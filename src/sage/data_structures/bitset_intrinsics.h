@@ -36,15 +36,21 @@ const mp_bitcnt_t LIMB_SIZE = sizeof(mp_limb_t);
 
 static inline mp_bitcnt_t _set_non_zero(mp_limb_t* bits, mp_bitcnt_t* non_zero_chunks, mp_bitcnt_t limbs){
     /*
-    Set the non zero positions of bits.
+    Set the non zero positions of ``bits``.
 
-    Return the number of non zero positions.
+    Return the number of non zero chunks.
+
+    .. WARNING::
+
+        It is assumed that ``bits`` is overaligned
+        according to ``ALIGNMENT`` and its length is a multiple
+        of ``ALIGNMENT``.
     */
     mp_bitcnt_t i;
     mp_bitcnt_t pos = 0;
 #if __AVX__
     for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
-        __m256i A = _mm256_loadu_si256((const __m256i*)&bits[i]);
+        __m256i A = _mm256_load_si256((const __m256i*)&bits[i]);
         if (!_mm256_testz_si256(A, A)){
             non_zero_chunks[pos] = i;
             pos++;
@@ -52,7 +58,7 @@ static inline mp_bitcnt_t _set_non_zero(mp_limb_t* bits, mp_bitcnt_t* non_zero_c
     }
 #elif __SSE4_1__
     for(i = 0; i < limbs; i +=2*LIMBS_PER_64){
-        __m128i A = _mm_loadu_si128((const __m128i*)&bits[i]);
+        __m128i A = _mm_load_si128((const __m128i*)&bits[i]);
         if (!_mm_testz_si128(A, A)){
             non_zero_chunks[pos] = i;
             pos++;
@@ -81,8 +87,8 @@ const int DISJOINT = 2;
 
 static inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
     /*
-    Test whether bits is empty.  Return True (i.e., 1) if the set is
-    empty, False (i.e., 0) otherwise.
+    Test whether ``bits`` is empty.  Return ``True`` (i.e., ``1``) if the set is
+    empty, ``False`` (i.e., ``0``) otherwise.
     */
     // First check lowest limb
     if (bits[0])
@@ -95,100 +101,126 @@ static inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
 }
 
 #if __AVX__
-static inline int cmp_on_chunk(__m256i A, __m256i B, const int operation){
-    if (operation == EQUAL)
-        return !_mm256_testc_si256(A, B) || !_mm256_testc_si256(B, A);
-    if (operation == SUBSET)
-        return !_mm256_testc_si256(B, A); // Need to be opposite order!
-    return !_mm256_testz_si256(A, B);
+static inline int cmp_on_chunk(__m256i A, __m256i B, const int cmpop){
+    /*
+    Test ``A cmpop B``,
+
+    where ``cmpop`` is one of ``EQUAL``, ``SUBSET``, ``DISJOINT``.
+    */
+    if (cmpop == EQUAL)
+        return _mm256_testc_si256(A, B) && _mm256_testc_si256(B, A);
+    if (cmpop == SUBSET)
+        return _mm256_testc_si256(B, A); // Need to be opposite order!
+    // ``cmpop == DISJOINT``
+    return _mm256_testz_si256(A, B);
 }
 #elif __SSE4_1__
-static inline int cmp_on_chunk(__m128i A, __m128i B, const int operation){
-    if (operation == EQUAL)
-        return !_mm_testc_si128(A, B) || !_mm_testc_si128(B, A);
-    if (operation == SUBSET)
-        return !_mm_testc_si128(B, A); // Need to be opposite order!
-    return !_mm_testz_si128(A, B);
+static inline int cmp_on_chunk(__m128i A, __m128i B, const int cmpop){
+    /*
+    Test ``A cmpop B``,
+
+    where ``cmpop`` is one of ``EQUAL``, ``SUBSET``, ``DISJOINT``.
+    */
+    if (cmpop == EQUAL)
+        return _mm_testc_si128(A, B) && _mm_testc_si128(B, A);
+    if (cmpop == SUBSET)
+        return _mm_testc_si128(B, A); // Need to be opposite order!
+    // ``cmpop == DISJOINT``
+    return _mm_testz_si128(A, B);
 }
 #endif
-static inline int cmp_on_limb(mp_limb_t A, mp_limb_t B, const int operation){
-    if (operation == EQUAL)
+
+static inline int cmp_on_limb(mp_limb_t A, mp_limb_t B, const int cmpop){
+    /*
+    Test ``A cmpop B``,
+
+    where ``cmpop`` is one of ``EQUAL``, ``SUBSET``, ``DISJOINT``.
+    */
+    if (cmpop == EQUAL)
         return A == B;
-    if (operation == SUBSET)
-        return A & ~B;
-    return A & B;
+    if (cmpop == SUBSET)
+        return !(A & ~B);
+    // ``cmpop == DISJOINT``
+    return !(A & B);
 }
 
-static inline int cmp_with_mpn(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
+static inline int cmp_with_mpn(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int cmpop){
     /*
+    Test ``a cmpop b``,
+
+    where ``cmpop`` is one of ``EQUAL``, ``SUBSET``, ``DISJOINT``.
+
     Use gmp if possible.
     */
-    if (operation == EQUAL)
+    if (cmpop == EQUAL)
         return mpn_cmp(a, b, limbs) == 0;
     mp_bitcnt_t i;
     for(i = 0; i < limbs; i++){
-        if (cmp_on_limb(a[i], b[i], operation))
+        if (!cmp_on_limb(a[i], b[i], cmpop))
             return 0;
     }
     return 1;
 }
 
-static inline int _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
+static inline int _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int cmpop){
     /*
-    Compare a and b depending on operation:
+    Test ``a cmpop b``,
 
-    - 0 -- equality
-    - 1 -- subset
-    - 2 -- disjoint
+    where ``cmpop`` is one of ``EQUAL``, ``SUBSET``, ``DISJOINT``.
     */
     mp_bitcnt_t i = 0;
 #if __AVX__
     for(i; i + (4*LIMBS_PER_64 - 1) < limbs; i +=4*LIMBS_PER_64){
         __m256i A = _mm256_loadu_si256((const __m256i*)&a[i]);
         __m256i B = _mm256_loadu_si256((const __m256i*)&b[i]);
-        if (cmp_on_chunk(A, B, operation))
+        if (!cmp_on_chunk(A, B, cmpop))
             return 0;
     }
 #elif __SSE4_1__
     for(i; i + (2*LIMBS_PER_64 - 1) < limbs; i +=2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
         __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
-        if (cmp_on_chunk(A, B, operation))
+        if (!cmp_on_chunk(A, B, cmpop))
             return 0;
     }
 #endif
-    return cmp_with_mpn(a + i, b + i, limbs - i, operation);
+    return cmp_with_mpn(a + i, b + i, limbs - i, cmpop);
 }
 
-static inline int _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, const int operation){
+static inline int _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, const int cmpop){
     /*
-    Compare a and b depending on operation:
+    Test ``a cmpop b``,
 
-    - 1 -- subset
-    - 2 -- disjoint
+    where ``cmpop`` is one of ``SUBSET``, ``DISJOINT``.
 
-    Of a only the non zero chunks are checked.
+    Only the non zero chunks of ``a`` are checked.
+
+    .. WARNING::
+
+        It is assumed that ``a`` and ``b`` are overaligned
+        according to ``ALIGNMENT`` and their length are a multiple
+        of ``ALIGNMENT``.
     */
 
     // For checking equality, it does not suffice to check only
     // the nonzero chunks of ``a``.
-    assert(operation);
+    assert(cmpop != EQUAL);
     mp_bitcnt_t i,j;
     for(j = 0; j < a_n_non_zero_chunks; j++){
         i = a_non_zero_chunks[j];
 #if __AVX__
-        __m256i A = _mm256_loadu_si256((const __m256i*)&a[i]);
-        __m256i B = _mm256_loadu_si256((const __m256i*)&b[i]);
-        if (cmp_on_chunk(A, B, operation))
+        __m256i A = _mm256_load_si256((const __m256i*)&a[i]);
+        __m256i B = _mm256_load_si256((const __m256i*)&b[i]);
+        if (!cmp_on_chunk(A, B, cmpop))
             return 0;
 
 #elif __SSE4_1__
-        __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
-        __m128i B = _mm_loadu_si128((const __m128i*)&b[i]);
-        if (cmp_on_chunk(A, B, operation))
+        __m128i A = _mm_load_si128((const __m128i*)&a[i]);
+        __m128i B = _mm_load_si128((const __m128i*)&b[i]);
+        if (!cmp_on_chunk(A, B, cmpop))
             return 0;
 #else
-        if (cmp_on_limb(a[i], b[i], operation))
+        if (!cmp_on_limb(a[i], b[i], cmpop))
             return 0;
 #endif
     }
@@ -258,55 +290,82 @@ const int XOR = 3;
 
 #if __AVX2__
 static inline __m256i operation_on_chunk(__m256i A, __m256i B, const int operation){
+    /*
+    Return ``A operation B``,
+
+    where ``operation`` is one of ``AND``, ``OR``,
+    ``ANDNOT``, ``XOR``.
+    */
     if (operation == AND)
         return _mm256_and_si256(A, B);
     if (operation == OR)
         return _mm256_or_si256(A, B);
     if (operation == ANDNOT)
         return _mm256_andnot_si256(B, A);
+    // ``operation == XOR``
     return _mm256_xor_si256(A, B);
 }
 #elif __SSE4_1__
 static inline __m128i operation_on_chunk(__m128i A, __m128i B, const int operation){
+    /*
+    Return ``A operation B``,
+
+    where ``operation`` is one of ``AND``, ``OR``,
+    ``ANDNOT``, ``XOR``.
+    */
     if (operation == AND)
         return _mm_and_si128(A, B);
     if (operation == OR)
         return _mm_or_si128(A, B);
     if (operation == ANDNOT)
         return _mm_andnot_si128(B, A);
+    // ``operation == XOR``
     return _mm_xor_si128(A, B);
 }
 #endif
+
 static inline mp_limb_t operation_on_limb(mp_limb_t A, mp_limb_t B, const int operation){
+    /*
+    Return ``A operation B``,
+
+    where ``operation`` is one of ``AND``, ``OR``,
+    ``ANDNOT``, ``XOR``.
+    */
     if (operation == AND)
         return A & B;
     if (operation == OR)
         return A | B;
     if (operation == ANDNOT)
         return A & ~B;
+    // ``operation == XOR``
     return A ^ B;
 }
 
 static inline void mpn_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
+    /*
+    Set ``dst`` to ``a operation b``,
+
+    where ``operation`` is one of ``AND``, ``OR``,
+    ``ANDNOT``, ``XOR``.
+
+    Use gmp.
+    */
     if (operation == AND)
         mpn_and_n(dst, a, b, limbs);
     if (operation == OR)
         mpn_ior_n(dst, a, b, limbs);
     if (operation == ANDNOT)
         mpn_andn_n(dst, a, b, limbs);
+    // ``operation == XOR``
     mpn_xor_n(dst, a, b, limbs);
 }
 
 static inline void _bitset_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
     /*
-    Set dst to the operation of a and b, overwriting dst.
+    Set ``dst`` to ``a operation b``,
 
-    operation is an integer representing the following operations:
-
-    - 1 -- a AND b
-    - 2 -- a OR b
-    - 3 -- a AND NOT b
-    - 4 -- a XOR b
+    where ``operation`` is one of ``AND``, ``OR``,
+    ``ANDNOT``, ``XOR``.
     */
     mp_bitcnt_t i;
 #if __AVX2__
@@ -342,18 +401,20 @@ static inline void _bitset_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b,
 
 static inline mp_bitcnt_t _sparse_bitset_operation(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
     /*
-    Set dst to the intersection of a and b, overwriting dst.
+    Set ``dst`` to ``a operation b``,
 
-    operation is an integer representing the following operations:
-
-    - 1 -- a AND b
-    - 2 -- a OR b
-    - 3 -- a AND NOT b
-    - 4 -- a XOR b
+    where ``operation`` is one of ``AND``, ``OR``,
+    ``ANDNOT``, ``XOR``.
 
     Set dst_non_zero_chunks according to the non zero chunks of dst.
 
     Return the number of non zero chunks.
+
+    .. WARNING::
+
+        It is assumed that ``a``, ``b``, ``dst`` are overaligned
+        according to ``ALIGNMENT`` and their length are a multiple
+        of ``ALIGNMENT``.
     */
     mp_bitcnt_t i;
     mp_bitcnt_t pos = 0;
@@ -363,22 +424,27 @@ static inline mp_bitcnt_t _sparse_bitset_operation(mp_limb_t* dst, mp_bitcnt_t* 
         __m256i B = _mm256_load_si256((const __m256i*)&b[i]);
         __m256i D = operation_on_chunk(A, B, operation);
         _mm256_store_si256((__m256i*)&dst[i], D);
-        if (!_mm256_testz_si256(D, D)){
+        if (!cmp_on_chunk(D, D, DISJOINT)){
             dst_non_zero_chunks[pos] = i;
             pos++;
         }
     }
 #elif __AVX__
-    // We will take the chunksize corresponding to subset check etc.
+    // In this case we can only perform the
+    // operation on 128 bits each.
+    // However, chunks are of size 256 bits,
+    // because comparison can be performed on this
+    // size.
     for(i = 0; i < limbs; i +=4*LIMBS_PER_64){
-        __m128i A = _mm_load_si128((const __m128i*)&a[i]);
-        __m128i B = _mm_load_si128((const __m128i*)&b[i]);
-        __m128i D1 = operation_on_chunk(A, B, operation);
+        __m128i A1 = _mm_load_si128((const __m128i*)&a[i]);
+        __m128i B1 = _mm_load_si128((const __m128i*)&b[i]);
+        __m128i D1 = operation_on_chunk(A1, B1, operation);
         _mm_store_si128((__m128i*)&dst[i], D1);
-        __m128i A = _mm_load_si128((const __m128i*)&a[i+2*LIMBS_PER_64]);
-        __m128i B = _mm_load_si128((const __m128i*)&b[i+2*LIMBS_PER_64]);
-        __m128i D2 = operation_on_chunk(A, B, operation);
+        __m128i A2 = _mm_load_si128((const __m128i*)&a[i+2*LIMBS_PER_64]);
+        __m128i B2 = _mm_load_si128((const __m128i*)&b[i+2*LIMBS_PER_64]);
+        __m128i D2 = operation_on_chunk(A2, B2, operation);
         _mm_store_si128((__m128i*)&dst[i+2*LIMBS_PER_64], D2);
+
         if (!_mm_testz_si128(D1, D1) || !_mm_testz_si128(D2, D2)){
             dst_non_zero_chunks[pos] = i;
             pos++;
@@ -390,7 +456,7 @@ static inline mp_bitcnt_t _sparse_bitset_operation(mp_limb_t* dst, mp_bitcnt_t* 
         __m128i B = _mm_load_si128((const __m128i*)&b[i]);
         __m128i D = operation_on_chunk(A, B, operation);
         _mm_store_si128((__m128i*)&dst[i], D);
-        if (!_mm_testz_si128(D, D)){
+        if (!cmp_on_chunk(D, D, DISJOINT)){
             dst_non_zero_chunks[pos] = i;
             pos++;
         }

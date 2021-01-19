@@ -96,10 +96,10 @@ cdef extern from "bitset_intrinsics.h":
     cdef const int SUBSET
     cdef const int DISJOINT
     cdef bint _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs) nogil
-    cdef bint _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation) nogil
+    cdef bint _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int cmpop) nogil
 
     # Bitset Comparison for sparse bitsets (only subset and disjoint)
-    cdef bint _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, const int operation) nogil
+    cdef bint _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, const int cmpop) nogil
 
     # Bitset Searching
     cdef long _bitset_first_in_limb(mp_limb_t limb) nogil

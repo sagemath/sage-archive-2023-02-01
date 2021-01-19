@@ -2,6 +2,7 @@
 #define SAGE_BITSET_INTRINSICS
 
 #include "gmp.h"
+#include <stdio.h>
 
 #if __POPCNT__ || __BMI__
     #include <immintrin.h>
@@ -81,9 +82,7 @@ static inline mp_bitcnt_t _set_non_zero(mp_limb_t* bits, mp_bitcnt_t* non_zero_c
 #############################################################################
 */
 
-const int EQUAL = 0;
-const int SUBSET = 1;
-const int DISJOINT = 2;
+enum cmpop_t {EQUAL, SUBSET, DISJOINT};
 
 static inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
     /*
@@ -101,7 +100,7 @@ static inline int _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs){
 }
 
 #if __AVX__
-static inline int cmp_on_chunk(__m256i A, __m256i B, const int cmpop){
+static inline int cmp_on_chunk(__m256i A, __m256i B, enum cmpop_t cmpop ){
     /*
     Test ``A cmpop B``,
 
@@ -115,7 +114,7 @@ static inline int cmp_on_chunk(__m256i A, __m256i B, const int cmpop){
     return _mm256_testz_si256(A, B);
 }
 #elif __SSE4_1__
-static inline int cmp_on_chunk(__m128i A, __m128i B, const int cmpop){
+static inline int cmp_on_chunk(__m128i A, __m128i B, enum cmpop_t cmpop){
     /*
     Test ``A cmpop B``,
 
@@ -130,7 +129,7 @@ static inline int cmp_on_chunk(__m128i A, __m128i B, const int cmpop){
 }
 #endif
 
-static inline int cmp_on_limb(mp_limb_t A, mp_limb_t B, const int cmpop){
+static inline int cmp_on_limb(mp_limb_t A, mp_limb_t B, enum cmpop_t cmpop){
     /*
     Test ``A cmpop B``,
 
@@ -144,7 +143,7 @@ static inline int cmp_on_limb(mp_limb_t A, mp_limb_t B, const int cmpop){
     return !(A & B);
 }
 
-static inline int cmp_with_mpn(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int cmpop){
+static inline int cmp_with_mpn(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enum cmpop_t cmpop){
     /*
     Test ``a cmpop b``,
 
@@ -162,7 +161,7 @@ static inline int cmp_with_mpn(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, co
     return 1;
 }
 
-static inline int _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int cmpop){
+static inline int _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enum cmpop_t cmpop){
     /*
     Test ``a cmpop b``,
 
@@ -187,7 +186,7 @@ static inline int _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, con
     return cmp_with_mpn(a + i, b + i, limbs - i, cmpop);
 }
 
-static inline int _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, const int cmpop){
+static inline int _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, enum cmpop_t cmpop){
     /*
     Test ``a cmpop b``,
 
@@ -283,13 +282,10 @@ static inline long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs){
 #############################################################################
 */
 
-const int AND = 0;
-const int OR = 1;
-const int ANDNOT = 2;
-const int XOR = 3;
+enum operation_t {AND, OR, ANDNOT, XOR};
 
 #if __AVX2__
-static inline __m256i operation_on_chunk(__m256i A, __m256i B, const int operation){
+static inline __m256i operation_on_chunk(__m256i A, __m256i B, enum operation_t operation){
     /*
     Return ``A operation B``,
 
@@ -306,7 +302,7 @@ static inline __m256i operation_on_chunk(__m256i A, __m256i B, const int operati
     return _mm256_xor_si256(A, B);
 }
 #elif __SSE4_1__
-static inline __m128i operation_on_chunk(__m128i A, __m128i B, const int operation){
+static inline __m128i operation_on_chunk(__m128i A, __m128i B, enum operation_t operation){
     /*
     Return ``A operation B``,
 
@@ -324,7 +320,7 @@ static inline __m128i operation_on_chunk(__m128i A, __m128i B, const int operati
 }
 #endif
 
-static inline mp_limb_t operation_on_limb(mp_limb_t A, mp_limb_t B, const int operation){
+static inline mp_limb_t operation_on_limb(mp_limb_t A, mp_limb_t B, enum operation_t operation){
     /*
     Return ``A operation B``,
 
@@ -341,7 +337,7 @@ static inline mp_limb_t operation_on_limb(mp_limb_t A, mp_limb_t B, const int op
     return A ^ B;
 }
 
-static inline void mpn_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
+static inline void mpn_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enum operation_t operation){
     /*
     Set ``dst`` to ``a operation b``,
 
@@ -360,7 +356,7 @@ static inline void mpn_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_
     mpn_xor_n(dst, a, b, limbs);
 }
 
-static inline void _bitset_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
+static inline void _bitset_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enum operation_t operation){
     /*
     Set ``dst`` to ``a operation b``,
 
@@ -399,7 +395,7 @@ static inline void _bitset_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b,
 #############################################################################
 */
 
-static inline mp_bitcnt_t _sparse_bitset_operation(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation){
+static inline mp_bitcnt_t _sparse_bitset_operation(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enum operation_t operation){
     /*
     Set ``dst`` to ``a operation b``,
 

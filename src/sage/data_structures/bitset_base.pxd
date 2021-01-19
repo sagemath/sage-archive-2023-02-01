@@ -89,17 +89,21 @@ cdef extern from "bitset_intrinsics.h":
     cdef const mp_bitcnt_t LIMB_SIZE
     cdef const mp_bitcnt_t ALIGNMENT
 
-    cdef mp_bitcnt_t _set_non_zero(mp_limb_t* bits, mp_bitcnt_t* non_zero_chunks, mp_bitcnt_t limbs) nogil
+    cdef mp_bitcnt_t _set_non_zero(
+            mp_limb_t* bits, mp_bitcnt_t* non_zero_chunks, mp_bitcnt_t limbs) nogil
 
     # Bitset Comparison
-    cdef const int EQUAL
-    cdef const int SUBSET
-    cdef const int DISJOINT
+    ctypedef enum cmpop_t:
+        EQUAL
+        SUBSET
+        DISJOINT
     cdef bint _bitset_isempty(mp_limb_t* bits, mp_bitcnt_t limbs) nogil
-    cdef bint _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int cmpop) nogil
+    cdef bint _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, cmpop_t) nogil
 
     # Bitset Comparison for sparse bitsets (only subset and disjoint)
-    cdef bint _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, const int cmpop) nogil
+    cdef bint _sparse_bitset_cmp(
+            mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks,
+            mp_limb_t* b, cmpop_t) nogil
 
     # Bitset Searching
     cdef long _bitset_first_in_limb(mp_limb_t limb) nogil
@@ -107,14 +111,18 @@ cdef extern from "bitset_intrinsics.h":
     cdef long _bitset_len(mp_limb_t* bits, mp_bitcnt_t limbs) nogil
 
     # Bitset Arithmetic
-    cdef const int AND
-    cdef const int OR
-    cdef const int ANDNOT
-    cdef const int XOR
-    cdef void _bitset_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation) nogil
+    ctypedef enum operation_t:
+        AND
+        OR
+        ANDNOT
+        XOR
+    cdef void _bitset_operation(
+            mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, operation_t) nogil
 
     # Bitset Arithmetic for sparse bitsets.
-    cdef mp_bitcnt_t _sparse_bitset_operation(mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, const int operation) nogil
+    cdef mp_bitcnt_t _sparse_bitset_operation(
+            mp_limb_t* dst, mp_bitcnt_t* dst_non_zero_chunks, mp_limb_t* a,
+            mp_limb_t* b, mp_bitcnt_t limbs, operation_t) nogil
 
 #############################################################################
 # Creating limb patterns

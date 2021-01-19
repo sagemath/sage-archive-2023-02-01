@@ -67,7 +67,7 @@ static inline mp_bitcnt_t _set_non_zero(mp_limb_t* bits, mp_bitcnt_t* non_zero_c
     }
 #else
     for(i = 0; i < limbs; i++){
-        if (a[i]){
+        if (bits[i]){
             non_zero_chunks[pos] = i;
             pos++;
         }
@@ -363,8 +363,8 @@ static inline void mpn_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_
         mpn_ior_n(dst, a, b, limbs);
     if (operation == ANDNOT)
         mpn_andn_n(dst, a, b, limbs);
-    // ``operation == XOR``
-    mpn_xor_n(dst, a, b, limbs);
+    if (operation == XOR)
+        mpn_xor_n(dst, a, b, limbs);
 }
 
 static inline void _bitset_operation(mp_limb_t* dst, mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enum operation_t operation){

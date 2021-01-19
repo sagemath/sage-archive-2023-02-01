@@ -530,7 +530,7 @@ fi
 
 if [ "$1" = '-pip' -o "$1" = '--pip' -o "$1" = "--pip3" ]; then
     shift
-    exec python3 -m pip "$@"
+    exec python3 -m pip --disable-pip-version-check "$@"
 fi
 
 if [ "$1" = '-python' -o "$1" = '--python' -o  "$1" = '-python3' -o "$1" = '--python3' ]; then

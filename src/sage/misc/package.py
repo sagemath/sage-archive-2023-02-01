@@ -40,7 +40,7 @@ Functions
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Dict, List, NamedTuple, Optional, Union
 
 import sage.env
 
@@ -160,7 +160,8 @@ def pip_installed_packages(normalization=None):
             stderr=devnull,
         )
         stdout = proc.communicate()[0].decode()
-        def normalize(name: str):
+
+        def normalize(name: str) -> str:
             if normalization is None:
                 return name
             elif normalization == 'spkg':
@@ -174,6 +175,7 @@ def pip_installed_packages(normalization=None):
             # Something went wrong while parsing the output from pip.
             # This may happen if pip is not correctly installed.
             return {}
+
 
 class PackageInfo(NamedTuple):
     """Represents information about a package."""
@@ -334,7 +336,7 @@ def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 's
             if not local:
                 remote_version = pip_remote_version(p, ignore_URLError=ignore_URLError)
             else:
-               remote_version = None
+                remote_version = None
         elif src == 'normal':
             # If package-version.txt does not exist, that is an error
             # in the build system => we just propagate the exception

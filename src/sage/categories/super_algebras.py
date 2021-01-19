@@ -87,11 +87,11 @@ class SuperAlgebras(SuperModulesCategory):
             This also works when the other elements do not have
             a signed tensor product (:trac:`31266`)::
 
-                sage: a = SteenrodAlgebra(2).an_element()
-                sage: M = CombinatorialFreeModule(GF(2), ['s', 't', 'u'])
+                sage: a = SteenrodAlgebra(3).an_element()
+                sage: M = CombinatorialFreeModule(GF(3), ['s', 't', 'u'])
                 sage: s = M.basis()['s']
                 sage: tensor([a, s])
-                Sq(2,1) # B['s']
+                2*Q_1 Q_3 P(2,1) # B['s']
             """
             constructor = kwargs.pop('constructor', tensor_signed)
             try:

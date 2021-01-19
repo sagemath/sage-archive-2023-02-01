@@ -2943,16 +2943,35 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: (s^2-t^2).quo_rem(s-t)
             (s + t, 0)
             sage: (s^-2-t^2).quo_rem(s-t)
-            (s + t, -s^4 + 1)
+            (s + t, -s^2 + s^-2)
             sage: (s^-2-t^2).quo_rem(s^-1-t)
             (t + s^-1, 0)
+
+        TESTS:
+
+        Verify that :trac:`31257` is fixed::
+
+            sage: R.<x,y> = LaurentPolynomialRing(QQ)
+            sage: q, r = (1/x).quo_rem(y)
+            sage: q, r
+            (x^-1*y^-1, 0)
+            sage: q*y + r == 1/x
+            True
+            sage: q,r = (x^-2 - y^2).quo_rem(x - y)
+            sage: q*(x - y) + r == x^-2 - y^2
+            True
         """
+        cdef LaurentPolynomial_mpair selfl = <LaurentPolynomial_mpair> self
         cdef LaurentPolynomial_mpair rightl = <LaurentPolynomial_mpair> right
-        q, r = self._poly.quo_rem(rightl._poly)
+        selfl._normalize()
+        rightl._normalize()
+        q, r = selfl._poly.quo_rem(rightl._poly)
         ql = LaurentPolynomial_mpair(self._parent, q,
-                                     mon=self._mon.esub(rightl._mon))
+                                     mon=selfl._mon.esub(rightl._mon))
         rl = LaurentPolynomial_mpair(self._parent, r,
-                                     mon=ETuple({}, int(self._parent.ngens())))
+                                     mon=ETuple(selfl._mon))
+        ql._normalize()
+        rl._normalize()
         return (ql, rl)
 
     cpdef _richcmp_(self, right, int op):
@@ -3667,7 +3686,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         if self._prod is None:
             self._compute_polydict()
-        
+
         d = self._prod.__repn
         dr = {}
         ve = ETuple(v)

@@ -1011,7 +1011,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
         Each enhanced state is represented as a tuple containing:
 
-        - A tuple with the type of smoothing mad at each crossing.
+        - A tuple with the type of smoothing made at each crossing.
 
         - A set with the circles marked as negative.
 
@@ -1285,16 +1285,15 @@ class Braid(FiniteTypeArtinGroupElement):
            return self._annular_khovanov_complex_cached(qagrad,ring)
 
     def annular_khovanov_homology(self, qagrad=None, ring=IntegerRing()):
-        """r
+        r"""
         Return the annular Khovanov homology of a closure of a braid.
 
         INPUT:
 
-        - ``qagrad`` -- tuple of quantum and annular grading for which to
-          compute the homology. If this is ``None`` (default), then
-          compute for all gradings.
+        - ``qagrad`` -- (optional) tuple of quantum and annular grading
+          for which to compute the homology
 
-        - ``ring`` -- (default: ``ZZ``) the coefficient ring.
+        - ``ring`` -- (default: ``ZZ``) the coefficient ring
 
         OUTPUT:
 
@@ -1303,6 +1302,7 @@ class Braid(FiniteTypeArtinGroupElement):
         of that grading.
 
         .. NOTE::
+
             This is a simple wrapper around :meth:`annular_khovanov_complex`
             to compute homology from it.
 

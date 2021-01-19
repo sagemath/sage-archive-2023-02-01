@@ -29,7 +29,6 @@ environment variables, and has the same ``SAGE_ROOT`` and ``SAGE_LOCAL``
 # ****************************************************************************
 
 from typing import List, Optional
-
 import sage
 import os
 import socket
@@ -40,10 +39,8 @@ from pathlib import Path
 import subprocess
 
 
-# All variables set by var() appear in this SAGE_ENV dict and also
-# appear as module global (contained in __all__).
+# All variables set by var() appear in this SAGE_ENV dict
 SAGE_ENV = dict()
-__all__ = ['sage_include_directories', 'cython_aliases']
 
 
 def join(*args):
@@ -64,9 +61,9 @@ def join(*args):
     return os.path.join(*args)
 
 
-def var(key, *fallbacks, **kwds):
+def var(key: str, *fallbacks: Optional[str], force: bool = False) -> Optional[str]:
     """
-    Set ``SAGE_ENV[key]``.
+    Set ``SAGE_ENV[key]`` and return the value.
 
     If ``key`` is an environment variable, this is the value.
     Otherwise, the ``fallbacks`` are tried until one is found which
@@ -83,12 +80,17 @@ def var(key, *fallbacks, **kwds):
       ``True``, skip the environment variable and only use the
       fallbacks.
 
+    OUTPUT:
+
+    The value of the environment variable or its fallbacks.
+
     EXAMPLES::
 
         sage: import os, sage.env
         sage: sage.env.SAGE_ENV = dict()
         sage: os.environ['SAGE_FOO'] = 'foo'
         sage: sage.env.var('SAGE_FOO', 'unused')
+        'foo'
         sage: sage.env.SAGE_FOO
         'foo'
         sage: sage.env.SAGE_ENV['SAGE_FOO']
@@ -99,6 +101,7 @@ def var(key, *fallbacks, **kwds):
 
         sage: _ = os.environ.pop('SAGE_BAR', None)  # ensure that SAGE_BAR does not exist
         sage: sage.env.var('SAGE_BAR', 'bar')
+        'bar'
         sage: sage.env.SAGE_BAR
         'bar'
         sage: sage.env.SAGE_ENV['SAGE_BAR']
@@ -107,6 +110,7 @@ def var(key, *fallbacks, **kwds):
     Test multiple fallbacks::
 
         sage: sage.env.var('SAGE_BAR', None, 'yes', 'no')
+        'yes'
         sage: sage.env.SAGE_BAR
         'yes'
 
@@ -123,13 +127,15 @@ def var(key, *fallbacks, **kwds):
 
         sage: os.environ['SAGE_FOO'] = 'foo'
         sage: sage.env.var('SAGE_FOO', 'forced', force=True)
+        'forced'
         sage: sage.env.SAGE_FOO
         'forced'
         sage: sage.env.var('SAGE_FOO', 'forced', force=False)
+        'foo'
         sage: sage.env.SAGE_FOO
         'foo'
     """
-    if kwds.get("force"):
+    if force:
         value = None
     else:
         value = os.environ.get(key)
@@ -146,69 +152,69 @@ def var(key, *fallbacks, **kwds):
         value = f
     SAGE_ENV[key] = value
     globals()[key] = value
-    __all__.append(key)
+    return value
 
 
 # system info
-var('UNAME',               os.uname()[0])
-var('HOSTNAME',            socket.gethostname())
-var('LOCAL_IDENTIFIER',    "{}.{}".format(HOSTNAME, os.getpid()))
+UNAME = var("UNAME", os.uname()[0])
+HOSTNAME = var("HOSTNAME", socket.gethostname())
+LOCAL_IDENTIFIER = var("LOCAL_IDENTIFIER", "{}.{}".format(HOSTNAME, os.getpid()))
 
 # version info
-var('SAGE_VERSION',        version.version)
-var('SAGE_DATE',           version.date)
-var('SAGE_VERSION_BANNER', version.banner)
+SAGE_VERSION = var("SAGE_VERSION", version.version)
+SAGE_DATE = var("SAGE_DATE", version.date)
+SAGE_VERSION_BANNER = var("SAGE_VERSION_BANNER", version.banner)
 
 # virtual environment where sagelib is installed
-var('SAGE_VENV',           os.path.abspath(sys.prefix))
-var('SAGE_LIB',            os.path.dirname(os.path.dirname(sage.__file__)))
-var('SAGE_EXTCODE',        join(SAGE_LIB, 'sage', 'ext_data'))
+SAGE_VENV = var("SAGE_VENV", os.path.abspath(sys.prefix))
+SAGE_LIB = var("SAGE_LIB", os.path.dirname(os.path.dirname(sage.__file__)))
+SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
 
 # prefix hierarchy where non-Python packages are installed
-var('SAGE_LOCAL',          SAGE_VENV)
-var('SAGE_ETC',            join(SAGE_LOCAL, 'etc'))
-var('SAGE_INC',            join(SAGE_LOCAL, 'include'))
-var('SAGE_SHARE',          join(SAGE_LOCAL, 'share'))
-var('SAGE_DOC',            join(SAGE_SHARE, 'doc', 'sage'))
-var('SAGE_SPKG_INST',      join(SAGE_LOCAL, 'var', 'lib', 'sage', 'installed'))
+SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV)
+SAGE_ETC = var("SAGE_ETC", join(SAGE_LOCAL, "etc"))
+SAGE_INC = var("SAGE_INC", join(SAGE_LOCAL, "include"))
+SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"))
+SAGE_DOC = var("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"))
+SAGE_SPKG_INST = var("SAGE_SPKG_INST", join(SAGE_LOCAL, "var", "lib", "sage", "installed"))
 
 # source tree of the Sage distribution
-var('SAGE_ROOT')           # no fallback for SAGE_ROOT
-var('SAGE_SRC',            join(SAGE_ROOT, 'src'), SAGE_LIB)
-var('SAGE_DOC_SRC',        join(SAGE_ROOT, 'src', 'doc'), SAGE_DOC)
-var('SAGE_PKGS',           join(SAGE_ROOT, 'build', 'pkgs'))
-var('SAGE_ROOT_GIT',       join(SAGE_ROOT, '.git'))
+SAGE_ROOT = var("SAGE_ROOT")  # no fallback for SAGE_ROOT
+SAGE_SRC = var("SAGE_SRC", join(SAGE_ROOT, "src"), SAGE_LIB)
+SAGE_DOC_SRC = var("SAGE_DOC_SRC", join(SAGE_ROOT, "src", "doc"), SAGE_DOC)
+SAGE_PKGS = var("SAGE_PKGS", join(SAGE_ROOT, "build", "pkgs"))
+SAGE_ROOT_GIT = var("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
 
 # ~/.sage
-var('DOT_SAGE',            join(os.environ.get('HOME'), '.sage'))
-var('SAGE_STARTUP_FILE',   join(DOT_SAGE, 'init.sage'))
+DOT_SAGE = var("DOT_SAGE", join(os.environ.get("HOME"), ".sage"))
+SAGE_STARTUP_FILE = var("SAGE_STARTUP_FILE", join(DOT_SAGE, "init.sage"))
 
 # installation directories for various packages
-var('CONWAY_POLYNOMIALS_DATA_DIR',   join(SAGE_SHARE, 'conway_polynomials'))
-var('GRAPHS_DATA_DIR',               join(SAGE_SHARE, 'graphs'))
-var('ELLCURVE_DATA_DIR',             join(SAGE_SHARE, 'ellcurves'))
-var('POLYTOPE_DATA_DIR',             join(SAGE_SHARE, 'reflexive_polytopes'))
-var('GAP_ROOT_DIR',                  join(SAGE_SHARE, 'gap'))
-var('THEBE_DIR',                     join(SAGE_SHARE, 'thebe'))
-var('COMBINATORIAL_DESIGN_DATA_DIR', join(SAGE_SHARE, 'combinatorial_designs'))
-var('CREMONA_MINI_DATA_DIR',         join(SAGE_SHARE, 'cremona'))
-var('CREMONA_LARGE_DATA_DIR',        join(SAGE_SHARE, 'cremona'))
-var('JMOL_DIR',                      join(SAGE_SHARE, 'jmol'))
-var('MATHJAX_DIR',                   join(SAGE_SHARE, 'mathjax'))
-var('MTXLIB',                        join(SAGE_SHARE, 'meataxe'))
-var('THREEJS_DIR',                   join(SAGE_SHARE, 'threejs'))
-var('SINGULARPATH',                  join(SAGE_SHARE, 'singular'))
-var('PPLPY_DOCS',                    join(SAGE_SHARE, 'doc', 'pplpy'))
-var('MAXIMA',                        'maxima')
-var('MAXIMA_FAS')
-var('SAGE_NAUTY_BINS_PREFIX',        '')
-var('ARB_LIBRARY',                   'arb')
-var('CBLAS_PC_MODULES',              'cblas:openblas:blas')
-var('ECL_CONFIG',                    'ecl-config')
+CONWAY_POLYNOMIALS_DATA_DIR = var("CONWAY_POLYNOMIALS_DATA_DIR", join(SAGE_SHARE, "conway_polynomials"))
+GRAPHS_DATA_DIR = var("GRAPHS_DATA_DIR", join(SAGE_SHARE, "graphs"))
+ELLCURVE_DATA_DIR = var("ELLCURVE_DATA_DIR", join(SAGE_SHARE, "ellcurves"))
+POLYTOPE_DATA_DIR = var("POLYTOPE_DATA_DIR", join(SAGE_SHARE, "reflexive_polytopes"))
+GAP_ROOT_DIR = var("GAP_ROOT_DIR", join(SAGE_SHARE, "gap"))
+THEBE_DIR = var("THEBE_DIR", join(SAGE_SHARE, "thebe"))
+COMBINATORIAL_DESIGN_DATA_DIR = var("COMBINATORIAL_DESIGN_DATA_DIR", join(SAGE_SHARE, "combinatorial_designs"))
+CREMONA_MINI_DATA_DIR = var("CREMONA_MINI_DATA_DIR", join(SAGE_SHARE, "cremona"))
+CREMONA_LARGE_DATA_DIR = var("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona"))
+JMOL_DIR = var("JMOL_DIR", join(SAGE_SHARE, "jmol"))
+MATHJAX_DIR = var("MATHJAX_DIR", join(SAGE_SHARE, "mathjax"))
+MTXLIB = var("MTXLIB", join(SAGE_SHARE, "meataxe"))
+THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs"))
+SINGULARPATH = var("SINGULARPATH", join(SAGE_SHARE, "singular"))
+PPLPY_DOCS = var("PPLPY_DOCS", join(SAGE_SHARE, "doc", "pplpy"))
+MAXIMA = var("MAXIMA", "maxima")
+MAXIMA_FAS = var("MAXIMA_FAS")
+SAGE_NAUTY_BINS_PREFIX = var("SAGE_NAUTY_BINS_PREFIX", "")
+ARB_LIBRARY = var("ARB_LIBRARY", "arb")
+CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
+ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
 
 # misc
-var('SAGE_BANNER', '')
-var('SAGE_IMPORTALL', 'yes')
+SAGE_BANNER = var("SAGE_BANNER", "")
+SAGE_IMPORTALL = var("SAGE_IMPORTALL", "yes")
 
 
 def _get_shared_lib_path(*libnames: str) -> Optional[str]:
@@ -293,12 +299,10 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
 
 # locate singular shared object
 # On Debian it's libsingular-Singular so try that as well
-SINGULAR_SO = _get_shared_lib_path('Singular', 'singular-Singular')
-var('SINGULAR_SO', SINGULAR_SO)
+SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Singular"))
 
 # locate libgap shared object
-GAP_SO = _get_shared_lib_path('gap')
-var('GAP_SO', GAP_SO)
+GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
 if ' ' in DOT_SAGE:
@@ -307,7 +311,7 @@ if ' ' in DOT_SAGE:
         # to have a space in it.  Fortunately, users also have
         # write privileges to c:\cygwin\home, so we just put
         # .sage there.
-        var('DOT_SAGE', "/home/.sage", force=True)
+        DOT_SAGE = var("DOT_SAGE", "/home/.sage", force=True)
     else:
         print("Your home directory has a space in it.  This")
         print("will probably break some functionality of Sage.  E.g.,")

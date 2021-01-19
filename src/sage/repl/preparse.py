@@ -1759,14 +1759,20 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("f(x) = x \\\n+ 1")
         '__tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)'
 
+    Check that multi-line strings starting with a comment are still preparsed
+    (:trac:`31043`)::
+
+        sage: print(preparse('''# some comment
+        ....: f(x) = x + 1'''))
+        # some comment
+        __tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)
+
     """
     global quote_state
     if reset:
         quote_state = None
 
     L = line.lstrip()
-    if len(L) > 0 and L[0] in ['#', '!']:
-        return line
 
     if L.startswith('...'):
         i = line.find('...')

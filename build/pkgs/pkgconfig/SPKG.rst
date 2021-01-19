@@ -1,5 +1,5 @@
-pkgconfig
-=========
+pkgconfig: Python interface to pkg-config
+=========================================
 
 Description
 -----------

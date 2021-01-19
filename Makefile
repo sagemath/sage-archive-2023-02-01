@@ -220,9 +220,11 @@ install: all
 	@echo "from https://github.com/sagemath/binary-pkg"
 	@echo "******************************************************************"
 
+# Setting SAGE_PKGCONFIG is only so that make does not exit with
+# "This Makefile needs to be invoked by build/make/install".
 list:
 	@$(MAKE) --silent build/make/Makefile >&2
-	@$(MAKE) --silent -f build/make/Makefile SAGE_SPKG_INST=local $@
+	@$(MAKE) --silent -f build/make/Makefile SAGE_PKGCONFIG=dummy $@
 
 .PHONY: default build dist install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \

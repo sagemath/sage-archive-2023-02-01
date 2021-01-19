@@ -148,7 +148,7 @@ _EOF_
 
 
 sdh_guard() {
-    sdh_check_vars SAGE_ROOT SAGE_LOCAL SAGE_SHARE
+    sdh_check_vars SAGE_ROOT SAGE_LOCAL SAGE_INST_LOCAL SAGE_SHARE
 }
 
 
@@ -160,9 +160,9 @@ sdh_configure() {
     if [ -z "$CONFIG_SHELL" ]; then
         export CONFIG_SHELL=`command -v bash`
     fi
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --disable-maintainer-mode --disable-dependency-tracking "$@"
+    ./configure --prefix="$SAGE_INST_LOCAL" --libdir="$SAGE_INST_LOCAL/lib" --disable-maintainer-mode --disable-dependency-tracking "$@"
     if [ $? -ne 0 ]; then # perhaps it is a non-autoconf'd project
-      ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" "$@"
+      ./configure --prefix="$SAGE_INST_LOCAL" --libdir="$SAGE_INST_LOCAL/lib" "$@"
       if [ $? -ne 0 ]; then
         if [ -f "$(pwd)/config.log" ]; then
             sdh_die <<_EOF_
@@ -200,6 +200,14 @@ sdh_make_install() {
         sdh_die "Error installing $PKG_NAME"
 }
 
+sdh_setup_bdist_wheel() {
+    mkdir -p dist
+    rm -f dist/*.whl
+    BDIST_DIR="$(mktemp -d)"
+    sage-python23 setup.py --no-user-cfg \
+         bdist_wheel --bdist-dir "$BDIST_DIR" \
+         "$@" || sdh_die "Error building a wheel for $PKG_NAME"
+}
 
 sdh_pip_install() {
     echo "Installing $PKG_NAME"
@@ -253,7 +261,7 @@ sdh_store_and_pip_install_wheel() {
 
 sdh_cmake() {
     echo "Configuring $PKG_NAME with cmake"
-    cmake . -DCMAKE_INSTALL_PREFIX="${SAGE_LOCAL}" \
+    cmake . -DCMAKE_INSTALL_PREFIX="${SAGE_INST_LOCAL}" \
             -DCMAKE_INSTALL_LIBDIR=lib \
             "$@"
     if [ $? -ne 0 ]; then

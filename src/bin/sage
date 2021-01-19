@@ -58,6 +58,25 @@ usage() {
 # 'usage_advanced', which prints a longer help message, is defined
 # below, after sourcing sage-env.
 
+# Determine SAGE_ROOT and SAGE_LOCAL.
+if [ -x "$0-config" ]; then
+    # optional sage-config console script, installed by sage_conf
+    export SAGE_ROOT=$("$0-config" SAGE_ROOT)
+    export SAGE_LOCAL=$("$0-config" SAGE_LOCAL)
+fi
+if [ -f "$0-src-env-config" ]; then
+    # Not installed script, present only in src/bin/
+    . "$0-src-env-config" >&2
+fi
+if [ -x "$0-venv-config" ]; then
+    # installed by setup.py
+    export SAGE_VENV=$("$0-venv-config" SAGE_VENV)
+fi
+if [ -f "$0-env-config" ]; then
+    # As of Trac #22731, sage-env-config is optional.
+    . "$0-env-config" >&2
+fi
+
 #####################################################################
 # Special options to be processed without sage-env
 #####################################################################
@@ -188,10 +207,6 @@ fi
 # append -env to that). We redirect stdout to stderr, which is safer
 # for scripts.
 #####################################################################
-if [ -f "$0-env-config" ]; then
-    # As of Trac #22731, sage-env-config is optional.
-    . "$0-env-config" >&2
-fi
 if [ -f "$0-env" ]; then
     . "$0-env" >&2
     if [ $? -ne 0 ]; then
@@ -399,9 +414,10 @@ usage_advanced() {
     if [ -n "$SAGE_SRC" -a -f "$SAGE_SRC/tox.ini" ]; then
         echo "  --tox [options] <files|dirs> -- general entry point for testing"
         echo "                                  and linting of the Sage library"
-        echo "     -e <envlist>     -- run specific test environments (default: run all)"
-        tox -c "$SAGE_SRC" --listenvs -v 2>/dev/null | sed -n '/->/s/^/        /;s/(/\
-                            (/;s/->/     --/p;'
+        echo "     -e <envlist>     -- run specific test environments"
+        echo "                         (default: run all except full pycodestyle)"
+        tox -c "$SAGE_SRC" --listenvs-all -v 2>/dev/null | sed -n '/->/s/^/        /;s/(/\
+                                  (/;s/->/   --/p;'
         echo "     -p auto          -- run test environments in parallel"
         echo "     --help           -- show tox help"
         command -v tox &>/dev/null || \
@@ -635,9 +651,11 @@ if [ "$1" = '-sh' -o "$1" = '--sh' -o "$1" = '-buildsh' -o "$1" = '--buildsh' ];
            exit 1
         fi
         . "$SAGE_ROOT"/build/bin/sage-build-env-config || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env-config"; exit 1)
+        . "$SAGE_ROOT"/build/bin/sage-build-env || (echo "error:  Error sourcing $SAGE_ROOT/build/bin/sage-build-env"; exit 1)
         export SAGE_SHPROMPT_PREFIX=sage-buildsh
         # We export it so that recursive invocation of 'sage-sh' from a sage-buildsh shows the sage-buildsh prompt;
-        # this makes sense because all environment variables set in build/bin/sage-build-env-config are exported.
+        # this makes sense because all environment variables set in build/bin/sage-build-env-config
+        # and build/bin/sage-build-env are exported.
     fi
     shift
     # If $SHELL is unset, default to bash
@@ -962,27 +980,6 @@ install() {
     exit 0
 }
 
-
-if [ "$1" = '-package' -o "$1" = "--package" ]; then
-    shift
-    exec sage-package $@
-fi
-
-if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
-    shift
-    exec sage-list-packages optional $@
-fi
-
-if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
-    shift
-    exec sage-list-packages experimental $@
-fi
-
-if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
-    shift
-    exec sage-list-packages standard $@
-fi
-
 if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
     shift
     exec sage-list-packages all --installed-only $@
@@ -995,15 +992,6 @@ if [ "$1" = '-p' ]; then
         exec sage-spkg
     fi
     install "$@"
-fi
-
-if [ "$1" = '-info' -o "$1" = '--info' ]; then
-    shift
-    for PKG in "$@"
-    do
-        sage-spkg --info "$PKG" || exit $?
-    done
-    exit 0
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then

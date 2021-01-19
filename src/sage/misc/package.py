@@ -27,8 +27,7 @@ command inside Sage::
      'arb',
      ...
      'zlib',
-     'zn_poly',
-     'zope_interface']
+     'zn_poly']
 
 Functions
 ---------
@@ -148,7 +147,7 @@ def pip_installed_packages(normalization=None):
         sage: d['prompt-toolkit']   # optional - build
         '...'
         sage: d = pip_installed_packages(normalization='spkg')  # optional - build
-        sage: d['prompt_toolkit']
+        sage: d['prompt_toolkit']   # optional - build
         '...'
 
     """
@@ -159,7 +158,7 @@ def pip_installed_packages(normalization=None):
             stderr=devnull,
         )
         stdout = proc.communicate()[0].decode()
-        def normalize(name):
+        def normalize(name: str):
             if normalization is None:
                 return name
             elif normalization == 'spkg':
@@ -260,8 +259,7 @@ def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 's
          'arb',
          'babel',
          ...
-         'zn_poly',
-         'zope_interface']
+         'zn_poly']
         sage: sage_conf_info = L['sage_conf']  # optional - build
         sage: sage_conf_info.type              # optional - build
         'standard'
@@ -412,12 +410,6 @@ def is_package_installed(package, exclude_pip=True):
     Otherwise, installing "pillow" would cause this function to think
     that "pil" is installed, for example.
 
-    Check that the option ``exclude_pip`` is turned on by default::
-
-        sage: from sage.misc.package import list_packages
-        sage: for pkg in list_packages(pkg_sources=('pip'), local=True):  # optional - build
-        ....:     assert not is_package_installed(pkg), "pip package is installed: {}".format(pkg)
-
     .. NOTE::
 
         Do not use this function to check whether you can use a feature from an
@@ -496,8 +488,8 @@ def standard_packages():
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()  # optional - build
         doctest:...: DeprecationWarning: ...
-        sage: installed[0], installed[-1]  # optional - build
-        ('alabaster', 'zope_interface')
+        sage: 'numpy' in installed                            # optional - build
+        True
     """
     from sage.misc.superseded import deprecation
     deprecation(30747,

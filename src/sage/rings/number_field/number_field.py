@@ -790,14 +790,14 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         Number Field in a1 with defining polynomial x^2 + 2 over its base field
         sage: K.base_field().base_field()
         Number Field in a2 with defining polynomial x^2 + 1
-        
+
     LaTeX versions of generator names can be specified either as::
-         
+
         sage: K = NumberField([x^3 - 2, x^3 - 3, x^3 - 5], names=['a', 'b', 'c'], latex_names=[r'\alpha', r'\beta', r'\gamma'])
         sage: K.inject_variables(verbose=False)
         sage: latex(a + b + c)
         \alpha + \beta + \gamma
-            
+
     or as::
 
         sage: K = NumberField([x^3 - 2, x^3 - 3, x^3 - 5], names='a', latex_names=r'\alpha')
@@ -4725,6 +4725,21 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [0 0]
             [1 0]
             [0 1]
+
+        TESTS:
+
+        Verify that :trac:`29364` is fixed::
+
+            sage: R.<x> = QQ[]
+            sage: L.<t> = NumberField(x^2 - 6058)
+            sage: S = L.primes_above(2)
+            sage: M = L._S_class_group_quotient_matrix(tuple(S))
+            sage: M.dimensions()
+            (2, 1)
+            sage: CG = L.class_group()
+            sage: SCG = L.S_class_group(S)
+            sage: SCG(CG.0^M[0,0] * CG.1^M[1,0]) == SCG.0
+            True
         """
         from sage.matrix.constructor import matrix
         S_clgp_gens = self._S_class_group_and_units(S)[1]
@@ -4732,6 +4747,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         c = self.class_group().ngens()
         M = [u[0].ideal_class_log() for u in S_clgp_gens]
         M += [x.ideal_class_log() for x in S]
+        M += list(matrix.diagonal(self.class_group().gens_orders()))
         M = matrix(ZZ, M)
         A, Q = M.hermite_form(transformation=True)
         assert A[:c] == 1 and A[c:] == 0
@@ -6729,7 +6745,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return generators for the unit group modulo torsion.
 
-        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
+        ALGORITHM: Uses PARI's :pari:`bnfinit` command.
 
         INPUT:
 
@@ -6795,8 +6811,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except AttributeError:
                 pass
 
-        # get PARI to compute the units
-        B = self.pari_bnf(proof).bnfunit()
+        # get PARI to compute the fundamental units
+        B = self.pari_bnf(proof).bnf_get_fu()
         B = tuple(self(b, check=False) for b in B)
         if proof:
             # cache the provable results and return them
@@ -6811,7 +6827,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return the unit group (including torsion) of this number field.
 
-        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
+        ALGORITHM: Uses PARI's :pari:`bnfinit` command.
 
         INPUT:
 
@@ -7020,7 +7036,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         A list of tuples ``[( A_1, B_1, x_1, y_1), (A_2, B_2, x_2, y_2), ... ( A_n, B_n, x_n, y_n)]`` such that:
 
-        1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.  These will be ommitted if ``include_exponents`` is ``False``.
+        1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.  These will be omitted if ``include_exponents`` is ``False``.
         2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
         3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(b_i)``.
 

@@ -260,6 +260,9 @@ def make_parser():
     parser_download.add_argument(
         '--allow-upstream', action="store_true",
         help='Whether to fall back to downloading from the upstream URL')
+    parser_download.add_argument(
+        '--on-error', choices=['stop', 'warn'], default='stop',
+        help='What to do if the tarball cannot be downloaded')
 
     parser_upload = subparsers.add_parser(
         'upload', epilog=epilog_upload,
@@ -284,6 +287,8 @@ def make_parser():
         'package_name', default=None, type=str,
         help='Package name.')
     parser_create.add_argument(
+        '--source', type=str, default='normal', help='Package source (one of normal, script, pip)')
+    parser_create.add_argument(
         '--version', type=str, default=None, help='Package version')
     parser_create.add_argument(
         '--tarball', type=str, default=None, help='Tarball filename pattern, e.g. Foo-VERSION.tar.bz2')
@@ -291,6 +296,15 @@ def make_parser():
         '--type', type=str, default=None, help='Package type')
     parser_create.add_argument(
         '--url', type=str, default=None, help='Download URL pattern, e.g. http://example.org/Foo-VERSION.tar.bz2')
+    parser_create.add_argument(
+        '--description', type=str, default=None, help='Short description of the package (for SPKG.rst)')
+    parser_create.add_argument(
+        '--license', type=str, default=None, help='License of the package (for SPKG.rst)')
+    parser_create.add_argument(
+        '--upstream-contact', type=str, default=None, help='Upstream contact (for SPKG.rst)')
+    parser_create.add_argument(
+        '--pypi', action="store_true",
+        help='Create a package for a Python package available on PyPI')
 
     return parser
 
@@ -325,9 +339,13 @@ def run():
         else:
             app.update_latest(args.package_name)
     elif args.subcommand == 'download':
-        app.download_cls(args.package_name, args.allow_upstream)
+        app.download_cls(args.package_name,
+                         allow_upstream=args.allow_upstream,
+                         on_error=args.on_error)
     elif args.subcommand == 'create':
-        app.create(args.package_name, args.version, args.tarball, args.type, args.url)
+        app.create(args.package_name, args.version, args.tarball, args.type, args.url,
+                   args.description, args.license, args.upstream_contact,
+                   pypi=args.pypi, source=args.source)
     elif args.subcommand == 'upload':
         app.upload_cls(args.package_name)
     elif args.subcommand == 'fix-checksum':

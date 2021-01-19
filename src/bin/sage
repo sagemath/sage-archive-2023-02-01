@@ -1038,13 +1038,11 @@ install() {
             -*)
                 INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG"
                 continue;;
+            *.spkg)
+                echo "Error: Installing old-style SPKGs is no longer supported."
+                exit 1;;
         esac
-
-        PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
-        PKG_NAME=`basename "$PKG_NAME"`
-
-        sage-logger \
-            "sage-spkg $INSTALL_OPTIONS '$PKG'" "$SAGE_LOGS/$PKG_NAME.log"
+        (cd "$SAGE_ROOT/build/make" && ./install "$PKG"-no-deps)
         # Do not try to install further packages if one failed
         if [ $? -ne 0 ]; then
             exit 1

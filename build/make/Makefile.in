@@ -22,7 +22,11 @@ ifndef SAGE_PKGCONFIG
 # Set by build/bin/sage-sdist, which invokes the Makefile directly in
 # order to download upstream packages for distribution.
 ifndef SAGE_SPKG_COPY_UPSTREAM
+# Set by ``sage -b`` etc.
+# In this case ``SAGE_PKGCONFIG`` is not required.
+ifndef SAGE_SAGELIB_NO_DEPS
 $(error This Makefile needs to be invoked by build/make/install)
+endif
 endif
 endif
 

@@ -804,7 +804,7 @@ fi
 
 build_sage() {
     maybe_sage_location
-    ( cd "$SAGE_ROOT/build/make" && $MAKE sagelib-no-deps ) || exit $?
+    ( cd "$SAGE_ROOT/build/make" && SAGE_SAGELIB_NO_DEPS='yes' $MAKE sagelib-no-deps ) || exit $?
 }
 
 if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then

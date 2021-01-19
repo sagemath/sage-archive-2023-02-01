@@ -730,7 +730,8 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             sage: R(1/x, 5)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Laurent Series Ring in t over Integer Ring to Power Series Ring in t over Integer Ring
+            TypeError: no canonical coercion from Laurent Series Ring in t over
+             Rational Field to Power Series Ring in t over Integer Ring
 
             sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'y')(x)
             x
@@ -860,7 +861,8 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             sage: R._coerce_(1/t)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Laurent Series Ring in t over Integer Ring to Power Series Ring in t over Integer Ring
+            TypeError: no canonical coercion from Laurent Series Ring in t over
+             Rational Field to Power Series Ring in t over Integer Ring
             sage: R._coerce_(5)
             5
             sage: tt = PolynomialRing(ZZ,'t').gen()

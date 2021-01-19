@@ -610,8 +610,9 @@ cdef class PowerSeries_poly(PowerSeries):
         that `XY = 1`).
 
         The first nonzero coefficient must be a unit in
-        the coefficient ring. If the valuation of the series is positive,
-        this function will return a :doc:`laurent_series_ring_element`.
+        the coefficient ring. If the valuation of the series is positive or
+        `X` is not a unit, this function will return a
+        :doc:`laurent_series_ring_element`.
 
         EXAMPLES::
 
@@ -666,15 +667,31 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: u*v
             1 + O(t^12)
 
-        We try a non-zero, non-unit leading coefficient::
+        If we try a non-zero, non-unit leading coefficient, we end up in the in
+        the fraction field, i.e. Laurent series ring::
 
             sage: R.<t> = PowerSeriesRing(ZZ)
             sage: ~R(2)
-            Traceback (most recent call last):
-            ...
-            ValueError: constant term is not a unit
+            1/2
+            sage: parent(~R(2))
+            Laurent Series Ring in t over Rational Field
+
+        Otherwise, we stay in the power series ring::
+
             sage: ~R(-1)
             -1
+            sage: parent(~R(-1))
+            Power Series Ring in t over Integer Ring
+
+        However, this must fail if the underlying ring is no integral domain::
+
+            sage: R = IntegerModRing(8)
+            sage: P.<s> = R[[]]
+            sage: ~P(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: must be an integral domain
+
         """
         if self.is_one():
             return self
@@ -686,7 +703,12 @@ cdef class PowerSeries_poly(PowerSeries):
                 # constant series
                 a = self[0]
                 if not a.is_unit():
-                    raise ValueError("constant term is not a unit")
+                    from sage.categories.integral_domains import IntegralDomains
+                    if self._parent in IntegralDomains():
+                        R = self._parent.fraction_field()
+                        return 1 / R(a)
+                    else:
+                        raise ValueError('must be an integral domain')
                 try:
                     a = a.inverse_unit()
                 except (AttributeError, NotImplementedError):

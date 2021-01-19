@@ -175,6 +175,11 @@ static inline int _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enu
         if (!cmp_on_chunk(A, B, cmpop))
             return 0;
     }
+    for(i; i < limbs; i++){
+        if (!cmp_on_limb(a[i], b[i], cmpop))
+                return 0;
+    }
+    return 1;
 #elif __SSE4_1__
     for(i; i + (2*LIMBS_PER_64 - 1) < limbs; i +=2*LIMBS_PER_64){
         __m128i A = _mm_loadu_si128((const __m128i*)&a[i]);
@@ -182,8 +187,14 @@ static inline int _bitset_cmp(mp_limb_t* a, mp_limb_t* b, mp_bitcnt_t limbs, enu
         if (!cmp_on_chunk(A, B, cmpop))
             return 0;
     }
+    for(i; i < limbs; i++){
+        if (!cmp_on_limb(a[i], b[i], cmpop))
+                return 0;
+    }
+    return 1;
+#else
+    return cmp_with_mpn(a, b, limbs, cmpop);
 #endif
-    return cmp_with_mpn(a + i, b + i, limbs - i, cmpop);
 }
 
 static inline int _sparse_bitset_cmp(mp_limb_t* a, mp_bitcnt_t* a_non_zero_chunks, mp_bitcnt_t a_n_non_zero_chunks, mp_limb_t* b, enum cmpop_t cmpop){

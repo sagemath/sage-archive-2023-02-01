@@ -2961,15 +2961,22 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: q*(x - y) + r == x^-2 - y^2
             True
         """
-        cdef LaurentPolynomial_mpair selfl = <LaurentPolynomial_mpair> self
-        cdef LaurentPolynomial_mpair rightl = <LaurentPolynomial_mpair> right
+        # make copies of self and right so that the input can be normalized
+        # without affecting the objects that were passed to the method
+        cdef LaurentPolynomial_mpair selfl = self._new_c()
+        selfl._poly = self._poly
+        selfl._mon = self._mon
+        cdef LaurentPolynomial_mpair rightl = self._new_c()
+        rightl._poly = (<LaurentPolynomial_mpair> right)._poly
+        rightl._mon = (<LaurentPolynomial_mpair> right)._mon
+
         selfl._normalize()
         rightl._normalize()
         q, r = selfl._poly.quo_rem(rightl._poly)
         ql = LaurentPolynomial_mpair(self._parent, q,
                                      mon=selfl._mon.esub(rightl._mon))
         rl = LaurentPolynomial_mpair(self._parent, r,
-                                     mon=ETuple(selfl._mon))
+                                     mon=selfl._mon)
         ql._normalize()
         rl._normalize()
         return (ql, rl)

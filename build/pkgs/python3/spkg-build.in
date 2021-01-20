@@ -24,7 +24,8 @@ fi
 # default flags like -O3 after CFLAGS but before EXTRA_CFLAGS.
 # We also disable warnings about unused variables/functions which are
 # common in Cython-generated code.
-export EXTRA_CFLAGS="`testcflags.sh -Wno-unused` $CFLAGS"
+EXTRA_CFLAGS_WNO_UNUSED="`testcflags.sh -Wno-unused`"
+export EXTRA_CFLAGS="$EXTRA_CFLAGS_WNO_UNUSED $CFLAGS"
 unset CFLAGS
 
 if [ "$UNAME" = Darwin ]; then
@@ -52,7 +53,7 @@ if [ "$UNAME" = Darwin ]; then
 
         # We set EXTRA_CFLAGS as above, but remove `-march=native` in
         # case it is present, as clang cannot handle it.
-        export EXTRA_CFLAGS="`testcflags.sh -Wno-unused` $CFLAGS_NON_NATIVE"
+        export EXTRA_CFLAGS="$EXTRA_CFLAGS_WNO_UNUSED $CFLAGS_NON_NATIVE"
     fi
 elif [ "$UNAME" = SunOS ]; then
     # Enable some C99 features on Solaris. This in particular enables

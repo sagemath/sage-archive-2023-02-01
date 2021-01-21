@@ -590,8 +590,8 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
 
         """
         if self.is_immutable():
-            raise AssertionError("the expressions of an immutable element "
-                                 "cannot be changed")
+            raise ValueError("the expressions of an immutable element cannot "
+                             "be changed")
         for vv in self._express.values():
             if not bool(self._calc_method._tranf[calc_method](expression) ==
                         self._calc_method._tranf[calc_method](vv)):
@@ -2860,9 +2860,9 @@ class MultiCoordFunction(SageObject, Mutability):
         self._chart = chart
         self._nc = len(self._chart._xx)   # number of coordinates
         self._nf = len(expressions)       # number of functions
-        self._is_immutable = False
         self._functions = tuple(chart.function(express)
                                 for express in expressions)
+        Mutability.__init__(self)
 
     def _repr_(self):
         r"""

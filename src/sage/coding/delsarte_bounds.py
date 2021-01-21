@@ -215,7 +215,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
         p.add_constraint(sum([A[r] for r in range(n+1)]), max=maxc)
     return A, p
 
-def _delsarte_cwc_LP_building(n, d, w, q, solver, isinteger):
+def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
     """
     LP builder for Delsarte's LP for constant weight codes, used in
     delsarte_bound_constant_weight_code; not exported.
@@ -260,8 +260,7 @@ def _delsarte_cwc_LP_building(n, d, w, q, solver, isinteger):
     return A, p
 
 
-def delsarte_bound_constant_weight_code(n, d, w, q, 
-return_data=False, solver="PPL", isinteger=False):
+def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL", isinteger=False):
     """
     Find the Delsarte bound on a constant weight code of weight w, length n,
     ...d
@@ -271,8 +270,6 @@ return_data=False, solver="PPL", isinteger=False):
     - ``n`` -- the code length
 
     - ``d`` -- the (lower bound on) minimal distance of the code
-
-    - ``q`` -- the size of the alphabet
 
     - ``return_data`` -- if ``True``, return a triple
       ``(W,LP,bound)``, where ``W`` is a weights vector, and ``LP``
@@ -292,7 +289,7 @@ return_data=False, solver="PPL", isinteger=False):
     """
     from sage.numerical.mip import MIPSolverException
 
-    A, p = _delsarte_cwc_LP_building(n, d, w, q, solver, isinteger)
+    A, p = _delsarte_cwc_LP_building(n, d, w, solver, isinteger)
     try:
         bd = p.solve()
     except MIPSolverException as exc:

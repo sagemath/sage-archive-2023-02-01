@@ -8,7 +8,9 @@ from __future__ import print_function
 import os
 import sys
 
-SAGE_ROOT     = os.path.realpath(os.environ['SAGE_ROOT'])
+SAGE_ROOT     = os.environ.get('SAGE_ROOT', None)
+if SAGE_ROOT:
+   SAGE_ROOT = os.path.realpath(SAGE_ROOT)
 SAGE_LOCAL    = os.environ['SAGE_LOCAL']
 
 location_file = os.path.join(SAGE_LOCAL, 'lib', 'sage-current-location.txt')
@@ -88,8 +90,8 @@ binary package. Or recompile Sage from scratch in the new location
 if __name__ == '__main__':
 
     if SAGE_ROOT is None:
-        print('You must run this script from within a Sage shell')
-        sys.exit(1)
+        # In situations without SAGE_ROOT, relocation is a no-op.
+        sys.exit(0)
 
     # Previous SAGE_ROOT, read from "sage-location.txt".
     # OLD_SAGE_ROOT is None if this is a first-time install.

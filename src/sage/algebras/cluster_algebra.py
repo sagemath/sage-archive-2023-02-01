@@ -493,11 +493,11 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
             sage: sum(A.initial_cluster_variables()).g_vector()
             Traceback (most recent call last):
             ...
-            ValueError: this element is not homogeneous
+            ValueError: this element does not have a well defined g-vector
         """
         components = self.homogeneous_components()
         if len(components) != 1:
-            raise ValueError("this element is not homogeneous")
+            raise ValueError("this element does not have a well defined g-vector")
         k, = components
         return k
 
@@ -515,17 +515,17 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
             sage: sum(A.initial_cluster_variables()).F_polynomial()
             Traceback (most recent call last):
             ...
-            ValueError: this element is not homogeneous
+            ValueError: this element does not have a well defined g-vector
         """
         if not self.is_homogeneous():
-            raise ValueError("this element is not homogeneous")
+            raise ValueError("this element does not have a well defined g-vector")
         subs_dict = dict()
         A = self.parent()
         for x in A.initial_cluster_variables():
             subs_dict[x.lift()] = A._U(1)
         for i in range(A.rank()):
             subs_dict[A.coefficient(i).lift()] = A._U.gen(i)
-        return self.lift().substitute(subs_dict)
+        return A._U(self.lift().substitute(subs_dict))
 
     def is_homogeneous(self):
         r"""
@@ -571,6 +571,69 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
             else:
                 components[g_vect] = self.parent().retract(x.monomial_coefficient(m) * m)
         return components
+
+    def theta_basis_decomposition(self):
+        r"""
+        Return the decomposition of ``self`` in the theta basis.
+
+        OUTPUT:
+
+        A dictionary whose keys are the g-vectors and whose values are the coefficients
+        in the decoposition of ``self`` in the theta basis.
+
+        EXAMPLES::
+            sage: A = ClusterAlgebra(matrix([[0,-2],[3,0]]), principal_coefficients=True)
+            sage: f = (A.theta_basis_element((1,0)) + A.theta_basis_element((0,1)))**2 + A.coefficient(1)* A.theta_basis_element((1,1))
+            sage: f.theta_basis_decomposition()
+            {(1, 1): y1 + 2, (2, 0): 1, (0, 2): 1}
+            sage: sum(_[g] * A.theta_basis_element(g) for g in _) - f
+            0
+        """
+        zero = self.parent()(0)
+        components  = map(lambda x: x._homogeneous_theta_basis_decomposition(), self.homogeneous_components().values())
+        out = {}
+        for cpt in components:
+            for g in cpt:
+                out[g] = out.get(g, zero) + cpt[g]
+        return out
+
+    def _homogeneous_theta_basis_decomposition(self):
+        r"""
+        Return the decomposition of ``self`` in the theta basis.
+
+        OUTPUT:
+
+        A dictionary whose keys are the g-vectors and whose values are the coefficients
+        in the decoposition of ``self`` in the theta basis.
+
+        WARNING:
+
+        This method only works when ``self`` is homogeneous.
+
+        EXAMPLES::
+            sage: A = ClusterAlgebra(matrix([[0,-2],[3,0]]), principal_coefficients=True)
+            sage: f = A.theta_basis_element((4,-4))*A.theta_basis_element((1,-1))
+            sage: f.theta_basis_decomposition() # indirect doctest
+            {(5, -5): 1, (3, -2): y0*y1, (1, -2): y0*y1^2}
+            sage: sum(_[g] * A.theta_basis_element(g) for g in _) - f
+            0
+        """
+        f_poly = self.F_polynomial()
+        g_vect = vector(self.g_vector())
+
+        A = self.parent()
+        B = A.b_matrix()
+        n = A.rank()
+        U = f_poly.parent()
+        out = {}
+
+        while f_poly != U(0):
+            y_exp = min(f_poly.dict())
+            coeff = f_poly.dict()[y_exp]
+            g_theta = tuple(g_vect + B*vector(y_exp))
+            out[g_theta] = A({(0,)*n + tuple(y_exp):coeff})
+            f_poly -= U({y_exp:coeff}) * A.theta_basis_F_polynomial(g_theta)
+        return out
 
 
 ##############################################################################
@@ -1494,12 +1557,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.coxeter_element()
             Traceback (most recent call last):
             ...
-            ValueError: The initial exchange matrix is not acyclic.
+            ValueError: the initial exchange matrix is not acyclic.
         """
         dg = DiGraph(self.b_matrix().apply_map(lambda x: ZZ(0) if x <= 0 else ZZ(1)))
         acyclic, coxeter = dg.is_directed_acyclic(certificate=True)
         if not acyclic:
-            raise ValueError("The initial exchange matrix is not acyclic.")
+            raise ValueError("the initial exchange matrix is not acyclic.")
         return coxeter
 
     @cached_method
@@ -1572,12 +1635,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.set_current_seed(A1.initial_seed())
             Traceback (most recent call last):
             ...
-            ValueError: This is not a seed in this cluster algebra
+            ValueError: this is not a seed in this cluster algebra
         """
         if self.contains_seed(seed):
             self._seed = seed
         else:
-            raise ValueError("This is not a seed in this cluster algebra")
+            raise ValueError("this is not a seed in this cluster algebra")
 
     def reset_current_seed(self):
         r"""
@@ -1691,11 +1754,11 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A.euler_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: The initial exchange matrix is not acyclic.
+            ValueError: the initial exchange matrix is not acyclic.
         """
 
         if not self.is_acyclic():
-            raise ValueError("The initial exchange matrix is not acyclic.")
+            raise ValueError("the initial exchange matrix is not acyclic.")
         return 1 + self.b_matrix().apply_map(lambda x: min(ZZ(0), x))
 
     def d_vector_to_g_vector(self, d):

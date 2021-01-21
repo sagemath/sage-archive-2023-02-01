@@ -12,7 +12,6 @@ SAGE_ROOT     = os.path.realpath(os.environ['SAGE_ROOT'])
 SAGE_LOCAL    = os.environ['SAGE_LOCAL']
 
 location_file = os.path.join(SAGE_LOCAL, 'lib', 'sage-current-location.txt')
-force_file    = os.path.join(SAGE_LOCAL, 'lib', 'sage-force-relocate.txt')
 
 
 def write_location_file():
@@ -96,22 +95,12 @@ if __name__ == '__main__':
     # OLD_SAGE_ROOT is None if this is a first-time install.
     OLD_SAGE_ROOT = read_location_file()
 
-    # If the force file exists (test that by deleting it),
-    # then always run sage_locate().
-    try:
-        os.unlink(force_file)
-        force_relocate = True
-    except OSError:
-        force_relocate = False
-
-    if OLD_SAGE_ROOT != SAGE_ROOT or force_relocate:
+    if OLD_SAGE_ROOT != SAGE_ROOT:
         if OLD_SAGE_ROOT is None:
             print("This looks like the first time you are running Sage.")
         elif OLD_SAGE_ROOT != SAGE_ROOT:
             print(RELOCATION_ERROR.format(OLD_SAGE_ROOT=OLD_SAGE_ROOT, SAGE_ROOT=SAGE_ROOT))
             sys.exit(1)
-        elif force_relocate:
-            print("Forcing sage-location, probably because a new package was installed.")
         else:
             print("The Sage installation tree has moved")
             print("from %s" % OLD_SAGE_ROOT)

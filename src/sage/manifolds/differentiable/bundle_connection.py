@@ -117,7 +117,18 @@ class BundleConnection(SageObject):
         connection (1,2) of bundle connection nabla w.r.t. Local frame
          (E|_M, (e_1,e_2)) = 0
 
-    We can also use :meth:`set_connection_form` to specify the connection
+    Keep noticed that item assignments for bundle connections only copy the
+    right-hand-side and never create a binding to the original instance::
+
+        sage: omega = M.one_form('omega')
+        sage: omega[:] = [x*z, y*z, z^2]
+        sage: nab[1, 2] = omega
+        sage: nab[1, 2] == omega
+        True
+        sage: nab[1, 2] is omega
+        False
+
+    Preferably, we use :meth:`set_connection_form` to specify the connection
     1-forms::
 
         sage: nab[:] = 0  # re-initialize to zero
@@ -132,7 +143,7 @@ class BundleConnection(SageObject):
 
     .. NOTE::
 
-        Notice that list assignments and :meth:`set_connection_form` delete
+        Notice that item assignments and :meth:`set_connection_form` delete
         the connection 1-forms w.r.t. other frames for consistency reasons. To
         avoid this behavior, :meth:`add_connection_form` must be used instead.
 

@@ -21,6 +21,8 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
+from sage.libs.pynac.pynac import register_symbol
+
 
 class Function_exp(GinacFunction):
     r"""
@@ -155,7 +157,9 @@ class Function_exp(GinacFunction):
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                conversions=dict(maxima='exp', fricas='exp'))
 
+
 exp = Function_exp()
+
 
 class Function_log1(GinacFunction):
     r"""
@@ -233,7 +237,9 @@ class Function_log1(GinacFunction):
                                conversions=dict(maxima='log', fricas='log',
                                                 mathematica='Log', giac='ln'))
 
+
 ln = function_log = Function_log1()
+
 
 class Function_log2(GinacFunction):
     """
@@ -266,7 +272,9 @@ class Function_log2(GinacFunction):
                                latex_name=r'\log',
                                conversions=dict(maxima='log'))
 
+
 logb = Function_log2()
+
 
 def log(*args, **kwds):
     """
@@ -424,9 +432,9 @@ def log(*args, **kwds):
         Traceback (most recent call last):
         ...
         TypeError: Symbolic function log takes at most 2 arguments (3 given)
-    
+
     Check if :trac:`29164` is fixed::
-        
+
         sage: log(0, 2)
         -Infinity
     """
@@ -438,7 +446,7 @@ def log(*args, **kwds):
     if len(args) == 1:
         return ln(args[0], **kwds)
     if len(args) > 2:
-        raise TypeError("Symbolic function log takes at most 2 arguments (%s given)"%(len(args)+1-(base is not None)))
+        raise TypeError("Symbolic function log takes at most 2 arguments (%s given)" % (len(args) + 1 - (base is not None)))
     try:
         return args[0].log(args[1])
     except ValueError as ex:
@@ -454,6 +462,9 @@ class Function_polylog(GinacFunction):
         r"""
         The polylog function
         `\text{Li}_s(z) = \sum_{k=1}^{\infty} z^k / k^s`.
+
+        The first argument is `s` (usually an integer called the weight)
+        and the second argument is `z` : ``polylog(s, z)``.
 
         This definition is valid for arbitrary complex order `s` and for
         all complex arguments `z` with `|z| < 1`; it can be extended to
@@ -542,6 +553,11 @@ class Function_polylog(GinacFunction):
 
             sage: polylog(1,-1)   # known bug
             -log(2)
+
+        Check for :trac:`21907`::
+
+            sage: bool(x*polylog(x,x)==0)
+            False
         """
         GinacFunction.__init__(self, "polylog", nargs=2,
                 conversions=dict(mathematica='PolyLog',
@@ -584,6 +600,7 @@ class Function_polylog(GinacFunction):
             [0.582 +/- ...]
         """
         return [z, k]
+
 
 polylog = Function_polylog()
 
@@ -905,9 +922,9 @@ class Function_lambert_w(BuiltinFunction):
         elif n == 0:
             if z.is_trivial_zero():
                 return s_parent(z)(Integer(0))
-            elif (z-const_e).is_trivial_zero():
+            elif (z - const_e).is_trivial_zero():
                 return s_parent(z)(Integer(1))
-            elif (z+1/const_e).is_trivial_zero():
+            elif (z + 1 / const_e).is_trivial_zero():
                 return s_parent(z)(Integer(-1))
 
     def _evalf_(self, n, z, parent=None, algorithm=None):
@@ -978,7 +995,7 @@ class Function_lambert_w(BuiltinFunction):
         if diff_param == 0:
             raise ValueError("cannot differentiate lambert_w in the first parameter")
 
-        return lambert_w(n, z)/(z*lambert_w(n, z)+z)
+        return lambert_w(n, z) / (z * lambert_w(n, z) + z)
 
     def _maxima_init_evaled_(self, n, z):
         """
@@ -1046,6 +1063,7 @@ class Function_lambert_w(BuiltinFunction):
             return r"\operatorname{W}({%s})" % z._latex_()
         else:
             return r"\operatorname{W_{%s}}({%s})" % (n, z._latex_())
+
 
 lambert_w = Function_lambert_w()
 
@@ -1130,8 +1148,8 @@ class Function_exp_polar(BuiltinFunction):
         """
         from sage.functions.other import imag
 
-        if (not isinstance(z, Expression)
-            and bool(-const_pi < imag(z) <= const_pi)):
+        if (not isinstance(z, Expression) and
+                bool(-const_pi < imag(z) <= const_pi)):
             return exp(z)
         else:
             raise ValueError("invalid attempt to numerically evaluate exp_polar()")
@@ -1155,11 +1173,11 @@ class Function_exp_polar(BuiltinFunction):
         """
         try:
             im = z.imag_part()
-            if (len(im.variables()) == 0
-                and bool(-const_pi < im <= const_pi)):
+            if not im.variables() and (-const_pi < im <= const_pi):
                 return exp(z)
         except AttributeError:
             pass
+
 
 exp_polar = Function_exp_polar()
 
@@ -1261,7 +1279,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             harmonic(x, x)
         """
         BuiltinFunction.__init__(self, "harmonic_number", nargs=2,
-                conversions={'sympy':'harmonic'})
+                conversions={'sympy': 'harmonic'})
 
     def __call__(self, z, m=1, **kwds):
         r"""
@@ -1349,19 +1367,19 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             sage: maxima_calculus(harmonic_number(3,harmonic_number(x,3),hold=True))
             1/3^gen_harmonic_number(3,_SAGE_VAR_x)+1/2^gen_harmonic_number(3,_SAGE_VAR_x)+1
         """
-        if isinstance(n,str):
-            maxima_n=n
-        elif hasattr(n,'_maxima_init_'):
-            maxima_n=n._maxima_init_()
+        if isinstance(n, str):
+            maxima_n = n
+        elif hasattr(n, '_maxima_init_'):
+            maxima_n = n._maxima_init_()
         else:
-            maxima_n=str(n)
-        if isinstance(z,str):
-            maxima_z=z
-        elif hasattr(z,'_maxima_init_'):
-            maxima_z=z._maxima_init_()
+            maxima_n = str(n)
+        if isinstance(z, str):
+            maxima_z = z
+        elif hasattr(z, '_maxima_init_'):
+            maxima_z = z._maxima_init_()
         else:
-            maxima_z=str(z)
-        return "gen_harmonic_number(%s,%s)" % (maxima_z, maxima_n) # swap arguments
+            maxima_z = str(z)
+        return "gen_harmonic_number(%s,%s)" % (maxima_z, maxima_n)  # swap arguments
 
     def _derivative_(self, n, m, diff_param=None):
         """
@@ -1384,10 +1402,10 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         from sage.functions.transcendental import zeta
         if diff_param == 1:
             raise ValueError("cannot differentiate harmonic_number in the second parameter")
-        if m==1:
+        if m == 1:
             return harmonic_m1(n).diff()
         else:
-            return m*(zeta(m+1) - harmonic_number(n, m+1))
+            return m * (zeta(m + 1) - harmonic_number(n, m + 1))
 
     def _print_(self, z, m):
         """
@@ -1417,14 +1435,16 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         else:
             return r"H_{{%s},{%s}}" % (z, m)
 
+
 harmonic_number = Function_harmonic_number_generalized()
 
-def _swap_harmonic(a,b): return harmonic_number(b,a)
 
-from sage.libs.pynac.pynac import register_symbol
+def _swap_harmonic(a, b):
+    return harmonic_number(b, a)
 
-register_symbol(_swap_harmonic,{'maxima':'gen_harmonic_number'})
-register_symbol(_swap_harmonic,{'maple':'harmonic'})
+
+register_symbol(_swap_harmonic, {'maxima': 'gen_harmonic_number'})
+register_symbol(_swap_harmonic, {'maple': 'harmonic'})
 
 
 class Function_harmonic_number(BuiltinFunction):
@@ -1453,10 +1473,10 @@ class Function_harmonic_number(BuiltinFunction):
             harmonic(x)
         """
         BuiltinFunction.__init__(self, "harmonic_number", nargs=1,
-                                 conversions={'mathematica':'HarmonicNumber',
-                                              'maple':'harmonic',
-                                              'maxima':'harmonic_number',
-                                              'sympy':'harmonic'})
+                                 conversions={'mathematica': 'HarmonicNumber',
+                                              'maple': 'harmonic',
+                                              'maxima': 'harmonic_number',
+                                              'sympy': 'harmonic'})
 
     def _eval_(self, z, **kwds):
         """
@@ -1483,7 +1503,7 @@ class Function_harmonic_number(BuiltinFunction):
                 return flint_arith.harmonic_number(z)
         elif z in QQ:
             from .gamma import psi1
-            return psi1(z+1) - psi1(1)
+            return psi1(z + 1) - psi1(1)
 
     def _evalf_(self, z, parent=None, algorithm='mpmath'):
         """
@@ -1524,5 +1544,6 @@ class Function_harmonic_number(BuiltinFunction):
             H_{x}
         """
         return r"H_{%s}" % z
+
 
 harmonic_m1 = Function_harmonic_number()

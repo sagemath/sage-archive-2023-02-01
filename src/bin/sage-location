@@ -97,15 +97,8 @@ if __name__ == '__main__':
     # OLD_SAGE_ROOT is None if this is a first-time install.
     OLD_SAGE_ROOT = read_location_file()
 
-    if OLD_SAGE_ROOT != SAGE_ROOT:
-        if OLD_SAGE_ROOT is None:
-            print("This looks like the first time you are running Sage.")
-        elif OLD_SAGE_ROOT != SAGE_ROOT:
-            print(RELOCATION_ERROR.format(OLD_SAGE_ROOT=OLD_SAGE_ROOT, SAGE_ROOT=SAGE_ROOT))
-            sys.exit(1)
-        else:
-            print("The Sage installation tree has moved")
-            print("from %s" % OLD_SAGE_ROOT)
-            print("  to %s" % SAGE_ROOT)
-            assert(False)
+    if OLD_SAGE_ROOT is None:
         sage_relocate()
+    elif not os.path.samefile(OLD_SAGE_ROOT, SAGE_ROOT):
+        print(RELOCATION_ERROR.format(OLD_SAGE_ROOT=OLD_SAGE_ROOT, SAGE_ROOT=SAGE_ROOT))
+        sys.exit(1)

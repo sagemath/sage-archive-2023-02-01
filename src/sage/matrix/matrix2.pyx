@@ -8719,7 +8719,7 @@ cdef class Matrix(Matrix1):
             col_lines = [col_lines]
         if self._subdivisions is not None:
             self.clear_cache()
-        if row_lines == [] and col_lines == []:
+        if (not row_lines) and (not col_lines):
             self._subdivisions = None
         else:
             l_row = sorted(row_lines)

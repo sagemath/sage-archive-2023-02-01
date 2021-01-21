@@ -168,10 +168,13 @@ if __name__ == "__main__":
                     # cause us to run out of physical memory, leading to system
                     # instability (as opposed to virtual memory allocs failing)
                     options.memlimit = -1
-
     # Limit the number of threads to 2 to save system resources.
-    # See Trac #23713 and #23892
-    os.environ["OMP_NUM_THREADS"] = "2"
+    # See Trac #23713, #23892, #30351
+    if sys.platform == 'darwin':  
+        os.environ["OMP_NUM_THREADS"] = "1"
+    else:
+        os.environ["OMP_NUM_THREADS"] = "2"
+
     os.environ["SAGE_NUM_THREADS"] = "2"
 
     from sage.doctest.control import DocTestController

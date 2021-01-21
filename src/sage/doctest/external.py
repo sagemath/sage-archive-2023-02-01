@@ -25,7 +25,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from multiprocessing import Array
+import multiprocessing
+import os
+
+# With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork' in
+# multiprocessing, and Sage doctesting doesn't work with 'spawn'. See
+# trac #27754.
+if os.uname().sysname == 'Darwin':
+    multiprocessing.set_start_method('fork', force=True)
+Array = multiprocessing.Array
 
 import urllib.error
 from urllib.request import Request, urlopen
@@ -281,6 +289,20 @@ def has_imagemagick():
     from sage.features.imagemagick import ImageMagick
     return ImageMagick().is_present()
 
+def has_rubiks():
+    """
+    Test if the rubiks package (``cu2``, ``cubex``, ``dikcube``,
+    ``mcube``, ``optimal``, and ``size222``) is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_rubiks
+        sage: has_rubiks()   # optional -- rubiks
+        FeatureTestResult('Rubiks', True)
+    """
+    from sage.features.rubiks import Rubiks
+    return Rubiks().is_present()
+
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
@@ -337,6 +359,7 @@ class AvailableSoftware(object):
          'matlab',
          'octave',
          'pandoc',
+         'rubiks',
          'scilab']
         sage: 'internet' in available_software # random, optional - internet
         True

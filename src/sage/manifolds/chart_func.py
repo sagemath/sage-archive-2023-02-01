@@ -179,6 +179,14 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
         sage: f == h
         True
 
+    A coercion by means of the restriction is implemented::
+
+        sage: D = M.open_subset('D')
+        sage: X_D = X.restrict(D, x^2+y^2<1)  # open disk
+        sage: c = X_D.function(x^2)
+        sage: c + f
+        2*x^2 + 3*y + 1
+
     Expansion to a given order with respect to a small parameter::
 
         sage: t = var('t')  # the small parameter
@@ -857,6 +865,53 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
         """
         curr = self._calc_method._current
         return self._calc_method.is_trivial_zero(self.expr(curr))
+
+    def is_trivial_one(self):
+        r"""
+        Check if ``self`` is trivially equal to one without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self == 1`` and is intended to be used in library code where
+        trying to obtain a mathematically correct result by applying
+        potentially expensive rewrite rules is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(1)
+            sage: f.is_trivial_one()
+            True
+            sage: f = X.function(float(1.0))
+            sage: f.is_trivial_one()
+            True
+            sage: f = X.function(x-x+1)
+            sage: f.is_trivial_one()
+            True
+            sage: X.one_function().is_trivial_one()
+            True
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = X.function(cos(x)^2 + sin(x)^2)
+            sage: f.is_trivial_one()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to one involve some simplification algorithms and
+        return ``True``::
+
+            sage: (f - 1).is_zero()
+            True
+            sage: f == 1
+            True
+
+        """
+        curr = self._calc_method._current
+        return self._calc_method.is_trivial_zero(self.expr(curr) - SR.one())
 
     # TODO: Remove this method as soon as ticket #28629 is solved?
     def is_unit(self):
@@ -2588,7 +2643,6 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
         self._del_derived()
         return self
 
-
 class ChartFunctionRing(Parent, UniqueRepresentation):
     """
     Ring of all chart functions on a chart.
@@ -2598,7 +2652,9 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
     - ``chart`` -- a coordinate chart, as an instance of class
       :class:`~sage.manifolds.chart.Chart`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    The ring of all chart functions w.r.t. to a chart::
 
         sage: M = Manifold(2, 'M', structure='topological')
         sage: X.<x,y> = M.chart()
@@ -2608,6 +2664,22 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
         <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category'>
         sage: FR.category()
         Category of commutative algebras over Symbolic Ring
+
+    Coercions by means of restrictions are implemented::
+
+        sage: FR_X = X.function_ring()
+        sage: D = M.open_subset('D')
+        sage: X_D = X.restrict(D, x^2+y^2<1)  # open disk
+        sage: FR_X_D = X_D.function_ring()
+        sage: FR_X_D.has_coerce_map_from(FR_X)
+        True
+
+    But only if the charts are compatible::
+
+        sage: Y.<t,z> = D.chart()
+        sage: FR_Y = Y.function_ring()
+        sage: FR_Y.has_coerce_map_from(FR_X)
+        False
 
     """
     Element = ChartFunction
@@ -2646,8 +2718,16 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sin(x*y)
             sage: f.parent() is FR
             True
+            sage: D = M.open_subset('D')
+            sage: X_D = X.restrict(D, x^2+y^2<1)
+            sage: FR_D = X_D.function_ring()
+            sage: FR_D(f)
+            sin(x*y)
 
         """
+        if isinstance(expression, ChartFunction):
+            if self._chart in expression._chart._subcharts:
+                expression = expression.expr(method=calc_method)
         return self.element_class(self, expression, calc_method=calc_method)
 
     def _coerce_map_from_(self, other):
@@ -2659,13 +2739,20 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: FR = X.function_ring()
-            sage: FR._coerce_map_from_(RR)
+            sage: FR.has_coerce_map_from(RR)
+            True
+            sage: D = M.open_subset('D')
+            sage: X_D = X.restrict(D, x^2+y^2<1)
+            sage: FR_D = X_D.function_ring()
+            sage: FR_D.has_coerce_map_from(FR)
             True
 
         """
-        from sage.rings.all import RR, ZZ, QQ
-        if other is SR or other is ZZ or other is RR or other is QQ:
+        if SR.has_coerce_map_from(other):
             return True
+        if isinstance(other, ChartFunctionRing):
+            if self._chart in other._chart._subcharts:
+                return True
         return False
 
     def _repr_(self):

@@ -10,14 +10,14 @@
 #  - Use "return" instead of "exit" to signal a failure.  Since this
 #    file is sourced, an "exit" here will actually exit src/bin/sage,
 #    which is probably not intended.
-#  - All environment variables set here should be *exported*, otherwise
-#    they won't be available in child programs.
+#  - Environment variables that should be available in the Sage environment
+#    should be exported.
 #  - This file is only for setting immediate values.  Any kind of conditionals
 #    or computed values are to be set by src/bin/sage-env after sourcing this
 #    file.
 #  - Environment variables that are only needed at the time of building
 #    SPKGs or sagelib should be set in build/bin/sage-build-env-config
-#    instead.
+#    or build/bin/sage-build-env instead.
 #  - Configuration variables that are only needed by the Sage runtime,
 #    but not as environment variables, should instead be set in
 #    build/pkgs/sage_conf/src/sage_conf.py
@@ -34,17 +34,21 @@ export SAGE_LOCAL="@prefix@"
 export SAGE_ROOT="@SAGE_ROOT@"
 
 #######################################
-# Compilers set at configuration time
+# Compilers set at configuration time.
+# We do not export these variables; sage-env sets CC etc. based on them.
 #######################################
-export CONFIGURED_CC="@CC@"
-export CONFIGURED_CXX="@CXX@"
-export CONFIGURED_FC="@FC@"
-export CONFIGURED_OBJC="@OBJC@"
-export CONFIGURED_OBJCXX="@OBJCXX@"
+CONFIGURED_CC="@CC@"
+CONFIGURED_CXX="@CXX@"
+CONFIGURED_FC="@FC@"
+CONFIGURED_OBJC="@OBJC@"
+CONFIGURED_OBJCXX="@OBJCXX@"
 
 #######################################
-# Other configuration
+# Other configuration (exported)
 #######################################
-export SAGE_PYTHON_VERSION=@SAGE_PYTHON_VERSION@
-export PYTHON_FOR_VENV="@PYTHON_FOR_VENV@"
-export SAGE_PKG_CONFIG_PATH="@SAGE_PKG_CONFIG_PATH@"
+
+#######################################
+# Other configuration (not exported, only used in sage-env)
+#######################################
+SAGE_PKG_CONFIG_PATH="@SAGE_PKG_CONFIG_PATH@"
+SAGE_MACOSX_DEPLOYMENT_TARGET="@SAGE_MACOSX_DEPLOYMENT_TARGET@"

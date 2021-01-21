@@ -1,4 +1,3 @@
-# distutils: libraries = ntl
 r"""
 Elements of the ring `\ZZ` of integers
 
@@ -178,7 +177,6 @@ from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
-from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.mpq cimport mpq_neg
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
@@ -1762,11 +1760,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
 
-    cdef int _to_ZZ(self, ZZ_c *z) except -1:
-        sig_on()
-        mpz_to_ZZ(z, self.value)
-        sig_off()
-
     def __add__(left, right):
         r"""
         TESTS::
@@ -2710,8 +2703,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             _m=<Integer>Integer(m)
 
-        if mpz_sgn(self.value) <= 0 or mpz_sgn(_m.value) <= 0:
-            raise ValueError("both self and m must be positive")
+        self_sgn = mpz_sgn(self.value)
+        if self_sgn == 0:
+            return -sage.rings.infinity.infinity
+        if self_sgn < 0 or mpz_sgn(_m.value) <= 0:
+            raise ValueError("self must be nonnegative and m must be positive")
         if mpz_cmp_si(_m.value,2) < 0:
             raise ValueError("m must be at least 2")
 
@@ -2864,7 +2860,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 from sage.rings.real_mpfr import RealField
                 return RealField(prec)(self).log(m)
             else:
-                from sage.rings.complex_field import ComplexField
+                from sage.rings.complex_mpfr import ComplexField
                 return ComplexField(prec)(self).log(m)
 
         if m is None:
@@ -2877,7 +2873,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if type(m) == Integer and type(self) == Integer:
             elog = self.exact_log(m)
-            if m**elog == self:
+            if elog == -sage.rings.infinity.infinity or m**elog == self:
                 return elog
 
         if (type(m) == Rational and type(self) == Integer
@@ -4415,6 +4411,29 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer z = PY_NEW(Integer)
         sig_on()
         mpz_lcm(z.value, self.value, n.value)
+        sig_off()
+        return z
+
+    def _gcd(self, Integer n):
+        """
+        Return the greatest common divisor of self and `n`.
+
+        EXAMPLES::
+
+            sage: 1._gcd(-1)
+            1
+            sage: 0._gcd(1)
+            1
+            sage: 0._gcd(0)
+            0
+            sage: 2._gcd(2^6)
+            2
+            sage: 21._gcd(2^6)
+            1
+        """
+        cdef Integer z = PY_NEW(Integer)
+        sig_on()
+        mpz_gcd(z.value, self.value, n.value)
         sig_off()
         return z
 
@@ -6232,7 +6251,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(5.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type((-5).sqrt(prec=53))
-            <type 'sage.rings.complex_number.ComplexNumber'>
+            <type 'sage.rings.complex_mpfr.ComplexNumber'>
             sage: type(0.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
 
@@ -6740,33 +6759,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ZeroDivisionError(f"inverse of Mod({self}, {m}) does not exist")
         return ans
 
-    def gcd(self, n):
-        """
-        Return the greatest common divisor of self and `n`.
-
-        EXAMPLES::
-
-            sage: gcd(-1,1)
-            1
-            sage: gcd(0,1)
-            1
-            sage: gcd(0,0)
-            0
-            sage: gcd(2,2^6)
-            2
-            sage: gcd(21,2^6)
-            1
-        """
-        if not isinstance(n, Integer) and not isinstance(n, int):
-            left, right = coercion_model.canonical_coercion(self, n)
-            return left.gcd(right)
-        cdef Integer m = as_Integer(n)
-        cdef Integer g = PY_NEW(Integer)
-        sig_on()
-        mpz_gcd(g.value, self.value, m.value)
-        sig_off()
-        return g
-
     def crt(self, y, m, n):
         """
         Return the unique integer between `0` and `mn` that is congruent to
@@ -7035,7 +7027,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         sage: Integer("+00000", 4)
         0
 
-    For octals, the old leading-zero style is deprecated (unless an
+    For octals, the old leading-zero style is no longer available (unless an
     explicit base is given)::
 
         sage: Integer('0o12')
@@ -7043,10 +7035,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         sage: Integer('012', 8)
         10
         sage: Integer('012')
-        doctest:...: DeprecationWarning: use 0o as octal prefix instead of 0
-        If you do not want this number to be interpreted as octal, remove the leading zeros.
-        See http://trac.sagemath.org/17413 for details.
-        10
+        12
 
     We disallow signs in unexpected places::
 
@@ -7060,13 +7049,13 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         TypeError: unable to convert '0o-0' to an integer
     """
     cdef int sign = 1
-    cdef int warnoctal = 0
     cdef char* x = s
 
     if base != 0 and (base < 2 or base > 36):
-        raise ValueError("base (=%s) must be 0 or between 2 and 36"%base)
+        raise ValueError("base (=%s) must be 0 or between 2 and 36" % base)
 
-    while x[0] == c' ': x += 1  # Strip spaces
+    while x[0] == c' ':
+        x += 1  # Strip spaces
 
     # Check for signs
     if x[0] == c'-':
@@ -7075,7 +7064,8 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
     elif x[0] == c'+':
         x += 1
 
-    while x[0] == c' ': x += 1  # Strip spaces
+    while x[0] == c' ':
+        x += 1  # Strip spaces
 
     # If no base was given, check for PEP 3127 prefixes
     if base == 0:
@@ -7093,12 +7083,10 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
                 x += 2
                 base = 16
             else:
-                # Give deprecation warning about octals, unless the
-                # number is zero (to allow for "0").
-                base = 8
-                warnoctal = 1
+                base = 10  # no longer giving an octal
 
-    while x[0] == c' ': x += 1  # Strip spaces
+    while x[0] == c' ':
+        x += 1  # Strip spaces
 
     # Disallow a sign here
     if x[0] == '-' or x[0] == '+':
@@ -7109,9 +7097,6 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         raise TypeError("unable to convert %r to an integer" % char_to_str(s))
     if sign < 0:
         mpz_neg(z, z)
-    if warnoctal and mpz_sgn(z) != 0:
-        from sage.misc.superseded import deprecation
-        deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
 
 def GCD_list(v):

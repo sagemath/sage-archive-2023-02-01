@@ -521,7 +521,6 @@ runs under 5 seconds (used to take ~40sec)::
     sage: cancel_alarm()
 """
 
-from __future__ import absolute_import, print_function, division
 
 import itertools
 import operator
@@ -535,14 +534,14 @@ from sage.structure.richcmp import (richcmp, richcmp_method,
                                     op_EQ, op_NE, op_GT)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
+from sage.rings.number_field.number_field import NumberField, GaussianField, CyclotomicField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.arith.all import factor
 from . import infinity
@@ -8130,9 +8129,15 @@ class ANBinaryExpr(ANDescr):
 
         We check to make sure that this method still works even. We
         do this by increasing the recursion level at each step and
-        decrease it before we return::
+        decrease it before we return.
+        We lower the recursion limit for this test to allow
+        a test in reasonable time::
 
-            sage: import sys; sys.getrecursionlimit()
+            sage: import sys
+            sage: old_recursion_limit = sys.getrecursionlimit()
+            sage: sys.setrecursionlimit(1000)
+
+            sage: sys.getrecursionlimit()
             1000
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a=s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))
@@ -8141,6 +8146,7 @@ class ANBinaryExpr(ANDescr):
             sage: sys.getrecursionlimit()
             1000
 
+            sage: sys.setrecursionlimit(old_recursion_limit)
         """
         import sys
         old_recursion_limit = sys.getrecursionlimit()
@@ -8334,7 +8340,7 @@ def _init_qqbar():
 
     AA_0 = AA.zero()
 
-    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
+    QQbar_I_nf = GaussianField()
     QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
     QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
 

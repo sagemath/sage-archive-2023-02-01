@@ -35,7 +35,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
@@ -836,7 +835,7 @@ class Set_object_enumerated(Set_object):
             sage: latex(S)
             \left\{0, 1\right\}
         """
-        return '\\left\\{' + ', '.join([latex(x) for x in self.set()])  + '\\right\\}'
+        return '\\left\\{' + ', '.join(latex(x) for x in self.set())  + '\\right\\}'
 
     def _repr_(self):
         r"""

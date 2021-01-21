@@ -7,16 +7,13 @@ Coding theory is the mathematical theory for algebraic and combinatorial codes
 used for forward error correction in communications theory. Sage provides an
 extensive library of objects and algorithms in coding theory.
 
-Basic objects in coding theory are channels, codes, linear codes, encoders, and
+Basic objects in coding theory are codes, channels, encoders, and
 decoders. The following modules provide the base classes defining them.
 
 .. toctree::
    :maxdepth: 1
 
    sage/coding/abstract_code
-   sage/coding/linear_code_no_metric
-   sage/coding/linear_code
-   sage/coding/linear_rank_metric
    sage/coding/channel
    sage/coding/encoder
    sage/coding/decoder
@@ -33,8 +30,28 @@ the parameters of linear codes are provided.
    sage/coding/encoders_catalog
    sage/coding/bounds_catalog
 
-Families of Codes
------------------
+
+Linear Codes
+------------
+
+The following module is a base class for linear code objects regardless their
+metric.
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/coding/linear_code_no_metric
+
+There is a number of representatives of linear codes over a specific metric.
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/coding/linear_code
+   sage/coding/linear_rank_metric
+
+Families of Linear Codes
+------------------------
 
 Famous families of codes, listed below, are represented in Sage by their own
 classes. For some of them, implementations of special decoding algorithms or

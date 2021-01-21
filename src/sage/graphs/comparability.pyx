@@ -6,7 +6,7 @@ This module implements method related to :wikipedia:`Comparability_graph` and
 :wikipedia:`Permutation_graph`, that is, for the moment, only recognition
 algorithms.
 
-Most of the information found here can alo be found in [ST1994]_ or [Sha1997]_.
+Most of the information found here can also be found in [ST1994]_ or [Sha1997]_.
 
 The following methods are implemented in this module
 
@@ -398,7 +398,7 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
     INPUT:
 
     - ``certificate`` (boolean) -- whether to return a certificate for
-      yes instances. This method can not return negative certificates.
+      yes instances. This method cannot return negative certificates.
 
     - ``solver`` -- (default: ``None``); Specify a Linear Program (LP) solver to
       be used. If set to ``None``, the default one is used. For more information

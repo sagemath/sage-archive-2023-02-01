@@ -13,7 +13,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 import os
 import re
@@ -104,7 +103,7 @@ def import_statement_string(module, names, lazy):
             name, alias = names[0]
             if name == alias:
                 if name is None:
-                    raise ValueError("can not lazy import modules")
+                    raise ValueError("cannot lazy import modules")
                 return "lazy_import('%s', '%s')" % (module, name)
             else:
                 return "lazy_import('%s', '%s', '%s')" % (module, name, alias)
@@ -315,13 +314,16 @@ def find_object_modules(obj):
         module_to_obj2 = {}
         for module_name, obj_names in module_to_obj.items():
             module_to_obj2[module_name] = []
-            src = sageinspect.sage_getsource(sys.modules[module_name])
-            m = dec_pattern.search(src)
-            while m:
-                if m.group(1) in obj_names:
-                    module_to_obj2[module_name].append(m.group(1))
-                m = dec_pattern.search(src, m.end())
-
+            try:
+                src = sageinspect.sage_getsource(sys.modules[module_name])
+            except TypeError:
+                pass
+            else:
+                m = dec_pattern.search(src)
+                while m:
+                    if m.group(1) in obj_names:
+                        module_to_obj2[module_name].append(m.group(1))
+                    m = dec_pattern.search(src, m.end())
             if not module_to_obj2[module_name]:
                 del module_to_obj2[module_name]
 
@@ -590,9 +592,30 @@ def import_statements(*objects, **kwds):
         modules = find_object_modules(obj)
         if '__main__' in modules:
             del modules['__main__']
+        if '__mp_main__' in modules:
+            del modules['__mp_main__']
 
         if not modules:
             raise ValueError("no import statement found for '{}'.".format(obj))
+
+        if name is None:
+            # if the object is available under both ascii and unicode names,
+            # prefer the ascii version.
+            def is_ascii(s):
+                """
+                Equivalent of `str.isascii` in Python >= 3.7
+                """
+                return all(ord(c) < 128 for c in s)
+            if any(is_ascii(s)
+                   for (module_name, obj_names) in modules.items()
+                   for s in obj_names):
+                for module_name, obj_names in list(modules.items()):
+                    if any(not is_ascii(s) for s in obj_names):
+                        obj_names = [name for name in obj_names if is_ascii(name)]
+                        if not obj_names:
+                            del modules[module_name]
+                        else:
+                            modules[module_name] = obj_names
 
         if len(modules) == 1:  # the module is well defined
             (module_name, obj_names), = modules.items()

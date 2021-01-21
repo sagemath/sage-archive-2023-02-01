@@ -78,7 +78,7 @@ class Monoids(CategoryWithAxiom):
         Return a free monoid on `n` generators or with the generators
         indexed by a set `I`.
 
-        A free monoid is constructed by specifing either:
+        A free monoid is constructed by specifying either:
 
         - the number of generators and/or the names of the generators
         - the indexing set for the generators
@@ -325,7 +325,7 @@ class Monoids(CategoryWithAxiom):
             Return a free abelian monoid on `n` generators or with
             the generators indexed by a set `I`.
 
-            A free monoid is constructed by specifing either:
+            A free monoid is constructed by specifying either:
 
             - the number of generators and/or the names of the generators, or
             - the indexing set for the generators.
@@ -410,16 +410,21 @@ class Monoids(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
+            The algebra of a monoid is a bialgebra and a monoid.
+
             EXAMPLES::
 
-                sage: Monoids().Algebras(QQ).extra_super_categories()
-                [Category of monoids]
+                sage: C = Monoids().Algebras(QQ)
+                sage: C.extra_super_categories()
+                [Category of bialgebras over Rational Field,
+                 Category of monoids]
                 sage: Monoids().Algebras(QQ).super_categories()
-                [Category of algebras with basis over Rational Field,
+                [Category of bialgebras with basis over Rational Field,
                  Category of semigroup algebras over Rational Field,
                  Category of unital magma algebras over Rational Field]
             """
-            return [Monoids()]
+            from sage.categories.bialgebras import Bialgebras
+            return [Bialgebras(self.base_ring()), Monoids()]
 
         class ParentMethods:
 

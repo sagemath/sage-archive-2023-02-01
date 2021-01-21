@@ -78,7 +78,6 @@ The following constructions are available
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import absolute_import, division
 
 import itertools
 
@@ -881,7 +880,7 @@ class Polytopes():
             (1, 24, 48, 26, 1)
             sage: sr.volume()                                                   # optional - pynormaliz
             80/3*sqrt2 + 32
-            sage: TestSuite(sr).run()                                           # optional - pynormaliz
+            sage: TestSuite(sr).run()                                           # optional - pynormaliz, long time
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1478,14 +1477,17 @@ class Polytopes():
 
             sage: id = polytopes.icosidodecahedron(exact=False); id
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
-            sage: TestSuite(id).run(skip="_test_is_combinatorially_isomorphic")
+            sage: TestSuite(id).run(skip=["_test_is_combinatorially_isomorphic",
+            ....:                         "_test_product",
+            ....:                         "_test_pyramid",
+            ....:                         "_test_lawrence"])
 
             sage: id = polytopes.icosidodecahedron(backend='normaliz')  # optional - pynormaliz
             sage: id.f_vector()                                         # optional - pynormaliz
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                        # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-            sage: TestSuite(id).run()                                   # optional - pynormaliz
+            sage: TestSuite(id).run()                                   # optional - pynormaliz, long time
         """
         from sage.rings.number_field.number_field import QuadraticField
         from itertools import product
@@ -1558,7 +1560,7 @@ class Polytopes():
             (1, 30, 60, 32, 1)
             sage: id.base_ring()                                           # optional - pynormaliz
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-            sage: TestSuite(id).run()                                      # optional - pynormaliz
+            sage: TestSuite(id).run()                                      # optional - pynormaliz, long time
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -2032,7 +2034,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2061,7 +2063,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2089,7 +2091,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2190,7 +2192,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2469,7 +2471,7 @@ class Polytopes():
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
-            sage: TestSuite(h_7_3).run()
+            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -2520,6 +2522,15 @@ class Polytopes():
             sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
             True
 
+        As both Hrepresentation an Vrepresentation are known, the permutahedron can be set
+        up with both using the backend ``field``. The following takes very very long time
+        to recompute, e.g. with backend ``ppl``::
+
+            sage: polytopes.permutahedron(8, backend='field')  # (~1s)
+            A 7-dimensional polyhedron in QQ^8 defined as the convex hull of 40320 vertices
+            sage: polytopes.permutahedron(9, backend='field')  # not tested (memory consumption)  # (~5s)
+            A 8-dimensional polyhedron in QQ^9 defined as the convex hull of 362880 vertices
+
         .. SEEALSO::
 
             * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
@@ -2528,11 +2539,34 @@ class Polytopes():
 
             sage: p4 = polytopes.permutahedron(4,backend='normaliz')   # optional - pynormaliz
             sage: TestSuite(p4).run()                                  # optional - pynormaliz
+
+        Check that precomputed data is correct::
+
+            sage: P = polytopes.permutahedron(5, backend='field')
+            sage: TestSuite(P).run()  # long time
         """
-        verts = list(itertools.permutations(range(1, n + 1)))
+        verts = itertools.permutations(range(1, n + 1))
         if project:
             verts = project_points(*verts)
-        return Polyhedron(vertices=verts, backend=backend)
+            return Polyhedron(vertices=verts, backend=backend)
+        else:
+            parent = Polyhedra(ZZ, n, backend=backend)
+            def tri(m):
+                return (m*(m+1))//2
+
+            # Each proper `S \subset [n]` corresponds exactly to
+            # a facet that minimizes the coordinates in `S`.
+            # The minimal sum for `m` coordinates is `(m*(m+1))/2`.
+            ieqs = ((-tri(sum(x)),) + x
+                    for x in itertools.product([0,1], repeat=n)
+                    if 0 < sum(x) < n)
+
+            # Adding the defining equality.
+            eqns = ((-tri(n),) + tuple(1 for _ in range(n)),)
+
+            return parent([verts, [], []], [ieqs, eqns],
+                          Vrep_minimal=True, Hrep_minimal=True, pref_rep="Hrep")
+
 
     def generalized_permutahedron(self, coxeter_type, point=None, exact=True, regular=False, backend=None):
         r"""
@@ -2602,13 +2636,23 @@ class Polytopes():
         an exact embedded NumberField::
 
             sage: perm_a2_reg = polytopes.generalized_permutahedron(['A',2],regular=True)
-            sage: perm_a2_reg.vertices()
-            (A vertex at (-1/2, -0.866025403784439?),
-             A vertex at (-1, 0),
-             A vertex at (1/2, -0.866025403784439?),
+            sage: V = sorted(perm_a2_reg.vertices()); V         # random
+            [A vertex at (-1, 0),
+             A vertex at (-1/2, -0.866025403784439?),
              A vertex at (-1/2, 0.866025403784439?),
-             A vertex at (1.000000000000000?, 0.?e-18),
-             A vertex at (0.500000000000000?, 0.866025403784439?))
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (1/2, 0.866025403784439?),
+             A vertex at (1.000000000000000?, 0.?e-18)]
+            sage: for v in V:
+            ....:     for x in v:
+            ....:         x.exactify()
+            sage: V
+            [A vertex at (-1, 0),
+             A vertex at (-1/2, -0.866025403784439?),
+             A vertex at (-1/2, 0.866025403784439?),
+             A vertex at (1/2, -0.866025403784439?),
+             A vertex at (1/2, 0.866025403784439?),
+             A vertex at (1, 0)]
             sage: perm_a2_reg.is_inscribed()
             True
             sage: perm_a3_reg = polytopes.generalized_permutahedron(['A',3],regular=True)  # long time
@@ -2618,22 +2662,22 @@ class Polytopes():
         The same is possible with vertices in ``RDF``::
 
             sage: perm_a2_inexact = polytopes.generalized_permutahedron(['A',2],exact=False)
-            sage: perm_a2_inexact.vertices()
-            (A vertex at (0.0, 1.0),
+            sage: sorted(perm_a2_inexact.vertices())
+            [A vertex at (-1.0, -1.0),
              A vertex at (-1.0, 0.0),
-             A vertex at (-1.0, -1.0),
              A vertex at (0.0, -1.0),
+             A vertex at (0.0, 1.0),
              A vertex at (1.0, 0.0),
-             A vertex at (1.0, 1.0))
+             A vertex at (1.0, 1.0)]
 
             sage: perm_a2_inexact_reg = polytopes.generalized_permutahedron(['A',2],exact=False,regular=True)
-            sage: perm_a2_inexact_reg.vertices()
-            (A vertex at (-0.5, 0.8660254038),
-             A vertex at (-1.0, 0.0),
+            sage: sorted(perm_a2_inexact_reg.vertices())
+            [A vertex at (-1.0, 0.0),
              A vertex at (-0.5, -0.8660254038),
+             A vertex at (-0.5, 0.8660254038),
              A vertex at (0.5, -0.8660254038),
-             A vertex at (1.0, 0.0),
-             A vertex at (0.5, 0.8660254038))
+             A vertex at (0.5, 0.8660254038),
+             A vertex at (1.0, 0.0)]
 
         It works also with types with non-rational coordinates::
 
@@ -2672,7 +2716,7 @@ class Polytopes():
         try:
             W = CoxeterGroup(coxeter_type)
         except:
-            raise ValueError("can not build a Coxeter group from {}".format(coxeter_type))
+            raise ValueError("cannot build a Coxeter group from {}".format(coxeter_type))
         n = W.one().canonical_matrix().rank()
         weights = W.fundamental_weights()
         if point is None:
@@ -2733,7 +2777,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2749,7 +2793,7 @@ class Polytopes():
         """
         if not exact:
             # cdd finds a numerical inconsistency.
-            raise NotImplementedError("can not compute the convex hull using floating points")
+            raise NotImplementedError("cannot compute the convex hull using floating points")
         return self.generalized_permutahedron(['H', 4], exact=exact, backend=backend, regular=True)
 
     omnitruncated_six_hundred_cell = omnitruncated_one_hundred_twenty_cell
@@ -2805,7 +2849,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2871,7 +2915,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2899,7 +2943,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2927,7 +2971,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2955,7 +2999,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -3305,7 +3349,7 @@ class Polytopes():
         ::
 
             sage: P = polytopes.cross_polytope(6, backend='field')
-            sage: TestSuite(P).run()
+            sage: TestSuite(P).run()  # long time
 
         Check that double description is set up correctly::
 
@@ -3352,16 +3396,13 @@ class Polytopes():
             sage: TestSuite(P).run()
         """
         from sage.modules.free_module_element import vector
-        from sage.structure.sequence import Sequence
         generators = [vector(v) for v in generators]
-        V = Sequence(generators).universe()
-        R = V.base_ring()
+        if not generators:
+            return Polyhedron(backend=backend)
 
-        from itertools import combinations
-        par = [V.zero()]
-        par.extend(sum(c) for k in range(1, len(generators) + 1)
-                   for c in combinations(generators, k))
-        return Polyhedron(vertices=par, base_ring=R, backend=backend)
+        zero = generators[0] - generators[0]
+        intervals = [Polyhedron([zero, gen], backend=backend) for gen in generators]
+        return sum(intervals)
 
     zonotope = parallelotope
 

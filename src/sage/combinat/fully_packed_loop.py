@@ -24,7 +24,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division, print_function
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
@@ -75,8 +74,13 @@ def _make_color_list(n, colors=None,  color_map=None, randomize=False):
          (0.5019607843137255, 0.7509803921568627, 0.4),
          (0.7529411764705882, 0.8764705882352941, 0.4),
          (1.0, 1.0, 0.4)]
-        sage: _make_color_list(8, ['blue', 'red'], randomize=True)
-        ['blue', 'blue', 'red', 'blue', 'red', 'red', 'red', 'blue']
+        sage: l = _make_color_list(8, ['blue', 'red'], randomize=True)
+        sage: len(l)
+        8
+        sage: l.count('blue')
+        4
+        sage: l.count('red')
+        4
     """
     if colors:
         dim = len(colors)
@@ -523,7 +527,7 @@ class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
             generator = SixVertexModel(generator.parent()._nrows,
                                        boundary_conditions='ice')(generator)
             M = generator.to_alternating_sign_matrix().to_matrix()
-            M = AlternatingSignMatrix(M)
+            AlternatingSignMatrix(M)
             SVM = generator
         else: # Not ASM nor SVM
             try:
@@ -532,7 +536,7 @@ class FullyPackedLoop(Element, metaclass=InheritComparisonClasscallMetaclass):
                 generator = matrix(generator)
                 generator = SixVertexModel(generator.nrows(), boundary_conditions='ice')(generator)
                 # Check that this is an ice square model
-                M = generator.to_alternating_sign_matrix()
+                generator.to_alternating_sign_matrix()
                 SVM = generator
 
         if not SVM:

@@ -25,7 +25,7 @@ EXAMPLES:
 No hypothesis on the structure
 ------------------------------
 
-What we mean by "no hypothesis" is that the the set is not known
+What we mean by "no hypothesis" is that the set is not known
 to be a forest, symmetric, or graded. However, it may have other
 structure, like not containing an oriented cycle, that does not
 help with the enumeration.
@@ -1252,8 +1252,8 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
 
         .. TODO::
 
-            Can ``collections.OrderedDict`` can help maintain the breadth
-            first search enumeration for each graded component?
+            Can :class:`collections.OrderedDict` help maintain the
+            breadth first search enumeration for each graded component?
 
         EXAMPLES::
 
@@ -1467,8 +1467,8 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
 
         .. TODO::
 
-            Can ``collections.OrderedDict`` can help maintain the breadth
-            first search enumeration for each graded component?
+            Can :class:`collections.OrderedDict` help maintain the
+            breadth first search enumeration for each graded component?
 
         EXAMPLES::
 

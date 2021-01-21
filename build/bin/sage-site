@@ -26,9 +26,7 @@ usage_advanced() {
     echo "  -b                  -- build Sage library -- do this if you have"
     echo "                         modified any source code files in SAGE_ROOT/src/sage/"
     echo "  -ba                 -- same as -b, but rebuild *all* Cython"
-    echo "                         code.  This could take a while, so you will be asked"
-    echo "                         if you want to proceed."
-    echo "  --ba-force          -- same as -ba, but don't query before rebuilding"
+    echo "                         code."
     echo "  -br                 -- build and run Sage"
     echo
     echo "  -bt [...]           -- build Sage and test; same options as -t"
@@ -130,16 +128,6 @@ if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
     exec sage-list-packages standard $@
 fi
 
-if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
-    shift
-    exec sage-list-packages all --installed-only $@
-fi
-
-if [ "$1" = '-p' ]; then
-    echo "Error: Installing old-style SPKGs is no longer supported."
-    exit 1
-fi
-
 if [ "$1" = '-info' -o "$1" = '--info' ]; then
     shift
     for PKG in "$@"
@@ -158,7 +146,22 @@ if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     # tends to ask interactive questions if something goes wrong. These
     # cause the build to hang. If stdin is /dev/null, TeX just aborts.
     shift
-    export LANG=C # to ensure it is possible to scrape out non-EN locale warnings
+
+    # Trac #30002: ensure an English locale so that it is possible to
+    # scrape out warnings by pattern matching.
+    # Trac #30576: But we have to avoid the C locale, which disables
+    # proper UTF-8 operation in Python 3.6 or older.
+    LC_ALL=$(locale -a | grep -E -i '^(c|en_us)[-.]utf-?8$' | head -n 1)
+    LANG=$LC_ALL
+    export LC_ALL
+    export LANG
+
+    # See #30351: bugs in macOS implementations of openblas/libgopm can cause
+    # docbuild to hang if multiple OpenMP threads are allowed.
+    if [ `uname` = 'Darwin' ]; then
+        export OMP_NUM_THREADS=1
+    fi
+
     exec sage-python -m sage_setup.docbuild "$@" </dev/null
 fi
 

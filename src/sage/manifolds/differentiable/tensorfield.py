@@ -51,15 +51,14 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import ModuleElement
+from sage.structure.element import ModuleElementWithMutability
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
 
-class TensorField(ModuleElement):
+class TensorField(ModuleElementWithMutability):
     r"""
     Tensor field along a differentiable manifold.
 
@@ -361,6 +360,35 @@ class TensorField(ModuleElement):
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
 
+    Notice that the zero tensor field is immutable, and therefore its
+    components cannot be changed::
+
+        sage: zer = M.tensor_field_module((1, 1)).zero()
+        sage: zer.is_immutable()
+        True
+        sage: zer.set_comp()
+        Traceback (most recent call last):
+        ...
+        ValueError: the components of an immutable element cannot be
+         changed
+
+    Other tensor fields can be declared immutable, too::
+
+        sage: t.is_immutable()
+        False
+        sage: t.set_immutable()
+        sage: t.is_immutable()
+        True
+        sage: t.set_comp()
+        Traceback (most recent call last):
+        ...
+        ValueError: the components of an immutable element cannot be
+         changed
+        sage: t.set_name('b')
+        Traceback (most recent call last):
+        ...
+        ValueError: the name of an immutable element cannot be changed
+
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
                  latex_name=None, sym=None, antisym=None, parent=None):
@@ -409,7 +437,7 @@ class TensorField(ModuleElement):
         """
         if parent is None:
             parent = vector_field_module.tensor_module(*tensor_type)
-        ModuleElement.__init__(self, parent)
+        ModuleElementWithMutability.__init__(self, parent)
         self._vmodule = vector_field_module
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
@@ -601,6 +629,9 @@ class TensorField(ModuleElement):
             a
 
         """
+        if self.is_immutable():
+            raise ValueError("the name of an immutable element "
+                             "cannot be changed")
         if name is not None:
             self._name = name
             if latex_name is None:
@@ -907,6 +938,26 @@ class TensorField(ModuleElement):
 
     #### End of simple accessors #####
 
+    def set_immutable(self):
+        r"""
+        Set ``self`` and all restrictions of ``self`` immutable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1})
+            sage: a = M.tensor_field(1, 1, [[1+y,x], [0,x+y]], name='a')
+            sage: aU = a.restrict(U)
+            sage: a.set_immutable()
+            sage: aU.is_immutable()
+            True
+
+        """
+        for rst in self._restrictions.values():
+            rst.set_immutable()
+        super().set_immutable()
+
     def set_restriction(self, rst):
         r"""
         Define a restriction of ``self`` to some subdomain.
@@ -943,6 +994,9 @@ class TensorField(ModuleElement):
             True
 
         """
+        if self.is_immutable():
+            raise ValueError("the restrictions of an immutable element "
+                             "cannot be changed")
         if not isinstance(rst, TensorField):
             raise TypeError("the argument must be a tensor field")
         if not rst._domain.is_subset(self._domain):
@@ -1116,7 +1170,8 @@ class TensorField(ModuleElement):
                         res._restrictions.update(rst._restrictions)
                     res._restrictions_graph.update(rst._restrictions_graph)
                     rst._extensions_graph.update(res._extensions_graph)
-
+            if self.is_immutable():
+                res.set_immutable()  # restrictions must be immutable, too
             self._restrictions[subdomain] = res
             self._restrictions_graph[subdomain] = res
             res._extensions_graph.update(self._extensions_graph)
@@ -1242,18 +1297,19 @@ class TensorField(ModuleElement):
             ValueError: no basis could be found for computing the components
              in the Coordinate frame (V, (d/du,d/dv))
 
-        Since zero is a special element, its components cannot be changed::
+        Since zero is an immutable, its components cannot be changed::
 
             sage: z = M.tensor_field_module((1, 1)).zero()
             sage: z.set_comp(e)[0,1] = u*v
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            ValueError: the components of an immutable element cannot be
+             changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
-                                 "cannot be changed")
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
@@ -1374,15 +1430,16 @@ class TensorField(ModuleElement):
         Since zero is a special element, its components cannot be changed::
 
             sage: z = M.tensor_field_module((1, 1)).zero()
-            sage: z.add_comp(e)[0,1] = u*v
+            sage: z.add_comp(e_uv)[1, 1] = u^2
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            ValueError: the components of an immutable element cannot be
+             changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
-                                 "cannot be changed")
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         if basis is None:
             basis = self._domain._def_frame
@@ -1455,6 +1512,9 @@ class TensorField(ModuleElement):
         and `a` is defined on the entire manifold `S^2`.
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the vector frame is not defined on a subset " +
@@ -1552,6 +1612,9 @@ class TensorField(ModuleElement):
             on V: (xp, yp) |--> 1/(xp^2 + yp^2)
 
         """
+        if self.is_immutable():
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the vector frame is not defined on a subset " +
@@ -1559,7 +1622,7 @@ class TensorField(ModuleElement):
         if frame not in self.restrict(frame.domain())._components:
             raise ValueError("the tensor doesn't have an expression in "
                              "the frame"+frame._repr_())
-        comp = self._add_comp_unsafe(frame)
+        comp = self._add_comp_unsafe(frame)  # the components stay the same
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
@@ -1879,7 +1942,6 @@ class TensorField(ModuleElement):
                                 only_nonzero=only_nonzero,
                                 only_nonredundant=only_nonredundant)
 
-
     def __getitem__(self, args):
         r"""
         Return a component with respect to some frame.
@@ -2041,6 +2103,9 @@ class TensorField(ModuleElement):
             False
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))
@@ -2222,7 +2287,7 @@ class TensorField(ModuleElement):
                     except ValueError:
                         break
                 else:
-                    # If this point is reached, no exception has occured; hence
+                    # If this point is reached, no exception has occurred; hence
                     # the result is valid and can be returned:
                     return resu
             # If this point is reached, the comparison has not been possible
@@ -4538,7 +4603,7 @@ class TensorField(ModuleElement):
             sage: v.display(P.frame(), P)
             (p^2 - q^2 - 2*p - 2*q) d/dp + (2*pi - 2*pi^2 - 2*(pi - pi^2)*p) d/dq
             sage: v.display(P.frame(), X)
-            (x^2 - y^2) d/dp - 2*(pi - pi^2)*x d/dq
+            (x + y)*(x - y) d/dp + 2*pi*(pi - 1)*x d/dq
 
         By default, the components of ``v`` in frames distinct from the
         specified one have been deleted::
@@ -4553,7 +4618,7 @@ class TensorField(ModuleElement):
         is effective in ``X.frame()`` as well::
 
             sage: v.display(X.frame(), X)
-            (x^2 - y^2) d/dx - 2*(pi - pi^2)*x d/dy
+            (x + y)*(x - y) d/dx + 2*pi*(pi - 1)*x d/dy
 
         When the requested operation does not change the value of the tensor
         field, one can use the keyword argument ``keep_other_components=True``,

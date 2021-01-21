@@ -1,9 +1,9 @@
 cimport cython
-from libc.stdint                cimport uint64_t
 from sage.ext.memory_allocator  cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .face_iterator             cimport FaceIterator, CombinatorialFace
 from .list_of_faces             cimport ListOfFaces
+from .face_data_structure       cimport face_t
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
 
 @cython.final
@@ -21,7 +21,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef bint _bounded                     # ``True`` iff Polyhedron is bounded
     cdef ListOfFaces _bitrep_facets        # facets in bit representation
     cdef ListOfFaces _bitrep_Vrep          # vertices in bit representation
-    cdef ListOfFaces _far_face             # a 'face' containing all none-vertices of Vrep
+    cdef face_t _far_face                  # a 'face' containing all none-vertices of Vrep
     cdef tuple _far_face_tuple
     cdef tuple _f_vector
 
@@ -50,11 +50,11 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef bint is_bounded(self)
     cdef ListOfFaces bitrep_facets(self)
     cdef ListOfFaces bitrep_Vrep(self)
-    cdef ListOfFaces far_face(self)
     cdef tuple far_face_tuple(self)
 
     # Methods to obtain a different combinatorial polyhedron.
     cpdef CombinatorialPolyhedron dual(self)
+    cpdef CombinatorialPolyhedron pyramid(self, new_vertex=*, new_facet=*)
 
     # Space for edges, ridges, etc. is allocated with ``MemoryAllocators``.
     # Upon success they are copied to ``_mem_tuple``.
@@ -62,7 +62,17 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _mem_tuple
 
     cdef FaceIterator _face_iter(self, bint dual, int dimension)
-    cdef int _compute_f_vector(self) except -1
-    cdef int _compute_edges(self, dual) except -1
-    cdef int _compute_ridges(self, dual) except -1
+    cdef int _compute_f_vector(self, bint compute_edges=*, given_dual=*) except -1
+
+    cdef inline int _compute_edges(self, dual) except -1:
+        return self._compute_edges_or_ridges(dual, True)
+
+    cdef inline int _compute_ridges(self, dual) except -1:
+        return self._compute_edges_or_ridges(dual, False)
+
+    cdef int _compute_edges_or_ridges(self, bint dual, bint do_edges) except -1
+    cdef size_t _compute_edges_or_ridges_with_iterator(self, FaceIterator face_iter, bint do_atom_rep, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1
     cdef int _compute_face_lattice_incidences(self) except -1
+
+    cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1
+    cdef inline size_t _get_edge(self, size_t **edges, size_t edge_number, size_t vertex) except -1

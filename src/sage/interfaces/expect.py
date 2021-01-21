@@ -38,7 +38,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import io
 import os
@@ -608,7 +607,7 @@ If this all works, you can then make calls like:
 
             sage: a = maxima('y')
             sage: maxima.quit(verbose=True)
-            Exiting Maxima with PID ... running .../bin/maxima ...
+            Exiting Maxima with PID ... running .../bin/maxima...
             sage: a._check_valid()
             Traceback (most recent call last):
             ...
@@ -780,7 +779,7 @@ If this all works, you can then make calls like:
         - ``restart_if_needed`` - (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 
@@ -882,7 +881,7 @@ If this all works, you can then make calls like:
         - ``restart_if_needed`` (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 

@@ -73,7 +73,6 @@ REFERENCE:
 - [Sil2] Silverman, Joseph H. Advanced topics in the arithmetic of elliptic curves. Graduate Texts in
   Mathematics, 151. Springer, 1994.
 """
-from __future__ import absolute_import
 
 # ****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -521,18 +520,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
         else:
             return L
 
-    def height_pairing_matrix(self, points=None, precision=None):
-        r"""
-        Return the height pairing matrix of the given points.
+    def height_pairing_matrix(self, points=None, precision=None, normalised=True):
+        r"""Return the height pairing matrix of the given points.
 
         INPUT:
 
-        - points -- either a list of points, which must be on this
-          curve, or (default) None, in which case self.gens() will be
-          used.
+        - ``points`` (list or ``None`` (default)) -- a list of points
+          on this curve, or ``None``, in which case self.gens() will
+          be used.
 
-        - precision -- number of bits of precision of result
-          (default: None, for default RealField precision)
+        - ``precision`` (int or ``None`` (default)) -- number of bits
+          of precision of result, or ``None``, for default RealField
+          precision.
+
+        - ``normalised`` (bool, default ``True``) -- if ``True``, use
+          normalised heights which are independent of base change.
+          Otherwise use the non-normalised Néron-Tate height, as
+          required for the regulator in the BSD conjecture.
 
         EXAMPLES::
 
@@ -577,6 +581,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [-0.870059380421505  0.424585837470709]
             sage: E.regulator_of_points([P,Q])
             0.164101403936070
+
+        When the parameter ``normalised`` is set to ``False``, each
+        height is multiplied by the degree `d` of the base field, and
+        the regulator of `r` points is multiplied by `d^r`::
+
+            sage: E.height_pairing_matrix([P,Q], normalised=False)
+            [ 4.33883868987537 -1.74011876084301]
+            [-1.74011876084301 0.849171674941418]
+            sage: E.regulator_of_points([P,Q], normalised=False)
+            0.656405615744281
+
         """
         if points is None:
             points = self.gens()
@@ -593,16 +608,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         M = MatrixSpace(RR, r)
         mat = M()
         for j in range(r):
-            mat[j, j] = points[j].height(precision=precision)
+            mat[j, j] = points[j].height(precision=precision, normalised=normalised)
         for j in range(r):
             for k in range(j + 1, r):
-                mat[j, k] = ((points[j] + points[k]).height(precision=precision) - mat[j, j] - mat[k, k]) / 2
+                mat[j, k] = ((points[j] + points[k]).height(precision=precision, normalised=normalised) - mat[j, j] - mat[k, k]) / 2
                 mat[k, j] = mat[j, k]
         return mat
 
-    def regulator_of_points(self, points=[], precision=None):
-        """
-        Return the regulator of the given points on this curve.
+    def regulator_of_points(self, points=[], precision=None, normalised=True):
+        """Return the regulator of the given points on this curve.
 
         INPUT:
 
@@ -610,6 +624,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``precision`` - int or None (default: None): the precision
           in bits of the result (default real precision if None)
+
+        - ``normalised`` (bool, default ``True``) -- if ``True``, use
+          normalised heights which are independent of base change.
+          Otherwise use the non-normalised Néron-Tate height, as
+          required for the regulator in the BSD conjecture
 
         EXAMPLES::
 
@@ -655,6 +674,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.regulator_of_points([P])
             0.476223106404866
 
+        When the parameter ``normalised`` is set to ``False``, each
+        height is multiplied by the degree `d` of the base field, and
+        the regulator of `r` points is multiplied by `d^r`::
+
+            sage: P.height(normalised=False)
+            0.952446212809731
+            sage: E.regulator_of_points([P], normalised=False)
+            0.952446212809731
+
         ::
 
             sage: E = EllipticCurve('11a1')
@@ -698,7 +726,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         if points is None:
             points = []
-        mat = self.height_pairing_matrix(points=points, precision=precision)
+        mat = self.height_pairing_matrix(points=points, precision=precision, normalised=normalised)
         return mat.det(algorithm="hessenberg")
 
     def is_local_integral_model(self, *P):
@@ -1474,20 +1502,71 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.local_data(P, proof).tamagawa_exponent()
 
-    def tamagawa_product_bsd(self):
-        r"""
-        Given an elliptic curve `E` over a number field `K`, this function returns the
-        integer `C(E/K)` that appears in the Birch and Swinnerton-Dyer conjecture accounting
-        for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
-        simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
-        The definition is such that `C(E/K)` times the periods at the infinite places is invariant
-        under change of the Weierstrass model. See [Tate1966]_ and [DD2010]_ for details.
+    def tamagawa_product(self):
+        r"""Return the product of the Tamagawa numbers `c_v` where `v` runs
+        over all prime ideals of `K`.
 
         .. note::
 
-            This definition is slightly different from the definition of ``tamagawa_product``
-            for curves defined over `\QQ`. Over the rational number it is always defined to be the product
-            of the Tamagawa numbers, so the two definitions only agree when the model is global minimal.
+            See also tamagawa_product_bsd(), which includes an
+            additional factor when the model is not globally minimal,
+            as required by the BSD formula.
+
+        OUTPUT:
+
+        A positive integer.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve([0,2+i])
+            sage: E.tamagawa_product()
+            1
+
+            sage: E = EllipticCurve([(2*i+1)^2,i*(2*i+1)^7])
+            sage: E.tamagawa_product()
+            4
+
+        An example over `\QQ`::
+
+            sage: E = EllipticCurve('30a')
+            sage: E.tamagawa_product()
+            6
+
+        An example with everywhere good reduction, where the product
+        is empty::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 - 38)
+            sage: E = EllipticCurve( [a, -a + 1, a + 1, -5*a + 15, -5*a + 21])
+            sage: E.tamagawa_numbers()
+            []
+            sage: E.tamagawa_product()
+            1
+
+        """
+        return prod([ld.tamagawa_number() for ld in self.local_data()], Integer(1))
+
+    def tamagawa_product_bsd(self):
+        r"""Given an elliptic curve `E` over a number field `K`, this function
+        returns the integer `C(E/K)` that appears in the Birch and
+        Swinnerton-Dyer conjecture accounting for the local
+        information at finite places. If the model is a global minimal
+        model then `C(E/K)` is simply the product of the Tamagawa
+        numbers `c_v` where `v` runs over all prime ideals of
+        `K`. Otherwise, if the model has to be changed at a place `v`
+        a correction factor appears.  The definition is such that
+        `C(E/K)` times the periods at the infinite places is invariant
+        under change of the Weierstrass model. See [Tate1966]_ and
+        [DD2010]_ for details.
+
+        .. note::
+
+            This definition differs from the definition of
+            ``tamagawa_product`` for curves defined over `\QQ`. Over
+            the rational number it is always defined to be the product
+            of the Tamagawa numbers, so the two definitions only agree
+            when the model is global minimal.
 
         OUTPUT:
 
@@ -1519,15 +1598,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
             6
+
         """
-        da = self.local_data()
-        pr = 1
-        for dav in da:
-            pp = dav.prime()
-            cv = dav.tamagawa_number()
+        pr = QQ(1)
+        for v in self.local_data():
+            pp = v.prime()
+            cv = v.tamagawa_number()
             # uu is the quotient of the Neron differential at pp divided by
-            # the differential associated to this particular equation E
-            uu = self.isomorphism_to(dav.minimal_model()).u
+            # the differential associated to this particular model of E
+            uu = self.isomorphism_to(v.minimal_model()).u
             if self.base_field().absolute_degree() == 1:
                 p = pp.gens_reduced()[0]
                 f = 1
@@ -3825,9 +3904,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 if verbose:
                     print("..done: %s" % lower_ht_bound)
             index_bound = (reg/lower_ht_bound).sqrt()
-            prime_list = prime_range(index_bound.ceil() + 1)
-            if verbose:
-                print("Testing primes up to %s" % prime_list[-1])
+            if index_bound < 2:
+                if verbose:
+                    print("Saturation index bound < 2, points are saturated already.")
+                return Plist, index, RealField()(1)
+            else:
+                if verbose:
+                    print("p-saturating for primes p < {}".format(index_bound.ceil()))
+            prime_list = prime_range(index_bound.ceil())
         else:
             if one_prime:
                 prime_list = [one_prime]
@@ -3839,16 +3923,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # Now saturate at each prime in prime_list.  The dict
         # lin_combs keeps the values of linear combinations of the
         # points, indexed by coefficient tuples, for efficiency; it is
-        # rest whenever the point list changes.
+        # reset whenever the point list changes.
 
-        from sage.schemes.elliptic_curves.saturation import full_p_saturation
-        lin_combs = dict()
+        from sage.schemes.elliptic_curves.saturation import EllipticCurveSaturator
+        saturator = EllipticCurveSaturator(self, verbose)
         for p in prime_list:
             if full_saturation and (p > index_bound):
                 break
             if verbose:
                 print("Saturating at p=%s" % p)
-            newPlist, expo = full_p_saturation(Plist, p, lin_combs, verbose)
+            newPlist, expo = saturator.full_p_saturation(Plist, p)
             if expo:
                 if verbose:
                     print(" --gaining index %s^%s" % (p, expo))

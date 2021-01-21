@@ -160,12 +160,12 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         in_sdist=yes
         message="will be installed as an SPKG"
         ;;
-    optional)
-        message="optional, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
-        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
-        ;;
-    experimental)
-        message="experimental, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+    optional|experimental)
+        AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
+            message="$SPKG_TYPE, will be installed as an SPKG"
+        ], [
+            message="$SPKG_TYPE, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+        ])
         uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         ;;
     *)
@@ -325,19 +325,32 @@ AC_SUBST([SAGE_SDIST_PACKAGES])
 
 AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
     AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
-        AC_MSG_NOTICE([notice: the following SPKGs did not find equivalent system packages:$SAGE_NEED_SYSTEM_PACKAGES])
+        AC_MSG_NOTICE([
+
+    notice: the following SPKGs did not find equivalent system packages:
+
+       $SAGE_NEED_SYSTEM_PACKAGES
+        ])
         AC_MSG_CHECKING([for the package system in use])
-        SYSTEM=$(build/bin/sage-guess-package-system)
+        SYSTEM=$(build/bin/sage-guess-package-system 2>& AS_MESSAGE_FD)
         AC_MSG_RESULT([$SYSTEM])
         AS_IF([test $SYSTEM != unknown], [
             SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES)
             AS_IF([test -n "$SYSTEM_PACKAGES"], [
-                PRINT_SYS="build/bin/sage-print-system-package-command $SYSTEM --verbose --prompt --sudo"
-                COMMAND=$($PRINT_SYS update && $PRINT_SYS install $SYSTEM_PACKAGES && SAGE_ROOT=$SAGE_ROOT $PRINT_SYS setup-build-env )
-                AC_MSG_NOTICE([hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:])
-                AC_MSG_NOTICE([$COMMAND])
-                AC_MSG_NOTICE([After installation, re-run configure using:])
-                AC_MSG_NOTICE([  \$ ./config.status --recheck && ./config.status])
+                PRINT_SYS="build/bin/sage-print-system-package-command $SYSTEM --verbose=\"    \" --prompt=\"      \$ \" --sudo"
+                COMMAND=$(eval "$PRINT_SYS" update && eval "$PRINT_SYS" install $SYSTEM_PACKAGES && SAGE_ROOT="$SAGE_ROOT" eval "$PRINT_SYS" setup-build-env )
+                AC_MSG_NOTICE([
+
+    hint: installing the following system packages, if not
+    already present, is recommended and may avoid having to
+    build them (though some may have to be built anyway):
+
+$COMMAND
+
+    After installation, re-run configure using:
+
+      \$ ./config.status --recheck && ./config.status
+                ])
             ], [
                 AC_MSG_NOTICE([No equivalent system packages for $SYSTEM are known to Sage])
             ])

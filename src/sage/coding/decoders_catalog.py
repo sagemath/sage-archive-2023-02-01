@@ -55,7 +55,6 @@ that code (:meth:`sage.coding.linear_code.AbstractLinearCode.decoder`).
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.lazy_import import lazy_import
 
@@ -76,5 +75,6 @@ lazy_import('sage.coding.punctured_code', 'PuncturedCodeOriginalCodeDecoder')
 lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcodeOriginalCodeDecoder')
 lazy_import('sage.coding.information_set_decoder', 'LinearCodeInformationSetDecoder')
 lazy_import('sage.coding.linear_rank_metric', 'LinearRankMetricCodeNearestNeighborDecoder')
+lazy_import('sage.coding.gabidulin_code', 'GabidulinGaoDecoder')
 
 del lazy_import

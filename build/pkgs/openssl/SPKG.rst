@@ -1,5 +1,5 @@
-OpenSSL
-=======
+openssl: Implementation of the SSL and TLS protocols
+====================================================
 
 Description
 -----------

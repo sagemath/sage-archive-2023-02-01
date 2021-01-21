@@ -33,7 +33,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function, division
 
 import os
 import sys
@@ -63,11 +62,11 @@ from sage.repl.user_globals import set_globals
 from sage.cpython.atexit import restore_atexit
 from sage.cpython.string import bytes_to_str, str_to_bytes
 
-
-# All doctests run as if the following future imports are present
-import __future__
-MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
-
+# With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork' in
+# multiprocessing, and Sage doctesting doesn't work with 'spawn'. See
+# trac #27754.
+if os.uname().sysname == 'Darwin':
+    multiprocessing.set_start_method('fork', force=True)
 
 # These lists are used on Python 3+ only for backwards compatibility with
 # Python 2 in traceback parsing
@@ -195,6 +194,15 @@ def init_sage(controller=None):
     from sage.cpython._py2_random import Random
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
+    # IPython's pretty printer sorts the repr of dicts by their keys by default
+    # (or their keys' str() if they are not otherwise orderable).  However, it
+    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
+    # insertion order, which is preserved in those versions).
+    # However, this order is random in some instances.
+    # Also modifications of code may affect the order.
+    # So here we fore sorted dict printing.
+    IPython.lib.pretty.for_type(dict, _sorted_dict_pprinter_factory('{', '}'))
+
     if controller is None:
         import sage.repl.ipython_kernel.all_jupyter
     else:
@@ -216,15 +224,6 @@ def init_sage(controller=None):
     dm = get_display_manager()
     from sage.repl.rich_output.backend_doctest import BackendDoctest
     dm.switch_backend(BackendDoctest())
-
-    # IPython's pretty printer sorts the repr of dicts by their keys by default
-    # (or their keys' str() if they are not otherwise orderable).  However, it
-    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
-    # insertion order, which is preserved in those versions).
-    # However, this order is random in some instances.
-    # Also modifications of code may affect the order.
-    # So here we fore sorted dict printing.
-    IPython.lib.pretty.for_type(dict, _sorted_dict_pprinter_factory('{', '}'))
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -837,7 +836,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         self.total_performed_tests += tries
         return TestResults(failures, tries)
 
-    def run(self, test, compileflags=None, out=None, clear_globs=True):
+    def run(self, test, compileflags=0, out=None, clear_globs=True):
         """
         Runs the examples in a given doctest.
 
@@ -849,11 +848,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         - ``test`` -- an instance of :class:`doctest.DocTest`
 
-        - ``compileflags`` -- the set of compiler flags used to
-          execute examples (passed in to the :func:`compile`).  If
-          None, they are filled in from the result of
-          :func:`doctest._extract_future_flags` applied to
-          ``test.globs``.
+        - ``compileflags`` -- int (default: 0) the set of compiler flags used to
+          execute examples (passed in to the :func:`compile`).
 
         - ``out`` -- a function for writing the output (defaults to
           :func:`sys.stdout.write`).
@@ -887,9 +883,6 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test
-        if compileflags is None:
-            compileflags = doctest._extract_future_flags(test.globs)
-        compileflags |= MANDATORY_COMPILE_FLAGS
         # We use this slightly modified version of Pdb because it
         # interacts better with the doctesting framework (like allowing
         # doctests for sys.settrace()). Since we already have output
@@ -1093,7 +1086,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
-            sage: compiler = lambda ex: compile(ex.source, '<doctest sage.doctest.forker[0]>', 'single', 32768, 1)
+            sage: flags = 32768 if sys.version_info.minor < 8 else 524288
+            sage: compiler = lambda ex: compile(ex.source, '<doctest sage.doctest.forker[0]>', 'single', flags, 1)
             sage: DTR.compile_and_execute(ex0, compiler, globs)
             1764
             sage: globs['doctest_var']
@@ -1106,7 +1100,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         Now we can execute some more doctests to see the dependencies. ::
 
             sage: ex1 = doctests[0].examples[1]
-            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[1]>', 'single', flags, 1)
             sage: DTR.compile_and_execute(ex1, compiler, globs)
             sage: sorted(list(globs.set))
             ['R', 'a']
@@ -1118,7 +1112,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         ::
 
             sage: ex2 = doctests[0].examples[2]
-            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[2]>', 'single', flags, 1)
             sage: DTR.compile_and_execute(ex2, compiler, globs)
             a + 42
             sage: list(globs.set)
@@ -2354,7 +2348,7 @@ class DocTestWorker(multiprocessing.Process):
             True
             sage: W.killed
             True
-            sage: time.sleep(0.2)  # Worker doesn't die
+            sage: time.sleep(float(0.2))  # Worker doesn't die
             sage: W.kill()         # Worker dies now
             True
             sage: time.sleep(1)

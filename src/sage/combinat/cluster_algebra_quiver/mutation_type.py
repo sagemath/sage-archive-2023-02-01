@@ -19,7 +19,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import os
 import pickle
@@ -853,7 +852,8 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                 if type_tmp[0].letter() == 'A' and type_tmp[0].is_finite():
                     if v in type_tmp[1]:
                         type_tmp[1].remove(v)
-                        if n == 4: type_tmp[1].extend( dead_neighbors[:2] )
+                        if n == 4:
+                            type_tmp[1].extend(dead_neighbors[:2])
                         if ret_conn_vert:
                             return [ QuiverMutationType( ['D',n] ), type_tmp[1] ]
                         else:
@@ -878,7 +878,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
         # If on the other hand, (c1 and c2) is isomorphic to a triangulated square, then
         # delete c1.  This ensures that c2 is an edge of the triangulated square, and we delete
-        # it irregardless of orientation.  Then check if the digraph has exactly two connected
+        # it regardless of orientation.  Then check if the digraph has exactly two connected
         # components, and again this testing method is rerun on both components.
 
         for c1 in Combinations( [ vertex for vertex in vertices if dg.degree(vertex) == 2], 2 ):
@@ -1448,19 +1448,27 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
                 a,b = M[i,j],M[j,i]
                 skew_sym = False
                 while not skew_sym:
-                    ran = random.randint(1,2)
+                    ran = random.randint(1, 2)
                     if ran == 1:
-                        M[i,j], M[j,i] = -M[j,i], -M[i,j]
+                        M[i, j], M[j, i] = -M[j, i], -M[i, j]
                     elif ran == 2:
-                        ran2 = random.randint(1,8)
-                        if   ran2 == 1: c,d = 1,-1
-                        elif ran2 == 2: c,d = 1,-2
-                        elif ran2 == 3: c,d = 2,-1
-                        elif ran2 == 4: c,d = 1,-3
-                        elif ran2 == 5: c,d = 3,-1
-                        elif ran2 == 6: c,d = 2,-2
-                        elif ran2 == 7: c,d = 1,-4
-                        elif ran2 == 8: c,d = 4,-1
+                        ran2 = random.randint(1, 8)
+                        if ran2 == 1:
+                            c, d = 1, -1
+                        elif ran2 == 2:
+                            c, d = 1, -2
+                        elif ran2 == 3:
+                            c, d = 2, -1
+                        elif ran2 == 4:
+                            c, d = 1, -3
+                        elif ran2 == 5:
+                            c, d = 3, -1
+                        elif ran2 == 6:
+                            c, d = 2, -2
+                        elif ran2 == 7:
+                            c, d = 1, -4
+                        elif ran2 == 8:
+                            c, d = 4, -1
                         M[i, j], M[j, i] = c, d
                     if M.is_skew_symmetrizable(positive=True):
                         skew_sym = True

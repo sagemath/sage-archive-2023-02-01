@@ -15,7 +15,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.lazy_import import LazyImport, lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1276,8 +1275,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             EXAMPLES::
 
-                sage: DihedralGroup(6).algebra(QQ).random_element()
-                -1/95*() - 1/2*(1,4)(2,5)(3,6)
+                sage: x = DihedralGroup(6).algebra(QQ).random_element()
+                sage: x.parent() is DihedralGroup(6).algebra(QQ)
+                True
 
             Note, this result can depend on the PRNG state in libgap in a way
             that depends on which packages are loaded, so we must re-seed GAP
@@ -1285,11 +1285,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: libgap.set_seed(0)
                 0
-                sage: SU(2, 13).algebra(QQ).random_element(1)
-                1/2*[       1  9*a + 2]
-                [2*a + 12        2]
-                sage: CombinatorialFreeModule(ZZ, Partitions(4)).random_element() # random
-                2*B[[2, 1, 1]] + B[[2, 2]]
+                sage: m = SU(2, 13).algebra(QQ).random_element(1)
+                sage: m.parent() is SU(2, 13).algebra(QQ)
+                True
+                sage: p = CombinatorialFreeModule(ZZ, Partitions(4)).random_element()
+                sage: p.parent() is CombinatorialFreeModule(ZZ, Partitions(4))
+                True
 
             TESTS:
 

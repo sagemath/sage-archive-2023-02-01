@@ -20,6 +20,9 @@ from sage.misc.lazy_attribute import lazy_attribute
 from .linear_extensions import LinearExtensionsOfPosetWithHooks
 from .lattices import FiniteJoinSemilattice
 from collections import deque
+from sage.rings.integer_ring import ZZ
+from sage.misc.misc_c import prod
+
 
 class DCompletePoset(FiniteJoinSemilattice):
     r"""
@@ -62,14 +65,14 @@ class DCompletePoset(FiniteJoinSemilattice):
         """
         hooks = {}
 
-        min_diamond = {} # Maps max of double-tailed diamond to min of double-tailed diamond
-        max_diamond = {} # Maps min of double-tailed diamond to max of double-tailed diamond
+        min_diamond = {}  # Maps max of double-tailed diamond to min of double-tailed diamond
+        max_diamond = {}  # Maps min of double-tailed diamond to max of double-tailed diamond
 
         H = self._hasse_diagram
 
-        diamonds, _ = H.diamonds() # Tuples of four elements that are diamonds
+        diamonds, _ = H.diamonds()  # Tuples of four elements that are diamonds
 
-        diamond_index = {} # Map max elmt of double tailed diamond to index of diamond
+        diamond_index = {}  # Map max elmt of double tailed diamond to index of diamond
 
         # Find all the double-tailed diamonds and map the mins and maxes
         for index, d in enumerate(diamonds):
@@ -86,7 +89,7 @@ class DCompletePoset(FiniteJoinSemilattice):
 
                 # Check if any of these make a longer double tailed diamond
                 found_diamond = False
-                for (mn, mx) in [(i,j) for i in potential_min for j in potential_max]:
+                for (mn, mx) in [(i, j) for i in potential_min for j in potential_max]:
                     if len(H.neighbors_in(mx)) != 1:
                         continue
                     if len(H.all_paths(mn, mx)) == 2:
@@ -120,7 +123,7 @@ class DCompletePoset(FiniteJoinSemilattice):
                     queue.append(c)
                     enqueued.add(c)
 
-        poset_hooks = {self._vertex_to_element(key): value for (key, value) in hooks.items()}
+        poset_hooks = {self._vertex_to_element(key): ZZ(value) for (key, value) in hooks.items()}
         return poset_hooks
 
     def get_hook(self, elmt):
@@ -153,3 +156,21 @@ class DCompletePoset(FiniteJoinSemilattice):
         """
         return dict(self._hooks)
 
+    def hook_product(self):
+        r"""
+        Return the hook product for the poset.
+
+        TESTS::
+
+            sage: from sage.combinat.posets.d_complete import DCompletePoset
+            sage: P = DCompletePoset(DiGraph({0: [1, 2], 1: [3], 2: [3], 3: []}))
+            sage: P.hook_product()
+            12
+            sage: P = DCompletePoset(posets.YoungDiagramPoset(Partition([3,2,1]), dual=True))
+            sage: P.hook_product()
+            45
+        """
+        if not self._hasse_diagram:
+            return ZZ.one()
+
+        return ZZ(prod(self._hooks.values()))

@@ -105,10 +105,10 @@ potential `A(t)`::
     sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
     sage: omega = M.one_form(name='omega')
     sage: A = function('A')
-    sage: omega[1] = I*A(t)
-    sage: omega.display()
-    omega = I*A(t) dx
-    sage: nab.set_connection_form(0, 0, omega)
+    sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+    sage: nab[0, 0].display()
+    connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+     (E|_M, (e_0)) = I*A(t) dx
 
 The Chern character is then given by::
 
@@ -181,7 +181,7 @@ is given by `1+|z|^2`::
     sage: nab = E.bundle_connection('nabla')
     sage: omega = U.one_form(name='omega')
     sage: omega[c_comp.frame(),1,c_comp] = zbar/(1+z*zbar)
-    sage: nab.set_connection_form(1, 1, omega, frame=e)
+    sage: nab[e, 1, 1] = omega
 
 Now, the Chern class can be constructed::
 
@@ -288,6 +288,7 @@ Fortunately, both curvature matrices are already skew-symmetric::
      (V, (d/du,d/dv)) = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
      (V, (d/du,d/dv)) = 0
+    sage: nab.set_immutable()  # make nab immutable
 
 Now the representative of the Euler class with respect to the connection
 `\nabla_g` induced by the standard metric can be computed::
@@ -669,10 +670,10 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
             sage: omega = M.one_form(name='omega')
             sage: A = function('A')
-            sage: omega[1] = I*A(t)
-            sage: omega.display()
-            omega = I*A(t) dx
-            sage: nab.set_connection_form(0, 0, omega)
+            sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+            sage: nab[0, 0].display()
+            connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+             (E|_M, (e_0)) = I*A(t) dx
 
         The Chern character is then given by::
 
@@ -705,6 +706,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                             "manifold or bundle connection on the vector "
                             "bundle")
         if connection not in self._mixed_forms:
+            base_space = self._base_space
             if cmatrices is None:
                 if self._class_type == 'Pfaffian':
                     raise NotImplementedError(
@@ -713,7 +715,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                         "'cmatrices' to insert a dictionary of skew-symmetric "
                         "curvature matrices by hand, instead.")
                 cmatrices = {}
-                for frame in self._get_min_frames(connection._coefficients.keys()):
+                for frame in base_space._get_min_covering(connection._coefficients):
                     cmatrix = [[connection.curvature_form(i, j, frame)
                                     for j in self._vbundle.irange()]
                                         for i in self._vbundle.irange()]
@@ -725,7 +727,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             if latex_name is not None and connection._latex_name is not None:
                 latex_name += "(" + self._vbundle._latex_name + ", " + \
                               connection._latex_name + ")"
-            res = self._base_space.mixed_form(name=name, latex_name=latex_name)
+            res = base_space.mixed_form(name=name, latex_name=latex_name)
             # BEGIN computation:
             from sage.matrix.matrix_space import MatrixSpace
             for frame, cmatrix in cmatrices.items():
@@ -839,40 +841,3 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             from sage.libs.pynac.pynac import I
             fac = fac / I
         return fac * cmatrix
-
-    def _get_min_frames(self, frame_list):
-        r"""
-        Return the minimal amount of frames necessary to cover the union of all
-        frame's domains.
-
-        INPUT:
-
-        - list of frames
-
-        OUTPUT:
-
-        - set of frames
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M')
-            sage: U = M.open_subset('U'); V = M.open_subset('V')
-            sage: e = U.vector_frame('e'); f = V.vector_frame('f')
-            sage: g = M.vector_frame('g')
-            sage: c = M.tangent_bundle().characteristic_class('Pontryagin')
-            sage: c._get_min_frames([e, f, g])
-            {Vector frame (M, (g_0,g_1))}
-
-        """
-        min_frame_set = set()
-        for frame in frame_list:
-            redund_frame_set = set()
-            for oframe in min_frame_set:
-                if frame._domain.is_subset(oframe._domain):
-                    break
-                elif oframe._domain.is_subset(frame._domain):
-                    redund_frame_set.add(oframe)
-            else:
-                min_frame_set.add(frame)
-            min_frame_set.difference_update(redund_frame_set)
-        return min_frame_set

@@ -7,7 +7,6 @@ Finite Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -289,14 +288,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: C = Example()
                     sage: list(C)
                     hello!
-                    hello!
+                    ...
                     [1, 2, 3]
                     sage: list(C)
                     hello!
-                    hello!
+                    ...
                     [1, 2, 3]
 
-                Note that ``hello!`` actually gets printed twice in
+                Note that ``hello!`` actually gets printed more than once in
                 the calls to ``list(C)``. That's because of the
                 implicit calls to :meth:`__len__`, which also relies
                 on :meth:`__iter__`. Let's call :meth:`list`::
@@ -479,10 +478,13 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
-                sage: C.random_element()
-                1
-                sage: C._random_element_from_unrank()
-                2
+                sage: n = C.random_element()
+                sage: n in C
+                True
+
+                sage: n = C._random_element_from_unrank()
+                sage: n in C
+                True
 
             TODO: implement _test_random which checks uniformness
             """

@@ -23,7 +23,7 @@ include 'misc.pxi'
 include 'decl.pxi'
 
 from sage.rings.integer cimport Integer
-from sage.libs.ntl.convert cimport PyLong_to_ZZ
+from sage.libs.ntl.convert cimport PyLong_to_ZZ, mpz_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cpython.int cimport PyInt_AS_LONG
@@ -296,7 +296,6 @@ cdef class ntl_ZZ(object):
         cdef Integer ans = Integer.__new__(Integer)
         ZZ_to_mpz(ans.value, &self.x)
         return ans
-        #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 
     cdef void set_from_int(ntl_ZZ self, int value):
         r"""
@@ -322,7 +321,7 @@ cdef class ntl_ZZ(object):
         AUTHOR: Joel B. Mohler
         """
         sig_on()
-        value._to_ZZ(&self.x)
+        mpz_to_ZZ(&self.x, value.value)
         sig_off()
 
     def set_from_int_doctest(self, value):

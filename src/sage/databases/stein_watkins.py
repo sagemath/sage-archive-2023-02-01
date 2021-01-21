@@ -133,7 +133,6 @@ REFERENCE:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import bz2
 import os
@@ -213,7 +212,7 @@ class SteinWatkinsAllData:
             Stein-Watkins isogeny class of conductor 20
         """
         try:
-            file = bz2.BZ2File(self._file, 'r')
+            file = bz2.open(self._file, 'rt', encoding="utf-8")
         except IOError:
             raise IOError("The Stein-Watkins data file %s must be installed."%self._file)
         C = None

@@ -56,7 +56,6 @@ REFERENCES:
 Functions
 ---------
 """
-from __future__ import print_function, absolute_import
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      QDM_from_Vmt,
@@ -1046,7 +1045,7 @@ def OA_11_185():
 
 def OA_10_205():
     r"""
-    Return an OA(10,205)
+    Return an `OA(10,205)`.
 
     Julian R. Abel shared the following construction, which originally appeared
     in Theorem 8.7 of [Greig99]_, and can in Lemmas 5.14-5.16 of [ColDin01]_:

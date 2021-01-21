@@ -218,12 +218,11 @@ class Constellation_class(Element):
         EXAMPLES::
 
             sage: c = Constellation(([0,2,1],[2,1,0],[1,2,0]), mutable=False)
-            sage: c.__hash__()
-            5481133608926415725  # 64-bit
-            511937389  # 32-bit
+            sage: hash(c) == hash(tuple(c._g))
+            True
         """
         if self._mutable:
-            raise ValueError("can not hash mutable constellation")
+            raise ValueError("cannot hash mutable constellation")
         return hash(tuple(self._g))
 
     def set_immutable(self):
@@ -558,7 +557,7 @@ class Constellation_class(Element):
             sage: c = Constellation([[1,0,2],[2,1,0],[0,2,1],None])
             sage: d = Constellation([[2,1,0],[0,2,1],[1,0,2],None])
             sage: answer, mapping = c.is_isomorphic(d,return_map=True)
-            sage: print(answer)
+            sage: answer
             True
             sage: c.relabel(mapping) == d
             True
@@ -1264,7 +1263,7 @@ class Constellations_p(UniqueRepresentation, Parent):
         sage: c1 = p1.conjugacy_class_size()
         sage: c2 = p2.conjugacy_class_size()
         sage: c3 = p3.conjugacy_class_size()
-        sage: print(c1 * c2 * c3 / factorial(4)**2 * s)
+        sage: c1 * c2 * c3 / factorial(4)**2 * s
         1
 
     The number obtained above is up to isomorphism. And we can check::

@@ -398,7 +398,7 @@ There is a default implementation of element tests. We can already do
 
 .. end of output
 
-since `a` is defined as an element of `P`. However, we can not verify yet that
+since `a` is defined as an element of `P`. However, we cannot verify yet that
 the integers are contained in the fraction field of the ring of integers. It
 does not even give a wrong answer, but results in an error::
 
@@ -908,7 +908,7 @@ Implementing a conversion
 -------------------------
 
 We have seen above that some conversions into our fraction fields became
-available after providing the attribute ``Element``.  However, we can not
+available after providing the attribute ``Element``.  However, we cannot
 convert elements of a fraction field into elements of another fraction field,
 yet::
 
@@ -1043,7 +1043,7 @@ Why is that?
 The default element containment test `x \in P` is based on the interplay of
 three building blocks: conversion, coercion, and equality test.
 
-#. Clearly, if the conversion `P(x)` raises an error, then `x` can not be seen as an element of `P`. On the other hand, a conversion `P(x)` can generally do very nasty things. So, the fact that `P(x)` works without error is necessary, but not sufficient for `x \in P`.
+#. Clearly, if the conversion `P(x)` raises an error, then `x` cannot be seen as an element of `P`. On the other hand, a conversion `P(x)` can generally do very nasty things. So, the fact that `P(x)` works without error is necessary, but not sufficient for `x \in P`.
 #. If `P` is the parent of `x`, then the conversion `P(x)` will not change `x` (at least, that's the default). Hence, we will have `x=P(x)`.
 #. Sage uses coercion not only for arithmetic operations, but also for comparison: *If* there is a coercion from the parent of `x` to `P`, then the equality test ``x==P(x)`` reduces to ``P(x)==P(x)``. Otherwise, ``x==P(x)`` will evaluate as false.
 
@@ -1339,6 +1339,9 @@ default implementation. Hence:
 
 - Next, we implement a new version of the "usual" fraction field functor, having the same rank, but returning our new implementation.
 - We make our new implementation the default, by virtue of a merge method.
+- Since our fraction fields accept an optional argument ``category``, we pass
+  the optional arguments to the construction functor, which will in turn use
+  it to create a fraction field.
 
 .. WARNING::
 
@@ -1350,10 +1353,12 @@ default implementation. Hence:
     sage: from sage.categories.pushout import ConstructionFunctor
     sage: class MyFracFunctor(ConstructionFunctor):
     ....:     rank = 5
-    ....:     def __init__(self):
+    ....:     def __init__(self, args=None, kwds=None):
+    ....:         self.args = args or ()
+    ....:         self.kwds = kwds or {}
     ....:         ConstructionFunctor.__init__(self, IntegralDomains(), Fields())
     ....:     def _apply_functor(self, R):
-    ....:         return MyFrac(R)
+    ....:         return MyFrac(R,*self.args,**self.kwds)
     ....:     def merge(self, other):
     ....:         if isinstance(other, (type(self), sage.categories.pushout.FractionField)):
     ....:             return self
@@ -1392,14 +1397,18 @@ We verify that our functor can really be used to construct our implementation of
 
 .. end of output
 
-There remains to let our new fraction fields know about the new construction functor:
-
+There remains to let our new fraction fields know about the new construction
+functor. The arguments that were used when creating the fraction field are
+stored as an attribute---this is a feature provided by
+:class:`~sage.structure.unique_representation.CachedRepresentation`. We pass
+all but the first of these arguments to the construction functor, such that
+the construction functor is able to reconstruct the fraction field.
 
 ::
 
     sage: class MyFrac(MyFrac):
     ....:     def construction(self):
-    ....:         return MyFracFunctor(), self.base()
+    ....:         return MyFracFunctor(self._reduction[1][1:], self._reduction[2]), self.base()
 
 
 .. end of output
@@ -1537,6 +1546,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_cardinality',
      '_test_characteristic',
      '_test_characteristic_fields',
+     '_test_construction',
      '_test_distributivity',
      '_test_divides',
      '_test_elements',
@@ -1585,6 +1595,7 @@ Let us see what tests are actually performed::
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
+    running ._test_construction() . . . pass
     running ._test_distributivity() . . . pass
     running ._test_divides() . . . pass
     running ._test_elements() . . .
@@ -1758,6 +1769,7 @@ interesting.
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
+    running ._test_construction() . . . pass
     running ._test_distributivity() . . . pass
     running ._test_divides() . . . pass
     running ._test_elements() . . .

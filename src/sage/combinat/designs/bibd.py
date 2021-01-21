@@ -49,9 +49,6 @@ Clayton Smith's construction [ClaytonSmith]_.
 Functions
 ---------
 """
-# python3
-from __future__ import division, print_function
-from __future__ import absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -98,7 +95,7 @@ def biplane(n, existence=False):
         sage: designs.biplane(9)
         (56,11,2)-Balanced Incomplete Block Design
 
-    Check all knwon biplanes::
+    Check all known biplanes::
 
         sage: [n for n in [0,1,2,3,4,7,9,11] if designs.biplane(n, existence=True) is True]
         [0, 1, 2, 3, 4, 7, 9, 11]
@@ -526,16 +523,16 @@ def BIBD_from_TD(v,k,existence=False):
 
     INPUT:
 
-    - ``v,k`` (integers) -- computes a `(v,k,1)`-BIBD.
+    - ``v,k`` -- (integers) computes a `(v,k,1)`-BIBD.
 
-    - ``existence`` (boolean) -- instead of building the design, return:
+    - ``existence``  -- (boolean) instead of building the design, return:
 
-        - ``True`` -- meaning that Sage knows how to build the design
+      - ``True`` -- meaning that Sage knows how to build the design
 
-        - ``Unknown`` -- meaning that Sage does not know how to build the
-          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+      - ``Unknown`` -- meaning that Sage does not know how to build the
+        design, but that the design may exist (see :mod:`sage.misc.unknown`)
 
-        - ``False`` -- meaning that the design does not exist.
+      - ``False`` -- meaning that the design does not exist
 
     This method implements three constructions:
 

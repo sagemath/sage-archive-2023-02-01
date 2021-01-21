@@ -471,9 +471,10 @@ http://sourceforge.net/projects/dvipng/ and as part of
 `Ghostscript <http://www.ghostscript.com/>`_.
 
 Rendering combinatorial graphs requires a recent version of the
-PGF library, and the files ``tkz-graph.sty``, ``tkz-arith.sty``
-and perhaps ``tkz-berge.sty``, all from the `Altermundus site
-<http://altermundus.com/pages/tkz/graph/>`_.
+PGF library, the file ``tkz-graph.sty`` from
+https://www.ctan.org/pkg/tkz-graph, and the files ``tkz-arith.sty``
+and perhaps ``tkz-berge.sty`` from
+https://www.ctan.org/pkg/tkz-berge.
 
 External Programs
 =================

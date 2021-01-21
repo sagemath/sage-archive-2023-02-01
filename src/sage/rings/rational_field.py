@@ -53,7 +53,6 @@ AUTHORS:
 - Anna Haensch (2018-03): Added function ``quadratic_defect()``
 
 """
-from __future__ import print_function, absolute_import
 
 from .rational import Rational
 from .integer import Integer
@@ -714,8 +713,8 @@ class RationalField(Singleton, number_field_base.NumberField):
               To:   Complex Field with 20 bits of precision
               Defn: 1 |--> 1.0000
         """
-        from . import complex_field
-        CC = complex_field.ComplexField(prec)
+        from . import complex_mpfr
+        CC = complex_mpfr.ComplexField(prec)
         return self.hom([CC(1)])
 
     def residue_field(self, p, check=True):

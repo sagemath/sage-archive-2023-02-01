@@ -3564,7 +3564,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
              1 + 4*5^3 + 5^5 + 3*5^6 + 5^7 + 3*5^8 + 3*5^9 + O(5^10)]
 
         When `n` is divisible by the underlying prime `p`, we
-        are losing precision (which is consistant with the fact
+        are losing precision (which is consistent with the fact
         that raising to the pth power increases precision)::
 
             sage: z = x.nth_root(5); z
@@ -3591,7 +3591,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ValueError: This element is not a nth power
 
         Similarly, when precision on the input is too small, an error
-        is raised:
+        is raised::
 
             sage: x = R(1,6); x
             1 + O(pi^6)
@@ -3599,6 +3599,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             PrecisionError: Not enough precision to be sure that this element is a nth power
+
+        Check that :trac:`30314` is fixed::
+
+            sage: K = Qp(29)
+            sage: x = polygen(K)
+            sage: L.<a> = K.extension(x^2 -29)
+            sage: L(4).nth_root(2)
+            2 + O(a^40)
 
         TESTS:
 
@@ -3715,7 +3723,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # We now extract the (p^v)-th root
         zeta, s, nextzeta = K._primitive_qth_root_of_unity(v)
-        nextzeta = (parent(nextzeta[0]), nextzeta[1])  # nextzeta[0] may have a wrong parent (with more precision)
+        if v:
+            nextzeta = (parent(nextzeta[0]), nextzeta[1])  # nextzeta[0] may have a wrong parent (with more precision)
         for i in range(v):
             if s > 0 and i >= s:
                 root, accuracy = root._inverse_pth_root(twist=zeta, hint=nextzeta)

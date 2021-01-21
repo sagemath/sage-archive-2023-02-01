@@ -11,7 +11,6 @@ Lyndon words
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -488,8 +487,8 @@ def StandardBracketedLyndonWords(n, k):
         [[2, 3], 3]
         sage: SBLW33.cardinality()
         8
-        sage: SBLW33.random_element()
-        [1, [1, 2]]
+        sage: SBLW33.random_element() in SBLW33  # known bug
+        True
     """
     return StandardBracketedLyndonWords_nk(n, k)
 

@@ -317,7 +317,6 @@ see :trac:`11645`::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import io
 import os
@@ -329,7 +328,7 @@ from time import sleep
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.structure.sequence import Sequence
+from sage.structure.sequence import Sequence_generic
 from sage.structure.element import RingElement
 
 import sage.rings.integer
@@ -631,7 +630,7 @@ class Singular(ExtraTabCompletion, Expect):
         # singular.set(). Moreover, it is not done by calling a separate _eval_line.
         # In that way, the time spent by waiting for the singular prompt is reduced.
 
-        # Before #10296, it was possible that garbage collection occured inside
+        # Before #10296, it was possible that garbage collection occurred inside
         # of _eval_line. But collection of the garbage would launch another call
         # to _eval_line. The result would have been a dead lock, that could only
         # be avoided by synchronisation. Since garbage collection is now done
@@ -789,7 +788,7 @@ class Singular(ExtraTabCompletion, Expect):
             return x._singular_(self)
 
         # some convenient conversions
-        if type in ("module","list") and isinstance(x,(list,tuple,Sequence)):
+        if type in ("module","list") and isinstance(x,(list,tuple,Sequence_generic)):
             x = str(x)[1:-1]
 
         return SingularElement(self, type, x, False)
@@ -929,8 +928,85 @@ class Singular(ExtraTabCompletion, Expect):
                1
             [2]:
                2
+
+            sage: singular.list([1,2,[3,4]])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               [1]:
+                  3
+               [2]:
+                  4
+
+            sage: R.<x,y> = QQ[]
+            sage: singular.list([1,2,[x,ideal(x,y)]])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               [1]:
+                  x
+               [2]:
+                  _[1]=x
+                  _[2]=y
+
+        Strings have to be escaped before passing them to this method::
+
+            sage: singular.list([1,2,'"hi"'])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               hi
+
+        TESTS:
+
+        Check that a list already converted to Singular can be
+        embedded into a list to be converted::
+
+            sage: singular.list([1, 2, singular.list([3, 4])])
+            [1]:
+               1
+            [2]:
+               2
+            [3]:
+               [1]:
+                  3
+               [2]:
+                  4
         """
-        return self(x, 'list')
+
+        # We have to be careful about object destruction.
+
+        # If we convert an object to a Singular element, the only
+        # thing that goes into the list definition statement is the
+        # Singular variable name, so we need to keep the element
+        # around long enough to ensure that the variable still exists
+        # when we create the list.  We ensure this by putting created
+        # elements on a list, which gets destroyed when this function
+        # returns, by which time the list has been created.
+
+        singular_elements = []
+
+        def strify(x):
+           if isinstance(x, (list, tuple, Sequence_generic)):
+              return 'list(' + ','.join([strify(i) for i in x]) + ')'
+           elif isinstance(x, SingularElement):
+              return x.name()
+           elif isinstance(x, (int, sage.rings.integer.Integer)):
+              return repr(x)
+           elif hasattr(x, '_singular_'):
+              e = x._singular_()
+              singular_elements.append(e)
+              return e.name()
+           else:
+              return str(x)
+
+        return self(strify(x), 'list')
 
     def matrix(self, nrows, ncols, entries=None):
         """

@@ -3,7 +3,7 @@
 # First test for user-installable package systems, then system package systems
 if conda --version > /dev/null 2>&1; then
     if [ -z "$CONDA_DEFAULT_ENV" ]; then
-        echo >&2 -n "(ignoring conda because no environment is active) "
+        printf >&2 "(ignoring conda because no environment is active) "
     else
         echo conda
         exit
@@ -25,6 +25,10 @@ elif zypper --version > /dev/null 2>&1; then
     echo opensuse
 elif apk --version > /dev/null 2>&1; then
     echo alpine
+elif xbps-install --version > /dev/null 2>&1; then
+    echo void
+elif pkg -v > /dev/null 2>&1; then
+    echo freebsd
 else
     case `uname -s` in
         CYGWIN*)

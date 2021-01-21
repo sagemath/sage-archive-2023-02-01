@@ -9,9 +9,8 @@ Base class for polyhedra over `\ZZ`
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
@@ -354,7 +353,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         .. SEEALSO::
 
             :mod:`~sage.interfaces.latte` the interface to LattE Integrale
-            `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_
+            `PyNormaliz <https://pypi.org/project/PyNormaliz>`_
 
         EXAMPLES:
 

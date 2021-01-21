@@ -2,10 +2,6 @@
 r"""
 Chain complexes
 
-AUTHORS:
-
-- John H. Palmieri (2009-04)
-
 This module implements bounded chain complexes of free `R`-modules,
 for any commutative ring `R` (although the interesting things, like
 homology, only work if `R` is the integers or a field).
@@ -34,21 +30,25 @@ differentials may increase degree by 1 or decrease it, or indeed
 change it by any fixed amount: this is controlled by the
 ``degree_of_differential`` parameter used in defining the chain
 complex.
+
+AUTHORS:
+
+- John H. Palmieri (2009-04): initial implementation
 """
 
-
-########################################################################
+# ****************************************************************************
 #       Copyright (C) 2013 John H. Palmieri <palmieri@math.washington.edu>
 #                          Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
-#                  http://www.gnu.org/licenses/
-########################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
+from functools import reduce
 
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement, is_Vector, coercion_model
@@ -63,7 +63,6 @@ from sage.matrix.constructor import matrix
 from sage.misc.latex import latex
 from sage.rings.all import GF, prime_range
 from sage.homology.homology_group import HomologyGroup
-from functools import reduce
 
 
 def _latex_module(R, m):
@@ -264,7 +263,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
 
     # make sure values in data_dict are appropriate matrices
     for n in list(data_dict):
-        if not n in grading_group:
+        if n not in grading_group:
             raise ValueError('one of the dictionary keys is not an element of the grading group')
         mat = data_dict[n]
         if not isinstance(mat, Matrix):
@@ -883,8 +882,8 @@ class ChainComplex_class(Parent):
             result.sort()
             return tuple(result)
 
-        import collections
-        result = collections.deque()
+        from collections import deque
+        result = deque()
         result.append(start)
 
         next_deg = start + self.degree_of_differential()
@@ -1249,9 +1248,16 @@ class ChainComplex_class(Parent):
             sage: D.homology()
             {0: 0, 1: 0, 4: 0, 5: 0}
 
-        Generators: generators are given as
-        a list of cycles, each of which is an element in the
-        appropriate free module, and hence is represented as a vector::
+        Generators: generators are given as a list of cycles, each of
+        which is an element in the appropriate free module, and hence
+        is represented as a vector. Each summand of the homology is
+        listed separately, with a corresponding generator::
+
+            sage: C.homology(1, generators=True, algorithm='no_chomp')
+            [(C3, Chain(1:(1, 0))), (Z, Chain(1:(0, 1)))]
+
+        Note that the answer will be formatted differently if the optional
+        package CHomP is installed. ::
 
             sage: C.homology(1, generators=True)  # optional - CHomP
             (Z x C3, [(0, 1), (1, 0)])
@@ -1262,8 +1268,10 @@ class ChainComplex_class(Parent):
             sage: d1 = matrix(ZZ, 1,3, [[0,0,0]])
             sage: d2 = matrix(ZZ, 3,2, [[1,1], [1,-1], [-1,1]])
             sage: C_k = ChainComplex({0:d0, 1:d1, 2:d2}, degree=-1)
-            sage: C_k.homology(generators=true)   # optional - CHomP
-            {0: (Z, [(1)]), 1: (Z x C2, [(0, 0, 1), (0, 1, -1)]), 2: 0}
+            sage: C_k.homology(generators=true, algorithm='no_chomp')
+            {0: [(Z, Chain(0:(1)))],
+             1: [(C2, Chain(1:(1, 0, 0))), (Z, Chain(1:(0, 0, 1)))],
+             2: []}
 
         From a torus using a field::
 
@@ -2148,9 +2156,11 @@ class ChainComplex_class(Parent):
         ret = self
 
         if self._grading_group is ZZ:
-            scalar = lambda a: (-1)**(a * deg_diff)
+            def scalar(a):
+                return (-1)**(a * deg_diff)
         else:
-            scalar = lambda a: (-1)**(sum(a) * sum(deg_diff))
+            def scalar(a):
+                return (-1)**(sum(a) * sum(deg_diff))
 
         for D in factors:
             # Setup

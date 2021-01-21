@@ -51,14 +51,14 @@ This other facility uses a simple
 :class:`~sage.typeset.ascii_art.AsciiArt` object (see and
 :meth:`sage.structure.sage_object.SageObject._ascii_art_`).  """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from io import StringIO
 
@@ -175,8 +175,8 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell.run_cell('ipython_image')
             <IPython.core.display.Image object>
             sage: shell.run_cell('get_ipython().display_formatter.format(ipython_image)')
-            ({u'image/png': ...'\x89PNG...',
-              u'text/plain': u'<IPython.core.display.Image object>'},
+            ({'image/png': ...,
+              'text/plain': '<IPython.core.display.Image object>'},
             {})
 
         Test that IPython images still work even in latex output mode::
@@ -290,4 +290,3 @@ class SagePlainTextFormatter(PlainTextFormatter):
         printer.pretty(obj)
         printer.flush()
         return stream.getvalue()
-

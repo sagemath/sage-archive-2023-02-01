@@ -8,7 +8,7 @@ the intervals down.
 
 AUTHORS:
 
-These authors wrote ``complex_number.pyx``:
+These authors wrote ``complex_mpfr.pyx`` (renamed from ``complex_number.pyx``)::
 
 - William Stein (2006-01-26): complete rewrite
 - Joel B. Mohler (2006-12-16): naive rewrite into pyrex
@@ -20,6 +20,21 @@ heavily modified:
 - Carl Witty (2007-10-24): rewrite to become a complex interval package
 
 - Travis Scrimshaw (2012-10-18): Added documentation to get full coverage.
+
+
+.. WARNING::
+
+    Mixing symbolic expressions with intervals (in particular, converting
+    constant symbolic expressions to intervals), can lead to incorrect
+    results::
+
+        sage: ref = ComplexIntervalField(100)(ComplexBallField(100).one().airy_ai())
+        sage: ref
+        0.135292416312881415524147423515?
+        sage: val = CIF(airy_ai(1)); val # known bug
+        0.13529241631288142?
+        sage: val.overlaps(ref)          # known bug
+        False
 
 .. TODO::
 
@@ -51,8 +66,8 @@ from sage.arith.constants cimport LOG_TEN_TWO_PLUS_EPSILON
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.structure.parent cimport Parent
-from .complex_number cimport ComplexNumber
-from .complex_field import ComplexField
+from .complex_mpfr cimport ComplexNumber
+from .complex_mpfr import ComplexField
 from sage.rings.integer cimport Integer
 cimport sage.rings.real_mpfi as real_mpfi
 from .real_mpfr cimport RealNumber, RealField
@@ -872,7 +887,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         if not isinstance(right, Integer):
             try:
                 right = Integer(right)
-            except TypeError:
+            except (TypeError, ValueError):
                 # Exponent is really not an integer
                 return (z.log() * z._parent(right)).exp()
 
@@ -1419,6 +1434,30 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             TypeError: can...t convert complex interval to int
         """
         raise TypeError("can't convert complex interval to int")
+
+    def _integer_(self, _):
+        r"""
+        Convert this interval to an integer.
+
+        EXAMPLES::
+
+            sage: ZZ(CIF(-3))
+            -3
+            sage: ZZ(CIF(1+I))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert interval 1 + 1*I to an integer
+            sage: ZZ(CIF(RIF(1/2,3/2)))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert interval 1.? to an integer
+        """
+        try:
+            if self.imag()._integer_(None).is_zero():
+                return self.real()._integer_(None)
+        except ValueError:
+            pass
+        raise ValueError("unable to convert interval {!r} to an integer".format(self))
 
     def __float__(self):
         """

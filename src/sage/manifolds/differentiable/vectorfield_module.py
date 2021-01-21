@@ -991,7 +991,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                                        name=name, latex_name=latex_name)
 
     @cached_method
-    def identity_map(self, name='Id', latex_name=None):
+    def identity_map(self):
         r"""
         Construct the identity map on the vector field module.
 
@@ -999,34 +999,33 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         of tangent-space identity maps along the differentiable manifold
         `U` over which the vector field module is defined.
 
-        INPUT:
-
-        - ``name`` -- (string; default: ``'Id'``) name given to the
-          identity map
-        - ``latex_name`` -- (string; optional) LaTeX symbol to denote
-          the identity map;  if none is provided, the LaTeX symbol is
-          set to ``'\mathrm{Id}'`` if ``name`` is ``'Id'`` and
-          to ``name`` otherwise
-
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Get the identity map on a vector field module::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
-            sage: XM.identity_map()
+            sage: Id = XM.identity_map(); Id
             Field of tangent-space identity maps on the 2-dimensional
              differentiable manifold M
 
+        If the identity should be renamed, one has to create a copy::
+
+            sage: Id.set_name('1')
+            Traceback (most recent call last):
+            ...
+            ValueError: the name of an immutable element cannot be changed
+            sage: one = Id.copy('1'); one
+            Field of tangent-space automorphisms 1 on the 2-dimensional
+             differentiable manifold M
+
         """
-        resu = self.general_linear_group().one()
-        if latex_name is None:
-            latex_name = name
-        resu.set_name(name=name, latex_name=latex_name)
-        return resu
+        return self.general_linear_group().one()
 
     @cached_method
     def zero(self):
@@ -1041,13 +1040,16 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: XM.zero()
             Vector field zero on the 2-dimensional differentiable
              manifold M
+
         """
-        elt = self.element_class(self, name='zero', latex_name='0')
+        zero = self.element_class(self, name='zero', latex_name='0')
         for frame in self._domain._frames:
             if self._dest_map.restrict(frame._domain) == frame._dest_map:
-                elt._add_comp_unsafe(frame)
+                zero.add_comp(frame)
                 # (since new components are initialized to zero)
-        return elt
+        zero._is_zero = True  # This element is certainly zero
+        zero.set_immutable()
+        return zero
 
     def metric(self, name, signature=None, latex_name=None):
         r"""
@@ -1716,11 +1718,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.tensorfield_module import \
+        try:
+            return self._tensor_modules[(k,l)]
+        except KeyError:
+            if (k, l) == (1, 0):
+                T = self
+            else:
+                from sage.manifolds.differentiable.tensorfield_module import \
                                                           TensorFieldFreeModule
-        if (k,l) not in self._tensor_modules:
-            self._tensor_modules[(k,l)] = TensorFieldFreeModule(self, (k,l))
-        return self._tensor_modules[(k,l)]
+                T = TensorFieldFreeModule(self, (k,l))
+            self._tensor_modules[(k,l)] = T
+            return T
 
     def exterior_power(self, p):
         r"""
@@ -1770,13 +1778,19 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.multivector_module import \
+        try:
+            return self._exterior_powers[p]
+        except KeyError:
+            if p == 0:
+                L = self._ring
+            elif p == 1:
+                L = self
+            else:
+                from sage.manifolds.differentiable.multivector_module import \
                                                           MultivectorFreeModule
-        if p == 0:
-            return self._ring
-        if p not in self._exterior_powers:
-            self._exterior_powers[p] = MultivectorFreeModule(self, p)
-        return self._exterior_powers[p]
+                L = MultivectorFreeModule(self, p)
+            self._exterior_powers[p] = L
+            return L
 
     def dual_exterior_power(self, p):
         r"""
@@ -1824,13 +1838,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.diff_form_module import \
+        try:
+            return self._dual_exterior_powers[p]
+        except KeyError:
+            if p == 0:
+                L = self._ring
+            else:
+                from sage.manifolds.differentiable.diff_form_module import \
                                                       DiffFormFreeModule
-        if p == 0:
-            return self._ring
-        if p not in self._dual_exterior_powers:
-            self._dual_exterior_powers[p] = DiffFormFreeModule(self, p)
-        return self._dual_exterior_powers[p]
+                L = DiffFormFreeModule(self, p)
+            self._dual_exterior_powers[p] = L
+            return L
 
     def general_linear_group(self):
         r"""

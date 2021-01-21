@@ -148,7 +148,6 @@ TESTS::
 Classes
 -------
 """
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 
@@ -278,7 +277,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         [x, y, z]
     """
     from sage.structure.element import is_Matrix
-    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+    from sage.rings.polynomial.pbori.pbori import BooleanMonomialMonoid
 
     is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))
 
@@ -1248,9 +1247,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
             This is called "massaging" in [BCJ2007]_.
         """
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
-        from brial import gauss_on_polys
-        from brial.ll import eliminate,ll_encode,ll_red_nf_redsb
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing,gauss_on_polys
+        from sage.rings.polynomial.pbori.ll import eliminate,ll_encode,ll_red_nf_redsb
 
         R = self.ring()
 
@@ -1330,16 +1328,16 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: P.<x,y,z> = BooleanPolynomialRing()
             sage: F = Sequence([x*y + z, y + z + 1])
             sage: F._groebner_strategy()
-            <sage.rings.polynomial.pbori.GroebnerStrategy object at 0x...>
+            <sage.rings.polynomial.pbori.pbori.GroebnerStrategy object at 0x...>
         """
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
         R = self.ring()
 
         if not isinstance(R, BooleanPolynomialRing):
             from sage.libs.singular.groebner_strategy import GroebnerStrategy
             return GroebnerStrategy(self.ideal())
         else:
-            from sage.rings.polynomial.pbori import GroebnerStrategy
+            from sage.rings.polynomial.pbori.pbori import GroebnerStrategy
             g = GroebnerStrategy(R)
             for p in self:
                 g.add_as_you_wish(p)
@@ -1422,7 +1420,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         TESTS:
 
-        Make sure that variables not occuring in the equations are no problem::
+        Make sure that variables not occurring in the equations are no problem::
 
             sage: R.<x,y,z,t> = BooleanPolynomialRing()
             sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
@@ -1444,7 +1442,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             []
 
         """
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
         from sage.modules.free_module import VectorSpace
 
         S = self
@@ -1530,11 +1528,11 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         """
 
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
         R = self.ring()
 
         if isinstance(R, BooleanPolynomialRing):
-            from brial.interred import interred as inter_red
+            from sage.rings.polynomial.pbori.interred import interred as inter_red
             l = [p for p in self if not p==0]
             l = sorted(inter_red(l, completely=True), reverse=True)
             return PolynomialSequence(l, R, immutable=True)

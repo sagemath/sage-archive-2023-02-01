@@ -20,7 +20,8 @@ specified in the forward direction).
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import math, cmath
+import math
+import cmath
 
 cdef add, sub, mul, truediv, pow, neg, inv
 from operator import add, sub, mul, pow, neg, inv, truediv
@@ -39,7 +40,7 @@ from sage.rings.integer import Integer
 cdef QQ, RR, CC, RealField, ComplexField
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR, RealField
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 CC = ComplexField(53)
 
 cdef _QQx = None
@@ -370,26 +371,7 @@ class ComplexLazyField_class(LazyField):
 
     TESTS::
 
-        sage: TestSuite(CLF).run(skip=["_test_prod"])
-
-    .. NOTE::
-
-        The following ``TestSuite`` failure::
-
-            sage: CLF._test_prod()
-            Traceback (most recent call last):
-            ...
-            AssertionError: -1 != ...
-
-        is due to (acceptable?) numerical noise::
-
-            sage: x = CLF.I
-            sage: x*x == x^2
-            False
-            sage: x*x
-            -1
-            sage: x^2
-            -0.9999999999999999? + 0.?e-15*I
+        sage: TestSuite(CLF).run()
     """
     def __init__(self):
         """
@@ -574,7 +556,7 @@ cdef class LazyFieldElement(FieldElement):
 
     cpdef _mul_(left, right):
         """
-        Mutliply ``left`` with ``right``.
+        Multiply ``left`` with ``right``.
 
         EXAMPLES::
 
@@ -820,7 +802,7 @@ cdef class LazyFieldElement(FieldElement):
         try:
             return self.eval(complex)
         except Exception:
-            from .complex_field import ComplexField
+            from .complex_mpfr import ComplexField
             return complex(self.eval(ComplexField(53)))
 
     cpdef eval(self, R):

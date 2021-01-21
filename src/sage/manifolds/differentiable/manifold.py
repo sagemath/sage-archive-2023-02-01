@@ -416,6 +416,7 @@ AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
+- Michael Jung (2020): tensor bundles and orientability
 
 REFERENCES:
 
@@ -1190,14 +1191,14 @@ class DifferentiableManifold(TopologicalManifold):
             dest_map = self.identity_map()
         if dest_map not in self._tensor_bundles:
             from sage.manifolds.differentiable.vector_bundle import TensorBundle
-            self._tensor_bundles[dest_map] = {(k, l): TensorBundle(self, k, l,
-                                                             dest_map=dest_map)}
+            self._tensor_bundles[dest_map] = {(k, l):
+                                              TensorBundle(self, k, l,
+                                                           dest_map=dest_map)}
         else:
             if (k, l) not in self._tensor_bundles[dest_map]:
-                from sage.manifolds.differentiable.vector_bundle import \
-                    TensorBundle
-                self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k, l,
-                                                              dest_map=dest_map)
+                from sage.manifolds.differentiable.vector_bundle import TensorBundle
+                self._tensor_bundles[dest_map][(k, l)] = TensorBundle(self, k,
+                                                           l, dest_map=dest_map)
         return self._tensor_bundles[dest_map][(k, l)]
 
     def vector_field_module(self, dest_map=None, force_free=False):
@@ -2520,8 +2521,7 @@ class DifferentiableManifold(TopologicalManifold):
             resu._init_components(*comp, **kwargs)
         return resu
 
-    def tangent_identity_field(self, name='Id', latex_name=None,
-                               dest_map=None):
+    def tangent_identity_field(self, dest_map=None):
         r"""
         Return the field of identity maps in the tangent spaces on ``self``.
 
@@ -2589,7 +2589,181 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         vmodule = self.vector_field_module(dest_map)
-        return vmodule.identity_map(name=name, latex_name=latex_name)
+        return vmodule.identity_map()
+
+    def set_orientation(self, orientation):
+        r"""
+        Set the preferred orientation of ``self``.
+
+        INPUT:
+
+        - ``orientation`` -- either a chart / list of charts, or a vector
+          frame / list of vector frames, covering ``self``
+
+        .. WARNING::
+
+            It is the user's responsibility that the orientation set here
+            is indeed an orientation. There is no check going on in the
+            background. See :meth:`orientation` for the definition of an
+            orientation.
+
+        EXAMPLES:
+
+        Set an orientation on a manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart(); c_uv.<u,v> = M.chart()
+            sage: M.set_orientation(c_uv)
+            sage: M.orientation()
+            [Coordinate frame (M, (d/du,d/dv))]
+
+        Instead of a chart, a vector frame can be given, too::
+
+            sage: M.set_orientation(c_xy.frame())
+            sage: M.orientation()
+            [Coordinate frame (M, (d/dx,d/dy))]
+
+        Set an orientation in the non-trivial case::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+
+        Again, the vector frame notion can be used instead::
+
+            sage: M.set_orientation([c_xy.frame(), c_uv.frame()])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+
+        """
+        from .vectorframe import VectorFrame
+        chart_type = self._structure.chart
+        if isinstance(orientation, chart_type):
+            orientation = [orientation.frame()]
+        elif isinstance(orientation, VectorFrame):
+            orientation = [orientation]
+        elif isinstance(orientation, (list, tuple)):
+            if isinstance(orientation[0], chart_type):
+                orientation = [c.frame() for c in orientation]
+            else:
+                orientation = list(orientation)
+        else:
+            raise TypeError("orientation must be a chart/frame or a "
+                            "list/tuple of charts/frames")
+        dom_union = None
+        for frame in orientation:
+            if not isinstance(frame, VectorFrame):
+                raise ValueError("orientation must consist of vector frames")
+            dom = frame._domain
+            if not dom.is_subset(self):
+                raise ValueError("{} must be defined ".format(frame) +
+                                 "on a subset of {}".format(self))
+            if dom_union is not None:
+                dom_union = dom.union(dom_union)
+            else:
+                dom_union = dom
+        if dom_union != self:
+            raise ValueError("frame domains must cover {}".format(self))
+        self._orientation = orientation
+
+    def orientation(self):
+        r"""
+        Get the preferred orientation of ``self`` if available.
+
+        An *orientation* on a differentiable manifold is an atlas of charts
+        whose transition maps are pairwise orientation preserving, i.e. whose
+        Jacobian determinants are pairwise positive.
+
+        A differentiable manifold with an orientation is called *orientable*.
+
+        A differentiable manifold is orientable if and only if the tangent
+        bundle is orientable in terms of a vector bundle,
+        see :meth:`~sage.manifolds.vector_bundle.TopologicalVectorBundle.orientation`.
+
+        .. NOTE::
+
+            In contrast to topological manifolds,
+            see :meth:`~sage.manifolds.manifold.TopologicalManifold.orientation`,
+            differentiable manifolds preferably use the notion of
+            orientability in terms of the tangent bundle.
+
+        The trivial case corresponds to the manifold being parallelizable,
+        i.e. admitting a frame covering the whole manifold. In that case,
+        if no preferred orientation has been manually set before, one of those
+        frames (usually the default frame) is set to the preferred
+        orientation on ``self`` and returned here.
+
+        EXAMPLES:
+
+        In case one frame already covers the manifold, an orientation
+        is readily obtained::
+
+            sage: M = Manifold(3, 'M')
+            sage: c.<x,y,z> = M.chart()
+            sage: M.orientation()
+            [Coordinate frame (M, (d/dx,d/dy,d/dz))]
+
+        However, orientations are usually not easy to obtain::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.orientation()
+            []
+
+        In that case, the orientation can be set by the user; either in
+        terms of charts or in terms of frames::
+
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+            sage: M.set_orientation([c_xy.frame(), c_uv.frame()])
+            sage: M.orientation()
+            [Coordinate frame (U, (d/dx,d/dy)),
+             Coordinate frame (V, (d/du,d/dv))]
+
+        The orientation on submanifolds are inherited from the ambient
+        manifold::
+
+            sage: W = U.intersection(V, name='W')
+            sage: W.orientation()
+            [Vector frame (W, (d/dx,d/dy))]
+
+        """
+        if not self._orientation:
+            # try to get an orientation from super domains:
+            for sdom in self._supersets:
+                sorient = sdom._orientation
+                if sorient:
+                    rst_orient = [f.restrict(self) for f in sorient]
+                    # clear multiple domains:
+                    rst_orient = list(self._get_min_covering(rst_orient))
+                    self._orientation = rst_orient
+                    break
+            else:
+                # Trivial case:
+                if self.is_manifestly_parallelizable():
+                    # Try the default frame:
+                    def_frame = self._def_frame
+                    if def_frame is not None:
+                        if def_frame._domain is self:
+                            self._orientation = [def_frame]
+                    # Still no orientation? Choose arbitrary frame:
+                    if not self._orientation:
+                        for frame in self._covering_frames:
+                            dest_map = frame.destination_map()
+                            if dest_map.is_identity():
+                                self._orientation = [frame]
+                                break
+        return list(self._orientation)
 
     def default_frame(self):
         r"""
@@ -2599,7 +2773,7 @@ class DifferentiableManifold(TopologicalManifold):
         at each point `p`, a vector basis of the tangent space at `p`.
 
         Unless changed via :meth:`set_default_frame`, the default frame is
-        the first one defined on the manifold, usually implicitely as the
+        the first one defined on the manifold, usually implicitly as the
         coordinate basis associated with the first chart defined on the
         manifold.
 
@@ -2629,7 +2803,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         - ``frame`` --
           :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
-          a vector frame defined on the manifold
+          a vector frame defined on some subset of ``self``
 
         EXAMPLES:
 
@@ -2648,13 +2822,8 @@ class DifferentiableManifold(TopologicalManifold):
         from sage.manifolds.differentiable.vectorframe import VectorFrame
         if not isinstance(frame, VectorFrame):
             raise TypeError("{} is not a vector frame".format(frame))
-        if frame._domain is not self:
-            if self.is_manifestly_parallelizable():
-                raise ValueError("the frame domain must coincide with " +
-                                 "the {}".format(self))
-            if not frame._domain.is_subset(self):
-                raise ValueError("the frame must be defined on " +
-                                 "the {}".format(self))
+        if not frame._domain.is_subset(self):
+            raise ValueError("the frame must be defined on the {}".format(self))
         self._def_frame = frame
         frame._fmodule.set_default_basis(frame)
 
@@ -3270,7 +3439,7 @@ class DifferentiableManifold(TopologicalManifold):
             for more examples, including plots.
 
         """
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         if not isinstance(param, (tuple, list)):
             param = (param, minus_infinity, infinity)
         elif len(param) != 3:
@@ -3391,7 +3560,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
 
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
 
         if len(curve_param) != 3:
@@ -3526,7 +3695,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
 
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
 
         if len(curve_param) != 3:
@@ -3647,7 +3816,7 @@ class DifferentiableManifold(TopologicalManifold):
             [-1.0907409234671228, 0.6205670379855032]
 
         """
-        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.examples.real_line import RealLine
         from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
 
         if len(curve_param) != 3:

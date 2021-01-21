@@ -1,7 +1,6 @@
 r"""
 Semigroups
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -889,7 +888,7 @@ class Semigroups(CategoryWithAxiom):
             # Once there will be some guarantee on the consistency between
             # gens / monoid/group/*_generators, these methods could possibly
             # be removed in favor of aliases gens -> xxx_generators in
-            # the Algebras.FinitelyGenerated hierachy
+            # the Algebras.FinitelyGenerated hierarchy
             def gens(self):
                 r"""
                 Return the generators of ``self``.

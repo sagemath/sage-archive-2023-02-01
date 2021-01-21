@@ -165,6 +165,7 @@ cdef class Element(SageObject):
 
     cdef _mul_(self, other)
     cdef _mul_long(self, long n)
+    cdef _matmul_(self, other)
     cdef _div_(self, other)
     cdef _floordiv_(self, other)
     cdef _mod_(self, other)

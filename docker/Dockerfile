@@ -168,7 +168,7 @@ ENV MAKEFLAGS $MAKEFLAGS
 ARG SAGE_NUM_THREADS="2"
 ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS
 RUN make configure
-RUN ./configure
+RUN ./configure --enable-fat-binary
 RUN make build
 
 ################################################################################

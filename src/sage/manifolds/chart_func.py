@@ -358,7 +358,7 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
             sage: TestSuite(g).run()
 
         """
-        super().__init__(parent)
+        ModuleElementWithMutability.__init__(self, parent)
         self._chart = parent._chart
         self._nc = len(self._chart[:])
         self._express = {}

@@ -108,8 +108,4 @@ if __name__ == '__main__':
             print("from %s" % OLD_SAGE_ROOT)
             print("  to %s" % SAGE_ROOT)
             assert(False)
-        print("Cleaning up, do not interrupt this.")
-        sys.stdout.flush() # One never knows...
-
         sage_relocate()
-        print("Done cleaning.")

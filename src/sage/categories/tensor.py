@@ -40,7 +40,6 @@ class TensorProductFunctor(CovariantFunctorialConstruction):
     of ``Algebras(QQ)``. This nested class is itself a subclass of
     :class:`~sage.categories.tensor.TensorProductsCategory`.
 
-    The tensor functor can also be applied to elements `a, b
 
     TESTS::
 

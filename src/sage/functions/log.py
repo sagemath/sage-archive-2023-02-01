@@ -466,11 +466,11 @@ class Function_polylog(GinacFunction):
         The first argument is `s` (usually an integer called the weight)
         and the second argument is `z` : ``polylog(s, z)``.
 
-        This definition is valid for arbitrary complex order `s` and for
-        all complex arguments `z` with `|z| < 1`; it can be extended to
-        `|z| \ge 1` by the process of analytic continuation. So the
-        function may have a discontinuity at `z=1` which can cause a
-        `NaN` value returned for floating point arguments.
+        This definition is valid for arbitrary complex numbers `s` and `z`
+        with `|z| < 1`. It can be extended to `|z| \ge 1` by the process of
+        analytic continuation, with a branch cut along the positive real axis
+        from `1` to `+\infty`. A `NaN` value may be returned for floating
+        point arguments that are on the branch cut.
 
         EXAMPLES::
 

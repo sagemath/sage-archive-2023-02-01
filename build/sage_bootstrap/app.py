@@ -138,7 +138,7 @@ class Application(object):
             log.debug('%s is not a pypi package', package_name)
             return
         else:
-            pypi.update()
+            pypi.update(Package(package_name))
 
     def update_latest_all(self):
         log.debug('Attempting to update all packages')

@@ -334,10 +334,7 @@ def run():
     elif args.subcommand == 'update':
         app.update(args.package_name, args.new_version, url=args.url)
     elif args.subcommand == 'update-latest':
-        if args.package_name == ':all:':
-            app.update_latest_all()
-        else:
-            app.update_latest(args.package_name)
+        app.update_latest_cls(args.package_name)
     elif args.subcommand == 'download':
         app.download_cls(args.package_name,
                          allow_upstream=args.allow_upstream,

@@ -23,7 +23,7 @@ from sage_bootstrap.package import Package
 from sage_bootstrap.tarball import Tarball, FileNotMirroredError
 from sage_bootstrap.updater import ChecksumUpdater, PackageUpdater
 from sage_bootstrap.creator import PackageCreator
-from sage_bootstrap.pypi import PyPiVersion, PyPiNotFound
+from sage_bootstrap.pypi import PyPiVersion, PyPiNotFound, PyPiError
 from sage_bootstrap.fileserver import FileServer
 from sage_bootstrap.expand_class import PackageClass
 
@@ -140,19 +140,22 @@ class Application(object):
         else:
             pypi.update(Package(package_name))
 
-    def update_latest_all(self):
-        log.debug('Attempting to update all packages')
+    def update_latest_cls(self, package_name_or_class):
         exclude = [
-            'atlas', 'flint', 'bzip2', 'ecm', 'freetype', 'gap', 'glpk', 'graphs',
-            'iconv', 'patch', 'r', 'configure', 'bliss', 'readline', 'decorator',
-            'igraph', 'rw', 'planarity', 'gambit', 
+            'cypari'   # Name conflict
         ]
-        pc = PackageClass(':standard:')
-        for package_name in pc.names:
+        # Restrict to normal Python packages
+        pc = PackageClass(package_name_or_class, has_files=['checksums.ini', 'install-requires.txt'])
+        if not pc.names:
+            log.warn('nothing to do (does not name a normal Python package)')
+        for package_name in sorted(pc.names):
             if package_name in exclude:
                 log.debug('skipping %s because of pypi name collision', package_name)
                 continue
-            self.update_latest(package_name)
+            try:
+                self.update_latest(package_name)
+            except PyPiError as e:
+                log.warn('updating %s failed: %s', package_name, e)
 
     def download(self, package_name, allow_upstream=False):
         """

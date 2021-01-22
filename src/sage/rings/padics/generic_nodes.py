@@ -724,7 +724,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             if parent.Element is self.Element:
                 if not self.is_field() and x.valuation() < 0:
                     raise ValueError("negative valuation")
-                return self._element_classes['shift'](self, x, 0, False)
+                return self._element_classes['copy'](self, x)
             raise NotImplementedError
         elif isinstance(parent, pAdicGeneric):
             if not self.is_field() and x.valuation() < 0:

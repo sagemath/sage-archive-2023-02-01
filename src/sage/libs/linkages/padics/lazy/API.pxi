@@ -12,6 +12,9 @@
 # Operations on digits (intended to be small elements in the exact subring)
 ###########################################################################
 
+cdef cdigit digit_zero
+digit_init(digit_zero)
+
 cdef inline void digit_init(cdigit a):
     pass
 

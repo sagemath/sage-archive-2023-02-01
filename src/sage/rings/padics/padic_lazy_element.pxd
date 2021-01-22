@@ -1,8 +1,10 @@
-from sage.libs.flint.types cimport fmpz, fmpz_t, fmpz_poly_t
+from sage.libs.flint.types cimport fmpz, fmpz_t
+from sage.libs.flint.types cimport fmpz_poly_struct, fmpz_poly_t
 
 ctypedef fmpz_t cdigit
 ctypedef fmpz* cdigit_ptr
 ctypedef fmpz_poly_t celement
+ctypedef fmpz_poly_struct* celement_ptr
 
 
 include "lazy_template_header.pxi"
@@ -17,13 +19,16 @@ cdef class pAdicLazyElement_zero(LazyElement_zero):
 cdef class pAdicLazyElement_one(LazyElement_one):
     pass
 
+cdef class pAdicLazyElement_copy(LazyElement_copy):
+    pass
+
 cdef class pAdicLazyElement_value(LazyElement_value):
     pass
 
 cdef class pAdicLazyElement_random(LazyElement_random):
     pass
 
-cdef class pAdicLazyElement_shift(LazyElement_shift):
+cdef class pAdicLazyElement_slice(LazyElement_slice):
     pass
 
 cdef class pAdicLazyElement_add(LazyElement_add):

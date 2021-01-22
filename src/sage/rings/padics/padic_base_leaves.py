@@ -1120,6 +1120,7 @@ class pAdicRingLazy(pAdicLazyGeneric, pAdicRingBaseGeneric):
             'teichmuller': padic_lazy_element.pAdicLazyElement_teichmuller,
             'selfref': padic_lazy_element.pAdicLazyElement_selfref
         }
+        pAdicLazyGeneric.__init__(self)
 
 class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
     def __init__(self, p, prec, print_mode, names):
@@ -1141,4 +1142,4 @@ class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
             'teichmuller': padic_lazy_element.pAdicLazyElement_teichmuller,
             'selfref': padic_lazy_element.pAdicLazyElement_selfref
         }
-
+        pAdicLazyGeneric.__init__(self)

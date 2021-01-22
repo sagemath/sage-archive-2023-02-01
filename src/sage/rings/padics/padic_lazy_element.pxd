@@ -1,10 +1,8 @@
-from sage.libs.flint.types cimport fmpz, fmpz_t
-from sage.libs.flint.types cimport fmpz_poly_struct, fmpz_poly_t
+from sage.libs.flint.types cimport fmpz, fmpz_t, fmpz_poly_t
 
 ctypedef fmpz_t cdigit
 ctypedef fmpz* cdigit_ptr
 ctypedef fmpz_poly_t celement
-ctypedef fmpz_poly_struct* celement_ptr
 
 
 include "lazy_template_header.pxi"

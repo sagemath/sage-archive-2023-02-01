@@ -700,6 +700,12 @@ class pAdicLatticeGeneric(pAdicGeneric):
         return ans
 
 class pAdicLazyGeneric(pAdicGeneric):
+    def __init__(self):
+        if self._prec and not self.is_field():
+            self._zeroprec = self.change(field=True, prec=0)
+        else:
+            self._zeroprec = self
+
     def _prec_type(self):
         return "lazy"
 
@@ -747,7 +753,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             except (TypeError, ValueError, AttributeError):
                 pass
             else:
-                if denom % self.prime() == 0:
+                if not self.is_field() and denom % self.prime() == 0:
                     raise ValueError("negative valuation")
                 num = self._element_classes['value'](self, num)
                 denom = self._element_classes['value'](self, denom)
@@ -758,7 +764,7 @@ class pAdicLazyGeneric(pAdicGeneric):
         if start_val not in ZZ:
             raise ValueError("valuation must be an integer")
         start_val = ZZ(start_val)
-        if self.is_field() and start_val < 0:
+        if (not self.is_field()) and start_val < 0:
             raise ValueError("valuation must be nonnegative")
         return self._element_classes['selfref'](self, start_val)
 

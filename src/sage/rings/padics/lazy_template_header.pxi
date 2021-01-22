@@ -12,12 +12,17 @@ cdef class LazyElement(pAdicGenericElement):
 
     cdef cdigit_ptr _getdigit_relative(self, slong i)
     cdef cdigit_ptr _getdigit_absolute(self, slong i)
-    cdef void _getslice_relative(self, celement_ptr slice, slong start, slong length)
+    cdef void _getslice_relative(self, celement slice, slong start, slong length)
 
+    cdef int _init_jump(self) except -1
     cdef int _jump_c(self, slong prec)
     cdef int _next_c(self)
     cdef Integer _digit(self, slong i)
     cdef bint _is_equal(self, LazyElement right, slong prec, bint permissive) except -1
+
+cdef class LazyElement_abandon(LazyElement):
+    pass
+cdef lazyelement_abandon
 
 cdef class LazyElement_init(LazyElement):
     cdef celement _digits
@@ -76,6 +81,7 @@ cdef class LazyElement_div(LazyElement_init):
     cdef LazyElement _denom
     cdef LazyElement _definition
     cdef int _bootstrap_c(self)
+    cdef bint _bootstraping
 
 cdef class LazyElement_sqrt(LazyElement_init):
     cdef slong _maxprec
@@ -84,6 +90,7 @@ cdef class LazyElement_sqrt(LazyElement_init):
     cdef int _bootstrap_c(self)
 
 cdef class LazyElement_teichmuller(LazyElement_init):
+    cdef bint _ready
     cdef bint _trivial
     cdef list _xns
     cdef LazyElement _xbar
@@ -92,5 +99,5 @@ cdef class LazyElement_teichmuller(LazyElement_init):
 
 cdef class LazyElement_selfref(LazyElement_init):
     cdef LazyElement _definition
-    cdef bint _next
+    cdef slong _next
     cpdef set(self, LazyElement definition)

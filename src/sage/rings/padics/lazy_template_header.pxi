@@ -8,6 +8,7 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 cdef class LazyElement(pAdicGenericElement):
     cdef slong _valuation
     cdef slong _precrel
+    cdef slong _precbound
     cdef PowComputer_class prime_pow
 
     cdef cdigit_ptr _getdigit_relative(self, slong i)
@@ -34,11 +35,10 @@ cdef class LazyElement_zero(LazyElement):
 cdef class LazyElement_one(LazyElement_init):
     pass
 
-cdef class LazyElement_copy(LazyElement):
+cdef class LazyElement_bound(LazyElement):
     cdef LazyElement _x
 
 cdef class LazyElement_value(LazyElement_init):
-    cdef slong _maxprec
     cdef slong _shift
     cdef bint _finished
 
@@ -52,7 +52,6 @@ cdef class LazyElement_slice(LazyElement):
     cdef slong _start
     cdef slong _stop
     cdef slong _shift
-    cdef slong _maxprec
 
 cdef class LazyElement_shift(LazyElement_init):
     cdef LazyElement _x

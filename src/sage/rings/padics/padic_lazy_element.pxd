@@ -17,7 +17,7 @@ cdef class pAdicLazyElement_zero(LazyElement_zero):
 cdef class pAdicLazyElement_one(LazyElement_one):
     pass
 
-cdef class pAdicLazyElement_copy(LazyElement_copy):
+cdef class pAdicLazyElement_bound(LazyElement_bound):
     pass
 
 cdef class pAdicLazyElement_value(LazyElement_value):

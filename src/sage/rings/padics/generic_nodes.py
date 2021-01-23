@@ -722,28 +722,29 @@ class pAdicLazyGeneric(pAdicGeneric):
         if isinstance(R, pAdicLazyGeneric) and self is R.fraction_field():
             return True
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, x, prec=None):
         parent = x.parent()
-        if parent is self:
+        if parent is self and prec is None:
             return x
         elif isinstance(parent, pAdicLazyGeneric):
             if parent.Element is self.Element:
                 if not self.is_field() and x.valuation() < 0:
                     raise ValueError("negative valuation")
-                return self._element_classes['copy'](self, x)
+                return self._element_classes['bound'](self, x, prec)
             raise NotImplementedError
         elif isinstance(parent, pAdicGeneric):
             if not self.is_field() and x.valuation() < 0:
                 raise ValueError("negative valuation")
-            return self._element_classes['value'](self, x.lift(), maxprec=x.precision_absolute())
-        elif x == 0:
+            prec = min(prec, x.precision_absolute())
+            return self._element_classes['value'](self, x.lift(), precbound=prec)
+        elif x == 0 and prec is None:
             return self._element_classes['zero'](self)
-        elif x == 1:
+        elif x == 1 and prec is None:
             return self._element_classes['one'](self)
         else:
             try:
                 x = self.exact_ring()(x)
-                return self._element_classes['value'](self, x)
+                return self._element_classes['value'](self, x, precbound=prec)
             except (TypeError, ValueError):
                 pass
             try:
@@ -757,7 +758,7 @@ class pAdicLazyGeneric(pAdicGeneric):
                     raise ValueError("negative valuation")
                 num = self._element_classes['value'](self, num)
                 denom = self._element_classes['value'](self, denom)
-                return self._element_classes['div'](self, num, denom)
+                return self._element_classes['div'](self, num, denom, precbound=prec)
         raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
 
     def selfref(self, start_val=0):
@@ -768,9 +769,9 @@ class pAdicLazyGeneric(pAdicGeneric):
             raise ValueError("valuation must be nonnegative")
         return self._element_classes['selfref'](self, start_val)
 
-    def random_element(self, integral=False):
+    def random_element(self, integral=False, prec=None):
         integral = integral or (not self.is_field())
-        return self._element_classes['random'](self, integral)
+        return self._element_classes['random'](self, integral, prec)
 
     def teichmuller(self, x):
         return self._element_classes['teichmuller'](self, ZZ(x))

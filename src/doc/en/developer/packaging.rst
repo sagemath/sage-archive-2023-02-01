@@ -849,7 +849,7 @@ to apply the same modifications to future versions.
 Package Versioning
 ------------------
 
-The ``package-version.txt`` file containts just the version. So if
+The ``package-version.txt`` file contains just the version. So if
 upstream is ``FoO-1.3.tar.gz`` then the package version file would only
 contain ``1.3``.
 

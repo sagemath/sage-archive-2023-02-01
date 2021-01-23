@@ -1174,7 +1174,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 self._compute_edges(dual=False)
             else:
                 # In most bounded cases, one should use the dual.
-                self._compute_ridges(dual=True)
+                self._compute_edges(dual=True)
         if self._edges is NULL:
             raise ValueError('could not determine edges')
 
@@ -1343,7 +1343,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             elif self.n_Vrepresentation()*self.n_Vrepresentation() < self.n_facets():
                 # This is a wild estimate
                 # that in this case it is better to use the dual.
-                self._compute_edges(dual=True)
+                self._compute_ridges(dual=True)
             else:
                 # In most bounded cases, one should not use the dual.
                 self._compute_ridges(dual=False)
@@ -2888,11 +2888,14 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     # Internal methods.
 
-    cdef int _compute_f_vector(self) except -1:
+    cdef int _compute_f_vector(self, bint compute_edges=False, given_dual=None) except -1:
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
-        See :meth:`f_vector`.
+        If ``compute_edges`` computes the edges in non-dual mode as well.
+        In dual mode the ridges.
+
+        See :meth:`f_vector` and :meth:`_compute_edges`.
         """
         if self._f_vector:
             return 0  # There is no need to recompute the f_vector.
@@ -2904,11 +2907,24 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             # In this case the dual approach is faster.
             dual = True
+        if given_dual is not None:
+            dual = given_dual
+
+
         cdef FaceIterator face_iter = self._face_iter(dual, -2)
 
         cdef int dim = self.dimension()
         cdef int d  # dimension of the current face of the iterator
         cdef MemoryAllocator mem = MemoryAllocator()
+
+        # In case we compute the edges as well.
+        cdef size_t **edges
+        cdef size_t counter = 0         # the number of edges so far
+        cdef size_t current_length      # dynamically enlarge **edges
+        cdef size_t a,b                # vertices of an edge
+        if compute_edges:
+            edges = <size_t**> mem.malloc(sizeof(size_t**))
+            current_length = 1
 
         # Initialize ``f_vector``.
         cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
@@ -2922,6 +2938,17 @@ cdef class CombinatorialPolyhedron(SageObject):
             while (d < dim):
                 sig_check()
                 f_vector[d+1] += 1
+
+                if compute_edges and d == 1:
+                    # If it is an edge.
+
+                    # Set up face_iter.atom_rep
+                    face_iter.set_atom_rep()
+
+                    # Copy the information.
+                    a = face_iter.structure.atom_rep[0]
+                    b = face_iter.structure.atom_rep[1]
+                    self._set_edge(a, b, &edges, &counter, &current_length, mem)
                 d = face_iter.next_dimension()
 
         # Copy ``f_vector``.
@@ -2943,257 +2970,105 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
 
-    cdef int _compute_edges(self, dual) except -1:
-        r"""
-        Compute the edges of the polyhedron.
+        if compute_edges:
+            # Success, copy the data to ``CombinatorialPolyhedron``.
+            if dual:
+                sig_block()
+                self._n_ridges = counter
+                self._ridges = edges
+                self._mem_tuple += (mem,)
+                sig_unblock()
+            else:
+                sig_block()
+                self._n_edges = counter
+                self._edges = edges
+                self._mem_tuple += (mem,)
+                sig_unblock()
 
-        If ``dual`` is ``True``, compute the edges of the dual. In this case,
-        this will also compute the ``f_vector``, if unknown.
+    cdef int _compute_edges_or_ridges(self, bint dual, bint do_edges) except -1:
+        r"""
+        Compute the edges of the polyhedron if ``edges`` else the ridges.
+
+        If ``dual``, use the face iterator in dual mode, else in non-dual.
+
+        If the ``f_vector`` is unkown computes it as well if computing the edges
+        in non-dual mode or the ridges in dual-mode.
 
         See :meth:`CombinatorialPolyhedron.edges` and :meth:`CombinatorialPolyhedron.ridges`.
         """
-        if (self._edges is not NULL and not dual) or (self._ridges is not NULL and dual):
+        if (self._edges is not NULL and do_edges) or (self._ridges is not NULL and not do_edges):
             return 0  # There is no need to recompute.
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef FaceIterator face_iter
         cdef int dim = self.dimension()
-        cdef int d              # dimension of the current face of ``FaceIterator``
-        cdef size_t *f_vector   # compute f_vector, if not done already
-        cdef bint is_f_vector   # True if f_vector was computed previously
 
         cdef size_t **edges = <size_t**> mem.malloc(sizeof(size_t**))
         cdef size_t counter = 0         # the number of edges so far
         cdef size_t current_length = 1  # dynamically enlarge **edges
+        cdef int output_dim_init = 1 if do_edges else dim - 2
 
-        cdef size_t a,b                # vertices of an edge
-
-        if self._f_vector:
-            is_f_vector = True
-        else:
-            # in this case we will compute the f_vector while we're at it
-            is_f_vector = False
-
-        if dim == 1:
-            # In this case there is an edge, but its not a proper face.
+        if dim == 1 and (do_edges or self.n_facets() > 1):
+            # In this case there is an edge/ridge, but its not a proper face.
             self._set_edge(0, 1, &edges, &counter, &current_length, mem)
 
-            # Success, copy the data to ``CombinatorialPolyhedron``.
-            if dual:
-                # We have actually computed the ridges.
-                sig_block()
-                self._n_ridges = counter
-                self._ridges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            else:
-                sig_block()
-                self._n_edges = counter
-                self._edges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            return 0
+        elif dim <= 1 or self.n_facets() == 0:
+            # There is no edge/ridge.
+            # Prevent an error when calling the face iterator.
+            pass
 
-        if dim == 0:
-            # There is no edge.
-            # Prevent calling the face iterator with an improper dimension.
-            counter = 0
+        elif not self._f_vector and ((dual ^ do_edges)):
+            # While doing edges in non-dual mode or ridges in dual-mode
+            # one might as well do the f-vector.
+            return self._compute_f_vector(compute_edges=True, given_dual=dual)
 
-            # Success, copy the data to ``CombinatorialPolyhedron``.
-            if dual:
-                # We have actually computed the ridges.
-                sig_block()
-                self._n_ridges = counter
-                self._ridges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            else:
-                sig_block()
-                self._n_edges = counter
-                self._edges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            return 0
-
-        if is_f_vector:
-            # Only compute the edges.
-
-            if not dual:
-                face_iter = self._face_iter(dual, 1)
-            else:
-                # ``output_dimension`` in
-                # :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator.__init__`
-                # requires the dimension of the original polyhedron
-                face_iter = self._face_iter(dual, dim - 2)
-
-            if self.n_facets() > 0 and dim > 0:
-                # If not, there won't even be any edges. Prevent error message.
-
-                while (face_iter.next_dimension() == 1):
-                    # Set up face_iter.atom_rep
-                    face_iter.set_atom_rep()
-
-                    # Copy the information.
-                    a = face_iter.structure.atom_rep[0]
-                    b = face_iter.structure.atom_rep[1]
-                    self._set_edge(a, b, &edges, &counter, &current_length, mem)
-
-            # Success, copy the data to ``CombinatorialPolyhedron``.
-            if dual:
-                sig_block()
-                self._n_ridges = counter
-                self._ridges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            else:
-                sig_block()
-                self._n_edges = counter
-                self._edges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
         else:
-            face_iter = self._face_iter(dual, -2)
-            # While doing the edges one might as well do the f-vector.
-            f_vector = <size_t *> mem.calloc(dim + 2, sizeof(size_t))
-            f_vector[0] = 1         # This is not a proper face.
-            f_vector[dim + 1] = 1   # This is not a proper face.
+            # Only compute the edges/ridges.
+            face_iter = self._face_iter(dual, output_dim_init)
 
-            counter = 0
-            if self.n_facets() > 0 and dim > 0:
-                # If not, there won't even be any edges. Prevent error message.
+            self._compute_edges_or_ridges_with_iterator(face_iter, (dual ^ do_edges), &edges, &counter, &current_length, mem)
 
-                d = face_iter.next_dimension()
-                while (d < dim):
-                    f_vector[d+1] += 1
+        # Success, copy the data to ``CombinatorialPolyhedron``.
+        if do_edges:
+            sig_block()
+            self._n_edges = counter
+            self._edges = edges
+            self._mem_tuple += (mem,)
+            sig_unblock()
+        else:
+            sig_block()
+            self._n_ridges = counter
+            self._ridges = edges
+            self._mem_tuple += (mem,)
+            sig_unblock()
 
-                    if d == 1:
-                        # If it is an edge.
-
-                        # Set up face_iter.atom_rep
-                        face_iter.set_atom_rep()
-
-                        # Copy the information.
-                        a = face_iter.structure.atom_rep[0]
-                        b = face_iter.structure.atom_rep[1]
-                        self._set_edge(a, b, &edges, &counter, &current_length, mem)
-
-                    d = face_iter.next_dimension()  # Go to next face.
-
-            # Success, copy the data to ``CombinatorialPolyhedron``.
-            if dual:
-                sig_block()
-                self._f_vector = \
-                    tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
-                self._n_ridges = counter
-                self._ridges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            else:
-                sig_block()
-                self._f_vector = \
-                    tuple(smallInteger(f_vector[i]) for i in range(dim+2))
-                self._n_edges = counter
-                self._edges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-
-    cdef int _compute_ridges(self, dual) except -1:
+    cdef size_t _compute_edges_or_ridges_with_iterator(
+            self, FaceIterator face_iter, bint do_atom_rep, size_t ***edges_pt,
+            size_t *counter_pt, size_t *current_length_pt,
+            MemoryAllocator mem) except -1:
         r"""
-        Compute the ridges of the polyhedron.
-
-        If ``dual`` is ``True``, compute the ridges of the dual.
-
-        See :meth:`edges` and :meth:`ridges`.
+        See :meth:`CombinatorialPolyhedron._compute_edges`.
         """
-        if (self._edges is not NULL and dual) or (self._ridges is not NULL and not dual):
-            return 0  # There is no need to recompute.
-
-        cdef MemoryAllocator mem = MemoryAllocator()
-        cdef FaceIterator face_iter
+        cdef size_t a,b                # facets of an edge
         cdef int dim = self.dimension()
+        cdef output_dimension = 1 if do_atom_rep else dim - 2
 
-        # For each ridge we determine its location in ``ridges``
-        # by ``ridges[one][two]``.
-        cdef size_t **ridges = <size_t**> mem.malloc(sizeof(size_t**))
+        while face_iter.next_dimension() == output_dimension:
+            if do_atom_rep:
+                # Set up face_iter.atom_rep
+                face_iter.set_atom_rep()
 
-        cdef size_t counter = 0         # the number of ridges so far
-        cdef size_t current_length = 1  # dynamically enlarge **ridges
-
-        cdef size_t a,b                # facets of a ridge
-
-        if dim == 1 and self.n_facets() > 1:
-            # In this case there is a ridge, but its not a proper face.
-            self._set_edge(0, 1, &ridges, &counter, &current_length, mem)
-
-            # Success, copy the data to ``CombinatorialPolyhedron``.
-            if not dual:
-                sig_block()
-                self._n_ridges = counter
-                self._ridges = ridges
-                self._mem_tuple += (mem,)
-                sig_unblock()
+                # Copy the information.
+                a = face_iter.structure.atom_rep[0]
+                b = face_iter.structure.atom_rep[1]
             else:
-                sig_block()
-                self._n_edges = counter
-                self._edges = ridges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            return 0
-
-        if dim <= 1:
-            # There is no ridge, but face iterator expects a proper face dimension as input.
-            counter = 0
-
-            # Success, copy the data to ``CombinatorialPolyhedron``.
-            if not dual:
-                sig_block()
-                self._n_ridges = counter
-                self._ridges = ridges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            else:
-                sig_block()
-                self._n_edges = counter
-                self._edges = ridges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            return 0
-
-        if dual:
-            # ``output_dimension`` in
-            # :meth:`FaceIterator.__init`
-            # requires the dimension of the original polyhedron
-            face_iter = self._face_iter(dual, 1)
-        else:
-            face_iter = self._face_iter(dual, dim -2)
-
-        if self.n_facets() > 1 and dim > 0:
-            # If not, there won't even be any ridges
-            # as intersection of two distinct facets.
-            # Prevent error message.
-
-            while (face_iter.next_dimension() == dim - 2):
                 # Set up face_iter.coatom_rep
                 face_iter.set_coatom_rep()
 
                 # Copy the information.
                 a = face_iter.structure.coatom_rep[0]
                 b = face_iter.structure.coatom_rep[1]
-                self._set_edge(a, b, &ridges, &counter, &current_length, mem)
-
-        # Success, copy the data to ``CombinatorialPolyhedron``.
-        if not dual:
-            sig_block()
-            self._n_ridges = counter
-            self._ridges = ridges
-            self._mem_tuple += (mem,)
-            sig_unblock()
-        else:
-            sig_block()
-            self._n_edges = counter
-            self._edges = ridges
-            self._mem_tuple += (mem,)
-            sig_unblock()
+            self._set_edge(a, b, edges_pt, counter_pt, current_length_pt, mem)
 
     cdef int _compute_face_lattice_incidences(self) except -1:
         r"""

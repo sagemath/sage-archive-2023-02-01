@@ -1,5 +1,5 @@
-pynac
-=====
+pynac: A fork of the symbolic computation software GiNaC that uses Python objects
+=================================================================================
 
 Description
 -----------
@@ -16,6 +16,7 @@ GPL V2+
 Upstream Contact
 ----------------
 
+-  http://pynac.org
 -  Burcin Erocal - burcin spam.erocal.org
 -  William Stein - wstein spam.gmail.com
 -  Mike Hansen - mhansen spam.gmail.com

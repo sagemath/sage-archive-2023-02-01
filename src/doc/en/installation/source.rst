@@ -178,7 +178,7 @@ built from scratch.
 
 You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
 ``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
-a number of Python modules to be availabe within the Python in question. Currently,
+a number of Python modules to be available within the Python in question. Currently,
 for Sage 9.2, these modules are as follows: sqlite3, ctypes, math, hashlib, crypt,
 readline, socket, zlib, distutils.core - they will be checked for by configure.
 

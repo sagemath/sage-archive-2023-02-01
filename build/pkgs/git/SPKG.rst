@@ -1,6 +1,5 @@
-
-git - the stupid content tracker
-================================
+git: Version control system
+===========================
 
 Description
 -----------

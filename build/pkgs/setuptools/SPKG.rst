@@ -1,5 +1,5 @@
-setuptools
-==========
+setuptools: Build system for Python packages
+============================================
 
 Description
 -----------

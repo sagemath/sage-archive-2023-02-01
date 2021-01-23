@@ -1,5 +1,5 @@
-GLPK
-====
+glpk: GNU Linear Programming Kit
+================================
 
 Description
 -----------

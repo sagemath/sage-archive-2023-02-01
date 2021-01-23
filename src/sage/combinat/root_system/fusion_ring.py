@@ -795,22 +795,6 @@ class FusionRing(WeylCharacterRing):
             # We instead have wt in i.exterior_power(2).monomial_coefficients():
             return -r
 
-    def r_matrix_old(self, i, j, k):
-        """
-        Deprecated older implementation of `r_matrix` method. Gives
-        inconsistent results for A2 at level 2.
-        """
-        if self.Nk_ij(i, j, k) == 0:
-            return 0
-        r = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
-        if i != j:
-            return r
-        wt = k.weight()
-        if wt in i.symmetric_power(2).monomial_coefficients():
-            return r
-        # We instead have wt in i.exterior_power(2).monomial_coefficients():
-        return -r
-
     def global_q_dimension(self):
         r"""
         Return `\sum d_i^2`, where the sum is over all simple objects

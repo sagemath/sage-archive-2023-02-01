@@ -789,10 +789,11 @@ class FusionRing(WeylCharacterRing):
             i0 = self.one()
             return sum((y.ribbon())**2/(a.ribbon()*((x.ribbon())**2))*self.s_ij(i0,y)*self.s_ij(a,z)*self.s_ij(x,z).conjugate()*self.s_ij(c,x).conjugate()*self.s_ij(y,z).conjugate()/self.s_ij(i0,z) for x in self.basis() for y in self.basis() for z in self.basis())/(self.total_q_order()**4)
         else:
-            wt = k.weight()
-            if wt in i.symmetric_power(2).monomial_coefficients():
+            wt = c.weight()
+            r = self.root_of_unity((c.twist(reduced=False) - a.twist(reduced=False) - b.twist(reduced=False)) / 2)
+            if wt in a.symmetric_power(2).monomial_coefficients():
                 return r
-            # We instead have wt in i.exterior_power(2).monomial_coefficients():
+            # We instead have wt in a.exterior_power(2).monomial_coefficients():
             return -r
 
     def global_q_dimension(self):

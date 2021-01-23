@@ -49,6 +49,7 @@ if [ "$UNAME" = Darwin ]; then
     if [ $MACOSX_VERSION -ge 16 ]; then
         echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
         CC=clang
+        export CFLAGS="$CFLAGS_NON_NATIVE"
     fi
 elif [ "$UNAME" = SunOS ]; then
     # Enable some C99 features on Solaris. This in particular enables

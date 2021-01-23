@@ -414,9 +414,10 @@ usage_advanced() {
     if [ -n "$SAGE_SRC" -a -f "$SAGE_SRC/tox.ini" ]; then
         echo "  --tox [options] <files|dirs> -- general entry point for testing"
         echo "                                  and linting of the Sage library"
-        echo "     -e <envlist>     -- run specific test environments (default: run all)"
-        tox -c "$SAGE_SRC" --listenvs -v 2>/dev/null | sed -n '/->/s/^/        /;s/(/\
-                            (/;s/->/     --/p;'
+        echo "     -e <envlist>     -- run specific test environments"
+        echo "                         (default: run all except full pycodestyle)"
+        tox -c "$SAGE_SRC" --listenvs-all -v 2>/dev/null | sed -n '/->/s/^/        /;s/(/\
+                                  (/;s/->/   --/p;'
         echo "     -p auto          -- run test environments in parallel"
         echo "     --help           -- show tox help"
         command -v tox &>/dev/null || \

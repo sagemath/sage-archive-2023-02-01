@@ -1,8 +1,10 @@
-MPIR
-====
+mpir: Multiple precision integers and rationals (fork of GMP)
+=============================================================
 
 Description
 -----------
+
+Multiple Precision Integers and Rationals.
 
 MPIR is an open source multiprecision integer library derived from
 version 5.0.1 of the GMP (GNU Multi Precision) project (which was

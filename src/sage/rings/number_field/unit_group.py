@@ -324,7 +324,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             self.__pS = pS = [P.pari_prime() for P in S]
 
         # compute the fundamental units via pari:
-        fu = [K(u, check=False) for u in pK.bnfunit()]
+        fu = [K(u, check=False) for u in pK.bnf_get_fu()]
         self.__nfu = len(fu)
 
         # compute the additional S-unit generators:

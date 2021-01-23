@@ -1,5 +1,5 @@
-Polymake
-========
+polymake: Computations with polyhedra, fans, simplicial complexes, matroids, graphs, tropical hypersurfaces
+===========================================================================================================
 
 Description
 -----------

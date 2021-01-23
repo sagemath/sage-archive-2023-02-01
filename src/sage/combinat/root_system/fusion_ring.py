@@ -735,7 +735,8 @@ class FusionRing(WeylCharacterRing):
         else:
             return S
         
-    def r_matrix(self, i, j, k):
+    @cached_method
+    def r_matrix(self, a, b, c, method="BDGRTW"):
         r"""
         Return the R-matrix entry corresponding to the subobject ``k``
         in the tensor product of ``i`` with ``j``.
@@ -756,9 +757,9 @@ class FusionRing(WeylCharacterRing):
 
         If `i \neq j`, the gauge may be used to control the sign of
         the square root. But if `i = j` then we must be careful
-        about the sign. This sign is `+` if `k` is a subobject of 
-        the symmetric square of `i` and `-` if it is a subobject of 
-        the exterior square. See [LR1997]_ Corollary 2.22
+        about the sign. These cases are computed by a formula
+        of [BDGRTW2019]_, Proposition 2.3. For an alternative
+        approach to computing these see [LR1997]_ Corollary 2.22
         (actually due to Reshetikhin).
 
         This method only gives complete information when `N_{ij}^k = 1`
@@ -779,6 +780,25 @@ class FusionRing(WeylCharacterRing):
             True
             sage: I.r_matrix(s,s,p) == I.root_of_unity(3/8)
             True
+        """
+        if self.Nk_ij(a, b, c) == 0:
+            return 0
+        if a != b:
+            return self.root_of_unity((c.twist(reduced=False) - a.twist(reduced=False) - b.twist(reduced=False)) / 2)
+        if method == "BDGRTW":
+            i0 = self.one()
+            return sum((y.ribbon())**2/(a.ribbon()*((x.ribbon())**2))*self.s_ij(i0,y)*self.s_ij(a,z)*self.s_ij(x,z).conjugate()*self.s_ij(c,x).conjugate()*self.s_ij(y,z).conjugate()/self.s_ij(i0,z) for x in self.basis() for y in self.basis() for z in self.basis())/(self.total_q_order()**4)
+        else:
+            wt = k.weight()
+            if wt in i.symmetric_power(2).monomial_coefficients():
+                return r
+            # We instead have wt in i.exterior_power(2).monomial_coefficients():
+            return -r
+
+    def r_matrix_old(self, i, j, k):
+        """
+        Deprecated older implementation of `r_matrix` method. Gives
+        inconsistent results for A2 at level 2.
         """
         if self.Nk_ij(i, j, k) == 0:
             return 0

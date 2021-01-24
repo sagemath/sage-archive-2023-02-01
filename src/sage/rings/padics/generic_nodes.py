@@ -700,12 +700,6 @@ class pAdicLatticeGeneric(pAdicGeneric):
         return ans
 
 class pAdicLazyGeneric(pAdicGeneric):
-    def __init__(self):
-        if self._prec and not self.is_field():
-            self._zeroprec = self.change(field=True, prec=0)
-        else:
-            self._zeroprec = self
-
     def _prec_type(self):
         return "lazy"
 
@@ -764,13 +758,13 @@ class pAdicLazyGeneric(pAdicGeneric):
                 return self._element_classes['div'](self, num, denom, precbound=prec)
         raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
 
-    def selfref(self, start_val=0):
-        if start_val not in ZZ:
-            raise ValueError("valuation must be an integer")
-        start_val = ZZ(start_val)
-        if (not self.is_field()) and start_val < 0:
+    def selfref(self, valuation=0, digits=None):
+        valuation = ZZ(valuation)
+        if (not self.is_field()) and valuation < 0:
             raise ValueError("valuation must be nonnegative")
-        return self._element_classes['selfref'](self, start_val)
+        if digits is not None and not isinstance(digits, (list, tuple)):
+            digits = [digits]
+        return self._element_classes['selfref'](self, valuation, digits)
 
     def random_element(self, integral=False, prec=None):
         integral = integral or (not self.is_field())

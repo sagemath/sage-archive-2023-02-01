@@ -88,13 +88,13 @@ cdef class LazyElement(pAdicGenericElement):
         cdef int error = 0
         if self._valuation <= -maxordp:
             error = self._next_c()
-        if not error and self._valuation < halt:
-            while self._precrel == 0:
-                error = self._next_c()
-                if self._valuation >= halt:
-                    error |= ERROR_ABANDON
-                if error:
-                    break
+        cdef slong valhalt = min(halt, self._precbound)
+        while not error and self._valuation < valhalt and self._precrel == 0:
+            error = self._next_c()
+        if self._valuation >= self._precbound:
+            error |= ERROR_PRECISION
+        elif self._valuation >= halt:
+            error |= ERROR_ABANDON
         if not error:
             error = self._jump_c(self._valuation + prec)
         return error
@@ -277,7 +277,7 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             halt = min(maxordp, halt)
         self._jump_relative_c(1, halt)
-        if self._precrel == 0:
+        if self._precbound >= maxordp and self._precrel == 0:
             raise PrecisionError("cannot determine the valuation; try to increase the halting precision")
         return Integer(self._valuation)
 
@@ -562,8 +562,8 @@ cdef class LazyElement_value(LazyElement_init):
         return ERROR_OVERFLOW
 
     cdef int _next_c(self):
-        if (self._precbound is not None) and (self._valuation + self._precrel >= self._precbound):
-            return ERROR_PRECISION
+        # The algorithm is not optimal (quadratic in the precision),
+        # but it sounds okay
         element_reduce_digit(self._digits, self._precrel, self.prime_pow)
         if self._precrel == 0 and digit_is_zero(self._getdigit_relative(0)):
             self._valuation += 1
@@ -1092,19 +1092,31 @@ cdef class LazyElement_teichmuller(LazyElement_init):
 ###########################
 
 cdef class LazyElement_selfref(LazyElement_init):
-    def __init__(self, parent, slong valuation):
+    def __init__(self, parent, slong valuation, digits=None):
         LazyElement.__init__(self, parent)
         if valuation >= maxordp:
             raise OverflowError("valuation is too large (maximum is %s)" % maxordp)
         self._valuation = valuation
         self._definition = None
         self._next = maxordp
+        cdef cdigit digit
+        if digits is not None:
+            digits = [ Integer(d) for d in digits ]
+            for d in digits:
+                digit_set_sage(digit, d)
+                element_iadd_digit(self._digits, digit, self._precrel)
+                element_reduce_digit(self._digits, self._precrel, self.prime_pow)
+                if self._precrel == 0 and digit_is_zero(element_get_digit(self._digits, 0)):
+                    self._valuation += 1
+                    element_shift_right(self._digits)
+                else:
+                    self._precrel += 1
 
     cpdef set(self, LazyElement definition):
         if self._definition is not None:
             raise ValueError("this self-referent number is already defined")
         self._definition = definition
-        self._precbound = definition._precbound
+        self._precbound = max(self._valuation + self._precrel, definition._precbound)
         self._init_jump()
 
     cdef int _next_c(self):
@@ -1123,17 +1135,12 @@ cdef class LazyElement_selfref(LazyElement_init):
         self._next = n
         error = definition._jump_c(n+1)
         if not error:
-            diffval = self._valuation - definition._valuation
-            if diffval < 0:
-                self._valuation = definition._valuation
+            digit = definition._getdigit_absolute(n)
+            if self._precrel == 0 and digit_is_zero(digit):
+                self._valuation += 1
             else:
-                digit = definition._getdigit_relative(self._precrel + diffval)
-                if self._precrel == 0 and digit_is_zero(digit):
-                    self._valuation += 1
-                else:
-                    element_set_digit(self._digits, digit, self._precrel)
-                    self._precrel += 1
-            self._precbound = definition._precbound
+                element_set_digit(self._digits, digit, self._precrel)
+                self._precrel += 1
         self._next = svenext
         return error
 

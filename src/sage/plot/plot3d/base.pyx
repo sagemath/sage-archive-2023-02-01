@@ -4,8 +4,9 @@ Base Classes for 3D Graphics Objects and Plotting
 The most important facts about these classes are
 that you can add simply add graphics objects
 together (``G1+G2``, see :meth:`Graphics3d.__add__`)
-and the :meth:`Graphics3d.show` method with its options for setting
-various parameters for displaying the plots.
+and the :meth:`Graphics3d.show` method with its options for
+choosing a viewer and setting
+various parameters for displaying the graphics.
 
 Most of the other methods of these classes are technical and
 for special usage. 
@@ -954,28 +955,30 @@ cdef class Graphics3d(SageObject):
 
 ################ TACHYON ################
 
-        ####### insertion of camera parameters
+####### insertion of camera parameters
 
-    tachyon_keywords = ("antialiasing",
-                        # "aspectratio",
-                        "zoom",
-                        # zoom was previously handled directly by scaling the scene.
-                        # this has now been disabled, and zoom is handled by tachyon
-                        "raydepth", "figsize", "light_position",
-                        "camera_position","updir",
-                        #"look_at", # omit look_at. viewdir is sufficient
-                        "viewdir")
+    tachyon_keywords = (
+      "antialiasing",
+      # "aspectratio",
+      "zoom",  # zoom was previously handled directly by scaling the scene.
+               # this has now been disabled, and zoom is handled by tachyon
+      "raydepth", "figsize", "light_position",
+      "camera_position","updir",
+      # "look_at", # omit look_at. viewdir is sufficient for most purposes
+      "viewdir")
+      
     # The tachyon "aspectratio" parameter is outdated for normal users:
     # From the tachyon documentation:
-    # "By using the aspect ratio parameter, one can produce images which look correct on
-    # any screen.  Aspect ratio alters the relative width of the image plane, while keeping
-    # the height of the image plane constant.  Ingeneral, most workstation displays
-    # have an aspect ratio of 1.0."
+    # "By using the aspect ratio parameter, one can produce images which look on
+    # correct any screen.  Aspect ratio alters the relative width of the image,
+    # while keeping plane the height of the image plane constant.  In general,
+    # most workstation displays have an aspect ratio of 1.0."
 
-    # aspectratio should rather be set to match nonsquare drawing area in "figsize"
+    # Instead, the tachyon aspectratio is set to match nonsquare
+    # drawing area in "figsize".
 
-    # parameters are taken from tachyion.py
-    # Apparently ReST strips () from default parameters in the automatic doc.
+    # Parameters are taken from tachyion.py
+    # Apparently reST strips () from default parameters in the automatic documentation.
     # Thus, replaced () by [].
 
     def tachyon(self,
@@ -1612,7 +1615,8 @@ end_scene""".format(
 
            * ``'jmol'``: interactive 3D viewer using Java
 
-           * ``'tachyon'``: ray tracer generating a static PNG image; does
+           * ``'tachyon'``: ray tracer generating a static PNG image;
+             can produce high-resolution graphics, but does
              not show any text labels
 
            * ``'canvas3d'``: web-based 3D viewer using JavaScript

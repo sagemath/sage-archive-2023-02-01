@@ -735,7 +735,10 @@ class pAdicLazyGeneric(pAdicGeneric):
         elif isinstance(parent, pAdicGeneric):
             if not self.is_field() and x.valuation() < 0:
                 raise ValueError("negative valuation")
-            prec = min(prec, x.precision_absolute())
+            if prec is None:
+                prec = x.precision_absolute()
+            else:
+                prec = min(prec, x.precision_absolute())
             return self._element_classes['value'](self, x.lift(), precbound=prec)
         elif x == 0 and prec is None:
             return self._element_classes['zero'](self)

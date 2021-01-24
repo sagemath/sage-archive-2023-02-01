@@ -24,6 +24,8 @@ class TensorProductFunctor(CovariantFunctorialConstruction):
     ``Algebras(QQ)``, it is automatically endowed with its natural
     algebra structure, thanks to the category
     ``Algebras(QQ).TensorProducts()`` of tensor products of algebras.
+    For elements, it constructs the natural tensor product element in the
+    corresponding tensor product of their parents.
 
     The tensor functor is covariant: if ``A`` is a subcategory of ``B``, then
     ``A.TensorProducts()`` is a subcategory of ``B.TensorProducts()`` (see

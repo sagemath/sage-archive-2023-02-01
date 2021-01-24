@@ -213,22 +213,14 @@ class Application(object):
         log.info('Publishing')
         fs.publish()
         
-    def fix_all_checksums(self):
+    def fix_checksum_cls(self, *package_classes):
         """
-        Fix the checksum of a package
+        Fix the checksum of packages
 
         $ sage --package fix-checksum
         """
-        for pkg in Package.all():
-            if not os.path.exists(pkg.tarball.upstream_fqn):
-                log.debug('Ignoring {0} because tarball is not cached'.format(pkg.tarball_filename))
-                continue
-            if pkg.tarball.checksum_verifies():
-                log.debug('Checksum of {0} (tarball {1}) unchanged'.format(pkg.name, pkg.tarball_filename))
-                continue
-            update = ChecksumUpdater(pkg.name)
-            print('Updating checksum of {0} (tarball {1})'.format(pkg.name, pkg.tarball_filename))
-            update.fix_checksum()
+        pc = PackageClass(*package_classes, has_files=['checksums.ini'])
+        pc.apply(self.fix_checksum)
 
     def fix_checksum(self, package_name):
         """
@@ -240,12 +232,18 @@ class Application(object):
         log.debug('Correcting the checksum of %s', package_name)
         update = ChecksumUpdater(package_name)
         pkg = update.package
+        if not pkg.tarball_filename:
+            log.info('Ignoring {0} because it is not a normal package'.format(package_name))
+            return
+        if not os.path.exists(pkg.tarball.upstream_fqn):
+            log.info('Ignoring {0} because tarball is not cached'.format(package_name))
+            return
         if pkg.tarball.checksum_verifies():
-            print('Checksum of {0} (tarball {1}) unchanged'.format(package_name, pkg.tarball_filename))
+            log.info('Checksum of {0} (tarball {1}) unchanged'.format(package_name, pkg.tarball_filename))
         else:
-            print('Updating checksum of {0} (tarball {1})'.format(package_name, pkg.tarball_filename))
+            log.info('Updating checksum of {0} (tarball {1})'.format(package_name, pkg.tarball_filename))
             update.fix_checksum()
-        
+
     def create(self, package_name, version=None, tarball=None, pkg_type=None, upstream_url=None,
                description=None, license=None, upstream_contact=None, pypi=False, source='normal'):
         """

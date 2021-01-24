@@ -274,10 +274,13 @@ def make_parser():
     parser_fix_checksum = subparsers.add_parser(
         'fix-checksum', epilog=epilog_fix_checksum,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        help='Fix the checksum of package.')
+        help='Fix the checksum of normal packages.')
     parser_fix_checksum.add_argument(
-        'package_name', nargs='?', default=None, type=str,
-        help='Package name. Default: fix all packages.')
+        'package_class', metavar='[package_name|:package_type:]',
+        type=str, default=[':all:'], nargs='*',
+        help=('package name or designator for all packages of a given type '
+              '(one of :all:, :standard:, :optional:, :experimental:, and :huge:); '
+              'default: :all:'))
 
     parser_create = subparsers.add_parser(
         'create', epilog=epilog_create,
@@ -346,10 +349,7 @@ def run():
     elif args.subcommand == 'upload':
         app.upload_cls(args.package_name)
     elif args.subcommand == 'fix-checksum':
-        if args.package_name is None:
-            app.fix_all_checksums()
-        else:
-            app.fix_checksum(args.package_name)
+        app.fix_checksum_cls(*args.package_class)
     else:
         raise RuntimeError('unknown subcommand: {0}'.format(args))
 

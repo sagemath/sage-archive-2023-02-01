@@ -96,29 +96,10 @@ cdef class LazyElement(pAdicGenericElement):
             return ERROR_PRECISION
         return 0
 
-    def jump_absolute(self, prec=None):
-        if prec is None:
-            permissive = True
-            prec = self._parent.default_prec()
-        else:
-            permissive = False
-        error = self._jump_c(prec)
-        raise_error(error, permissive)
-
-    def jump_relative(self, prec=None, halt=True):
-        if self._is_exact_zero():
-            return
-        default_prec = self._parent.default_prec()
-        if prec is None:
-            permissive = True
-            prec = default_prec
-        else:
-            permissive = False
-        if halt is True:
-            halt = self._valuation + default_prec
-        elif halt is False:
-            halt = maxordp
-        error = 0
+    cdef int _jump_relative_c(self, slong prec, slong halt):
+        if self._valuation >= maxordp:
+            return 0
+        cdef int error = 0
         if self._valuation <= -maxordp:
             error = self._next_c()
         if not error and self._valuation < halt:
@@ -130,7 +111,7 @@ cdef class LazyElement(pAdicGenericElement):
                     break
         if not error:
             error = self._jump_c(self._valuation + prec)
-        raise_error(error, permissive)
+        return error
 
     cdef Integer _digit(self, slong i):
         self._jump_c(i+1)
@@ -159,16 +140,15 @@ cdef class LazyElement(pAdicGenericElement):
             return self._digit(n)
 
     def slice(self, start=None, stop=None):
-        cdef slong shift = 0
-        if start >= maxordp:
+        if start is None:
+            start = maxordp
+        elif start >= maxordp:
             raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
-        else:
-            shift = start
         if stop is None:
             stop = maxordp
         elif stop >= maxordp:
             raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
-        return element_class_slice(self._parent, self, start, stop, shift)
+        return element_class_slice(self._parent, self, start, stop, 0)
 
     def _repr_(self):
         if self._valuation <= -maxordp:
@@ -214,10 +194,15 @@ cdef class LazyElement(pAdicGenericElement):
             a, b = coercion_model.canonical_coercion(self, other)
             return a == b
         cdef LazyElement right = <LazyElement?>other
+        prec = min(self._valuation + self._precrel, right._valuation + right._precrel)
+        c = self._is_equal(right, prec, True)
+        if not c:
+            return False
         prec = min(self._precbound, right._precbound)
-        if prec >= maxordp:
-            raise ValueError("comparisons between unbounded lazy padics are not allowed")
-        return self._is_equal(right, prec, True)
+        if prec < maxordp:
+            return self._is_equal(right, prec, True)
+        else:
+            raise PrecisionError("not enough precision to decide equality")
 
     def is_precision_bounded(self):
         return self._precbound < maxordp
@@ -249,11 +234,45 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             return Infinity
 
-    def at_precision(self, prec):
+    def at_precision_absolute(self, prec=None):
+        if prec is None:
+            permissive = True
+            prec = self._parent.default_prec()
+        else:
+            permissive = False
+            prec = Integer(prec)
+            if not self.prime_pow.in_field and prec < 0:
+                raise ValueError("precision must be nonnegative")
+            if prec > maxordp:
+                raise OverflowError("beyond maximal precision (which is %s)" % maxordp)
+        error = self._jump_c(prec)
+        raise_error(error, permissive)
         return element_class_bound((<LazyElement>self)._parent, self, prec)
 
+    def at_precision_relative(self, prec=None, halt=True):
+        default_prec = self._parent.default_prec()
+        if prec is None:
+            permissive = True
+            prec = default_prec
+        else:
+            permissive = False
+            prec = Integer(prec)
+            if prec < 0:
+                raise ValueError("precision must be nonnegative")
+            if prec > maxordp:
+                raise OverflowError("beyond maximal precision (which is %s)" % maxordp)
+        if halt is True:
+            halt = self._valuation + default_prec
+        elif halt is False:
+            halt = maxordp
+        else:
+            halt = min(maxordp, halt)
+        error = self._jump_relative_c(prec, halt)
+        raise_error(error, permissive)
+        return element_class_bound((<LazyElement>self)._parent, self, self._valuation + prec)
+
     def __matmul__(self, prec):
-        return self.at_precision(prec)
+        return self.at_precision_absolute(prec)
 
     cdef long valuation_c(self):
         return self._valuation
@@ -263,7 +282,13 @@ cdef class LazyElement(pAdicGenericElement):
             return Infinity
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
-        self.jump_relative(1, halt)
+        if halt is True:
+            halt = self._valuation + self._parent.default_prec()
+        elif halt is False:
+            halt = maxordp
+        else:
+            halt = min(maxordp, halt)
+        self._jump_relative_c(1, halt)
         if self._precrel == 0:
             raise PrecisionError("cannot determine the valuation; try to increase the precision")
         return Integer(self._valuation)
@@ -432,7 +457,7 @@ cdef class LazyElement_init(LazyElement):
 
 cdef class LazyElement_zero(LazyElement):
     def __init__(self, parent):
-        LazyElement.__init__(self, parent, maxordp)
+        LazyElement.__init__(self, parent)
         self._valuation = maxordp
 
     cdef cdigit_ptr _getdigit_relative(self, slong i):
@@ -590,7 +615,7 @@ cdef class LazyElement_slice(LazyElement):
         self._precrel = min(x._precrel + x._valuation, stop) - self._valuation - shift
         if x._precbound < maxordp:
             self._precbound = x._precbound - shift
-        self._stop = min(self._precbound, stop)
+        self._stop = stop
         if self._precrel < 0:
             self._precrel = 0
         while self._precrel > 0 and digit_is_zero(self._getdigit_relative(0)):
@@ -699,14 +724,15 @@ cdef class LazyElement_mul(LazyElement_init):
         digit_clear(self._lastdigit_x)
         digit_clear(self._lastdigit_y)
 
-    def __init__(self, parent, x, y):
+    def __init__(self, parent, LazyElement x, LazyElement y):
         LazyElement.__init__(self, parent)
-        self._x = <LazyElement?>x
-        self._y = <LazyElement?>y
-        self._valuation = self._x._valuation + self._y._valuation
-        if self._x._precbound < maxordp and self._y._precbound < maxordp:
-            # FIXME: maybe the valuations are not known here
-            self._precbound = min(self._x._valuation + self._y._precbound, self._y._valuation + self._x._precbound, maxordp)
+        self._x = x
+        self._y = y
+        self._valuation = x._valuation + y._valuation
+        if x._precbound < maxordp:
+            self._precbound = min(self._precbound, y._valuation + x._precbound)
+        if y._precbound < maxordp:
+            self._precbound = min(self._precbound, x._valuation + y._precbound)
         self._init_jump()
 
     cdef int _next_c(self):
@@ -836,15 +862,16 @@ cdef class LazyElement_div(LazyElement_init):
             self._maxprec = maxordp + 1
         else:
             self._maxprec = denom._valuation + max(1, self._parent.default_prec())
+        if precbound is not None:
+            self._precbound = min(maxordp, precbound)
         cdef int error = self._bootstrap_c()
+        if num._precbound < maxordp:
+            self._precbound = min(self._precbound, num._precbound - denom._valuation)
+        if denom._precbound < maxordp:
+            self._precbound = min(self._precbound, denom._precbound + num._valuation - 2*denom._valuation)
         if error:
             self._valuation = -maxordp
         else:
-            if precbound is not None:
-                self._precbound = min(maxordp, precbound)
-            if num._precbound < maxordp or denom._precbound < maxordp:
-                # FIXME: maybe num._valuation is not known here
-                self._precbound = min(maxordp, num._precbound - denom._valuation, denom._precbound + num._valuation - 2*denom._valuation)
             self._init_jump()
 
     cdef int _bootstrap_c(self):
@@ -869,7 +896,7 @@ cdef class LazyElement_div(LazyElement_init):
         cdef parent = self._parent._zeroprec
         cdef LazyElement a = element_class_muldigit(parent, self, num)
         cdef LazyElement b = element_class_muldigit(parent, self, denom)
-        cdef LazyElement c = element_class_slice(parent, b, denom._valuation + 1, maxordp, 0, False)
+        cdef LazyElement c = element_class_slice(parent, b, denom._valuation + 1, maxordp, 0)
         cdef LazyElement d = element_class_mul(parent, c, self)
         self._definition = element_class_add(parent, [a,d], [True,False])
         return 0
@@ -888,6 +915,7 @@ cdef class LazyElement_div(LazyElement_init):
                 return error
             if definition._valuation > val:
                 self._valuation = definition._valuation - self._denom._valuation
+                self._precbound = definition._precbound - self._denom._valuation
             else:
                 digit = definition._getdigit_relative(self._precrel)
                 element_set_digit(self._digits, digit, self._precrel)
@@ -956,10 +984,10 @@ cdef class LazyElement_sqrt(LazyElement_init):
                 return ERROR_NOTSQUARE
             zd = Integer(1)
             self._definition = lazyelement_abandon
-            u = element_class_slice(parent, self, val + 2, maxordp, val, False)
-            y = element_class_slice(parent, x, -maxordp, maxordp, val + 1, False) 
+            u = element_class_slice(parent, self, val + 2, maxordp, val)
+            y = element_class_slice(parent, x, -maxordp, maxordp, val + 1)
             c = element_class_value(parent, zd, shift=val-1) 
-            d = element_class_slice(parent, u*u, -maxordp, maxordp, -val + 1, False) 
+            d = element_class_slice(parent, u*u, -maxordp, maxordp, -val + 1)
             self._definition = y + c - d
         else:
             digit_init(digit)
@@ -970,8 +998,8 @@ cdef class LazyElement_sqrt(LazyElement_init):
             self._precrel = 1
             zd = digit_get_sage(digit)
             self._definition = lazyelement_abandon
-            u = element_class_slice(parent, self, val + 1, maxordp, val, False)
-            y = element_class_slice(parent, x, -maxordp, maxordp, 2*val, False)
+            u = element_class_slice(parent, self, val + 1, maxordp, val)
+            y = element_class_slice(parent, x, -maxordp, maxordp, 2*val)
             c = element_class_value(parent, zd*zd)
             d = element_class_value(parent, 2*zd, shift=-val)
             self._definition = (y + c - u*u) / d
@@ -1075,6 +1103,7 @@ cdef class LazyElement_selfref(LazyElement_init):
         if self._definition is not None:
             raise ValueError("this self-referent number is already defined")
         self._definition = definition
+        self._precbound = definition._precbound
         cdef slong valsve = self._valuation
         try:
             self._init_jump()
@@ -1082,6 +1111,7 @@ cdef class LazyElement_selfref(LazyElement_init):
             self._definition = None
             self._valuation = valsve
             self._precrel = 0
+            self._precbound = maxordp
             self._next = maxordp
             raise
 
@@ -1111,6 +1141,7 @@ cdef class LazyElement_selfref(LazyElement_init):
                 else:
                     element_set_digit(self._digits, digit, self._precrel)
                     self._precrel += 1
+            self._precbound = definition._precbound
         self._next = svenext
         return error
 

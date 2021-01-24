@@ -17,6 +17,7 @@ cdef class LazyElement(pAdicGenericElement):
 
     cdef int _init_jump(self) except -1
     cdef int _jump_c(self, slong prec)
+    cdef int _jump_relative_c(self, slong prec, slong halt)
     cdef int _next_c(self)
     cdef Integer _digit(self, slong i)
     cdef bint _is_equal(self, LazyElement right, slong prec, bint permissive) except -1

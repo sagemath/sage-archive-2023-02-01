@@ -574,6 +574,13 @@ def matrix(*args, **kwds):
         sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero()
         True
 
+    Check :trac:`24459`::
+
+        sage: Matrix(ZZ, sys.maxsize, sys.maxsize)
+        Traceback (most recent call last):
+        ...
+        RuntimeError...
+
     Test a simple ``_matrix_`` method. Note that we are ignoring
     ``base`` which is inefficient but allowed::
 

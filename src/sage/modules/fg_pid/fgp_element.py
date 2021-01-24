@@ -76,7 +76,8 @@ class FGP_Element(ModuleElement):
 
         For full documentation, see :class:`FGP_Element`.
         """
-        if check: assert x in parent.V(), 'The argument x='+str(x)+' is not in the covering module!'
+        if check:
+            assert x in parent.V(), 'The argument x='+str(x)+' is not in the covering module!'
         ModuleElement.__init__(self, parent)
         self._x = x
 
@@ -332,7 +333,8 @@ class FGP_Element(ModuleElement):
             sage: x.vector().parent()
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
         """
-        try: return self.__vector
+        try:
+            return self.__vector
         except AttributeError:
             self.__vector = self.parent().coordinate_vector(self, reduce=True)
             self.__vector.set_immutable()

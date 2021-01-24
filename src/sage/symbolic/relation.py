@@ -1611,9 +1611,11 @@ def _solve_mod_prime_power(eqns, p, m, vars):
             pairs = cartesian_product_iterator([shifts, ans])
             possibles = (tuple(vector(t)+vector(shift)*(mrunning//p)) for shift, t in pairs)
         ans = list(t for t in possibles if all(e(*t) == 0 for e in eqns_mod))
-        if not ans: return ans
+        if not ans:
+            return ans
 
     return ans
+
 
 def solve_ineq_univar(ineq):
     """

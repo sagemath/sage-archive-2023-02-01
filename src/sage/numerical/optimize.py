@@ -105,7 +105,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         return f.find_root(a=a,b=b,xtol=xtol,rtol=rtol,maxiter=maxiter,full_output=full_output)
     except AttributeError:
         pass
-    a = float(a); b = float(b)
+    a = float(a)
+    b = float(b)
     if a > b:
         a, b = b, a
     left = f(a)

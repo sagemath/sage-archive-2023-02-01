@@ -1085,6 +1085,9 @@ class AlgebraicConverter(Converter):
             Symbolic Ring
             sage: bool(K.gen() == K(3)^(1/2) == sqrt(K(3)) == K(sqrt(3)) == sqrt(3))
             True
+            sage: L = QuadraticField(3, embedding=-AA(3).sqrt())
+            sage: bool(L.gen() == -sqrt(3))
+            True
         """
         # We try to avoid simplifying, because maxima's simplify command
         # can change the value of a radical expression (by changing which

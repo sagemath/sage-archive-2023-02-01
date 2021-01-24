@@ -252,7 +252,7 @@ something like the following to install it:
     fi
 
 At build time :envvar:`CFLAGS`, :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`,
-and :envvar:`F77FLAGS` are usually set to ``-g -O2``
+and :envvar:`F77FLAGS` are usually set to ``-g -O2 -march=native``
 (according to `debugging options <../installation/source.html#sage-debug>`_
 and whether building
 `fat binaries <../installation/source.html#sage-fat-binary>`_).
@@ -260,6 +260,9 @@ and whether building
 Slightly modified versions are available:
 
 .. CODE-BLOCK:: bash
+
+    # No ``-march=native``.
+    export CFLAGS=$CFLAGS_NON_NATIVE
 
     # ``-O3`` instead of ``-O2``.
     export CFLAGS=$CFLAGS_O3
@@ -846,7 +849,7 @@ to apply the same modifications to future versions.
 Package Versioning
 ------------------
 
-The ``package-version.txt`` file containts just the version. So if
+The ``package-version.txt`` file contains just the version. So if
 upstream is ``FoO-1.3.tar.gz`` then the package version file would only
 contain ``1.3``.
 
@@ -1043,6 +1046,18 @@ the license information for that package is up-to-date, both in its
 ``SPKG.rst`` or ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
+
+If an upstream tarball of a package cannot be redistributed for license
+reasons, rename it to include the string ``do-not-distribute``.  This
+will keep the release management scripts from uploading it to the Sage mirrors.
+For an example, see the ``scipoptsuite`` package, which has an "academic"
+proprietary license.
+
+Sometimes an upstream tarball contains some distributable parts using
+a free software license and some non-free parts.  In this case, it can
+be a good solution to make a custom tarball consisting of only the free
+parts; see :ref:`section-spkg-src` and the ``giac`` package as an example.
+
 
 Prerequisites for New Standard Packages
 ---------------------------------------

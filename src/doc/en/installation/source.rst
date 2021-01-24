@@ -178,7 +178,7 @@ built from scratch.
 
 You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
 ``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
-a number of Python modules to be availabe within the Python in question. Currently,
+a number of Python modules to be available within the Python in question. Currently,
 for Sage 9.2, these modules are as follows: sqlite3, ctypes, math, hashlib, crypt,
 readline, socket, zlib, distutils.core - they will be checked for by configure.
 
@@ -409,25 +409,72 @@ On other systems, check the documentation for your particular operating system.
 
 .. _section_conda_compilers:
 
-Using conda
-^^^^^^^^^^^
+Using conda to provide system dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If Conda is installed (check by typing ``conda info``), there are two ways to
 prepare for installing SageMath from source:
 
-  - Create a new conda environment with standard packages::
+  - If you are using a git checkout::
 
-      $ conda env create -f environment.yml
+      $ ./bootstrap
 
-  - Or create a new conda environment with standard and optional packages::
+  - Create a new empty environment and activate::
 
-      $ conda env create -f environment-optional.yml
+      $ conda create -n sage-build
+      $ conda activate sage-build
+
+  - Install standard packages recognized by sage's ``spkg-configure`` mechanism::
+
+      $ conda env update --file environment.yml -n sage-build
+
+  - Or install all standard and optional packages recognized by sage::
+
+      $ conda env update --file environment-optional.yml -n sage-build
 
   - Then SageMath will be built using the compilers provided by Conda::
 
       $ ./bootstrap
       $ ./configure --prefix=$CONDA_PREFIX
       $ make
+
+Using conda to provide all SPKGs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Note that this is an experimental feature and may not work as intended.
+
+  - If you are using a git checkout::
+
+      $ ./bootstrap
+
+  - Create a new empty environment and activate::
+
+      $ conda create -n sage
+      $ conda activate sage
+
+  - Install standard packages::
+
+      $ conda env update --file src/environment.yml -n sage
+
+  - Or install all standard and optional packages::
+
+      $ conda env update --file src/environment-optional.yml -n sage
+
+  - Then SageMath will be built using the compilers provided by Conda::
+
+      $ ./bootstrap
+      $ ./configure --prefix=$CONDA_PREFIX
+      $ cd src
+      $ python setup.py install
+
+Note that ``make`` is not used at all.  All dependencies
+(including all Python packages) are provided by conda.
+
+Thus, you will get a working version of Sage much faster.  However,
+note that this will invalidate the use of Sage-the-distribution
+commands such as ``sage -i`` because sage-the-distribution does not
+know about the dependencies unlike in the previous section where
+it did.
 
 
 Notes on using conda

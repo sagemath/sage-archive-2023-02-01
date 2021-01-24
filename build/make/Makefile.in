@@ -17,16 +17,18 @@
 # Always use bash for make rules
 SHELL = @SHELL@
 
-ifndef SAGE_SPKG_INST
-ifndef DEBUG_RULES
+# Check a variable that is only set in build/make/install, but not in sage-env, for example
+ifndef SAGE_PKGCONFIG
+# Set by build/bin/sage-sdist, which invokes the Makefile directly in
+# order to download upstream packages for distribution.
+ifndef SAGE_SPKG_COPY_UPSTREAM
 $(error This Makefile needs to be invoked by build/make/install)
-else
-# A dummy value for this variable for debugging purposes
-SAGE_SPKG_INST=installed
 endif
 endif
 
 # Directory to keep track of which packages are installed
+SAGE_SPKG_INST = $(SAGE_LOCAL)/var/lib/sage/installed
+
 INST = $(SAGE_SPKG_INST)
 
 # Aliases for mutually exclusive standard packages selected at configure time
@@ -588,6 +590,8 @@ $(1)-no-deps:
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env' && \
+		SAGE_SPKG_WHEELS=$$(SAGE_LOCAL)/var/lib/sage/wheels \
+		SAGE_INST_LOCAL=$$(SAGE_LOCAL) \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log'
 	touch "$$(INST)/$(1)-$(2)"
 

@@ -14,10 +14,9 @@ import pytest
 
 # Ignore a few test files that are (not yet) using pytest
 collect_ignore = [
-    "sage/libs/gap/test_long.py",
-    "sage/structure/test_factory.py",
     "sage/misc/nested_class_test.py",
-    "sage/repl/rich_output/backend_test.py"
+    "sage/repl/rich_output/backend_test.py",
+    "sage/tests/deprecation_test.py"
 ]
 
 

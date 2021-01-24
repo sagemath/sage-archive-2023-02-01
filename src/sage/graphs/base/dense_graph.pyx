@@ -148,7 +148,7 @@ cdef class DenseGraph(CGraph):
       vertices to allocate
     - ``verts`` -- list (default: ``None``); optional list of vertices to add
     - ``arcs`` -- list (default: ``None``); optional list of arcs to add
-    - ``directed`` -- boolean (defualt: ``None``); whether the graph is directed
+    - ``directed`` -- boolean (default: ``None``); whether the graph is directed
 
     The first ``nverts`` are created as vertices of the graph, and the next
     ``extra_vertices`` can be freely added without reallocation. See top level

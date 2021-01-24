@@ -1040,10 +1040,10 @@ cdef class Graphics3d(SageObject):
                 viewdir = (1,0,0)
 
         # switch from LH to RH coords to be consistent with java rendition
-        viewdir = flip_orientation(viewdir)
-        updir = flip_orientation(updir)
-        camera_center = flip_orientation(camera_center)
-        light_position = flip_orientation(light_position)
+        viewdir = _flip_orientation(viewdir)
+        updir = _flip_orientation(updir)
+        camera_center = _flip_orientation(camera_center)
+        light_position = _flip_orientation(light_position)
        
         return """
 begin_scene
@@ -1601,9 +1601,9 @@ end_scene""".format(
            the figure
 
         -  ``figsize`` -- (default: 5); x or pair [x,y] for
-           numbers, e.g., [5,5]; controls the size of the output figure. E.g.,
-           with Tachyon the number of pixels in each direction is 100 times
-           figsize[0]. This is ignored for the jmol embedded renderer.
+           numbers, e.g., [5,5]; controls the size of the output figure.
+           With 'tachyon', the resolution (in number of pixels) is 100 times
+           figsize. This is ignored for the jmol embedded renderer.
 
         -  ``aspect_ratio`` -- (default: ``'automatic'``) -- aspect
            ratio of the coordinate system itself. Give [1,1,1] to make spheres
@@ -3245,6 +3245,6 @@ def _tostring(s):
 #        return s
     return ' '.join(map(str,s))
 
-def flip_orientation(v):
-    "switch from LH to RH coords to be consistent with java rendition"
+def _flip_orientation(v):
+    "switch from LH to RH coords to be consistent with Java rendition"
     return (v[0],-v[1],v[2])

@@ -24,7 +24,7 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.padic_lazy_errors cimport *
-from sage.rings.padics.padic_lazy_errors import raise_error, error_to_str
+from sage.rings.padics.padic_lazy_errors import raise_error
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -45,24 +45,10 @@ cdef class LazyElement(pAdicGenericElement):
 
     cdef int _init_jump(self) except -1:
         cdef slong default_prec = self._parent.default_prec()
-        if default_prec == 0:
-            return 0
-        cdef int error
+        cdef int error = 0
         if self._precbound < maxordp:
             error = self._jump_c(self._precbound)
-        else:
-            if self.prime_pow.in_field:
-                error = 0
-                if self._valuation <= -maxordp:
-                    error = self._next_c()
-                if not error:
-                    prec = self._valuation + default_prec
-                    error = self._jump_c(prec)
-                    if not error and self._valuation < prec:
-                        error = self._jump_c(self._valuation + default_prec)
-            else:
-                error = self._jump_c(default_prec)
-        raise_error(error, True)
+            raise_error(error, True)
         return error
 
     cpdef bint _is_base_elt(self, p) except -1:
@@ -163,33 +149,27 @@ cdef class LazyElement(pAdicGenericElement):
         return pAdicGenericElement._repr_(x)
 
     cdef bint _is_equal(self, LazyElement right, slong prec, bint permissive) except -1:
+        cdef int error
+        cdef slong i
         if self._valuation <= -maxordp:
             error = self._next_c()
             raise_error(error)
         if right._valuation <= -maxordp:
             error = right._next_c()
             raise_error(error)
-        cdef slong i = 0
-        cdef slong j = self._valuation - right._valuation
-        if j > 0:
-            i = -j
-            j = 0
-        prec -= self._valuation
-        while i < prec:
-            while self._precrel <= i:
+        for i in range(min(self._valuation, right._valuation), prec):
+            while self._valuation + self._precrel <= i:
                 error = self._next_c()
                 raise_error(error, permissive)
                 if error:   # not enough precision
                     return True
-            while right._precrel <= j:
+            while right._valuation + right._precrel <= i:
                 error = right._next_c()
                 raise_error(error, permissive)
                 if error:   # not enough precision
                     return True
-            if not digit_equal(self._getdigit_relative(i), right._getdigit_relative(j)):
+            if not digit_equal(self._getdigit_absolute(i), right._getdigit_absolute(i)):
                 return False
-            i += 1
-            j += 1
         return True
 
     @coerce_binop
@@ -295,16 +275,16 @@ cdef class LazyElement(pAdicGenericElement):
             halt = min(maxordp, halt)
         self._jump_relative_c(1, halt)
         if self._precrel == 0:
-            raise PrecisionError("cannot determine the valuation; try to increase the precision")
+            raise PrecisionError("cannot determine the valuation; try to increase the halting precision")
         return Integer(self._valuation)
 
-    def unit_part(self):
-        if self._precrel == 0:
-            raise PrecisionError("cannot determine the valuation; try to increase the precision")
-        return self >> self._valuation
+    def unit_part(self, halt=True):
+        val = self.valuation(halt)
+        return self >> val
 
-    cpdef val_unit(self):
-        return self.valuation(), self.unit_part()
+    def val_unit(self, halt=True):
+        val = self.valuation(halt)
+        return val, self >> val
 
     def residue(self, slong prec=1, field=None):
         if prec >= maxordp:
@@ -1110,15 +1090,7 @@ cdef class LazyElement_selfref(LazyElement_init):
         self._definition = definition
         self._precbound = definition._precbound
         cdef slong valsve = self._valuation
-        try:
-            self._init_jump()
-        except:
-            self._definition = None
-            self._valuation = valsve
-            self._precrel = 0
-            self._precbound = maxordp
-            self._next = maxordp
-            raise
+        self._init_jump()
 
     cdef int _next_c(self):
         cdef LazyElement definition = self._definition

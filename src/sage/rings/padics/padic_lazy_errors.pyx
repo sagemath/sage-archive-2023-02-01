@@ -41,7 +41,7 @@ def raise_error(error, permissive=False):
         if error & (ERROR_PRECISION | ERROR_NOTDEFINED):
             raise PrecisionError("not enough precision")
         if error & ERROR_ABANDON:
-            raise PrecisionError("computation has been abandonned; try to increase precision by hand")
+            raise PrecisionError("computation has been abandonned; try to increase precision")
 
 
 def error_to_str(error, permissive=False):
@@ -61,4 +61,4 @@ def error_to_str(error, permissive=False):
         if error & (ERROR_PRECISION | ERROR_NOTDEFINED):
             return "Error: not enough precision"
         if error & ERROR_ABANDON:
-            return "Abandon; try to increase precision by hand"
+            return "Abandon; try to increase precision"

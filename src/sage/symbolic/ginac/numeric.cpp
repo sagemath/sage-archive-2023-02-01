@@ -3249,7 +3249,7 @@ long numeric::to_long() const {
                 mpz_init(bigint);
                 mpz_fdiv_q(bigint, mpq_numref(v._bigrat),
                                 mpq_denref(v._bigrat));
-                if (mpz_fits_sint_p(v._bigint)) {
+                if (mpz_fits_slong_p(v._bigint)) {
                         long n = mpz_get_si(bigint);
                         mpz_clear(bigint);
                         return n;

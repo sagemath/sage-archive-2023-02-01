@@ -30,7 +30,7 @@ p.show(viewer="tachyon",zoom=0.5)
 """
 """
 Warning:
-        camera_center
+        camera_position
         light_position
 are relative to some
 they are, for example affected by zoom.??
@@ -959,10 +959,13 @@ cdef class Graphics3d(SageObject):
 
         ####### insertion of camera parameters
 
-    tachyon_keywords = ("antialiasing",# "aspectratio",
-                        "zoom", # zoom is already handled directly by scaling the scene: DISABLED
+    tachyon_keywords = ("antialiasing",
+                        # "aspectratio",
+                        "zoom",
+                        # zoom was previously handled directly by scaling the scene.
+                        # this has now been disabled, and zoom is handled by tachyon
                         "raydepth", "figsize", "light_position",
-                        "camera_center","updir",
+                        "camera_position","updir",
                         #"look_at", # omit look_at. viewdir is sufficient
                         "viewdir")
     # The tachyon "aspectratio" parameter is outdated for normal users:
@@ -973,16 +976,17 @@ cdef class Graphics3d(SageObject):
     # have an aspect ratio of 1.0."
 
     # aspectratio should rather be set to match nonsquare drawing area in "figsize"
-    
+
+    # parameters are stolen from tachyion.py
+
     def tachyon(self,
-        zoom=1.0, # parameters are stolen from tachyion.py
+        zoom=1.0,
         antialiasing=False,
-#        aspectratio=1.0,
-        figsize=(4,4), # resolution = 100*figsize
+        figsize=[5,5], # resolution = 100*figsize
         raydepth=8,
-        camera_center=(2.3, 2.4, 2.0), # old default values
-        updir=(0, 0, 1),
-  #      look_at=(0, 0, 0),
+        camera_position=[2.3, 2.4, 2.0], # old default values
+        updir=[0, 0, 1],
+  #      look_at=(0, 0, 0), # viewdir is good enough
         light_position=(4.0, 3.0, 2.0),
         viewdir=None,
         #projection='PERSPECTIVE',
@@ -1028,21 +1032,21 @@ cdef class Graphics3d(SageObject):
         # switch from LH to RH coords to be consistent with java rendition
         render_params.push_transform(Transformation(scale=[1,-1,1]))
 
-        if len(camera_center)!=3:
+        if len(camera_position)!=3:
             raise ValueError('Camera center must consist of three numbers')
 
         if viewdir is None:
-#            viewdir = [float(look_at[i] - camera_center[i]) for i in range(3)]
-            viewdir = [float(- camera_center[i]) for i in range(3)]
+#            viewdir = [float(look_at[i] - camera_position[i]) for i in range(3)]
+            viewdir = [float(- camera_position[i]) for i in range(3)]
             if viewdir == [0.0,0.0,0.0]:
-                # print("Warning: camera_center and look_at coincide")
-                #print("Warning: camera_center at origin")
+                # print("Warning: camera_position and look_at coincide")
+                #print("Warning: camera_position at origin")
                 viewdir = (1,0,0)
 
         # switch from LH to RH coords to be consistent with java rendition
         viewdir = _flip_orientation(viewdir)
         updir = _flip_orientation(updir)
-        camera_center = _flip_orientation(camera_center)
+        camera_position = _flip_orientation(camera_position)
         light_position = _flip_orientation(light_position)
        
         return """
@@ -1054,7 +1058,7 @@ resolution {resolution_x:d} {resolution_y:d}
             aspectratio {aspectratio:f}
             antialiasing {antialiasing:d}
             raydepth {raydepth:d}
-            center {camera_center}
+            center {camera_position}
             viewdir {viewdir}
             updir {updir}
          end_camera
@@ -1080,9 +1084,9 @@ end_scene""".format(
     scene =  "\n".join(sorted([t.tachyon_str() for t in self.texture_set()])),
     render_parameters =
              "\n".join(flatten_list(self.tachyon_repr(render_params))),
-    viewdir1000=_tostring(1000*vector(viewdir).normalized()),
+    viewdir1000=_tostring(1000*vector(viewdir).normalized().n()),
     viewdir=_tostring(viewdir),
-    camera_center=_tostring(camera_center),
+    camera_position=_tostring(camera_position),
     updir=_tostring(updir),
     light_position=_tostring(light_position),
     zoom=zoom,
@@ -1606,7 +1610,7 @@ end_scene""".format(
            figsize. This is ignored for the jmol embedded renderer.
 
         -  ``aspect_ratio`` -- (default: ``'automatic'``) -- aspect
-           ratio of the coordinate system itself. Give [1,1,1] to make spheres
+           ratio of the coordinate system itself. Give [1,1,1] or 1 to make spheres
            look round.
 
         -  ``frame_aspect_ratio`` -- (default: ``'automatic'``)
@@ -1620,6 +1624,25 @@ end_scene""".format(
         -  ``axes`` -- (default: False) if True, draw coordinate
            axes
 
+        -  ``camera_position`` (for tachyon) -- (default: (2.3, 2.4, 2.0))
+           the viewpoint, with respect to a $[-1,1]\times[-1,1]\times[-1,1]$
+           cube in which the bounding box of a scene is centered. 
+           The default viewing direction is towards the center of this cube.
+
+        -  ``viewdir`` (for tachyon) -- (default: None) three coordinates
+           specifying the viewing direction.
+
+        -  ``updir`` (for tachyon) -- (default: (0,0,1)) the "upward"
+           direction of the camera
+
+        -  ``light_position`` (for tachyon) -- (default: (4,3,2)) the position
+           of the single light source in the scene (in addition to ambient light)
+
+        -  ``antialiasing`` (for tachyon) -- (default: False)
+
+        -  ``raydepth`` (for tachyon) -- (default: 8)
+           see the :class:`sage.plot.plot3d.tachyon.Tachyon` class
+
         -  ``**kwds`` -- other options, which make sense for particular
            rendering engines
 
@@ -1627,6 +1650,18 @@ end_scene""".format(
 
         This method does not return anything. Use :meth:`save` if you
         want to save the figure as an image.
+
+        .. WARNING::
+
+           By default, the jmol and tachyon viewers perform some non-uniform scaling
+           of the axes. Set `aspect_ratio=1` if this is not desired.
+
+            sage: p = plot3d(lambda u,v:(cos(u)-cos(v)), (-0.2,0.2),(-0.2,0.2))
+            sage: p.show(viewer="threejs")
+            sage: p.show(viewer="jmol")
+            sage: p.show(viewer="jmol",aspect_ratio=1)
+            sage: p.show(viewer="tachyon",camera_center=(4,0,0))
+            sage: p.show(viewer="tachyon",camera_center=(2,2,0.3),aspect_ratio=1)
 
         CHANGING DEFAULTS: Defaults can be uniformly changed by importing a
         dictionary and changing it. For example, here we change the default
@@ -1779,7 +1814,7 @@ end_scene""".format(
         - ``filename`` -- string. Where to save the image or object.
 
         - ``**kwds`` -- When specifying an image file to be rendered by Tachyon
-          or Jmol, any of the viewing options accepted by show() are valid as
+          or Jmol, any of the viewing options accepted by :meth:`show`() are valid as
           keyword arguments to this function and they will behave in the same
           way. Accepted keywords include: ``viewer``, ``verbosity``,
           ``figsize``, ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``,
@@ -2119,7 +2154,7 @@ end_scene""".format(
         """
         Draw a 3D plot of this graphics object, which just returns this
         object since this is already a 3D graphics object.
-        Needed to support PLOT in doctrings, see :trac:`17498`
+        Needed to support PLOT in docstrings, see :trac:`17498`
 
         EXAMPLES::
 

@@ -1073,6 +1073,18 @@ class AlgebraicConverter(Converter):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert pi^6 to Algebraic Field
+
+        Test that :trac:`14602` is fixed::
+
+            sage: K = QuadraticField(3)
+            sage: K(sqrt(3)).parent() is K
+            True
+            sage: sqrt(K(3)).parent() is K
+            True
+            sage: (K(3)^(1/2)).parent()
+            Symbolic Ring
+            sage: bool(K.gen() == K(3)^(1/2) == sqrt(K(3)) == K(sqrt(3)) == sqrt(3))
+            True
         """
         # We try to avoid simplifying, because maxima's simplify command
         # can change the value of a radical expression (by changing which

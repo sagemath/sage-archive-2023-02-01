@@ -351,7 +351,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             'sage.combinat.free_module'
         """
         return self.__make_element_class__(self.Element,
-                                           name="%s.element_class"%self.__class__.__name__,
+                                           name="%s.element_class" % self.__class__.__name__,
                                            module=self.__class__.__module__,
                                            inherit=True)
 
@@ -669,7 +669,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             if x == 0:
                 return self.zero()
             else:
-                raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
+                raise TypeError("do not know how to make x (= %s) an element of %s" % (x, self))
         #x is an element of the basis enumerated set;
         # This is a very ugly way of testing this
         elif ((hasattr(self._indices, 'element_class') and
@@ -685,7 +685,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
                     return self._coerce_end(x)
                 except TypeError:
                     pass
-            raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
+            raise TypeError("do not know how to make x (= %s) an element of self (=%s)" % (x, self))
 
     def _convert_map_from_(self, S):
         """
@@ -1297,7 +1297,6 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 options['category'] = options['category'].FiniteDimensional()
             return super(CombinatorialFreeModule.Tensor, cls).__classcall__(cls, modules, **options)
 
-
         def __init__(self, modules, **options):
             """
             TESTS::
@@ -1305,13 +1304,13 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: F = CombinatorialFreeModule(ZZ, [1,2]); F
                 F
             """
-            from sage.categories.tensor import tensor
             self._sets = modules
             indices = CartesianProduct_iters(*[module.basis().keys()
                                                for module in modules]).map(tuple)
             CombinatorialFreeModule.__init__(self, modules[0].base_ring(), indices, **options)
             # the following is not the best option, but it's better than nothing.
-            self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
+            if 'tensor_symbol' in options:
+                self._print_options['tensor_symbol'] = options['tensor_symbol']
 
         def _repr_(self):
             r"""
@@ -1381,7 +1380,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: R = NonCommutativeSymmetricFunctions(QQ).R()
                 sage: Partitions.options(diagram_str="#", convention="french")
                 sage: s = unicode_art(tensor((R[1,2], R[3,1,2]))); s
-                R    # R
+                R    ⨂ R
                  ┌┐     ┌┬┬┐
                  ├┼┐    └┴┼┤
                  └┴┘      ├┼┐
@@ -1395,9 +1394,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             if hasattr(self, "_print_options"):
                 symb = self._print_options['tensor_symbol']
                 if symb is None:
-                    symb = tensor.symbol
+                    symb = tensor.unicode_symbol
             else:
-                symb = tensor.symbol
+                symb = tensor.unicode_symbol
             return unicode_art(*(module._unicode_art_term(t)
                                  for module, t in zip(self._sets, term)),
                                sep=UnicodeArt([symb], breakpoints=[len(symb)]))
@@ -1495,10 +1494,11 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             # a list l such that l[i] is True if modules[i] is readily a tensor product
             is_tensor = [isinstance(module, CombinatorialFreeModule_Tensor) for module in modules]
             # the tensor_constructor, on basis elements
-            result = self.monomial * CartesianProductWithFlattening(is_tensor) #.
+            result = self.monomial * CartesianProductWithFlattening(is_tensor)
             # TODO: make this into an element of Hom( A x B, C ) when those will exist
-            for i in range(0, len(modules)):
-                result = modules[i]._module_morphism(result, position = i, codomain = self)
+            for i in range(len(modules)):
+                result = modules[i]._module_morphism(result, position=i,
+                                                     codomain=self)
             return result
 
         def _tensor_of_elements(self, elements):
@@ -1592,6 +1592,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                                          codomain=self)
 
             return super(CombinatorialFreeModule_Tensor, self)._coerce_map_from_(R)
+
 
 class CartesianProductWithFlattening(object):
     """
@@ -1754,7 +1755,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         """
         assert i in self._sets_keys()
         return self._sets[i]._module_morphism(lambda t: self.monomial((i, t)),
-                                              codomain = self)
+                                              codomain=self)
 
     summand_embedding = cartesian_embedding
 
@@ -1785,7 +1786,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         """
         assert i in self._sets_keys()
         module = self._sets[i]
-        return self._module_morphism(lambda j_t: module.monomial(j_t[1]) if i == j_t[0] else module.zero(), codomain = module)
+        return self._module_morphism(lambda j_t: module.monomial(j_t[1]) if i == j_t[0] else module.zero(), codomain=module)
 
     summand_projection = cartesian_projection
 
@@ -1830,5 +1831,6 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
     class Element(CombinatorialFreeModule.Element): # TODO: get rid of this inheritance
         pass
+
 
 CombinatorialFreeModule.CartesianProduct = CombinatorialFreeModule_CartesianProduct

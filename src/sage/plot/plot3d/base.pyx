@@ -1612,7 +1612,8 @@ end_scene""".format(
 
            * ``'jmol'``: interactive 3D viewer using Java
 
-           * ``'tachyon'``: ray tracer generating a static PNG image
+           * ``'tachyon'``: ray tracer generating a static PNG image; does
+             not show any text labels
 
            * ``'canvas3d'``: web-based 3D viewer using JavaScript
              and a canvas renderer (Sage notebook only)
@@ -1623,7 +1624,7 @@ end_scene""".format(
         -  ``figsize`` -- (default: 5); x or pair [x,y] for
            numbers, e.g., [5,5]; controls the size of the output figure.
            With 'tachyon', the resolution (in number of pixels) is 100 times
-           figsize. This is ignored for the jmol embedded renderer.
+           ``figsize``. This is ignored for the jmol embedded renderer.
 
         -  ``aspect_ratio`` -- (default: ``'automatic'``) -- aspect
            ratio of the coordinate system itself. Give [1,1,1] or 1 to make spheres
@@ -1641,9 +1642,11 @@ end_scene""".format(
            axes
 
         -  ``camera_position`` (for tachyon) -- (default: (2.3, 2.4, 2.0))
-           the viewpoint, with respect to a $[-1,1]\times[-1,1]\times[-1,1]$
-           cube in which the bounding box of a scene is centered. 
-           The default viewing direction is towards the center of this cube.
+           the viewpoint, with respect to the cube
+           $[-1,1]\\times[-1,1]\\times[-1,1]$,
+           into which the bounding box of the scene
+           is scaled and centered. 
+           The default viewing direction is towards the origin.
 
         -  ``viewdir`` (for tachyon) -- (default: None) three coordinates
            specifying the viewing direction.
@@ -1665,12 +1668,14 @@ end_scene""".format(
         OUTPUT:
 
         This method does not return anything. Use :meth:`save` if you
-        want to save the figure as an image.
+        want to save the figure as an image file.
 
         .. WARNING::
 
-           By default, the jmol and tachyon viewers perform some non-uniform scaling
-           of the axes. Set `aspect_ratio=1` if this is not desired.
+         By default, the jmol and tachyon viewers perform
+         some non-uniform scaling of the axes.
+
+        If this is not desired, on can set ``aspect_ratio=1``::
 
             sage: p = plot3d(lambda u,v:(cos(u)-cos(v)), (-0.2,0.2),(-0.2,0.2))
             sage: p.show(viewer="threejs")

@@ -156,39 +156,6 @@ Posso usare Sage con la versione 3.x di Python?
 Dalla versione 9.0 del Gennaio 2020, SageMath utilizza Python 3.
 
 
-Vedo un errore di "Permission denied" (accesso negato) su un file di nome "sage-flags.txt.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Quando Sage viene compilato dal sorgente, tiene traccia di quali
-istruzioni speciali supporta la tua CPU (quali ad esempio SSE2) e
-le memorizza. Così se provi ad eseguire il codice su un'altra macchina,
-che non supporta queste istruzioni speciali extra, ti vengono segnalati
-degli errori in maniera intelleggibile anzichè dei generici "segfault"
-(segmento di memoria errato) o "illegal istruction"
-(istruzione non consentita). Poichè quest'informazione dev'essere
-memorizzata in Sage stesso anziché nella cartella ``.sage``,
-dev'essere creata da qualcuno con le necessarie autorizzazioni sul
-sistema. Quindi se vedi qualcosa del genere ::
-
-    Traceback (most recent call last):
-      File "/usr/local/sage-4.0.2/local/bin/sage-location", line 174, in <module>
-        t, R = install_moved()
-      File "/usr/local/sage-4.0.2/local/bin/sage-location", line 18, in install_moved
-        write_flags_file()
-      File "/usr/local/sage-4.0.2/local/bin/sage-location", line 82, in write_flags_file
-        open(flags_file,'w').write(get_flags_info())
-    IOError: [Errno 13] Permission denied:
-      '/usr/local/sage-4.0.2/local/lib/sage-flags.txt'
-
-probabilmente significa che hai compilato/installato Sage usando un
-determinato account (nome utente), ma poi non l'hai eseguito così da
-permettergli di generare il file ``sage-flags.txt``. Ti basta eseguire
-Sage una volta con lo stesso account con cui è stato installato per
-risolvere questo problema. Questo si dovrebbe risolvere facilmente
-anche lanciando Sage una volta nel corso del processo d'installazione
-(cfr. :trac:`6375`).
-
-
 Ho scaricato il binario di Sage e va in crash quando lo lancio, con il messaggio "illegal instruction" (istruzione non permessa). Cosa posso fare?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

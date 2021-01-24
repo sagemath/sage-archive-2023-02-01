@@ -857,10 +857,4 @@ else
 fi
 
 
-# Touch this file to force a sage-location run next time Sage is
-# started.  This is needed to make some of the installed libraries and
-# scripts independent of the SAGE_ROOT path.
-touch "$SAGE_LOCAL/lib/sage-force-relocate.txt"
-
-
 echo "Finished installing $PKG_NAME"

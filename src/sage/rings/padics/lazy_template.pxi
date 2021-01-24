@@ -153,7 +153,14 @@ cdef class LazyElement(pAdicGenericElement):
     def _repr_(self):
         if self._valuation <= -maxordp:
             return "valuation not known"
-        return pAdicGenericElement._repr_(self)
+        if self._precbound >= maxordp:
+            if self.prime_pow.in_field:
+                x = self.at_precision_relative()
+            else:
+                x = self.at_precision_absolute()
+        else:
+            x = self
+        return pAdicGenericElement._repr_(x)
 
     cdef bint _is_equal(self, LazyElement right, slong prec, bint permissive) except -1:
         if self._valuation <= -maxordp:
@@ -204,9 +211,6 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             raise PrecisionError("not enough precision to decide equality")
 
-    def is_precision_bounded(self):
-        return self._precbound < maxordp
-
     cpdef bint _is_exact_zero(self) except -1:
         return self._valuation >= maxordp
 
@@ -221,18 +225,16 @@ cdef class LazyElement(pAdicGenericElement):
             return Infinity
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
+        if self._precbound >= maxordp:
+            return Infinity
         return Integer(self._precrel + self._valuation)
 
     def precision_relative(self):
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
-        return Integer(self._precrel)
-
-    def precision_bound(self):
-        if self._precbound < maxordp:
-            return Integer(self._precbound)
-        else:
+        if self._precbound >= maxordp:
             return Infinity
+        return Integer(self._precrel)
 
     def at_precision_absolute(self, prec=None):
         if prec is None:
@@ -272,7 +274,10 @@ cdef class LazyElement(pAdicGenericElement):
         return element_class_bound((<LazyElement>self)._parent, self, self._valuation + prec)
 
     def __matmul__(self, prec):
-        return self.at_precision_absolute(prec)
+        if (<LazyElement>self).prime_pow.in_field:
+            return self.at_precision_relative(prec)
+        else:
+            return self.at_precision_absolute(prec)
 
     cdef long valuation_c(self):
         return self._valuation

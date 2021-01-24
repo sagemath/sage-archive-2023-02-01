@@ -591,13 +591,11 @@ ex container<C>::subs(const exmap & m, unsigned options) const
 		ex result(thiscontainer(std::move(vp)));
 		if (is_a<container<C> >(result))
 			return ex_to<basic>(result).subs_one_level(m, options);
-		
-			return result;
+		return result;
 	} else {
 		if (is_a<container<C> >(*this))
-			return subs_one_level(m, options);
-		
-			return *this;
+			return subs_one_level(m, options);		
+		return *this;
 	}
 }
 

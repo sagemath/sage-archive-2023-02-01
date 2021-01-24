@@ -72,7 +72,8 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse_c())
         mat = M(self.dict(), coerce=True, copy=False)
-        mat.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            mat.subdivide(self.subdivisions())
         return mat
 
     def __copy__(self):

@@ -1,11 +1,10 @@
 r"""
 The Tachyon 3D Ray Tracer
 
-Given any 3D graphics object ``M'' one can compute a raytraced
+Given any 3D graphics object ``M`` one can compute a raytraced
 representation by typing ``M.show(viewer='tachyon')``.
 For example, we draw two translucent spheres that contain a red
 tube, and render the result using Tachyon.
-the 
 
 ::
 
@@ -14,11 +13,11 @@ the
     sage: M = S + S.translate((2,0,0)) + L
     sage: M.show(viewer='tachyon')
 
-A number of option can be given to the 
+A number of options can be given to the 
 :meth:`~sage.plot.plot3d.base.Graphics3d.show` method and
 correspondingly to the
 :meth:`~sage.plot.plot3d.base.Graphics3d.save` method for saving
-the generated image to a file:
+the generated image to a file::
 
     sage: M.show(viewer='tachyon',
     ....:    antialiasing=True, raydepth=3,
@@ -30,7 +29,8 @@ the generated image to a file:
     ....:    light_position=(4.0, -3.0, 2.0),
     ....:   ) 
 
-One can also directly control Tachyon, which gives a huge amount of
+One can also directly control Tachyon by creating a ``Tachyon`` object
+and adding elements of the scene one by one, which gives a huge amount of
 flexibility. For example, here we directly use Tachyon to draw 3
 spheres on the coordinate axes::
 
@@ -1074,8 +1074,8 @@ class Light(object):
 
             sage: from sage.plot.plot3d.tachyon import Light
             sage: q = Light((1,1,1), 1, (1,1,1))
-            sage: q._color
-            (1.0, 1.0, 1.0)
+            sage: print(q._center, q._color, q._radius)
+            (1.0, 1.0, 1.0) (1.0, 1.0, 1.0) 1.0
         """
         x, y, z = center
         self._center = (float(x), float(y), float(z))
@@ -1091,8 +1091,11 @@ class Light(object):
 
             sage: from sage.plot.plot3d.tachyon import Light
             sage: q = Light((1,1,1), 1, (1,1,1))
-            sage: q._radius
-            1.0
+            sage: print(q.str())
+                    light center  1.0 1.0 1.0
+                          rad 1.0
+                          color  1.0 1.0 1.0
+ 
         """
         return r"""
         light center %s

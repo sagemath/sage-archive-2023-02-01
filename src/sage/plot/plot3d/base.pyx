@@ -1,6 +1,15 @@
 r"""
 Base Classes for 3D Graphics Objects and Plotting
 
+The most important facts about these classes are
+that you can add simply add graphics objects
+together (``G1+G2``, see :meth:`Graphics3d.__add__`)
+and the :meth:`Graphics3d.show` method with its options for setting
+various parameters for displaying the plots.
+
+Most of the other methods of these classes are technical and
+for special usage. 
+
 AUTHORS:
 
 - Robert Bradshaw (2007-02): initial version
@@ -13,27 +22,15 @@ AUTHORS:
 
 - Joshua Campbell (2020): Three.js animation support
 
-- Günter Rote (2021): camera and light for tachyon (needs cleanup)
+- Günter Rote (2021): camera and light for tachyon
 
 .. TODO::
 
     finish integrating tachyon -- good default lights
-"""
 
-##### BUGS?? tachyon scales everything to a unit box
-# threejs does not distort, by default.
-"""
-p=plot3d(lambda u,v:(cos(u)-cos(v)), (-0.2,0.2),(-0.2,0.2))
-p.show()
-p.show(viewer="tachyon")
-p.show(viewer="tachyon",zoom=0.5)
-"""
-"""
-Warning:
-        camera_position
-        light_position
-are relative to some
-they are, for example affected by zoom.??
+    full documentation of three.js viewer parameters
+
+    zoom by changing camera parameters instead of scaling objects
 """
 
 # ****************************************************************************
@@ -977,7 +974,9 @@ cdef class Graphics3d(SageObject):
 
     # aspectratio should rather be set to match nonsquare drawing area in "figsize"
 
-    # parameters are stolen from tachyion.py
+    # parameters are taken from tachyion.py
+    # Apparently ReST strips () from default parameters in the automatic doc.
+    # Thus, replaced () by [].
 
     def tachyon(self,
         zoom=1.0,
@@ -987,7 +986,7 @@ cdef class Graphics3d(SageObject):
         camera_position=[2.3, 2.4, 2.0], # old default values
         updir=[0, 0, 1],
   #      look_at=(0, 0, 0), # viewdir is good enough
-        light_position=(4.0, 3.0, 2.0),
+        light_position=[4.0, 3.0, 2.0],
         viewdir=None,
         #projection='PERSPECTIVE',
     ):
@@ -997,22 +996,27 @@ cdef class Graphics3d(SageObject):
         EXAMPLES::
 
             sage: print(sphere((1, 2, 3), 5, color='yellow').tachyon())
+            <BLANKLINE>
             begin_scene
-            resolution 400 400
+            resolution 500 500
+            <BLANKLINE>
                      camera
                     ...
                   plane
-                    center -2000 -1000 -500
-                    normal 2.3 2.4 2.0
+                    center -592.870151560437 618.647114671761 -515.539262226467
+                    normal -2.3 2.4 -2.0
                     TEXTURE
-                        AMBIENT 1.0 DIFFUSE 1.0 SPECULAR 1.0 OPACITY 1.0
+                        AMBIENT 1.0 DIFFUSE 0.0 SPECULAR 0.0 OPACITY 1.0
                         COLOR 1.0 1.0 1.0
                         TEXFUNC 0
+            <BLANKLINE>
                 Texdef texture...
               Ambient 0.3333333333333333 Diffuse 0.6666666666666666 Specular 0.0 Opacity 1.0
-               Color 1.0 1.0 0.0
-               TexFunc 0
+              Color 1.0 1.0 0.0
+              TexFunc 0
+            <BLANKLINE>
                 Sphere center 1.0 -2.0 3.0 Rad 5.0 texture...
+            <BLANKLINE>
             end_scene
 
             sage: G = icosahedron(color='red') + sphere((1,2,3), 0.5, color='yellow')
@@ -1084,11 +1088,11 @@ end_scene""".format(
     scene =  "\n".join(sorted([t.tachyon_str() for t in self.texture_set()])),
     render_parameters =
              "\n".join(flatten_list(self.tachyon_repr(render_params))),
-    viewdir1000=_tostring(1000*vector(viewdir).normalized().n()),
-    viewdir=_tostring(viewdir),
-    camera_position=_tostring(camera_position),
-    updir=_tostring(updir),
-    light_position=_tostring(light_position),
+    viewdir1000=self._tostring(1000*vector(viewdir).normalized().n()),
+    viewdir=self._tostring(viewdir),
+    camera_position=self._tostring(camera_position),
+    updir=self._tostring(updir),
+    light_position=self._tostring(light_position),
     zoom=zoom,
     antialiasing=antialiasing,
     resolution_x=figsize[0]*100,
@@ -1125,6 +1129,18 @@ end_scene""".format(
             f 21 22 23 24
         """
         return "\n".join(flatten_list([self.obj_repr(self.default_render_params()), ""]))
+
+    @staticmethod
+    def _tostring(s):
+        r"""
+        Converts vector information to a space-separated string.
+    
+        EXAMPLES::
+    
+            sage: sage.plot.plot3d.base.Graphics3d._tostring((1.0,1.2,-1.3))
+            '1.00000000000000 1.20000000000000 -1.30000000000000'
+        """
+        return ' '.join(map(str,s))
 
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
                     zoom=1, spin=False, background=(1,1,1), stereo=False,
@@ -1577,7 +1593,7 @@ end_scene""".format(
         return opts
 
     def show(self, **kwds):
-        """
+        r"""
         Display graphics immediately
 
         This method attempts to display the graphics immediately,
@@ -1814,7 +1830,7 @@ end_scene""".format(
         - ``filename`` -- string. Where to save the image or object.
 
         - ``**kwds`` -- When specifying an image file to be rendered by Tachyon
-          or Jmol, any of the viewing options accepted by :meth:`show`() are valid as
+          or Jmol, any of the viewing options accepted by :meth:`show` are valid as
           keyword arguments to this function and they will behave in the same
           way. Accepted keywords include: ``viewer``, ``verbosity``,
           ``figsize``, ``aspect_ratio``, ``frame_aspect_ratio``, ``zoom``,
@@ -3266,19 +3282,6 @@ def optimal_extra_kwds(v):
         for k, w in b.iteritems():
             a[k] = w
     return a
-
-def _tostring(s):
-    r"""
-    Converts vector information to a space-separated string.
-
-    EXAMPLES::
-
-        sage: _tostring((1.0,1.0,1.0))
-        '1.0 1.0 1.0'
-    """
-#    if isinstance(s, str):
-#        return s
-    return ' '.join(map(str,s))
 
 def _flip_orientation(v):
     "switch from LH to RH coords to be consistent with Java rendition"

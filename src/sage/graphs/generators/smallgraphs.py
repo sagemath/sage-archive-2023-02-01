@@ -2816,8 +2816,8 @@ def GrotzschGraph():
     g = Graph()
     g.add_vertices(range(11))
 
-    edges = [];
-    for u in range(1,6):
+    edges = []
+    for u in range(1, 6):
         edges.append( (0,u) )
 
     edges.append( (10,6) )

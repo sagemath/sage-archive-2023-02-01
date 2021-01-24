@@ -2513,7 +2513,7 @@ class ToricVariety_field(AmbientSpace):
             Multivariate Polynomial Ring in x, u, y, v, z, w over Rational Field
         """
         from sage.schemes.toric.divisor import ToricDivisorGroup
-        return ToricDivisorGroup(self, base_ring);
+        return ToricDivisorGroup(self, base_ring)
 
     def _semigroup_ring(self, cone=None, names=None):
         r"""

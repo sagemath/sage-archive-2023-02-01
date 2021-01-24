@@ -192,7 +192,9 @@ def definite_integral(
     x = SR.var('x')
     f = symbolic_expression(f).function(x)
     g = symbolic_expression(g).function(x)
-    f_plot = Graphics(); g_plot = Graphics(); h_plot = Graphics();
+    f_plot = Graphics()
+    g_plot = Graphics()
+    h_plot = Graphics()
     text = ""
 
     # Plot function f.
@@ -1718,7 +1720,7 @@ def polar_prime_spiral(
                  (begin_curve, ceil(sqrt(end-start))), color=hue(0.8), thickness = .3) #Pink Line
 
             b = 1
-            c = c2;
+            c = c2
             g = symbolic_expression(a*m**2+b*m+c).function(m)
             r = symbolic_expression(sqrt(g(m))).function(m)
             theta = symbolic_expression(r(m)- m*sqrt(a)).function(m)

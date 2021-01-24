@@ -1382,7 +1382,7 @@ class Vertex(Vrepresentation):
             sage: v.__repr__()
             'A vertex at (1, 0)'
         """
-        return 'A vertex at ' + repr(self.vector());
+        return 'A vertex at ' + repr(self.vector())
 
     def homogeneous_vector(self, base_ring=None):
         """
@@ -1499,7 +1499,7 @@ class Ray(Vrepresentation):
             sage: a._repr_()
             'A ray in the direction (0, 1)'
         """
-        return 'A ray in the direction ' + repr(self.vector());
+        return 'A ray in the direction ' + repr(self.vector())
 
     def homogeneous_vector(self, base_ring=None):
         """
@@ -1597,7 +1597,7 @@ class Line(Vrepresentation):
             sage: a.__repr__()
             'A line in the direction (0, 1, 0)'
         """
-        return 'A line in the direction ' + repr(self.vector());
+        return 'A line in the direction ' + repr(self.vector())
 
     def homogeneous_vector(self, base_ring=None):
         """

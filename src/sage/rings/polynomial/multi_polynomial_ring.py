@@ -115,12 +115,12 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         self._base = base_ring
         # Construct the generators
         v = [0] * n
-        one = base_ring(1);
+        one = base_ring(1)
         self._gens = []
         C = self._poly_class()
         for i in range(n):
             v[i] = 1  # int's!
-            self._gens.append(C(self, {tuple(v):one}))
+            self._gens.append(C(self, {tuple(v): one}))
             v[i] = 0
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)

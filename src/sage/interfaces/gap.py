@@ -630,15 +630,15 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 elif x == 5: # @c completion, doesn't seem to happen when -p is in use
                     warnings.warn("I didn't think GAP could do this")
                 elif x == 6: # @f GAP error message
-                    current_outputs = error_outputs;
+                    current_outputs = error_outputs
                 elif x == 7: # @h help text, but this stopped happening with new help
                     warnings.warn("I didn't think GAP could do this")
                 elif x == 8: # @i awaiting normal input
-                    break;
+                    break
                 elif x == 9: # @m finished running a child
                     pass   # there is no need to do anything
                 elif x==10: #@n normal output line
-                    current_outputs = normal_outputs;
+                    current_outputs = normal_outputs
                 elif x==11: #@r echoing input
                     current_outputs = terminal_echo
                 elif x==12: #@sN shouldn't happen

@@ -771,7 +771,10 @@ class pAdicLazyGeneric(pAdicGeneric):
         return self._element_classes['random'](self, integral, prec)
 
     def teichmuller(self, x):
-        return self._element_classes['teichmuller'](self, ZZ(x))
+        if isinstance(x, pAdicGeneric):
+            x = x.residue()
+        x = self.exact_ring()(x)
+        return self._element_classes['teichmuller'](self, x)
 
     def teichmuller_system(self):
         R = self.residue_class_field()

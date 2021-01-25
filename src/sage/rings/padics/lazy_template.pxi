@@ -338,18 +338,18 @@ cdef class LazyElement(pAdicGenericElement):
         val = self.valuation(halt)
         return val, self >> val
 
-    def residue(self, slong prec=1, field=None):
+    def residue(self, slong prec=1, field=None, check_prec=True):
         if prec >= maxordp:
             raise OverflowError
         if prec < 0:
             raise ValueError("cannot reduce modulo a negative power of p")
         error = self._jump_c(prec)
         if error:
-            raise_error(error)
+            raise_error(error, not check_prec)
         if self._valuation < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue")
         cdef celement digits
-        self._getslice_relative(digits, 0, prec - self._valuation)
+        self._getslice_relative(digits, 0, min(self._precrel, prec - self._valuation))
         cdef Integer ans = element_get_sage(digits, self.prime_pow)
         if field and prec == 1:
             return self._parent.residue_class_field()(ans)

@@ -412,7 +412,7 @@ from sage.symbolic.integration.integral import (indefinite_integral,
 from sage.libs.pynac.pynac import symbol_table
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.interfaces.maxima_lib','maxima')
+lazy_import('sage.interfaces.maxima_lib', 'maxima')
 
 
 ########################################################
@@ -654,6 +654,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
+
 
 def nintegral(ex, x, a, b,
               desired_relative_error='1e-8',
@@ -1081,7 +1082,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
 
             for degree in degree_list:
 
-                f = QQ[var](algdep(a, degree)) # TODO: use the known_bits parameter?
+                f = QQ[var](algdep(a, degree))  # TODO: use the known_bits parameter?
                 # If indeed we have found a minimal polynomial,
                 # it should be accurate to a much higher precision.
                 error = abs(f(aa))
@@ -1428,8 +1429,10 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         raise ValueError("Unknown algorithm: %s" % algorithm)
     return ex.parent()(l)
 
+
 # lim is alias for limit
 lim = limit
+
 
 ###################################################################
 # Laplace transform
@@ -1812,6 +1815,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
 
+
 ###################################################################
 # symbolic evaluation "at" a point
 ###################################################################
@@ -1918,6 +1922,7 @@ def dummy_diff(*args):
         args[i] = Integer(args[i])
     return f.diff(*args)
 
+
 def dummy_integrate(*args):
     """
     This function is called to create formal wrappers of integrals that
@@ -1938,6 +1943,7 @@ def dummy_integrate(*args):
     else:
         return indefinite_integral(*args, hold=True)
 
+
 def dummy_laplace(*args):
     """
     This function is called to create formal wrappers of laplace transforms
@@ -1953,6 +1959,7 @@ def dummy_laplace(*args):
     """
     return _laplace(args[0], var(repr(args[1])), var(repr(args[2])))
 
+
 def dummy_inverse_laplace(*args):
     """
     This function is called to create formal wrappers of inverse laplace
@@ -1967,6 +1974,7 @@ def dummy_inverse_laplace(*args):
         ilt(F(s), s, t)
     """
     return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
+
 
 #######################################################
 #
@@ -1991,6 +1999,7 @@ def _laplace_latex_(self, *args):
 
     """
     return "\\mathcal{L}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
+
 
 def _inverse_laplace_latex_(self, *args):
     r"""
@@ -2019,23 +2028,19 @@ _inverse_laplace = function_factory('ilt',
 ######################################i################
 
 
-
-
-#######################################################
-
 # Conversion dict for special maxima objects
 # c,k1,k2 are from ode2()
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
-            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2',
-            'e':'_e', 'i':'_i', 'I':'_I'}
+symtable = {'%pi': 'pi', '%e': 'e', '%i': 'I',
+            '%gamma': 'euler_gamma',
+            '%c': '_C', '%k1': '_K1', '%k2': '_K2',
+            'e': '_e', 'i': '_i', 'I': '_I'}
 
 
+maxima_tick = re.compile(r"'[\w]*")
 
-maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
+maxima_qp = re.compile(r"\?\%[\w]*")  # e.g., ?%jacobi_cd
 
-maxima_qp = re.compile(r"\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
-
-maxima_var = re.compile(r"[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
+maxima_var = re.compile(r"[\w\%]*")  # e.g., %jacobi_cd
 
 sci_not = re.compile(r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
@@ -2159,7 +2164,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions):
         for X in delayed_functions:
-            if X == '?%at': # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
+            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
                 pass
             else:
                 syms[X[2:]] = function_factory(X[2:])
@@ -2181,13 +2186,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = s.replace("%","")
 
-    s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
+    s = s.replace("#","!=")  # a lot of this code should be refactored somewhere...
     #we apply the square-bracket replacing patterns repeatedly
     #to ensure that nested brackets get handled (from inside to out)
     while True:
         olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
-        s = maxima_polygamma.sub(r'psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
+        s = maxima_polygamma.sub(r'psi(\g<1>,', s)  # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
         if s == olds:
             break
 
@@ -2197,15 +2202,15 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s.replace("!==", "!=")
 
     #replace %union from to_poly_solve with a list
-    if s[0:5]=='union':
+    if s[0:5] == 'union':
         s = s[5:]
-        s = s[s.find("(")+1:s.rfind(")")]
-        s = "[" + s + "]" # turn it into a string that looks like a list
+        s = s[s.find("(") + 1:s.rfind(")")]
+        s = "[" + s + "]"  # turn it into a string that looks like a list
 
     #replace %solve from to_poly_solve with the expressions
-    if s[0:5]=='solve':
+    if s[0:5] == 'solve':
         s = s[5:]
-        s = s[s.find("(")+1:s.find("]")+1]
+        s = s[s.find("(") + 1:s.find("]") + 1]
 
     #replace all instances of Maxima's scientific notation
     #with regular notation
@@ -2236,9 +2241,10 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         finally:
             _augmented_syms = {}
     except SyntaxError:
-        raise TypeError("unable to make sense of Maxima expression '%s' in Sage"%s)
+        raise TypeError("unable to make sense of Maxima expression '%s' in Sage" % s)
     finally:
         is_simplified = False
+
 
 # Comma format options for Maxima
 def mapped_opts(v):
@@ -2336,7 +2342,8 @@ def _find_var(name):
     except (KeyError, TypeError):
         return var(name)
 
-def _find_func(name, create_when_missing = True):
+
+def _find_func(name, create_when_missing=True):
     """
     Function to pass to Parser for constructing
     functions from strings.  For internal use.
@@ -2374,10 +2381,12 @@ def _find_func(name, create_when_missing = True):
         else:
             return None
 
-SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
-                   make_float    = lambda x: SR(create_RealNumber(x)),
-                   make_var      = _find_var,
-                   make_function = _find_func)
+
+SR_parser = Parser(make_int=lambda x: SR(Integer(x)),
+                   make_float=lambda x: SR(create_RealNumber(x)),
+                   make_var=_find_var,
+                   make_function=_find_func)
+
 
 def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
     """
@@ -2424,6 +2433,7 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         finally:
             _augmented_syms = {}
 
+
 def _find_Mvar(name):
     """
     Function to pass to Parser for constructing
@@ -2451,7 +2461,8 @@ def _find_Mvar(name):
     except (KeyError, TypeError):
         return var(name)
 
-SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
-                    make_float    = lambda x: SR(RealDoubleElement(x)),
-                    make_var      = _find_Mvar,
-                    make_function = _find_func)
+
+SRM_parser = Parser(make_int=lambda x: SR(Integer(x)),
+                    make_float=lambda x: SR(RealDoubleElement(x)),
+                    make_var=_find_Mvar,
+                    make_function=_find_func)

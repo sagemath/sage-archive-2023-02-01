@@ -315,3 +315,4 @@ def setup(app):
     app.add_config_value('multidocs_subdoc_list', [], True)
     app.add_config_value('multidoc_first_pass', 0, False)   # 1 = deactivate the loading of the inventory
     app.connect('builder-inited', init_subdoc)
+    return {'parallel_read_safe': True} 

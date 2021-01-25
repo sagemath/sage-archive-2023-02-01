@@ -891,7 +891,7 @@ cdef class LazyElement_div(LazyElement_init):
         self._valuation = num._valuation - denom._valuation
         digit_inv(self._inverse, denom._getdigit_relative(0), self.prime_pow)
         self._definition = lazyelement_abandon
-        cdef parent = self._parent._zeroprec
+        cdef parent = self._parent
         cdef LazyElement a = element_class_muldigit(parent, self, num)
         cdef LazyElement b = element_class_muldigit(parent, self, denom)
         cdef LazyElement c = element_class_slice(parent, b, denom._valuation + 1, maxordp, 0)

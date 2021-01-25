@@ -636,8 +636,10 @@ cdef factor_helper(Polynomial_zmod_flint poly, bint squarefree=False):
         sage: decomp = p.squarefree_decomposition()
         sage: any(factor.is_square() for factor, mult in decomp)
         False
-        sage: list(mult for factor, mult in decomp) <= list(range(2, 2 + len(decomp)))
-        True
+        sage: start = 0
+        sage: for factor, mult in decomp:
+        ....:     assert mult > start
+        ....:     start = mult
     """
     cdef nmod_poly_factor_t factors_c
     nmod_poly_factor_init(factors_c)

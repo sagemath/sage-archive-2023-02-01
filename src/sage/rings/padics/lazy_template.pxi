@@ -8,6 +8,8 @@
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+import re
+
 from libc.stdlib cimport malloc, free
 from sage.libs.flint.types cimport slong
 from sage.libs.gmp.mpz cimport mpz_sizeinbase, mpz_tstbit
@@ -139,19 +141,33 @@ cdef class LazyElement(pAdicGenericElement):
         return element_class_slice(self._parent, self, start, stop, 0)
 
     def _repr_(self):
+        # This code should be integrated to the p-adic printer
         if self._valuation <= -maxordp:
             return "valuation not known"
         if self._precbound >= maxordp:
+            unbounded = True
             try:
                 if self.prime_pow.in_field:
-                    x = self.at_precision_relative()
+                    x = self.at_precision_relative(permissive=False)
                 else:
-                    x = self.at_precision_absolute()
+                    x = self.at_precision_absolute(permissive=False)
             except (ValueError, PrecisionError, RecursionError):
+                unbounded = False
                 x = element_class_bound(self._parent, self, self._valuation + self._precrel)
         else:
+            unbounded = False
             x = self
-        return pAdicGenericElement._repr_(x)
+        s = pAdicGenericElement._repr_(x)
+        mode = self._parent._printer.dict()['mode']
+        if unbounded:
+            s = re.sub(r'O\(.*\)$', '...', s)
+        elif mode == "digits":
+            s = re.sub(r'^\.\.\.', '...?', s)
+        elif mode == "bars":
+            s = re.sub(r'^\.\.\.', '...?|', s)
+        if s == "...":
+            s = "0 + ..."
+        return s
 
     cdef bint _is_equal(self, LazyElement right, slong prec, bint permissive) except -1:
         cdef int error
@@ -221,9 +237,10 @@ cdef class LazyElement(pAdicGenericElement):
             return Infinity
         return Integer(self._precrel)
 
-    def at_precision_absolute(self, prec=None, permissive=False):
+    def at_precision_absolute(self, prec=None, permissive=None):
         if prec is None:
-            permissive = True
+            if permissive is None:
+                permissive = True
             prec = self._parent.default_prec()
         else:
             prec = Integer(prec)
@@ -232,13 +249,19 @@ cdef class LazyElement(pAdicGenericElement):
             if prec > maxordp:
                 raise OverflowError("beyond maximal precision (which is %s)" % maxordp)
         error = self._jump_c(prec)
+        if permissive is None:
+            permissive = False
         raise_error(error, permissive)
         return element_class_bound((<LazyElement>self)._parent, self, prec)
 
-    def at_precision_relative(self, prec=None, halt=True, permissive=False):
+    def add_bigoh(self, prec):
+        return self.at_precision_absolute(prec, True)
+
+    def at_precision_relative(self, prec=None, halt=True, permissive=None):
         default_prec = self._parent.default_prec()
         if prec is None:
-            permissive = True
+            if permissive is None:
+                permissive = True
             prec = default_prec
         else:
             prec = Integer(prec)
@@ -253,14 +276,40 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             halt = min(maxordp, halt)
         error = self._jump_relative_c(prec, halt)
+        if permissive is None:
+            permissive = False
         raise_error(error, permissive)
-        return element_class_bound((<LazyElement>self)._parent, self, self._valuation + prec)
+        return element_class_bound((<LazyElement>self)._parent, self, self._valuation +  prec)
 
     def __matmul__(self, prec):
         if (<LazyElement>self).prime_pow.in_field:
             return self.at_precision_relative(prec)
         else:
             return self.at_precision_absolute(prec)
+
+    def lift_to_precision(self, absprec=None):
+        if self._precbound >= maxordp:
+            return self
+        cdef slong prec
+        cdef slong default_prec = self._parent.default_prec()
+        if absprec is None:
+            if self.prime_pow.in_field:
+                self._jump_relative_c(1, self._precbound)
+                if self._precrel == 0:
+                    return self._parent.zero()
+                prec = self._valuation + default_prec
+            else:
+                prec = default_prec
+        else:
+            if absprec > maxordp:
+                raise OverflowError("beyond the maximal precision (which is %s)" % maxordp)
+            prec = absprec
+        if prec <= self._precbound:
+            return self
+        cdef LazyElement ans = element_class_slice(self._parent, self, -maxordp, self._precbound, 0)
+        ans._precbound = prec
+        ans._init_jump()
+        return ans
 
     cdef long valuation_c(self):
         return self._valuation
@@ -611,8 +660,8 @@ cdef class LazyElement_slice(LazyElement):
         self._shift = shift
         self._valuation = max(x._valuation, start) - shift
         self._precrel = min(x._precrel + x._valuation, stop) - self._valuation - shift
-        if x._precbound < maxordp:
-            self._precbound = x._precbound - shift
+        if x._precbound < stop:
+            self._precbound = min(maxordp, x._precbound - shift)
         self._stop = stop
         if self._precrel < 0:
             self._precrel = 0
@@ -641,15 +690,16 @@ cdef class LazyElement_slice(LazyElement):
     cdef int _jump_c(self, slong prec):
         cdef LazyElement x = self._x
         cdef int error = 0
+        cdef slong pr
         if prec <= self._valuation + self._precrel:
             return 0
         if prec > self._precbound:
             prec = self._precbound
             error = ERROR_PRECISION
         cdef int errorx = x._jump_c(min(prec + self._shift, self._stop))
-        prec = max(self._valuation, x._valuation + x._precrel - self._shift)
+        pr = max(self._valuation, x._valuation + x._precrel - self._shift)
         if self._precrel == 0:
-            while self._valuation < prec and digit_is_zero(self._getdigit_relative(0)):
+            while self._valuation < pr and digit_is_zero(self._getdigit_relative(0)):
                 self._valuation += 1
         self._precrel = prec - self._valuation
         if errorx:

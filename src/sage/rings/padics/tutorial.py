@@ -358,7 +358,7 @@ Observe that the precision is not capped on `R`::
     +Infinity
 
 However, a default precision is settled. This is the precision
-at which all the computations will be carried out before printing::
+at which the element will be printed::
 
     sage: R.default_prec()
     20
@@ -373,51 +373,78 @@ One creates elements as usual::
     ...21013213133412431402
 
 Here we notice that 20 digits (that is the default precision) are printed.
-If more digits are needed, one can increase the precision by using the
-meth:`jump`::
+However, the computation model is designed in order to guarantee that more
+digits of `a` are available on demand.
+This feature is reflected by the fact that, when we ask for the precision
+of `a`, the software answers `\infty`::
 
-    sage: a.jump(30)
-    sage: a
-    ...244200244200244200244200244201
+    sage: a.precision_absolute()
+    +Infinity
 
-We can of course perform all standard operations::
+Asking for more digits is achieved by the methods :meth:`at_precision_absolute`
+and :meth:`at_precision_relative`::
+
+    sage: a.at_precision_absolute(30)
+    ...?244200244200244200244200244201
+
+As a shortcut, one can use the operator ``@``::
+
+    sage: a@30
+    ...?244200244200244200244200244201
+
+Of course, standard operations are supported::
 
     sage: b = R(42/17)
-
     sage: a + b
     ...03232011214322140002
     sage: a - b
     ...42311334324023403400
-
     sage: a * b
     ...00000000000000000001
     sage: a / b
     ...12442142113021233401
+    sage: sqrt(a)
+    ...20042333114021142101
 
-We observe again that only 20 digits are printed.
-This is actually the case even if the precision on the operands is higher::
+We observe again that only 20 digits are printed but, as before,
+more digits are available on demand::
 
-    sage: b.jump(30)
-    sage: a
-    ...244200244200244200244200244201
-    sage: b
-    ...104201213402432310420121340301
-    sage: a / b
-    ...12442142113021233401
+    sage: sqrt(a)@30
+    ...?142443342120042333114021142101
 
-If more digits are needed, we need to create a new variable::
+Checking equalities between lazy p-adics is a bit subtle can could
+sometimes be puzzling at first glance.
+Actually, when it is obvious (from the previous computations) that
+the two sides of the equality are different, everything works well::
 
-    sage: c = a / b
-    sage: c.jump(40)
-    sage: c
-    ...4230030104200433321312442142113021233401
+    sage: a == b
+    False
 
-Note that this automatically increases the precision on `a` and `b`::
+On the contrary, when the two numbers we want to compare are indeed
+equal, it is not possible to conclude after a finite amount of
+computations. In this case, an error is raised::
 
-    sage: a
-    ...4200244200244200244200244200244200244201
-    sage: b
-    ...2134024323104201213402432310420121340301
+    sage: a == sqrt(a)^2
+    Traceback (most recent call last):
+    ...
+    PrecisionError: unable to decide equality; try to bound precision
+
+and we are forced to check equality at some given finite precision
+as follows::
+
+    sage: a@20 == sqrt(a)^2
+    True
+    sage: a@100 == sqrt(a)^2
+    True
+
+Finally, note that checking equality may fail even when the two
+operands are different but when the first different digit is beyond
+the default precision::
+
+    sage: b == b + 5^50
+    Traceback (most recent call last):
+    ...
+    PrecisionError: unable to decide equality; try to bound precision
 
 ::
 
@@ -429,12 +456,13 @@ We first declare a new variable as follows::
     sage: x
     ...?.0
 
-We then write down an equation satisfied by `x`::
+We then use the method :meth:`set` to define `x` by writing down an equation
+it satisfies::
 
-    sage: x == 1 + 5*x^2
-    True
+    sage: x.set(1 + 5*x^2)
 
-The variable `x` now contains the unique solution of the above equation::
+The variable `x` now contains the unique solution of the equation
+`x = 1 + 5 x^2`::
 
     sage: x
     ...04222412141121000211
@@ -443,10 +471,13 @@ This works because the `n`-th digit of the right hand size of the
 defining equation only involves the `i`-th digits of `x` with `i < n`
 (this is due to the factor `5`).
 
-As a comparison, the following produces an error::
+As a comparison, the following does not work::
 
     sage: y = R.selfref()
-    sage: y == 1 + 3*y^2
+    sage: y.set(1 + 3*y^2)
+    sage: y
+    ...?.0
+    sage: y@20
     Traceback (most recent call last):
     ...
     RecursionError: definition looks circular
@@ -457,12 +488,9 @@ Self-referent definitions also work with systems of equations::
     sage: v = R.selfref()
     sage: w = R.selfref()
 
-    sage: u == 1 + 2*v + 3*w^2 + 5*u*v*w
-    True
-    sage: v == 2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w)
-    True
-    sage: w == 3 + 25*(u*v + v*w + u*w)
-    True
+    sage: u.set(1 + 2*v + 3*w^2 + 5*u*v*w)
+    sage: v.set(2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w))
+    sage: w.set(3 + 25*(u*v + v*w + u*w))
 
     sage: u
     ...31203130103131131433

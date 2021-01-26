@@ -162,9 +162,9 @@ cdef class LazyElement(pAdicGenericElement):
         if unbounded:
             s = re.sub(r'O\(.*\)$', '...', s)
         elif mode == "digits":
-            s = re.sub(r'^\.\.\.', '...?', s)
+            s = re.sub(r'^\.\.\.\??', '...?', s)
         elif mode == "bars":
-            s = re.sub(r'^\.\.\.', '...?|', s)
+            s = re.sub(r'^\.\.\.\|?', '...?|', s)
         if s == "...":
             s = "0 + ..."
         return s
@@ -210,7 +210,7 @@ cdef class LazyElement(pAdicGenericElement):
         if prec < maxordp:
             return self._is_equal(right, prec, True)
         else:
-            raise PrecisionError("not enough precision to decide equality; try to bound precision")
+            raise PrecisionError("unable to decide equality; try to bound precision")
 
     cpdef bint _is_exact_zero(self) except -1:
         return self._valuation >= maxordp

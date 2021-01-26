@@ -346,7 +346,7 @@ other types of `p`-adics. In addition to storing a finite
 approximation, one also stores a method for increasing the
 precision.
 
-Lazy p-adic rings are created by the constructor :func:`ZpL`::
+Lazy `p`-adic rings are created by the constructor :func:`ZpL`::
 
     sage: R = ZpL(5, print_mode="digits")
     sage: R
@@ -358,7 +358,7 @@ Observe that the precision is not capped on `R`::
     +Infinity
 
 However, a default precision is settled. This is the precision
-at which the element will be printed::
+at which the elements will be printed::
 
     sage: R.default_prec()
     20
@@ -374,9 +374,9 @@ One creates elements as usual::
 
 Here we notice that 20 digits (that is the default precision) are printed.
 However, the computation model is designed in order to guarantee that more
-digits of `a` are available on demand.
+digits of `a` will be available on demand.
 This feature is reflected by the fact that, when we ask for the precision
-of `a`, the software answers `\infty`::
+of `a`, the software answers `+\infty`::
 
     sage: a.precision_absolute()
     +Infinity
@@ -412,7 +412,7 @@ more digits are available on demand::
     sage: sqrt(a)@30
     ...?142443342120042333114021142101
 
-Checking equalities between lazy p-adics is a bit subtle can could
+Checking equalities between lazy `p`-adics is a bit subtle can could
 sometimes be puzzling at first glance.
 Actually, when it is obvious (from the previous computations) that
 the two sides of the equality are different, everything works well::
@@ -448,8 +448,8 @@ the default precision::
 
 ::
 
-A quite interesting feature with lazy p-adics is the possibility to
-create (in somes cases) self-referent numbers. Here is an example.
+A quite interesting feature with lazy `p`-adics is the possibility to
+create (in some cases) self-referent numbers. Here is an example.
 We first declare a new variable as follows::
 
     sage: x = R.selfref()

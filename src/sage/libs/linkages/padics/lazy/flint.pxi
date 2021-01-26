@@ -1,3 +1,11 @@
+r"""
+This linkage file implements the lazy padics API using flint.
+
+AUTHOR:
+
+- Xavier Caruso (2021-01): initial version
+"""
+
 # ****************************************************************************
 #       Copyright (C) 2021 Xavier Caruso <xavier.caruso@normalesup.org>
 #
@@ -11,9 +19,6 @@
 from sage.libs.flint.types cimport flint_rand_t
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
-cdef extern from "sage/libs/flint/flint_wrap.h":
-    cdef ulong fmpz_bits(fmpz_t f)
-    cdef int fmpz_tstbit(fmpz_t f, ulong i)
 
 cdef extern from "sage/libs/linkages/padics/lazy/flint_helper.c":
     cdef void flint_randinit(flint_rand_t state)
@@ -25,7 +30,6 @@ cdef extern from "sage/libs/linkages/padics/lazy/flint_helper.c":
     cdef void iadd_shifted(fmpz_poly_t poly, fmpz_poly_t summand, slong shift)
     cdef void reduce_coeff(fmpz_poly_t poly, slong i, fmpz_t modulus)
 
-from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 
 from sage.ext.stdsage cimport PY_NEW
@@ -33,6 +37,7 @@ from sage.ext.stdsage cimport PY_NEW
 from sage.rings.finite_rings.finite_field_constructor import GF
 
 
+# FIXME: what should I do to initialize the random generator???
 cdef flint_rand_t flint_randstate 
 flint_randinit(flint_randstate)
 
@@ -40,72 +45,228 @@ flint_randinit(flint_randstate)
 # Operations on digits (intended to be small elements in the exact subring)
 ###########################################################################
 
-cdef cdigit digit_zero
+cdef fmpz_t digit_zero
 digit_init(digit_zero)
 
-cdef inline void digit_init(cdigit a):
+cdef inline void digit_init(fmpz_t a):
+    r"""
+    Initialize a digit and set to it the value `0`.
+
+    INPUT:
+
+    - ``a`` -- the ``cdigit`` to initialize
+    """
     fmpz_init(a)
 
-cdef inline void digit_clear(cdigit a):
+cdef inline void digit_clear(fmpz_t a):
+    r"""
+    Deallocate memory assigned to a digit.
+
+    INPUT:
+
+    - ``a`` -- the ``cdigit`` to deallocate
+    """
     fmpz_clear(a)
 
 # get and set
 
-cdef inline Integer digit_get_sage(cdigit a):
+cdef inline Integer digit_get_sage(fmpz_t a):
+    r"""
+    Convert a digit to a Sage element.
+
+    INPUT:
+
+    - ``a`` -- a ``cdigit``
+
+    OUTPUT:
+
+    A Sage element representing the same digit.
+    """
     cdef Integer elt = PY_NEW(Integer)
     fmpz_get_mpz(elt.value, a)
     return elt
 
-cdef inline void digit_set(cdigit a, cdigit b):
+cdef inline void digit_set(fmpz_t a, fmpz_t b):
+    r"""
+    Set up a digit.
+
+    INPUT:
+
+    - ``a`` -- the ``cdigit`` to set up
+    - ``b`` -- the ``cdigit`` containing the value to assign
+    """
     fmpz_set(a, b)
 
-cdef inline void digit_set_ui(cdigit a, slong b):
+cdef inline void digit_set_ui(fmpz_t a, slong b):
+    r"""
+    Set an integral value of a digit.
+
+    INPUT:
+
+    - ``a`` -- the ``cdigit`` to set up
+    - ``b`` -- an integer, the value of assign
+    """
     fmpz_set_ui(a, b)
 
-cdef inline void digit_set_sage(cdigit a, Integer elt):
+cdef inline void digit_set_sage(fmpz_t a, Integer elt):
+    r"""
+    Set the value of a digit.
+
+    INPUT:
+
+    - ``a`` -- the ``cdigit`` to be assigned
+    - ``b`` -- a Sage element containing the value to assign
+    """
     fmpz_set_mpz(a, elt.value)
 
 # comparisons
 
-cdef inline bint digit_equal(cdigit a, cdigit b):
+cdef inline bint digit_equal(fmpz_t a, fmpz_t b):
+    r"""
+    Comparison of two digits.
+
+    INPUT:
+
+    - ``a`` -- a ``cdigit``
+    - ``b`` -- a ``cdigit``
+
+    OUTPUT:
+
+    `1` of `a` is equal to `b`, `0` otherwise
+    """
     return fmpz_equal(a, b)
 
-cdef inline bint digit_equal_ui(cdigit a, slong b):
+cdef inline bint digit_equal_ui(fmpz_t a, slong b):
+    r"""
+    Comparison of a digit and an integer
+
+    INPUT:
+
+    - ``a`` -- a ``cdigit``
+    - ``b`` -- an integer
+
+    OUTPUT:
+
+    `1` of `a` is equal to `b`, `0` otherwise
+    """
     return fmpz_equal_ui(a, b)
 
-cdef inline bint digit_is_zero(cdigit a):
+cdef inline bint digit_is_zero(fmpz_t a):
+    r"""
+    Comparison to zero
+
+    INPUT:
+
+    - ``a`` -- a ``cdigit``
+
+    OUTPUT:
+
+    `1` of `a` vanishes, `0` otherwise
+    """
     return fmpz_is_zero(a)
 
 # operations
 
-cdef inline void digit_random(cdigit res, PowComputer_class prime_pow):
-    fmpz_randm(res, flint_randstate, (<PowComputer_flint>prime_pow).fprime)
+cdef inline void digit_random(fmpz_t res, PowComputer_flint prime_pow):
+    r"""
+    Set a digit to a random value in the distinguished set of representatives.
 
-cdef inline void digit_add(cdigit res, cdigit a, cdigit b):
+    INPUT:
+
+    - ``res`` -- the ``cdigit`` to be assigned
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    fmpz_randm(res, flint_randstate, prime_pow.fprime)
+
+cdef inline void digit_add(fmpz_t res, fmpz_t a, fmpz_t b):
+    r"""
+    Add two digits.
+
+    INPUT:
+
+    - ``res`` -- a ``cdigit`` to store the result
+    - ``a`` -- a ``cdigit``, the first summand
+    - ``b`` -- a ``cdigit``, the second summand
+    """
     fmpz_add(res, a, b)
 
-cdef inline void digit_sub(cdigit res, cdigit a, cdigit b):
+cdef inline void digit_sub(fmpz_t res, fmpz_t a, fmpz_t b):
+    r"""
+    Subtract two digits.
+
+    INPUT:
+
+    - ``res`` -- a ``cdigit`` to store the result
+    - ``a`` -- a ``cdigit``, the minuend
+    - ``b`` -- a ``cdigit``, the subtrahend
+    """
     fmpz_sub(res, a, b)
 
-cdef inline void digit_mul(cdigit res, cdigit a, cdigit b):
+cdef inline void digit_mul(fmpz_t res, fmpz_t a, fmpz_t b):
+    r"""
+    Multiply two digits.
+
+    INPUT:
+
+    - ``res`` -- a ``cdigit`` to store the result
+    - ``a`` -- a ``cdigit``, the first factor
+    - ``b`` -- a ``cdigit``, the second factor
+    """
     fmpz_mul(res, a, b)
 
-cdef inline void digit_mod(cdigit res, cdigit a, PowComputer_class prime_pow):
-    fmpz_mod(res, a, (<PowComputer_flint>prime_pow).fprime)
+cdef inline void digit_mod(fmpz_t res, fmpz_t a, PowComputer_flint prime_pow):
+    r"""
+    Reduce a digit modulo the uniformizer.
 
-cdef inline void digit_quorem(cdigit quo, cdigit rem, cdigit a, PowComputer_class prime_pow):
-    fmpz_tdiv_qr(quo, rem, a, (<PowComputer_flint>prime_pow).fprime)
+    INPUT:
 
-cdef inline void digit_inv(cdigit res, cdigit a, PowComputer_class prime_pow):
-    cdef cdigit gcd
+    - ``res`` -- a ``cdigit`` to store the result
+    - ``a`` -- a ``cdigit``, the digit to reduce
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    fmpz_mod(res, a, prime_pow.fprime)
+
+cdef inline void digit_quorem(fmpz_t quo, fmpz_t rem, fmpz_t a, PowComputer_flint prime_pow):
+    r"""
+    Reduce a digit modulo the uniformizer and keep the carry.
+
+    INPUT:
+
+    - ``quo`` -- a ``cdigit`` to store the carry
+    - ``rem`` -- a ``cdigit`` to store the reduction
+    - ``a`` -- a ``cdigit``, the digit to reduce
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    fmpz_tdiv_qr(quo, rem, a, prime_pow.fprime)
+
+cdef inline void digit_inv(fmpz_t res, fmpz_t a, PowComputer_flint prime_pow):
+    r"""
+    Compute the multiplicative inverse of a digit modulo the uniformizer.
+
+    INPUT:
+
+    - ``res`` -- a ``cdigit`` to store the result
+    - ``a`` -- a ``cdigit``, the digit to invert
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    cdef fmpz_t gcd
     fmpz_init(gcd)
-    fmpz_gcdinv(gcd, res, a, (<PowComputer_flint>prime_pow).fprime)
+    fmpz_gcdinv(gcd, res, a, prime_pow.fprime)
     fmpz_clear(gcd)
 
-cdef bint digit_sqrt(cdigit_ptr ans, cdigit_ptr x, PowComputer_class prime_pow):
+cdef bint digit_sqrt(fmpz_t ans, fmpz_t x, PowComputer_flint prime_pow):
+    r"""
+    Compute the square root of a digit modulo the uniformizer.
+
+    INPUT:
+
+    - ``res`` -- a ``cdigit`` to store the result
+    - ``a`` -- a ``cdigit``, the digit to square root
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
     # Need to do something better
     cdef Integer zx = digit_get_sage(x)
-    cdef Integer zp = digit_get_sage((<PowComputer_flint>prime_pow).fprime)
+    cdef Integer zp = digit_get_sage(prime_pow.fprime)
     try:
         k = GF(zp)
         zans = Integer(k(zx).sqrt(extend=False))
@@ -118,67 +279,210 @@ cdef bint digit_sqrt(cdigit_ptr ans, cdigit_ptr x, PowComputer_class prime_pow):
 # Operations on elements (represented as series of digits)
 ##########################################################
 
-cdef inline void element_init(celement x):
+cdef inline void element_init(fmpz_poly_t x):
+    r"""
+    Initialize an element.
+
+    INPUT:
+
+    - ``x`` -- the ``celement`` to initialize
+    """
     fmpz_poly_init(x)
 
-cdef inline void element_clear(celement x):
+cdef inline void element_clear(fmpz_poly_t x):
+    r"""
+    Deallocate memory assigned to an element.
+
+    INPUT:
+
+    - ``x`` -- the ``celement`` to deallocate
+    """
     fmpz_poly_clear(x)
 
 # get and set
 
-cdef inline Integer element_get_sage(celement x, PowComputer_class prime_pow):
+cdef inline Integer element_get_sage(fmpz_poly_t x, PowComputer_flint prime_pow):
+    r"""
+    Convert a digit to a Sage element.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    - ``prime_pow`` -- the PowComputer for the ring
+
+    OUTPUT:
+
+    A Sage `p`-adics representing the same element.
+    """
     cdef fmpz_t value
     fmpz_init(value)
-    fmpz_poly_evaluate_fmpz(value, x, (<PowComputer_flint>prime_pow).fprime)
+    fmpz_poly_evaluate_fmpz(value, x, prime_pow.fprime)
     cdef Integer ans = digit_get_sage(value)
     fmpz_clear(value)
     return ans
 
-cdef inline void element_set(celement x, celement y):
+cdef inline void element_set(fmpz_poly_t x, fmpz_poly_t y):
+    r"""
+    Set an element
+
+    INPUT:
+
+    - ``x`` -- the ``celement`` to be assigned
+    - ``y`` -- the ``celement`` containing the value to assign
+    """
     fmpz_poly_set(x, y)
 
 # get and set digits
 
-cdef inline cdigit_ptr element_get_digit(celement x, slong i):
+cdef inline fmpz* element_get_digit(fmpz_poly_t x, slong i):
+    r"""
+    Return the `i`-th coefficient of `x`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    - ``i`` -- an integer
+    """
     return get_coeff(x, i)
 
-cdef inline Integer element_get_digit_sage(celement x, slong i):
-    return digit_get_sage(get_coeff(x, i))
+cdef inline void element_get_slice(fmpz_poly_t res, fmpz_poly_t x, slong start, slong length):
+    r"""
+    Select a slice of an element.
 
-cdef inline void element_get_slice(celement res, celement x, slong start, slong length):
+    INPUT:
+
+    - ``res`` -- a ``celement`` to store the slice
+    - ``x`` -- a ``celement``, the element from which the slice is extracted
+    - ``start`` -- an integer, the start position of the slice
+    - ``length`` -- an integer, the length of the slice
+
+    NOTE::
+
+        The function only sets up a pointer to the requested slice
+        (the slice is not copied). Hence any future modification
+        of the slice ``res`` will affect the container ``x``.
+    """
     get_slice(res, x, start, length)
 
-cdef inline void element_set_digit(celement x, cdigit a, slong i):
+cdef inline void element_set_digit(fmpz_poly_t x, fmpz_t a, slong i):
+    r"""
+    Set `i`-th coefficient of `x` to the value `a`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    - ``a`` -- a ``cdigit``
+    - ``i`` -- an integer
+    """
     fmpz_poly_set_coeff_fmpz(x, i, a)
 
-cdef inline void element_set_digit_ui(celement x, slong a, slong i):
+cdef inline void element_set_digit_ui(fmpz_poly_t x, slong a, slong i):
+    r"""
+    Set `i`-th coefficient of `x` to the value `a`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    - ``a`` -- an integer
+    - ``i`` -- an integer
+    """
     fmpz_poly_set_coeff_ui(x, i, a)
 
-cdef inline void element_set_digit_sage(celement x, Integer a, slong i):
+cdef inline void element_set_digit_sage(fmpz_poly_t x, Integer a, slong i):
+    r"""
+    Set `i`-th coefficient of `x` to the value `a`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    - ``a`` -- a Sage element
+    - ``i`` -- an integer
+    """
     fmpz_poly_set_coeff_mpz(x, i, a.value)
 
 # operations
 
-cdef inline void element_iadd_digit(celement x, cdigit a, slong i):
+cdef inline void element_iadd_digit(fmpz_poly_t x, fmpz_t a, slong i):
+    r"""
+    Inplace addition:
+    add `a` to the `i`-th coefficient of `x`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    - ``a`` -- a ``cdigit``
+    - ``i`` -- an integer
+    """
     iadd_coeff(x, a, i)
 
-cdef inline void element_isub_digit(celement x, cdigit a, slong i):
+cdef inline void element_isub_digit(fmpz_poly_t x, fmpz_t a, slong i):
+    r"""
+    Inplace subtraction:
+    subtract `a` to the `i`-th coefficient of `x`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    - ``a`` -- a ``cdigit``
+    - ``i`` -- an integer
+    """
     isub_coeff(x, a, i)
 
-cdef inline void element_iadd_slice(celement x, celement slice, slong start):
+cdef inline void element_iadd_slice(fmpz_poly_t x, fmpz_poly_t slice, slong start):
+    r"""
+    Inplace addition:
+    add a slice to an element
+
+    INPUT:
+
+    - ``x`` -- a ``celement``, the element to update
+    - ``slice`` -- a ``celement``, the slice to be added
+    - ``start`` -- the position from which the slice will be added
+    """
     iadd_shifted(x, slice, start)
 
-cdef inline void element_isub_slice(celement x, celement slice, slong start):
-    raise NotImplementedError
+cdef inline void element_scalarmul(fmpz_poly_t res, fmpz_poly_t x, fmpz_t a):
+    r"""
+    Scalar multiplication.
 
-cdef inline void element_scalarmul(celement res, celement x, cdigit a):
+    INPUT:
+
+    - ``res`` -- a ``celement``, the element to store the result
+    - ``x`` -- a ``celement``, the multiplicand
+    - ``a`` -- a ``cdigit``, the multiplier
+    """
     fmpz_poly_scalar_mul_fmpz(res, x, a)
 
-cdef inline void element_mul(celement res, celement x, celement y):
+cdef inline void element_mul(fmpz_poly_t res, fmpz_poly_t x, fmpz_poly_t y):
+    r"""
+    Multiplication.
+
+    INPUT:
+
+    - ``res`` -- a ``celement``, the element to store the result
+    - ``x`` -- a ``celement``, the first factor
+    - ``y`` -- a ``celement``, the second factor
+    """
     fmpz_poly_mul(res, x, y)
 
-cdef inline void element_reduce_digit(celement x, slong i, PowComputer_class prime_pow):
-    reduce_coeff(x, i, (<PowComputer_flint>prime_pow).fprime)
+cdef inline void element_reduce_digit(fmpz_poly_t x, slong i, PowComputer_flint prime_pow):
+    r"""
+    Reduce the `i`-th digit of `x` and propagate carry.
 
-cdef inline void element_shift_right(celement x):
+    INPUT:
+
+    - ``x`` -- a ``celement``, the element to update
+    - ``i`` -- an integer
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    reduce_coeff(x, i, prime_pow.fprime)
+
+cdef inline void element_shift_right(fmpz_poly_t x):
+    r"""
+    Remove the first digit of ``x``.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``
+    """
     fmpz_poly_shift_right(x, x, 1)

@@ -364,9 +364,9 @@ class Qp_class(UniqueFactory):
 
     TYPES AND PRECISION:
 
-    There are two types of precision for a `p`-adic element.  The first
-    is relative precision, which gives the number of known `p`-adic
-    digits::
+    There are two main types of precision for a `p`-adic element.
+    The first is relative precision, which gives the number of known
+    `p`-adic digits::
 
         sage: R = Qp(5, 20, 'capped-rel', 'series'); a = R(675); a
         2*5^2 + 5^4 + O(5^22)
@@ -379,8 +379,20 @@ class Qp_class(UniqueFactory):
         sage: a.precision_absolute()
         22
 
-    There are three types of `p`-adic fields: capped relative fields,
-    floating point fields and lattice precision fields.
+    There are several types of `p`-adic fields, depending on the methods
+    used for tracking precision. Namely, we have:
+
+    - capped relative fields (``type='capped-rel'``)
+
+    - capped absolute fields (``type='capped-abs'``)
+
+    - fixed modulus fields (``type='fixed-mod'``)
+
+    - floating point fields (``type='floating-point'``)
+
+    - lattice precision fields (``type='lattice-cap'`` or ``type='lattice-float'``)
+
+    - lazy fields (``type='lazy'``)
 
     In the capped relative case, the relative precision of an element
     is restricted to be at most a certain value, specified at the
@@ -404,6 +416,17 @@ class Qp_class(UniqueFactory):
     In the lattice case, precision on elements is tracked by a global
     lattice that is updated after every operation, yielding better
     precision behavior at the cost of higher memory and runtime usage.
+    We refer to the documentation of the function :func:`ZpLC` for a
+    small demonstration of the capabilities of this precision model.
+
+    Finally, the model for lazy `p`-adics is quite different from any of
+    the other types. In addition to storing a finite approximation, one
+    also stores a method for increasing the precision.
+    A quite interesting feature with lazy `p`-adics is the possibility to
+    create (in some cases) self-referent numbers, that are numbers whose
+    `n`-th digit is defined by the previous ones.
+    We refer to the documentation of the function :func:`ZpL` for a
+    small demonstration of the capabilities of this precision model.
 
     PRINTING:
 
@@ -1385,7 +1408,6 @@ def QpLC(p, prec = None, *args, **kwds):
         sage: R = QpLC(2)
         sage: R
         2-adic Field with lattice-cap precision
-
     """
     return Qp(p, prec, 'lattice-cap', *args, **kwds)
 
@@ -1405,6 +1427,17 @@ def QpLF(p, prec = None, *args, **kwds):
     return Qp(p, prec, 'lattice-float', *args, **kwds)
 
 def QpL(p, prec=None, *args, **kwds):
+    r"""
+    A shortcut function to create lazy `p`-adic fields.
+
+    See :func:`ZpL` for more information about this model of precision.
+
+    EXAMPLES::
+
+        sage: R = QpL(2)
+        sage: R
+        2-adic Field with lazy precision
+    """
     return Qp(p, prec, 'lazy', *args, **kwds)
 
 #######################################################################################################
@@ -1434,7 +1467,7 @@ class Zp_class(UniqueFactory):
 
     - ``type`` -- string (default: ``'capped-rel'``) Valid types are
       ``'capped-rel'``, ``'capped-abs'``, ``'fixed-mod'``,
-      ``'floating-point'``, ``'lattice-cap'``, ``'lattice-float'``
+      ``'floating-point'``, ``'lattice-cap'``, ``'lattice-float'``, ``'lazy'``
       See TYPES and PRECISION below
 
     - ``print_mode`` -- string (default: ``None``).  Valid modes are
@@ -1473,7 +1506,7 @@ class Zp_class(UniqueFactory):
 
     TYPES AND PRECISION:
 
-    There are three types of precision.
+    There are two main types of precision.
     The first is relative precision; it gives the number of known
     `p`-adic digits::
 
@@ -1488,27 +1521,20 @@ class Zp_class(UniqueFactory):
         sage: a.precision_absolute()
         22
 
-    The third one is lattice precision.
-    It is not attached to a single `p`-adic number but is a unique
-    object modeling the precision on a set of `p`-adics, which is
-    typically the set of all elements within the same parent::
+    There are several types of `p`-adic rings, depending on the methods
+    used for tracking precision. Namely, we have:
 
-        sage: R = ZpLC(17)
-        sage: x = R(1,10); y = R(1,5)
-        sage: R.precision()
-        Precision lattice on 2 objects
-        sage: R.precision().precision_lattice()
-        [2015993900449             0]
-        [            0       1419857]
+    - capped relative rings (``type='capped-rel'``)
 
-    We refer to the documentation of the function :func:`ZpLC` for
-    more information about this precision model.
+    - capped absolute rings (``type='capped-abs'``)
 
-    There are many types of `p`-adic rings: capped relative rings
-    (``type='capped-rel'``), capped absolute rings
-    (``type='capped-abs'``), fixed modulus rings (``type='fixed-mod'``),
-    floating point rings (``type='floating-point'``), lattice capped rings
-    (``type='lattice-cap'``) and lattice float rings (``type='lattice-float'``).
+    - fixed modulus rings (``type='fixed-mod'``)
+
+    - floating point rings (``type='floating-point'``)
+
+    - lattice precision rings (``type='lattice-cap'`` or ``type='lattice-float'``)
+
+    - lazy rings (``type='lazy'``)
 
     In the capped relative case, the relative precision of an element
     is restricted to be at most a certain value, specified at the
@@ -1559,6 +1585,15 @@ class Zp_class(UniqueFactory):
     and automatic differentiation. It is rather slow but provides sharp
     (often optimal) results regarding precision.
     We refer to the documentation of the function :func:`ZpLC` for a
+    small demonstration of the capabilities of this precision model.
+
+    Finally, the model for lazy `p`-adics is quite different from any of
+    the other types. In addition to storing a finite approximation, one
+    also stores a method for increasing the precision.
+    A quite interesting feature with lazy `p`-adics is the possibility to
+    create (in some cases) self-referent numbers, that are numbers whose
+    `n`-th digit is defined by the previous ones.
+    We refer to the documentation of the function :func:`ZpL` for a
     small demonstration of the capabilities of this precision model.
 
     PRINTING:
@@ -2021,6 +2056,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     - The corresponding unramified `p`-adic ring.
 
     TYPES AND PRECISION:
+
 
     There are two types of precision for a `p`-adic element.  The first
     is relative precision (default), which gives the number of known `p`-adic
@@ -2904,6 +2940,173 @@ def ZpLF(p, prec=None, *args, **kwds):
     return Zp(p, prec, 'lattice-float', *args, **kwds)
 
 def ZpL(p, prec=None, *args, **kwds):
+    r"""
+    A shortcut function to create lazy `p`-adic rings.
+
+    See documentation for :func:`Zp` for a description of the input parameters.
+
+    A SHORT INTRODUCTION TO LAZY `p`-ADICS:
+
+    The model for lazy elements is quite different from any of the
+    other types of `p`-adics. In addition to storing a finite
+    approximation, one also stores a method for increasing the
+    precision.
+
+    Lazy `p`-adic rings are created by the constructor :func:`ZpL`::
+
+        sage: R = ZpL(5, print_mode="digits")
+        sage: R
+        5-adic Ring with lazy precision
+
+    The precision is not capped on `R`::
+
+        sage: R.precision_cap()
+        +Infinity
+
+    However, a default precision is settled. This is the precision
+    at which the elements will be printed::
+
+        sage: R.default_prec()
+        20
+
+    One creates elements as usual::
+
+        sage: a = R(17/42)
+        sage: a
+        ...00244200244200244201
+
+        sage: R.random_element()  # random
+        ...21013213133412431402
+
+    Here we notice that 20 digits (that is the default precision) are printed.
+    However, the computation model is designed in order to guarantee that more
+    digits of `a` will be available on demand.
+    This feature is reflected by the fact that, when we ask for the precision
+    of `a`, the software answers `+\infty`::
+
+        sage: a.precision_absolute()
+        +Infinity
+
+    Asking for more digits is achieved by the methods :meth:`at_precision_absolute`
+    and :meth:`at_precision_relative`::
+
+        sage: a.at_precision_absolute(30)
+        ...?244200244200244200244200244201
+
+    As a shortcut, one can use the operator ``@``::
+
+        sage: a@30
+        ...?244200244200244200244200244201
+
+    Of course, standard operations are supported::
+
+        sage: b = R(42/17)
+        sage: a + b
+        ...03232011214322140002
+        sage: a - b
+        ...42311334324023403400
+        sage: a * b
+        ...00000000000000000001
+        sage: a / b
+        ...12442142113021233401
+        sage: sqrt(a)
+        ...20042333114021142101
+
+    We observe again that only 20 digits are printed but, as before,
+    more digits are available on demand::
+
+        sage: sqrt(a)@30
+        ...?142443342120042333114021142101
+
+    .. RUBRIC:: Equality tests
+
+    Checking equalities between lazy `p`-adics is a bit subtle can could
+    sometimes be puzzling at first glance.
+    Actually, when it is obvious (from the previous computations) that
+    the two sides of the equality are different, everything works well::
+
+        sage: a == b
+        False
+
+    On the contrary, when the two numbers we want to compare are indeed
+    equal, it is not possible to conclude after a finite amount of
+    computations. In this case, an error is raised::
+
+        sage: a == sqrt(a)^2
+        Traceback (most recent call last):
+        ...
+        PrecisionError: unable to decide equality; try to bound precision
+
+    and we are forced to check equality at some given finite precision
+    as follows::
+
+        sage: a@20 == sqrt(a)^2
+        True
+        sage: a@100 == sqrt(a)^2
+        True
+
+    Finally, note that checking equality may fail even when the two
+    operands are different but when the first different digit is beyond
+    the default precision::
+
+        sage: b == b + 5^50
+        Traceback (most recent call last):
+        ...
+        PrecisionError: unable to decide equality; try to bound precision
+
+    .. RUBRIC:: Self-referent numbers
+
+    A quite interesting feature with lazy `p`-adics is the possibility to
+    create (in some cases) self-referent numbers. Here is an example.
+    We first declare a new variable as follows::
+
+        sage: x = R.selfref()
+        sage: x
+        ...?.0
+
+    We then use the method :meth:`set` to define `x` by writing down an equation
+    it satisfies::
+
+        sage: x.set(1 + 5*x^2)
+
+    The variable `x` now contains the unique solution of the equation
+    `x = 1 + 5 x^2`::
+
+        sage: x
+        ...04222412141121000211
+
+    This works because the `n`-th digit of the right hand size of the
+    defining equation only involves the `i`-th digits of `x` with `i < n`
+    (this is due to the factor `5`).
+
+    As a comparison, the following does not work::
+
+        sage: y = R.selfref()
+        sage: y.set(1 + 3*y^2)
+        sage: y
+        ...?.0
+        sage: y@20
+        Traceback (most recent call last):
+        ...
+        RecursionError: definition looks circular
+
+    Self-referent definitions also work with systems of equations::
+
+        sage: u = R.selfref()
+        sage: v = R.selfref()
+        sage: w = R.selfref()
+
+        sage: u.set(1 + 2*v + 3*w^2 + 5*u*v*w)
+        sage: v.set(2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w))
+        sage: w.set(3 + 25*(u*v + v*w + u*w))
+
+        sage: u
+        ...31203130103131131433
+        sage: v
+        ...33441043031103114240
+        sage: w
+        ...30212422041102444403
+    """
     return Zp(p, prec, 'lazy', *args, **kwds)
 
 

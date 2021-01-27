@@ -283,7 +283,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas(I*x).sage()                                            # optional - fricas
             I*x
         """
-        eval_using_file_cutoff = 4096-5  # magic number from Expect._eval_line (there might be a bug)
+        eval_using_file_cutoff = 4096 - 5  # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         self._COMMANDS_CACHE = '%s/%s_commandlist_cache.sobj' % (DOT_SAGE, name)
@@ -434,8 +434,8 @@ http://fricas.sourceforge.net.
             names = [x for x in v if valid.search(x) is None]
 
             # replace trailing ? with _q and trailing ! with _e
-            names += [x[:-1]+"_q" for x in v if x.endswith("?")]
-            names += [x[:-1]+"_e" for x in v if x.endswith("!")]
+            names += [x[:-1] + "_q" for x in v if x.endswith("?")]
+            names += [x[:-1] + "_e" for x in v if x.endswith("!")]
 
             self.__tab_completion = names
             if len(v) > 200:
@@ -1335,7 +1335,7 @@ class FriCASElement(ExpectElement):
                         e = symbol_table["fricas"][e]
                     except KeyError:
                         e = var(e.replace("%", "_"))
-        return e, a-1
+        return e, a - 1
 
     @staticmethod
     def _parse_string(s, start=0):
@@ -1560,6 +1560,12 @@ class FriCASElement(ExpectElement):
             sage: fricas.set("F", "operator 'f")                                # optional - fricas
             sage: fricas("eval(D(F(x,y), [x, y], [2, 1]), x=x+y)").sage()       # optional - fricas
             D[0, 0, 1](f)(x + y, y)
+
+        Conversion of hypergeometric functions::
+
+            sage: A = hypergeometric([x,4],[5],1)
+            sage: fricas(A).sage()   # optional - fricas
+            hypergeometric((x, 4), (5,), 1)
         """
         from sage.libs.pynac.pynac import register_symbol
         from sage.symbolic.constants import e, pi, I
@@ -1594,10 +1600,11 @@ class FriCASElement(ExpectElement):
         register_symbol(lambda x, y: x / y, {'fricas': '/'})
         register_symbol(lambda x, y: x ** y, {'fricas': '^'})
         register_symbol(lambda f, x: diff(f, x), {'fricas': 'D'})
-        register_symbol(lambda x, y: x + y*I, {'fricas': 'complex'})
-        register_symbol(lambda x: dilog(1-x), {'fricas': 'dilog'})
+        register_symbol(lambda x, y: x + y * I, {'fricas': 'complex'})
+        register_symbol(lambda x: dilog(1 - x), {'fricas': 'dilog'})
         register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'})
         register_symbol(abs, {'fricas': 'abs'})
+        register_symbol(lambda *x: x, {'fricas': 'construct'})
         # the following is a hack to deal with
         # integrate(sin((x^2+1)/x),x)::INFORM giving
         # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))
@@ -1882,7 +1889,7 @@ class FriCASElement(ExpectElement):
             return self.numer().sage() / self.denom().sage()
 
         if head == "Complex":
-            return self.real().sage() + self.imag().sage()*I
+            return self.real().sage() + self.imag().sage() * I
 
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' % self._name).sage()
@@ -1916,7 +1923,7 @@ class FriCASElement(ExpectElement):
             prec = max(P.new("length mantissa(%s)" % self._name).sage(), 53)
             R = RealField(prec)
             x, e, b = unparsed_InputForm.lstrip('float(').rstrip(')').split(',')
-            return R(ZZ(x)*ZZ(b)**ZZ(e))
+            return R(ZZ(x) * ZZ(b)**ZZ(e))
 
         if head == "DoubleFloat":
             return RDF(unparsed_InputForm)

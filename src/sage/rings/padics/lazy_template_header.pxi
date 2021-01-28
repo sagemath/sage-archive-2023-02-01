@@ -9,6 +9,7 @@ cdef class LazyElement(pAdicGenericElement):
     cdef slong _valuation
     cdef slong _precrel
     cdef slong _precbound
+    cdef slong _valuebound
     cdef PowComputer_class prime_pow
 
     cdef cdigit_ptr _getdigit_relative(self, slong i)
@@ -29,6 +30,8 @@ cdef class LazyElement_init(LazyElement):
     cdef celement _digits
 
 
+# Assignment
+
 cdef class LazyElement_zero(LazyElement):
     pass
 
@@ -40,21 +43,17 @@ cdef class LazyElement_bound(LazyElement):
 
 cdef class LazyElement_value(LazyElement_init):
     cdef slong _shift
-    cdef bint _finished
 
 cdef class LazyElement_random(LazyElement_init):
     pass
 
 
+# Operations
 
 cdef class LazyElement_slice(LazyElement):
     cdef LazyElement _x
     cdef slong _start
     cdef slong _stop
-    cdef slong _shift
-
-cdef class LazyElement_shift(LazyElement_init):
-    cdef LazyElement _x
     cdef slong _shift
 
 cdef class LazyElement_add(LazyElement_init):
@@ -99,6 +98,7 @@ cdef class LazyElement_teichmuller(LazyElement_init):
     cdef LazyElement _xbar
     cdef LazyElement _xp
 
+# Self-referent numbers
 
 cdef class LazyElement_selfref(LazyElement_init):
     cdef LazyElement _definition

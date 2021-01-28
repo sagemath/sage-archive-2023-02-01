@@ -25,6 +25,33 @@ cdef inline int ERROR_UNEXPECTED   = 1 << 30
 
 
 def raise_error(error, permissive=False):
+    r"""
+    Raise an error according to the given error code.
+
+    INPUT:
+
+    - ``error`` -- an integer; the error code
+
+    - ``permissive`` -- a boolean (default: ``False``); if ``True``,
+      do not raise weak errors (precision, abandon).
+
+    TESTS::
+
+        sage: from sage.rings.padics.padic_lazy_errors import *
+        sage: raise_error(0)
+        sage: raise_error(128)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: cannot divide by something indistinguishable from zero
+
+        sage: raise_error(1)
+        Traceback (most recent call last):
+        ...
+        PrecisionError: computation has been abandonned; try to increase precision
+
+        sage: raise_error(1, permissive=True)
+
+    """
     if error & ERROR_UNEXPECTED:
         raise RuntimeError("error code = %s" % error)
     if error & ERROR_CIRCULAR:

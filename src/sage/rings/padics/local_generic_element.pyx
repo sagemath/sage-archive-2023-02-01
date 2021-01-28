@@ -997,7 +997,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             if self.valuation() is not infinity:
                 shift = shift << v
 
-        if self.parent().is_lattice_prec():
+        if self.parent().is_lattice_prec() or self.parent().is_lazy():
             modes = ['simple']
         else:
             modes = ['simple', 'smallest', 'teichmuller']

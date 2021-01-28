@@ -1101,7 +1101,34 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
 ######
 
 class pAdicRingLazy(pAdicLazyGeneric, pAdicRingBaseGeneric):
+    """
+    An implementation of `\ZZ_p` with lazy precision.
+
+    INPUT:
+
+    - ``p`` -- prime
+
+    - ``prec`` -- default precision
+
+    - ``print_mode`` -- dictionary with print options
+
+    - ``names`` -- how to print the prime
+
+    EXAMPLES::
+
+        sage: R = ZpL(5)  # indirect doctest
+        sage: type(R)
+        <class 'sage.rings.padics.padic_base_leaves.pAdicRingLazy_with_category'>
+    """
     def __init__(self, p, prec, print_mode, names):
+        """
+        Initialization.
+
+        TESTS::
+
+            sage: R = ZpL(7)
+            sage: TestSuite(R).run(skip=['test_log'])
+        """
         from sage.rings.padics import padic_lazy_element
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
         self._element_classes = {
@@ -1123,7 +1150,34 @@ class pAdicRingLazy(pAdicLazyGeneric, pAdicRingBaseGeneric):
         }
 
 class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
+    """
+    An implementation of `\QQ_p` with lazy precision.
+
+    INPUT:
+
+    - ``p`` -- prime
+
+    - ``prec`` -- default precision
+
+    - ``print_mode`` -- dictionary with print options
+
+    - ``names`` -- how to print the prime
+
+    EXAMPLES::
+
+        sage: R = QpL(5)  # indirect doctest
+        sage: type(R)
+        <class 'sage.rings.padics.padic_base_leaves.pAdicRingLazy_with_category'>
+    """
     def __init__(self, p, prec, print_mode, names):
+        """
+        Initialization.
+
+        TESTS::
+
+            sage: K = QpL(7)
+            sage: TestSuite(K).run(skip=['test_log', 'test_matrix_smith'])
+        """
         from sage.rings.padics import padic_lazy_element
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
         self._element_classes = {

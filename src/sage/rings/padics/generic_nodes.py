@@ -878,6 +878,58 @@ class pAdicLazyGeneric(pAdicGeneric):
                 return self._element_classes['div'](self, num, denom, precbound=prec)
         raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
 
+    def an_element(self, unbounded=False):
+        r"""
+        Returns an element in this ring.
+
+        EXAMPLES::
+
+            sage: ZpL(5, prec=5)
+            sage: R.an_element()
+            7 + O(7^5)
+            sage: R.an_element(unbounded=True)
+            7
+        """
+        p = self(self.prime())
+        if not unbounded:
+            p = p.at_precision_absolute()
+        return p
+
+    def some_elements(self, unbounded=False):
+        r"""
+        Returns a list of elements in this ring.
+
+        This is typically used for running generic tests (see :class:`TestSuite`).
+
+        EXAMPLES::
+
+            sage: ZpL(5, prec=5)
+            sage: R.some_elements()
+            [O(7^5),
+             1 + O(7^5),
+             7 + O(7^5),
+             7 + O(7^5),
+             1 + 5*7 + 3*7^2 + 6*7^3 + O(7^5),
+             7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)]
+
+            sage: R.some_elements(unbounded=True)
+            [0,
+             1,
+             7,
+             7,
+             1 + 5*7 + 3*7^2 + 6*7^3 + ...,
+             7 + 6*7^2 + 6*7^3 + 6*7^4 + ...]
+        """
+        p = self(self.prime())
+        a = self.gen()
+        one = self.one()
+        L = [self.zero(), one, p, a, (one+p+p).inverse_of_unit(), p-p**2]
+        if self.is_field():
+            L.extend([~(p-p-a),p**(-20)])
+        if not unbounded:
+            L = [ x.at_precision_absolute() for x in L ]
+        return L
+
     def selfref(self, valuation=0, digits=None):
         r"""
         Return a self-referent number in this ring.
@@ -1015,10 +1067,10 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: R.teichmuller(2)
             ...40423140223032431212
         """
-        if isinstance(x, pAdicGeneric):
-            x = x.residue()
-        x = self.exact_ring()(x)
-        return self._element_classes['teichmuller'](self, x)
+        x = self(x)
+        if x.valuation() < 0:
+            raise ValueError("negative valuation")
+        return self._element_classes['teichmuller'](self, self.exact_ring()(x.residue()))
 
     def teichmuller_system(self):
         r"""

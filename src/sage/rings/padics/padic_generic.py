@@ -964,7 +964,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             :class:`TestSuite`
         """
         tester = self._tester(**options)
-        cap = self.precision_cap()
+        if self.is_lazy():
+            cap = self.default_prec()
+        else:
+            cap = self.precision_cap()
         k = self.residue_field()
         for v in range(min(cap,10)):
             if self.is_capped_absolute() or self.is_fixed_mod():
@@ -1068,7 +1071,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                     tester.assertEqual(x.residue(), y.residue())
                 except (NotImplementedError, AttributeError):
                     pass
-                tester.assertEqual(y**self.residue_field().order(), y)
+                if self.is_lazy():
+                    tester.assertTrue(y.is_equal_at_precision(y**self.residue_field().order(), self.default_prec()))
+                else:
+                    tester.assertEqual(y**self.residue_field().order(), y)
 
     def _test_convert_residue_field(self, **options):
         r"""

@@ -1561,11 +1561,14 @@ class FriCASElement(ExpectElement):
             sage: fricas("eval(D(F(x,y), [x, y], [2, 1]), x=x+y)").sage()       # optional - fricas
             D[0, 0, 1](f)(x + y, y)
 
-        Conversion of hypergeometric functions::
+        Conversion of hypergeometric functions (:trac:`31298`)::
 
-            sage: A = hypergeometric([x,4],[5],1)
-            sage: fricas(A).sage()   # optional - fricas
-            hypergeometric((x, 4), (5,), 1)
+            sage: a,b,c = var("a b c")
+            sage: A = hypergeometric([a, b], [c], x)
+            sage: fricas(A).sage() - A                                          # optional - fricas
+            0
+            sage: fricas(A).D(x).sage() - diff(A, x)                            # optional - fricas
+            0
         """
         from sage.libs.pynac.pynac import register_symbol
         from sage.symbolic.constants import e, pi, I
@@ -1604,6 +1607,7 @@ class FriCASElement(ExpectElement):
         register_symbol(lambda x: dilog(1 - x), {'fricas': 'dilog'})
         register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'})
         register_symbol(abs, {'fricas': 'abs'})
+        # construct occurs in the InputForm of hypergeometricF
         register_symbol(lambda *x: x, {'fricas': 'construct'})
         # the following is a hack to deal with
         # integrate(sin((x^2+1)/x),x)::INFORM giving

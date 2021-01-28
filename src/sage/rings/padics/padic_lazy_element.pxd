@@ -32,6 +32,9 @@ cdef class pAdicLazyElement_slice(LazyElement_slice):
 cdef class pAdicLazyElement_add(LazyElement_add):
     pass
 
+cdef class pAdicLazyElement_sub(LazyElement_sub):
+    pass
+
 cdef class pAdicLazyElement_mul(LazyElement_mul):
     pass
 

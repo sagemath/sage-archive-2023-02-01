@@ -29,6 +29,8 @@ cdef extern from "sage/libs/linkages/padics/lazy/flint_helper.c":
     cdef void isub_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
     cdef void iadd_shifted(fmpz_poly_t poly, fmpz_poly_t summand, slong shift)
     cdef void reduce_coeff(fmpz_poly_t poly, slong i, fmpz_t modulus)
+    cdef void reducesmall_coeff(fmpz_poly_t poly, slong i, fmpz_t modulus)
+    cdef void reduceneg_coeff(fmpz_poly_t poly, slong i, fmpz_t modulus)
 
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 
@@ -476,6 +478,32 @@ cdef inline void element_reduce_digit(fmpz_poly_t x, slong i, PowComputer_flint 
     - ``prime_pow`` -- the PowComputer for the ring
     """
     reduce_coeff(x, i, prime_pow.fprime)
+
+cdef inline void element_reducesmall_digit(fmpz_poly_t x, slong i, PowComputer_flint prime_pow):
+    r"""
+    Reduce the `i`-th digit of `x` and propagate carry,
+    assuming that `x` is between `0` and `2*p - 1`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``, the element to update
+    - ``i`` -- an integer
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    reducesmall_coeff(x, i, prime_pow.fprime)
+
+cdef inline void element_reduceneg_digit(fmpz_poly_t x, slong i, PowComputer_flint prime_pow):
+    r"""
+    Reduce the `i`-th digit of `x` and propagate carry,
+    assuming that `x` is between `-p` and `p-1`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``, the element to update
+    - ``i`` -- an integer
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    reduceneg_coeff(x, i, prime_pow.fprime)
 
 cdef inline void element_shift_right(fmpz_poly_t x):
     r"""

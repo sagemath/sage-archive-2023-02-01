@@ -456,6 +456,32 @@ cdef inline void element_reduce_digit(celement x, slong i, PowComputer_class pri
     """
     pass
 
+cdef inline void element_reducesmall_digit(fmpz_poly_t x, slong i, PowComputer_flint prime_pow):
+    r"""
+    Reduce the `i`-th digit of `x` and propagate carry,
+    assuming that `x` is between `0` and `2*p - 1`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``, the element to update
+    - ``i`` -- an integer
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    pass
+
+cdef inline void element_reduceneg_digit(fmpz_poly_t x, slong i, PowComputer_flint prime_pow):
+    r"""
+    Reduce the `i`-th digit of `x` and propagate carry,
+    assuming that `x` is between `-p` and `p-1`.
+
+    INPUT:
+
+    - ``x`` -- a ``celement``, the element to update
+    - ``i`` -- an integer
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    pass
+
 cdef inline void element_shift_right(celement x):
     r"""
     Remove the first digit of ``x``.

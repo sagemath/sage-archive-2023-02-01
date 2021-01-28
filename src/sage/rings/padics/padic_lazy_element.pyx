@@ -5,6 +5,7 @@ cdef inline type element_class_value = pAdicLazyElement_value
 cdef inline type element_class_random = pAdicLazyElement_random
 cdef inline type element_class_slice = pAdicLazyElement_slice
 cdef inline type element_class_add = pAdicLazyElement_add
+cdef inline type element_class_sub = pAdicLazyElement_sub
 cdef inline type element_class_mul = pAdicLazyElement_mul
 cdef inline type element_class_muldigit = pAdicLazyElement_muldigit
 cdef inline type element_class_div = pAdicLazyElement_div

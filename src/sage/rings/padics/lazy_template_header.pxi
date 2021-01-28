@@ -58,8 +58,12 @@ cdef class LazyElement_shift(LazyElement_init):
     cdef slong _shift
 
 cdef class LazyElement_add(LazyElement_init):
-    cdef list _summands
-    cdef list _signs
+    cdef LazyElement _x
+    cdef LazyElement _y
+
+cdef class LazyElement_sub(LazyElement_init):
+    cdef LazyElement _x
+    cdef LazyElement _y
 
 cdef class LazyElement_mul(LazyElement_init):
     cdef LazyElement _x

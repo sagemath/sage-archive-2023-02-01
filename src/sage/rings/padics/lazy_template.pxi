@@ -73,8 +73,6 @@ cdef class LazyElement(pAdicGenericElement):
 
     cdef int _jump_c(self, slong prec):
         cdef int error
-        if prec > maxordp:
-            return ERROR_OVERFLOW
         cdef slong pr = min(prec, self._precbound)
         while self._precrel + self._valuation < pr:
             error = self._next_c()
@@ -392,57 +390,23 @@ cdef class LazyElement(pAdicGenericElement):
         return self.__rshift__(-s)
 
     cpdef _add_(self, other):
-        cdef list summands
-        cdef list signs
         if isinstance(self, LazyElement_zero):
             return other
         if isinstance(other, LazyElement_zero):
             return self
-        if isinstance(self, LazyElement_add):
-            summands = list((<LazyElement_add>self)._summands)
-            signs = list((<LazyElement_add>self)._signs)
-        else:
-            summands = [self]
-            signs = [True]
-        if isinstance(other, LazyElement_add):
-            summands.extend((<LazyElement_add>other)._summands)
-            signs.extend((<LazyElement_add>other)._signs)
-        else:
-            summands.append(other)
-            signs.append(True)
-        return element_class_add(self._parent, summands, signs)
+        return element_class_add(self._parent, self, <LazyElement>other)
 
     cpdef _sub_(self, other):
-        cdef list summands
-        cdef list signs
         if isinstance(self, LazyElement_zero):
-            return -other
+            return other
         if isinstance(other, LazyElement_zero):
             return self
-        if isinstance(self, LazyElement_add):
-            summands = list((<LazyElement_add>self)._summands)
-            signs = list((<LazyElement_add>self)._signs)
-        else:
-            summands = [self]
-            signs = [True]
-        if isinstance(other, LazyElement_add):
-            summands.extend((<LazyElement_add>other)._summands)
-            signs.extend([ not sign for sign in (<LazyElement_add>other)._signs ])
-        else:
-            summands.append(other)
-            signs.append(False)
-        return element_class_add(self._parent, summands, signs)
+        return element_class_sub(self._parent, self, <LazyElement>other)
 
     cpdef _neg_(self):
-        cdef list summands
-        cdef list signs
-        if isinstance(self, LazyElement_add):
-            summands = list((<LazyElement_add>self)._summands)
-            signs = [ not sign for sign in (<LazyElement_add>self)._signs ]
-        else:
-            summands = [self]
-            signs = [False]
-        return element_class_add(self._parent, summands, signs)
+        if isinstance(self, LazyElement_zero):
+            return self
+        return element_class_sub(self._parent, self._parent.zero(), self)
 
     cpdef _mul_(self, other):
         if isinstance(self, LazyElement_zero) or isinstance(other, LazyElement_one):
@@ -725,33 +689,91 @@ cdef class LazyElement_slice(LazyElement):
 # Addition
 
 cdef class LazyElement_add(LazyElement_init):
-    def __init__(self, parent, summands, signs):
+    def __init__(self, parent, LazyElement x, LazyElement y):
         LazyElement.__init__(self, parent)
-        self._summands = summands
-        self._signs = signs
-        self._valuation = min((<LazyElement>summand)._valuation for summand in summands)
-        self._precbound = min((<LazyElement>summand)._precbound for summand in summands)
+        self._x = x
+        self._y = y
+        self._valuation = min(x._valuation, y._valuation)
+        self._precbound = min(x._precbound, y._precbound)
         self._init_jump()
 
-    cdef int _next_c(self):
-        cdef LazyElement summand
+    cdef int _jump_c(self, slong prec):
+        # We reimplement _jump_c for better performances
         cdef slong n = self._valuation + self._precrel
-        cdef cdigit_ptr coeff
-        cdef int error
-
-        for summand in self._summands:
-            error = summand._jump_c(n+1)
-            if error:
-                return error
-        cdef slong i
-        for i in range(len(self._summands)):
-            summand = self._summands[i]
-            coeff = summand._getdigit_absolute(n)
-            if self._signs[i]:
-                element_iadd_digit(self._digits, coeff, n - self._valuation)
+        cdef LazyElement x = self._x
+        cdef LazyElement y = self._y
+        cdef int error = x._jump_c(prec) | y._jump_c(prec)
+        prec = min(x._valuation + x._precrel, y._valuation + y._precrel)
+        while n < prec:
+            element_iadd_digit(self._digits, x._getdigit_absolute(n), self._precrel)
+            element_iadd_digit(self._digits, y._getdigit_absolute(n), self._precrel)
+            element_reducesmall_digit(self._digits, self._precrel, self.prime_pow)
+            if self._precrel == 0 and digit_is_zero(self._getdigit_relative(0)):
+                self._valuation += 1
+                element_shift_right(self._digits)
             else:
-                element_isub_digit(self._digits, coeff, n - self._valuation)
-        element_reduce_digit(self._digits, self._precrel, self.prime_pow)
+                self._precrel += 1
+            n += 1
+        return error
+
+    cdef int _next_c(self):
+        cdef slong n = self._valuation + self._precrel
+        cdef LazyElement x = self._x
+        cdef LazyElement y = self._y
+        cdef int error = x._jump_c(n+1) | y._jump_c(n+1)
+        if error:
+            return error
+        element_iadd_digit(self._digits, x._getdigit_absolute(n), self._precrel)
+        element_iadd_digit(self._digits, y._getdigit_absolute(n), self._precrel)
+        element_reducesmall_digit(self._digits, self._precrel, self.prime_pow)
+        if self._precrel == 0 and digit_is_zero(self._getdigit_relative(0)):
+            self._valuation += 1
+            element_shift_right(self._digits)
+        else:
+            self._precrel += 1
+        return 0
+
+
+# Subtraction
+
+cdef class LazyElement_sub(LazyElement_init):
+    def __init__(self, parent, LazyElement x, LazyElement y):
+        LazyElement.__init__(self, parent)
+        self._x = x
+        self._y = y
+        self._valuation = min(x._valuation, y._valuation)
+        self._precbound = min(x._precbound, y._precbound)
+        self._init_jump()
+
+    cdef int _jump_c(self, slong prec):
+        # We reimplement _jump_c for better performances
+        cdef slong n = self._valuation + self._precrel
+        cdef LazyElement x = self._x
+        cdef LazyElement y = self._y
+        cdef int error = x._jump_c(prec) | y._jump_c(prec)
+        prec = min(x._valuation + x._precrel, y._valuation + y._precrel)
+        while n < prec:
+            element_iadd_digit(self._digits, x._getdigit_absolute(n), self._precrel)
+            element_isub_digit(self._digits, y._getdigit_absolute(n), self._precrel)
+            element_reduceneg_digit(self._digits, self._precrel, self.prime_pow)
+            if self._precrel == 0 and digit_is_zero(self._getdigit_relative(0)):
+                self._valuation += 1
+                element_shift_right(self._digits)
+            else:
+                self._precrel += 1
+            n += 1
+        return error
+
+    cdef int _next_c(self):
+        cdef slong n = self._valuation + self._precrel
+        cdef LazyElement x = self._x
+        cdef LazyElement y = self._y
+        cdef int error = x._jump_c(n+1) | y._jump_c(n+1)
+        if error:
+            return error
+        element_iadd_digit(self._digits, x._getdigit_absolute(n), self._precrel)
+        element_isub_digit(self._digits, y._getdigit_absolute(n), self._precrel)
+        element_reduceneg_digit(self._digits, self._precrel, self.prime_pow)
         if self._precrel == 0 and digit_is_zero(self._getdigit_relative(0)):
             self._valuation += 1
             element_shift_right(self._digits)
@@ -946,7 +968,7 @@ cdef class LazyElement_div(LazyElement_init):
         cdef LazyElement b = element_class_muldigit(parent, self, denom)
         cdef LazyElement c = element_class_slice(parent, b, denom._valuation + 1, maxordp, 0)
         cdef LazyElement d = element_class_mul(parent, c, self)
-        self._definition = element_class_add(parent, [a,d], [True,False])
+        self._definition = element_class_sub(parent, a, d)
         return 0
 
     cdef int _next_c(self):

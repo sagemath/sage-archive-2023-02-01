@@ -133,3 +133,39 @@ void reduce_coeff(fmpz_poly_t poly, slong i, const fmpz_t modulus)
         fmpz_poly_set_coeff_fmpz(poly, i, rem);
     }
 }
+
+
+void reducesmall_coeff(fmpz_poly_t poly, slong i, const fmpz_t modulus)
+{
+    fmpz* coeff = poly->coeffs + i;
+    if (i < poly->length && fmpz_cmp(coeff, modulus) >= 0)
+    {
+        fmpz_sub(coeff, coeff, modulus);
+        if (poly->length < i + 2) {
+            fmpz_poly_set_coeff_ui(poly, i + 1, 1);
+        }
+        else
+        {
+            coeff++;
+            fmpz_add_ui(coeff, coeff, 1);
+        }
+    }
+}
+
+
+void reduceneg_coeff(fmpz_poly_t poly, slong i, const fmpz_t modulus)
+{
+    fmpz* coeff = poly->coeffs + i;
+    if (i < poly->length && fmpz_cmp_ui(coeff, 0) < 0)
+    {
+        fmpz_add(coeff, coeff, modulus);
+        if (poly->length < i + 2) {
+            fmpz_poly_set_coeff_si(poly, i + 1, -1);
+        }
+        else
+        {
+            coeff++;
+            fmpz_sub_ui(coeff, coeff, 1);
+        }
+    }
+}

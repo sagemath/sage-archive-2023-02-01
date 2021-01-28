@@ -3522,10 +3522,27 @@ cdef class pAdicGenericElement(LocalGenericElement):
             except ValueError:
                 pass
         if ans is not None:
-            if list(ans.expansion()) > list((-ans).expansion()):
-                ans = -ans
+            ans2 = -ans
+            E1 = ans.expansion()
+            E2 = ans2.expansion()
+            if ans.parent().is_field():
+                i = 0
+            else:
+                i = ans.valuation()
+            while True:
+                try:
+                    d1 = E1[i]
+                    d2 = E2[i]
+                except (PrecisionError, IndexError):
+                    break
+                if d1 > d2:
+                    ans, ans2 = ans2, ans
+                    break
+                if d1 < d2:
+                    break
+                i += 1
             if all:
-                return [ans, -ans]
+                return [ans, ans2]
             else:
                 return ans
         if extend:

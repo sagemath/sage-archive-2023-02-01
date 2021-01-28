@@ -66,8 +66,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 category = PrincipalIdealDomains()
             category = category.Metric().Complete()
         LocalGeneric.__init__(self, base, prec, names, element_class, category)
-        if print_mode is not None:
-            self._printer = pAdicPrinter(self, print_mode)
+        self._printer = pAdicPrinter(self, print_mode)
         self._qth_roots_of_unity = [ (1, Infinity) ]
 
     def some_elements(self):

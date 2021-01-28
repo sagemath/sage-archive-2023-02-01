@@ -3020,7 +3020,7 @@ def ZpL(p, prec=None, *args, **kwds):
 
     .. RUBRIC:: Equality tests
 
-    Checking equalities between lazy `p`-adics is a bit subtle can could
+    Checking equalities between lazy `p`-adics is a bit subtle and can
     sometimes be puzzling at first glance.
     Actually, when it is obvious (from the previous computations) that
     the two sides of the equality are different, everything works well::

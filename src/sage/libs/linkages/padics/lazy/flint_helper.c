@@ -156,7 +156,7 @@ void reducesmall_coeff(fmpz_poly_t poly, slong i, const fmpz_t modulus)
 void reduceneg_coeff(fmpz_poly_t poly, slong i, const fmpz_t modulus)
 {
     fmpz* coeff = poly->coeffs + i;
-    if (i < poly->length && fmpz_cmp_ui(coeff, 0) < 0)
+    if (i < poly->length && fmpz_cmp_si(coeff, 0) < 0)
     {
         fmpz_add(coeff, coeff, modulus);
         if (poly->length < i + 2) {

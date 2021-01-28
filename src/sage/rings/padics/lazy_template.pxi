@@ -46,7 +46,6 @@ cdef class LazyElement(pAdicGenericElement):
         self._precbound = maxordp
 
     cdef int _init_jump(self) except -1:
-        cdef slong default_prec = self._parent.default_prec()
         cdef int error = 0
         if self._precbound < maxordp:
             error = self._jump_c(self._precbound)
@@ -1151,7 +1150,7 @@ cdef class LazyElement_teichmuller(LazyElement_init):
         cdef LazyElement xp = self._xp
         cdef LazyElement_mul xn
         self._precrel += 1
-        xp._next_c()
+        xp._jump_c(self._precrel)
         element_set_digit(self._digits, xp._getdigit_relative(self._precrel - 1), self._precrel - 1)
         for xn in self._xns:
             error = xn._update_last_digit()

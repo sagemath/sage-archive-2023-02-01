@@ -700,23 +700,143 @@ class pAdicLatticeGeneric(pAdicGeneric):
         return ans
 
 class pAdicLazyGeneric(pAdicGeneric):
+    r"""
+    Generic class for lazy `p`-adics.
+
+    INPUT:
+
+    - `p` -- the underlying prime number
+
+    - ``prec`` -- the default precision
+
+    TESTS::
+
+        sage: R = ZpL(17)   # indirect doctest
+        sage: R._prec_type()
+        'lazy'
+    """
     def _prec_type(self):
+        r"""
+        Return the precision handling type.
+
+        EXAMPLES::
+
+            sage: ZpL(5)._prec_type()
+            'lazy'
+        """
         return "lazy"
 
     def is_lazy(self):
+        r"""
+        Return whether this `p`-adic ring is lazy.
+
+        EXAMPLES::
+
+            sage: R = Zp(5)
+            sage: R.is_lazy()
+            False
+            sage: S = ZpL(5)
+            sage: S.is_lazy()
+            True
+        """
         return True
 
     def default_prec(self):
+        r"""
+        Return the default precision of this lazy `p`-adic ring.
+
+        The default precision is mostly used for printing: it is the
+        number of digits which are printed for unbounded elements
+        (that is elements having infinite absolute precision).
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, print_mode="digits")
+            sage: R.default_prec()
+            20
+            sage: R(1/17)
+            ...34024323104201213403
+
+            sage: S = ZpL(5, prec=10, print_mode="digits")
+            sage: S.default_prec()
+            10
+            sage: S(1/17)
+            ...4201213403
+        """
         return self._prec
 
     def precision_cap(self):
+        r"""
+        Return the precision cap of this `p`-adic ring, which is infinite
+        in the case of lazy rings.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5)
+            sage: R.precision_cap()
+            +Infinity
+        """
         return infinity
 
     def _coerce_map_from_(self, R):
+        r"""
+        Return ``True`` if there is a coercion map from ``R`` to this ring.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5)
+            sage: K = R.fraction_field()
+            sage: K.has_coerce_map_from(R)   # indirect doctest
+            True
+            sage: R.has_coerce_map_from(K)   # indirect doctest
+            False
+        """
         if isinstance(R, pAdicLazyGeneric) and self is R.fraction_field():
             return True
 
     def _element_constructor_(self, x, prec=None):
+        r"""
+        Return an element of this ring.
+
+        INPUT:
+
+        - ``x`` -- the datum from which the element is created
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
+          if given, bound the precision of the element to ``prec``
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, prec=5)
+
+            sage: a = R(17/71)
+            sage: a
+            3 + 3*7^2 + 4*7^3 + 4*7^4 + ...
+            sage: a.precision_absolute()
+            +Infinity
+
+            sage: b = R(17/71, prec=10)
+            sage: b
+            3 + 3*7^2 + 4*7^3 + 4*7^4 + 2*7^5 + 7^6 + 5*7^8 + 5*7^9 + O(7^10)
+            sage: b.precision_absolute()
+            10
+
+        TESTS::
+
+            sage: R(1/7)
+            Traceback (most recent call last):
+            ...
+            ValueError: negative valuation
+
+        We check that conversion from other types of `p`-adics works::
+
+            sage: S = Qp(7)
+            sage: c = S(7^5)
+            sage: c
+            7^5 + O(7^25)
+            sage: R(c)
+            7^5 + O(7^25)
+        """
         parent = x.parent()
         if parent is self and prec is None:
             return x
@@ -759,6 +879,90 @@ class pAdicLazyGeneric(pAdicGeneric):
         raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
 
     def selfref(self, valuation=0, digits=None):
+        r"""
+        Return a self-referent number in this ring.
+
+        INPUT:
+
+        - ``valuation`` -- an integer (default: 0); a lower bound on the
+          valuation of the returned element
+
+        - ``digits`` -- an element, a list or ``None`` (default: ``None``);
+          the first digit or the list of the digits of the returned element
+
+        NOTE:
+
+        Self-referent numbers are numbers whose digits are defined in terms
+        of the previous ones. This method is used to declare a self-referent
+        number (and optionally, to set its first digits).
+        The definition of the number itself will be given afterwords using
+        to method meth:`sage.rings.padics.lazy_template.LazyElement_selfref.set`
+        of the element.
+
+        EXAMPLES:
+
+            sage: R = ZpL(5, prec=10)
+
+        We declare a self-referent number::
+
+            sage: a = R.selfref()
+
+        So far, we do not know anything on `a` (except that it has nonnegative
+        valuation)::
+
+            sage: a
+            O(5^0)
+
+        We can now use the method meth:`sage.rings.padics.lazy_template.LazyElement_selfref.set`
+        to define `a`. Below, for example, we say that the digits of `a` have to
+        agree with the digits of `1 + 5 a`. Note that the factor `5` shifts the
+        digits; the `n`-th digit of `a` is then defined by the previous ones::
+
+            sage: a.set(1 + 5*a)
+
+        After this, `a` contains the solution of the equation `a = 1 + 5 a`, that
+        is `a = -1/4`::
+
+            sage: a
+            1 + 5 + 5^2 + 5^3 + 5^4 + 5^5 + 5^6 + 5^7 + 5^8 + 5^9 + ...
+
+        Here is another example with an equation of degree `2`::
+
+            sage: b = R.selfref()
+            sage: b.set(1 - 5*b^2)
+            sage: b
+            1 + 4*5 + 5^2 + 3*5^4 + 4*5^6 + 4*5^8 + 2*5^9 + ...
+            sage: (sqrt(R(21)) - 1) / 10
+            1 + 4*5 + 5^2 + 3*5^4 + 4*5^6 + 4*5^8 + 2*5^9 + ...
+
+        Cross self-referent definitions are also allowed::
+
+            sage: u = R.selfref()
+            sage: v = R.selfref()
+            sage: w = R.selfref()
+
+            sage: u.set(1 + 2*v + 3*w^2 + 5*u*v*w)
+            sage: v.set(2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w))
+            sage: w.set(3 + 25*(u*v + v*w + u*w))
+
+            sage: u
+            3 + 3*5 + 4*5^2 + 5^3 + 3*5^4 + 5^5 + 5^6 + 3*5^7 + 5^8 + 3*5^9 + ...
+            sage: v
+            4*5 + 2*5^2 + 4*5^3 + 5^4 + 5^5 + 3*5^6 + 5^8 + 5^9 + ...
+            sage: w
+            3 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 2*5^6 + 5^8 + 5^9 + ...
+
+        TESTS::
+
+            sage: a = R.selfref()
+            sage: a.set(1 + 3*a)
+            sage: a
+            O(5^0)
+            sage: a.at_precision_absolute(10)
+            Traceback (most recent call last):
+            ...
+            RecursionError: definition looks circular
+        """
         valuation = ZZ(valuation)
         if (not self.is_field()) and valuation < 0:
             raise ValueError("valuation must be nonnegative")
@@ -767,16 +971,71 @@ class pAdicLazyGeneric(pAdicGeneric):
         return self._element_classes['selfref'](self, valuation, digits)
 
     def random_element(self, integral=False, prec=None):
+        r"""
+        Return a random element in this ring.
+
+        INPUT:
+
+        - ``integral`` -- a boolean (default: ``False``); if ``True``,
+          return a random element in the ring of integers of this ring
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
+          if given, bound the precision of the output to ``prec``
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, prec=10)
+
+        By default, this method returns a unbounded element::
+
+            sage: a = R.random_element()
+            sage: a  # random
+            4 + 3*5 + 3*5^2 + 5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 5^7 + 5^9 + ...
+            sage: a.precision_absolute()
+            +Infinity
+
+        The precision can be bounded by passing in a precision::
+
+            sage: b = R.random_element(prec=15)
+            sage: b
+            2 + 3*5^2 + 5^3 + 3*5^4 + 5^5 + 3*5^6 + 3*5^8 + 3*5^9 + 4*5^10 + 5^11 + 4*5^12 + 5^13 + 2*5^14 + O(5^15)
+            sage: b.precision_absolute()
+            15
+        """
         integral = integral or (not self.is_field())
         return self._element_classes['random'](self, integral, prec)
 
     def teichmuller(self, x):
+        r"""
+        Return the Teichmüller representative of `x`.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, print_mode="digits")
+            sage: R.teichmuller(2)
+            ...40423140223032431212
+        """
         if isinstance(x, pAdicGeneric):
             x = x.residue()
         x = self.exact_ring()(x)
         return self._element_classes['teichmuller'](self, x)
 
     def teichmuller_system(self):
+        r"""
+        Returns a set of teichmuller representatives for the invertible elements
+        of `\ZZ / p\ZZ`.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, print_mode="digits")
+            sage: R.teichmuller_system()
+            [...00000000000000000001,
+             ...16412125443426203642,
+             ...16412125443426203643,
+             ...50254541223240463024,
+             ...50254541223240463025,
+             ...66666666666666666666]
+        """
         R = self.residue_class_field()
         return [ self.teichmuller(ZZ(i)) for i in R if i != 0 ]
 

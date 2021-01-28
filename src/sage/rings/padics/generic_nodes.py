@@ -997,7 +997,7 @@ class pAdicLazyGeneric(pAdicGeneric):
         The precision can be bounded by passing in a precision::
 
             sage: b = R.random_element(prec=15)
-            sage: b
+            sage: b  # random
             2 + 3*5^2 + 5^3 + 3*5^4 + 5^5 + 3*5^6 + 3*5^8 + 3*5^9 + 4*5^10 + 5^11 + 4*5^12 + 5^13 + 2*5^14 + O(5^15)
             sage: b.precision_absolute()
             15

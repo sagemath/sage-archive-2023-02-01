@@ -570,7 +570,7 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
                 components[g_vect] = self.parent().retract(x.monomial_coefficient(m) * m)
         for g_vect in components:
             components[g_vect]._is_homogeneous = True
-            components[g_vect]._g_vector = g_vect 
+            components[g_vect]._g_vector = g_vect
         self._is_homogeneous = (len(components) == 1)
         if self._is_homogeneous:
             self._g_vector = list(components.keys())[0]
@@ -605,7 +605,7 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         zero_t = (0,)*A.rank()
 
         components = self.homogeneous_components()
-        
+
         for g_vect in components:
             f_poly = components[g_vect].F_polynomial()
             g_vect = vector(g_vect)

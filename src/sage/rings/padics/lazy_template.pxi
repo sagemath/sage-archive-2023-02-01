@@ -33,6 +33,8 @@ AUTHOR:
 # ****************************************************************************
 
 import re
+import uuid, weakref
+from sage.misc import persist
 
 from libc.stdlib cimport malloc, free
 from sage.libs.flint.types cimport slong
@@ -78,6 +80,9 @@ cdef class LazyElement(pAdicGenericElement):
         self._precbound = maxordp
         self._valuebound = maxordp
 
+    def __reduce__(self):
+        raise NotImplementedError("must be implemented in subclasses")
+
     cpdef bint _is_base_elt(self, p) except -1:
         return True
 
@@ -122,8 +127,6 @@ cdef class LazyElement(pAdicGenericElement):
         return error
 
     cdef int _init_jump(self) except -1:
-        r"""
-        """
         cdef int error = 0
         if self._precbound < maxordp:
             error = self._jump_c(self._precbound)
@@ -182,6 +185,8 @@ cdef class LazyElement(pAdicGenericElement):
         # This code should be integrated to the p-adic printer
         if self._valuation <= -maxordp:
             return "valuation not known"
+        if self._is_exact_zero():
+            return "0"
         if self._precbound >= maxordp:
             unbounded = True
             try:
@@ -559,6 +564,9 @@ cdef class LazyElement_zero(LazyElement):
         self._valuation = maxordp
         self._valuebound = 0
 
+    def __reduce__(self):
+        return self.__class__, (self._parent,)
+
     cdef cdigit_ptr _getdigit_relative(self, slong i):
         return digit_zero
 
@@ -584,6 +592,9 @@ cdef class LazyElement_one(LazyElement_init):
         self._precrel = min(1, self._parent.default_prec())
         self._valuebound = 1
 
+    def __reduce__(self):
+        return self.__class__, (self._parent,)
+
     cdef int _jump_c(self, slong prec):
         if self._precrel < prec:
             self._precrel = prec
@@ -607,6 +618,9 @@ cdef class LazyElement_bound(LazyElement):
         self._valuation = min(x._valuation, self._precbound)
         self._precrel = min(x._precrel, self._precbound - self._valuation)
         self._init_jump()
+
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._x, self._precbound)
 
     cdef cdigit_ptr _getdigit_relative(self, slong i):
         return self._x._getdigit_relative(i)
@@ -644,10 +658,15 @@ cdef class LazyElement_value(LazyElement_init):
     def __init__(self, parent, value, slong shift=0, precbound=None):
         LazyElement.__init__(self, parent)
         element_set_digit_sage(self._digits, value, 0)
+        self._value = value
+        self._shift = shift
         self._valuation = -shift
         if precbound is not None and precbound is not Infinity:
             self._precbound = min(maxordp, precbound)
         self._init_jump()
+
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._value, self._shift, self._precbound)
 
     cdef int _jump_c(self, slong prec):
         if self._valuebound >= maxordp:
@@ -679,13 +698,25 @@ cdef class LazyElement_value(LazyElement_init):
 # Random
 
 cdef class LazyElement_random(LazyElement_init):
-    def __init__(self, parent, integral, precbound):
+    def __init__(self, parent, integral, precbound, init=None):
         LazyElement.__init__(self, parent)
-        if not integral:
-            self._valuation = ZZ.random_element()
+        if init is not None:
+            self._valuation, digits = init
+            self._precrel = len(digits)
+            for i in range(self._precrel):
+                element_set_digit_sage(self._digits, digits[i], i)
+        else:
+            if not integral:
+                self._valuation = ZZ.random_element()
         if precbound is not None:
             self._precbound = min(maxordp, precbound)
         self._init_jump()
+
+    def __reduce__(self):
+        digits = [ ]
+        for i in range(self._precrel):
+            digits.append(digit_get_sage(element_get_digit(self._digits, i)))
+        return self.__class__, (self._parent, False, self._precbound, (self._valuation, digits))
 
     cdef int _next_c(self):
         cdef cdigit r
@@ -722,6 +753,9 @@ cdef class LazyElement_slice(LazyElement):
             self._precrel -= 1
             self._valuation += 1
         self._init_jump()
+
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._x, self._start, self._stop, self._shift)
 
     cdef cdigit_ptr _getdigit_relative(self, slong i):
         return self._getdigit_absolute(i + self._valuation)
@@ -786,6 +820,9 @@ cdef class LazyElement_add(LazyElement_init):
         self._precbound = min(x._precbound, y._precbound)
         self._init_jump()
 
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._x, self._y)
+
     cdef int _jump_c(self, slong prec):
         # We reimplement _jump_c for better performances
         cdef slong n = self._valuation + self._precrel
@@ -833,6 +870,9 @@ cdef class LazyElement_sub(LazyElement_init):
         self._valuation = min(x._valuation, y._valuation)
         self._precbound = min(x._precbound, y._precbound)
         self._init_jump()
+
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._x, self._y)
 
     cdef int _jump_c(self, slong prec):
         # We reimplement _jump_c for better performances
@@ -895,6 +935,9 @@ cdef class LazyElement_mul(LazyElement_init):
             x._jump_relative_c(1, x._valuation + self._parent.default_prec())
             self._precbound = min(self._precbound, x._valuation + y._precbound)
         self._init_jump()
+
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._x, self._y)
 
     cdef int _next_c(self):
         global tmp_digit, tmp_poly
@@ -1035,6 +1078,9 @@ cdef class LazyElement_div(LazyElement_init):
         else:
             self._init_jump()
 
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._num, self._denom, self._precbound)
+
     cdef int _bootstrap_c(self):
         cdef int error
         cdef LazyElement num = self._num
@@ -1106,6 +1152,9 @@ cdef class LazyElement_sqrt(LazyElement_init):
                     self._precbound -= 1
                 self._precbound = min(maxordp, self._precbound)
             self._init_jump()
+
+    def __reduce__(self):
+        return self.__class__, (self._parent, self._x)
 
     cdef int _bootstrap_c(self):
         cdef LazyElement x = self._x
@@ -1227,6 +1276,10 @@ cdef class LazyElement_teichmuller(LazyElement_init):
             self._xp = xn
         self._ready = True
 
+    def __reduce__(self):
+        xbar = digit_get_sage(element_get_digit(self._digits, 0))
+        return self.__class__, (self._parent, xbar)
+
     cdef int _jump_c(self, slong prec):
         if not self._ready:
             return ERROR_ABANDON
@@ -1277,6 +1330,19 @@ cdef class LazyElement_selfref(LazyElement_init):
                     element_shift_right(self._digits)
                 else:
                     self._precrel += 1
+        self._initialvaluation = self._valuation
+        self._initialprecrel = self._precrel
+        self._uuid = uuid.uuid4()
+
+    def __reduce__(self):
+        digits = [ ]
+        for i in range(self._initialprecrel):
+            digits.append(digit_get_sage(element_get_digit(self._digits, i)))
+        definition = None
+        if self._uuid not in persist.already_pickled:
+            persist.already_pickled[self._uuid] = True
+            definition = self._definition
+        return unpickle_selfref, (self._uuid, self.__class__, self._parent, self._initialvaluation, digits, definition)
 
     cpdef set(self, LazyElement definition):
         if self._definition is not None:
@@ -1309,6 +1375,16 @@ cdef class LazyElement_selfref(LazyElement_init):
                 self._precrel += 1
         self._next = svenext
         return error
+
+def unpickle_selfref(uid, cls, parent, valuation, digits, definition):
+    if uid in persist.already_unpickled:
+        elt = persist.already_unpickled[uid]()
+    else:
+        elt = cls(parent, valuation, digits)
+        persist.already_unpickled[uid] = weakref.ref(elt)
+    if definition is not None:
+        elt.set(definition)
+    return elt
 
 
 # Expansion

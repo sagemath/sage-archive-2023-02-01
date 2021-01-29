@@ -44,6 +44,11 @@ from .misc import SAGE_DB
 from .sage_unittest import TestSuite
 
 
+# For cycling pickling
+already_pickled = { }
+already_unpickled = { }
+
+
 cdef _normalize_filename(s):
     """
     Append the .sobj extension to a filename if it doesn't already have it.
@@ -261,6 +266,8 @@ def _base_dumps(obj, compress=True):
     method, in which case that is tried first.
     """
 
+    global already_pickled
+    already_pickled = { }
     gherkin = SagePickler.dumps(obj)
 
     if compress:
@@ -285,6 +292,8 @@ def dumps(obj, compress=True):
         sage: a2
         2/3
     """
+    global already_pickled
+    already_pickled = { }
     if make_pickle_jar:
         picklejar(obj)
     try:
@@ -765,7 +774,8 @@ class SagePickler(_BasePickler):
             sage: pickle.loads(gherkin)
             1
         """
-
+        global already_pickled
+        already_pickled = { }
         buf = io.BytesIO()
         pickler = cls(buf, **kwargs)
         pickler.dump(obj)
@@ -933,6 +943,8 @@ def loads(s, compress=True, **kwargs):
                 pass
 
     unpickler = SageUnpickler(io.BytesIO(s), **kwargs)
+    global already_unpickled
+    already_unpickled = { }
     return unpickler.load()
 
 
@@ -999,6 +1011,8 @@ def picklejar(obj, dir=None):
         if not err.errno == errno.EEXIST:
             raise
 
+    global already_pickled
+    already_pickled = { }
     s = comp.compress(SagePickler.dumps(obj))
 
     typ = str(type(obj))

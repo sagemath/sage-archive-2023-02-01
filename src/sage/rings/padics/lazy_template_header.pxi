@@ -42,6 +42,7 @@ cdef class LazyElement_bound(LazyElement):
     cdef LazyElement _x
 
 cdef class LazyElement_value(LazyElement_init):
+    cdef _value
     cdef slong _shift
 
 cdef class LazyElement_random(LazyElement_init):
@@ -104,3 +105,8 @@ cdef class LazyElement_selfref(LazyElement_init):
     cdef LazyElement _definition
     cdef slong _next
     cpdef set(self, LazyElement definition)
+    # for pickling
+    cdef object __weakref__
+    cdef slong _initialvaluation
+    cdef slong _initialprecrel
+    cdef _uuid

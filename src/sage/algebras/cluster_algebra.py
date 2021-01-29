@@ -495,11 +495,9 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
             ...
             ValueError: this element does not have a well defined g-vector
         """
-        components = self.homogeneous_components()
-        if len(components) != 1:
+        if not self.is_homogeneous():
             raise ValueError("this element does not have a well defined g-vector")
-        k, = components
-        return k
+        return self._g_vector
 
     def F_polynomial(self):
         r"""
@@ -541,7 +539,7 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
             sage: x.is_homogeneous()
             False
         """
-        return len(self.homogeneous_components()) == 1
+        return getattr(self, '_is_homogeneous', len(self.homogeneous_components()) == 1)
 
     def homogeneous_components(self):
         r"""
@@ -570,6 +568,12 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
                 components[g_vect] += self.parent().retract(x.monomial_coefficient(m) * m)
             else:
                 components[g_vect] = self.parent().retract(x.monomial_coefficient(m) * m)
+        for g_vect in components:
+            components[g_vect]._is_homogeneous = True
+            components[g_vect]._g_vector = g_vect 
+        self._is_homogeneous = (len(components) == 1)
+        if self._is_homogeneous:
+            self._g_vector = list(components.keys())[0]
         return components
 
     def theta_basis_decomposition(self):
@@ -584,57 +588,35 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         EXAMPLES::
             sage: A = ClusterAlgebra(matrix([[0,-2],[3,0]]), principal_coefficients=True)
             sage: f = (A.theta_basis_element((1,0)) + A.theta_basis_element((0,1)))**2 + A.coefficient(1)* A.theta_basis_element((1,1))
-            sage: f.theta_basis_decomposition()
-            {(1, 1): y1 + 2, (2, 0): 1, (0, 2): 1}
-            sage: sum(_[g] * A.theta_basis_element(g) for g in _) - f
-            0
-        """
-        zero = self.parent()(0)
-        components  = map(lambda x: x._homogeneous_theta_basis_decomposition(), self.homogeneous_components().values())
-        out = {}
-        for cpt in components:
-            for g in cpt:
-                out[g] = out.get(g, zero) + cpt[g]
-        return out
-
-    def _homogeneous_theta_basis_decomposition(self):
-        r"""
-        Return the decomposition of ``self`` in the theta basis.
-
-        OUTPUT:
-
-        A dictionary whose keys are the g-vectors and whose values are the coefficients
-        in the decoposition of ``self`` in the theta basis.
-
-        WARNING:
-
-        This method only works when ``self`` is homogeneous.
-
-        EXAMPLES::
-            sage: A = ClusterAlgebra(matrix([[0,-2],[3,0]]), principal_coefficients=True)
+            sage: decomposition = f.theta_basis_decomposition()
+            sage: sum(decomposition[g] * A.theta_basis_element(g) for g in decomposition) == f
+            True
             sage: f = A.theta_basis_element((4,-4))*A.theta_basis_element((1,-1))
-            sage: f.theta_basis_decomposition() # indirect doctest
-            {(5, -5): 1, (3, -2): y0*y1, (1, -2): y0*y1^2}
-            sage: sum(_[g] * A.theta_basis_element(g) for g in _) - f
-            0
+            sage: decomposition =  f.theta_basis_decomposition()
+            sage: sum(decomposition[g] * A.theta_basis_element(g) for g in decomposition) == f
+            True
         """
-        f_poly = self.F_polynomial()
-        g_vect = vector(self.g_vector())
-
         A = self.parent()
         B = A.b_matrix()
-        n = A.rank()
-        U = f_poly.parent()
-        out = {}
+        U = A._U
+        out = dict()
+        zero_A = A(0)
+        zero_U = U(0)
+        zero_t = (0,)*A.rank()
 
-        while f_poly != U(0):
-            y_exp = min(f_poly.dict())
-            coeff = f_poly.dict()[y_exp]
-            g_theta = tuple(g_vect + B*vector(y_exp))
-            out[g_theta] = A({(0,)*n + tuple(y_exp):coeff})
-            f_poly -= U({y_exp:coeff}) * A.theta_basis_F_polynomial(g_theta)
+        components = self.homogeneous_components()
+        
+        for g_vect in components:
+            f_poly = components[g_vect].F_polynomial()
+            g_vect = vector(g_vect)
+            while f_poly != zero_U:
+                y_exp = min(f_poly.dict())
+                coeff = f_poly.dict()[y_exp]
+                g_theta = tuple(g_vect + B*vector(y_exp))
+                out[g_theta] = out.get(g_theta, zero_A) +  A({zero_t + tuple(y_exp):coeff})
+                f_poly -= U({y_exp:coeff}) * A.theta_basis_F_polynomial(g_theta)
+
         return out
-
 
 ##############################################################################
 # Seeds

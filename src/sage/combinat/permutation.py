@@ -237,6 +237,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.sets_with_grading import SetsWithGrading
 from sage.categories.finite_weyl_groups import FiniteWeylGroups
 from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.structure.list_clone import ClonableArray
@@ -260,6 +261,7 @@ from sage.combinat.rsk import RSK, RSK_inverse
 from sage.combinat.permutation_cython import (left_action_product,
              right_action_product, left_action_same_n, right_action_same_n,
              map_to_list, next_perm)
+
 
 class Permutation(CombinatorialElement):
     r"""
@@ -699,6 +701,8 @@ class Permutation(CombinatorialElement):
         """
         return len(self)
 
+    grade = size  # for the category SetsWithGrading()
+    
     def cycle_string(self, singletons=False):
         """
         Returns a string of the permutation in cycle notation.
@@ -6347,7 +6351,8 @@ class StandardPermutations_all(Permutations):
             sage: SP = Permutations()
             sage: TestSuite(SP).run()
         """
-        Permutations.__init__(self, category=InfiniteEnumeratedSets())
+        cat = InfiniteEnumeratedSets() & SetsWithGrading()
+        Permutations.__init__(self, category=cat)
 
     def _repr_(self):
         """
@@ -6404,6 +6409,18 @@ class StandardPermutations_all(Permutations):
             for p in itertools.permutations(range(1, n + 1)):
                 yield self.element_class(self, p)
             n += 1
+
+    def graded_component(self, n):
+        """
+        Return the graded component.
+
+        EXAMPLES::
+
+            sage: P = Permutations()
+            sage: P.graded_component(4) == Permutations(4)
+            True
+        """
+        return StandardPermutations_n(n)
 
 
 class StandardPermutations_n_abstract(Permutations):

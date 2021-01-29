@@ -389,6 +389,18 @@ cdef class ntl_mat_GF2(object):
             sage: Abar = ntl.mat_GF2(A)
             sage: A.rank() == Abar.gauss()
             True
+            sage: Abar  # random
+            [[1 1 1 1 0 1 0 1 1 0]
+            [0 1 1 1 0 1 1 0 0 1]
+            [0 0 1 1 1 1 0 0 0 0]
+            [0 0 0 1 0 0 1 1 1 1]
+            [0 0 0 0 1 1 0 1 0 0]
+            [0 0 0 0 0 1 1 1 0 1]
+            [0 0 0 0 0 0 0 1 0 1]
+            [0 0 0 0 0 0 0 0 0 1]
+            [0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0]
+            ]
 
         ``Abar`` is in row echolon form now::
 

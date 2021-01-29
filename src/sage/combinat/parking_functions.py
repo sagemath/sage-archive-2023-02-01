@@ -51,8 +51,8 @@ REFERENCES:
 
 AUTHORS:
 
-    - used non-decreasing_parking_functions code by Florent Hivert (2009 - 04)
-    - Dorota Mazur (2012 - 09)
+- used non-decreasing_parking_functions code by Florent Hivert (2009 - 04)
+- Dorota Mazur (2012 - 09)
 """
 # ****************************************************************************
 #       Copyright (C) 2012 Dorota Mazur <dorota@yorku.ca>
@@ -62,11 +62,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from numbers import Integral
+from typing import NewType, Iterator, Tuple
+from copy import copy
 
 from sage.rings.integer import Integer
-from sage.rings.all import QQ, NN
-from copy import copy
+from sage.rings.rational_field import QQ
+from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.dyck_word import DyckWord
@@ -78,6 +79,9 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_with_grading import SetsWithGrading
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+
+
+PF = NewType('PF', 'ParkingFunction_class')
 
 
 def ParkingFunctions(n=None):
@@ -249,7 +253,7 @@ class ParkingFunctions_all(Parent, UniqueRepresentation):
         """
         return ParkingFunctions_n(n)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         Return an iterator.
 
@@ -338,7 +342,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
             return True
         return is_a(x, self.n)
 
-    def cardinality(self) -> Integral:
+    def cardinality(self) -> Integer:
         r"""
         Return the number of parking functions of size ``n``.
 
@@ -351,7 +355,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
         """
         return Integer((self.n + 1) ** (self.n - 1))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         Return an iterator for parking functions of size `n`.
 
@@ -411,7 +415,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
                 yield ParkingFunction(list(pi))
         return
 
-    def random_element(self) -> 'ParkingFunction':
+    def random_element(self) -> PF:
         r"""
         Return a random parking function of size `n`.
 
@@ -568,7 +572,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return self._list[n - 1]
 
-    def diagonal_reading_word(self):
+    def diagonal_reading_word(self) -> Permutation:
         r"""
         Return a diagonal word of the labelled Dyck path corresponding to parking
         function (see [Hag08]_ p. 75).
@@ -614,7 +618,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     diagonal_word = diagonal_reading_word
 
-    def parking_permutation(self):     # indices are cars, entries are parking spaces
+    def parking_permutation(self) -> Permutation:
+        # indices are cars, entries are parking spaces
         r"""
         Return the sequence of parking spots that are taken by cars 1
         through `n` and corresponding to the parking function.
@@ -652,7 +657,8 @@ class ParkingFunction_class(CombinatorialObject):
         return self.cars_permutation().inverse()
 
     @combinatorial_map(name='to car permutation')
-    def cars_permutation(self):     # indices are parking spaces, entries are car labels
+    def cars_permutation(self) -> Permutation:
+        # indices are parking spaces, entries are car labels
         r"""
         Return the sequence of cars that take parking spots 1 through `n`
         and corresponding to the parking function.
@@ -729,7 +735,7 @@ class ParkingFunction_class(CombinatorialObject):
         pi = self.parking_permutation()
         return [pi[i] - self[i] for i in range(len(self))]
 
-    def jump(self) -> Integral:  # sum of all jumps, sum of all displacements
+    def jump(self) -> Integer:  # sum of all jumps, sum of all displacements
         r"""
         Return the sum of the differences between the parked and
         preferred parking spots.
@@ -794,7 +800,7 @@ class ParkingFunction_class(CombinatorialObject):
         w = self.jump_list()
         return [i + 1 for i in range(len(w)) if w[i] == 0]
 
-    def luck(self) -> Integral:  # the number of lucky cars
+    def luck(self) -> Integer:  # the number of lucky cars
         r"""
         Return the number of cars that parked in their preferred parking spots
         (see [Shin]_ p. 33).
@@ -922,7 +928,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return self.primary_dinversion_pairs() + self.secondary_dinversion_pairs()
 
-    def dinv(self) -> Integral:
+    def dinv(self) -> Integer:
         r"""
         Return the number of inversions of a labelled Dyck path corresponding
         to the parking function (see [Hag08]_ p. 74).
@@ -954,7 +960,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return len(self.dinversion_pairs())
 
-    def area(self) -> Integral:
+    def area(self) -> Integer:
         r"""
         Return the area of the labelled Dyck path corresponding to the
         parking function.
@@ -1139,7 +1145,7 @@ class ParkingFunction_class(CombinatorialObject):
     diagonal_composition = touch_composition
 
     @combinatorial_map(name='to labelling permutation')
-    def to_labelling_permutation(self):
+    def to_labelling_permutation(self) -> Permutation:
         r"""
         Return the labelling of the support Dyck path of the parking function.
 
@@ -1305,7 +1311,7 @@ class ParkingFunction_class(CombinatorialObject):
                 out.insert(i, 0)
         return out
 
-    def to_labelling_dyck_word_pair(self):
+    def to_labelling_dyck_word_pair(self) -> Tuple[Permutation, DyckWord]:
         r"""
         Return the pair ``(L, D)`` where ``L`` is a labelling and
         ``D`` is the Dyck word of the parking function.
@@ -1339,7 +1345,7 @@ class ParkingFunction_class(CombinatorialObject):
         return (self.to_labelling_permutation(), self.to_dyck_word())
 
     @combinatorial_map(name='to non-decreasing parking function')
-    def to_NonDecreasingParkingFunction(self) -> 'ParkingFunction':
+    def to_NonDecreasingParkingFunction(self) -> PF:
         r"""
         Return the non-decreasing parking function which underlies the
         parking function.
@@ -1526,7 +1532,7 @@ class ParkingFunction_class(CombinatorialObject):
 # *****************************************************************************
 
 
-def from_labelling_and_area_sequence(L, D) -> ParkingFunction:
+def from_labelling_and_area_sequence(L, D) -> PF:
     r"""
     Return the parking function corresponding to the labelling area
     sequence pair.
@@ -1563,7 +1569,7 @@ def from_labelling_and_area_sequence(L, D) -> ParkingFunction:
                                   for i in range(1, len(L) + 1)])
 
 
-def from_labelled_dyck_word(LDW) -> ParkingFunction:
+def from_labelled_dyck_word(LDW) -> PF:
     r"""
     Return the parking function corresponding to the labelled Dyck word.
 

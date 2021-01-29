@@ -715,6 +715,38 @@ class pAdicLazyGeneric(pAdicGeneric):
         sage: R._prec_type()
         'lazy'
     """
+    def _get_element_class(self, name=None):
+        r"""
+        Return the class handling an element of type ``name``.
+
+        INPUT:
+
+        - ``name`` -- a string or ``None`` (default: ``None``); if ``None``,
+          return the generic class from which all the others derive
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: R._get_element_class()
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement'>
+
+            sage: R._get_element_class("add")
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_add'>
+
+            sage: R._get_element_class("selfref")
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_selfref'>
+
+            sage: R._get_element_class("unknown")
+            Traceback (most recent call last):
+            ...
+            AttributeError: module 'sage.rings.padics.padic_lazy_element' has no attribute 'pAdicLazyElement_unknown'
+        """
+        if name is None:
+            return self.Element
+        clsname = self._element_class_prefix + name
+        cls = getattr(self._element_class_module, clsname)
+        return cls
+
     def _prec_type(self):
         r"""
         Return the precision handling type.
@@ -844,7 +876,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             if parent.Element is self.Element:
                 if not self.is_field() and x.valuation() < 0:
                     raise ValueError("negative valuation")
-                return self._element_classes['bound'](self, x, prec)
+                return self._get_element_class('bound')(self, x, prec)
             raise NotImplementedError
         elif isinstance(parent, pAdicGeneric):
             if not self.is_field() and x.valuation() < 0:
@@ -853,15 +885,15 @@ class pAdicLazyGeneric(pAdicGeneric):
                 prec = x.precision_absolute()
             else:
                 prec = min(prec, x.precision_absolute())
-            return self._element_classes['value'](self, x.lift(), precbound=prec)
+            return self._get_element_class('value')(self, x.lift(), precbound=prec)
         elif x == 0 and prec is None:
-            return self._element_classes['zero'](self)
+            return self._get_element_class('zero')(self)
         elif x == 1 and prec is None:
-            return self._element_classes['one'](self)
+            return self._get_element_class('one')(self)
         else:
             try:
                 x = self.exact_ring()(x)
-                return self._element_classes['value'](self, x, precbound=prec)
+                return self._get_element_class('value')(self, x, precbound=prec)
             except (TypeError, ValueError):
                 pass
             try:
@@ -873,9 +905,9 @@ class pAdicLazyGeneric(pAdicGeneric):
             else:
                 if not self.is_field() and denom % self.prime() == 0:
                     raise ValueError("negative valuation")
-                num = self._element_classes['value'](self, num)
-                denom = self._element_classes['value'](self, denom)
-                return self._element_classes['div'](self, num, denom, precbound=prec)
+                num = self._get_element_class('value')(self, num)
+                denom = self._get_element_class('value')(self, denom)
+                return self._get_element_class('div')(self, num, denom, precbound=prec)
         raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
 
     def an_element(self, unbounded=False):
@@ -884,7 +916,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: ZpL(5, prec=5)
+            sage: R = ZpL(7, prec=5)
             sage: R.an_element()
             7 + O(7^5)
             sage: R.an_element(unbounded=True)
@@ -903,7 +935,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: ZpL(5, prec=5)
+            sage: R = ZpL(7, prec=5)
             sage: R.some_elements()
             [O(7^5),
              1 + O(7^5),
@@ -1020,7 +1052,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             raise ValueError("valuation must be nonnegative")
         if digits is not None and not isinstance(digits, (list, tuple)):
             digits = [digits]
-        return self._element_classes['selfref'](self, valuation, digits)
+        return self._get_element_class('selfref')(self, valuation, digits)
 
     def random_element(self, integral=False, prec=None):
         r"""
@@ -1055,7 +1087,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             15
         """
         integral = integral or (not self.is_field())
-        return self._element_classes['random'](self, integral, prec)
+        return self._get_element_class('random')(self, integral, prec)
 
     def teichmuller(self, x):
         r"""
@@ -1070,7 +1102,7 @@ class pAdicLazyGeneric(pAdicGeneric):
         x = self(x)
         if x.valuation() < 0:
             raise ValueError("negative valuation")
-        return self._element_classes['teichmuller'](self, self.exact_ring()(x.residue()))
+        return self._get_element_class('teichmuller')(self, self.exact_ring()(x.residue()))
 
     def teichmuller_system(self):
         r"""

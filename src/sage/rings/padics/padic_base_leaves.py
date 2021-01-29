@@ -1131,23 +1131,8 @@ class pAdicRingLazy(pAdicLazyGeneric, pAdicRingBaseGeneric):
         """
         from sage.rings.padics import padic_lazy_element
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
-        self._element_classes = {
-            'generic': padic_lazy_element.pAdicLazyElement,
-            'zero': padic_lazy_element.pAdicLazyElement_zero,
-            'one': padic_lazy_element.pAdicLazyElement_one,
-            'bound': padic_lazy_element.pAdicLazyElement_bound,
-            'value': padic_lazy_element.pAdicLazyElement_value,
-            'random': padic_lazy_element.pAdicLazyElement_random,
-            'slice': padic_lazy_element.pAdicLazyElement_slice,
-            'add': padic_lazy_element.pAdicLazyElement_add,
-            'sub': padic_lazy_element.pAdicLazyElement_sub,
-            'mul': padic_lazy_element.pAdicLazyElement_mul,
-            'muldigit': padic_lazy_element.pAdicLazyElement_muldigit,
-            'div': padic_lazy_element.pAdicLazyElement_div,
-            'sqrt': padic_lazy_element.pAdicLazyElement_sqrt,
-            'teichmuller': padic_lazy_element.pAdicLazyElement_teichmuller,
-            'selfref': padic_lazy_element.pAdicLazyElement_selfref
-        }
+        self._element_class_module = padic_lazy_element
+        self._element_class_prefix = "pAdicLazyElement_"
 
 class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
     """
@@ -1180,20 +1165,5 @@ class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
         """
         from sage.rings.padics import padic_lazy_element
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
-        self._element_classes = {
-            'generic': padic_lazy_element.pAdicLazyElement,
-            'zero': padic_lazy_element.pAdicLazyElement_zero,
-            'one': padic_lazy_element.pAdicLazyElement_one,
-            'bound': padic_lazy_element.pAdicLazyElement_bound,
-            'value': padic_lazy_element.pAdicLazyElement_value,
-            'random': padic_lazy_element.pAdicLazyElement_random,
-            'slice': padic_lazy_element.pAdicLazyElement_slice,
-            'add': padic_lazy_element.pAdicLazyElement_add,
-            'sub': padic_lazy_element.pAdicLazyElement_sub,
-            'mul': padic_lazy_element.pAdicLazyElement_mul,
-            'muldigit': padic_lazy_element.pAdicLazyElement_muldigit,
-            'div': padic_lazy_element.pAdicLazyElement_div,
-            'sqrt': padic_lazy_element.pAdicLazyElement_sqrt,
-            'teichmuller': padic_lazy_element.pAdicLazyElement_teichmuller,
-            'selfref': padic_lazy_element.pAdicLazyElement_selfref
-        }
+        self._element_class_module = padic_lazy_element
+        self._element_class_prefix = "pAdicLazyElement_"

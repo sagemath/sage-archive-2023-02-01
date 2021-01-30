@@ -267,8 +267,8 @@ def _base_dumps(obj, compress=True):
     """
 
     global already_pickled
-    already_pickled = { }
     gherkin = SagePickler.dumps(obj)
+    already_pickled = { }   
 
     if compress:
         return comp.compress(gherkin)
@@ -293,13 +293,14 @@ def dumps(obj, compress=True):
         2/3
     """
     global already_pickled
-    already_pickled = { }
     if make_pickle_jar:
         picklejar(obj)
     try:
-        return obj.dumps(compress)
+        ans = obj.dumps(compress)
     except (AttributeError, RuntimeError, TypeError):
-        return _base_dumps(obj, compress=compress)
+        ans = _base_dumps(obj, compress=compress)
+    already_pickled = { }
+    return ans
 
 
 # This is used below, and also by explain_pickle.py
@@ -775,10 +776,10 @@ class SagePickler(_BasePickler):
             1
         """
         global already_pickled
-        already_pickled = { }
         buf = io.BytesIO()
         pickler = cls(buf, **kwargs)
         pickler.dump(obj)
+        already_pickled = { }
         return buf.getvalue()
 
 
@@ -944,8 +945,9 @@ def loads(s, compress=True, **kwargs):
 
     unpickler = SageUnpickler(io.BytesIO(s), **kwargs)
     global already_unpickled
+    ans = unpickler.load()
     already_unpickled = { }
-    return unpickler.load()
+    return ans
 
 
 cdef bint make_pickle_jar = 'SAGE_PICKLE_JAR' in os.environ
@@ -1012,8 +1014,8 @@ def picklejar(obj, dir=None):
             raise
 
     global already_pickled
-    already_pickled = { }
     s = comp.compress(SagePickler.dumps(obj))
+    already_pickled = { }
 
     typ = str(type(obj))
     name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in typ])

@@ -107,7 +107,5 @@ cdef class LazyElement_selfref(LazyElement_init):
     cdef long _next
     cpdef set(self, LazyElement definition)
     # for pickling
-    cdef object __weakref__
     cdef long _initialvaluation
     cdef long _initialprecrel
-    cdef _uuid

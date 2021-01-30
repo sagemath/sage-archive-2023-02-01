@@ -33,7 +33,6 @@ AUTHOR:
 # ****************************************************************************
 
 import re
-import uuid, weakref
 from sage.misc import persist
 
 from libc.stdlib cimport malloc, free
@@ -1331,17 +1330,16 @@ cdef class LazyElement_selfref(LazyElement_init):
                     self._precrel += 1
         self._initialvaluation = self._valuation
         self._initialprecrel = self._precrel
-        self._uuid = uuid.uuid4()
 
     def __reduce__(self):
         digits = [ ]
         for i in range(self._initialprecrel):
             digits.append(digit_get_sage(element_get_digit(self._digits, i)))
         definition = None
-        if self._uuid not in persist.already_pickled:
-            persist.already_pickled[self._uuid] = True
+        if id(self) not in persist.already_pickled:
+            persist.already_pickled[id(self)] = True
             definition = self._definition
-        return unpickle_selfref, (self._uuid, self.__class__, self._parent, self._initialvaluation, digits, definition)
+        return unpickle_selfref, (id(self), self.__class__, self._parent, self._initialvaluation, digits, definition)
 
     cpdef set(self, LazyElement definition):
         if self._definition is not None:
@@ -1377,10 +1375,10 @@ cdef class LazyElement_selfref(LazyElement_init):
 
 def unpickle_selfref(uid, cls, parent, valuation, digits, definition):
     if uid in persist.already_unpickled:
-        elt = persist.already_unpickled[uid]()
+        elt = persist.already_unpickled[uid]
     else:
         elt = cls(parent, valuation, digits)
-        persist.already_unpickled[uid] = weakref.ref(elt)
+        persist.already_unpickled[uid] = elt
     if definition is not None:
         elt.set(definition)
     return elt

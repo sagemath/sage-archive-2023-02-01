@@ -1086,8 +1086,10 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: b.precision_absolute()
             15
         """
-        integral = integral or (not self.is_field())
-        return self._get_element_class('random')(self, integral, prec)
+        if integral or (not self.is_field()):
+            return self._get_element_class('random')(self, 0, prec)
+        else:
+            return self._get_element_class('random')(self, None, prec)
 
     def teichmuller(self, x):
         r"""

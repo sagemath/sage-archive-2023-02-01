@@ -93,7 +93,7 @@ cdef inline void digit_set(cdigit a, cdigit b):
     """
     pass
 
-cdef inline void digit_set_ui(cdigit a, slong b):
+cdef inline void digit_set_ui(cdigit a, long b):
     r"""
     Set an integral value of a digit.
 
@@ -132,7 +132,7 @@ cdef inline bint digit_equal(cdigit a, cdigit b):
     """
     pass
 
-cdef inline bint digit_equal_ui(cdigit a, slong b):
+cdef inline bint digit_equal_ui(cdigit a, long b):
     r"""
     Comparison of a digit and an integer
 
@@ -161,7 +161,16 @@ cdef inline bint digit_is_zero(cdigit a):
     """
     pass
 
-# operations
+cdef inline void digit_random_init(randgen generator, long seed):
+    r"""
+    Initialize the random generator with a new seed
+
+    INPUT:
+
+    - ``generator`` -- the generator to initialize
+    - ``seed`` -- the seed
+    """
+    pass
 
 cdef inline void digit_random(cdigit res, PowComputer_class prime_pow):
     r"""
@@ -173,6 +182,8 @@ cdef inline void digit_random(cdigit res, PowComputer_class prime_pow):
     - ``prime_pow`` -- the PowComputer for the ring
     """
     pass
+
+# operations
 
 cdef inline void digit_add(cdigit res, cdigit a, cdigit b):
     r"""
@@ -313,7 +324,7 @@ cdef inline void element_set(celement x, celement y):
 
 # get and set digits
 
-cdef inline cdigit element_get_digit(celement x, slong i):
+cdef inline cdigit element_get_digit(celement x, long i):
     r"""
     Return the `i`-th coefficient of `x`.
 
@@ -324,7 +335,7 @@ cdef inline cdigit element_get_digit(celement x, slong i):
     """
     pass
 
-cdef inline void element_get_slice(celement res, celement x, slong start, slong length):
+cdef inline void element_get_slice(celement res, celement x, long start, long length):
     r"""
     Select a slice of an element.
 
@@ -343,7 +354,7 @@ cdef inline void element_get_slice(celement res, celement x, slong start, slong 
     """
     pass
 
-cdef inline void element_set_digit(celement x, cdigit a, slong i):
+cdef inline void element_set_digit(celement x, cdigit a, long i):
     r"""
     Set `i`-th coefficient of `x` to the value `a`.
 
@@ -355,7 +366,7 @@ cdef inline void element_set_digit(celement x, cdigit a, slong i):
     """
     pass
 
-cdef inline void element_set_digit_ui(celement x, slong a, slong i):
+cdef inline void element_set_digit_ui(celement x, long a, long i):
     r"""
     Set `i`-th coefficient of `x` to the value `a`.
 
@@ -367,7 +378,7 @@ cdef inline void element_set_digit_ui(celement x, slong a, slong i):
     """
     pass
 
-cdef inline void element_set_digit_sage(celement x, Element a, slong i):
+cdef inline void element_set_digit_sage(celement x, Element a, long i):
     r"""
     Set `i`-th coefficient of `x` to the value `a`.
 
@@ -381,7 +392,7 @@ cdef inline void element_set_digit_sage(celement x, Element a, slong i):
 
 # operations
 
-cdef inline void element_iadd_digit(celement x, cdigit a, slong i):
+cdef inline void element_iadd_digit(celement x, cdigit a, long i):
     r"""
     Inplace addition:
     add `a` to the `i`-th coefficient of `x`.
@@ -394,7 +405,7 @@ cdef inline void element_iadd_digit(celement x, cdigit a, slong i):
     """
     pass
 
-cdef inline void element_isub_digit(celement x, cdigit a, slong i):
+cdef inline void element_isub_digit(celement x, cdigit a, long i):
     r"""
     Inplace subtraction:
     subtract `a` to the `i`-th coefficient of `x`.
@@ -407,7 +418,7 @@ cdef inline void element_isub_digit(celement x, cdigit a, slong i):
     """
     pass
 
-cdef inline void element_iadd_slice(celement x, celement slice, slong start):
+cdef inline void element_iadd_slice(celement x, celement slice, long start):
     r"""
     Inplace addition:
     add a slice to an element
@@ -444,7 +455,7 @@ cdef inline void element_mul(celement res, celement x, celement y):
     """
     pass
 
-cdef inline void element_reduce_digit(celement x, slong i, PowComputer_class prime_pow):
+cdef inline void element_reduce_digit(celement x, long i, PowComputer_class prime_pow):
     r"""
     Reduce the `i`-th digit of `x` and propagate carry.
 
@@ -456,7 +467,7 @@ cdef inline void element_reduce_digit(celement x, slong i, PowComputer_class pri
     """
     pass
 
-cdef inline void element_reducesmall_digit(fmpz_poly_t x, slong i, PowComputer_flint prime_pow):
+cdef inline void element_reducesmall_digit(fmpz_poly_t x, long i, PowComputer_flint prime_pow):
     r"""
     Reduce the `i`-th digit of `x` and propagate carry,
     assuming that `x` is between `0` and `2*p - 1`.
@@ -469,7 +480,7 @@ cdef inline void element_reducesmall_digit(fmpz_poly_t x, slong i, PowComputer_f
     """
     pass
 
-cdef inline void element_reduceneg_digit(fmpz_poly_t x, slong i, PowComputer_flint prime_pow):
+cdef inline void element_reduceneg_digit(fmpz_poly_t x, long i, PowComputer_flint prime_pow):
     r"""
     Reduce the `i`-th digit of `x` and propagate carry,
     assuming that `x` is between `-p` and `p-1`.

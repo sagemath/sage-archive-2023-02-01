@@ -21,8 +21,7 @@ from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 
 cdef extern from "sage/libs/linkages/padics/lazy/flint_helper.c":
-    cdef void flint_randinit(flint_rand_t state)
-    cdef void flint_randclear(flint_rand_t state)
+    cdef void flint_randseed(flint_rand_t state, ulong seed1, ulong seed2)
     cdef fmpz* get_coeff(fmpz_poly_t poly, slong i)
     cdef void get_slice(fmpz_poly_t slice, fmpz_poly_t poly, slong start, slong length)
     cdef void iadd_coeff(fmpz_poly_t poly, fmpz_t summand, slong i)
@@ -37,11 +36,6 @@ from sage.rings.padics.pow_computer_flint cimport PowComputer_flint
 from sage.ext.stdsage cimport PY_NEW
 
 from sage.rings.finite_rings.finite_field_constructor import GF
-
-
-# FIXME: what should I do to initialize the random generator???
-cdef flint_rand_t flint_randstate 
-flint_randinit(flint_randstate)
 
 
 # Operations on digits (intended to be small elements in the exact subring)
@@ -167,9 +161,20 @@ cdef inline bint digit_is_zero(fmpz_t a):
     """
     return fmpz_is_zero(a)
 
-# operations
+# random
 
-cdef inline void digit_random(fmpz_t res, PowComputer_flint prime_pow):
+cdef inline void digit_random_init(flint_rand_t generator, slong seed):
+    r"""
+    Initialize the random generator with a new seed
+
+    INPUT:
+
+    - ``generator`` -- the generator to initialize
+    - ``seed`` -- the seed
+    """
+    flint_randseed(generator, seed, seed*seed + 1)
+
+cdef inline void digit_random(fmpz_t res, PowComputer_flint prime_pow, flint_rand_t generator):
     r"""
     Set a digit to a random value in the distinguished set of representatives.
 
@@ -178,7 +183,9 @@ cdef inline void digit_random(fmpz_t res, PowComputer_flint prime_pow):
     - ``res`` -- the ``cdigit`` to be assigned
     - ``prime_pow`` -- the PowComputer for the ring
     """
-    fmpz_randm(res, flint_randstate, prime_pow.fprime)
+    fmpz_randm(res, generator, prime_pow.fprime)
+
+# operations
 
 cdef inline void digit_add(fmpz_t res, fmpz_t a, fmpz_t b):
     r"""

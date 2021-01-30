@@ -1,8 +1,9 @@
-from sage.libs.flint.types cimport fmpz, fmpz_t, fmpz_poly_t
+from sage.libs.flint.types cimport fmpz, fmpz_t, fmpz_poly_t, flint_rand_t
 
 ctypedef fmpz_t cdigit
 ctypedef fmpz* cdigit_ptr
 ctypedef fmpz_poly_t celement
+ctypedef flint_rand_t randgen
 
 
 include "lazy_template_header.pxi"

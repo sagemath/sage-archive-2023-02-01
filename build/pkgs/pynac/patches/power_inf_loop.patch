@@ -1,0 +1,19 @@
+diff --git a/ginac/power.cpp b/ginac/power.cpp
+--- a/ginac/power.cpp
++++ b/ginac/power.cpp
+@@ -920,10 +920,11 @@
+ 			const ex& e = m.recombine_pair_to_ex(elem);
+ 			if (e.is_positive())
+ 				prodseq.push_back(pow(e, exponent).expand(options));
+-			else if (e.info(info_flags::negative)) {
+-				prodseq.push_back(pow(-e, exponent).expand(options));
+-				possign = !possign;
+-			} else
++// 			else if (e.info(info_flags::negative)) {
++// 				prodseq.push_back(pow(-e, exponent).expand(options));
++// 				possign = !possign;
++// 			}
++			else
+ 				powseq.push_back(elem);
+ 		}
+ 

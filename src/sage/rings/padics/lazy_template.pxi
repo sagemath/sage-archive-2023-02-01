@@ -269,6 +269,8 @@ cdef class LazyElement(pAdicGenericElement):
             raise PrecisionError("unable to decide equality; try to bound precision")
 
     def __eq__(self, other):
+        if self is other:
+            return True
         if not have_same_parent(self, other):
             try:
                 a, b = coercion_model.canonical_coercion(self, other)
@@ -523,6 +525,13 @@ cdef class LazyElement(pAdicGenericElement):
     def sqrt(self):
         return element_class_sqrt(self._parent, self)
 
+    def _test_pickling(self, **options):
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        if self._precbound >= maxordp:
+            tester.assertEqual(loads(dumps(self)), self.at_precision_relative())
+        else:
+            tester.assertEqual(loads(dumps(self)), self)
 
 cdef class LazyElement_abandon(LazyElement):
     def __init__(self):

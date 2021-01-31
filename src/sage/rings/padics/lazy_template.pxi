@@ -63,6 +63,17 @@ element_init(tmp_poly)
 
 
 cdef class LazyElement(pAdicGenericElement):
+    r"""
+    Template class for lazy `p`-adic elements.
+
+    EXAMPLES:
+
+        sage: from sage.rings.padics.padic_lazy_element import LazyElement
+        sage: R = ZpL(5)
+        sage: a = R(1)
+        sage: isinstance(a, LazyElement)
+        True
+    """
     def __init__(self, parent):
         r"""
         Initialize this element.
@@ -71,33 +82,136 @@ cdef class LazyElement(pAdicGenericElement):
 
             sage: R = ZpL(5)
             sage: a = R(1/2)  # indirect doctest
+            sage: TestSuite(a).run()
         """
         pAdicGenericElement.__init__(self, parent)
         self.prime_pow = <PowComputer_class>self._parent.prime_pow
         self._valuation = 0
         self._precrel = 0
         self._precbound = maxordp
-        self._valuebound = maxordp
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle
+        this element.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: a = R(0)
+            sage: loads(dumps(a)) == a
+            True
+        """
         raise NotImplementedError("must be implemented in subclasses")
 
     cpdef bint _is_base_elt(self, p) except -1:
-        return True
+        r"""
+        Return ``True`` if this element is an element of Zp or Qp (rather than
+        an extension).
+
+        INPUT:
+
+        - ``p`` -- a prime, which is compared with the parent of this element.
+
+        EXAMPLES::
+
+            sage: a = ZpL(5)(3)
+            sage: a._is_base_elt(5)
+            True
+            sage: a._is_base_elt(17)
+            False
+        """
+        return p == self._parent.prime()
 
     cdef cdigit_ptr _getdigit_relative(self, long i):
+        r"""
+        Return a pointer on the `i`-th significant digit of this number.
+
+        .. NOTE:
+
+            This function do not check that the requested digit
+            has been already computed.
+
+        INPUT:
+
+        - ``i`` -- a positive integer
+
+        """
         pass
 
     cdef cdigit_ptr _getdigit_absolute(self, long i):
+        r"""
+        Return a pointer on the digit in position `i` of
+        this number.
+
+        .. NOTE:
+
+            This function do not check that the requested digit
+            has been already computed.
+
+        INPUT:
+
+        - ``i`` -- an integer
+
+        """
         pass
 
     cdef void _getslice_relative(self, celement slice, long start, long length):
+        r"""
+        Select a slice of the digits of this number.
+
+        INPUT:
+
+        - ``slice`` -- a ``celement`` to store the slice
+
+        - ``start`` -- a positive integer, the starting position of the slice
+          in relative precision
+
+        - ``length`` -- a positive integer, the length of the slice
+
+
+        .. NOTE::
+
+            This methods only sets up a pointer to the requested slice
+            (the slice is not copied). Hence any future modification
+            of the slice ``slice`` will affect this number.
+        """
         pass
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code which is a superposition of the following:
+
+        - ``0`` -- no error
+        - ``ERROR_ABANDON    = 1`` -- computation has been abandonned
+        - ``ERROR_NOTDEFINED = 2`` -- a number is not defined
+        - ``ERROR_PRECISION  = 4`` -- not enough precision
+        - ``ERROR_OVERFLOW   = 8`` -- overflow
+        - ``ERROR_NOTSQUARE  = 16`` -- not a square
+        - ``ERROR_INTEGRAL   = 32`` -- not in the integer ring
+        - ``ERROR_DIVISION   = 64`` -- division by zero (or something indistinguishable from zero)
+        - ``ERROR_CIRCULAR   = 128`` -- circular definition
+        """
         raise NotImplementedError("must be implemented in subclasses")
 
     cdef int _jump_c(self, long prec):
+        r"""
+        Compute the digits of this number until the absolute precision
+        ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        OUTPUT:
+
+        An error code (see :meth:`_next_c` for details).
+
+        """
         cdef int error
         cdef long pr = min(prec, self._precbound)
         while self._precrel + self._valuation < pr:
@@ -109,6 +223,23 @@ cdef class LazyElement(pAdicGenericElement):
         return 0
 
     cdef int _jump_relative_c(self, long prec, long halt):
+        r"""
+        Compute the digits of this number until the relative precision
+        ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        - ``halt`` -- an integer; the absolute precision after which the 
+          computation is abandonned if the first significant digit has not 
+          been found yet
+
+        OUTPUT:
+
+        An error code (see :meth:`_next_c` for details).
+
+        """
         if self._valuation >= maxordp:
             return 0
         cdef int error = 0
@@ -126,13 +257,64 @@ cdef class LazyElement(pAdicGenericElement):
         return error
 
     cdef int _init_jump(self) except -1:
+        r"""
+        Start the computation of the digits of this number.
+        This method should be called at initialization.
+
+        OUTPUT:
+
+        An error code (see :meth:`_next_c` for details).
+
+        """
         cdef int error = 0
         if self._precbound < maxordp:
             error = self._jump_c(self._precbound)
             raise_error(error, True)
         return error
 
-    def digit(self, long i):
+    def digit(self, i):
+        r"""
+        Return the coefficient of `p^i` in the `p`-adic expansion
+        of this number.
+
+        INPUT:
+
+        - ``i`` -- an integer
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, prec=10)
+            sage: a = R(20/21)
+            sage: a
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: a.digit(0)
+            0
+            sage: a.digit(1)
+            4
+            sage: a.digit(7)
+            3
+            sage: a.digit(100)
+            1
+
+        As a shortcut, one can use the bracket operator::
+
+            sage: a[100]
+            ...
+            1
+
+        If the digit is not known, an error is raised::
+
+            sage: b = a.add_bigoh(10)
+            sage: b.digit(20)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision
+
+        TESTS::
+
+            sage: a.digit(-1)
+            0
+        """
         cdef int error = self._jump_c(i+1)
         if error:
             raise_error(error)
@@ -140,47 +322,180 @@ cdef class LazyElement(pAdicGenericElement):
         return digit_get_sage(coeff)
 
     def expansion(self, n=None, lift_mode='simple'):
+        r"""
+        Return an iterator over the list of coefficients in a `p`-adic 
+        expansion of this element, that is the list of `a_i` so that 
+        this element can be expressed as
+
+        .. MATH::
+
+            \pi^v \cdot \sum_{i=0}^\infty a_i \pi^i
+
+        where `v` is the valuation of this element when the parent is
+        a field, and `v = 0` otherwise and the `a_i` are between `0`
+        and `p - 1`.
+
+        INPUT:
+
+        - ``n`` -- an integer or ``None`` (default ``None``); if
+          given, returns the corresponding entries in the expansion.
+
+        - ``lift_mode`` -- only ``'simple'`` is accepted
+
+        OUTPUT:
+
+        - If ``n`` is ``None``, an iterable giving a `p`-adic expansion
+          of this element.
+
+        - If ``n`` is an integer, the coefficient of `p^n` in the
+          `p`-adic expansion of this element.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, print_mode="digits")
+            sage: a = R(1/2021); a
+            ...23615224635636163463
+
+        Without any argument, this method returns an iterator over the
+        digits of this number::
+
+            sage: E = a.expansion()
+            sage: E
+            7-adic expansion of ...23615224635636163463
+            sage: next(E)
+            3
+            sage: next(E)
+            6
+            sage: next(E)
+            4
+
+        On the contrary, passing in an integer returns the digit at the
+        given position::
+
+            sage: a.expansion(5)
+            1
+        """
         if lift_mode != 'simple':
             raise NotImplementedError
         if n is None:
-            default_prec = self._parent.default_prec()
             if self.prime_pow.in_field:
-                self._jump_relative_c(default_prec, self._valuation + default_prec)
-                start = self._valuation
+                start = self.valuation()
             else:
-                self._jump_c(default_prec)
                 start = 0
-            return ExpansionIter(self, start, self._valuation + self._precrel)
-        if isinstance(n, slice):
+            return ExpansionIter(self, start, self._precbound)
+        elif isinstance(n, slice):
             if n.step is not None:
                 raise NotImplementedError("step is not allowed")
-            if n.start is None:
-                start = 0
-            else:
-                start = Integer(n.start)
-            if n.stop is None:
-                stop = None
-            else:
-                stop = Integer(n.stop)
-            return ExpansionIter(self, start, stop)
+            return self.slice(n.start, n.stop, True)
         else:
             n = Integer(n)
             if n >= maxordp:
                 raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
             return self.digit(n)
 
-    def slice(self, start=None, stop=None):
+    def slice(self, start=None, stop=None, bound=False):
+        r"""
+        Return a slice of this number.
+
+        INPUT:
+
+        - ``start`` -- an integer or ``None`` (default: ``None``),
+          the first position of the slice
+
+        - ``stop`` -- an integer or ``None`` (default: ``None``),
+          the first position not included in the slice
+
+        - ``bound`` -- a boolean (default: ``False``); whether the
+          precision on the output should be bounded or unbounded
+
+        EXAMPLES::
+
+            sage: K = QpL(7, prec=10)
+            sage: a = K(1/2021); a
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
+
+            sage: s = a.slice(3, 6)
+            sage: s
+            3*7^3 + 6*7^4 + 7^5 + ...
+
+        In the above example, the precision on `b` remains unbounded::
+
+            sage: s.precision_absolute()
+            +Infinity
+
+        Passing in ``bound=True`` changes this behaviour::
+
+            sage: a.slice(3, 6, bound=True)
+            3*7^3 + 6*7^4 + 7^5 + O(7^6)
+
+        When ``start`` is omitted, the slice starts at the beginning of the number:
+
+            sage: a.slice(stop=6)
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + ...
+
+            sage: b = K(20/21); b
+            2*7^-1 + 3 + 2*7 + 2*7^2 + 2*7^3 + 2*7^4 + 2*7^5 + 2*7^6 + 2*7^7 + 2*7^8 + ...
+            sage: b.slice(stop=6)
+            2*7^-1 + 3 + 2*7 + 2*7^2 + 2*7^3 + 2*7^4 + 2*7^5 + ...
+
+        As a shortcut, one can use the bracket operator.
+        However, in this case, the precision is bounded::
+
+            sage: a[3:6]
+            3*7^3 + 6*7^4 + 7^5 + O(7^6)
+            sage: b[:6]
+            2*7^-1 + 3 + 2*7 + 2*7^2 + 2*7^3 + 2*7^4 + 2*7^5 + O(7^6)
+
+        TESTS::
+
+            sage: x = a[:3]
+            sage: x.slice(stop=3)
+            3 + 6*7 + 4*7^2 + ...
+            sage: x.slice(stop=4)
+            3 + 6*7 + 4*7^2 + O(7^3)
+        """
         if start is None:
-            start = maxordp
+            start = -maxordp
         elif start >= maxordp:
             raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
         if stop is None:
             stop = maxordp
         elif stop >= maxordp:
             raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
-        return element_class_slice(self._parent, self, start, stop, 0)
+        cdef LazyElement x = element_class_slice(self._parent, self, start, stop, 0)
+        if bound and x._precbound > stop:
+            x = element_class_bound(self._parent, x, stop)
+        return x
 
     def _repr_(self):
+        r"""
+        Return a string representation of this element.
+
+        EXAMPLES:
+
+        For unbounded elements, the number of printed terms is given by
+        the default precision of the ring::
+
+            sage: R = ZpL(5, 10)
+            sage: a = R(1/2021)
+            sage: a   # indirect doctest
+            1 + 5 + 3*5^3 + 3*5^4 + 5^5 + 4*5^6 + 4*5^7 + 2*5^8 + 3*5^9 + ...
+
+            sage: S = ZpL(5, 5)
+            sage: b = S(1/2021)
+            sage: b   # indirect doctest
+            1 + 5 + 3*5^3 + 3*5^4 + ...
+
+        On the contrary, bounded elements are printed until their own
+        precision, regardless the default precision of the parent::
+
+            sage: a[:15]   # indirect doctest
+            1 + 5 + 3*5^3 + 3*5^4 + 5^5 + 4*5^6 + 4*5^7 + 2*5^8 + 3*5^9 + 2*5^10 + 5^11 + 5^12 + 5^13 + O(5^15)
+
+            sage: b[:15]   # indirect doctest
+            1 + 5 + 3*5^3 + 3*5^4 + 5^5 + 4*5^6 + 4*5^7 + 2*5^8 + 3*5^9 + 2*5^10 + 5^11 + 5^12 + 5^13 + O(5^15)
+
+        """
         # This code should be integrated to the p-adic printer
         if self._valuation <= -maxordp:
             return "valuation not known"
@@ -202,22 +517,29 @@ cdef class LazyElement(pAdicGenericElement):
         s = pAdicGenericElement._repr_(x)
         mode = self._parent._printer.dict()['mode']
         if unbounded:
-            if x.precision_absolute() < self._valuebound:
-                s = re.sub(r'O\(.*\)$', '...', s)
-            else:
-                s = re.sub(r'(\s*\+\s*)?O\(.*\)$', '', s)
+            s = re.sub(r'O\(.*\)$', '...', s)
         elif mode == "digits":
             s = re.sub(r'^\.\.\.\??', '...?', s)
         elif mode == "bars":
             s = re.sub(r'^\.\.\.\|?', '...?|', s)
         if s == "" or s == "...":
-            if x.precision_absolute() < self._valuebound:
-                s = "0 + ..."
-            else:
-                s = "0"
+            s = "0 + ..."
         return s
 
     cdef bint _is_equal(self, LazyElement right, long prec, bint permissive) except -1:
+        r"""
+        C function for checking equality at a given precision.
+
+        INPUT:
+
+        - ``right`` -- the second element involved in the comparison
+
+        - ``prec`` -- an integer, the precision at which the equality is checked
+
+        - ``permissive`` -- a boolean; if ``True``, be silent if the precision
+          on one input are less than ``prec``; otherwise, raise an error
+
+        """
         cdef int error
         cdef long i
         if self._valuation <= -maxordp:
@@ -240,19 +562,89 @@ cdef class LazyElement(pAdicGenericElement):
         return True
 
     @coerce_binop
-    def is_equal_at_precision(self, other, prec):
-        return self._is_equal(other, min(prec, maxordp), False)
+    def is_equal_at_precision(self, right, prec):
+        r"""
+        Compare this element with ``right`` at precision ``prec``.
+
+        INPUT:
+
+        - ``right`` -- a lazy `p`-adic number
+
+        - ``prec`` -- an integer
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, prec=10)
+            sage: a = R(1/2); a
+            4 + 3*7 + 3*7^2 + 3*7^3 + 3*7^4 + 3*7^5 + 3*7^6 + 3*7^7 + 3*7^8 + 3*7^9 + ...
+            sage: b = R(99/2); b
+            4 + 3*7 + 4*7^2 + 3*7^3 + 3*7^4 + 3*7^5 + 3*7^6 + 3*7^7 + 3*7^8 + 3*7^9 + ...
+
+            sage: a.is_equal_at_precision(b, 1)
+            True
+            sage: a.is_equal_at_precision(b, 2)
+            True
+            sage: a.is_equal_at_precision(b, 3)
+            False
+        """
+        return self._is_equal(right, min(prec, maxordp), False)
 
     @coerce_binop
     def is_equal_to(self, LazyElement right, prec=None):
+        r"""
+        Compare this element with ``right``.
+
+        INPUT:
+
+        - ``right`` -- a lazy `p`-adic number
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``); if 
+          given, compare the two elements at this precision; otherwise
+          use the default precision of the parent and raise an error
+          if equality could not be decided
+
+        EXAMPLES::
+
+            sage: R = ZpL(7)
+
+            sage: a = R(1/2)
+            sage: b = R(1/3)
+            sage: c = R(1/6)
+
+            sage: a.is_equal_to(b)
+            False
+
+        When equality indeed holds, it is not possible to conclude by
+        comparing more and more accurate approximations.
+        In this case, the computation is abandonned::
+
+            sage: a.is_equal_to(b + c)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: unable to decide equality; try to bound precision
+
+        Bounding precision gives a 
+
+            sage: a.is_equal_to(b + c, prec=20)
+            True
+            sage: a.is_equal_to(b + c, prec=100)
+            True
+
+        In some cases, equality tests may fail when the first different
+        digit is beyond the default precision of the parent::
+
+            sage: a.is_equal_to(a + 7^50)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: unable to decide equality; try to bound precision
+
+        """
         cdef long default_prec
+        if self is right:
+            return True
         if self._valuation >= maxordp and right._valuation >= maxordp:
             return True
         if prec is None:
-            prec = min(self._valuation + self._precrel, right._valuation + right._precrel)
-            c = self._is_equal(right, prec, True)
-            if not c:
-                return False
             default_prec = self._parent.default_prec()
             if self.prime_pow.in_field:
                 self._jump_relative_c(default_prec, self._valuation + default_prec)
@@ -260,7 +652,10 @@ cdef class LazyElement(pAdicGenericElement):
             else:
                 self._jump_c(default_prec)
                 right._jump_c(default_prec)
-            prec = min(self._precbound, right._precbound, max(self._valuebound, right._valuebound))
+            prec = min(self._valuation + self._precrel, right._valuation + right._precrel)
+            if not self._is_equal(right, prec, True):
+                return False
+            prec = min(self._precbound, right._precbound)
         else:
             prec = Integer(prec)
         if prec < maxordp:
@@ -269,8 +664,6 @@ cdef class LazyElement(pAdicGenericElement):
             raise PrecisionError("unable to decide equality; try to bound precision")
 
     def __eq__(self, other):
-        if self is other:
-            return True
         if not have_same_parent(self, other):
             try:
                 a, b = coercion_model.canonical_coercion(self, other)
@@ -280,15 +673,103 @@ cdef class LazyElement(pAdicGenericElement):
         return self.is_equal_to(other)
 
     cpdef bint _is_exact_zero(self) except -1:
+        r"""
+        Return ``True`` if this element is an exact zero.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5)
+            sage: a = R(0); a
+            0
+            sage: a._is_exact_zero()
+            True
+
+            sage: b = a.add_bigoh(20)
+            sage: b
+            O(5^20)
+            sage: b._is_exact_zero()
+            False
+
+        """
         return self._valuation >= maxordp
 
     cpdef bint _is_inexact_zero(self) except -1:
+        r"""
+        Return ``True`` if, at the current stage of computations, this
+        number cannot be distinguished from zero.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, print_mode="digits")
+            sage: a = R(20/21)
+
+        Computations have not started yet, 
+
+            sage: a._is_inexact_zero()
+            True
+
+        When we print `a`, the first digits are computed, after what
+        we know that `a` is not zero::
+
+            sage: a
+            ...34010434010434010440
+            sage: a._is_inexact_zero()
+            False
+        """
         return self._precrel == 0
 
     def is_exact(self):
-        return self._is_exact_zero()
+        r"""
+        Return ``True`` if this element is exact, that is if its
+        precision is unbounded.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, prec=10)
+            sage: a = R(20/21)
+            sage: a
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: a.is_exact()
+            True
+
+            sage: b = a.add_bigoh(10)
+            sage: b
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^10)
+            sage: b.is_exact()
+            False
+        """
+        return self._precbound >= maxordp
 
     def precision_absolute(self):
+        r"""
+        Return the absolute precision of this element.
+
+        This is the power of `p` modulo which this element is known.
+        For unbounded elements, this methods return `+\infty`.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, prec=10)
+            sage: a = R(20/21)
+            sage: a
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: a.precision_absolute()
+            +Infinity
+
+            sage: b = a.add_bigoh(10)
+            sage: b
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^10)
+            sage: b.precision_absolute()
+            10
+
+        TESTS::
+
+            sage: s = R.selfref()
+            sage: (1/s).precision_absolute()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: no lower bound on the valuation is known
+        """
         if self._is_exact_zero():
             return Infinity
         if self._valuation <= -maxordp:
@@ -298,13 +779,103 @@ cdef class LazyElement(pAdicGenericElement):
         return Integer(self._precrel + self._valuation)
 
     def precision_relative(self):
+        """
+        Returns the relative precision of this element.
+
+        This is the power of `p` modulo which the unit part of this
+        element is known.
+        For unbounded nonzero elements, this methods return `+\infty`.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, prec=10)
+            sage: a = R(20/21)
+            sage: a
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: a.precision_relative()
+            +Infinity
+
+            sage: b = a.add_bigoh(10)
+            sage: b
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^10)
+            sage: b.precision_relative()
+            9
+
+        The relative precision of (exact and inexact) `0` is `0`::
+
+            sage: x = R(0); x
+            0
+            sage: x.precision_relative()
+            0
+
+            sage: y = R(0, 10); y
+            O(5^10)
+            sage: y.precision_relative()
+            0
+
+        TESTS::
+
+            sage: s = R.selfref()
+            sage: (1/s).precision_relative()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: no lower bound on the valuation is known
+        """
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
-        if self._precbound >= maxordp:
+        if self._precbound >= maxordp and self._valuation < maxordp:
             return Infinity
         return Integer(self._precrel)
 
     def at_precision_absolute(self, prec=None, permissive=None):
+        r"""
+        Return this element bounded at the given precision.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
+          if ``None``, use the default precision of the parent
+
+        - ``permissive`` -- a boolean (default: ``False`` if ``prec``
+          is given, ``True`` otherwise); if ``False``, raise an error
+          if the precision of this element is not sufficient
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, prec=10)
+            sage: a = R(1/2021); a
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
+            sage: a.at_precision_absolute(5)
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5)
+            sage: a.at_precision_absolute(10)
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + O(7^10)
+
+            sage: b = a.add_bigoh(5)
+            sage: b.at_precision_absolute(10)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision
+
+            sage: b.at_precision_absolute(10, permissive=True)
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5)
+
+        Bounding at a negative precision is not permitted over `\ZZ_p`::
+
+            sage: a.at_precision_absolute(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: precision must be nonnegative
+
+        but, of course, it is over `\QQ_p`::
+
+            sage: K = R.fraction_field()
+            sage: K(a).at_precision_absolute(-1)
+            O(7^-1)
+
+        .. SEEALSO::
+
+            :meth:`at_precision_relative`, :meth:`add_bigoh`
+        """
         if prec is Infinity:
             if permissive is False and self._precbound < maxordp:
                 raise_error(ERROR_PRECISION)
@@ -325,12 +896,109 @@ cdef class LazyElement(pAdicGenericElement):
         raise_error(error, permissive)
         return element_class_bound((<LazyElement>self)._parent, self, prec)
 
-    def add_bigoh(self, prec):
-        if prec < 0 and (not self.prime_pow.in_field):
+    def add_bigoh(self, absprec):
+        r"""
+        Return a new element with absolute precision decreased to ``absprec``.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or infinity
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, prec=10)
+            sage: a = R(1/2021); a
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
+            sage: a.add_bigoh(5)
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5)
+
+        When ``absprec`` is negative, we return an element in the fraction
+        field::
+
+            sage: b = a.add_bigoh(-1)
+            sage: b
+            O(7^-1)
+            sage: b.parent()
+            7-adic Field with lazy precision
+
+        .. SEEALSO::
+
+            :meth:`at_precision_absolute`, :meth:`at_precision_relative`
+        """
+        if absprec < 0 and (not self.prime_pow.in_field):
             self = element_class_bound(self._parent.fraction_field(), self)
-        return self.at_precision_absolute(prec, True)
+        return self.at_precision_absolute(absprec, True)
 
     def at_precision_relative(self, prec=None, halt=True, permissive=None):
+        r"""
+        Return this element bounded at the given precision.
+
+        INPUT:
+
+        - ``prec`` -- an integer or ``None`` (default: ``None``);
+          if ``None``, use the default precision of the parent
+
+        - ``halt`` -- an integer or a boolean (default: ``True``);
+          the absolute precision after which the computation is abandonned
+          if the first significant digit has not been found yet;
+          if ``True``, the default precision of the parent is used;
+          if ``False``, the computation is never abandonned
+
+        - ``permissive`` -- a boolean (default: ``False`` if ``prec``
+          is given, ``True`` otherwise); if ``False``, raise an error
+          if the precision of this element is not sufficient
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, prec=10)
+            sage: a = R(20/21); a
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: a.at_precision_relative(5)
+            4*5 + 4*5^2 + 5^4 + O(5^6)
+
+        We illustrate the behaviour of the parameter ``halt``.
+        We create a very small number whose first significant is bar beyond
+        the default precision::
+
+            sage: b = R(5^20)
+            sage: b
+            0 + ...
+
+        Without any help, Sage does not run the computation far enough to determine
+        the valuation and an error is raised::
+
+            sage: b.at_precision_relative(5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: computation has been abandonned; try to increase precision
+
+        By setting the argument ``halt``, one can force the computation to continue
+        until a prescribed limit::
+
+            sage: b.at_precision_relative(5, halt=20)   # not enough to find the valuation
+            Traceback (most recent call last):
+            ...
+            PrecisionError: computation has been abandonned; try to increase precision
+
+            sage: b.at_precision_relative(5, halt=21)   # now, we're okay
+            5^20 + O(5^25)
+
+        .. NOTE:
+
+            It is also possible to pass in ``halt=False`` but it is not recommended
+            because the computation can hang forever if this element were `0`.
+
+        .. SEEALSO::
+
+            :meth:`at_precision_absolute`, :meth:`add_bigoh`
+
+        TESTS::
+
+            sage: a.at_precision_relative(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: precision must be nonnegative
+        """
         default_prec = self._parent.default_prec()
         if prec is None:
             if permissive is None:
@@ -353,12 +1021,6 @@ cdef class LazyElement(pAdicGenericElement):
             permissive = False
         raise_error(error, permissive)
         return element_class_bound((<LazyElement>self)._parent, self, self._valuation +  prec)
-
-    def __matmul__(self, prec):
-        if (<LazyElement>self).prime_pow.in_field:
-            return self.at_precision_relative(prec)
-        else:
-            return self.at_precision_absolute(prec)
 
     def lift_to_precision(self, absprec=None):
         if self._precbound >= maxordp:
@@ -472,6 +1134,8 @@ cdef class LazyElement(pAdicGenericElement):
         return element_class_add(self._parent, self, <LazyElement>other)
 
     cpdef _sub_(self, other):
+        if self is other:
+            return self._parent.zero()
         if isinstance(self, LazyElement_zero):
             return other
         if isinstance(other, LazyElement_zero):
@@ -570,7 +1234,6 @@ cdef class LazyElement_zero(LazyElement):
     def __init__(self, parent):
         LazyElement.__init__(self, parent)
         self._valuation = maxordp
-        self._valuebound = 0
 
     def __reduce__(self):
         return self.__class__, (self._parent,)
@@ -597,19 +1260,15 @@ cdef class LazyElement_one(LazyElement_init):
     def __init__(self, parent):
         LazyElement.__init__(self, parent)
         element_set_digit_ui(self._digits, 1, 0)
-        self._precrel = min(1, self._parent.default_prec())
-        self._valuebound = 1
+        self._precrel = maxordp
 
     def __reduce__(self):
         return self.__class__, (self._parent,)
 
     cdef int _jump_c(self, long prec):
-        if self._precrel < prec:
-            self._precrel = prec
         return 0
 
     cdef int _next_c(self):
-        self._precrel += 1
         return 0
 
 
@@ -671,6 +1330,7 @@ cdef class LazyElement_value(LazyElement_init):
         self._valuation = -shift
         if precbound is not None and precbound is not Infinity:
             self._precbound = min(maxordp, precbound)
+        self._valuebound = maxordp
         self._init_jump()
 
     def __reduce__(self):
@@ -685,9 +1345,9 @@ cdef class LazyElement_value(LazyElement_init):
         cdef long precrel = min(prec, maxordp) - self._valuation
         if precrel > self._precrel:
             self._precrel = precrel
-        if prec < maxordp:
-            return 0
-        return ERROR_OVERFLOW
+        if prec >= maxordp:
+            return ERROR_OVERFLOW
+        return 0
 
     cdef int _next_c(self):
         # The algorithm is not optimal (quadratic in the precision),
@@ -700,6 +1360,12 @@ cdef class LazyElement_value(LazyElement_init):
             self._precrel += 1
         if digit_is_zero(self._getdigit_relative(self._precrel)):
             self._valuebound = self._valuation + self._precrel
+            if self._precrel == 0:
+                self._valuation = self._precbound
+            elif self._precbound >= maxordp:
+                self._precrel = maxordp
+            else:
+                self._precrel = self._precbound - self._valuation
         return 0
 
 
@@ -836,7 +1502,7 @@ cdef class LazyElement_add(LazyElement_init):
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
         cdef int error = x._jump_c(prec) | y._jump_c(prec)
-        prec = min(x._valuation + x._precrel, y._valuation + y._precrel)
+        prec = min(prec, x._valuation + x._precrel, y._valuation + y._precrel)
         while n < prec:
             element_iadd_digit(self._digits, x._getdigit_absolute(n), self._precrel)
             element_iadd_digit(self._digits, y._getdigit_absolute(n), self._precrel)
@@ -851,6 +1517,14 @@ cdef class LazyElement_add(LazyElement_init):
 
     cdef int _next_c(self):
         cdef long n = self._valuation + self._precrel
+        if n >= self._valuebound:
+            if self._precrel == 0:
+                self._valuation = self._precbound
+            elif self._precbound < maxordp:
+                self._precrel = self._precbound - self._valuation
+            else:
+                self._precrel = maxordp
+            return 0
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
         cdef int error = x._jump_c(n+1) | y._jump_c(n+1)
@@ -887,7 +1561,7 @@ cdef class LazyElement_sub(LazyElement_init):
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
         cdef int error = x._jump_c(prec) | y._jump_c(prec)
-        prec = min(x._valuation + x._precrel, y._valuation + y._precrel)
+        prec = min(prec, x._valuation + x._precrel, y._valuation + y._precrel)
         while n < prec:
             element_iadd_digit(self._digits, x._getdigit_absolute(n), self._precrel)
             element_isub_digit(self._digits, y._getdigit_absolute(n), self._precrel)
@@ -1404,27 +2078,15 @@ cdef class ExpansionIter(object):
 
     def __init__(self, LazyElement elt, start, stop):
         self.elt = elt
-        if start is None:
-            self.start = 0
-        else:
-            if start >= maxordp:
-                raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
-            self.start = long(start)
-        if stop is None:
-            self.stop = self.start - 1
-        else: 
-            if stop >= maxordp:
-                raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
-            self.stop = long(stop)
-            if self.stop <= self.start:
-                self.stop = self.start
+        self.start = start
+        self.stop = stop
         self.current = self.start
 
     def __repr__(self):
         return "%s-adic expansion of %s" % (self.elt._parent.prime(), self.elt)
 
     def __len__(self):
-        if self.stop < self.start:
+        if self.stop >= maxordp:
             raise NotImplementedError("infinite sequence")
         return Integer(self.stop - self.start)
 
@@ -1432,7 +2094,7 @@ cdef class ExpansionIter(object):
         return self
 
     def __next__(self):
-        if self.stop < self.start or self.current < self.stop:
+        if self.current < self.stop:
             digit = self.elt.digit(self.current)
             self.current += 1
             return digit

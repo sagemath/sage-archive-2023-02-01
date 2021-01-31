@@ -7,7 +7,6 @@ cdef class LazyElement(pAdicGenericElement):
     cdef long _valuation
     cdef long _precrel
     cdef long _precbound
-    cdef long _valuebound
     cdef PowComputer_class prime_pow
 
     cdef cdigit_ptr _getdigit_relative(self, long i)
@@ -40,8 +39,9 @@ cdef class LazyElement_bound(LazyElement):
     cdef LazyElement _x
 
 cdef class LazyElement_value(LazyElement_init):
-    cdef _value
+    cdef long _valuebound
     cdef long _shift
+    cdef _value
 
 cdef class LazyElement_random(LazyElement_init):
     cdef randgen _generator

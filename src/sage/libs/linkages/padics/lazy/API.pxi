@@ -346,9 +346,9 @@ cdef inline void element_get_slice(celement res, celement x, long start, long le
     - ``start`` -- an integer, the start position of the slice
     - ``length`` -- an integer, the length of the slice
 
-    NOTE::
+    .. NOTE::
 
-        The function only sets up a pointer to the requested slice
+        This function only sets up a pointer to the requested slice
         (the slice is not copied). Hence any future modification 
         of the slice ``res`` will affect the container ``x``.
     """

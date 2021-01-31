@@ -7,6 +7,8 @@ AC_DEFUN([SAGE_CHECK_PYTHON_FOR_VENV], [
                 m4_pushdef([REQUIRED_MODULES], [$4])
                 m4_pushdef([COMMANDS_IF_GOOD], [$5])
 
+                AC_SUBST([SAGE_ARCHFLAGS])
+
                 AC_MSG_CHECKING([... whether ]PYTHON_EXE[ is good])
                 python3_version=`"PYTHON_EXE" --version 2>&1 \
                     | $SED -n -e 's/\([[0-9]]*\.[[0-9]]*\.[[0-9]]*\).*/\1/p'`
@@ -19,10 +21,23 @@ AC_DEFUN([SAGE_CHECK_PYTHON_FOR_VENV], [
                             dnl m4_define([conftest_venv], [config-venv]) .... for debugging only
                             rm -rf conftest_venv
                             AS_IF(["]PYTHON_EXE[" build/bin/sage-venv conftest_venv && conftest_venv/bin/python3 -c "import ]REQUIRED_MODULES["], [
-                                SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3], [
+                                SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" conftest_venv/bin/python3], [
+                                    SAGE_ARCHFLAGS="unset"
                                     COMMANDS_IF_GOOD
                                 ], [
-                                    AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but $reason])
+                                    AS_CASE([$host],
+                                        [*-*-darwin*], [
+                                            dnl #31227: Try if setting ARCHFLAGS to empty fixes it
+                                            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3], [
+                                                SAGE_ARCHFLAGS=""
+                                                COMMANDS_IF_GOOD
+                                            ], [
+                                                AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but $reason (even with ARCHFLAGS set to empty)])
+                                            ])
+                                        ], [
+                                            AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but $reason])
+                                        ]
+                                    )
                                 ])
                             ], [
                                 AC_MSG_RESULT([no, the version is in the supported range but cannot import one of the required modules: ]REQUIRED_MODULES)

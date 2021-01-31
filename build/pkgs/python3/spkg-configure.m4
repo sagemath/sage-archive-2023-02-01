@@ -75,10 +75,14 @@ SAGE_SPKG_CONFIGURE([python3], [
     dnl POST
     AS_IF([test x$sage_spkg_install_python3 = xno], [
         PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"
+        AS_IF([test "$SAGE_ARCHFLAGS" != "unset"], [
+            ARCHFLAGS="$SAGE_ARCHFLAGS"
+            export ARCHFLAGS
+        ])
         AS_IF([test -n "$CFLAGS_MARCH"], [
             dnl Trac #31228
             AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
-            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" ARCHFLAGS="" CFLAGS="$CFLAGS_MARCH" conftest_venv/bin/python3], [
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS_MARCH" conftest_venv/bin/python3], [
                 AC_MSG_RESULT([yes])
             ], [
                 AC_MSG_RESULT([no, with these flags, $reason; disabling use of "$CFLAGS_MARCH"])

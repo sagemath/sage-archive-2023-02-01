@@ -206,9 +206,9 @@ export F95="$FC"
 # If the environment defines ARCHFLAGS, even when empty, then take that.
 # Otherwise, use the configured value; but if that is "unset", do not set
 # the variable at all.
-if [ "{$ARCHFLAGS-unset}" = "unset" ]; then
-    if [ "${CONFIGURED_ARCHFLAGS-unset}" != "unset" ]; then
-        export ARCHFLAGS="${CONFIGURED_ARCHFLAGS}"
+if [ "${ARCHFLAGS-unset}" = "unset" ]; then
+    if [ "${SAGE_ARCHFLAGS-unset}" != "unset" ]; then
+        export ARCHFLAGS="${SAGE_ARCHFLAGS}"
     fi
 fi
 

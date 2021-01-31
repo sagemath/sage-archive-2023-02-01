@@ -32,6 +32,18 @@ Check that :trac:`24212` is fixed::
     sage: integrate(sin(x^2), x, algorithm='sympy')
     3/8*sqrt(2)*sqrt(pi)*fresnel_sin(sqrt(2)*x/sqrt(pi))*gamma(3/4)/gamma(7/4)
 
+Test that conversion of symbolic functions with latex names works (:trac:`31047`)::
+
+    sage: var('phi')
+    phi
+    sage: function('Cp', latex_name='C_+')
+    Cp
+    sage: test = Cp(phi)._sympy_()._sage_()
+    sage: test.operator() == Cp
+    True
+    sage: test.operator()._latex_() == 'C_+'
+    True
+
 AUTHORS:
 
 - Ralf Stephan (2017-10)

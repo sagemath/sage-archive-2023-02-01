@@ -210,6 +210,20 @@ instead call ``GiacElement._sage_()`` and supply a translation dictionary::
 Moreover, new conversions can be permanently added using Pynac's
 ``register_symbol``, and this is the recommended approach for library code.
 For more details, see the documentation for ``._sage_()``.
+
+TESTS:
+
+Test that conversion of symbolic functions with latex names works (:trac:`31047`)::
+
+    sage: var('phi')
+    phi
+    sage: function('Cp', latex_name='C_+')
+    Cp
+    sage: test = Cp(phi)._giac_()._sage_()
+    sage: test.operator() == Cp
+    True
+    sage: test.operator()._latex_() == 'C_+'
+    True
 """
 
 #############################################################################

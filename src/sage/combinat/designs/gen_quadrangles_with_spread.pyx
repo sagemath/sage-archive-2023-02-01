@@ -339,35 +339,3 @@ def generalised_quadrangle_hermitian_with_ovoid(const int q):
 
     D = IncidenceStructure(lines)
     return (D, ovoid)
-
-def test():
-    r"""
-    TESTS::
-
-        sage: t = designs.generalised_quadrangle_hermitian_with_ovoid(3)
-        sage: d = t[0]
-        sage: d.is_generalized_quadrangle(parameters=True)
-        (9, 3)
-        sage: dd = d.dual()
-        sage: dd.is_generalized_quadrangle(parameters=True)
-        (3, 9)
-        sage: di = d.incidence_graph()
-        sage: di.diameter() == 4
-        True
-        sage: di.girth() == 8
-        True
-        sage: d.is_uniform()
-        10
-        sage: d.is_regular()
-        4
-        sage: ddi = dd.incidence_graph()
-        sage: ddi.diameter() == 4
-        True
-        sage: ddi.girth() == 8
-        True
-        sage: dd.is_uniform()
-        4
-        sage: dd.is_regular()
-        10
-    """
-    return True

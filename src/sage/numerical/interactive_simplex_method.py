@@ -2017,7 +2017,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
     @staticmethod
     def random_element(m, n, bound=5, special_probability=0.2,
-                       *, is_primal=True, **kwds):
+                       **kwds):
         r"""
         Construct a random ``InteractiveLPProblemStandardForm``.
 
@@ -2040,7 +2040,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: InteractiveLPProblemStandardForm.random_element(3, 4)
             LP problem (use typeset mode to see details)
         """
-        if not is_primal:
+        if not kwds.pop('is_primal', True):
             raise NotImplementedError('only random primal problems are implemented')
         A = random_matrix(ZZ, m, n, x=-bound, y=bound).change_ring(QQ)
         if special_probability < random():

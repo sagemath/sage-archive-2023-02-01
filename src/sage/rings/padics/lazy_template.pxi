@@ -1023,6 +1023,53 @@ cdef class LazyElement(pAdicGenericElement):
         return element_class_bound((<LazyElement>self)._parent, self, self._valuation +  prec)
 
     def lift_to_precision(self, absprec=None):
+        """
+        Return another element of the same parent, lifting this element
+        and having absolute precision at least ``absprec``.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or ``None`` (default: ``None``), the
+          absolute precision of the result. If ``None``, the default
+          precision of the parent is used.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, prec=10)
+            sage: a = R(20/21, 5); a
+            4*5 + 4*5^2 + 5^4 + O(5^5)
+
+            sage: a.lift_to_precision(20)
+            4*5 + 4*5^2 + 5^4 + O(5^20)
+
+        When the precision is omitted, the default precision of the parent
+        is used::
+
+            sage: a.lift_to_precision()
+            4*5 + 4*5^2 + 5^4 + O(5^10)
+
+        When the parent is a field, the behaviour is slightly different since
+        the default precision of the parent becomes the relative precision
+        of the lifted element::
+
+            sage: K = R.fraction_field()
+            sage: K(a).lift_to_precision()
+            4*5 + 4*5^2 + 5^4 + O(5^11)
+
+        Note that the precision never decreases::
+
+            sage: a.lift_to_precision(2)
+            4*5 + 4*5^2 + 5^4 + O(5^5)
+
+        In particular, unbounded element are not affected by this method::
+
+            sage: b = R(20/21); b
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: b.lift_to_precision()
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: b.lift_to_precision(2)
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+        """
         if self._precbound >= maxordp:
             return self
         cdef long prec
@@ -1047,9 +1094,87 @@ cdef class LazyElement(pAdicGenericElement):
         return ans
 
     cdef long valuation_c(self):
+        r"""
+        Return the best lower bound we have on the valuation of
+        this element at the current stage of the computation.
+        """
         return self._valuation
 
     def valuation(self, halt=True):
+        r"""
+        Return the valuation of this element.
+
+        INPUT:
+
+        - ``halt`` -- an integer or a boolean (default: ``True``);
+          the absolute precision after which the computation is abandonned
+          if the first significant digit has not been found yet;
+          if ``True``, the default precision of the parent is used;
+          if ``False``, the computation is never abandonned
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, 10)
+            sage: a = R(2001); a
+            1 + 5^3 + 3*5^4 + ...
+            sage: a.valuation()
+            0
+
+            sage: b = a - 1/a; b
+            2*5^3 + 5^4 + 5^5 + 4*5^6 + 3*5^7 + 4*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 5^12 + ...
+            sage: b.valuation()
+            3
+
+        The valuation of an exact zero is `+\infty`::
+
+            sage: R(0).valuation()
+            +Infinity
+
+        The valuation of an inexact zero is its absolute precision::
+
+            sage: R(0, 20).valuation()
+            20
+
+        We illustrate the behaviour of the parameter ``halt``.
+        We create a very small number whose first significant is bar beyond
+        the default precision::
+
+            sage: z = R(5^20)
+            sage: z
+            0 + ...
+
+        Without any help, Sage does not run the computation far enough to determine
+        the valuation and an error is raised::
+
+            sage: z.valuation()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: cannot determine the valuation; try to increase the halting precision
+
+        By setting the argument ``halt``, one can force the computation to continue
+        until a prescribed limit::
+
+            sage: z.valuation(halt=20)   # not enough to find the valuation
+            Traceback (most recent call last):
+            ...
+            PrecisionError: cannot determine the valuation; try to increase the halting precision
+
+            sage: z.valuation(halt=21)   # now, we're okay
+            20
+
+        .. NOTE:
+
+            It is also possible to pass in ``halt=False`` but it is not recommended
+            because the computation can hang forever if this element were `0`.
+
+        TESTS::
+
+            sage: x = R.selfref()
+            sage: (~x).valuation()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: no lower bound on the valuation is known
+        """
         if self._is_exact_zero():
             return Infinity
         if self._valuation <= -maxordp:
@@ -1066,47 +1191,201 @@ cdef class LazyElement(pAdicGenericElement):
         return Integer(self._valuation)
 
     def unit_part(self, halt=True):
+        r"""
+        Return the unit part of this element.
+
+        INPUT:
+
+        - ``halt`` -- an integer or a boolean (default: ``True``);
+          the absolute precision after which the computation is abandonned
+          if the first significant digit has not been found yet;
+          if ``True``, the default precision of the parent is used;
+          if ``False``, the computation is never abandonned
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, 10)
+            sage: a = R(20/21); a
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: a.unit_part()
+            4 + 4*5 + 5^3 + 4*5^5 + 3*5^6 + 4*5^7 + 5^9 + ...
+
+            sage: b = 1/a; b
+            4*5^-1 + 4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + ...
+            sage: b.unit_part()
+            4 + 4*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + ...
+
+        The unit part of `0` is not defined::
+
+            sage: R(0).unit_part()
+            Traceback (most recent call last):
+            ...
+            ValueError: unit part of 0 not defined
+
+            sage: R(0, 20).unit_part()
+            Traceback (most recent call last):
+            ...
+            ValueError: unit part of 0 not defined
+
+        See :meth:`valuation` for more details on the paramter ``halt``.
+
+        """
         val = self.valuation(halt)
+        if self._valuation >= self._precbound:
+            raise ValueError("unit part of 0 not defined")
         return self >> val
 
     def val_unit(self, halt=True):
+        r"""
+        Return the valuation and the unit part of this element.
+
+        INPUT:
+
+        - ``halt`` -- an integer or a boolean (default: ``True``);
+          the absolute precision after which the computation is abandonned
+          if the first significant digit has not been found yet;
+          if ``True``, the default precision of the parent is used;
+          if ``False``, the computation is never abandonned
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, 10)
+            sage: a = R(20/21); a
+            4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
+            sage: a.val_unit()
+            (1, 4 + 4*5 + 5^3 + 4*5^5 + 3*5^6 + 4*5^7 + 5^9 + ...)
+
+            sage: b = 1/a; b
+            4*5^-1 + 4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + ...
+            sage: b.val_unit()
+            (-1, 4 + 4*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + ...)
+
+        If this element is indistinguishable from zero, an error is raised
+        since the unit part of `0` is not defined::
+
+            sage: R(0).unit_part()
+            Traceback (most recent call last):
+            ...
+            ValueError: unit part of 0 not defined
+
+            sage: R(0, 20).unit_part()
+            Traceback (most recent call last):
+            ...
+            ValueError: unit part of 0 not defined
+
+        See :meth:`valuation` for more details on the paramter ``halt``.
+
+        """
         val = self.valuation(halt)
+        if self._valuation >= self._precbound:
+            raise ValueError("unit part of 0 not defined")
         return val, self >> val
 
-    def residue(self, long prec=1, field=None, check_prec=True):
-        if prec >= maxordp:
+    def residue(self, absprec=1, field=True, check_prec=True):
+        r"""
+        Return the image of this element in the quotient
+        `\ZZ/p^\mathrm{absprec}\ZZ`.
+
+        INPUT:
+
+        - ``absprec`` -- a non-negative integer (default: ``1``)
+
+        - ``field`` -- boolean (default ``True``); when ``absprec`` is ``1``,
+          whether to return an element of GF(p) or Zmod(p).
+
+        - ``check_prec`` -- boolean (default ``True``); whether to raise an error 
+          if this element has insufficient precision to determine the reduction.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: a = R(1/2021); a
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
+            sage: a.residue()
+            3
+            sage: a.residue(2)
+            45
+
+        If this element has negative valuation, an error is raised::
+
+            sage: K = R.fraction_field()
+            sage: b = K(20/21)
+            sage: b.residue()
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue
+        """
+        if absprec >= maxordp:
             raise OverflowError
-        if prec < 0:
+        if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of p")
-        error = self._jump_c(prec)
+        error = self._jump_c(absprec)
         if error:
             raise_error(error, not check_prec)
         if self._valuation < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue")
         cdef celement digits
-        self._getslice_relative(digits, 0, min(self._precrel, prec - self._valuation))
+        self._getslice_relative(digits, 0, min(self._precrel, absprec - self._valuation))
         cdef Integer ans = element_get_sage(digits, self.prime_pow)
-        if field and prec == 1:
+        if field and absprec == 1:
             return self._parent.residue_class_field()(ans)
         else:
-            return self._parent.residue_ring(prec)(ans)
+            return self._parent.residue_ring(absprec)(ans)
 
-    def lift(self, prec=None):
-        if prec is None:
+    def lift(self, absprec=None):
+        r"""
+        Return a rational number which is congruent to this element modulo
+        `p^\mathrm{prec}`.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or ``None`` (default: ``None``); if ``None``,
+          the absolute precision of this element is used
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: a = R(1/2021, 5); a
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5)
+            sage: a.lift()
+            15676
+            sage: a.lift(2)
+            45
+
+        Here is another example with an element of negative valuation::
+
+            sage: K = R.fraction_field()
+            sage: b = K(20/21, 5); b
+            2*7^-1 + 3 + 2*7 + 2*7^2 + 2*7^3 + 2*7^4 + O(7^5)
+            sage: b.lift()
+            39223/7
+
+        For unbounded elements, we must specify a precision::
+
+            sage: c = R(1/2021)
+            sage: c.lift()
+            Traceback (most recent call last):
+            ...
+            ValueError: you must specify a precision for unbounded elements
+
+            sage: c.lift(5)
+            15676
+        """
+        if absprec is None:
             if self._precbound < maxordp:
-                prec = self._precbound
+                absprec = self._precbound
             else:
                 raise ValueError("you must specify a precision for unbounded elements")
         else:
-            prec = Integer(prec)
-        cdef int error = self._jump_c(prec)
+            absprec = Integer(absprec)
+        cdef int error = self._jump_c(absprec)
         if error:
             raise_error(error)
-        if prec < self._valuation:
+        if absprec < self._valuation:
             return Integer(0)
         cdef celement digits
-        self._getslice_relative(digits, 0, prec - self._valuation)
-        cdef Integer ans = element_get_sage(digits, self.prime_pow)
+        self._getslice_relative(digits, 0, absprec - self._valuation)
+        ans = element_get_sage(digits, self.prime_pow)
         if self._valuation:
             ans *= self._parent.prime() ** self._valuation
         return ans
@@ -1802,8 +2081,8 @@ cdef class LazyElement_div(LazyElement_init):
             if error:
                 return error
             if definition._valuation > val:
-                self._valuation = definition._valuation - self._denom._valuation
-                self._precbound = definition._precbound - self._denom._valuation
+                self._valuation = min(self._precbound, definition._valuation - self._denom._valuation)
+                self._precbound = min(self._precbound, definition._precbound - self._denom._valuation)
             else:
                 digit = definition._getdigit_relative(self._precrel)
                 element_set_digit(self._digits, digit, self._precrel)

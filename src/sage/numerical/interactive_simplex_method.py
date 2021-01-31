@@ -2016,7 +2016,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         self._objective_name = SR(objective_name)
 
     @staticmethod
-    def random_element(m, n, bound=5, special_probability=0.2):
+    def random_element(m, n, bound=5, special_probability=0.2,
+                       **kwds):
         r"""
         Construct a random ``InteractiveLPProblemStandardForm``.
 
@@ -2032,6 +2033,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
           constructing a problem whose initial dictionary is allowed
           to be primal infeasible or dual feasible
 
+        All other keyword arguments are passed to the constructor.
+
         EXAMPLES::
 
             sage: InteractiveLPProblemStandardForm.random_element(3, 4)
@@ -2046,7 +2049,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             c = random_vector(ZZ, n, x=-bound, y=bound).change_ring(QQ)
         else:   # Make dual feasible dictionary
             c = random_vector(ZZ, n, x=-bound, y=0).change_ring(QQ)
-        return InteractiveLPProblemStandardForm(A, b, c)
+        return InteractiveLPProblemStandardForm(A, b, c, **kwds)
 
     def add_constraint(self, coefficients, constant_term, slack_variable=None):
         r"""

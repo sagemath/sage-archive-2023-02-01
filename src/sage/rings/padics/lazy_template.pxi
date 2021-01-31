@@ -1796,14 +1796,6 @@ cdef class LazyElement_add(LazyElement_init):
 
     cdef int _next_c(self):
         cdef long n = self._valuation + self._precrel
-        if n >= self._valuebound:
-            if self._precrel == 0:
-                self._valuation = self._precbound
-            elif self._precbound < maxordp:
-                self._precrel = self._precbound - self._valuation
-            else:
-                self._precrel = maxordp
-            return 0
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
         cdef int error = x._jump_c(n+1) | y._jump_c(n+1)

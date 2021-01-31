@@ -2993,9 +2993,9 @@ def ZpL(p, prec=None, *args, **kwds):
         sage: a.at_precision_absolute(30)
         ...?244200244200244200244200244201
 
-    As a shortcut, one can use the operator ``@``::
+    As a shortcut, one can use the bracket operator::
 
-        sage: a@30
+        sage: a[:30]
         ...?244200244200244200244200244201
 
     Of course, standard operations are supported::
@@ -3015,7 +3015,7 @@ def ZpL(p, prec=None, *args, **kwds):
     We observe again that only 20 digits are printed but, as before,
     more digits are available on demand::
 
-        sage: sqrt(a)@30
+        sage: sqrt(a)[:30]
         ...?142443342120042333114021142101
 
     .. RUBRIC:: Equality tests
@@ -3040,9 +3040,9 @@ def ZpL(p, prec=None, *args, **kwds):
     and we are forced to check equality at some given finite precision
     as follows::
 
-        sage: a@20 == sqrt(a)^2
+        sage: a[:20] == sqrt(a)^2
         True
-        sage: a@100 == sqrt(a)^2
+        sage: a[:100] == sqrt(a)^2
         True
 
     Finally, note that checking equality may fail even when the two
@@ -3085,7 +3085,7 @@ def ZpL(p, prec=None, *args, **kwds):
         sage: y.set(1 + 3*y^2)
         sage: y
         ...?.0
-        sage: y@20
+        sage: y[:20]
         Traceback (most recent call last):
         ...
         RecursionError: definition looks circular

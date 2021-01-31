@@ -19,17 +19,10 @@ AC_DEFUN([SAGE_CHECK_PYTHON_FOR_VENV], [
                             dnl m4_define([conftest_venv], [config-venv]) .... for debugging only
                             rm -rf conftest_venv
                             AS_IF(["]PYTHON_EXE[" build/bin/sage-venv conftest_venv && conftest_venv/bin/python3 -c "import ]REQUIRED_MODULES["], [
-                                SAGE_PYTHON_DISTUTILS_C_CONFTEST
-                                dnl (echo "***ENV***:"; env; echo "***SYSCONFIG***"; conftest_venv/bin/python3 -m sysconfig) >& AS_MESSAGE_LOG_FD
-                                echo CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD
-                                AS_IF([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
-                                    SAGE_PYTHON_DISTUTILS_CXX_CONFTEST
-                                    AS_IF([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
-                                        COMMANDS_IF_GOOD], [
-                                        AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build a C++ 11 extension])
-                                    ])
+                                SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3], [
+                                    COMMANDS_IF_GOOD
                                 ], [
-                                    AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build a C extension])
+                                    AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but $reason])
                                 ])
                             ], [
                                 AC_MSG_RESULT([no, the version is in the supported range but cannot import one of the required modules: ]REQUIRED_MODULES)
@@ -51,6 +44,31 @@ AC_DEFUN([SAGE_CHECK_PYTHON_FOR_VENV], [
                 m4_popdef([REQUIRED_MODULES])
                 m4_popdef([COMMANDS_IF_GOOD])
 
+])
+
+dnl distutils test
+AC_DEFUN([SAGE_PYTHON_CHECK_DISTUTILS], [
+    m4_pushdef([PYTHON_EXE], [$1])
+    m4_pushdef([COMMANDS_IF_DISTUTILS_GOOD], [$2])
+    m4_pushdef([COMMANDS_IF_DISTUTILS_NOT_GOOD], [$3])
+    SAGE_PYTHON_DISTUTILS_C_CONFTEST
+    dnl (echo "***ENV***:"; env; echo "***SYSCONFIG***"; conftest_venv/bin/python3 -m sysconfig) >& AS_MESSAGE_LOG_FD
+    echo PYTHON_EXE conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD
+    AS_IF([PYTHON_EXE conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+        SAGE_PYTHON_DISTUTILS_CXX_CONFTEST
+        echo PYTHON_EXE conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1
+        AS_IF([PYTHON_EXE conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+            COMMANDS_IF_DISTUTILS_GOOD], [
+            reason="distutils cannot build a C++ 11 extension"
+            COMMANDS_IF_DISTUTILS_NOT_GOOD
+        ])
+    ], [
+       reason="distutils cannot build a C++ 11 extension"
+       COMMANDS_IF_DISTUTILS_NOT_GOOD
+    ])
+    m4_popdef([PYTHON_EXE])
+    m4_popdef([COMMANDS_IF_DISTUTILS_GOOD])
+    m4_popdef([COMMANDS_IF_DISTUTILS_NOT_GOOD])
 ])
 
 dnl Write conftest.py and conftest.c

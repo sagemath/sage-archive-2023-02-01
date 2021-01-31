@@ -42,6 +42,7 @@ CONFIGURED_CXX="@CXX@"
 CONFIGURED_FC="@FC@"
 CONFIGURED_OBJC="@OBJC@"
 CONFIGURED_OBJCXX="@OBJCXX@"
+CONFIGURED_ARCHFLAGS="@ARCHFLAGS@"
 
 #######################################
 # Other configuration (exported)

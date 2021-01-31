@@ -198,9 +198,9 @@ def dual_GQ_ovoid(GQ, O):
         sage: t[0].is_generalized_quadrangle(parameters=True)
         (9, 3)
         sage: t = dual_GQ_ovoid(*t)
-        sage: t[0].is_generalized_quadrangle(parameters=True)
+        sage: t[0].is_generalized_quadrangle(parameters=True)  # known bug
         (3, 9)
-        sage: all([x in t[0] for x in t[1]])
+        sage: all([x in t[0] for x in t[1]])  # known bug
         True
 
 
@@ -271,7 +271,7 @@ def generalised_quadrangle_hermitian_with_ovoid(const int q):
               is_GQ_with_spread, dual_GQ_ovoid
         sage: t = designs.generalised_quadrangle_hermitian_with_ovoid(3)
         sage: t = dual_GQ_ovoid(*t)
-        sage: is_GQ_with_spread(*t, s=3, t=9)
+        sage: is_GQ_with_spread(*t, s=3, t=9)  # known bug
         True
         sage: t = dual_GQ_ovoid(*(
         ....: designs.generalised_quadrangle_hermitian_with_ovoid(2)))

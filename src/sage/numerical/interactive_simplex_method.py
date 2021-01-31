@@ -46,10 +46,10 @@ in acres, we can construct the following LP problem::
     sage: c = (10, 5)
     sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
     sage: P
-    LP problem (use ...)
+    LP problem (use 'view(...)' or '%display typeset' for details)
 
 It is recommended to copy-paste such examples into your own worksheet, so that
-you can run these commands with typeset mode on and get
+you can run these commands with typeset mode on (``%display typeset``) and get
 
 .. MATH::
 

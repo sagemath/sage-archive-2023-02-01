@@ -1042,6 +1042,18 @@ cdef class LookupNameMaker:
         self.names = names
         self.fallback = fallback
 
+    def set_names(self, new_names):
+        """
+        TESTS::
+
+            sage: from sage.misc.parser import LookupNameMaker
+            sage: maker = LookupNameMaker({}, str)
+            sage: maker.set_names({'a': x})
+            sage: maker('a') is x
+            True
+        """
+        self.names = new_names
+
     def __call__(self, name):
         """
         TESTS::

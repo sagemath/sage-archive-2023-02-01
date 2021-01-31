@@ -2041,7 +2041,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             LP problem (use typeset mode to see details)
         """
         if not is_primal:
-            raise NotImplementedError('only random primal dictionaries are implemented')
+            raise NotImplementedError('only random primal problems are implemented')
         A = random_matrix(ZZ, m, n, x=-bound, y=bound).change_ring(QQ)
         if special_probability < random():
             b = random_vector(ZZ, m, x=0, y=bound).change_ring(QQ)

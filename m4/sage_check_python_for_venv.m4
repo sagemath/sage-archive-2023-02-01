@@ -78,7 +78,7 @@ AC_DEFUN([SAGE_PYTHON_CHECK_DISTUTILS], [
             COMMANDS_IF_DISTUTILS_NOT_GOOD
         ])
     ], [
-       reason="distutils cannot build a C++ 11 extension"
+       reason="distutils cannot build a C extension"
        COMMANDS_IF_DISTUTILS_NOT_GOOD
     ])
     m4_popdef([PYTHON_EXE])

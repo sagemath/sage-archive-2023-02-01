@@ -1,5 +1,6 @@
 # distutils: extra_compile_args = -fopenmp
 # distutils: extra_link_args = -fopenmp
+# distutils: undef_macros = CYSIGNALS_C_ATOMIC
 r"""
 Face iterator for polyhedra
 

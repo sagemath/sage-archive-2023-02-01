@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Classical Lie Algebras
 
@@ -14,15 +15,15 @@ AUTHORS:
 - Travis Scrimshaw (2019-07-09): Implemented compact real form
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from collections import OrderedDict
 
 from sage.misc.abstract_method import abstract_method
@@ -238,7 +239,7 @@ class ClassicalMatrixLieAlgebra(MatrixLieAlgebraFromAssociative):
         """
         return h[i-1,i-1]
 
-    # Do we want this to be optional or requried?
+    # Do we want this to be optional or required?
     # There probably is a generic implementation we can do.
     @abstract_method(optional=True)
     def simple_root(self, i, h):
@@ -1094,6 +1095,33 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
             self._imag.set_immutable()
             self._mc = None
 
+        def _combined_matrix(self):
+            r"""
+            Return a single matrix representative of ``self``.
+
+            .. NOTE::
+
+                The resulting base ring is `R[i]`, where `R` is the
+                base ring of the Lie algebra.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation="compact real")
+                sage: x = L.sum((i+1)/7*b for i,b in enumerate(L.basis()))
+                sage: M = x._combined_matrix()
+                sage: M
+                [      4/7*i 5/7*i + 1/7 6/7*i + 2/7]
+                [5/7*i - 1/7           i 8/7*i + 3/7]
+                [6/7*i - 2/7 8/7*i - 3/7     -11/7*i]
+                sage: M.parent()
+                Full MatrixSpace of 3 by 3 sparse matrices over
+                 Univariate Polynomial Ring in i over Rational Field
+            """
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            MS = self.parent()._MS
+            R = PolynomialRing(MS.base_ring(), 'i')
+            return self._real + R.gen() * self._imag
+
         def _repr_(self):
             """
             Return a string representation of ``self``.
@@ -1108,10 +1136,7 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
                 [      i - 2/7             0  -6/7*i - 1/7        -9/7*i -10/7*i + 4/7]
                 [  8/7*i - 3/7  10/7*i - 4/7  -8/7*i - 3/7 -10/7*i - 4/7             0]
             """
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            MS = self.parent()._MS
-            R = PolynomialRing(MS.base_ring(), 'i')
-            return repr(self._real + R.gen()*self._imag)
+            return repr(self._combined_matrix())
 
         def _latex_(self):
             r"""
@@ -1131,10 +1156,39 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
                 \end{array}\right)
             """
             from sage.misc.latex import latex
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            MS = self.parent()._MS
-            R = PolynomialRing(MS.base_ring(), 'i')
-            return latex(self._real + R.gen()*self._imag)
+            return latex(self._combined_matrix())
+
+        def _ascii_art_(self):
+            """
+            Return a string representation of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation="compact real")
+                sage: x = L.sum((i+1)/7*b for i,b in enumerate(L.basis()))
+                sage: ascii_art(x)
+                [      4/7*i 5/7*i + 1/7 6/7*i + 2/7]
+                [5/7*i - 1/7           i 8/7*i + 3/7]
+                [6/7*i - 2/7 8/7*i - 3/7     -11/7*i]
+            """
+            from sage.typeset.ascii_art import ascii_art
+            return ascii_art(self._combined_matrix())
+
+        def _unicode_art_(self):
+            r"""
+            Return a string representation of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation="compact real")
+                sage: x = L.sum((i+1)/7*b for i,b in enumerate(L.basis()))
+                sage: unicode_art(x)
+                ⎛      4/7*i 5/7*i + 1/7 6/7*i + 2/7⎞
+                ⎜5/7*i - 1/7           i 8/7*i + 3/7⎟
+                ⎝6/7*i - 2/7 8/7*i - 3/7     -11/7*i⎠
+            """
+            from sage.typeset.unicode_art import unicode_art
+            return unicode_art(self._combined_matrix())
 
         def __bool__(self):
             r"""

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The symbolic ring
 """
@@ -32,7 +33,6 @@ from sage.rings.all import RR, CC, ZZ
 
 import keyword
 import operator
-import parser
 
 # Do not allow any of these keywords as identifiers for symbolic variables
 KEYWORDS = set(keyword.kwlist).union(['exec', 'print', 'None', 'True',
@@ -194,7 +194,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        RLF, CLF,
+                                        InfinityRing,
                                         UnsignedInfinityRing)
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
@@ -218,7 +219,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return True
 
     def _element_constructor_(self, x):
-        """
+        r"""
         Coerce `x` into the symbolic expression ring SR.
 
         EXAMPLES::
@@ -237,7 +238,7 @@ cdef class SymbolicRing(CommutativeRing):
             x + y0/y1
             sage: x.subs(x=y0/y1)
             y0/y1
-            sage: x + long(1)
+            sage: x + int(1)
             x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns
@@ -335,6 +336,17 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             TypeError: positive characteristic not allowed in symbolic computations
+
+        Check support for unicode characters (:trac:`29280`)::
+
+            sage: SR('λ + 2λ')
+            3*λ
+            sage: SR('μ') is var('μ')
+            True
+            sage: SR('λ + * 1')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: λ + * !!!  1
         """
         cdef GEx exp
         if is_Expression(x):
@@ -347,8 +359,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" %
-                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
+                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -623,6 +634,20 @@ cdef class SymbolicRing(CommutativeRing):
         """
         from sage.symbolic.constants import pi
         return self(pi)
+
+    def I(self):
+        r"""
+        The imaginary unit, viewed as an element of the symbolic ring.
+
+        EXAMPLES::
+
+            sage: SR.I()^2
+            -1
+            sage: SR.I().parent()
+            Symbolic Ring
+        """
+        from sage.symbolic.constants import I
+        return I
 
     cpdef Expression symbol(self, name=None, latex_name=None, domain=None):
         """
@@ -1369,7 +1394,7 @@ def isidentifier(x):
     Boolean. Whether the string ``x`` can be used as a variable name.
 
     This function should return ``False`` for keywords, so we can not
-    just use the ``isidentifier`` method of strings (in Python 3),
+    just use the ``isidentifier`` method of strings,
     because, for example, it returns ``True`` for "def" and for "None".
 
     EXAMPLES::
@@ -1398,15 +1423,4 @@ def isidentifier(x):
     """
     if x in KEYWORDS:
         return False
-    try:
-        if not x.isidentifier():  # py3
-            return False
-    except AttributeError:
-        pass  # py2
-
-    try:
-        code = parser.expr(x).compile()
-    except (MemoryError, OverflowError, SyntaxError,
-            SystemError, parser.ParserError):
-        return False
-    return len(code.co_names) == 1 and code.co_names[0] == x
+    return x.isidentifier()

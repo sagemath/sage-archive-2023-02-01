@@ -96,6 +96,7 @@ AUTHORS:
 - John Palmieri
 - Niles Johnson (2013-12): Expand to animate more graphics objects
 - Martin von Gagern (2014-12): Added APNG support
+- Joshua Campbell (2020): interactive animation via Three.js viewer
 
 REFERENCES:
 
@@ -111,7 +112,6 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 ############################################################################
-from __future__ import print_function, absolute_import
 
 import builtins
 import os
@@ -841,7 +841,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         If ``savefile`` is not specified: in notebook mode, display
         the animation; otherwise, save it to a default file name.  Use
-        :func:`sage.misc.misc.set_verbose` with ``level=1`` to see
+        :func:`sage.misc.verbose.set_verbose` with ``level=1`` to see
         additional output.
 
         EXAMPLES::
@@ -928,12 +928,12 @@ please install it and try again."""
             cmd = 'cd "%s"; sage-native-execute ffmpeg -y -f image2 %s -i %s %s %s' % (pngdir, early_options, pngs, ffmpeg_options, savefile)
             from subprocess import check_call, CalledProcessError, PIPE
             try:
-                if sage.misc.misc.get_verbose() > 0:
+                if sage.misc.verbose.get_verbose() > 0:
                     set_stderr = None
                 else:
                     set_stderr = PIPE
-                sage.misc.misc.verbose("Executing '%s'" % cmd,level=1)
-                sage.misc.misc.verbose("\n---- ffmpeg output below ----\n")
+                sage.misc.verbose.verbose("Executing '%s'" % cmd,level=1)
+                sage.misc.verbose.verbose("\n---- ffmpeg output below ----\n")
                 check_call(cmd, shell=True, stderr=set_stderr)
                 if show_path:
                     print("Animation saved to file %s." % savefile)
@@ -1015,7 +1015,9 @@ please install it and try again."""
           files.
 
         If filename is None, then in notebook mode, display the
-        animation; otherwise, save the animation to a GIF file.  If
+        animation; otherwise, save the animation to a GIF file. If
+        filename ends in '.html', save an :meth:`interactive` version of
+        the animation to an HTML file that uses the Three.js viewer.  If
         filename ends in '.sobj', save to an sobj file.  Otherwise,
         try to determine the format from the filename extension
         ('.mpg', '.gif', '.avi', etc.).  If the format cannot be
@@ -1023,7 +1025,7 @@ please install it and try again."""
 
         For GIF files, either ffmpeg or the ImageMagick suite must be
         installed.  For other movie formats, ffmpeg must be installed.
-        An sobj file can be saved with no extra software installed.
+        sobj and HTML files can be saved with no extra software installed.
 
         EXAMPLES::
 
@@ -1039,6 +1041,9 @@ please install it and try again."""
             sage: a.save(td + 'wave0.sobj')
             sage: a.save(td + 'wave1.sobj', show_path=True)
             Animation saved to file .../wave1.sobj.
+            sage: a.save(td + 'wave0.html', online=True)
+            sage: a.save(td + 'wave1.html', show_path=True, online=True)
+            Animation saved to file .../wave1.html.
 
         TESTS:
 
@@ -1079,8 +1084,69 @@ please install it and try again."""
             SageObject.save(self, filename)
             if show_path:
                 print("Animation saved to file %s." % filename)
+        elif suffix == '.html':
+            self.interactive(**kwds).save(filename)
+            if show_path:
+                print("Animation saved to file %s." % filename)
         else:
             self.ffmpeg(savefile=filename, show_path=show_path, **kwds)
+
+    def interactive(self, **kwds):
+        r"""
+        Create an interactive depiction of the animation.
+
+        INPUT:
+
+        - ``**kwds`` -- any of the viewing options accepted by show() are valid
+          as keyword arguments to this function and they will behave in the same
+          way. Those that are animation-related and recognized by the Three.js
+          viewer are: ``animate``, ``animation_controls``, ``auto_play``,
+          ``delay``, and ``loop``.
+
+        OUTPUT:
+
+        A 3D graphics object which, by default, will use the Three.js viewer.
+
+        EXAMPLES::
+
+            sage: frames = [point3d((sin(x), cos(x), x)) for x in (0, pi/16, .., 2*pi)]
+            sage: animate(frames).interactive(online=True)
+            Graphics3d Object
+
+        Works with frames that are 2D or 3D graphics objects or convertible to
+        2D or 3D graphics objects via a ``plot`` or ``plot3d`` method::
+
+            sage: frames = [dodecahedron(), circle(center=(0, 0), radius=1), x^2]
+            sage: animate(frames).interactive(online=True, delay=100)
+            Graphics3d Object
+
+        .. SEEALSO::
+
+            :ref:`threejs_viewer`
+
+        """
+        from sage.plot.plot3d.base import Graphics3d, KeyframeAnimationGroup
+        # Attempt to convert frames to Graphics3d objects.
+        g3d_frames = []
+        for i, frame in enumerate(self._frames):
+            if not isinstance(frame, Graphics3d):
+                try:
+                    frame = frame.plot3d()
+                except (AttributeError, TypeError):
+                    try:
+                        frame = frame.plot().plot3d()
+                    except (AttributeError, TypeError):
+                        frame = None
+                if not isinstance(frame, Graphics3d):
+                    raise TypeError("Could not convert frame {} to Graphics3d".format(i))
+            g3d_frames.append(frame)
+        # Give preference to this method's keyword arguments over those provided
+        # to animate or the constructor.
+        kwds = dict(self._kwds, **kwds)
+        # Three.js is the only viewer that supports animation at present.
+        if 'viewer' not in kwds:
+            kwds['viewer'] = 'threejs'
+        return KeyframeAnimationGroup(g3d_frames, **kwds)
 
 
 class APngAssembler(object):

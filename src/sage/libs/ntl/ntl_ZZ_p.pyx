@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -28,7 +31,7 @@ from sage.rings.rational cimport Rational
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
-from sage.libs.ntl.convert cimport PyLong_to_ZZ
+from sage.libs.ntl.convert cimport PyLong_to_ZZ, mpz_to_ZZ
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
@@ -92,8 +95,6 @@ cdef class ntl_ZZ_p(object):
             1
             sage: ntl.ZZ_p(Integer(95413094), c)
             7
-            sage: ntl.ZZ_p(long(223895239852389582988), c)
-            5
             sage: ntl.ZZ_p('-1', c)
             10
 
@@ -115,11 +116,11 @@ cdef class ntl_ZZ_p(object):
             elif isinstance(v, int):
                 self.x = int_to_ZZ_p(v)
             elif isinstance(v, Integer):
-                (<Integer>v)._to_ZZ(&temp)
+                mpz_to_ZZ(&temp, (<Integer>v).value)
                 self.x = ZZ_to_ZZ_p(temp)
             elif isinstance(v, Rational):
-                (<Integer>v.numerator())._to_ZZ(&num)
-                (<Integer>v.denominator())._to_ZZ(&den)
+                mpz_to_ZZ(&num, (<Integer>v.numerator()).value)
+                mpz_to_ZZ(&den, (<Integer>v.denominator()).value)
                 ZZ_p_div(self.x, ZZ_to_ZZ_p(num), ZZ_to_ZZ_p(den))
             else:
                 str_v = str(v)  # can cause modulus to change  trac #25790
@@ -251,7 +252,7 @@ cdef class ntl_ZZ_p(object):
         if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         y = other
         self.c.restore_c()
         ZZ_p_mul(r.x, self.x, y.x)
@@ -270,7 +271,7 @@ cdef class ntl_ZZ_p(object):
         if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_p r = self._new()
         self.c.restore_c()
         ZZ_p_sub(r.x, self.x, (<ntl_ZZ_p>other).x)
@@ -289,7 +290,7 @@ cdef class ntl_ZZ_p(object):
         if not isinstance(other, ntl_ZZ_p):
             other = ntl_ZZ_p(other,modulus=self.c)
         elif self.c is not (<ntl_ZZ_p>other).c:
-            raise ValueError("You can not perform arithmetic with elements of different moduli.")
+            raise ValueError("You cannot perform arithmetic with elements of different moduli.")
         y = other
         sig_on()
         self.c.restore_c()
@@ -472,7 +473,9 @@ cdef class ntl_ZZ_p(object):
         """
         self.c.restore_c()
         cdef ZZ_c rep = ZZ_p_rep(self.x)
-        return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep)
+        cdef Integer ans = Integer.__new__(Integer)
+        ZZ_to_mpz(ans.value, &rep)
+        return ans
 
     def _sage_(self):
         r"""
@@ -494,4 +497,6 @@ cdef class ntl_ZZ_p(object):
         cdef ZZ_c rep
         self.c.restore_c()
         rep = ZZ_p_rep(self.x)
-        return IntegerModRing(self.modulus()._integer_())((<IntegerRing_class>ZZ_sage)._coerce_ZZ(&rep))
+        cdef Integer ans = Integer.__new__(Integer)
+        ZZ_to_mpz(ans.value, &rep)
+        return IntegerModRing(self.modulus()._integer_())(ans)

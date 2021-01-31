@@ -147,7 +147,7 @@ AUTHOR:
 
 """
 
-#****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2016 Chris Wuthrich <christian.wuthrich@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -159,23 +159,22 @@ AUTHOR:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
-from __future__ import print_function
 from cysignals.memory cimport sig_malloc, sig_free, sig_realloc
 from cysignals.signals cimport sig_check
 
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.complex_number cimport ComplexNumber
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr cimport ComplexNumber
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
 
 from sage.misc.all import prod
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.arith.all import kronecker_symbol
 from sage.arith.misc import euler_phi
 
@@ -1110,7 +1109,7 @@ cdef class ModularSymbolNumerical:
 
         # now to the bound for the unitary cusps
         # this is a bit better because they
-        # are definied over Q
+        # are defined over Q
         t0 = E0.torsion_order()
         if cinf == 1:
             t0 *= Integer(2)
@@ -1374,7 +1373,7 @@ cdef class ModularSymbolNumerical:
         r"""
         Given a point `\tau` in the upper half plane
         this returns a complex number that is a close
-        approximation to the the integral of the modular
+        approximation to the integral of the modular
         form from `i\infty` to `\tau`.
 
         INPUT:
@@ -1448,7 +1447,7 @@ cdef class ModularSymbolNumerical:
         Given a point `\tau` in the upper half plane
         this returns a complex number that is a close
         approximation to `\lambda(tau)`,
-        the the integral of the modular
+        the integral of the modular
         form from `i\infty` to `\tau`.
 
         INPUT:
@@ -1735,7 +1734,7 @@ cdef class ModularSymbolNumerical:
         elif T > 10080:
             A = 3/2
             T0 = 10080
-        else: # doesnt improve
+        else:  # does not improve
             A = 1
             T0 = T
 
@@ -2350,7 +2349,7 @@ cdef class ModularSymbolNumerical:
 
         - ``rr`` - another rational number
 
-        - ``eps`` - a postive real number
+        - ``eps`` - a positive real number
 
         OUTPUT: a complex number
 
@@ -3716,6 +3715,7 @@ def _test_integration_via_partials(E, y, m, T):
     sig_free(ra)
     return res
 
+
 def _test_against_table(range_of_conductors, other_implementation="sage", list_of_cusps=[], verb=False):
     r"""
     This test function checks the modular symbols here against the
@@ -3784,7 +3784,7 @@ def _test_against_table(range_of_conductors, other_implementation="sage", list_o
 #    """finds all n with y(n) > B for some bound B"""
 #    li = [1]
 #    old = [1]
-#    while old != []:
+#    while old:
 #        new = []
 #        p = 1
 #        boo = True

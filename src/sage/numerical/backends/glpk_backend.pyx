@@ -26,7 +26,6 @@ from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.cpython.string import FS_ENCODING
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
-from sage.libs.glpk.error import GLPKError
 from sage.libs.glpk.constants cimport *
 from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
@@ -55,7 +54,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
         """
         self.lp = glp_create_prob()
-        self.simplex_or_intopt = glp_intopt_only
+        self.simplex_or_intopt = glp_simplex_then_intopt
         self.smcp = <glp_smcp* > sig_malloc(sizeof(glp_smcp))
         glp_init_smcp(self.smcp)
         self.iocp = <glp_iocp* > sig_malloc(sizeof(glp_iocp))
@@ -261,7 +260,21 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.set_variable_type(0,1)
             sage: p.is_variable_integer(0)
             True
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.set_variable_type(2,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid variable index 2
+
         """
+        if variable < 0 or variable > (self.ncols() - 1):
+            raise ValueError("invalid variable index %d" % variable)
 
         if vtype==1:
             glp_set_col_kind(self.lp, variable+1, GLP_IV)
@@ -320,7 +333,22 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.objective_coefficient(0,2)
             sage: p.objective_coefficient(0)
             2.0
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.objective_coefficient(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid variable index 2
+
         """
+        if variable < 0 or variable > (self.ncols() - 1):
+            raise ValueError("invalid variable index %d" % variable)
+
         if coeff is None:
             return glp_get_obj_coef(self.lp, variable + 1)
         else:
@@ -405,6 +433,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.solve()
             0.30000000000000004
             sage: p.get_backend().set_verbosity(3)
+            sage: p.solver_parameter("simplex_or_intopt", "intopt_only")
             sage: p.solve()
             GLPK Integer Optimizer...
             2 rows, 2 columns, 2 non-zeros
@@ -580,11 +609,18 @@ cdef class GLPKBackend(GenericBackend):
             sage: q.add_constraint(p.new_variable()[0] <= 1)
             Traceback (most recent call last):
             ...
-            GLPKError: glp_set_mat_row: i = 1; len = 1; invalid row length
-            Error detected in file api/prob1.c at line ...
+            ValueError: invalid variable index 0
+
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
+
+        # We're going to iterate through this more than once.
+        coefficients = list(coefficients)
+
+        for (index,_) in coefficients:
+            if index < 0 or index > (self.ncols() - 1):
+                 raise ValueError("invalid variable index %d" % index)
 
         glp_add_rows(self.lp, 1)
         cdef int n = glp_get_num_rows(self.lp)
@@ -593,7 +629,6 @@ cdef class GLPKBackend(GenericBackend):
         cdef int * row_i
         cdef double * row_values
 
-        coefficients = list(coefficients)
         cdef int n_coeff = len(coefficients)
         row_i = <int*>mem.allocarray(n_coeff + 1, sizeof(int))
         row_values = <double*>mem.allocarray(n_coeff + 1, sizeof(double))
@@ -695,7 +730,22 @@ cdef class GLPKBackend(GenericBackend):
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.row(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid row index 2
+
         """
+        if index < 0 or index > (self.nrows() - 1):
+            raise ValueError("invalid row index %d" % index)
+
         cdef int n = glp_get_num_cols(self.lp)
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef int * c_indices = <int*>mem.allocarray(n+1, sizeof(int))
@@ -736,9 +786,24 @@ cdef class GLPKBackend(GenericBackend):
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.row_bounds(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid row index 2
+
         """
         cdef double ub
         cdef double lb
+
+        if index < 0 or index > (self.nrows() - 1):
+            raise ValueError("invalid row index %d" % index)
 
         ub = glp_get_row_ub(self.lp, index + 1)
         lb = glp_get_row_lb(self.lp, index +1)
@@ -773,10 +838,25 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_upper_bound(0, 5)
             sage: p.col_bounds(0)
             (0.0, 5.0)
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.col_bounds(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid column index 2
+
         """
 
         cdef double ub
         cdef double lb
+
+        if index < 0 or index > (self.ncols() - 1):
+            raise ValueError("invalid column index %d" % index)
 
         ub = glp_get_col_ub(self.lp, index +1)
         lb = glp_get_col_lb(self.lp, index +1)
@@ -845,12 +925,15 @@ cdef class GLPKBackend(GenericBackend):
         """
         Solve the problem.
 
-        Sage uses GLPK's implementation of the branch-and-cut algorithm
-        (``glp_intopt``) to solve the mixed-integer linear program.
-        This algorithm can be requested explicitly by setting the solver
-        parameter "simplex_or_intopt" to "intopt_only".
-        (If all variables are continuous, the algorithm reduces to solving the
-        linear program by the simplex method.)
+        Sage uses GLPK's implementation of the branch-and-cut
+        algorithm (``glp_intopt``) to solve the mixed-integer linear
+        program.  This algorithm can be requested explicitly by
+        setting the solver parameter "simplex_or_intopt" to
+        "intopt_only". By default, the simplex method will be used
+        first to detect pathological problems that the integer solver
+        cannot handle. If all variables are continuous, the integer
+        algorithm reduces to solving the linear program by the simplex
+        method.
 
         EXAMPLES::
 
@@ -870,7 +953,7 @@ cdef class GLPKBackend(GenericBackend):
         .. NOTE::
 
             This method raises ``MIPSolverException`` exceptions when
-            the solution can not be computed for any reason (none
+            the solution cannot be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
         EXAMPLES::
@@ -889,15 +972,14 @@ cdef class GLPKBackend(GenericBackend):
 
         .. WARNING::
 
-            Sage uses GLPK's ``glp_intopt`` to find solutions.
-            This routine sometimes FAILS CATASTROPHICALLY
-            when given a system it cannot solve. (:trac:`12309`.)
-            Here, "catastrophic" can mean either "infinite loop" or
-            segmentation fault. Upstream considers this behavior
-            "essentially innate" to their design, and suggests
-            preprocessing it with ``glp_simplex`` first.
-            Thus, if you suspect that your system is infeasible,
-            set the ``preprocessing`` option first.
+            GLPK's ``glp_intopt`` sometimes fails catastrophically
+            when given a system it cannot solve (:trac:`12309`). It
+            can loop indefinitely, or just plain segfault. Upstream
+            considers this behavior "essentially innate" to the
+            current design, and suggests preprocessing with
+            ``glp_simplex``, which is what SageMath does by default.
+            Set the ``simplex_or_intopt`` solver parameter to
+            ``glp_intopt_only`` at your own risk.
 
         EXAMPLES::
 
@@ -909,11 +991,6 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             0.0
             sage: lp.add_constraint(v[0] +4.0 *v[1] -v[2] +v[3], max=-1.0)
-            sage: lp.solve()
-            Traceback (most recent call last):
-            ...
-            GLPKError: Assertion failed: ...
-            sage: lp.solver_parameter("simplex_or_intopt", "simplex_then_intopt")
             sage: lp.solve()
             Traceback (most recent call last):
             ...
@@ -1205,7 +1282,22 @@ cdef class GLPKBackend(GenericBackend):
             0.0
             sage: p.get_variable_value(1)
             1.5
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.get_variable_value(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid variable index 2
+
         """
+        if variable < 0 or variable > (self.ncols() - 1):
+            raise ValueError("invalid variable index %d" % variable)
+
         if (self.simplex_or_intopt != glp_simplex_only
             and self.simplex_or_intopt != glp_exact_simplex_only):
           return glp_mip_col_val(self.lp, variable+1)
@@ -1242,7 +1334,22 @@ cdef class GLPKBackend(GenericBackend):
             20.0
             sage: lp.get_row_prim(2)
             8.0
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.get_row_prim(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid row index 2
+
         """
+        if i < 0 or i > (self.nrows() - 1):
+            raise ValueError("invalid row index %d" % i)
+
         return glp_get_row_prim(self.lp, i+1)
 
     cpdef int ncols(self):
@@ -1295,8 +1402,23 @@ cdef class GLPKBackend(GenericBackend):
             0
             sage: p.col_name(0)
             'I am a variable'
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.col_name(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid column index 2
+
         """
         cdef char * s
+
+        if index < 0 or index > (self.ncols() - 1):
+            raise ValueError("invalid column index %d" % index)
 
         glp_create_index(self.lp)
         s = <char*> glp_get_col_name(self.lp, index + 1)
@@ -1321,8 +1443,23 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])
             sage: p.row_name(0)
             'Empty constraint 1'
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.row_name(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid row index 2
+
         """
         cdef char *  s
+
+        if index < 0 or index > (self.nrows() - 1):
+            raise ValueError("invalid row index %d" % index)
 
         glp_create_index(self.lp)
         s = <char*> glp_get_row_name(self.lp, index + 1)
@@ -1352,7 +1489,21 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.is_variable_binary(0)
             True
 
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.is_variable_binary(2)
+            False
+
         """
+        if index < 0 or index > (self.ncols() - 1):
+            # This is how the other backends behave, and this method is
+            # unable to raise a python exception as currently defined.
+            return False
+
         return glp_get_col_kind(self.lp, index + 1) == GLP_BV
 
     cpdef bint is_variable_integer(self, int index):
@@ -1374,7 +1525,22 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.set_variable_type(0,1)
             sage: p.is_variable_integer(0)
             True
+
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.is_variable_integer(2)
+            False
+
         """
+        if index < 0 or index > (self.ncols() - 1):
+            # This is how the other backends behave, and this method is
+            # unable to raise a python exception as currently defined.
+            return False
+
         return glp_get_col_kind(self.lp, index + 1) == GLP_IV
 
     cpdef bint is_variable_continuous(self, int index):
@@ -1399,7 +1565,21 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.is_variable_continuous(0)
             False
 
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.is_variable_continuous(2)
+            False
+
         """
+        if index < 0 or index > (self.ncols() - 1):
+            # This is how the other backends behave, and this method is
+            # unable to raise a python exception as currently defined.
+            return False
+
         return glp_get_col_kind(self.lp, index + 1) == GLP_CV
 
     cpdef bint is_maximization(self):
@@ -1459,11 +1639,17 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_upper_bound(2)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 2
+
+            sage: p.variable_upper_bound(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid variable index -1
+
             sage: p.variable_upper_bound(3, 5)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 3
 
             sage: p.add_variable()
             0
@@ -1479,6 +1665,9 @@ cdef class GLPKBackend(GenericBackend):
         cdef double x
         cdef double min
         cdef double dvalue
+
+        if index < 0 or index > (self.ncols() - 1):
+            raise ValueError("invalid variable index %d" % index)
 
         if value is False:
             sig_on()
@@ -1554,11 +1743,17 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.variable_lower_bound(2)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 2
+
+            sage: p.variable_lower_bound(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid variable index -1
+
             sage: p.variable_lower_bound(3, 5)
             Traceback (most recent call last):
             ...
-            GLPKError: ...
+            ValueError: invalid variable index 3
 
             sage: p.add_variable()
             0
@@ -1574,6 +1769,9 @@ cdef class GLPKBackend(GenericBackend):
         cdef double x
         cdef double max
         cdef double dvalue
+
+        if index < 0 or index > (self.ncols() - 1):
+            raise ValueError("invalid variable index %d" % index)
 
         if value is False:
             sig_on()
@@ -1734,16 +1932,15 @@ cdef class GLPKBackend(GenericBackend):
 
          * - ``simplex_or_intopt``
 
-           - specify which of ``simplex``, ``exact`` and ``intopt`` routines
-             in GLPK to use.
-             This is controlled by setting ``simplex_or_intopt`` to
-             ``glp_simplex_only``, ``glp_exact_simplex_only``,
-             ``glp_intopt_only`` and ``glp_simplex_then_intopt``, respectively.
-             The latter is useful to deal with a problem in GLPK where
-             problems with no solution hang when using integer optimization;
-             if you specify ``glp_simplex_then_intopt``,
-             sage will try simplex first, then perform integer optimization
-             only if a solution of the LP relaxation exists.
+           - specify which solution routines in GLPK to use. Set this
+             to either ``simplex_only``, ``exact_simplex_only``,
+             ``intopt_only``, or ``simplex_then_intopt`` (the
+             default). The ``simplex_then_intopt`` option does some
+             extra work, but avoids hangs/crashes in GLPK on problems
+             with no solution; SageMath will try simplex first, then
+             perform integer optimization only if a solution of the LP
+             relaxation exists. If you know that your system is not
+             pathological, one of the other options will be faster.
 
          * - ``verbosity_intopt`` and ``verbosity_simplex``
 
@@ -2384,7 +2581,7 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
-    cpdef double get_col_dual(self, int variable):
+    cpdef double get_col_dual(self, int variable) except? -1:
         """
         Returns the dual value (reduced cost) of a variable
 
@@ -2420,7 +2617,21 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.get_col_dual(1)
             -5.0
 
+        TESTS:
+
+        We sanity check the input that will be passed to GLPK::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver="GLPK")
+            sage: p.get_col_dual(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid column index 2
+
         """
+        if variable < 0 or variable > (self.ncols() - 1):
+            raise ValueError("invalid column index %d" % variable)
+
         if self.simplex_or_intopt == simplex_only:
             return glp_get_col_dual(self.lp, variable+1)
         else:
@@ -2641,8 +2852,9 @@ cdef class GLPKBackend(GenericBackend):
 
         .. NOTE::
 
-            The basis factorization must exist.
-            Otherwise, a ``MIPSolverException`` will be raised.
+            The basis factorization must exist and the variable with
+            index ``k`` must be basic. Otherwise, a ``ValueError`` is
+            be raised.
 
         INPUT:
 
@@ -2675,7 +2887,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_row(0)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: basis factorization does not exist
             sage: lp.solve()
             0
             sage: lp.eval_tab_row(0)
@@ -2687,29 +2899,35 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_row(1)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: slack variable 1 is not basic
             sage: lp.eval_tab_row(-1)
             Traceback (most recent call last):
             ...
             ValueError: ...
 
         """
-        cdef int n = glp_get_num_cols(self.lp)
+        cdef int m = self.nrows()
+        cdef int n = self.ncols()
         cdef int i,j
 
-        if k < 0 or k >= n + glp_get_num_rows(self.lp):
+        if k < 0 or k >= n + m:
             raise ValueError("k = %s; Variable number out of range" % k)
+
+        if glp_bf_exists(self.lp) == 0:
+            raise ValueError("basis factorization does not exist")
+
+        if k < m:
+            if not self.is_slack_variable_basic(k):
+                raise ValueError("slack variable %d is not basic" % k)
+        else:
+            if not self.is_variable_basic(k-m):
+                raise ValueError("variable %d is not basic" % (k-m) )
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef int    * c_indices = <int*>mem.allocarray(n+1, sizeof(int))
         cdef double * c_values  = <double*>mem.allocarray(n+1, sizeof(double))
 
-        try:
-            sig_on()            # to catch GLPKError
-            i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
-            sig_off()
-        except GLPKError:
-            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be basic')
+        i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
 
         indices = [c_indices[j+1] - 1 for j in range(i)]
         values  = [c_values[j+1]      for j in range(i)]
@@ -2733,8 +2951,9 @@ cdef class GLPKBackend(GenericBackend):
 
         .. NOTE::
 
-            The basis factorization must exist.
-            Otherwise a ``MIPSolverException`` will be raised.
+            The basis factorization must exist and the variable with
+            index ``k`` must not be basic. Otherwise, a ``ValueError`` is
+            be raised.
 
         INPUT:
 
@@ -2767,7 +2986,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_col(1)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: basis factorization does not exist
             sage: lp.solve()
             0
             sage: lp.eval_tab_col(1)
@@ -2779,29 +2998,35 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_col(0)
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            ValueError: slack variable 0 is basic
             sage: lp.eval_tab_col(-1)
             Traceback (most recent call last):
             ...
             ValueError: ...
 
         """
-        cdef int m = glp_get_num_rows(self.lp)
+        cdef int m = self.nrows()
+        cdef int n = self.ncols()
         cdef int i,j
 
-        if k < 0 or k >= m + glp_get_num_cols(self.lp):
+        if k < 0 or k >= m + n:
             raise ValueError("k = %s; Variable number out of range" % k)
+
+        if glp_bf_exists(self.lp) == 0:
+            raise ValueError("basis factorization does not exist")
+
+        if k < m:
+            if self.is_slack_variable_basic(k):
+                raise ValueError("slack variable %d is basic" % k)
+        else:
+            if self.is_variable_basic(k-m):
+                raise ValueError("variable %d is basic" % (k-m) )
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef int    * c_indices = <int*>mem.allocarray(m+1, sizeof(int))
         cdef double * c_values  = <double*>mem.allocarray(m+1, sizeof(double))
 
-        try:
-            sig_on()            # To catch GLPKError
-            i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
-            sig_off()
-        except GLPKError:
-            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be non-basic')
+        i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
 
         indices = [c_indices[j+1] - 1 for j in range(i)]
         values  = [c_values[j+1]      for j in range(i)]

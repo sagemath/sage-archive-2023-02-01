@@ -36,7 +36,6 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function, absolute_import
 import operator
 from sage.structure.element import ModuleElement
 from sage.structure.richcmp import op_EQ, op_NE
@@ -47,7 +46,7 @@ from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.arith.all import next_prime, gcd, kronecker
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action

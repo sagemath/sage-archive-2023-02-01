@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# distutils: libraries = gmp zn_poly
+# distutils: extra_compile_args = -D_XPG6
 """
 `p`-adic distributions spaces
 
@@ -46,7 +48,8 @@ from sage.rings.padics.padic_capped_relative_element cimport pAdicCappedRelative
 from sage.rings.padics.padic_fixed_mod_element cimport pAdicFixedModElement
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.misc.misc import verbose, cputime
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose
 from sage.rings.infinity import Infinity
 
 from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
@@ -796,7 +799,7 @@ cdef class Dist_vector(Dist):
                 moments = parent.approx_module(1)([moments])
             # TODO: This is not quite right if the input is an inexact zero.
             if ordp != 0 and parent.prime() == 0:
-                raise ValueError("can not specify a valuation shift for an exact ring")
+                raise ValueError("cannot specify a valuation shift for an exact ring")
 
         self._moments = moments
         self.ordp = ordp

@@ -23,7 +23,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 import math
 from . import shapes
@@ -670,10 +669,6 @@ def text3d(txt, x_y_z, **kwds):
 
     -  ``**kwds`` -- standard 3d graphics options
 
-    .. note::
-
-        There is no way to change the font size or opacity yet.
-
     EXAMPLES:
 
     We write the word Sage in red at position (1,2,3)::
@@ -696,6 +691,26 @@ def text3d(txt, x_y_z, **kwds):
 
         sage: text3d("Sage is...",(2,12,1), color=(1,0,0)) + text3d("quite powerful!!",(4,10,0), color=(0,0,1))
         Graphics3d Object
+
+    Adjust the font size, family, style, and weight (Three.js viewer only)::
+
+        sage: t0 = text3d("Pixel size", (0, 0, 0), fontsize=20)
+        sage: t1 = text3d("Percentage size", (0, 0, 1), fontsize='300%')
+        sage: t2 = text3d("Keyword size", (0, 0, 2), fontsize='x-small')
+        sage: t3 = text3d("Single family", (0, 0, 3), fontfamily='serif')
+        sage: t4 = text3d("Family fallback", (0, 0, 4), fontfamily=['Consolas', 'Lucida Console', 'monospace'])
+        sage: t5 = text3d("Another way", (0, 0, 5), fontfamily='Consolas, Lucida Console, monospace')
+        sage: t6 = text3d("Style", (0, 0, 6), fontstyle='italic')
+        sage: t7 = text3d("Keyword weight", (0, 0, 7), fontweight='bold')
+        sage: t8 = text3d("Integer weight (1-1000)", (0, 0, 8), fontweight=800) # 'extra bold'
+        sage: sum([t0, t1, t2, t3, t4, t5, t6, t7, t8]).show(viewer='threejs', frame=False)
+
+    Adjust the text's opacity (Three.js viewer only)::
+
+        sage: def echo(o):
+        ....:     return text3d("Echo!", (0, 0, o), opacity=o)
+        sage: show(sum([echo(o) for o in (0.1, 0.2, .., 1)]), viewer='threejs')
+
     """
     (x, y, z) = x_y_z
     if 'color' not in kwds and 'rgbcolor' not in kwds:
@@ -847,6 +862,18 @@ class Point(PrimitiveObject):
         size = float(self.size)
         point = dict(point=center, size=size, color=color, opacity=opacity)
         return [('point', point)]
+
+    def stl_binary_repr(self, render_params):
+        """
+        Return an empty list, as this is not useful for STL export.
+
+        EXAMPLES::
+
+            sage: P = point3d((1,2,3)).translate(-1, -2, -3)
+            sage: P.stl_binary_repr(P.default_render_params())
+            []
+        """
+        return []
 
 
 class Line(PrimitiveObject):
@@ -1214,6 +1241,18 @@ class Line(PrimitiveObject):
             line = dict(points=points, color=color, opacity=opacity, linewidth=thickness)
             reprs.append(('line', line))
         return reprs
+
+    def stl_binary_repr(self, render_params):
+        """
+        Return an empty list, as this is not useful for STL export.
+
+        EXAMPLES::
+
+            sage: L = line3d([(1,2,3), (4,5,6)]).translate(-1, -2, -3)
+            sage: L.stl_binary_repr(L.default_render_params())
+            []
+        """
+        return []
 
 
 @rename_keyword(alpha='opacity')

@@ -1,4 +1,6 @@
-import sys, os, sphinx
+import sys
+import os
+import sphinx
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
 import sage.version
 from sage.misc.sagedoc import extlinks
@@ -7,6 +9,7 @@ from docutils import nodes
 from docutils.transforms import Transform
 from sphinx.ext.doctest import blankline_re
 from sphinx import highlighting
+import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # If your extensions are in another directory, add it here.
@@ -31,7 +34,7 @@ extensions = ['inventory_builder',
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
 # through matplotlib, so that it will be displayed in the HTML doc
 plot_html_show_source_link = False
-plot_pre_code = """
+plot_pre_code = r"""
 # Set locale to prevent having commas in decimal numbers
 # in tachyon input (see https://trac.sagemath.org/ticket/28971)
 import locale
@@ -106,8 +109,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u""
-copyright = u"2005--{}, The Sage Development Team".format(dateutil.parser.parse(sage.version.date).year)
+project = ""
+copyright = "2005--{}, The Sage Development Team".format(dateutil.parser.parse(sage.version.date).year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -172,13 +175,8 @@ todo_include_todos = True
 
 # Cross-links to other project's online documentation.
 python_version = sys.version_info.major
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/',
-                os.path.join(SAGE_DOC_SRC, "common",
-                             "python{}.inv".format(python_version))),
-    'pplpy': (PPLPY_DOCS, None)}
 
-def set_intersphinx_mappings(app):
+def set_intersphinx_mappings(app, config):
     """
     Add precompiled inventory (the objects.inv)
     """
@@ -189,7 +187,11 @@ def set_intersphinx_mappings(app):
         app.config.intersphinx_mapping = {}
         return
 
-    app.config.intersphinx_mapping = intersphinx_mapping
+    app.config.intersphinx_mapping =  {
+    'python': ('https://docs.python.org/',
+                os.path.join(SAGE_DOC_SRC, "common",
+                             "python{}.inv".format(python_version))),
+    'pplpy': (PPLPY_DOCS, None)}
 
     # Add master intersphinx mapping
     dst = os.path.join(invpath, 'objects.inv')
@@ -204,6 +206,7 @@ def set_intersphinx_mappings(app):
             dst = os.path.join(invpath, directory, 'objects.inv')
             app.config.intersphinx_mapping[src] = dst
 
+    intersphinx.normalize_intersphinx_mapping(app, config)
 
 # By default document are not master.
 multidocs_is_master = True
@@ -245,20 +248,19 @@ html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
 # pixels large.
 html_favicon = 'favicon.ico'
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), THEBE_DIR,
-                    'static']
+# html_static_path defined here and imported in the actual configuration file
+# conf.py read by Sphinx was the cause of subtle bugs in builders (see #30418 for
+# instance). Hence now html_common_static_path contains the common paths to static
+# files, and is combined to html_static_path in each conf.py file read by Sphinx.
+html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
+                           THEBE_DIR, 'static']
 
 # We use MathJax to build the documentation unless the environment
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
 # the user does not set this variable, then the script sage-env sets
 # it to "True".)
 
-if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
-            and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
-
+if (os.environ.get('SAGE_DOC_MATHJAX', 'no') not in ['no', 'False']):
     extensions.append('sphinx.ext.mathjax')
     mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
 
@@ -267,13 +269,13 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
 
     mathjax_relative = os.path.basename(MATHJAX_DIR)
 
-    # It would be really nice if sphinx would copy the entire mathjax directory,
-    # (so we could have a _static/mathjax directory), rather than the contents of the directory
+    # It would be really nice if sphinx would copy the entire mathjax
+    # directory, (so we could have a _static/mathjax directory), rather than
+    # the contents of the directory
 
-    html_static_path.append(MATHJAX_DIR)
+    html_common_static_path.append(MATHJAX_DIR)
     exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
-                         for i in ('docs', 'README*', 'test',
-                                   'unpacked', 'LICENSE')]
+                         for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
 else:
      extensions.append('sphinx.ext.imgmath')
 
@@ -425,6 +427,32 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2309}{\rceil}
     \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
 
+    \DeclareUnicodeCharacter{2070}{\ensuremath{{}^0}}
+    \DeclareUnicodeCharacter{00B9}{\ensuremath{{}^1}}
+    \DeclareUnicodeCharacter{00B2}{\ensuremath{{}^2}}
+    \DeclareUnicodeCharacter{00B3}{\ensuremath{{}^3}}
+    \DeclareUnicodeCharacter{2074}{\ensuremath{{}^4}}
+    \DeclareUnicodeCharacter{2075}{\ensuremath{{}^5}}
+    \DeclareUnicodeCharacter{2076}{\ensuremath{{}^6}}
+    \DeclareUnicodeCharacter{2077}{\ensuremath{{}^7}}
+    \DeclareUnicodeCharacter{2078}{\ensuremath{{}^8}}
+    \DeclareUnicodeCharacter{2079}{\ensuremath{{}^9}}
+    \DeclareUnicodeCharacter{207A}{\ensuremath{{}^+}}
+    \DeclareUnicodeCharacter{207B}{\ensuremath{{}^-}}
+    \DeclareUnicodeCharacter{141F}{\ensuremath{{}^/}}
+    \DeclareUnicodeCharacter{2080}{\ensuremath{{}_0}}
+    \DeclareUnicodeCharacter{2081}{\ensuremath{{}_1}}
+    \DeclareUnicodeCharacter{2082}{\ensuremath{{}_2}}
+    \DeclareUnicodeCharacter{2083}{\ensuremath{{}_3}}
+    \DeclareUnicodeCharacter{2084}{\ensuremath{{}_4}}
+    \DeclareUnicodeCharacter{2085}{\ensuremath{{}_5}}
+    \DeclareUnicodeCharacter{2086}{\ensuremath{{}_6}}
+    \DeclareUnicodeCharacter{2087}{\ensuremath{{}_7}}
+    \DeclareUnicodeCharacter{2088}{\ensuremath{{}_8}}
+    \DeclareUnicodeCharacter{2089}{\ensuremath{{}_9}}
+    \DeclareUnicodeCharacter{208A}{\ensuremath{{}_+}}
+    \DeclareUnicodeCharacter{208B}{\ensuremath{{}_-}}
+
     \newcommand{\sageMexSymbol}[1]
     {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
     \DeclareUnicodeCharacter{239B}{\sageMexSymbol{"30}} % parenlefttp
@@ -454,7 +482,27 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
     \DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
 
-    \DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+    % Box drawings light
+    \DeclareUnicodeCharacter{2500}{-}  % h
+    \DeclareUnicodeCharacter{2502}{|}  % v
+    \DeclareUnicodeCharacter{250C}{+}  % dr
+    \DeclareUnicodeCharacter{2510}{+}  % dl
+    \DeclareUnicodeCharacter{2514}{+}  % ur
+    \DeclareUnicodeCharacter{2518}{+}  % ul
+    \DeclareUnicodeCharacter{251C}{+}  % vr
+    \DeclareUnicodeCharacter{2524}{+}  % vl
+    \DeclareUnicodeCharacter{252C}{+}  % dh
+    \DeclareUnicodeCharacter{2534}{+}  % uh
+    \DeclareUnicodeCharacter{253C}{+}  % vh
+    \DeclareUnicodeCharacter{2571}{/}  % upper right to lower left
+    \DeclareUnicodeCharacter{2571}{\setminus} % upper left to lower right
+
+    \DeclareUnicodeCharacter{25CF}{\ensuremath{\bullet}}  % medium black circle
+    \DeclareUnicodeCharacter{26AC}{\ensuremath{\circ}}  % medium small white circle
+    \DeclareUnicodeCharacter{256D}{+}
+    \DeclareUnicodeCharacter{256E}{+}
+    \DeclareUnicodeCharacter{256F}{+}
+    \DeclareUnicodeCharacter{2570}{+}
 \fi
 
 \let\textLaTeX\LaTeX
@@ -654,7 +702,7 @@ def debug_inf(app, message):
     if dangling_debug: app.info(message)
 
 def call_intersphinx(app, env, node, contnode):
-    """
+    r"""
     Call intersphinx and make links between Sage manuals relative.
 
     TESTS:
@@ -667,11 +715,11 @@ def call_intersphinx(app, env, node, contnode):
         sage: for line in open(thematic_index).readlines():  # optional - dochtml
         ....:     if "padics" in line:
         ....:         _ = sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage... Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></li>
+        <li><p><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage... Reference Manual: p-Adics v...)"><span>Introduction to the p-adics</span></a></p></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s" % node['reftarget'])
     builder = app.builder
-    res =  sphinx.ext.intersphinx.missing_reference(
+    res =  intersphinx.missing_reference(
         app, env, node, contnode)
     if res:
         # Replace absolute links to $SAGE_DOC by relative links: this
@@ -687,7 +735,7 @@ def call_intersphinx(app, env, node, contnode):
     return res
 
 def find_sage_dangling_links(app, env, node, contnode):
-    """
+    r"""
     Try to find dangling link in local module imports or all.py.
     """
     debug_inf(app, "==================== find_sage_dangling_links ")
@@ -854,11 +902,10 @@ def setup(app):
     if app.srcdir.startswith(SAGE_DOC_SRC):
         app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
+        app.connect('config-inited', set_intersphinx_mappings)
+        app.connect('builder-inited', intersphinx.load_mappings)
         # We do *not* fully initialize intersphinx since we call it by hand
         # in find_sage_dangling_links.
         #   app.connect('missing-reference', missing_reference)
         app.connect('missing-reference', find_sage_dangling_links)
-        import sphinx.ext.intersphinx
-        app.connect('builder-inited', set_intersphinx_mappings)
-        app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)

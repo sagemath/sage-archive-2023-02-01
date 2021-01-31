@@ -55,7 +55,6 @@ EXAMPLES::
 
 
 """
-from __future__ import absolute_import
 
 # *****************************************************************************
 #  Copyright (C) 2018   Vishal Arul <varul@mit.edu>,
@@ -170,7 +169,6 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             d = self._d
             delta = self._delta
             N0 = self._N0
-            n = N0
             left_side = N0 + floor(log((d * p * (r - 1) + r) / delta) / log(p))
 
             def right_side_log(n):

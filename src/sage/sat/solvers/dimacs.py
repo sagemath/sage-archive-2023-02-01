@@ -23,14 +23,18 @@ Classes and Methods
 #  Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
 
-import os, sys, subprocess, shlex
+import os
+import sys
+import subprocess
+import shlex
 
 from sage.sat.solvers.satsolver import SatSolver
-from sage.misc.all import tmp_filename, get_verbose
+from sage.misc.all import tmp_filename
 from time import sleep
+
 
 class DIMACS(SatSolver):
     """
@@ -372,6 +376,7 @@ class DIMACS(SatSolver):
             ...
             ValueError: No SAT solver command selected.
         """
+        from sage.misc.verbose import get_verbose
         if assumptions is not None:
             raise NotImplementedError("Assumptions are not supported for DIMACS based solvers.")
 

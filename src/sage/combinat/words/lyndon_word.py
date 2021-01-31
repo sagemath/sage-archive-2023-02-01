@@ -11,15 +11,13 @@ Lyndon words
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.combinat.composition import Composition, Compositions
 from sage.rings.all import Integer
-from sage.arith.all import factorial, divisors, gcd, moebius
-from sage.misc.all import prod
+from sage.arith.all import divisors, gcd, moebius, multinomial
 
 from sage.combinat.necklace import _sfc
 from sage.combinat.words.words import FiniteWords
@@ -28,11 +26,13 @@ from sage.combinat.combinat_cython import lyndon_word_iterator
 
 def LyndonWords(e=None, k=None):
     """
-    Returns the combinatorial class of Lyndon words.
+    Return the combinatorial class of Lyndon words.
 
     A Lyndon word `w` is a word that is lexicographically less than all of
     its rotations.  Equivalently, whenever `w` is split into two non-empty
     substrings, `w` is lexicographically less than the right substring.
+
+    See :wikipedia:`Lyndon_word`
 
     INPUT:
 
@@ -40,12 +40,12 @@ def LyndonWords(e=None, k=None):
 
     or
 
-    - ``e`` - integer, size of alphabet
-    - ``k`` - integer, length of the words
+    - ``e`` -- integer, size of alphabet
+    - ``k`` -- integer, length of the words
 
     or
 
-    - ``e`` - a composition
+    - ``e`` -- a composition
 
     OUTPUT:
 
@@ -94,15 +94,16 @@ def LyndonWords(e=None, k=None):
 
     raise TypeError("e must be a positive integer or a composition")
 
+
 def LyndonWord(data, check=True):
     r"""
     Construction of a Lyndon word.
 
     INPUT:
 
-    - ``data`` - list
-    - ``check`` - bool (optional, default: True) if True, a
-      verification that the input data represent a Lyndon word.
+    - ``data`` -- list
+    - ``check`` -- bool (optional, default: ``True``) if ``True``,
+      check that the input data represents a Lyndon word.
 
     OUTPUT:
 
@@ -119,12 +120,13 @@ def LyndonWord(data, check=True):
         ...
         ValueError: not a Lyndon word
 
-    If check is False, then no verification is done::
+    If ``check`` is ``False``, then no verification is done::
 
         sage: LyndonWord([2,1,2,3], check=False)
         word: 2123
     """
     return LyndonWords()(data, check=check)
+
 
 class LyndonWords_class(UniqueRepresentation, Parent):
     r"""
@@ -185,6 +187,7 @@ class LyndonWords_class(UniqueRepresentation, Parent):
             w = self._words(w)
         return w.is_lyndon()
 
+
 class LyndonWords_evaluation(UniqueRepresentation, Parent):
     r"""
     The set of Lyndon words on a fixed multiset of letters.
@@ -222,7 +225,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             sage: repr(LyndonWords([2,1,1]))
             'Lyndon words with evaluation [2, 1, 1]'
         """
-        return "Lyndon words with evaluation %s"%self._e
+        return "Lyndon words with evaluation %s" % self._e
 
     def __call__(self, *args, **kwds):
         r"""
@@ -264,7 +267,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
 
     def cardinality(self):
         """
-        Returns the number of Lyndon words with the evaluation e.
+        Return the number of Lyndon words with the evaluation e.
 
         EXAMPLES::
 
@@ -276,9 +279,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             30
 
         Check to make sure that the count matches up with the number of
-        Lyndon words generated.
-
-        ::
+        Lyndon words generated::
 
             sage: comps = [[],[2,2],[3,2,7],[4,2]] + Compositions(4).list()
             sage: lws = [LyndonWords(comp) for comp in comps]
@@ -287,12 +288,11 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
         """
         evaluation = self._e
         le = list(evaluation)
-        if len(evaluation) == 0:
-            return 0
-
+        if not evaluation:
+            return Integer(0)
         n = sum(evaluation)
-
-        return sum([moebius(j)*factorial(n/j) / prod([factorial(ni/j) for ni in evaluation]) for j in divisors(gcd(le))])/n
+        return sum(moebius(j) * multinomial([ni // j for ni in evaluation])
+                   for j in divisors(gcd(le))) // n
 
     def __iter__(self):
         """
@@ -330,19 +330,16 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
         """
         if not self._e:
             return
-
         k = 0
         while self._e[k] == 0:
             k += 1
-
         for z in _sfc(self._e[k:], equality=True):
-            yield self._words([i+k+1 for i in z], check=False)
+            yield self._words([i + k + 1 for i in z], check=False)
 
 
 class LyndonWords_nk(UniqueRepresentation, Parent):
     r"""
-    Lyndon words of fixed length `k` over the alphabet
-    `\{1, 2, \ldots, n\}`.
+    Lyndon words of fixed length `k` over the alphabet `\{1, 2, \ldots, n\}`.
 
     INPUT:
 
@@ -391,7 +388,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             sage: repr(LyndonWords(2, 3))
             'Lyndon words from an alphabet of size 2 of length 3'
         """
-        return "Lyndon words from an alphabet of size %s of length %s"%(self._n, self._k)
+        return "Lyndon words from an alphabet of size %s of length %s" % (self._n, self._k)
 
     def __call__(self, *args, **kwds):
         r"""
@@ -444,8 +441,8 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         else:
             s = Integer(0)
             for d in divisors(self._k):
-                s += moebius(d)*(self._n**(self._k/d))
-        return s/self._k
+                s += moebius(d) * self._n**(self._k // d)
+        return s // self._k
 
     def __iter__(self):
         """
@@ -468,14 +465,17 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         """
         W = self._words._element_classes['list']
         for lw in lyndon_word_iterator(self._n, self._k):
-            yield W(self._words, [i+1 for i in lw])
+            yield W(self._words, [i + 1 for i in lw])
+
 
 def StandardBracketedLyndonWords(n, k):
     """
-    Returns the combinatorial class of standard bracketed Lyndon words
-    from [1, ..., n] of length k. These are in one to one
-    correspondence with the Lyndon words and form a basis for the
-    subspace of degree k of the free Lie algebra of rank n.
+    Return the combinatorial class of standard bracketed Lyndon words
+    from [1, ..., n] of length k.
+
+    These are in one to one correspondence with the Lyndon words and
+    form a basis for the subspace of degree k of the free Lie algebra
+    of rank n.
 
     EXAMPLES::
 
@@ -487,8 +487,8 @@ def StandardBracketedLyndonWords(n, k):
         [[2, 3], 3]
         sage: SBLW33.cardinality()
         8
-        sage: SBLW33.random_element()
-        [1, [1, 2]]
+        sage: SBLW33.random_element() in SBLW33  # known bug
+        True
     """
     return StandardBracketedLyndonWords_nk(n, k)
 
@@ -580,4 +580,3 @@ def standard_bracketing(lw):
     for i in range(1, len(lw)):
         if lw[i:] in LyndonWords():
             return [standard_bracketing(lw[:i]), standard_bracketing(lw[i:])]
-

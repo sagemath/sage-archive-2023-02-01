@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Small graphs
+Various small graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -14,7 +14,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -3138,10 +3137,10 @@ def HoffmanSingletonGraph():
 
     Note that you get a different layout each time you create the graph.  ::
 
-        sage: HS.layout()[1]
+        sage: HS.layout()[1]  # random
         (-0.844..., 0.535...)
         sage: HS = graphs.HoffmanSingletonGraph()
-        sage: HS.layout()[1]
+        sage: HS.layout()[1]  # random
         (-0.904..., 0.425...)
     """
     H = Graph({
@@ -3284,7 +3283,7 @@ def KrackhardtKiteGraph():
     The Krackhardt kite graph was originally developed by David Krackhardt for
     the purpose of studying social networks (see [Kre2002]_ and
     the :wikipedia:`Krackhardt_kite_graph`). It is used to show the distinction
-    between: degree centrality, betweeness centrality, and closeness
+    between: degree centrality, betweenness centrality, and closeness
     centrality. For more information read the plotting section below in
     conjunction with the example.
 
@@ -4325,7 +4324,7 @@ def TietzeGraph():
     Return the Tietze Graph.
 
     For more information on the Tietze Graph, see the
-    :wikipedia:`Tietze's_graph`.
+    :wikipedia:`Tietze%27s_graph`.
 
     EXAMPLES::
 

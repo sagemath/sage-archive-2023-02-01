@@ -42,7 +42,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a = Zmod(17)(13)
             sage: a._nth_root_common(4, True, "Johnston", False)
             [3, 5, 14, 12]
-            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham
+            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham_tables
             [3, 5, 14, 12]
         """
         K = self.parent()
@@ -845,3 +845,20 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         k = k2 / 2
 
         return self.pth_power(k=k)
+
+cdef class Cache_base(SageObject):
+    cpdef FinitePolyExtElement fetch_int(self, number):
+        """
+        Given an integer less than `p^n` with base `2`
+        representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns
+        `a_0 + a_1 x + \cdots + a_k x^k`, where `x` is the
+        generator of this finite field.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^48)
+            sage: k._cache.fetch_int(2^33 + 2 + 1)
+            a^33 + a + 1
+        """
+        raise NotImplementedError("this must be implemented by subclasses")
+

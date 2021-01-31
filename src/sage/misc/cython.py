@@ -17,7 +17,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import builtins
 import os
@@ -26,22 +25,20 @@ import shutil
 import pkgconfig
 
 from sage.env import (SAGE_LOCAL, cython_aliases,
-                      sage_include_directories)
+                      sage_include_directories, get_cblas_pc_module_name)
 from sage.misc.misc import SPYX_TMP, sage_makedirs
 from .temporary_file import tmp_filename
 from sage.repl.user_globals import get_globals
 from sage.misc.sage_ostools import restore_cwd, redirection
 from sage.cpython.string import str_to_bytes
 
-
-# CBLAS can be one of multiple implementations
-cblas_pc = pkgconfig.parse('cblas')
+cblas_pc = pkgconfig.parse(get_cblas_pc_module_name())
 cblas_libs = list(cblas_pc['libraries'])
 cblas_library_dirs = list(cblas_pc['library_dirs'])
 cblas_include_dirs = list(cblas_pc['include_dirs'])
 
 standard_libs = [
-    'mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm',
+    'mpfr', 'gmp', 'gmpxx', 'pari', 'm',
     'ec', 'gsl',
 ] + cblas_libs + [
     'ntl']
@@ -193,6 +190,12 @@ def cython(filename, verbose=0, compile_message=False,
         Traceback (most recent call last):
         ...
         RuntimeError: ...
+
+    As of :trac:`29139` the default is ``cdivision=True``::
+
+        sage: cython('''
+        ....: cdef size_t foo = 3/2
+        ....: ''')
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -314,7 +317,7 @@ def cython(filename, verbose=0, compile_message=False,
                     libraries=standard_libs,
                     library_dirs=standard_libdirs)
 
-    directives = dict(language_level=sys.version_info[0])
+    directives = dict(language_level=sys.version_info[0], cdivision=True)
 
     try:
         # Change directories to target_dir so that Cython produces the correct

@@ -16,10 +16,6 @@ parallelogram polyominoes.
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import (
-    division, absolute_import, print_function, unicode_literals
-)
-
 
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
@@ -648,7 +644,7 @@ class _drawing_tool:
         and XY user function.
 
         First we apply XY function, then the translation, then the mirror and
-        finaly the rotation.
+        finally the rotation.
 
         INPUT:
 
@@ -761,11 +757,11 @@ class _drawing_tool:
         - ``v2`` -- point, The second point of the line.
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -803,11 +799,11 @@ class _drawing_tool:
         - ``list_of_vertices`` -- A list of points
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -843,11 +839,11 @@ class _drawing_tool:
         - ``p1`` -- A point
 
         - ``color`` -- string (default:``None``), The color of the line.
-          If set to ``None``, the color is choosen according the
+          If set to ``None``, the color is chosen according the
           drawing option given by ``_drawing_tool``.
 
         - ``size`` -- integer (default:``None``), The size of the line.
-          If set to ``None``, the size is choosen according the
+          If set to ``None``, the size is chosen according the
           drawing option given by ``_drawing_tool``.
 
         OUTPUT:
@@ -1061,22 +1057,22 @@ class ParallelogramPolyomino(ClonableList,
             sage: pp = ParallelogramPolyomino([[0], [0]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to [0]
+            ValueError: the lower or the upper path can...t be equal to [0]
 
             sage: pp = ParallelogramPolyomino([[], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
 
             sage: pp = ParallelogramPolyomino([[0], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
 
             sage: pp = ParallelogramPolyomino([[], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the lower or the upper path can't be equal to []
+            ValueError: the lower or the upper path can...t be equal to []
         """
         lower_path = self.lower_path()
         upper_path = self.upper_path()
@@ -2177,7 +2173,7 @@ class ParallelogramPolyomino(ClonableList,
 
         def __getitem__(self, column):
             r"""
-            Return 0 or 1 if the is a cell inside the specific colum inside the
+            Return 0 or 1 if the is a cell inside the specific column inside the
             row.
 
             EXAMPLES::
@@ -2831,7 +2827,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -2878,7 +2874,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -2936,7 +2932,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A [row,colum] position of the cell.
+        A [row,column] position of the cell.
 
         EXAMPLES::
 
@@ -3341,7 +3337,7 @@ class ParallelogramPolyomino(ClonableList,
 
         OUTPUT:
 
-        A list of [row,colum] position of cells.
+        A list of [row,column] position of cells.
 
         EXAMPLES::
 
@@ -3830,7 +3826,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
         sage: PPS
         Parallelogram polyominoes of size 4
 
-        sage: sorted(list(PPS))
+        sage: sorted(PPS)
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
          [[0, 0, 1, 1], [1, 1, 0, 0]],
@@ -3860,7 +3856,7 @@ class ParallelogramPolyominoesFactory(SetFactory):
             sage: PPS = ParallelogramPolyominoes(size=4)
             sage: PPS
             Parallelogram polyominoes of size 4
-            sage: sorted(list(PPS))
+            sage: sorted(PPS)
             [[[0, 0, 0, 1], [1, 0, 0, 0]],
              [[0, 0, 1, 1], [1, 0, 1, 0]],
              [[0, 0, 1, 1], [1, 1, 0, 0]],
@@ -3935,7 +3931,7 @@ class ParallelogramPolyominoes_size(
         sage: PPS = ParallelogramPolyominoes(4)
         sage: PPS
         Parallelogram polyominoes of size 4
-        sage: sorted(list(PPS))
+        sage: sorted(PPS)
         [[[0, 0, 0, 1], [1, 0, 0, 0]],
          [[0, 0, 1, 1], [1, 0, 1, 0]],
          [[0, 0, 1, 1], [1, 1, 0, 0]],

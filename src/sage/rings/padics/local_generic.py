@@ -7,7 +7,6 @@ AUTHORS:
 
 - David Roe
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -815,7 +814,7 @@ class LocalGeneric(CommutativeRing):
 
     def e(self):
         """
-        Return the degree of this extension.
+        Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
 
@@ -836,7 +835,7 @@ class LocalGeneric(CommutativeRing):
 
     def ramification_index(self):
         """
-        Return the degree of this extension.
+        Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
 

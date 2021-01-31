@@ -136,6 +136,14 @@ cdef class LaurentSeries(AlgebraElement):
                 f = parent._power_series_ring((<LaurentSeries>f).__u)
         elif isinstance(f, LaurentPolynomial_univariate):
             f = f(parent.gen())
+        elif isinstance(f, dict):
+            ## Sanitize input to make sure all exponents are nonnegative,
+            ## adjusting n to match.
+            n1 = min(f.keys())
+            if n1 < 0:
+               f = {e-n1: c for e,c in f.items()}
+               n += n1
+            f = parent._power_series_ring(f)
         elif not isinstance(f, PowerSeries):
             f = parent._power_series_ring(f)
         ## now this is a power series, over a different ring ...
@@ -1663,7 +1671,7 @@ cdef class LaurentSeries(AlgebraElement):
         - ``n`` -- integer
 
         - ``prec`` -- integer (optional) - precision of the result. Though, if
-          this series has finite precision, then the result can not have larger
+          this series has finite precision, then the result cannot have larger
           precision.
 
         EXAMPLES::

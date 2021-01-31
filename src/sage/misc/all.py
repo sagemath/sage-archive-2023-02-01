@@ -1,18 +1,21 @@
-from __future__ import absolute_import
 from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
 from .misc import (BackslashOperator,
-                  cputime, verbose, set_verbose, set_verbose_files,
-                  get_verbose_files, unset_verbose_files, get_verbose,
+                  cputime,
                   union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
                   random_sublist, walltime,
-                  repr_lincomb,
-                  pad_zeros, attrcall,
+                  pad_zeros,
                   SAGE_DB, SAGE_TMP,
                    newton_method_sizes, compose,
                   nest)
+
+from .verbose import (set_verbose, set_verbose_files,
+                      get_verbose_files, unset_verbose_files, get_verbose)
+lazy_import('sage.misc.verbose', 'verbose',
+            deprecation=17815)
+from .call import attrcall
 
 from .banner import version, banner
 
@@ -25,6 +28,8 @@ add = sum
 from .dev_tools import runsnake, import_statements
 
 from .html import html
+
+from .repr import repr_lincomb
 
 from .table import table
 
@@ -68,7 +73,7 @@ from .getusage import get_memory_usage
 from .mathml import mathml
 
 from .defaults import (set_default_variable_name,
-                        series_precision, set_series_precision)
+                       series_precision, set_series_precision)
 
 from .sage_eval import sage_eval, sageobj
 
@@ -136,8 +141,7 @@ from .functional import (additive_order,
                         squarefree_part,
                         symbolic_sum as sum,
                         symbolic_prod as product,
-                        transpose,
-                        )
+                        transpose)
 
 
 from .latex import LatexExpr, latex, view, pretty_print_default
@@ -164,6 +168,7 @@ from .unknown import Unknown, UnknownError
 
 lazy_import('sage.misc.inline_fortran', 'fortran')
 
+
 ##########################################################################
 def benchmark(n=-1):
     """
@@ -171,10 +176,13 @@ def benchmark(n=-1):
     takes for each to run.
 
     INPUT:
-        n -- int (default: -1) the benchmark number; the default
-             of -1 runs all the benchmarks.
+
+    - ``n`` -- int (default: -1); the benchmark number. The default
+      of -1 runs all the benchmarks.
+
     OUTPUT:
-        list -- summary of timings for each benchmark.
+
+    - ``list`` -- summary of timings for each benchmark
     """
     import sage.misc.benchmark
     return sage.misc.benchmark.benchmark(n)
@@ -185,11 +193,11 @@ class logstr(str):
         return self
 
     def _latex_(self):
-        #return "\\begin{verbatim}%s\\end{verbatim}"%self
-        if not '#' in self:
-         delim = '#'
-        elif not '@' in self:
-         delim = '@'
-        elif not '~' in self:
-         delim = '~'
-        return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
+        # return "\\begin{verbatim}%s\\end{verbatim}"%self
+        if '#' not in self:
+            delim = '#'
+        elif '@' not in self:
+            delim = '@'
+        elif '~' not in self:
+            delim = '~'
+        return r"""\verb%s%s%s""" % (delim, self.replace('\n\n', '\n').replace('\n', '; '), delim)

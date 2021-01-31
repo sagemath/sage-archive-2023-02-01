@@ -23,9 +23,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-# python3
-from __future__ import division, absolute_import
-
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
@@ -2016,15 +2013,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray,
         if self.is_empty():
             yield self
             return
-        # TODO:: PYTHON 3
-        # yield from self[0].in_order_traversal_iter()
-        for left_subtree in self[0].in_order_traversal_iter():
-            yield left_subtree
+        yield from self[0].in_order_traversal_iter()
         yield self
-        # TODO:: PYTHON 3
-        # yield from self[1].in_order_traversal_iter()
-        for right_subtree in self[1].in_order_traversal_iter():
-            yield right_subtree
+        yield from self[1].in_order_traversal_iter()
 
     def in_order_traversal(self, node_action=None, leaf_action=None):
         r"""
@@ -3183,7 +3174,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray,
         else:
             return B([self[0], self[1].over(bt)])
 
-    __div__ = over
     __truediv__ = over
 
     @combinatorial_map(name="Under operation on Binary Trees")

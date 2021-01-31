@@ -521,7 +521,6 @@ runs under 5 seconds (used to take ~40sec)::
     sage: cancel_alarm()
 """
 
-from __future__ import absolute_import, print_function, division
 
 import itertools
 import operator
@@ -535,14 +534,14 @@ from sage.structure.richcmp import (richcmp, richcmp_method,
                                     op_EQ, op_NE, op_GT)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
+from sage.rings.number_field.number_field import NumberField, GaussianField, CyclotomicField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.arith.all import factor
 from . import infinity
@@ -581,13 +580,14 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: AA.default_interval_prec()
             64
         """
-
         return 64
 
     def characteristic(self):
         r"""
-        Return the characteristic of this field. Since this class is only used
-        for fields of characteristic 0, always returns 0.
+        Return the characteristic of this field.
+
+        Since this class is only used
+        for fields of characteristic 0, this always returns 0.
 
         EXAMPLES::
 
@@ -598,7 +598,9 @@ class AlgebraicField_common(sage.rings.ring.Field):
 
     def order(self):
         r"""
-        Return the cardinality of self. Since this class is only used for
+        Return the cardinality of ``self``.
+
+        Since this class is only used for
         fields of characteristic 0, always returns Infinity.
 
         EXAMPLES::
@@ -612,7 +614,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
         Given a polynomial with algebraic coefficients, returns a
         wrapper that caches high-precision calculations and
-        factorizations. This wrapper can be passed to polynomial_root
+        factorizations. This wrapper can be passed to ``polynomial_root``
         in place of the polynomial.
 
         Using ``common_polynomial`` makes no semantic difference, but will
@@ -667,7 +669,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
             return AlgebraicNumberPowQQAction(G, self)
 
     def _factor_multivariate_polynomial(self, f, proof=True):
-        """
+        r"""
         Factor the multivariate polynomial ``f``.
 
         INPUT:
@@ -682,9 +684,9 @@ class AlgebraicField_common(sage.rings.ring.Field):
 
         ALGORITHM:
 
-        For rings over QQ, uses Singular's ``absfact`` library.
+        For rings over `\QQ`, uses Singular's ``absfact`` library.
 
-        For rings over number fields, we reduce to the QQ case by factoring
+        For rings over number fields, we reduce to the `\QQ` case by factoring
         the norm of the polynomial.
 
         .. NOTE::
@@ -875,7 +877,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
             #
             # As nbruin pointed out during the review of Trac #25390,
             # this can be accomplished more efficiently using the resultant
-            # of the polynomial with the number field's minimial polynomial.
+            # of the polynomial with the number field's minimal polynomial.
             #
             # We use two auxiliary polynomial rings:
             #
@@ -1030,7 +1032,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         EXAMPLES:
 
-        This function calls functions in superclasses which set the category, so we check that.
+        This function calls functions in superclasses which set the category, so we check that. ::
 
             sage: QQbar.category() # indirect doctest
             Category of infinite fields
@@ -1044,18 +1046,18 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         EXAMPLES::
 
-            sage: QQbar(sqrt(2)) in AA # indirect doctest
+            sage: QQbar(sqrt(2)) in AA  # indirect doctest
             True
             sage: QQbar(I) in AA
             False
             sage: AA in AA
             False
 
-        The following should both return True (this is a bug). ::
+        The following should both return ``True`` (this is a bug). ::
 
-            sage: sqrt(2) in AA # not tested
+            sage: sqrt(2) in AA  # known bug
             False
-            sage: K.<z> = CyclotomicField(5); z + 1/z in AA # not tested
+            sage: K.<z> = CyclotomicField(5); z + 1/z in AA  # known bug
             False
         """
         if isinstance(x, AlgebraicReal):
@@ -1071,7 +1073,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
     def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLES::
 
@@ -1098,7 +1100,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
     # Is there a standard representation for this?
     def _latex_(self):
         r"""
-        Latex representation of self.
+        Latex representation of ``self``.
 
         EXAMPLES::
 
@@ -1144,12 +1146,13 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
     def completion(self, p, prec, extras={}):
         r"""
-        Return the completion of self at the place `p`. Only implemented for `p
-        = \infty` at present.
+        Return the completion of ``self`` at the place `p`.
+
+        Only implemented for `p = \infty` at present.
 
         INPUT:
 
-        - ``p`` -- either a prime (not implemented at present) or Infinity
+        - ``p`` -- either a prime (not implemented at present) or ``Infinity``
         - ``prec`` -- precision of approximate field to return
         - ``extras`` -- (optional) a dict of extra keyword arguments
           for the ``RealField`` constructor
@@ -1187,8 +1190,10 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=False):
         r"""
-        Attempt to construct a homomorphism from self to codomain sending the
-        generators to ``im_gens``. Since this field is not finitely generated,
+        Attempt to construct a homomorphism from ``self`` to ``codomain`` sending the
+        generators to ``im_gens``.
+
+        Since this field is not finitely generated,
         this cannot be implemented in a mathematically sensible way, and we
         just test that there exists a canonical coercion.
 
@@ -1206,7 +1211,9 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
     def gens(self):
         r"""
-        Return a set of generators for this field. As this field is not
+        Return a set of generators for this field.
+
+        As this field is not
         finitely generated, we opt for just returning 1.
 
         EXAMPLES::
@@ -1501,7 +1508,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def _latex_(self):
         r"""
-        Latex representation of self.
+        Latex representation of ``self``.
 
         EXAMPLES::
 
@@ -1545,12 +1552,13 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def completion(self, p, prec, extras={}):
         r"""
-        Return the completion of self at the place `p`. Only implemented for `p
-        = \infty` at present.
+        Return the completion of ``self`` at the place `p`.
+
+        Only implemented for `p = \infty` at present.
 
         INPUT:
 
-        - ``p`` -- either a prime (not implemented at present) or Infinity
+        - ``p`` -- either a prime (not implemented at present) or ``Infinity``
         - ``prec`` -- precision of approximate field to return
         - ``extras`` -- (optional) a dict of extra keyword arguments
           for the ``RealField`` constructor
@@ -1576,8 +1584,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def algebraic_closure(self):
         """
-        Return the algebraic closure of this field. As this field is already
-        algebraically closed, just returns self.
+        Return the algebraic closure of this field.
+
+        As this field is already algebraically closed, just returns ``self``.
 
         EXAMPLES::
 
@@ -1588,7 +1597,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def construction(self):
         """
-        Return a functor that constructs self (used by the coercion machinery).
+        Return a functor that constructs ``self`` (used by the coercion machinery).
 
         EXAMPLES::
 
@@ -1601,7 +1610,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
     def gens(self):
         r"""
-        Return a set of generators for this field. As this field is not
+        Return a set of generators for this field.
+
+        As this field is not
         finitely generated over its prime field, we opt for just returning I.
 
         EXAMPLES::
@@ -1861,7 +1872,6 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             ValueError: polynomial must not be constant
             sage: R(1).is_irreducible()
             False
-
         """
         if f.degree() < 1:
             # this case is handled by the caller (PolynomialElement.is_irreducible())
@@ -2000,8 +2010,9 @@ def tail_prec_seq():
 
 def rational_exact_root(r, d):
     r"""
-    Checks whether the rational `r` is an exact `d`'th power. If so, returns
-    the `d`'th root of `r`; otherwise, returns None.
+    Check whether the rational `r` is an exact `d`'th power.
+
+    If so, this returns the `d`'th root of `r`; otherwise, this returns ``None``.
 
     EXAMPLES::
 
@@ -2836,7 +2847,7 @@ class AlgebraicGenerator(SageObject):
 
     def is_complex(self):
         r"""
-        Return True if this is a generator for a non-real number field.
+        Return ``True`` if this is a generator for a non-real number field.
 
         EXAMPLES::
 
@@ -3873,8 +3884,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         OUTPUT:
 
-        (boolean) True in all cases for elements of QQbar; True for
-        non-negative elements of AA, otherwise False.
+        (boolean)
+        ``True`` in all cases for elements of ``QQbar``;
+        ``True`` for non-negative elements of ``AA``;
+        otherwise ``False``
 
         EXAMPLES::
 
@@ -3894,7 +3907,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def is_integer(self):
         """
-        Return True if this number is a integer
+        Return ``True`` if this number is a integer.
 
         EXAMPLES::
 
@@ -3962,8 +3975,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             Traceback (most recent call last):
             ...
             ValueError: -2 is not a square in AA, being negative. Use extend = True for a square root in QQbar.
-
-
         """
         # deal with 0 first:
 
@@ -4982,8 +4993,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def multiplicative_order(self):
         r"""
-        Compute the multiplicative order of this algebraic real
-        number. That is, find the smallest positive integer `n` such
+        Compute the multiplicative order of this algebraic number.
+
+        That is, find the smallest positive integer `n` such
         that `x^n = 1`. If there is no such `n`, returns ``+Infinity``.
 
         We first check that ``abs(x)`` is very close to 1. If so, we compute
@@ -5437,6 +5449,34 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         return self
 
+    def multiplicative_order(self):
+        r"""
+        Compute the multiplicative order of this real algebraic number.
+
+        That is, find the smallest positive integer `n` such
+        that `x^n = 1`. If there is no such `n`, returns ``+Infinity``.
+
+        We first check that ``abs(x)`` is very close to 1. If so, we compute
+        `x` exactly and compare it to 1 and -1.
+
+        EXAMPLES::
+
+            sage: AA(1).multiplicative_order()
+            1
+            sage: AA(-1).multiplicative_order()
+            2
+            sage: AA(5).sqrt().multiplicative_order()
+            +Infinity
+        """
+        if not (1 in RIF(self).abs()):
+            return infinity.infinity
+        if self == 1:
+            return 1
+        elif self == -1:
+            return 2
+        else:
+            return infinity.infinity
+    
     def sign(self):
         """
         Compute the sign of this algebraic number (return -1 if negative,
@@ -5528,7 +5568,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         # Sigh...
         self.exactify()
         return self.sign()
-
+    
     def _interval_fast(self, prec):
         r"""
         Compute an approximation to this ``AlgebraicReal`` object in a real interval field of precision prec.
@@ -6030,8 +6070,6 @@ class ANRational(ANDescr):
 
             sage: polygen(QQbar) / int(3)
             1/3*x
-            sage: QQbar(int(7)) / QQbar(long(2))
-            7/2
         """
         if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
@@ -6424,7 +6462,7 @@ class AlgebraicPolynomialTracker(SageObject):
 
     def is_complex(self):
         r"""
-        Return True if the coefficients of this polynomial are non-real.
+        Return ``True`` if the coefficients of this polynomial are non-real.
 
         EXAMPLES::
 
@@ -6439,7 +6477,7 @@ class AlgebraicPolynomialTracker(SageObject):
 
     def complex_roots(self, prec, multiplicity):
         """
-        Find the roots of self in the complex field to precision prec.
+        Find the roots of ``self`` in the complex field to precision ``prec``.
 
         EXAMPLES::
 
@@ -6447,7 +6485,7 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: cp = AA.common_polynomial(x^4 - 2)
 
         Note that the precision is not guaranteed to find the tightest
-        possible interval since complex_roots() depends on the
+        possible interval since ``complex_roots()`` depends on the
         underlying BLAS implementation. ::
 
             sage: cp.complex_roots(30, 1)
@@ -8091,9 +8129,15 @@ class ANBinaryExpr(ANDescr):
 
         We check to make sure that this method still works even. We
         do this by increasing the recursion level at each step and
-        decrease it before we return::
+        decrease it before we return.
+        We lower the recursion limit for this test to allow
+        a test in reasonable time::
 
-            sage: import sys; sys.getrecursionlimit()
+            sage: import sys
+            sage: old_recursion_limit = sys.getrecursionlimit()
+            sage: sys.setrecursionlimit(1000)
+
+            sage: sys.getrecursionlimit()
             1000
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a=s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))
@@ -8102,6 +8146,7 @@ class ANBinaryExpr(ANDescr):
             sage: sys.getrecursionlimit()
             1000
 
+            sage: sys.setrecursionlimit(old_recursion_limit)
         """
         import sys
         old_recursion_limit = sys.getrecursionlimit()
@@ -8295,7 +8340,7 @@ def _init_qqbar():
 
     AA_0 = AA.zero()
 
-    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
+    QQbar_I_nf = GaussianField()
     QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
     QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
 

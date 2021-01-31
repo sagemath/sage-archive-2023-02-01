@@ -85,10 +85,9 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 from sage.rings.all import PolynomialRing, QQ, ZZ, Integer
 from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal

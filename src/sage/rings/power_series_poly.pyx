@@ -938,6 +938,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: B.<s> = A[[]]
             sage: f = (1 - 3*t + 4*t^3 + O(t^4))*s + (2 + t + t^2 + O(t^3))*s^2 + O(s^3)
+            sage: from sage.misc.verbose import set_verbose
             sage: set_verbose(1)
             sage: g = f.reverse(); g
             verbose 1 (<module>) passing to pari failed; trying Lagrange inversion
@@ -1036,7 +1037,7 @@ cdef class PowerSeries_poly(PowerSeries):
             return PowerSeries_poly(f.parent(), g.Vec(-out_prec), out_prec)
         except (TypeError,ValueError,AttributeError,PariError):
             # if pari fails, continue with Lagrange inversion
-            from sage.misc.all import verbose
+            from sage.misc.verbose import verbose
             verbose("passing to pari failed; trying Lagrange inversion")
 
         if f.parent().characteristic():
@@ -1074,7 +1075,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             f(z) - Q(z)/P(z) = O(z^{m+n+1}).
 
-        The formal power series `f` must be known up to order `n + m + 1`.
+        The formal power series `f` must be known up to order `n + m`.
 
         See :wikipedia:`Padé\_approximant`
 
@@ -1140,14 +1141,19 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: (1+x+O(x^100)).pade(2,2)
             x + 1
 
+        Check for correct precision::
+
+            sage: QQx.<x> = QQ[[]]
+            sage: (1+x+O(x^2)).pade(0,1)
+            -1/(x - 1)
         """
-        if self.precision_absolute() < n + m + 2:
+        if self.precision_absolute() < n + m + 1:
             raise ValueError("the precision of the series is not large enough")
         polyring = self.parent()._poly_ring()
         z = polyring.gen()
-        c = self.polynomial();
-        u, v = c.rational_reconstruct(z**(n + m + 1), m, n);
-        return u/v
+        c = self.polynomial()
+        u, v = c.rational_reconstruct(z**(n + m + 1), m, n)
+        return u / v
 
     def _symbolic_(self, ring):
         """

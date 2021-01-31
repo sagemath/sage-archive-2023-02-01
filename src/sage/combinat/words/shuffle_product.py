@@ -22,13 +22,15 @@ Shuffle product of words
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from sage.combinat.words.word import Word_class, Word
-from sage.combinat.combinat import CombinatorialClass
 from sage.arith.all import binomial
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.composition import Composition
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 
 
-class ShuffleProduct_w1w2(CombinatorialClass):
+class ShuffleProduct_w1w2(Parent, UniqueRepresentation):
     def __init__(self, w1, w2):
         r"""
         The shuffle product of the two words ``w1`` and ``w2``.
@@ -57,22 +59,24 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             sage: from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
             sage: W = Words([1,2,3,4])
             sage: s = ShuffleProduct_w1w2(W([1,2]),W([3,4]))
-            sage: sorted(list(s))
+            sage: sorted(s)
             [word: 1234, word: 1324, word: 1342, word: 3124,
              word: 3142, word: 3412]
             sage: s == loads(dumps(s))
             True
+            sage: TestSuite(s).run()
 
             sage: s = ShuffleProduct_w1w2(W([1,4,3]),W([2]))
-            sage: sorted(list(s))
+            sage: sorted(s)
             [word: 1243, word: 1423, word: 1432, word: 2143]
 
             sage: s = ShuffleProduct_w1w2(W([1,4,3]),W([]))
-            sage: sorted(list(s))
+            sage: sorted(s)
             [word: 143]
         """
         self._w1 = w1
         self._w2 = w2
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def __repr__(self):
         """

@@ -45,15 +45,15 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.arith.all import binomial, integer_ceil as ceil
 from sage.functions.log import log
 from sage.functions.other import floor
 from sage.matrix.all import matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import newton_method_sizes, repr_lincomb
+from sage.misc.misc import newton_method_sizes
 from sage.misc.profiler import Profiler
+from sage.misc.repr import repr_lincomb
 from sage.modules.all import vector
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -1875,9 +1875,9 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
             if not hasattr(self, '_curve'):
                 if self._Q.degree() == 3:
                     ainvs = [0, self._Q[2], 0, self._Q[1], self._Q[0]]
-                    self._curve = EllipticCurve(ainvs)
+                    self._curve = EllipticCurve(ainvs, check_squarefree=R.is_field())
                 else:
-                    self._curve = HyperellipticCurve(self._Q)
+                    self._curve = HyperellipticCurve(self._Q, check_squarefree=R.is_field())
 
         else:
             raise NotImplementedError("Must be an elliptic curve or polynomial "

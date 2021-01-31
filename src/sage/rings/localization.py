@@ -187,7 +187,7 @@ def normalize_additional_units(base_ring, add_units, warning=True):
 
     - ``base_ring`` -- an instance of :class:`IntegralDomain`
     - ``add_units`` -- list of elements from base ring
-    - ``warning`` -- (optional, default: True) to supress a warning which is thrown if no normalization was possible
+    - ``warning`` -- (optional, default: True) to suppress a warning which is thrown if no normalization was possible
 
     OUTPUT:
 
@@ -236,8 +236,6 @@ def normalize_additional_units(base_ring, add_units, warning=True):
             break
 
     return sorted(set(add_units_result))
-
-
 
 
 class LocalizationElement(IntegralDomainElement):
@@ -536,15 +534,14 @@ class Localization(IntegralDomain, UniqueRepresentation):
     the exact division operator `//` (:meth:`sage.structure.element.Element.__floordiv__`) in order to guarantee
     an successful application.
 
-
     INPUT:
 
     - ``base_ring`` -- an instance of :class:`Ring` allowing the construction of :meth:`fraction_field` (that is an integral domain)
     - ``additional_units`` -- tuple of elements of ``base_ring`` which should be turned into units
     - ``names`` -- passed to :class:`IntegralDomain`
-    - ``normalize`` -- (optinal, default: True) passed to :class:`IntegralDomain`
+    - ``normalize`` -- (optional, default: True) passed to :class:`IntegralDomain`
     - ``category`` -- (optional, default: None) passed to :class:`IntegralDomain`
-    - ``warning`` -- (optional, default: True) to supress a warning which is thrown if self cannot be represented uniquely
+    - ``warning`` -- (optional, default: True) to suppress a warning which is thrown if self cannot be represented uniquely
 
     REFERENCES:
 

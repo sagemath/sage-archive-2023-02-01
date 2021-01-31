@@ -22,11 +22,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import re
 import doctest
-import collections
+from collections import defaultdict
 from sage.repl.preparse import preparse, strip_string_literals
 from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
@@ -35,7 +34,7 @@ from functools import reduce
 from .external import available_software
 
 float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(arb216|arb218|py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 # Version 4.65 of glpk prints the warning "Long-step dual simplex will
 # be used" frequently. When Sage uses a system installation of glpk
 # which has not been patched, we need to ignore that message.
@@ -53,21 +52,39 @@ tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
 
-# Use this real interval field for doctest tolerances. It allows large
-# numbers like 1e1000, it parses strings with spaces like RIF(" - 1 ")
-# out of the box and it carries a lot of precision. The latter is
-# useful for testing libraries using arbitrary precision but not
-# guaranteed rounding such as PARI. We use 1044 bits of precision,
-# which should be good to deal with tolerances on numbers computed with
-# 1024 bits of precision.
-#
-# The interval approach also means that we do not need to worry about
-# rounding errors and it is also very natural to see a number with
-# tolerance as an interval.
-# We need to import from sage.all to avoid circular imports.
-from sage.all import RealIntervalField
-RIFtol = RealIntervalField(1044)
+_RIFtol = None
 
+def RIFtol(*args):
+    """
+    Create an element of the real interval field used for doctest tolerances.
+
+    It allows large numbers like 1e1000, it parses strings with spaces
+    like ``RIF(" - 1 ")`` out of the box and it carries a lot of
+    precision. The latter is useful for testing libraries using
+    arbitrary precision but not guaranteed rounding such as PARI. We use
+    1044 bits of precision, which should be good to deal with tolerances
+    on numbers computed with 1024 bits of precision.
+
+    The interval approach also means that we do not need to worry about
+    rounding errors and it is also very natural to see a number with
+    tolerance as an interval.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import RIFtol
+        sage: RIFtol(-1, 1)
+        0.?
+        sage: RIFtol(" - 1 ")
+        -1
+        sage: RIFtol("1e1000")
+        1.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000?e1000
+    """
+    global _RIFtol
+    if _RIFtol is None:
+        # We need to import from sage.all to avoid circular imports.
+        from sage.all import RealIntervalField
+        _RIFtol = RealIntervalField(1044)
+    return _RIFtol(*args)
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
 #
@@ -280,6 +297,8 @@ def parse_optional_tags(string):
     - 'known bug'
     - 'py2'
     - 'py3'
+    - 'arb216'
+    - 'arb218'
     - 'optional: PKG_NAME' -- the set will just contain 'PKG_NAME'
 
     EXAMPLES::
@@ -644,8 +663,8 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: TestSuite(DTP).run()
         """
         self.long = long
-        self.optionals = collections.defaultdict(int) # record skipped optional tests
-        if optional_tags is True: # run all optional tests
+        self.optionals = defaultdict(int)  # record skipped optional tests
+        if optional_tags is True:  # run all optional tests
             self.optional_tags = True
             self.optional_only = False
         else:

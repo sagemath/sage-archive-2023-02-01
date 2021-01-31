@@ -28,31 +28,6 @@ AC_PREREQ([2.69])
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
 AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
-# The following needs to be immediately after calling AC_INIT
-#------------------------------------------------------------
-# We need to run this configure script with bash
-if test -z "$BASH_VERSION"
-then
-    CONFIG_SHELL=`command -v bash`
-    export CONFIG_SHELL
-    if $CONFIG_SHELL -c "exit 0"
-    then
-        exec $CONFIG_SHELL $0 "$@"
-    else
-        AC_MSG_NOTICE([The 'bash' shell is needed to build AC_PACKAGE_NAME])
-        AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
-        if test -d /opt/OpenSource/bin
-        then
-           AC_MSG_NOTICE([On HP-UX you may try adding /opt/OpenSource/bin to your path])
-        fi
-        if test -d /opt/pware/bin
-        then
-           AC_MSG_NOTICE([On AIX you may try adding /opt/pware/bin to your path])
-        fi
-        AC_MSG_ERROR(['bash' not found])
-    fi
-fi
-
 
 AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])
@@ -87,6 +62,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
+AC_SUBST(SAGE_ROOT)
 
 SAGE_LOCAL="$prefix"
 # The following line is necessary because the code below
@@ -108,6 +84,22 @@ AC_ARG_ENABLE([build-as-root],
 if test "$enable_build_as_root" != yes; then
    AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to an unprivileged user.  (If building in a container, use --enable-build-as-root.)])], [])
 fi
+
+AC_ARG_ENABLE([fat-binary],
+              [AS_HELP_STRING([--enable-fat-binary],
+                              [build binaries that will run on the widest range of target CPUs (but not relocatable)])],
+              [AC_SUBST(SAGE_FAT_BINARY, "yes")],
+              [])
+
+AC_ARG_VAR(SAGE_FAT_BINARY, set to "yes" to build binaries that will run on the widest range of target CPUs (but not relocatable))
+
+AC_ARG_ENABLE([debug],
+              [AS_HELP_STRING([--enable-debug={no|symbols|yes}],
+                              [controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes")])],
+              [AC_SUBST(SAGE_DEBUG, $enableval)],
+              [])
+
+AC_ARG_VAR(SAGE_DEBUG, controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes"))
 
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
@@ -172,17 +164,8 @@ please join the sage-devel discussion list - see
 http://groups.google.com/group/sage-devel
 The Sage community would also appreciate any patches you submit]]);;
 
-*-*-freebsd*)
-AC_MSG_ERROR([[
-You are attempting to build Sage on the FreeBSD operating system,
-which is not a supported platform for Sage yet, though
-developers are working on adding FreeBSD support. Things may or
-may not work. If you would like to help port Sage to FreeBSD,
-please join the sage-devel discussion list - see
-http://groups.google.com/group/sage-devel
-The Sage community would also appreciate any patches you submit]]);;
-
 # The following are all supported platforms.
+*-*-freebsd*);;
 *-*-linux*);;
 *-*-darwin*);;
 *-*-solaris*);;
@@ -234,7 +217,7 @@ dnl Exit autoconf with exit code 16 in this case. This will be
 dnl caught by the bootstrap script.
 m4_exit(16)])
 
-PKG_PROG_PKG_CONFIG
+PKG_PROG_PKG_CONFIG([0.29])
 
 AC_CHECK_PROG(found_ranlib, ranlib, yes, no)
 if test x$found_ranlib != xyes
@@ -303,8 +286,8 @@ fi
 
 # Check for system python
 AC_MSG_CHECKING([for Python])
-if SAGE_SYSTEM_PYTHON=$(build/bin/sage-system-python -c "import sys; print(sys.executable)"); then
-    AC_MSG_RESULT([$SAGE_SYSTEM_PYTHON])
+if SAGE_BOOTSTRAP_PYTHON=$(build/bin/sage-bootstrap-python -c "import sys; print(sys.executable)"); then
+    AC_MSG_RESULT([$SAGE_BOOTSTRAP_PYTHON])
 else
     AC_MSG_ERROR([You do not have a suitable version of Python installed])
 fi
@@ -332,6 +315,17 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
 ###############################################################################
 # Check C/C++/Fortran compilers
 ###############################################################################
+
+# Save compiler flags as configured by the user.
+# We have to redo this, because otherwise `AC_PROG_CC` will just overwrite them.
+AC_SUBST(CFLAGS, "$CFLAGS")
+AC_SUBST(CXXFLAGS, "$CXXFLAGS")
+AC_SUBST(FCFLAGS, "$FCFLAGS")
+AC_SUBST(F77FLAGS, "$F77FLAGS")
+AC_ARG_VAR(CFLAGS, C compiler flags)
+AC_ARG_VAR(CXXFLAGS, C compiler flags)
+AC_ARG_VAR(FCFLAGS, Fortran compiler flags)
+AC_ARG_VAR(F77CFLAGS, Fortran 77 compiler flags)
 
 SAGE_CHECK_CONDA_COMPILERS
 
@@ -399,25 +393,6 @@ SAGE_CHECK_OSX_SUPPORTED()
 # Collect substitutions for build/make/Makefile.in
 ###############################################################################
 
-# Python version
-AC_MSG_CHECKING([Python version to install])
-AC_ARG_WITH([python],
-[AS_HELP_STRING([--with-python=2],
-    [build and use Python 2])]
-[AS_HELP_STRING([--with-python=3],
-    [build and use Python 3 (default)])])
-
-case "$with_python" in
-    2*) SAGE_PYTHON_VERSION=2;;
-    3*) SAGE_PYTHON_VERSION=3;;
-    "") SAGE_PYTHON_VERSION=3;;
-    *)
-        AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
-esac
-
-AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
-AC_SUBST(SAGE_PYTHON_VERSION)
-
 # $(TOOLCHAIN) variable containing prerequisites for the build
 SAGE_TOOLCHAIN=gcc
 if test "$SAGE_INSTALL_CCACHE" = yes ; then
@@ -443,25 +418,9 @@ AC_SUBST([SAGE_SPKG_OPTIONS])
 
 SAGE_SPKG_COLLECT()
 
-# We need sage-env-config to exist before running this.
-# TODO: fix this in Trac #21524
-touch "$SAGE_SRC/bin/sage-env-config"
-
-SAGE_SCRIPTS='\
-'
-for file in "$SAGE_SRC/bin/"*; do
-    # Skip files with ".in" extension
-    ext=${file##*.}
-    if test "$ext" != in; then
-        SAGE_SCRIPTS+="    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"$'\n'
-    fi
-done
-
-AC_SUBST([SAGE_SCRIPTS])
-
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
-AC_CONFIG_FILES([src/bin/sage-env-config build/bin/sage-build-env-config])
+AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile])
+AC_CONFIG_FILES([src/bin/sage-env-config src/bin/sage-src-env-config build/bin/sage-build-env-config])
 
 AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])
 

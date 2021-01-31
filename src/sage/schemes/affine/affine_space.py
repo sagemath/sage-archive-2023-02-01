@@ -9,7 +9,6 @@ Affine `n` space over a ring
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
@@ -449,7 +448,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         if polys is None:
             polys = self.gens()
-        return '(%s)'%(", ".join([str(f) for f in polys]))
+        return '(%s)' % (", ".join(str(f) for f in polys))
 
     def _latex_generic_point(self, v=None):
         """
@@ -469,7 +468,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         if v is None:
             v = self.gens()
-        return '\\left(%s\\right)'%(", ".join([str(latex(f)) for f in v]))
+        return '\\left(%s\\right)' % (", ".join(str(latex(f)) for f in v))
 
     def _check_satisfies_equations(self, v):
         """
@@ -957,6 +956,21 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         else:
             raise ValueError("keyword 'kind' must have a value of either 'first' or 'second'")
 
+    def origin(self):
+        """
+        Return the rational point at the origin of this affine space.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: A.origin()
+            (0, 0, 0)
+            sage: _ == A(0,0,0)
+            True
+
+        """
+        return self([0]*self.ngens())
+
 
 class AffineSpace_field(AffineSpace_generic):
     def _point(self, *args, **kwds):
@@ -1125,7 +1139,7 @@ class AffineSpace_field(AffineSpace_generic):
         INPUT:
 
         - ``F`` -- a polynomial, or a list or tuple of polynomials in
-          the coordinate ring of this affine space.
+          the coordinate ring of this affine space
 
         EXAMPLES::
 
@@ -1135,6 +1149,80 @@ class AffineSpace_field(AffineSpace_generic):
         """
         from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
+
+    def line_through(self, p, q):
+        """
+        Return the line through ``p`` and ``q``.
+
+        INPUT:
+
+        - ``p``, ``q`` -- distinct rational points of the affine space
+
+        EXAMPLES::
+
+            sage: A3.<x,y,z> = AffineSpace(3, QQ)
+            sage: p1 = A3(1, 2, 3)
+            sage: p2 = A3(4, 5, 6)
+            sage: A3.line_through(p1, p2)
+            Affine Curve over Rational Field defined by -1/6*x + 1/6*y - 1/6,
+            -1/6*x + 1/6*z - 1/3, -1/6*y + 1/6*z - 1/6, -1/6*x + 1/3*y - 1/6*z
+            sage: L = _
+            sage: L(p1)
+            (1, 2, 3)
+            sage: L(p2)
+            (4, 5, 6)
+            sage: A3.line_through(p1, p1)
+            Traceback (most recent call last):
+            ...
+            ValueError: not distinct points
+
+        """
+        if p == q:
+            raise ValueError("not distinct points")
+
+        proj = self.projective_embedding(0)
+        P = proj.codomain()
+        return P.line_through(proj(p), proj(q)).affine_patch(0, self)
+
+    def translation(self, p, q=None):
+        """
+        Return the automorphism of the affine space translating ``p`` to the origin.
+
+        If ``q`` is given, the automorphism translates ``p`` to ``q``.
+
+        INPUT:
+
+        - ``p`` -- a rational point
+
+        - ``q`` -- (default: ``None``) a rational point
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: p = A(1,2,3)
+            sage: q = A(4,5,6)
+            sage: A.translation(p, q)
+            Scheme endomorphism of Affine Space of dimension 3 over Rational Field
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x + 3, y + 3, z + 3)
+            sage: phi = A.translation(p)
+            sage: psi = A.translation(A.origin(), q)
+            sage: psi * phi
+            Scheme endomorphism of Affine Space of dimension 3 over Rational Field
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x + 3, y + 3, z + 3)
+            sage: psi * phi == A.translation(p, q)
+            True
+
+        """
+        gens = self.gens()
+
+        if q is not None:
+            v = [cp - cq for cp, cq in zip(p, q)]
+        else:
+            v = [cp for cp in p]
+
+        return self._morphism(self.Hom(self), [x - c for x, c in zip(gens, v)])
 
 
 class AffineSpace_finite_field(AffineSpace_field):

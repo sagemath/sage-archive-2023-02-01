@@ -60,7 +60,6 @@ In contrast, input to the ``%time`` magic command is preparsed::
     2 * 3^3 * 11
     sage: shell.quit()
 """
-from __future__ import absolute_import
 
 from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 
@@ -511,9 +510,8 @@ class SageCustomizations(object):
         from .interpreter import (SagePreparseTransformer,
                                  SagePromptTransformer)
 
-        for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
-            s.physical_line_transforms.insert(1, SagePromptTransformer())
-            s.python_line_transforms.append(SagePreparseTransformer())
+        self.shell.input_transformers_cleanup.insert(1, SagePromptTransformer)
+        self.shell.input_transformers_post.append(SagePreparseTransformer)
 
 
 class SageJupyterCustomizations(SageCustomizations):

@@ -1,4 +1,4 @@
-name: Run SAGE_ROOT/tox.ini
+name: Test Linux --without-system-gcc
 
 ## This GitHub Actions workflow runs SAGE_ROOT/tox.ini with select environments,
 ## whenever a GitHub pull request is opened or synchronized in a repository
@@ -34,9 +34,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 5
       matrix:
-        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-eoan, ubuntu-focal, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, fedora-32, centos-7, centos-8, archlinux-latest, slackware-14.2, conda-forge, ubuntu-bionic-i386, ubuntu-eoan-i386, debian-buster-i386, centos-7-i386]
-        tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg, standard-python2-gcc_spkg]
+        tox_system_factor: [ubuntu-trusty, ubuntu-focal, fedora-27, fedora-31, debian-buster-i386]
+        tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
@@ -58,6 +59,16 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
+      - name: Try to login to docker.pkg.github.com
+        # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
+        run: |
+            TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
+            if [ -z "$TOKEN" ]; then
+              TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            fi
+            if echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin; then
+              echo "DOCKER_PUSH_REPOSITORY=docker.pkg.github.com/${{ github.repository }}/" >> $GITHUB_ENV
+            fi
       - run: |
           set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
       - name: Copy logs from the docker image or build container
@@ -77,20 +88,10 @@ jobs:
         run: |
           .github/workflows/scan-logs.sh "artifacts/$LOGS_ARTIFACT_NAME"
         if: always()
-      - name: Push docker images
+      - name: List docker images
         run: |
           if [ -f .tox/$TOX_ENV/Dockertags ]; then
-            TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
-            if [ -z "$TOKEN" ]; then
-              TOKEN="${{ secrets.GITHUB_TOKEN }}"
-            fi
-            echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-            for a in $(cat .tox/$TOX_ENV/Dockertags); do
-              FULL_TAG=docker.pkg.github.com/${{ github.repository }}/$a
-              docker tag $a $FULL_TAG
-              echo Pushing $FULL_TAG
-              docker push $FULL_TAG
-            done || echo "(Ignoring errors)"
+             cat .tox/$TOX_ENV/Dockertags
           fi
         if: always()
 
@@ -99,9 +100,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         tox_system_factor: [conda-forge-ubuntu]
-        tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg, standard-python2-gcc_spkg]
+        tox_packages_factor: [minimal-gcc_spkg, standard-gcc_spkg]
     env:
       TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}

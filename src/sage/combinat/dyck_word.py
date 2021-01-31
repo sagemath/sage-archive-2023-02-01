@@ -81,7 +81,6 @@ REFERENCES:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from .combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -1580,7 +1579,7 @@ class DyckWord(CombinatorialElement):
             else:
                 close_positions.append(i + 1)
         from sage.combinat.tableau import StandardTableau
-        return StandardTableau([x for x in [open_positions, close_positions] if x != []])
+        return StandardTableau([x for x in [open_positions, close_positions] if x])
 
     def to_tamari_sorting_tuple(self):
         """
@@ -3477,7 +3476,7 @@ class DyckWords_all(DyckWords):
     """
     def __init__(self):
         """
-        Intialize ``self``.
+        Initialize ``self``.
 
         EXAMPLES::
 

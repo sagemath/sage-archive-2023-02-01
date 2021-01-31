@@ -50,33 +50,35 @@ def merge_environment(app, env):
         docenv = get_env(app, curdoc)
         if docenv is not None:
             fixpath = lambda path: os.path.join(curdoc, path)
+            todos = docenv.domaindata['todo'].get('todos', dict())
+            citations = docenv.domaindata['citation'].get('citations', dict())
+            indexentries = docenv.domaindata['index'].get('entries', dict())
             logger.info(" %s todos, %s index, %s citations"%(
-                    len(docenv.todo_all_todos),
-                    len(docenv.indexentries),
-                    len(docenv.domaindata["std"]["citations"])
+                    sum(len(t) for t in todos.values()),
+                    len(indexentries),
+                    len(citations)
                     ), nonl=1)
 
             # merge titles
             for t in docenv.titles:
                 env.titles[fixpath(t)] = docenv.titles[t]
             # merge the todo links
-            for dct in docenv.todo_all_todos:
-                dct['docname'] = fixpath(dct['docname'])
-            env.todo_all_todos += docenv.todo_all_todos
+            for dct in todos:
+                env.domaindata['todo']['todos'][fixpath(dct)] = todos[dct]
             # merge the html index links
             newindex = {}
-            for ind in docenv.indexentries:
+            for ind in indexentries:
                 if ind.startswith('sage/'):
-                    newindex[fixpath(ind)] = docenv.indexentries[ind]
+                    newindex[fixpath(ind)] = indexentries[ind]
                 else:
-                    newindex[ind] = docenv.indexentries[ind]
-            env.indexentries.update(newindex)
+                    newindex[ind] = indexentries[ind]
+            env.domaindata['index']['entries'].update(newindex)
             # merge the all_docs links, needed by the js index
             newalldoc = {}
             for ind in docenv.all_docs:
                 newalldoc[fixpath(ind)] = docenv.all_docs[ind]
             env.all_docs.update(newalldoc)
-            # needed by env.check_consistency (sphinx.environement, line 1734)
+            # needed by env.check_consistency (sphinx.environment, line 1734)
             for ind in newalldoc:
                 # treat subdocument source as orphaned file and don't complain
                 md = env.metadata.get(ind, dict())
@@ -84,24 +86,23 @@ def merge_environment(app, env):
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            citations = docenv.domaindata["std"]["citations"]
-            for ind, (path, tag, lineno) in docenv.domaindata["std"]["citations"].items():
+            for ind, (path, tag, lineno) in citations.items():
                 # TODO: Warn on conflicts
                 newcite[ind] = (fixpath(path), tag, lineno)
-            env.domaindata["std"]["citations"].update(newcite)
+            env.domaindata['citation']['citations'].update(newcite)
             # merge the py:module indexes
             newmodules = {}
-            for ind,(modpath,v1,v2,v3) in (
-                docenv.domaindata['py']['modules'].items()):
-                newmodules[ind] = (fixpath(modpath),v1,v2,v3)
+            from sphinx.domains.python import ModuleEntry
+            for ind,mod in docenv.domaindata['py']['modules'].items():
+                newmodules[ind] = ModuleEntry(fixpath(mod.docname), mod.node_id, mod.synopsis, mod.platform, mod.deprecated)
             env.domaindata['py']['modules'].update(newmodules)
             logger.info(", %s modules"%(len(newmodules)))
     logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(
-            len(env.todo_all_todos),
-            len(env.indexentries),
-            len(env.domaindata["std"]["citations"]),
+            sum(len(t) for t in env.domaindata['todo']['todos'].values()),
+            len(env.domaindata['index']['entries']),
+            len(env.domaindata['citation']['citations']),
             len(env.domaindata['py']['modules'])))
-    write_citations(app, env.domaindata["std"]["citations"])
+    write_citations(app, env.domaindata['citation']['citations'])
 
 
 def get_env(app, curdoc):
@@ -251,7 +252,7 @@ def fetch_citation(app, env):
     with open(filename, 'rb') as f:
         cache = pickle.load(f)
     logger.info("done (%s citations)."%len(cache))
-    cite = env.domaindata["std"]["citations"]
+    cite = env.domaindata['citation'].get('citations', dict())
     for ind, (path, tag, lineno) in cache.items():
         if ind not in cite: # don't override local citation
             cite[ind] = (os.path.join("..", path), tag, lineno)

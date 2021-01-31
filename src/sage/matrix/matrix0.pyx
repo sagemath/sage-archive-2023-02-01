@@ -30,7 +30,7 @@ import sage.misc.latex
 import sage.rings.integer
 
 from sage.arith.power cimport generic_power
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.verbose import verbose, get_verbose
 from sage.structure.sequence import Sequence
 from sage.structure.parent cimport Parent
 
@@ -521,6 +521,17 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         raise NotImplementedError("this must be defined in the derived type.")
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        Might/should be optimized for derived type.
+        """
+        if self.get_unsafe(i, j):
+            return 0
+        else:
+            return 1
+
     def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
         r"""
         Add ``elt`` to the entry at position ``(i, j)``.
@@ -555,7 +566,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 ##         This function it can very easily !! SEG FAULT !! if you call
 ##         it with invalid input.  Use with *extreme* caution.
 
-##         EXAMPLES:
+##         EXAMPLES::
+##
 ##             sage: a = matrix(ZZ,2,range(4))
 ##             sage: a._get_very_unsafe(0,1)
 ##             1
@@ -1608,7 +1620,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can't change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ.
 
         Changing rings preserves subdivisions::
 
@@ -1711,7 +1723,8 @@ cdef class Matrix(sage.structure.element.Matrix):
              100 x 100 dense matrix over Integer Ring]
 
         """
-        if self._nrows < max_rows and self._ncols < max_cols:
+        from .constructor import options
+        if self._nrows <= options.max_rows() and self._ncols <= options.max_cols():
             return self.str()
         if self.is_sparse():
             s = 'sparse'
@@ -2047,7 +2060,8 @@ cdef class Matrix(sage.structure.element.Matrix):
               -0.35104242112828943    0.5084492941557279]
                -0.9541798283979341   -0.8948790563276592]
         """
-        if self._nrows < max_rows and self._ncols < max_cols:
+        from .constructor import options
+        if self._nrows <= options.max_rows() and self._ncols <= options.max_cols():
             return self.str(character_art=True)
         else:
             from sage.typeset.ascii_art import AsciiArt
@@ -2075,7 +2089,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: unicode_art(A)
             100 x 100 dense matrix over Integer Ring
         """
-        if self._nrows < max_rows and self._ncols < max_cols:
+        from .constructor import options
+        if self._nrows <= options.max_rows() and self._ncols <= options.max_cols():
             return self.str(unicode=True, character_art=True)
         else:
             from sage.typeset.unicode_art import UnicodeArt
@@ -2452,9 +2467,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         Permute the columns of ``self`` by applying the permutation
         group element ``permutation``.
 
-        As a permutation group element acts on integers `\{1, \hdots, n\}`
-        the columns are considered as being numbered from 1 for this
-        operation.
+        As permutation group elements act on integers `\{1,\dots,n\}`,
+        columns are considered numbered from 1 for this operation.
 
         INPUT:
 
@@ -2500,9 +2514,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         of ``self`` by applying the permutation group element
         ``permutation``.
 
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the columns are considered as being numbered from 1 for this
-        operation.
+        As permutation group elements act on integers `\{1,\dots,n\}`,
+        columns are considered numbered from 1 for this operation.
 
         INPUT:
 
@@ -2637,9 +2650,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         Permute the rows of ``self`` by applying the permutation
         group element ``permutation``.
 
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows are considered as being numbered from 1 for this
-        operation.
+        As permutation group elements act on integers `\{1,\dots,n\}`,
+        rows are considered numbered from 1 for this operation.
 
         INPUT:
 
@@ -2683,9 +2695,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         of ``self`` by applying the permutation group element
         ``permutation``.
 
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows are considered as being numbered from 1 for this
-        operation.
+        As permutation group elements act on integers `\{1,\dots,n\}`,
+        rows are considered numbered from 1 for this operation.
 
         INPUT:
 
@@ -2741,9 +2752,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         group elements ``row_permutation`` and ``column_permutation``
         respectively.
 
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows and columns are considered as being numbered from 1 for
-        this operation.
+        As permutation group elements act on integers `\{1,\dots,n\}`,
+        rows and columns are considered numbered from 1 for this operation.
 
         INPUT:
 
@@ -2787,9 +2797,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         columns of ``self`` by applying the permutation group
         elements ``row_permutation`` and ``column_permutation``.
 
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
-        the rows are considered as being numbered from 1 for this
-        operation.
+        As permutation group elements act on integers `\{1,\dots,n\}`,
+        rows and columns are considered numbered from 1 for this operation.
 
         INPUT:
 
@@ -2850,7 +2859,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         If not, we get an error message::
 
-            sage: a.add_multiple_of_row(1,0,i)
+            sage: a.add_multiple_of_row(1,0,SR.I())
             Traceback (most recent call last):
             ...
             TypeError: Multiplying row by Symbolic Ring element cannot be done over Rational Field, use change_ring or with_added_multiple_of_row instead.
@@ -2934,7 +2943,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         If not, we get an error message::
 
-            sage: a.add_multiple_of_column(1,0,i)
+            sage: a.add_multiple_of_column(1,0,SR.I())
             Traceback (most recent call last):
             ...
             TypeError: Multiplying column by Symbolic Ring element cannot be done over Rational Field, use change_ring or with_added_multiple_of_column instead.
@@ -3659,9 +3668,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         if skew:
             # testing the diagonal entries to be zero
-            zero = self.parent().base_ring().zero()
             for i from 0 <= i < self._nrows:
-                if self.get_unsafe(i,i) != zero:
+                if not self.get_is_zero_unsafe(i,i):
                     return False
             sign = -1
         else:
@@ -4432,20 +4440,18 @@ cdef class Matrix(sage.structure.element.Matrix):
         return np
 
     def nonzero_positions(self, copy=True, column_order=False):
-        """
-        Returns the sorted list of pairs (i,j) such that self[i,j] != 0.
+        r"""
+        Return the sorted list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
 
         INPUT:
 
+        -  ``copy`` -- (default: ``True``) it is safe to change the
+           resulting list (unless you give the option ``copy=False``)
 
-        -  ``copy`` - (default: True) It is safe to change the
-           resulting list (unless you give the option copy=False).
-
-        -  ``column_order`` - (default: False) If true,
-           returns the list of pairs (i,j) such that self[i,j] != 0, but
-           sorted by columns, i.e., column j=0 entries occur first, then
-           column j=1 entries, etc.
-
+        -  ``column_order`` -- (default: ``False``) If ``True``,
+           returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
+           sorted by columns, i.e., column ``j=0`` entries occur first, then
+           column ``j=1`` entries, etc.
 
         EXAMPLES::
 
@@ -4475,16 +4481,16 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_row(self, copy=True):
         """
-        Returns the list of pairs (i,j) such that self[i,j] != 0.
+        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
 
-        It is safe to change the resulting list (unless you give the option copy=False).
+        It is safe to change the resulting list (unless you give the
+        option ``copy=False``).
 
         EXAMPLES::
 
             sage: M = Matrix(CC, [[1,0],[0,1]], sparse=True)
             sage: M._nonzero_positions_by_row()
             [(0, 0), (1, 1)]
-
         """
         x = self.fetch('nonzero_positions')
         if not x is None:
@@ -4492,11 +4498,10 @@ cdef class Matrix(sage.structure.element.Matrix):
                 return list(x)
             return x
         cdef Py_ssize_t i, j
-        z = self._base_ring(0)
         nzp = []
         for i from 0 <= i < self._nrows:
            for j from 0 <= j < self._ncols:
-                if self.get_unsafe(i,j) != z:
+                if not self.get_is_zero_unsafe(i,j):
                     nzp.append((i,j))
         self.cache('nonzero_positions', nzp)
         if copy:
@@ -4505,19 +4510,18 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_column(self, copy=True):
         """
-        Returns the list of pairs (i,j) such that self[i,j] != 0, but
-        sorted by columns, i.e., column j=0 entries occur first, then
-        column j=1 entries, etc.
+        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
+        sorted by columns, i.e., column ``j=0`` entries occur first, then
+        column ``j=1`` entries, etc.
 
         It is safe to change the resulting list (unless you give the option
-        copy=False).
+        ``copy=False``).
 
         EXAMPLES::
 
             sage: m=matrix(QQ,2,[1,0,1,1,1,0])
             sage: m._nonzero_positions_by_column()
             [(0, 0), (1, 0), (1, 1), (0, 2)]
-
         """
         x = self.fetch('nonzero_positions_by_column')
         if not x is None:
@@ -4525,11 +4529,10 @@ cdef class Matrix(sage.structure.element.Matrix):
                 return list(x)
             return x
         cdef Py_ssize_t i, j
-        z = self._base_ring(0)
         nzp = []
         for j from 0 <= j < self._ncols:
             for i from 0 <= i < self._nrows:
-                if self.get_unsafe(i,j) != z:
+                if not self.get_is_zero_unsafe(i,j):
                     nzp.append((i,j))
         self.cache('nonzero_positions_by_column', nzp)
         if copy:
@@ -4538,15 +4541,13 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def nonzero_positions_in_column(self, Py_ssize_t i):
         """
-        Return a sorted list of the integers j such that self[j,i] is
-        nonzero, i.e., such that the j-th position of the i-th column is
-        nonzero.
+        Return a sorted list of the integers ``j`` such that ``self[j,i]`` is
+        nonzero, i.e., such that the ``j``-th position of the ``i``-th column
+        is nonzero.
 
         INPUT:
 
-
-        -  ``i`` - an integer
-
+        - ``i`` -- an integer
 
         OUTPUT: list
 
@@ -4561,7 +4562,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a.nonzero_positions_in_column(1)
             [0, 1]
 
-        You'll get an IndexError, if you select an invalid column::
+        You will get an ``IndexError`` if you select an invalid column::
 
             sage: a.nonzero_positions_in_column(2)
             Traceback (most recent call last):
@@ -4569,26 +4570,23 @@ cdef class Matrix(sage.structure.element.Matrix):
             IndexError: matrix column index out of range
         """
         cdef Py_ssize_t j
-        z = self._base_ring(0)
         tmp = []
 
         if i<0 or i >= self._ncols:
             raise IndexError("matrix column index out of range")
         for j from 0 <= j < self._nrows:
-            if self.get_unsafe(j,i) != z:
+            if not self.get_is_zero_unsafe(j,i):
                 tmp.append(j)
         return tmp
 
     def nonzero_positions_in_row(self, Py_ssize_t i):
         """
-        Return the integers j such that self[i,j] is nonzero, i.e., such
-        that the j-th position of the i-th row is nonzero.
+        Return the integers ``j`` such that ``self[i,j]`` is nonzero, i.e.,
+        such that the ``j``-th position of the ``i``-th row is nonzero.
 
         INPUT:
 
-
-        -  ``i`` - an integer
-
+        -  ``i`` -- an integer
 
         OUTPUT: list
 
@@ -4607,14 +4605,13 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         cdef Py_ssize_t j
 
-        if i<0 or i >= self._nrows:
+        if i < 0 or i >= self._nrows:
             raise IndexError("matrix row index out of range")
 
-        z = self._base_ring(0)
         tmp = []
 
         for j from 0 <= j < self._ncols:
-            if self.get_unsafe(i,j) != z:
+            if not self.get_is_zero_unsafe(i,j):
                 tmp.append(j)
         return tmp
 
@@ -4866,14 +4863,14 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         .. MATH::
 
-                       v, v A, v A^2, \ldots, v A^{n-1}.
+                       v, v A, v A^2, \dots, v A^{n-1}.
 
         If rows is False, return a matrix whose columns are the entries of
         the following vectors:
 
         .. MATH::
 
-                       v, Av, A^2 v, \ldots, A^{n-1} v.
+                       v, Av, A^2 v, \dots, A^{n-1} v.
 
         INPUT:
 
@@ -5634,9 +5631,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             [1]
             sage: 0^0
             1
-        
+
         Non-integer (symbolic) exponents are also supported::
-        
+
             sage: k = var('k')
             sage: A = matrix([[2, -1], [1,  0]])
             sage: A^(2*k+1)
@@ -5829,7 +5826,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                if self.get_unsafe(i,j):
+                if not self.get_is_zero_unsafe(i,j):
                     return True
         return False
 
@@ -5879,9 +5876,6 @@ def unpickle(cls, parent, immutability, cache, data, version):
     return A
 
 
-max_rows = 20
-max_cols = 50
-
 def set_max_rows(n):
     """
     Sets the global variable max_rows (which is used in deciding how to output a matrix).
@@ -5890,11 +5884,14 @@ def set_max_rows(n):
 
         sage: from sage.matrix.matrix0 import set_max_rows
         sage: set_max_rows(20)
+        doctest:...: DeprecationWarning: 'set_max_rows' is replaced by 'matrix.options.max_rows'
+        See https://trac.sagemath.org/30552 for details.
 
     """
-
-    global max_rows
-    max_rows = n
+    from sage.misc.superseded import deprecation
+    deprecation(30552, "'set_max_rows' is replaced by 'matrix.options.max_rows'")
+    from .constructor import options
+    options.max_rows = n-1
 
 def set_max_cols(n):
     """
@@ -5904,8 +5901,11 @@ def set_max_cols(n):
 
         sage: from sage.matrix.matrix0 import set_max_cols
         sage: set_max_cols(50)
+        doctest:...: DeprecationWarning: 'set_max_cols' is replaced by 'matrix.options.max_cols'
+        See https://trac.sagemath.org/30552 for details.
 
     """
-
-    global max_cols
-    max_cols = n
+    from sage.misc.superseded import deprecation
+    deprecation(30552, "'set_max_cols' is replaced by 'matrix.options.max_cols'")
+    from .constructor import options
+    options.max_cols = n-1

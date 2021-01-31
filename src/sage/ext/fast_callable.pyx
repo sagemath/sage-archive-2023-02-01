@@ -303,7 +303,7 @@ AUTHOR:
 import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.rings.all import RDF, CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -311,7 +311,6 @@ from sage.structure.element cimport parent
 
 
 def fast_callable(x, domain=None, vars=None,
-                  _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality=False,
                   expect_one_var=False):
     r"""
     Given an expression x, compile it into a form that can be quickly
@@ -423,39 +422,6 @@ def fast_callable(x, domain=None, vars=None,
         Traceback (most recent call last):
             ...
         TypeError: unable to simplify to float approximation
-
-    Check :trac:`24805`--if a fast_callable expression involves division
-    on a Python object, it will always prefer Python 3 semantics (e.g.
-    ``x / y`` will try ``x.__truediv__`` instead of ``x.__div__``, as if
-    ``from __future__ import division`` is in effect).  However, for
-    classes that implement ``__div__`` but not ``__truediv__`` it will still
-    fall back on ``__div__`` for backwards-compatibility, but reliance on
-    this functionality is deprecated::
-
-        sage: from sage.ext.fast_callable import ExpressionTreeBuilder
-        sage: etb = ExpressionTreeBuilder('x')
-        sage: x = etb.var('x')
-        sage: class One(object):
-        ....:     def __div__(self, other):
-        ....:         if not isinstance(other, Integer):
-        ....:             return NotImplemented
-        ....:         return 1 / other
-        sage: expr = One() / x
-        sage: f = fast_callable(expr, vars=[x])
-        sage: f(2)  # py2
-        doctest:warning...:
-        DeprecationWarning: use of __truediv__ should be preferred over __div__
-        See https://trac.sagemath.org/24805 for details.
-        1/2
-        sage: class ModernOne(One):
-        ....:     def __truediv__(self, other):
-        ....:         if not isinstance(other, Integer):
-        ....:             return NotImplemented
-        ....:         return 1 / other
-        sage: expr = ModernOne() / x
-        sage: f = fast_callable(expr, vars=[x])
-        sage: f(2)
-        1/2
     """
     cdef Expression et
     if isinstance(x, Expression):
@@ -481,11 +447,7 @@ def fast_callable(x, domain=None, vars=None,
                     if len(vars) == 0:
                         vars = ['EXTRA_VAR0']
                 else:
-                    if _autocompute_vars_for_backward_compatibility_with_deprecated_fast_float_functionality:
-                        from sage.misc.superseded import deprecation
-                        deprecation(5413, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
-                    else:
-                        raise ValueError("List of variables must be specified for symbolic expressions")
+                    raise ValueError("List of variables must be specified for symbolic expressions")
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
@@ -964,28 +926,6 @@ cdef class Expression:
             div(1, v_0)
         """
         return _expression_binop_helper(s, o, op_truediv)
-
-    def __div__(s, o):
-        r"""
-        Compute a quotient of two Expressions.
-
-        EXAMPLES::
-
-            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
-            sage: etb = ExpressionTreeBuilder(vars=(x,))
-            sage: x = etb(x)
-            sage: x/x
-            div(v_0, v_0)
-            sage: x/1
-            div(v_0, 1)
-            sage: 1/x
-            div(1, v_0)
-            sage: x.__div__(1)  # py2
-            div(v_0, 1)
-            sage: x.__rdiv__(1)  # py2
-            div(1, v_0)
-        """
-        return _expression_binop_helper(s, o, op_div)
 
     def __floordiv__(s, o):
         r"""

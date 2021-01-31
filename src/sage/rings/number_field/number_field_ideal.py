@@ -35,7 +35,6 @@ We test that pickling works::
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 SMALL_DISC = 1000000
 
@@ -1819,11 +1818,17 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         TESTS:
 
         Number fields defined by non-monic and non-integral
-        polynomials are supported (:trac:`252`)::
+        polynomials are supported (:trac:`252`);
+        the representation depends on the PARI version::
 
             sage: F.<a> = NumberField(2*x^3 + x + 1)
-            sage: fact = F.factor(2); fact
-            (Fractional ideal (2*a^2 + 1))^2 * (Fractional ideal (-2*a^2))
+            sage: fact = F.factor(2)
+            sage: (fact[0][1], fact[1][1])
+            (2, 1)
+            sage: fact[0][0] == F.ideal(2*a^2 + 1)
+            True
+            sage: fact[1][0] == F.ideal(-2*a^2)
+            True
             sage: [p[0].norm() for p in fact]
             [2, 2]
         """
@@ -2413,12 +2418,25 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: B = k.ideal(3)
             sage: A.is_coprime(B)
             False
-            sage: lam = A.idealcoprime(B); lam
+            sage: lam = A.idealcoprime(B)
+            sage: lam  # representation depends, not tested
             -1/6*a + 1/6
             sage: (lam*A).is_coprime(B)
             True
 
         ALGORITHM: Uses Pari function :pari:`idealcoprime`.
+
+        TESTS:
+
+        Check the above doctests, where the representation
+        depends on the PARI version::
+
+            sage: k.<a> = NumberField(x^2 + 23)
+            sage: A = k.ideal(a+1)
+            sage: B = k.ideal(3)
+            sage: lam = A.idealcoprime(B)
+            sage: lam in (-1/6*a + 1/6, 1/6*a - 1/6)
+            True
         """
         if not (self.is_integral() and J.is_integral()):
             raise ValueError("Both ideals must be integral.")

@@ -175,13 +175,11 @@ Python floats.
 #
 #                  https://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function, absolute_import
 
 import os
 import re
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.all import verbose
 from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
@@ -422,6 +420,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
               4
                                                        Type: PositiveInteger
         """
+        from sage.misc.verbose import verbose
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
         line = line.rstrip().rstrip(';')

@@ -78,7 +78,8 @@ from sage.modular.dims import dimension_modular_forms
 from sage.misc.functional import dimension,transpose,charpoly
 from sage.matrix.constructor import matrix, random_matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.misc.misc import cputime, verbose
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose
 
 # AUXILIARY CODE: SPACES OF MODULAR FORMS AND LINEAR ALGEBRA
 

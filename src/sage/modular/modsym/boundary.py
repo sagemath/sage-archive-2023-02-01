@@ -88,9 +88,8 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
 
-from sage.misc.misc import repr_lincomb
+from sage.misc.repr import repr_lincomb
 from sage.structure.richcmp import richcmp_method, richcmp
 
 import sage.modules.free_module as free_module
@@ -507,9 +506,9 @@ class BoundarySpace(hecke.HeckeModule_generic):
 
             sage: M = ModularSymbols(Gamma1(5), 4) ; B = M.boundary_space()
             sage: [ B(x) for x in M.basis() ]
-            [-[2/5], -[-1/5], -[1/3], -[-1/4], -[-1/4], -[-1/4]]
+            [-[2/5], -[Infinity], -[1/3], -[-1/4], -[-1/4], -[-1/4]]
             sage: [ B._coerce_in_manin_symbol(x) for x in M.manin_symbols_basis() ]
-            [-[2/5], -[-1/5], -[1/3], -[-1/4], -[-1/4], -[-1/4]]
+            [-[2/5], -[Infinity], -[1/3], -[-1/4], -[-1/4], -[-1/4]]
         """
         i = x.i
         alpha, beta = x.endpoints(self.level())

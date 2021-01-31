@@ -385,7 +385,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
         sage: v[3].parent()
         Integer Ring
-        sage: v = vector([float(23.4), int(2), complex(2+7*I), long(1)]); v
+        sage: v = vector([float(23.4), int(2), complex(2+7*I), 1]); v
         (23.4, 2.0, 2.0 + 7.0*I, 1.0)
         sage: v[1].parent()
         Complex Double Field
@@ -736,6 +736,7 @@ def zero_vector(arg0, arg1=None):
         TypeError: first argument must be a ring
     """
     if arg1 is None:
+        arg0 = ZZ(arg0)
         # default to a zero vector over the integers (ZZ) if no ring given
         return (ZZ**arg0).zero_vector()
     if is_Ring(arg0):
@@ -1011,12 +1012,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         # Get a reference to Magma version of parent.
         R = magma(self.parent())
         # Get list of coefficients.
-        v = ','.join([a._magma_init_(magma) for a in self.list()])
+        v = ','.join(a._magma_init_(magma) for a in self.list())
         return '%s![%s]' % (R.name(), v)
 
     def numpy(self, dtype=object):
         """
-        Converts self to a numpy array.
+        Convert self to a numpy array.
 
         INPUT:
 
@@ -1484,53 +1485,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             (b, d, d, e)
         """
         return self.parent()([ a.subs(in_dict, **kwds) for a in self.list() ])
-
-    def set_immutable(self):
-        """
-        Make this vector immutable. This operation can't be undone.
-
-        EXAMPLES::
-
-            sage: v = vector([1..5]); v
-            (1, 2, 3, 4, 5)
-            sage: v[1] = 10
-            sage: v.set_immutable()
-            sage: v[1] = 10
-            Traceback (most recent call last):
-            ...
-            ValueError: vector is immutable; please change a copy instead (use copy())
-        """
-        self._is_mutable = 0
-
-    def is_mutable(self):
-        """
-        Return True if this vector is mutable, i.e., the entries can be
-        changed.
-
-        EXAMPLES::
-
-            sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
-            True
-            sage: v.set_immutable()
-            sage: v.is_mutable()
-            False
-        """
-        return self._is_mutable
-
-    def is_immutable(self):
-        """
-        Return True if this vector is immutable, i.e., the entries cannot
-        be changed.
-
-        EXAMPLES::
-
-            sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
-            False
-            sage: v.set_immutable()
-            sage: v.is_immutable()
-            True
-        """
-        return not self._is_mutable
 
     def change_ring(self, R):
         """
@@ -2698,14 +2652,13 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Return the matrix which describes a cross product
         between ``self`` and some other vector.
 
-        This operation is sometimes written using the `hat operator`_.
+        This operation is sometimes written using the hat operator:
+        see :wikipedia:`Hat_operator#Cross_product`.
         It is only defined for vectors of length 3 or 7.
         For a vector `v` the cross product matrix `\hat{v}`
         is a matrix which satisfies `\hat{v} \cdot w = v \times w`
         and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
         The basis vectors are assumed to be orthonormal.
-
-        .. _hat operator: :wikipedia:`Hat_operator#Cross_product`
 
         OUTPUT:
 
@@ -3574,8 +3527,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def _mathematica_init_(self):
         """
-        Returns string representation of this vector as a Mathematica
-        list.
+        Return string representation of this vector as a Mathematica list.
 
         EXAMPLES::
 
@@ -3588,7 +3540,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: a._mathematica_init_()
             '{1, x, (x)^(2), Sin[x], Pi}'
         """
-        return '{' + ', '.join([x._mathematica_init_() for x in self.list()]) + '}'
+        return '{' + ', '.join(x._mathematica_init_() for x in self.list()) + '}'
 
     def nonzero_positions(self):
         """
@@ -3662,7 +3614,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         from sage.misc.latex import latex
         vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
-        s += ',\,'.join([latex(a) for a in self.list()])
+        s += ',\,'.join(latex(a) for a in self.list())
         return s + '\\right' + vector_delimiters[1]
 
     def dense_vector(self):

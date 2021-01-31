@@ -86,7 +86,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
@@ -98,7 +97,7 @@ from sage.rings.integer import Integer
 from sage.modular.cusps import Cusps
 from sage.rings.integer_ring import   ZZ
 from sage.rings.rational_field import QQ
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 

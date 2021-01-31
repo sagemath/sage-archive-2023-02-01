@@ -74,7 +74,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import operator
 from sage.structure.element import Element, parent, coercion_model
@@ -433,9 +432,9 @@ class SchemeMorphism(Element):
         """
         return self.parent().homset_category()
 
-    def is_endomorphism(self):
+    def is_endomorphism(self) -> bool:
         """
-        Return wether the morphism is an endomorphism.
+        Return whether the morphism is an endomorphism.
 
         OUTPUT:
 
@@ -784,7 +783,8 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: f(X.an_element())    # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: inverse not implemented for morphisms of
+            Rational Field
         """
         # By virtue of argument preprocessing in __call__, we can assume that
         # x is a topological scheme point of self
@@ -1414,7 +1414,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: K.<w> = QuadraticField(2, embedding=QQbar(-sqrt(2)))
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: X = P.subscheme(x-y)

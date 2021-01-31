@@ -21,11 +21,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-# Support of Python 3
-from __future__ import division, absolute_import, print_function, unicode_literals
-
 from .satsolver import SatSolver
+
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('pycryptosat', ['Solver'],
+            feature=PythonModule('pycryptosat', spkg='cryptominisat'))
 
 
 class CryptoMiniSat(SatSolver):
@@ -50,7 +51,7 @@ class CryptoMiniSat(SatSolver):
     """
     def __init__(self, verbosity=0, confl_limit=None, threads=None):
         r"""
-        Constuct a new CryptoMiniSat instance.
+        Construct a new CryptoMiniSat instance.
 
         See the documentation class for the description of inputs.
 
@@ -65,11 +66,6 @@ class CryptoMiniSat(SatSolver):
         if confl_limit is None:
             from sys import maxsize
             confl_limit = maxsize
-        try:
-            from pycryptosat import Solver
-        except ImportError:
-            from sage.misc.package import PackageNotFoundError
-            raise PackageNotFoundError("cryptominisat")
         self._solver = Solver(verbose=int(verbosity), confl_limit=int(confl_limit), threads=int(threads))
         self._nvars = 0
         self._clauses = []

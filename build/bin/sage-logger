@@ -32,6 +32,7 @@ fi
 
 cmd="$1"
 logfile="$2"
+export SAGE_LOGFILE="$logfile"
 logname="$(basename $logfile .log)"
 logdir=`dirname "$logfile"`
 

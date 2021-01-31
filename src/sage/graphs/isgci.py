@@ -391,7 +391,6 @@ AUTHORS:
 Methods
 -------
 """
-from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
@@ -500,9 +499,8 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal >= graph_classes.Tree
             True
         """
-
         inclusion_digraph = GraphClasses().inclusion_digraph()
-        if inclusion_digraph.shortest_path(self._gc_id,other._gc_id) != []:
+        if inclusion_digraph.shortest_path(self._gc_id,other._gc_id):
             return True
         else:
             return Unknown
@@ -996,7 +994,7 @@ class GraphClasses(UniqueRepresentation):
         # Maximum width of a field
         MAX_LEN = 40
 
-        # Computing te max of each field with the database
+        # Computing the max of each field with the database
         for key in MAX:
             MAX[key] = len(max((str(x.get(key, "")) for x in classes_list), key=len))
 

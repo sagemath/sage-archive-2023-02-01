@@ -1,25 +1,21 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Frank Luebeck's tables of Conway polynomials over finite fields
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #
 #       Sage: Copyright (C) 2005 William Stein <wstein@gmail.com>
 #             Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-import collections
+from collections.abc import Mapping
 import os
 import pickle
 
@@ -28,7 +24,7 @@ from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
 _CONWAYDATA = os.path.join(CONWAY_POLYNOMIALS_DATA_DIR, 'conway_polynomials.p')
 _conwaydict = None
 
-class DictInMapping(collections.Mapping):
+class DictInMapping(Mapping):
     def __init__(self, dict):
         """
         Places dict into a non-mutable mapping.
@@ -92,7 +88,7 @@ class DictInMapping(collections.Mapping):
         return repr(self._store)
 
 
-class ConwayPolynomials(collections.Mapping):
+class ConwayPolynomials(Mapping):
     def __init__(self):
         """
         Initialize the database.

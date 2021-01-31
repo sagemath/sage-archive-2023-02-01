@@ -19,7 +19,7 @@ Hecke triangle groups and elements:
 
   The group elements correspond to matrices over ZZ[lambda], namely the
   corresponding order in the number field defined by the minimal polynomial
-  of lambda (which embedds into ``AlgebraicReal`` accordingly).
+  of lambda (which embeds into ``AlgebraicReal`` accordingly).
 
   An exact symbolic expression of the corresponding transfinite diameter ``d``
   (which is used as a formal parameter for Fourier expansion of modular forms)
@@ -528,8 +528,8 @@ Hecke triangle groups and elements:
       [-4, -2, 0]
       sage: G.class_number(68)
       4
-      sage: G.class_representatives(68)
-      [S*T^(-2)*S*T^(-1)*S*T, -S*T^(-1)*S*T^2*S*T, S*T^(-5)*S*T^(-1)*S, T*S*T^5]
+      sage: sorted(G.class_representatives(68))
+      [S*T^(-5)*S*T^(-1)*S, S*T^(-2)*S*T^(-1)*S*T, T*S*T^5, -S*T^(-1)*S*T^2*S*T]
       sage: R = G.reduced_elements(68)
       sage: all(v.is_reduced() for v in R)  # long time
       True
@@ -546,7 +546,7 @@ Hecke triangle groups and elements:
       [-4, -lam - 2, lam - 3, 0]
       sage: G.class_number(9*G.lam() + 5)
       2
-      sage: G.class_representatives(9*G.lam() + 5)
+      sage: sorted(G.class_representatives(9*G.lam() + 5))
       [S*T^(-2)*S*T^(-1)*S, T*S*T^2]
       sage: R = G.reduced_elements(9*G.lam() + 5)
       sage: all(v.is_reduced() for v in R)  # long time
@@ -602,7 +602,7 @@ Modular forms ring and spaces for Hecke triangle groups:
   - Specifying the form as a rational function in the basic generators (see below)
   - For weakly holomorphic modular forms it is possible to exactly determine the
     form by specifying (sufficiently many) initial coefficients of its Fourier expansion.
-  - There is even hope (no garantuee) to determine a (exact) form from
+  - There is even hope (no guarantee) to determine a (exact) form from
     the initial numerical coefficients (see below).
   - By specifying the coefficients with respect to a basis of the space
     (if the corresponding space supports coordinate vectors)

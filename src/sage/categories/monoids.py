@@ -13,7 +13,6 @@ Monoids
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.semigroups import Semigroups
 from sage.misc.lazy_import import LazyImport
@@ -79,7 +78,7 @@ class Monoids(CategoryWithAxiom):
         Return a free monoid on `n` generators or with the generators
         indexed by a set `I`.
 
-        A free monoid is constructed by specifing either:
+        A free monoid is constructed by specifying either:
 
         - the number of generators and/or the names of the generators
         - the indexing set for the generators
@@ -103,7 +102,7 @@ class Monoids(CategoryWithAxiom):
         """
         if names is not None:
             if isinstance(names, str):
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 if ',' not in names and index_set in ZZ:
                     names = [names + repr(i) for i in range(index_set)]
                 else:
@@ -154,6 +153,7 @@ class Monoids(CategoryWithAxiom):
                 sage: S.prod([S('a'), S('b')])
                 'ab'
             """
+            from sage.misc.misc_c import prod
             return prod(args, self.one())
 
         def _test_prod(self, **options):
@@ -325,7 +325,7 @@ class Monoids(CategoryWithAxiom):
             Return a free abelian monoid on `n` generators or with
             the generators indexed by a set `I`.
 
-            A free monoid is constructed by specifing either:
+            A free monoid is constructed by specifying either:
 
             - the number of generators and/or the names of the generators, or
             - the indexing set for the generators.
@@ -349,7 +349,7 @@ class Monoids(CategoryWithAxiom):
             """
             if names is not None:
                 if isinstance(names, str):
-                    from sage.rings.all import ZZ
+                    from sage.rings.integer_ring import ZZ
                     if ',' not in names and index_set in ZZ:
                         names = [names + repr(i) for i in range(index_set)]
                     else:
@@ -410,16 +410,21 @@ class Monoids(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
+            The algebra of a monoid is a bialgebra and a monoid.
+
             EXAMPLES::
 
-                sage: Monoids().Algebras(QQ).extra_super_categories()
-                [Category of monoids]
+                sage: C = Monoids().Algebras(QQ)
+                sage: C.extra_super_categories()
+                [Category of bialgebras over Rational Field,
+                 Category of monoids]
                 sage: Monoids().Algebras(QQ).super_categories()
-                [Category of algebras with basis over Rational Field,
+                [Category of bialgebras with basis over Rational Field,
                  Category of semigroup algebras over Rational Field,
                  Category of unital magma algebras over Rational Field]
             """
-            return [Monoids()]
+            from sage.categories.bialgebras import Bialgebras
+            return [Bialgebras(self.base_ring()), Monoids()]
 
         class ParentMethods:
 

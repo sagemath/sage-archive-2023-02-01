@@ -1,3 +1,6 @@
+# distutils: language = c++
+# sage_setup: distribution = sage-tdlib
+
 r"""
 Interface with TdLib (algorithms for tree decompositions)
 
@@ -33,7 +36,7 @@ of `G`.
 Computing the treewidth or a tree decomposition of a given graph is NP-hard in
 general.
 
-**This module containes the following functions** :
+**This module contains the following functions** :
 
 .. csv-table::
     :class: contentstable
@@ -152,6 +155,7 @@ def treedecomposition_exact(G, lb=-1):
 
     return T
 
+
 def get_width(T):
     """
     Return the width of a given tree decomposition.
@@ -167,6 +171,7 @@ def get_width(T):
     - The width of ``T``
 
     EXAMPLES::
+
         sage: import sage.graphs.graph_decompositions.tdlib as tdlib # optional - tdlib
         sage: G = graphs.PetersenGraph()                             # optional - tdlib
         sage: T = tdlib.treedecomposition_exact(G)                   # optional - tdlib

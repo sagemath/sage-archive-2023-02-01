@@ -53,7 +53,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from urllib.request import urlopen
 
@@ -923,14 +922,14 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     .. [GS70s] \J.M. Goethals and J. J. Seidel,
       A skew Hadamard matrix of order 36,
       J. Aust. Math. Soc. 11(1970), 343-344
+
     .. [Wall71] \J. Wallis,
       A skew-Hadamard matrix of order 92,
       Bull. Aust. Math. Soc. 5(1971), 203-204
+
     .. [KoSt08] \C. Koukouvinos, S. Stylianou
       On skew-Hadamard matrices,
       Discrete Math. 308(2008) 2723-2731
-
-
     """
     n = len(a)
     R = matrix(ZZ, n, n, lambda i,j: 1 if i+j==n-1 else 0)

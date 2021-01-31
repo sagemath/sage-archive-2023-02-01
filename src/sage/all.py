@@ -22,7 +22,7 @@ except for the known bad apples::
     ....:     'IPython', 'prompt_toolkit', 'jedi',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
-    ....:     'signal', 'enum',                # may appear in Python 3
+    ....:     'signal', 'enum', 'types'        # may appear in Python 3
     ....: ]
     sage: def is_not_allowed(frame):
     ....:     module = inspect.getmodule(frame)
@@ -57,12 +57,6 @@ Check lazy import of ``interacts``::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-# Future statements which apply to this module. We delete the
-# future globals because we do not want these to appear in the sage.all
-# namespace. This deleting does not affect the parsing of this module.
-from __future__ import absolute_import, division, print_function
-del absolute_import, division, print_function
-
 import os
 import sys
 import operator
@@ -79,7 +73,8 @@ if __with_pydebug:
     warnings.filterwarnings('ignore', category=ImportWarning)
     warnings.filterwarnings('ignore', category=ResourceWarning)
 else:
-    warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+    deprecationWarning = ('ignore', None, DeprecationWarning, None, 0)
+    if deprecationWarning in warnings.filters: warnings.filters.remove(deprecationWarning)
 
 # The psutil swap_memory() function tries to collect some statistics
 # that may not be available and that we don't need. Hide the warnings
@@ -91,7 +86,15 @@ warnings.filterwarnings('ignore', category=RuntimeWarning,
 
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
-    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic|jedi)')
+
+# scipy 1.18 introduced reprecation warnings on a number of things they are moving to
+# numpy, e.g. DeprecationWarning: scipy.array is deprecated
+#             and will be removed in SciPy 2.0.0, use numpy.array instead
+# This affects networkx 2.2 up and including 2.4 (cf. :trac:29766)
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*(scipy|networkx)')
+
 # Ignore collections.abc warnings, there are a lot of them but they are
 # harmless.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
@@ -99,6 +102,15 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
     message=r'[\s\S]*See https\?://trac\.sagemath\.org/[0-9]* for details.')
+
+# Ignore Python 3.9 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*ast')
+
+# Ignore packaging 20.5 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='.*packaging')
+
 ################ end setup warnings ###############################
 
 
@@ -216,7 +228,6 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
-
 ###########################################################
 #### WARNING:
 # DO *not* import numpy / matplotlib / networkx here!!
@@ -233,6 +244,8 @@ ZZ = IntegerRing()
 true = True
 false = False
 oo = infinity
+from sage.rings.imaginary_unit import I
+i = I
 
 from sage.misc.copying import license
 copying = license

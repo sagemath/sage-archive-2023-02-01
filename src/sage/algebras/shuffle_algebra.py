@@ -115,6 +115,15 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         sage: R = ShuffleAlgebra(QQ,'xy')
         sage: R.is_commutative()
         True
+
+    Check for a fix when using numbers as generators::
+
+        sage: A = algebras.Shuffle(QQ,[0,1])
+        sage: A_d = A.dual_pbw_basis()
+        sage: W = A.basis().keys()
+        sage: x = A(W([0,1,0]))
+        sage: A_d(x)
+        -2*S[word: 001] + S[word: 010]
     """
     @staticmethod
     def __classcall_private__(cls, R, names, prefix=None):
@@ -334,8 +343,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             B[word: ] # B[word: ]
         """
         TS = self.tensor_square()
-        return TS.sum_of_terms([((w[:i], w[i:]), 1)
-                                for i in range(len(w) + 1)], distinct=True)
+        return TS.sum_of_monomials((w[:i], w[i:]) for i in range(len(w) + 1))
 
     def counit(self, S):
         """
@@ -379,6 +387,12 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: A = ShuffleAlgebra(QQ, ['x1','x2'])
             sage: A.algebra_generators()
             Family (B[word: x1], B[word: x2])
+
+        TESTS::
+
+            sage: A = ShuffleAlgebra(ZZ,[0,1])
+            sage: A.algebra_generators()
+            Family (B[word: 0], B[word: 1])
         """
         Words = self.basis().keys()
         return Family([self.monomial(Words([a])) for a in self._alphabet])
@@ -765,7 +779,7 @@ class DualPBWBasis(CombinatorialFreeModule):
             (S[word: a], S[word: b])
         """
         W = self.basis().keys()
-        return tuple(self.monomial(W(a)) for a in self._alphabet)
+        return tuple(self.monomial(W([a])) for a in self._alphabet)
 
     gens = algebra_generators
 
@@ -941,7 +955,7 @@ class DualPBWBasis(CombinatorialFreeModule):
             return self._alg.monomial(w)
         if w.is_lyndon():
             W = self.basis().keys()
-            letter = W(w[0])
+            letter = W([w[0]])
             expansion = self.expansion_on_basis(W(w[1:]))
             return self._alg.sum_of_terms((letter * i, c)
                                           for i, c in expansion)

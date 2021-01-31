@@ -31,7 +31,6 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import itertools
 import time
@@ -2573,7 +2572,7 @@ class ClusterSeed(SageObject):
                 if k is None:
                     raise ValueError("variable provided is not in our cluster")
             else:
-                raise ValueError('Why wasnt this caught earlier? Cannot mutate in direction ' + str(k) + '.')
+                raise ValueError('Should not happen. Cannot mutate in direction ' + str(k) + '.')
 
             if seed._use_fpolys:
                 seed._f_mutate(k)
@@ -4554,18 +4553,17 @@ class ClusterSeed(SageObject):
         finalP = []
         #Laurent polynomial for each vector in {0,1}^n
         for i in range(len(vd)):
-            final = 1
             numerator = 0
-            if cList[i] != []:
+            if cList[i]:
             #If the vector in vd is negative then it did not contribute any compatible vectors. It will only contribute a Laurent monomial. This is the case when cList[i]=[]
             #Each compatible sequence gives a term in the numerator of the Laurent polynomial.
                 for s in cList[i]:
                     term = 1
-                    #Calulates the monomial in the term.
+                    # Calculates the monomial in the term.
                     for j in range(num_rows):
                         x = R.gen(j)
                         expn = 0
-                        #The exponent is determined by the vectors a,s, and the matrix B.
+                        # The exponent is determined by the vectors a,s, and the matrix B.
                         for k in range(num_cols):
                             expn += (vd[i][0][k]-s[k])*max(0, B[j][k])+s[k]*max(0, -B[j][k])
                         term *= x ** expn
@@ -4586,6 +4584,7 @@ class ClusterSeed(SageObject):
         for p in finalP:
             laurentP *= p
         return laurentP
+
 
 def _bino(n, k):
     """

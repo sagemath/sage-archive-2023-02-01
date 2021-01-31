@@ -172,7 +172,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
     r"""
@@ -392,24 +391,6 @@ class SageInputBuilder:
             sage: sage_input(-11r, preparse=None, verify=True)
             # Verified
             -int(11)
-            sage: sage_input(long(-5), verify=True)  # py2
-            # Verified
-            -long(5)
-            sage: sage_input(long(-7), preparse=False, verify=True)
-            # Verified
-            -7L
-            sage: sage_input(long(11), preparse=None, verify=True)  # py2
-            # Verified
-            long(11)
-            sage: sage_input(long(2^70), verify=True)
-            # Verified
-            1180591620717411303424r
-            sage: sage_input(-long(2^80), preparse=False, verify=True)
-            # Verified
-            -1208925819614629174706176
-            sage: sage_input(long(2^75), preparse=None, verify=True)  # py2
-            # Verified
-            long(37778931862957161709568)
             sage: sage_input(float(-infinity), preparse=True, verify=True)
             # Verified
             -float(infinity)
@@ -576,10 +557,6 @@ class SageInputBuilder:
             sage: sib = SageInputBuilder()
             sage: sib.result(sib.int(-3^50))
             -717897987691852588770249
-
-            sage: sib = SageInputBuilder()
-            sage: sib.result(sib.int(long(2^65)))
-            36893488147419103232
 
             sage: sib = SageInputBuilder()
             sage: sib.result(sib.int(-42r))
@@ -1518,8 +1495,6 @@ class SageInputExpression(object):
             {binop:/ {atomic:3} {atomic:4}}
         """
         return self._sie_binop('/', other)
-
-    __div__ = __truediv__
 
     def __add__(self, other):
         r"""

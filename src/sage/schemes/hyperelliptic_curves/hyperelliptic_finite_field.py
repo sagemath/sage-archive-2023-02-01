@@ -26,7 +26,7 @@ AUTHORS:
 - Dean Bisogno (2017): Fixed Hasse-Witt computation
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
 #  Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #  Copyright (C) 2010 Alyson Deines <aly.deines@gmail.com>, Marina Gresham
@@ -45,9 +45,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import ZZ, RR, QQ, GF
 from sage.arith.all import binomial
@@ -60,6 +59,7 @@ from sage.misc.functional import rank
 from sage.libs.all import pari
 
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_finite_field
+
 
 class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_generic,
                                       ProjectivePlaneCurve_finite_field):
@@ -838,7 +838,8 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         from sage.rings.finite_rings.finite_field_constructor import zech_log_bound
         try:
             return self.__points
-        except AttributeError: pass
+        except AttributeError:
+            pass
 
         if self.base_ring().is_prime_field():
             self.__points = self._points_cache_sqrt()
@@ -1298,7 +1299,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
     def cardinality_hypellfrob(self, extension_degree=1, algorithm=None):
         r"""
         Count points on a single extension of the base field
-        using the ``hypellfrob`` prgoram.
+        using the ``hypellfrob`` program.
 
         EXAMPLES::
 

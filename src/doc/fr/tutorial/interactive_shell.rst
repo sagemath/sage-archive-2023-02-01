@@ -31,7 +31,7 @@ Pour quitter Sage, tapez Ctrl-D ou tapez ``quit`` ou ``exit``.
 ::
 
     sage: quit
-    Exiting SAGE (CPU time 0m0.00s, Wall time 0m0.89s)
+    Exiting Sage (CPU time 0m0.00s, Wall time 0m0.89s)
 
 L'indication *wall time* donne le temps écoulé à votre montre (ou
 l'horloge suspendue au mur) pendant l'exécution. C'est une donnée
@@ -198,7 +198,7 @@ session future (en rechargeant le fichier journal).
     sage: x,y = QQ['x,y'].gens()
     sage: G = E.gens()
     sage:
-    Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
+    Exiting Sage (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
@@ -316,7 +316,7 @@ commande ``cputime``, comme dans l'exemple suivant :
 
     sage: cputime?
     ...
-        Return the time in CPU second since SAGE started, or with optional
+        Return the time in CPU second since Sage started, or with optional
         argument t, return the time since time t.
         INPUT:
             t -- (optional) float, time in CPU seconds
@@ -963,35 +963,3 @@ la variable ``b`` n'a pas été écrasée.
     sage: a
     389
 
-
-
-.. _section-notebook:
-
-L'ancienne interface *bloc-note sagenb*
-=======================================
-
-L'ancien bloc-note de Sage (“sagenb”) est obsolète et n'est plus
-disponible à partir de la version 9.0 de SageMath, pour cause
-d'incompatibilité avec Python 3. SageMath utilise désormais le
-`bloc-note Jupyter
-<https://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
-
-Pour les utilisateurs, une différence notable est la suivante : les
-feuilles de calcul du bloc-note Jupyter sont sauvegardées sous le
-nouveau format ``.ipynb`` dans le système de fichiers local comme
-n'importe quel autre fichier, alors que pour l'ancien bloc-note le
-principal accès aux feuilles de calcul passait par le serveur.
-
-La nouvelle interface *bloc-note Jupyter*
-=========================================
-
-Pour démarrer le bloc-note Jupyter, tapez
-
-.. skip
-
-::
-
-    sage -n jupyter
-
-sur la ligne de commande dans un terminal. Cela démarre le serveur Jupyter et
-ouvre votre navigateur web par défaut sur la page correspondante.

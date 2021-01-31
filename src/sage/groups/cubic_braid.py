@@ -714,8 +714,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
                 n = None
         # derive n from counting names
         if n is None:
-            import six
-            if isinstance(names, six.string_types):
+            if isinstance(names, str):
                 n = len(names.split(','))
             else:
                 names = list(names)
@@ -1072,7 +1071,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         # -------------------------------------------------------------------------------
         # local methods to set up the classical group (specific part)
         # -------------------------------------------------------------------------------
-        # Case for symlectic groups
+        # Case for symplectic groups
         # -------------------------------------------------------------------------------
         def create_sympl_realization(self, m):
             r"""

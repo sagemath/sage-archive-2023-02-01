@@ -29,7 +29,6 @@ EXAMPLES: We illustrate each of the calculus functional functions.
     sage: inverse_laplace( e^a/(a-1), x, a)
     ilt(e^a/(a - 1), x, a)
 """
-from __future__ import absolute_import
 
 from .calculus import SR
 from sage.symbolic.expression import Expression
@@ -126,6 +125,26 @@ def derivative(f, *args, **kwds):
         80*u^3*v^3
         sage: derivative(f, [u, v, v])
         80*u^3*v^3
+
+    We differentiate a scalar field on a manifold::
+
+        sage: M = Manifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: f = M.scalar_field(x^2*y, name='f')
+        sage: derivative(f)
+        1-form df on the 2-dimensional differentiable manifold M
+        sage: derivative(f).display()
+        df = 2*x*y dx + x^2 dy
+
+    We differentiate a differentiable form, getting its exterior derivative::
+
+        sage: a = M.one_form(-y, x, name='a'); a.display()
+        a = -y dx + x dy
+        sage: derivative(a)
+        2-form da on the 2-dimensional differentiable manifold M
+        sage: derivative(a).display()
+        da = 2 dx/\dy
+
     """
     try:
         return f.derivative(*args, **kwds)

@@ -472,8 +472,15 @@ def _cache_key(G):
     Return the key used to cache the result for the graph G
 
     This is used by the decorator :func:`_cached`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.tutte_polynomial import _cache_key
+        sage: G = graphs.DiamondGraph()
+        sage: print(_cache_key(G))
+        ((0, 2), (0, 3), (1, 2), (1, 3), (2, 3))
     """
-    return tuple(sorted(G.canonical_label().edges(labels=False)))
+    return tuple(G.canonical_label().edges(labels=False, sort=True))
 
 
 def _cached(func):

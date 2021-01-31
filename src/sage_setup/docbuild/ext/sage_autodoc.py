@@ -26,7 +26,6 @@ AUTHORS:
 - Kwankyu Lee (2018-12-26): rebase on the latest sphinx.ext.autodoc
 
 """
-from six import PY2, itervalues, text_type, class_types, string_types
 
 import inspect
 import re
@@ -35,14 +34,15 @@ import sys
 from docutils.statemachine import ViewList
 
 import sphinx
-from sphinx.ext.autodoc.importer import mock, import_object, get_object_members
+from sphinx.ext.autodoc import mock
+from sphinx.ext.autodoc.importer import import_object, get_object_members, get_module_members
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.errors import PycodeError
 from sphinx.util import logging
 from sphinx.util import rpartition, force_decode
 from sphinx.util.docstrings import prepare_docstring
-from sphinx.util.inspect import isdescriptor, safe_getmembers, \
+from sphinx.util.inspect import isdescriptor, \
     safe_getattr, object_description, is_builtin_class_method, \
     isenumattribute, isclassmethod, isstaticmethod, getdoc
 
@@ -536,7 +536,7 @@ class Documenter(object):
 
         # add content from docstrings
         if not no_docstring:
-            encoding = self.analyzer and self.analyzer.encoding
+            encoding = self.analyzer and self.analyzer._encoding
             docstrings = self.get_doc(encoding)
             if not docstrings:
                 # append at least a dummy docstring, so that the event
@@ -882,7 +882,7 @@ class ModuleDocumenter(Documenter):
             if not hasattr(self.object, '__all__'):
                 # for implicit module members, check __module__ to avoid
                 # documenting imported objects
-                return True, safe_getmembers(self.object)
+                return True, get_module_members(self.object)
             else:
                 memberlist = self.object.__all__
                 # Sometimes __all__ is broken...
@@ -893,7 +893,7 @@ class ModuleDocumenter(Documenter):
                         '(in module %s) -- ignoring __all__' %
                         (memberlist, self.fullname))
                     # fall back to all members
-                    return True, safe_getmembers(self.object)
+                    return True, get_module_members(self.object)
         else:
             memberlist = self.options.members or []
         ret = []
@@ -1175,27 +1175,19 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         if ret:
             module = getattr(self.object, '__module__', False)
             name = getattr(self.object, '__name__', False)
-            if PY2:
-                if name and module:
-                    cls = getattr(sys.modules[module], name, None)
-                    self.doc_as_attr = (self.objpath != name.split('.') and
-                                        self.object is cls)
-                else:
-                    self.doc_as_attr = True
+            qualname = getattr(self.object, '__qualname__', name)
+            if qualname and module:
+                # walk the standard attribute lookup path for this object
+                qualname_parts = qualname.split('.')
+                cls = getattr(sys.modules[module], qualname_parts[0], None)
+                for part in qualname_parts[1:]:
+                    if cls is None:
+                        break
+                    cls = getattr(cls, part, None)
+                self.doc_as_attr = (self.objpath != qualname_parts and
+                                    self.object is cls)
             else:
-                qualname = getattr(self.object, '__qualname__', name)
-                if qualname and module:
-                    # walk the standard attribute lookup path for this object
-                    qualname_parts = qualname.split('.')
-                    cls = getattr(sys.modules[module], qualname_parts[0], None)
-                    for part in qualname_parts[1:]:
-                        if cls is None:
-                            break
-                        cls = getattr(cls, part, None)
-                    self.doc_as_attr = (self.objpath != qualname_parts and
-                                        self.object is cls)
-                else:
-                    self.doc_as_attr = True
+                self.doc_as_attr = True
         return ret
 
     def format_args(self):

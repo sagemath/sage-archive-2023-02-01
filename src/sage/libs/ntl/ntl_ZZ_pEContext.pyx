@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -43,7 +46,7 @@ cdef class ntl_ZZ_pEContext_class(object):
             sage: n2+n1  # Mismatched moduli:  It will go BOOM!
             Traceback (most recent call last):
             ...
-            ValueError: You can not perform arithmetic with elements of different moduli.
+            ValueError: You cannot perform arithmetic with elements of different moduli.
         """
         pass
 
@@ -51,7 +54,7 @@ cdef class ntl_ZZ_pEContext_class(object):
         self.pc = f.c
         self.pc.restore_c()
         self.x = ZZ_pEContext_c(f.x)
-        ZZ_pEContextDict[(repr(f),repr(f.c.p))] = self
+        ZZ_pEContextDict[(repr(f), repr(f.c.p))] = self
         self.f = f
         self.ptrs.zzpc = &(self.pc.x)
         self.ptrs.zzpec = &(self.x)

@@ -36,7 +36,7 @@ or :meth:`~sage.geometry.polyhedron.base.face_lattice` to get the
 whole face lattice as a poset::
 
     sage: P.face_lattice()
-    Finite lattice containing 28 elements with distinguished linear extension
+    Finite lattice containing 28 elements
 
 The faces are printed in shorthand notation where each integer is the
 index of a vertex/ray/line in the same order as the containing
@@ -72,7 +72,6 @@ polyhedron with the :meth:`PolyhedronFace.as_polyhedron` method::
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
@@ -383,12 +382,12 @@ class PolyhedronFace(SageObject):
              An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
-            (An inequality (0, -1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0)
-            (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (-1, 0) x + 1 >= 0,)
+            (An inequality (0, -1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0)
             (An inequality (0, -1) x + 1 >= 0,)
-            (An inequality (1, 0) x + 1 >= 0,)
+            (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
             (An inequality (0, 1) x + 1 >= 0,)
+            (An inequality (1, 0) x + 1 >= 0,)
             ()
         """
         if index is None:
@@ -423,12 +422,12 @@ class PolyhedronFace(SageObject):
             ()
             (A vertex at (1, -1),)
             (A vertex at (1, 1),)
-            (A vertex at (-1, 1),)
-            (A vertex at (-1, -1),)
             (A vertex at (1, -1), A vertex at (1, 1))
+            (A vertex at (-1, 1),)
             (A vertex at (1, 1), A vertex at (-1, 1))
-            (A vertex at (-1, 1), A vertex at (-1, -1))
+            (A vertex at (-1, -1),)
             (A vertex at (1, -1), A vertex at (-1, -1))
+            (A vertex at (-1, 1), A vertex at (-1, -1))
             (A vertex at (1, -1), A vertex at (1, 1),
              A vertex at (-1, 1), A vertex at (-1, -1))
         """
@@ -451,7 +450,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[10]
+            sage: face = p.face_lattice()[5]
             sage: face
             A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices
             sage: face.ambient_Hrepresentation()
@@ -478,7 +477,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: p = polytopes.cross_polytope(4)
-            sage: face = p.face_lattice()[10]
+            sage: face = p.face_lattice()[5]
             sage: face
             A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 2 vertices
             sage: face.ambient_Vrepresentation()
@@ -569,7 +568,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: fl = polytopes.dodecahedron().face_lattice()
-            sage: [ x.dim() for x in fl ]
+            sage: sorted([ x.dim() for x in fl ])
             [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
               1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
@@ -756,6 +755,55 @@ class PolyhedronFace(SageObject):
         origin = self.polyhedron().ambient_space().zero()
         return parent.element_class(parent, [[origin], rays, lines], None)
 
+    @cached_method
+    def stacking_locus(self):
+        """
+        Return the polyhedron containing the points that sees every facet
+        containing ``self``.
+
+        OUTPUT:
+
+        A polyhedron.
+
+        EXAMPLES::
+
+            sage: cp = polytopes.cross_polytope(4)
+            sage: facet = cp.facets()[0]
+            sage: facet.stacking_locus().vertices()
+            (A vertex at (1/2, 1/2, 1/2, 1/2),
+             A vertex at (1, 0, 0, 0),
+             A vertex at (0, 0, 0, 1),
+             A vertex at (0, 0, 1, 0),
+             A vertex at (0, 1, 0, 0))
+            sage: face = cp.faces(2)[0]
+            sage: face.stacking_locus().vertices()
+            (A vertex at (0, 1, 0, 0),
+             A vertex at (0, 0, 1, 0),
+             A vertex at (1, 0, 0, 0),
+             A vertex at (1, 1, 1, 0),
+             A vertex at (1/2, 1/2, 1/2, 1/2),
+             A vertex at (1/2, 1/2, 1/2, -1/2))
+        """
+        # Taking all facets that contain the face
+        if self.dim() == self.polyhedron().dim() - 1:
+            face_star = set([self.ambient_Hrepresentation()[-1]])
+        else:
+            face_star = set(facet for facet in self.ambient_Hrepresentation() if facet.is_inequality()
+                            if all(not facet.interior_contains(x) for x in self.vertices()))
+
+        neighboring_facets = set()
+        for facet in face_star:
+            for neighbor_facet in facet.neighbors():
+                if neighbor_facet not in face_star:
+                    neighboring_facets.add(neighbor_facet)
+
+        # Create the polyhedron where we can put the new vertex
+        locus_ieqs = [facet.vector() for facet in neighboring_facets]
+        locus_ieqs += [-facet.vector() for facet in face_star]
+        locus_eqns = self.polyhedron().equations_list()
+        parent = self.polyhedron().parent().change_ring(self.polyhedron().base_ring().fraction_field())
+
+        return parent.element_class(parent, None, [locus_ieqs, locus_eqns])
 
 def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
     r"""
@@ -808,5 +856,17 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
         H_indices += tuple(x for x in combinatorial_face.ambient_H_indices())
     else:
         raise NotImplementedError("unknown backend")
+
+    if polyhedron.dimension() == 0:
+        # Taking care of a special case:
+        # In this case the face lattice has a coatom,
+        # but the polyhedron does not have a facet
+        # (a facet is defined to be non-empty).
+
+        # More important, there is no inequality for that coatom.
+        # So the above would produce an index error.
+        # Instead, any case of the 0-dimensional polyhedron
+        # satisfies all of the equations.
+        H_indices = tuple(range(n_equations))
 
     return PolyhedronFace(polyhedron, V_indices, H_indices)

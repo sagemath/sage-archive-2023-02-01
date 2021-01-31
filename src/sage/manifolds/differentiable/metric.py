@@ -92,12 +92,11 @@ class PseudoRiemannianMetric(TensorField):
 
     EXAMPLES:
 
-    Standard metric on the sphere `S^2`::
+    Let us construct the standard metric on the sphere `S^2`, described in
+    terms of stereographic coordinates, from the North pole (open subset `U`)
+    and from the South pole (open subset `V`)::
 
         sage: M = Manifold(2, 'S^2', start_index=1)
-
-    The two open domains covered by stereographic coordinates (North and South)::
-
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord
@@ -105,10 +104,7 @@ class PseudoRiemannianMetric(TensorField):
         ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
         ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
-        sage: W = U.intersection(V) # The complement of the two poles
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
-        sage: c_xyW = c_xy.restrict(W) ; c_uvW = c_uv.restrict(W)
-        sage: eUW = c_xyW.frame() ; eVW = c_uvW.frame()
         sage: g = M.metric('g') ; g
         Riemannian metric g on the 2-dimensional differentiable manifold S^2
 
@@ -118,8 +114,7 @@ class PseudoRiemannianMetric(TensorField):
         Module T^(0,2)(S^2) of type-(0,2) tensors fields on the 2-dimensional
          differentiable manifold S^2
 
-    We define g by its components on domain U (factorizing them to have a nicer
-    view)::
+    We define `g` by its components on domain `U`::
 
         sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
         sage: g.display(eU)
@@ -131,21 +126,13 @@ class PseudoRiemannianMetric(TensorField):
         [4/(x^2 + y^2 + 1)^2                   0]
         [                  0 4/(x^2 + y^2 + 1)^2]
 
-    The components of g on domain V expressed in terms of (u,v) coordinates are
-    similar to those on domain U expressed in (x,y) coordinates, as we can
-    check explicitly by asking for the component transformation on the
-    common subdomain W::
+    The components of `g` on domain `V` expressed in terms of coordinates
+    `(u,v)` are obtained by applying (i) the tensor transformation law on
+    `W = U\cap V` and (ii) some analytical continuation::
 
-        sage: g.display(eVW, c_uvW)
-        g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
-
-    Therefore, we set::
-
-        sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
-        sage: g[eV,1,1].factor() ; g[eV,2,2].factor()
-        4/(u^2 + v^2 + 1)^2
-        4/(u^2 + v^2 + 1)^2
+        sage: W = U.intersection(V)
+        sage: g.add_comp_by_continuation(eV, W, chart=c_uv)
+        sage: g.apply_map(factor, frame=eV, keep_other_components=True) # for a nicer display
         sage: g.display(eV)
         g = 4/(u^2 + v^2 + 1)^2 du*du + 4/(u^2 + v^2 + 1)^2 dv*dv
 
@@ -169,7 +156,7 @@ class PseudoRiemannianMetric(TensorField):
         sage: type(g.restrict(U))
         <class 'sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal'>
 
-    As a field of bilinear forms, the metric acts on pairs of tensor fields,
+    As a field of bilinear forms, the metric acts on pairs of vector fields,
     yielding a scalar field::
 
         sage: a = M.vector_field({eU: [x, 2+y]}, name='a')
@@ -193,7 +180,7 @@ class PseudoRiemannianMetric(TensorField):
          differentiable manifold S^2
         sage: latex(ginv)
         g^{-1}
-        sage: ginv.display(eU) # again the components are expanded
+        sage: ginv.display(eU)
         inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx*d/dx
          + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy*d/dy
         sage: ginv.display(eV)
@@ -209,19 +196,34 @@ class PseudoRiemannianMetric(TensorField):
         sage: ginv.restrict(W) is g.restrict(W).inverse()
         True
 
-    The volume form (Levi-Civita tensor) associated with `g`::
+    To get the volume form (Levi-Civita tensor) associated with `g`, we have
+    first to define an orientation on `S^2`. The standard orientation is that
+    in which ``eV`` is right-handed; indeed, once supplemented by the outward
+    unit normal, ``eV`` give birth to a right-handed frame with respect to the
+    standard orientation of the ambient Euclidean space `E^3`. With such an
+    orientation, ``eU`` is then left-handed and in order to define an
+    orientation on the whole of `S^2`, we introduce a vector frame
+    on `U` by swapping ``eU``'s vectors::
+
+        sage: f = U.vector_frame('f', (eU[2], eU[1]))
+        sage: M.set_orientation([eV, f])
+
+    We have then, factorizing the components for a nicer display::
 
         sage: eps = g.volume_form() ; eps
         2-form eps_g on the 2-dimensional differentiable manifold S^2
+        sage: eps.apply_map(factor, frame=eU, keep_other_components=True)
+        sage: eps.apply_map(factor, frame=eV, keep_other_components=True)
         sage: eps.display(eU)
-        eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
+        eps_g = -4/(x^2 + y^2 + 1)^2 dx/\dy
         sage: eps.display(eV)
-        eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
+        eps_g = 4/(u^2 + v^2 + 1)^2 du/\dv
 
-    The unique non-trivial component of the volume form is nothing but the
-    square root of the determinant of g in the corresponding frame::
+    The unique non-trivial component of the volume form is, up to a sign
+    depending of the chosen orientation, nothing but the square root of the
+    determinant of `g` in the corresponding frame::
 
-        sage: eps[[eU,1,2]] == g.sqrt_abs_det(eU)
+        sage: eps[[eU,1,2]] == -g.sqrt_abs_det(eU)
         True
         sage: eps[[eV,1,2]] == g.sqrt_abs_det(eV)
         True
@@ -1620,19 +1622,20 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Volume form (Levi-Civita tensor) `\epsilon` associated with the metric.
 
-        This assumes that the manifold is orientable.
-
-        The volume form `\epsilon` is a `n`-form (`n` being the manifold's
-        dimension) such that for any vector basis `(e_i)` that is orthonormal
-        with respect to the metric,
+        The volume form `\epsilon` is an `n`-form (`n` being the manifold's
+        dimension) such that for any oriented vector basis `(e_i)` which is
+        orthonormal with respect to the metric, the condition
 
         .. MATH::
 
-            \epsilon(e_1,\ldots,e_n) = \pm 1
+            \epsilon(e_1,\ldots,e_n) = 1
 
-        There are only two such `n`-forms, which are opposite of each other.
-        The volume form `\epsilon` is selected such that the domain's default
-        frame is right-handed with respect to it.
+        holds.
+
+        Notice that that a volume form requires an orientable manifold with
+        a preferred orientation, see
+        :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
+        for details.
 
         INPUT:
 
@@ -1656,7 +1659,8 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        Volume form on `\RR^3` with spherical coordinates::
+        Volume form on `\RR^3` with spherical coordinates, using the standard
+        orientation, which is predefined::
 
             sage: M = Manifold(3, 'M', start_index=1)
             sage: U = M.open_subset('U') # the complement of the half-plane (y=0, x>=0)
@@ -1717,11 +1721,59 @@ class PseudoRiemannianMetric(TensorField):
             sage: eps3[[1,2,3]] * g.sqrt_abs_det() == 1
             True
 
+        If the manifold has no predefined orientation, an orientation must be
+        set before invoking ``volume_form()``. For instance let consider the
+        2-sphere described by the stereographic charts from the North and
+        South pole::
+
+            sage: M = Manifold(2, 'M', structure='Riemannian')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart()  # stereographic chart from the North pole
+            sage: c_uv.<u,v> = V.chart()  # stereographic chart from the South pole
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: eU = c_xy.frame(); eV = c_uv.frame()
+            sage: g = M.metric()
+            sage: g[eU,0,0], g[eU,1,1] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
+            sage: g.add_comp_by_continuation(eV, U.intersection(V), chart=c_uv)
+            sage: eps = g.volume_form()
+            Traceback (most recent call last):
+            ...
+            ValueError: 2-dimensional Riemannian manifold M must admit an
+             orientation
+
+        Let us define the orientation of ``M`` such that ``eU`` is
+        right-handed; ``eV`` is then left-handed and in order to define an
+        orientation on the whole of ``M``, we introduce a vector frame on ``V``
+        by swapping ``eV``'s vectors::
+
+            sage: f = V.vector_frame('f', (eV[1], eV[0]))
+            sage: M.set_orientation([eU, f])
+
+        We have then, factorizing the components for a nicer display::
+
+            sage: eps = g.volume_form()
+            sage: eps.apply_map(factor, frame=eU, keep_other_components=True)
+            sage: eps.apply_map(factor, frame=eV, keep_other_components=True)
+            sage: eps.display(eU)
+            eps_g = 4/(x^2 + y^2 + 1)^2 dx/\dy
+            sage: eps.display(eV)
+            eps_g = -4/(u^2 + v^2 + 1)^2 du/\dv
+
+        Note the minus sign in the above expression, reflecting the fact that
+        ``eV`` is left-handed with respect to the chosen orientation.
+
         """
+        dom = self._domain
+        orient = dom.orientation()
+        if not orient:
+            raise ValueError('{} must admit an orientation'.format(dom))
         if self._vol_forms == []:
             # a new computation is necessary
             manif = self._ambient_domain
-            dom = self._domain
             ndim = manif.dimension()
             # The result is constructed on the vector field module,
             # so that dest_map is taken automatically into account:
@@ -1729,7 +1781,7 @@ class PseudoRiemannianMetric(TensorField):
                                 latex_name=r'\epsilon_{'+self._latex_name+r'}')
             si = manif.start_index()
             ind = tuple(range(si, si+ndim))
-            for frame in dom._top_frames:
+            for frame in orient:
                 if frame.destination_map() is frame.domain().identity_map():
                     eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
             self._vol_forms.append(eps)  # Levi-Civita tensor constructed
@@ -1760,6 +1812,11 @@ class PseudoRiemannianMetric(TensorField):
         where `n` is the manifold's dimension, `\epsilon` is the volume
         `n`-form associated with `g` (see :meth:`volume_form`) and the indices
         `k_1,\ldots, k_p` are raised with `g`.
+
+        Notice that that the hodge star dual requires an orientable manifold
+        with a preferred orientation, see
+        :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
+        for details.
 
         INPUT:
 
@@ -2387,7 +2444,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             if frame not in self._inverse._components:
                 # the computation is necessary
                 fmodule = self._fmodule
-                si = fmodule._sindex ; nsi = fmodule._rank + si
+                si = fmodule._sindex
+                nsi = fmodule._rank + si
                 dom = self._domain
                 cinv = CompFullySym(fmodule._ring, frame, 2, start_index=si,
                                     output_formatter=fmodule._output_formatter)

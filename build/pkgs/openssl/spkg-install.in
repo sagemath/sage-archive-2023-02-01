@@ -6,6 +6,12 @@ fi
 
 cd src
 
+# ./config picks up these environment variables if they are set, instead of using uname components
+unset MACHINE
+unset RELEASE
+unset SYSTEM
+unset BUILD
+
 # Building on OS X Lion 64-bit seems to fail unless we build a 64-bit library.
 echo
 echo "Configuring openssl..."

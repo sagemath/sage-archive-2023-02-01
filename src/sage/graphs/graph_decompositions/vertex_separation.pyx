@@ -756,7 +756,7 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
         sage: D = digraphs.Path(8)
         sage: print(vertex_separation(D))
         (0, [7, 6, 5, 4, 3, 2, 1, 0])
-        sage: D = DiGraph( random_DAG(30) )
+        sage: D = digraphs.RandomDirectedAcyclicGraph(10, .5)
         sage: vs,L = vertex_separation(D); vs
         0
         sage: K4 = DiGraph( graphs.CompleteGraph(4) )
@@ -768,7 +768,7 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
         sage: D.add_edge(0, 4)
         sage: D.add_edge(0, 8)
         sage: print(vertex_separation(D))
-        (3, [8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3])
+        (3, [10, 11, 8, 9, 4, 5, 6, 7, 0, 1, 2, 3])
 
     TESTS:
 
@@ -914,9 +914,7 @@ def vertex_separation_exp(G, verbose=False):
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
         sage: D=digraphs.DeBruijn(2,3)
-        sage: vertex_separation_exp(D)  # py2
-        (2, ['010', '110', '111', '011', '001', '000', '100', '101'])
-        sage: vertex_separation_exp(D)  # py3
+        sage: vertex_separation_exp(D)
         (2, ['000', '001', '100', '010', '101', '011', '110', '111'])
 
     Given a too large graph::

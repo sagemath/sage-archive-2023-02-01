@@ -192,10 +192,9 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.rings.integer import Integer
-from sage.structure.element import ModuleElement
+from sage.structure.element import ModuleElementWithMutability
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
@@ -206,7 +205,7 @@ from sage.manifolds.chart import Chart
 # TODO: remove the import of Chart after _preparse_display has been redefined
 # in tensor fields
 
-class FreeModuleTensor(ModuleElement):
+class FreeModuleTensor(ModuleElementWithMutability):
     r"""
     Tensor over a free module of finite rank over a commutative ring.
 
@@ -281,7 +280,7 @@ class FreeModuleTensor(ModuleElement):
         """
         if parent is None:
             parent = fmodule.tensor_module(*tensor_type)
-        ModuleElement.__init__(self, parent)
+        ModuleElementWithMutability.__init__(self, parent)
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         self._tensor_rank = self._tensor_type[0] + self._tensor_type[1]
@@ -1319,18 +1318,18 @@ class FreeModuleTensor(ModuleElement):
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
-        Since zero is a special element, its components cannot be changed::
+        Since zero is an immutable element, its components cannot be changed::
 
             sage: z = M.tensor_module(1, 1).zero()
             sage: z.set_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            ValueError: the components of an immutable element cannot be changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
-                                 "cannot be changed")
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         return self._set_comp_unsafe(basis)
 
@@ -1456,18 +1455,18 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display(e)
             t = -3 e_0*e^1 + 2 e_1*e^2
 
-        Since zero is a special element, its components cannot be changed::
+        Since zero is an immutable element, its components cannot be changed::
 
             sage: z = M.tensor_module(1, 1).zero()
             sage: z.add_comp(e)[0,1] = 1
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the zero element cannot be changed
+            ValueError: the components of an immutable element cannot be changed
 
         """
-        if self is self.parent().zero():
-            raise AssertionError("the components of the zero element "
-                                 "cannot be changed")
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         self._is_zero = False  # a priori
         return self._add_comp_unsafe(basis)
 
@@ -1669,6 +1668,9 @@ class FreeModuleTensor(ModuleElement):
             False
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if other not in self.parent():
             raise TypeError("the original must be an element "
                             + "of {}".format(self.parent()))
@@ -2263,7 +2265,7 @@ class FreeModuleTensor(ModuleElement):
             sage: e = M.basis('e')
             sage: a = M.tensor((2,0), name='a')
             sage: a[:] = [[4,0], [-2,5]]
-            sage: s = a.__div__(4) ; s
+            sage: s = a.__truediv__(4) ; s
             Type-(2,0) tensor on the 2-dimensional vector space M over the
              Rational Field
             sage: s[:]
@@ -2279,8 +2281,6 @@ class FreeModuleTensor(ModuleElement):
         for basis in self._components:
             result._components[basis] = self._components[basis] / other
         return result
-
-    __div__ = __truediv__
 
     def __call__(self, *args):
         r"""

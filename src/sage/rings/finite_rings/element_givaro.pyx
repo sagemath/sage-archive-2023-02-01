@@ -1,3 +1,5 @@
+# distutils: libraries = givaro gmp m
+# distutils: language = c++
 r"""
 Givaro Field Elements
 
@@ -52,7 +54,6 @@ AUTHORS:
 
 from cysignals.signals cimport sig_on, sig_off
 
-include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -60,7 +61,6 @@ from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
 from .element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
 from sage.structure.richcmp cimport richcmp
-from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 import operator
 import sage.arith.all
@@ -122,7 +122,7 @@ cdef void late_import():
     import sage.modules.free_module_element
     FreeModuleElement = sage.modules.free_module_element.FreeModuleElement
 
-cdef class Cache_givaro(SageObject):
+cdef class Cache_givaro(Cache_base):
     def __init__(self, parent, unsigned int p, unsigned int k, modulus, repr="poly", cache=False):
         """
         Finite Field.
@@ -345,8 +345,6 @@ cdef class Cache_givaro(SageObject):
             1
             sage: k(int(2^100))
             1
-            sage: k(long(2^100))
-            1
             sage: k(-2^100)
             2
 
@@ -562,7 +560,7 @@ cdef class Cache_givaro(SageObject):
         sig_off()
         return r
 
-    def fetch_int(self, int n):
+    cpdef FiniteField_givaroElement fetch_int(self, number):
         r"""
         Given an integer ``n`` return a finite field element in ``self``
         which equals ``n`` under the condition that :meth:`gen()` is set to
@@ -578,7 +576,8 @@ cdef class Cache_givaro(SageObject):
             sage: 2^7 + 2^4 + 2^2 + 2 + 1
             151
         """
-        if n<0 or n>self.order():
+        cdef int n = number
+        if n < 0 or n > self.order_c():
             raise TypeError("n must be between 0 and self.order()")
 
         cdef int ret = self.int_to_log(n)
@@ -1596,7 +1595,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             b
             sage: c is b
             True
-            sage: copy(5r) is 5r
+            sage: copy(5r) == 5r
             True
         """
         return self

@@ -53,7 +53,6 @@ AUTHORS:
 - Anna Haensch (2018-03): Added function ``quadratic_defect()``
 
 """
-from __future__ import print_function, absolute_import
 
 from .rational import Rational
 from .integer import Integer
@@ -72,7 +71,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     EXAMPLES::
 
-        sage: a = long(901824309821093821093812093810928309183091832091)
+        sage: a = 901824309821093821093812093810928309183091832091
         sage: b = QQ(a); b
         901824309821093821093812093810928309183091832091
         sage: QQ(b)
@@ -360,13 +359,6 @@ class RationalField(Singleton, number_field_base.NumberField):
               To:   Rational Field
             sage: f(44)
             44
-
-        ::
-
-            sage: QQ.coerce_map_from(long) # indirect doctest py2
-            Native morphism:
-              From: Set of Python objects of class 'long'
-              To:   Rational Field
 
         ::
 
@@ -721,8 +713,8 @@ class RationalField(Singleton, number_field_base.NumberField):
               To:   Complex Field with 20 bits of precision
               Defn: 1 |--> 1.0000
         """
-        from . import complex_field
-        CC = complex_field.ComplexField(prec)
+        from . import complex_mpfr
+        CC = complex_mpfr.ComplexField(prec)
         return self.hom([CC(1)])
 
     def residue_field(self, p, check=True):

@@ -214,8 +214,6 @@ We check that :trac:`17990` is fixed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-# python3
-from __future__ import division
 
 from sys import maxsize
 from sage.rings.ring import Ring
@@ -864,6 +862,27 @@ class LessThanInfinity(_uniq, RingElement):
             return rich_to_bool(op, -1)
         return rich_to_bool(op, 0)
 
+    def sign(self):
+        """
+        Raise an error because the sign of self is not well defined.
+
+        EXAMPLES::
+
+            sage: sign(UnsignedInfinityRing(2))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+            sage: sign(UnsignedInfinityRing(0))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+            sage: sign(UnsignedInfinityRing(-2))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: sign of number < oo is not well defined
+        """
+        raise NotImplementedError("sign of number < oo is not well defined")
+
 
 class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
 
@@ -1253,6 +1272,17 @@ class InfinityRing_class(Singleton, Ring):
             pass
         return False
 
+    def _pushout_(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: QQbar(-2*i)*infinity
+            (-I)*Infinity
+        """
+        from sage.symbolic.ring import SR
+        if SR.has_coerce_map_from(other):
+            return SR
+
 
 class FiniteNumber(RingElement):
 
@@ -1462,6 +1492,34 @@ class FiniteNumber(RingElement):
         if self.value == 0:
             return FiniteNumber(self.parent(), 0)
         return FiniteNumber(self.parent(), 1)
+
+    def sign(self):
+        """
+        Return the sign of self.
+
+        EXAMPLES::
+
+            sage: sign(InfinityRing(2))
+            1
+            sage: sign(InfinityRing(0))
+            0
+            sage: sign(InfinityRing(-2))
+            -1
+
+        TESTS::
+
+            sage: sgn(InfinityRing(7))
+            1
+            sage: sgn(InfinityRing(0))
+            0
+            sage: sgn(InfinityRing(-7))
+            -1
+        """
+        if self.value == 0:
+            return 0
+        if self.value > 0:
+            return 1
+        return -1
 
     def sqrt(self):
         """

@@ -934,7 +934,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of this permutation.
+        Return a latex representation of this permutation.
 
         EXAMPLES::
 
@@ -947,7 +947,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             \left[(\text{\texttt{a}},\text{\texttt{b}})\right]
         """
         from sage.misc.latex import latex
-        return "".join(["(" + ",".join([latex(x) for x in cycle])+")" for cycle in self.cycle_tuples()])
+        return "".join(("(" + ",".join(latex(x) for x in cycle) + ")")
+                       for cycle in self.cycle_tuples())
 
     def __getitem__(self, i):
         """
@@ -956,9 +957,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         INPUT:
 
-
         -  ``i`` - integer
-
 
         OUTPUT: a permutation group element
 
@@ -1177,22 +1176,23 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     cpdef _act_on_(self, x, bint self_on_left):
         """
-        Return the right action of self on left.
+        Return the result of the action of ``self`` on ``x``.
 
-        For example, if f=left is a polynomial, then this function returns
-        f(sigma\*x), which is image of f under the right action of sigma on
+        For example, if ``x=f(z)`` is a polynomial, then this function returns
+        f(sigma\*z), which is the image of f under the right action of sigma on
         the indeterminates. This is a right action since the image of
-        f(sigma\*x) under tau is f(sigma\*tau\*x).
+        f(sigma\*z) under tau is f(sigma\*tau\*z).
 
-        Additionally, if ``left`` is a matrix, then sigma acts on the matrix
-        by permuting the rows.
+        Additionally, if ``x`` is a matrix, then sigma acts on the matrix
+        by permuting the columns when acting from the right and by permuting
+        the rows when acting from the left.
 
         INPUT:
 
+        - ``x`` -- element of space on which permutations act
 
-        -  ``left`` - element of space on which permutations
-           act from the right
-
+        - ``self_on_left`` -- if ``True``, this permutation acts on ``x`` from
+          the left, otherwise from the right
 
         EXAMPLES::
 
@@ -1210,13 +1210,18 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             2*x^2 - y^2 + z^2 + u^2
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
-            sage: M*sigma
+            sage: sigma * M
             [0 2 0 0 0]
             [0 0 3 0 0]
             [1 0 0 0 0]
             [0 0 0 0 5]
             [0 0 0 4 0]
-
+            sage: (M * sigma) * tau == M * (sigma * tau)
+            True
+            sage: (M * sigma) * tau == (M * sigma.matrix()) * tau.matrix()
+            True
+            sage: (tau * sigma) * M == tau * (sigma * M)
+            True
         """
         if not self_on_left:
             left = x
@@ -1235,7 +1240,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                                                                left.parent()))
                 return left(tuple(sigma_x))
             elif is_Matrix(left):
-                return left.with_permuted_rows(self)
+                return left.with_permuted_columns(~self)
+        else:
+            if is_Matrix(x):
+                return x.with_permuted_rows(self)
+
 
     def __mul__(left, right):
         r"""

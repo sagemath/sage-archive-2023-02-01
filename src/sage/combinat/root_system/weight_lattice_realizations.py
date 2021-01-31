@@ -1,7 +1,6 @@
 """
 Weight lattice realizations
 """
-from __future__ import absolute_import
 # ****************************************************************************
 #       Copyright (C) 2007-2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -368,15 +367,17 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
         def reduced_word_of_alcove_morphism(self, f):
             r"""
+            Return the reduced word of an alcove morphism.
+
             INPUT:
 
-            - `f` -- a linear map from ``self`` to ``self`` which
-              preserves alcoves.
+            - ``f`` -- a linear map from ``self`` to ``self`` which
+              preserves alcoves
 
             Let `A` be the fundamental alcove. This returns a reduced word
-            `i_1,...,i_k` such that the affine Weyl group element `w =
-            s_{i_1} \circ \dots \circ s_{i_k}` maps the alcove `f(A)` back
-            to `A`. In other words, the alcove walk `i_1,...,i_k` brings
+            `i_1, \ldots, i_k` such that the affine Weyl group element `w =
+            s_{i_1} \circ \cdots \circ s_{i_k}` maps the alcove `f(A)` back
+            to `A`. In other words, the alcove walk `i_1, \ldots, i_k` brings
             the fundamental alcove to the corresponding translated alcove.
 
             Let us throw in a bit of context to explain the main use
@@ -585,14 +586,16 @@ class WeightLatticeRealizations(Category_over_base_ring):
         def reduced_word_of_translation(self, t):
             r"""
             Given an element of the root lattice, this returns a reduced
-            word `i_1,...,i_k` such that the Weyl group element `s_{i_1}
-            \circ \dots \circ s_{i_k}` implements the "translation"
+            word `i_1, \ldots, i_k` such that the Weyl group element `s_{i_1}
+            \circ \cdots \circ s_{i_k}` implements the "translation"
             where `x` maps to `x + level(x)*t`. In other words, the alcove walk
-            `i_1,...,i_k` brings the fundamental alcove to the
+            `i_1, \ldots, i_k` brings the fundamental alcove to the
             corresponding translated alcove.
 
-            Note: there are some technical conditions for `t` to actually
-            be a translation; those are not tested (TODO: detail).
+            .. NOTE::
+
+                There are some technical conditions for `t` to actually
+                be a translation; those are not tested (TODO: detail).
 
             EXAMPLES::
 
@@ -712,7 +715,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
         def signs_of_alcovewalk(self, walk):
             r"""
-            Let walk = `[i_1,\dots,i_n]` denote an alcove walk starting
+            Let walk = `[i_1,\ldots,i_n]` denote an alcove walk starting
             from the fundamental alcove `y_0`, crossing at step 1 the
             wall `i_1`, and so on.
 
@@ -723,7 +726,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             .. MATH::
 
-                  y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}
+                  y_k = s_{w_{k-1} \alpha_{i_k}} y_{k-1}.
 
             The step is said positive if `w_{k-1} \alpha_{i_k}` is a
             negative root (considering `w_{k-1}` as element of the

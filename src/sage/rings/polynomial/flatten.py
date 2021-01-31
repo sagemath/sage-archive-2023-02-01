@@ -29,7 +29,6 @@ Vincent Delecroix, Ben Hutz (July 2016): initial implementation
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 import itertools
 
@@ -256,6 +255,22 @@ class FlatteningMorphism(Morphism):
               To:   Univariate Polynomial Ring in c over Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Integer Ring
         """
         return UnflatteningMorphism(self.codomain(), self.domain())
+
+    def inverse(self):
+        """
+        Return the inverse of this flattening morphism.
+
+        This is the same as calling :meth:`section`.
+
+        EXAMPLES::
+
+            sage: f = QQ['x,y']['u,v'].flattening_morphism()
+            sage: f.inverse()
+            Unflattening morphism:
+              From: Multivariate Polynomial Ring in x, y, u, v over Rational Field
+              To:   Multivariate Polynomial Ring in u, v over Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        return self.section()
 
 
 class UnflatteningMorphism(Morphism):

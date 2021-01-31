@@ -27,7 +27,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 from sage.combinat.integer_lists import IntegerListsLex
 from itertools import product
@@ -505,8 +504,8 @@ class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
         [5, 0, 0]
         sage: IV53.last()
         [0, 0, 5]
-        sage: IV53.random_element()
-        [4, 0, 1]
+        sage: IV53.random_element().parent() is IV53
+        True
 
     Further examples::
 

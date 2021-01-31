@@ -16,7 +16,6 @@ TESTS::
     sage: TestSuite(L).run()
 
 """
-from __future__ import absolute_import
 
 ##############################################################################
 #       Copyright (C) 2012 Jan Poeschko <jan@poeschko.com>
@@ -783,6 +782,17 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         ALGORITHM:
 
         Uses the algorithm from [MV2010]_.
+
+        TESTS:
+
+        Check that the example from :trac:`29866` works::
+
+            sage: from sage.modules.free_module_integer import IntegerLattice
+            sage: M = matrix(ZZ, [[20957228, -4966110], [9411844, 19625639]])
+            sage: L = IntegerLattice(M)
+            sage: u = vector([-423434678248195, -18882583298608161305227077482])
+            sage: L.closest_vector(u) in L
+            True
         """
         voronoi_cell = self.voronoi_cell()
 

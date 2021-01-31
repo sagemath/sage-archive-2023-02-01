@@ -18,7 +18,6 @@ Functions
 ---------
 
 """
-from __future__ import absolute_import, division
 from sage.cpython.string import bytes_to_str
 
 
@@ -328,17 +327,18 @@ def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
             if loops is None:
                 loops = True
             positions.append((NZ[0], NZ[0]))
-        elif len(NZ) != 2 or \
-             (oriented and not ((M[NZ[0], i] == +1 and M[NZ[1], i] == -1) or \
-                                (M[NZ[0], i] == -1 and M[NZ[1], i] == +1))) or \
-             (not oriented and (M[NZ[0], i] != 1 or M[NZ[1], i] != 1)):
+        elif (len(NZ) != 2 or
+              (oriented and not ((M[NZ[0], i] == +1 and M[NZ[1], i] == -1) or
+                                 (M[NZ[0], i] == -1 and M[NZ[1], i] == +1))) or
+              (not oriented and (M[NZ[0], i] != 1 or M[NZ[1], i] != 1))):
             msg  = "there must be one or two nonzero entries per column in an incidence matrix, "
             msg += "got entries {} in column {}".format([M[j, i] for j in NZ], i)
             raise ValueError(msg)
         else:
             positions.append(tuple(NZ))
 
-    if weighted   is None: G._weighted  = False
+    if weighted is None:
+        G._weighted  = False
     if multiedges is None:
         total = len(positions)
         multiedges = len(set(positions)) < total
@@ -419,7 +419,8 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
             positions.append(tuple(NZ))
         else:
             positions.append((NZ[1], NZ[0]))
-    if weighted   is None: weighted  = False
+    if weighted is None:
+        weighted  = False
     if multiedges is None:
         total = len(positions)
         multiedges = len(set(positions)) < total

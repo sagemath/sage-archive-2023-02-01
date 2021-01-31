@@ -186,7 +186,7 @@ Classes and Methods
 ===================
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
 #                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
@@ -194,8 +194,8 @@ Classes and Methods
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
@@ -205,6 +205,7 @@ from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from libc.stdlib cimport abort
 
 from sage.libs.arb.arb cimport *
+from sage.libs.arb.arb_hypgeom cimport *
 from sage.libs.arb.arf cimport *
 from sage.libs.arb.arf cimport *
 from sage.libs.arb.mag cimport *
@@ -292,10 +293,14 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
 
     EXAMPLES::
 
-        sage: RIF(RBF(2)**(2**100)) # indirect doctest
+        sage: RIF(RBF(2)**(2**100)) # arb216 # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Error converting arb to mpfi. Overflow?
+        sage: RIF(RBF(2)**(2**100)) # arb218 # indirect doctest
+        [5.8756537891115869e1388255822130839282 .. +infinity] # 64-bit
+        [2.098... .. +infinity]                               # 32-bit
+
     """
     cdef mpfr_t left
     cdef mpfr_t right
@@ -313,6 +318,7 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
     finally:
         mpfr_clear(left)
         mpfr_clear(right)
+
 
 class RealBallField(UniqueRepresentation, Field):
     r"""
@@ -414,7 +420,7 @@ class RealBallField(UniqueRepresentation, Field):
                 category=sage.categories.fields.Fields().Infinite())
         self._prec = precision
         from sage.rings.real_lazy import RLF
-        self._populate_coercion_lists_([ZZ, QQ], convert_method_name='_arb_')
+        self._populate_coercion_lists_(coerce_list=[ZZ, QQ], convert_method_name='_arb_')
 
     def _repr_(self):
         r"""
@@ -486,7 +492,7 @@ class RealBallField(UniqueRepresentation, Field):
         non-canonically.
 
         In addition to the inputs supported by :meth:`RealBall.__init__`,
-        anything that is convertible to a real interval can also be used to
+        elements that can be coerced to real intervals can also be used to
         construct a real ball::
 
             sage: RBF(RIF(0, 1))                  # indirect doctest
@@ -498,8 +504,7 @@ class RealBallField(UniqueRepresentation, Field):
             ...
             TypeError: unable to convert x to a RealBall
 
-        Various symbolic constants can be converted without going through real
-        intervals. (This is faster and yields tighter error bounds.) ::
+        Various symbolic constants are supported::
 
             sage: RBF(e)
             [2.718281828459045 +/- ...e-16]
@@ -512,24 +517,34 @@ class RealBallField(UniqueRepresentation, Field):
             [4.808227612638377 +/- ...e-16]
             sage: RBF(exp(1), 0.01)
             [2.7 +/- ...]
+
+        TESTS:
+
+        The following conversions used to yield incorrect results::
+
+            sage: RBF(airy_ai(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert airy_ai(1) to a RealBall
+            sage: v = RBF(zetaderiv(1, 3/2)); v
+            [-3.932239737431101 +/- 5.58e-16]
+            sage: v.overlaps(RealBallField(100)(3/2).zetaderiv(1))
+            True
+
         """
+        # Symbolic expressions are handled in a special way, see
+        # Expression._arb_(). A call like RBF(expr, rad) converts expr to a
+        # ball using its _arb_() method and sends us the result to adjust the
+        # radius thanks to the general mechanism implemented in
+        # NamedConvertMap.
         try:
             return self.element_class(self, mid, rad)
         except TypeError:
             pass
         try:
-            return self.element_class(self, mid.pyobject(), rad)
-        except (AttributeError, TypeError):
-            pass
-        try:
-            val = mid.operator()(*[self(operand) for operand in mid.operands()])
-            return self.element_class(self, val, rad)
-        except (AttributeError, TypeError):
-            pass
-        try:
-            mid = RealIntervalField(self._prec)(mid)
-            return self.element_class(self, mid, rad)
-        except TypeError:
+            _mid = RealIntervalField(self._prec)(mid)
+            return self.element_class(self, _mid, rad)
+        except (TypeError, ValueError):
             pass
         raise TypeError("unable to convert {!r} to a RealBall".format(mid))
 
@@ -1657,10 +1672,12 @@ cdef class RealBall(RingElement):
         ::
 
             sage: b = RBF(2)^(2^1000)
-            sage: b.mid()
+            sage: b.mid() # arb216
             Traceback (most recent call last):
             ...
             RuntimeError: unable to convert to MPFR (exponent out of range?)
+            sage: b.mid() # arb218
+            +infinity
 
         .. SEEALSO:: :meth:`rad`, :meth:`squash`
         """
@@ -3435,6 +3452,21 @@ cdef class RealBall(RingElement):
         return res
 
     # Special functions
+
+    def erf(self):
+        """
+        Error function.
+
+        EXAMPLES::
+
+            sage: RBF(1/2).erf()
+            [0.520499877813047 +/- 6.10e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_erf(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
 
     def gamma(self):
         """

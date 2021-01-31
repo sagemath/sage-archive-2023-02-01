@@ -35,7 +35,7 @@ sageruntime: base-toolchain
 
 # CONFIG_FILES lists all files that appear in AC_CONFIG_FILES in configure.ac;
 # except for build/make/Makefile-auto, which is unused by the build system
-CONFIG_FILES = build/make/Makefile src/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
+CONFIG_FILES = build/make/Makefile src/bin/sage-env-config build/bin/sage-build-env-config build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg
 
 # SPKG_COLLECT_FILES contains all files that influence the SAGE_SPKG_COLLECT macro
 SPKG_COLLECT_FILES = build/pkgs/*/type build/pkgs/*/package-version.txt build/pkgs/*/dependencies build/pkgs/*/requirements.txt build/pkgs/*/checksums.ini build/pkgs/*/spkg-install
@@ -49,7 +49,11 @@ build/make/Makefile: configure $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 	@if [ -x config.status ]; then \
 		./config.status --recheck && ./config.status; \
 	else \
-		./configure $$PREREQ_OPTIONS; \
+		echo >&2 '****************************************************************************'; \
+		echo >&2 'error: Sage source tree is unconfigured. Please run "./configure" first.'; \
+		echo >&2 'note:  Type "./configure --help" to see the available configuration options.'; \
+		echo >&2 '****************************************************************************'; \
+	        exit 1; \
 	fi
 
 # This is used to monitor progress towards Python 3 and prevent
@@ -60,11 +64,11 @@ build/make/Makefile: configure $(SPKG_COLLECT_FILES) $(CONFIG_FILES:%=%.in)
 buildbot-python3:
 	$(MAKE)
 
-# Preemptively download all standard upstream source tarballs.
+# Preemptively download all source tarballs of normal packages.
 download:
 	export SAGE_ROOT=$$(pwd) && \
-	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
-	./src/bin/sage-download-upstream
+	export PATH=$$SAGE_ROOT/build/bin:$$PATH && \
+	sage-package download :all:
 
 dist: build/make/Makefile
 	./sage --sdist
@@ -105,6 +109,12 @@ distclean: build-clean
 bootstrap-clean:
 	rm -rf config configure build/make/Makefile-auto.in
 	rm -f src/doc/en/installation/*.txt
+	rm -rf src/doc/en/reference/spkg/*.rst
+	rm -f src/doc/en/reference/repl/*.txt
+	rm -f environment.yml
+	rm -f src/environment.yml
+	rm -f environment-optional.yml
+	rm -f src/environment-optional.yml
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
@@ -112,7 +122,9 @@ maintainer-clean: distclean bootstrap-clean
 
 # Remove everything that is not necessary to run Sage and pass all its
 # doctests.
-micro_release: sagelib-clean misc-clean
+micro_release:
+	$(MAKE) sagelib-clean
+	$(MAKE) misc-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 	@echo "Removing sphinx artifacts..."
@@ -139,15 +151,15 @@ micro_release: sagelib-clean misc-clean
 
 # Leaves everything that is needed to make the next "make" fast but removes
 # all the cheap build artifacts that can be quickly regenerated.
+# Trac #30960: We no longer uninstall sagelib.
 fast-rebuild-clean: misc-clean
 	rm -rf upstream/
-	rm -rf src/build/temp.*
-	# Without site-packages/sage sage does not start but copying/compiling
-	# them from src/build is very fast.
-	rm -rf local/lib/python*/site-packages/sage
+	rm -rf build/pkgs/sagelib/src/build/temp.*
 	# The .py files in src/build are restored from src/sage without their
 	# mtimes changed.
-	find src/build -name '*.py' -exec rm \{\} \;
+	-find build/pkgs/sagelib/src/build -name '*.py' -exec rm \{\} \;
+	# Remove leftovers from ancient branches
+	rm -rf src/build
 
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
@@ -208,11 +220,13 @@ install: all
 	@echo "from https://github.com/sagemath/binary-pkg"
 	@echo "******************************************************************"
 
+# Setting SAGE_PKGCONFIG is only so that make does not exit with
+# "This Makefile needs to be invoked by build/make/install".
 list:
 	@$(MAKE) --silent build/make/Makefile >&2
-	@$(MAKE) --silent -f build/make/Makefile SAGE_SPKG_INST=local $@
+	@$(MAKE) --silent -f build/make/Makefile SAGE_PKGCONFIG=dummy $@
 
-.PHONY: default build install micro_release \
+.PHONY: default build dist install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \

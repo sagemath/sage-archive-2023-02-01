@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp m
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -356,9 +359,6 @@ cdef class ntl_ZZX(object):
             raise ArithmeticError("self (=%s) is not divisible by other (=%s)"%(self, other))
         result = make_ZZX_sig_off(q)
         return result
-
-    def __div__(self, other):
-        return self / other
 
     def __mod__(ntl_ZZX self, ntl_ZZX other):
         """

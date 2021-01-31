@@ -21,19 +21,20 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.manifolds.continuous_map import ContinuousMap
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
+
 
 class DiffMap(ContinuousMap):
     r"""
@@ -762,7 +763,8 @@ class DiffMap(ContinuousMap):
             True
 
         """
-        dom1 = self._domain; dom2 = self._codomain
+        dom1 = self._domain
+        dom2 = self._codomain
         if chart1 is None:
             chart1 = dom1._def_chart
         if chart2 is None:
@@ -1084,7 +1086,8 @@ class DiffMap(ContinuousMap):
                                 "fields on {}".format(dom2))
             resu_rst = []
             for chart_pair in self._coord_expression:
-                chart1 = chart_pair[0]; chart2 = chart_pair[1]
+                chart1 = chart_pair[0]
+                chart2 = chart_pair[1]
                 ch2dom = chart2._domain
                 if ch2dom.is_subset(tdom):
                     self_r = self.restrict(chart1._domain, subcodomain=ch2dom)
@@ -1194,7 +1197,8 @@ class DiffMap(ContinuousMap):
         # A pair of charts (chart1, chart2) where the computation
         # is feasible is searched, privileging the default chart of the
         # map's domain for chart1
-        chart1 = None; chart2 = None
+        chart1 = None
+        chart2 = None
         def_chart1 = dom1.default_chart()
         def_chart2 = self._codomain.default_chart()
         if (def_chart1._frame in tensor._components

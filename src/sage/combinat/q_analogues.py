@@ -13,7 +13,6 @@ r"""
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import division
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
@@ -83,11 +82,19 @@ def q_int(n, q=None):
 
 
 def q_factorial(n, q=None):
-    """
+    r"""
     Return the `q`-analogue of the factorial `n!`.
 
-    If `q` is unspecified, then it defaults to using the generator `q` for
-    a univariate polynomial ring over the integers.
+    This is the product
+
+    .. MATH::
+
+        [1]_q [2]_q \cdots [n]_q
+        = 1 \cdot (1+q) \cdot (1+q+q^2) \cdots (1+q+q^2+\cdots+q^{n-1}) .
+
+    If `q` is unspecified, then this function defaults to
+    using the generator `q` for a univariate polynomial
+    ring over the integers.
 
     EXAMPLES::
 

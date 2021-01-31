@@ -1,3 +1,8 @@
+# distutils: language = c++
+# distutils: libraries = CBLAS_LIBRARIES
+# distutils: library_dirs = CBLAS_LIBDIR
+# distutils: include_dirs = CBLAS_INCDIR
+# distutils: extra_compile_args = -D_XPG6
 """
 Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<double>``
 

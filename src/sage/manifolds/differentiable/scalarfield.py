@@ -392,9 +392,9 @@ class DiffScalarField(ScalarField):
     field::
 
         sage: s = f + 1 ; s
-        Scalar field on the 2-dimensional differentiable manifold M
+        Scalar field f+1 on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M --> R
+        f+1: M --> R
         on U: (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
         on V: (u, v) |--> (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
         sage: (f+1)-1 == f
@@ -739,6 +739,12 @@ class DiffScalarField(ScalarField):
             sage: f.differential() is df
             True
 
+        Instead of invoking the method :meth:`differential`, one may apply the
+        function ``diff`` to the scalar field::
+
+            sage: diff(f) is f.differential()
+            True
+
         Since the exterior derivative of a scalar field (considered a 0-form)
         is nothing but its differential, ``exterior_derivative()`` is an
         alias of ``differential()``::
@@ -749,15 +755,6 @@ class DiffScalarField(ScalarField):
             df = -z^3*sin(x) dx + z^2*e^y dy + (3*z^2*cos(x) + 2*z*e^y) dz
             sage: latex(df)
             \mathrm{d}f
-
-        One may also use the function
-        :func:`~sage.manifolds.utilities.exterior_derivative`
-        or its alias :func:`~sage.manifolds.utilities.xder` instead
-        of the method ``exterior_derivative()``::
-
-            sage: from sage.manifolds.utilities import xder
-            sage: xder(f) is f.exterior_derivative()
-            True
 
         Differential computed on a chart that is not the default one::
 
@@ -808,7 +805,10 @@ class DiffScalarField(ScalarField):
                         diff_func[i, chart] = func.diff(i)
         return self._differential
 
-    exterior_derivative = differential
+    exterior_derivative = differential  # a scalar field being a 0-form
+    derivative = differential  # allows one to use functional notation,
+                               # e.g. diff(f) for f.differential()
+
 
     def lie_derivative(self, vector):
         r"""
@@ -1118,7 +1118,7 @@ class DiffScalarField(ScalarField):
 
         Note that ``(e_r, e_phi)`` is the orthonormal vector frame associated
         with polar coordinates (see
-        :meth:`~sage.manifolds.differentiable.euclidean.EuclideanPlane.polar_frame`);
+        :meth:`~sage.manifolds.differentiable.examples.euclidean.EuclideanPlane.polar_frame`);
         the gradient expressed in the coordinate frame is::
 
             sage: f.gradient().display(M.polar_coordinates().frame())

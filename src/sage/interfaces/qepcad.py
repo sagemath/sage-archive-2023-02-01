@@ -604,7 +604,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.env import SAGE_LOCAL
 import pexpect
@@ -1621,7 +1620,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         formula = qepcad_formula.formula(formula)
         if len(formula.qvars) == 0:
             if vars is None:
-                vars = sorted(list(formula.vars))
+                vars = sorted(formula.vars)
             formula = qepcad_formula.exists(vars, formula)
             vars = None
             use_witness = True

@@ -550,6 +550,43 @@ example, the ``scipy`` ``spkg-check.in`` file contains the line
 
     exec sage-python23 spkg-check.py
 
+All normal Python packages must have a file ``install-requires.txt``.
+If a Python package is available on PyPI, this file must contain the
+name of the package as it is known to PyPI.  Optionally,
+``install-requires.txt`` can encode version constraints (such as lower
+and upper bounds).  The constraints are in the format of the
+``install_requires`` key of `setup.cfg
+<https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html>`_
+or `setup.py
+<https://packaging.python.org/discussions/install-requires-vs-requirements/#id5>`_.
+
+The files may include comments (starting with ``#``) that explain why a particular lower
+bound is warranted or why we wish to include or reject certain versions.
+
+For example:
+
+.. CODE-BLOCK:: bash
+
+    $ cat build/pkgs/sphinx/package-version.txt
+    3.1.2.p0
+    $ cat build/pkgs/sphinx/install-requires.txt
+    # gentoo uses 3.2.1
+    sphinx >=3, <3.3
+
+The comments may include links to Trac tickets, as in the following example:
+
+.. CODE-BLOCK:: bash
+
+    $ cat build/pkgs/packaging/install-requires.txt
+    packaging >=18.0
+    # Trac #30975: packaging 20.5 is known to work but we have to silence "DeprecationWarning: Creating a LegacyVersion"
+
+The currently encoded version constraints are merely a starting point.
+Developers and downstream packagers are invited to refine the version
+constraints based on their experience and tests.  When a package
+update is made in order to pick up a critical bug fix from a newer
+version, then the lower bound should be adjusted.
+
 
 .. _section-spkg-SPKG-txt:
 

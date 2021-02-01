@@ -1,5 +1,5 @@
 import pytest
-from .generic_backend import GenericBackend
+from sage.numerical.backends.generic_backend import GenericBackend
 from sage.structure.sage_object import SageObject
 from sage.structure.sage_object_test import SageObjectTests
 

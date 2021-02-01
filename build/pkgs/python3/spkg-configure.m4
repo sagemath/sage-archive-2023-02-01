@@ -1,4 +1,7 @@
 SAGE_SPKG_CONFIGURE([python3], [
+   m4_pushdef([MIN_VERSION],               [3.6.0])
+   m4_pushdef([MIN_NONDEPRECATED_VERSION], [3.7.0])
+   m4_pushdef([LT_VERSION],                [3.10.0])
    AC_ARG_WITH([python],
                [AS_HELP_STRING([--with-python=PYTHON3],
                                [Python 3 executable to use for the Sage venv; default: python3])])
@@ -20,8 +23,6 @@ SAGE_SPKG_CONFIGURE([python3], [
       dnl Check if we can do venv with a system python3
       dnl instead of building our own copy.
       check_modules="sqlite3, ctypes, math, hashlib, crypt, readline, socket, zlib, distutils.core"
-      m4_pushdef([MIN_VERSION], [3.6.0])
-      m4_pushdef([LT_VERSION],  [3.10.0])
       AC_CACHE_CHECK([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules], [ac_cv_path_PYTHON3], [
         AS_IF([test x"$ac_path_PYTHON3" != x], [dnl checking explicitly specified $with_python
            AC_MSG_RESULT([])
@@ -66,8 +67,6 @@ SAGE_SPKG_CONFIGURE([python3], [
           AC_MSG_NOTICE([to try to use a different system python, use ./configure --with-python=/path/to/python])
           sage_spkg_install_python3=yes
       ])
-      m4_popdef([MIN_VERSION])
-      m4_popdef([LT_VERSION])
     ])
 ],, [
     dnl PRE
@@ -98,6 +97,12 @@ SAGE_SPKG_CONFIGURE([python3], [
                 CFLAGS_MARCH=""
             ])
         ])
+        AX_COMPARE_VERSION([$python3_version], [lt], MIN_NONDEPRECATED_VERSION, [
+            AC_MSG_NOTICE([deprecation notice: Support for system python < MIN_NONDEPRECATED_VERSION is deprecated
+and will be removed in the next development cycle.  Consider using a newer version of Python
+that may be available on your system or can be installed using the system package manager.
+To build Sage with a different system python, use ./configure --with-python=/path/to/python])
+        ])
     ], [
         SAGE_MACOSX_DEPLOYMENT_TARGET=legacy
     ])
@@ -109,4 +114,8 @@ SAGE_SPKG_CONFIGURE([python3], [
     dnl (that a bunch of other checks do) from emitting warnings about
     dnl conftest.dir and conftest_venv being directories.
     rm -rf conftest.dir conftest_venv
+
+    m4_popdef([MIN_VERSION])
+    m4_popdef([MIN_NONDEPRECATED_VERSION])
+    m4_popdef([LT_VERSION])
 ])

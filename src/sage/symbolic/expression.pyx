@@ -4814,6 +4814,15 @@ cdef class Expression(CommutativeRingElement):
             1/(x^2 + 2*x + 1)
             sage: (((x-1)/(x+1))^2).expand()
             x^2/(x^2 + 2*x + 1) - 2*x/(x^2 + 2*x + 1) + 1/(x^2 + 2*x + 1)
+
+        Check that :trac:`30688` is fixed::
+
+            sage: assume(x < 0)
+            sage: sqrt(-x).expand()
+            sqrt(-x)
+            sage: ((-x)^(3/4)).expand()
+            (-x)^(3/4)
+            sage: forget()
         """
         if side is not None:
             if not is_a_relational(self._gobj):

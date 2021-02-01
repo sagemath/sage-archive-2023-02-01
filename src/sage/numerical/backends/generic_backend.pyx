@@ -416,9 +416,12 @@ cdef class GenericBackend:
         EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
-            sage: p.add_constraint(p[0] + p[1], max = 10)           # optional - Nonexistent_LP_solver
-            sage: p.remove_constraints([0])                         # optional - Nonexistent_LP_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")   # optional - Nonexistent_LP_solver
+            sage: p.add_variables(2)                                 # optional - Nonexistent_LP_solver
+            1
+            sage: p.add_linear_constraint([(0, 2), (1, 3)], None, 6) # optional - Nonexistent_LP_solver
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6) # optional - Nonexistent_LP_solver
+            sage: p.remove_constraints([0, 1])                       # optional - Nonexistent_LP_solver
         """
         if type(constraints) == int: self.remove_constraint(constraints)
 

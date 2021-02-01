@@ -182,6 +182,7 @@ if __name__ == "__main__":
     err = DC.run()
 
     try:
+        exit_code_pytest = 0
         import pytest
         pytest_options = []
         if options.verbose:

@@ -6907,9 +6907,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             return gccc, m * mc * mc2, psi
         return gccc
 
-    def potential_good_reduction(self, prime):
+    def potential_good_reduction(self, prime, return_conjugation=False):
         r"""
-        Return if this dynamical system has potential good reduction at ``prime``.
+        Return ``True`` if this dynamical system has potential good reduction at ``prime``.
 
         A dynamical system has good reduction at ``prime`` if after the coefficients
         are reduced modulo ``prime`` the degree remains the same. A dynamical system
@@ -6930,19 +6930,30 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
           points of the map, or a prime number in `\QQ` if the field of definition
           of the fixed points is `\QQ`.
 
+        - ``return_conjugation`` -- (default: ``False``) if set to ``True``,
+          the `PGL_2` map used to achieve good reduction will be returned
+
         OUTPUT:
 
-        - ``False`` if this dynamical system does not have good reduction
-        - If this dynamical system `f` has potential good reduction, a
-          dynamical system `g` such that `g = \phi^{-1} \circ f \circ \phi`
-          and `g` has good reduction at ``prime``.
+        A tuple:
+
+        - The first element is:
+            - ``False`` if this dynamical system does not have potential good reduction.
+            - ``True`` if this dynamical system does have potential good reduction.
+        - The second element is:
+            - ``None`` if this dynamical system does not have potential good reduction.
+            - A dynamical system with good reduction at ``prime`` otherwise.
+        - If ``return_conjugation`` is ``True``, then the tuple will have a third element,
+          which is:
+            - ``None`` if this dynamical system does not have potential good reduction.
+            - The `PGL_2` map used to achieve good reduction otherwise.
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: system = DynamicalSystem_projective([x^2-y^2, 2*x*y])
             sage: prime = system.field_of_definition_periodic(1).prime_above(2)
-            sage: new_system = system.potential_good_reduction(prime)
+            sage: new_system = system.potential_good_reduction(prime)[1]
             sage: new_system
             Dynamical System of Projective Space of dimension 1 over Number Field
             in a with defining polynomial x^2 + 1
@@ -6954,13 +6965,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: new_system.resultant()
             1
 
+        Using ``return_conjugation``, we can get the conjugation that achieves good reduction:
+
+            sage: system.potential_good_reduction(prime, True)[2]
+            [-1/2*a    1/2]
+            [     0      1]
+
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: system = DynamicalSystem_projective([3^4*x^3+3*x*y^2+y^3, 3^6*y^3])
             sage: prime = system.field_of_definition_periodic(1).prime_above(3)
             sage: system.potential_good_reduction(prime)
-            False
+            (False, None)
 
         ::
 
@@ -6968,7 +6985,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: system = DynamicalSystem_projective([x^5-x*y^4, 5*y^5])
             sage: prime = system.field_of_definition_periodic(1).prime_above(5)
             sage: system.potential_good_reduction(prime)
-            False
+            (False, None)
 
         TESTS::
 
@@ -6978,17 +6995,20 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: prime = A.prime_above(2)
             sage: system = DynamicalSystem_projective([x^2 - y^2, 2*x*y])
             sage: system.potential_good_reduction(prime)
-            Dynamical System of Projective Space of dimension 1 over Number Field
-            in a with defining polynomial x^2 + 1
-              Defn: Defined on coordinates by sending (x : y) to
-                    ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2)
+            (True,
+                Dynamical System of Projective Space of dimension 1 over
+                Number Field in a with defining polynomial x^2 + 1
+                Defn: Defined on coordinates by sending (x : y) to
+                        ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2))
+
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: system = DynamicalSystem_projective([3^5*x^3 + x^2*y - 3^5*x*y^2 , -3^5*x^2*y + x*y^2 + 3^5*y^3])
-            sage: system.potential_good_reduction(3)
-            False
+            sage: system = DynamicalSystem_projective([3^5*x^3 + x^2*y - 3^5*x*y^2, -3^5*x^2*y + x*y^2 + 3^5*y^3])
+            sage: system.potential_good_reduction(3, return_conjugation=True)
+            (False, None, None)
+
         """
         if self.domain().base_ring() not in NumberFields:
             raise ValueError('dynamical system must be defined over number field')
@@ -7025,7 +7045,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             else:
                 valuation = mult.valuation(prime)
             if valuation < 0:
-                return False
+                if return_conjugation:
+                    return (False, None, None)
+                else:
+                    return (False, None)
             elif valuation == 0:
                 indifferent_point = fixed_points[multipliers.index(mult)]
         if indifferent_point is not None:
@@ -7051,8 +7074,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         new_system = new_system.conjugate(conjugation)
         res = new_system.resultant()
         if res.valuation(field_of_definition.prime_above(prime)) != 0:
-            return False
-        return new_system
+            if return_conjugation:
+                return (False, None, None)
+            else:
+                return (False, None)
+        if return_conjugation:
+            return (True, new_system, conjugation)
+        return (True, new_system)
 
     def reduce_base_field(self):
         """

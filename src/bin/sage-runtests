@@ -184,7 +184,7 @@ if __name__ == "__main__":
     try:
         exit_code_pytest = 0
         import pytest
-        pytest_options = []
+        pytest_options = ["--import-mode", "importlib"]
         if options.verbose:
             pytest_options.append("-v")
         exit_code_pytest = pytest.main(pytest_options + args)

@@ -622,13 +622,12 @@ cdef class PowerSeries_poly(PowerSeries):
             1 - q + q^2 - q^3 + q^4 - q^5 + q^6 - q^7 + q^8 - q^9 + q^10 - q^11 + q^12 - q^13 + q^14 - q^15 + q^16 - q^17 + q^18 - q^19 + O(q^20)
             sage: prec = R.default_prec(); prec
             20
-            sage: R.set_default_prec(5)
-            sage: 1/(1+q)
+            sage: 1/(1+q) + O(q^5)
             1 - q + q^2 - q^3 + q^4 + O(q^5)
 
         ::
 
-            sage: 1/(q + q^2)
+            sage: 1/(q + q^2) + O(q^4)
             q^-1 - 1 + q - q^2 + q^3 + O(q^4)
             sage: g = 1/(q + q^2 + O(q^5))
             sage: g; g.parent()
@@ -644,13 +643,12 @@ cdef class PowerSeries_poly(PowerSeries):
 
         ::
 
-            sage: 1/(2 + q)
+            sage: 1/(2 + q) + O(q^5)
             1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
 
         ::
 
-            sage: R.<q> = QQ[['q']]
-            sage: R.set_default_prec(5)
+            sage: R.<q> = PowerSeriesRing(QQ, name='q', default_prec=5)
             sage: f = 1 + q + q^2 + O(q^50)
             sage: f/10
             1/10 + 1/10*q + 1/10*q^2 + O(q^50)

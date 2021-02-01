@@ -21,6 +21,10 @@ the installation breaks on failing tests.
 The installation of the complete database  will be necessary in order to have
 access to all the properties recorded in the databases, as well.
 
+If the entire database is installed as explained above, the import instructions
+for :class:`KnotInfo` and :class:`KnotInfoSeries`, which can be seen in the opening
+lines of the examples, are unnecessary.
+
 Be aware that there are a couple of conventions used differently on KnotInfo as
 in Sage, especially concerning the selection of the symmetry version of the link.
 
@@ -733,6 +737,14 @@ class KnotInfoBase(Enum):
         r"""
         Return the determinant of ``self``.
 
+        From the KnotInfo description page:
+
+            The determinant of a knot is `\det(V + V^t)`, where `V` is a Seifert
+            matrix for the knot.
+
+        To read the complete description type
+        ``KnotInfo.K0_1.items.determinant.description_webpage()``.
+
         .. NOTE::
 
            KnotInfo's value for the unknot ``0_1`` is zero. This is not
@@ -754,6 +766,56 @@ class KnotInfoBase(Enum):
             # see note above
             return 1
         return int(self[self.items.determinant])
+
+    @cached_method
+    def three_genus(self):
+        r"""
+        Return the three genus of ``self``.
+
+        From the KnotInfo description page:
+
+            The three-genus of a knot is defined to be the minimal genus of
+            a Seifert surface for a knot.
+
+        To read the complete description type
+        ``KnotInfo.K0_1.items.three_genus.description_webpage()``.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.three_genus()     # optional - databsase_knotinfo
+            1
+
+        Note that this differs from the corresponding result in Sage
+        since the latter is obtained for a Seifert surface that does not
+        have the minimal genus::
+
+            sage: KnotInfo.K5_2.link().genus()
+            3
+        """
+        return int(self[self.items.three_genus])
+
+    @cached_method
+    def signature(self):
+        r"""
+        Return the signature of ``self``.
+
+        From the KnotInfo description page:
+
+            The signature of a knot, `\sigma (K)`, is equal to `\sigma (V + V^t)`,
+            the signature of `V + V^t` where `V` is a Seifert matrix for the knot
+            and `V^t` is its transpose.
+
+        To read the complete description type
+        ``KnotInfo.K0_1.items.signatur.description_webpage()``.
+
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: KnotInfo.K5_2.signature()       # optional - databsase_knotinfo
+            1
+        """
+        return int(self[self.items.signature])
 
     @cached_method
     def is_knot(self):
@@ -1120,7 +1182,7 @@ class KnotInfoBase(Enum):
             sage: PK3_1 = K3_1.homfly_polynomial(); PK3_1
             -v^4 + v^2*z^2 + 2*v^2
             sage: K3_1.homfly_polynomial(original=True)
-            '(2*v^2-v^4)+ (v^2)*z^2'
+            '(2*v^2-v^4)+(v^2)*z^2'
             sage: PK3_1 == K3_1.link().homfly_polynomial(normalization='vz')
             True
 
@@ -1145,6 +1207,7 @@ class KnotInfoBase(Enum):
 
         TESTS::
 
+            sage: H = KnotInfo.L11n459_1_1_1.homfly_polynomial()   # optional - database_knotinfo
             sage: all(L.homfly_polynomial() == L.link().homfly_polynomial(normalization='vz')\
                       for L in KnotInfo if L.crossing_number() < 7)
             True
@@ -1164,6 +1227,14 @@ class KnotInfoBase(Enum):
         R = self._homfly_pol_ring(var1, var2)
         if not homfly_polynomial and self.crossing_number() == 0:
             return R.one()
+
+        # As of February 2021 there is a wrong sign for the link in the
+        # last row of the database. This is removed here (see SPKG.rst and
+        # the test above). Once this is fixed upstream, the following three
+        # lines of code can be removed again:
+        if self.value == 'L11n459{1,1,1}':
+            if homfly_polynomial.endswith('}'):
+                homfly_polynomial = homfly_polynomial.strip('}')
 
         L, M = R.gens()
         lc = {'v': L, 'z':M}

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-KontInfo Database
+KnotInfo Database
 
 This module contains the class :class:`KnotInfoDataBase`  and auxilary classes
 for it which serves as an interface to the lists of named knots and links provided
@@ -34,7 +34,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.persist import save, load
 from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
-from sage.env import SAGE_SHARE, SAGE_ROOT
 
 
 class KnotInfoColumnTypes(Enum):
@@ -228,35 +227,6 @@ class KnotInfoFilename(Enum):
         """
         return '%s.csv' %(self.value[1])
 
-    def sobj_path(self):
-        r"""
-        Return the path name under which the data is stored internally
-        in ``sobj`` files.
-
-        Examples::
-
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
-            sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.filename.knots.sobj_path().endswith('knotinfo')
-            True
-        """
-        return os.path.join(SAGE_SHARE, 'knotinfo')
-
-
-    def sobj_num_knots(self):
-        r"""
-        Return the file name under which the number of knots
-        is stored as in python int in a sobj-file.
-
-        Examples::
-
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
-            sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.filename.knots.sobj_num_knots()
-            'num_knots.sobj'
-        """
-        return 'num_knots.sobj'
-
     def sobj_row(self):
         r"""
         Return the file name under which the row-data of the csv-File
@@ -381,28 +351,21 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         self._names_column = 'name'
         self._components_column = 'components'
         self._knot_prefix  = 'K'
-        self._sobj_path  = KnotInfoFilename.knots.sobj_path()
 
         self._knot_list = None
         self._link_list = None
         self._demo      = None
         self._num_knots = None
 
+        from sage.features.databases import DatabaseKnotInfo
+        self._feature   = DatabaseKnotInfo()
+        self._sobj_path = self._feature.search_path[0]
+
         if install:
             knot_list = self.knot_list()
             num_knots = len(knot_list) - 1
             print('Setting the number of Knots: %s!' %num_knots)
-            save(num_knots, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_num_knots()))
-
-        from sage.features.databases import DatabaseKnotInfo
-        self._feature = DatabaseKnotInfo()
-
-        version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._feature.spkg)
-        f = open(version_file)
-        self._version = f.read().splitlines()[0]
-        f.close()
-
-        if install:
+            save(num_knots, '%s/%s' %(self._sobj_path, self._feature.filename))
             self._feature._cache_is_present = None # must be reset for package installation
             self._create_col_dict_sobj()
             self._create_data_sobj()
@@ -427,48 +390,6 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
                 self._demo = True
                 self._num_knots = len([v for v in row_demo_sample.values() if v[1]==1])
         return self._demo
-
-
-    def create_spkg_tarball(self, path_for_src=None):
-        r"""
-        Create a tarball for the sage-package ``database_knotinfo`` in the
-        ``upstream`` directory. This utility should only be used by users who
-        know what they do in case of a switch to a new version of the data files
-        (that is if the original files on KnotInfo web-page have changed). In that
-        case an invocation of ``sage -package update database_knotinfo <new version>``
-        and ``sage -package fix-checksum database_knotinfo`` will be necessary.
-
-        INPUT:
-
-        - ``path_for_src`` -- string of the path under which the source are
-          stored in a subdirectory called ``src``. In that directory there should
-          be the data files in csv format (for example
-          ``KnotInfoDataBase.filename.knots.csv()``)
-
-        EXAMPLES::
-
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
-            sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.create_spkg_tarball()    # not tested (internet access)
-        """
-        if not path_for_src:
-            path_for_src = os.environ['PWD']
-
-        os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 src' %(path_for_src, SAGE_ROOT, self._feature.spkg, self._version) )
-
-
-    def version(self):
-        r"""
-        Return the current version.
-
-        EXAMPLES::
-
-            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
-            sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.version()
-            '20200713'
-        """
-        return self._version
 
     def knot_list(self):
         r"""
@@ -525,7 +446,6 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         """
         knot_list = self.knot_list()
         knot_column_names = knot_list[0]
-        len_knots = len(knot_list)
 
         link_list = self.link_list()
         link_column_names = link_list[0]
@@ -664,7 +584,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
             sage: len(ki_db.read_column_dict())       # optional - database_knotinfo
-            122
+            125
         """
         if self.demo_version():
             return column_demo_sample
@@ -772,7 +692,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
             sage: ki_db = KnotInfoDataBase()
         """
         if not isinstance(column, KnotInfoColumns):
-            raise TypeError('column must be an instance of enum %s' (KnotInfoColumns))
+            raise TypeError('column must be an instance of enum %s' %(KnotInfoColumns))
 
         if self.demo_version():
             return data_demo_sample[column]
@@ -1003,7 +923,7 @@ data_demo_sample = {
         ],
     dc.homfly_polynomial: [
         '',
-        '(2*v^2-v^4)+ (v^2)*z^2',
+        '(2*v^2-v^4)+(v^2)*z^2',
         '(v^(-2)-1+ v^2)+ (-1)*z^2',
         '(3*v^4-2*v^6)+ (4*v^4-v^6)*z^2+ (v^4)*z^4',
         '(v^2+ v^4-v^6)+ (v^2+ v^4)*z^2',

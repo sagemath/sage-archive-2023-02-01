@@ -87,9 +87,11 @@ class DatabaseKnotInfo(StaticFile):
             sage: isinstance(DatabaseKnotInfo(), DatabaseKnotInfo)
             True
         """
-        from sage.databases.knotinfo_db import KnotInfoFilename
+        from sage.env import SAGE_SHARE
+        import os
         StaticFile.__init__(self, "KnotInfo and LinkInfo databases",
-                            filename=KnotInfoFilename.knots.sobj_num_knots(),
+                            filename='num_knots.sobj',
                             spkg='database_knotinfo',
-                            search_path = [KnotInfoFilename.knots.sobj_path()],
-                            url=KnotInfoFilename.knots.url())
+                            search_path = [os.path.join(SAGE_SHARE, 'knotinfo')],
+                            url='https://knotinfo.math.indiana.edu/'
+                            )

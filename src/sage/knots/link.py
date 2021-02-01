@@ -3460,7 +3460,7 @@ class Link(SageObject):
     @cached_method
     def _knotinfo_matching_list(self):
         r"""
-        Return a list of links from the KontInfo and LinkInfo databases which match
+        Return a list of links from the KnotInfo and LinkInfo databases which match
         the properties of ``self`` as much as possible.
 
         OUTPUT:
@@ -3549,7 +3549,7 @@ class Link(SageObject):
 
     def get_knotinfo(self, mirror_version=True, unique=True):
         r"""
-        Identify this link as an item of the KontInfo database (if possible).
+        Identify this link as an item of the KnotInfo database (if possible).
 
         INPUT:
 
@@ -3769,7 +3769,20 @@ class Link(SageObject):
            (<KnotInfo.K10_83: '10_83'>, False)
            sage: Ks10_83.sage_link().get_knotinfo() # optional - snappy
            (<KnotInfo.K10_86: '10_86'>, True)
+
+        TESTS:
+
+            sage: L = KnotInfo.L10a171_1_1_0         # optional - database_knotinfo
+            sage: l = L.link(L.items.braid_notation) # optional - database_knotinfo
+            sage: l.get_knotinfo(unique=False)       # optional - database_knotinfo
+            [(<KnotInfo.L10a171_0_1_0: 'L10a171{0,1,0}'>, True),
+             (<KnotInfo.L10a171_1_0_1: 'L10a171{1,0,1}'>, True),
+             (<KnotInfo.L10a171_1_1_0: 'L10a171{1,1,0}'>, False),
+             (<KnotInfo.L10a171_1_1_1: 'L10a171{1,1,1}'>, False)]
         """
+        # ToDo: extension to non prime links in which case an element of the monoid
+        # over :class:`KnotInfo` should be returned
+
         non_unique_hint = '\nuse keyword argument `unique` to obtain more details'
         def answer(L):
             r"""
@@ -3789,9 +3802,9 @@ class Link(SageObject):
 
             if not chiral:
                 mirrored = None
-            elif proved_m and not proved_s:
+            elif proved_m and not proved_s and L in lm:
                 mirrored = True
-            elif proved_s and not proved_m:
+            elif proved_s and not proved_m and L in l:
                 mirrored = False
             else:
                 # nothing proved
@@ -3857,6 +3870,9 @@ class Link(SageObject):
         lm, proved_m = self_m._knotinfo_matching_list()
         l = list(set(ls + lm))
 
+        if l and not unique:
+            return answer_list(l)
+
         if proved_s and proved_m:
             return answer_list(l)
 
@@ -3867,9 +3883,6 @@ class Link(SageObject):
             return answer_list(lm)
 
         # here we come if we cannot be sure about the found result
-
-        if l and not unique:
-            return answer_list(l)
 
         uniq_txt = ('', '')
         if l:

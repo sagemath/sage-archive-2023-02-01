@@ -21,23 +21,29 @@ AC_DEFUN([SAGE_CHECK_PYTHON_FOR_VENV], [
                             dnl m4_define([conftest_venv], [config-venv]) .... for debugging only
                             rm -rf conftest_venv
                             AS_IF(["]PYTHON_EXE[" build/bin/sage-venv conftest_venv && conftest_venv/bin/python3 -c "import ]REQUIRED_MODULES["], [
+                                AS_VAR_SET([python3_result], [yes])
                                 SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" conftest_venv/bin/python3], [
                                     SAGE_ARCHFLAGS="unset"
-                                    COMMANDS_IF_GOOD
                                 ], [
                                     AS_CASE([$host],
                                         [*-*-darwin*], [
                                             dnl #31227: Try if setting ARCHFLAGS to empty fixes it
                                             SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" ARCHFLAGS="" conftest_venv/bin/python3], [
                                                 SAGE_ARCHFLAGS=""
-                                                COMMANDS_IF_GOOD
                                             ], [
-                                                AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but $reason (even with ARCHFLAGS set to empty)])
+                                                AS_VAR_SET([python3_result],
+                                                           ["no, the version is in the supported range, and the modules can be imported, but $reason (even with ARCHFLAGS set to empty)"])
                                             ])
                                         ], [
-                                            AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but $reason])
-                                        ]
-                                    )
+                                            AS_VAR_SET([python3_result],
+                                                       ["no, the version is in the supported range, and the modules can be imported, but $reason"])
+                                        ])
+                                ])
+                                AS_VAR_IF([python3_result], [yes], [
+                                    dnl these commands are expected to call AC_MSG_RESULT
+                                    COMMANDS_IF_GOOD
+                                ], [
+                                    AC_MSG_RESULT([$python3_result])
                                 ])
                             ], [
                                 AC_MSG_RESULT([no, the version is in the supported range but cannot import one of the required modules: ]REQUIRED_MODULES)

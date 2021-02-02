@@ -64,7 +64,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 class SymbolicData:
     """
-    Database of ideals as distributed by the The SymbolicData Project
+    Database of ideals as distributed by The SymbolicData Project
     (http://symbolicdata.org).
 
     This class needs the optional ``database_symbolic_data`` package to be

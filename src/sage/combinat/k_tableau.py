@@ -2546,7 +2546,7 @@ class StrongTableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass)
             sage: all( T._is_valid_standard() for T in StrongTableaux.standard_marked_iterator(4, 6))
             True
 
-        Inner shape is not a a 3-core::
+        Inner shape is not a 3-core::
 
             sage: StrongTableau([[None, None, None], [-1]], 2)
             Traceback (most recent call last):

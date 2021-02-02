@@ -7801,7 +7801,7 @@ def substitute_variables(BooleanPolynomialRing parent, vec, BooleanPolynomial po
 
 def set_random_seed(seed):
     """
-    The the PolyBoRi random seed to ``seed``
+    The PolyBoRi random seed to ``seed``
 
     EXAMPLES::
 

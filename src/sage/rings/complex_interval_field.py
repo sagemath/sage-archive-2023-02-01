@@ -21,7 +21,7 @@ heavily modified:
 
     The :class:`ComplexIntervalField` differs from :class:`ComplexField` in
     that :class:`ComplexIntervalField` only gives the digits with exact
-    precision, then a ``?`` signifying that that digit can have an error of
+    precision, then a ``?`` signifying that digit can have an error of
     ``+/-1``.
 """
 

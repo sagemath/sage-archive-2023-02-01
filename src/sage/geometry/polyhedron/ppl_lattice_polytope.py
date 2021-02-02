@@ -1212,7 +1212,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         If there is no such embedding, a
         :class:`~sage.geometry.polyhedron.lattice_euclidean_group_element.LatticePolytopeNoEmbeddingError`
         is raised. Even if it exists, the ambient reflexive polytope
-        is usually not uniquely determined an a random but fixed
+        is usually not uniquely determined and a random but fixed
         choice will be returned.
 
         EXAMPLES::

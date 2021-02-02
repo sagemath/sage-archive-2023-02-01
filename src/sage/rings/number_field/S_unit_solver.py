@@ -1771,7 +1771,7 @@ def sieve_ordering(SUK, q):
     .. NOTE::
 
         - The list ``ideals_over_q`` is sorted so that the product of orders is smallest for ``ideals_over_q[0]``, as this will make the later sieving steps more efficient.
-        - The primes of ``S`` must not lie over over ``q``.
+        - The primes of ``S`` must not lie over ``q``.
 
     EXAMPLES::
 

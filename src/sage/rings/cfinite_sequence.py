@@ -169,7 +169,7 @@ class CFiniteSequence(FieldElement,
     INPUT:
 
     - ``ogf`` -- a rational function, the ordinary generating function
-      (can be a an element from the symbolic ring, fraction field or polynomial
+      (can be an element from the symbolic ring, fraction field or polynomial
       ring)
 
     OUTPUT:

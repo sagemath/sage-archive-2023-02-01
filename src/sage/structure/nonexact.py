@@ -44,7 +44,7 @@ class Nonexact:
     def __init__(self, prec=20):
         if prec < 0:
             raise ValueError(f"prec (= {prec}) must be non-negative")
-        self.__default_prec = Integer(prec)
+        self._default_prec = Integer(prec)
 
     def default_prec(self):
         r"""
@@ -64,10 +64,10 @@ class Nonexact:
 
         """
         try:
-            return self.__default_prec
+            return self._default_prec
         except AttributeError:
-            self.__default_prec = 20
-            return self.__default_prec
+            self._default_prec = 20
+            return self._default_prec
 
     def set_default_prec(self, prec):
         r"""
@@ -85,6 +85,6 @@ class Nonexact:
         msg += "be removed in a future version of Sage; please overload this "
         msg += "method if necessary"
         deprecation(18416, msg)
-        self.__default_prec = Integer(prec)
+        self._default_prec = Integer(prec)
 
 

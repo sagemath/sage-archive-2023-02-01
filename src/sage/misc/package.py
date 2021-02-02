@@ -53,6 +53,7 @@ from urllib.error import URLError
 
 DEFAULT_PYPI = 'https://pypi.org/pypi'
 
+
 def pkgname_split(name):
     r"""
     Split a pkgname into a list of strings, 'name, version'.
@@ -66,6 +67,7 @@ def pkgname_split(name):
         ['hello_world', '1.2']
     """
     return (name.split('-',1) + [''])[:2]
+
 
 def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     r"""
@@ -120,6 +122,7 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     info = json.loads(text)
     stable_releases = [v for v in info['releases'] if 'a' not in v and 'b' not in v]
     return max(stable_releases)
+
 
 def pip_installed_packages(normalization=None):
     r"""
@@ -424,16 +427,27 @@ def is_package_installed(package, exclude_pip=True):
     return any(p == package for p in installed_packages(exclude_pip))
 
 
-all_packages = list_packages(local=True)
+def is_package_installed_and_updated(package: str):
+    r"""
+    Return whether the given package is installed and up-to-date.
 
+    INPUT:
 
-def is_package_installed_and_updated(pkg: str):
+    - ``package`` -- the name of the package.
+
+    EXAMPLES::
+
+        sage: from sage.misc.package import is_package_installed_and_updated
+        sage: is_package_installed_and_updated("alabaster")    # optional - build, random
+        False
+    """
     try:
-        pkginfo = all_packages[pkg]
+        all_packages = list_packages(local=True)
+        pkginfo = all_packages[package]
         return pkginfo.installed_version == pkginfo.remote_version
     except KeyError:
         # Might be an installed old-style package
-        return is_package_installed(pkg)
+        return is_package_installed(package)
 
 
 def package_versions(package_type, local=False):
@@ -571,6 +585,7 @@ def experimental_packages():
     pkgs = list_packages('experimental', local=True).values()
     return (sorted(pkg.name for pkg in pkgs if pkg.is_installed()),
             sorted(pkg.name for pkg in pkgs if not pkg.is_installed()))
+
 
 def package_manifest(package):
     """

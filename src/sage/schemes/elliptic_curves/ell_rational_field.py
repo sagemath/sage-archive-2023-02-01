@@ -1106,6 +1106,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if sign not in [1,-1]:
             raise ValueError("The sign of a modular symbol must be 1 or -1")
         sign = ZZ(sign)
+        if implementation == 'eclib' and nap == 0:
+            nap = min(100*self.conductor().isqrt(), 10000)
         if normalize is None:
             normalize = "L_ratio"
         if normalize not in ["L_ratio", "period", "none"]:
@@ -1115,7 +1117,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return (sign, normalize, implementation, nap)
 
     @cached_method(key = _modular_symbol_normalize)
-    def modular_symbol(self, sign=+1, normalize=None, implementation='eclib', nap=500):
+    def modular_symbol(self, sign=+1, normalize=None, implementation='eclib', nap=0):
         r"""Return the modular symbol map associated to this elliptic curve
         with given sign.
 
@@ -1142,10 +1144,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            uses Wuthrich's implementation of numerical modular
            symbols.
 
-        - ``nap`` - (int, default 1000); ignored unless implementation
-          is 'eclib'.  The number of ap of E to use in determining the
-          normalisation of the modular symbols.  Using too small a
-          value can lead to incorrect normalisation.
+        - ``nap`` - (int, default 0); ignored unless implementation is
+          'eclib'.  The number of ap of E to use in determining the
+          normalisation of the modular symbols.  If 0 (the default),
+          then the value of 100*E.conductor().isqrt() is used.  Using
+          too small a value can lead to incorrect normalisation.
 
         DEFINITION:
 

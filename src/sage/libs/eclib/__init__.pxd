@@ -141,7 +141,7 @@ cdef extern from "eclib/newforms.h":
 
         newforms(long n, int disp)
 
-        void createfromcurve(int sign, CurveRed CR)
+        void createfromcurve(int sign, CurveRed CR, int nap)
         void display()
         # Here i is the index of the relevant newform in the space,
         # which for us will always be 0:

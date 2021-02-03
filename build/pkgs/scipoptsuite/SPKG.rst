@@ -20,20 +20,14 @@ this license without charge for research purposes as a member of a
 non-commercial and academic institution, e.g., a university. The
 software is available with its source code.
 
-http://scip.zib.de/academic.txt
-
-
-SPKG Maintainers
-----------------
-
--  Martin Albrecht (original spkg)
--  Matthias Koeppe (updates for new spkg style)
+https://www.scipopt.org/academic.txt
 
 
 Upstream Contact
 ----------------
 
-http://scip.zib.de/doc/html/AUTHORS.shtml
+https://scipopt.org/#scipoptsuite
+
 
 Dependencies
 ------------
@@ -41,10 +35,15 @@ Dependencies
 cmake
 
 
+scipoptsuite brings its own patched version of the bliss library.
+This will conflict with the optional package bliss.
+
+
 Special Update/Build Instructions
 ---------------------------------
 
-We do not have permission to redistribute SCIP or SoPlex. Hence, you
-must download it yourself from http://scip.zib.de and put the tarball
-``scipoptsuite-VERSION.tgz`` in ``$SAGE_ROOT/upstream``, renaming
-it to ``scipoptsuite-VERSION-do-not-distribute.tgz``.
+We do not have permission to redistribute the SCIP Optimization Suite.
+
+Hence, you must download it yourself from http://scip.zib.de and
+put the tarball ``scipoptsuite-VERSION.tgz`` in ``$SAGE_ROOT/upstream``,
+renaming it to ``scipoptsuite-VERSION-do-not-distribute.tgz``.

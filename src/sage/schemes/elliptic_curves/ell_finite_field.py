@@ -1512,8 +1512,8 @@ def supersingular_j_polynomial(p, use_cache = True):
 
     .. note::
 
-    The only point of the use_cache parameter is to allow checking the
-    precomputed coefficients.
+        The only point of the use_cache parameter is to allow checking
+        the precomputed coefficients.
 
     EXAMPLES::
 

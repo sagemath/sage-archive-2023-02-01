@@ -1420,15 +1420,85 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 raise ValueError('Value %s illegal (multiple of random point not the identity)' % value)
         self._order = value
 
+# dict to hold precomputed coefficient vectors of supersingular j values (excluding 0, 1728):
 
-def supersingular_j_polynomial(p):
-    r"""
-    Return a polynomial whose roots are the supersingular `j`-invariants
+supersingular_j_polynomials = {}
+
+# For p in [13..300] we have precomputed these polynomials.  The
+# following function does nothing except the first time it is called,
+# at which point it fills the dict with the precomputed values.  We do
+# it this way to avoid start-up costs.
+
+def fill_ss_j_dict():
+    global supersingular_j_polynomials
+    if not supersingular_j_polynomials:
+        supersingular_j_polynomials[13] = [8, 1]
+        supersingular_j_polynomials[17] = [9, 1]
+        supersingular_j_polynomials[19] = [12, 1]
+        supersingular_j_polynomials[23] = [4, 1]
+        supersingular_j_polynomials[29] = [21, 2, 1]
+        supersingular_j_polynomials[31] = [8, 25, 1]
+        supersingular_j_polynomials[37] = [11, 5, 23, 1]
+        supersingular_j_polynomials[41] = [18, 10, 19, 1]
+        supersingular_j_polynomials[43] = [32, 11, 21, 1]
+        supersingular_j_polynomials[47] = [35, 33, 31, 1]
+        supersingular_j_polynomials[53] = [24, 9, 30, 7, 1]
+        supersingular_j_polynomials[59] = [39, 31, 35, 39, 1]
+        supersingular_j_polynomials[61] = [60, 21, 27, 8, 60, 1]
+        supersingular_j_polynomials[67] = [8, 36, 47, 4, 53, 1]
+        supersingular_j_polynomials[71] = [18, 54, 28, 33, 1, 1]
+        supersingular_j_polynomials[73] = [7, 39, 38, 9, 68, 60, 1]
+        supersingular_j_polynomials[79] = [10, 25, 1, 63, 57, 55, 1]
+        supersingular_j_polynomials[83] = [43, 72, 81, 81, 62, 11, 1]
+        supersingular_j_polynomials[89] = [42, 79, 23, 22, 37, 86, 60, 1]
+        supersingular_j_polynomials[97] = [19, 28, 3, 72, 2, 96, 10, 60, 1]
+        supersingular_j_polynomials[101] = [9, 76, 45, 79, 1, 68, 87, 60, 1]
+        supersingular_j_polynomials[103] = [64, 15, 24, 58, 70, 83, 84, 100, 1]
+        supersingular_j_polynomials[107] = [6, 18, 72, 59, 43, 19, 17, 68, 1]
+        supersingular_j_polynomials[109] = [107, 22, 39, 83, 30, 34, 108, 104, 60, 1]
+        supersingular_j_polynomials[113] = [86, 71, 75, 6, 47, 97, 100, 4, 60, 1]
+        supersingular_j_polynomials[127] = [32, 31, 5, 50, 115, 122, 114, 67, 38, 35, 1]
+        supersingular_j_polynomials[131] = [65, 64, 10, 34, 129, 35, 94, 127, 7, 7, 1]
+        supersingular_j_polynomials[137] = [104, 83, 3, 82, 112, 23, 77, 135, 18, 50, 60, 1]
+        supersingular_j_polynomials[139] = [87, 79, 109, 21, 138, 9, 104, 130, 61, 118, 90, 1]
+        supersingular_j_polynomials[149] = [135, 55, 80, 86, 87, 74, 32, 60, 130, 80, 146, 60, 1]
+        supersingular_j_polynomials[151] = [94, 125, 8, 6, 93, 21, 114, 80, 107, 58, 42, 18, 1]
+        supersingular_j_polynomials[157] = [14, 95, 22, 58, 110, 23, 71, 51, 47, 5, 147, 59, 60, 1]
+        supersingular_j_polynomials[163] = [102, 26, 74, 95, 112, 151, 98, 107, 27, 37, 25, 111, 109, 1]
+        supersingular_j_polynomials[167] = [14, 9, 27, 109, 97, 55, 51, 74, 145, 125, 36, 113, 89, 1]
+        supersingular_j_polynomials[173] = [152, 73, 56, 12, 18, 96, 98, 49, 30, 43, 52, 79, 163, 60, 1]
+        supersingular_j_polynomials[179] = [110, 51, 3, 94, 123, 90, 156, 90, 88, 119, 158, 27, 71, 29, 1]
+        supersingular_j_polynomials[181] = [7, 65, 77, 29, 139, 34, 65, 84, 164, 73, 51, 136, 7, 141, 60, 1]
+        supersingular_j_polynomials[191] = [173, 140, 144, 3, 135, 80, 182, 84, 93, 75, 83, 17, 22, 42, 160, 1]
+        supersingular_j_polynomials[193] = [23, 48, 26, 15, 108, 141, 124, 44, 132, 49, 72, 173, 126, 101, 22, 60, 1]
+        supersingular_j_polynomials[197] = [14, 111, 64, 170, 193, 32, 124, 91, 112, 163, 14, 112, 167, 191, 183, 60, 1]
+        supersingular_j_polynomials[199] = [125, 72, 65, 30, 63, 45, 10, 177, 91, 102, 28, 27, 5, 150, 51, 128, 1]
+        supersingular_j_polynomials[211] = [27, 137, 128, 90, 102, 141, 5, 77, 131, 144, 83, 108, 23, 105, 98, 13, 80, 1]
+        supersingular_j_polynomials[223] = [56, 183, 46, 133, 191, 94, 20, 8, 92, 100, 57, 200, 166, 67, 59, 218, 28, 32, 1]
+        supersingular_j_polynomials[227] = [79, 192, 142, 66, 11, 114, 100, 208, 57, 147, 32, 5, 144, 93, 185, 147, 92, 16, 1]
+        supersingular_j_polynomials[229] = [22, 55, 182, 130, 228, 172, 63, 25, 108, 99, 100, 101, 220, 111, 205, 199, 91, 163, 60, 1]
+        supersingular_j_polynomials[233] = [101, 148, 85, 113, 226, 68, 71, 103, 61, 44, 173, 175, 5, 225, 227, 99, 146, 170, 60, 1]
+        supersingular_j_polynomials[239] = [225, 81, 47, 26, 133, 182, 238, 2, 144, 154, 234, 178, 165, 130, 35, 61, 144, 112, 207, 1]
+        supersingular_j_polynomials[241] = [224, 51, 227, 139, 134, 186, 187, 152, 161, 175, 213, 59, 105, 88, 87, 124, 202, 40, 15, 60, 1]
+        supersingular_j_polynomials[251] = [30, 183, 80, 127, 40, 56, 230, 168, 192, 48, 226, 61, 214, 54, 165, 147, 105, 88, 38, 171, 1]
+        supersingular_j_polynomials[257] = [148, 201, 140, 146, 169, 147, 220, 4, 205, 224, 35, 42, 198, 97, 127, 7, 110, 229, 118, 202, 60, 1]
+        supersingular_j_polynomials[263] = [245, 126, 72, 213, 14, 64, 152, 83, 169, 114, 9, 128, 138, 231, 103, 85, 114, 211, 173, 249, 135, 1]
+        supersingular_j_polynomials[269] = [159, 32, 69, 95, 201, 266, 190, 176, 76, 151, 212, 21, 106, 49, 263, 105, 136, 194, 215, 181, 237, 60, 1]
+        supersingular_j_polynomials[271] = [169, 87, 179, 109, 133, 101, 31, 167, 208, 99, 127, 120, 83, 62, 36, 23, 61, 50, 69, 263, 265, 111, 1]
+        supersingular_j_polynomials[277] = [251, 254, 171, 72, 190, 237, 12, 231, 123, 217, 263, 151, 270, 183, 29, 228, 85, 4, 67, 101, 29, 169, 60, 1]
+        supersingular_j_polynomials[281] = [230, 15, 146, 69, 41, 23, 142, 232, 18, 80, 58, 134, 270, 62, 272, 70, 247, 189, 118, 255, 274, 159, 60, 1]
+        supersingular_j_polynomials[283] = [212, 4, 42, 155, 38, 1, 270, 175, 172, 256, 264, 232, 50, 82, 244, 127, 148, 46, 249, 72, 59, 124, 75, 1]
+        supersingular_j_polynomials[293] = [264, 66, 165, 144, 243, 25, 163, 210, 18, 107, 160, 153, 70, 255, 91, 211, 22, 7, 256, 50, 150, 94, 225, 60, 1]
+
+def supersingular_j_polynomial(p, use_cache = True):
+    r"""Return a polynomial whose roots are the supersingular `j`-invariants
     in characteristic `p`, other than 0, 1728.
 
     INPUT:
 
     - `p` (integer) -- a prime number.
+
+    - `use_cache` (boolean, default True) -- use cached coefficients if they exist
 
     ALGORITHM:
 
@@ -1439,6 +1509,11 @@ def supersingular_j_polynomial(p):
     we recover the polynomial (in variable ``j``) whose roots are the
     `j`-invariants.  Factors of `j` and `j-1728` are removed if
     present.
+
+    .. note::
+
+    The only point of the use_cache parameter is to allow checking the
+    precomputed coefficients.
 
     EXAMPLES::
 
@@ -1455,10 +1530,17 @@ def supersingular_j_polynomial(p):
 
     TESTS::
 
+        sage: from sage.schemes.elliptic_curves.ell_finite_field import supersingular_j_polynomial
         sage: supersingular_j_polynomial(6)
         Traceback (most recent call last):
         ...
         ValueError: p (=6) should be a prime number
+
+    Check the cached values are correct::
+
+        sage: from sage.schemes.elliptic_curves.ell_finite_field import supersingular_j_polynomial as ssjpol
+        sage: assert all([ssjpol(p,True) == ssjpol(p,False) for p in primes(300)])
+
     """
     try:
         p = ZZ(p)
@@ -1470,6 +1552,11 @@ def supersingular_j_polynomial(p):
     J = polygen(GF(p),'j')
     if p<13:
         return J.parent().one()
+    if use_cache:
+        fill_ss_j_dict()
+        if p in supersingular_j_polynomials:
+            return J.parent()(supersingular_j_polynomials[p])
+
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()
@@ -1481,72 +1568,8 @@ def supersingular_j_polynomial(p):
         R = R // J
     if R(1728) == 0:
         R = R // (J - 1728)
+    supersingular_j_polynomials[p] = R.coefficients(sparse=False)
     return R
-
-# For p in [13..300] we have precomputed these polynomials and store
-# them (as lists of their coefficients in ZZ) in a dict:
-
-
-supersingular_j_polynomials = {}
-
-supersingular_j_polynomials[13] = [8, 1]
-supersingular_j_polynomials[17] = [9, 1]
-supersingular_j_polynomials[19] = [12, 1]
-supersingular_j_polynomials[23] = [4, 1]
-supersingular_j_polynomials[29] = [21, 2, 1]
-supersingular_j_polynomials[31] = [8, 25, 1]
-supersingular_j_polynomials[37] = [11, 5, 23, 1]
-supersingular_j_polynomials[41] = [18, 10, 19, 1]
-supersingular_j_polynomials[43] = [32, 11, 21, 1]
-supersingular_j_polynomials[47] = [35, 33, 31, 1]
-supersingular_j_polynomials[53] = [24, 9, 30, 7, 1]
-supersingular_j_polynomials[59] = [39, 31, 35, 39, 1]
-supersingular_j_polynomials[61] = [60, 21, 27, 8, 60, 1]
-supersingular_j_polynomials[67] = [8, 36, 47, 4, 53, 1]
-supersingular_j_polynomials[71] = [18, 54, 28, 33, 1, 1]
-supersingular_j_polynomials[73] = [7, 39, 38, 9, 68, 60, 1]
-supersingular_j_polynomials[79] = [10, 25, 1, 63, 57, 55, 1]
-supersingular_j_polynomials[83] = [43, 72, 81, 81, 62, 11, 1]
-supersingular_j_polynomials[89] = [42, 79, 23, 22, 37, 86, 60, 1]
-supersingular_j_polynomials[97] = [19, 28, 3, 72, 2, 96, 10, 60, 1]
-supersingular_j_polynomials[101] = [9, 76, 45, 79, 1, 68, 87, 60, 1]
-supersingular_j_polynomials[103] = [64, 15, 24, 58, 70, 83, 84, 100, 1]
-supersingular_j_polynomials[107] = [6, 18, 72, 59, 43, 19, 17, 68, 1]
-supersingular_j_polynomials[109] = [107, 22, 39, 83, 30, 34, 108, 104, 60, 1]
-supersingular_j_polynomials[113] = [86, 71, 75, 6, 47, 97, 100, 4, 60, 1]
-supersingular_j_polynomials[127] = [32, 31, 5, 50, 115, 122, 114, 67, 38, 35, 1]
-supersingular_j_polynomials[131] = [65, 64, 10, 34, 129, 35, 94, 127, 7, 7, 1]
-supersingular_j_polynomials[137] = [104, 83, 3, 82, 112, 23, 77, 135, 18, 50, 60, 1]
-supersingular_j_polynomials[139] = [87, 79, 109, 21, 138, 9, 104, 130, 61, 118, 90, 1]
-supersingular_j_polynomials[149] = [135, 55, 80, 86, 87, 74, 32, 60, 130, 80, 146, 60, 1]
-supersingular_j_polynomials[151] = [94, 125, 8, 6, 93, 21, 114, 80, 107, 58, 42, 18, 1]
-supersingular_j_polynomials[157] = [14, 95, 22, 58, 110, 23, 71, 51, 47, 5, 147, 59, 60, 1]
-supersingular_j_polynomials[163] = [102, 26, 74, 95, 112, 151, 98, 107, 27, 37, 25, 111, 109, 1]
-supersingular_j_polynomials[167] = [14, 9, 27, 109, 97, 55, 51, 74, 145, 125, 36, 113, 89, 1]
-supersingular_j_polynomials[173] = [152, 73, 56, 12, 18, 96, 98, 49, 30, 43, 52, 79, 163, 60, 1]
-supersingular_j_polynomials[179] = [110, 51, 3, 94, 123, 90, 156, 90, 88, 119, 158, 27, 71, 29, 1]
-supersingular_j_polynomials[181] = [7, 65, 77, 29, 139, 34, 65, 84, 164, 73, 51, 136, 7, 141, 60, 1]
-supersingular_j_polynomials[191] = [173, 140, 144, 3, 135, 80, 182, 84, 93, 75, 83, 17, 22, 42, 160, 1]
-supersingular_j_polynomials[193] = [23, 48, 26, 15, 108, 141, 124, 44, 132, 49, 72, 173, 126, 101, 22, 60, 1]
-supersingular_j_polynomials[197] = [14, 111, 64, 170, 193, 32, 124, 91, 112, 163, 14, 112, 167, 191, 183, 60, 1]
-supersingular_j_polynomials[199] = [125, 72, 65, 30, 63, 45, 10, 177, 91, 102, 28, 27, 5, 150, 51, 128, 1]
-supersingular_j_polynomials[211] = [27, 137, 128, 90, 102, 141, 5, 77, 131, 144, 83, 108, 23, 105, 98, 13, 80, 1]
-supersingular_j_polynomials[223] = [56, 183, 46, 133, 191, 94, 20, 8, 92, 100, 57, 200, 166, 67, 59, 218, 28, 32, 1]
-supersingular_j_polynomials[227] = [79, 192, 142, 66, 11, 114, 100, 208, 57, 147, 32, 5, 144, 93, 185, 147, 92, 16, 1]
-supersingular_j_polynomials[229] = [22, 55, 182, 130, 228, 172, 63, 25, 108, 99, 100, 101, 220, 111, 205, 199, 91, 163, 60, 1]
-supersingular_j_polynomials[233] = [101, 148, 85, 113, 226, 68, 71, 103, 61, 44, 173, 175, 5, 225, 227, 99, 146, 170, 60, 1]
-supersingular_j_polynomials[239] = [225, 81, 47, 26, 133, 182, 238, 2, 144, 154, 234, 178, 165, 130, 35, 61, 144, 112, 207, 1]
-supersingular_j_polynomials[241] = [224, 51, 227, 139, 134, 186, 187, 152, 161, 175, 213, 59, 105, 88, 87, 124, 202, 40, 15, 60, 1]
-supersingular_j_polynomials[251] = [30, 183, 80, 127, 40, 56, 230, 168, 192, 48, 226, 61, 214, 54, 165, 147, 105, 88, 38, 171, 1]
-supersingular_j_polynomials[257] = [148, 201, 140, 146, 169, 147, 220, 4, 205, 224, 35, 42, 198, 97, 127, 7, 110, 229, 118, 202, 60, 1]
-supersingular_j_polynomials[263] = [245, 126, 72, 213, 14, 64, 152, 83, 169, 114, 9, 128, 138, 231, 103, 85, 114, 211, 173, 249, 135, 1]
-supersingular_j_polynomials[269] = [159, 32, 69, 95, 201, 266, 190, 176, 76, 151, 212, 21, 106, 49, 263, 105, 136, 194, 215, 181, 237, 60, 1]
-supersingular_j_polynomials[271] = [169, 87, 179, 109, 133, 101, 31, 167, 208, 99, 127, 120, 83, 62, 36, 23, 61, 50, 69, 263, 265, 111, 1]
-supersingular_j_polynomials[277] = [251, 254, 171, 72, 190, 237, 12, 231, 123, 217, 263, 151, 270, 183, 29, 228, 85, 4, 67, 101, 29, 169, 60, 1]
-supersingular_j_polynomials[281] = [230, 15, 146, 69, 41, 23, 142, 232, 18, 80, 58, 134, 270, 62, 272, 70, 247, 189, 118, 255, 274, 159, 60, 1]
-supersingular_j_polynomials[283] = [212, 4, 42, 155, 38, 1, 270, 175, 172, 256, 264, 232, 50, 82, 244, 127, 148, 46, 249, 72, 59, 124, 75, 1]
-supersingular_j_polynomials[293] = [264, 66, 165, 144, 243, 25, 163, 210, 18, 107, 160, 153, 70, 255, 91, 211, 22, 7, 256, 50, 150, 94, 225, 60, 1]
-
 
 def is_j_supersingular(j, proof=True):
     r"""
@@ -1625,11 +1648,9 @@ def is_j_supersingular(j, proof=True):
 
     # if p occurs in the precomputed list, use that:
 
-    try:
-        coeffs = supersingular_j_polynomials[p]
-        return PolynomialRing(F,'x')(coeffs)(j).is_zero()
-    except KeyError:
-        pass
+    fill_ss_j_dict()
+    if p in supersingular_j_polynomials:
+        return supersingular_j_polynomial(p)(j).is_zero()
 
     # Over GF(p), supersingular elliptic curves have cardinality
     # exactly p+1, so we check some random points in order to detect

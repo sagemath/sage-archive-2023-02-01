@@ -1,18 +1,13 @@
-echo "Building scipoptsuite with cmake"
-
 cd src
 mkdir build
 cd build
-cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DGMP_DIR="${SAGE_LOCAL}" -DZLIB_ROOT="${SAGE_LOCAL}" -DReadline_ROOT_DIR="${SAGE_LOCAL}" -DBLISS_DIR="${SAGE_LOCAL}" -DIPOPT=FALSE
-make
-make install
-
-$SAGE_LOCAL/bin/scip -s /dev/null -c quit
-
-if [ $? -ne 0 ]; then
-    echo "SCIP build completed but the scip executable does not work."
-    exit 1
-fi
-
-
-echo "Finished building scipoptsuite"
+cmake .. -DCMAKE_INSTALL_LIBDIR=lib \
+         -DCMAKE_VERBOSE_MAKEFILE=ON \
+         -DCMAKE_BUILD_WITH_INSTALL_RPATH=TRUE \
+         -DGMP_DIR="${SAGE_GMP_PREFIX}" \
+         -DReadline_ROOT_DIR=$(pkg-config --variable=prefix readline) \
+         -DHistory_ROOT_DIR=$(pkg-config --variable=prefix readline) \
+         -DIPOPT=FALSE \
+    || sdh_die "Error configuring $PKG_NAME with cmake"
+sdh_make
+sdh_make_install

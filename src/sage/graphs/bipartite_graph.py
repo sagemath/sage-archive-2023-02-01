@@ -314,14 +314,14 @@ class BipartiteGraph(Graph):
 
             sage: A = Matrix(ZZ, 100, 125)
             sage: for i in range(A.nrows()):
-            ....:     for j in Subsets(A.ncols()).an_element():
-            ....:         A[i,j] = 1
+            ....:     for j in Subsets(A.ncols()).random_element():
+            ....:         A[i,j-1] = 1
             sage: def make_bip_graph(A):
             ....:     G = BipartiteGraph(A)
-            sage: for i in range(10):
+            sage: for _ in range(10):
             ....:     make_bip_graph(A)
             sage: start_mem = get_memory_usage()
-            sage: for i in range(10):
+            sage: for _ in range(10):
             ....:     make_bip_graph(A)
             sage: print(round(get_memory_usage() - start_mem))
             0.0

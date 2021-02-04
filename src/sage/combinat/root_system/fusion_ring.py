@@ -3,8 +3,9 @@ Fusion Rings
 """
 # ****************************************************************************
 #  Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
-#                     Nicolas Thiery <nthiery at users.sf.net>
 #                     Guillermo Aboumrad <gh_willieab>
+#                     Travis Scrimshaw <tcscrims at gmail.com>
+#                     Nicolas Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
@@ -736,10 +737,16 @@ class FusionRing(WeylCharacterRing):
             return S
         
     @cached_method
-    def r_matrix(self, a, b, c, method="BDGRTW"):
+    def r_matrix(self, i, j, k, method="BDGRTW"):
         r"""
         Return the R-matrix entry corresponding to the subobject ``k``
         in the tensor product of ``i`` with ``j``.
+
+        .. WARNING:: 
+
+            This method only gives complete information when `N_{ij}^k = 1`
+            (an important special case). Tables of MTC including R-matrices
+            may be found in Section 5.3 of [RoStWa2009]_ and in [Bond2007]_.
 
         The R-matrix is a homomorphism `i \otimes j \rightarrow j \otimes i`.
         This may be hard to describe since the object `i \otimes j`
@@ -762,9 +769,6 @@ class FusionRing(WeylCharacterRing):
         approach to computing these see [LR1997]_ Corollary 2.22
         (actually due to Reshetikhin).
 
-        This method only gives complete information when `N_{ij}^k = 1`
-        (an important special case). Tables of MTC including R-matrices
-        may be found in Section 5.3 of [RoStWa2009]_ and in [Bond2007]_.
 
         EXAMPLES::
 
@@ -781,19 +785,19 @@ class FusionRing(WeylCharacterRing):
             sage: I.r_matrix(s,s,p) == I.root_of_unity(3/8)
             True
         """
-        if self.Nk_ij(a, b, c) == 0:
+        if self.Nk_ij(i, j, k) == 0:
             return 0
-        if a != b:
-            return self.root_of_unity((c.twist(reduced=False) - a.twist(reduced=False) - b.twist(reduced=False)) / 2)
+        if i != j:
+            return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
         if method == "BDGRTW":
             i0 = self.one()
-            return sum((y.ribbon())**2/(a.ribbon()*((x.ribbon())**2))*self.s_ij(i0,y)*self.s_ij(a,z)*self.s_ij(x,z).conjugate()*self.s_ij(c,x).conjugate()*self.s_ij(y,z).conjugate()/self.s_ij(i0,z) for x in self.basis() for y in self.basis() for z in self.basis())/(self.total_q_order()**4)
+            return sum((y.ribbon())**2/(i.ribbon()*((x.ribbon())**2))*self.s_ij(i0,y)*self.s_ij(i,z)*self.s_ij(x,z).conjugate()*self.s_ij(k,x).conjugate()*self.s_ij(y,z).conjugate()/self.s_ij(i0,z) for x in self.basis() for y in self.basis() for z in self.basis())/(self.total_q_order()**4)
         else:
-            wt = c.weight()
-            r = self.root_of_unity((c.twist(reduced=False) - a.twist(reduced=False) - b.twist(reduced=False)) / 2)
-            if wt in a.symmetric_power(2).monomial_coefficients():
+            wt = k.weight()
+            r = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
+            if wt in i.symmetric_power(2).monomial_coefficients():
                 return r
-            # We instead have wt in a.exterior_power(2).monomial_coefficients():
+            # We instead have wt in i.exterior_power(2).monomial_coefficients():
             return -r
 
     def global_q_dimension(self):
@@ -1031,4 +1035,3 @@ class FusionRing(WeylCharacterRing):
             expr = expr.substitute(q=q**4) / (q**(2*expr.degree()))
             zet = P.field().gen() ** (P._cyclotomic_order/P._l)
             return expr.substitute(q=zet)
-

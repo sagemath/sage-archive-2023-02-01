@@ -917,7 +917,7 @@ REFERENCES:
 .. [Bond2007] P. Bonderson, Nonabelian anyons and interferometry,
               Dissertation (2007). https://thesis.library.caltech.edu/2447/
 
-.. [BDGRTW2019] Bonderson, Delaney, Galindo, Rowell, Tran, and Wang, Zhenghan,
+.. [BDGRTW2019] Bonderson, Delaney, Galindo, Rowell, Tran, and Wang,
         On invariants of modular categories beyond modular data.
         J. Pure Appl. Algebra 223 (2019), no. 9, 4065–4088.
         :arXiv:`1805.05736`.

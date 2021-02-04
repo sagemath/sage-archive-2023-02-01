@@ -105,7 +105,6 @@ unset dfltlibdir dfltmandir dfltsysdatadir dfltobjdir
 
 # Avoid segmentation fault on macOS Catalina with XCode 11.4
 # #29451
-MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
 if [ $MACOSX_VERSION -ge 14 ]; then
     # various packages have still have issues with
     # two digit OS X versions

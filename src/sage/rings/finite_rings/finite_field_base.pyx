@@ -405,6 +405,50 @@ cdef class FiniteField(Field):
         if lim == <unsigned long>(-1):
             raise NotImplementedError("iterating over all elements of a large finite field is not supported")
 
+    def fetch_int(self, n):
+        r"""
+        Return the element of ``self`` that equals `n` under the condition that
+        :meth:`gen()` is set to the characteristic of the finite field ``self``.
+
+        INPUT:
+
+        - `n` -- integer. Must not be negative, and must be less than the
+          cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: p = 4091
+            sage: F = GF(p^4, 'a')
+            sage: n = 100*p^3 + 37*p^2 + 12*p + 6
+            sage: F.fetch_int(n)
+            100*a^3 + 37*a^2 + 12*a + 6
+            sage: F.fetch_int(n) in F
+            True
+
+        TESTS::
+
+            sage: F = GF(19^5)
+            sage: F.fetch_int(0)
+            0
+            sage: _.parent()
+            Finite Field in ... of size 19^5
+            sage: F.fetch_int(-5)
+            Traceback (most recent call last):
+            ...
+            TypeError: n must be between 0 and self.order()
+            sage: F.fetch_int(F.cardinality())
+            Traceback (most recent call last):
+            ...
+            TypeError: n must be between 0 and self.order()
+        """
+        n = Integer(n)
+        if (n < 0) or (n >= self.order()):
+            raise TypeError("n must be between 0 and self.order()")
+        if n == 0:
+            return self(0)
+        digs = n.digits(base=self.characteristic())
+        return sum(self(digs[i]) * self.gen()**i for i in range(len(digs)))
+
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
         Return ``True`` if the map from self to codomain sending

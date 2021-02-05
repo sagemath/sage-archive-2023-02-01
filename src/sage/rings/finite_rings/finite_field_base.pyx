@@ -445,9 +445,10 @@ cdef class FiniteField(Field):
         if (n < 0) or (n >= self.order()):
             raise TypeError("n must be between 0 and self.order()")
         if n == 0:
-            return self(0)
-        digs = n.digits(base=self.characteristic())
-        return sum(self(digs[i]) * self.gen()**i for i in range(len(digs)))
+            return self.zero()
+        cdef list digs = n.digits(base=self.characteristic())
+        g = self.gen()
+        return sum(self(digs[i]) * g**i for i in range(len(digs)) if digs[i])
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """

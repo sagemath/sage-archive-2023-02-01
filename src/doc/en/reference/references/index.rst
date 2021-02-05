@@ -1522,6 +1522,8 @@ REFERENCES:
             "Orange"
             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/orange-spec.pdf
 
+.. [CrNa2020] \J.E. Cremona and F. Najman,  `\QQ`-curves over odd degree number fields, :arxiv:`2004.10054`.
+
 .. [CoCo1] J.H. Conway, H.S.M. Coxeter
     *Triangulated polygons and frieze patterns*,
     The Mathematical Gazette (1973) 57 p.87-94

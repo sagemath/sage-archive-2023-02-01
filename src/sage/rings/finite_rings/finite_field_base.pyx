@@ -448,7 +448,7 @@ cdef class FiniteField(Field):
             return self.zero()
         cdef list digs = n.digits(base=self.characteristic())
         g = self.gen()
-        return self.sum(self(digs[i]) * g**i for i in range(len(digs)) if digs[i])
+        return self.sum(self(d) * g**i for i, d in enumerate(digs) if d)
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """

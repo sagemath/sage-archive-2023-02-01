@@ -1424,12 +1424,16 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
 supersingular_j_polynomials = {}
 
-# For p in [13..300] we have precomputed these polynomials.  The
-# following function does nothing except the first time it is called,
-# at which point it fills the dict with the precomputed values.  We do
-# it this way to avoid start-up costs.
-
 def fill_ss_j_dict():
+    r"""
+    Fill the global cache of supersingular j-_polynomials.
+
+    This function does nothing except the first time it is called,
+    when it fills ``supersingular_j_polynomials`` with precomputed
+    values for `p<300`.  Setting the values this way avoids start-up
+    costs.
+
+    """
     global supersingular_j_polynomials
     if not supersingular_j_polynomials:
         supersingular_j_polynomials[13] = [8, 1]
@@ -1490,15 +1494,16 @@ def fill_ss_j_dict():
         supersingular_j_polynomials[283] = [212, 4, 42, 155, 38, 1, 270, 175, 172, 256, 264, 232, 50, 82, 244, 127, 148, 46, 249, 72, 59, 124, 75, 1]
         supersingular_j_polynomials[293] = [264, 66, 165, 144, 243, 25, 163, 210, 18, 107, 160, 153, 70, 255, 91, 211, 22, 7, 256, 50, 150, 94, 225, 60, 1]
 
-def supersingular_j_polynomial(p, use_cache = True):
-    r"""Return a polynomial whose roots are the supersingular `j`-invariants
-    in characteristic `p`, other than 0, 1728.
+def supersingular_j_polynomial(p, use_cache=True):
+    r"""
+    Return a polynomial whose roots are the supersingular
+    `j`-invariants in characteristic `p`, other than 0, 1728.
 
     INPUT:
 
     - `p` (integer) -- a prime number.
 
-    - `use_cache` (boolean, default True) -- use cached coefficients if they exist
+    - `use_cache` (boolean, default ``True``) -- use cached coefficients if they exist
 
     ALGORITHM:
 
@@ -1539,7 +1544,7 @@ def supersingular_j_polynomial(p, use_cache = True):
     Check the cached values are correct::
 
         sage: from sage.schemes.elliptic_curves.ell_finite_field import supersingular_j_polynomial as ssjpol
-        sage: assert all([ssjpol(p,True) == ssjpol(p,False) for p in primes(300)])
+        sage: assert all(ssjpol(p,True) == ssjpol(p,False) for p in primes(300))
 
     """
     try:

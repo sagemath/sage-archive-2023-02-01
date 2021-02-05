@@ -81,9 +81,9 @@ class Nonexact:
         """
         # TODO: remove in Sage 9.4
         from sage.misc.superseded import deprecation
-        msg = f"the method {Nonexact.set_default_prec} is outdated and will "
-        msg += "be removed in a future version of Sage; please overload this "
-        msg += "method if necessary"
+        msg = "The method set_default_prec() is deprecated and will be removed "
+        msg += "in a future version of Sage. The default precision is set "
+        msg += "during construction."
         deprecation(18416, msg)
         self._default_prec = Integer(prec)
 

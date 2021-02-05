@@ -35,9 +35,9 @@ Construct univariate power series from a list of coefficients::
     sage: S = R([1, 3, 5, 7]); S
     1 + 3*t + 5*t^2 + 7*t^3
 
-The default precision of a power series ring instance stays fixed and
-cannot be changed. To work with different default precisions, we must
-establish new instances instead::
+The default precision of a power series ring stays fixed and cannot be
+changed. To work with different default precision, create a new power series
+ring::
 
     sage: R.<x> = PowerSeriesRing(QQ, default_prec=10)
     sage: sin(x)

@@ -31,20 +31,31 @@ from .temporary_file import tmp_filename
 from sage.repl.user_globals import get_globals
 from sage.misc.sage_ostools import restore_cwd, redirection
 from sage.cpython.string import str_to_bytes
+from sage.misc.cachefunc import cached_function
 
-cblas_pc = pkgconfig.parse(get_cblas_pc_module_name())
-cblas_libs = list(cblas_pc['libraries'])
-cblas_library_dirs = list(cblas_pc['library_dirs'])
-cblas_include_dirs = list(cblas_pc['include_dirs'])
+@cached_function
+def _standard_libs_libdirs():
+    r"""
+    Return the list of libraries and library directories.
 
-standard_libs = [
-    'mpfr', 'gmp', 'gmpxx', 'pari', 'm',
-    'ec', 'gsl',
-] + cblas_libs + [
-    'ntl']
+    EXAMPLES::
 
-standard_libdirs = [os.path.join(SAGE_LOCAL, "lib")] + cblas_library_dirs
-
+        sage: from sage.misc.cython import _standard_libs_libdirs
+        sage: _standard_libs_libdirs()
+        (['mpfr', 'gmp', 'gmpxx', 'pari', ...],
+         [...])
+    """
+    cblas_pc = pkgconfig.parse(get_cblas_pc_module_name())
+    cblas_libs = list(cblas_pc['libraries'])
+    cblas_library_dirs = list(cblas_pc['library_dirs'])
+    cblas_include_dirs = list(cblas_pc['include_dirs'])
+    standard_libs = [
+        'mpfr', 'gmp', 'gmpxx', 'pari', 'm',
+        'ec', 'gsl',
+    ] + cblas_libs + [
+        'ntl']
+    standard_libdirs = [os.path.join(SAGE_LOCAL, "lib")] + cblas_library_dirs
+    return standard_libs, standard_libdirs
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -310,6 +321,7 @@ def cython(filename, verbose=0, compile_message=False,
                 '-Wl,--image-base=0x{:x}'.format(image_base)
         ])
 
+    standard_libs, standard_libdirs = _standard_libs_libdirs()
     ext = Extension(name,
                     sources=[pyxfile],
                     extra_compile_args=extra_compile_args,

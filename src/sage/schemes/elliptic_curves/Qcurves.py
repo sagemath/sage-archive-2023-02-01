@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Testing whether elliptic curves over number fields are Q-curves
+Testing whether elliptic curves over number fields are `\QQ`-curves
 
 AUTHORS:
 
@@ -29,7 +29,8 @@ from sage.all import (QQ,
                       polygen)
 
 def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
-    r"""Return whether ``E`` is a `\QQ`-curve, with optional certificate.
+    r"""
+    Return whether ``E`` is a `\QQ`-curve, with optional certificate.
 
     INPUT:
 
@@ -37,11 +38,11 @@ def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
 
     - ``maxp`` (int, default 100): bound on primes used for checking
       necessary local conditions.  The result will not depend on this,
-      but using a larger value is more likely to return False faster.
+      but using a larger value may return ``False`` faster.
 
     - ``certificate`` (bool, default ``False``): if ``True`` then a
-      second value is returned giving a certificate for the Q-curve
-      property.
+      second value is returned giving a certificate for the
+      `\QQ`-curve property.
 
     OUTPUT:
 
@@ -53,19 +54,19 @@ def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
 
     - when the flag is ``True``, so `E` is a `\QQ`-curve:
 
-    - either {'CM':`D`} where `D` is a negative discriminant, when
-      `E` has potential CM with discriminant `D`;
+        - either {'CM':`D`} where `D` is a negative discriminant, when
+          `E` has potential CM with discriminant `D`;
 
-    - otherwise {'CM': `0`, 'core_poly': `f`, 'rho': `\rho`, 'r': `r`,
-      'N': `N`}, when `E` is a non-CM `\QQ`-curve, where the core
-      polynomial `f` is an irreducible monic polynomial over `QQ` of
-      degree `2^\rho`, all of whose roots are `j`-invariants of curves
-      isogenous to `E`, the core level `N` is a square-free integer
-      with `r` prime factors which is the LCM of the degrees of the
-      isogenies between these conjugates.  For example, if there
-      exists a curve `E'` isogenous to `E` with `j(E')=j\in\QQ`, then
-      the certificate is {'CM':0, 'r':0, 'rho':0, 'core_poly': x-j,
-      'N':1}.
+        - otherwise {'CM': `0`, 'core_poly': `f`, 'rho': `\rho`, 'r':
+          `r`, 'N': `N`}, when `E` is a non-CM `\QQ`-curve, where the
+          core polynomial `f` is an irreducible monic polynomial over
+          `QQ` of degree `2^\rho`, all of whose roots are
+          `j`-invariants of curves isogenous to `E`, the core level
+          `N` is a square-free integer with `r` prime factors which is
+          the LCM of the degrees of the isogenies between these
+          conjugates.  For example, if there exists a curve `E'`
+          isogenous to `E` with `j(E')=j\in\QQ`, then the certificate
+          is {'CM':0, 'r':0, 'rho':0, 'core_poly': x-j, 'N':1}.
 
     - when the flag is ``False``, so `E` is not a `\QQ`-curve, the
       certificate is a prime `p` such that the reductions of `E` at
@@ -376,7 +377,8 @@ def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
         return False
 
 def Step4Test(E, B, oldB=0, verbose=False):
-    r"""Apply local Q-curve test to E at all primes up to B.
+    r"""
+    Apply local Q-curve test to E at all primes up to B.
 
     INPUT:
 
@@ -398,13 +400,10 @@ def Step4Test(E, B, oldB=0, verbose=False):
     ALGORITHM (see [CrNa2020]_ for details):
 
     This local test at `p` only applies if `E` has good reduction at
-    all of the prime lying above `p` in the base field `K` of `E`.  It
-    tests whether (1) `E` is either ordinary at all `\P\mid p`, or
+    all of the primes lying above `p` in the base field `K` of `E`.  It
+    tests whether (1) `E` is either ordinary at all `P\mid p`, or
     supersingular at all; (2) if ordinary at all, it tests that the
-    squarefree part of `a_P^2-4*N(P)` is the same for all `P\mid p`.
-
-    The output is (``False``, `p`) if `E` fails the test from one
-    prime `p`, otherwise the output is (``True``, `0`).
+    squarefree part of `a_P^2-4N(P)` is the same for all `P\mid p`.
 
     EXAMPLES:
 
@@ -421,7 +420,7 @@ def Step4Test(E, B, oldB=0, verbose=False):
         (False, 13)
 
     A `\QQ`-curve over a sextic field (with LMFDB label
-    '6.6.1259712.1-64.1-a6') passes this test for al `p<100`::
+    '6.6.1259712.1-64.1-a6') passes this test for all `p<100`::
 
         sage: from sage.schemes.elliptic_curves.Qcurves import Step4Test
         sage: R.<x> = PolynomialRing(QQ)
@@ -467,14 +466,14 @@ def Step4Test(E, B, oldB=0, verbose=False):
     # Now we have failed to prove that E is not a Q-curve
     return True, 0
 
-def conjugacy_test(jC, verbose=False):
+def conjugacy_test(jlist, verbose=False):
     r"""
     Test whether a list of algebraic numbers contains a complete
     conjugacy class of 2-power degree.
 
     INPUT:
 
-    - `jC` (list): a list of algebraic numbers in the same field
+    - `jlist` (list): a list of algebraic numbers in the same field
 
     - `verbose` (boolean, default ``False``): verbosity flag
 
@@ -518,7 +517,7 @@ def conjugacy_test(jC, verbose=False):
 
     # First test to see if the list contains a rational
 
-    jQ = next((j for j in jC if j in QQ), None)
+    jQ = next((j for j in jlist if j in QQ), None)
     if jQ:
         if verbose:
             print("Yes: an isogenous curve has rational j-invariant {}".format(jQ))
@@ -528,10 +527,10 @@ def conjugacy_test(jC, verbose=False):
     # If the degree d is odd then we know that none of the
     # j-invariants in the class have 2-power degree, so we can exit.
 
-    K = jC[0].parent()
+    K = jlist[0].parent()
     if K.degree() % 2:
         if verbose:
-            print("Odd-degree case: no rational j-invariant in the class {}".format(jC))
+            print("Odd-degree case: no rational j-invariant in the class {}".format(jlist))
         return []
 
     # If K has no quadratic subfields we can similarly conclude right
@@ -539,11 +538,11 @@ def conjugacy_test(jC, verbose=False):
 
     if K(1).descend_mod_power(QQ,2) == [1]:
         if verbose:
-            print("No-quadratic-subfield case: no rational j-invariant in the class {}".format(jC))
+            print("No-quadratic-subfield case: no rational j-invariant in the class {}".format(jlist))
         return []
 
     # compute the minimum polynomials of the j-invariants in the class
-    pols = [j.minpoly() for j in jC]
+    pols = [j.minpoly() for j in jlist]
 
     # pick out those of 2-power degree
     pols = [f for f in pols if f.degree().prime_to_m_part(2) == 1]
@@ -565,5 +564,5 @@ def conjugacy_test(jC, verbose=False):
             print("Yes: the isogeny class contains all j-invariants with min poly {}".format(centrepols))
         return centrepols
     if verbose:
-        print("No complete conjugacy class of 2-power size found in {}".format(jC))
+        print("No complete conjugacy class of 2-power size found in {}".format(jlist))
     return []

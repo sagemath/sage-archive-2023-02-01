@@ -3728,14 +3728,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     @cached_method
     def is_Q_curve(self, maxp=100, certificate=False, verbose=False):
-        r"""Return ``True`` if this is a `\QQ`-curve, with optional certificate.
+        r"""
+        Return ``True`` if this is a `\QQ`-curve, with optional certificate.
 
         INPUT:
 
         - ``maxp`` (int, default 100): bound on primes used for
           checking necessary local conditions.  The result will not
-          depend on this, but using a larger value may return False
-          faster.
+          depend on this, but using a larger value may return
+          ``False`` faster.
 
         - ``certificate`` (bool, default ``False``): if ``True`` then
           a second value is returned giving a certificate for the
@@ -3769,7 +3770,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         - when the flag is ``False``, so `E` is not a `\QQ`-curve, the
           certificate is a prime `p` such that the reductions of `E`
           at the primes dividing `p` are inconsistent with the
-          property of being a `\QQ`-curve.  See the ALGORITHM section
+          property of being a `\QQ`-curve.  See the documentation for
+          :meth:`sage.src.schemes.elliptic_curves.Qcurves.is_Q_curve`
           for details.
 
         ALGORITHM:

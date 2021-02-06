@@ -8,6 +8,11 @@ import os
 import sys
 import time
 import json
+
+# Import setuptools before importing distutils, so that setuptools
+# can replace distutils by its own vendored copy.
+import setuptools
+
 from distutils import log
 from setuptools import Command
 

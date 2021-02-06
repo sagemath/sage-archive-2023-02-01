@@ -6943,8 +6943,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         - The second element is:
             - ``None`` if this dynamical system does not have potential good reduction.
             - A dynamical system with good reduction at ``prime`` otherwise.
-        - If ``return_conjugation`` is ``True``, then the tuple will have a third element,
-          which is:
+        - If ``return_conjugation`` is ``True``, then the tuple will have a third element, which is:
             - ``None`` if this dynamical system does not have potential good reduction.
             - The `PGL_2` map used to achieve good reduction otherwise.
 
@@ -6965,7 +6964,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: new_system.resultant()
             1
 
-        Using ``return_conjugation``, we can get the conjugation that achieves good reduction:
+        Using ``return_conjugation``, we can get the conjugation that achieves good reduction::
 
             sage: system.potential_good_reduction(prime, True)[2]
             [-1/2*a    1/2]

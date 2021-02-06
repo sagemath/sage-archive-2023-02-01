@@ -272,8 +272,19 @@ def cython(filename, verbose=0, compile_message=False,
     from Cython.Build import cythonize
     from Cython.Compiler.Errors import CompileError
     import Cython.Compiler.Options
-    from distutils.dist import Distribution
-    from distutils.core import Extension
+
+    try:
+        # Import setuptools before importing distutils, so that setuptools
+        # can replace distutils by its own vendored copy.
+        import setuptools
+        from setuptools.dist import Distribution
+        from setuptools.extension import Extension
+    except ImportError:
+        # Fall back to distutils (stdlib); note that it is deprecated
+        # in Python 3.10, 3.11; https://www.python.org/dev/peps/pep-0632/
+        from distutils.dist import Distribution
+        from distutils.core import Extension
+
     from distutils.log import set_verbosity
     set_verbosity(verbose)
 

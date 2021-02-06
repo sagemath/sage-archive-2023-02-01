@@ -7026,7 +7026,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 if hom(K.defining_polynomial()) != \
                     field_of_definition_periodic.defining_polynomial():
                     raise ValueError('prime ideal of %s ' %K + \
-                        'but field of definition of fixed points is %s. ' %L + \
+                        'but field of definition of fixed points is %s. ' %field_of_definition_periodic + \
                         'see documentation for examples')
                 embedding = K.embeddings(field_of_definition_periodic)[0]
                 prime = embedding(prime)

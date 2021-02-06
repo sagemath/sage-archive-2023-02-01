@@ -25,8 +25,8 @@ in [CrNa2020]_.
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.all import (QQ,
-                      polygen)
+from sage.rings.rational_field import QQ
+from sage.rings.polynomial.polynomial_ring import polygen
 
 def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
     r"""
@@ -149,7 +149,7 @@ def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
         Checking whether Elliptic Curve defined by y^2 + a*x*y = x^3 + (-a-1)*x^2 + (40*a-236)*x + (464*a-1840) over Number Field in a with defining polynomial x^2 - 10 is a Q-curve
         Applying local tests at good primes above p<=100
         No: inconsistency at the 2 ordinary primes dividing 13
-        - Frobenius discrimants mod squares: [-1, -3]
+        - Frobenius discriminants mod squares: [-1, -3]
         No: local test at p=13 failed
         (False, 13)
 
@@ -197,17 +197,22 @@ def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
         'rho': 1}
 
     """
+    from sage.rings.number_field.number_field_base import is_NumberField
+
     if verbose:
         print("Checking whether {} is a Q-curve".format(E))
-
-    from sage.all import ZZ, LCM, pari, NumberField, EllipticCurve
-    from sage.rings.number_field.number_field_base import is_NumberField
-    from sage.schemes.elliptic_curves.cm import cm_j_invariants_and_orders, is_cm_j_invariant
 
     try:
         assert is_NumberField(E.base_field())
     except (AttributeError, AssertionError):
         raise TypeError("{} must be an elliptic curve defined over a number field in is_Q_curve()")
+
+    from sage.rings.integer_ring import ZZ
+    from sage.arith.functions import lcm
+    from sage.libs.pari import pari
+    from sage.rings.number_field.number_field import NumberField
+    from sage.schemes.elliptic_curves.constructor import EllipticCurve
+    from sage.schemes.elliptic_curves.cm import cm_j_invariants_and_orders, is_cm_j_invariant
 
     # Step 1
 
@@ -307,7 +312,7 @@ def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
                 centre_indices = [i for i,j in enumerate(jC) if f(j) == 0]
                 M = C.matrix()
                 core_degs = [M[centre_indices[0], i] for i in centre_indices]
-                level = LCM(core_degs)
+                level = lcm(core_degs)
                 if level.is_squarefree():
                     r = len(level.prime_divisors())
                     cert = {'CM': ZZ(0), 'core_poly':f, 'rho':rho, 'r':r, 'N':level, 'core_degs':core_degs}
@@ -339,7 +344,7 @@ def is_Q_curve(E, maxp=100, certificate=False, verbose=False):
         else:
             return False
 
-    # Now we rerun Step 5 using a rigorous computaion of the complete
+    # Now we rerun Step 5 using a rigorous computation of the complete
     # isogeny class.  This will probably contain no more curves than
     # before, in which case -- since we already tested that the set of
     # j-invariants does not contain a complete Galois conjugacy class
@@ -416,7 +421,7 @@ def Step4Test(E, B, oldB=0, verbose=False):
         sage: E = EllipticCurve([K([-3,-4,1,1]),K([4,-1,-1,0]),K([-2,0,1,0]),K([-621,778,138,-178]),K([9509,2046,-24728,10380])])
         sage: Step4Test(E, 100, verbose=True)
         No: inconsistency at the 2 ordinary primes dividing 13
-        - Frobenius discrimants mod squares: [-3, -1]
+        - Frobenius discriminants mod squares: [-3, -1]
         (False, 13)
 
     A `\QQ`-curve over a sextic field (with LMFDB label
@@ -430,7 +435,7 @@ def Step4Test(E, B, oldB=0, verbose=False):
         (True, 0)
 
     """
-    from sage.all import primes
+    from sage.arith.misc import primes
     K = E.base_field()
     NN = E.conductor().norm()
     for p in primes(B):
@@ -458,10 +463,10 @@ def Step4Test(E, B, oldB=0, verbose=False):
         # else compare a_P^2-4*N(P) which should have the same squarefree part:
 
         discs = [(Ei.trace_of_frobenius()**2 - 4 * P.norm()).squarefree_part() for P, Ei in zip(Plist, EmodP)]
-        if any([d != discs[0] for d in discs[1:]]):
+        if any(d != discs[0] for d in discs[1:]):
             if verbose:
                 print("No: inconsistency at the {} ordinary primes dividing {} ".format(len(Plist), p))
-                print("  - Frobenius discrimants mod squares: {}".format(discs))
+                print("  - Frobenius discriminants mod squares: {}".format(discs))
             return False, p
     # Now we have failed to prove that E is not a Q-curve
     return True, 0
@@ -513,7 +518,7 @@ def conjugacy_test(jlist, verbose=False):
         [x^4 - 3]
 
     """
-    from sage.all import Set
+    from sage.sets.set import Set
 
     # First test to see if the list contains a rational
 

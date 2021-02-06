@@ -3821,7 +3821,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Checking whether Elliptic Curve defined by y^2 + a*x*y = x^3 + (-a-1)*x^2 + (40*a-236)*x + (464*a-1840) over Number Field in a with defining polynomial x^2 - 10 is a Q-curve
             Applying local tests at good primes above p<=100
             No: inconsistency at the 2 ordinary primes dividing 13
-            - Frobenius discrimants mod squares: [-1, -3]
+            - Frobenius discriminants mod squares: [-1, -3]
             No: local test at p=13 failed
             (False, 13)
 
@@ -3869,7 +3869,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             'rho': 1}
 
         """
-        from sage.schemes.elliptic_curves.Qcurve import is_Q_curve as isQ
+        from sage.schemes.elliptic_curves.Qcurves import is_Q_curve as isQ
         return isQ(self, maxp, certificate, verbose)
 
     def saturation(self, points, verbose=False,

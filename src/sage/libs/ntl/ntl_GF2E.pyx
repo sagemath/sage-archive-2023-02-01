@@ -55,8 +55,8 @@ def ntl_GF2E_random(ntl_GF2EContext_class ctx):
     EXAMPLES::
 
         sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
-        sage: ntl.GF2E_random(ctx)
-        [1 1 0 0 1 0 1 1]
+        sage: ntl.GF2E_random(ctx).modulus_context() is ctx
+        True
     """
     current_randstate().set_seed_ntl(False)
 

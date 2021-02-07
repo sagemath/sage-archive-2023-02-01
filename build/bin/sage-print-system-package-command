@@ -120,6 +120,9 @@ case $system:$command in
     freebsd*:install)
         [ -n "$system_packages" ] && echo "${PROMPT}${SUDO}pkg install $system_packages"
         ;;
+    nix*:install)
+        [ -n "$system_packages" ] && echo "${PROMPT}nix-env --install $system_packages"
+        ;;
     pip:install)
         [ -n "$system_packages" ] && echo "${PROMPT}sage -pip install $system_packages"
         ;;

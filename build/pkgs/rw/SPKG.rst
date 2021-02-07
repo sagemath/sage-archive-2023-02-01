@@ -1,5 +1,5 @@
-rw
-==
+rw: Compute rank-width and rank-decompositions
+==============================================
 
 Description
 -----------

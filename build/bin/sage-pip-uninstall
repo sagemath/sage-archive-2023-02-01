@@ -12,11 +12,11 @@ if [ "$1" != "." ]; then
     exit 1
 fi
 
-# Note: We need to take care to specify the full path to Sage's Python here
-# to emphasize that this command should use it, and not the system Python;
-# see https://trac.sagemath.org/ticket/18438
-# But now we delegate this to sage-python23.
-PYTHON=sage-python23
+# Note: "sage-pip-uninstall" is meant to be run after $(PYTHON) has
+# been installed (either as an spkg or as a venv over a system python3).
+# It is then guaranteed by sage-env that PATH is set in a way that "python3"
+# refers to the correct python3.
+PYTHON=python3
 
 # The PIP variable is only used to determine the name of the lock file.
 PIP=pip3

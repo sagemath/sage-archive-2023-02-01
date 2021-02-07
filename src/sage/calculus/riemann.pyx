@@ -283,7 +283,6 @@ cdef class Riemann_Map:
         self._generate_interior_mapper()
         self._generate_inverse_mapper()
 
-
     def _repr_(self):
         """
         Return a string representation of this :class:`Riemann_Map` object.
@@ -551,9 +550,9 @@ cdef class Riemann_Map:
             if N % 3 == 0:
                 p_vector[k, N] = 1*coeff * dps[k, 0] * exp(I*theta_array[k, 0])
             elif (N - 2) % 3 == 0:
-                p_vector[k, N - 2] = ((coeff + I/(3*N)) * dps[k, N- 2 ] *
+                p_vector[k, N - 2] = ((coeff + I/(3*N)) * dps[k, N - 2] *
                                       exp(I * theta_array[k, N - 2]))
-                p_vector[k, N- 1 ] = (4*I / (3*N) * dps[k, N - 1] *
+                p_vector[k, N - 1] = (4*I / (3*N) * dps[k, N - 1] *
                                       exp(I * theta_array[k, N - 1]))
                 p_vector[k, N] = (I / (3*N) * dps[k, 0] *
                                   exp(I * theta_array[k, 0]))
@@ -580,7 +579,7 @@ cdef class Riemann_Map:
         ``riemann_map`` will return the point on the unit disk that
         ``pt`` maps to. Note that this method only works for interior
         points; accuracy breaks down very close to the boundary. To
-        get boundary correspondance, use :meth:`get_theta_points`.
+        get boundary correspondence, use :meth:`get_theta_points`.
 
         INPUT:
 
@@ -768,11 +767,11 @@ cdef class Riemann_Map:
                     pointsize=thickness)
         return sum(plots)
 
-
     cpdef compute_on_grid(self, plot_range, int x_points):
         """
-        Computes the Riemann map on a grid of points. Note that these points
-        are complex of the form z = x + y*i.
+        Compute the Riemann map on a grid of points.
+
+        Note that these points are complex of the form z = x + y*i.
 
         INPUT:
 
@@ -832,16 +831,17 @@ cdef class Riemann_Map:
                     z_values[j, i] = -np.dot(p_vector,1/(pre_q_vector - pt))
         return z_values, xmin, xmax, ymin, ymax
 
-
     @options(interpolation='catrom')
     def plot_spiderweb(self, spokes=16, circles=4, pts=32, linescale=0.99,
-            rgbcolor=[0,0,0], thickness=1, plotjoined=True, withcolor = False,
-            plot_points = 200, min_mag = 0.001, **options):
+            rgbcolor=[0, 0, 0], thickness=1, plotjoined=True, withcolor=False,
+            plot_points=200, min_mag=0.001, **options):
         """
-        Generates a traditional "spiderweb plot" of the Riemann map. Shows
-        what concentric circles and radial lines map to. The radial lines
-        may exhibit erratic behavior near the boundary; if this occurs,
-        decreasing ``linescale`` may mitigate the problem.
+        Generate a traditional "spiderweb plot" of the Riemann map.
+
+        This shows what concentric circles and radial lines map to.
+        The radial lines may exhibit erratic behavior near the
+        boundary; if this occurs, decreasing ``linescale`` may
+        mitigate the problem.
 
         For multiply connected domains the spiderweb is by necessity
         generated using the forward mapping. This method is more
@@ -944,7 +944,7 @@ cdef class Riemann_Map:
         if self.exterior:
             raise ValueError(
                 "Spiderwebs for exterior maps are not currently    supported")
-        if self.B == 1: #The efficient simply connected
+        if self.B == 1:  # The efficient simply connected
             edge = self.plot_boundaries(plotjoined=plotjoined,
                 rgbcolor=rgbcolor, thickness=thickness)
             circle_list = list(range(circles))
@@ -1000,7 +1000,6 @@ cdef class Riemann_Map:
                 spokes, circles, rgbcolor,thickness, withcolor, min_mag),
                 (xmin, xmax), (ymin, ymax),options))
             return g + self.plot_boundaries(thickness = thickness)
-
 
     @options(interpolation='catrom')
     def plot_colored(self, plot_range=[], int plot_points=100, **options):
@@ -1414,7 +1413,6 @@ cpdef analytic_boundary(FLOAT_T t, int n, FLOAT_T epsilon):
     return result
 
 
-
 cpdef cauchy_kernel(t, args):
     """
     Intermediate function for the integration in :meth:`~Riemann_Map.analytic_interior`.
@@ -1457,7 +1455,9 @@ cpdef cauchy_kernel(t, args):
         return result.real
     elif part == 'i':
         return result.imag
-    else: return None
+    else:
+        return None
+
 
 cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
     """

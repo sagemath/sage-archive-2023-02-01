@@ -1,5 +1,5 @@
-scandir
-=======
+scandir: Fast file system iteration for Python
+==============================================
 
 Description
 -----------

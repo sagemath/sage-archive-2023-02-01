@@ -1,5 +1,5 @@
-Cliquer
-=======
+cliquer: Routines for clique searching
+======================================
 
 Description
 -----------
@@ -18,7 +18,9 @@ Upstream Contact
 ----------------
 
 Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi
-(Q=@). http://users.tkk.fi/pat/cliquer.html
+(Q=@).
+
+https://users.aalto.fi/~pat/cliquer.html
 
 Dependencies
 ------------

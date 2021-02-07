@@ -5054,7 +5054,7 @@ class Partition(CombinatorialElement):
         Checks that the dimension satisfies the obvious recursion relation::
 
             sage: test = lambda larger, smaller: larger.dimension(smaller) == sum(mu.dimension(smaller) for mu in larger.down())
-            sage: all(test(larger,smaller) for l in range(1,10) for s in range(0,10)
+            sage: all(test(larger,smaller) for l in range(1,10) for s in range(10)
             ....:     for larger in Partitions(l) for smaller in Partitions(s) if smaller != larger)
             True
 
@@ -7434,8 +7434,8 @@ class PartitionsInBox(Partitions):
         if h == 0:
             return [self.element_class(self, [])]
         else:
-            l = [[i] for i in range(0, w+1)]
-            add = lambda x: [ x+[i] for i in range(0, x[-1]+1)]
+            l = [[i] for i in range(w + 1)]
+            add = lambda x: [x + [i] for i in range(x[-1] + 1)]
             for i in range(h-1):
                 new_list = []
                 for element in l:

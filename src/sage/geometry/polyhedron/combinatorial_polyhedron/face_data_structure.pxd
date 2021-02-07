@@ -166,8 +166,11 @@ cdef inline void face_intersection_fused(face_t dest, face_t A, face_t B, algori
     """
     Set ``dest`` to the intersection of ``A`` and ``B``.
     """
-    bitset_intersection(dest.atoms, A.atoms, B.atoms)
-    if algorithm_variant is simple:
+    if algorithm_variant is standard:
+        # Also setting the non zero positions.
+        sparse_bitset_intersection(dest.atoms, A.atoms, B.atoms)
+    else:
+        bitset_intersection(dest.atoms, A.atoms, B.atoms)
         bitset_union(dest.coatoms, A.coatoms, B.coatoms)
 
 cdef inline void face_intersection(face_t dest, face_t A, face_t B) nogil:

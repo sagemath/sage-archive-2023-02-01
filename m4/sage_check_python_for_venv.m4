@@ -107,8 +107,8 @@ modules = list((Extension("config_check_distutils_cxx", list(("conftest.cpp",)),
 setup(name="config_check_distutils_cxx", ext_modules=modules)
 exit(0)
 EOF
-                                    AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ],
-                                      [COMMANDS_IF_GOOD], [
+                                    AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
+                                        COMMANDS_IF_GOOD], [
                                         AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build a C++ 11 extension])
                                     ])
                                 ], [

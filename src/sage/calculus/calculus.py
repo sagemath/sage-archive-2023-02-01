@@ -393,6 +393,14 @@ see :trac:`9538`::
     f1
     sage: sage.calculus.calculus.maxima('f1')
     f1
+
+To check that :trac:`14821` is fixed::
+
+    sage: H = exp(-1.0 * x)
+    sage: H.integral(x, 0, 1)
+    0.6321205588285577
+    sage: integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    4.62770039817000e-9
 """
 
 import re

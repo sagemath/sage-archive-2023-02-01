@@ -247,15 +247,15 @@ Nested F-strings are also supported::
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import os
 import re
@@ -266,6 +266,7 @@ from sage.repl.load import load_wrap
 
 implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'
+
 
 def implicit_multiplication(level=None):
     r"""
@@ -1758,14 +1759,20 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("f(x) = x \\\n+ 1")
         '__tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)'
 
+    Check that multi-line strings starting with a comment are still preparsed
+    (:trac:`31043`)::
+
+        sage: print(preparse('''# some comment
+        ....: f(x) = x + 1'''))
+        # some comment
+        __tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)
+
     """
     global quote_state
     if reset:
         quote_state = None
 
     L = line.lstrip()
-    if len(L) > 0 and L[0] in ['#', '!']:
-        return line
 
     if L.startswith('...'):
         i = line.find('...')

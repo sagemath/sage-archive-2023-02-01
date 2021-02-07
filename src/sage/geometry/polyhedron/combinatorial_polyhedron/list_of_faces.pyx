@@ -80,15 +80,15 @@ AUTHOR:
 - Jonathan Kliem (2019-04)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2019 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.element import is_Matrix
 
@@ -341,7 +341,7 @@ cdef class ListOfFaces:
         # ``copy`` has a new atom and a new coatom.
         copy = ListOfFaces(n_faces + 1, n_atoms + 1, n_faces + 1)
 
-        # Note that a pyramid is simple if and only if the the base is simple.
+        # Note that a pyramid is simple if and only if the base is simple.
 
         face_list_copy(copy.data, self.data)
 

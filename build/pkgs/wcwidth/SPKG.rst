@@ -1,5 +1,5 @@
-wcwidth
-=======
+wcwidth: Python support for wide characters in a terminal
+=========================================================
 
 Description
 -----------

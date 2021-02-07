@@ -6193,7 +6193,7 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
         EXAMPLES::
 
             sage: sst = SemistandardTableaux(3, max_entry=oo)
-            sage: [sst[t] for t in range(0,5)]
+            sage: [sst[t] for t in range(5)]
             [[[1, 1, 1]],
              [[1, 1, 2]],
              [[1, 2, 2]],
@@ -6295,7 +6295,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
             sage: SST = SemistandardTableaux([3, 1], max_entry=oo)
             sage: SST[1000]
             [[1, 1, 10], [6]]
-            sage: [ SST[t] for t in range(0, 5) ]
+            sage: [ SST[t] for t in range(5) ]
             [[[1, 1, 1], [2]],
              [[1, 1, 2], [2]],
              [[1, 2, 2], [2]],
@@ -8740,7 +8740,7 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
         EXAMPLES::
 
             sage: IT = IncreasingTableaux(3, max_entry=oo)
-            sage: [IT[t] for t in range(0,5)]
+            sage: [IT[t] for t in range(5)]
             [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]], [[1, 2, 4]]]
             sage: IT[1000]
             [[3, 13], [10]]
@@ -8820,7 +8820,7 @@ class IncreasingTableaux_shape_inf(IncreasingTableaux):
             sage: IT = IncreasingTableaux([3, 1], max_entry=oo)
             sage: IT[1000]
             [[1, 2, 12], [6]]
-            sage: [ IT[t] for t in range(0, 5) ]
+            sage: [IT[t] for t in range(5)]
             [[[1, 3, 4], [2]],
              [[1, 2, 4], [3]],
              [[1, 2, 3], [4]],

@@ -1,10 +1,13 @@
 # Copyright (c) 2005-2007 by The PolyBoRi Team
-
-from .PyPolyBoRi import *
-from .randompoly import gen_random_poly
+from time import process_time as clock
 from random import Random
 
-from time import process_time as clock
+from .PyPolyBoRi import (Polynomial, Variable, Monomial,
+                         BoolePolynomialVector)
+from .randompoly import gen_random_poly
+from .pbori import (BooleSet, add_up_polynomials, interpolate_smallest_lex,
+                    interpolate)
+from .blocks import Block, declare_ring
 
 
 generator = Random()
@@ -93,17 +96,19 @@ def lex_groebner_basis_for_polynomial_via_variety(p):
 if __name__ == '__main__':
     nvariables = 100
     r = declare_ring([Block("x", nvariables)])
-    for number_of_points in (100, 500, 1000, 2000, 3000, 4000, 5000, 10000,
+    for number_of_points in (100, 500, 1000, 2000, 3000,
+                             4000, 5000, 10000,
                              20000, 50000, 100000):
         print("----------")
         print("number_of_points:", number_of_points)
         print("generate points")
-        points = gen_random_poly(number_of_points, nvariables, [Variable(i)
-            for i in range(nvariables)])
+        points = gen_random_poly(r, number_of_points,
+                                 nvariables,
+                                 [Variable(i, r) for i in range(nvariables)])
         print("points generated")
         bench_interpolate(nvariables, nvariables, points)
         vars_mon = Monomial(r)
         for i in reversed(range(nvariables)):
             vars_mon = vars_mon * Variable(i, r)
         print(len(variety_lex_leading_terms(points, vars_mon)),
-            "elements in groebner basis")
+              "elements in groebner basis")

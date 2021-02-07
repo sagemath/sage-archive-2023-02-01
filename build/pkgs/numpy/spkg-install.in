@@ -16,7 +16,7 @@ if [ "$UNAME" = "CYGWIN" ]; then
     export CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 fi
 
-sage-python23 ../lapack_conf.py
+python3 ../lapack_conf.py
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"

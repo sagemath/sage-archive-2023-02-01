@@ -353,8 +353,8 @@ cdef class Matrix_double_dense(Matrix_dense):
     # def _unpickle(self, data, int version):   # use version >= 0 #unsure how to implement
     ######################################################################
     cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
-        """
-        Multiply self*right as matrices.
+        r"""
+        Multiply ``self * right`` as matrices.
 
         EXAMPLES::
 
@@ -364,12 +364,19 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 38.0  44.0  50.0  56.0]
             [ 83.0  98.0 113.0 128.0]
             [128.0 152.0 176.0 200.0]
+
+        TESTS:
+
+        Check that :trac:`31234` is fixed::
+
+            sage: matrix.identity(QQ, 4) * matrix(RDF, 4, 0)
+            []
         """
         if self._ncols != right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right")
 
         if self._nrows == 0 or self._ncols == 0 or right._nrows == 0 or right._ncols == 0:
-            return self.matrix_space(self._nrows, right._ncols).zero_matrix()
+            return self._new(self._nrows, right._ncols)
 
         cdef Matrix_double_dense M, _right, _left
         M = self._new(self._nrows, right._ncols)
@@ -2017,6 +2024,41 @@ cdef class Matrix_double_dense(Matrix_dense):
             row_divs, col_divs = self.subdivisions()
             trans.subdivide(col_divs, row_divs)
         return trans
+
+    def conjugate(self):
+        r"""
+        Return the conjugate of this matrix, i.e. the matrix whose entries are
+        the conjugates of the entries of self.
+
+        EXAMPLES::
+
+            sage: A = matrix(CDF, [[1+I, 3-I], [0, 2*I]])
+            sage: A.conjugate()
+            [1.0 - 1.0*I 3.0 + 1.0*I]
+            [        0.0      -2.0*I]
+
+        There is a shorthand notation::
+
+            sage: A.conjugate() == A.C
+            True
+
+        Conjugates work (trivially) for real matrices::
+
+            sage: B = matrix.random(RDF, 3)
+            sage: B == B.conjugate()
+            True
+
+        TESTS::
+
+            sage: matrix(CDF, 0).conjugate()
+            []
+        """
+        cdef Matrix_double_dense A
+        A = self._new(self._nrows, self._ncols)
+        A._matrix_numpy = self._matrix_numpy.conjugate()
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
+        return A
 
     def SVD(self):
         r"""

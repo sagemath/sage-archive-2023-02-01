@@ -23,6 +23,8 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
+    # Allow to run manually
 
 env:
   TARGETS_PRE: sagelib-build-deps

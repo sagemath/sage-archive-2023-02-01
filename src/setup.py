@@ -6,7 +6,7 @@ import os
 import sys
 import time
 from distutils import log
-from distutils.core import setup
+from setuptools import setup
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -79,20 +79,14 @@ log.debug('python_packages = {0}'.format(python_packages))
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 
-from sage_setup.command.sage_install import sage_install
+from sage_setup.command.sage_install import sage_install_and_clean
 
 #########################################################
 ### Distutils
 #########################################################
 
-code = setup(name = 'sage',
-      version     =  SAGE_VERSION,
-      description = 'Sage: Open Source Mathematics Software',
-      license     = 'GNU Public License (GPL)',
-      author      = 'William Stein et al.',
-      author_email= 'https://groups.google.com/group/sage-support',
-      url         = 'https://www.sagemath.org',
-      packages    = python_packages,
+code = setup(
+      packages = python_packages,
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
           'sage.interfaces': ['sage-maxima.lisp'],
@@ -175,5 +169,5 @@ code = setup(name = 'sage',
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,
-                      install=sage_install),
+                      install=sage_install_and_clean),
       ext_modules = cython_modules)

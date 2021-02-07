@@ -351,7 +351,12 @@ class AllBuilder(object):
 
         # build the other documents in parallel
         L = [(doc, name, kwds) + args for doc in others]
-        build_many(build_other_doc, L, 1)
+
+        # Trac #31344: Work around crashes from multiprocessing
+        if sys.platform == 'darwin':
+            build_many(build_other_doc, L, 1)
+        else:
+            build_many(build_other_doc, L)
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 

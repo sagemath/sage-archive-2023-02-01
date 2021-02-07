@@ -354,7 +354,8 @@ class AllBuilder(object):
 
         # Trac #31344: Work around crashes from multiprocessing
         if sys.platform == 'darwin':
-            build_many(build_other_doc, L, 1)
+            for target in L:
+                build_other_doc(target)
         else:
             build_many(build_other_doc, L)
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))

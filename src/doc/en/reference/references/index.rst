@@ -794,6 +794,11 @@ REFERENCES:
             16. n 9. 1973,  pages 575-577. ACM Press. [Online] Available:
             http://www.ram.org/computing/rambin/rambin.html
 
+.. [BK1977] James R. Bunch and Linda Kaufman.
+            Some Stable Methods for Calculating Inertia and Solving
+            Symmetric Linear Systems.
+            Mathematics of Computation, 31(137):163-179, 1977.
+
 .. [BK1992] \U. Brehm and W. Kuhnel, *15-vertex triangulations of an
             8-manifold*, Math. Annalen 294 (1992), no. 1, 167-193.
 
@@ -2743,6 +2748,10 @@ REFERENCES:
              designs*.
              In: Recent Developments in Algebra and Related Areas, ALM vol. 8,
              pp. 129--153. International Press, Somerville (2009).
+
+.. [Hig2002] Nicholas J. Higham. Accuracy and Stability of Numerical Algorithms,
+             Second Edition. Society for Industrial and Applied Mathematics,
+             Philadelphia, 2002.
 
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
              Society for Industrial and Applied Mathematics (2008).

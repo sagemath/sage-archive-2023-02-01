@@ -57,7 +57,8 @@ sdh_make_install
 
 
 # Install Maxima into ECL's library directory:
-ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
+ecl -eval '(WITH-OPEN-FILE (f "ecllib" :DIRECTION :OUTPUT :IF-EXISTS :SUPERSEDE) (FORMAT f "~A~%" (SI:GET-LIBRARY-PATHNAME)))' -eval '(QUIT)'
+ECLLIB=$(cat ecllib)
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
 cp -f "src/binary-ecl/maxima.fas" "$ECLLIB/maxima.fas" \

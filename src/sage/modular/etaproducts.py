@@ -97,7 +97,7 @@ class EtaGroupElement(Element):
             True
             sage: TestSuite(g).run()
         """
-        self._N = parent.level()
+        self._N = parent._N
         N = self._N
 
         if isinstance(rdict, EtaGroupElement):
@@ -117,7 +117,7 @@ class EtaGroupElement(Element):
                 raise ValueError("%s does not divide %s" % (d, N))
 
             if rdict[d] == 0:
-                rdict.pop(d)
+                del rdict[d]
                 continue
             sumR += rdict[d]
             sumDR += rdict[d] * d
@@ -135,7 +135,6 @@ class EtaGroupElement(Element):
 
         self._sumDR = ZZ(sumDR)  # this is useful to have around
         self._rdict = rdict
-        self._keys = list(rdict)  # avoid factoring N every time
 
         Element.__init__(self, parent)
 
@@ -149,8 +148,8 @@ class EtaGroupElement(Element):
             sage: eta1 * eta2
             Eta product of level 4 : (eta_1)^8 (eta_4)^-8
         """
-        newdict = {d: self.r(d) + other.r(d)
-                   for d in union(self._keys, other._keys)}
+        newdict = {d: self._rdict.get(d, 0) + other._rdict.get(d, 0)
+                   for d in union(self._rdict, other._rdict)}
         P = self.parent()
         return P.element_class(P, newdict)
 
@@ -166,8 +165,8 @@ class EtaGroupElement(Element):
             sage: (eta1 / eta2) * eta2 == eta1
             True
         """
-        newdict = {d: self.r(d) - other.r(d)
-                   for d in union(self._keys, other._keys)}
+        newdict = {d: self._rdict.get(d, 0) - other._rdict.get(d, 0)
+                   for d in union(self._rdict, other._rdict)}
         P = self.parent()
         return P.element_class(P, newdict)
 
@@ -181,9 +180,28 @@ class EtaGroupElement(Element):
             sage: ~eta2  # indirect doctest
             Eta product of level 4 : (eta_1)^-16 (eta_2)^24 (eta_4)^-8
         """
-        newdict = {d: -self.r(d) for d in self._keys}
+        newdict = {d: -self._rdict[d] for d in self._rdict}
         P = self.parent()
         return P.element_class(P, newdict)
+
+    def is_one(self):
+        r"""
+        Return whether ``self`` is the one of the monoid.
+
+        EXAMPLES::
+
+            sage: e = EtaProduct(3, {3:12, 1:-12})
+            sage: e.is_one()
+            False
+            sage: e.parent().one().is_one()
+            True
+            sage: ep = EtaProduct(5, {})
+            sage: ep.is_one()
+            True
+            sage: ep.parent().one() == ep
+            True
+        """
+        return not self._rdict
 
     def _richcmp_(self, other, op):
         r"""
@@ -205,11 +223,11 @@ class EtaGroupElement(Element):
             False
         """
         if op in [op_EQ, op_NE]:
-            test = (self.level() == other.level() and
+            test = (self._N == other._N and
                     self._rdict == other._rdict)
             return test == (op == op_EQ)
-        return richcmp((self.level(), sorted(self._rdict.items())),
-                       (other.level(), sorted(other._rdict.items())), op)
+        return richcmp((self._N, sorted(self._rdict.items())),
+                       (other._N, sorted(other._rdict.items())), op)
 
     def _short_repr(self) -> str:
         r"""
@@ -281,12 +299,13 @@ class EtaGroupElement(Element):
         """
         R, q = PowerSeriesRing(ZZ, 'q').objgen()
         pr = R.one().O(n)
-        if self == self.parent().one():
+        if not self._rdict: #  if self.is_one():
             return pr
-        eta_n = max(n // d for d in self._keys if self.r(d))
+        # self.r(d) should always be nonzero since we filtered out the 0s
+        eta_n = max(n // d for d in self._rdict) #  if self.r(d)
         eta = qexp_eta(R, eta_n)
-        for d in self._keys:
-            rd = self.r(d)
+        for d in self._rdict:
+            rd = self._rdict[d]
             if rd:
                 pr *= eta(q ** d) ** ZZ(rd)
         return pr * q**(self._sumDR // 24)
@@ -326,13 +345,13 @@ class EtaGroupElement(Element):
             -1
         """
         if not isinstance(cusp, CuspFamily):
-            raise TypeError("Argument (=%s) should be a CuspFamily" % cusp)
-        if cusp.level() != self.level():
-            raise ValueError("Cusp not on right curve!")
-        sigma = sum(ell * self.r(ell) / cusp.width() *
-                    (gcd(cusp.width(), self.level() // ell))**2
-                    for ell in self._keys)
-        return sigma / ZZ(24) / gcd(cusp.width(), self.level() // cusp.width())
+            raise TypeError("argument (=%s) should be a CuspFamily" % cusp)
+        if cusp.level() != self._N:
+            raise ValueError("cusp not on right curve")
+        sigma = sum(ell * self._rdict[ell] / cusp.width() *
+                    (gcd(cusp.width(), self._N // ell))**2
+                    for ell in self._rdict)
+        return sigma / ZZ(24) / gcd(cusp.width(), self._N // cusp.width())
 
     def divisor(self):
         r"""
@@ -366,7 +385,7 @@ class EtaGroupElement(Element):
             230
         """
         return sum(self.order_at_cusp(c)
-                   for c in AllCusps(self.level())
+                   for c in AllCusps(self._N)
                    if self.order_at_cusp(c) > 0)
 
     def r(self, d) -> Integral:

@@ -88,7 +88,9 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python 3, 3.6 or later, or Python 2.7 (deprecated).
+- **python**: Python 3.4 or later, or Python 2.6 or 2.7.
+  (This range of versions is a minimal requirement for internal purposes of the SageMath
+  build system, which is referred to as ``sage-bootstrap-python``.)
 
 Other versions of these may work, but they are untested.
 
@@ -226,6 +228,8 @@ or::
 on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <https://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
+
+.. _sec-installation-from-sources-linux-recommended-installation:
 
 Linux recommended installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -398,6 +402,32 @@ Optional packages that are also known to be installable via system packages
 include:
 
 .. literalinclude:: cygwin-optional.txt
+
+Ubuntu on Windows Subsystem for Linux (WSL) prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). These instructions describe a fresh install of Ubuntu 20.10, but other distibutions or installation methods should work too, though have not been tested.
+
+- Enable hardware-assisted virtualization in the EFI or BIOS of your system. Refer to your system (or motherboard) maker's documentation for instructions on how to do this.
+
+- Set up WSL by following the `official WSL setup guide <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be sure to do the steps to install WSL2 and set it as default.
+
+- Go to the Microsoft Store and install Ubuntu.
+            
+- Start Ubuntu from the start menu. Update all packages to the latest version.
+
+- Reboot the all running WSL instances one of the following ways:
+
+  - Open Windows Services and restart the LxssManager service.
+  - Open the Command Prompt or Powershell and enter this command::
+
+      wsl --shutdown
+
+- `Upgrade to the Ubuntu 20.10 <https://linuxconfig.org/how-to-upgrade-ubuntu-to-20-10>`_. This step will not be necessary once Ubuntu 20.10 is available in the Microsoft Store.
+
+From this point on, follow the instructions in the :ref:`sec-installation-from-sources-linux-recommended-installation` section.
+
+When the installation is complete, you may be interested in :ref:`sec-launching-wsl-post-installation`.
 
 Other platforms
 ^^^^^^^^^^^^^^^
@@ -1611,4 +1641,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in May 2020 (Sage 9.1).**
+**This page was last updated in December 2020 (Sage 9.3).**

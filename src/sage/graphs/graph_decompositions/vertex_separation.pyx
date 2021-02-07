@@ -269,7 +269,7 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
-include "sage/data_structures/binary_matrix.pxi"
+from sage.data_structures.binary_matrix cimport *
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
 

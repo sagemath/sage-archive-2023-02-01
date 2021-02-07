@@ -1053,11 +1053,30 @@ cdef class RingHomomorphism(RingMap):
             sage: f = R.hom([y, x], R)
             sage: f.inverse_image(x), f.inverse_image(y)  # indirect doctest
             (0, 0)
+
+        Check cases involving quotient rings in which a generator is constant
+        (:trac:`31178`)::
+
+            sage: R.<x,y> = QQ[]
+            sage: B.<c,d> = R.quotient(R.ideal(x))
+            sage: g = R.hom([d^2, d^3], B)
+            sage: g.inverse_image(d)
+            Traceback (most recent call last):
+            ...
+            ValueError: element d does not have preimage
+            sage: g.inverse_image(d^2)
+            x
+            sage: g.inverse_image(d^3)
+            y
+            sage: A.<a,b> = R.quotient(R.ideal(y^2 - x^3))
+            sage: h = A.hom([d^2, d^3], B)
+            sage: h.inverse_image(d^2)
+            a
         """
         graph, from_B, to_A = self._graph_ideal()
-        gens_B = graph.ring().gens()[:self.codomain().ngens()]
+        gens_A = graph.ring().gens()[-self.domain().ngens():]
         a = graph.reduce(from_B(b))
-        if not (a.lm() < min(gens_B)) and not a.is_zero():
+        if not all(x in gens_A for x in a.lm().variables()):
             raise ValueError(f"element {b} does not have preimage")
         return to_A(a)
 

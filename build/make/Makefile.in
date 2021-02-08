@@ -103,14 +103,18 @@ STANDARD_PACKAGES = @SAGE_STANDARD_PACKAGES@
 STANDARD_PACKAGE_INSTS = \
 	$(foreach pkgname,$(STANDARD_PACKAGES),$(inst_$(pkgname)))
 
-# All optional installed packages (triggers the auto-update)
+# Optional/experimental packages to be installed
 OPTIONAL_INSTALLED_PACKAGES = @SAGE_OPTIONAL_INSTALLED_PACKAGES@
-OPTIONAL_INSTALLED_PACKAGE_INSTS = \
-    $(foreach pkgname,$(OPTIONAL_INSTALLED_PACKAGES),$(inst_$(pkgname)))
 
-# All previously installed optional packages that are to be uninstalled
+# All packages to be installed
+INSTALLED_PACKAGES = $(STANDARD_PACKAGES) $(OPTIONAL_INSTALLED_PACKAGES)
+INSTALLED_PACKAGE_INSTS = \
+    $(foreach pkgname,$(INSTALLED_PACKAGES),$(inst_$(pkgname)))
+
+# All previously installed packages that are to be uninstalled
 OPTIONAL_CLEANED_PACKAGES = @SAGE_OPTIONAL_CLEANED_PACKAGES@
-OPTIONAL_CLEANED_PACKAGES_CLEANS = $(OPTIONAL_CLEANED_PACKAGES:%=%-clean)
+CLEANED_PACKAGES = $(OPTIONAL_CLEANED_PACKAGES)
+CLEANED_PACKAGES_CLEANS = $(CLEANED_PACKAGES:%=%-clean)
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
@@ -156,6 +160,18 @@ $(foreach pkgname,$(PIP_PACKAGES),\
 # Dummy target for packages which are not installed
 $(INST)/.dummy:
 	touch $@
+
+
+# Filtered by installation tree
+$(foreach tree,SAGE_LOCAL SAGE_VENV, \
+    $(eval $(tree)_INSTALLED_PACKAGE_INSTS = \
+               $(foreach pkgname,$(INSTALLED_PACKAGES), \
+                         $(if $(findstring $(tree),$(trees_$(pkgname))), \
+                              $(inst_$(pkgname))))) \
+    $(eval $(tree)_CLEANED_PACKAGE_CLEANS = \
+               $(foreach pkgname,$(INSTALLED_PACKAGES), \
+                         $(if $(findstring $(tree),$(trees_$(pkgname))), \
+                              $(inst_$(pkgname))))))
 
 
 ###############################################################################
@@ -223,9 +239,13 @@ base-toolchain: _clean-broken-gcc base
 # All targets except for the base packages
 all-sage: \
 		sagelib \
-		$(STANDARD_PACKAGE_INSTS) \
-		$(OPTIONAL_INSTALLED_PACKAGE_INSTS) \
-                $(OPTIONAL_CLEANED_PACKAGES_CLEANS)
+		$(INSTALLED_PACKAGE_INSTS) \
+                $(CLEANED_PACKAGES_CLEANS)
+
+# Same but filtered by installation trees:
+all-sage-local: $(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_CLEANED_PACKAGES_CLEANS)
+
+all-sage-venv:  $(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_CLEANED_PACKAGES_CLEANS)
 
 # Download all packages which should be inside an sdist tarball (the -B
 # option to make forces all targets to be built unconditionally)

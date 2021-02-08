@@ -29,7 +29,7 @@ SAGE_SPKG_CONFIGURE([python3], [
            SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
                                            MIN_VERSION, LT_VERSION,
                                            $check_modules, [
-                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL] *[^.]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
                         AC_MSG_WARN([this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132])
                     ])
                     dnl It is good
@@ -48,7 +48,7 @@ SAGE_SPKG_CONFIGURE([python3], [
                 SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
                                            MIN_VERSION, LT_VERSION,
                                            $check_modules, [
-                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL] *[^.]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
                         AC_MSG_RESULT([no, this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132; to use it anyway, use ./configure --with-python=$ac_path_PYTHON3])
                     ], [
                         dnl It is good

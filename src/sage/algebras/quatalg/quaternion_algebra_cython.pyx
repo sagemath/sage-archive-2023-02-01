@@ -1,5 +1,10 @@
 # distutils: language = c++
 # distutils: libraries = gmp m ntl
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: libraries = NTL_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 """
 Optimized Cython code needed by quaternion algebras
 

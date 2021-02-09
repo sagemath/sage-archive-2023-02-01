@@ -1,4 +1,9 @@
 # distutils: libraries = gmp ntl
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: libraries = NTL_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: extra_compile_args = M4RI_CFLAGS
 # distutils: include_dirs = M4RI_INCDIR
 # distutils: language = c++

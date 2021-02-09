@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 # distutils: extra_compile_args = M4RI_CFLAGS
 # distutils: libraries = iml ntl gmp m CBLAS_LIBRARIES
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: libraries = NTL_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: library_dirs = CBLAS_LIBDIR
 # distutils: include_dirs = M4RI_INCDIR CBLAS_INCDIR
 """

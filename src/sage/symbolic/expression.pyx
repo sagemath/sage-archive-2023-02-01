@@ -140,6 +140,13 @@ Test if :trac:`24883` is fixed::
     sage: a*b
     1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 
+Test that :trac:`20784` is fixed (equations should stay unevaluated)::
+
+    sage: limit(1/x, x=0) == unsigned_infinity
+    Infinity == Infinity
+    sage: SR(unsigned_infinity) == unsigned_infinity
+    Infinity == Infinity
+
 Many tests about comparison.
 
 Use :func:`sage.symbolic.comparison.mixed_order`` instead of

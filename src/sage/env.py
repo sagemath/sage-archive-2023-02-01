@@ -476,8 +476,8 @@ def cython_aliases():
 
     # NTL
     aliases["NTL_CFLAGS"] = []
-    aliases["NTL_INCDIR"] = os.path.join(NTL_PREFIX, 'include')
-    aliases["NTL_LIBDIR"] = os.path.join(NTL_PREFIX, 'lib')
+    aliases["NTL_INCDIR"] = [os.path.join(NTL_PREFIX, 'include')] if NTL_PREFIX else []
+    aliases["NTL_LIBDIR"] = [os.path.join(NTL_PREFIX, 'lib')] if NTL_PREFIX else []
     aliases["NTL_LIBRARIES"] = ['ntl']
     aliases["NTL_LIBEXTRA"] = []
 

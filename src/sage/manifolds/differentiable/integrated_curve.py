@@ -657,9 +657,8 @@ class IntegratedCurve(DifferentiableCurve):
             sage: c.__reduce__()
             (<class 'sage.manifolds.differentiable.manifold_homset.IntegratedCurveSet_with_category.element_class'>,
              (Set of Morphisms from Real interval (0, 5) to
-              3-dimensional differentiable manifold M in Category of
-              homsets of subobjects of sets and topological spaces which
-              actually are integrated curves,
+              3-dimensional differentiable manifold M in Category of homsets of
+              topological spaces which actually are integrated curves,
               [B_0*Dx2*q*t*e^(-(x1^2 + x2^2)/L^2)/(T*m),
                -B_0*Dx1*q*t*e^(-(x1^2 + x2^2)/L^2)/(T*m),
                0],
@@ -2452,8 +2451,7 @@ class IntegratedCurve(DifferentiableCurve):
                 chart = self._chart
             else:
                 if not isinstance(chart, RealChart):
-                    raise TypeError("{} is not a real " +
-                                    "chart".format(chart))
+                    raise TypeError("{} is not a real chart".format(chart))
                 mapping = self.codomain().identity_map()
         else:
             i0 = mapping.codomain().start_index()
@@ -3537,10 +3535,9 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
             sage: c.__reduce__()
             (<class 'sage.manifolds.differentiable.manifold_homset.IntegratedAutoparallelCurveSet_with_category.element_class'>,
              (Set of Morphisms from Real interval (0, 5) to
-              3-dimensional differentiable manifold M in Category of
-              homsets of subobjects of sets and topological spaces which
-              actually are integrated autoparallel curves with respect to
-              a certain affine connection,
+              3-dimensional differentiable manifold M in Category of homsets of
+              topological spaces which actually are integrated autoparallel
+              curves with respect to a certain affine connection,
               Affine connection nabla on the 3-dimensional
               differentiable manifold M,
               t,
@@ -3917,10 +3914,9 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
             sage: c.__reduce__()
             (<...IntegratedGeodesicSet_with_category.element_class'>,
              (Set of Morphisms from Real interval (0, pi) to
-              2-dimensional Riemannian manifold S^2 in Category of
-              homsets of subobjects of sets and topological spaces which
-              actually are integrated geodesics with respect to a certain
-              metric,
+              2-dimensional Riemannian manifold S^2 in Category of homsets of
+              topological spaces which actually are integrated geodesics with
+              respect to a certain metric,
               Riemannian metric g on the 2-dimensional Riemannian
               manifold S^2,
               t,

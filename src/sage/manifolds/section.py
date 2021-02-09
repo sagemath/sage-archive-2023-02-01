@@ -1136,6 +1136,9 @@ class Section(ModuleElementWithMutability):
         and `a` is defined on the entire manifold `S^2`.
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the local frame is not defined on a subset " +
@@ -1217,6 +1220,9 @@ class Section(ModuleElementWithMutability):
             on V: (u, v) |--> v/(u^2 + v^2)
 
         """
+        if self.is_immutable():
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the local frame is not defined on a subset " +
@@ -2651,6 +2657,9 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
              in the Local frame (E|_M, (f_0,f_1))
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if basis is None:
             basis = self._smodule.default_frame()
 
@@ -2822,6 +2831,9 @@ class TrivialSection(FiniteRankFreeModuleElement, Section):
             s = x f_0
 
         """
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if basis is None:
             basis = self._smodule.default_frame()
 

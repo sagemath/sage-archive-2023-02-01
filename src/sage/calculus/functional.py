@@ -53,7 +53,7 @@ def simplify(f):
         return f
 
 def derivative(f, *args, **kwds):
-    """
+    r"""
     The derivative of `f`.
 
     Repeated differentiation is supported by the syntax given in the

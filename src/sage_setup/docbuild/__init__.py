@@ -286,13 +286,15 @@ class DocBuilder(object):
 
 from .utils import build_many as _build_many
 
-def build_many(target, args):
+def build_many(target, args, processes=None):
     """
     Thin wrapper around `sage_setup.docbuild.utils.build_many` which uses the
     docbuild settings ``NUM_THREADS`` and ``ABORT_ON_ERROR``.
     """
+    if processes is None:
+        processes = NUM_THREADS
     try:
-        _build_many(target, args, processes=NUM_THREADS)
+        _build_many(target, args, processes=processes)
     except BaseException as exc:
         if ABORT_ON_ERROR:
             raise
@@ -349,7 +351,13 @@ class AllBuilder(object):
 
         # build the other documents in parallel
         L = [(doc, name, kwds) + args for doc in others]
-        build_many(build_other_doc, L)
+
+        # Trac #31344: Work around crashes from multiprocessing
+        if sys.platform == 'darwin':
+            for target in L:
+                build_other_doc(target)
+        else:
+            build_many(build_other_doc, L)
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 

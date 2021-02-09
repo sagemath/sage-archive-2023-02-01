@@ -1466,11 +1466,14 @@ def help_wrapper(option, opt_str, value, parser):
             # Put the bibliography first, because it needs to be built first:
             s.remove('reference/references')
             s.insert(0, 'reference/references')
-        else:
+        elif value == 'all':
             s = get_documents()
             # Put the reference manual first, because it needs to be built first:
             s.remove('reference')
             s.insert(0, 'reference')
+        else:
+            raise ValueError("argument for --all-documents must be either 'all'"
+                             " or 'reference'")
         for d in s:
             print(d)
     setattr(parser.values, 'printed_list', 1)
@@ -1591,8 +1594,8 @@ def setup_parser():
     advanced.add_option("--all-documents", dest="all_documents",
                         type="str", metavar="ARG",
                         action="callback", callback=help_wrapper,
-                        help="with argument 'reference', list all subdocuments"
-                        " of en/reference. With any other argument list all main"
+                        help="if ARG is 'reference', list all subdocuments"
+                        " of en/reference. If ARG is 'all', list all main"
                         " documents")
     parser.add_option_group(advanced)
 

@@ -196,7 +196,7 @@ jobs:
       - name: Install bootstrap prerequisites
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install $(sed "s/#.*//;" build/pkgs/debian-bootstrap.txt)
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install $(build/bin/sage-get-system-packages debian _bootstrap)
       - name: Bootstrap with sage-update-version
         # We set SAGE_ROOT and SAGE_SRC by hand
         # because 'sage -sh' does not work with an unconfigured tree,

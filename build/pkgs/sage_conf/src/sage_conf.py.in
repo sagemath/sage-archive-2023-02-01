@@ -6,6 +6,10 @@ MAXIMA = "@prefix@/bin/maxima"
 
 ARB_LIBRARY = "@SAGE_ARB_LIBRARY@"
 
+# Path to the ecl-config script
+# TODO: At the moment this is hard-coded, needs to be set during the configure phase if we want to support system-installed ecl.
+ECL_CONFIG = "@prefix@/bin/ecl-config"
+
 SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 
 # Colon-separated list of pkg-config modules to search for cblas functionality.

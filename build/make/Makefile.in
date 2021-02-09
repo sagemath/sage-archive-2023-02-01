@@ -243,7 +243,13 @@ all-sage: \
                 $(CLEANED_PACKAGES_CLEANS)
 
 # Same but filtered by installation trees:
+all-build-local: toolchain-deps
+	+$(MAKE_REC) all-sage-local
+
 all-sage-local: $(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_CLEANED_PACKAGES_CLEANS)
+
+all-build-venv: toolchain-deps
+	+$(MAKE_REC) all-sage-venv
 
 all-sage-venv:  $(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_CLEANED_PACKAGES_CLEANS)
 

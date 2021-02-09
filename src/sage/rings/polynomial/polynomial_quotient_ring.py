@@ -1138,7 +1138,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         Compute the decomposition of self into a product of number fields.
 
         This is an internal function used by
-        :meth:`S_class_group`, :meth:`S_units` and :meth:`selmer_group`.
+        :meth:`S_class_group`, :meth:`S_units` and :meth:`selmer_generators`.
 
         EXAMPLES::
 
@@ -1632,7 +1632,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         return self.S_units((), proof=proof)
 
-    def selmer_group(self, S, m, proof=True):
+    def selmer_generators(self, S, m, proof=True):
         r"""
         If self is an étale algebra `D` over a number field `K` (i.e.
         a quotient of `K[x]` by a squarefree polynomial) and `S` is a
@@ -1658,19 +1658,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: K.<a> = QuadraticField(-5)
             sage: R.<x> = K[]
             sage: D.<T> = R.quotient(x)
-            sage: D.selmer_group((), 2)
+            sage: D.selmer_generators((), 2)
             [-1, 2]
-            sage: D.selmer_group([K.ideal(2, -a+1)], 2)
+            sage: D.selmer_generators([K.ideal(2, -a+1)], 2)
             [2, -1]
-            sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 2)
+            sage: D.selmer_generators([K.ideal(2, -a+1), K.ideal(3, a+1)], 2)
             [2, a + 1, -1]
-            sage: D.selmer_group((K.ideal(2, -a+1),K.ideal(3, a+1)), 4)
+            sage: D.selmer_generators((K.ideal(2, -a+1),K.ideal(3, a+1)), 4)
             [2, a + 1, -1]
-            sage: D.selmer_group([K.ideal(2, -a+1)], 3)
+            sage: D.selmer_generators([K.ideal(2, -a+1)], 3)
             [2]
-            sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
+            sage: D.selmer_generators([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
             [2, a + 1]
-            sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
+            sage: D.selmer_generators([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
             [2, a + 1, a]
 
         """
@@ -1679,7 +1679,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         component_selmer_groups = []
         for D_iso, S_iso in iso_classes:
-            sel = D_iso.selmer_group(S_iso, m, proof=proof)
+            sel = D_iso.selmer_generators(S_iso, m, proof=proof)
             component_selmer_groups.append(sel)
 
         gens = []
@@ -1695,6 +1695,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                 gens.append(poly_gen)
 
         return gens
+
+    # For backwards compatibility:
+    selmer_group = selmer_generators
 
     def _factor_multivariate_polynomial(self, f, proof=True):
         r"""

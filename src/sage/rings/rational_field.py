@@ -1372,7 +1372,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         The group `\QQ(S,p)` is the finite subgroup of
         `\QQ^*/(\QQ^*)^p$ consisting of elements whose valuation at
-        all orimes not in `S` is a multiple of `p`.  It contains the
+        all primes not in `S` is a multiple of `p`.  It contains the
         subgroup of those `a\in \QQ^*` such that
         `\QQ(\sqrt[p]{a})/\QQ` is unramified at all primes of `\QQ`
         outside of `S`, but may contain it properly when `p` is not in `S`.

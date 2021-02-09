@@ -4795,7 +4795,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             When `m=p` is prime, see also the method
             :meth:`NumberField_generic.selmer_space` which gives
             additional output: as well as generators, it gives an
-            abstract vector space over `\F_p` isomorphic to `K(S,p)`
+            abstract vector space over `GF(p)` isomorphic to `K(S,p)`
             and maps implementing the isomorphism between this space
             and `K(S,p)` as a subgroup of `K^*/(K^*)^p`.
 
@@ -5008,7 +5008,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
           abstract vector space ``KSp``.
 
         The group `K(S,p)` is the finite subgroup of `K^*/(K^*)^p$
-        consisting of elements whose valuation at all orimes not in
+        consisting of elements whose valuation at all primes not in
         `S` is a multiple of `p`.  It contains the subgroup of those
         `a\in K^*` such that `K(\sqrt[p]{a})/K` is unramified at all
         primes of `K` outside of `S`, but may contain it properly when
@@ -5018,7 +5018,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         A real quadratic field with class number 2, where the fundamental
         unit is a generator, and the class group provides another
-        generator when `p==2`::
+        generator when `p=2`::
 
             sage: K.<a> = QuadraticField(-5)
             sage: K.class_number()
@@ -5053,7 +5053,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: gens
             [1/2, 1/4*a + 1/4, a]
 
-        An example to show that the group 'K(S,2)` may be strictly
+        An example to show that the group `K(S,2)` may be strictly
         larger than the group of elements giving extensions unramified
         outside `S`.  In this case, with `K` of class number `2` and
         `S` empty, there is only one quadratic extension of `K`

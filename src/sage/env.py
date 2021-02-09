@@ -211,6 +211,7 @@ SAGE_NAUTY_BINS_PREFIX = var("SAGE_NAUTY_BINS_PREFIX", "")
 ARB_LIBRARY = var("ARB_LIBRARY", "arb")
 CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
 ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
+NTL_PREFIX = var("NTL_PREFIX", SAGE_LOCAL)
 
 # misc
 SAGE_BANNER = var("SAGE_BANNER", "")
@@ -472,5 +473,12 @@ def cython_aliases():
     aliases["ECL_LIBDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-L'), ecl_libs)))
     aliases["ECL_LIBRARIES"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-l'), ecl_libs)))
     aliases["ECL_LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), ecl_libs))
+
+    # NTL
+    aliases["NTL_CFLAGS"] = []
+    aliases["NTL_INCDIR"] = os.path.join(NTL_PREFIX, 'include')
+    aliases["NTL_LIBDIR"] = os.path.join(NTL_PREFIX, 'lib')
+    aliases["NTL_LIBRARIES"] = ['ntl']
+    aliases["NTL_LIBEXTRA"] = []
 
     return aliases

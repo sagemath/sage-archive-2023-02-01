@@ -122,7 +122,7 @@ class NumberFields(Category_singleton):
     class ParentMethods:
         def zeta_function(self, prec=53,
                           max_imaginary_part=0,
-                          max_asymp_coeffs=40, algorithm=None):
+                          max_asymp_coeffs=40, algorithm='pari'):
             r"""
             Return the Dedekind zeta function of this number field.
 
@@ -137,7 +137,7 @@ class NumberFields(Category_singleton):
 
             - ``max_asymp_coeffs`` -- optional integer (default 40)
 
-            - ``algorithm`` -- optional (default "gp") either "gp" or "pari"
+            - ``algorithm`` -- optional (default "pari") either "gp" or "pari"
 
             OUTPUT: The zeta function of this number field.
 
@@ -175,9 +175,6 @@ class NumberFields(Category_singleton):
                 sage: QQ.zeta_function()
                 PARI zeta function associated to Rational Field
             """
-            if algorithm is None:
-                algorithm = 'pari'
-
             if algorithm == 'gp':
                 from sage.lfunctions.all import Dokchitser
                 r1, r2 = self.signature()

@@ -1,1 +1,1 @@
-../package-version.txt
+../../../../src/package-version.txt

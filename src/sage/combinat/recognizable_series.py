@@ -13,7 +13,7 @@ and there exist
 
 - a morphism of monoids `\mu` from `A^*` to `n\times n` matrices over `K`
 
-such that the coefficient corresponing to a word `w\in A^*` equals
+such that the coefficient corresponding to a word `w\in A^*` equals
 
 .. MATH::
 

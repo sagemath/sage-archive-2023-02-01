@@ -124,7 +124,7 @@ class kRegularSequence(RecognizableSeries):
 
         - ``right`` -- (default: ``None``) a vector.
           When evaluating the sequence, this vector is multiplied
-          from the left to the matrix product. If ``None``, then this
+          from the right to the matrix product. If ``None``, then this
           multiplication is skipped.
 
         When created via the parent :class:`kRegularSequenceSpace`, then

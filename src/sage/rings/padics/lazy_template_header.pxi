@@ -23,7 +23,7 @@ cdef class LazyElement_abandon(LazyElement):
     pass
 cdef lazyelement_abandon
 
-cdef class LazyElement_init(LazyElement):
+cdef class LazyElementWithDigits(LazyElement):
     cdef celement _digits
 
 
@@ -32,18 +32,18 @@ cdef class LazyElement_init(LazyElement):
 cdef class LazyElement_zero(LazyElement):
     pass
 
-cdef class LazyElement_one(LazyElement_init):
+cdef class LazyElement_one(LazyElementWithDigits):
     pass
 
 cdef class LazyElement_bound(LazyElement):
     cdef LazyElement _x
 
-cdef class LazyElement_value(LazyElement_init):
+cdef class LazyElement_value(LazyElementWithDigits):
     cdef long _valuebound
     cdef long _shift
     cdef _value
 
-cdef class LazyElement_random(LazyElement_init):
+cdef class LazyElement_random(LazyElementWithDigits):
     cdef randgen _generator
     # for pickling
     cdef long _initialvaluation
@@ -58,27 +58,27 @@ cdef class LazyElement_slice(LazyElement):
     cdef long _stop
     cdef long _shift
 
-cdef class LazyElement_add(LazyElement_init):
+cdef class LazyElement_add(LazyElementWithDigits):
     cdef LazyElement _x
     cdef LazyElement _y
 
-cdef class LazyElement_sub(LazyElement_init):
+cdef class LazyElement_sub(LazyElementWithDigits):
     cdef LazyElement _x
     cdef LazyElement _y
 
-cdef class LazyElement_mul(LazyElement_init):
+cdef class LazyElement_mul(LazyElementWithDigits):
     cdef LazyElement _x
     cdef cdigit _lastdigit_x
     cdef LazyElement _y
     cdef cdigit _lastdigit_y
     cdef int _update_last_digit(self)
 
-cdef class LazyElement_muldigit(LazyElement_init):
+cdef class LazyElement_muldigit(LazyElementWithDigits):
     cdef cdigit_ptr _x
     cdef LazyElement _y
     cdef void _erase_first_digit(self)
     
-cdef class LazyElement_div(LazyElement_init):
+cdef class LazyElement_div(LazyElementWithDigits):
     cdef long _maxprec
     cdef cdigit _inverse
     cdef LazyElement _num
@@ -87,12 +87,12 @@ cdef class LazyElement_div(LazyElement_init):
     cdef int _bootstrap_c(self)
     cdef bint _bootstraping
 
-cdef class LazyElement_sqrt(LazyElement_init):
+cdef class LazyElement_sqrt(LazyElementWithDigits):
     cdef LazyElement _x
     cdef LazyElement _definition
     cdef int _bootstrap_c(self)
 
-cdef class LazyElement_teichmuller(LazyElement_init):
+cdef class LazyElement_teichmuller(LazyElementWithDigits):
     cdef bint _ready
     cdef bint _trivial
     cdef list _xns
@@ -101,7 +101,7 @@ cdef class LazyElement_teichmuller(LazyElement_init):
 
 # Self-referent numbers
 
-cdef class LazyElement_selfref(LazyElement_init):
+cdef class LazyElement_selfref(LazyElementWithDigits):
     cdef LazyElement _definition
     cdef long _next
     cpdef set(self, LazyElement definition)

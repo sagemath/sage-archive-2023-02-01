@@ -76,7 +76,6 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 cdef class LazyElement_muldigit(LazyElementWithDigits):
     cdef cdigit_ptr _x
     cdef LazyElement _y
-    cdef void _erase_first_digit(self)
     
 cdef class LazyElement_div(LazyElementWithDigits):
     cdef long _maxprec

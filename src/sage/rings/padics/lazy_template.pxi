@@ -169,7 +169,6 @@ cdef class LazyElement(pAdicGenericElement):
 
         - ``length`` -- a positive integer, the length of the slice
 
-
         .. NOTE::
 
             This methods only sets up a pointer to the requested slice
@@ -262,7 +261,6 @@ cdef class LazyElement(pAdicGenericElement):
         OUTPUT:
 
         An error code (see :meth:`_next_c` for details).
-
         """
         cdef int error = 0
         if self._precbound < maxordp:
@@ -705,6 +703,27 @@ cdef class LazyElement(pAdicGenericElement):
             raise PrecisionError("unable to decide equality; try to bound precision")
 
     def __eq__(self, other):
+        r"""
+        Return ``True`` of this element is equal to ``other`` at the
+        working precision.
+
+        If equality cannot be decided, an error is raised.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R(1/2)
+            sage: y = R(1/3)
+            sage: z = R(1/6)
+
+            sage: x == y + z
+            Traceback (most recent call last):
+            ...
+            PrecisionError: unable to decide equality; try to bound precision
+
+            sage: x[:20] == y + z
+            True
+        """
         if not have_same_parent(self, other):
             try:
                 a, b = coercion_model.canonical_coercion(self, other)
@@ -712,6 +731,30 @@ cdef class LazyElement(pAdicGenericElement):
                 return False
             return a == b
         return self.is_equal_to(other)
+
+    def __nonzero__(self):
+        r"""
+        Return ``True`` if this element is indistinguishable from zero
+        at the current stage of computation.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R(1)
+            sage: bool(x)
+            True
+
+        In the next example, only `20` digits (which is the default precision)
+        are computed so `x` is indistinguishable from `0` at this stage::
+
+            sage: x = R(5^21)
+            sage: bool(x)
+            False
+        """
+        if self._precrel:
+            return True
+        self._jump_relative_c(1, self._valuation + self._parent.default_prec())
+        return bool(self._precrel)
 
     cpdef bint _is_exact_zero(self) except -1:
         r"""
@@ -1800,6 +1843,25 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             tester.assertEqual(loads(dumps(self)), self)
 
+    def _test_nonzero_equal(self, **options):
+        r"""
+        Test that ``.__bool__()`` behave consistently with `` == 0``.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: R(0)._test_nonzero_equal()
+            sage: R(5^30)._test_nonzero_equal()
+            sage: R.selfref()._test_nonzero_equal()
+        """
+        tester = self._tester(**options)
+        try:
+            tester.assertEqual(self != self.parent().zero(), bool(self))
+            tester.assertEqual(self == self.parent().zero(), not self)
+        except PrecisionError:
+            pass
+
+
 cdef class LazyElement_abandon(LazyElement):
     r"""
     A special class for lazy p-adic with all digits unknown.
@@ -2442,8 +2504,47 @@ cdef class LazyElement_random(LazyElementWithDigits):
 # Slice and shift
 
 cdef class LazyElement_slice(LazyElement):
+    r"""
+    A class for lazy `p`-adic numbers defined as slices.
+
+    TESTS::
+
+        sage: R = ZpL(5)
+        sage: x = R(20/21)
+        sage: y = x.slice(3, 6)
+        sage: TestSuite(y).run()
+    """
     def __init__(self, parent, LazyElement x, long start, long stop, long shift):
-        # self[0] = x[shift]
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``x`` -- a lazy `p`-adic element, the element from which the
+          slice is extracted
+
+        - ``start`` -- an integer, the position of the first digit of `x`
+          in the slice
+
+        - ``stop`` -- an integer, the position of the first digit of `x`
+          after the slice
+
+        - ``shift`` -- an integer such that ``self[i] = x[i+shift]``
+
+        .. NOTE::
+
+            The digits of ``x`` are not copied!
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R(20/21)
+            sage: y = x.slice(3, 6)
+            sage: type(y)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_slice'>
+        """
         LazyElement.__init__(self, parent)
         self._x = x
         self._start = start
@@ -2461,12 +2562,32 @@ cdef class LazyElement_slice(LazyElement):
         self._init_jump()
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(5, print_mode="digits")
+            sage: x = R(20/21)
+            sage: y = x.slice(3, 6)
+            sage: y[:20] == loads(dumps(y))  # indirect doctest
+            True
+        """
         return self.__class__, (self._parent, self._x, self._start, self._stop, self._shift)
 
     cdef cdigit_ptr _getdigit_relative(self, long i):
+        r"""
+        Return a pointer on the `i`-th digit of this number
+        in relative precision.
+        """
         return self._getdigit_absolute(i + self._valuation)
 
     cdef cdigit_ptr _getdigit_absolute(self, long i):
+        r"""
+        Return a pointer on the `i`-th digit of this number
+        in absolute precision.
+        """
         cdef long j = i + self._shift
         if j < self._start or j >= self._stop:
             return digit_zero
@@ -2474,6 +2595,23 @@ cdef class LazyElement_slice(LazyElement):
             return self._x._getdigit_absolute(j)
 
     cdef void _getslice_relative(self, celement slice, long start, long length):
+        r"""
+        Select a slice of the sequence of digits of this element.
+
+        INPUT:
+
+        - ``slice`` -- a ``celement`` to store the slice
+
+        - ``start`` -- an integer, the start position of the slice
+
+        - ``length`` -- an integer, the length of the slice
+
+        .. NOTE::
+
+            This function only sets up a pointer to the requested slice
+            (the slice is not copied). Hence any future modification
+            of the slice will modify this element as well.
+        """
         cdef LazyElement x = self._x
         cdef long s = start + self._valuation + self._shift
         cdef long start_absolute = max(self._start, s)
@@ -2481,6 +2619,17 @@ cdef class LazyElement_slice(LazyElement):
         x._getslice_relative(slice, start_absolute - x._valuation, stop_absolute - start_absolute)
 
     cdef int _jump_c(self, long prec):
+        r"""
+        Jump to the absolute precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef LazyElement x = self._x
         cdef int error = 0
         cdef long pr
@@ -2502,6 +2651,13 @@ cdef class LazyElement_slice(LazyElement):
             return error
 
     cdef int _next_c(self):
+        r"""
+        Jump to the next digit.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef int error
         cdef long n = self._precrel + self._valuation
         n += self._shift
@@ -2519,7 +2675,34 @@ cdef class LazyElement_slice(LazyElement):
 # Addition
 
 cdef class LazyElement_add(LazyElementWithDigits):
+    r"""
+    A class for lazy `p`-adic numbers defined as sums.
+
+    TESTS::
+
+        sage: R = ZpL(11)
+        sage: x = R.random_element() + R.random_element()
+        sage: TestSuite(x).run()
+    """
     def __init__(self, parent, LazyElement x, LazyElement y):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``x`` -- a lazy `p`-adic element, the first summand
+
+        - ``y`` -- a lazy `p`-adic element, the second summand
+
+        TESTS::
+
+            sage: R = ZpL(11)
+            sage: x = R.random_element() + R.random_element()
+            sage: type(x)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_add'>
+        """
         LazyElement.__init__(self, parent)
         self._x = x
         self._y = y
@@ -2528,9 +2711,31 @@ cdef class LazyElement_add(LazyElementWithDigits):
         self._init_jump()
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R.random_element() + R.random_element()
+            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            True
+        """
         return self.__class__, (self._parent, self._x, self._y)
 
     cdef int _jump_c(self, long prec):
+        r"""
+        Compute the digits of this number until the absolute precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         # We reimplement _jump_c for better performances
         cdef long n = self._valuation + self._precrel
         cdef LazyElement x = self._x
@@ -2550,6 +2755,13 @@ cdef class LazyElement_add(LazyElementWithDigits):
         return error
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef long n = self._valuation + self._precrel
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
@@ -2570,7 +2782,34 @@ cdef class LazyElement_add(LazyElementWithDigits):
 # Subtraction
 
 cdef class LazyElement_sub(LazyElementWithDigits):
+    r"""
+    A class for lazy `p`-adic numbers defined as differences.
+
+    TESTS::
+
+        sage: R = ZpL(11)
+        sage: x = R.random_element() - R.random_element()
+        sage: TestSuite(x).run()
+    """
     def __init__(self, parent, LazyElement x, LazyElement y):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``x`` -- a lazy `p`-adic element, the minuend
+
+        - ``y`` -- a lazy `p`-adic element, the subtrahend
+
+        TESTS::
+
+            sage: R = ZpL(11)
+            sage: x = R.random_element() - R.random_element()
+            sage: type(x)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_sub'>
+        """
         LazyElement.__init__(self, parent)
         self._x = x
         self._y = y
@@ -2579,9 +2818,31 @@ cdef class LazyElement_sub(LazyElementWithDigits):
         self._init_jump()
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R.random_element() - R.random_element()
+            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            True
+        """
         return self.__class__, (self._parent, self._x, self._y)
 
     cdef int _jump_c(self, long prec):
+        r"""
+        Compute the digits of this number until the absolute precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         # We reimplement _jump_c for better performances
         cdef long n = self._valuation + self._precrel
         cdef LazyElement x = self._x
@@ -2601,6 +2862,13 @@ cdef class LazyElement_sub(LazyElementWithDigits):
         return error
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef long n = self._valuation + self._precrel
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
@@ -2622,15 +2890,56 @@ cdef class LazyElement_sub(LazyElementWithDigits):
 # Multiplication
 
 cdef class LazyElement_mul(LazyElementWithDigits):
+    r"""
+    A class for lazy `p`-adic numbers defined as products.
+
+    ALGORITHM:
+
+    We compute digits using relaxed arithmetics by var der Hoeven and al.,
+    whose cost is quasi-linear with respect to the precision.
+
+    The algorithm uses the entries behind the current position in the table
+    ``self._digits`` to store carries.
+
+    TESTS::
+
+        sage: R = ZpL(11)
+        sage: x = R.random_element() * R.random_element()
+        sage: TestSuite(x).run()
+    """
     def __cinit__(self):
+        r"""
+        Allocate memory for temporary variables.
+        """
         digit_init(self._lastdigit_x)
         digit_init(self._lastdigit_y)
 
     def __dealloc__(self):
+        r"""
+        Deallocate memory for temporary variables.
+        """
         digit_clear(self._lastdigit_x)
         digit_clear(self._lastdigit_y)
 
     def __init__(self, parent, LazyElement x, LazyElement y):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``x`` -- a lazy `p`-adic element, the first factor
+
+        - ``y`` -- a lazy `p`-adic element, the second factor
+
+        TESTS::
+
+            sage: R = ZpL(11)
+            sage: x = R.random_element() * R.random_element()
+            sage: type(x)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_mul'>
+        """
         LazyElement.__init__(self, parent)
         self._x = x
         self._y = y
@@ -2644,9 +2953,27 @@ cdef class LazyElement_mul(LazyElementWithDigits):
         self._init_jump()
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R.random_element() * R.random_element()
+            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            True
+        """
         return self.__class__, (self._parent, self._x, self._y)
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         global tmp_digit, tmp_poly
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
@@ -2694,6 +3021,12 @@ cdef class LazyElement_mul(LazyElementWithDigits):
         return 0
 
     cdef int _update_last_digit(self):
+        r"""
+        Redo the computation of the last digit and update carries
+        accordingly.
+
+        This method is used for computing Teichmüller representatives.
+        """
         if self._precrel == 0:
             return ERROR_UNEXPECTED
         cdef LazyElement x = self._x
@@ -2728,8 +3061,27 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 
 
 cdef class LazyElement_muldigit(LazyElementWithDigits):
-    # compute x*y where x is assumed to be in (0,p)
+    r"""
+    A class for lazy `p`-adic numbers defined as products
+    of a lazy `p`-adic number by a digit.
+
+    This class is not exposed to the user; it is only used
+    internally for division.
+    """
     def __init__(self, parent, LazyElement_div x, LazyElement y):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``x`` -- a lazy `p`-adic element, whose first significant
+          digit is the first factor
+
+        - ``y`` -- a lazy `p`-adic element, the second factor
+
+        """
         LazyElement.__init__(self, parent)
         self._x = <cdigit_ptr>x._inverse
         self._y = y
@@ -2737,6 +3089,13 @@ cdef class LazyElement_muldigit(LazyElementWithDigits):
         self._init_jump()
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef long n = self._valuation + self._precrel
         cdef int error = self._y._jump_c(n+1)
         if error:
@@ -2747,25 +3106,71 @@ cdef class LazyElement_muldigit(LazyElementWithDigits):
         self._precrel += 1
         return 0
 
-    cdef void _erase_first_digit(self):
-        # This is a awful hack,
-        # but it's very useful for division
-        if self._precrel:
-            self._valuation += 1
-            self._precrel -= 1
-            element_shift_right(self._digits)
-
 
 # Division
 
 cdef class LazyElement_div(LazyElementWithDigits):
+    r"""
+    A class for lazy `p`-adic numbers defined as quotients.
+
+    ALGORITHM:
+
+    We compute the quotient `x = a/b` as the self-referent number defined by
+
+    .. MATH::
+
+        x = ac + (1 - bc) x
+
+    where `c` is congruent to `b^{-1}` modulo the uniformizer.
+
+    TESTS::
+
+        sage: R = ZpL(5)
+        sage: x = R(20) / R(21)
+        sage: TestSuite(x).run()
+    """
     def __cinit__(self):
+        r"""
+        Allocate memory for temporary variables.
+        """
         digit_init(self._inverse)
 
     def __dealloc__(self):
+        r"""
+        Deallocate memory for temporary variables.
+        """
         digit_clear(self._inverse)
 
     def __init__(self, parent, LazyElement num, LazyElement denom, long minval=-maxordp, precbound=None):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``num`` -- a lazy `p`-adic element, the dividend
+
+        - ``denom`` -- a lazy `p`-adic element, the divisor
+
+        - ``minval`` -- an integer, the minimal valuation allowed for this element
+
+        - ``precbound`` -- an integer or ``None`` (default: ``None``),
+          the bound on the precision
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R(20) / R(21)
+            sage: type(x)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_div'>
+
+            sage: y = R.selfref()
+            sage: 1/y
+            O(5^-Infinity)
+            sage: y.inverse_of_unit()
+            O(5^0)
+        """
         LazyElement.__init__(self, parent)
         if denom._valuation >= maxordp:
             raise ZeroDivisionError("cannot divide by zero")
@@ -2791,9 +3196,31 @@ cdef class LazyElement_div(LazyElementWithDigits):
             self._init_jump()
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R(20) / R(21)
+            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            True
+        """
         return self.__class__, (self._parent, self._num, self._denom, self._valuation, self._precbound)
 
     cdef int _bootstrap_c(self):
+        r"""
+        Bootstrap the computation of the digits of this element, that is:
+
+        - find the valuation
+        - compute the first digit, and 
+        - set up the recursive definition of the next digits.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef int error
         cdef LazyElement num = self._num
         cdef LazyElement denom = self._denom
@@ -2811,7 +3238,12 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
         cdef long valuation = num._valuation - denom._valuation
         if valuation < self._valuation:
-            return ERROR_DIVISION
+            error = num._jump_c(self._valuation + denom._valuation)
+            if error:
+                return error
+            valuation = num._valuation - denom._valuation
+            if valuation < self._valuation:
+                return ERROR_DIVISION
         self._valuation = valuation
         digit_inv(self._inverse, denom._getdigit_relative(0), self.prime_pow)
         self._definition = lazyelement_abandon
@@ -2824,6 +3256,13 @@ cdef class LazyElement_div(LazyElementWithDigits):
         return 0
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef LazyElement definition = self._definition
         cdef long val
         if definition is None:
@@ -2848,7 +3287,45 @@ cdef class LazyElement_div(LazyElementWithDigits):
 # Square root
 
 cdef class LazyElement_sqrt(LazyElementWithDigits):
+    r"""
+    A class for lazy `p`-adic numbers defined as square roots.
+
+    ALGORITHM:
+
+    When `p \neq 2`, we compute `y = \sqrt{x}` as the self-referent number 
+    defined by
+
+    .. MATH::
+
+        y = \frac{x - (y-a)^2 + a^2}{2a}
+
+    where `a^2` is congruent to `x` modulo the uniformizer.
+
+    When `p = 2`, we use a variant of this construction.
+
+    TESTS::
+
+        sage: R = ZpL(5)
+        sage: x = R(6).sqrt()
+        sage: TestSuite(x).run()
+    """
     def __init__(self, parent, LazyElement x):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``x`` -- a lazy `p`-adic element
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R(6).sqrt()
+            sage: type(x)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_sqrt'>
+        """
         LazyElement.__init__(self, parent)
         self._x = x
         if x._valuation <= -maxordp:
@@ -2867,9 +3344,36 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
             self._init_jump()
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(5)
+            sage: x = R(6).sqrt()
+            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            True
+        """
         return self.__class__, (self._parent, self._x)
 
     cdef int _bootstrap_c(self):
+        r"""
+        Bootstrap the computation of the digits of this element, that is:
+
+        - find the valuation
+        - compute the first digit, and 
+        - set up the recursive definition of the next digits.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+
+        .. NOTE::
+
+            This code does not work for nontrivial extensions of `\QQ_2`.    
+
+        """
         cdef LazyElement x = self._x
         cdef long maxprec
         if x._valuation <= -maxordp:
@@ -2936,6 +3440,13 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
         return 0
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef LazyElement x = self._x
         cdef LazyElement definition = self._definition
         cdef long n = self._valuation + self._precrel
@@ -2959,7 +3470,39 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 # Teichmüller lifts
 
 cdef class LazyElement_teichmuller(LazyElementWithDigits):
-    def __init__(self, parent, Integer xbar):
+    r"""
+    A class for lazy `p`-adic numbers defined as teichmüller representatives.
+
+    ALGORITHM:
+
+    We compute `x = [a]` as the unique self-referent number with last
+    digit `a` and `x = x^p`.
+    Note that `x^p` is known with one more digit than `x` itself.
+
+    TESTS::
+
+        sage: R = ZpL(7)
+        sage: x = R.teichmuller(2)
+        sage: TestSuite(x).run()
+    """
+    def __init__(self, parent, xbar):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``xbar`` -- an element in the exact subring, which is congruent
+          to this Teichmüller modulo this uniformizer.
+
+        TESTS::
+
+            sage: R = ZpL(7)
+            sage: x = R.teichmuller(2)
+            sage: type(x)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_teichmuller'>
+        """
         LazyElement.__init__(self, parent)
         cdef cdigit digit
         digit_init(digit)
@@ -2994,10 +3537,32 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
         self._ready = True
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(7)
+            sage: x = R.teichmuller(2)
+            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            True
+        """
         xbar = digit_get_sage(element_get_digit(self._digits, 0))
         return self.__class__, (self._parent, xbar)
 
     cdef int _jump_c(self, long prec):
+        r"""
+        Compute the digits of this number until the absolute precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         if not self._ready:
             return ERROR_ABANDON
         if self._trivial:
@@ -3007,6 +3572,13 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
         return LazyElement._jump_c(<LazyElement>self, prec)
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         if self._trivial:
             if self._valuation:
                 self._precrel += 1
@@ -3028,7 +3600,39 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 ###########################
 
 cdef class LazyElement_selfref(LazyElementWithDigits):
+    r"""
+    A class for self-referent lazy `p`-adic numbers.
+
+    TESTS::
+
+        sage: R = ZpL(7)
+        sage: x = R.selfref()
+        sage: TestSuite(x).run()
+
+        sage: x.set(1 + 7*x^2)
+        sage: TestSuite(x).run()        
+    """
     def __init__(self, parent, long valuation, digits=None):
+        r"""
+        Initialize this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``valuation`` -- an integer, a lower bound on the valuation of 
+          this number
+
+        - ``digits`` -- a list or ``None`` (default: ``None``), the first
+          significant digits of this number
+
+        TESTS::
+
+            sage: R = ZpL(7)
+            sage: x = R.selfref()
+            sage: type(x)
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_selfref'>
+        """
         LazyElement.__init__(self, parent)
         if valuation >= maxordp:
             raise OverflowError("valuation is too large (maximum is %s)" % maxordp)
@@ -3051,6 +3655,18 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         self._initialprecrel = self._precrel
 
     def __reduce__(self):
+        r"""
+        Return a tuple of a function and data that can be used to unpickle this
+        element.
+
+        TESTS::
+
+            sage: R = ZpL(7)
+            sage: x = R.selfref()
+            sage: x.set(1 + 7*x^2)
+            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            True
+        """
         digits = [ ]
         for i in range(self._initialprecrel):
             digits.append(digit_get_sage(element_get_digit(self._digits, i)))
@@ -3061,6 +3677,41 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         return unpickle_selfref, (id(self), self.__class__, self._parent, self._initialvaluation, digits, definition)
 
     cpdef set(self, LazyElement definition):
+        r"""
+        Set the recursive definition of this self-referent number.
+
+        INPUT:
+
+        - ``definition`` -- a lazy `p`-adic number, to which this
+          number is equal
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, 10)
+            sage: x = R.selfref()
+            sage: x.set(1 + 5*x)
+            sage: x
+            1 + 5 + 5^2 + 5^3 + 5^4 + 5^5 + 5^6 + 5^7 + 5^8 + 5^9 + ...
+
+        The previous construction works because the relation we gave defines
+        the `n`-th digit of `x` in terms of its digits at precision strictly
+        less than `n` (this is due to the multiplication by `5`).
+
+        On the contrary, the following does not work::
+
+            sage: y = R.selfref()
+            sage: y.set(1 + 3*y)
+            sage: y
+            O(5^0)
+            sage: y[:20]
+            Traceback (most recent call last):
+            ...
+            RecursionError: definition looks circular
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`
+        """
         if self._definition is not None:
             raise ValueError("this self-referent number is already defined")
         self._definition = definition
@@ -3068,6 +3719,13 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         self._init_jump()
 
     cdef int _next_c(self):
+        r"""
+        Compute the next digit of this number.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
         cdef LazyElement definition = self._definition
         cdef cdigit_ptr digit
         cdef long n = self._valuation + self._precrel
@@ -3093,6 +3751,25 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         return error
 
 def unpickle_selfref(uid, cls, parent, valuation, digits, definition):
+    r"""
+    Unpickle a self-referent lazy `p`-adic number.
+
+    TESTS:
+
+    Cross definitions involving several self-referent numbers are
+    handled correctly::
+
+        sage: R = ZpL(7)
+        sage: x = R.selfref()
+        sage: y = R.selfref()
+        sage: x.set(1 + 2*y + 7*x*y)
+        sage: y.set(3 + 14*x^2)
+
+        sage: x[:20] == loads(dumps(x))  # indirect doctest
+        True
+        sage: y[:20] == loads(dumps(y))  # indirect doctest
+        True
+    """
     if uid in persist.already_unpickled:
         elt = persist.already_unpickled[uid]
     else:

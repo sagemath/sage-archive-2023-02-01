@@ -70,7 +70,7 @@ files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
 
 log.debug(f"files_to_exclude = {files_to_exclude}")
 
-python_packages = find_namespace_packages(where=SAGE_SRC)
+python_packages = find_namespace_packages(where=SAGE_SRC, exclude=['bin', 'doc'])
 log.debug(f"python_packages = {python_packages}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")

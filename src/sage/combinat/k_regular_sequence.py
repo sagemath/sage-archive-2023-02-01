@@ -134,7 +134,7 @@ class kRegularSequence(RecognizableSeries):
             each of the matrices in
             :meth:`mu <sage.combinat.recognizable_series.RecognizableSeries.mu>`
             is transposed. Additionally the vectors
-            :meth`left <sage.combinat.recognizable_series.RecognizableSeries.left>`
+            :meth:`left <sage.combinat.recognizable_series.RecognizableSeries.left>`
             and
             :meth:`right <sage.combinat.recognizable_series.RecognizableSeries.right>`
             are switched.

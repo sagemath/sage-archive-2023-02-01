@@ -88,7 +88,6 @@ cdef class LazyElement_div(LazyElement_init):
     cdef bint _bootstraping
 
 cdef class LazyElement_sqrt(LazyElement_init):
-    cdef long _maxprec
     cdef LazyElement _x
     cdef LazyElement _definition
     cdef int _bootstrap_c(self)

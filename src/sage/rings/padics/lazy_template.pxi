@@ -1391,6 +1391,33 @@ cdef class LazyElement(pAdicGenericElement):
         return ans
 
     def __rshift__(self, s):
+        r"""
+        Return this element divided by `\pi^s`, and truncated
+        if the parent is not a field.
+
+        EXAMPLES::
+
+            sage: R = ZpL(997)
+            sage: K = R.fraction_field()
+            sage: a = R(123456878908); a
+            964*997 + 572*997^2 + 124*997^3 + ...
+
+        Shifting to the right divides by a power of `p`, but drops
+        terms with negative valuation::
+
+            sage: a >> 3
+            124 + ...
+
+        If the parent is a field no truncation is performed::
+
+            sage: K(a) >> 3
+            964*997^-2 + 572*997^-1 + 124 + ...
+
+        A negative shift multiplies by that power of `p`::
+
+            sage: a >> -3
+            964*997^4 + 572*997^5 + 124*997^6 + ...
+        """
         cdef long start
         cdef long shift = long(s)
         if shift:
@@ -1403,9 +1430,49 @@ cdef class LazyElement(pAdicGenericElement):
             return self
 
     def __lshift__(self, s):
+        r"""
+        Return this element multiplied by `\pi^s`.
+
+        If `s` is negative and this element does not lie in a field,
+        digits may be truncated.  See ``__rshift__`` for details.
+
+        EXAMPLES::
+
+            sage: R = ZpL(997)
+            sage: K = R.fraction_field()
+            sage: a = R(123456878908); a
+            964*997 + 572*997^2 + 124*997^3 + ...
+
+        Shifting to the right divides by a power of `p`, but drops
+        terms with negative valuation::
+
+            sage: a << 2
+            964*997^3 + 572*997^4 + 124*997^5 + ...
+
+        A negative shift may result in a truncation when the base
+        ring is not a field::
+
+            sage: a << -3
+            124 + ...
+
+            sage: K(a) << -3
+            964*997^-2 + 572*997^-1 + 124 + ...
+        """
         return self.__rshift__(-s)
 
     cpdef _add_(self, other):
+        r"""
+        Return the sum of this element with ``other``.
+
+        TESTS::
+
+            sage: R = ZpL(7, 10)
+            sage: R(1/3) + R(1/6)
+            4 + 3*7 + 3*7^2 + 3*7^3 + 3*7^4 + 3*7^5 + 3*7^6 + 3*7^7 + 3*7^8 + 3*7^9 + ...
+
+            sage: R(1/3, 5) + R(1/6, 10)
+            4 + 3*7 + 3*7^2 + 3*7^3 + 3*7^4 + O(7^5)
+        """
         if isinstance(self, LazyElement_zero):
             return other
         if isinstance(other, LazyElement_zero):
@@ -1413,6 +1480,18 @@ cdef class LazyElement(pAdicGenericElement):
         return element_class_add(self._parent, self, <LazyElement>other)
 
     cpdef _sub_(self, other):
+        r"""
+        Return the difference of this element and ``other``.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: R(1/3) - R(1/6)
+            6 + 5*7 + 5*7^2 + 5*7^3 + 5*7^4 + 5*7^5 + 5*7^6 + 5*7^7 + 5*7^8 + 5*7^9 + ...
+
+            sage: R(1/3, 5) - R(1/6, 10)
+            6 + 5*7 + 5*7^2 + 5*7^3 + 5*7^4 + O(7^5)
+        """
         if self is other:
             return self._parent.zero()
         if isinstance(self, LazyElement_zero):
@@ -1422,11 +1501,38 @@ cdef class LazyElement(pAdicGenericElement):
         return element_class_sub(self._parent, self, <LazyElement>other)
 
     cpdef _neg_(self):
+        r"""
+        Return the opposite of this element.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: -R(1)
+            6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + 6*7^5 + 6*7^6 + 6*7^7 + 6*7^8 + 6*7^9 + ...
+
+            sage: -R(1,5)
+            6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)
+        """
         if isinstance(self, LazyElement_zero):
             return self
         return element_class_sub(self._parent, self._parent.zero(), self)
 
     cpdef _mul_(self, other):
+        r"""
+        Return the product of this element with ``other``.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: R(1/2) * R(2/3)
+            5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + 4*7^6 + 4*7^7 + 4*7^8 + 4*7^9 + ...
+
+            sage: R(1/2, 5) * R(2/3, 10)
+            5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + O(7^5)
+
+            sage: R(49, 5) * R(14, 4)
+            2*7^3 + O(7^6)
+        """
         if isinstance(self, LazyElement_zero) or isinstance(other, LazyElement_one):
             return self
         if isinstance(self, LazyElement_one) or isinstance(other, LazyElement_zero):
@@ -1434,41 +1540,218 @@ cdef class LazyElement(pAdicGenericElement):
         return element_class_mul(self._parent, self, <LazyElement>other)
 
     cpdef _div_(self, other):
-        if isinstance(other, LazyElement_zero):
-            raise ZeroDivisionError("cannot divide by zero")
-        if (<LazyElement>other)._precbound < maxordp and (<LazyElement>other)._precrel == 0:
-            raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
+        r"""
+        Return the quotient if this element by ``other``.
+
+        .. NOTE::
+
+            The result always lives in the fraction field, even if ``other`` is
+            a unit.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: x = R(2) / R(3)
+            sage: x
+            3 + 2*7 + 2*7^2 + 2*7^3 + 2*7^4 + 2*7^5 + 2*7^6 + 2*7^7 + 2*7^8 + 2*7^9 + ...
+            sage: x.parent()
+            7-adic Field with lazy precision
+
+        TESTS::
+
+            sage: x / R(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: cannot divide by zero
+
+            sage: x / R(0, 10)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: cannot divide by something indistinguishable from zero
+
+            sage: y = R.selfref()
+            sage: x / y
+            valuation not known
+        """
         if isinstance(other, LazyElement_one):
             if self.prime_pow.in_field:
                 return self
             else:
                 return element_class_bound(self._parent.fraction_field(), self)
-        return element_class_div(self._parent.fraction_field(), self, <LazyElement>other)
+        return element_class_div(self._parent.fraction_field(), self, <LazyElement>other, -maxordp)
 
     def __invert__(self):
-        if isinstance(self, LazyElement_zero):
-            raise ZeroDivisionError("cannot divide by zero")
-        if self._precbound < maxordp and self._precrel == 0:
-            raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
+        r"""
+        Return the multiplicative inverse of this element.
+
+        .. NOTE::
+
+            The result always lives in the fraction field, even if this element
+            is a unit.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: x = ~R(3)
+            sage: x
+            5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + 4*7^6 + 4*7^7 + 4*7^8 + 4*7^9 + ...
+            sage: x.parent()
+            7-adic Field with lazy precision
+
+        TESTS::
+
+            sage: ~R(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: cannot divide by zero
+
+            sage: ~R(0, 10)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: cannot divide by something indistinguishable from zero
+
+            sage: y = R.selfref()
+            sage: ~y
+            valuation not known
+        """
         if isinstance(self, LazyElement_one):
             return self
-        return element_class_div(self._parent.fraction_field(), self._parent.one(), self)
+        return element_class_div(self._parent.fraction_field(), self._parent.one(), self, -maxordp)
 
     def inverse_of_unit(self):
+        r"""
+        Return the multiplicative inverse of this element if
+        it is a unit.
+
+        EXAMPLES::
+
+            sage: R = ZpL(3, 5)
+            sage: a = R(2)
+            sage: b = a.inverse_of_unit()
+            sage: b
+            2 + 3 + 3^2 + 3^3 + 3^4 + ...
+
+        A ``ZeroDivisionError`` is raised if an element has no inverse in the
+        ring::
+
+            sage: R(3).inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: denominator is not invertible
+
+        Unlike the usual inverse of an element, the result is in the same ring
+        as this element and not in its fraction field (for fields this does of
+        course not make any difference)::
+
+            sage: c = ~a; c
+            2 + 3 + 3^2 + 3^3 + 3^4 + ...
+            sage: a.parent()
+            3-adic Ring with lazy precision
+            sage: b.parent()
+            3-adic Ring with lazy precision
+            sage: c.parent()
+            3-adic Field with lazy precision
+
+        This method also work for self-referent numbers 
+        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`)::
+
+            sage: x = R.selfref(); x
+            O(3^0)
+            sage: x.inverse_of_unit()
+            O(3^0)
+            sage: x.set(1 + 3 * x.inverse_of_unit())
+            sage: x
+            1 + 3 + 2*3^2 + 3^3 + 3^4 + ...
+
+        Actually, in many cases, it is preferable to use it than an actual
+        division. Indeed, compare::
+
+            sage: y = R.selfref()
+            sage: y.set(1 + 3/y)
+            sage: y
+            O(3^0)
+            sage: y[:5]
+            Traceback (most recent call last):
+            ...
+            RecursionError: definition looks circular
+        """
         if isinstance(self, LazyElement_one):
             return self
         if self.prime_pow.in_field:
-            if isinstance(self, LazyElement_zero):
-                raise ZeroDivisionError("cannot divide by zero")
+            return element_class_div(self._parent, self._parent.one(), self, -maxordp)
         else:
-            if self.valuation() > 0:
-                raise ZeroDivisionError("not a unit")
-        return element_class_div(self._parent, self._parent.one(), self)        
+            return element_class_div(self._parent, self._parent.one(), self, 0)
 
     def sqrt(self):
+        r"""
+        Return the square root of this element.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 10)
+            sage: x = R(8)
+            sage: x.sqrt()
+            1 + 4*7 + 2*7^2 + 7^3 + 3*7^4 + 2*7^5 + 4*7^6 + 2*7^7 + 5*7^8 + ...
+
+        When the element is not a square, an error is raised::
+
+            sage: x = R(10)
+            sage: x.sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a square
+
+        For bounded elements, the precision is tracked::
+
+            sage: x = R(8, 5); x
+            1 + 7 + O(7^5)
+            sage: x.sqrt()
+            1 + 4*7 + 2*7^2 + 7^3 + 3*7^4 + O(7^5)
+
+        Note that, when `p = 2`, a digit of precision is lost::
+
+            sage: S = ZpL(2)
+            sage: x = S(17, 5)
+            sage: x.sqrt()
+            1 + 2^3 + O(2^4)
+
+        This method also work for self-referent numbers 
+        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`)::
+
+            sage: x = R.selfref(); x
+            O(7^0)
+            sage: x.sqrt()
+            O(7^0)
+            sage: x.set(1 + 7*sqrt(x))
+            sage: x
+            1 + 7 + 4*7^2 + 4*7^3 + 2*7^4 + 3*7^8 + 3*7^9 + ...
+
+        TESTS::
+
+            sage: for p in [ 7, 11, 1009 ]:
+            ....:     R = ZpL(p)
+            ....:     x = 1 + p * R.random_element()
+            ....:     y = x.sqrt()
+            ....:     assert(x[:100] == y^2)
+        """
         return element_class_sqrt(self._parent, self)
 
     def _test_pickling(self, **options):
+        r"""
+        Checks that this object can be pickled and unpickled properly.
+
+        TESTS::
+
+            sage: R = ZpL(7)
+            sage: x = R.random_element()
+            sage: x._test_pickling()
+
+            sage: x[:20]._test_pickling()
+
+        .. SEEALSO::
+
+            :func:`dumps`, :func:`loads`
+        """
         tester = self._tester(**options)
         from sage.misc.all import loads, dumps
         if self._precbound >= maxordp:
@@ -1740,10 +2023,11 @@ cdef class LazyElement_slice(LazyElement):
         if self._precrel == 0:
             while self._valuation < pr and digit_is_zero(self._getdigit_relative(0)):
                 self._valuation += 1
-        self._precrel = prec - self._valuation
         if errorx:
+            self._precrel = pr - self._valuation
             return errorx
         else:
+            self._precrel = prec - self._valuation
             return error
 
     cdef int _next_c(self):
@@ -2010,28 +2294,33 @@ cdef class LazyElement_div(LazyElement_init):
     def __dealloc__(self):
         digit_clear(self._inverse)
 
-    def __init__(self, parent, LazyElement num, LazyElement denom, precbound=None):
+    def __init__(self, parent, LazyElement num, LazyElement denom, long minval=-maxordp, precbound=None):
         LazyElement.__init__(self, parent)
+        if denom._valuation >= maxordp:
+            raise ZeroDivisionError("cannot divide by zero")
+        if denom._precbound < maxordp and denom._precrel == 0:
+            raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
         self._num = num
         self._denom = denom
         if denom._valuation <= -maxordp:
             self._maxprec = maxordp + 1
         else:
             self._maxprec = denom._valuation + max(1, self._parent.default_prec())
+        self._valuation = minval
+        cdef int error = self._bootstrap_c()
         if precbound is not None:
             self._precbound = min(maxordp, precbound)
-        cdef int error = self._bootstrap_c()
         if num._precbound < maxordp:
             self._precbound = min(self._precbound, num._precbound - denom._valuation)
         if denom._precbound < maxordp:
             self._precbound = min(self._precbound, denom._precbound + num._valuation - 2*denom._valuation)
         if error:
-            self._valuation = -maxordp
+            raise_error(error, permissive=True)
         else:
             self._init_jump()
 
     def __reduce__(self):
-        return self.__class__, (self._parent, self._num, self._denom, self._precbound)
+        return self.__class__, (self._parent, self._num, self._denom, self._valuation, self._precbound)
 
     cdef int _bootstrap_c(self):
         cdef int error
@@ -2044,12 +2333,15 @@ cdef class LazyElement_div(LazyElement_init):
                 if error & ERROR_PRECISION:
                     error |= ERROR_DIVISION
                 return error
-            if self._maxprec > maxordp and denom._valuation > -maxordp:
-                self._maxprec = denom._valuation + max(1, self._parent.default_prec())
+        if self._maxprec < maxordp and denom._valuation > -maxordp:
+            self._maxprec = denom._valuation + max(1, self._parent.default_prec())
         if denom._precrel == 0:
             return ERROR_ABANDON
 
-        self._valuation = num._valuation - denom._valuation
+        cdef long valuation = num._valuation - denom._valuation
+        if valuation < self._valuation:
+            return ERROR_DIVISION
+        self._valuation = valuation
         digit_inv(self._inverse, denom._getdigit_relative(0), self.prime_pow)
         self._definition = lazyelement_abandon
         cdef parent = self._parent
@@ -2090,10 +2382,8 @@ cdef class LazyElement_sqrt(LazyElement_init):
         self._x = x
         if x._valuation <= -maxordp:
             self._valuation = -maxordp
-            self._maxprec = maxordp + 1
         else:
             self._valuation = x._valuation >> 1
-            self._maxprec = x._valuation + 2*self._parent.default_prec()
         cdef int error = self._bootstrap_c()
         if error & ERROR_NOTSQUARE:
             raise ValueError("not a square")
@@ -2110,19 +2400,23 @@ cdef class LazyElement_sqrt(LazyElement_init):
 
     cdef int _bootstrap_c(self):
         cdef LazyElement x = self._x
-        while x._valuation < self._maxprec and x._precrel == 0:
+        cdef long maxprec
+        if x._valuation <= -maxordp:
+            return ERROR_ABANDON
+        if self._valuation <= -maxordp:
+            maxprec = x._valuation
+        else:
+            maxprec = (self._valuation + 1) << 1
+        while x._valuation < maxprec and x._precrel == 0:
             error = x._next_c()
             if error:
                 return error
-            if self._maxprec > maxordp and x._valuation > -maxordp:
-                self._maxprec = x._valuation + 2*self._parent.default_prec()
-        if x._valuation > -maxordp:
-            if x._valuation & 1:
-                self._valuation = (x._valuation + 1) >> 1
-            else:
-                self._valuation = x._valuation >> 1
+        if x._valuation & 1:
+            self._valuation = (x._valuation + 1) >> 1
+        else:
+            self._valuation = x._valuation >> 1
         if x._precrel == 0:
-            return ERROR_ABANDON
+            return 0
         if x._valuation & 1 != 0:
             return ERROR_NOTSQUARE
 

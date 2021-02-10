@@ -57,7 +57,7 @@ def raise_error(error, permissive=False):
     if error & ERROR_CIRCULAR:
         raise RecursionError("definition looks circular")
     if error & ERROR_DIVISION:
-        raise ZeroDivisionError("cannot divide by something indistinguishable from zero")
+        raise ZeroDivisionError("denominator is not invertible")
     if error & ERROR_INTEGRAL:
         raise ValueError("not in the ring of integers")
     if error & ERROR_NOTSQUARE:

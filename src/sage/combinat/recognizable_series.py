@@ -263,7 +263,7 @@ class RecognizableSeries(Element):
         - ``left`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the left to the
           matrix obtained from :meth:`mu <mu>` applying on a word.
-          See :meth`left <left>` for more details.
+          See :meth:`left <left>` for more details.
 
         - ``right`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the right to the
@@ -275,7 +275,7 @@ class RecognizableSeries(Element):
 
         - ``transpose`` -- (default: ``False``) a boolean. If set, then
             each of the matrices in :meth:`mu <mu>` is transposed. Additionally
-            the vectors :meth`left <left>` and :meth:`right <right>` are switched.
+            the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
             (This is done by calling :meth:`transposed`.)
 
         EXAMPLES::
@@ -667,7 +667,7 @@ class RecognizableSeries(Element):
         A :class:`RecognizableSeries`.
 
         Each of the matrices in :meth:`mu <mu>` is transposed. Additionally
-        the vectors :meth`left <left>` and :meth:`right <right>` are switched.
+        the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
 
         EXAMPLES::
 

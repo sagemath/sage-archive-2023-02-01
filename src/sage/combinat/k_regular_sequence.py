@@ -131,14 +131,14 @@ class kRegularSequence(RecognizableSeries):
         the following option is available.
 
         - ``transpose`` -- (default: ``False``) a boolean. If set, then
-            each of the matrices in
-            :meth:`mu <sage.combinat.recognizable_series.RecognizableSeries.mu>`
-            is transposed. Additionally the vectors
-            :meth:`left <sage.combinat.recognizable_series.RecognizableSeries.left>`
-            and
-            :meth:`right <sage.combinat.recognizable_series.RecognizableSeries.right>`
-            are switched.
-            (This is done by calling :meth:`~sage.combinat.recognizable_series.RecognizableSeries.transposed`.)
+          each of the matrices in
+          :meth:`mu <sage.combinat.recognizable_series.RecognizableSeries.mu>`
+          is transposed. Additionally the vectors
+          :meth:`left <sage.combinat.recognizable_series.RecognizableSeries.left>`
+          and
+          :meth:`right <sage.combinat.recognizable_series.RecognizableSeries.right>`
+          are switched.
+          (This is done by calling :meth:`~sage.combinat.recognizable_series.RecognizableSeries.transposed`.)
 
         EXAMPLES::
 

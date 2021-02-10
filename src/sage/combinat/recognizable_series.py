@@ -274,9 +274,9 @@ class RecognizableSeries(Element):
         the following option is available.
 
         - ``transpose`` -- (default: ``False``) a boolean. If set, then
-            each of the matrices in :meth:`mu <mu>` is transposed. Additionally
-            the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
-            (This is done by calling :meth:`transposed`.)
+          each of the matrices in :meth:`mu <mu>` is transposed. Additionally
+          the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
+          (This is done by calling :meth:`transposed`.)
 
         EXAMPLES::
 

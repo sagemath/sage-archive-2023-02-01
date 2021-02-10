@@ -2591,6 +2591,23 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             ...
             NotImplementedError: Currently only implemented for cluster algebras of rank 2.
 
+        .. NOTE::
+            
+            Elements of the theta basis correspond with the associated cluster
+            monomial only for appropriate coefficient choices. For example::
+
+                sage: A = ClusterAlgebra(matrix([[0,-1],[1,0],[-1,0]]))
+                sage: A.theta_basis_element((-1,0))
+                (x1 + y0)/(x0*y0)
+        
+            while::
+
+                sage: _ = A.find_g_vector((-1,0));
+                sage: A.cluster_variable((-1,0))
+                (x1 + y0)/x0
+
+            In particular theta basis elements do not satisfy a separation of additions formula.
+
         .. WARNING::
 
             Currently only cluster algebras of rank 2 are supported
@@ -2600,11 +2617,11 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             :meth:`sage.algebras.cluster_algebra.theta_basis_F_polynomial`
         """
         g_vector = tuple(g_vector)
-        F = self.theta_basis_F_polynomial(g_vector)
-        F_std = F.subs(self._yhat)
+        F = self.theta_basis_F_polynomial(g_vector).subs(self._yhat)
         g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
-        F_trop = self.ambient()(F.subs(self._y))._fraction_pair()[1]
-        return self.retract(g_mon * F_std * F_trop)
+        # we only return the monomal g_mon times the evaluated F-polynomial because this is how 
+        # theta basis elements behave.
+        return self.retract(g_mon * F)
 
     @cached_method(key=lambda a, b: tuple(b))
     def theta_basis_F_polynomial(self, g_vector):
@@ -2614,6 +2631,12 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         INPUT:
 
         - ``g_vector`` -- tuple; the g-vector of the F-polynomial to compute
+
+        .. WARNING::
+
+            Elements of the theta basis do not satisfy a separation of additions formula.
+            See the implementation of :meth:`sage.algebras.cluster_algebra.theta_basis_F_polynomial` 
+            for further details.
 
         ALGORITHM:
 

@@ -1478,12 +1478,17 @@ def _two_adic_normal_forms(G, partial=False):
         # We want type a or W = []
         # modify D[w,w] to go from type b to type a
         x = [len(V)] + [ZZ(mod(w.unit_part(),8)) for w in D[W,W].diagonal()]
-        x.sort()
-      # a = [[0,1], [2,3], [2,5], [0,7], [0,1,1], [1,2,3], [0,7,7], [0,1,7]]
-        b = [[0,5], [2,7], [1,2], [0,3], [0,1,5], [1,2,7], [0,3,7], [0,1,3]]
+        if len(x)==3 and x[1]>x[2]:
+            x[1],x[2] = x[2], x[1]
+        # the first entry of x is either
+        # 0 if there is no type V component or
+        # 2 if there is a single type V component
+      # a = [[0,1], [2,3], [2,5], [0,7], [0,1,1], [2,1,3], [0,7,7], [0,1,7]]
+        b = [[0,5], [2,7], [2,1], [0,3], [0,1,5], [2,1,7], [0,3,7], [0,1,3]]
         if x in b:
             w = W[-1]
-            if x == [3,7]:
+            if x == [0,3,7]:
+                # relation 10 should be applied to 3 to stay in homogeneous normal form
                 w = W[0]
             if len(UVm) > 0:
                 R = UVm[-2:] + [w]

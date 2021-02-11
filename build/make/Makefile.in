@@ -342,9 +342,10 @@ clean:
 	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
 
 # "c_lib", ".cython_version", "build" in $(SAGE_SRC) are from old sage versions
+# Cleaning .so files is for editable installs.
 sagelib-clean:
 	@echo "Deleting Sage library build artifacts..."
-	(cd "$(SAGE_SRC)" && rm -rf c_lib .cython_version; rm -rf build; find . -name '*.pyc' | xargs rm -f; rm -rf sage/ext/interpreters) && (cd "$(SAGE_ROOT)/build/pkgs/sagelib/src/" && rm -rf build)
+	(cd "$(SAGE_SRC)" && rm -rf c_lib .cython_version; rm -rf build; find . -name '*.pyc' -o -name "*.so" | xargs rm -f; rm -rf sage/ext/interpreters) && (cd "$(SAGE_ROOT)/build/pkgs/sagelib/src/" && rm -rf build)
 
 build-clean: clean doc-clean sagelib-clean
 

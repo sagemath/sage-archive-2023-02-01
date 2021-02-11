@@ -1577,7 +1577,10 @@ cdef class LazyElement(pAdicGenericElement):
             6 + 5*7 + 5*7^2 + 5*7^3 + 5*7^4 + O(7^5)
         """
         if self is other:
-            return self._parent.zero()
+            ans = self._parent.zero()
+            if self._precbound < maxordp:
+                ans = element_class_bound(self._parent, ans, self._precbound)
+            return ans
         if isinstance(self, LazyElement_zero):
             return other
         if isinstance(other, LazyElement_zero):

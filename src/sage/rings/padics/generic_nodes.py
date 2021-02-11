@@ -920,7 +920,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: R.an_element()
             7 + O(7^5)
             sage: R.an_element(unbounded=True)
-            7
+            7 + ...
         """
         p = self(self.prime())
         if not unbounded:
@@ -946,9 +946,9 @@ class pAdicLazyGeneric(pAdicGeneric):
 
             sage: R.some_elements(unbounded=True)
             [0,
-             1,
-             7,
-             7,
+             1 + ...,
+             7 + ...,
+             7 + ...,
              1 + 5*7 + 3*7^2 + 6*7^3 + ...,
              7 + 6*7^2 + 6*7^3 + 6*7^4 + ...]
         """

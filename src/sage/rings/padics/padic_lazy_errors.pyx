@@ -42,7 +42,7 @@ def raise_error(error, permissive=False):
         sage: raise_error(128)
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: cannot divide by something indistinguishable from zero
+        ZeroDivisionError: denominator is not invertible
 
         sage: raise_error(1)
         Traceback (most recent call last):

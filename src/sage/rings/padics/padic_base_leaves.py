@@ -1127,7 +1127,7 @@ class pAdicRingLazy(pAdicLazyGeneric, pAdicRingBaseGeneric):
         TESTS::
 
             sage: R = ZpL(7)
-            sage: TestSuite(R).run(skip=['test_log'])
+            sage: TestSuite(R).run(skip=['_test_log', '_test_matrix_smith'])
         """
         from sage.rings.padics import padic_lazy_element
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
@@ -1152,7 +1152,7 @@ class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
 
         sage: R = QpL(5)  # indirect doctest
         sage: type(R)
-        <class 'sage.rings.padics.padic_base_leaves.pAdicRingLazy_with_category'>
+        <class 'sage.rings.padics.padic_base_leaves.pAdicFieldLazy_with_category'>
     """
     def __init__(self, p, prec, print_mode, names):
         """
@@ -1161,7 +1161,7 @@ class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
         TESTS::
 
             sage: K = QpL(7)
-            sage: TestSuite(K).run(skip=['test_log', 'test_matrix_smith'])
+            sage: TestSuite(K).run(skip=['_test_log', '_test_matrix_smith'])
         """
         from sage.rings.padics import padic_lazy_element
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, padic_lazy_element.pAdicLazyElement)

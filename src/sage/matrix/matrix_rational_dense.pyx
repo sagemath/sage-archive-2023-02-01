@@ -3,7 +3,7 @@
 # distutils: libraries = iml NTL_LIBRARIES m CBLAS_LIBRARIES
 # distutils: library_dirs = NTL_LIBDIR CBLAS_LIBDIR
 # distutils: include_dirs = NTL_INCDIR M4RI_INCDIR CBLAS_INCDIR
-
+# distutils: language = c++
 """
 Dense matrices over the rational field
 

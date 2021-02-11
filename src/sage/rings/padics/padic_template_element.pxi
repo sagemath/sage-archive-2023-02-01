@@ -938,7 +938,7 @@ cdef class ExpansionIter(object):
 
     def __iter__(self):
         """
-        Chracteristic property of an iterator: ``__iter__`` returns itself.
+        Characteristic property of an iterator: ``__iter__`` returns itself.
 
         TESTS::
 

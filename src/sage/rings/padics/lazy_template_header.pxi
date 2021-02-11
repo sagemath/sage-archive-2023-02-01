@@ -135,6 +135,10 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
 
 # Expansion
 
+cdef class LazyElement_zeroone(LazyElementWithDigits):
+    cdef void _setdigit_to_zero(self)
+    cdef void _setdigit_to_one(self)
+
 cdef class ExpansionIter(object):
     cdef LazyElement elt
     cdef expansion_mode mode
@@ -142,8 +146,12 @@ cdef class ExpansionIter(object):
     cdef long stop
     cdef long current
     cdef cdigit digit
+    # simple mode
+    cdef _next_simple(self)
+    # smallest mode
     cdef cdigit carry
-
-    cdef void _next_simple(self)
-    cdef void _next_smallest(self)
-    cdef void _next_teichmuller(self)
+    cdef _next_smallest(self)
+    # teichmuller mode
+    cdef LazyElement tail
+    cdef dict coefficients
+    cdef _next_teichmuller(self)

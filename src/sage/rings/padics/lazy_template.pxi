@@ -1463,7 +1463,7 @@ cdef class LazyElement(pAdicGenericElement):
         cdef celement digits
         cdef Integer ans
         if absprec <= self._valuation:
-            ans = 0
+            ans = ZZ(0)
         else:
             self._getslice_relative(digits, 0, min(self._precrel, absprec - self._valuation))
             ans = element_get_sage(digits, self.prime_pow) * self.prime_pow(self._valuation)
@@ -3842,6 +3842,68 @@ def unpickle_selfref(uid, cls, parent, valuation, digits, definition):
 # Expansion
 ###########
 
+cdef class LazyElement_zeroone(LazyElementWithDigits):
+    r"""
+    A special class for `p`-adic lazy elements with only
+    `0` and `1` as digits.
+
+    This class is used for computing expansion in Teichmuller mode.
+    It is not supposed to be instanciate in other situations.
+    """
+    def __init__(self, parent, long valuation):
+        r"""
+        Instantiate this element.
+
+        INPUT:
+
+        - ``parent`` -- the parent of this element
+
+        - ``valuation`` -- the valuation of this number
+
+        """
+        LazyElement.__init__(self, parent)
+        self._valuation = valuation
+
+    cdef void _setdigit_to_zero(self):
+        r"""
+        Append `0` to the list of digits of this element.
+        """
+        self._precrel += 1
+
+    cdef void _setdigit_to_one(self):
+        r"""
+        Append `1` to the list of digits of this element.
+        """
+        element_set_digit_ui(self._digits, 1, self._precrel)
+        self._precrel += 1
+
+    cdef int _jump_c(self, long prec):
+        r"""
+        Jump to the absolute precision ``prec``.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
+        if prec > self._valuation + self._precrel:
+            return ERROR_NOTDEFINED
+        return 0
+
+    cdef int _next_c(self):
+        r"""
+        Jump to the next digit.
+
+        OUTPUT:
+
+        An error code (see :meth:`LazyElement._next_c` for details).
+        """
+        return ERROR_NOTDEFINED
+
+
 cdef class ExpansionIter(object):
     """
     An iterator over a `p`-adic expansion.
@@ -3849,7 +3911,19 @@ cdef class ExpansionIter(object):
     This class should not be instantiated directly, but instead using
     :meth:`LazyElement.expansion`.
     """
-    def __init__(self, LazyElement elt, expansion_mode mode, start, stop):
+    def __cinit__(self):
+        r"""
+        Allocate memory for temporary variables.
+        """
+        digit_init(self.carry)
+
+    def __dealloc__(self):
+        r"""
+        Deallocate memory for temporary variables.
+        """
+        digit_clear(self.carry)
+
+    def __init__(self, LazyElement elt, expansion_mode mode, long start, long stop):
         r"""
         Initialize this iterator.
 
@@ -3883,6 +3957,8 @@ cdef class ExpansionIter(object):
             while self.current < self.start:
                 self._next_smallest()
         elif self.mode == teichmuller_mode:
+            self.tail = elt
+            self.coefficients = { }
             while self.current < self.start:
                 self._next_teichmuller()
 
@@ -3940,36 +4016,60 @@ cdef class ExpansionIter(object):
 
     def __iter__(self):
         r"""
+        Return itself (as any iterator is supposed to do).
+
+        TESTS::
+
+            sage: E = ZpL(5)(373).expansion()
+            sage: I = iter(E)
+            sage: I is iter(I)
+            True
         """
         return self
 
-    cdef void _next_simple(self):
+    cdef _next_simple(self):
         r"""
-        Store the next digit of this expansion in the variable ``self.digit``.
+        Return the next digit of this expansion (simple mode).
         """
         cdef LazyElement elt = self.elt
         elt._jump_c(self.current + 1)
-        digit_set(self.digit, self.elt._getdigit_absolute(self.current))
+        digit_set(self.digit, elt._getdigit_absolute(self.current))
         self.current += 1
+        return digit_get_sage(self.digit)
 
-    cdef void _next_smallest(self):
+    cdef _next_smallest(self):
         r"""
-        Store the next digit of this expansion in the variable ``self.digit``.
+        Return the next digit of this expansion (smallest mode).
         """
         cdef LazyElement elt = self.elt
         elt._jump_c(self.current + 1)
         digit_add(self.digit, elt._getdigit_absolute(self.current), self.carry)
         digit_smallest(self.digit, self.carry, self.digit, elt.prime_pow)
         self.current += 1
+        return digit_get_sage(self.digit)
 
-    cdef void _next_teichmuller(self):
+    cdef _next_teichmuller(self):
         r"""
-        Store the next digit of this expansion in the variable ``self.digit``.
+        Return the next digit of this expansion (Teichmüller mode).
         """
-        raise NotImplementedError
-        #cdef LazyElement elt = self.elt
-        #elt._jump_c(self.current + 1)
-        #self.current += 1
+        cdef LazyElement teichmuller, tail = self.tail
+        cdef LazyElement_zeroone coeff
+        cdef digit
+        tail._jump_c(self.current + 1)
+        digit_set(self.digit, tail._getdigit_absolute(self.current))
+        digit = digit_get_sage(self.digit)
+        if digit != 0 and digit != 1 and digit not in self.coefficients:
+            parent = tail._parent
+            self.coefficients[digit] = coeff = LazyElement_zeroone(parent, self.current)
+            teichmuller = element_class_teichmuller(parent, digit)
+            self.tail = tail - coeff * element_class_slice(parent, teichmuller, 1, maxordp, 0)
+        for d, coeff in self.coefficients.items():
+            if d == digit:
+                coeff._setdigit_to_one()
+            else:
+                coeff._setdigit_to_zero()
+        self.current += 1
+        return digit
 
     def __next__(self):
         r"""
@@ -3988,26 +4088,28 @@ cdef class ExpansionIter(object):
 
         TESTS::
 
-            sage: def my_residue(x, n, mode):
-            ....:     p = x.parent().prime() 
-            ....:     E = x.expansion(lift_mode=mode) 
-            ....:     a = 0 
-            ....:     for i in range(n): 
-            ....:         a += next(E) * p^i 
-            ....:     return a % p^n
+            sage: def check_expansion(x, mode):
+            ....:     R = x.parent()
+            ....:     E = x.expansion(lift_mode=mode)
+            ....:     y = 0
+            ....:     for i in range(len(E)): 
+            ....:         digit = next(E)
+            ....:         if mode == 'teichmuller':
+            ....:             y += R.teichmuller(digit) << i
+            ....:         else:
+            ....:             y += R(digit) << i
+            ....:     assert(x == y)
 
             sage: for p in primes(100):
-            ....:     R = ZpL(p)
-            ....:     x = R.random_element()
-            ....:     for mode in [ 'simple', 'smallest' ]:
-            ....:         assert(my_residue(x, 20, mode) == x.residue(20))
+            ....:     x = ZpL(p).random_element()[:20]
+            ....:     for mode in [ 'simple', 'smallest', 'teichmuller' ]:
+            ....:         check_expansion(x, mode)
         """
         if self.current >= self.stop:
             raise StopIteration
         if self.mode == simple_mode:
-            self._next_simple()
+            return self._next_simple()
         elif self.mode == smallest_mode:
-            self._next_smallest()
+            return self._next_smallest()
         elif self.mode == teichmuller_mode:
-            self._next_teichmuller()
-        return digit_get_sage(self.digit)
+            return self._next_teichmuller()

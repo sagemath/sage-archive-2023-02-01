@@ -316,6 +316,7 @@ from . import composition
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_lists import IntegerListsLex
+from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.combinat_cython import conjugate
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -965,7 +966,6 @@ class Partition(CombinatorialElement):
         M = max(self)
         return '%s' % ','.join('%s%s' % (M-m, '' if e==1 else '^{%s}'%e)
                                  for (m,e) in enumerate(exp) if e>0)
-
 
     def ferrers_diagram(self):
         r"""
@@ -7114,10 +7114,10 @@ class Partitions_parts_in(Partitions):
 
         EXAMPLES::
 
-            sage: [x for x in Partitions(4)]
-            [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+            sage: [x for x in Partitions(5, parts_in=[1,2,3])]
+            [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
         """
-        for p in self._fast_iterator(self.n, self.parts[:]):
+        for p in self._other_iterator(self.n, self.parts):
             yield self.element_class(self, p)
 
     def _fast_iterator(self, n, parts):
@@ -7162,6 +7162,40 @@ class Partitions_parts_in(Partitions):
                 for k in range(n.quo_rem(p)[0], 0, -1):
                     for q in self._fast_iterator(n - k * p, parts[:]):
                         yield k * [p] + q
+
+    def _other_iterator(self, n, parts):
+        """
+        A fast iterator for the partitions of ``n`` which returns lists and
+        not partition types. This function is not intended to be called
+        directly.
+
+        INPUT:
+
+        - ``n`` -- nonnegative integer.
+
+        - ``parts`` -- a list of parts to use.
+
+        OUTPUT:
+
+        A generator object for partitions of `n` with parts in
+        ``parts``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(4, parts_in=[2,4])
+            sage: it = P._other_iterator(4, [2,4])
+            sage: next(it)
+            [4]
+            sage: type(_)
+            <... 'list'>
+        """
+        sorted_parts = sorted(parts, reverse=True)
+        for vec in WeightedIntegerVectors(n, sorted_parts):
+            a = []
+            for pi, multi in zip(sorted_parts, vec):
+                a.extend([pi] *  multi)
+            yield a
+
 
 class Partitions_starting(Partitions):
     """

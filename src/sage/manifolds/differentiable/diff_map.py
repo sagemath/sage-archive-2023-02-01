@@ -295,9 +295,8 @@ class DiffMap(ContinuousMap):
          manifold R^2
         sage: Phi.parent()
         Set of Morphisms from Open subset D of the 2-dimensional differentiable
-         manifold R^2 to 2-dimensional differentiable manifold R^2 in Join of
-         Category of subobjects of sets and Category of smooth manifolds over
-         Real Field with 53 bits of precision
+         manifold R^2 to 2-dimensional differentiable manifold R^2 in Category
+         of smooth manifolds over Real Field with 53 bits of precision
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()

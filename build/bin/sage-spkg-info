@@ -15,12 +15,27 @@ for ext in rst txt; do
 done
 if [ -r "$PKG_SCRIPTS/type" ] ; then
     echo
-    echo "== Type =="
+    echo "Type"
+    echo "----"
     echo
     cat "$PKG_SCRIPTS/type"
     echo
 fi
-echo "== Equivalent System Packages =="
+echo
+echo "Version Information"
+echo "-------------------"
+echo
+for a in package-version.txt requirements.txt install-requires.txt; do
+    if [ -f "$PKG_SCRIPTS"/"$a" ]; then
+        echo "$a::"
+        echo
+        sed 's/^/    /' "$PKG_SCRIPTS/$a"
+        echo
+    fi
+done
+echo
+echo "Equivalent System Packages"
+echo "--------------------------"
 echo
 PKG_DISTROS="$PKG_SCRIPTS"/distros
 for system_package_file in "$PKG_DISTROS"/*.txt; do
@@ -40,8 +55,15 @@ for system_package_file in "$PKG_DISTROS"/*.txt; do
                 echo "$system:"
                 ;;
         esac
-        printf "  "
-        sage-print-system-package-command $system --prompt --sudo install $system_packages
+        if [ -n "$OUTPUT_RST" ]; then
+            echo
+            echo ".. CODE-BLOCK:: bash"
+            echo
+        fi
+        sage-print-system-package-command $system --prompt='    $ ' --sudo install $system_packages
+        if [ -n "$OUTPUT_RST" ]; then
+            echo
+        fi
     fi
 done
 if [ -z "$system" ]; then
@@ -52,8 +74,13 @@ else
         echo "If the system package is installed, ./configure will check whether it can be used."
     else
         echo "However, these system packages will not be used for building Sage"
-        echo "because spkg-configure.m4 has not been written for this package;"
-        echo "see https://trac.sagemath.org/ticket/27330"
+        if [ -f "$PKG_SCRIPTS"/install-requires.txt ]; then
+            echo "because using Python site-packages is not supported by the Sage distribution;"
+            echo "see https://trac.sagemath.org/ticket/29023"
+        else
+            echo "because spkg-configure.m4 has not been written for this package;"
+            echo "see https://trac.sagemath.org/ticket/27330"
+        fi
     fi
 fi
 echo

@@ -252,7 +252,7 @@ something like the following to install it:
     fi
 
 At build time :envvar:`CFLAGS`, :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`,
-and :envvar:`F77FLAGS` are usually set to ``-g -O2``
+and :envvar:`F77FLAGS` are usually set to ``-g -O2 -march=native``
 (according to `debugging options <../installation/source.html#sage-debug>`_
 and whether building
 `fat binaries <../installation/source.html#sage-fat-binary>`_).
@@ -260,6 +260,9 @@ and whether building
 Slightly modified versions are available:
 
 .. CODE-BLOCK:: bash
+
+    # No ``-march=native``.
+    export CFLAGS=$CFLAGS_NON_NATIVE
 
     # ``-O3`` instead of ``-O2``.
     export CFLAGS=$CFLAGS_O3
@@ -292,15 +295,21 @@ Likewise for :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`, and :envvar:`F77FLAGS`.
 
     .. CODE-BLOCK:: text
 
-        exec sage-python23 spkg-install.py
+        exec python3 spkg-install.py
 
-   In more detail: ``sage-bootstrap-python`` runs the version of Python
-   pre-installed on the machine. Use this if the package may be
-   installed before Sage has built its own Python. ``sage-python23``
-   runs the version of Python built by Sage, either Python 2 or 3,
-   depending on how the build was configured; you should use this
-   script if you are installing a Python package, to make sure that
-   the libraries are installed in the right place.
+   In more detail: ``sage-bootstrap-python`` runs a version of Python
+   pre-installed on the machine, which is a build prerequisite of Sage.
+   Note that ``sage-bootstrap-python`` accepts a wide range of Python
+   versions, Python >= 2.6 and >= 3.4, see ``SAGE_ROOT/build/tox.ini``
+   for details.  You should only use ``sage-bootstrap-python`` for
+   installation tasks that must be able to run before Sage has made
+   ``python3`` available.  It must not be used for running ``pip`` or
+   ``setup.py`` for any package.
+
+   ``python3`` runs the version of Python managed by Sage (either its
+   own installation of Python 3 from an SPKG or a venv over a system
+   python3.  You should use this if you are installing a Python package
+   to make sure that the libraries are installed in the right place.
 
    By the way, there is also a script ``sage-python``. This should be
    used at runtime, for example in scripts in ``SAGE_LOCAL/bin`` which
@@ -536,17 +545,8 @@ Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
 points to the correct ``pip`` for the Python used by Sage, and includes some
 default flags needed for correct installation into Sage.
 
-If pip will not work but a command like ``python setup.py install``
-will, then the ``spkg-install.in`` script template should call
-``sage-python23`` rather than ``python``. This will ensure that the
-correct version of Python is used to build and install the
-package. The same holds for ``spkg-check.in`` script templates; for
-example, the ``scipy`` ``spkg-check.in`` file contains the line
-
-.. CODE-BLOCK:: bash
-
-    exec sage-python23 spkg-check.py
-
+If pip will not work, you may use ``sdh_setup_bdist_wheel``, followed by
+``sdh_store_and_pip_install_wheel .``.
 
 .. _section-spkg-SPKG-txt:
 
@@ -846,7 +846,7 @@ to apply the same modifications to future versions.
 Package Versioning
 ------------------
 
-The ``package-version.txt`` file containts just the version. So if
+The ``package-version.txt`` file contains just the version. So if
 upstream is ``FoO-1.3.tar.gz`` then the package version file would only
 contain ``1.3``.
 
@@ -1043,6 +1043,18 @@ the license information for that package is up-to-date, both in its
 ``SPKG.rst`` or ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
 example, if you are producing an spkg which upgrades the vanilla source
 to a new version, check whether the license changed between versions.
+
+If an upstream tarball of a package cannot be redistributed for license
+reasons, rename it to include the string ``do-not-distribute``.  This
+will keep the release management scripts from uploading it to the Sage mirrors.
+For an example, see the ``scipoptsuite`` package, which has an "academic"
+proprietary license.
+
+Sometimes an upstream tarball contains some distributable parts using
+a free software license and some non-free parts.  In this case, it can
+be a good solution to make a custom tarball consisting of only the free
+parts; see :ref:`section-spkg-src` and the ``giac`` package as an example.
+
 
 Prerequisites for New Standard Packages
 ---------------------------------------

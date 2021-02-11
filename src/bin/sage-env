@@ -305,13 +305,13 @@ export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
 
 # Mac OS X-specific setup
 if [ "$UNAME" = "Darwin" ]; then
+  export MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
   case "$SAGE_MACOSX_DEPLOYMENT_TARGET" in
   legacy)
     # legacy behavior of the Sage distribution.
     # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
-    MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
     if [ $MACOSX_VERSION -ge 14 ]; then
         # various packages have still have issues with
         # two digit OS X versions
@@ -319,7 +319,7 @@ if [ "$UNAME" = "Darwin" ]; then
     else
         MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
     fi
-    export MACOSX_DEPLOYMENT_TARGET MACOSX_VERSION
+    export MACOSX_DEPLOYMENT_TARGET
     ;;
   "")
     # Do nothing
@@ -347,8 +347,10 @@ if [ -n "$SAGE_LOCAL" ]; then
     export CPATH="$SAGE_LOCAL/include${CPATH}"
 fi
 
-SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
-SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+if [ -n "$SAGE_LOCAL" ]; then
+    SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
+    SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+fi
 
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     SAGE_REPO_ANONYMOUS="https://gitlab.com/sagemath/dev/tracmirror.git"
@@ -486,7 +488,9 @@ if [ -d "$DOT_SAGE" ] ; then
     fi
 fi
 
-export MAXIMA_PREFIX="$SAGE_LOCAL"
+if [ -n "$SAGE_LOCAL" ]; then
+    export MAXIMA_PREFIX="$SAGE_LOCAL"
+fi
 export MAXIMA_USERDIR="$DOT_SAGE/maxima"
 
 if [ -n "$SAGE_LOCAL" ]; then

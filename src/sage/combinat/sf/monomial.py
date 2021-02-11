@@ -74,7 +74,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         """
         return self.realization_of().h()
 
-    def _multiply(self, left, right):
+    def product(self, left, right):
         """
         Return the product of ``left`` and ``right``.
 
@@ -131,7 +131,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                         z_elt[m] += left_c * right_c * d[m]
                     else:
                         z_elt[m] = left_c * right_c * d[m]
-        return z_elt
+        return self._from_dict(z_elt)
 
     def from_polynomial(self, f, check=True):
         """

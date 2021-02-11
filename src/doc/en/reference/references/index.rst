@@ -564,8 +564,8 @@ REFERENCES:
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
 
-.. [BD1989] \R. J. Bradford and J. H. Davenport, Effective tests for
-            cyclotomic polynomials, Symbolic and Algebraic
+.. [BD1989] \R. J. Bradford and J. H. Davenport, *Effective tests for
+            cyclotomic polynomials*, Symbolic and Algebraic
             Computation (1989), pp. 244--251,
             :doi:`10.1007/3-540-51084-2_22`
 
@@ -584,8 +584,8 @@ REFERENCES:
                and variants*.
                :arxiv:`1810.00789`
 
-.. [BDLV2006] \S. Brlek, S. Dulucq, A. Ladouceur, L. Vuillon, Combinatorial
-              properties of smooth infinite words, Theoret. Comput. Sci. 352
+.. [BDLV2006] \S. Brlek, S. Dulucq, A. Ladouceur, L. Vuillon, *Combinatorial
+              properties of smooth infinite words*, Theoret. Comput. Sci. 352
               (2006) 306--317.
 
 .. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
@@ -624,10 +624,10 @@ REFERENCES:
              :doi:`10.1016/S0021-9800(70)80019-9`.
 
 .. [Bel2011] Belarusian State University,
-             *Information technologies. Data protection. Cryptograpic algorithms for
+             *Information technologies. Data protection. Cryptographic algorithms for
              encryption and integrity control*; in STB 34.101.31-2011, (2011).
 
-.. [Bel1927] E.T. Bell, "Partition Polynomials",
+.. [Bel1927] E.T. Bell, *Partition Polynomials*,
              Annals of Mathematics,
              Second Series, Vol. 29, No. 1/4 (1927 - 1928), pp. 38-46
 

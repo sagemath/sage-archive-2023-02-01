@@ -10,7 +10,7 @@ Testing on multiple platforms
 
 Sage is intended to build and run on a variety of platforms,
 including all major Linux distributions, as well as MacOS, and
-Windows (with Cygwin).
+Windows (with Cygwin and WSL).
 
 There is considerable variation among these platforms.
 To ensure that Sage continues to build correctly on users'
@@ -141,10 +141,9 @@ Debian-derived distributions is called, we can ask Sage for a
 reminder::
 
   root@39d693b2a75d:/sage# build/bin/sage-print-system-package-command debian install gcc
-  sudo apt-get install gcc
+  apt-get install gcc
 
-We are already root, so we can drop the ``sudo``, of course.
-And we remember that we need to fetch the current package lists
+We remember that we need to fetch the current package lists
 from the server first::
 
   root@39d693b2a75d:/sage# apt-get update
@@ -155,14 +154,14 @@ Using Sage's database of distribution prerequisites
 
 The source code of the Sage distribution contains a database of
 package names in various distributions' package managers.  For
-example, the file ``build/pkgs/debian.txt`` contains the following
+example, the file ``build/pkgs/_prereq/distros/debian.txt`` contains the following
 
 .. code-block:: yaml
 
-  # This file, build/pkgs/debian.txt, contains names of Debian/Ubuntu packages
-  # needed for installation of Sage from source.
+  # This file, build/pkgs/_prereq/distros/debian.txt, contains names
+  # of Debian/Ubuntu packages needed for installation of Sage from source.
   #
-  # In addition, the files build/pkgs/SPKG/debian.txt contain the names
+  # In addition, the files build/pkgs/SPKG/distros/debian.txt contain the names
   # of packages that provide the equivalent of SPKG.
   #
   # Everything on a line after a # character is ignored.
@@ -600,15 +599,20 @@ installed on the system before building Sage:
 
 - ``minimal`` installs the system packages known to Sage to provide
   minimal prerequisites for bootstrapping and building the Sage
-  distribution.
-  
+  distribution.  This corresponds to the packages ``_bootstrap`` and
+  ``_prereq``.
+
 - ``standard`` additionally installs all known system packages that
   are equivalent to standard packages of the Sage distribution, for
   which the mechanism ``spkg-configure.m4`` is implemented.
-  This corresponds to the type pattern ``@(standard)``.
+  This corresponds to the packages listed by::
+
+    [mkoeppe@sage sage]$ sage --package list --has-file=spkg-configure.m4 :standard:
 
 - ``maximal`` does the same for all standard and optional packages.
-  This corresponds to the type pattern ``@(standard|optional)``.
+  This corresponds to the packages listed by::
+
+    [mkoeppe@sage sage]$ sage --package list :standard: :optional:
 
 The factors are connected by a hyphen to name a system configuration,
 such as ``debian-buster-standard`` and ``centos-7-i386-minimal``.
@@ -700,7 +704,7 @@ Let us try a first variant of the ``local`` technology, the tox
 environment called ``local-direct``.  Because all builds with tox
 begin by bootstrapping the source tree, you will need autotools and
 other prerequisites installed in your system.  See
-``build/pkgs/*-bootstrap.txt`` for a list of system packages that
+``build/pkgs/_bootstrap/distros/*.txt`` for a list of system packages that
 provide these prerequisites.
 
 We start by creating a fresh (distclean) git worktree.
@@ -907,6 +911,36 @@ The environments use the conda-forge channel and use the ``python``
 package and the compilers from this channel.
 
 
+Options for build testing with the local technology
+---------------------------------------------------
+
+The environments using the ``local`` technology can be customized
+by setting environment variables.
+
+ - If ``SKIP_SYSTEM_PKG_INSTALL`` is set to ``1`` (or ``yes``),
+   then all steps of installing system packages are skipped in this run.
+   When reusing a previously created tox environment, this option can
+   save time and also give developers more control for experiments
+   with system packages.
+
+ - If ``SKIP_BOOTSTRAP`` is set to ``1`` (or ``yes``), then the
+   bootstrapping phase is skipped.  When reusing a previously created
+   tox environment, this option can save time.
+
+ - If ``SKIP_CONFIGURE`` is set to ``1`` (or ``yes``), then the
+   ``configure`` script is not run explicitly.  When reusing a
+   previously created tox environment, this option can save time.
+   (The ``Makefile`` may still rerun configuration using
+   ``config.status --recheck``.)
+
+The ``local`` technology also defines a special target ``bash``:
+Instead of building anything with ``make``, it just starts an
+interactive shell.  For example, in combination with the above
+options::
+
+  [mkoeppe@sage worktree-local]$ SKIP_SYSTEM_PKG_INSTALL=yes SKIP_BOOTSTRAP=1 SKIP_CONFIGURE=1 tox -e local-homebrew-macos-minimal -- bash
+
+
 Automatic parallel tox runs on GitHub Actions
 ---------------------------------------------
 
@@ -934,7 +968,16 @@ workflow have finished.  Each job generates one tarball.
 during the build.
 
 The following procedure triggers a run of tests with the default set of
-system configurations.  Let's assume that ``github`` is the name of
+system configurations.
+
+- Push your changes to trac.
+- Go to the `Actions page on the GitHub mirror <https://github.com/sagemath/sagetrac-mirror/actions>`_ and select the workflow you would like to run.
+- Click on "Run workflow" above the list of workflow runs and select the branch where the workflow will run.
+
+For more information, see the `GitHub documentation <https://docs.github.com/en/free-pro-team@latest/actions/managing-workflow-runs/manually-running-a-workflow>`_.
+
+Alternatively, you can create and push a custom tag in order to trigger a run of tests as follows. 
+Let's assume that ``github`` is the name of
 the remote corresponding to your GitHub fork of the Sage repository::
 
   $ git remote -v | grep /my-github

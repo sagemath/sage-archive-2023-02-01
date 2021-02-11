@@ -1,8 +1,7 @@
 # distutils: language = c++
-# distutils: libraries = ec ntl pari gmp m
+# distutils: libraries = ec NTL_LIBRARIES pari gmp m
 # distutils: extra_compile_args = NTL_CFLAGS
 # distutils: include_dirs = NTL_INCDIR
-# distutils: libraries = NTL_LIBRARIES
 # distutils: library_dirs = NTL_LIBDIR
 # distutils: extra_link_args = NTL_LIBEXTRA
 

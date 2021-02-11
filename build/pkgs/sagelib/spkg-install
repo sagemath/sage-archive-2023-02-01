@@ -44,7 +44,7 @@ export SAGE_SHARE=/doesnotexist
 # export SAGE_DOC=/doesnotexist
 
 if [ "$SAGE_EDITABLE" = yes ]; then
-    time python3 -m pip install --ignore-installed --verbose --no-deps --no-index --no-build-isolation --isolated --editable . || exit 1
+    time python3 -m pip install --verbose --no-deps --no-index --no-build-isolation --isolated --editable . || exit 1
 else
     time "$PYTHON" -u setup.py --no-user-cfg build install || exit 1
 fi

@@ -1,5 +1,5 @@
 r"""
-Lazy template for `p`-adic rings and fields
+Lazy template for `p`-adic rings and fields.
 
 In order to use this template you need to write a linkage file and
 gluing file.
@@ -19,7 +19,7 @@ See padic_lazy_element.pxd and padic_lazy_element.pyx for an example.
 
 AUTHOR:
 
-- Xavier Caruso (2021-01): initial version
+- Xavier Caruso (2021-02): initial version
 """
 
 # ****************************************************************************
@@ -316,7 +316,7 @@ cdef class LazyElement(pAdicGenericElement):
         cdef cdigit_ptr coeff = self._getdigit_absolute(i)
         return digit_get_sage(coeff)
 
-    def expansion(self, n=None, lift_mode='simple'):
+    def expansion(self, n=None, lift_mode='simple', start_val=None):
         r"""
         Return an iterator over the list of coefficients in a `p`-adic 
         expansion of this element, that is the list of `a_i` so that 
@@ -335,11 +335,15 @@ cdef class LazyElement(pAdicGenericElement):
         - ``n`` -- an integer or ``None`` (default ``None``); if
           given, return the corresponding entries in the expansion.
 
-        - ``lift_mode`` -- only ``'simple'`` is accepted
+        - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or
+          ``'teichmuller'`` (default: ``'simple'``)
+
+        - ``start_val`` -- start at this valuation rather than the
+          default (`0` or the valuation of this element).
 
         OUTPUT:
 
-        - If ``n`` is ``None``, an iterable giving a `p`-adic expansion
+        - If ``n`` is ``None``, an iterable giving the `p`-adic expansion
           of this element.
 
         - If ``n`` is an integer, the coefficient of `p^n` in the
@@ -369,20 +373,68 @@ cdef class LazyElement(pAdicGenericElement):
 
             sage: a.expansion(5)
             1
+
+        Over a field, the expansion starts at the valuation of the element::
+
+            sage: K = R.fraction_field()
+            sage: b = K(20/21); b
+            ...2222222222222222223.2
+            sage: E = b.expansion()
+            sage: next(E)
+            2
+            sage: next(E)
+            3
+
+            sage: c = 1/b; c
+            ...564356435643564356440
+            sage: E = c.expansion()
+            sage: next(E)
+            4
+            sage: next(E)
+            4
+
+        When ``start_val`` is given, the expansion starts at this position
+        instead:
+
+            sage: E = c.expansion(start_val=0)
+            sage: next(E)
+            0
+            sage: next(E)
+            4
+
+            sage: E = c.expansion(start_val=5)
+            sage: next(E)
+            3
+            sage: next(E)
+            4
         """
-        if lift_mode != 'simple':
-            raise NotImplementedError
+        if lift_mode == 'simple':
+            mode = simple_mode
+        elif lift_mode == 'smallest':
+            mode = smallest_mode
+        elif lift_mode == 'teichmuller':
+            mode = teichmuller_mode
+        else:
+            raise ValueError("unknown lift mode")
         if n is None:
-            if self.prime_pow.in_field:
+            if start_val is not None:
+                start = start_val
+            elif self.prime_pow.in_field:
                 start = self.valuation()
             else:
                 start = 0
-            return ExpansionIter(self, start, self._precbound)
+            return ExpansionIter(self, mode, start, self._precbound)
         else:
             n = Integer(n)
+            if n >= self._precbound:
+                raise_error(ERROR_PRECISION)
             if n >= maxordp:
                 raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
-            return self.digit(n)
+            if mode == simple_mode:
+                return self.digit(n)
+            else:
+                E = ExpansionIter(self, mode, n, n+1)
+                return next(E)
 
     def __getitem__(self, n):
         r"""
@@ -1409,8 +1461,12 @@ cdef class LazyElement(pAdicGenericElement):
         if self._valuation < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue")
         cdef celement digits
-        self._getslice_relative(digits, 0, min(self._precrel, absprec - self._valuation))
-        cdef Integer ans = element_get_sage(digits, self.prime_pow)
+        cdef Integer ans
+        if absprec <= self._valuation:
+            ans = 0
+        else:
+            self._getslice_relative(digits, 0, min(self._precrel, absprec - self._valuation))
+            ans = element_get_sage(digits, self.prime_pow) * self.prime_pow(self._valuation)
         if field and absprec == 1:
             return self._parent.residue_class_field()(ans)
         else:
@@ -3787,32 +3843,171 @@ def unpickle_selfref(uid, cls, parent, valuation, digits, definition):
 ###########
 
 cdef class ExpansionIter(object):
-    cdef LazyElement elt
-    cdef long start
-    cdef long stop
-    cdef long current
+    """
+    An iterator over a `p`-adic expansion.
 
-    def __init__(self, LazyElement elt, start, stop):
+    This class should not be instantiated directly, but instead using
+    :meth:`LazyElement.expansion`.
+    """
+    def __init__(self, LazyElement elt, expansion_mode mode, start, stop):
+        r"""
+        Initialize this iterator.
+
+        INPUT:
+
+        - ``elt`` -- a lazy `p`-adic number
+
+        - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
+
+        - ``start`` -- an integer, the position where the expansion starts
+
+        - ``stop`` -- an integer, the position where the expansion stops
+
+        TESTS::
+
+            sage: E = ZpL(5,4)(373).expansion()
+            sage: I = iter(E)   # indirect doctest
+            sage: type(I)
+            <class 'sage.rings.padics.padic_lazy_element.ExpansionIter'>
+        """
         self.elt = elt
+        self.mode = mode
         self.start = start
         self.stop = stop
-        self.current = self.start
+        self.current = min(start, elt._valuation)
+        digit_init(self.digit)
+        # Compute first digits if needed
+        if self.mode == simple_mode:
+            self.current = self.start
+        elif self.mode == smallest_mode:
+            while self.current < self.start:
+                self._next_smallest()
+        elif self.mode == teichmuller_mode:
+            while self.current < self.start:
+                self._next_teichmuller()
 
     def __repr__(self):
-        return "%s-adic expansion of %s" % (self.elt._parent.prime(), self.elt)
+        r"""
+        Return a string representation of this iterator.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7, 5)
+            sage: x = R(1/2021)
+            sage: x.expansion()   # indirect doctest
+            7-adic expansion of 3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + ...
+
+            sage: x.expansion(lift_mode='smallest')   # indirect doctest
+            7-adic expansion of 3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + ... (balanced)
+
+            sage: x.expansion(lift_mode='teichmuller')   # indirect doctest
+            7-adic expansion of 3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + ... (teichmuller)
+        """
+        s = "%s-adic expansion of %s" % (self.elt._parent.prime(), self.elt)
+        if self.mode == smallest_mode:
+            s += " (balanced)"
+        elif self.mode == teichmuller_mode:
+            s += " (teichmuller)"
+        return s
 
     def __len__(self):
+        r"""
+        Return the length of this expansion.
+
+        EXAMPLES::
+
+            sage: R = ZpL(7)
+            sage: x = R(1/2021, 5)
+            sage: x
+            3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5)
+            sage: E = x.expansion()
+            sage: len(E)
+            5
+
+        For unbounded elements, the expansion is infinite and this method
+        raises an error::
+
+            sage: y = R(1/2021)
+            sage: E = y.expansion()
+            sage: len(E)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: infinite sequence
+        """
         if self.stop >= maxordp:
             raise NotImplementedError("infinite sequence")
         return Integer(self.stop - self.start)
 
     def __iter__(self):
+        r"""
+        """
         return self
 
+    cdef void _next_simple(self):
+        r"""
+        Store the next digit of this expansion in the variable ``self.digit``.
+        """
+        cdef LazyElement elt = self.elt
+        elt._jump_c(self.current + 1)
+        digit_set(self.digit, self.elt._getdigit_absolute(self.current))
+        self.current += 1
+
+    cdef void _next_smallest(self):
+        r"""
+        Store the next digit of this expansion in the variable ``self.digit``.
+        """
+        cdef LazyElement elt = self.elt
+        elt._jump_c(self.current + 1)
+        digit_add(self.digit, elt._getdigit_absolute(self.current), self.carry)
+        digit_smallest(self.digit, self.carry, self.digit, elt.prime_pow)
+        self.current += 1
+
+    cdef void _next_teichmuller(self):
+        r"""
+        Store the next digit of this expansion in the variable ``self.digit``.
+        """
+        raise NotImplementedError
+        #cdef LazyElement elt = self.elt
+        #elt._jump_c(self.current + 1)
+        #self.current += 1
+
     def __next__(self):
-        if self.current < self.stop:
-            digit = self.elt.digit(self.current)
-            self.current += 1
-            return digit
-        else:
+        r"""
+        Return the next digit of this expansion.
+
+        EXAMPLES::
+
+            sage: R = ZpL(11, 10)
+            sage: x = R(20/21); x
+            2 + 2*11 + 4*11^2 + 8*11^3 + 5*11^4 + 11^6 + 2*11^7 + 4*11^8 + 8*11^9 + ...
+            sage: E = x.expansion()
+            sage: next(E)
+            2
+            sage: next(E)
+            2
+
+        TESTS::
+
+            sage: def my_residue(x, n, mode):
+            ....:     p = x.parent().prime() 
+            ....:     E = x.expansion(lift_mode=mode) 
+            ....:     a = 0 
+            ....:     for i in range(n): 
+            ....:         a += next(E) * p^i 
+            ....:     return a % p^n
+
+            sage: for p in primes(100):
+            ....:     R = ZpL(p)
+            ....:     x = R.random_element()
+            ....:     for mode in [ 'simple', 'smallest' ]:
+            ....:         assert(my_residue(x, 20, mode) == x.residue(20))
+        """
+        if self.current >= self.stop:
             raise StopIteration
+        if self.mode == simple_mode:
+            self._next_simple()
+        elif self.mode == smallest_mode:
+            self._next_smallest()
+        elif self.mode == teichmuller_mode:
+            self._next_teichmuller()
+        return digit_get_sage(self.digit)

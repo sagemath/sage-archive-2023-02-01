@@ -1,7 +1,32 @@
+"""
+This file provides the declaration for the LazyElement class,
+which collects common functionality for the different lazy p-adic
+template classes.
+
+It is included in padic_lazy_element.pxd and should be included
+in any pxd file implementing lazy `p`-adics.
+
+AUTHORS:
+
+- Xavier Caruso (2021-02) -- initial version
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2021 Xavier Caruso <xavier.caruso@normalesup.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.rings.integer cimport Integer
 from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
+cdef enum expansion_mode:
+    simple_mode, smallest_mode, teichmuller_mode
 
 cdef class LazyElement(pAdicGenericElement):
     cdef long _valuation
@@ -107,3 +132,18 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
     # for pickling
     cdef long _initialvaluation
     cdef long _initialprecrel
+
+# Expansion
+
+cdef class ExpansionIter(object):
+    cdef LazyElement elt
+    cdef expansion_mode mode
+    cdef long start
+    cdef long stop
+    cdef long current
+    cdef cdigit digit
+    cdef cdigit carry
+
+    cdef void _next_simple(self)
+    cdef void _next_smallest(self)
+    cdef void _next_teichmuller(self)

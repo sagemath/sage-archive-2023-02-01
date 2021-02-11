@@ -246,6 +246,19 @@ cdef inline void digit_quorem(cdigit quo, cdigit rem, cdigit a, PowComputer_clas
     """
     pass
 
+cdef inline void digit_smallest(cdigit res, cdigit carry, cdigit a, PowComputer_class prime_pow):
+    r"""
+    Compute the smallest representative of a digit.
+
+    INPUT:
+
+    - ``res`` -- a ``cdigit`` to store the smallest representative
+    - ``carry`` -- a ``cdigit`` to store the carry
+    - ``a`` -- a ``cdigit``, the digit to reduce
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    pass
+
 cdef inline void digit_inv(cdigit res, cdigit a, PowComputer_class prime_pow):
     r"""
     Compute the multiplicative inverse of a digit modulo the uniformizer.

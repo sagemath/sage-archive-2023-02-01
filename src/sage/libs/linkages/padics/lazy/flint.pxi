@@ -248,6 +248,27 @@ cdef inline void digit_quorem(fmpz_t quo, fmpz_t rem, fmpz_t a, PowComputer_flin
     """
     fmpz_tdiv_qr(quo, rem, a, prime_pow.fprime)
 
+cdef inline void digit_smallest(cdigit res, cdigit carry, cdigit a, PowComputer_flint prime_pow):
+    r"""
+    Compute the smallest representative of a digit.     
+
+    INPUT:
+
+    - ``res`` -- a ``cdigit`` to store the smallest representative
+    - ``carry`` -- a ``cdigit`` to store the carry
+    - ``a`` -- a ``cdigit``, the digit to reduce
+    - ``prime_pow`` -- the PowComputer for the ring
+    """
+    cdef fmpz_t b
+    fmpz_init(b)
+    fmpz_mul_ui(b, a, 2)
+    if fmpz_cmp(b, prime_pow.fprime) > 0:
+        fmpz_sub(res, a, prime_pow.fprime)
+        fmpz_set_ui(carry, 1)
+    else:
+        fmpz_set(res, a)
+        fmpz_set_ui(carry, 0)
+
 cdef inline void digit_inv(fmpz_t res, fmpz_t a, PowComputer_flint prime_pow):
     r"""
     Compute the multiplicative inverse of a digit modulo the uniformizer.

@@ -1730,16 +1730,31 @@ cdef class LaurentSeries(AlgebraElement):
 
             sage: L.<t> = LaurentSeriesRing(GF(2))
             sage: R.<x,y> = PolynomialRing(L)
-            sage: O = L._power_series_ring
-            sage: S.<x,y> = PolynomialRing(O)
+            sage: S.<x,y> = PolynomialRing(L._power_series_ring)
             sage: t**(-1)*x*y in S
             False
+
+        There used to be an issue with non-canonical representations of zero,
+        see :trac:`31383`::
+
+            sage: S.<x> = PowerSeriesRing(QQ)
+            sage: L = Frac(S)
+            sage: s = L(O(x^2))
+            sage: (s*x^(-1)).power_series()
+            O(x^1)
+            sage: (s*x^(-2)).power_series()
+            O(x^0)
+            sage: (s*x^(-3)).power_series()
+            Traceback (most recent call last):
+            ...
+            TypeError: self is not a power series
         """
         if self.__n < 0:
-            raise TypeError("self is not a power series")
-        u = self.__u
-        t = u.parent().gen()
-        return t**(self.__n) * u
+            if self.__u.is_zero() and self.__u.prec() >= - self.__n:
+                return self.__u >> (- self.__n)
+            else:
+                raise TypeError("self is not a power series")
+        return self.__u << self.__n
 
     def inverse(self):
         """

@@ -31,20 +31,31 @@ from .temporary_file import tmp_filename
 from sage.repl.user_globals import get_globals
 from sage.misc.sage_ostools import restore_cwd, redirection
 from sage.cpython.string import str_to_bytes
+from sage.misc.cachefunc import cached_function
 
-cblas_pc = pkgconfig.parse(get_cblas_pc_module_name())
-cblas_libs = list(cblas_pc['libraries'])
-cblas_library_dirs = list(cblas_pc['library_dirs'])
-cblas_include_dirs = list(cblas_pc['include_dirs'])
+@cached_function
+def _standard_libs_libdirs_incdirs_aliases():
+    r"""
+    Return the list of libraries and library directories.
 
-standard_libs = [
-    'mpfr', 'gmp', 'gmpxx', 'pari', 'm',
-    'ec', 'gsl',
-] + cblas_libs + [
-    'ntl']
+    EXAMPLES::
 
-standard_libdirs = [os.path.join(SAGE_LOCAL, "lib")] + cblas_library_dirs
-
+        sage: from sage.misc.cython import _standard_libs_libdirs_incdirs_aliases
+        sage: _standard_libs_libdirs_incdirs_aliases()
+        (['mpfr', 'gmp', 'gmpxx', 'pari', ...],
+         [...],
+         [...],
+         {...})
+    """
+    aliases = cython_aliases()
+    standard_libs = [
+        'mpfr', 'gmp', 'gmpxx', 'pari', 'm',
+        'ec', 'gsl',
+    ] + aliases["CBLAS_LIBRARIES"] + [
+        'ntl']
+    standard_libdirs = [os.path.join(SAGE_LOCAL, "lib")] + aliases["CBLAS_LIBDIR"] + aliases["NTL_LIBDIR"]
+    standard_incdirs = sage_include_directories() + aliases["CBLAS_INCDIR"] + aliases["NTL_INCDIR"]
+    return standard_libs, standard_libdirs, standard_incdirs, aliases
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -266,7 +277,8 @@ def cython(filename, verbose=0, compile_message=False,
 
     # Add current working directory to includes. This is needed because
     # we cythonize from a different directory. See Trac #24764.
-    includes = [os.getcwd()] + sage_include_directories()
+    standard_libs, standard_libdirs, standard_includes, aliases = _standard_libs_libdirs_incdirs_aliases()
+    includes = [os.getcwd()] + standard_includes
 
     # Now do the actual build, directly calling Cython and distutils
     from Cython.Build import cythonize
@@ -325,7 +337,7 @@ def cython(filename, verbose=0, compile_message=False,
         with restore_cwd(target_dir):
             try:
                 ext, = cythonize([ext],
-                                 aliases=cython_aliases(),
+                                 aliases=aliases,
                                  include_path=includes,
                                  compiler_directives=directives,
                                  quiet=(verbose <= 0),

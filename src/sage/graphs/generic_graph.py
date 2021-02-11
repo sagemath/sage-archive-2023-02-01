@@ -20546,39 +20546,44 @@ class GenericGraph(GenericGraph_pyx):
 
         Edge-specific options can also be specified by providing a function (or
         tuple thereof) which maps each edge to a dictionary of options. Valid
-        options are ``"color"``, ``"backward"`` (a boolean), ``"dot"`` (a string
-        containing a sequence of options in ``dot`` format), ``"label"`` (a
-        string), ``"label_style"`` (``"string"`` or ``"latex"``),
-        ``"edge_string"`` (``"--"`` or ``"->"``). Here we state that the graph
-        should be laid out so that edges starting from ``1`` are going backward
-        (e.g. going up instead of down)::
+        options are
+
+        - ``"color"``
+        - ``"dot"`` (a string containing a sequence of options in ``dot`` format)
+        - ``"label"`` (a string)
+        - ``"label_style"`` (``"string"`` or ``"latex"``)
+        - ``"edge_string"`` (``"--"`` or ``"->"``)
+        - ``"dir"`` (``"forward"``, ``"back"``, ``"both"`` or ``"none"``)
+
+        Here we state that the graph should be laid out so that edges
+        starting from ``1`` are going backward (e.g. going up instead of
+        down)::
 
             sage: def edge_options(data):
             ....:     u, v, label = data
-            ....:     return {"backward": u == 1}
+            ....:     return {"dir":"back"} if u == 1 else {}
             sage: print(G.graphviz_string(edge_options=edge_options))  # random
             digraph {
-              node_10  [label="1"];
-              node_11  [label="2"];
-              node_3  [label="-1/2"];
-              node_6  [label="1/2"];
-              node_7  [label="1/2"];
-              node_5  [label="1/3"];
-              node_8  [label="2/3"];
+              node_0  [label="-1"];
+              node_1  [label="-1/2"];
+              node_2  [label="1/2"];
+              node_3  [label="-2"];
               node_4  [label="1/4"];
-              node_1  [label="-2"];
-              node_9  [label="4/5"];
-              node_0  [label="-4"];
-              node_2  [label="-1"];
+              node_5  [label="-4"];
+              node_6  [label="1/3"];
+              node_7  [label="2/3"];
+              node_8  [label="4/5"];
+              node_9  [label="1"];
+              node_10  [label="2"];
             <BLANKLINE>
-              node_2 -> node_10 [dir=back];
-              node_6 -> node_10 [dir=back];
-              node_11 -> node_3;
-              node_11 -> node_5;
-              node_7 -> node_1;
-              node_7 -> node_8;
-              node_4 -> node_0;
-              node_4 -> node_9;
+              node_2 -> node_3;
+              node_2 -> node_7;
+              node_4 -> node_5;
+              node_4 -> node_8;
+              node_9 -> node_0 [dir=back];
+              node_9 -> node_2 [dir=back];
+              node_10 -> node_1;
+              node_10 -> node_6;
             }
 
         We now test all options::
@@ -20589,32 +20594,54 @@ class GenericGraph(GenericGraph_pyx):
             ....:     if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
             ....:     if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"
             ....:     if (u,v) == (1,   -1): options["label_style"] = "latex"
-            ....:     if (u,v) == (1,  1/2): options["edge_string"] = "<-"
-            ....:     if (u,v) == (1/2,  1): options["backward"]    = True
+            ....:     if (u,v) == (1,  1/2): options["dir"]         = "back"
             ....:     return options
             sage: print(G.graphviz_string(edge_options=edge_options))  # random
             digraph {
-              node_10  [label="1"];
-              node_11  [label="2"];
-              node_3  [label="-1/2"];
-              node_6  [label="1/2"];
-              node_7  [label="1/2"];
-              node_5  [label="1/3"];
-              node_8  [label="2/3"];
+              node_0  [label="-1"];
+              node_1  [label="-1/2"];
+              node_2  [label="1/2"];
+              node_3  [label="-2"];
               node_4  [label="1/4"];
-              node_1  [label="-2"];
-              node_9  [label="4/5"];
-              node_0  [label="-4"];
-              node_2  [label="-1"];
+              node_5  [label="-4"];
+              node_6  [label="1/3"];
+              node_7  [label="2/3"];
+              node_8  [label="4/5"];
+              node_9  [label="1"];
+              node_10  [label="2"];
             <BLANKLINE>
-              node_10 -> node_2 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$", color = "red"];
-              node_10 <- node_6 [color = "blue"];
-              node_11 -> node_3 [color = "red"];
-              node_11 -> node_5 [color = "blue"];
-              node_7 -> node_1 [label="coucou", color = "red"];
-              node_7 -> node_8 [x=1,y=2, color = "blue"];
-              node_4 -> node_0 [color = "red"];
-              node_4 -> node_9 [color = "blue"];
+              node_2 -> node_3 [label="coucou", color = "red"];
+              node_2 -> node_7 [x=1,y=2, color = "blue"];
+              node_4 -> node_5 [color = "red"];
+              node_4 -> node_8 [color = "blue"];
+              node_9 -> node_0 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$", color = "red"];
+              node_9 -> node_2 [color = "blue", dir=back];
+              node_10 -> node_1 [color = "red"];
+              node_10 -> node_6 [color = "blue"];
+            }
+
+        We test the possible values of the ``'dir'`` edge option:
+
+            sage: edges = [(0,1,'a'), (1,2,'b'), (2,3,'c'), (3,4,'d')]
+            sage: G = DiGraph(edges)
+            sage: def edge_options(data):
+            ....:     u,v,label = data
+            ....:     if label == 'a': return {'dir':'forward'}
+            ....:     if label == 'b': return {'dir':'back'}
+            ....:     if label == 'c': return {'dir':'none'}
+            ....:     if label == 'd': return {'dir':'both'}
+            sage: print(G.graphviz_string(edge_options=edge_options))
+            digraph {
+              node_0  [label="0"];
+              node_1  [label="1"];
+              node_2  [label="2"];
+              node_3  [label="3"];
+              node_4  [label="4"];
+            <BLANKLINE>
+              node_0 -> node_1;
+              node_1 -> node_2 [dir=back];
+              node_2 -> node_3 [dir=none];
+              node_3 -> node_4 [dir=both];
             }
 
         TESTS:
@@ -20716,15 +20743,59 @@ class GenericGraph(GenericGraph_pyx):
               \draw [strokecolor,] (node_0) ... (node_1);
             ...
             \end{tikzpicture}
+
+        An error is raised if the value of the edge option ``dir`` is
+        mispelled (:trac:`31381`)::
+
+            sage: edges = [(0,1,'a'), (1,2,'b'), (2,3,'c'), (3,4,'d')]
+            sage: G = DiGraph(edges)
+            sage: def edge_options(data):
+            ....:     u,v,label = data
+            ....:     return {'dir':'forwward'} if label == 'a' else {}
+            sage: _ = G.graphviz_string(edge_options=edge_options)
+            Traceback (most recent call last):
+            ...
+            ValueError: dir(='forwward') in edge_options dict for the edge
+            (0, 1) should be 'forward', 'back', 'both', or 'none'
+
+        An error is raised if the value of the edge option ``edge_string``
+        is invalid (:trac:`31381`)::
+
+            sage: edges = [(0,1,'a'), (1,2,'b'), (2,3,'c'), (3,4,'d')]
+            sage: G = DiGraph(edges)
+            sage: def edge_options(data):
+            ....:     u,v,label = data
+            ....:     return {'edge_string':'<-'} if label == 'a' else {}
+            sage: _ = G.graphviz_string(edge_options=edge_options)
+            Traceback (most recent call last):
+            ...
+            ValueError: edge_string(='<-') in edge_options dict for the edge
+            (0, 1) should be '--' or '->'
+
+        The ``'backward'`` parameter of an edge option is deprecated since
+        :trac:`31381`::
+
+            sage: edges = [(0,1,'a'), (1,2,'b'), (2,3,'c'), (3,4,'d')]
+            sage: G = DiGraph(edges)
+            sage: def edge_options(data):
+            ....:     u,v,label = data
+            ....:     return {'backward':True} if label == 'a' else {}
+            sage: _ = G.graphviz_string(edge_options=edge_options)
+            doctest:...: DeprecationWarning: parameter {'backward':True} (in edge_options)
+            is deprecated. Use {'dir':'back'} instead.
+            See https://trac.sagemath.org/31381 for details.
+
         """
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
 
         if self.is_directed():
             graph_string = "digraph"
             default_edge_string = "->"
+            default_edge_dir = "forward"
         else:
             graph_string = "graph"
             default_edge_string = "--"
+            default_edge_dir = "none"
 
         edge_option_functions = options['edge_options']
         if not isinstance(edge_option_functions, (tuple, list)):
@@ -20804,7 +20875,7 @@ class GenericGraph(GenericGraph_pyx):
         # edges for loop
         for u, v, label in self.edge_iterator():
             edge_options = {
-                'backward': False,
+                'dir': default_edge_dir,
                 'dot': None,
                 'edge_string': default_edge_string,
                 'color'   : default_color,
@@ -20813,6 +20884,17 @@ class GenericGraph(GenericGraph_pyx):
                 }
             for f in edge_option_functions:
                 edge_options.update(f((u, v,label)))
+
+            if not edge_options['edge_string'] in ['--', '->']:
+                raise ValueError("edge_string(='{}') in edge_options dict for the "
+                        "edge ({}, {}) should be '--' "
+                        "or '->'".format(edge_options['edge_string'], u, v))
+
+            if 'backward' in edge_options and edge_options['backward']:
+                deprecation(31381, "parameter {'backward':True} (in edge_options) is"
+                        " deprecated. Use {'dir':'back'} instead.")
+                del edge_options['backward']
+                edge_options['dir'] = 'back'
 
             dot_options = []
 
@@ -20835,9 +20917,14 @@ class GenericGraph(GenericGraph_pyx):
 
                 dot_options.append('color = "%s"' % col)
 
-            if edge_options['backward']:
-                v,u = u,v
-                dot_options.append('dir=back')
+            if edge_options['dir'] == default_edge_dir:
+                pass
+            elif edge_options['dir'] in ['forward', 'back', 'both', 'none']:
+                dot_options.append('dir={}'.format(edge_options['dir']))
+            else:
+                raise ValueError("dir(='{}') in edge_options dict for the"
+                        " edge ({}, {}) should be 'forward', 'back', 'both',"
+                        " or 'none'".format(edge_options['dir'], u, v))
 
             s+= '  %s %s %s' % (key(u), edge_options['edge_string'], key(v))
             if dot_options:

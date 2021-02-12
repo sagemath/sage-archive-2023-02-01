@@ -20620,7 +20620,7 @@ class GenericGraph(GenericGraph_pyx):
               node_10 -> node_6 [color = "blue"];
             }
 
-        We test the possible values of the ``'dir'`` edge option:
+        We test the possible values of the ``'dir'`` edge option::
 
             sage: edges = [(0,1,'a'), (1,2,'b'), (2,3,'c'), (3,4,'d')]
             sage: G = DiGraph(edges)

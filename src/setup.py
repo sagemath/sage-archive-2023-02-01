@@ -76,6 +76,10 @@ log.debug(f"python_packages = {python_packages}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
 
+# from sage_build_cython:
+import Cython.Compiler.Options
+Cython.Compiler.Options.embed_pos_in_docstring = True
+
 try:
     log.info("Generating auto-generated sources")
     from sage_setup.autogen import autogen_all

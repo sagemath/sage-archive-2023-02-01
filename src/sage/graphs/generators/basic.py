@@ -806,7 +806,7 @@ def Toroidal6RegularGrid2dGraph(p, q):
 
 def Grid2dGraph(p, q, set_positions=True):
     r"""
-    Return a `2`-dimensional grid graph with `p \time q` nodes (`p` rows and `q`
+    Return a `2`-dimensional grid graph with `p \times q` nodes (`p` rows and `q`
     columns).
 
     A 2d grid graph resembles a `2` dimensional grid. All inner nodes are

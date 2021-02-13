@@ -78,6 +78,11 @@ def HighestWeightCrystal(dominant_weight, model=None):
         sage: crystals.HighestWeight(wt)
         The crystal of tableaux of type ['C', 2] and shape(s) [[6, 1]]
 
+        sage: La = RootSystem(['B',2]).weight_lattice().fundamental_weights()
+        sage: wt = La[1] + La[2]
+        sage: crystals.HighestWeight(wt)
+        The crystal of tableaux of type ['B', 2] and shape(s) [[3/2, 1/2]]
+
     Some type `E` examples::
 
         sage: C = CartanType(['E',6])
@@ -157,6 +162,25 @@ def HighestWeightCrystal(dominant_weight, model=None):
         sage: crystals.HighestWeight(wt, model='GeneralizedYoungWalls')
         Highest weight crystal of generalized Young walls of
          Cartan type ['A', 3, 1] and highest weight Lambda[0] + Lambda[2]
+
+    TESTS:
+
+    Check that the correct crystal is constructed for the fundamental weights::
+
+        sage: from sage.databases.findstat import _finite_irreducible_cartan_types_by_rank as cartan_types
+        sage: for n in [1, 2, 3, 4, 6]: # these should cover the interesting cases
+        ....:     for ct in cartan_types(n):
+        ....:         L = ct.root_system().weight_lattice()
+        ....:         La = L.fundamental_weights()
+        ....:         for model in ['Tableaux', 'NakajimaMonomials', 'AlcovePaths', 'RiggedConfigurations']:
+        ....:             if model == 'Tableaux' and ct.type() in ["E", "F"]:
+        ....:                 continue
+        ....:             for wt in La:
+        ....:                 C = crystals.HighestWeight(wt, model=model)
+        ....:                 assert L.weyl_dimension(wt) == C.cardinality()
+        ....:                 assert C.highest_weight_vector().weight() == wt
+
+
     """
     cartan_type = dominant_weight.parent().cartan_type()
     if model is None:
@@ -171,9 +195,17 @@ def HighestWeightCrystal(dominant_weight, model=None):
             model = 'LSPaths'
 
     if model == 'Tableaux':
-        sh = sum([[i]*c for i,c in dominant_weight], [])
-        sh = Partition(reversed(sh))
-        return CrystalOfTableaux(cartan_type, shape=sh.conjugate())
+        if cartan_type.type() == "G":
+            sh = sum([[i]*c for i, c in dominant_weight], [])
+            sh = Partition(reversed(sh)).conjugate()
+            return CrystalOfTableaux(cartan_type, shape=sh)
+
+        sh = dominant_weight.to_ambient().to_vector()
+        from sage.rings.integer_ring import ZZ
+        if cartan_type.type() in ["B", "D"] and sh[-1] not in ZZ:
+            return CrystalOfTableaux(cartan_type, shape=sh)
+
+        return CrystalOfTableaux(cartan_type, shape=Partition(sh))
 
     if model == 'TypeE':
         if not cartan_type.is_finite() or cartan_type.type() != 'E':

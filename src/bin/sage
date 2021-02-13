@@ -874,6 +874,16 @@ fi
 exec-runtests() {
     sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
+    # Trac #31191: Some versions of Python 3.6 disable utf-8 even if
+    # the locale is just "POSIX".  This leads to errors in both the
+    # doctest framework and in various individual doctests.
+    if locale | grep -q -E -i '^LC_CTYPE="(C|POSIX)"$'; then
+        # Get an UTF-8 locale if possible.
+        LC_ALL=$(locale -a | grep -E -i '^(c|en_us)[-.]utf-?8$' | head -n 1)
+        LANG=$LC_ALL
+        export LC_ALL
+        export LANG
+    fi
     exec sage-runtests "$@"
 }
 

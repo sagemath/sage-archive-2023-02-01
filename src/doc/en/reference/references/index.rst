@@ -2545,6 +2545,9 @@ REFERENCES:
 .. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow 
             Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
 
+.. [Gri2021] \O. Gritsenko, *On strongly regular graph with parameters (65; 32; 15; 16)*,
+              :arxiv:`2102.05432`.
+
 .. [GX2020] \R. M. Green, Tianyuan Xu, *Classification of Coxeter groups with
             finitely many elements of a-value 2*, Algebraic Combinatorics, 
             Volume 3 (2020) no. 2, pp. 331-364.

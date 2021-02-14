@@ -2954,6 +2954,32 @@ def HerschelGraph():
         10: [0, 0]}
     return Graph(edge_dict, pos=pos_dict, name="Herschel graph")
 
+def GritsenkoGraph():
+    r"""
+    Return SRG(65, 32, 15, 16) constructed by Gritsenko
+
+    We took the adjacency matrix from O.Gritsenko's [Gri2021]_ and extracted orbits
+    of the automorphism group on the edges.
+
+    EXAMPLES::
+
+        sage: H = graphs.GritsenkoGraph(); H
+        Gritsenko strongly regular graph: Graph on 65 vertices
+        sage: H.is_strongly_regular(parameters=True)
+        (65, 32, 15, 16)
+    """
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    from functools import reduce
+    a=PermutationGroup([
+     '(0)(1,17,2,18)(3,6,4,5)(7,31,8,32)(9,25,10,26)(11,14,12,13)(15,24,16,23)(19,22,20,21)(27,29,28,30)(33,35,34,36)(37,61,38,62)(39,55,40,56)(41,43,42,44)(45,53,46,54)(47,63,48,64)(49,52,50,51)(57,59,58,60)',
+     '(0)(1,20,32,6,9,27,23,13,2,19,31,5,10,28,24,14)(3,8,22,18,11,15,29,25,4,7,21,17,12,16,30,26)(33,37,52,63,41,46,60,55,34,38,51,64,42,45,59,56)(35,39,58,53,44,47,49,62,36,40,57,54,43,48,50,61)'])
+    return Graph( # use the union of the orbits of a on the edges
+        reduce(lambda x,y: x+y, map(lambda o: a.orbit(o,action='OnSets'),
+            [(0,1), (1,2), (1,6), (1,7), (1,9), (1,11), (1,14), (1,21), (1,24), (1,36), (1,38), (1,40), (1,42),
+             (1,44), (1,47), (1,48), (1,50), (1,52), (1,54), (1,55), (1,56), (1,58), (1,62), (1,63), (1,64), (33,35),
+             (33,38), (33,46), (33,47), (33,49), (33,51), (33,57), (33,61)])),
+        format='list_of_edges', name="Gritsenko strongly regular graph")
+
 def HigmanSimsGraph(relabel=True):
     r"""
     Return the Higman-Sims graph.

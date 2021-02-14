@@ -3097,6 +3097,7 @@ def _build_small_srg_database():
 
     from sage.graphs.generators.smallgraphs import McLaughlinGraph
     from sage.graphs.generators.smallgraphs import CameronGraph
+    from sage.graphs.generators.smallgraphs import GritsenkoGraph
     from sage.graphs.generators.smallgraphs import M22Graph
     from sage.graphs.generators.smallgraphs import SimsGewirtzGraph
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
@@ -3116,6 +3117,7 @@ def _build_small_srg_database():
           'DXGLqYM@gRLAWLdkEW@RQYQIErcgesClhKefC_ygSGkZ`OyHETdK[?lWStCapVgKK')],
         ( 50,   7,  0,  1): [HoffmanSingletonGraph],
         ( 56,  10,  0,  2): [SimsGewirtzGraph],
+        ( 65,  32,  15, 16): [GritsenkoGraph],
         ( 77,  16,   0,  4): [M22Graph],
         (100,  22,   0,  6): [HigmanSimsGraph],
         (100,  44,  18, 20): [SRG_100_44_18_20],

@@ -97,6 +97,14 @@ class VectorSpaces(Category_module):
             sage: VectorSpaces(QQ)(ZZ^3)
             Vector space of dimension 3 over Rational Field
 
+        TESTS:
+
+        Check whether :trac:`30174` is fixed::
+
+            sage: Q3 = FiniteRankFreeModule(QQ, 3)
+            sage: Modules(QQ)(Q3) is Q3
+            True
+
         """
         try:
             V = x.vector_space(self.base_field())

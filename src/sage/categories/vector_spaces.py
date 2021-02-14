@@ -88,7 +88,7 @@ class VectorSpaces(Category_module):
         """
         Category_module.__init__(self, K)
 
-    def __call__(self, x):
+    def _call_(self, x):
         """
         Try to coerce ``x`` into an object of this category
 

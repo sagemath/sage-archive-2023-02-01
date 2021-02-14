@@ -5307,20 +5307,20 @@ cdef class Expression(CommutativeRingElement):
             x^4 + y
             y
 
-        WARNING::
+        .. WARNING::
 
-        Unexpected results may occur if the left-hand side of some substitution
-        is not just a single variable (or is a "wildcard" variable). For example,
-        the result of ``cos(cos(cos(x))).subs({cos(x) : x})`` is ``x``, because
-        the substitution is applied repeatedly. Such repeated substitutions (and
-        pattern-matching code that may be somewhat unpredictable) are disabled
-        only in the basic case where the left-hand side of every substitution is
-        a variable. In particular, although the result of
-        ``(x^2).subs({x : sqrt(x)})`` is ``x``, the result of
-        ``(x^2).subs({x : sqrt(x), y^2 : y})`` is ``sqrt(x)``, because repeated
-        substitution is enabled by the presence of the expression ``y^2`` in the
-        left-hand side of one of the substitutions, even though that particular
-        substitution does not get applied.
+            Unexpected results may occur if the left-hand side of some substitution
+            is not just a single variable (or is a "wildcard" variable). For example,
+            the result of ``cos(cos(cos(x))).subs({cos(x) : x})`` is ``x``, because
+            the substitution is applied repeatedly. Such repeated substitutions (and
+            pattern-matching code that may be somewhat unpredictable) are disabled
+            only in the basic case where the left-hand side of every substitution is
+            a variable. In particular, although the result of
+            ``(x^2).subs({x : sqrt(x)})`` is ``x``, the result of
+            ``(x^2).subs({x : sqrt(x), y^2 : y})`` is ``sqrt(x)``, because repeated
+            substitution is enabled by the presence of the expression ``y^2`` in the
+            left-hand side of one of the substitutions, even though that particular
+            substitution does not get applied.
 
         TESTS:
 

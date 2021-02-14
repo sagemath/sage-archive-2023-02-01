@@ -1708,6 +1708,11 @@ cdef class LaurentSeries(AlgebraElement):
 
     def power_series(self):
         """
+        Convert this Laurent series to a power series.
+
+        An error is raised if the Laurent series has a term (or an error
+        term `O(x^k)`) whose exponent is negative.
+
         EXAMPLES::
 
             sage: R.<t> = LaurentSeriesRing(ZZ)

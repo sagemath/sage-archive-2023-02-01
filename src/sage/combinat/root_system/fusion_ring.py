@@ -787,7 +787,11 @@ class FusionRing(WeylCharacterRing):
         if i != j:
             return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
         i0 = self.one()
-        return sum((y.ribbon())**2/(i.ribbon()*((x.ribbon())**2))*self.s_ij(i0,y)*self.s_ij(i,z)*self.s_ij(x,z).conjugate()*self.s_ij(k,x).conjugate()*self.s_ij(y,z).conjugate()/self.s_ij(i0,z) for x in self.basis() for y in self.basis() for z in self.basis())/(self.total_q_order()**4)
+        B = self.basis()
+        return sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
+                   * self.s_ij(i0,y) * self.s_ij(i,z) * self.s_ij(x,z).conjugate()
+                   * self.s_ij(k,x).conjugate() * self.s_ij(y,z).conjugate() / self.s_ij(i0,z)
+                   for x in B for y in B for z in B) / (self.total_q_order()**4)
 
     def global_q_dimension(self):
         r"""

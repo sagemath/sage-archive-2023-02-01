@@ -915,7 +915,7 @@ fi
 
 if [ "$1" = "-coverageall" -o "$1" = "--coverageall" ]; then
     shift
-    exec sage-coverageall "$@"
+    exec sage-coverage --all "$@"
 fi
 
 if [ "$1" = '-startuptime' -o "$1" = '--startuptime' ]; then

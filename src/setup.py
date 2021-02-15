@@ -142,7 +142,6 @@ code = setup(
         'bin/sage-runtests',          # because it is useful for doctesting user scripts too
         'bin/sage-fixdoctests',       # likewise
         'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
-        'bin/sage-coverageall',       # likewise
         'bin/sage-cython',            # deprecated, might be used in user package install scripts
         # Helper scripts invoked by sage script
         # (they would actually belong to something like libexec)

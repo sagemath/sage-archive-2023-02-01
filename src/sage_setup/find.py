@@ -172,6 +172,55 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         os.chdir(cwd)
     return python_packages, python_modules, cython_modules
 
+def filter_cython_sources(src_dir, distributions):
+    """
+    Find all Cython modules in the given source directory that belong to the
+    given distributions.
+
+    INPUT:
+
+    - ``src_dir`` -- root directory for the sources
+
+    - ``distributions`` -- a sequence or set of strings: only find modules whose
+      ``distribution`` (from a ``# sage_setup: distribution = PACKAGE``
+      directive in the module source file) is an element of
+      ``distributions``.
+
+    OUTPUT: List of absolute paths to Cython files (``*.pyx``).
+
+    EXAMPLES::
+
+        sage: from sage.env import SAGE_SRC
+        sage: from sage_setup.find import filter_cython_sources
+        sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sage-tdlib"])
+        
+    Cython module relying on tdlib::
+
+        sage: 'sage/graphs/graph_decompositions/tdlib.pyx' in cython_modules
+        True
+
+    Cython module not relying on tdlib::
+
+        sage: 'sage/structure/sage_object.pyx' in cython_modules
+        False
+
+    Benchmarking::
+
+        sage: timeit('filter_cython_sources(SAGE_SRC, ["sage-tdlib"])', # random output
+        ....:        number=1, repeat=1)
+        1 loops, best of 1: 850 ms per loop
+    """
+    files: list[str] = []
+
+    for dirpath, dirnames, filenames in os.walk(src_dir):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            base, ext = os.path.splitext(filename)
+            if ext == '.pyx' and read_distribution(filepath) in distributions:
+                files.append(filepath)
+
+    return files
+
 def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
     """
     Find all extra files which should be installed.

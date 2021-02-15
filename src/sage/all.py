@@ -218,8 +218,7 @@ from sage.manifolds.all import *
 
 from cysignals.alarm import alarm, cancel_alarm
 
-# Lazily import notebook functions and interacts (#15335)
-lazy_import('sage.interacts.debugger', 'debug')
+# Lazily import interacts (#15335)
 lazy_import('sage.interacts', 'all', 'interacts')
 
 from copy import copy, deepcopy

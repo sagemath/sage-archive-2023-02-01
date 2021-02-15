@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-cd src
+if [ "$SAGE_EDITABLE" = yes ]; then
+    cd "$SAGE_SRC"
+else
+    cd src
+fi
 ## All sagelib-building is done by setup.py.
 ## This is so that sagelib can be installed by standard Python procedures,
 ## such as "./setup.py install" or "pip install ."
@@ -39,7 +43,12 @@ export SAGE_SHARE=/doesnotexist
 # spec, which includes setting a symlink to the installed documentation.
 # export SAGE_DOC=/doesnotexist
 
-time "$PYTHON" -u setup.py --no-user-cfg build install || exit 1
+if [ "$SAGE_EDITABLE" = yes ]; then
+    time python3 -m pip install --verbose --no-deps --no-index --no-build-isolation --isolated --editable . || exit 1
+else
+    time "$PYTHON" -u setup.py --no-user-cfg build install || exit 1
+fi
+
 if [ "$UNAME" = "CYGWIN" ]; then
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;
 fi

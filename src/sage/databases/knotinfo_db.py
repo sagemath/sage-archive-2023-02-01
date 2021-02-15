@@ -372,7 +372,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
     def demo_version(self):
         r"""
-        Return wether the KnotInfo databases are installed completely or
+        Return whether the KnotInfo databases are installed completely or
         just the demo version is used.
 
         EXAMPLES::

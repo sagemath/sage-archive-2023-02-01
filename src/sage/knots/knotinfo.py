@@ -1228,7 +1228,7 @@ class KnotInfoBase(Enum):
         if not homfly_polynomial and self.crossing_number() == 0:
             return R.one()
 
-        # As of February 2021 there is a wrong sign for the link in the
+        # As of February 2021 there is a wrong character for the link in the
         # last row of the database. This is removed here (see SPKG.rst and
         # the test above). Once this is fixed upstream, the following three
         # lines of code can be removed again:
@@ -2034,9 +2034,9 @@ class KnotInfoSeries(UniqueRepresentation, SageObject):
 
     - ``crossing_number`` -- integer giving the crossing numer of this series
       of links
-    - ``is_knot``         -- boolean wether this series is a series of knots
+    - ``is_knot``         -- boolean whether this series is a series of knots
       or proper links
-    - ``is_alternating``  -- boolean wether this series is restriced to
+    - ``is_alternating``  -- boolean whether this series is restriced to
       alternating links or not
       This is not relevant for knots with less than 11 crossings
     - ``name_unoriented`` -- string restricting the series to all links with

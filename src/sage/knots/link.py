@@ -3914,7 +3914,7 @@ class Link(SageObject):
 
     def is_isotopic(self, other):
         r"""
-        Check wether ``self`` is isotopic to ``other``.
+        Check whether ``self`` is isotopic to ``other``.
 
         INPUT:
 

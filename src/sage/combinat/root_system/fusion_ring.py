@@ -737,7 +737,7 @@ class FusionRing(WeylCharacterRing):
             return S
         
     @cached_method
-    def r_matrix(self, i, j, k, method="BDGRTW"):
+    def r_matrix(self, i, j, k):
         r"""
         Return the R-matrix entry corresponding to the subobject ``k``
         in the tensor product of ``i`` with ``j``.
@@ -765,10 +765,7 @@ class FusionRing(WeylCharacterRing):
         If `i \neq j`, the gauge may be used to control the sign of
         the square root. But if `i = j` then we must be careful
         about the sign. These cases are computed by a formula
-        of [BDGRTW2019]_, Proposition 2.3. For an alternative
-        approach to computing these see [LR1997]_ Corollary 2.22
-        (actually due to Reshetikhin).
-
+        of [BDGRTW2019]_, Proposition 2.3.
 
         EXAMPLES::
 
@@ -789,16 +786,8 @@ class FusionRing(WeylCharacterRing):
             return 0
         if i != j:
             return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
-        if method == "BDGRTW":
-            i0 = self.one()
-            return sum((y.ribbon())**2/(i.ribbon()*((x.ribbon())**2))*self.s_ij(i0,y)*self.s_ij(i,z)*self.s_ij(x,z).conjugate()*self.s_ij(k,x).conjugate()*self.s_ij(y,z).conjugate()/self.s_ij(i0,z) for x in self.basis() for y in self.basis() for z in self.basis())/(self.total_q_order()**4)
-        else:
-            wt = k.weight()
-            r = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
-            if wt in i.symmetric_power(2).monomial_coefficients():
-                return r
-            # We instead have wt in i.exterior_power(2).monomial_coefficients():
-            return -r
+        i0 = self.one()
+        return sum((y.ribbon())**2/(i.ribbon()*((x.ribbon())**2))*self.s_ij(i0,y)*self.s_ij(i,z)*self.s_ij(x,z).conjugate()*self.s_ij(k,x).conjugate()*self.s_ij(y,z).conjugate()/self.s_ij(i0,z) for x in self.basis() for y in self.basis() for z in self.basis())/(self.total_q_order()**4)
 
     def global_q_dimension(self):
         r"""

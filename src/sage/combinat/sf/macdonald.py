@@ -1,7 +1,7 @@
 r"""
 Macdonald Polynomials
 
-Notation used in the definitions follows mainly [Macdonald1995]_.
+Notation used in the definitions follows mainly [Mac1995]_.
 
 The integral forms of the bases `H` and `Ht` do not appear in
 Macdonald's book.  They correspond to the two bases
@@ -14,7 +14,7 @@ the graded Frobenius image of the Garsia-Haiman modules [GH1993]_.
 
 REFERENCES:
 
-.. [Macdonald1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
+.. [Mac1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 
@@ -551,7 +551,7 @@ def c1(part, q, t):
     and ``P(part)``.
 
     This coefficient is `c_\lambda` in equation (8.1') p. 352 of
-    Macdonald's book [Macdonald1995]_.
+    Macdonald's book [Mac1995]_.
 
     INPUT:
 
@@ -583,7 +583,7 @@ def c2(part, q, t):
     and Q(part).
 
     This coefficient is `c_\lambda` in equation (8.1) p. 352 of
-    Macdonald's book [Macdonald1995]_.
+    Macdonald's book [Mac1995]_.
 
     INPUT:
 
@@ -1016,7 +1016,7 @@ class MacdonaldPolynomials_p(MacdonaldPolynomials_generic):
         r"""
         Returns the scalar product of `P(part1)` and `P(part2)`
         This scalar product formula is given in equation (4.11) p.323
-        and (6.19) p.339 of Macdonald's book [Macdonald1995]_.
+        and (6.19) p.339 of Macdonald's book [Mac1995]_.
 
         INPUT:
 

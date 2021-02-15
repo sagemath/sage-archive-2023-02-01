@@ -464,10 +464,10 @@ REFERENCES:
                  "PHOTON-BeetleAuthenticated Encryption and Hash Family"
                  https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/PHOTON-Beetle-spec.pdf
 
-.. [BH12] \A. Brouwer and W. Haemers,
-          Spectra of graphs,
-          Springer, 2012,
-          http://homepages.cwi.nl/~aeb/math/ipm/ipm.pdf
+.. [BH2012] \A. Brouwer and W. Haemers,
+            Spectra of graphs,
+            Springer, 2012,
+            http://homepages.cwi.nl/~aeb/math/ipm/ipm.pdf
 
 .. [BPPSST2017] Banik, Pandey, Peyrin, Sasaki, Sim, and Todo,
                 GIFT : A Small Present Towards Reaching the Limit of Lightweight
@@ -2992,6 +2992,14 @@ REFERENCES:
 
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).
+
+
+.. [HX2010] \W. Haemers and Q. Xiang,
+            Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)`
+            exist for all `m>1`,
+            European Journal of Combinatorics,
+            Volume 31, Issue 6, August 2010, Pages 1553-1559,
+            :doi:`10.1016/j.ejc.2009.07.009`
 
 .. [HZ1999] \C. Holton, L. Q. Zamboni, *Descendants of primitive
             substitutions*, Theory Comput. Syst. 32 (1999) 133-157.

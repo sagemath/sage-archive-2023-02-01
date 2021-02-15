@@ -59,10 +59,6 @@ REFERENCES:
 .. [Kra2001] \C. Krattenthaler -- *Permutations with restricted
    patterns and Dyck paths*, Adv. Appl. Math. 27 (2001), 510--530.
 
-.. [Cha2005] \F. Chapoton, *Une Base Symétrique de l'algèbre des
-   Coinvariants Quasi-Symétriques*, Electronic Journal of
-   Combinatorics Vol 12(1) (2005) N16.
-
 .. [DS1992] \A. Denise, R. Simion, *Two combinatorial statistics on
    Dyck paths*, Discrete Math 137 (1992), 155--176.
 """

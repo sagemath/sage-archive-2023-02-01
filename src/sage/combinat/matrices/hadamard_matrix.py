@@ -519,8 +519,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     For `\epsilon\in\{-1,+1\}`, we say that `M` is a `(n,\epsilon)-RSHCD` if
     `M` is a regular symmetric Hadamard matrix with constant diagonal
     `\delta\in\{-1,+1\}` and row sums all equal to `\delta \epsilon
-    \sqrt(n)`. For more information, see [HX10]_ or 10.5.1 in
-    [BH12]_. For the case `n=324`, see :func:`RSHCD_324` and [CP16]_.
+    \sqrt(n)`. For more information, see [HX2010]_ or 10.5.1 in
+    [BH2012]_. For the case `n=324`, see :func:`RSHCD_324` and [CP16]_.
 
     INPUT:
 
@@ -574,16 +574,9 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     REFERENCE:
 
-    .. [BH12] \A. Brouwer and W. Haemers,
-      Spectra of graphs,
-      Springer, 2012,
-      http://homepages.cwi.nl/~aeb/math/ipm/ipm.pdf
+    - [BH2012]_
 
-    .. [HX10] \W. Haemers and Q. Xiang,
-      Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)` exist for all `m>1`,
-      European Journal of Combinatorics,
-      Volume 31, Issue 6, August 2010, Pages 1553-1559,
-      :doi:`10.1016/j.ejc.2009.07.009`
+    - [HX2010]_
     """
     if existence and (n,e) in _rshcd_cache:
         return _rshcd_cache[n,e]
@@ -692,7 +685,7 @@ def RSHCD_324(e):
     :meth:`JankoKharaghaniTonchevGraph
     <sage.graphs.graph_generators.GraphGenerators.JankoKharaghaniTonchevGraph>`
     and for the case `\epsilon=-1` from the "twist" `M'` of `M`, using Lemma 11
-    in [HX10]_. Namely, it turns out that the matrix
+    in [HX2010]_. Namely, it turns out that the matrix
 
     .. MATH::
 
@@ -1170,7 +1163,7 @@ def symmetric_conference_matrix(n, check=True):
     and 1s and -1s elsewhere, satisfying `CC^\top=(n-1)I`.
     If `C=C^\top$ then `n \cong 2 \mod 4` and `C` is Seidel adjacency matrix of
     a graph, whose descendent graphs are strongly regular graphs with parameters
-    `(n-1,(n-2)/2,(n-6)/4,(n-2)/4)`, see Sec.10.4 of [BH12]_. Thus we build `C`
+    `(n-1,(n-2)/2,(n-6)/4,(n-2)/4)`, see Sec.10.4 of [BH2012]_. Thus we build `C`
     from the Seidel adjacency matrix of the latter by adding row and column of 1s.
 
     INPUT:

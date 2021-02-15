@@ -14,9 +14,7 @@ the graded Frobenius image of the Garsia-Haiman modules [GH1993]_.
 
 REFERENCES:
 
-.. [Mac1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
-   The Clarendon Press, Oxford University Press, New York, 1995, With contributions
-   by A. Zelevinsky, Oxford Science Publications.
+- [Mac1995]_
 
 .. [GH1993] \A. Garsia, M. Haiman, A graded representation module for Macdonald's
    polynomials, Proc. Nat. Acad. U.S.A. no. 90, 3607--3610.

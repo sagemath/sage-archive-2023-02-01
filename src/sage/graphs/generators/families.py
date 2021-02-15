@@ -2236,7 +2236,7 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
     <sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
 
     In this case, the other possible parameter set of a strongly regular graph
-    in the Seidel switching class of the latter graph (see [BH12]_) coincides
+    in the Seidel switching class of the latter graph (see [BH2012]_) coincides
     with the set of parameters of the complement of the graph returned by this
     function.
 

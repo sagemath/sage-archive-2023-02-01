@@ -20745,7 +20745,7 @@ class GenericGraph(GenericGraph_pyx):
             \end{tikzpicture}
 
         An error is raised if the value of the edge option ``dir`` is
-        mispelled (:trac:`31381`)::
+        misspelled (:trac:`31381`)::
 
             sage: edges = [(0,1,'a'), (1,2,'b'), (2,3,'c'), (3,4,'d')]
             sage: G = DiGraph(edges)

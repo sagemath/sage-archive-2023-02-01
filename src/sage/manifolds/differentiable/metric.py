@@ -1632,7 +1632,7 @@ class PseudoRiemannianMetric(TensorField):
 
         holds.
 
-        Notice that that a volume form requires an orientable manifold with
+        Notice that a volume form requires an orientable manifold with
         a preferred orientation, see
         :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
         for details.
@@ -1813,7 +1813,7 @@ class PseudoRiemannianMetric(TensorField):
         `n`-form associated with `g` (see :meth:`volume_form`) and the indices
         `k_1,\ldots, k_p` are raised with `g`.
 
-        Notice that that the hodge star dual requires an orientable manifold
+        Notice that the hodge star dual requires an orientable manifold
         with a preferred orientation, see
         :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
         for details.

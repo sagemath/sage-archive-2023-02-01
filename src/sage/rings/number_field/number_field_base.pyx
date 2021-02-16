@@ -403,7 +403,7 @@ cdef class NumberField(Field):
             sage: N._get_embedding_approx(1)
             Traceback (most recent call last):
             ...
-            ValueError: No embedding set. You need to specify a a real embedding.
+            ValueError: No embedding set. You need to specify a real embedding.
 
 
         .. SEEALSO::
@@ -423,4 +423,4 @@ cdef class NumberField(Field):
                 j += 1
             return self._gen_approx[i]
         else:
-            raise ValueError("No embedding set. You need to specify a a real embedding.")
+            raise ValueError("No embedding set. You need to specify a real embedding.")

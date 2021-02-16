@@ -4658,7 +4658,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         #. Let `C` be the submatrix of `B` of pivot
            columns. Let `D` be the complementary submatrix of
-           `B` of all all non-pivot columns. Use a `p`-adic
+           `B` of all non-pivot columns. Use a `p`-adic
            solver to find the matrix `X` and integer `d` such
            that `C (1/d) X=D`. I.e., solve a bunch of linear systems
            of the form `Cx = v`, where the columns of `X` are

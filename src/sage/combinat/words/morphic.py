@@ -17,11 +17,11 @@ Creation of a morphism::
 
 """
 
-from sage.combinat.words.word_datatypes import WordDatatype
+from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
 from sage.rings.all import Infinity
 from sage.modules.free_module_element import vector
 
-class WordDatatype_morphic(WordDatatype):
+class WordDatatype_morphic(WordDatatype_callable):
     r"""
     Datatype for a word defined by a callable.
     """
@@ -37,25 +37,27 @@ class WordDatatype_morphic(WordDatatype):
 
         EXAMPLES::
 
-            sage: f = lambda n : 'x' if n % 2 == 0 else 'y'
-            sage: w = Word(f, length=9, caching=False); w
-            word: xyxyxyxyx
-            sage: type(w)
-            <class 'sage.combinat.words.word.FiniteWord_callable'>
-            sage: w.length()
-            9
-
+            sage: m = WordMorphism('a->ab,b->a')
+            sage: w = m.fixed_point('a')
+            sage: w
+            word: abaababaabaababaababaabaababaabaababaaba...
+            sage: w[555:1000]
+            word: abaababaabaababaababaabaababaabaababaaba...
+        
         ::
 
-            sage: w = Word(f, caching=False); w
-            word: xyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxyxy...
-            sage: type(w)
-            <class 'sage.combinat.words.word.InfiniteWord_callable'>
-            sage: w.length() is None
-            False
-            sage: w.length()
-            +Infinity
+            sage: m = WordMorphism('a->abc,b->baba,c->ca')
+            sage: m.fixed_point('a')
+            word: abcbabacababaabcbabaabccaabcbabaabcbabaa...
+            sage: w = m.fixed_point('a')
+            sage: w[7]
+            'c'
+            sage: w[2:7]
+            word: cbaba
+            sage: w[500:503]
+            word: caa
 
+            
         TESTS::
 
             sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
@@ -66,6 +68,7 @@ class WordDatatype_morphic(WordDatatype):
         """
         self._len = Infinity
         self._parent = parent
+        # self._func = callable
         # for hashing
         self._hash = None
         
@@ -117,7 +120,7 @@ class WordDatatype_morphic(WordDatatype):
             k -= 1
         return path
 
-    def __getitem__(self, key):
+    def _func(self, key):
         """
         EXAMPLES::
         

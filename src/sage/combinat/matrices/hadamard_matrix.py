@@ -520,7 +520,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     `M` is a regular symmetric Hadamard matrix with constant diagonal
     `\delta\in\{-1,+1\}` and row sums all equal to `\delta \epsilon
     \sqrt(n)`. For more information, see [HX2010]_ or 10.5.1 in
-    [BH2012]_. For the case `n=324`, see :func:`RSHCD_324` and [CP16]_.
+    [BH2012]_. For the case `n=324`, see :func:`RSHCD_324` and [CP2016]_.
 
     INPUT:
 
@@ -697,7 +697,7 @@ def RSHCD_324(e):
     sums, as needed by [loc.cit.]. Interestingly, the corresponding
     `(324,152,70,72)`-strongly regular graph
     has a vertex-transitive automorphism group of order 2592, twice the order of the
-    (intransitive) automorphism group of the graph corresponding to `M`. Cf. [CP16]_.
+    (intransitive) automorphism group of the graph corresponding to `M`. Cf. [CP2016]_.
 
     INPUT:
 
@@ -717,10 +717,7 @@ def RSHCD_324(e):
 
     REFERENCE:
 
-    .. [CP16] \N. Cohen, D. Pasechnik,
-       *Implementing Brouwer's database of strongly regular graphs*,
-       Designs, Codes, and Cryptography, 2016
-       :doi:`10.1007/s10623-016-0264-x`
+    - [CP2016]_
     """
     from sage.graphs.generators.smallgraphs import JankoKharaghaniTonchevGraph as JKTG
     M = JKTG().adjacency_matrix()
@@ -736,7 +733,7 @@ def RSHCD_324(e):
 
 def _helper_payley_matrix(n, zero_position=True):
     r"""
-    Return the matrix constructed in Lemma 1.19 page 291 of [SWW72]_.
+    Return the matrix constructed in Lemma 1.19 page 291 of [SWW1972]_.
 
     This function return a `n^2` matrix `M` whose rows/columns are indexed by
     the element of a finite field on `n` elements `x_1,...,x_n`. The value
@@ -822,7 +819,7 @@ def rshcd_from_close_prime_powers(n):
 
     The construction implemented here appears in Theorem 4.3 from [GS1970]_.
 
-    Note that the authors of [SWW72]_ claim in Corollary 5.12 (page 342) to have
+    Note that the authors of [SWW1972]_ claim in Corollary 5.12 (page 342) to have
     proved the same result without the `n=0\pmod{4}` restriction with a *very*
     similar construction. So far, however, I (Nathann Cohen) have not been able
     to make it work.
@@ -858,9 +855,7 @@ def rshcd_from_close_prime_powers(n):
 
     REFERENCE:
 
-    .. [SWW72] \A. Street, W. Wallis, J. Wallis,
-      Combinatorics: Room squares, sum-free sets, Hadamard matrices.
-      Lecture notes in Mathematics 292 (1972).
+    - [SWW1972]_
     """
     if n%4:
         raise ValueError("n(={}) must be congruent to 0 mod 4")
@@ -1207,11 +1202,11 @@ def szekeres_difference_set_pair(m, check=True):
     r"""
     Construct Szekeres `(2m+1,m,1)`-cyclic difference family
 
-    Let `4m+3` be a prime power. Theorem 3 in [Sz69]_ contains a construction of a pair
+    Let `4m+3` be a prime power. Theorem 3 in [Sz1969]_ contains a construction of a pair
     of *complementary difference sets* `A`, `B` in the subgroup `G` of the quadratic
     residues in `F_{4m+3}^*`. Namely `|A|=|B|=m`, `a\in A` whenever `a-1\in G`, `b\in B`
-    whenever `b+1 \in G`. See also Theorem 2.6 in [SWW72]_ (there the formula for `B` is
-    correct, as opposed to (4.2) in [Sz69]_, where the sign before `1` is wrong.
+    whenever `b+1 \in G`. See also Theorem 2.6 in [SWW1972]_ (there the formula for `B` is
+    correct, as opposed to (4.2) in [Sz1969]_, where the sign before `1` is wrong.
 
     In modern terminology, for `m>1` the sets `A` and `B` form a
     :func:`difference family<sage.combinat.designs.difference_family>` with parameters `(2m+1,m,1)`.
@@ -1233,9 +1228,7 @@ def szekeres_difference_set_pair(m, check=True):
 
     REFERENCE:
 
-    .. [Sz69] \G. Szekeres,
-      Tournaments and Hadamard matrices,
-      Enseignement Math. (2) 15(1969), 269-278
+    - [Sz1969]_
     """
     from sage.rings.finite_rings.finite_field_constructor import GF
     F = GF(4*m+3)
@@ -1281,10 +1274,10 @@ def rshcd_from_prime_power_and_conference_matrix(n):
     r"""
     Return a `((n-1)^2,1)`-RSHCD if `n` is prime power, and symmetric `(n-1)`-conference matrix exists
 
-    The construction implemented here is Theorem 16 (and Corollary 17) from [WW72]_.
+    The construction implemented here is Theorem 16 (and Corollary 17) from [WW1972]_.
 
-    In [SWW72]_ this construction (Theorem 5.15 and Corollary 5.16)
-    is reproduced with a typo. Note that [WW72]_ refers to [Sz69]_ for the construction,
+    In [SWW1972]_ this construction (Theorem 5.15 and Corollary 5.16)
+    is reproduced with a typo. Note that [WW1972]_ refers to [Sz1969]_ for the construction,
     provided by :func:`szekeres_difference_set_pair`,
     of complementary difference sets, and the latter has a typo.
 
@@ -1325,9 +1318,7 @@ def rshcd_from_prime_power_and_conference_matrix(n):
 
     REFERENCE:
 
-    .. [WW72] \J. Wallis and A.L. Whiteman,
-      Some classes of Hadamard matrices with constant diagonal,
-      Bull. Austral. Math. Soc. 7(1972), 233-249
+    - [WW1972]_
     """
     from sage.graphs.strongly_regular_db import strongly_regular_graph as srg
     if is_prime_power(n) and 2==(n-1)%4:

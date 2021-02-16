@@ -11,7 +11,7 @@ Using Andries Brouwer's `database of strongly regular graphs
 non-existence results. Note that some constructions are missing, and that some
 strongly regular graphs that exist in the database cannot be automatically built
 by Sage. Help us if you know any.
-An outline of the implementation can be found in [CP16]_.
+An outline of the implementation can be found in [CP2016]_.
 
 .. NOTE::
 

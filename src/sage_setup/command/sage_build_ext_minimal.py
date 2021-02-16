@@ -1,6 +1,6 @@
 import os
 import multiprocessing
-from distutils.command.build_ext import build_ext
+from setuptools.command.build_ext import build_ext
 
 
 class sage_build_ext_minimal(build_ext):

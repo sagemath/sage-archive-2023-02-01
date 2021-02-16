@@ -6,8 +6,8 @@ import os
 import platform
 import sys
 import time
-from distutils import log
 from setuptools import setup, find_namespace_packages
+from distutils import log
 import multiprocessing.pool
 import sage.misc.lazy_import_cache
 from sage_setup.optional_extension import is_package_installed_and_updated

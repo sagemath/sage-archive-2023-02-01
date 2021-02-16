@@ -60,7 +60,7 @@ if args.all:
     if not args.filename:
         coverage_all(os.path.join(os.environ["SAGE_SRC"], 'sage'))
     elif len(args.filename) == 1:
-        coverage_all(args.filename)
+        coverage_all(args.filename[0])
     else:
         print("sage-coverage: error: --all only accepts one filename argument")
         sys.exit(1)

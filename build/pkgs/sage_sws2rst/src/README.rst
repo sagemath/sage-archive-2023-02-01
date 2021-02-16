@@ -1,5 +1,8 @@
-sage_sws2rst
-============
+sage_sws2rst: Translate legacy Sage worksheet files (.sws) to reStructuredText (.rst) files
+===========================================================================================
+
+Description
+-----------
 
 Provides a script `sage-sws2rst`, which translates a Sage worksheet file (.sws) into a reStructuredText (.rst) file.
 

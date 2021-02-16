@@ -58,6 +58,10 @@ remove_old_version()
 
 config()
 {
+    if [ "$UNAME" = "CYGWIN" ]; then
+        SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --with-builtinmodules=gfanlib,syzextra,customstd,interval,subsets,loctriv,gitfan,freealgebra --disable-p-procs-dynamic --enable-p-procs-static"
+    fi
+
     # configure notes (dates from Singular 3.x, maybe outdated for 4.x):
     # 1) We really need to add --exec-prefix and --bindir as Singular
     #    uses some weird defaults.

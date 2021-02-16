@@ -193,7 +193,7 @@ def filter_cython_sources(src_dir, distributions):
         sage: from sage.env import SAGE_SRC
         sage: from sage_setup.find import filter_cython_sources
         sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sage-tdlib"])
-        
+
     Cython module relying on tdlib::
 
         sage: 'sage/graphs/graph_decompositions/tdlib.pyx' in cython_modules

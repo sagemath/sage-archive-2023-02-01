@@ -36,12 +36,12 @@ mpfr_configure()
 
     if [ "$SAGE_DEBUG" = yes ]; then
         # Disable optimization, add debug symbols:
-        required_cflags=$CFLAGS
+        required_cflags=$CFLAGS_NON_NATIVE
         echo >&2 "Warning: Building MPFR with SAGE_DEBUG=yes disables optimization."
     else
         # Add debug symbols by default, enable optimization, but do not (yet)
         # add processor-specific flags (these are eventually added later):
-        default_cflags=$CFLAGS_O3
+        default_cflags=$CFLAGS_O3_NON_NATIVE
     fi
 
     # Enabling thread-safe (which meanwhile is or at least may be the default)

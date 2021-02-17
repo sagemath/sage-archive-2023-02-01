@@ -902,6 +902,11 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES::
 
+                sage: P = RootSystem(['B',2]).weight_lattice()
+                sage: P._symmetric_form_matrix
+                [2 1]
+                [1 1]
+
                 sage: P = RootSystem(['C',2]).weight_lattice()
                 sage: P._symmetric_form_matrix
                 [1 1]
@@ -920,14 +925,14 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 [  0   2   2   1]
                 [  0   2   4   1]
                 [1/2   1   1   0]
+
             """
             from sage.matrix.constructor import matrix
             ct = self.cartan_type()
             cm = ct.cartan_matrix()
             if cm.det() != 0:
-                cm_inv = cm.inverse()
-                diag = cm.is_symmetrizable(True)
-                return cm_inv.transpose() * matrix.diagonal(diag)
+                diag = matrix.diagonal(cm.symmetrizer())
+                return cm.inverse().transpose() * diag
 
             if not ct.is_affine():
                 raise ValueError("only implemented for affine types when the"
@@ -952,8 +957,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
     class ElementMethods:
         def symmetric_form(self, la):
-            r"""
-            Return the symmetric form of ``self`` with ``la``.
+            r"""Return the symmetric form of ``self`` with ``la``.
 
             Return the pairing `( | )` on the weight lattice. See Chapter 6
             in Kac, Infinite Dimensional Lie Algebras for more details.
@@ -1025,6 +1029,26 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: al = P.simple_roots()
                 sage: [al[i].symmetric_form(al[i]) for i in P.index_set()]
                 [2, 4, 8]
+
+            Check that :trac:`31410` is fixed, and the symmetric form
+            computed on the weight space is the same as the symmetric
+            form computed on the root space::
+
+                sage: def s1(ct):
+                ....:    L = RootSystem(ct).weight_space()
+                ....:    P = L.positive_roots()
+                ....:    rho = L.rho()
+                ....:    return [beta.symmetric_form(rho) for beta in P]
+
+                sage: def s2(ct):
+                ....:    R = RootSystem(ct).root_space()
+                ....:    P = R.positive_roots()
+                ....:    rho = 1/2*sum(P)
+                ....:    return [beta.symmetric_form(rho) for beta in P]
+
+                sage: all(s1(ct) == s2(ct) for ct in CartanType.samples(finite=True, crystallographic=True))
+                True
+
             """
             P = self.parent()
             ct = P.cartan_type()
@@ -1074,5 +1098,5 @@ class WeightLatticeRealizations(Category_over_base_ring):
             L = self.parent()
             if base_ring is None:
                 base_ring = L.base_ring()
-            
+
             return L.root_system.weight_space(base_ring).sum_of_terms([i, base_ring(self.scalar(L.simple_coroot(i)))] for i in L.cartan_type().index_set())

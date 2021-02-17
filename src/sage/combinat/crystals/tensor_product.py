@@ -906,16 +906,24 @@ class CrystalOfTableaux(CrystalOfWords):
             shape = _Partitions(shape)
             return CrystalOfQueerTableaux(cartan_type, shape=shape)
         n = cartan_type.rank()
-        # standardize shape/shapes input into a tuple of tuples
+        # standardize shape/shapes input into a tuple of tuples of
+        # length n, or n+1 in type A
         assert operator.xor(shape is not None, shapes is not None)
         if shape is not None:
             shapes = (shape,)
-        spin_shapes = tuple( tuple(shape) for shape in shapes )
+        if cartan_type.type() == "A":
+            n1 = n+1
+        else:
+            n1 = n
+        spin_shapes = tuple( tuple(shape) + (0,)*(n1-len(shape)) for shape in shapes )
+        if not all(all(i == 0 for i in shape[n1:]) for shape in spin_shapes):
+            raise ValueError("shapes should all have length at most equal to the rank or the rank + 1 in type A")
         try:
             shapes = tuple( tuple(trunc(i) for i in shape) for shape in spin_shapes )
         except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
+            # shapes = tuple(_Partitions(shape) for shape in shapes)
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
 
         # Handle the construction of a crystals of spin tableaux
@@ -967,7 +975,14 @@ class CrystalOfTableaux(CrystalOfWords):
         self.letters = CrystalOfLetters(cartan_type)
         self.shapes = shapes
         self.module_generators = tuple(self.module_generator(la) for la in shapes)
-        self.rename("The crystal of tableaux of type %s and shape(s) %s"%(cartan_type, list(list(shape) for shape in shapes)))
+        def remove_trailing_zeros(shape):
+            i = len(shape)
+            while i > 0 and not shape[i-1]:
+                i -= 1
+            return list(shape[:i])
+        self.rename("The crystal of tableaux of type %s and shape(s) %s"
+                    % (cartan_type,
+                       list(remove_trailing_zeros(shape) for shape in shapes)))
 
     def cartan_type(self):
         """

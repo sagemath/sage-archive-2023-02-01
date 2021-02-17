@@ -43,7 +43,7 @@ from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType, SuperCartanType_standard
-from sage.combinat.partition import Partition
+from sage.combinat.partition import _Partitions
 from .letters import CrystalOfLetters
 from .spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrystalsElement,
@@ -897,12 +897,13 @@ class CrystalOfTableaux(CrystalOfWords):
         if cartan_type.letter == 'A' and isinstance(cartan_type, SuperCartanType_standard):
             if shape is None:
                 shape = shapes
+            shape = _Partitions(shape)
             from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
             return CrystalOfBKKTableaux(cartan_type, shape=shape)
         if cartan_type.letter == 'Q':
             if any(shape[i] == shape[i+1] for i in range(len(shape)-1)):
                 raise ValueError("not a strict partition")
-            shape = Partition(shape)
+            shape = _Partitions(shape)
             return CrystalOfQueerTableaux(cartan_type, shape=shape)
         n = cartan_type.rank()
         # standardize shape/shapes input into a tuple of tuples
@@ -915,6 +916,9 @@ class CrystalOfTableaux(CrystalOfWords):
         except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
+            print(shapes)
+            # print(tuple(_Partitions(shape) for shape in shapes))
+            # shapes = tuple(_Partitions(shape) for shape in shapes)
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
 
         # Handle the construction of a crystals of spin tableaux
@@ -1009,7 +1013,7 @@ class CrystalOfTableaux(CrystalOfWords):
             shape = shape[:-1] + (-shape[type[1]-1],)
         else:
             invert = False
-        p = Partition(shape).conjugate()
+        p = _Partitions(shape).conjugate()
         # The column canonical tableau, read by columns
         module_generator = flatten([[val-i for i in range(val)] for val in p])
         if invert:

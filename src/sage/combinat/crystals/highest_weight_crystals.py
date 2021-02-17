@@ -167,18 +167,16 @@ def HighestWeightCrystal(dominant_weight, model=None):
 
     Check that the correct crystal is constructed for the fundamental weights::
 
-        sage: from sage.databases.findstat import _finite_irreducible_cartan_types_by_rank as cartan_types
-        sage: for n in [1, 2, 3, 4, 6]: # these should cover the interesting cases
-        ....:     for ct in cartan_types(n):
-        ....:         L = ct.root_system().weight_lattice()
-        ....:         La = L.fundamental_weights()
-        ....:         for model in ['Tableaux', 'NakajimaMonomials', 'AlcovePaths', 'RiggedConfigurations']:
-        ....:             if model == 'Tableaux' and ct.type() in ["E", "F"]:
-        ....:                 continue
-        ....:             for wt in La:
-        ....:                 C = crystals.HighestWeight(wt, model=model)
-        ....:                 assert L.weyl_dimension(wt) == C.cardinality()
-        ....:                 assert C.highest_weight_vector().weight() == wt
+        sage: for ct in CartanType.samples(finite=True, crystallographic=True):
+        ....:     L = ct.root_system().weight_lattice()
+        ....:     La = L.fundamental_weights()
+        ....:     for model in ['Tableaux', 'NakajimaMonomials', 'AlcovePaths', 'RiggedConfigurations']:
+        ....:         if model == 'Tableaux' and ct.type() in ["E", "F"]:
+        ....:             continue
+        ....:         for wt in La:
+        ....:             C = crystals.HighestWeight(wt, model=model)
+        ....:             assert L.weyl_dimension(wt) == C.cardinality()
+        ....:             assert C.highest_weight_vector().weight() == wt
 
 
     """
@@ -195,17 +193,14 @@ def HighestWeightCrystal(dominant_weight, model=None):
             model = 'LSPaths'
 
     if model == 'Tableaux':
-        if cartan_type.type() == "G":
-            sh = sum([[i]*c for i, c in dominant_weight], [])
-            sh = Partition(reversed(sh)).conjugate()
-            return CrystalOfTableaux(cartan_type, shape=sh)
-
+        # we rely on the specific choice of positive roots here
+        # except in type G_2, the fundamental weights are realized by
+        # vectors with weakly decreasing nonnegative integer (or in
+        # type B_n and D_n, half-integer) entries
         sh = dominant_weight.to_ambient().to_vector()
-        from sage.rings.integer_ring import ZZ
-        if cartan_type.type() in ["B", "D"] and sh[-1] not in ZZ:
-            return CrystalOfTableaux(cartan_type, shape=sh)
-
-        return CrystalOfTableaux(cartan_type, shape=Partition(sh))
+        if cartan_type.type() == "G":
+            sh = (-sh)[2:0:-1]
+        return CrystalOfTableaux(cartan_type, shape=sh)
 
     if model == 'TypeE':
         if not cartan_type.is_finite() or cartan_type.type() != 'E':

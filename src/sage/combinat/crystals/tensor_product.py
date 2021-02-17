@@ -906,8 +906,8 @@ class CrystalOfTableaux(CrystalOfWords):
             shape = _Partitions(shape)
             return CrystalOfQueerTableaux(cartan_type, shape=shape)
         n = cartan_type.rank()
-        # standardize shape/shapes input into a tuple of tuples of
-        # length n, or n+1 in type A
+        # standardize shape/shapes input into a tuple of tuples
+        # of length n, or n+1 in type A
         assert operator.xor(shape is not None, shapes is not None)
         if shape is not None:
             shapes = (shape,)
@@ -923,7 +923,6 @@ class CrystalOfTableaux(CrystalOfWords):
         except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
-            # shapes = tuple(_Partitions(shape) for shape in shapes)
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
 
         # Handle the construction of a crystals of spin tableaux

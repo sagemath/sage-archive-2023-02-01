@@ -859,7 +859,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         u = recursion_rules.u
         ll = recursion_rules.ll
         uu = recursion_rules.uu
-        n_start = recursion_rules.n_start
+        n0 = recursion_rules.n0
         dim = recursion_rules.dim
         coeffs = recursion_rules.coeffs
         initial_values = recursion_rules.initial_values
@@ -919,11 +919,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         if n_start == 0:
             return Matrix(mat)
 
-
-    def _correct_matrices_(A, rem, n_start):
-
-
-
+    
     def _get_left_from_recursions_(self, dim):
         r"""
         Construct the vector ``left`` of the linear representation of

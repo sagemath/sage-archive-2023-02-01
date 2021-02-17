@@ -915,9 +915,9 @@ class CrystalOfTableaux(CrystalOfWords):
             n1 = n+1
         else:
             n1 = n
-        spin_shapes = tuple( tuple(shape) + (0,)*(n1-len(shape)) for shape in shapes )
-        if not all(all(i == 0 for i in shape[n1:]) for shape in spin_shapes):
+        if not all(all(i == 0 for i in shape[n1:]) for shape in shapes):
             raise ValueError("shapes should all have length at most equal to the rank or the rank + 1 in type A")
+        spin_shapes = tuple( (tuple(shape) + (0,)*(n1-len(shape)))[:n1] for shape in shapes )
         try:
             shapes = tuple( tuple(trunc(i) for i in shape) for shape in spin_shapes )
         except Exception:

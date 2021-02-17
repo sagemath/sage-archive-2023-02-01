@@ -957,7 +957,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
     class ElementMethods:
         def symmetric_form(self, la):
-            r"""Return the symmetric form of ``self`` with ``la``.
+            r"""
+            Return the symmetric form of ``self`` with ``la``.
 
             Return the pairing `( | )` on the weight lattice. See Chapter 6
             in Kac, Infinite Dimensional Lie Algebras for more details.

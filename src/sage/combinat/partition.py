@@ -316,7 +316,7 @@ from . import composition
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_lists import IntegerListsLex
-from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
+from sage.combinat.integer_vector_weighted import iterator_fast as weighted_iterator_fast
 from sage.combinat.combinat_cython import conjugate
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -7190,11 +7190,9 @@ class Partitions_parts_in(Partitions):
             <... 'list'>
         """
         sorted_parts = sorted(parts, reverse=True)
-        for vec in WeightedIntegerVectors(n, sorted_parts):
-            a = []
-            for pi, multi in zip(sorted_parts, vec):
-                a.extend([pi] *  multi)
-            yield a
+        for vec in weighted_iterator_fast(n, sorted_parts):
+            yield sum(([pi] * multi
+                       for pi, multi in zip(sorted_parts, vec)), [])
 
 
 class Partitions_starting(Partitions):

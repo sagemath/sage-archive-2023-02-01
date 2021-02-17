@@ -495,7 +495,7 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F,s = sr.polynomial_system()
             sage: P = F.ring()
             sage: I = F.ideal()
-            sage: J = I.elimination_ideal(prod(P.gens()[4:-4]))
+            sage: J = I.elimination_ideal(P.gens()[4:-4])
             sage: J <= I
             True
             sage: set(J.gens().variables()).issubset(P.gens()[:4] + P.gens()[-4:])

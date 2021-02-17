@@ -916,9 +916,6 @@ class CrystalOfTableaux(CrystalOfWords):
         except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
-            print(shapes)
-            # print(tuple(_Partitions(shape) for shape in shapes))
-            # shapes = tuple(_Partitions(shape) for shape in shapes)
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
 
         # Handle the construction of a crystals of spin tableaux

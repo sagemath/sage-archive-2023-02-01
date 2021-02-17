@@ -252,6 +252,54 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return self.has_arc_unsafe(u, v)
 
+    cdef inline int next_out_neighbor_unsafe(self, int u, int v, int* l) except -2:
+        """
+        Return the next out-neighbor of ``u`` after ``v``.
+
+        If ``v`` is ``-1`` return the first neighbor of ``u``.
+
+        Return ``-1`` in case there does not exist such an out-neighbor.
+
+        .. NOTE::
+
+            A caller may not alter ``l``.
+            It is used to keep track of the current position.
+        """
+        cdef int degree = out_degree(self.g, u)
+        if v == -1:
+            l[0] = -1
+        for i in range(l[0] + 1, degree):
+            if self.g.neighbors[u][i] != v:
+                l[0] = i
+                return self.g.neighbors[u][i]
+        else:
+            return -1
+
+    cdef inline int next_in_neighbor_unsafe(self, int u, int v, int* l) except -2:
+        """
+        Return the next in-neighbor of ``u`` after ``v``.
+
+        If ``v`` is ``-1`` return the first neighbor of ``u``.
+
+        Return ``-1`` in case there does not exist such an in-neighbor.
+
+        .. NOTE::
+
+            A caller may not alter ``l``.
+            It is used to keep track of the current position.
+        """
+        if not self._directed:
+            return self.next_out_neighbor_unsafe(u, v, l)
+        cdef int degree = out_degree(self.g_rev, u)
+        if v == -1:
+            l[0] = -1
+        for i in range(l[0] + 1, degree):
+            if self.g_rev.neighbors[u][i] != v:
+                l[0] = i
+                return self.g_rev.neighbors[u][i]
+        else:
+            return -1
+
     cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         cdef int degree = self.g.neighbors[u+1] - self.g.neighbors[u]
         cdef int i
@@ -506,7 +554,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         return v in self._vertex_to_int
 
-    def add_edge(self, u, v, l, directed):
+    cpdef add_edge(self, object u, object v, object l, bint directed):
         r"""
         Set edge label. No way.
 
@@ -551,7 +599,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         """
         raise ValueError("graph is immutable; please change a copy instead (use function copy())")
 
-    def del_edge(self, u, v, l, directed):
+    cpdef del_edge(self, object u, object v, object l, bint directed):
         r"""
         Set edge label. No way.
 

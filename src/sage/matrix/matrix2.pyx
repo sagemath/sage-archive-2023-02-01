@@ -8555,27 +8555,27 @@ cdef class Matrix(Matrix1):
         window.set(block.matrix_window())
 
     def subdivide(self, row_lines=None, col_lines=None):
-        """
-        Divides self into logical submatrices which can then be queried and
-        extracted. If a subdivision already exists, this method forgets the
+        r"""
+        Divides ``self`` into logical submatrices which can then be queried
+        and extracted.
+
+        If a subdivision already exists, this method forgets the
         previous subdivision and flushes the cache.
 
         INPUT:
 
+        - ``row_lines`` -- ``None``, an integer, or a list of
+          integers (lines at which self must be split)
 
-        -  ``row_lines`` - None, an integer, or a list of
-           integers (lines at which self must be split).
+        - ``col_lines`` -- ``None``, an integer, or a list of
+          integers (columns at which self must be split)
 
-        -  ``col_lines`` - None, an integer, or a list of
-           integers (columns at which self must be split).
-
-
-        OUTPUT: changes self
+        OUTPUT: ``None`` but changes ``self``
 
         .. NOTE::
 
            One may also pass a tuple into the first argument which
-           will be interpreted as (row_lines, col_lines)
+           will be interpreted as ``(row_lines, col_lines)``.
 
         EXAMPLES::
 
@@ -8644,8 +8644,25 @@ cdef class Matrix(Matrix1):
             [53|59 61|67 71]
             [--+-----+-----]
             [73|79 83|89 97]
-        """
 
+        TESTS:
+
+        Input such that the matrix has no subdivision results in
+        the ``_subdivision`` attribute being set to ``None``::
+
+            sage: A = matrix.identity(QQ, 4)
+            sage: A._subdivisions is None
+            True
+            sage: A.subdivide()
+            sage: A._subdivisions is None
+            True
+            sage: A.subdivide(2, 3)  # perform a subdivision
+            sage: A._subdivisions is None
+            False
+            sage: A.subdivide(([], []))  # now reset
+            sage: A._subdivisions is None
+            True
+        """
         self.check_mutability()
         if col_lines is None and row_lines is not None and isinstance(row_lines, tuple):
             tmp = row_lines
@@ -8658,13 +8675,16 @@ cdef class Matrix(Matrix1):
             col_lines = []
         elif not isinstance(col_lines, list):
             col_lines = [col_lines]
-        l_row = sorted(row_lines)
-        l_col = sorted(col_lines)
-        l_row = [0] + [int(ZZ(x)) for x in l_row] + [self._nrows]
-        l_col = [0] + [int(ZZ(x)) for x in l_col] + [self._ncols]
         if self._subdivisions is not None:
             self.clear_cache()
-        self._subdivisions = (l_row, l_col)
+        if (not row_lines) and (not col_lines):
+            self._subdivisions = None
+        else:
+            l_row = sorted(row_lines)
+            l_col = sorted(col_lines)
+            l_row = [0] + [int(ZZ(x)) for x in l_row] + [self._nrows]
+            l_col = [0] + [int(ZZ(x)) for x in l_col] + [self._ncols]
+            self._subdivisions = (l_row, l_col)
 
     def subdivision(self, i, j):
         """

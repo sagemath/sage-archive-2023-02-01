@@ -11,7 +11,12 @@ SAGE_SPKG_CONFIGURE([python3], [
          [AC_MSG_ERROR([building Sage --without-python is not supported])])
    ac_path_PYTHON3="$with_python"
 
-   SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [
+   dnl Trac #30559:  Removed the DEPCHECK for sqlite.  We never use libsqlite3 from SPKG for anything
+   dnl other than building the python3 SPKG; so our libsqlite3 cannot create shared library conflicts.
+   dnl
+   dnl However, if we add another package (providing a shared library linked into a Python module)
+   dnl that also uses libsqlite3, then we will have to put the DEPCHECK back in.
+   SAGE_SPKG_DEPCHECK([bzip2 xz libffi], [
       dnl Check if we can do venv with a system python3
       dnl instead of building our own copy.
       check_modules="sqlite3, ctypes, math, hashlib, crypt, readline, socket, zlib, distutils.core"
@@ -24,6 +29,9 @@ SAGE_SPKG_CONFIGURE([python3], [
            SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
                                            MIN_VERSION, LT_VERSION,
                                            $check_modules, [
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                        AC_MSG_WARN([this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132])
+                    ])
                     dnl It is good
                     ac_cv_path_PYTHON3="$ac_path_PYTHON3"
                     ac_path_PYTHON3_found=:
@@ -40,17 +48,24 @@ SAGE_SPKG_CONFIGURE([python3], [
                 SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
                                            MIN_VERSION, LT_VERSION,
                                            $check_modules, [
-                    dnl It is good
-                    ac_cv_path_PYTHON3="$ac_path_PYTHON3"
-                    ac_path_PYTHON3_found=:
-                    AC_MSG_RESULT([yes])
-                    dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
-                    AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                        AC_MSG_RESULT([no, this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132; to use it anyway, use ./configure --with-python=$ac_path_PYTHON3])
+                    ], [
+                        dnl It is good
+                        ac_cv_path_PYTHON3="$ac_path_PYTHON3"
+                        ac_path_PYTHON3_found=:
+                        AC_MSG_RESULT([yes])
+                        dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
+                        AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+                    ])
                 ])
             ])
 	])
       ])
-      AS_IF([test -z "$ac_cv_path_PYTHON3"], [sage_spkg_install_python3=yes])
+      AS_IF([test -z "$ac_cv_path_PYTHON3"], [
+          AC_MSG_NOTICE([to try to use a different system python, use ./configure --with-python=/path/to/python])
+          sage_spkg_install_python3=yes
+      ])
       m4_popdef([MIN_VERSION])
       m4_popdef([LT_VERSION])
     ])

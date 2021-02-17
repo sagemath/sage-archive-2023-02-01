@@ -2044,7 +2044,7 @@ class HasseDiagram(DiGraph):
 
         INPUT:
 
-        - upper, a Boolean -- if ``True``, test wheter the lattice is
+        - upper, a Boolean -- if ``True``, test whether the lattice is
           upper semimodular; otherwise test whether the lattice is
           lower semimodular.
 

@@ -157,7 +157,6 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 from urllib.request import urlopen
 from urllib.parse import urlencode
 
@@ -988,7 +987,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             A000053: Local stops on New York City Broadway line (IRT #1) subway.
 
             sage: f.keywords()                          # optional -- internet
-            ('nonn', 'fini', 'full')
+            ('nonn', 'fini', ...)
 
         TESTS::
 

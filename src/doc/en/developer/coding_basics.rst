@@ -1231,8 +1231,8 @@ Global Options
 Global options for classes can be defined in Sage using
 :class:`~sage.structure.global_options.GlobalOptions`.
 
-Miscellanous minor things
-=========================
+Miscellaneous minor things
+==========================
 
 Some decisions are arbitrary, but common conventions make life easier.
 
@@ -1260,7 +1260,7 @@ Some decisions are arbitrary, but common conventions make life easier.
     result. With ``certificate=True`` the return value should be a
     pair `(r, c)` where `r` is the result that would be given with
     ``certificate=False`` and `c` is the certificate or ``None`` if
-    there is no meaningfull certificate.
+    there is no meaningful certificate.
 
   * ``proof``, a Boolean with ``True`` as default: if ``True``,
     require a mathematically proven computation. If ``False``, a

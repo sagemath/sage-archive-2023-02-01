@@ -10,7 +10,6 @@ Root system data for super type A
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
@@ -276,7 +275,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         if i <= 0:
             return self.sum(self.monomial(j) for j in range(-m-1,i))
         return (self.sum(self.monomial(j) for j in range(-m-1,1))
-                - self.sum(self.monomial(j) for j in range(0,i+1))
+                - self.sum(self.monomial(j) for j in range(i+1))
                 - 2*self.sum(self.monomial(j) for j in range(i+1,n+2)))
 
     def simple_coroot(self, i):
@@ -630,11 +629,11 @@ class CartanType(SuperCartanType_standard):
         """
         from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self, odd_isotropic_roots=[0])
-        for i in range(0, self.m):
+        for i in range(self.m):
             g.add_edge(-i-1, -i)
         for i in range(1, self.n):
             g.add_edge(i, i+1)
-        g.add_vertex(0) # Usually there, but not when m == n == 0
+        g.add_vertex(0)  # Usually there, but not when m == n == 0
         if self.m > 0:
             g.add_edge(-1, 0)
         if self.n > 0:

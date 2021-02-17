@@ -5,7 +5,11 @@ from .PyPolyBoRi import (BooleSet, Polynomial,
 
 
 def all_monomials_of_degree_d_old(d, variables):
+    """
+    Return monomials of degree d in the given variables.
 
+    Obsolete version ?
+    """
     if d == 0:
         return BooleConstant(1)
 
@@ -19,13 +23,16 @@ def all_monomials_of_degree_d_old(d, variables):
     m = m.set()
     i = 0
     res = Polynomial(variables[0].ring().one()).set()
-    while(i < d):
-        i = i + 1
+    while i < d:
+        i += 1
         res = res.cartesian_product(m).diff(res)
     return res
 
 
 def all_monomials_of_degree_d(d, variables):
+    """
+    Return monomials of degree d in the given variables.
+    """
     variables = Monomial(variables)
     variables = list(variables.variables())
     if not variables:
@@ -57,6 +64,9 @@ def all_monomials_of_degree_d(d, variables):
 
 
 def power_set(variables):
+    """
+    Return all subsets of the given variables.
+    """
     if not variables:
         return BooleConstant(1)
     variables = sorted(set(variables), reverse=True, key=top_index)
@@ -79,11 +89,11 @@ if __name__ == '__main__':
     print(list(power_set([Variable(i) for i in range(2)])))
     print(list(power_set([Variable(i) for i in range(4)])))
     print(list(power_set([])))
-    #every monomial in the first 8 var, which is at most linear in the first 5
+    # every monomial in the first 8 var, which is at most linear in the first 5
     print(list(mod_mon_set(power_set([Variable(i) for i in range(8)]),
         all_monomials_of_degree_d(2, [Variable(i) for i in range(5)]))))
 
-    #specialized normal form computation
+    # specialized normal form computation
     print(Polynomial(
         mod_mon_set(
             (x(1) * x(2) + x(1) + 1).set(),
@@ -93,9 +103,7 @@ if __name__ == '__main__':
 
 
 def monomial_from_indices(ring, indices):
-    l = sorted(indices, reverse=True)
     res = Monomial(ring)
-    for i in l:
+    for i in sorted(indices, reverse=True):
         res = res * ring.variable(i)
-
     return res

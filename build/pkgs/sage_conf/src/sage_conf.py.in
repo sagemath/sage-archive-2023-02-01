@@ -14,7 +14,6 @@ SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 CBLAS_PC_MODULES = "cblas"
 
 # Used in sage.repl.ipython_kernel.install
-JSMOL_DIR   = "@prefix@/share/jsmol"
 MATHJAX_DIR = "@prefix@/share/mathjax"
 THREEJS_DIR = "@prefix@/share/threejs"
 

@@ -44,9 +44,10 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # ****************************************************************************
 
 from sage.data_structures.bitset_base cimport *
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, smallInteger
 from sage.arith.long cimport pyobject_to_long
-from libcpp.queue cimport priority_queue
+from libcpp.queue cimport priority_queue, queue
+from libcpp.stack cimport stack
 from libcpp.pair cimport pair
 from sage.rings.integer_ring import ZZ
 from cysignals.memory cimport check_allocarray, sig_free
@@ -1556,7 +1557,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         Return whether we should delete edges before adding any.
 
         This is in particular required if the backend theoretically allows
-        multiple edges but the graph should not have multiple egdes.
+        multiple edges but the graph should not have multiple edges.
         """
         return not self._multiple_edges
 
@@ -2303,16 +2304,18 @@ cdef class CGraphBackend(GenericGraphBackend):
     cdef int new_edge_label(self, object l) except -1:
         raise NotImplementedError()
 
-    def add_edges(self, object edges, bint directed):
+    def add_edges(self, object edges, bint directed, bint remove_loops=False):
         """
         Add edges from a list.
 
         INPUT:
 
-         - ``edges`` -- the edges to be added; can either be of the form
-           ``(u,v)`` or ``(u,v,l)``
+        - ``edges`` -- the edges to be added; can either be of the form
+          ``(u,v)`` or ``(u,v,l)``
 
-         - ``directed`` -- if False, add ``(v,u)`` as well as ``(u,v)``
+        - ``directed`` -- if ``False``, add ``(v,u)`` as well as ``(u,v)``
+
+        - ``remove_loops`` -- if ``True``, remove loops
 
         EXAMPLES::
 
@@ -2332,6 +2335,8 @@ cdef class CGraphBackend(GenericGraphBackend):
             else:
                 u,v = e
                 l = None
+            if unlikely(remove_loops and u == v):
+                continue
             self.add_edge(u,v,l,directed)
 
     cpdef add_edge(self, object u, object v, object l, bint directed):
@@ -2435,7 +2440,36 @@ cdef class CGraphBackend(GenericGraphBackend):
         if not directed and self._directed and v_int != u_int:
             cg.add_arc_label_unsafe(v_int, u_int, l_int)
 
-    def del_edge(self, object u, object v, object l, bint directed):
+    def del_edges(self, object edges, bint directed):
+        """
+        Delete edges from a list.
+
+        INPUT:
+
+        - ``edges`` -- the edges to be added; can either be of the form
+          ``(u,v)`` or ``(u,v,l)``
+
+        - ``directed`` -- if ``False``, remove``(v,u)`` as well as ``(u,v)``
+
+        EXAMPLES::
+
+            sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
+            sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: D.del_edges([(0,1), (2,3), (4,5), (5,6)], False)
+            sage: list(D.iterator_edges(range(9), True))
+            []
+
+        """
+        cdef object u,v,l,e
+        for e in edges:
+            if len(e) == 3:
+                u,v,l = e
+            else:
+                u,v = e
+                l = None
+            self.del_edge(u,v,l,directed)
+
+    cpdef del_edge(self, object u, object v, object l, bint directed):
         """
         Delete edge ``(u, v, l)``.
 
@@ -2513,21 +2547,27 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: g.delete_edge(0,0); g.edges(labels=False)
             [(0, 0), (0, 0)]
         """
-        if not (self.has_vertex(u) and self.has_vertex(v)):
+        cdef int u_int = self.get_vertex_checked(u)
+        cdef int v_int = self.get_vertex_checked(v)
+
+        if u_int == -1 or v_int == -1:
             return
-        cdef int u_int = self.check_labelled_vertex(u, False)
-        cdef int v_int = self.check_labelled_vertex(v, False)
 
         cdef CGraph cg = self.cg()
 
         if l is None:
-            if cg.has_arc_label(u_int, v_int, 0):
+            if cg.has_arc_label_unsafe(u_int, v_int, 0):
                 l_int = 0
             else:
-                l_int = cg.arc_label(u_int, v_int)
+                l_int = cg.arc_label_unsafe(u_int, v_int)
+        elif not self._multiple_edges:
+            l_int = cg.arc_label_unsafe(u_int, v_int)
+            if not l_int or not self.edge_labels[l_int] == l:
+                # The requested edge does not exist.
+                return
         else:
-            for l_int in self.edge_labels:
-                if self.edge_labels[l_int] == l and cg.has_arc_label(u_int, v_int, l_int):
+            for l_int in cg.all_arcs(u_int, v_int):
+                if l_int and self.edge_labels[l_int] == l:
                     break
             else:
                 return
@@ -4248,7 +4288,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                                reverse=reverse,
                                ignore_direction=ignore_direction)
 
-    def breadth_first_search(self, v, reverse=False, ignore_direction=False):
+    def breadth_first_search(self, v, reverse=False, ignore_direction=False, report_distance=False, edges=False):
         r"""
         Return a breadth-first search from vertex ``v``.
 
@@ -4263,6 +4303,18 @@ cdef class CGraphBackend(GenericGraphBackend):
         - ``ignore_direction`` -- boolean (default: ``False``); this is only
           relevant to digraphs. If this is a digraph, ignore all orientations
           and consider the graph as undirected.
+
+        - ``report_distance`` -- boolean (default: ``False``); if ``True``,
+          reports pairs ``(vertex, distance)`` where ``distance`` is the
+          distance from the ``start`` nodes. If ``False`` only the vertices are
+          reported.
+
+        - ``edges`` -- boolean (default: ``False``); whether to return the edges
+          of the BFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
+
+          Note that parameters ``edges`` and ``report_distance`` cannot be
+          ``True`` simultaneously.
 
         ALGORITHM:
 
@@ -4320,7 +4372,9 @@ cdef class CGraphBackend(GenericGraphBackend):
                                v,
                                direction=0,
                                reverse=reverse,
-                               ignore_direction=ignore_direction)
+                               ignore_direction=ignore_direction,
+                               report_distance=report_distance,
+                               edges=edges)
 
     ###################################
     # Connectedness
@@ -4644,18 +4698,17 @@ cdef class Search_iterator:
     - ``graph`` -- a graph whose vertices are to be iterated over.
 
     - ``direction`` -- integer; this determines the position at which vertices
-      to be visited are removed from the list ``stack``. For breadth-first
-      search (BFS), element removal occurs at the start of the list, as
-      signified by the value ``direction=0``. This is because in implementations
-      of BFS, the list of vertices to visit are usually maintained by a queue,
-      so element insertion and removal follow a first-in first-out (FIFO)
-      protocol. For depth-first search (DFS), element removal occurs at the end
-      of the list, as signified by the value ``direction=-1``. The reason is
-      that DFS is usually implemented using a stack to maintain the list of
-      vertices to visit. Hence, element insertion and removal follow a last-in
-      first-out (LIFO) protocol.
+      to be visited are removed from the list. For breadth-first search (BFS),
+      element removal follow a first-in first-out (FIFO) protocol, as signified
+      by the value ``direction=0``. We use a queue to maintain the list of
+      vertices to visit in this case. For depth-first search (DFS), element
+      removal follow a last-in first-out (LIFO) protocol, as signified by the
+      value ``direction=-1``. In this case, we use a stack to maintain the list
+      of vertices to visit.
 
-    - ``stack`` -- a list of vertices to visit
+    - ``stack`` -- a list of vertices to visit, used only when ``direction=-1``
+
+    - ``queue`` -- a queue of vertices to visit, used only when ``direction=0``
 
     - ``seen`` -- a list of vertices that are already visited
 
@@ -4677,14 +4730,21 @@ cdef class Search_iterator:
 
     cdef CGraphBackend graph
     cdef int direction
-    cdef list stack
+    cdef stack[int] lifo
+    cdef queue[int] fifo
+    cdef queue[int] fifo_edges
+    cdef int first_with_new_distance
+    cdef int current_distance
+    cdef int n
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
+    cdef bint report_distance  # assumed to be constant after initialization
+    cdef bint edges            # assumed to be constant after initialization
     cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
-                 ignore_direction=False):
+                 ignore_direction=False, report_distance=False, edges=False):
         r"""
         Initialize an iterator for traversing a (di)graph.
 
@@ -4695,17 +4755,14 @@ cdef class Search_iterator:
         - ``v`` -- a vertex in ``graph`` from which to start the traversal
 
         - ``direction`` -- integer (default: ``0``); this determines the
-          position at which vertices to be visited are removed from the list
-          ``stack`` of vertices to visit. For breadth-first search (BFS),
-          element removal occurs at the start of the list, as signified by the
-          value ``direction=0``. This is because in implementations of BFS, the
-          list of vertices to visit are usually maintained by a queue, so
-          element insertion and removal follow a first-in first-out (FIFO)
-          protocol. For depth-first search (DFS), element removal occurs at the
-          end of the list, as signified by the value ``direction=-1``. The
-          reason is that DFS is usually implemented using a stack to maintain
-          the list of vertices to visit. Hence, element insertion and removal
-          follow a last-in first-out (LIFO) protocol.
+          position at which vertices to be visited are removed from the
+          list. For breadth-first search (BFS), element removal follow a
+          first-in first-out (FIFO) protocol, as signified by the value
+          ``direction=0``. We use a queue to maintain the list of vertices to
+          visit in this case. For depth-first search (DFS), element removal
+          follow a last-in first-out (LIFO) protocol, as signified by the value
+          ``direction=-1``. In this case, we use a stack to maintain the list of
+          vertices to visit.
 
         - ``reverse`` -- boolean (default: ``False``); this is only relevant to
           digraphs. If ``graph`` is a digraph, consider the reversed graph in
@@ -4714,6 +4771,20 @@ cdef class Search_iterator:
         - ``ignore_direction`` -- boolean (default: ``False``); this is only
           relevant to digraphs. If ``graph`` is a digraph, ignore all
           orientations and consider the graph as undirected.
+
+        - ``report_distance`` -- boolean (default: ``False``); if ``True``,
+          reports pairs ``(vertex, distance)`` where ``distance`` is the
+          distance from the ``start`` nodes. If ``False`` only the vertices are
+          reported.
+          Only allowed for ``direction=0``, i.e. BFS.
+
+        - ``edges`` -- boolean (default: ``False``); whether to return the edges
+          of the BFS tree in the order of visit or the vertices (default).
+          Edges are directed in root to leaf orientation of the tree.
+          Only allowed for ``direction=0``, i.e. BFS.
+
+          Note that parameters ``edges`` and ``report_distance`` cannot be
+          ``True`` simultaneously.
 
         EXAMPLES::
 
@@ -4745,8 +4816,17 @@ cdef class Search_iterator:
         """
         self.graph = graph
         self.direction = direction
+        if direction != 0 and report_distance:
+            raise ValueError("can only report distance for breadth first search")
+        self.report_distance = report_distance
+        if direction != 0 and edges:
+            raise ValueError("can only list edges for breadth first search")
+        if report_distance and edges:
+            raise ValueError("cannot report distance while returning the edges of the BFS tree")
+        self.edges = edges
 
-        bitset_init(self.seen, self.graph.cg().active_vertices.size)
+        self.n = self.graph.cg().active_vertices.size
+        bitset_init(self.seen, self.n)
         bitset_set_first_n(self.seen, 0)
 
         cdef int v_id = self.graph.get_vertex(v)
@@ -4754,7 +4834,15 @@ cdef class Search_iterator:
         if v_id == -1:
             raise LookupError("vertex ({0}) is not a vertex of the graph".format(repr(v)))
 
-        self.stack = [v_id]
+        if direction == 0:
+            self.fifo.push(v_id)
+            self.first_with_new_distance = -1
+            self.current_distance = 0
+            bitset_add(self.seen, v_id)
+            if self.edges:
+                self.fifo_edges.push(-1)
+        else:
+            self.lifo.push(v_id)
 
         if not self.graph._directed:
             ignore_direction = False
@@ -4762,8 +4850,12 @@ cdef class Search_iterator:
         self.test_out = (not reverse) or ignore_direction
         self.test_in = reverse or ignore_direction
 
-        if self.test_in: # How do we list in_neighbors ?
+        if self.test_in:  # How do we list in_neighbors ?
             self.in_neighbors = self.graph.cg().in_neighbors
+
+        if self.edges:
+            # The root is not the end of any edge and must therefore be ignored.
+            self.next_breadth_first_search()
 
     def __dealloc__(self):
         r"""
@@ -4783,9 +4875,9 @@ cdef class Search_iterator:
         """
         return self
 
-    def __next__(self):
+    cdef inline next_breadth_first_search(self):
         r"""
-        Return the next vertex in a traversal of a graph.
+        Return the next vertex in a breadth first search traversal of a graph.
 
         EXAMPLES::
 
@@ -4795,27 +4887,113 @@ cdef class Search_iterator:
             sage: next(g.breadth_first_search(0))
             0
         """
+        cdef int v_int, v_dist
+        cdef int w_int
+        cdef int l
+        cdef CGraph cg = self.graph.cg()
+
+        if not self.fifo.empty():
+            v_int = self.fifo.front()
+            self.fifo.pop()
+            if v_int == self.first_with_new_distance:
+                self.current_distance += 1
+                self.first_with_new_distance = -1
+            value = self.graph.vertex_label(v_int)
+
+            if self.edges:
+                prev_int = self.fifo_edges.front()
+                self.fifo_edges.pop()
+                value_prev = self.graph.vertex_label(prev_int) if prev_int != -1 else None
+
+            if self.test_out:
+                w_int = cg.next_out_neighbor_unsafe(v_int, -1, &l)
+                while w_int != -1:
+                    if bitset_not_in(self.seen, w_int):
+                        bitset_add(self.seen, w_int)
+                        self.fifo.push(w_int)
+                        if self.first_with_new_distance == -1:
+                            self.first_with_new_distance = w_int
+                        if self.edges:
+                            self.fifo_edges.push(v_int)
+                    w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
+            if self.test_in:
+                w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
+                while w_int != -1:
+                    if bitset_not_in(self.seen, w_int):
+                        bitset_add(self.seen, w_int)
+                        self.fifo.push(w_int)
+                        if self.first_with_new_distance == -1:
+                            self.first_with_new_distance = w_int
+                        if self.edges:
+                            self.fifo_edges.push(v_int)
+                    w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
+
+        else:
+            raise StopIteration
+
+        if self.report_distance:
+            return value, smallInteger(self.current_distance)
+        elif self.edges:
+            return value_prev, value
+        return value
+
+    cdef inline next_depth_first_search(self):
+        r"""
+        Return the next vertex in a depth first search traversal of a graph.
+
+        EXAMPLES::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.depth_first_search(0)
+            <generator object ...depth_first_search at ...
+            sage: next(g.depth_first_search(0))
+            0
+        """
         cdef int v_int
         cdef int w_int
+        cdef int l
+        cdef CGraph cg = self.graph.cg()
 
-        while self.stack:
-            v_int = self.stack.pop(self.direction)
+        while not self.lifo.empty():
+            v_int = self.lifo.top()
+            self.lifo.pop()
 
             if bitset_not_in(self.seen, v_int):
                 value = self.graph.vertex_label(v_int)
                 bitset_add(self.seen, v_int)
 
                 if self.test_out:
-                    self.stack.extend(self.graph.cg().out_neighbors(v_int))
+                    w_int = cg.next_out_neighbor_unsafe(v_int, -1, &l)
+                    while w_int != -1:
+                        self.lifo.push(w_int)
+                        w_int = cg.next_out_neighbor_unsafe(v_int, w_int, &l)
                 if self.test_in:
-                    self.stack.extend(self.in_neighbors(v_int))
-
+                    w_int = cg.next_in_neighbor_unsafe(v_int, -1, &l)
+                    while w_int != -1:
+                        self.lifo.push(w_int)
+                        w_int = cg.next_in_neighbor_unsafe(v_int, w_int, &l)
                 break
+
         else:
             raise StopIteration
 
         return value
 
+    def __next__(self):
+        r"""
+        Return the next vertex in a breadth first search traversal of a graph.
+
+        EXAMPLES::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.breadth_first_search(0)
+            <generator object ...breadth_first_search at ...
+            sage: next(g.breadth_first_search(0))
+            0
+        """
+        if self.direction == 0:
+            return self.next_breadth_first_search()
+        return self.next_depth_first_search()
 
 ##############################
 # Functions to simplify edge iterator.

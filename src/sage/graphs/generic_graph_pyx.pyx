@@ -25,7 +25,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 import cython
 
-include "sage/data_structures/binary_matrix.pxi"
+from sage.data_structures.binary_matrix cimport *
 from libc.math cimport sqrt, fabs
 from libc.string cimport memset
 

@@ -24,7 +24,10 @@ cpdef hessenbergize_cdvf(Matrix_generic_dense H):
     r"""
     Replace `H` with an Hessenberg form of it.
 
-    NOTE::
+    .. NOTE::
+
+        This function assumes that H is a matrix over
+        a complete discrete valuation field.
 
         The pivot on each column is always chosen
         with maximal relative precision, which ensures 

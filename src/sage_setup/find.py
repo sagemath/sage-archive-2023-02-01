@@ -196,12 +196,12 @@ def filter_cython_sources(src_dir, distributions):
 
     Cython module relying on tdlib::
 
-        sage: 'sage/graphs/graph_decompositions/tdlib.pyx' in cython_modules
+        sage: any(f.endswith('sage/graphs/graph_decompositions/tdlib.pyx') for f in cython_modules)
         True
 
     Cython module not relying on tdlib::
 
-        sage: 'sage/structure/sage_object.pyx' in cython_modules
+        sage: any(f.endswith('sage/structure/sage_object.pyx') for f in cython_modules)
         False
 
     Benchmarking::

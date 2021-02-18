@@ -316,8 +316,7 @@ def installed_files_by_module(site_packages, modules=('sage',)):
 
     EXAMPLES::
 
-        sage: from site import getsitepackages
-        sage: site_packages = getsitepackages()[0]
+        sage: site_packages = os.path.dirname(os.path.dirname(sage.__file__))
         sage: from sage_setup.find import installed_files_by_module
         sage: files_by_module = installed_files_by_module(site_packages)
         sage: from sage.misc.sageinspect import loadable_module_extension

@@ -43,15 +43,17 @@ export SAGE_SHARE=/doesnotexist
 # spec, which includes setting a symlink to the installed documentation.
 # export SAGE_DOC=/doesnotexist
 
+SITEPACKAGESDIR=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 if [ "$SAGE_EDITABLE" = yes ]; then
     # In an incremental build, we may need to uninstall old versions installed by distutils
     # under the old distribution name "sage" (before #30912, which switched to setuptools
     # and renamed the distribution to "sagemath-standard").  There is no clean way to uninstall
     # them, so we just use rm.
-    SITEPACKAGESDIR=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
     (cd "$SITEPACKAGESDIR" && rm -rf sage sage_setup sage-[1-9]*.egg-info sage-[1-9]*.dist-info)
     time python3 -m pip install --verbose --no-deps --no-index --no-build-isolation --isolated --editable . || exit 1
 else
+    # Likewise, we should remove the egg-link that may have been installed previously.
+    (cd "$SITEPACKAGESDIR" && rm -f sagemath-standard.egg-link)
     time python3 -u setup.py --no-user-cfg build install || exit 1
 fi
 

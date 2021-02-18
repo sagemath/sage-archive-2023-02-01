@@ -539,7 +539,7 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
         """
         return standard_bracketing(self._lyndon(*args, **kwds))
 
-    def __contains__(self, sbw):
+    def __contains__(self, sblw):
         r"""
         EXAMPLES:
 
@@ -555,8 +555,11 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
             sage: [1, 2] in S
             False
         """
-        w = standard_unbracketing(sbw)
-        return len(w) == self._k and len(set(w)) <= self._n
+        try:
+            lw = standard_unbracketing(sblw)
+        except ValueError:
+            return False
+        return len(lw) == self._k and len(lw.parent().alphabet()) <= self._n
 
     def __iter__(self):
         """
@@ -601,24 +604,28 @@ def standard_bracketing(lw):
             return [standard_bracketing(lw[:i]), standard_bracketing(lw[i:])]
 
 def standard_unbracketing(sblw):
-    r"""
+    """
     Return flattened ``sblw`` if it is a standard bracketing of a Lyndon word,
-    otherwise return an empty list.
+    otherwise raise an error.
 
     EXAMPLES::
 
         sage: from sage.combinat.words.lyndon_word import standard_unbracketing
         sage: standard_unbracketing([1, [2, 3]])
-        [1, 2, 3]
+        word: 123
         sage: standard_unbracketing([[1, 2], 3])
-        []
+        Traceback (most recent call last):
+        ...
+        ValueError: not a standard bracketing of a Lyndon word
 
     TESTS::
 
         sage: standard_unbracketing(1) # Letters don't use brackets.
-        [1]
+        word: 1
         sage: standard_unbracketing([1])
-        []
+        Traceback (most recent call last):
+        ...
+        ValueError: not a standard bracketing of a Lyndon word
     """
     # Nested helper function that not only returns (flattened) w, but also its
     # right factor in the standard Lyndon factorization.
@@ -626,18 +633,15 @@ def standard_unbracketing(sblw):
         if not isinstance(w, list):
             return [w], []
         if len(w) != 2:
-            return [], []
+            raise ValueError("not a standard bracketing of a Lyndon word")
         x, t = standard_unbracketing_rec(w[0])
-        if not x:
-            return [], []
         y, _ = standard_unbracketing_rec(w[1])
-        if not y:
-            return [], []
         # If x = st is a standard Lyndon factorization, and y is a Lyndon word
         # such that y <= t, then xy is standard (but not necessarily Lyndon).
         if x < y and (len(t) == 0 or y <= t):
             x += y
             return x, y
         else:
-            return [], []
-    return standard_unbracketing_rec(sblw)[0]
+            raise ValueError("not a standard bracketing of a Lyndon word")
+    lw, _ = standard_unbracketing_rec(sblw)
+    return FiniteWords(list(set(lw)))(lw, datatype='list', check=False)

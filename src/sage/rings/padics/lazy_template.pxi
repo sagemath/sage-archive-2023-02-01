@@ -805,6 +805,7 @@ cdef class LazyElement(pAdicGenericElement):
         """
         if self._precrel:
             return True
+        # return self != 0
         self._jump_relative_c(1, self._valuation + self._parent.default_prec())
         return bool(self._precrel)
 

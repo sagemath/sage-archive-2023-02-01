@@ -36,7 +36,7 @@ from .padic_lattice_element import pAdicLatticeElement, pAdicLatticeCapElement, 
 class CappedAbsoluteGeneric(LocalGeneric):
     def is_capped_absolute(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a
+        Return whether this `p`-adic ring bounds precision in a
         capped absolute fashion.
 
         The absolute precision of an element is the power of `p` modulo
@@ -61,7 +61,7 @@ class CappedAbsoluteGeneric(LocalGeneric):
 
     def _prec_type(self):
         """
-        Returns the precision handling type.
+        Return the precision handling type.
 
         EXAMPLES::
 
@@ -73,7 +73,7 @@ class CappedAbsoluteGeneric(LocalGeneric):
 class CappedRelativeGeneric(LocalGeneric):
     def is_capped_relative(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a capped
+        Return whether this `p`-adic ring bounds precision in a capped
         relative fashion.
 
         The relative precision of an element is the power of p modulo
@@ -98,7 +98,7 @@ class CappedRelativeGeneric(LocalGeneric):
 
     def _prec_type(self):
         """
-        Returns the precision handling type.
+        Return the precision handling type.
 
         EXAMPLES::
 
@@ -110,7 +110,7 @@ class CappedRelativeGeneric(LocalGeneric):
 class FixedModGeneric(LocalGeneric):
     def is_fixed_mod(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a fixed
+        Return whether this `p`-adic ring bounds precision in a fixed
         modulus fashion.
 
         The absolute precision of an element is the power of p modulo
@@ -136,7 +136,7 @@ class FixedModGeneric(LocalGeneric):
 
     def _prec_type(self):
         """
-        Returns the precision handling type.
+        Return the precision handling type.
 
         EXAMPLES::
 
@@ -148,7 +148,7 @@ class FixedModGeneric(LocalGeneric):
 class FloatingPointGeneric(LocalGeneric):
     def is_floating_point(self):
         """
-        Returns whether this `p`-adic ring uses a floating point precision model.
+        Return whether this `p`-adic ring uses a floating point precision model.
 
         Elements in the floating point model are stored by giving a
         valuation and a unit part.  Arithmetic is done where the unit
@@ -172,7 +172,7 @@ class FloatingPointGeneric(LocalGeneric):
 
     def _prec_type(self):
         """
-        Returns the precision handling type.
+        Return the precision handling type.
 
         EXAMPLES::
 
@@ -359,7 +359,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
 
     def is_lattice_prec(self):
         """
-        Returns whether this `p`-adic ring bounds precision using
+        Return whether this `p`-adic ring bounds precision using
         a lattice model.
 
         In lattice precision, relationships between elements
@@ -912,7 +912,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
     def an_element(self, unbounded=False):
         r"""
-        Returns an element in this ring.
+        Return an element in this ring.
 
         EXAMPLES::
 
@@ -929,7 +929,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
     def some_elements(self, unbounded=False):
         r"""
-        Returns a list of elements in this ring.
+        Return a list of elements in this ring.
 
         This is typically used for running generic tests (see :class:`TestSuite`).
 
@@ -1093,7 +1093,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
     def teichmuller(self, x):
         r"""
-        Return the Teichmüller representative of `x`.
+        Return the Teichmuller representative of `x`.
 
         EXAMPLES::
 
@@ -1108,7 +1108,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
     def teichmuller_system(self):
         r"""
-        Returns a set of teichmuller representatives for the invertible elements
+        Return a set of teichmuller representatives for the invertible elements
         of `\ZZ / p\ZZ`.
 
         EXAMPLES::
@@ -1128,7 +1128,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
 def is_pAdicRing(R):
     """
-    Returns ``True`` if and only if ``R`` is a `p`-adic ring (not a
+    Return ``True`` if and only if ``R`` is a `p`-adic ring (not a
     field).
 
     EXAMPLES::
@@ -1143,7 +1143,7 @@ def is_pAdicRing(R):
 class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
     def is_field(self, proof = True):
         """
-        Returns whether this ring is actually a field, ie ``False``.
+        Return whether this ring is actually a field, ie ``False``.
 
         EXAMPLES::
 
@@ -1155,7 +1155,7 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
     def krull_dimension(self):
         r"""
-        Returns the Krull dimension of self, i.e. 1
+        Return the Krull dimension of self, i.e. 1
 
         INPUT:
 
@@ -1269,7 +1269,7 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
 
 def is_pAdicField(R):
     """
-    Returns ``True`` if and only if ``R`` is a `p`-adic field.
+    Return ``True`` if and only if ``R`` is a `p`-adic field.
 
     EXAMPLES::
 
@@ -1330,7 +1330,7 @@ class pAdicFloatingPointFieldGeneric(pAdicFieldGeneric, FloatingPointFieldGeneri
 class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
     def construction(self, forbid_frac_field=False):
         """
-        Returns the functorial construction of self, namely,
+        Return the functorial construction of self, namely,
         completion of the rational numbers with respect a given prime.
 
         Also preserves other information that makes this field unique
@@ -1368,7 +1368,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
 
     def random_element(self, algorithm='default'):
         r"""
-        Returns a random element of self, optionally using the
+        Return a random element of self, optionally using the
         algorithm argument to decide how it generates the
         element. Algorithms currently implemented:
 
@@ -1411,7 +1411,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
 class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
     def composite(self, subfield1, subfield2):
         r"""
-        Returns the composite of two subfields of self, i.e., the
+        Return the composite of two subfields of self, i.e., the
         largest subfield containing both
 
         INPUT:
@@ -1436,7 +1436,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
 
     def subfields_of_degree(self, n):
         r"""
-        Returns the number of subfields of self of degree `n`
+        Return the number of subfields of self of degree `n`
 
         INPUT:
 
@@ -1460,7 +1460,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
 
     def subfield(self, list):
         r"""
-        Returns the subfield generated by the elements in list
+        Return the subfield generated by the elements in list
 
         INPUT:
 
@@ -1483,7 +1483,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
 
     def construction(self, forbid_frac_field=False):
         """
-        Returns the functorial construction of ``self``, namely,
+        Return the functorial construction of ``self``, namely,
         completion of the rational numbers with respect a given prime.
 
         Also preserves other information that makes this field unique

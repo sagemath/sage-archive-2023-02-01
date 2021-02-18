@@ -13,7 +13,7 @@ EXAMPLES:
 
 Creation of a morphism::
 
-    sage: n = WordMorphism(...)
+    sage: m = WordMorphism('a->abc,b->baba,c->ca')
 
 """
 
@@ -81,13 +81,36 @@ class WordDatatype_morphic(WordDatatype_callable):
             self._coding = coding
             
     def representation(self, n):
-        """
+        r"""
+        Return the representation of the integer n in the numeration system
+        associated to the morphism.
+
+        INPUT:
+
+        - ``n`` -- nonnegative integer
+
+        OUTPUT:
+
+        list
+        
         EXAMPLES::
         
-            sage: from sage.combinat.words.morphic import WordDatatype_morphic
+            sage: m = WordMorphism('a->ab,b->a')
+            sage: w = m.fixed_point('a')
+            sage: w.representation(5)
+            [1, 0, 0, 0]
+
+        TESTS:
+
+        Accessing this method from an instance of the current class (no using
+        the inherited word classes)::
+            
             sage: m = WordMorphism('a->ab,b->a')
             sage: W = m.domain()
-            sage: w = WordDatatype_morphic(W,m,'a')
+            sage: from sage.combinat.words.morphic import WordDatatype_morphic
+            sage: w = WordDatatype_morphic(W, m, 'a')
+            sage: type(w)
+            <class 'sage.combinat.words.morphic.WordDatatype_morphic'>           
             sage: w.representation(5)
             [1, 0, 0, 0]
         """
@@ -122,9 +145,40 @@ class WordDatatype_morphic(WordDatatype_callable):
 
     def _func(self, key):
         """
+        Returns a letter of a fixed point of a morphism on position ``key``.
+
+        INPUT:
+
+        - ``self`` - a fixed point of a morphism
+        - ``key`` - an integer, the position
+
+        OUTPUT:
+
+        - a letter
+
         EXAMPLES::
         
-            sage: print('add doc + examples here')
+            sage: m = WordMorphism("a->ab,b->a")
+            sage: w = m.fixed_point("a")
+            sage: w[0]
+            'a'
+            sage: w[5]
+            'a'
+            sage: w[10000]
+            'a'
+
+        TESTS:
+
+        Accessing this method from an instance of the current class (no using
+        the inherited word classes)::
+            
+            sage: m = WordMorphism('a->ab,b->a')
+            sage: W = m.domain()
+            sage: from sage.combinat.words.morphic import WordDatatype_morphic
+            sage: w = WordDatatype_morphic(W, m, 'a')
+            sage: w._func(5)
+            'a'
+       
         """
         letter = self._letter
         for a in self.representation(key):
@@ -154,29 +208,40 @@ class WordDatatype_morphic(WordDatatype_callable):
 
         EXAMPLES::
 
+            sage: m = WordMorphism("a->ab,b->a")
+            sage: w = m.fixed_point("a")
+            sage: it = iter(w)
+            sage: [next(it) for _ in range(10)]
+            ['a', 'b', 'a', 'a', 'b', 'a', 'b', 'a', 'a', 'b']
+
+        Works with erasing morphisms::
+
             sage: m = WordMorphism('a->abc,b->,c->')
-            sage: list(m._fixed_point_iterator('a'))
+            sage: w = m.fixed_point("a")
+            sage: list(w)
             ['a', 'b', 'c']
-            sage: print('update the examples here')
 
         The morphism must be prolongable on the letter or the iterator will
         be empty::
 
-            sage: list(m._fixed_point_iterator('b'))
-            []
+            sage: list(m.fixed_point("b"))
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be prolongable on b
 
         The morphism must be an endomorphism::
 
             sage: m = WordMorphism('a->ac,b->aac')
-            sage: list(m._fixed_point_iterator('a'))
+            sage: w = m.fixed_point('a')
             Traceback (most recent call last):
             ...
-            KeyError: 'c'
+            TypeError: self (=a->ac, b->aac) is not an endomorphism
 
         We check that :trac:`8595` is fixed::
 
             sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
-            sage: it = s._fixed_point_iterator(('a',1))
+            sage: w = s.fixed_point(('a', 1))
+            sage: it = iter(w)
             sage: next(it)
             ('a', 1)
 

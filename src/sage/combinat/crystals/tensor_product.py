@@ -51,6 +51,7 @@ from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrysta
         TensorProductOfSuperCrystalsElement, TensorProductOfQueerSuperCrystalsElement)
 from sage.misc.flatten import flatten
 from sage.structure.element import get_coercion_model
+from sage.rings.semirings.non_negative_integer_semiring import NN
 
 ##############################################################################
 # Until trunc gets implemented in sage.function.other
@@ -923,6 +924,7 @@ class CrystalOfTableaux(CrystalOfWords):
         except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
+            shapes = tuple(_Partitions(shape) if shape[n1-1] in NN else shape for shape in shapes)
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
 
         # Handle the construction of a crystals of spin tableaux
@@ -974,14 +976,8 @@ class CrystalOfTableaux(CrystalOfWords):
         self.letters = CrystalOfLetters(cartan_type)
         self.shapes = shapes
         self.module_generators = tuple(self.module_generator(la) for la in shapes)
-        def remove_trailing_zeros(shape):
-            i = len(shape)
-            while i > 0 and not shape[i-1]:
-                i -= 1
-            return list(shape[:i])
         self.rename("The crystal of tableaux of type %s and shape(s) %s"
-                    % (cartan_type,
-                       list(remove_trailing_zeros(shape) for shape in shapes)))
+                    % (cartan_type, list(list(shape) for shape in shapes)))
 
     def cartan_type(self):
         """

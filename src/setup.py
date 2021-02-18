@@ -9,10 +9,11 @@ import time
 from setuptools import setup, find_namespace_packages
 from distutils import log
 import multiprocessing.pool
-import sage.misc.lazy_import_cache
 
 # PEP 517 builds do not have . in sys.path
 sys.path.insert(0, os.path.dirname(__file__))
+
+import sage.misc.lazy_import_cache
 
 from sage_setup.optional_extension import is_package_installed_and_updated
 from sage_setup.command.sage_build_ext_minimal import sage_build_ext_minimal

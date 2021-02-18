@@ -221,6 +221,44 @@ def filter_cython_sources(src_dir, distributions):
 
     return files
 
+def _cythonized_dir(src_dir=None, editable_install=None):
+    """
+    Return the path where Cython-generated files are placed by the build system.
+
+    INPUT:
+
+    - ``src_dir`` -- string or path (default: the value of ``SAGE_SRC``).  The
+      root directory for the sources.
+
+    - ``editable_install`` -- boolean (default: determined from the existing
+      installation). Whether this is an editable install of the Sage library.
+
+    EXAMPLES::
+
+        sage: from sage_setup.find import _cythonized_dir
+        sage: from sage.env import SAGE_SRC
+        sage: _cythonized_dir(SAGE_SRC)  # optional - build
+        PosixPath('...')
+        sage: _cythonized_dir(SAGE_SRC, editable_install=False)
+        PosixPath('.../build/cythonized')
+
+    """
+    from importlib import import_module
+    from pathlib import Path
+    from sage.env import SAGE_ROOT, SAGE_SRC
+    if editable_install is None:
+        if src_dir is None:
+            src_dir = SAGE_SRC
+        src_dir = Path(src_dir)
+        sage = import_module('sage')
+        d = Path(sage.__file__).resolve().parent.parent
+        editable_install = d == src_dir.resolve()
+    if editable_install:
+        # Editable install: Cython generates files in the source tree
+        return src_dir
+    else:
+        return Path(SAGE_ROOT) / "build" / "pkgs" / "sagelib" / "src" / "build" / "cythonized"
+
 def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
     """
     Find all extra files which should be installed.
@@ -255,9 +293,9 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
 
     EXAMPLES::
 
-        sage: from sage_setup.find import find_extra_files
+        sage: from sage_setup.find import find_extra_files, _cythonized_dir
         sage: from sage.env import SAGE_SRC, SAGE_ROOT
-        sage: cythonized_dir = os.path.join(SAGE_ROOT, "build", "pkgs", "sagelib", "src", "build", "cythonized")
+        sage: cythonized_dir = _cythonized_dir(SAGE_SRC)
         sage: extras = find_extra_files(SAGE_SRC, ["sage"], cythonized_dir)
         sage: extras["sage/libs/mpfr"]
         [...sage/libs/mpfr/types.pxd...]

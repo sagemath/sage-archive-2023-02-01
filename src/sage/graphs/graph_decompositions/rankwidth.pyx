@@ -3,7 +3,7 @@
 r"""
 Rank Decompositions of graphs
 
-This modules wraps a C code from Philipp Klaus Krause computing an optimal
+This modules wraps C code from Philipp Klaus Krause computing an optimal
 rank-decomposition.
 
 **Definitions :**

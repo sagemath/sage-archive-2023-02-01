@@ -1059,6 +1059,21 @@ framework. Here is a comprehensive list:
 
       sage: SloaneEncyclopedia[60843]    # optional - sloane_database
 
+    .. NOTE::
+
+       If one of the first 10 lines of a file starts with any of
+       ``r""" sage.doctest: optional - keyword``
+       (or ``""" sage.doctest: optional - keyword``
+       or ``# sage.doctest: optional - keyword``
+       or ``% sage.doctest: optional - keyword``
+       or ``.. sage.doctest: optional - keyword``,
+       or any of these with different spacing),
+       then that file will be skipped unless
+       the ``--optional=keyword`` flag is passed to ``sage -t``.
+
+       This does not apply to files which are explicitly given
+       as command line arguments: those are always tested.
+
   - **internet:** For lines that require an internet connection::
 
        sage: oeis(60843)                 # optional - internet

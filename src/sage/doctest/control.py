@@ -38,9 +38,11 @@ from .forker import DocTestDispatcher
 from .reporting import DocTestReporter
 from .util import Timer, count_noun, dict_difference
 from .external import external_software, available_software
+from .parsing import parse_optional_tags
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
+optionalfiledirective_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*sage\.doctest: (.*)')
 
 # Optional tags which are always automatically added
 
@@ -202,10 +204,17 @@ def skipdir(dirname):
         return True
     return False
 
-def skipfile(filename):
+def skipfile(filename, tested_optional_tags=False):
     """
     Return True if and only if the file ``filename`` should not be
     doctested.
+
+    INPUT:
+
+    - ``filename`` - name of a file
+
+    - ``tested_optional_tags`` - a list or tuple or set of optional tags to test,
+      or ``False`` (no optional test) or ``True`` (all optional tests)
 
     EXAMPLES::
 
@@ -219,6 +228,16 @@ def skipfile(filename):
         ....:     _ = f.write("# nodoctest")
         sage: skipfile(filename)
         True
+        sage: with open(filename, "w") as f:
+        ....:     _ = f.write("# sage.doctest: optional - xyz")
+        sage: skipfile(filename, False)
+        True
+        sage: skipfile(filename, ['abc'])
+        True
+        sage: skipfile(filename, ['abc', 'xyz'])
+        False
+        sage: skipfile(filename, True)
+        False
     """
     base, ext = os.path.splitext(filename)
     if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
@@ -228,6 +247,16 @@ def skipfile(filename):
         for line in F:
             if nodoctest_regex.match(line):
                 return True
+            if tested_optional_tags is not True:
+                # Adapted from code in SageDocTestParser.parse
+                m = optionalfiledirective_regex.match(line)
+                if m:
+                    if tested_optional_tags is False:
+                        return True
+                    optional_tags = parse_optional_tags('#' + m.group(2))
+                    extra = optional_tags - set(tested_optional_tags)
+                    if extra:
+                        return True
             line_count += 1
             if line_count >= 10:
                 break
@@ -781,7 +810,7 @@ class DocTestController(SageObject):
                             if dir[0] == "." or skipdir(os.path.join(root,dir)):
                                 dirs.remove(dir)
                         for file in files:
-                            if not skipfile(os.path.join(root,file)):
+                            if not skipfile(os.path.join(root, file), self.options.optional):
                                 yield os.path.join(root, file)
                 else:
                     # the user input this file explicitly, so we don't skip it

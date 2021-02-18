@@ -116,7 +116,7 @@ Note that the letterplace implementation can only be used if the corresponding
     sage: FreeAlgebra(FreeAlgebra(ZZ,2,'ab'), 2, 'x', implementation='letterplace')
     Traceback (most recent call last):
     ...
-    TypeError: The base ring Free Algebra on 2 generators (a, b) over Integer Ring is not a commutative ring
+    NotImplementedError: polynomials over Free Algebra on 2 generators (a, b) over Integer Ring are not supported in Singular
 """
 
 #*****************************************************************************
@@ -131,10 +131,6 @@ Note that the letterplace implementation can only be used if the corresponding
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-from six.moves import range
-from six import integer_types
-import six
 
 from sage.categories.rings import Rings
 
@@ -195,7 +191,7 @@ class FreeAlgebraFactory(UniqueFactory):
     By :trac:`7797`, we provide a different implementation of free
     algebras, based on Singular's "letterplace rings". Our letterplace
     wrapper allows for choosing positive integral degree weights for the
-    generators of the free algebra. However, only (weighted) homogenous
+    generators of the free algebra. However, only (weighted) homogeneous
     elements are supported. Of course, isomorphic algebras in different
     implementations are not identical::
 
@@ -289,7 +285,7 @@ class FreeAlgebraFactory(UniqueFactory):
             return tuple(degrees), R
         # normalise the generator names
         from sage.all import Integer
-        if isinstance(arg1, (Integer,) + integer_types):
+        if isinstance(arg1, (Integer, int)):
             arg1, arg2 = arg2, arg1
         if not names is None:
             arg1 = names
@@ -420,7 +416,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
         EXAMPLES::
 
-            sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
+            sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctest
             Free Algebra on 3 generators (x, y, z) over Rational Field
 
         TESTS:
@@ -591,9 +587,9 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
-                return self.element_class(self, {exp_to_monomial(T):c for T,c in six.iteritems(x.letterplace_polynomial().dict())})
+                return self.element_class(self, {exp_to_monomial(T):c for T,c in x.letterplace_polynomial().dict().items()})
         # ok, not a free algebra element (or should not be viewed as one).
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             from sage.all import sage_eval
             G = self.gens()
             d = {str(v): G[i] for i,v in enumerate(self.variable_names())}
@@ -750,7 +746,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.monomial(x * y)
 
-    def quotient(self, mons, mats=None, names=None):
+    def quotient(self, mons, mats=None, names=None, **args):
         """
         Return a quotient algebra.
 
@@ -850,7 +846,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         for i in range(n):
             for j in range(i + 1, n):
                 cmat[i,j] = 1
-        for (to_commute,commuted) in six.iteritems(relations):
+        for (to_commute,commuted) in relations.items():
             #This is dirty, coercion is broken
             assert isinstance(to_commute, FreeAlgebraElement), to_commute.__class__
             assert isinstance(commuted, FreeAlgebraElement), commuted

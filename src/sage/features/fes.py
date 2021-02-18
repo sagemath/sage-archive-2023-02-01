@@ -6,7 +6,7 @@ Checks for FES
 from . import CythonFeature, PythonModule
 
 TEST_CODE = """
-# disutils: libraries=fes
+# distutils: libraries=fes
 
 from libc.stdint cimport uint64_t
 cdef extern from "<fes_interface.h>":

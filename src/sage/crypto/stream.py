@@ -1,7 +1,6 @@
 """
 Stream Cryptosystems
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -12,7 +11,6 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .cryptosystem import SymmetricKeyCryptosystem
 from .stream_cipher import LFSRCipher, ShrinkingGeneratorCipher

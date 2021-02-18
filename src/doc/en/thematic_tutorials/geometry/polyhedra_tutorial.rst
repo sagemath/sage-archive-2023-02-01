@@ -166,6 +166,13 @@ The following example demonstrates the limitations of :code:`RDF`.
     sage: D
     A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
     sage: D_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in D.vertices()], base_ring=RDF)
+    doctest:warning
+    ...
+    UserWarning: This polyhedron data is numerically complicated; cdd
+    could not convert between the inexact V and H representation
+    without loss of data. The resulting object might show
+    inconsistencies.
+    sage: D_RDF = Polyhedron(vertices = sorted([n(v.vector(),digits=6) for v in D.vertices()]), base_ring=RDF)
     Traceback (most recent call last):
     ...
     ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
@@ -220,7 +227,7 @@ If the base ring is known it may be a good option to use the proper :meth:`sage.
 
 .. end of output
 
-Polyhedral computations with the :code:`Symbolic Ring` is not implemented.
+Polyhedral computations with the :code:`Symbolic Ring` are not implemented.
 It is not possible to define a polyhedron over it:
 
 ::
@@ -230,7 +237,7 @@ It is not possible to define a polyhedron over it:
     sage: Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])
     Traceback (most recent call last):
     ...
-    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+    ValueError: no default backend for computations with Symbolic Ring
 
 .. end of output
 
@@ -568,7 +575,7 @@ but not algebraic or symbolic values:
     sage: P5_cdd = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='cdd')
     Traceback (most recent call last):
     ...
-    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+    ValueError: No such backend (=cdd) implemented for given basering (=Symbolic Ring).
 
 .. end of output
 
@@ -666,7 +673,7 @@ examples.
 
 .. end of output
 
-Any time that the coordinates should be in an extension of the rational, the
+Any time that the coordinates should be in an extension of the rationals, the
 backend :code:`field` is called.
 
 ::
@@ -700,7 +707,7 @@ The fourth backend is :code:`normaliz` and is an optional Sage package.
 
 .. end of output
 
-This backend does not work with :code:`RDF`, or algebraic numbers or the :code:`Symbolic Ring`:
+This backend does not work with :code:`RDF` or other inexact fields.
 
 ::
 
@@ -709,15 +716,22 @@ This backend does not work with :code:`RDF`, or algebraic numbers or the :code:`
     ...
     ValueError: No such backend (=normaliz) implemented for given basering (=Real Double Field).
 
+.. end of output
+
+The :code:`normaliz` backend provides fast computations with algebraic
+numbers.  They can be entered as elements of an embedded number field,
+the field of algebraic numbers, or even the symbolic ring.  Internally
+the computation is done using an embedded number field.
+
+::
+
     sage: P4_normaliz = Polyhedron(vertices = [[sqrt_2, 0], [0, cbrt_2]], backend='normaliz')       # optional - pynormaliz
-    Traceback (most recent call last):
-    ...
-    ValueError: No such backend (=normaliz) implemented for given basering (=Algebraic Real Field).
+    sage: P4_normaliz                                                                               # optional - pynormaliz
+    A 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
 
     sage: P5_normaliz = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='normaliz')     # optional - pynormaliz
-    Traceback (most recent call last):
-    ...
-    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+    sage: P5_normaliz                                                                               # optional - pynormaliz
+    A 1-dimensional polyhedron in (Symbolic Ring)^2 defined as the convex hull of 2 vertices
 
 .. end of output
 

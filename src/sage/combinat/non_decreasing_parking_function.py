@@ -30,7 +30,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from copy import copy
 
@@ -371,7 +370,7 @@ class NonDecreasingParkingFunctions_all(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: PF= NonDecreasingParkingFunctions()
+            sage: PF = NonDecreasingParkingFunctions()
             sage: PF == loads(dumps(PF))
             True
         """

@@ -11,7 +11,7 @@ notebook is decribed in the Notebook manual.
 The %R and %%R interface creating an R line or an R cell in the
 Jupyter notebook are briefly decribed at the end of this page. This
 documentation will be expanded and placed in the Jupyter notebook
-manual when this manual exists.  
+manual when this manual exists.
 
 The following examples try to follow "An Introduction to R" which can
 be found at http://cran.r-project.org/doc/manuals/R-intro.html .
@@ -213,11 +213,11 @@ The RPy2 library allows the creation of an R cell in the Jupyter
 notebook analogous to the %r escape in command line or %r cell in a
 Sage notebook.
 
-The interface is loaded by a cell containing the sole code :
+The interface is loaded by a cell containing the sole code:
 
 "%load_ext rpy2.ipython"
 
-After execution of this code, the %R and %%R magics are available :
+After execution of this code, the %R and %%R magics are available:
 
 - %R allows the execution of a single line of R code. Data exchange is
    possible via the -i and -o options. Do "%R?" in a standalone cell
@@ -227,7 +227,7 @@ After execution of this code, the %R and %%R magics are available :
     similar options (do "%%R?" in a standalone cell for
     documentation).
 
-A few important points must be noted :
+A few important points must be noted:
 
 - The R interpreter launched by this interface IS (currently)
   DIFFERENT from the R interpreter used br other r... functions.
@@ -238,7 +238,7 @@ A few important points must be noted :
 
 - R graphics are (beautifully) displayed in output cells, but are not
   directly importable. You have to save them as .png, .pdf or .svg
-  files and import them in Sage for further use. 
+  files and import them in Sage for further use.
 
 In its current incarnation, this interface is mostly useful to
 statisticians needing Sage for a few symbolic computations but mostly
@@ -264,9 +264,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function, absolute_import
-from six.moves import range
-import six
 
 from .interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
 from sage.env import DOT_SAGE
@@ -372,8 +369,14 @@ def _setup_r_to_sage_converter():
     # expect interface)
     cv = Converter('r to sage converter')
 
+    # support rpy version 2 and 3
+    try:
+        rpy2py = cv.rpy2py
+    except AttributeError:
+        rpy2py = cv.ri2py
+
     # fallback
-    cv.ri2py.register(object, lambda obj: obj)
+    rpy2py.register(object, lambda obj: obj)
 
     def float_to_int_if_possible(f):
         # First, round the float to at most 15 significant places.
@@ -383,7 +386,7 @@ def _setup_r_to_sage_converter():
         # Preserve the behaviour of the old r parser, e.g. return 1 instead of 1.0
         float_or_int = int(f) if isinstance(f, int) or f.is_integer() else f
         return float_or_int
-    cv.ri2py.register(float, float_to_int_if_possible)
+    rpy2py.register(float, float_to_int_if_possible)
 
     def list_to_singleton_if_possible(l):
         if len(l) == 1:
@@ -395,11 +398,11 @@ def _setup_r_to_sage_converter():
         attrs = vec.list_attrs()
         # Recursive calls have to be made explicitly
         # https://bitbucket.org/rpy2/rpy2/issues/363/custom-converters-are-not-applied
-        data = list_to_singleton_if_possible([ cv.ri2py(val) for val in vec ])
+        data = list_to_singleton_if_possible([ rpy2py(val) for val in vec ])
         rclass = list(vec.do_slot('class')) if 'class' in attrs else vec.rclass
 
         if 'names' in attrs:
-            # separate names and values, call ri2py recursively to convert elements
+            # separate names and values, call rpy2py recursively to convert elements
             names = list_to_singleton_if_possible(list(vec.do_slot('names')))
             return {
                 'DATA': data,
@@ -409,7 +412,7 @@ def _setup_r_to_sage_converter():
         else:
             # if no names are present, convert to a normal list or a single value
             return data
-    cv.ri2py.register(SexpVector, _vector)
+    rpy2py.register(SexpVector, _vector)
 
     def _matrix(mat):
         if 'dim' in mat.list_attrs():
@@ -421,28 +424,28 @@ def _setup_r_to_sage_converter():
                 (nrow, ncol) = dimensions
                 # Since R does it the other way round, we assign transposed and
                 # then transpose the matrix :)
-                m = matrix(ncol, nrow, [cv.ri2py(i) for i in mat])
+                m = matrix(ncol, nrow, [rpy2py(i) for i in mat])
                 return m.transpose()
             except TypeError:
                 pass
         else:
             return _vector(mat)
-    cv.ri2py.register(FloatSexpVector, _matrix)
+    rpy2py.register(FloatSexpVector, _matrix)
 
     def _list_vector(vec):
         # we have a R list (vector of arbitrary elements)
         attrs = vec.list_attrs()
         names = vec.do_slot('names')
-        values = [ cv.ri2py(val) for val in vec ]
+        values = [ rpy2py(val) for val in vec ]
         rclass = list(vec.do_slot('class')) if 'class' in attrs else vec.rclass
         data = zip(names, values)
         return {
             'DATA': dict(data),
-            '_Names': cv.ri2py(names),
+            '_Names': rpy2py(names),
             # We don't give the rclass here because the old expect interface
             # didn't do that either and we want to maintain compatibility.
         };
-    cv.ri2py.register(ListSexpVector, _list_vector)
+    rpy2py.register(ListSexpVector, _list_vector)
 
     return cv
 
@@ -483,12 +486,12 @@ class R(ExtraTabCompletion, Interface):
         self._seed = seed
         self._initialized = False # done lazily
 
-
     def _lazy_init(self):
         """
-        Initialize the R interpreter. This will set the initial options and
-        implicitly (through lazy_import) import rpy2 if it is not alreay
-        imported.
+        Initialize the R interpreter.
+
+        This will set the initial options and implicitly (through
+        lazy_import) import rpy2 if it is not already imported.
 
         Importing rpy2 takes something in the order of hundreds of milliseconds.
         It also takes tens of megabytes of RAM. Since an instance of R is
@@ -537,7 +540,21 @@ class R(ExtraTabCompletion, Interface):
             self._r_to_sage_converter = _setup_r_to_sage_converter()
             self._start()
 
+    def _coerce_impl(self, x, use_special=True):
+        """
+        TESTS:
 
+        Check conversion of Booleans (:trac:`28705`)::
+
+            sage: repr(r(True)) == r._true_symbol()  # indirect doctest
+            True
+        """
+        # We overwrite _coerce_impl here because r._true_symbol() and
+        # r._false_symbol() are output strings that start with "[1] " and thus
+        # cannot be used as input
+        if isinstance(x, bool):
+            return self('TRUE' if x else 'FALSE')
+        return super(R, self)._coerce_impl(x, use_special=use_special)
 
     def set_seed(self, seed=None):
         """
@@ -982,14 +999,6 @@ class R(ExtraTabCompletion, Interface):
             raise ValueError("There is no help page for the given topic")
 
         s = pages_for_topic[0].to_docstring()
-
-        # Maybe this can be removed now (it is a leftover from the old expect
-        # interface). Since I don't understand why it was needed in the first
-        # place, I'm keeping it for now.
-        import sage.plot.plot
-        if sage.plot.plot.EMBEDDED_MODE:
-            s = s.replace('_\x08','')
-
         return HelpExpression(s)
 
     def _assign_symbol(self):
@@ -1564,7 +1573,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
             [1] 1 3
         """
         P = self._check_valid()
-        if isinstance(n, six.string_types):
+        if isinstance(n, str):
             n = n.replace('self', self._name)
             return P.new('%s[%s]'%(self._name, n))
         elif parent(n) is P:  # the key is RElement itself
@@ -1852,7 +1861,7 @@ class RFunctionElement(InterfaceFunctionElement):
             title
             -----
             <BLANKLINE>
-            Length of an Object 
+            Length of an Object
             <BLANKLINE>
             name
             ----
@@ -1949,7 +1958,7 @@ class RFunction(InterfaceFunction):
             title
             -----
             <BLANKLINE>
-            Length of an Object 
+            Length of an Object
             <BLANKLINE>
             name
             ----

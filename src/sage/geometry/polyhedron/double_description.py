@@ -68,7 +68,6 @@ The implementation works over any exact field that is embedded in
 # Compare with PPL if the base ring is QQ. Can be left enabled since
 # we don't use the Python fallback for polyhedra over QQ unless you
 # construct one by hand.
-from __future__ import division, absolute_import
 
 VERIFY_RESULT = True
 
@@ -78,6 +77,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import QQ
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix_space import MatrixSpace
+
 
 def random_inequalities(d, n):
     """
@@ -91,7 +91,7 @@ def random_inequalities(d, n):
 
     OUTPUT:
 
-    A random set of inequalites as a :class:`StandardAlgorithm` instance.
+    A random set of inequalities as a :class:`StandardAlgorithm` instance.
 
     EXAMPLES::
 

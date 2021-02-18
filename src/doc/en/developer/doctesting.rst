@@ -106,6 +106,12 @@ Sage to test its own modules. Even if we have a system-wide Sage
 installation, using that version to doctest the modules of a local
 installation is a recipe for confusion.
 
+If your system Python has the ``tox`` package, you can also run the Sage
+doctester as follows::
+
+   [jdemeyer@sage sage-6.0]$ cd src
+   [jdemeyer@sage src]$ tox -- sage/games/sudoku.py
+
 
 Troubleshooting
 ===============
@@ -797,6 +803,31 @@ You can also pass in an explicit amount of time::
 Finally, you can disable any warnings about long tests with
 ``--warn-long 0``.
 
+Doctests may start from a random seed::
+
+    [kliem@sage sage-9.2]$ sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    Running doctests with ID 2020-06-23-23-24-28-14a52269.
+    ...
+    Doctesting 1 file.
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    **********************************************************************
+    File "src/sage/doctest/tests/random_seed.rst", line 3, in sage.doctest.tests.random_seed
+    Failed example:
+        randint(5, 10)
+    Expected:
+        9
+    Got:
+        8
+    **********************************************************************
+    1 item had failures:
+       1 of   2 in sage.doctest.tests.random_seed
+        [1 test, 1 failure, 0.00 s]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    Total time for all tests: 0.0 seconds
+        cpu time: 0.0 seconds
+        cumulative wall time: 0.0 seconds
 
 .. _section-optional-doctest-flag:
 
@@ -855,7 +886,7 @@ If you want Sage to detect external software or other capabilities
 (such as magma, latex, internet) automatically and run all of the
 relevant tests, then add ``external``::
 
-    $ sage -t --optional=external src/sage/rings/real_mpfr.pyx 
+    $ sage -t --optional=external src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2016-03-16-14-10-21-af2ebb67.
     Using --optional=external
     External software to be detected: cplex,gurobi,internet,latex,macaulay2,magma,maple,mathematica,matlab,octave,scilab
@@ -935,8 +966,6 @@ as well as testing the Sage notebook::
     sage -t /Users/roed/sage/sage-5.3/src/sage/plot/plot.py
         [304 tests, 69.0 s]
     ...
-
-If you want to just run the notebook tests, use the ``--sagenb`` flag instead.
 
 
 Debugging Tools
@@ -1239,8 +1268,8 @@ code loads the globals from that file into the namespace before
 running tests.  To disable this behaviour (and require imports to be
 explicitly specified), use the ``--force-lib`` option.
 
-Auxilliary files
-^^^^^^^^^^^^^^^^
+Auxiliary files
+^^^^^^^^^^^^^^^
 
 To specify a logfile (rather than use the default which is created for
 ``sage -t --all``), use the ``--logfile`` flag::

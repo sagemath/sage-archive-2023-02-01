@@ -1,4 +1,4 @@
-# distutils: libraries = gmp flint arb
+# distutils: libraries = gmp flint ARB_LIBRARY
 # distutils: depends = arb.h
 
 from sage.libs.arb.types cimport *
@@ -29,6 +29,7 @@ cdef extern from "arb_wrap.h":
     void arb_set_fmpq(arb_t y, const fmpq_t x, long prec)
     int arb_set_str(arb_t res, const char * inp, long prec)
     char * arb_get_str(const arb_t x, long n, unsigned long flags)
+    char * arb_version
 
     void arb_zero(arb_t x)
     void arb_one(arb_t f)
@@ -106,6 +107,8 @@ cdef extern from "arb_wrap.h":
     void arb_neg(arb_t y, const arb_t x)
     void arb_neg_round(arb_t y, const arb_t x, long prec)
     void arb_abs(arb_t x, const arb_t y)
+    void arb_min(arb_t z, const arb_t x, const arb_t y, long prec)
+    void arb_max(arb_t z, const arb_t x, const arb_t y, long prec)
     void arb_add(arb_t z, const arb_t x, const arb_t y, long prec)
     void arb_add_arf(arb_t z, const arb_t x, const arf_t y, long prec)
     void arb_add_ui(arb_t z, const arb_t x, unsigned long y, long prec)
@@ -215,6 +218,8 @@ cdef extern from "arb_wrap.h":
     void arb_const_khinchin(arb_t z, long prec)
     void arb_const_glaisher(arb_t z, long prec)
     void arb_const_apery(arb_t z, long prec)
+
+    void arb_lambertw(arb_t res, const arb_t x, int flags, long prec)
 
     void arb_rising_ui_bs(arb_t z, const arb_t x, unsigned long n, long prec)
     void arb_rising_ui_rs(arb_t z, const arb_t x, unsigned long n, unsigned long step, long prec)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The symbolic ring
 """
@@ -12,7 +13,6 @@ The symbolic ring
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.ext.cplusplus cimport ccrepr
 
@@ -33,7 +33,6 @@ from sage.rings.all import RR, CC, ZZ
 
 import keyword
 import operator
-import parser
 
 # Do not allow any of these keywords as identifiers for symbolic variables
 KEYWORDS = set(keyword.kwlist).union(['exec', 'print', 'None', 'True',
@@ -195,7 +194,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        RLF, CLF,
+                                        InfinityRing,
                                         UnsignedInfinityRing)
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
@@ -203,7 +203,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             from .subring import GenericSymbolicSubring
 
-            if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
+            if R._is_numerical():
                 # Almost anything with a coercion into any precision of CC
                 return R not in (RLF, CLF)
             elif is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R) or is_LaurentPolynomialRing(R):
@@ -219,7 +219,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return True
 
     def _element_constructor_(self, x):
-        """
+        r"""
         Coerce `x` into the symbolic expression ring SR.
 
         EXAMPLES::
@@ -238,7 +238,7 @@ cdef class SymbolicRing(CommutativeRing):
             x + y0/y1
             sage: x.subs(x=y0/y1)
             y0/y1
-            sage: x + long(1)
+            sage: x + int(1)
             x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns
@@ -336,13 +336,21 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             TypeError: positive characteristic not allowed in symbolic computations
+
+        Check support for unicode characters (:trac:`29280`)::
+
+            sage: SR('λ + 2λ')
+            3*λ
+            sage: SR('μ') is var('μ')
+            True
+            sage: SR('λ + * 1')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: λ + * !!!  1
         """
         cdef GEx exp
         if is_Expression(x):
-            if (<Expression>x)._parent is self:
-                return x
-            else:
-                return new_Expression_from_GEx(self, (<Expression>x)._gobj)
+            return new_Expression_from_GEx(self, (<Expression>x)._gobj)
         if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):
@@ -351,8 +359,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" %
-                        (msg, bytes_to_str(s[:pos]), bytes_to_str(s[pos:])))
+                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -628,6 +635,20 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.symbolic.constants import pi
         return self(pi)
 
+    def I(self):
+        r"""
+        The imaginary unit, viewed as an element of the symbolic ring.
+
+        EXAMPLES::
+
+            sage: SR.I()^2
+            -1
+            sage: SR.I().parent()
+            Symbolic Ring
+        """
+        from sage.symbolic.constants import I
+        return I
+
     cpdef Expression symbol(self, name=None, latex_name=None, domain=None):
         """
         EXAMPLES::
@@ -830,20 +851,39 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: cannot specify n for multiple symbol names
+
+        Check that :trac:`28353` is fixed: Constructions that suggest multiple
+        variables but actually only give one variable name return a 1-tuple::
+
+            sage: SR.var(['x'])
+            (x,)
+            sage: SR.var('x,')
+            (x,)
+            sage: SR.var(['x'], n=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot specify n for multiple symbol names
         """
         if is_Expression(name):
             return name
         if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)
 
+        is_multiple = False
+
         if isinstance(name, (list, tuple)):
             names_list = [s.strip() for s in name]
-        elif ',' in name:
-            names_list = [s.strip() for s in name.split(',' )]
-        elif ' ' in name:
-            names_list = [s.strip() for s in name.split()]
+            is_multiple = True
         else:
-            names_list = [name]
+            name = name.strip()
+            if ',' in name:
+                names_list = [s.strip() for s in name.split(',') if s.strip()]
+                is_multiple = True
+            elif ' ' in name:
+                names_list = [s.strip() for s in name.split()]
+                is_multiple = True
+            else:
+                names_list = [name] if name else []
 
         for s in names_list:
             if not isidentifier(s):
@@ -859,7 +899,14 @@ cdef class SymbolicRing(CommutativeRing):
 
         if not names_list:
             raise ValueError('You need to specify the name of the new variable.')
-        if len(names_list) == 1:
+
+        if is_multiple:
+            if latex_name is not None:
+                raise ValueError("cannot specify latex_name for multiple symbol names")
+            if n is not None:
+                raise ValueError("cannot specify n for multiple symbol names")
+            return tuple([self.symbol(s, domain=domain) for s in names_list])
+        else:
             if n is not None:
                 if n > 0:
                     name = [name + str(i) for i in range(n)]
@@ -872,12 +919,6 @@ cdef class SymbolicRing(CommutativeRing):
                     raise ValueError("the number of variables should be a positive integer")
             else:
                 return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
-        if len(names_list) > 1:
-            if latex_name is not None:
-                raise ValueError("cannot specify latex_name for multiple symbol names")
-            if n is not None:
-                raise ValueError("cannot specify n for multiple symbol names")
-            return tuple([self.symbol(s, domain=domain) for s in names_list])
 
     def _repr_element_(self, Expression x):
         """
@@ -894,8 +935,8 @@ cdef class SymbolicRing(CommutativeRing):
         return ccrepr(x._gobj)
 
     def _latex_element_(self, Expression x):
-        """
-        Returns the standard LaTeX version of the expression *x*.
+        r"""
+        Returns the standard LaTeX version of the expression `x`.
 
         EXAMPLES::
 
@@ -1353,7 +1394,7 @@ def isidentifier(x):
     Boolean. Whether the string ``x`` can be used as a variable name.
 
     This function should return ``False`` for keywords, so we can not
-    just use the ``isidentifier`` method of strings (in Python 3),
+    just use the ``isidentifier`` method of strings,
     because, for example, it returns ``True`` for "def" and for "None".
 
     EXAMPLES::
@@ -1382,15 +1423,4 @@ def isidentifier(x):
     """
     if x in KEYWORDS:
         return False
-    try:
-        if not x.isidentifier():  # py3
-            return False
-    except AttributeError:
-        pass  # py2
-
-    try:
-        code = parser.expr(x).compile()
-    except (MemoryError, OverflowError, SyntaxError,
-            SystemError, parser.ParserError):
-        return False
-    return len(code.co_names) == 1 and code.co_names[0] == x
+    return x.isidentifier()

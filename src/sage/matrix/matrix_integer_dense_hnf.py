@@ -1,19 +1,20 @@
 """
-Modular algorithm to compute Hermite normal forms of integer matrices.
+Modular algorithm to compute Hermite normal forms of integer matrices
 
 AUTHORS:
 
 - Clement Pernet and William Stein (2008-02-07): initial version
 """
-from __future__ import print_function
-from six.moves import range
 
 from copy import copy
 
-from sage.misc.misc import verbose, cputime
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose
 from sage.matrix.constructor import (random_matrix, matrix, identity_matrix)
 
-from sage.rings.all import ZZ, Integer, RR
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.rings.integer import Integer
 from sage.arith.all import previous_prime, CRT_list
 
 
@@ -1084,7 +1085,7 @@ def hnf(A, include_zero_rows=True, proof=True):
     """
     if A.nrows() <= 1:
         np = A.nonzero_positions()
-        if len(np) == 0:
+        if not np:
             pivots = []
             if not include_zero_rows:
                 A = A.new_matrix(0)  # 0 rows

@@ -1,4 +1,4 @@
-# distutils: libraries = gmp flint arb
+# distutils: libraries = gmp flint ARB_LIBRARY
 # distutils: depends = acb.h
 
 from sage.libs.arb.types cimport *
@@ -141,6 +141,8 @@ cdef extern from "arb_wrap.h":
     void acb_asinh(acb_t s, const acb_t z, long prec)
     void acb_acosh(acb_t s, const acb_t z, long prec)
     void acb_atanh(acb_t s, const acb_t z, long prec)
+
+    void acb_lambertw(acb_t res, const acb_t z, const fmpz_t k, int flags, long prec)
 
     void acb_sinh(acb_t s, const acb_t z, long prec)
     void acb_cosh(acb_t c, const acb_t z, long prec)

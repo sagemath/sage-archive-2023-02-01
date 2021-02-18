@@ -25,25 +25,25 @@ generally, all sage expression as an ASCII art object::
     sage: shell = get_test_shell()
     sage: shell.run_cell('%display ascii_art')
     sage: shell.run_cell('integral(x^2/pi^x, x)')
-       -x / 2    2                      \ 
-    -pi  *\x *log (pi) + 2*x*log(pi) + 2/ 
+       -x / 2    2                      \
+    -pi  *\x *log (pi) + 2*x*log(pi) + 2/
     --------------------------------------
-                     3                   
-                   log (pi)               
+                     3
+                   log (pi)
     sage: shell.run_cell("i = var('i')")
     sage: shell.run_cell('sum(i*x^i, i, 0, 10)')
         10      9      8      7      6      5      4      3      2
     10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
     sage: shell.run_cell('StandardTableaux(4).list()')
     [
-    [                                                                  1  4
-    [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2
-    [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,
+    [                                                                  1  4    1  3
+    [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
+    [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4   ,
     <BLANKLINE>
-                       1 ]
-       1  3    1  2    2 ]
-       2       3       3 ]
-       4   ,   4   ,   4 ]
+               1 ]
+       1  2    2 ]
+       3       3 ]
+       4   ,   4 ]
     sage: shell.run_cell('%display default')
     sage: shell.quit()
 
@@ -51,14 +51,16 @@ This other facility uses a simple
 :class:`~sage.typeset.ascii_art.AsciiArt` object (see and
 :meth:`sage.structure.sage_object.SageObject._ascii_art_`).  """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from io import StringIO
 
 from IPython.core.formatters import DisplayFormatter, PlainTextFormatter
 from IPython.utils.py3compat import unicode_to_str
@@ -173,8 +175,8 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell.run_cell('ipython_image')
             <IPython.core.display.Image object>
             sage: shell.run_cell('get_ipython().display_formatter.format(ipython_image)')
-            ({u'image/png': ...'\x89PNG...',
-              u'text/plain': u'<IPython.core.display.Image object>'},
+            ({'image/png': ...,
+              'text/plain': '<IPython.core.display.Image object>'},
             {})
 
         Test that IPython images still work even in latex output mode::
@@ -251,7 +253,7 @@ class SagePlainTextFormatter(PlainTextFormatter):
         super(SagePlainTextFormatter, self).__init__(*args, **kwds)
 
     def __call__(self, obj):
-        """
+        r"""
         Compute the pretty representation of the object.
 
         Adapted from ``IPython.core.formatters.PlainTextPrettyPrint``.
@@ -282,11 +284,9 @@ class SagePlainTextFormatter(PlainTextFormatter):
         if DOCTEST_MODE:
             # Just to show that this is never executed in any other doctests in the Sage library
             print('---- calling ipython formatter ----')
-        from six import StringIO
         stream = StringIO()
         printer = SagePrettyPrinter(
             stream, self.max_width, unicode_to_str(self.newline))
         printer.pretty(obj)
         printer.flush()
         return stream.getvalue()
-

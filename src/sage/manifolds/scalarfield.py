@@ -18,6 +18,8 @@ AUTHORS:
 - Marco Mancini (2017): SymPy as an optional symbolic engine, alternative to SR
 - Florentin Jaffredo (2018) : series expansion with respect to a given
   parameter
+- Michael Jung (2019) : improve restrictions; make ``display()`` show all
+  distinct expressions
 
 REFERENCES:
 
@@ -38,14 +40,13 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
-from six import itervalues
-
-from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.element import (CommutativeAlgebraElement,
+                                    ModuleElementWithMutability)
 from sage.symbolic.expression import Expression
 from sage.manifolds.chart_func import ChartFunction
+from sage.misc.cachefunc import cached_method
 
-
-class ScalarField(CommutativeAlgebraElement):
+class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
     r"""
     Scalar field on a topological manifold.
 
@@ -277,6 +278,48 @@ class ScalarField(CommutativeAlgebraElement):
         sage: zer is M.scalar_field_algebra().zero()
         True
 
+    The constant scalar fields zero and one are immutable, and therefore
+    their expressions cannot be changed::
+
+        sage: zer.is_immutable()
+        True
+        sage: zer.set_expr(x)
+        Traceback (most recent call last):
+        ...
+        ValueError: the expressions of an immutable element cannot be
+         changed
+        sage: one = M.one_scalar_field()
+        sage: one.is_immutable()
+        True
+        sage: one.set_expr(x)
+        Traceback (most recent call last):
+        ...
+        ValueError: the expressions of an immutable element cannot be
+         changed
+
+    Other scalar fields can be declared immutable, too::
+
+        sage: c.is_immutable()
+        False
+        sage: c.set_immutable()
+        sage: c.is_immutable()
+        True
+        sage: c.set_expr(y^2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the expressions of an immutable element cannot be
+         changed
+        sage: c.set_name('b')
+        Traceback (most recent call last):
+        ...
+        ValueError: the name of an immutable element cannot be changed
+
+    Immutable elements are hashable and can therefore be used as keys for
+    dictionaries::
+
+        sage: {c: 1}[c]
+        1
+
     By definition, a scalar field acts on the manifold's points, sending
     them to elements of the manifold's base field (real numbers in the
     present case)::
@@ -391,9 +434,9 @@ class ScalarField(CommutativeAlgebraElement):
     field::
 
         sage: s = f + 1 ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field f+1 on the 2-dimensional topological manifold M
         sage: s.display()
-        M --> R
+        f+1: M --> R
         on U: (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
         on V: (u, v) |--> (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
         sage: (f+1)-1 == f
@@ -414,10 +457,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> (x^3 + x*y^2 + x + 1)/(x^2 + y^2 + 1)
+        on W: (u, v) |--> (u^4 + v^4 + u^3 + (2*u^2 + u)*v^2 + u)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s = f + u; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> (x^3 + (x + 1)*y^2 + x^2 + x)/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) |--> (u^3 + (u + 1)*v^2 + u^2 + u)/(u^2 + v^2 + 1)
 
     The addition of two scalar fields with different domains is possible if
@@ -429,13 +474,13 @@ class ScalarField(CommutativeAlgebraElement):
         sage: g.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s = f + g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f+g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
+        f+g: U --> R
+           (x, y) |--> (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
         on W: (u, v) |--> (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6 + u*v^3
          + (u^3 + u)*v)/(u^6 + v^6 + (3*u^2 + 1)*v^4 + u^4 + (3*u^4 + 2*u^2)*v^2)
 
@@ -486,10 +531,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> x/(x^2 + y^2 + 1)
+        on W: (u, v) |--> u/(u^2 + v^2 + 1)
         sage: s = u*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> x/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) |--> (u^2 + v^2)*u/(u^2 + v^2 + 1)
 
     Some tests::
@@ -530,11 +577,11 @@ class ScalarField(CommutativeAlgebraElement):
         (2-dimensional topological manifold M,
          Open subset U of the 2-dimensional topological manifold M)
         sage: s = f*g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f*g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> x*y/(x^2 + y^2 + 1)
+        f*g: U --> R
+           (x, y) |--> x*y/(x^2 + y^2 + 1)
         on W: (u, v) |--> u*v/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s == f.restrict(U)*g
         True
@@ -555,11 +602,11 @@ class ScalarField(CommutativeAlgebraElement):
            (x, y) |--> x*y/H(x, y)
         on W: (u, v) |--> u*v/((u^4 + 2*u^2*v^2 + v^4)*H(u/(u^2 + v^2), v/(u^2 + v^2)))
         sage: s = f/g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f/g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> 1/(x*y^3 + (x^3 + x)*y)
+        f/g: U --> R
+           (x, y) |--> 1/(x*y^3 + (x^3 + x)*y)
         on W: (u, v) |--> (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6)/(u*v^3 + (u^3 + u)*v)
         sage: s == f.restrict(U)/g
         True
@@ -639,7 +686,7 @@ class ScalarField(CommutativeAlgebraElement):
         on U: (x, y) |--> 1/(x**2 + y**2 + 1)
         on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
 
-    Defintion without any coordinate expression and subsequent completion::
+    Definition without any coordinate expression and subsequent completion::
 
         sage: f = M.scalar_field(name='f')
         sage: f.add_expr(1/(1+x^2+y^2), chart=c_xy)
@@ -846,9 +893,9 @@ class ScalarField(CommutativeAlgebraElement):
     field::
 
         sage: s = f + 1 ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field f+1 on the 2-dimensional topological manifold M
         sage: s.display()
-        M --> R
+        f+1: M --> R
         on U: (x, y) |--> (x**2 + y**2 + 2)/(x**2 + y**2 + 1)
         on V: (u, v) |--> (2*u**2 + 2*v**2 + 1)/(u**2 + v**2 + 1)
         sage: (f+1)-1 == f
@@ -869,10 +916,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> (x**3 + x*y**2 + x + 1)/(x**2 + y**2 + 1)
+        on W: (u, v) |--> (u**4 + u**3 + 2*u**2*v**2 + u*v**2 + u + v**4)/(u**4 + 2*u**2*v**2 + u**2 + v**4 + v**2)
         sage: s = f + u; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> (x**3 + x**2 + x*y**2 + x + y**2)/(x**4 + 2*x**2*y**2 + x**2 + y**4 + y**2)
         on V: (u, v) |--> (u**3 + u**2 + u*v**2 + u + v**2)/(u**2 + v**2 + 1)
 
     The addition of two scalar fields with different domains is possible if
@@ -884,13 +933,13 @@ class ScalarField(CommutativeAlgebraElement):
         sage: g.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s = f + g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f+g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> (x**3*y + x*y**3 + x*y + 1)/(x**2 + y**2 + 1)
+        f+g: U --> R
+           (x, y) |--> (x**3*y + x*y**3 + x*y + 1)/(x**2 + y**2 + 1)
         on W: (u, v) |--> (u**6 + 3*u**4*v**2 + u**3*v + 3*u**2*v**4 + u*v**3 + u*v + v**6)/(u**6 + 3*u**4*v**2 + u**4 + 3*u**2*v**4 + 2*u**2*v**2 + v**6 + v**4)
 
     The operation actually performed is `f|_U + g`::
@@ -925,10 +974,12 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> x/(x**2 + y**2 + 1)
+        on W: (u, v) |--> u/(u**2 + v**2 + 1)
         sage: s = u*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
+        on W: (x, y) |--> x/(x**4 + 2*x**2*y**2 + x**2 + y**4 + y**2)
         on V: (u, v) |--> u*(u**2 + v**2)/(u**2 + v**2 + 1)
 
     Some tests::
@@ -969,11 +1020,11 @@ class ScalarField(CommutativeAlgebraElement):
         (2-dimensional topological manifold M,
          Open subset U of the 2-dimensional topological manifold M)
         sage: s = f*g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f*g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> x*y/(x**2 + y**2 + 1)
+        f*g: U --> R
+           (x, y) |--> x*y/(x**2 + y**2 + 1)
         on W: (u, v) |--> u*v/(u**4 + 2*u**2*v**2 + u**2 + v**4 + v**2)
 
         sage: s == f.restrict(U)*g
@@ -996,11 +1047,11 @@ class ScalarField(CommutativeAlgebraElement):
         on W: (u, v) |--> u*v/((u**4 + 2*u**2*v**2 + v**4)*H(u/(u**2 + v**2), v/(u**2 + v**2)))
 
         sage: s = f/g ; s
-        Scalar field on the Open subset U of the 2-dimensional topological
+        Scalar field f/g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U --> R
-        (x, y) |--> 1/(x*y*(x**2 + y**2 + 1))
+        f/g: U --> R
+           (x, y) |--> 1/(x*y*(x**2 + y**2 + 1))
         on W: (u, v) |--> (u**6 + 3*u**4*v**2 + 3*u**2*v**4 + v**6)/(u*v*(u**2 + v**2 + 1))
         sage: s == f.restrict(U)/g
         True
@@ -1069,7 +1120,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: TestSuite(f).run()
 
         """
-        CommutativeAlgebraElement.__init__(self, parent)
+        super().__init__(parent)  # both super classes have same signature
         domain = parent._domain
         self._domain = domain
         self._manifold = domain.manifold()
@@ -1134,7 +1185,7 @@ class ScalarField(CommutativeAlgebraElement):
         if not self._express:
             # undefined scalar field
             return True
-        for funct in itervalues(self._express):
+        for funct in self._express.values():
             if not funct.is_zero():
                 self._is_zero = False
                 return True
@@ -1203,6 +1254,86 @@ class ScalarField(CommutativeAlgebraElement):
             return True
         return all(func.is_trivial_zero() for func in self._express.values())
 
+    def is_trivial_one(self):
+        r"""
+        Check if ``self`` is trivially equal to one without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self == 1`` and is intended to be used in library code where
+        trying to obtain a mathematically correct result by applying
+        potentially expensive rewrite rules is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: 1})
+            sage: f.is_trivial_one()
+            True
+            sage: f = M.scalar_field(1)
+            sage: f.is_trivial_one()
+            True
+            sage: M.one_scalar_field().is_trivial_one()
+            True
+            sage: f = M.scalar_field({X: x+y})
+            sage: f.is_trivial_one()
+            False
+
+        Scalar field defined by means of two charts::
+
+            sage: U1 = M.open_subset('U1'); X1.<x1,y1> = U1.chart()
+            sage: U2 = M.open_subset('U2'); X2.<x2,y2> = U2.chart()
+            sage: f = M.scalar_field({X1: 1, X2: 1})
+            sage: f.is_trivial_one()
+            True
+            sage: f = M.scalar_field({X1: 0, X2: 1})
+            sage: f.is_trivial_one()
+            False
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = M.scalar_field({X: cos(x)^2 + sin(x)^2})
+            sage: f.is_trivial_one()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to one involve some simplification algorithms and
+        return ``True``::
+
+            sage: (f - 1).is_zero()
+            True
+            sage: f == 1
+            True
+
+        """
+        return all(func.is_trivial_one() for func in self._express.values())
+
+    # TODO: Remove this method as soon as ticket #28629 is solved?
+    def is_unit(self):
+        r"""
+        Return ``True`` iff ``self`` is not trivially zero in at least one of
+        the given expressions since most scalar fields are invertible and a
+        complete computation would take too much time.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: one = M.scalar_field_algebra().one()
+            sage: one.is_unit()
+            True
+            sage: zero = M.scalar_field_algebra().zero()
+            sage: zero.is_unit()
+            False
+
+        """
+        if self._is_zero:
+            return False
+        return not any(func.is_trivial_zero()
+                       for func in self._express.values())
+
     def __eq__(self, other):
         r"""
         Comparison (equality) operator.
@@ -1234,8 +1365,13 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
+        from sage.manifolds.differentiable.mixed_form import MixedForm
+
         if other is self:
             return True
+        if isinstance(other, MixedForm):
+            # use comparison of MixedForm:
+            return other == self
         if not isinstance(other, ScalarField):
             # We try a conversion of other to a scalar field, except if
             # other is None (since this would generate an undefined scalar
@@ -1244,7 +1380,7 @@ class ScalarField(CommutativeAlgebraElement):
                 return False
             try:
                 other = self.parent()(other)  # conversion to a scalar field
-            except TypeError:
+            except Exception:
                 return False
         if other._domain != self._domain:
             return False
@@ -1406,12 +1542,17 @@ class ScalarField(CommutativeAlgebraElement):
             \Phi
 
         """
+        if self.is_immutable():
+            raise ValueError("the name of an immutable element "
+                                 "cannot be changed")
         if name is not None:
             self._name = name
             if latex_name is None:
                 self._latex_name = self._name
         if latex_name is not None:
             self._latex_name = latex_name
+        for rst in self._restrictions.values():
+            rst.set_name(name=name, latex_name=latex_name)
 
     def domain(self):
         r"""
@@ -1439,9 +1580,15 @@ class ScalarField(CommutativeAlgebraElement):
         """
         return self._domain
 
-    def copy(self):
+    def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of the scalar field.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
 
         EXAMPLES:
 
@@ -1461,10 +1608,10 @@ class ScalarField(CommutativeAlgebraElement):
             False
 
         """
-        result = type(self)(self.parent(), name=self._name,
-                            latex_name=self._latex_name)
+        result = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, funct in self._express.items():
             result._express[chart] = funct.copy()
+        result._is_zero = self._is_zero
         return result
 
     def coord_function(self, chart=None, from_chart=None):
@@ -1672,12 +1819,31 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f._express # the (u,v) expression has been lost:
             {Chart (M, (x, y)): 3*y}
 
+        Since zero and one are special elements, their expressions cannot be
+        changed::
+
+            sage: z = M.zero_scalar_field()
+            sage: z.set_expr(3*y)
+            Traceback (most recent call last):
+            ...
+            ValueError: the expressions of an immutable element cannot be
+             changed
+            sage: one = M.one_scalar_field()
+            sage: one.set_expr(3*y)
+            Traceback (most recent call last):
+            ...
+            ValueError: the expressions of an immutable element cannot be
+             changed
+
         """
+        if self.is_immutable():
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         if chart is None:
             chart = self._domain._def_chart
-        self._is_zero = False # a priori
         self._express.clear()
         self._express[chart] = chart.function(coord_expression)
+        self._is_zero = False # a priori
         self._del_derived()
 
     def add_expr(self, coord_expression, chart=None):
@@ -1717,7 +1883,26 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f._express # random (dict. output); f has now 2 expressions:
             {Chart (M, (x, y)): 3*y, Chart (M, (u, v)): cos(u) - sin(v)}
 
+        Since zero and one are special elements, their expressions cannot be
+        changed::
+
+            sage: z = M.zero_scalar_field()
+            sage: z.add_expr(cos(u)-sin(v), c_uv)
+            Traceback (most recent call last):
+            ...
+            ValueError: the expressions of an immutable element cannot be
+             changed
+            sage: one = M.one_scalar_field()
+            sage: one.add_expr(cos(u)-sin(v), c_uv)
+            Traceback (most recent call last):
+            ...
+            ValueError: the expressions of an immutable element cannot be
+             changed
+
         """
+        if self.is_immutable():
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
         if chart is None:
             chart = self._domain._def_chart
         self._express[chart] = chart.function(coord_expression)
@@ -1762,6 +1947,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f.display()
             f: S^2 --> R
             on U: (x, y) |--> arctan(x^2 + y^2)
+            on W: (u, v) |--> arctan(1/(u^2 + v^2))
 
         We note that on `W = U \cap V`, the expression of `f` in terms of
         coordinates `(u,v)` can be deduced from that in the coordinates
@@ -1784,6 +1970,9 @@ class ScalarField(CommutativeAlgebraElement):
             on V: (u, v) |--> arctan(1/(u^2 + v^2))
 
         """
+        if self.is_immutable():
+            raise ValueError("the expressions of an immutable element "
+                                 "cannot be changed")
         if not chart._domain.is_subset(self._domain):
             raise ValueError("the chart is not defined on a subset of " +
                              "the scalar field domain")
@@ -1792,20 +1981,61 @@ class ScalarField(CommutativeAlgebraElement):
         self._is_zero = False # a priori
         self._del_derived()
 
+    def set_restriction(self, rst):
+        r"""
+        Define a restriction of ``self`` to some subdomain.
+
+        INPUT:
+
+        - ``rst`` -- :class:`ScalarField` defined on a subdomain of
+          the domain of ``self``
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: f = M.scalar_field(name='f')
+            sage: g = U.scalar_field(x^2+y)
+            sage: f.set_restriction(g)
+            sage: f.display()
+            f: M --> R
+            on U: (x, y) |--> x^2 + y
+            sage: f.restrict(U) == g
+            True
+
+        """
+        if self.is_immutable():
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
+        if not isinstance(rst, ScalarField):
+            raise TypeError("the argument must be a scalar field")
+        if not rst._domain.is_subset(self._domain):
+            raise ValueError("the domain of the declared restriction is not " +
+                             "a subset of the field's domain")
+        self._restrictions[rst._domain] = rst.copy()
+        self._restrictions[rst._domain].set_name(name=self._name,
+                                                 latex_name=self._latex_name)
+        for chart, expr in rst._express.items():
+            intersection = chart._domain.intersection(rst._domain)
+            self._express[chart.restrict(intersection)] = expr
+        self._is_zero = False  # a priori
+
     def display(self, chart=None):
         r"""
         Display the expression of the scalar field in a given chart.
 
-        Without any argument, this function displays the expressions of the
-        scalar field in all the charts defined on the scalar field's domain
-        that are not restrictions of another chart to some subdomain
-        (the "top charts").
+        Without any argument, this function displays all known, distinct
+        expressions.
 
         INPUT:
 
         - ``chart`` -- (default: ``None``) chart with respect to which
           the coordinate expression is to be displayed; if ``None``, the
-          display is performed in all the top charts in which the
+          display is performed in all the greatest charts in which the
           coordinate expression is known
 
         The output is either text-formatted (console mode) or LaTeX-formatted
@@ -1836,6 +2066,19 @@ class ScalarField(CommutativeAlgebraElement):
             f: M --> R
                (x, y) |--> sqrt(x + 1)
 
+        In case the scalar field is piecewise-defined, the ``display()``
+        command still outputs all expressions. Each expression displayed
+        corresponds to the chart on the greatest domain where this particular
+        expression is known::
+
+            sage: U = M.open_subset('U')
+            sage: f.set_expr(y^2, c_xy.restrict(U))
+            sage: f.display()
+            f: M --> R
+            on U: (x, y) |--> y^2
+            sage: latex(f.display())
+            \begin{array}{llcl} f:& M & \longrightarrow & \mathbb{R} \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto & y^{2} \end{array}
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
@@ -1845,23 +2088,25 @@ class ScalarField(CommutativeAlgebraElement):
             Helper function for :meth:`display`.
             """
             try:
+                # get coordinate expression
                 expression = self.coord_function(chart)
-                coords = chart[:]
-                if len(coords) == 1:
-                    coords = coords[0]
-                if chart._domain == self._domain:
-                    if self._name is not None:
-                        result._txt += "   "
-                    result._latex += " & "
-                else:
-                    result._txt += "on " + chart._domain._name + ": "
-                    result._latex += r"\mbox{on}\ " + latex(chart._domain) + \
-                                     r": & "
-                result._txt += repr(coords) + " |--> " + repr(expression) + "\n"
-                result._latex += latex(coords) + r"& \longmapsto & " + \
-                                 latex(expression) + r"\\"
             except (TypeError, ValueError):
                 pass
+            # if that succeeds, proceed:
+            coords = chart[:]
+            if len(coords) == 1:
+                coords = coords[0]
+            if chart._domain == self._domain:
+                if self._name is not None:
+                    result._txt += "   "
+                result._latex += " & "
+            else:
+                result._txt += "on " + chart._domain._name + ": "
+                result._latex += r"\mbox{on}\ " + latex(chart._domain) + \
+                                 r": & "
+            result._txt += repr(coords) + " |--> " + repr(expression) + "\n"
+            result._latex += latex(coords) + r"& \longmapsto & " + \
+                             latex(expression) + r"\\"
 
         # Name of the base field:
         field = self._domain.base_field()
@@ -1891,7 +2136,25 @@ class ScalarField(CommutativeAlgebraElement):
                         field_latex_name + r" \\"
         if chart is None:
             for ch in self._domain._top_charts:
-                _display_expression(self, ch, result)
+                ###
+                # Get the greatest domain of top chart restrictions where the
+                # expression is known:
+                max_dom = None
+                for sch in ch._subcharts:
+                    if max_dom is None:
+                        try:
+                            self.coord_function(sch)
+                            max_dom = sch._domain
+                        except (TypeError, ValueError):
+                            pass
+                    elif max_dom.is_subset(sch._domain):
+                        try:
+                            self.coord_function(sch)
+                            max_dom = sch._domain
+                        except (TypeError, ValueError):
+                            pass
+                if max_dom is not None:
+                    _display_expression(self, ch.restrict(max_dom), result)
         else:
             _display_expression(self, chart, result)
         result._txt = result._txt[:-1]
@@ -1967,10 +2230,17 @@ class ScalarField(CommutativeAlgebraElement):
                     self._restrictions[subdomain] = rst.restrict(subdomain)
                     break
             else:
-            # If this fails, the restriction is obtained via coercion
-                resu = subdomain.scalar_field_algebra()(self)
-                resu._name = self._name
-                resu._latex_name = self._latex_name
+            # If this fails, the restriction must be created from scratch:
+                sexpress = {}
+                for chart, funct in self._express.items():
+                    for schart in subdomain.atlas():
+                        if schart in chart._subcharts:
+                            sexpress[schart] = funct.expr()
+                resu = type(self)(subdomain.scalar_field_algebra(),
+                                  coord_expression=sexpress, name=self._name,
+                                  latex_name=self._latex_name)
+                if self.is_immutable():
+                    resu.set_immutable()  # restriction must be immutable, too
                 self._restrictions[subdomain] = resu
         return self._restrictions[subdomain]
 
@@ -2114,7 +2384,7 @@ class ScalarField(CommutativeAlgebraElement):
                         if (chart2, chart1) in coord_changes:
                             self.coord_function(chart2, from_chart=chart1)
                             resu.append(chart2)
-        if resu == []:
+        if not resu:
             return None
         else:
             return resu
@@ -2297,11 +2567,11 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        # Special cases:
-        if self._is_zero:
-            return other.copy()
-        if other._is_zero:
-            return self.copy()
+        # Trivial cases:
+        if self.is_trivial_zero():
+            return other
+        if other.is_trivial_zero():
+            return self
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2346,11 +2616,13 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        # Special cases:
-        if self._is_zero:
+        # Trivial cases:
+        if self.is_trivial_zero():
             return -other
-        if other._is_zero:
-            return self.copy()
+        if other.is_trivial_zero():
+            return self
+        if self is other:
+            return self.parent().zero()
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
@@ -2364,7 +2636,6 @@ class ScalarField(CommutativeAlgebraElement):
         if self._latex_name is not None and other._latex_name is not None:
             result._latex_name = self._latex_name + '-' + other._latex_name
         return result
-
 
     def _mul_(self, other):
         r"""
@@ -2398,12 +2669,16 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        from sage.tensor.modules.format_utilities import format_mul_txt, \
-                                                         format_mul_latex
-        # Special cases:
-        if self._is_zero or other._is_zero:
+        # Trivial cases:
+        if self.is_trivial_zero() or other.is_trivial_zero():
             return self._domain.zero_scalar_field()
+        if self.is_trivial_one():
+            return other
+        if other.is_trivial_one():
+            return self
         # Generic case:
+        from sage.tensor.modules.format_utilities import (format_mul_txt,
+                                                          format_mul_latex)
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the multiplication")
@@ -2412,7 +2687,7 @@ class ScalarField(CommutativeAlgebraElement):
             # ChartFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
         result._name = format_mul_txt(self._name, '*', other._name)
-        result._latex_name = format_mul_latex(self._latex_name, ' ',
+        result._latex_name = format_mul_latex(self._latex_name, r' \cdot ',
                                              other._latex_name)
         return result
 
@@ -2450,10 +2725,10 @@ class ScalarField(CommutativeAlgebraElement):
         """
         from sage.tensor.modules.format_utilities import format_mul_txt, \
                                                          format_mul_latex
-        # Special cases:
-        if other._is_zero:
+        # Trivial cases:
+        if other.is_trivial_zero():
             raise ZeroDivisionError("division of a scalar field by zero")
-        if self._is_zero:
+        if self.is_trivial_zero():
             return self._domain.zero_scalar_field()
         # Generic case:
         com_charts = self.common_charts(other)
@@ -2515,8 +2790,19 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        if number == 0:
-            return self.parent().zero()
+        # Trivial cases:
+        try:
+            if number.is_trivial_zero():
+                return self.parent().zero()
+            if (number - 1).is_trivial_zero():
+                return self
+        except AttributeError:
+            # in case base ring is not SR:
+            if number == 0:
+                return self.parent().zero()
+            if number == 1:
+                return self
+        # Generic case:
         result = type(self)(self.parent())
         if isinstance(number, Expression):
             var = number.variables()  # possible symbolic variables in number
@@ -2539,9 +2825,9 @@ class ScalarField(CommutativeAlgebraElement):
                         # different chart
                         chart_coords = chart[:]
                         var_not_in_chart = [s for s in var
-                                            if not s in chart_coords]
+                                            if s not in chart_coords]
                         any_in_other_chart = False
-                        if var_not_in_chart != []:
+                        if var_not_in_chart:
                             for other_chart in self._domain.atlas():
                                 other_chart_coords = other_chart[:]
                                 for s in var_not_in_chart:
@@ -3297,3 +3583,59 @@ class ScalarField(CommutativeAlgebraElement):
             if truncate:
                 expr.simplify()
         self._del_derived()
+
+    def set_immutable(self):
+        r"""
+        Set ``self`` and all restrictions of ``self`` immutable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: U = M.open_subset('U', coord_def={X: x^2+y^2<1})  # disk
+            sage: V = M.open_subset('U', coord_def={X: x>0})  # half plane
+            sage: f = M.scalar_field(x^2, name='f')
+            sage: fU = f.restrict(U)
+            sage: f.set_immutable()
+            sage: fU.is_immutable()
+            True
+            sage: f.restrict(V).is_immutable()
+            True
+
+        """
+        for rst in self._restrictions.values():
+            rst.set_immutable()
+        super().set_immutable()
+
+    @cached_method
+    def __hash__(self):
+        r"""
+        Hash function.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field(x^2, name='f')
+            sage: f.set_immutable()
+            sage: g = M.scalar_field(x^2, name='g')
+            sage: g.set_immutable()
+
+        Check whether equality implies equality of hash::
+
+            sage: f == g
+            True
+            sage: hash(f) == hash(g)
+            True
+
+        Let us check that ``f`` can be used as a dictionary key::
+
+            sage: {f: 1}[f]
+            1
+
+        """
+        if self.is_mutable():
+            raise ValueError('element must be immutable in order to be '
+                             'hashable')
+        return hash((type(self).__name__, self._domain))
+

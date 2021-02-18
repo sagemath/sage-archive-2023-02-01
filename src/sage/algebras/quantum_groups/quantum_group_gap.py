@@ -1663,9 +1663,9 @@ class QuantumGroupModule(Parent, UniqueRepresentation):
             True
         """
         G = self._libgap.CrystalGraph()
-        vertices = [CrystalGraphVertex(self, repr(p)) for p in G[bytes('points')]]
+        vertices = [CrystalGraphVertex(self, repr(p)) for p in G['points']]
         edges = [[vertices[e[0][0]-1], vertices[e[0][1]-1], e[1]]
-                 for e in G[bytes('edges')].sage()]
+                 for e in G['edges'].sage()]
         G = DiGraph([vertices, edges], format='vertices_and_edges')
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():
@@ -2080,11 +2080,11 @@ class HighestWeightSubmodule(QuantumGroupModule):
             sage: T = tensor([V,V])                        # optional - gap_packages
             sage: S = T.highest_weight_decomposition()[1]  # optional - gap_packages
             sage: G = S.crystal_graph()                    # optional - gap_packages
-            sage: sorted(G.vertices(), key=str)            # optional - gap_packages
+            sage: sorted(G.vertices(sort=False), key=str)            # optional - gap_packages
             [<-q^-1*(1*v0<x>F[a1+a2]*v0) + 1*(F[a1+a2]*v0<x>1*v0)>,
              <-q^-1*(1*v0<x>F[a1]*v0) + 1*(F[a1]*v0<x>1*v0)>,
              <-q^-1*(F[a1]*v0<x>F[a1+a2]*v0) + 1*(F[a1+a2]*v0<x>F[a1]*v0)>]
-            sage: sorted(S.crystal_graph(False).vertices(), key=str)  # optional - gap_packages
+            sage: sorted(S.crystal_graph(False).vertices(sort=False), key=str)  # optional - gap_packages
             [<(1)*e.1>, <(1)*e.2>, <(1)*e.3>]
         """
         G = self._libgap.CrystalGraph()
@@ -2094,9 +2094,10 @@ class HighestWeightSubmodule(QuantumGroupModule):
         B = self.basis()
         d = {repr(B[k]._libgap): '<{!r}>'.format(self._ambient_basis_map[k])
              for k in self._ambient_basis_map}
-        vertices = [CrystalGraphVertex(self, d[repr(p)[1:-1]]) for p in G[bytes('points')]]
+        vertices = [CrystalGraphVertex(self, d[repr(p)[1:-1]])
+                    for p in G['points']]
         edges = [[vertices[e[0][0]-1], vertices[e[0][1]-1], e[1]]
-                 for e in G[bytes('edges')].sage()]
+                 for e in G['edges'].sage()]
         G = DiGraph([vertices, edges], format='vertices_and_edges')
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():

@@ -135,7 +135,7 @@ def choice(seq):
     """
     return _pyrand().choice(seq)
 
-def shuffle(x, random=None):
+def shuffle(x):
     r"""
     x, random=random.random -> shuffle list x in place; return None.
 
@@ -146,9 +146,7 @@ def shuffle(x, random=None):
 
         sage: shuffle([1 .. 10])
     """
-    if random is None:
-        random = _pyrand().random
-    return _pyrand().shuffle(x, random)
+    return _pyrand().shuffle(x)
 
 def sample(population, k):
     r"""
@@ -173,7 +171,6 @@ def sample(population, k):
 
         sage: sample(["Here", "I", "come", "to", "save", "the", "day"], 3)
         ['Here', 'to', 'day']
-        sage: from six.moves import range
         sage: sample(range(2^30), 7)
         [357009070, 558990255, 196187132, 752551188, 85926697, 954621491, 624802848]
     """

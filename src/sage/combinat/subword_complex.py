@@ -111,9 +111,6 @@ REFERENCES:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-# python3
-from __future__ import division, print_function
-from six.moves import range
 
 from copy import copy
 from sage.misc.cachefunc import cached_method
@@ -714,7 +711,7 @@ class SubwordComplexFacet(Simplex, Element):
             ((2, 3), 3)
         """
         S = self.parent()
-        F = set(list(self))
+        F = set(self)
         R = list(self._extended_root_configuration_indices())
         j = _flip_c(self.parent().group(), F, R, i)  # F and R are changed here
         new_facet = S.element_class(self.parent(), F)

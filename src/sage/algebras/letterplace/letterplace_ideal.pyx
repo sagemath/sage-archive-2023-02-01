@@ -1,14 +1,5 @@
-###############################################################################
-#
-#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-#
-###############################################################################
-
 """
-Homogeneous ideals of free algebras.
+Homogeneous ideals of free algebras
 
 For twosided ideals and when the base ring is a field, this
 implementation also provides Groebner bases and ideal containment
@@ -38,6 +29,16 @@ AUTHOR:
 - Simon King (2011-03-22):  See :trac:`7797`.
 
 """
+
+# ****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.libs.singular.function import lib, singular_function
@@ -206,7 +207,7 @@ class LetterplaceIdeal(Ideal_nc):
             - The result is cached. The same Groebner basis is returned
               if a smaller degree bound than the known one is requested.
             - If the degree bound ``Infinity`` is requested, it is attempted to
-              compute a complete Groebner basis. But we can not guarantee
+              compute a complete Groebner basis. But we cannot guarantee
               that the computation will terminate, since not all twosided
               homogeneous ideals of a free algebra have a finite Groebner
               basis.
@@ -216,9 +217,9 @@ class LetterplaceIdeal(Ideal_nc):
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
 
-        Since `F` was cached and since its degree bound can not be
+        Since `F` was cached and since its degree bound cannot be
         decreased, it may happen that, as a side effect of other tests,
-        it already has a degree bound bigger than 3. So, we can not
+        it already has a degree bound bigger than 3. So, we cannot
         test against the output of ``I.groebner_basis()``::
 
             sage: F.set_degbound(3)
@@ -248,9 +249,8 @@ class LetterplaceIdeal(Ideal_nc):
             sage: J.groebner_basis()
             [b*a^2 - c^3, b^2*a + c*a^2, c*a^3 + c^3*b, c^3*b^2 + c^4*a]
 
-        Aparently, the results are compatible, by sending `a` to `x`, `b`
+        Apparently, the results are compatible, by sending `a` to `x`, `b`
         to `y` and `c` to `z`.
-
         """
         cdef FreeAlgebra_letterplace A = self.ring()
         cdef FreeAlgebraElement_letterplace x

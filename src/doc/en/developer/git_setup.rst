@@ -55,8 +55,8 @@ you have a system-wide git installation.
 
 Some further resources for installation help are:
 
-* `Chapter 2 of the git book
-  <http://book.git-scm.com/2_installing_git.html>`_
+* `Section 1.5 of the git book
+  <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_
 
 * The `git homepage <http://git-scm.com>`_ for the most recent
   information.

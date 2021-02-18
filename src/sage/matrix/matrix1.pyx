@@ -19,8 +19,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cpython.sequence cimport PySequence_Fast
 
 import sage.modules.free_module
@@ -88,8 +86,6 @@ cdef class Matrix(Matrix0):
             sage: b = pari(a); b
             [1.000000000, 2.000000000; 3.000000000, 1.000000000] # 32-bit
             [1.00000000000000, 2.00000000000000; 3.00000000000000, 1.00000000000000] # 64-bit
-            sage: b[0][0].precision()    # in words
-            3
         """
         from sage.libs.pari.all import pari
         return pari.matrix(self._nrows, self._ncols, self._list())
@@ -193,15 +189,21 @@ cdef class Matrix(Matrix0):
             |     2                 2    |
             +    x  + 8 x      - 3 x  + 5+
 
+        ::
+
+            sage: y = var('y')
+            sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])
+            sage: M == fricas(M).sage()    # optional - fricas
+            True
         """
-        s = str(self.rows()).replace('(','[').replace(')',']')
+        s = ','.join('[' + ','.join(cf._fricas_init_() for cf in row) + ']'
+                     for row in self.rows())
         R = self.base_ring()
         try:
             R._fricas_()
         except TypeError:
-            return "matrix(%s)"%(s)
-
-        return "matrix(%s)$Matrix(%s)"%(s, R._fricas_init_())
+            return "matrix([%s])" % s
+        return "matrix([%s])$Matrix(%s)" % (s, R._fricas_init_())
 
     def _giac_init_(self):
         """
@@ -213,21 +215,23 @@ cdef class Matrix(Matrix0):
             sage: giac(M)
             [[0,1],[2,3]]
 
-        ::
-
             sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
             sage: giac(M)
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
-
-        ::
 
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
             sage: giac(M)
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
+
+            sage: y = var('y')
+            sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])
+            sage: giac(M).det()
+            (y^2*dilog(y)+y*sin(y)*dilog(y)-y+4)/y
         """
-        s = str(self.rows()).replace('(','[').replace(')',']')
-        return "(%s)"%(s)
+        s = ','.join('[' + ','.join(cf._giac_init_() for cf in row) + ']'
+                     for row in self.rows())
+        return "([%s])" % s
 
     def _maxima_init_(self):
         """
@@ -375,21 +379,23 @@ cdef class Matrix(Matrix0):
             sage: maple(M)  # optional - maple
             Matrix(2, 2, [[0,1],[2,3]])
 
-        ::
-
             sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
             sage: maple(M)  # optional - maple
             Matrix(3, 3, [[1,2,3],[4/3,5/3,3/2],[7,8,9]])
-
-        ::
 
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
             sage: maple(M)  # optional - maple
             Matrix(2, 2, [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]])
+
+            sage: y = var('y')
+            sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])
+            sage: M == maple(M).sage()    # optional - maple
+            True
         """
-        s = str(self.rows()).replace('(','[').replace(')',']')
-        return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
+        s = ','.join('[' + ','.join(cf._maple_init_() for cf in row) + ']'
+                     for row in self.rows())
+        return "Matrix(%s,%s,[%s])" % (self.nrows(), self.ncols(), s)
 
     def _polymake_(self, polymake=None):
         """
@@ -440,10 +446,32 @@ cdef class Matrix(Matrix0):
             sage: macaulay2(m)                  #optional - macaulay2
             | x   y   |
             | x+1 y+1 |
+
+        TESTS:
+
+        Entries of the matrix get promoted to the base ring (:trac:`28566`)::
+
+            sage: R.<x,y> = QQ[]
+            sage: m = macaulay2(matrix(R, [[1, 2], [3, 4]]))    # optional - macaulay2
+            sage: m.ring()._operator('===', R).sage()           # optional - macaulay2
+            True
+
+        Check that degenerate matrix dimensions are handled correctly
+        (:trac:`28591`)::
+
+            sage: macaulay2(matrix(QQ, 2, 0)).numrows()  # optional - macaulay2
+            2
+            sage: macaulay2(matrix(QQ, 0, 2)).numcols()  # optional - macaulay2
+            2
         """
-        base_ring = macaulay2(self.base_ring())
-        entries = list(map(list, self))
-        return macaulay2(entries).matrix()
+        if macaulay2 is None:
+            from sage.interfaces.macaulay2 import macaulay2 as m2_default
+            macaulay2 = m2_default
+        if not self.nrows():
+            return (macaulay2(self.base_ring())
+                    .matrix('toList(%s:{})' % self.ncols()).transpose())
+        entries = [list(row) for row in self]
+        return macaulay2(self.base_ring()).matrix(entries)
 
 
     def _scilab_init_(self):
@@ -2184,6 +2212,112 @@ cdef class Matrix(Matrix0):
             msg = "Cannot set column with {0} elements over {1}, use change_ring first."
             raise TypeError(msg.format(v[i].parent(), self.base_ring()))
 
+    def zero_pattern_matrix(self, ring=None):
+        """
+        Return a matrix that contains one for corresponding zero entries.
+
+        All other entries are zero.
+
+        INPUT:
+
+        - ``ring`` -- (optional); base ring of the output; default is ``ZZ``
+
+        OUTPUT:
+
+        A new dense matrix with same dimensions as ``self``
+        and with base ring ``ring``.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 2, [1,2,-2,0])
+            sage: M.zero_pattern_matrix()
+            [0 0]
+            [0 1]
+
+            sage: M = Matrix(QQ, 2, [1,2/3,-2,0])
+            sage: M.zero_pattern_matrix()
+            [0 0]
+            [0 1]
+
+        Default base ring for the output is ``ZZ``::
+
+            sage: M.zero_pattern_matrix().base_ring()
+            Integer Ring
+
+        Specify a different base ring for the output::
+
+            sage: M.zero_pattern_matrix(GF(2)).base_ring()
+            Finite Field of size 2
+
+        Examples for different base rings for ``self``::
+
+            sage: M = Matrix(Zmod(8), 3, 2, [2, 3, 9, 8, 1, 0]); M
+            [2 3]
+            [1 0]
+            [1 0]
+            sage: M.zero_pattern_matrix()
+            [0 0]
+            [0 1]
+            [0 1]
+
+        ::
+
+            sage: W.<a> = CyclotomicField(100)
+            sage: M = Matrix(2, 3, [a, a/2, 0, a^2, a^100-1, a^2 - a]); M
+            [      a   1/2*a       0]
+            [    a^2       0 a^2 - a]
+            sage: M.zero_pattern_matrix()
+            [0 0 1]
+            [0 1 0]
+
+        ::
+
+            sage: K.<a> = GF(2^4)
+            sage: l = [a^2 + 1, a^3 + 1, 0, 0, a, a^3 + a + 1, a + 1,
+            ....:      a + 1, a^2, a^3 + a + 1, a^3 + a, a^3 + a]
+            sage: M = Matrix(K, 3, 4, l); M
+            [    a^2 + 1     a^3 + 1           0           0]
+            [          a a^3 + a + 1       a + 1       a + 1]
+            [        a^2 a^3 + a + 1     a^3 + a     a^3 + a]
+            sage: M.zero_pattern_matrix()
+            [0 0 1 1]
+            [0 0 0 0]
+            [0 0 0 0]
+
+        ::
+
+            sage: K.<a> = GF(25)
+            sage: M = Matrix(K, 2, 3, [0, 2, 3, 5, a, a^2])
+            sage: M
+            [    0     2     3]
+            [    0     a a + 3]
+            sage: M.zero_pattern_matrix()
+            [1 0 0]
+            [1 0 0]
+
+        .. NOTE::
+
+            This method can be optimized by improving
+            :meth:`get_is_zero_unsafe` for derived matrix classes.
+        """
+        if ring is None:
+            from sage.rings.all import ZZ
+            ring = ZZ
+
+        cdef object zero = ring.zero()
+        cdef object one = ring.one()
+        cdef Py_ssize_t i, j
+
+        from sage.matrix.matrix_space import MatrixSpace
+        MZ = MatrixSpace(ring, self._nrows, self._ncols, sparse=False)
+        cdef Matrix M =  MZ(zero, None, None)  # initialize with zeros
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if self.get_is_zero_unsafe(i, j):
+                    M.set_unsafe(i, j, one)
+        return M
+
 
     ####################################################################################
     # Change of representation between dense and sparse.
@@ -2254,7 +2388,8 @@ cdef class Matrix(Matrix0):
         cdef Matrix A
         A = self.new_matrix(self._nrows, self._ncols, self,
                 coerce=False, sparse=False)
-        A.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(self.subdivisions())
         return A
 
     def sparse_matrix(self):
@@ -2297,7 +2432,8 @@ cdef class Matrix(Matrix0):
             return self
         A = self.new_matrix(self._nrows, self._ncols, self,
                 coerce=False, sparse=True)
-        A.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(self.subdivisions())
         return A
 
     def matrix_space(self, nrows=None, ncols=None, sparse=None):

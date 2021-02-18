@@ -178,6 +178,14 @@ class ChartFunction(AlgebraElement):
         sage: f == h
         True
 
+    A coercion by means of the restriction is implemented::
+
+        sage: D = M.open_subset('D')
+        sage: X_D = X.restrict(D, x^2+y^2<1)  # open disk
+        sage: c = X_D.function(x^2)
+        sage: c + f
+        2*x^2 + 3*y + 1
+
     Expansion to a given order with respect to a small parameter::
 
         sage: t = var('t')  # the small parameter
@@ -855,6 +863,74 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         return self._calc_method.is_trivial_zero(self.expr(curr))
 
+    def is_trivial_one(self):
+        r"""
+        Check if ``self`` is trivially equal to one without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self == 1`` and is intended to be used in library code where
+        trying to obtain a mathematically correct result by applying
+        potentially expensive rewrite rules is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(1)
+            sage: f.is_trivial_one()
+            True
+            sage: f = X.function(float(1.0))
+            sage: f.is_trivial_one()
+            True
+            sage: f = X.function(x-x+1)
+            sage: f.is_trivial_one()
+            True
+            sage: X.one_function().is_trivial_one()
+            True
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = X.function(cos(x)^2 + sin(x)^2)
+            sage: f.is_trivial_one()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to one involve some simplification algorithms and
+        return ``True``::
+
+            sage: (f - 1).is_zero()
+            True
+            sage: f == 1
+            True
+
+        """
+        curr = self._calc_method._current
+        return self._calc_method.is_trivial_zero(self.expr(curr) - SR.one())
+
+    # TODO: Remove this method as soon as ticket #28629 is solved?
+    def is_unit(self):
+        r"""
+        Return ``True`` iff ``self`` is not trivially zero since most chart
+        functions are invertible and an actual computation would take too much
+        time.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1)
+            sage: f.is_unit()
+            True
+            sage: zero = X.function(0)
+            sage: zero.is_unit()
+            False
+
+        """
+        return not self.is_trivial_zero()
+
     def copy(self):
         r"""
         Return an exact copy of the object.
@@ -891,7 +967,7 @@ class ChartFunction(AlgebraElement):
         resu._order = self._order
         return resu
 
-    def diff(self, coord):
+    def derivative(self, coord):
         r"""
         Partial derivative with respect to a coordinate.
 
@@ -916,28 +992,38 @@ class ChartFunction(AlgebraElement):
             sage: X.<x,y> = M.chart(calc_method='SR')
             sage: f = X.function(x^2+3*y+1); f
             x^2 + 3*y + 1
-            sage: f.diff(x)
+            sage: f.derivative(x)
             2*x
-            sage: f.diff(y)
+            sage: f.derivative(y)
             3
 
-        Each partial derivatives is itself a chart function::
+        An alias is ``diff``::
+
+            sage: f.diff(x)
+            2*x
+
+        Each partial derivative is itself a chart function::
 
             sage: type(f.diff(x))
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
+
+        The same result is returned by the function ``diff``::
+
+            sage: diff(f, x)
+            2*x
 
         An index can be used instead of the coordinate symbol::
 
             sage: f.diff(0)
             2*x
-            sage: f.diff(1)
+            sage: diff(f, 1)
             3
 
         The index range depends on the convention used on the chart's domain::
 
             sage: M = Manifold(2, 'M', structure='topological', start_index=1)
-            sage: X.<x,y> = M.chart(calc_method='sympy')
-            sage: f = X.function(x**2+3*y+1)
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1)
             sage: f.diff(0)
             Traceback (most recent call last):
             ...
@@ -985,6 +1071,8 @@ class ChartFunction(AlgebraElement):
             return self._der[coordsi]
         else:
             return self._der[self._chart[:].index(coord)]
+
+    diff = derivative
 
     def __eq__(self, other):
         r"""
@@ -2269,7 +2357,7 @@ class ChartFunction(AlgebraElement):
         If ``self`` has been defined with the small parameter
         ``expansion_symbol`` and some truncation order, the coordinate
         expression of ``self`` will be expanded in power series of that
-        parameter and truncated to the the given order.
+        parameter and truncated to the given order.
 
         OUTPUT:
 
@@ -2552,7 +2640,6 @@ class ChartFunction(AlgebraElement):
         self._del_derived()
         return self
 
-
 class ChartFunctionRing(Parent, UniqueRepresentation):
     """
     Ring of all chart functions on a chart.
@@ -2562,7 +2649,9 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
     - ``chart`` -- a coordinate chart, as an instance of class
       :class:`~sage.manifolds.chart.Chart`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    The ring of all chart functions w.r.t. to a chart::
 
         sage: M = Manifold(2, 'M', structure='topological')
         sage: X.<x,y> = M.chart()
@@ -2572,6 +2661,22 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
         <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category'>
         sage: FR.category()
         Category of commutative algebras over Symbolic Ring
+
+    Coercions by means of restrictions are implemented::
+
+        sage: FR_X = X.function_ring()
+        sage: D = M.open_subset('D')
+        sage: X_D = X.restrict(D, x^2+y^2<1)  # open disk
+        sage: FR_X_D = X_D.function_ring()
+        sage: FR_X_D.has_coerce_map_from(FR_X)
+        True
+
+    But only if the charts are compatible::
+
+        sage: Y.<t,z> = D.chart()
+        sage: FR_Y = Y.function_ring()
+        sage: FR_Y.has_coerce_map_from(FR_X)
+        False
 
     """
     Element = ChartFunction
@@ -2610,8 +2715,16 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sin(x*y)
             sage: f.parent() is FR
             True
+            sage: D = M.open_subset('D')
+            sage: X_D = X.restrict(D, x^2+y^2<1)
+            sage: FR_D = X_D.function_ring()
+            sage: FR_D(f)
+            sin(x*y)
 
         """
+        if isinstance(expression, ChartFunction):
+            if self._chart in expression._chart._subcharts:
+                expression = expression.expr(method=calc_method)
         return self.element_class(self, expression, calc_method=calc_method)
 
     def _coerce_map_from_(self, other):
@@ -2623,13 +2736,20 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: FR = X.function_ring()
-            sage: FR._coerce_map_from_(RR)
+            sage: FR.has_coerce_map_from(RR)
+            True
+            sage: D = M.open_subset('D')
+            sage: X_D = X.restrict(D, x^2+y^2<1)
+            sage: FR_D = X_D.function_ring()
+            sage: FR_D.has_coerce_map_from(FR)
             True
 
         """
-        from sage.rings.all import RR, ZZ, QQ
-        if other is SR or other is ZZ or other is RR or other is QQ:
+        if SR.has_coerce_map_from(other):
             return True
+        if isinstance(other, ChartFunctionRing):
+            if self._chart in other._chart._subcharts:
+                return True
         return False
 
     def _repr_(self):
@@ -2645,7 +2765,7 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
         """
         return "Ring of chart functions on {}".format(self._chart)
 
-    def is_integral_domain(self):
+    def is_integral_domain(self, proof=True):
         """
         Return ``False`` as ``self`` is not an integral domain.
 

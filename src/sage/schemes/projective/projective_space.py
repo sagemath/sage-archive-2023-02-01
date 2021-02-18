@@ -28,7 +28,7 @@ base rings.
     Projective Space of dimension 5 over Complex Field with 53 bits of precision
 
 The third argument specifies the printing names of the generators of the
-homogenous coordinate ring. Using the method `.objgens()` you can obtain both
+homogeneous coordinate ring. Using the method `.objgens()` you can obtain both
 the space and the generators as ready to use variables. ::
 
     sage: P2, vars = ProjectiveSpace(10, QQ, 't').objgens()
@@ -78,9 +78,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
-from six import integer_types
 
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
@@ -245,7 +242,7 @@ def ProjectiveSpace(n, R=None, names=None):
         return A
     if names is None:
         names = 'x'
-    if isinstance(R, integer_types + (Integer,)):
+    if isinstance(R, (Integer, int)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -260,6 +257,7 @@ def ProjectiveSpace(n, R=None, names=None):
         return ProjectiveSpace_ring(n, R, names)
     else:
         raise TypeError("R (=%s) must be a commutative ring"%R)
+
 
 class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
     """
@@ -313,7 +311,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         False
     """
     @staticmethod
-    def __classcall__(self, n, RR=ZZ, names=None):
+    def __classcall__(cls, n, R=ZZ, names=None):
         """
         EXAMPLES::
 
@@ -321,7 +319,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             True
         """
         normalized_names = normalize_names(n+1, names)
-        return super(ProjectiveSpace_ring, self).__classcall__(self, n, RR, tuple(normalized_names))
+        return super(ProjectiveSpace_ring, cls).__classcall__(cls, n, R, normalized_names)
 
     def __init__(self, n, R=ZZ, names=None):
         """
@@ -332,7 +330,6 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: ProjectiveSpace(3, Zp(5), 'y')
             Projective Space of dimension 3 over 5-adic Ring with capped relative precision 20
         """
-        names = normalize_names(n+1, names)
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
 
@@ -962,7 +959,12 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             "_test_elements_eq_symmetric", "_test_elements_eq_transitive",\
             "_test_elements_neq"])
         """
-        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.projective.projective_subscheme import (AlgebraicScheme_subscheme_projective,
+                                                                  AlgebraicScheme_subscheme_projective_field)
+        R = self.base_ring()
+        if R.is_field() and R.is_exact():
+            return AlgebraicScheme_subscheme_projective_field(self, X)
+
         return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i, AA=None):
@@ -1018,7 +1020,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             #assume that if you've passed in a new affine space you want to override
             #the existing patch
             if AA is None or A == AA:
-                return(A)
+                return A
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
@@ -1072,7 +1074,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         OUTPUT: a dynamical system on this projective space.
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: E = EllipticCurve(QQ,[-1, 0])
@@ -1146,7 +1148,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
 
-        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system 
+        - ``monic`` -- ``True`` or ``False`` specifying if the polynomial defining the system
           should be monic or not. Defaults to ``False``.
 
         OUTPUT: :class:`DynamicalSystem_projective`
@@ -1289,6 +1291,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         monomials = sorted([R({tuple(v) : 1}) for v in WeightedIntegerVectors(d, [1] * (N + 1))])
         monomials.reverse() # order the monomials greatest to least via the given monomial order
         return Hom(self, CS)(monomials)
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1675,7 +1678,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         INPUT:
 
         - ``F`` -- a polynomial, or a list or tuple of polynomials in
-          the coordinate ring of this projective space.
+          the coordinate ring of this projective space
 
         EXAMPLES::
 
@@ -1685,6 +1688,38 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         from sage.schemes.curves.constructor import Curve
         return Curve(F, self)
+
+    def line_through(self, p, q):
+        """
+        Return the line through ``p`` and ``q``.
+
+        INPUT:
+
+        - ``p``, ``q`` -- distinct rational points of the projective space
+
+        EXAMPLES::
+
+            sage: P3.<x0,x1,x2,x3> = ProjectiveSpace(3, QQ)
+            sage: p1 = P3(1, 2, 3, 4)
+            sage: p2 = P3(4, 3, 2, 1)
+            sage: P3.line_through(p1, p2)
+            Projective Curve over Rational Field defined by -5/4*x0 + 5/2*x1 - 5/4*x2,
+            -5/2*x0 + 15/4*x1 - 5/4*x3, -5/4*x0 + 15/4*x2 - 5/2*x3, -5/4*x1 + 5/2*x2 - 5/4*x3
+            sage: p3 = P3(2,4,6,8)
+            sage: P3.line_through(p1, p3)
+            Traceback (most recent call last):
+            ...
+            ValueError: not distinct points
+
+        """
+        if p == q:
+            raise ValueError("not distinct points")
+
+        from sage.schemes.curves.constructor import Curve
+
+        m = matrix(3, list(self.gens()) + list(p) + list(q))
+        return Curve([f for f in m.minors(3) if f])
+
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):
@@ -1851,7 +1886,8 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
                     P[j] = zero
                     j += 1
             i -= 1
-        return(D)
+        return D
+
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
     def rational_points(self, bound=0):
@@ -1929,7 +1965,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
         return pts
 
 
-#fix the pickles from moving projective_space.py
+# fix the pickles from moving projective_space.py
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.projective_space',
                            'ProjectiveSpace_field',

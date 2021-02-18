@@ -118,7 +118,7 @@ AUTHOR:
 - Miguel Angel Marco Buzunariz
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Miguel Angel Marco Buzunariz <mmarco@unizar.es>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -126,7 +126,7 @@ AUTHOR:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
@@ -134,13 +134,8 @@ from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroupElement
-
-from sage.structure.element import MultiplicativeGroupElement
-from sage.interfaces.gap import gap
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
 from sage.categories.morphism import SetMorphism
@@ -1206,7 +1201,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: D = C2.semidirect_product(C8, hom); D
             Finitely presented group < a, b | a^2, b^8, a^-1*b*a*b >
             sage: D = C2.semidirect_product(C8, hom, reduced=True); D
-            Finitely presented group < a, b | a^2, (a*b)^2, b^8 >
+            Finitely presented group < a, b | a^2, a*b*a*b, b^8 >
 
             sage: C3 = groups.presentation.Cyclic(3)
             sage: C4 = groups.presentation.Cyclic(4)
@@ -1395,7 +1390,6 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         Uses GAP.
         """
         I = self.gap().IsomorphismSimplifiedFpGroup()
-        domain = self
         codomain = wrap_FpGroup(I.Range())
         phi = lambda x: codomain(I.ImageElm(x.gap()))
         HS = self.Hom(codomain)
@@ -1448,22 +1442,25 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: H = AlternatingGroup(3)
             sage: G.epimorphisms(H)
             [Generic morphism:
-               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+               From: Finitely presented group < x0, x1, x2 | x0*x1*x2*x0*x1*x2, x0^3 >
                To:   Alternating group of order 3!/2 as a permutation group
                Defn: x0 |--> ()
                      x1 |--> (1,3,2)
-                     x2 |--> (1,2,3), Generic morphism:
-               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+                     x2 |--> (1,2,3),
+             Generic morphism:
+               From: Finitely presented group < x0, x1, x2 | x0*x1*x2*x0*x1*x2, x0^3 >
                To:   Alternating group of order 3!/2 as a permutation group
                Defn: x0 |--> (1,3,2)
                      x1 |--> ()
-                     x2 |--> (1,2,3), Generic morphism:
-               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+                     x2 |--> (1,2,3),
+             Generic morphism:
+               From: Finitely presented group < x0, x1, x2 | x0*x1*x2*x0*x1*x2, x0^3 >
                To:   Alternating group of order 3!/2 as a permutation group
                Defn: x0 |--> (1,3,2)
                      x1 |--> (1,2,3)
-                     x2 |--> (), Generic morphism:
-               From: Finitely presented group < x0, x1, x2 | (x0*x1*x2)^2, x0^3 >
+                     x2 |--> (),
+             Generic morphism:
+               From: Finitely presented group < x0, x1, x2 | x0*x1*x2*x0*x1*x2, x0^3 >
                To:   Alternating group of order 3!/2 as a permutation group
                Defn: x0 |--> (1,2,3)
                      x1 |--> (1,2,3)
@@ -1554,11 +1551,11 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             sage: G = F / [a^2,b^3,(a*b/a)^3,b*a*b*a]
             sage: k = G.rewriting_system()
             sage: k
-            Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, (b*a)^2 >
+            Rewriting system of Finitely presented group < a, b | a^2, b^3, a*b^3*a^-1, b*a*b*a >
             with rules:
                 a^2    --->    1
                 b^3    --->    1
-                (b*a)^2    --->    1
+                b*a*b*a    --->    1
                 a*b^3*a^-1    --->    1
 
             sage: G([1,1,2,2,2])

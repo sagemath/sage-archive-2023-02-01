@@ -315,8 +315,6 @@ implementing them on your own as a patch for inclusion!
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
 
 import sys
 
@@ -715,7 +713,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._check_satisfies_equations(1)
             Traceback (most recent call last):
             ...
-            TypeError: 1 can not be used as coordinates!
+            TypeError: 1 cannot be used as coordinates!
             Use a list or a tuple.
             sage: P1xP1._check_satisfies_equations([1,1,1,P1xP1.fan()])
             Traceback (most recent call last):
@@ -726,7 +724,7 @@ class ToricVariety_field(AmbientSpace):
         try:
             coordinates = tuple(coordinates)
         except TypeError:
-            raise TypeError("%s can not be used as coordinates! "
+            raise TypeError("%s cannot be used as coordinates! "
                             "Use a list or a tuple." % coordinates)
         n = self.ngens()
         if len(coordinates) != n:
@@ -2188,7 +2186,7 @@ class ToricVariety_field(AmbientSpace):
         for details.
 
         EXAMPLES::
-        
+
             sage: dP6 = toric_varieties.dP6()
             sage: dP6.sheaves
             Sheaf constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
@@ -3498,10 +3496,10 @@ class CohomologyClass(QuotientRingElement):
         Q = self.parent()
         # We iterate over monomials of self.lift()
         p = [x for x in self.lift() if x[1].total_degree() == d]
-        if len(p)==0:
+        if not p:
             return Q.zero()
         else:
-            return Q(sum(x[0]*x[1] for x in p))
+            return Q.sum(x[0] * x[1] for x in p)
 
     def exp(self):
         r"""

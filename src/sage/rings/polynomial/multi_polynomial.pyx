@@ -10,8 +10,6 @@ Base class for elements of multivariate polynomial rings
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
-
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.coerce cimport coercion_model
@@ -57,21 +55,6 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         if self.degree() <= 0:
             return int(self.constant_coefficient())
-        raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")
-
-    def __long__(self):
-        """
-        TESTS::
-
-            sage: long(RR['x,y'](0)) # indirect doctest
-            0L
-            sage: long(ZZ['x,y'].gen(0))
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert non-constant polynomial x to an integer
-        """
-        if self.degree() <= 0:
-            return long(self.constant_coefficient())
         raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")
 
     def __float__(self):
@@ -359,7 +342,7 @@ cdef class MPolynomial(CommutativeRingElement):
         x = [etb.var(v) for v in my_vars]
         n = len(x)
 
-        expr = etb.constant(self.base_ring()(0))
+        expr = etb.constant(self.base_ring().zero())
         for (m, c) in self.dict().iteritems():
             monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0],
                              etb.constant(c))
@@ -910,6 +893,89 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             return self.parent().change_ring(R)(self.dict())
 
+    def is_symmetric(self, group=None):
+        r"""
+        Return whether this polynomial is symmetric.
+
+        INPUT:
+
+        - ``group`` (default: symmetric group) -- if set, test whether the
+          polynomial is invariant with respect to the given permutation group
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: p = (x+y+z)**2 - 3 * (x+y)*(x+z)*(y+z)
+            sage: p.is_symmetric()
+            True
+            sage: (x + y - z).is_symmetric()
+            False
+            sage: R.one().is_symmetric()
+            True
+
+            sage: p = (x-y)*(y-z)*(z-x)
+            sage: p.is_symmetric()
+            False
+            sage: p.is_symmetric(AlternatingGroup(3))
+            True
+
+            sage: R.<x,y> = QQ[]
+            sage: ((x + y)**2).is_symmetric()
+            True
+            sage: R.one().is_symmetric()
+            True
+            sage: (x + 2*y).is_symmetric()
+            False
+
+        An example with a GAP permutation group (here the quaternions)::
+
+            sage: R = PolynomialRing(QQ, 'x', 8)
+            sage: x = R.gens()
+            sage: p = sum(prod(x[i] for i in e) for e in [(0,1,2), (0,1,7), (0,2,7), (1,2,7), (3,4,5), (3,4,6), (3,5,6), (4,5,6)])
+            sage: p.is_symmetric(libgap.TransitiveGroup(8, 5))
+            True
+            sage: p = sum(prod(x[i] for i in e) for e in [(0,1,2), (0,1,7), (0,2,7), (1,2,7), (3,4,5), (3,4,6), (3,5,6)])
+            sage: p.is_symmetric(libgap.TransitiveGroup(8, 5))
+            False
+
+        TESTS::
+
+            sage: R = PolynomialRing(QQ, 'x', 3)
+            sage: R.one().is_symmetric(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument must be a permutation group
+
+            sage: R.one().is_symmetric(SymmetricGroup(4))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid data to initialize a permutation
+        """
+        n = self.parent().ngens()
+        if n <= 1:
+            return True
+
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        S = SymmetricGroup(n)
+        if group is None:
+            gens = S.gens()
+        else:
+            try:
+                # for Sage group
+                gens = group.gens()
+            except AttributeError:
+                # for GAP group
+                try:
+                    gens = group.GeneratorsOfGroup()
+                except AttributeError:
+                    raise ValueError("argument must be a permutation group")
+            gens = [S(g) for g in gens]
+
+        cdef dict coeffs = self.dict()
+        zero = self.base_ring().zero()
+        return all(coeffs.get(g._act_on_etuple_on_position(e), zero) == coeff
+                   for e, coeff in coeffs.items() for g in gens)
+
     def _gap_(self, gap):
         """
         Return a representation of ``self`` in the GAP interface
@@ -1074,11 +1140,6 @@ cdef class MPolynomial(CommutativeRingElement):
         returning tuples of the form ``(coeff, mon)`` for each
         non-zero monomial.
 
-        .. NOTE::
-
-            This function creates the entire list upfront because Cython
-            doesn't (yet) support iterators.
-
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,3)
@@ -1089,8 +1150,34 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: sum(c*m for c,m in f) == f
             True
         """
-        L = zip(self.coefficients(), self.monomials())
-        return iter(L)
+        for exp, coeff in self.iterator_exp_coeff():
+            yield (coeff, self.monomial(exp))
+
+    def iterator_exp_coeff(self, as_ETuples=True):
+        """
+        Iterate over ``self`` as pairs of ((E)Tuple, coefficient).
+
+        INPUT:
+
+        - ``as_ETuples`` -- (default: ``True``) if ``True`` iterate over
+          pairs whose first element is an ETuple, otherwise as a tuples
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = QQ[]
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+            sage: list(f.iterator_exp_coeff(as_ETuples=False))
+            [((0, 4, 0), 2), ((1, 0, 3), 1), ((2, 1, 0), 1)]
+
+            sage: R.<a,b,c> = PolynomialRing(QQ, 3, order='lex')
+            sage: f = a*c^3 + a^2*b + 2*b^4
+            sage: list(f.iterator_exp_coeff())
+            [((2, 1, 0), 1), ((1, 0, 3), 1), ((0, 4, 0), 2)]
+        """
+        for exp in self.exponents():
+            yield (exp, self.monomial_coefficient(exp))
 
     def content(self):
         """
@@ -1466,6 +1553,38 @@ cdef class MPolynomial(CommutativeRingElement):
             u = 1
         an = self.coefficient(variable**n)**(n - k - 2)
         return self.parent()(u * self.resultant(d, variable) * an)
+
+    def subresultants(self, other, variable=None):
+        r"""
+        Return the nonzero subresultant polynomials of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a polynomial
+
+        OUTPUT: a list of polynomials in the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: p = (y^2 + 6)*(x - 1) - y*(x^2 + 1)
+            sage: q = (x^2 + 6)*(y - 1) - x*(y^2 + 1)
+            sage: p.subresultants(q, y)
+            [2*x^6 - 22*x^5 + 102*x^4 - 274*x^3 + 488*x^2 - 552*x + 288,
+             -x^3 - x^2*y + 6*x^2 + 5*x*y - 11*x - 6*y + 6]
+            sage: p.subresultants(q, x)
+            [2*y^6 - 22*y^5 + 102*y^4 - 274*y^3 + 488*y^2 - 552*y + 288,
+             x*y^2 + y^3 - 5*x*y - 6*y^2 + 6*x + 11*y - 6]
+
+        """
+        R = self.parent()
+        if variable is None:
+            x = R.gen(0)
+        else:
+            x = variable
+        p = self.polynomial(x)
+        q = other.polynomial(x)
+        return [R(f) for f in  p.subresultants(q)]
 
     def macaulay_resultant(self, *args):
         r"""
@@ -2111,10 +2230,10 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def reduced_form(self, **kwds):
         r"""
-        Returns a reduced form of this polynomial.
+        Return a reduced form of this polynomial.
 
         The algorithm is from Stoll and Cremona's "On the Reduction Theory of
-        Binary Forms" [CS2003]_. This takes a two variable homogenous polynomial and
+        Binary Forms" [CS2003]_. This takes a two variable homogeneous polynomial and
         finds a reduced form. This is a `SL(2,\ZZ)`-equivalent binary form
         whose covariant in the upper half plane is in the fundamental domain.
         If the polynomial has multiple roots, they are removed and the algorithm
@@ -2123,7 +2242,7 @@ cdef class MPolynomial(CommutativeRingElement):
         This reduction should also minimize the sum of the squares of the coefficients,
         but this is not always the case.  By default the coefficient minimizing
         algorithm in [HS2018]_ is applied. The coefficients can be minimized
-        either with respect to the sum of their squares of the maximum of their
+        either with respect to the sum of their squares or the maximum of their
         global heights.
 
         A portion of the algorithm uses Newton's method to find a solution to
@@ -2131,7 +2250,7 @@ cdef class MPolynomial(CommutativeRingElement):
         in the upper half plane, the function will use the less precise `z_0`
         covariant from the `Q_0` form as defined on page 7 of [CS2003]_.
         Additionally, if this polynomial has
-        a root with multiplicity at lease half the total degree of the polynomial,
+        a root with multiplicity at least half the total degree of the polynomial,
         then we must also use the `z_0` covariant. See [CS2003]_ for details.
 
         Note that, if the covariant is within ``error_limit`` of the boundary
@@ -2194,7 +2313,7 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             ValueError: cannot have a root with multiplicity >= 12/2
 
-        An example where Newton's Method doesnt find the right root::
+        An example where Newton's Method does not find the right root::
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: F = x^6 + 3*x^5*y - 8*x^4*y^2 - 2*x^3*y^3 - 44*x^2*y^4 - 8*x*y^5
@@ -2271,7 +2390,7 @@ cdef class MPolynomial(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             ValueError: (=-8*x^6 - 99*y^6 - 3933*x^3*y - 725085*x^2*y^2 -
-            59411592*x*y^3) must be homogenous
+            59411592*x*y^3) must be homogeneous
 
         ::
 
@@ -2305,7 +2424,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if self.parent().ngens() != 2:
             raise ValueError("(=%s) must have two variables"%self)
         if not self.is_homogeneous():
-            raise ValueError("(=%s) must be homogenous"%self)
+            raise ValueError("(=%s) must be homogeneous"%self)
 
         prec = kwds.get('prec', 300)
         return_conjugation  =kwds.get('return_conjugation', True)
@@ -2318,7 +2437,7 @@ cdef class MPolynomial(CommutativeRingElement):
         R = self.parent()
         x,y = R.gens()
 
-        # finding quadratic Q_0, gives us our convariant, z_0
+        # finding quadratic Q_0, gives us our covariant, z_0
         from sage.rings.polynomial.binary_form_reduce import covariant_z0
         try:
             z, th = covariant_z0(self, prec=prec, emb=emb, z0_cov=True)
@@ -2444,7 +2563,7 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         # EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a polynomial
-        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is 
+        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is
         # nilpotent if and only if `a_0,\ldots, a_n` are nilpotent.
         # (Also noted in Dummit and Foote, "Abstract Algebra", 1991,
         # Section 7.3 Exercise 33).

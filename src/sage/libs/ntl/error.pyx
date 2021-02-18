@@ -1,3 +1,6 @@
+# distutils: libraries = ntl gmp
+# distutils: language = c++
+
 """
 NTL error handler
 

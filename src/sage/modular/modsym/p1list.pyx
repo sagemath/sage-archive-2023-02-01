@@ -1,7 +1,9 @@
+# distutils: libraries = gmp zn_poly
+# distutils: extra_compile_args = -D_XPG6
+
 r"""
 Lists of Manin symbols (elements of `\mathbb{P}^1(\ZZ/N\ZZ)`) over `\QQ`
 """
-from __future__ import absolute_import
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_check
@@ -1217,8 +1219,16 @@ def lift_to_sl2z_int(int c, int d, int N):
     """
     cdef int z1, z2, g, m
 
-    if c == 0 and d == 0:
-        raise AttributeError("Element (%s, %s) not in P1." % (c,d))
+    if N == 1:
+        return [1, 0, 0, 1]
+
+    if c == 0:
+        if d == 1:
+            return [1, 0, 0, 1]
+        if d == N - 1:
+            return [-1, 0, 0, -1]
+        c = N
+
     g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
     # We're lucky: z1*c + z2*d = 1.
@@ -1226,11 +1236,7 @@ def lift_to_sl2z_int(int c, int d, int N):
         return [z2, -z1, c, d]
 
     # Have to try harder.
-    if c == 0:
-        c = c + N;
-    if d == 0:
-        d = d + N;
-    m = c;
+    m = c
 
     # compute prime-to-d part of m.
     while True:
@@ -1284,8 +1290,16 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
     """
     cdef llong z1, z2, g, m
 
-    if c == 0 and d == 0:
-        raise AttributeError("Element (%s, %s) not in P1." % (c,d))
+    if N == 1:
+        return [1, 0, 0, 1]
+
+    if c == 0:
+        if d == 1:
+            return [1, 0, 0, 1]
+        if d == N - 1:
+            return [-1, 0, 0, -1]
+        c = N
+
     g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
     # We're lucky: z1*c + z2*d = 1.
@@ -1293,11 +1307,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
         return [z2, -z1, c, d]
 
     # Have to try harder.
-    if c == 0:
-        c = c + N;
-    if d == 0:
-        d = d + N;
-    m = c;
+    m = c
 
     # compute prime-to-d part of m.
     while True:
@@ -1352,6 +1362,11 @@ def lift_to_sl2z(c, d, N):
         Traceback (most recent call last):
         ...
         NotImplementedError: N too large
+
+    TESTS::
+
+        sage: lift_to_sl2z(0, 0, 1)
+        [1, 0, 0, 1]
     """
     if N <= 46340:
         return lift_to_sl2z_int(c,d,N)

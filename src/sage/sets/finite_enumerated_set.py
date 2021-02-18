@@ -15,7 +15,6 @@ Finite Enumerated Sets
 #
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
 
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -47,7 +46,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         [1, 2, 3]
         sage: S.cardinality()
         3
-        sage: S.random_element()
+        sage: S.random_element()  # random
         1
         sage: S.first()
         1
@@ -55,7 +54,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         Category of facade finite enumerated sets
         sage: TestSuite(S).run()
 
-    Note that being and enumerated set, the result depends on the order::
+    Note that being an enumerated set, the result depends on the order::
 
         sage: S1 = FiniteEnumeratedSet((1, 2, 3))
         sage: S1
@@ -75,7 +74,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         sage: S1
         {1, 2, 1, 2, 2, 3}
 
-    Finaly the elements are not aware of their parent::
+    Finally, the elements are not aware of their parent::
 
         sage: S.first().parent()
         Integer Ring
@@ -240,6 +239,12 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: S = FiniteEnumeratedSet('abc')
             sage: S.random_element()   # random
             'b'
+
+        TESTS::
+
+            sage: S = FiniteEnumeratedSet([1,2,3])
+            sage: S.random_element() in S
+            True
         """
         if not self._elements:
             raise EmptySetError

@@ -18,19 +18,16 @@
     - the javascript index;
     - the citations.
 """
-import six
-from six.moves import cPickle
-from six import text_type
 
 import os
-import sys
+import pickle
 import shutil
-import re
-import tempfile
 import sphinx
+from sphinx.application import Sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
 from sage.misc.misc import sage_makedirs
+from pathlib import Path
 
 logger = sphinx.util.logging.getLogger(__name__)
 
@@ -55,33 +52,35 @@ def merge_environment(app, env):
         docenv = get_env(app, curdoc)
         if docenv is not None:
             fixpath = lambda path: os.path.join(curdoc, path)
+            todos = docenv.domaindata['todo'].get('todos', dict())
+            citations = docenv.domaindata['citation'].get('citations', dict())
+            indexentries = docenv.domaindata['index'].get('entries', dict())
             logger.info(" %s todos, %s index, %s citations"%(
-                    len(docenv.todo_all_todos),
-                    len(docenv.indexentries),
-                    len(docenv.domaindata["std"]["citations"])
+                    sum(len(t) for t in todos.values()),
+                    len(indexentries),
+                    len(citations)
                     ), nonl=1)
 
             # merge titles
             for t in docenv.titles:
                 env.titles[fixpath(t)] = docenv.titles[t]
             # merge the todo links
-            for dct in docenv.todo_all_todos:
-                dct['docname'] = fixpath(dct['docname'])
-            env.todo_all_todos += docenv.todo_all_todos
+            for dct in todos:
+                env.domaindata['todo']['todos'][fixpath(dct)] = todos[dct]
             # merge the html index links
             newindex = {}
-            for ind in docenv.indexentries:
+            for ind in indexentries:
                 if ind.startswith('sage/'):
-                    newindex[fixpath(ind)] = docenv.indexentries[ind]
+                    newindex[fixpath(ind)] = indexentries[ind]
                 else:
-                    newindex[ind] = docenv.indexentries[ind]
-            env.indexentries.update(newindex)
+                    newindex[ind] = indexentries[ind]
+            env.domaindata['index']['entries'].update(newindex)
             # merge the all_docs links, needed by the js index
             newalldoc = {}
             for ind in docenv.all_docs:
                 newalldoc[fixpath(ind)] = docenv.all_docs[ind]
             env.all_docs.update(newalldoc)
-            # needed by env.check_consistency (sphinx.environement, line 1734)
+            # needed by env.check_consistency (sphinx.environment, line 1734)
             for ind in newalldoc:
                 # treat subdocument source as orphaned file and don't complain
                 md = env.metadata.get(ind, dict())
@@ -89,24 +88,23 @@ def merge_environment(app, env):
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            citations = docenv.domaindata["std"]["citations"]
-            for ind, (path, tag, lineno) in six.iteritems(docenv.domaindata["std"]["citations"]):
+            for ind, (path, tag, lineno) in citations.items():
                 # TODO: Warn on conflicts
                 newcite[ind] = (fixpath(path), tag, lineno)
-            env.domaindata["std"]["citations"].update(newcite)
+            env.domaindata['citation']['citations'].update(newcite)
             # merge the py:module indexes
             newmodules = {}
-            for ind,(modpath,v1,v2,v3) in (
-                six.iteritems(docenv.domaindata['py']['modules'])):
-                newmodules[ind] = (fixpath(modpath),v1,v2,v3)
+            from sphinx.domains.python import ModuleEntry
+            for ind,mod in docenv.domaindata['py']['modules'].items():
+                newmodules[ind] = ModuleEntry(fixpath(mod.docname), mod.node_id, mod.synopsis, mod.platform, mod.deprecated)
             env.domaindata['py']['modules'].update(newmodules)
             logger.info(", %s modules"%(len(newmodules)))
     logger.info('... done (%s todos, %s index, %s citations, %s modules)'%(
-            len(env.todo_all_todos),
-            len(env.indexentries),
-            len(env.domaindata["std"]["citations"]),
+            sum(len(t) for t in env.domaindata['todo']['todos'].values()),
+            len(env.domaindata['index']['entries']),
+            len(env.domaindata['citation']['citations']),
             len(env.domaindata['py']['modules'])))
-    write_citations(app, env.domaindata["std"]["citations"])
+    write_citations(app, env.domaindata['citation']['citations'])
 
 
 def get_env(app, curdoc):
@@ -122,7 +120,7 @@ def get_env(app, curdoc):
         logger.info("")
         logger.warning("Unable to fetch %s " % filename)
         return None
-    docenv = cPickle.load(f)
+    docenv = pickle.load(f)
     f.close()
     return docenv
 
@@ -141,18 +139,18 @@ def merge_js_index(app):
         if index is not None:
             # merge the mappings
             logger.info(" %s js index entries"%(len(index._mapping)))
-            for (ref, locs) in six.iteritems(index._mapping):
+            for (ref, locs) in index._mapping.items():
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
-                mapping[text_type(ref)] = newmapping
+                mapping[str(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
-            for (res, title) in six.iteritems(index._titles):
+            for (res, title) in index._titles.items():
                 titles[fixpath(res)] = title
             # merge the filenames
             filenames = app.builder.indexer._filenames
-            for (res, filename) in six.iteritems(index._filenames):
+            for (res, filename) in index._filenames.items():
                 filenames[fixpath(res)] = fixpath(filename)
             # TODO: merge indexer._objtypes, indexer._objnames as well
 
@@ -216,48 +214,52 @@ def fix_path_html(app, pagename, templatename, ctx, event_arg):
     ctx['pathto'] = sage_pathto
 
 
-def citation_dir(app):
-    # Split app.outdir in 3 parts: SAGE_DOC/TYPE/TAIL where TYPE
-    # is a single directory and TAIL can contain multiple directories.
-    # The citation dir is then SAGE_DOC/inventory/TAIL.
-    assert app.outdir.startswith(SAGE_DOC)
-    rel = app.outdir[len(SAGE_DOC):]
-    dirs = rel.split(os.sep)
-    # If SAGE_DOC does not end with a slash, rel will start with
-    # a slash giving an empty dirs[0]. Remove this:
-    if not dirs[0]:
-        dirs.pop(0)
-    dirs = [SAGE_DOC, "inventory"] + dirs[1:]
-    citedir = os.path.join(*dirs)
+def citation_dir(app: Sphinx) -> Path:
+    outdir = Path(app.outdir).resolve()
+    sage_doc = Path(SAGE_DOC).resolve()
+    if sage_doc in outdir.parents:
+        # Split app.outdir in 3 parts: SAGE_DOC/TYPE/TAIL where TYPE
+        # is a single directory and TAIL can contain multiple directories.
+        # The citation dir is then SAGE_DOC/inventory/TAIL.
+        rel = outdir.relative_to(sage_doc)
+        dirs = list(rel.parts)
+        # If SAGE_DOC does not end with a slash, rel will start with
+        # a slash. Remove this:
+        if dirs[0] == '/':
+            dirs.pop(0)
+        tail = dirs[1:]
+        citedir = (sage_doc / "inventory").joinpath(*tail) 
+    else:
+        citedir = outdir / "inventory"
     sage_makedirs(citedir)
     return citedir
 
 
-def write_citations(app, citations):
+def write_citations(app: Sphinx, citations):
     """
     Pickle the citation in a file.
     """
     from sage.misc.temporary_file import atomic_write
     outdir = citation_dir(app)
-    with atomic_write(os.path.join(outdir, CITE_FILENAME), binary=True) as f:
-        cPickle.dump(citations, f)
+    with atomic_write(outdir / CITE_FILENAME, binary=True) as f:
+        pickle.dump(citations, f)
     logger.info("Saved pickle file: %s" % CITE_FILENAME)
 
 
-def fetch_citation(app, env):
+def fetch_citation(app: Sphinx, env):
     """
     Fetch the global citation index from the refman to allow for cross
     references.
     """
     logger.info(bold('loading cross citations... '), nonl=1)
-    filename = os.path.join(citation_dir(app), '..', CITE_FILENAME)
-    if not os.path.isfile(filename):
+    file = citation_dir(app).parent / CITE_FILENAME
+    if not file.is_file():
         return
-    with open(filename, 'rb') as f:
-        cache = cPickle.load(f)
+    with open(file, 'rb') as f:
+        cache = pickle.load(f)
     logger.info("done (%s citations)."%len(cache))
-    cite = env.domaindata["std"]["citations"]
-    for ind, (path, tag, lineno) in six.iteritems(cache):
+    cite = env.domaindata['citation'].get('citations', dict())
+    for ind, (path, tag, lineno) in cache.items():
         if ind not in cite: # don't override local citation
             cite[ind] = (os.path.join("..", path), tag, lineno)
 
@@ -314,7 +316,7 @@ def init_subdoc(app):
 
 
 
-def setup(app):
+def setup(app: Sphinx):
     app.add_config_value('multidocs_is_master', True, True)
     app.add_config_value('multidocs_subdoc_list', [], True)
     app.add_config_value('multidoc_first_pass', 0, False)   # 1 = deactivate the loading of the inventory

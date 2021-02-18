@@ -102,6 +102,12 @@ cdef inline void point_c_cross(point_c* res, point_c P, point_c Q):
 cdef inline double point_c_len(point_c P):
     return math.sqrt(point_c_dot(P, P))
 
+cdef inline void point_c_middle(point_c* res, point_c P, point_c Q, double a):
+    cdef double b = 1 - a
+    res.x = b * P.x + a * Q.x
+    res.y = b * P.y + a * Q.y
+    res.z = b * P.z + a * Q.z
+
 cdef inline void point_c_transform(point_c* res, double* M, point_c P):
     """
     M is a flattened 4x4 matrix, row major, representing an Euclidean Transformation.

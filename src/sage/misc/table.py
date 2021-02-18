@@ -9,9 +9,8 @@ AUTHORS:
 
 - John H. Palmieri (2012-11)
 """
-from __future__ import absolute_import
-from six.moves import cStringIO as StringIO
-from six.moves import range, zip
+
+from io import StringIO
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -327,7 +326,7 @@ class table(SageObject):
         initialization process, the header is merged with the rest of
         the data, so changing the header option later using
         ``table.options(...)`` doesn't affect the contents of the
-        table, just whether the row or column is highlighed. When
+        table, just whether the row or column is highlighted. When
         using this :meth:`options` method, no merging of data occurs,
         so here ``header_row`` and ``header_column`` should just be
         ``True`` or ``False``, not a list. ::
@@ -774,7 +773,7 @@ class table(SageObject):
         EXAMPLES::
 
             sage: T = table([['a', 'bb', 'ccccc'], [10, -12, 0], [1, 2, 3]])
-            sage: from six import StringIO
+            sage: from io import StringIO
             sage: s = StringIO()
             sage: T._html_table_row(s, ['a', 2, '$x$'])
             sage: print(s.getvalue())

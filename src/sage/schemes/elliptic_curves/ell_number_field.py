@@ -73,7 +73,6 @@ REFERENCE:
 - [Sil2] Silverman, Joseph H. Advanced topics in the arithmetic of elliptic curves. Graduate Texts in
   Mathematics, 151. Springer, 1994.
 """
-from __future__ import absolute_import
 
 # ****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -91,9 +90,7 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, verbose, prod, union
-from six import reraise as raise_
-
+from sage.misc.all import cached_method, prod, union
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -302,7 +299,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (3,
              3,
              [(0 : 0 : 1),
-              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1)])
+              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1)...)
         """
         verbose = int(verbose)
         if known_points is None:
@@ -463,6 +460,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
           ``splitting_field`` method, moved from ``gal_reps.py``, make
           it work over number fields.
         """
+        from sage.misc.verbose import verbose
         p = Integer(p)
         if not p.is_prime():
             raise ValueError("p must be a prime number")
@@ -522,18 +520,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
         else:
             return L
 
-    def height_pairing_matrix(self, points=None, precision=None):
-        r"""
-        Return the height pairing matrix of the given points.
+    def height_pairing_matrix(self, points=None, precision=None, normalised=True):
+        r"""Return the height pairing matrix of the given points.
 
         INPUT:
 
-        - points -- either a list of points, which must be on this
-          curve, or (default) None, in which case self.gens() will be
-          used.
+        - ``points`` (list or ``None`` (default)) -- a list of points
+          on this curve, or ``None``, in which case self.gens() will
+          be used.
 
-        - precision -- number of bits of precision of result
-          (default: None, for default RealField precision)
+        - ``precision`` (int or ``None`` (default)) -- number of bits
+          of precision of result, or ``None``, for default RealField
+          precision.
+
+        - ``normalised`` (bool, default ``True``) -- if ``True``, use
+          normalised heights which are independent of base change.
+          Otherwise use the non-normalised Néron-Tate height, as
+          required for the regulator in the BSD conjecture.
 
         EXAMPLES::
 
@@ -578,6 +581,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [-0.870059380421505  0.424585837470709]
             sage: E.regulator_of_points([P,Q])
             0.164101403936070
+
+        When the parameter ``normalised`` is set to ``False``, each
+        height is multiplied by the degree `d` of the base field, and
+        the regulator of `r` points is multiplied by `d^r`::
+
+            sage: E.height_pairing_matrix([P,Q], normalised=False)
+            [ 4.33883868987537 -1.74011876084301]
+            [-1.74011876084301 0.849171674941418]
+            sage: E.regulator_of_points([P,Q], normalised=False)
+            0.656405615744281
+
         """
         if points is None:
             points = self.gens()
@@ -594,16 +608,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         M = MatrixSpace(RR, r)
         mat = M()
         for j in range(r):
-            mat[j, j] = points[j].height(precision=precision)
+            mat[j, j] = points[j].height(precision=precision, normalised=normalised)
         for j in range(r):
             for k in range(j + 1, r):
-                mat[j, k] = ((points[j] + points[k]).height(precision=precision) - mat[j, j] - mat[k, k]) / 2
+                mat[j, k] = ((points[j] + points[k]).height(precision=precision, normalised=normalised) - mat[j, j] - mat[k, k]) / 2
                 mat[k, j] = mat[j, k]
         return mat
 
-    def regulator_of_points(self, points=[], precision=None):
-        """
-        Return the regulator of the given points on this curve.
+    def regulator_of_points(self, points=[], precision=None, normalised=True):
+        """Return the regulator of the given points on this curve.
 
         INPUT:
 
@@ -611,6 +624,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``precision`` - int or None (default: None): the precision
           in bits of the result (default real precision if None)
+
+        - ``normalised`` (bool, default ``True``) -- if ``True``, use
+          normalised heights which are independent of base change.
+          Otherwise use the non-normalised Néron-Tate height, as
+          required for the regulator in the BSD conjecture
 
         EXAMPLES::
 
@@ -656,6 +674,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.regulator_of_points([P])
             0.476223106404866
 
+        When the parameter ``normalised`` is set to ``False``, each
+        height is multiplied by the degree `d` of the base field, and
+        the regulator of `r` points is multiplied by `d^r`::
+
+            sage: P.height(normalised=False)
+            0.952446212809731
+            sage: E.regulator_of_points([P], normalised=False)
+            0.952446212809731
+
         ::
 
             sage: E = EllipticCurve('11a1')
@@ -699,7 +726,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         if points is None:
             points = []
-        mat = self.height_pairing_matrix(points=points, precision=precision)
+        mat = self.height_pairing_matrix(points=points, precision=precision, normalised=normalised)
         return mat.det(algorithm="hessenberg")
 
     def is_local_integral_model(self, *P):
@@ -809,7 +836,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
-            sage: E.global_integral_model()
+            sage: M = E.global_integral_model(); M # choice varies, not tested
             Elliptic Curve defined by y^2 + (2094779518028859*v-1940492905300351)*x*y + (477997268472544193101178234454165304071127500*v-442791377441346852919930773849502871958097500)*y = x^3 + (26519784690047674853185542622500*v-24566525306469707225840460652500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
 
         :trac:`14476`::
@@ -820,6 +847,24 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (15*g^3-48*g-42)*x*y + (-111510*g^3-162162*g^2-44145*g+37638)*y = x^3 + (-954*g^3-1134*g^2+81*g+576)*x^2 over Number Field in g with defining polynomial t^4 - t^3 - 3*t^2 - t + 1
 
+        TESTS:
+
+        Check the skipped test from above::
+
+            sage: K.<v> = NumberField(x^2 + 161*x - 150)
+            sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
+            sage: M = E.global_integral_model()
+            sage: b = M.ainvs()
+            sage: b[0] in (2094779518028859*v-1940492905300351, 33872485050625*v - 31078224284250)
+            True
+            sage: b[1] in (26519784690047674853185542622500*v - 24566525306469707225840460652500,
+            ....:          6933305282258321342920781250*v - 6422644400723486559914062500)
+            True
+            sage: b[2] in (477997268472544193101178234454165304071127500*v -442791377441346852919930773849502871958097500,
+            ....:          2020602604156076340058146664245468750000*v - 1871778534673615560803175189398437500000)
+            True
+            sage: b[3:]
+            (0, 0)
         """
         K = self.base_field()
         ai = self.a_invariants()
@@ -886,10 +931,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         try:
             a1, a2, a3, a4, a6 = (ZK(a) for a in self.a_invariants())
         except TypeError:
-            import sys
-            raise_(TypeError,
-                   TypeError("_reduce_model() requires an integral model."),
-                   sys.exc_info()[2])
+            raise TypeError("_reduce_model() requires an integral model.")
 
         # N.B. Must define s, r, t in the right order.
         if ZK.absolute_degree() == 1:
@@ -918,7 +960,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EXAMPLES::
 
            sage: K.<a> = NumberField(x^2-10)
-           sage: u = K.units()[0]
+           sage: u = a + 3
+           sage: u.is_unit()
+           True
            sage: E = EllipticCurve([0, 0, 0, 4536*a + 14148, -163728*a - 474336])
            sage: E1 = E.scale_curve(u^5)
            sage: E1.ainvs()
@@ -1458,20 +1502,71 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.local_data(P, proof).tamagawa_exponent()
 
-    def tamagawa_product_bsd(self):
-        r"""
-        Given an elliptic curve `E` over a number field `K`, this function returns the
-        integer `C(E/K)` that appears in the Birch and Swinnerton-Dyer conjecture accounting
-        for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
-        simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
-        The definition is such that `C(E/K)` times the periods at the infinite places is invariant
-        under change of the Weierstrass model. See [Tate1966]_ and [DD2010]_ for details.
+    def tamagawa_product(self):
+        r"""Return the product of the Tamagawa numbers `c_v` where `v` runs
+        over all prime ideals of `K`.
 
         .. note::
 
-            This definition is slightly different from the definition of ``tamagawa_product``
-            for curves defined over `\QQ`. Over the rational number it is always defined to be the product
-            of the Tamagawa numbers, so the two definitions only agree when the model is global minimal.
+            See also tamagawa_product_bsd(), which includes an
+            additional factor when the model is not globally minimal,
+            as required by the BSD formula.
+
+        OUTPUT:
+
+        A positive integer.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve([0,2+i])
+            sage: E.tamagawa_product()
+            1
+
+            sage: E = EllipticCurve([(2*i+1)^2,i*(2*i+1)^7])
+            sage: E.tamagawa_product()
+            4
+
+        An example over `\QQ`::
+
+            sage: E = EllipticCurve('30a')
+            sage: E.tamagawa_product()
+            6
+
+        An example with everywhere good reduction, where the product
+        is empty::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 - 38)
+            sage: E = EllipticCurve( [a, -a + 1, a + 1, -5*a + 15, -5*a + 21])
+            sage: E.tamagawa_numbers()
+            []
+            sage: E.tamagawa_product()
+            1
+
+        """
+        return prod([ld.tamagawa_number() for ld in self.local_data()], Integer(1))
+
+    def tamagawa_product_bsd(self):
+        r"""Given an elliptic curve `E` over a number field `K`, this function
+        returns the integer `C(E/K)` that appears in the Birch and
+        Swinnerton-Dyer conjecture accounting for the local
+        information at finite places. If the model is a global minimal
+        model then `C(E/K)` is simply the product of the Tamagawa
+        numbers `c_v` where `v` runs over all prime ideals of
+        `K`. Otherwise, if the model has to be changed at a place `v`
+        a correction factor appears.  The definition is such that
+        `C(E/K)` times the periods at the infinite places is invariant
+        under change of the Weierstrass model. See [Tate1966]_ and
+        [DD2010]_ for details.
+
+        .. note::
+
+            This definition differs from the definition of
+            ``tamagawa_product`` for curves defined over `\QQ`. Over
+            the rational number it is always defined to be the product
+            of the Tamagawa numbers, so the two definitions only agree
+            when the model is global minimal.
 
         OUTPUT:
 
@@ -1503,15 +1598,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
             6
+
         """
-        da = self.local_data()
-        pr = 1
-        for dav in da:
-            pp = dav.prime()
-            cv = dav.tamagawa_number()
+        pr = QQ(1)
+        for v in self.local_data():
+            pp = v.prime()
+            cv = v.tamagawa_number()
             # uu is the quotient of the Neron differential at pp divided by
-            # the differential associated to this particular equation E
-            uu = self.isomorphism_to(dav.minimal_model()).u
+            # the differential associated to this particular model of E
+            uu = self.isomorphism_to(v.minimal_model()).u
             if self.base_field().absolute_degree() == 1:
                 p = pp.gens_reduced()[0]
                 f = 1
@@ -2025,77 +2120,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             raise ValueError("The curve must have good reduction at the place.")
         Fv = OK.residue_field(place)
         return self.change_ring(Fv)
-
-    def _torsion_bound(self, number_of_places=20):
-        r"""
-        An upper bound on the order of the torsion subgroup.
-
-        INPUT:
-
-        - ``number_of_places`` (positive integer, default = 20) -- the
-          number of places that will be used to find the bound.
-
-        OUTPUT:
-
-        (integer) An upper bound on the torsion order.
-
-        ALGORITHM:
-
-        An upper bound on the order of the torsion.group of the
-        elliptic curve is obtained by counting points modulo several
-        primes of good reduction.  Note that the upper bound returned
-        by this function is a multiple of the order of the torsion
-        group, and in general will be greater than the order.
-
-        EXAMPLES::
-
-            sage: CDB=CremonaDatabase()
-            sage: [E._torsion_bound() for E in CDB.iter([14])]
-            [6, 6, 6, 6, 6, 6]
-            sage: [E.torsion_order() for E in CDB.iter([14])]
-            [6, 6, 2, 6, 2, 6]
-
-        An example over a relative number field (see :trac:`16011`)::
-
-            sage: R.<x> = QQ[]
-            sage: F.<a> = QuadraticField(5)
-            sage: K.<b> = F.extension(x^2-3)
-            sage: E = EllipticCurve(K,[0,0,0,b,1])
-            sage: E.torsion_subgroup().order()
-            1
-
-        """
-        E = self
-        bound = ZZ.zero()
-        k = 0
-        K = E.base_field()
-        disc = E.discriminant()
-        p = ZZ.one()
-        # runs through primes, decomposes them into prime ideals
-        while k < number_of_places:
-            p = p.next_prime()
-            f = K.primes_above(p)
-            # runs through prime ideals above p
-            for qq in f:
-                fqq = qq.residue_class_degree()
-                charqq = qq.smallest_integer()
-                # take only places with small residue field (so that the
-                # number of points will be small)
-                if fqq == 1 or charqq**fqq < 3*number_of_places:
-                    # check if the model is integral at the place
-                    if all(K.ideal(a).valuation(qq) >= 0
-                           for a in E.a_invariants()):
-                        eqq = qq.absolute_ramification_index()
-                        # check if the formal group at the place is torsion-free
-                        # if so the torsion injects into the reduction
-                        if eqq < charqq - 1 and disc.valuation(qq) == 0:
-                            Etilda = E.reduction(qq)
-                            Npp = Etilda.cardinality()
-                            bound = bound.gcd(Npp)
-                            if bound == 1:
-                                return bound
-                            k += 1
-        return bound
 
     @cached_method
     def torsion_subgroup(self):
@@ -3293,7 +3317,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return ZZ.one()
 
         C = self.isogeny_class()
-        i = C.index(self)  # may not be 0 since curces are sorted
+        i = C.index(self)  # may not be 0 since curves are sorted
         try:
             return C.matrix()[i][C.index(other)]
         except ValueError:
@@ -3852,10 +3876,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(-1/4*a + 3/4 : 59/8*a - 317/8 : 1)], 2, 0.344624259712631)
         """
         full_saturation = (max_prime == 0) and (one_prime == 0)
-        Plist = [self(P) for P in points]
-        Plist = [P for P in points if P.has_infinite_order()]
+        Plist = (self(P) for P in points)
+        Plist = [P for P in Plist if P.has_infinite_order()]
         n = len(Plist)
-        index = ZZ(1)
+        index = ZZ.one()
 
         if n == 0:
             return Plist, index, RealField()(1)
@@ -3873,16 +3897,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.rings.all import prime_range
         if full_saturation:
             if lower_ht_bound is None:
-                # TODO (robertb): verify this for rank > 1
+                # TODO (robertwb): verify this for rank > 1
                 if verbose:
                     print("Computing lower height bound..")
                 lower_ht_bound = self.height_function().min(.1, 5) ** n
                 if verbose:
                     print("..done: %s" % lower_ht_bound)
             index_bound = (reg/lower_ht_bound).sqrt()
-            prime_list = prime_range(index_bound.ceil() + 1)
-            if verbose:
-                print("Testing primes up to %s" % prime_list[-1])
+            if index_bound < 2:
+                if verbose:
+                    print("Saturation index bound < 2, points are saturated already.")
+                return Plist, index, RealField()(1)
+            else:
+                if verbose:
+                    print("p-saturating for primes p < {}".format(index_bound.ceil()))
+            prime_list = prime_range(index_bound.ceil())
         else:
             if one_prime:
                 prime_list = [one_prime]
@@ -3894,16 +3923,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # Now saturate at each prime in prime_list.  The dict
         # lin_combs keeps the values of linear combinations of the
         # points, indexed by coefficient tuples, for efficiency; it is
-        # rest whenever the point list changes.
+        # reset whenever the point list changes.
 
-        from sage.schemes.elliptic_curves.saturation import full_p_saturation
-        lin_combs = dict()
+        from sage.schemes.elliptic_curves.saturation import EllipticCurveSaturator
+        saturator = EllipticCurveSaturator(self, verbose)
         for p in prime_list:
             if full_saturation and (p > index_bound):
                 break
             if verbose:
                 print("Saturating at p=%s" % p)
-            newPlist, expo = full_p_saturation(Plist, p, lin_combs, verbose)
+            newPlist, expo = saturator.full_p_saturation(Plist, p)
             if expo:
                 if verbose:
                     print(" --gaining index %s^%s" % (p, expo))

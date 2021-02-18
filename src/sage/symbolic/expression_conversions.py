@@ -14,17 +14,17 @@ overridden by subclasses.
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  https://www.gnu.org/licenses/
 ###############################################################################
-from __future__ import print_function
 
 import operator as _operator
 from sage.rings.rational_field import QQ
-from sage.symbolic.all import I, SR
+from sage.symbolic.ring import SR
+from sage.symbolic.constants import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
+from sage.rings.number_field.number_field import GaussianField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from functools import reduce
-GaussianField = I.pyobject().parent()
 
 
 class FakeExpression(object):
@@ -437,7 +437,7 @@ class InterfaceInit(Converter):
 
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: ii = InterfaceInit(gp)
-            sage: f = 2+I
+            sage: f = 2+SR(I)
             sage: ii.pyobject(f, f.pyobject())
             'I + 2'
 
@@ -449,7 +449,7 @@ class InterfaceInit(Converter):
         """
         if (self.interface.name() in ['pari','gp'] and
             isinstance(obj, NumberFieldElement_quadratic) and
-            obj.parent() == GaussianField):
+            obj.parent() is GaussianField()):
             return repr(obj)
         try:
             return getattr(obj, self.name_init)()
@@ -850,26 +850,73 @@ class SympyConverter(Converter):
             Derivative(f_sage(x, y), (x, 2), y)
             sage: df_sympy == f_sympy.diff(x, 2, y, 1)
             True
+
+        Check that :trac:`28964` is fixed::
+
+            sage: f = function('f')
+            sage: _ = var('x,t')
+            sage: diff(f(x, t), x)._sympy_(), diff(f(x, t), t)._sympy_()
+            (Derivative(f(x, t), x), Derivative(f(x, t), t))
+
+        Check differentiating by variables with multiple occurrences
+        (:trac:`28964`)::
+
+            sage: f = function('f')
+            sage: _ = var('x1,x2,x3,x,t')
+            sage: f(x, x, t).diff(x)._sympy_()._sage_()
+            D[0](f)(x, x, t) + D[1](f)(x, x, t)
+
+            sage: g = f(x1, x2, x3, t).diff(x1, 2, x2).subs(x1==x, x2==x, x3==x); g
+            D[0, 0, 1](f)(x, x, x, t)
+            sage: g._sympy_()
+            Subs(Derivative(f(_xi_1, _xi_2, x, t), (_xi_1, 2), _xi_2),
+                 (_xi_1, _xi_2), (x, x))
+            sage: assert g._sympy_()._sage_() == g
+
+        Check that the use of dummy variables does not cause a collision::
+
+            sage: f = function('f')
+            sage: _ = var('x1,x2,x,xi_1')
+            sage: g = f(x1, x2, xi_1).diff(x1).subs(x1==x, x2==x); g
+            D[0](f)(x, x, xi_1)
+            sage: assert g._sympy_()._sage_() == g
         """
         import sympy
 
         # retrieve derivated function
         f = operator.function()
-        f_sympy = self.composition(ex, f)
 
         # retrieve order
         order = operator._parameter_set
         # arguments
-        _args = ex.arguments()
+        _args = [a._sympy_() for a in ex.operands()]
 
+        # when differentiating by a variable that occurs multiple times,
+        # substitute it by a dummy variable
+        subs_new = []
+        subs_old = []
         sympy_arg = []
-        for i, a in enumerate(_args):
-            gg = order.count(i)
-            if gg > 0:
+        for idx in order:
+            a = _args[idx]
+            if _args.count(a) > 1:
+                D = sympy.Dummy('xi_%i' % (idx + 1))
+                # to avoid collisions with ordinary symbols when converting
+                # back to Sage, we pick an unused variable name for the dummy
+                while D._sage_() in ex.variables():
+                    D = sympy.Dummy(D.name + '_0')
+                subs_old.append(a)
+                subs_new.append(D)
+                _args[idx] = D
+                sympy_arg.append(D)
+            else:
                 sympy_arg.append(a)
-                sympy_arg.append(gg)
 
-        return f_sympy.diff(*sympy_arg)
+        f_sympy = f._sympy_()(*_args)
+        result = f_sympy.diff(*sympy_arg)
+        if subs_new:
+            return sympy.Subs(result, subs_new, subs_old)
+        else:
+            return result
 
 
 sympy_converter = SympyConverter()
@@ -908,6 +955,9 @@ class FriCASConverter(InterfaceInit):
 
         - ``operator`` -- operator
 
+        Note that ``ex.operator() == operator``.
+
+
         EXAMPLES::
 
             sage: var('x,y,z')
@@ -929,19 +979,41 @@ class FriCASConverter(InterfaceInit):
 
             sage: integrate(diff(F(x), x)*sin(F(x)), x, algorithm="fricas")     # optional - fricas
             -cos(F(x))
+
+        Check that :trac:`27310` is fixed::
+
+            sage: f = function("F")
+            sage: var("y")
+            y
+            sage: ex = (diff(f(x,y), x, x, y)).subs(y=x+y); ex
+            D[0, 0, 1](F)(x, x + y)
+            sage: fricas(ex)                                                    # optional - fricas
+            F      (x,y + x)
+             ,1,1,2
+
         """
         from sage.symbolic.ring import is_SymbolicVariable
-        args = ex.operands()
+        args = ex.operands() # the arguments the derivative is evaluated at
+        params = operator.parameter_set()
+        params_set = set(params)
+        mult = ",".join(str(params.count(i)) for i in params_set)
         if (not all(is_SymbolicVariable(v) for v in args) or
             len(args) != len(set(args))):
-            raise NotImplementedError
+            # An evaluated derivative of the form f'(1) is not a
+            # symbolic variable, yet we would like to treat it like
+            # one. So, we replace the argument `1` with a temporary
+            # variable e.g. `t0` and then evaluate the derivative
+            # f'(t0) symbolically at t0=1. See trac #12796.
+            temp_args = [SR.var("t%s" % i) for i in range(len(args))]
+            f = operator.function()(*temp_args)
+            vars = ",".join(temp_args[i]._fricas_init_() for i in params_set)
+            subs = ",".join("%s = %s" % (t._fricas_init_(), a._fricas_init_())
+                            for t, a in zip(temp_args, args))
+            outstr = "eval(D(%s, [%s], [%s]), [%s])" % (f._fricas_init_(), vars, mult, subs)
         else:
             f = operator.function()(*args)
-            params = operator.parameter_set()
-            params_set = set(params)
-            vars = "[" + ",".join(args[i]._fricas_init_() for i in params_set) + "]"
-            mult = "[" + ",".join(str(params.count(i)) for i in params_set) + "]"
-            outstr = "D(%s, %s, %s)"%(f._fricas_init_(), vars, mult)
+            vars = ",".join(args[i]._fricas_init_() for i in params_set)
+            outstr = "D(%s, [%s], [%s])" % (f._fricas_init_(), vars, mult)
 
         return outstr
 
@@ -1167,7 +1239,7 @@ def algebraic(ex, field):
         True
         sage: AA(-golden_ratio)
         -1.618033988749895?
-        sage: QQbar((2*I)^(1/2))
+        sage: QQbar((2*SR(I))^(1/2))
         1 + 1*I
         sage: QQbar(e^(pi*I/3))
         0.50000000000000000? + 0.866025403784439?*I
@@ -1904,9 +1976,9 @@ class RingConverter(Converter):
 
     def symbol(self, ex):
         """
-        All symbols appearing in the expression must either appear in *subs_dict*
-        or be convertable by the ring's element constructor in order for the
-        conversion to be successful.
+        All symbols appearing in the expression must either appear in
+        *subs_dict* or be convertible by the ring's element
+        constructor in order for the conversion to be successful.
 
         EXAMPLES::
 

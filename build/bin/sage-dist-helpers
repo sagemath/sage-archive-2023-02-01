@@ -1,7 +1,11 @@
-# Shell functions for making spkg-install scripts a little easier to write,
+# -*- shell-script -*- functions for making spkg-install scripts a little easier to write,
 # eliminating duplication.  All Sage helper functions begin with sdh_ (for
 # Sage-distribution helper).  Consult the below documentation for the list of
-# available helper functions:
+# available helper functions.
+#
+# This documentation is also repeated in the Sage docs in
+# src/doc/en/developer/packaging.rst, so if anything here changes, or
+# if you add anything, please modify that file accordingly.
 #
 # - sdh_die MESSAGE
 #
@@ -35,7 +39,9 @@
 #
 # - sdh_configure [...]
 #
-#    Runs `./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"`.
+#    Runs `./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"`,
+#    (for autoconf'd projects with extra
+#        --disable-maintainer-mode --disable-dependency-tracking)
 #    Additional arguments to `./configure` may be given as arguments.
 #
 # - sdh_make [...]
@@ -134,7 +140,7 @@ sdh_check_vars() {
     while [ -n "$1" ]; do
         [ -n "$(eval "echo "\${${1}+isset}"")" ] || sdh_die << _EOF_
 ${1} undefined ... exiting
-Maybe run 'sage --sh'?
+Maybe run 'sage --buildsh'?
 _EOF_
         shift
     done
@@ -142,7 +148,7 @@ _EOF_
 
 
 sdh_guard() {
-    sdh_check_vars SAGE_ROOT SAGE_LOCAL SAGE_SHARE
+    sdh_check_vars SAGE_ROOT SAGE_LOCAL SAGE_INST_LOCAL SAGE_SHARE
 }
 
 
@@ -154,8 +160,10 @@ sdh_configure() {
     if [ -z "$CONFIG_SHELL" ]; then
         export CONFIG_SHELL=`command -v bash`
     fi
-    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" "$@"
-    if [ $? -ne 0 ]; then
+    ./configure --prefix="$SAGE_INST_LOCAL" --libdir="$SAGE_INST_LOCAL/lib" --disable-maintainer-mode --disable-dependency-tracking "$@"
+    if [ $? -ne 0 ]; then # perhaps it is a non-autoconf'd project
+      ./configure --prefix="$SAGE_INST_LOCAL" --libdir="$SAGE_INST_LOCAL/lib" "$@"
+      if [ $? -ne 0 ]; then
         if [ -f "$(pwd)/config.log" ]; then
             sdh_die <<_EOF_
 Error configuring $PKG_NAME
@@ -165,6 +173,7 @@ for details.
 _EOF_
         fi
         sdh_die "Error configuring $PKG_NAME"
+      fi
     fi
 }
 
@@ -174,6 +183,11 @@ sdh_make() {
     ${MAKE:-make} "$@" || sdh_die "Error building $PKG_NAME"
 }
 
+
+sdh_make_check() {
+    echo "Checking $PKG_NAME"
+    ${MAKE:-make} check "$@" || sdh_die "Failures checking $PKG_NAME"
+}
 
 sdh_make_install() {
     echo "Installing $PKG_NAME"
@@ -186,24 +200,68 @@ sdh_make_install() {
         sdh_die "Error installing $PKG_NAME"
 }
 
+sdh_setup_bdist_wheel() {
+    mkdir -p dist
+    rm -f dist/*.whl
+    BDIST_DIR="$(mktemp -d)"
+    python3 setup.py --no-user-cfg \
+         bdist_wheel --bdist-dir "$BDIST_DIR" \
+         "$@" || sdh_die "Error building a wheel for $PKG_NAME"
+}
 
 sdh_pip_install() {
     echo "Installing $PKG_NAME"
     if [ -n "$SAGE_DESTDIR" ]; then
         local sudo=""
-        local root="--root=$SAGE_DESTDIR"
+    else
+        local sudo="$SAGE_SUDO"
+    fi
+    $sudo sage-pip-uninstall "$@" || \
+        sdh_die "Error uninstalling a previous version of $PKG_NAME"
+
+    mkdir -p dist
+    rm -f dist/*.whl
+    python3 -m pip wheel --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
+        sdh_die "Error building a wheel for $PKG_NAME"
+
+    sdh_store_and_pip_install_wheel .
+}
+
+sdh_store_and_pip_install_wheel() {
+    if [ -n "$SAGE_DESTDIR" ]; then
+        local sudo=""
+        # --no-warn-script-location: Suppress a warning caused by --root
+        local root="--root=$SAGE_DESTDIR --no-warn-script-location"
     else
         local sudo="$SAGE_SUDO"
         local root=""
     fi
-    $sudo sage-pip-install $root "$@" || \
-        sdh_die "Error installing $PKG_NAME"
-}
+    if [ "$*" != "." ]; then
+        sdh_die "Error: sdh_store_and_pip_install_wheel requires . as only argument"
+    fi
+    wheel=""
+    for w in dist/*.whl; do
+        if [ -n "$wheel" ]; then
+            sdh_die "Error: more than one wheel found after building"
+        fi
+        if [ -f "$w" ]; then
+            wheel="$w"
+        fi
+    done
+    if [ -z "$wheel" ]; then
+        sdh_die "Error: no wheel found after building"
+    fi
 
+    $sudo sage-pip-install $root "$wheel" || \
+        sdh_die "Error installing $wheel"
+    mkdir -p "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}" && \
+        $sudo mv "$wheel" "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/" || \
+        sdh_die "Error storing $wheel"
+}
 
 sdh_cmake() {
     echo "Configuring $PKG_NAME with cmake"
-    cmake . -DCMAKE_INSTALL_PREFIX="${SAGE_LOCAL}" \
+    cmake . -DCMAKE_INSTALL_PREFIX="${SAGE_INST_LOCAL}" \
             -DCMAKE_INSTALL_LIBDIR=lib \
             "$@"
     if [ $? -ne 0 ]; then

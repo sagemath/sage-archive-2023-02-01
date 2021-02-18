@@ -144,7 +144,6 @@ Or you can create a homomorphism from one lattice to any other::
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
@@ -636,7 +635,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         return I
 
     def quotient(self, sub, check=True,
-                 positive_point=None, positive_dual_point=None):
+                 positive_point=None, positive_dual_point=None, **kwds):
         """
         Return the quotient of ``self`` by the given sublattice ``sub``.
 
@@ -664,6 +663,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
           ``sub``, then the notion of positivity will depend on the
           choice of lift!
 
+        Further named arguments are passed to the constructor of a toric lattice
+        quotient.
+
         EXAMPLES::
 
             sage: N = ToricLattice(3)
@@ -682,7 +684,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: N.quotient(Ms)
             Traceback (most recent call last):
             ...
-            ValueError: M(1, 8, 0) can not generate a sublattice of
+            ValueError: M(1, 8, 0) cannot generate a sublattice of
             3-d lattice N
 
         However, if we forget the sublattice structure, then it is
@@ -713,7 +715,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: K.lattice().quotient(K.orthogonal_sublattice())
             Traceback (most recent call last):
             ...
-            ValueError: M(0, 0, 1) can not generate a sublattice of
+            ValueError: M(0, 0, 1) cannot generate a sublattice of
             3-d lattice N
 
         We can quotient by the trivial sublattice::
@@ -730,7 +732,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             <N(1, 0, 0), N(0, 1, 0), N(0, 0, 1)>
         """
         return ToricLattice_quotient(self, sub, check,
-                                     positive_point, positive_dual_point)
+                                     positive_point, positive_dual_point, **kwds)
 
     def saturation(self):
         r"""
@@ -798,7 +800,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return ToricLattice_sublattice(A, gens)
         for g in gens:
             if is_ToricLatticeElement(g) and g not in A:
-                raise ValueError("%s can not generate a sublattice of %s"
+                raise ValueError("%s cannot generate a sublattice of %s"
                                  % (g, A))
         return super(ToricLattice_generic, self).span(gens, base_ring,
                                                       *args, **kwds)
@@ -853,7 +855,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             return ToricLattice_sublattice_with_basis(A, basis)
         for g in basis:
             if is_ToricLatticeElement(g) and g not in A:
-                raise ValueError("%s can not generate a sublattice of %s"
+                raise ValueError("%s cannot generate a sublattice of %s"
                                  % (g, A))
         return super(ToricLattice_generic, self).span_of_basis(
             basis, base_ring, *args, **kwds)
@@ -1387,6 +1389,9 @@ class ToricLattice_quotient(FGP_Module_class):
       ``positive_dual_point`` is not zero on the sublattice ``sub``,
       then the notion of positivity will depend on the choice of lift!
 
+    Further given named arguments are passed to the constructor of an FGP
+    module.
+
     OUTPUT:
 
     - quotient of ``V`` by ``W``.
@@ -1429,7 +1434,7 @@ class ToricLattice_quotient(FGP_Module_class):
         True
     """
 
-    def __init__(self, V, W, check=True, positive_point=None, positive_dual_point=None):
+    def __init__(self, V, W, check=True, positive_point=None, positive_dual_point=None, **kwds):
         r"""
         The constructor
 
@@ -1461,7 +1466,7 @@ class ToricLattice_quotient(FGP_Module_class):
                 W = V.submodule(W)
             except (TypeError, ArithmeticError):
                 raise ArithmeticError("W must be a sublattice of V")
-        super(ToricLattice_quotient, self).__init__(V, W, check)
+        super(ToricLattice_quotient, self).__init__(V, W, check, **kwds)
         if (positive_point, positive_dual_point) == (None, None):
             self._flip_sign_of_generator = False
             return
@@ -1745,15 +1750,15 @@ class ToricLattice_quotient(FGP_Module_class):
 
     def coordinate_vector(self, x, reduce=False):
         """
-        Return coordinates of x with respect to the optimized
-        representation of self.
+        Return coordinates of ``x`` with respect to the optimized
+        representation of ``self``.
 
         INPUT:
 
-        - ``x`` -- element of ``self`` or convertable to ``self``.
+        - ``x`` -- element of ``self`` or convertible to ``self``
 
-        - ``reduce`` -- (default: False); if True, reduce coefficients
-          modulo invariants.
+        - ``reduce`` -- (default: ``False``); if ``True``, reduce coefficients
+          modulo invariants
 
         OUTPUT:
 

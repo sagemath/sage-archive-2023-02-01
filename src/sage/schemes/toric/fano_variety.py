@@ -132,8 +132,6 @@ implementing them on your own as a patch for inclusion!
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
 
 import re
 
@@ -450,7 +448,7 @@ def CPRFanoToricVariety(Delta=None,
         N(-1,  0)
         in 2-d lattice N
         sage: [cone.ambient_ray_indices() for cone in FTV.fan()]
-        [(0, 1), (1, 2), (3, 4), (2, 4), (0, 3)]
+        [(0, 1), (1, 2), (2, 4), (3, 4), (0, 3)]
 
     If charts are wrong, it should be detected::
 
@@ -1582,9 +1580,9 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
     def cohomology_class(self):
         r"""
         Return the class of ``self`` in the ambient space cohomology ring.
-        
+
         OUTPUT:
-        
+
         - a :class:`cohomology class
           <sage.schemes.generic.toric_variety.CohomologyClass>`.
 
@@ -1611,7 +1609,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
         return prod(sum(H.gen(X._point_to_ray[point])
                     for point in part if point in X._coordinate_points)
                for part in self.nef_partition().parts(all_points=True))
-    
+
     def nef_partition(self):
         r"""
         Return the nef-partition associated to ``self``.

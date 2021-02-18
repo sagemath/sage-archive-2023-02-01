@@ -32,7 +32,6 @@ and for people to modify the C source code however they want.
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, PolynomialRing
@@ -54,7 +53,7 @@ class ReductionData(SageObject):
 
     The first line contains information about the stable reduction
     after field extension. Here are the meanings of the symbols of
-    stable reduction :
+    stable reduction:
 
     (I) The stable reduction is smooth (i.e. the curve has potentially
     good reduction).

@@ -22,9 +22,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
-from six.moves import range
-from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -37,8 +34,8 @@ from sage.misc.all import prod
 from sage.combinat.tableau import Tableau
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class PlanePartition(ClonableArray):
+class PlanePartition(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A plane partition.
 
@@ -567,11 +564,32 @@ class PlanePartition(ClonableArray):
             sage: PP = PlanePartition([[3,3,2],[3,3,2],[2,2,2]])
             sage: PP.is_SPP()
             True
+            sage: PP = PlanePartition([[3,2,1],[2,0,0]])
+            sage: PP.is_SPP()
+            False
+            sage: PP = PlanePartition([[3,2,0],[2,0,0]])
+            sage: PP.is_SPP()
+            True
+            sage: PP = PlanePartition([[3,2],[2,0],[1,0]])
+            sage: PP.is_SPP()
+            False
+            sage: PP = PlanePartition([[3,2],[2,0],[0,0]])
+            sage: PP.is_SPP()
+            True
+
+
         """
-        z_tab = self.z_tableau()
-        return all(z_tab[r][c] == z_tab[c][r]
-                   for r in range(len(z_tab))
-                   for c in range(r, len(z_tab[r])))
+        Z = self.z_tableau()
+        c1 = len(Z)
+        c2 = len(Z[0])
+        size = max(c1, c2)
+        T = [[0 for i in range(size)] for j in range(size)]
+        for i in range(c1):
+            for j in range(c2):
+                T[i][j] = Z[i][j]
+        return all(T[r][c] == T[c][r]
+            for r in range(size)
+            for c in range(r, size))
 
     def is_CSPP(self):
         r"""
@@ -652,6 +670,15 @@ class PlanePartition(ClonableArray):
             sage: PP.is_SSCPP()
             False
             sage: PP = PlanePartition([[4,3,3,2],[3,2,2,1],[3,2,2,1],[2,1,1,0]])
+            sage: PP.is_SSCPP()
+            True
+            sage: PP = PlanePartition([[2,1],[1,0]])
+            sage: PP.is_SSCPP()
+            True
+            sage: PP = PlanePartition([[4,3,2],[3,2,1],[2,1,0]])
+            sage: PP.is_SSCPP()
+            True
+            sage: PP = PlanePartition([[4,2,2,2],[2,2,2,2],[2,2,2,2],[2,2,2,0]])
             sage: PP.is_SSCPP()
             True
         """
@@ -842,8 +869,9 @@ class PlanePartitions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = PlanePartitions((4,3,5))
-            sage: P.random_element()
-            Plane partition [[4, 3, 3], [4, 0, 0], [2, 0, 0], [0, 0, 0]]
+            sage: p = P.random_element()
+            sage: p.parent() is P
+            True
         """
         def leq(thing1, thing2):
             return all(thing1[i] <= thing2[i] for i in range(len(thing1)))

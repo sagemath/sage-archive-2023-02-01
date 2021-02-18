@@ -195,8 +195,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
 
 from functools import total_ordering
 from itertools import combinations_with_replacement
@@ -1330,16 +1328,20 @@ class FractionWithFactoredDenominator(RingElement):
             sage: decomp
             (0, []) + (2/3, [(x^2 + x + 1, 1)])
 
+        ::
+
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: FFPD(1, [(x, 1), (y, 2)]).cohomology_decomposition()
             (0, [])
 
+        The following example was fixed in :trac:`29465`::
+
             sage: p = 1
             sage: qs = [(x*y - 1, 1), (x**2 + y**2 - 1, 2)]
             sage: f = FFPD(p, qs)
             sage: f.cohomology_decomposition()
-            (0, []) + (4/3*x*y + 4/3, [(x^2 + y^2 - 1, 1)]) +
+            (0, []) + (-4/3*x*y, [(x^2 + y^2 - 1, 1)]) +
             (1/3, [(x*y - 1, 1), (x^2 + y^2 - 1, 1)])
         """
         from sage.calculus.functions import jacobian
@@ -1409,9 +1411,11 @@ class FractionWithFactoredDenominator(RingElement):
                            [SR(qs[j]) for j in range(n) if j != J],
                            [SR(xx) for xx in x])
             det = jac.determinant()
-            psign = permutation_sign(x, X)
-            iteration1.append(Par((-1) ** J * det / (psign * new_df[J][1]),
-                                  new_df))
+            # The parity epsilon from [AY1983, eq. (17.11)] does not
+            # enter this computation, since we do not order the
+            # coordinates x to the front of X in the representation of
+            # this differential form (:trac:`29465`).
+            iteration1.append(Par((-1) ** J * det / new_df[J][1], new_df))
 
         # Now decompose each FFPD of iteration1.
         for r in iteration1:
@@ -3594,7 +3598,7 @@ class FractionWithFactoredDenominatorSum(list):
             factors.extend([q for (q, e) in f.denominator_factored()])
 
         # Eliminate repeats from factors and sort.
-        factors = sorted(list(set(factors)))
+        factors = sorted(set(factors))
 
         # The irreducible factors of denom lie in factors.
         # Use this fact to build df.
@@ -3702,8 +3706,8 @@ def permutation_sign(s, u):
 
     .. NOTE::
 
-        For internal use by
-        :meth:`FractionWithFactoredDenominator.cohomology_decomposition()`.
+        This function was intended for internal use and is deprecated now
+        (:trac:`29465`).
 
     INPUT:
 
@@ -3722,11 +3726,15 @@ def permutation_sign(s, u):
         sage: u = ['a', 'b', 'c', 'd', 'e']
         sage: s = ['b', 'd']
         sage: permutation_sign(s, u)
+        doctest:...: DeprecationWarning: the function permutation_sign is deprecated
+        See https://trac.sagemath.org/29465 for details.
         -1
         sage: s = ['d', 'b']
         sage: permutation_sign(s, u)
         1
     """
+    from sage.misc.superseded import deprecation
+    deprecation(29465, 'the function permutation_sign is deprecated')
     from sage.combinat.permutation import Permutation
 
     # Convert lists to lists of numbers in {1,..., len(u)}

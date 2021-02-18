@@ -108,6 +108,27 @@ class Algebras(CategoryWithAxiom_over_base_ring):
             from sage.categories.semisimple_algebras import SemisimpleAlgebras
             return self & SemisimpleAlgebras(self.base_ring())
 
+        @cached_method
+        def Supercommutative(self):
+            r"""
+            Return the full subcategory of the supercommutative objects
+            of ``self``.
+
+            This is shorthand for creating the corresponding super category.
+
+            EXAMPLES::
+
+                sage: Algebras(ZZ).Supercommutative()
+                Category of supercommutative algebras over Integer Ring
+                sage: Algebras(ZZ).WithBasis().Supercommutative()
+                Category of supercommutative super algebras with basis over Integer Ring
+
+                sage: Cat = Algebras(ZZ).Supercommutative()
+                sage: Cat is Algebras(ZZ).Super().Supercommutative()
+                True
+            """
+            return self.Super().Supercommutative()
+
     Commutative = LazyImport('sage.categories.commutative_algebras',
                              'CommutativeAlgebras', at_startup=True)
     Filtered = LazyImport('sage.categories.filtered_algebras',

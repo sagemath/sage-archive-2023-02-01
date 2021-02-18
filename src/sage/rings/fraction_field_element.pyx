@@ -19,10 +19,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from sage.structure.element cimport FieldElement, parent
 from sage.structure.richcmp cimport richcmp
+# from sage.rings.polynomial.flatten import SpecializationMorphism
 
 from . import integer_ring
 from .integer_ring import ZZ
@@ -125,7 +124,7 @@ cdef class FractionFieldElement(FieldElement):
         if self.__denominator.is_zero():
             raise ZeroDivisionError("fraction field element division by zero")
 
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         EXAMPLES::
 
@@ -146,9 +145,20 @@ cdef class FractionFieldElement(FieldElement):
             (a^2 + 2*a*b + b^2)/(a*b)
             sage: (x^2/y)._im_gens_(K, [a, a*b])
             a/b
+
+        ::
+
+            sage: Zx.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: R.<a,b> = K[]
+            sage: F = R.fraction_field()
+            sage: phi = F.hom([F(b),F(a)], base_map=cc)
+            sage: phi(i/a)
+            ((-i))/b
         """
-        nnum = codomain.coerce(self.__numerator._im_gens_(codomain, im_gens))
-        nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens))
+        nnum = codomain.coerce(self.__numerator._im_gens_(codomain, im_gens, base_map=base_map))
+        nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens, base_map=base_map))
         return codomain.coerce(nnum/nden)
 
     cpdef reduce(self):
@@ -171,6 +181,15 @@ cdef class FractionFieldElement(FieldElement):
             (x^2 + 2.0*x + 1.0)/(x + 1.0)
             sage: f.reduce(); f
             x + 1.0
+
+        TESTS:
+
+        Check that :trac:`8111` is fixed::
+
+            sage: K.<k>= QQ[]
+            sage: frac = (64*k^2+128)/(64*k^3+256)
+            sage: frac.reduce(); frac
+            (k^2 + 2)/(k^3 + 4)
         """
         if self._is_reduced:
             return
@@ -763,18 +782,6 @@ cdef class FractionFieldElement(FieldElement):
         """
         return Q(self.__numerator) / Q(self.__denominator)
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: K.<x> = Frac(QQ['x'])
-            sage: long(K(3))
-            3L
-            sage: long(K(3/5))
-            0L
-        """
-        return long(int(self))
-
     def __pow__(self, right, dummy):
         r"""
         Returns self raised to the `right^{th}` power.
@@ -1076,6 +1083,13 @@ cdef class FractionFieldElement(FieldElement):
 
         raise NotImplementedError
 
+    def specialization(self, D=None, phi=None):
+        """
+        Returns the specialization of a fraction element of a polynomial ring
+        """
+        numerator = self.numerator().specialization(D, phi)
+        denominator = self.denominator().specialization(D, phi)
+        return numerator / denominator
 
 cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """

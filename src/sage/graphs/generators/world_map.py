@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Map graphs
+Graphs from the World Map
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -284,7 +284,7 @@ def WorldMap():
 
     REFERENCE:
 
-    .. [CIA] CIA Factbook 09 https://www.cia.gov/library/publications/the-world-factbook/
+    [CIA]_
     """
     edges = [
         ('Afghanistan', 'China', None), ('Afghanistan', 'Iran', None),

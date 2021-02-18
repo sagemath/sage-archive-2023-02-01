@@ -1,3 +1,9 @@
+# distutils: language = c++
+# distutils: sources = sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp
+# distutils: depends = sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.h sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.h sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.h
+# distutils: include_dirs = sage/libs/ntl/ sage/schemes/hyperelliptic_curves/hypellfrob/
+# distutils: libraries = gmp ntl zn_poly
+
 r"""
 Frobenius on Monsky-Washnitzer cohomology of a hyperelliptic curve over a
 largish prime finite field

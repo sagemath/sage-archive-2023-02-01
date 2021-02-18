@@ -707,7 +707,7 @@ suspicious at first! However, as mentioned in the primer, this is
 actually a big selling point of the axioms infrastructure: by
 calculating automatically the hierarchy relation between categories
 with axioms one avoids the nightmare of maintaining it by hand.
-Instead, only a rather minimal number of links needs to be maintainted
+Instead, only a rather minimal number of links needs to be maintained
 in the code (one per category with axiom).
 
 Besides, with the flexibility introduced by runtime deduction rules
@@ -870,7 +870,7 @@ categories of ``Fields().Finite()``, to not try to add
 ``DivisionRings().Finite()`` as a super category.
 
 Instead the current idiom is to have a method
-``DivisionRings.Finite_extra_super_categories`` which mimicks the
+``DivisionRings.Finite_extra_super_categories`` which mimics the
 behavior of the would-be
 ``DivisionRings.Finite.extra_super_categories``::
 
@@ -1407,7 +1407,7 @@ covariant: ``C.A()`` is a subcategory of ``D.A()`` whenever ``C`` is a
 subcategory of ``D``.
 
 As usual in such closure computations, the result does not depend on
-the order of execution. Futhermore, given that adding an axiom is an
+the order of execution. Furthermore, given that adding an axiom is an
 idempotent and regressive operation, the process is guaranteed to stop
 in a number of steps which is bounded by the number of super
 categories of `J`. In particular, it is a finite process.
@@ -1653,14 +1653,13 @@ TESTS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import importlib
 import re
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_import import LazyImport
-from sage.misc.misc import call_method
+from sage.misc.call import call_method
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_types import Category_over_base_ring
@@ -1680,9 +1679,12 @@ all_axioms += ("Flying", "Blue",
                "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
                "Nilpotent",
-               "FiniteDimensional", "Connected", "WithBasis",
+               "FiniteDimensional", "Connected",
+               "FinitelyGeneratedAsLambdaBracketAlgebra",
+               "WithBasis",
                "Irreducible",
-               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors", "Cellular",
+               "Supercommutative", "Supercocommutative",
+               "Commutative", "Cocommutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors", "Cellular",
                "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
                "Distributive",
                "Endset",
@@ -1925,7 +1927,7 @@ class CategoryWithAxiom(Category):
             axiom, therefore having a special ``__classget__`` method.
             Storing the base category class and the axiom in a single
             tuple attribute -- instead of two separate attributes --
-            has the advantage of not trigerring, for example,
+            has the advantage of not triggering, for example,
             ``Semigroups.__classget__`` upon
             ``Monoids._base_category_class``.
         """
@@ -2283,6 +2285,8 @@ class CategoryWithAxiom(Category):
             elif axiom == "FinitelyGeneratedAsMagma" and \
                  not base_category.is_subcategory(AdditiveMagmas()):
                 result = "finitely generated " + result
+            elif axiom == "FinitelyGeneratedAsLambdaBracketAlgebra":
+                result = "finitely generated " + result
             else:
                 result = uncamelcase(axiom) + " " + result
         return result
@@ -2341,7 +2345,7 @@ class CategoryWithAxiom(Category):
         r"""
         Implement the pickle protocol.
 
-        This overides the implementation in
+        This overrides the implementation in
         :meth:`UniqueRepresentation.__reduce__` in order to not
         exposes the implementation detail that, for example, the
         category of magmas which distribute over an associative

@@ -5,8 +5,6 @@ AUTHORS:
 
 - Vincent Delecroix, Travis Scrimshaw (2014-11-23)
 """
-from __future__ import print_function
-from six.moves import range
 
 from sage.groups.conjugacy_classes import ConjugacyClass, ConjugacyClassGAP
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -152,7 +150,7 @@ class SymmetricGroupConjugacyClass(SymmetricGroupConjugacyClassMixin, ConjugacyC
             return
 
         for x in conjugacy_class_iterator(self._part, self._parent.domain()):
-            yield PermutationGroupElement(x, self._parent, check=False)
+            yield self._parent.element_class(x, self._parent, check=False)
 
     def set(self):
         r"""
@@ -168,7 +166,7 @@ class SymmetricGroupConjugacyClass(SymmetricGroupConjugacyClassMixin, ConjugacyC
             True
         """
         if not self._set:
-            self._set = Set(PermutationGroupElement(x, self._parent, check=False)
+            self._set = Set(self._parent.element_class(x, self._parent, check=False)
                             for x in conjugacy_class_iterator(self._part, self._domain) )
         return self._set
 
@@ -288,16 +286,14 @@ def default_representative(part, G):
     for p in part:
         cycles.append(tuple(D[total:total+p]))
         total += p
-    # TODO: Change this to G.element_class(cycles, check=False)
-    #   once SymmetricGroup is a proper parent.
-    return PermutationGroupElement(cycles, G, check=False)
+    return G.element_class(cycles, G, check=False)
 
 
 def conjugacy_class_iterator(part, S=None):
     r"""
     Return an iterator over the conjugacy class associated to
     the partition ``part``.
-    
+
     The elements are given as a list of tuples, each tuple being a cycle.
 
     INPUT:

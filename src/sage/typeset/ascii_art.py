@@ -136,7 +136,7 @@ manager activated by the magic function: ``%display ascii_art``::
                                                                .7????$.
                                                                  ... .
 """
-#*******************************************************************************
+# ******************************************************************************
 #       Copyright (C) 2013 Jean-Baptiste Priez <jbp@kerios.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -148,8 +148,8 @@ manager activated by the magic function: ``%display ascii_art``::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#                  https://www.gnu.org/licenses/
+# ******************************************************************************
 
 from sage.typeset.character_art import CharacterArt
 from sage.typeset.character_art_factory import CharacterArtFactory
@@ -179,7 +179,6 @@ class AsciiArt(CharacterArt):
         e
     """
     _string_type = str
-
 
 
 _ascii_art_factory = CharacterArtFactory(
@@ -289,6 +288,5 @@ def ascii_art(*obj, **kwds):
         from copy import copy
         separator = copy(separator)
         separator._baseline = sep_baseline
-    obj = map(_ascii_art_factory.build, obj)
-    return _ascii_art_factory.concatenate(obj, separator, empty_ascii_art, baseline=baseline)
-
+    return _ascii_art_factory.concatenate(obj, separator, empty_ascii_art,
+                                          baseline=baseline)

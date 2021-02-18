@@ -81,8 +81,6 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-import six
-
 from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.rings import Rings
@@ -115,7 +113,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     `R`-subalgebra of the ring of power series in countably many
     variables `R[[x_1, x_2, x_3, \ldots]]`. It consists of those
     formal power series `p` which are degree-bounded (i. e., the degrees
-    of all monomials occuring with nonzero coefficient in `p` are bounded
+    of all monomials occurring with nonzero coefficient in `p` are bounded
     from above, although the bound can depend on `p`) and satisfy the
     following condition: For every tuple `(a_1, a_2, \ldots, a_m)` of
     positive integers, the coefficient of the monomial
@@ -191,6 +189,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             and Category of graded algebras over Rational Field
             and Category of commutative algebras over Rational Field
             and Category of monoids with realizations
+            and Category of graded coalgebras over Rational Field
             and Category of coalgebras over Rational Field with realizations
 
     The most standard two bases for this `R`-algebra are the monomial and
@@ -702,8 +701,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         assert self.base_ring() == f.base_ring()
         exponent_coefficient = f.dict()
         z = {}
-        for (e, c) in six.iteritems(exponent_coefficient):
-            I = Compositions()([ei for ei in e if ei > 0])
+        for e, c in exponent_coefficient.items():
+            I = Compositions()([ei for ei in e if ei])
             if I not in z:
                 z[I] = c
         out = self.Monomial()._from_dict(z)

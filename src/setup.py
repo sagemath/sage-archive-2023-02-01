@@ -84,6 +84,7 @@ log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} secon
 # from sage_build_cython:
 import Cython.Compiler.Options
 Cython.Compiler.Options.embed_pos_in_docstring = True
+gdb_debug = os.environ.get('SAGE_DEBUG', None) != 'no'
 
 try:
     log.info("Generating auto-generated sources")
@@ -100,6 +101,7 @@ try:
         compiler_directives=compiler_directives(False),
         aliases=cython_aliases(),
         create_extension=create_extension,
+        gdb_debug=gdb_debug,
         nthreads=4)
 except Exception as exception:
     log.warn(f"Exception while generating and cythonizing source files: {exception}")

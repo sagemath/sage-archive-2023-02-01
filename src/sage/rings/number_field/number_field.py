@@ -3369,7 +3369,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         OUTPUT:
 
-        Returns an element `b` of the number field such that
+        Return an element `b` of the number field such that
         `b \equiv x_i \bmod I_i` for all residues `x_i` and
         respective ideals `I_i`.
 

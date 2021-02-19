@@ -20,6 +20,7 @@ lazy_import('sage.combinat.root_system.coxeter_group', 'CoxeterGroup')
 lazy_import('sage.combinat.root_system.weyl_characters', ['WeylCharacterRing',
                                                           'WeightRing'])
 lazy_import('sage.combinat.root_system.fusion_ring', ['FusionRing'])
+lazy_import('sage.combinat.root_system.f_matrix', ['FMatrix'])
 from .branching_rules import BranchingRule, branching_rule_from_plethysm, branching_rule
 
 lazy_import('sage.combinat.root_system.non_symmetric_macdonald_polynomials', 'NonSymmetricMacdonaldPolynomials')

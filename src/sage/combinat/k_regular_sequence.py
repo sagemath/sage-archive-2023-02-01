@@ -410,10 +410,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(4*n + 2) == 7*f(2*n) + 8*f(2*n + 1) + 9*f(2*n - 2),
             ....:     f(4*n + 3) == 10*f(2*n) + 11*f(2*n + 1) + 12*f(2*n - 2),
             ....:     f(0) == 1, f(1) == 2, f(2) == 1], f, n, 42)
-            recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=11,
+            recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=55,
             coeffs={(0, 1): 2, (0, 0): 1, (3, 1): 11, (3, 0): 10, (2, -2): 9,
             (2, 1): 8, (2, 0): 7, (3, -2): 12, (0, -2): 3, (1, 0): 4, (1, -2): 6,
-            (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1}, n0=42)
+            (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1}, n0=42, n1=44)
 
         Stern--Brocot Sequence::
 
@@ -422,7 +422,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:    f(1) == 1, f(2) == 1], f, n)
             recursion_rules(M=1, m=0, l=0, u=1, ll=0, uu=2, dim=3,
             coeffs={(1, 0): 1, (0, 0): 1, (1, 1): 1},
-            initial_values={0: 0, 1: 1, 2: 1}, n0=0)
+            initial_values={0: 0, 1: 1, 2: 1}, n0=0, n1=0)
 
         TESTS:
 
@@ -612,7 +612,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
                 sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
                 recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={}, initial_values={}, n0=0)
+                coeffs={}, initial_values={}, n0=0, n1=0)
         """
         from collections import namedtuple
 

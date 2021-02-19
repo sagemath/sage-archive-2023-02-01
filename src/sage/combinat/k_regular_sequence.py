@@ -815,7 +815,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         return ind
 
-    def _get_matrix_from_recursions_(self, recursion_rules, rem, function, var):
+    def _get_matrix_from_recursions_(self, recursion_rules, rem, function, var, correct_offset=True):
         r"""
         Construct the matrix for remainder ``rem`` of the linear
         representation of the sequence induced by ``recursion_rules``.
@@ -826,6 +826,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           :meth:`~_parse_recursions_`.
 
         - ``rem`` -- An integer between ``0`` and ``k - 1``.
+
+        - ``correct_offset`` -- (default: ``True``) a boolean.
 
         OUTPUT:
 
@@ -843,49 +845,56 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: function('f')
             f
             sage: rules = Seq2._parse_recursions_([
-            ....:     f(8*n) == 1*f(2*n) + 2*f(2*n + 1) + 3*f(2*n + 2),
-            ....:     f(8*n + 1) == 4*f(2*n) + 5*f(2*n + 1) + 6*f(2*n + 2),
-            ....:     f(8*n + 2) == 7*f(2*n) + 8*f(2*n + 1) + 9*f(2*n + 2),
-            ....:     f(8*n + 3) == 10*f(2*n) + 11*f(2*n + 1) + 12*f(2*n + 2),
-            ....:     f(8*n + 4) == 13*f(2*n) + 14*f(2*n + 1) + 15*f(2*n + 2),
-            ....:     f(8*n + 5) == 16*f(2*n) + 17*f(2*n + 1) + 18*f(2*n + 2),
-            ....:     f(8*n + 6) == 19*f(2*n) + 20*f(2*n + 1) + 21*f(2*n + 2),
-            ....:     f(8*n + 7) == 22*f(2*n) + 23*f(2*n + 1) + 24*f(2*n + 2),],
+            ....:     f(8*n) == -1*f(2*n - 1) + 1*f(2*n + 1),
+            ....:     f(8*n + 1) == -11*f(2*n - 1) + 10*f(2*n) + 11*f(2*n + 1),
+            ....:     f(8*n + 2) == -21*f(2*n - 1) + 20*f(2*n) + 21*f(2*n + 1),
+            ....:     f(8*n + 3) == -31*f(2*n - 1) + 30*f(2*n) + 31*f(2*n + 1),
+            ....:     f(8*n + 4) == -41*f(2*n - 1) + 40*f(2*n) + 41*f(2*n + 1),
+            ....:     f(8*n + 5) == -51*f(2*n - 1) + 50*f(2*n) + 51*f(2*n + 1),
+            ....:     f(8*n + 6) == -61*f(2*n - 1) + 60*f(2*n) + 61*f(2*n + 1),
+            ....:     f(8*n + 7) == -71*f(2*n - 1) + 70*f(2*n) + 71*f(2*n + 1),],
             ....:     f, n)
-            sage: Seq2._get_matrix_from_recursions_(rules, 0, f, n)
-            [ 0  1  0  0  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  1  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  1  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  1  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  1  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  0  1  0  0]
-            [ 0  1  2  3  0  0  0  0  0  0  0  0  0]
-            [ 0  4  5  6  0  0  0  0  0  0  0  0  0]
-            [ 0  7  8  9  0  0  0  0  0  0  0  0  0]
-            [ 0 10 11 12  0  0  0  0  0  0  0  0  0]
-            [ 0 13 14 15  0  0  0  0  0  0  0  0  0]
-            [ 0 16 17 18  0  0  0  0  0  0  0  0  0]
-            [ 0 19 20 21  0  0  0  0  0  0  0  0  0]
-            sage: Seq2._get_matrix_from_recursions_(rules, 1, f, n)
-            [ 0  0  1  0  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  1  0  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  1  0  0  0]
-            [ 0  0  0  0  0  0  0  0  0  0  1  0  0]
-            [ 0  0  0  0  0  0  0  0  0  0  0  1  0]
-            [ 0  0  0  0  0  0  0  0  0  0  0  0  1]
-            [ 0 13 14 15  0  0  0  0  0  0  0  0  0]
-            [ 0 16 17 18  0  0  0  0  0  0  0  0  0]
-            [ 0 19 20 21  0  0  0  0  0  0  0  0  0]
-            [ 0 22 23 24  0  0  0  0  0  0  0  0  0]
-            [ 0  0  0  1  2  3  0  0  0  0  0  0  0]
-            [ 0  0  0  4  5  6  0  0  0  0  0  0  0]
-            [ 0  0  0  7  8  9  0  0  0  0  0  0  0]
+            sage: Seq2._get_matrix_from_recursions_(rules, 0, f, n, False)
+            [  0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0]
+            [  0 -51  50  51   0   0   0   0   0   0   0   0   0   0   0   0   0]
+            [  0 -61  60  61   0   0   0   0   0   0   0   0   0   0   0   0   0]
+            [  0 -71  70  71   0   0   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0  -1   0   1   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -11  10  11   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -21  20  21   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -31  30  31   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -41  40  41   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -51  50  51   0   0   0   0   0   0   0   0   0   0   0]
+            sage: Seq2._get_matrix_from_recursions_(rules, 1, f, n, False)
+            [  0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0]
+            [  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1]
+            [  0   0   0 -11  10  11   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -21  20  21   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -31  30  31   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -41  40  41   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -51  50  51   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -61  60  61   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0 -71  70  71   0   0   0   0   0   0   0   0   0   0   0]
+            [  0   0   0   0   0  -1   0   1   0   0   0   0   0   0   0   0   0]
+            [  0   0   0   0   0 -11  10  11   0   0   0   0   0   0   0   0   0]
 
         Stern--Brocot Sequence::
 
             sage: SB_rules = Seq2._parse_recursions_([
-            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
-            ....:     f(0) == 0, f(1) == 1], f, n)
+            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1)], f, n)
             sage: Seq2._get_matrix_from_recursions_(SB_rules, 0, f, n)
             [1 0 0]
             [1 1 0]
@@ -895,6 +904,56 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [0 1 0]
             [0 1 1]
 
+        Number of Unbordered Factors in the Thue--Morse Sequence::
+
+            sage: UB_rules = Seq2._parse_recursions_([
+            ....:     f(8*n) == 2*f(4*n), f(8*n + 1) == f(4*n + 1),
+            ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
+            ....:     f(8*n + 3) == -f(4*n + 1) + f(4*n + 2),
+            ....:     f(8*n + 4) == 2*f(4*n + 2), f(8*n + 5) == f(4*n + 3),
+            ....:     f(8*n + 6) == -f(4*n + 1) + f(4*n + 2) + f(4*n + 3),
+            ....:     f(8*n + 7) == 2*f(4*n + 1) + f(4*n + 3),
+            ....:     f(0) == 1, f(1) == 2, f(2) == 2, f(3) == 4, f(4) == 2,
+            ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
+            ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14)==4,
+            ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
+            ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
+            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
+            sage: Seq2._get_matrix_from_recursions_(UB_rules, 0, f, n)
+            [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  2  0  0  0  0  0  0  0  0  0 -1  0  0]
+            [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  1  0  1  0  0  0  0  0  0 -4  0  0]
+            [ 0  0  0  0 -1  1  0  0  0  0  0  0  0  4  2  0]
+            [ 0  0  0  0  0  2  0  0  0  0  0  0  0 -2  0  0]
+            [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0 -1  1  1  0  0  0  0  0  0  2  2  0]
+            [ 0  0  0  0  2  0  1  0  0  0  0  0  0 -8 -4 -4]
+            [ 0  0  0  0  0  0  0  2  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0]
+            sage: Seq2._get_matrix_from_recursions_(UB_rules, 1, f, n)
+            [ 0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  2  0  0  0  0  0  0  0 -2  0  0]
+            [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0 -1  1  1  0  0  0  0  0  0  2  2  0]
+            [ 0  0  0  0  2  0  1  0  0  0  0  0  0 -8 -4 -4]
+            [ 0  0  0  0  0  0  0  2  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  1  0  1  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0 -1  1  0  0  0  2  0  0]
+            [ 0  0  0  0  0  0  0  0  0  2  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
         """
         from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
@@ -902,6 +961,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.matrix.special import block_matrix, zero_matrix
         from sage.modules.free_module_element import vector
 
+        base_ring = self.base_ring()
         k = self.k
         M = recursion_rules.M
         m = recursion_rules.m
@@ -910,65 +970,45 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         ll = recursion_rules.ll
         uu = recursion_rules.uu
         n0 = recursion_rules.n0
+        n1 = recursion_rules.n1
         dim = recursion_rules.dim
+        dim_without_corr = dim - n1
         coeffs = recursion_rules.coeffs
         initial_values = recursion_rules.initial_values
         n1 = recursion_rules.n1
+        ind = self._get_ind_(M, m, ll, uu)
 
-        mat = []
-        current_shift = 0
+        mat = Matrix(base_ring, 0, dim_without_corr)
 
-        for base_power in srange(m - 1):
-            current_shift += k**base_power
-            for d in srange(k**base_power):
-                row = dim*[0]
-                dd = k**base_power*rem + d
-                index = current_shift + dd
-                row[index] = 1
-                mat.append(row)
-
-        if m > 0:
-            current_shift += k**(m-1)
-            final_shift = current_shift - ll
-            for d in srange(k**(m-1)):
-                row = dim*[0]
-                dd = k**(m-1)*rem + d
-                index = current_shift + dd - ll
-                row[index] = 1
-                mat.append(row)
-        else:
-            final_shift = -ll
-
-        for base_power in srange(m, M - 1):
-            current_shift += k**base_power - k**m + uu - 2*ll + 1
-            for d in srange(ll, k**base_power - k**m + uu + 1):
-                row = dim*[0]
-                dd = k**base_power*rem + d
-                index = current_shift + dd
-                row[index] = 1
-                mat.append(row)
-
-        for d in srange(ll, k**(M-1) - k**m + uu + 1):
-            dd, r = d.quo_rem(k**M)
-            rr = k**(M-1)*rem + r
-            row = dim*[0]
-            if rr < k**M:
-                for i in range(l, u + 1):
-                    try:
-                        row[k**m*dd + i + final_shift] = coeffs[(rr, i)]
-                    except KeyError:
-                        pass
+        for i in srange(1, dim_without_corr + 1):
+            j, d = ind[i]
+            if j < M - 1:
+                row = dim_without_corr*[0]
+                row[ind[(j + 1, k**j*rem + d)] - 1] = 1
+                mat = mat.stack(vector(row))
             else:
-                for i in srange(l, u + 1):
-                    try:
-                        row[(dd + 1)*k**m + i + final_shift] = coeffs[(rr - k**M, i)]
-                    except KeyError:
-                        pass
-            mat.append(row)
+                rem_d = k**(M-1)*rem + (d%k**M)
+                dd = d // k**M
+                if rem_d < k**M:
+                    lambd = l - ind[(m, (k**m)*dd + l)]
+                    row = []
+                    for kk in srange(1, dim_without_corr + 1):
+                        try:
+                            row.append(coeffs[(rem_d, kk + lambd)])
+                        except KeyError:
+                            row.append(0)
+                    mat = mat.stack(vector(row))
+                else:
+                    lambd = l - ind[(m, k**m*dd + k**m + l)]
+                    row = []
+                    for kk in srange(1, dim_without_corr + 1):
+                        try:
+                            row.append(coeffs[(rem_d - k**M, kk + lambd)])
+                        except KeyError:
+                            row.append(0)
+                    mat = mat.stack(vector(row))
 
-        mat = Matrix(mat)
-
-        if n1 == 0:
+        if n1 == 0 or not correct_offset:
             return mat
         else:
             arguments = [k**j*var + d for j in srange(m) for d in srange(k**j)] + \
@@ -992,11 +1032,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             for i in srange(n1):
                 J.append([int(i >= rem and i % k == rem and j*k == i - rem) for j in srange(n1)])
 
-            Mat = MatrixSpace(self.base_ring(), dim + n0, dim + n0)
+            Mat = MatrixSpace(base_ring, dim, dim)
             return Mat(block_matrix([[mat, Matrix(W).transpose()],
-                                     [zero_matrix(n1, dim), Matrix(J)]]))
+                                     [zero_matrix(n1, dim_without_corr), Matrix(J)]]))
 
-    
+
     def _get_left_from_recursions_(self, dim):
         r"""
         Construct the vector ``left`` of the linear representation of
@@ -1164,7 +1204,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         for rem in srange(k):
             mu.append(self._get_matrix_from_recursions_(recursion_rules, rem, function, var))
 
-        seq = self(mu, self._get_left_from_recursions_(recursion_rules.dim + n0),
+        seq = self(mu, self._get_left_from_recursions_(recursion_rules.dim),
                    self._get_right_from_recursions_(recursion_rules, function))
 
         if minimize:

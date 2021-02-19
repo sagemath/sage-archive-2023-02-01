@@ -216,6 +216,11 @@ def skipfile(filename, tested_optional_tags=False):
     - ``tested_optional_tags`` - a list or tuple or set of optional tags to test,
       or ``False`` (no optional test) or ``True`` (all optional tests)
 
+    If ``filename`` contains a line of the form ``"# sage.doctest:
+    optional - xyz")``, then this will return ``False`` if "xyz" is in
+    ``tested_optional_tags``. Otherwise, it returns the matching tag
+    ("optional - xyz").
+
     EXAMPLES::
 
         sage: from sage.doctest.control import skipfile
@@ -231,9 +236,11 @@ def skipfile(filename, tested_optional_tags=False):
         sage: with open(filename, "w") as f:
         ....:     _ = f.write("# sage.doctest: optional - xyz")
         sage: skipfile(filename, False)
+        'optional - xyz'
+        sage: bool(skipfile(filename, False))
         True
         sage: skipfile(filename, ['abc'])
-        True
+        'optional - xyz'
         sage: skipfile(filename, ['abc', 'xyz'])
         False
         sage: skipfile(filename, True)
@@ -252,11 +259,11 @@ def skipfile(filename, tested_optional_tags=False):
                 m = optionalfiledirective_regex.match(line)
                 if m:
                     if tested_optional_tags is False:
-                        return True
+                        return m.group(2)
                     optional_tags = parse_optional_tags('#' + m.group(2))
                     extra = optional_tags - set(tested_optional_tags)
                     if extra:
-                        return True
+                        return m.group(2)
             line_count += 1
             if line_count >= 10:
                 break

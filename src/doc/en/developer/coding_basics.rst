@@ -1074,6 +1074,11 @@ framework. Here is a comprehensive list:
        This does not apply to files which are explicitly given
        as command line arguments: those are always tested.
 
+       If you add such a line to a file, you are strongly encouraged
+       to add a note to the module-level documentation, saying that
+       the doctests in this file will be skipped unless the
+       appropriate conditions are met.
+
   - **internet:** For lines that require an internet connection::
 
        sage: oeis(60843)                 # optional - internet

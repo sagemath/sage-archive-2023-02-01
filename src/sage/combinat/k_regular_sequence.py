@@ -1013,7 +1013,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         else:
             arguments = [k**j*var + d for j in srange(m) for d in srange(k**j)] + \
                         [k**j*var + d for j in srange(m, M) for d in srange(ll, k**j - k**m + uu + 1)]
-            W = []
+            W = Matrix(base_ring, dim_without_corr, 0)
             for i in srange(n1):
                 v_eval_i = []
                 v_eval_ki_plus_r = []
@@ -1026,15 +1026,16 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                     except KeyError:
                         raise ValueError('Initial value %s is missing.'
                                          % (function(temp),))
-                W.append(list(vector(v_eval_ki_plus_r) - mat*vector(v_eval_i)))
+                W = W.augment(vector(v_eval_ki_plus_r) - mat*vector(v_eval_i))
 
-            J = []
+            J = Matrix(base_ring, 0, n1)
             for i in srange(n1):
-                J.append([int(i >= rem and i % k == rem and j*k == i - rem) for j in srange(n1)])
+                J = J.stack(vector([int(i >= rem and i % k == rem and
+                                        j*k == i - rem) for j in srange(n1)]))
 
             Mat = MatrixSpace(base_ring, dim, dim)
-            return Mat(block_matrix([[mat, Matrix(W).transpose()],
-                                     [zero_matrix(n1, dim_without_corr), Matrix(J)]]))
+            return Mat(block_matrix([[mat, W],
+                                     [zero_matrix(n1, dim_without_corr), J]]))
 
 
     def _get_left_from_recursions_(self, dim):

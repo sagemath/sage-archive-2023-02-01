@@ -507,6 +507,14 @@ latex_elements['preamble'] = r"""
 
 \let\textLaTeX\LaTeX
 \AtBeginDocument{\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}}
+
+% Workaround for a LaTeX bug -- see trac #31397 and
+% https://tex.stackexchange.com/questions/583391/mactex-2020-error-with-report-hyperref-mathbf-in-chapter.
+\makeatletter
+\pdfstringdefDisableCommands{%
+  \let\mathbf\@firstofone
+}
+\makeatother
 """
 
 # Documents to append as an appendix to all manuals.

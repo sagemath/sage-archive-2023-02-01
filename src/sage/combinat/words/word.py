@@ -9,6 +9,7 @@ AUTHORS:
 - Sébastien Labbé
 - Franco Saliola
 
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
@@ -727,19 +728,24 @@ class FiniteWord_morphic(WordDatatype_morphic, FiniteWord_class):
 
     EXAMPLES::
 
-        sage: print('update')
+        sage: m = WordMorphism("a->ab,b->")
+        sage: w = m.fixed_point("a")
+        sage: w
+        word: ab
+
 
     TESTS::
 
-        sage: print('update')
-        sage: w = 22222
+        sage: m = WordMorphism("a->ab,b->")
+        sage: w = m.fixed_point("a")
+        sage: w
+        word: ab
         sage: type(w)
-        <class 'sage.combinat.words.word.FiniteWord_iter'>
+        <class 'sage.combinat.words.word.FiniteWord_morphic'>
         sage: z = loads(dumps(w))
-        sage: w == z
-        True
-        sage: type(z)
-        <class 'sage.combinat.words.word.FiniteWord_list'>
+        Traceback (most recent call last):
+        ...
+        ValueError: not a correct value for length (+Infinity)
     """
     pass
 
@@ -758,13 +764,11 @@ class InfiniteWord_morphic(WordDatatype_morphic, InfiniteWord_class):
         sage: m = WordMorphism('a->ab,b->a')
         sage: w = m.fixed_point('a')
         sage: w
+        word: abaababaabaababaababaabaababaabaababaaba...
 
     TESTS:
 
     Pickle is not supported for infinite word defined by an iterator::
-
-        sage: dumps(w)
-
 
         sage: dumps(w)
         Traceback (most recent call last):
@@ -772,4 +776,3 @@ class InfiniteWord_morphic(WordDatatype_morphic, InfiniteWord_class):
         TypeError: can...t...pickle...generator...object...
     """
     pass
-

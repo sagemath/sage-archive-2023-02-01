@@ -21,6 +21,7 @@ from sage.arith.all import divisors, gcd, moebius, multinomial
 
 from sage.combinat.necklace import _sfc
 from sage.combinat.words.words import FiniteWords
+from sage.combinat.words.finite_word import FiniteWord_class
 from sage.combinat.combinat_cython import lyndon_word_iterator
 
 
@@ -185,7 +186,7 @@ class LyndonWords_class(UniqueRepresentation, Parent):
         """
         if isinstance(w, list):
             w = self._words(w, check=False)
-        return w.is_lyndon()
+        return isinstance(w, FiniteWord_class) and w.is_lyndon()
 
 
 class LyndonWords_evaluation(UniqueRepresentation, Parent):
@@ -263,7 +264,12 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
         """
         if isinstance(w, list):
             w = self._words(w, check=False)
-        return all(x in self._words.alphabet() for x in w) and w.evaluation() == self._e and w.is_lyndon()
+        if isinstance(w, FiniteWord_class) and all(x in self._words.alphabet() for x in w):
+            ev_dict = w.evaluation_dict()
+            evaluation = [ev_dict.get(x, 0) for x in self._words.alphabet()]
+            return evaluation == self._e and w.is_lyndon()
+        else:
+            return False
 
     def cardinality(self):
         """
@@ -427,7 +433,8 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         """
         if isinstance(w, list):
             w = self._words(w, check=False)
-        return w.length() == self._k and all(x in self._words.alphabet() for x in w) and w.is_lyndon()
+        return isinstance(w, FiniteWord_class) and w.length() == self._k \
+            and all(x in self._words.alphabet() for x in w) and w.is_lyndon()
 
     def cardinality(self):
         """

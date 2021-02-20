@@ -605,7 +605,6 @@ cdef class Riemann_Map:
             (-1.56...e-05+0.989694...j)
             sage: m.riemann_map(0.4)
             (0.73324...+3.2...e-06j)
-            sage: import numpy as np
             sage: m.riemann_map(complex(-3, 0.0001))
             (1.405757...e-05+8.06...e-10j)
         """
@@ -691,7 +690,6 @@ cdef class Riemann_Map:
             (0.486319...-4.90019052...j)
             sage: m.inverse_riemann_map(0.25 - 0.3*I)
             (0.1653244...-0.180936...j)
-            sage: import numpy as np
             sage: m.inverse_riemann_map(complex(-0.2, 0.5))
             (-0.156280...+0.321819...j)
         """

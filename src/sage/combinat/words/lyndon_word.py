@@ -184,7 +184,7 @@ class LyndonWords_class(UniqueRepresentation, Parent):
             True
         """
         if isinstance(w, list):
-            w = self._words(w)
+            w = self._words(w, check=False)
         return w.is_lyndon()
 
 
@@ -262,7 +262,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             True
         """
         if isinstance(w, list):
-            w = self._words(w)
+            w = self._words(w, check=False)
         return all(x in self._words.alphabet() for x in w) and w.evaluation() == self._e and w.is_lyndon()
 
     def cardinality(self):
@@ -413,7 +413,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         w = self._words(*args, **kwds)
         if kwds.get('check', True) and not w.is_lyndon():
             raise ValueError("not a Lyndon word")
-        if w.length() != self._k:
+        if kwds.get('check', True) and w.length() != self._k:
             raise ValueError("length is not k={}".format(self._k))
         return w
 
@@ -426,7 +426,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             True
         """
         if isinstance(w, list):
-            w = self._words(w)
+            w = self._words(w, check=False)
         return w.length() == self._k and all(x in self._words.alphabet() for x in w) and w.is_lyndon()
 
     def cardinality(self):

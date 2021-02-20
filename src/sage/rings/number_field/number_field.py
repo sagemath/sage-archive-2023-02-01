@@ -3475,6 +3475,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Fractional ideal (i + 2)
             sage: K.ideal(0)
             Ideal (0) of Number Field in i with defining polynomial x^2 + 1
+
+        TESTS:
+
+        Check that :trac:`25934` is fixed::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^6 - x^5 - 5*x^4 + 4*x^3 + 6*x^2 - 3*x - 1)
+            sage: K.ideal(1,1)
+            Fractional ideal (1)
+
         """
         try:
             return self.fractional_ideal(*gens, **kwds)

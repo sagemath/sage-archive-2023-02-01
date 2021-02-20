@@ -5307,6 +5307,21 @@ cdef class Expression(CommutativeRingElement):
             x^4 + y
             y
 
+        .. WARNING::
+
+            Unexpected results may occur if the left-hand side of some substitution
+            is not just a single variable (or is a "wildcard" variable). For example,
+            the result of ``cos(cos(cos(x))).subs({cos(x) : x})`` is ``x``, because
+            the substitution is applied repeatedly. Such repeated substitutions (and
+            pattern-matching code that may be somewhat unpredictable) are disabled
+            only in the basic case where the left-hand side of every substitution is
+            a variable. In particular, although the result of
+            ``(x^2).subs({x : sqrt(x)})`` is ``x``, the result of
+            ``(x^2).subs({x : sqrt(x), y^2 : y})`` is ``sqrt(x)``, because repeated
+            substitution is enabled by the presence of the expression ``y^2`` in the
+            left-hand side of one of the substitutions, even though that particular
+            substitution does not get applied.
+
         TESTS:
 
         No arguments return the same expression::
@@ -5410,6 +5425,18 @@ cdef class Expression(CommutativeRingElement):
             x^2 + 1/x
             sage: (sqrt(x) + 1/sqrt(x)).subs({x: 1/x})
             sqrt(x) + 1/sqrt(x)
+
+        Check that :trac:`30378` is fixed::
+
+            sage: (x^2).subs({x: sqrt(x)})
+            x
+            sage: f(x) = x^2
+            sage: f(sqrt(x))
+            x
+            sage: a = var("a")
+            sage: f = function("f")
+            sage: integrate(f(x), x, 0, a).subs(a=cos(a))
+            integrate(f(x), x, 0, cos(a))
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -5430,6 +5457,28 @@ cdef class Expression(CommutativeRingElement):
             # Check for duplicate
             _dict_update_check_duplicate(sdict, varkwds)
 
+        # To work around the pynac bug in :trac:`30378`, we use two steps to do a
+        # substitution that only involves plugging expressions into variables, but
+        # where some of the expressions include variables that are in self.
+        if all(self.parent(k).is_symbol() for k in sdict.keys()):
+            dict_vars = tuple(v for k in sdict.keys()
+                for v in self.parent(sdict[k]).variables())
+            if not set(self.variables()).isdisjoint(dict_vars):
+                # Step 1: replace each variable with a new temporary variable
+                temp_vars = {v : self.parent().symbol() for v in self.variables()}
+                with hold:
+                    first_step = self.substitute(temp_vars)
+                # Step 2: make the original substitutions into the new variables
+                result = first_step.substitute({
+                    temp_vars[v] :
+                    sdict[v] if v in sdict.keys() else v
+                    for v in self.variables()})
+                if not set(result.variables()).issubset(self.variables() + dict_vars):
+                    raise RuntimeError("substitution failed")
+                return result
+
+        # We are not in the basic case of only substituting expressions into
+        # variables, so we ask Ginac to do the work.
         cdef GExMap smap
         for k, v in sdict.iteritems():
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,

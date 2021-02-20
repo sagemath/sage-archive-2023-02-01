@@ -21,14 +21,18 @@ from sage.graphs.generators.basic import EmptyGraph
 from itertools import product
 from sage.misc.misc import inject_variable
 
+
 #Import pickle for checkpointing and loading certain variables
 try:
     import cPickle as pickle
 except:
     import pickle
 
+from functools import cmp_to_key, partial
 from sage.rings.polynomial.polydict import ETuple
-# from sage.rings import AlgebraicField as QQbar
+from sage.combinat.root_system.poly_tup_engine import *
+from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
+import numpy as np
 
 class FMatrix():
     r"""Return an F-Matrix factory for a FusionRing.
@@ -230,9 +234,13 @@ class FMatrix():
         self.solved = set()
 
         #New attributes of the FMatrix class
-        self._var_to_idx = { var : idx for idx, var in enumerate(self._poly_ring.gens()) }
-        self._known_vals = dict()
         self.field = self.FR.field()
+        r = self.field.defining_polynomial().roots(ring=QQbar,multiplicities=False)[0]
+        self._qqbar_embedding = self.field.hom([r],QQbar)
+        self._var_to_idx = { var : idx for idx, var in enumerate(self._poly_ring.gens()) }
+        self._ks = self.get_known_sq()
+        self._nnz = self.get_known_nonz()
+        self._known_vals = dict()
         self.temp_eqns = []
 
     #######################
@@ -474,13 +482,31 @@ class FMatrix():
     def get_known_vals(self):
         return { var_idx : self._fvars[self._var_to_sextuple[self._poly_ring.gen(var_idx)]] for var_idx in self.solved }
 
+    #Construct a dictionary of known squares. Keys are variable indices and corresponding values are the squares
+    def get_known_sq(self,eqns=None):
+        if eqns is None:
+            eqns = self.ideal_basis
+        return { variables(eq_tup)[0] : -eq_tup[-1][1] for eq_tup in eqns if tup_fixes_sq(eq_tup) }
+
     #Construct an ETuple indicating positions of known nonzero variables.
-    #MUST be called after fmats._ks = get_known_sq()
+    #MUST be called after self._ks = get_known_sq()
     def get_known_nonz(self):
         nonz = { self._var_to_idx[var] : 100 for var in self._singles }
         for idx in self._ks:
             nonz[idx] = 100
-        return ETuple(nonz, fmats._poly_ring.ngens())
+        return ETuple(nonz, self._poly_ring.ngens())
+
+    #########################
+    ### Useful predicates ###
+    #########################
+
+    #Determine if monomial exponent is univariate in a still unknown F-symbol
+    def is_univariate_in_unknown(self,monom_exp):
+        return len(monom_exp.nonzero_values()) == 1 and monom_exp.nonzero_positions()[0] not in self.solved
+
+    #Determine if monomial exponent is univariate and linear in a vstill unknown F-symbol
+    def is_uni_linear_in_unkwown(self,monom_exp):
+        return monom_exp.nonzero_values() == [1] and monom_exp.nonzero_positions()[0] not in self.solved
 
     ##############################
     ### Variables partitioning ###
@@ -515,13 +541,13 @@ class FMatrix():
     def save_fvars(self,filename):
         with open(filename, 'wb') as f:
             pickle.dump(self._fvars, f)
-            # pickle.dump([fmats._fvars, fmats.solved], f)
+            # pickle.dump([self._fvars, self.solved], f)
 
     #If provided, optional param save_dir should have a trailing forward slash
     def load_fvars(self,save_dir=""):
         with open(save_dir + "saved_fvars_" + self.get_fr_str() + ".pickle", 'rb') as f:
             self._fvars = pickle.load(f)
-            # fmats._fvars, fmats.solved = pickle.load(f)
+            # self._fvars, self.solved = pickle.load(f)
 
     ########################
     ### Equations set up ###
@@ -544,75 +570,114 @@ class FMatrix():
             return eqns
         self.ideal_basis.extend([self.poly_to_tup(eq) for eq in eqns])
 
-    def feq(self, a, b, c, d, e, f, g, k, l, prune=False):
-        """
-        Return True if the Pentagon axiom ([Bond2007]_ (2.77)) is satisfied.
-        """
-        lhs = self.fmat(f,c,d,e,g,l)*self.fmat(a,b,l,e,f,k)
-        rhs = sum(self.fmat(a,b,c,g,f,h)*self.fmat(a,h,d,e,g,k)*self.fmat(b,c,d,k,h,l) for h in self.FR.basis())
-        if lhs != 0 or not prune: # it is believed that if lhs=0, the equation carries no new information
-            return lhs - rhs
-        else:
-            return 0
-
-    def req(self, a, b, c, d, e, g, side="left"):
-        """
-        Return A hexagon equation (Bond[2007]_ (2.78) or (2.79)).
-
-        INPUT:
-
-        - ``a,b,c,d,e,f`` -- basis elements of the FusionRing
-        - ``side`` -- (default left) which hexagon axiom to use
-
-        """
-        if side == "left":
-            lhs = self.FR.r_matrix(a,c,e)*self.fmat(a,c,b,d,e,g)*self.FR.r_matrix(b,c,g)
-            rhs = sum(self.fmat(c,a,b,d,e,f)*self.FR.r_matrix(f,c,d)*self.fmat(a,b,c,d,f,g) for f in self.FR.basis())
-        elif side == "right":
-            # r(a,b,x) is a root of unity, so its inverse is its complex conjugate
-            lhs = self.FR.r_matrix(c,a,e).conjugate()*self.fmat(a,c,b,d,e,g)*self.FR.r_matrix(c,b,g).conjugate()
-            rhs = sum(self.fmat(c,a,b,d,e,f)*self.FR.r_matrix(c,f,d).conjugate()*self.fmat(a,b,c,d,f,g) for f in self.FR.basis())
-        return lhs-rhs
-
-    def pentagon(self, verbose=False, output=True, factor=False, prune=False):
-        """
-        Return generators of the ideal of Pentagon equations.
-
-        INPUT:
-
-        - ``verbose`` -- (optional) set True for verbose. Default False
-        - ``output`` -- (optional) set True to output a set of equations. Default True
-        - ``factor`` -- (optional) set True for sreduce simplified equations.
-
-        In contrast with the hexagon equations, where setting ``factor`` True
-        is a big improvement, for the pentagon equations this option produces
-        little or no simplification. So the default is False.
-
-        EXAMPLES::
-
-            sage: p = FMatrix(FusionRing("A2",1),fusion_label="c")
-            sage: p.pentagon()[-3:]
-            equations: 16
-            [-fx5*fx6 + fx1, -fx4*fx6*fx7 + fx2, -fx5*fx7^2 + fx3*fx6]
-            sage: p.pentagon(factor=True)[-3:]
-            equations: 16
-            [fx5*fx6 - fx1, fx4*fx6*fx7 - fx2, fx5*fx7^2 - fx3*fx6]
-
-        """
+    def get_hexagons(self,worker_pool=None,output=True):
+        he = mr_eng.emap_no_comm(hex_iter_setter,hex_caller,trivial_reducer_caller,worker_pool)
         if output:
-            ret = []
-        for (a,b,c,d,e,f,g,k,l) in list(product(self.FR.basis(), repeat=9)):
-            pd = self.feq(a,b,c,d,e,f,g,k,l,prune=prune)
-            if pd != 0:
-                if factor:
-                    pd = self.sreduce(pd)
-                if output:
-                    ret.append(pd)
-                if verbose:
-                    print ("%s,%s,%s,%s,%s,%s,%s,%s,%s : %s"%(a,b,c,d,e,f,g,k,l,pd))
-        print ("equations: %s"%len(ret))
+            return [self.tup_to_fpoly(h) for h in he]
+        self.ideal_basis.extend(he)
+
+    #If a worker_pool is passed, then we use multiprocessing
+    def get_pentagons(self,worker_pool=None,output=True):
+        pe = mr_eng.emap_no_comm(pent_iter_setter,pent_caller,trivial_reducer_caller,worker_pool)
         if output:
-            return ret
+            return [self.tup_to_fpoly(p) for p in pe]
+        self.ideal_basis.extend(pe)
+
+    ############################
+    ### Equations processing ###
+    ############################
+
+    def tup_to_fpoly(eq_tup):
+        return tup_to_poly(eq_tup,parent=self._poly_ring)
+
+    #Solve for a linear term occurring in a two-term equation.
+    def solve_for_linear_terms(self,eqns=None):
+        if eqns is None:
+            eqns = self.ideal_basis
+
+        linear_terms_exist = False
+        for eq_tup in eqns:
+            if len(eq_tup) == 1:
+                m = eq_tup[0][0]
+                if self.is_univariate_in_unknown(m):
+                    var = m.nonzero_positions()[0]
+                    self._fvars[self._var_to_sextuple[self._poly_ring.gen(var)]] = tuple()
+                    self.solved.add(var)
+                    linear_terms_exist = True
+            if len(eq_tup) == 2:
+                monomials = [m for m, c in eq_tup]
+                max_var = monomials[0].emax(monomials[1]).nonzero_positions()[0]
+                for this, m in enumerate(monomials):
+                    other = (this+1)%2
+                    if self.is_uni_linear_in_unkwown(m) and m.nonzero_positions()[0] == max_var and monomials[other][m.nonzero_positions()[0]] == 0:
+                        var = m.nonzero_positions()[0]
+                        rhs_key = monomials[other]
+                        rhs_coeff = -eq_tup[other][1] / eq_tup[this][1]
+                        self._fvars[self._var_to_sextuple[self._poly_ring.gen(var)]] = ((rhs_key,rhs_coeff),)
+                        self.solved.add(var)
+                        linear_terms_exist = True
+        return linear_terms_exist
+
+    #Backward substitution step. Traverse variables in reverse lexicographical order.
+    def backward_subs(self):
+        for var in reversed(self._poly_ring.gens()):
+            sextuple = self._var_to_sextuple[var]
+            rhs = self._fvars[sextuple]
+            d = { var_idx : self._fvars[self._var_to_sextuple[self._poly_ring.gen(var_idx)]] for var_idx in variables(rhs) if var_idx in self.solved }
+            if d:
+                kp = compute_known_powers(get_variables_degrees([rhs]), d)
+                self._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp),self._ks).items())
+
+    def update_reduction_params(self,eqns=None,worker_pool=None,children_need_update=False):
+        if eqns is None:
+            eqns = self.ideal_basis
+        self._ks, self._var_degs = self.get_known_sq(eqns), get_variables_degrees(eqns)
+        self._nnz = self.get_known_nonz()
+        self._kp = compute_known_powers(self._var_degs,self.get_known_vals())
+        if worker_pool is not None and children_need_update:
+            #self._nnz and self._kp are computed in child processes to reduce IPC overhead
+            n_proc = worker_pool._processes
+            new_data = [(self._fvars,self.solved,self._ks,self._var_degs)]*n_proc
+            mr_eng.map_triv_reduce(update_child_fmats,new_data,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
+
+    #Perform triangular elimination of linear terms in two-term equations until no such terms exist
+    #For optimal usage of TRIANGULAR elimination, pass in a SORTED list of equations
+    #Returns a list of equations
+    def triangular_elim(self,required_vars=None,eqns=None,worker_pool=None,verbose=True):
+        ret = True
+        if eqns is None:
+            eqns = self.ideal_basis
+            ret = False
+        if required_vars is None:
+            required_vars = self._poly_ring.gens()
+        poly_sortkey = cmp_to_key(poly_tup_cmp)
+
+        #Testing new _fvars representation... Unzip polynomials
+        self._fvars = { sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items() }
+
+        while True:
+            linear_terms_exist = self.solve_for_linear_terms(eqns)
+            if not linear_terms_exist: break
+            self.backward_subs()
+
+            #Support early termination in case only some F-symbols are needed
+            req_vars_known = all(self._fvars[self._var_to_sextuple[var]] in self.FR.field() for var in required_vars)
+            if req_vars_known: return 1
+
+            #Compute new reduction params, send to child processes if any, and update eqns
+            # FIXME: replace 2500 below
+            self.update_reduction_params(eqns=eqns,worker_pool=worker_pool,children_need_update=len(eqns)>2500)
+            eqns = sorted(mr_eng.map_triv_reduce(update_reduce_caller,eqns,trivial_reducer_caller,worker_pool=worker_pool), key=poly_sortkey)
+            if verbose:
+                print("Elimination epoch completed... {} eqns remain in ideal basis".format(len(eqns)))
+
+        #Zip up _fvars before exiting
+        tzip = time()
+        self._fvars = { sextuple : self.tup_to_fpoly(rhs_tup) for sextuple, rhs_tup in self._fvars.items() }
+
+        if ret:
+            return eqns
+        self.ideal_basis = eqns
 
     #####################
     ### Graph methods ###
@@ -657,9 +722,243 @@ class FMatrix():
                         G.add_edge(x,y)
         return G
 
+    #Partition equations corresponding to edges in a disconnected graph
+    def partition_eqns(graph,eqns=None,verbose=True):
+        if eqns is None:
+            eqns = self.ideal_basis
+        partition = { tuple(c) : [] for c in graph.connected_components() }
+        for eq_tup in eqns:
+            partition[tuple(graph.connected_component_containing_vertex(variables(eq_tup)[0]))].append(eq_tup)
+        if verbose:
+            print("Partitioned {} equations into {} components of size:".format(len(eqns),len(graph.connected_components())))
+            print(graph.connected_components_sizes())
+        return partition
+
+    #Compute a Groebner basis for a set of equations partitioned according to their corresponding graph
+    def par_graph_gb(worker_pool=None,eqns=None,term_order="degrevlex",verbose=True):
+        if eqns is None: eqns = self.ideal_basis
+        graph = self.equations_graph(eqns)
+        small_comps = list()
+
+        #For informative print statement
+        nmax = largest_fmat_size()
+        vars_by_size = list()
+        for i in range(nmax+1):
+            vars_by_size.append(self.get_fmats_by_size(i))
+
+        for comp, comp_eqns in self.partition_eqns(graph,verbose=verbose).items():
+            #Check if component is too large to process
+            if len(comp) > 60:
+                fmat_size = 0
+                #For informative print statement
+                for i in range(1,nmax+1):
+                    if set(comp).issubset(vars_by_size[i]):
+                        fmat_size = i
+                print("Component of size {} with vars in F-mats of size {} is too large to find GB".format(len(comp),fmat_size))
+                self.temp_eqns.extend(comp_eqns)
+            else:
+                small_comps.append(comp_eqns)
+        gb_calculator = partial(compute_gb,term_order=term_order)
+        small_comp_gb = mr_eng.map_triv_reduce(gb_calculator,small_comps,trivial_reducer_caller,worker_pool=worker_pool,chunksize=1,mp_thresh=50)
+        ret = small_comp_gb + self.temp_eqns
+        self.temp_eqns = []
+        return ret
+
+    #Translate equations in each connected component to smaller polynomial rings
+    #so we can call built-in variety method.
+    def get_component_variety(var, eqns):
+        #Define smaller poly ring in component vars
+        R = PolynomialRing(self.FR.field(),len(var),'a',order='lex')
+
+        #Zip tuples into R and compute Groebner basis
+        idx_map = { old : new for new, old in enumerate(sorted(var)) }
+        nvars = len(var)
+        polys = [tup_to_poly(resize(eq_tup,idx_map,nvars),parent=R) for eq_tup in eqns]
+        var_in_R = Ideal(sorted(polys)).variety(ring=AA)
+
+        #Change back to fmats poly ring and append to temp_eqns
+        inv_idx_map = { v : k for k, v in idx_map.items() }
+        return [{ inv_idx_map[i] : value for i, (key, value) in enumerate(sorted(soln.items())) } for soln in var_in_R]
+
+    ###############
+    ### Mappers ###
+    ###############
+
+    #Map callers are called in the worker processes. Map callers are used to supply
+    #the worker's local copy of forked variables to the relevant function
+
+    #Set the required input iterable for consumption
+    def hex_iter_setter(proc):
+        mr_eng.input_iter = product(self.FR.basis(),repeat=6)
+
+    def pent_iter_setter(proc):
+        mr_eng.input_iter = product(self.FR.basis(),repeat=9)
+
+    #These callers should be cythonized
+    def hex_caller(mp_params):
+        mr_eng.map_caller(mp_params,req_cy,(fmats,))
+
+    def pent_caller(mp_params):
+        mr_eng.map_caller(mp_params,feq_cy,(fmats,))
+
+    #Substitute known values, known squares, and reduce a given equation
+    def update_reduce_caller(eq_tup):
+        update_reduce(eq_tup,fmats,mr_eng)
+
+    #Compute Groebner basis for given equations iterable
+    def compute_gb(eqns,term_order="degrevlex"):
+        #Define smaller poly ring in component vars
+        sorted_vars = sorted(set(fx for eq_tup in eqns for fx in variables(eq_tup)))
+        R = PolynomialRing(self.FR.field(),len(sorted_vars),'a',order=term_order)
+
+        #Zip tuples into R and compute Groebner basis
+        idx_map = { old : new for new, old in enumerate(sorted_vars) }
+        nvars = len(sorted_vars)
+        polys = [tup_to_poly(resize(eq_tup,idx_map,nvars),parent=R) for eq_tup in eqns]
+        gb = Ideal(sorted(polys)).groebner_basis(algorithm="libsingular:slimgb")
+
+        #Change back to fmats poly ring and append to temp_eqns
+        inv_idx_map = { v : k for k, v in idx_map.items() }
+        nvars = self._poly_ring.ngens()
+        for p in gb:
+            mr_eng.worker_results.append(resize(poly_to_tup(p),inv_idx_map,nvars))
+
+    #One-to-all communication used to update fvars after triangular elim step.
+    def update_child_fmats(data_tup):
+        #fmats is assumed to be global before forking used to create the Pool object,
+        #so each child has a global fmats variable. So it's enough to update that object
+        self._fvars, self.solved, self._ks, self._var_degs = data_tup
+        self._nnz = self.get_known_nonz()
+        self._kp = compute_known_powers(self._var_degs,self.get_known_vals())
+
+    ################
+    ### Reducers ###
+    ################
+
+    #Trivial reducer: simply collects objects with the same key in the worker
+    def trivial_reducer_caller(proc):
+        return mr_eng.reduce_single_proc(0)
+
     #######################
     ### Solution method ###
     #######################
+
+    #Get a numeric solution for given equations by using the partitioning the equations
+    #graph and selecting an arbitrary point on the discrete degrees-of-freedom variety,
+    #which is computed as a Cartesian product
+    def get_numeric_solution(eqns=None,verbose=True):
+        if eqns is None:
+            eqns = self.ideal_basis
+        eqns_partition = self.partition_eqns(self.equations_graph(eqns),verbose=verbose)
+
+        x = self.FR.field()['x'].gen()
+        numeric_fvars = dict()
+        non_cyclotomic_roots = list()
+        must_change_base_field = False
+        phi = self.FR.field().hom([self.field.gen()],self.FR.field())
+        for comp, part in eqns_partition.items():
+            #If component have only one equation in a single variable, get a root
+            if len(comp) == 1 and len(part) == 1:
+                #Attempt to find cyclotomic root
+                univ_poly = tup_to_univ_poly(part[0],x)
+                real_roots = univ_poly.roots(ring=AA,multiplicities=False)
+                assert real_roots, "No real solution exists... {} has no real roots".format(univ_poly)
+                roots = univ_poly.roots(multiplicities=False)
+                if roots:
+                    numeric_fvars[comp[0]] = roots[0]
+                else:
+                    non_cyclotomic_roots.append((comp[0],real_roots[0]))
+                    must_change_base_field = True
+            #Otherwise, compute the component variety and select a point to obtain a numerical solution
+            else:
+                sols = self.get_component_variety(comp,part)
+                assert len(sols) > 1, "No real solution exists... component with variables {} has no real points".format(comp)
+                for fx, rhs in sols[0].items():
+                    non_cyclotomic_roots.append((fx,rhs))
+                must_change_base_field = True
+
+        if must_change_base_field:
+            #If needed, find a NumberField containing all the roots
+            roots = [self.FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
+            self.field, nf_elts, self._qqbar_embedding = number_field_elements_from_algebraics(roots,minimal=True)
+            #Embed cyclotomic field into newly constructed NumberField
+            cyc_gen_as_nf_elt = nf_elts.pop(0)
+            phi = self.FR.field().hom([cyc_gen_as_nf_elt], self.field)
+            numeric_fvars = { k : phi(v) for k, v in numeric_fvars.items() }
+            for i, elt in enumerate(nf_elts):
+                numeric_fvars[non_cyclotomic_roots[i][0]] = elt
+
+            #Do some appropriate conversions
+            new_poly_ring = self._poly_ring.change_ring(self.field)
+            nvars = self._poly_ring.ngens()
+            self._var_to_idx = { new_poly_ring.gen(i) : i for i in range(nvars) }
+            self._var_to_sextuple = { new_poly_ring.gen(i) : self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(nvars) }
+            self._poly_ring = new_poly_ring
+        self._fvars = { sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items() }
+
+        #Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
+        self.solved.update(numeric_fvars)
+        nvars = self._poly_ring.ngens()
+        for fx, rhs in numeric_fvars.items():
+            self._fvars[self._var_to_sextuple[self._poly_ring.gen(fx)]] = ((ETuple({},nvars),rhs),)
+        assert len(self.solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in set(range(nvars)).difference(self.solved)])
+        self.clear_equations()
+        backward_subs()
+        self._fvars = { sextuple : constant_coeff(rhs) for sextuple, rhs in self._fvars.items() }
+
+    #Solver
+    #If provided, optional param save_dir (for saving computed _fvars) should have a trailing forward slash
+    #Supports "warm" start. Use load_fvars to re-start computation from checkpoint
+    def find_real_unitary_solution(use_mp=True,save_dir="",verbose=True):
+        #Set multiprocessing parameters. Context can only be set once, so we try to set it
+        try:
+            set_start_method('fork')
+        except RuntimeError:
+            pass
+        pool = Pool(processes=max(cpu_count()-1,1)) if use_mp else None
+        print("Computing F-symbols for {} with {} variables...".format(FR, len(self._fvars)))
+
+        #Set up hexagon equations and orthogonality constraints
+        self.get_orthogonality_constraints(output=False)
+        self.get_hexagons(worker_pool=pool,output=False)
+        self.ideal_basis = sorted(self.ideal_basis, key=poly_sortkey)
+        if verbose:
+            print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
+
+        #Set up equations graph. Find GB for each component in parallel. Eliminate variables
+        self.ideal_basis = sorted(self.par_graph_gb(worker_pool=pool), key=poly_sortkey)
+        print("GB is of length",len(self.ideal_basis))
+        self.triangular_elim(worker_pool=pool,verbose=verbose,mp_thresh=mp_thresh)
+
+        #Report progress and checkpoint!
+        if verbose:
+            print("Hex elim step solved for {} / {} variables".format(len(self.solved), len(self._poly_ring.gens())))
+        filename = save_dir + "saved_fvars_" + self.get_fr_str() + ".pickle"
+        self.save_fvars(filename)
+
+        #Update reduction parameters, also in children if any
+        self.update_reduction_params(worker_pool=pool,children_need_update=True)
+
+        #Set up pentagon equations in parallel, simplify, and eliminate variables
+        self.get_pentagons(worker_pool=pool,output=False)
+        if verbose:
+            print("Set up {} reduced pentagons...".format(len(self.ideal_basis)))
+        self.ideal_basis = sorted(self.ideal_basis, key=poly_sortkey)
+        self.triangular_elim(worker_pool=pool,verbose=verbose,mp_thresh=mp_thresh)
+
+        #Report progress and checkpoint!
+        if verbose:
+            print("Pent elim step solved for {} / {} variables".format(len(self.solved), len(self._poly_ring.gens())))
+        self.save_fvars(filename)
+
+        #Close worker pool to free resources
+        if pool is not None: pool.close()
+
+        #Set up new equations graph and compute variety for each component
+        self.ideal_basis = sorted(self.par_graph_gb(term_order="lex"), key=poly_sortkey)
+        self.triangular_elim(verbose=verbose)
+        self.get_numeric_solution(verbose=verbose)
+        self.save_fvars(filename)
 
     def get_solution(self, equations=None, factor=True, verbose=True, prune=True, algorithm='', output=False):
         """
@@ -743,6 +1042,30 @@ class FMatrix():
             rhs = sum(self.fmat(c,a,b,d,e,f)*self.field(self.FR.r_matrix(f,c,d))*self.fmat(a,b,c,d,f,g) for f in self.FR.basis())
             hex.append(lhs-rhs)
         return list(set(hex))
+
+    #Some abstract nonsense to ensure the pentagon verifier is called with the fmats
+    #object living in each child process
+    def pent_verify_caller(mp_params):
+        pent_verify(mp_params, fmats)
+
+    def par_pent_verify(use_mp=True,prune=False):
+        print("Testing F-symbols for {}".format(self.FR))
+        treal = time()
+        self._fvars = { sextuple : float(RDF(rhs)) for sextuple, rhs in self.get_fmats_in_alg_field().items() }
+        print("Converted to floats in {}".format(time()-treal))
+        if use_mp:
+            pool = Pool(processes=cpu_count())
+        else:
+            pool = None
+        n_proc = pool._processes if pool is not None else 1
+        params = [(child_id,n_proc) for child_id in range(n_proc)]
+        pe = mr_eng.map_triv_reduce(pent_verify_caller,params,trivial_reducer_caller,worker_pool=pool,chunksize=1,mp_thresh=0)
+        if np.all(np.isclose(np.array(pe),0)):
+            print("Success!!! Found valid F-symbols for {}".format(self.FR))
+        else:
+            print("Ooops... something went wrong... These pentagons remain:")
+            print(pe)
+            return pe
 
     #Verify that all F-matrices are real and unitary (orthogonal)
     def fmats_are_orthogonal(self):

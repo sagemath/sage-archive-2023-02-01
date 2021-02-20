@@ -250,7 +250,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             raise ValueError("evaluation is not {}".format(self._e))
         return w
 
-    def __contains__(self, x):
+    def __contains__(self, w):
         """
         EXAMPLES::
 
@@ -261,9 +261,9 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             sage: all(lw in LyndonWords([2,1,3,1]) for lw in LyndonWords([2,1,3,1]))
             True
         """
-        if isinstance(x, list):
-            x = self._words(x)
-        return x in self._words and x.is_lyndon() and x.evaluation() == self._e
+        if isinstance(w, list):
+            w = self._words(w)
+        return all(x in self._words.alphabet() for x in w) and w.evaluation() == self._e and w.is_lyndon()
 
     def cardinality(self):
         """
@@ -408,13 +408,13 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             sage: L([1,2,2,3,3])
             Traceback (most recent call last):
             ...
-            ValueError: length is not n=3
+            ValueError: length is not k=3
         """
         w = self._words(*args, **kwds)
         if kwds.get('check', True) and not w.is_lyndon():
             raise ValueError("not a Lyndon word")
-        if w.length() != self._n:
-            raise ValueError("length is not n={}".format(self._n))
+        if w.length() != self._k:
+            raise ValueError("length is not k={}".format(self._k))
         return w
 
     def __contains__(self, w):
@@ -427,7 +427,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         """
         if isinstance(w, list):
             w = self._words(w)
-        return w in self._words and w.length() == self._k and len(set(w)) <= self._n
+        return w.length() == self._k and all(x in self._words.alphabet() for x in w) and w.is_lyndon()
 
     def cardinality(self):
         """
@@ -546,8 +546,6 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
             sage: S = StandardBracketedLyndonWords(2, 3)
             sage: [[1, 2], 2] in S
             True
-            sage: [['a', 'b'], 'b'] in S
-            True
             sage: [1, [2, 2]] in S
             False
             sage: [1, [2, 3]] in S
@@ -559,7 +557,7 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
             lw = standard_unbracketing(sblw)
         except ValueError:
             return False
-        return len(lw) == self._k and len(lw.parent().alphabet()) <= self._n
+        return len(lw) == self._k and all(a in self._lyndon._words.alphabet() for a in lw.parent().alphabet())
 
     def __iter__(self):
         """

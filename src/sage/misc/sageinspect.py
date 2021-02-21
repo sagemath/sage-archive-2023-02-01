@@ -1495,7 +1495,7 @@ def sage_getargspec(obj):
     The following produced a syntax error before the patch at :trac:`11913`,
     see also :trac:`26906`::
 
-        sage: sage.misc.sageinspect.sage_getargspec(r.lm)
+        sage: sage.misc.sageinspect.sage_getargspec(r.lm)                         # optional - rpy2
         ArgSpec(args=['self'], varargs='args', keywords='kwds', defaults=None)
 
     The following was fixed in :trac:`16309`::

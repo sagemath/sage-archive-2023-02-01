@@ -798,9 +798,9 @@ class InterfaceElement(Element):
             "abc"
             sage: loads(dumps(pari([1,2,3])))
             [1, 2, 3]
-            sage: loads(dumps(r('"abc"')))
+            sage: loads(dumps(r('"abc"')))                                        # optional - rpy2
             [1] "abc"
-            sage: loads(dumps(r([1,2,3])))
+            sage: loads(dumps(r([1,2,3])))                                        # optional - rpy2
             [1] 1 2 3
             sage: loads(dumps(maxima([1,2,3])))
             [1,2,3]
@@ -851,10 +851,11 @@ class InterfaceElement(Element):
         by the doctests because the original identifier was reused. This test makes sure
         that does not happen again:
 
-            sage: a = r("'abc'")
-            sage: b = dumps(a)
-            sage: r.set(a.name(), 0) # make identifier reuse doesn't accidentally lead to success
-            sage: loads(b)
+            sage: a = r("'abc'")                                                  # optional - rpy2
+            sage: b = dumps(a)                                                    # optional - rpy2
+            sage: r.set(a.name(), 0) # make sure that identifier reuse            # optional - rpy2
+            ....:                    # does not accidentally lead to success
+            sage: loads(b)                                                        # optional - rpy2
             [1] "abc"
 
         """
@@ -1376,13 +1377,13 @@ class InterfaceElement(Element):
 
         EXAMPLES::
 
-            sage: x = r([1,2,3]); x
+            sage: x = r([1,2,3]); x                                               # optional - rpy2
             [1] 1 2 3
-            sage: x.name()
+            sage: x.name()                                                        # optional - rpy2
             'sage...'
-            sage: x = r([1,2,3]).name('x'); x
+            sage: x = r([1,2,3]).name('x'); x                                     # optional - rpy2
             [1] 1 2 3
-            sage: x.name()
+            sage: x.name()                                                        # optional - rpy2
             'x'
 
         ::

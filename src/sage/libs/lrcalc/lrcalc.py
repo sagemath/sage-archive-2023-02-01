@@ -192,10 +192,11 @@ from sage.combinat.permutation import Permutation
 from sage.combinat.skew_tableau import SkewTableaux
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.words.word import Word
+from sage.rings.integer import Integer
 import lrcalc
 
 def _lrcalc_dict_to_sage(result):
-    return dict({_Partitions(i):k for i,k in result.items()})
+    return dict({_Partitions(i):Integer(k) for i,k in result.items()})
 
 def lrcoef_unsafe(outer, inner1, inner2):
     r"""
@@ -227,7 +228,7 @@ def lrcoef_unsafe(outer, inner1, inner2):
         sage: lrcoef_unsafe([2,1,1,1,1], [2,1], [2,1])
         0
     """
-    return lrcalc.lrcoef(outer, inner1, inner2)
+    return Integer(lrcalc.lrcoef(outer, inner1, inner2))
 
 
 def lrcoef(outer, inner1, inner2):
@@ -404,7 +405,7 @@ def coprod(part, all=0):
         [(([1, 1], [1]), 1), (([2], [1]), 1), (([2, 1], []), 1)]
     """
     result = lrcalc.coprod(part, all)
-    return dict({tuple(_Partitions(j) for j in i):k for i,k in result.items()})
+    return dict({tuple(_Partitions(j) for j in i):Integer(k) for i,k in result.items()})
 
 
 def mult_schubert(w1, w2, rank=0):
@@ -437,7 +438,7 @@ def mult_schubert(w1, w2, rank=0):
          ([7, 3, 4, 1, 2, 5, 6], 1), ([7, 4, 2, 1, 3, 5, 6], 1)]
     """
     result = lrcalc.schubmult(w1, w2, rank)
-    return dict({Permutation(list(i)):k for i,k in result.items()})
+    return dict({Permutation(list(i)):Integer(k) for i,k in result.items()})
 
 
 def lrskew(outer, inner, weight=None, maxrows=-1):

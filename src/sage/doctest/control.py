@@ -697,6 +697,7 @@ class DocTestController(SageObject):
             # don't make sense to run outside a build environment
             if have_git:
                 self.files.append(opj(SAGE_SRC, 'sage_setup'))
+                self.files.append(opj(SAGE_SRC, 'sage_doctest'))
             self.files.append(SAGE_DOC_SRC)
 
         if self.options.all or (self.options.new and not have_git):

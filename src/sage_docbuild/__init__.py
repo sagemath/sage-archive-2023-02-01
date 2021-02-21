@@ -1466,6 +1466,24 @@ def help_wrapper(option, opt_str, value, parser):
         print(help_documents(), end="")
     if option.dest == 'formats':
         print(help_formats(), end="")
+    if option.dest == 'all_documents':
+        if value == 'en/reference' or value == 'reference':
+            b = ReferenceBuilder('reference')
+            refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
+            s = b.get_all_documents(refdir)
+            # Put the bibliography first, because it needs to be built first:
+            s.remove('reference/references')
+            s.insert(0, 'reference/references')
+        elif value == 'all':
+            s = get_documents()
+            # Put the reference manual first, because it needs to be built first:
+            s.remove('reference')
+            s.insert(0, 'reference')
+        else:
+            raise ValueError("argument for --all-documents must be either 'all'"
+                             " or 'reference'")
+        for d in s:
+            print(d)
     setattr(parser.values, 'printed_list', 1)
 
 
@@ -1581,6 +1599,12 @@ def setup_parser():
     advanced.add_option("-k", "--keep-going", dest="keep_going",
                         default=False, action="store_true",
                         help="Do not abort on errors but continue as much as possible after an error")
+    advanced.add_option("--all-documents", dest="all_documents",
+                        type="str", metavar="ARG",
+                        action="callback", callback=help_wrapper,
+                        help="if ARG is 'reference', list all subdocuments"
+                        " of en/reference. If ARG is 'all', list all main"
+                        " documents")
     parser.add_option_group(advanced)
 
     return parser

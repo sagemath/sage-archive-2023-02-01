@@ -297,7 +297,7 @@ base: $(inst_patch) $(inst_pkgconf)
 # Building the documentation has many dependencies, because all
 # documented modules are imported and because we use matplotlib to
 # produce plots.
-DOC_DEPENDENCIES = sagelib sage_setup_docbuild $(inst_sphinx) \
+DOC_DEPENDENCIES = sagelib sage_docbuild $(inst_sphinx) \
 	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) $(inst_sympy) \
 	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \

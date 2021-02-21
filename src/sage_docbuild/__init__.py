@@ -90,16 +90,16 @@ def builder_helper(type):
 
     Check that :trac:`25161` has been resolved::
 
-        sage: from sage_setup.docbuild import DocBuilder, setup_parser
+        sage: from sage_docbuild import DocBuilder, setup_parser
         sage: DocBuilder._options = setup_parser().parse_args([])[0] # builder_helper needs _options to be set
 
-        sage: import sage_setup.docbuild.sphinxbuild
+        sage: import sage_docbuild.sphinxbuild
         sage: def raiseBaseException():
         ....:     raise BaseException("abort pool operation")
-        sage: original_runsphinx, sage_setup.docbuild.sphinxbuild.runsphinx = sage_setup.docbuild.sphinxbuild.runsphinx, raiseBaseException
+        sage: original_runsphinx, sage_docbuild.sphinxbuild.runsphinx = sage_docbuild.sphinxbuild.runsphinx, raiseBaseException
 
-        sage: from sage_setup.docbuild import builder_helper, build_ref_doc
-        sage: from sage_setup.docbuild import _build_many as build_many
+        sage: from sage_docbuild import builder_helper, build_ref_doc
+        sage: from sage_docbuild import _build_many as build_many
         sage: helper = builder_helper("html")
         sage: try:
         ....:     build_many(build_ref_doc, [("docname", "en", "html", {})])
@@ -180,7 +180,7 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._output_dir('html')
             '.../html/en/tutorial'
@@ -197,7 +197,7 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._doctrees_dir()
             '.../doctrees/en/tutorial'
@@ -212,7 +212,7 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b._output_formats()
             ['changes', 'html', 'htmlhelp', 'inventory', 'json', 'latex', 'linkcheck', 'pickle', 'web']
@@ -236,7 +236,7 @@ class DocBuilder(object):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import DocBuilder
+            sage: from sage_docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
             sage: b.pdf() #not tested
         """
@@ -288,7 +288,7 @@ from .utils import build_many as _build_many
 
 def build_many(target, args):
     """
-    Thin wrapper around `sage_setup.docbuild.utils.build_many` which uses the
+    Thin wrapper around `sage_docbuild.utils.build_many` which uses the
     docbuild settings ``NUM_THREADS`` and ``ABORT_ON_ERROR``.
     """
     try:
@@ -361,7 +361,7 @@ class AllBuilder(object):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import AllBuilder
+            sage: from sage_docbuild import AllBuilder
             sage: documents = AllBuilder().get_all_documents()
             sage: 'en/tutorial' in documents
             True
@@ -517,7 +517,7 @@ class ReferenceBuilder(AllBuilder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: from sage_docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: b._output_dir('html')
             '.../html/en/reference'
@@ -680,7 +680,7 @@ for a webpage listing all of the documents.''' % (output_dir,
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceBuilder
+            sage: from sage_docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
             sage: sorted(b.get_all_documents(refdir))
@@ -1038,7 +1038,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         EXAMPLES::
 
-            sage: from sage_setup.docbuild import ReferenceSubBuilder
+            sage: from sage_docbuild import ReferenceSubBuilder
             sage: ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
             '.../doc/en/reference/sage/combinat/partition.rst'
         """
@@ -1584,7 +1584,7 @@ def setup_logger(verbose=1, color=True):
 
     EXAMPLES::
 
-        sage: from sage_setup.docbuild import setup_logger, logger
+        sage: from sage_docbuild import setup_logger, logger
         sage: setup_logger()
         sage: type(logger)
         <class 'logging.Logger'>

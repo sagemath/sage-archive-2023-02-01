@@ -42,7 +42,7 @@ def build_many(target, args, processes=None):
 
     EXAMPLES::
 
-        sage: from sage_setup.docbuild.utils import build_many
+        sage: from sage_docbuild.utils import build_many
         sage: def target(N):
         ....:     import time
         ....:     time.sleep(float(0.1))

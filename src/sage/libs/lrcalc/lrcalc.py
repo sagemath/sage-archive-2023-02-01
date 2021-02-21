@@ -343,7 +343,7 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
 
     # Otherwise do quantum multiplication
     mf = lrcalc.mult_fusion(part1, part2, maxrows, level)
-    q_degrees = [sum(int((v[i]+len(v)-i-1)/(len(v)+2)) for i in range(len(v))) for v in mf.keys()]
+    q_degrees = [sum(int((v[i]+len(v)-i-1)/(len(v)+level)) for i in range(len(v))) for v in mf.keys()]
     mq = list(lrcalc.mult_quantum(part1, part2, maxrows, level).items())
     return dict({_Partitions(mq[i][0]):mq[i][1] * quantum**q_degrees[i] for i in range(len(mq))})
 

@@ -7,3 +7,6 @@ cp "$SAGE_ROOT"/config/config.sub .
 sdh_configure
 sdh_make
 sdh_make_install
+
+cd python
+sdh_pip_install .

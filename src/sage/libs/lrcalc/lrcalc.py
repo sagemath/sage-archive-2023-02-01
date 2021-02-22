@@ -344,7 +344,11 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
 
     # Otherwise do quantum multiplication
     result = lrcalc.mult_quantum(part1, part2, maxrows, level, degrees=True)
-    return dict({_Partitions(i[0]) : k * quantum**(i[1]) for i,k in result.items()})
+    P = quantum.parent()
+    output = {}
+    for i,k in result.items():
+        output[_Partitions(i[0])] = output.get(_Partitions(i[0]), P.zero()) + k*quantum**(i[1])
+    return output
 
 
 def skew(outer, inner, maxrows=-1):

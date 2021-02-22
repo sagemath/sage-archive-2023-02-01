@@ -354,6 +354,6 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False,
         gb_giac = F.gbasis(list(var_names), giac_order)
 
     else:
-        gb_giac = F.eliminate(list(elim_variables))
+        gb_giac = F.eliminate(list(elim_variables), 'gbasis')
 
     return PolynomialSequence(gb_giac, P, immutable=True)

@@ -343,10 +343,8 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
         return _lrcalc_dict_to_sage(lrcalc.mult(part1, part2, maxrows))
 
     # Otherwise do quantum multiplication
-    mf = lrcalc.mult_fusion(part1, part2, maxrows, level)
-    q_degrees = [sum(int((v[i]+len(v)-i-1)/(len(v)+level)) for i in range(len(v))) for v in mf.keys()]
-    mq = list(lrcalc.mult_quantum(part1, part2, maxrows, level).items())
-    return dict({_Partitions(mq[i][0]):mq[i][1] * quantum**q_degrees[i] for i in range(len(mq))})
+    result = lrcalc.mult_quantum(part1, part2, maxrows, level, degrees=True)
+    return dict({_Partitions(i[0]) : k * quantum**(i[1]) for i,k in result.items()})
 
 
 def skew(outer, inner, maxrows=-1):

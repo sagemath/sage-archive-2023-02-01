@@ -89,7 +89,7 @@ config()
 
 build_singular()
 {
-    sdh_make
+    sdh_make -j1
     sdh_make_install
 }
 

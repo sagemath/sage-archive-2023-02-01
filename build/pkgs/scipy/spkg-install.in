@@ -10,6 +10,10 @@ if [ "$UNAME" = "Darwin" ]; then
     unset LAPACK
     export LDFLAGS="-bundle -undefined dynamic_lookup $LDFLAGS"
     export CPPFLAGS="-D__ACCELERATE__ $CPPFLAGS"
+    # For building on OS X 11: see https://trac.sagemath.org/ticket/31183.
+    if [ $MACOSX_VERSION -ge 20 ]; then
+        export MACOSX_DEPLOYMENT_TARGET=11.0
+    fi
 else
     export {ATLAS,PTATLAS,OPENBLAS,MKL,MKLROOT}=None
     export LDFLAGS="-shared $LDFLAGS"
@@ -18,6 +22,12 @@ fi
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
 export FCFLAGS="$FCFLAGS -fPIC"
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    # Trac #30643
+    export CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+fi
+
 if [ "$UNAME" = "CYGWIN" -a "$SAGE_DEBUG" = "yes" ]; then
     # Needed for just one or two modules when compiling in debug mode
     # Otherwise the debug symbols create too many sections in the binary

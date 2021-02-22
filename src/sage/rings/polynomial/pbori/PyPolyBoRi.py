@@ -65,7 +65,6 @@ AUTHOR:
         [a, b, c, d, e, y2]
 """
 
-from sage import all
 from sage.rings.polynomial.pbori.pbori import *
 
 import weakref
@@ -74,21 +73,23 @@ import weakref
 OrderCode = type('OrderCode', (object,), order_dict)
 
 
-def Ring(n, order='lp', names=None, blocks=[]):
-
+def Ring(n, order='lp', names=None, blocks=None):
+    if blocks is None:
+        blocks = []
     pbnames = names
     if pbnames is None:
         pbnames = ['x(' + str(idx) + ')' for idx in range(n)]
     order = TermOrder_from_pb_order(n, order, blocks)
-    R = BooleanPolynomialRing(n, names=pbnames, order=order)
-    return R
+    return BooleanPolynomialRing(n, names=pbnames, order=order)
+
 
 BoolePolynomialVector = BooleanPolynomialVector
 
 
-#todo: PolyBoRi's original interface uses its WeakRingPtr here
+# todo: PolyBoRi's original interface uses its WeakRingPtr here
 def WeakRingRef(ring):
     return weakref.weakref(ring)
+
 
 Monomial = MonomialFactory()
 Polynomial = PolynomialFactory()
@@ -109,6 +110,7 @@ def add_up_polynomials(polys, init):
         polys = vec
 
     return _add_up_polynomials(polys, init)
+
 
 _gauss_on_polys = gauss_on_polys
 

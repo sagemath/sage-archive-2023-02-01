@@ -88,7 +88,6 @@ In particular,
            return SomeValue(1)
 
 
-
 .. _chapter-directory-structure:
 
 Files and Directory Structure
@@ -114,7 +113,6 @@ of the directory containing the Sage sources:
             ...
             sage/            # Sage library
                 ext_data/    # extra Sage resources (formerly src/ext)
-            mac-app/         # would no longer have to awkwardly be in extcode
             bin/             # the scripts in local/bin that are tracked
         upstream/            # tarballs of upstream sources
         local/               # installed binaries
@@ -1233,8 +1231,8 @@ Global Options
 Global options for classes can be defined in Sage using
 :class:`~sage.structure.global_options.GlobalOptions`.
 
-Miscellanous minor things
-=========================
+Miscellaneous minor things
+==========================
 
 Some decisions are arbitrary, but common conventions make life easier.
 
@@ -1262,7 +1260,7 @@ Some decisions are arbitrary, but common conventions make life easier.
     result. With ``certificate=True`` the return value should be a
     pair `(r, c)` where `r` is the result that would be given with
     ``certificate=False`` and `c` is the certificate or ``None`` if
-    there is no meaningfull certificate.
+    there is no meaningful certificate.
 
   * ``proof``, a Boolean with ``True`` as default: if ``True``,
     require a mathematically proven computation. If ``False``, a

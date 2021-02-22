@@ -2585,7 +2585,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             return c
         elif d == -1 and n.denominator() == 2:
             # Exact rational times a power of I
-            from sage.symbolic.all import I
+            from sage.rings.imaginary_unit import I
             return c * I ** (n.numerator() % 4)
 
         # Result is c * d^n but we cannot simplify d^n further:
@@ -3167,7 +3167,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 from sage.rings.real_mpfr import RealField
                 return RealField(prec)(self).log(m)
             else:
-                from sage.rings.complex_field import ComplexField
+                from sage.rings.complex_mpfr import ComplexField
                 return ComplexField(prec)(self).log(m)
 
         from sage.functions.log import function_log

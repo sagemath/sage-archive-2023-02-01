@@ -20,7 +20,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 import builtins
 
 from sage.rings.complex_double import CDF
@@ -747,6 +746,14 @@ def integral(x, *args, **kwds):
         sage: f = sympy.Function('f')
         sage: SR(sympy.Integral(f(x,y,z), x, y, z))
         integrate(integrate(integrate(f(x, y, z), x), y), z)
+
+    Ensure that the following integral containing a signum term from
+    :trac:`11590` can be integrated::
+
+        sage: x = SR.symbol('x', domain='real')
+        sage: integrate(x * sgn(x^2 - 1/4), x, -1, 0)
+        -1/4
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
@@ -1136,7 +1143,7 @@ def norm(x):
 
         - :meth:`sage.rings.complex_double.ComplexDoubleElement.norm`
 
-        - :meth:`sage.rings.complex_number.ComplexNumber.norm`
+        - :meth:`sage.rings.complex_mpfr.ComplexNumber.norm`
 
         - :meth:`sage.symbolic.expression.Expression.norm`
 
@@ -1372,7 +1379,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         1.41421356237309*I
 
         sage: type(numerical_approx(CC(1/2)))
-        <type 'sage.rings.complex_number.ComplexNumber'>
+        <type 'sage.rings.complex_mpfr.ComplexNumber'>
 
     The following tests :trac:`10761`, in which ``n()`` would break when
     called on complex-valued algebraic numbers.  ::

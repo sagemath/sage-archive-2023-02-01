@@ -890,7 +890,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         self._parent = parent
         self._degree = parent.degree()
-        self._is_mutable = 1
+        self._is_immutable = 0
 
     def _giac_init_(self):
         """
@@ -1012,12 +1012,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         # Get a reference to Magma version of parent.
         R = magma(self.parent())
         # Get list of coefficients.
-        v = ','.join([a._magma_init_(magma) for a in self.list()])
+        v = ','.join(a._magma_init_(magma) for a in self.list())
         return '%s![%s]' % (R.name(), v)
 
     def numpy(self, dtype=object):
         """
-        Converts self to a numpy array.
+        Convert self to a numpy array.
 
         INPUT:
 
@@ -1094,7 +1094,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.set_immutable()
             sage: v.__hash__()   # random output
         """
-        if self._is_mutable:
+        if not self._is_immutable:
             raise TypeError("mutable vectors are unhashable")
         return hash(tuple(self))
 
@@ -1792,7 +1792,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v
             (5, 2/3, 8)
         """
-        if not self._is_mutable:
+        if self._is_immutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
         cdef Py_ssize_t d = self._degree
         cdef Py_ssize_t start, stop, step, slicelength
@@ -3527,8 +3527,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def _mathematica_init_(self):
         """
-        Returns string representation of this vector as a Mathematica
-        list.
+        Return string representation of this vector as a Mathematica list.
 
         EXAMPLES::
 
@@ -3541,7 +3540,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: a._mathematica_init_()
             '{1, x, (x)^(2), Sin[x], Pi}'
         """
-        return '{' + ', '.join([x._mathematica_init_() for x in self.list()]) + '}'
+        return '{' + ', '.join(x._mathematica_init_() for x in self.list()) + '}'
 
     def nonzero_positions(self):
         """
@@ -3615,7 +3614,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         from sage.misc.latex import latex
         vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
-        s += ',\,'.join([latex(a) for a in self.list()])
+        s += ',\,'.join(latex(a) for a in self.list())
         return s + '\\right' + vector_delimiters[1]
 
     def dense_vector(self):
@@ -3992,7 +3991,7 @@ def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable)
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_mutable = is_mutable
+    v._is_immutable = not is_mutable
     return v
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
@@ -4036,7 +4035,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         cdef type t = type(self)
         cdef FreeModuleElement_generic_dense x = t.__new__(t)
-        x._is_mutable = 1
+        x._is_immutable = 0
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -4258,7 +4257,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v.__reduce__()
             (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
         """
-        return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
+        return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries,
+                                                          self._degree, not self._is_immutable))
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -4432,7 +4432,7 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_mutable = is_mutable
+    v._is_immutable = not is_mutable
     return v
 
 
@@ -4479,7 +4479,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         cdef type t = type(self)
         cdef FreeModuleElement_generic_sparse x = t.__new__(t)
-        x._is_mutable = 1
+        x._is_immutable = 0
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -4817,7 +4817,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.__reduce__()
             (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
         """
-        return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
+        return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries,
+                                                           self._degree, not self._is_immutable))
 
     @cython.cdivision(True)
     def __getitem__(self, i):

@@ -116,32 +116,42 @@ maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
     sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2); r  # optional -- internet
-    0: St000476oMp00099oMp00127 (quality [100, 100])
-    1: St001497oMp00119oMp00127 with offset 1 (quality [100, 100])
-    2: St000147oMp00027oMp00127 (quality [96, 100])
-    3: St000054oMp00064oMp00062 with offset 1 (quality [88, 100])
-    4: St000740oMp00062 with offset 1 (quality [87, 100])
+    0: St000740oMp00066 with offset 1 (quality [100, 100])
+    ...
+    7: St000051oMp00061oMp00069 (quality [87, 86])
     ...
 
-Note that some of the matches are up to a global offset, which is
-then given.  For example, we have::
+Note that some of the matches are up to a global offset.  For
+example, we have::
 
-    sage: r[4].info()                                                           # optional -- internet
+    sage: r[0].info()                                                           # optional -- internet
     after adding 1 to every value
     and applying
-        Mp00062: Lehmer-code to major-code bijection: Permutations -> Permutations
+        Mp00066: inverse: Permutations -> Permutations
     to the objects (see `.compound_map()` for details)
     <BLANKLINE>
     your input matches
         St000740: The last entry of a permutation.
     <BLANKLINE>
-    among the values you sent, 87 percent are actually in the database,
+    among the values you sent, 100 percent are actually in the database,
     among the distinct values you sent, 100 percent are actually in the database
 
 Let us pick another particular result::
 
     sage: s = next(s for s in r if s.statistic().id() == 51); s                 # optional -- internet
     St000051oMp00061oMp00069 (quality [87, 86])
+
+    sage: s.info()                                                              # optional -- internet
+    after applying
+        Mp00069: complement: Permutations -> Permutations
+        Mp00061: to increasing tree: Permutations -> Binary trees
+    to the objects (see `.compound_map()` for details)
+    <BLANKLINE>
+    your input matches
+        St000051: The size of the left subtree of a binary tree.
+    <BLANKLINE>
+    among the values you sent, 87 percent are actually in the database,
+    among the distinct values you sent, 86 percent are actually in the database
 
 To obtain the value of the statistic sent to FindStat on a given
 object, apply the maps in the list in the given order to this object,
@@ -197,14 +207,14 @@ Classes and methods
 -------------------
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Martin Rubey <martin.rubey@tuwien.ac.at>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.lazy_list import lazy_list
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -228,6 +238,7 @@ import tempfile
 import inspect
 import html
 import requests
+from json.decoder import JSONDecodeError
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -244,6 +255,7 @@ from sage.combinat.parking_functions import ParkingFunction, ParkingFunction_cla
 from sage.combinat.perfect_matching import PerfectMatching, PerfectMatchings
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.posets.posets import Poset, FinitePoset
+from sage.combinat.posets.lattices import LatticePoset, FiniteLatticePoset
 from sage.combinat.posets.poset_examples import Posets
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux, StandardTableau, StandardTableaux
 from sage.combinat.set_partition import SetPartition, SetPartitions
@@ -422,6 +434,52 @@ class FindStat(UniqueRepresentation, SageObject):
 ######################################################################
 # tools
 ######################################################################
+def _get_json(url, **kwargs):
+    """
+    Return the json response or raise an error.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import _get_json, FINDSTAT_API_MAPS
+        sage: _get_json(FINDSTAT_API_MAPS + "?xxx=yyy")                         # optional -- internet
+        Traceback (most recent call last):
+        ...
+        ValueError: E005: On filtering maps, the following parameters are not allowed: [u'xxx'].
+    """
+    response = requests.get(url)
+    if response.ok:
+        try:
+            result = response.json(**kwargs)
+        except JSONDecodeError:
+            raise ValueError(response.text)
+        if "error" in result:
+            raise ValueError(result["error"])
+        return result
+    raise ConnectionError(response.text)
+
+def _post_json(url, data, **kwargs):
+    """
+    Return the json response or raise an error.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import _post_json, FINDSTAT_API_STATISTICS
+        sage: _post_json(FINDSTAT_API_STATISTICS, {"xxx": "yyy"})               # optional -- internet
+        Traceback (most recent call last):
+        ...
+        ValueError: E005: On filtering statistics, the following parameters are not allowed: ['xxx'].
+    """
+    response = requests.post(url, data=data)
+    if response.ok:
+        try:
+            result = response.json(**kwargs)
+        except JSONDecodeError:
+            raise ValueError(response.text)
+        if "error" in result:
+            raise ValueError(result["error"])
+        return result
+    raise ConnectionError(response.text)
+
 def _submit(args, url):
     """
     Open a post form containing fields for each of the arguments,
@@ -737,19 +795,18 @@ def _distribution_from_data(data, domain, max_values, generating_functions=False
             break
         if total < len(elts):
             break
-        else:
-            lvl = domain.element_level(elts[0])
-            if generating_functions and lvl not in levels_with_sizes:
-                continue
-            if levels_with_sizes[lvl] > total:
-                # we assume that from now on levels become even larger
-                break
-            if not all(domain.element_level(elt) == lvl for elt in elts[1:]):
-                raise ValueError("cannot combine %s into a distribution" % elts)
-            lvl_elts, lvl_vals = lvl_dict.get(lvl, [[], []])
-            lvl_dict[lvl] = (lvl_elts + elts, lvl_vals + vals)
-            if levels_with_sizes[lvl] == len(lvl_dict[lvl][0]):
-                total -= levels_with_sizes[lvl]
+        lvl = domain.element_level(elts[0])
+        if generating_functions and lvl not in levels_with_sizes:
+            continue
+        if levels_with_sizes[lvl] > total:
+            # we assume that from now on levels become even larger
+            break
+        if not all(domain.element_level(elt) == lvl for elt in elts[1:]):
+            raise ValueError("cannot combine %s into a distribution" % elts)
+        lvl_elts, lvl_vals = lvl_dict.get(lvl, [[], []])
+        lvl_dict[lvl] = (lvl_elts + elts, lvl_vals + vals)
+        if levels_with_sizes[lvl] == len(lvl_dict[lvl][0]):
+            total -= levels_with_sizes[lvl]
 
     if generating_functions:
         return {lvl: {val: vals.count(val) for val in set(vals)}
@@ -791,21 +848,21 @@ def _generating_functions_from_dict(gfs, style):
     """
     if style == "dictionary":
         return gfs
-    elif style == "list":
+    if style == "list":
         return {level: [gen_dict.get(deg, 0)
                         for deg in range(min(gen_dict),
                                          max(gen_dict)+1)]
                 for level, gen_dict in gfs.items() if gen_dict}
-    elif style == "polynomial":
+    if style == "polynomial":
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.integer_ring import ZZ
-        P = PolynomialRing(ZZ,"q")
+        P = PolynomialRing(ZZ, "q")
         q = P.gen()
         return {level: sum(coefficient * q**exponent
                            for exponent, coefficient in gen_dict.items())
                 for level, gen_dict in gfs.items()}
-    else:
-        raise ValueError("the argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'" % style)
+
+    raise ValueError("the argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'" % style)
 
 
 def _get_code_from_callable(function):
@@ -1009,21 +1066,14 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
-    def get_data(raw, domain=None):
-        known_terms, domain = _data_from_iterable(raw, domain=domain,
-                                               mapping=False,
-                                               check=check_collection)
-        data = _data_from_data(known_terms, max_values)
-        return known_terms, data, domain, None
-
     def get_values(raw, domain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)
             function = raw
         else:
             known_terms, domain = _data_from_iterable(raw, domain=domain,
-                                                   mapping=False,
-                                                   check=check_collection)
+                                                      mapping=False,
+                                                      check=check_collection)
             function = None
         data = _data_from_data(known_terms, max_values)
         return known_terms, data, domain, function
@@ -1034,8 +1084,8 @@ def findstat(query=None, values=None, distribution=None, domain=None,
             function = raw
         else:
             known_terms, domain = _data_from_iterable(raw, domain=domain,
-                                                   mapping=False,
-                                                   check=check_collection)
+                                                      mapping=False,
+                                                      check=check_collection)
             function = None
         data = _distribution_from_data(known_terms, domain, max_values)
         return known_terms, data, domain, function
@@ -1205,7 +1255,7 @@ def findmap(*args, **kwargs):
         0: Mp00146 (quality [100])
 
         sage: findmap("Dyck paths", "Set partitions", lambda D: [(a+1, b) for a,b in D.tunnels()]) # optional -- internet
-        0: Mp00092oMp00146 (quality [50])
+        0: Mp00092oMp00146 (quality [...])
 
     Finally, we can also retrieve all maps with a given domain or codomain::
 
@@ -1244,14 +1294,6 @@ def findmap(*args, **kwargs):
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
-    def get_data(raw, domain=None, codomain=None):
-        known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
-                                                         codomain=codomain,
-                                                         mapping=True,
-                                                         check=check_collection)
-        data = _data_from_data(known_terms, max_values)
-        return known_terms, data, domain, codomain, None
-
     def get_values(raw, domain=None, codomain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)
@@ -1260,9 +1302,9 @@ def findmap(*args, **kwargs):
             function = raw
         else:
             known_terms, domain, codomain = _data_from_iterable(raw, domain=domain,
-                                                             codomain=codomain,
-                                                             mapping=True,
-                                                             check=check_collection)
+                                                                codomain=codomain,
+                                                                mapping=True,
+                                                                check=check_collection)
             function = None
         data = _data_from_data(known_terms, max_values)
         return known_terms, data, domain, codomain, function
@@ -1314,8 +1356,8 @@ def findmap(*args, **kwargs):
                      and not is_collection(args[0])))):
             return FindStatMap(args[0])
 
-        elif (isinstance(args[0], str) and
-              is_collection(args[0])):
+        if (isinstance(args[0], str) and
+            is_collection(args[0])):
             domain = check_domain(args[0], domain)
 
         else:
@@ -1689,7 +1731,7 @@ class FindStatFunction(SageObject):
                                              if e)
                     result.append(comment + author_title + " " + "".join(parts[1:]))
 
-        return FancyTuple([ref for ref in result])
+        return FancyTuple(result)
 
     def references_raw(self):
         r"""
@@ -1935,7 +1977,7 @@ class FindStatCombinatorialStatistic(SageObject):
         Return the generating functions of the statistic as a dictionary.
 
         The keys of this dictionary are the levels for which the
-        generating function of of the statistic can be computed from
+        generating function of the statistic can be computed from
         the known data.  Each value represents a generating function
         for one level, as a polynomial, as a dictionary, or as a list
         of coefficients.
@@ -2029,10 +2071,9 @@ class FindStatCombinatorialStatistic(SageObject):
             if verbose:
                 print('Searching the OEIS for "%s"' % OEIS_string)
             return oeis(str(OEIS_string)) # in python 2.7, oeis does not like unicode
-        else:
-            if verbose:
-                print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
-            return
+
+        if verbose:
+            print("Too little information to search the OEIS for this statistic (only %s values given)." % counter)
 
 
 class FindStatStatistic(Element,
@@ -2160,7 +2201,7 @@ class FindStatStatistic(Element,
                + "&fields[Bibliography]=" + fields_Bibliography)
         verbose("fetching statistic data %s" % url, caller_name='FindStatStatistic')
 
-        included = requests.get(url).json()["included"]
+        included = _get_json(url)["included"]
         # slightly simplify the representation
         data = {key: val for key, val in included["Statistics"][self.id_str()].items()}
         # we replace the list of identifiers in Bibliography with the dictionary
@@ -2182,7 +2223,7 @@ class FindStatStatistic(Element,
         """
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
-        values = requests.get(url).json()["included"]["Statistics"][self.id_str()]["Values"]
+        values = _get_json(url)["included"]["Statistics"][self.id_str()]["Values"]
         return [tuple(pair) for pair in values]
 
     def set_first_terms(self, values):
@@ -2395,6 +2436,8 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             id = id.id_str()
         if not isinstance(id, str):
             raise TypeError("the value '%s' is not a valid FindStat statistic identifier, nor a FindStat statistic query" % id)
+        else:
+            id = id.strip()
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundStatistic(id)
         if not re.match(FINDSTAT_STATISTIC_REGEXP, id) or int(id[2:]) <= 0:
@@ -2437,7 +2480,7 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             else:
                 url = FINDSTAT_API_STATISTICS + "?Domain=%s" % self._domain.id_str()
 
-            self._identifiers = requests.get(url).json()["data"]
+            self._identifiers = _get_json(url)["data"]
 
         for st in self._identifiers:
             yield FindStatStatistic(st)
@@ -2539,7 +2582,7 @@ class FindStatStatisticQuery(FindStatStatistic):
         if debug:
             print(query)
         verbose("querying FindStat %s" % query, caller_name='FindStatStatisticQuery')
-        response = requests.post(FINDSTAT_API_STATISTICS, data=query).json()
+        response = _post_json(FINDSTAT_API_STATISTICS, query)
 
         if debug:
             print(response)
@@ -2681,21 +2724,22 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
             id = FINDSTAT_STATISTIC_PADDED_IDENTIFIER % id
         elif isinstance(id, FindStatCombinatorialStatistic):
             id = id.id_str()
-        self._id = id
         if domain is not None:
             self._domain = FindStatCollection(domain)
         else:
             self._domain = None
-        composition = id.partition("o")
+        composition = id.partition(FINDSTAT_MAP_SEPARATOR)
         self._statistic = FindStatStatistic(composition[0])
         if composition[2]:
             self._maps = FindStatCompoundMap(composition[2], domain=self._domain)
+            self._id = self._statistic.id_str() + FINDSTAT_MAP_SEPARATOR + self._maps.id_str()
             if self._domain is None:
                 self._domain = self._maps.domain()
         else:
             if self._domain is None:
                 self._domain = self._statistic.domain()
             self._maps = FindStatCompoundMap("", domain=self._domain, codomain=self._domain)
+            self._id = self._statistic.id_str()
         if (check
             and self._maps.codomain() != self._statistic.domain()):
             raise ValueError("the statistic %s cannot be composed with the map %s" % (self._statistic, self._maps))
@@ -2719,9 +2763,9 @@ class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
         fields = "Values"
         url = FINDSTAT_API_STATISTICS + self.id_str() + "?fields=" + fields
         if len(self._maps):
-            values = requests.get(url).json()["included"]["CompoundStatistics"][self.id_str()]["Values"]
+            values = _get_json(url)["included"]["CompoundStatistics"][self.id_str()]["Values"]
         else:
-            values = requests.get(url).json()["included"]["Statistics"][self.id_str()]["Values"]
+            values = _get_json(url)["included"]["Statistics"][self.id_str()]["Values"]
         return [(sequence[0], sequence[-1]) for sequence in values]
 
     def domain(self):
@@ -2902,12 +2946,22 @@ class FindStatMatchingStatistic(FindStatCompoundStatistic):
             <BLANKLINE>
             among the values you sent, 17 percent are actually in the database,
             among the distinct values you sent, 83 percent are actually in the database
+
+            sage: r = FindStatMatchingStatistic("St000042", 1, [17, 83])        # optional -- internet
+            sage: r.info()                                                      # optional -- internet
+            after adding 1 to every value
+            <BLANKLINE>
+            your input matches
+                St000042: The number of crossings of a perfect matching.
+            <BLANKLINE>
+            among the values you sent, 17 percent are actually in the database,
+            among the distinct values you sent, 83 percent are actually in the database
         """
         if self.offset() < 0:
             print("after subtracting %s from every value" % (-self.offset()))
         if self.offset() > 0:
             print("after adding %s to every value" % self.offset())
-        if self.compound_map():
+        if len(self.compound_map()):
             if self.offset():
                 print("and applying")
             else:
@@ -3044,9 +3098,9 @@ class FindStatMap(Element,
                + "?fields=" + fields
                + "&fields[Bibliography]=" + fields_Bibliography)
         verbose("fetching map data %s" % url, caller_name='FindStatMap')
-        included = requests.get(url).json()["included"]
+        included = _get_json(url)["included"]
         # slightly simplify the representation
-        data = {key: val for key, val in included["Maps"][self.id_str()].items()}
+        data = included["Maps"][self.id_str()]
         # we replace the list of identifiers in Bibliography with the dictionary
         data["Bibliography"] = included["References"]
         return data
@@ -3266,6 +3320,8 @@ class FindStatMaps(UniqueRepresentation, Parent):
             id = id.id_str()
         if not isinstance(id, str):
             raise TypeError("the value %s is neither an integer nor a string" % id)
+        else:
+            id = id.strip()
         if FINDSTAT_MAP_SEPARATOR in id:
             return FindStatCompoundMap(id)
         if not re.match(FINDSTAT_MAP_REGEXP, id) or id == FINDSTAT_MAP_PADDED_IDENTIFIER % 0:
@@ -3316,7 +3372,7 @@ class FindStatMaps(UniqueRepresentation, Parent):
                 url = FINDSTAT_API_MAPS + "?" + "&".join(query)
             else:
                 url = FINDSTAT_API_MAPS
-            self._identifiers = requests.get(url).json()["data"]
+            self._identifiers = _get_json(url)["data"]
 
         for mp in self._identifiers:
             yield FindStatMap(mp)
@@ -3418,7 +3474,7 @@ class FindStatMapQuery(FindStatMap):
         if debug:
             print(query)
         verbose("querying FindStat %s" % query, caller_name='FindStatMapQuery')
-        response = requests.post(FINDSTAT_API_MAPS, data=query).json()
+        response = _post_json(FINDSTAT_API_MAPS, query)
 
         if debug:
             print(response)
@@ -3444,7 +3500,6 @@ class FindStatMapQuery(FindStatMap):
                                         "SageCode": ""},
                                   function=function)
         Element.__init__(self, FindStatMaps()) # this is not completely correct, but it works
-
 
     def __repr__(self):
         """
@@ -3518,8 +3573,7 @@ class FindStatCompoundMap(Element, FindStatCombinatorialMap):
             self._domain = FindStatCollection(domain)
             self._codomain = self._domain
         else:
-            self._id = id
-            self._maps = [FindStatMap(m) for m in id.split("o")][::-1]
+            self._maps = [FindStatMap(m) for m in id.split(FINDSTAT_MAP_SEPARATOR)][::-1]
             if (check
                 and not all(self._maps[i].codomain() == self._maps[i+1].domain()
                             for i in range(len(self._maps)-1))):
@@ -3532,6 +3586,7 @@ class FindStatCompoundMap(Element, FindStatCombinatorialMap):
                 self._codomain = self._maps[-1].codomain()
             else:
                 self._codomain = FindStatCollection(codomain)
+            self._id = FINDSTAT_MAP_SEPARATOR.join(m.id_str() for m in reversed(self._maps))
 
         Element.__init__(self, FindStatMaps()) # this is not completely correct, but it works
 
@@ -3719,33 +3774,47 @@ def _finite_irreducible_cartan_types_by_rank(n):
         sage: _finite_irreducible_cartan_types_by_rank(2)
         [['A', 2], ['B', 2], ['G', 2]]
     """
-    cartan_types      = [ CartanType(['A',n]) ]
+    cartan_types      = [CartanType(['A',n])]
     if n >= 2:
-        cartan_types += [ CartanType(['B',n]) ]
+        cartan_types += [CartanType(['B',n])]
     if n >= 3:
-        cartan_types += [ CartanType(['C',n]) ]
+        cartan_types += [CartanType(['C',n])]
     if n >= 4:
-        cartan_types += [ CartanType(['D',n]) ]
-    if n in [6,7,8]:
-        cartan_types += [ CartanType(['E',n]) ]
+        cartan_types += [CartanType(['D',n])]
+    if 6 <= n <= 8:
+        cartan_types += [CartanType(['E',n])]
     if n == 4:
-        cartan_types += [ CartanType(['F',n]) ]
+        cartan_types += [CartanType(['F',n])]
     if n == 2:
-        cartan_types += [ CartanType(['G',n]) ]
+        cartan_types += [CartanType(['G',n])]
     return cartan_types
 
 # helper for generation of PlanePartitions
 def _plane_partitions_by_size_aux(n, outer=None):
-    empty = [[]]
+    """
+    Iterate over the plane partitions with `n` boxes, as lists.
+
+    INPUT:
+
+    - n -- an integer.
+
+    OUTPUT:
+
+    The plane partitions with `n` boxes as lists.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _plane_partitions_by_size_aux
+        sage: list(_plane_partitions_by_size_aux(3))
+        [[[1], [1], [1]], [[2], [1]], [[1, 1], [1]], [[3]], [[2, 1]], [[1, 1, 1]]]
+
+    """
     if n == 0:
-        yield [empty]
-        return
-    if outer == empty:
         yield []
         return
     if outer is None:
         outer = [n]*n
-    for k in range(1,n+1):
+    for k in range(1, n+1):
         for la in Partitions(k, outer=outer):
             for pp in _plane_partitions_by_size_aux(n-k, outer=la):
                 pp = [la] + pp
@@ -3780,7 +3849,39 @@ def _plane_partitions_by_size(n):
 
     """
     for pp in _plane_partitions_by_size_aux(n):
-        yield PlanePartition(pp[:-1])
+        yield PlanePartition(pp)
+
+# helper for generation of Lattices
+def _finite_lattices(n):
+    """
+    Iterate over the lattices with `n` elements.
+
+    INPUT:
+
+    - n -- an integer.
+
+    OUTPUT:
+
+    The lattices with `n` elements.
+
+    TESTS::
+
+        sage: from sage.databases.findstat import _finite_lattices
+        sage: [L.cover_relations() for L in _finite_lattices(4)]
+        [[['bottom', 0], ['bottom', 1], [0, 'top'], [1, 'top']],
+         [['bottom', 0], [0, 1], [1, 'top']]]
+
+    """
+    if n <= 2:
+        for P in Posets(n):
+            if P.is_lattice():
+                yield LatticePoset(P)
+    else:
+        for P in Posets(n-2):
+            Q = P.with_bounds()
+            if Q.is_lattice():
+                yield LatticePoset(Q)
+
 
 class FindStatCollection(Element,
                          metaclass=InheritComparisonClasscallMetaclass):
@@ -3984,6 +4085,8 @@ class FindStatCollection(Element,
         """
         Return whether the element belongs to the collection.
 
+        If the collection is not yet supported, return whether element is a string.
+
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
@@ -3994,7 +4097,10 @@ class FindStatCollection(Element,
             sage: cc.is_element(SetPartition([[1,2],[3,4],[5,6]]))              # optional -- internet
             False
         """
-        return self._data["Code"].is_element(element)
+        if self.is_supported():
+            return self._data["Code"].is_element(element)
+
+        return isinstance(element, str)
 
     def levels_with_sizes(self):
         """
@@ -4063,6 +4169,7 @@ class FindStatCollection(Element,
             Cc0026: Decorated permutations 2371 True
             Cc0027: Signed permutations 4282 True
             Cc0028: Skew partitions 1250 True
+            Cc0029: Lattices 1378 True
         """
         return self._data["Code"].element_level(element) in self._data["LevelsWithSizes"]
 
@@ -4163,6 +4270,8 @@ class FindStatCollection(Element,
         Return a function that returns a FindStat representation given an
         object.
 
+        If the collection is not yet supported, return the identity.
+
         OUTPUT:
 
         The function that produces the string representation as
@@ -4176,7 +4285,9 @@ class FindStatCollection(Element,
             sage: c.to_string()(p)                                              # optional -- internet
             '([(0, 1), (1, 2)], 3)'
         """
-        return self._data["Code"].element_to_string
+        if self.is_supported():
+            return self._data["Code"].element_to_string
+        return lambda x: x
 
     def from_string(self):
         r"""
@@ -4245,10 +4356,9 @@ class FindStatCollection(Element,
         """
         if style == "singular":
             return self._data["Name"]
-        elif style == "plural":
+        if style == "plural":
             return self._data["NamePlural"]
-        else:
-            raise ValueError("argument 'style' (=%s) must be 'singular' or 'plural'"%style)
+        raise ValueError("argument 'style' (=%s) must be 'singular' or 'plural'" % style)
 
 from collections import namedtuple
 _SupportedFindStatCollection = namedtuple("SupportedFindStatCollection",
@@ -4341,7 +4451,7 @@ _SupportedFindStatCollections = {
     _SupportedFindStatCollection(lambda x: ParkingFunction(literal_eval(x)),
                                  str,
                                  ParkingFunctions,
-                                 lambda x: len(x),
+                                 len,
                                  lambda x: isinstance(x, ParkingFunction_class)),
     "PerfectMatchings":
     _SupportedFindStatCollection(lambda x: PerfectMatching(literal_eval(x)),
@@ -4400,7 +4510,14 @@ _SupportedFindStatCollections = {
                                                            for i, v in enumerate(x, 1)]) + "]",
                                  DecoratedPermutations,
                                  lambda x: x.size(),
-                                 lambda x: isinstance(x, DecoratedPermutation))}
+                                 lambda x: isinstance(x, DecoratedPermutation)),
+    "Lattices":
+    _SupportedFindStatCollection(lambda x: (lambda R, E: LatticePoset((list(range(E)), R)))(*literal_eval(x)),
+                                 lambda X: str((sorted(X._hasse_diagram.cover_relations()),
+                                                len(X._hasse_diagram.vertices()))),
+                                 _finite_lattices,
+                                 lambda x: x.cardinality(),
+                                 lambda x: isinstance(x, FiniteLatticePoset))}
 
 
 class FindStatCollections(UniqueRepresentation, Parent):
@@ -4415,7 +4532,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatCollections
-        sage: sorted(c for c in FindStatCollections())                          # optional -- internet
+        sage: sorted(c for c in FindStatCollections() if c.is_supported())      # optional -- internet
         [Cc0001: Permutations,
          Cc0002: Integer partitions,
          Cc0005: Dyck paths,
@@ -4437,7 +4554,8 @@ class FindStatCollections(UniqueRepresentation, Parent):
          Cc0025: Plane partitions,
          Cc0026: Decorated permutations,
          Cc0027: Signed permutations,
-         Cc0028: Skew partitions]
+         Cc0028: Skew partitions,
+         Cc0029: Lattices]
     """
     def __init__(self):
         """
@@ -4451,8 +4569,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
         """
         fields = "LevelsWithSizes,Name,NamePlural,NameWiki"
         url = FINDSTAT_API_COLLECTIONS + "?fields=" + fields
-        response = requests.get(url)
-        d = response.json(object_pairs_hook=OrderedDict)
+        d = _get_json(url, object_pairs_hook=OrderedDict)
         self._findstat_collections = d["included"]["Collections"]
         for id, data in self._findstat_collections.items():
             data["LevelsWithSizes"] = OrderedDict((literal_eval(level), size)
@@ -4495,6 +4612,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
              Cc0010: Binary trees,
              Cc0012: Perfect matchings,
              Cc0013: Cores,
+             Cc0014: Posets,
              Cc0014: Posets,
              Cc0017: Alternating sign matrices,
              Cc0018: Gelfand-Tsetlin patterns,

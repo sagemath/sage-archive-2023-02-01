@@ -2,7 +2,7 @@
 Submodules of Hecke modules
 """
 # ****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -17,7 +17,6 @@ Submodules of Hecke modules
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 import sage.arith.all as arith
 from sage.misc.verbose import verbose

@@ -2860,7 +2860,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 from sage.rings.real_mpfr import RealField
                 return RealField(prec)(self).log(m)
             else:
-                from sage.rings.complex_field import ComplexField
+                from sage.rings.complex_mpfr import ComplexField
                 return ComplexField(prec)(self).log(m)
 
         if m is None:
@@ -4411,6 +4411,29 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer z = PY_NEW(Integer)
         sig_on()
         mpz_lcm(z.value, self.value, n.value)
+        sig_off()
+        return z
+
+    def _gcd(self, Integer n):
+        """
+        Return the greatest common divisor of self and `n`.
+
+        EXAMPLES::
+
+            sage: 1._gcd(-1)
+            1
+            sage: 0._gcd(1)
+            1
+            sage: 0._gcd(0)
+            0
+            sage: 2._gcd(2^6)
+            2
+            sage: 21._gcd(2^6)
+            1
+        """
+        cdef Integer z = PY_NEW(Integer)
+        sig_on()
+        mpz_gcd(z.value, self.value, n.value)
         sig_off()
         return z
 
@@ -6228,7 +6251,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(5.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type((-5).sqrt(prec=53))
-            <type 'sage.rings.complex_number.ComplexNumber'>
+            <type 'sage.rings.complex_mpfr.ComplexNumber'>
             sage: type(0.sqrt(prec=53))
             <type 'sage.rings.real_mpfr.RealNumber'>
 
@@ -6735,33 +6758,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if r == 0:
             raise ZeroDivisionError(f"inverse of Mod({self}, {m}) does not exist")
         return ans
-
-    def gcd(self, n):
-        """
-        Return the greatest common divisor of self and `n`.
-
-        EXAMPLES::
-
-            sage: gcd(-1,1)
-            1
-            sage: gcd(0,1)
-            1
-            sage: gcd(0,0)
-            0
-            sage: gcd(2,2^6)
-            2
-            sage: gcd(21,2^6)
-            1
-        """
-        if not isinstance(n, Integer) and not isinstance(n, int):
-            left, right = coercion_model.canonical_coercion(self, n)
-            return left.gcd(right)
-        cdef Integer m = as_Integer(n)
-        cdef Integer g = PY_NEW(Integer)
-        sig_on()
-        mpz_gcd(g.value, self.value, m.value)
-        sig_off()
-        return g
 
     def crt(self, y, m, n):
         """

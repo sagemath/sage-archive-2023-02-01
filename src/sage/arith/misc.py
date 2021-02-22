@@ -31,7 +31,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer, GCD_list
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealNumber
-from sage.rings.complex_number import ComplexNumber
+from sage.rings.complex_mpfr import ComplexNumber
 
 from sage.rings.fast_arith import arith_int, arith_llong, prime_range
 
@@ -2008,6 +2008,8 @@ def xkcd(n=""):
     This function is similar to the xgcd function, but behaves
     in a completely different way.
 
+    See https://xkcd.com/json.html for more details.
+
     INPUT:
 
     - ``n`` -- an integer (optional)
@@ -2028,7 +2030,11 @@ def xkcd(n=""):
     from urllib.error import HTTPError, URLError
 
     data = None
-    url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
+    if not n:
+        # default to last comic
+        url = "http://xkcd.com/info.0.json"
+    else:
+        url = "https://xkcd.com/{}/info.0.json".format(n)
 
     try:
         with contextlib.closing(urlopen(url)) as f:
@@ -4540,7 +4546,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     if algorithm == "pari":
         if p == -1:
             p = 0
-        return ZZ(pari(a).hilbert(b,p))
+        return ZZ(pari(a).hilbert(b, p))
 
     elif algorithm == 'direct':
         if a == 0 or b == 0:
@@ -4551,13 +4557,15 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
         if p != -1:
             p_sqr = p**2
-            while a%p_sqr == 0: a //= p_sqr
-            while b%p_sqr == 0: b //= p_sqr
+            while a % p_sqr == 0:
+                a //= p_sqr
+            while b % p_sqr == 0:
+                b //= p_sqr
 
-        if p != 2 and True in ( kronecker(x,p) == 1 for x in (a,b,a+b) ):
+        if p != 2 and True in (kronecker(x, p) == 1 for x in (a, b, a + b)):
             return one
-        if a%p == 0:
-            if b%p == 0:
+        if a % p == 0:
+            if b % p == 0:
                 return hilbert_symbol(p,-(b//p),p)*hilbert_symbol(a//p,b,p)
             elif p == 2 and (b%4) == 3:
                 if kronecker(a+b,p) == -1:

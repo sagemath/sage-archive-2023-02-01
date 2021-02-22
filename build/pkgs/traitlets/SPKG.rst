@@ -1,5 +1,5 @@
-traitlets
-=========
+traitlets: A configuration system for Python applications
+=========================================================
 
 Description
 -----------

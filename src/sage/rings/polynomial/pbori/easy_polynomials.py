@@ -6,9 +6,9 @@ def easy_linear_polynomials(p):
     r"""
     Get linear polynomials implied by given polynomial.
 
-    TESTS::
+    EXAMPLES::
 
-        sage: from sage.rings.polynomial.pbori.frontend import *
+        sage: from sage.rings.polynomial.pbori.frontend import x
         sage: from sage.rings.polynomial.pbori.easy_polynomials import easy_linear_polynomials
         sage: easy_linear_polynomials(x(1)*x(2) + 1)
         [x(1) + 1, x(2) + 1]
@@ -34,7 +34,7 @@ def easy_linear_polynomials_via_interpolation(p):
 
     TESTS::
 
-        sage: from sage.rings.polynomial.pbori.frontend import *
+        sage: from sage.rings.polynomial.pbori.frontend import x
         sage: from sage.rings.polynomial.pbori.easy_polynomials import easy_linear_polynomials_via_interpolation
         sage: easy_linear_polynomials_via_interpolation(x(1)*x(2) + 1)
         [x(1) + 1, x(2) + 1]

@@ -393,6 +393,14 @@ see :trac:`9538`::
     f1
     sage: sage.calculus.calculus.maxima('f1')
     f1
+
+To check that :trac:`14821` is fixed::
+
+    sage: H = exp(-1.0 * x)
+    sage: H.integral(x, 0, 1)
+    0.6321205588285577
+    sage: integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    4.62770039817000e-9
 """
 
 import re
@@ -1146,9 +1154,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     .. note::
 
-       The output may also use 'und' (undefined), 'ind'
-       (indefinite but bounded), and 'infinity' (complex
-       infinity).
+        The output may also use 'und' (undefined), 'ind'
+        (indefinite but bounded), and 'infinity' (complex
+        infinity).
 
     EXAMPLES::
 
@@ -1248,7 +1256,21 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: lim(sin(1/x), x = 0)
         ind
 
-    We can use other packages than maxima::
+    We can use other packages than maxima, namely "sympy", "giac", "fricas".
+
+    With the standard package Giac::
+
+        sage: from sage.libs.giac.giac import libgiac     # random
+        sage: (exp(-x)/(2+sin(x))).limit(x=oo, algorithm='giac')
+        0
+        sage: limit(e^(-1/x), x=0, dir='right', algorithm='giac')
+        0
+        sage: limit(e^(-1/x), x=0, dir='left', algorithm='giac')
+        +Infinity
+        sage: (x / (x+2^x+cos(x))).limit(x=-infinity, algorithm='giac')
+        1
+
+    With the optional package FriCAS::
 
         sage: (x / (x+2^x+cos(x))).limit(x=-infinity, algorithm='fricas')       # optional - fricas
         1
@@ -1381,11 +1403,13 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         elif dir in dir_minus:
             l = maxima.sr_tlimit(ex, v, a, 'minus')
     elif algorithm == 'sympy':
+        import sympy
         if dir is None:
-            import sympy
             l = sympy.limit(ex._sympy_(), v._sympy_(), a._sympy_())
-        else:
-            raise NotImplementedError("sympy does not support one-sided limits")
+        elif dir in dir_plus:
+            l = sympy.limit(ex._sympy_(), v._sympy_(), a._sympy_(), dir='+')
+        elif dir in dir_minus:
+            l = sympy.limit(ex._sympy_(), v._sympy_(), a._sympy_(), dir='-')
     elif algorithm == 'fricas':
         from sage.interfaces.fricas import fricas
         eq = fricas.equation(v._fricas_(), a._fricas_())
@@ -1398,10 +1422,18 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = fricas.limit(f, eq, '"right"').sage()
         elif dir in dir_minus:
             l = fricas.limit(f, eq, '"left"').sage()
+    elif algorithm == 'giac':
+        from sage.libs.giac.giac import libgiac
+        v = v._giac_init_()
+        a = a._giac_init_()
+        if dir is None:
+            l = libgiac.limit(ex, v, a).sage()
+        elif dir in dir_plus:
+            l = libgiac.limit(ex, v, a, 1).sage()
+        elif dir in dir_minus:
+            l = libgiac.limit(ex, v, a, -1).sage()
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
-
-    #return l.sage()
     return ex.parent()(l)
 
 # lim is alias for limit
@@ -1966,7 +1998,7 @@ def _laplace_latex_(self, *args):
         \mathcal{L}\left(f\left(t\right), t, s\right)
 
     """
-    return "\\mathcal{L}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
+    return "\\mathcal{L}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
 
 def _inverse_laplace_latex_(self, *args):
     r"""
@@ -1984,7 +2016,8 @@ def _inverse_laplace_latex_(self, *args):
         sage: latex(inverse_laplace(F,s,t))
         \mathcal{L}^{-1}\left(F\left(s\right), s, t\right)
     """
-    return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
+    return "\\mathcal{L}^{-1}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
+
 
 # Return un-evaluated expression as instances of SFunction class
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
@@ -2163,10 +2196,11 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
         s = maxima_polygamma.sub(r'psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
-        if s == olds: break
+        if s == olds:
+            break
 
     if equals_sub:
-        s = s.replace('=','==')
+        s = s.replace('=', '==')
         # unfortunately, this will turn != into !==, which we correct
         s = s.replace("!==", "!=")
 
@@ -2184,7 +2218,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #replace all instances of Maxima's scientific notation
     #with regular notation
     search = sci_not.search(s)
-    while not search is None:
+    while search is not None:
         (start, end) = search.span()
         r = create_RealNumber(s[start:end]).str(no_sci=2, truncate=True)
         s = s.replace(s[start:end], r)

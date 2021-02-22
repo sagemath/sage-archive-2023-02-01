@@ -1,7 +1,6 @@
 """
 Coercion via construction functors
 """
-from __future__ import print_function, absolute_import
 
 from sage.misc.lazy_import import lazy_import
 from sage.structure.coerce_exceptions import CoercionException
@@ -1147,7 +1146,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
 
 
 class InfinitePolynomialFunctor(ConstructionFunctor):
-    """
+    r"""
     A Construction Functor for Infinite Polynomial Rings (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`).
 
     AUTHOR:
@@ -1188,7 +1187,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         ...
         CoercionException: Incompatible term orders lex, degrevlex
 
-    In an infinite polynomial ring with generator `a_\\ast`, the variable `a_3` will always be greater
+    In an infinite polynomial ring with generator `a_\ast`, the variable `a_3` will always be greater
     than the variable `a_1`. Hence, the orders are incompatible in the next example as well::
 
         sage: A.construction()[0]*PolynomialRing(QQ,names=['x','y','a_1','a_3'], order='lex').construction()[0]
@@ -1198,7 +1197,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     Another requirement is that after merging the order of the remaining variables must be unique.
     This is not the case in the following example, since it is not clear whether the variables `x,y`
-    should be greater or smaller than the variables `b_\\ast`::
+    should be greater or smaller than the variables `b_\ast`::
 
         sage: A.construction()[0]*PolynomialRing(QQ,names=['a_3','a_1','x','y'], order='lex').construction()[0]
         Traceback (most recent call last):
@@ -1216,7 +1215,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         sage: X.<w,x,y> = InfinitePolynomialRing(ZZ)
         sage: Y.<x,y,z> = InfinitePolynomialRing(QQ)
 
-    `X` and `Y` have an overlapping generators `x_\\ast, y_\\ast`. Since the default lexicographic order is
+    `X` and `Y` have an overlapping generators `x_\ast, y_\ast`. Since the default lexicographic order is
     used in both rings, it gives rise to isomorphic sub-monoids in both `X` and `Y`. They are merged in the
     pushout, which also yields a common parent for doing arithmetic::
 
@@ -1821,7 +1820,7 @@ class VectorFunctor(ConstructionFunctor):
         Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
     """
     rank = 10 # ranking of functor, not rank of module.
-    # This coincides with the rank of the matrix construction functor, but this is OK since they can not both be applied in any order
+    # This coincides with the rank of the matrix construction functor, but this is OK since they cannot both be applied in any order
 
     def __init__(self, n, is_sparse=False, inner_product_matrix=None):
         """
@@ -1902,10 +1901,10 @@ class VectorFunctor(ConstructionFunctor):
             sage: F(f)       # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: Can not create induced morphisms of free modules yet
+            NotImplementedError: Cannot create induced morphisms of free modules yet
         """
         # TODO: Implement this!
-        raise NotImplementedError("Can not create induced morphisms of free modules yet")
+        raise NotImplementedError("Cannot create induced morphisms of free modules yet")
 
     def __eq__(self, other):
         """
@@ -2102,9 +2101,9 @@ class SubspaceFunctor(ConstructionFunctor):
             sage: F(f)      # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: Can not create morphisms of free sub-modules yet
+            NotImplementedError: Cannot create morphisms of free sub-modules yet
         """
-        raise NotImplementedError("Can not create morphisms of free sub-modules yet")
+        raise NotImplementedError("Cannot create morphisms of free sub-modules yet")
 
     def __eq__(self, other):
         """
@@ -2164,7 +2163,7 @@ class SubspaceFunctor(ConstructionFunctor):
             return False
 
         # since comparing the basis involves constructing the pushout
-        # of the ambient module, we can not do:
+        # of the ambient module, we cannot do:
         # c = (self.basis == other.basis)
         # Instead, we only test whether there are coercions.
         L = self.basis.universe()
@@ -2686,7 +2685,7 @@ class QuotientFunctor(ConstructionFunctor):
         sage: F(QQ['x','y','z'])
         Traceback (most recent call last):
         ...
-        CoercionException: Can not apply this quotient functor to Multivariate Polynomial Ring in x, y, z over Rational Field
+        CoercionException: Cannot apply this quotient functor to Multivariate Polynomial Ring in x, y, z over Rational Field
         sage: F(QQ['y','z'])
         Traceback (most recent call last):
         ...
@@ -2788,8 +2787,8 @@ class QuotientFunctor(ConstructionFunctor):
                 I = [R.one() * t for t in I.gens()] * R
         try:
             Q = R.quo(I, names=self.names, **self.kwds)
-        except IndexError: # That may happen!
-            raise CoercionException("Can not apply this quotient functor to %s" % R)
+        except IndexError:  # That may happen!
+            raise CoercionException("Cannot apply this quotient functor to %s" % R)
         if self.as_field:
             try:
                 Q = Q.field()

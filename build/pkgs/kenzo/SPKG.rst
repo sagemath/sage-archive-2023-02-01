@@ -1,5 +1,5 @@
-Kenzo
-=====
+kenzo: Construct topological spaces and compute homology groups
+===============================================================
 
 Description
 -----------

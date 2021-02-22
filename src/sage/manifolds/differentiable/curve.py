@@ -86,7 +86,7 @@ class DifferentiableCurve(DiffMap):
     Instead of declaring the parameter `t`  as a symbolic variable by means
     of ``var('t')``, it is equivalent to get it as the canonical coordinate
     of the real number line (see
-    :class:`~sage.manifolds.differentiable.real_line.RealLine`)::
+    :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`)::
 
         sage: R.<t> = RealLine()
         sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c') ; c
@@ -111,9 +111,8 @@ class DifferentiableCurve(DiffMap):
 
         sage: c.parent()
         Set of Morphisms from Real interval (0, 2*pi) to 2-dimensional
-         differentiable manifold M in Join of Category of subobjects of sets
-         and Category of smooth manifolds over Real Field with 53 bits of
-         precision
+         differentiable manifold M in Category of smooth manifolds over Real
+         Field with 53 bits of precision
         sage: I = R.open_interval(0, 2*pi)
         sage: c.parent() is Hom(I, M)
         True
@@ -425,9 +424,8 @@ class DifferentiableCurve(DiffMap):
             sage: c.__reduce__()
             (<class 'sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet_with_category.element_class'>,
              (Set of Morphisms from Real interval (0, 2*pi) to 2-dimensional
-              differentiable manifold M in Join of Category of subobjects of
-              sets and Category of smooth manifolds over Real Field with 53
-              bits of precision,
+              differentiable manifold M in Category of smooth manifolds over
+              Real Field with 53 bits of precision,
               None,
               None,
               None,

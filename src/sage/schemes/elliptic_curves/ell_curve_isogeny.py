@@ -62,7 +62,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from copy import copy
 
@@ -453,7 +452,7 @@ def compute_codomain_kohel(E, kernel, degree):
 
             (v,w) = compute_vw_kohel_even_deg3(b2,b4,s1,s2,s3)
 
-    else: # odd degree case
+    else:  # odd degree case
 
         n = psi.degree()
 
@@ -461,15 +460,17 @@ def compute_codomain_kohel(E, kernel, degree):
         b4 = E.b4()
         b6 = E.b6()
 
-        s1 = 0; s2 = 0; s3 = 0
+        s1 = 0
+        s2 = 0
+        s3 = 0
 
-        if (1 <= n):
+        if 1 <= n:
             s1 = -kernel_list[n-1]
 
-        if (2 <= n):
+        if 2 <= n:
             s2 = kernel_list[n-2]
 
-        if (3 <= n):
+        if 3 <= n:
             s3 = -kernel_list[n-3]
 
         # initializing these allows us to calculate E2.
@@ -480,7 +481,7 @@ def compute_codomain_kohel(E, kernel, degree):
 
 def two_torsion_part(E, psi):
     r"""
-    Returns the greatest common divisor of ``psi`` and the 2 torsion
+    Return the greatest common divisor of ``psi`` and the 2 torsion
     polynomial of `E`.
 
     INPUT:
@@ -1277,7 +1278,7 @@ class EllipticCurveIsogeny(Morphism):
     def __neg__(self):
         r"""
         Function to implement unary negation (-) operator on
-        isogenies. Returns a copy of this isogeny that has been
+        isogenies. Return a copy of this isogeny that has been
         negated.
 
         EXAMPLES:
@@ -2256,7 +2257,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def __init_even_kernel_polynomial(self, E, psi_G):
         r"""
-        Returns the isogeny parameters for the 2-part of an isogeny.
+        Return the isogeny parameters for the 2-part of an isogeny.
 
         INPUT:
 
@@ -2372,7 +2373,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def __init_odd_kernel_polynomial(self, E, psi):
         r"""
-        Returns the isogeny parameters for a cyclic isogeny of odd degree.
+        Return the isogeny parameters for a cyclic isogeny of odd degree.
 
         INPUT:
 
@@ -2442,15 +2443,17 @@ class EllipticCurveIsogeny(Morphism):
 
         psi_coeffs = psi.list()
 
-        s1 = 0; s2 = 0; s3 = 0
+        s1 = 0
+        s2 = 0
+        s3 = 0
 
-        if (1 <= n):
+        if 1 <= n:
             s1 = -psi_coeffs[n-1]
 
-        if (2 <= n):
+        if 2 <= n:
             s2 = psi_coeffs[n-2]
 
-        if (3 <= n):
+        if 3 <= n:
             s3 = -psi_coeffs[n-3]
 
         # initializing these allows us to calculate E2.
@@ -2749,7 +2752,7 @@ class EllipticCurveIsogeny(Morphism):
 
     def degree(self):
         r"""
-        Returns the degree of this isogeny.
+        Return the degree of this isogeny.
 
         EXAMPLES::
 
@@ -3537,8 +3540,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.is_injective()
             True
         """
-        if (1 < self.__degree): return False
-        return True
+        return not (1 < self.__degree)
 
     def is_surjective(self):
         r"""
@@ -4011,9 +4013,10 @@ def compute_sequence_of_maps(E1, E2, ell):
 
 # Utility function for manipulating isogeny degree matrices
 
+
 def fill_isogeny_matrix(M):
     """
-    Returns a filled isogeny matrix giving all degrees from one giving only prime degrees.
+    Return a filled isogeny matrix giving all degrees from one giving only prime degrees.
 
     INPUT:
 
@@ -4054,14 +4057,16 @@ def fill_isogeny_matrix(M):
         M0[i,i]=1
 
     def fix(d):
-        if d==0: return Infinity
+        if d == 0:
+            return Infinity
         return d
 
     def fix2(d):
-        if d==Infinity: return 0
+        if d == Infinity:
+            return 0
         return d
 
-    def pr(M1,M2):
+    def pr(M1, M2):
         return Matrix([[fix2(min([fix(M1[i,k]*M2[k,j]) for k in range(n)])) for i in range(n)] for j in range(n)])
 
     M1 = M0

@@ -326,6 +326,14 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             (2)
             sage: G(a)
             f2
+
+        TESTS:
+
+        Document that :trac:`31428` is fixed::
+
+            sage: A = AbelianGroupGap([])
+            sage: A([]) == A.one()
+            True
         """
         if isinstance(x, AbelianGroupElement_gap):
             try:
@@ -355,7 +363,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             orders = self.gens_orders()
             if len(exp) != len(gens_gap):
                 raise ValueError("input does not match the number of generators")
-            x = gens_gap[0]**0
+            x = A.one()
             for i in range(len(exp)):
                 x *= gens_gap[i]**(exp[i] % orders[i])
             x = x.gap()

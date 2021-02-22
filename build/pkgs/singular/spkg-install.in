@@ -59,7 +59,8 @@ remove_old_version()
 config()
 {
     if [ "$UNAME" = "CYGWIN" ]; then
-        SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --with-builtinmodules=gfanlib,syzextra,customstd,interval,subsets,loctriv,gitfan,freealgebra"
+        # from Hans Schoenemann - https://github.com/Singular/Singular/issues/1017
+        SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-static --disable-p-procs-dynamic --enable-p-procs-static --with-builtinmodules=gfanlib,gitfan,interval,loctriv,partialgb,syzextra,customstd,cohomo,subsets,freealgebra,systhreads --disable-cf-inline"
     fi
 
     # configure notes (dates from Singular 3.x, maybe outdated for 4.x):
@@ -80,6 +81,7 @@ config()
                   --disable-doc \
                   --disable-polymake \
                   --without-python \
+                  --without-pythonmodule \
                   --disable-python \
                   $SINGULAR_CONFIGURE
 }

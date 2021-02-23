@@ -2097,7 +2097,7 @@ class MPolynomialIdeal_singular_repr(
 
         You can use Giac to compute the elimination ideal::
 
-            sage: print("possible output from giac"); I.elimination_ideal([t, s], algorithm="giac") == J
+            sage: print("possible output from giac", flush=True); I.elimination_ideal([t, s], algorithm="giac") == J
             possible output...
             True
 
@@ -2122,7 +2122,7 @@ class MPolynomialIdeal_singular_repr(
             sage: J = I.elimination_ideal([t,s]); J
             Ideal (y^2 - x*z, x*y - z, x^2 - y) of Multivariate
             Polynomial Ring in x, y, t, s, z over Algebraic Field
-            sage: print("possible output from giac"); I.elimination_ideal([t, s], algorithm="giac") == J
+            sage: print("possible output from giac", flush=True); I.elimination_ideal([t, s], algorithm="giac") == J
             possible output...
             True
         """
@@ -4017,7 +4017,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: A9=PolynomialRing(QQ,9,'x')
             sage: I9=sage.rings.ideal.Katsura(A9)
-            sage: print("possible output from giac"); I9.groebner_basis("giac",proba_epsilon=1e-7) # long time (3s)
+            sage: print("possible output from giac", flush=True); I9.groebner_basis("giac",proba_epsilon=1e-7) # long time (3s)
             possible output...
             Polynomial Sequence with 143 Polynomials in 9 Variables
 

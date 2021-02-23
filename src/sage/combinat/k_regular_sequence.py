@@ -1123,7 +1123,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
     def recursions(self, equations, function, var, n0=0, minimize=False):
         r"""
-        Construct a `k`-regular sequence that fulfills the recursions
+        Construct a `k`-regular sequence that fulfills the recurrence relations
         given in ``equations``.
 
         INPUT:
@@ -1148,7 +1148,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           then :meth:`~sage.combinat.recognizable_series.minimized` is called
           after the construction.
 
-        OUTPUT: a :class:`kRegularSequence`
+        OUTPUT: A :class:`kRegularSequence`.
 
         EXAMPLES:
 

@@ -363,7 +363,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             orders = self.gens_orders()
             if len(exp) != len(gens_gap):
                 raise ValueError("input does not match the number of generators")
-            x = A.one()
+            x = self.one()
             for i in range(len(exp)):
                 x *= gens_gap[i]**(exp[i] % orders[i])
             x = x.gap()

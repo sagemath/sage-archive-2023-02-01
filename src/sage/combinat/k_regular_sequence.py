@@ -74,11 +74,14 @@ REFERENCES:
 AUTHORS:
 
 - Daniel Krenn (2016)
+- Gabriel Lipnik (2021)
 
 ACKNOWLEDGEMENT:
 
 - Daniel Krenn is supported by the
   Austrian Science Fund (FWF): P 24644-N26.
+- Gabriel Lipnik is supported by the
+  Austrian Science Fund (FWF): W 1230.
 
 
 Classes and Methods

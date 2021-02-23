@@ -1131,9 +1131,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``equations`` -- A list of equations where the elements have
           either the form
 
-          - ``f(k^M * n + r) == sum(f(k^m * n + k) for k in srange(l, u + 1))``
-            for some integers ``0 <= r < k^M`` and ``M > m \geq 0``
-            and some ``l <= u``, valid for all integers ``n >= n0``,
+          - ``f(k^M*n + r) == sum(f(k^m * n + k) for k in srange(l, u + 1))``
+            for some integers `0 \leq r < k^M` and `M > m \geq 0`
+            and some `l \leq u`, valid for all integers `n \geq n0`,
             and there is an equation of this form for all ``r``
 
           or the form
@@ -1145,8 +1145,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``var`` -- symbolic variable ``n`` occuring in the equations.
 
         - ``minimize`` -- a boolean (default: ``False``). If ``True``,
-          the linear representation of the resulting sequence is
-          minimized (see :meth:`minimized`).
+          then :meth:`minimized` is called after the construction.
 
         OUTPUT: a :class:`kRegularSequence`
 

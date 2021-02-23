@@ -38,8 +38,8 @@ EXAMPLES::
     401
     sage: giac.fsolve('x^2=cos(x)+4', 'x','0..5')
     [1.9140206190...
-    sage: giac.factor('x^5 - y^5')
-    (x-y)*(x^2+(-sqrt(5)+1)/2*x*y+y^2)*(x^2+(sqrt(5)+1)/2*x*y+y^2)
+    sage: giac.factor('x^4 - y^4')
+    (x-y)*(x+y)*(x^2+y^2)
     sage: R.<x,y>=QQ[];f=(x+y)^5;f2=giac(f);(f-f2).normal()
     0
     sage: x,y=giac('x,y'); giac.int(y/(cos(2*x)+cos(x)),x)     # random
@@ -74,14 +74,14 @@ discuss two of those ways in this tutorial.
 
    ::
 
-       factor( (x^5-1));
+       factor( (x^4-1));
 
    We can write that in sage as
 
    ::
 
-       sage: giac('factor(x^5-1)')
-       (x-1)*(x^2+(-sqrt(5)+1)/2*x+1)*(x^2+(sqrt(5)+1)/2*x+1)
+       sage: giac('factor(x^4-1)')
+       (x-1)*(x+1)*(x^2+1)
 
    Notice, there is no need to use a semicolon.
 
@@ -92,8 +92,8 @@ discuss two of those ways in this tutorial.
 
    ::
 
-       sage: giac('(x^5-1)').factor()
-       (x-1)*(x^2+(-sqrt(5)+1)/2*x+1)*(x^2+(sqrt(5)+1)/2*x+1)
+       sage: giac('(x^4-1)').factor()
+       (x-1)*(x+1)*(x^2+1)
 
    where ``expression.command()`` means the same thing as
    ``command(expression)`` in Giac. We will use this

@@ -1019,7 +1019,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             return mat
         else:
             arguments = [k**j*var + d for j in srange(m) for d in srange(k**j)] + \
-                        [k**j*var + d for j in srange(m, M) for d in srange(ll, k**j - k**m + uu + 1)]
+                        [k**j*var + d for j in srange(m, M) for d
+                         in srange(ll, k**j - k**m + uu + 1)]
             W = Matrix(base_ring, dim_without_corr, 0)
             for i in srange(n1):
                 v_eval_i = []

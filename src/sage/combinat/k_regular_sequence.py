@@ -386,7 +386,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return W(n.digits(self.k))
 
 
-    def _parse_recursions_(self, equations, function, var, n0=0):
+    def _parse_recursions_(self, equations, function, var, offset=0):
         r"""
         Parse recursion equations as admissible in :meth:`recursions`.
 
@@ -419,7 +419,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=55,
             coeffs={(0, 1): 2, (0, 0): 1, (3, 1): 11, (3, 0): 10, (2, -2): 9,
             (2, 1): 8, (2, 0): 7, (3, -2): 12, (0, -2): 3, (1, 0): 4, (1, -2): 6,
-            (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1}, n0=42, n1=44)
+            (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1}, offset=42, n1=44)
 
         Stern--Brocot Sequence::
 
@@ -428,7 +428,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:    f(1) == 1, f(2) == 1], f, n)
             recursion_rules(M=1, m=0, l=0, u=1, ll=0, uu=2, dim=3,
             coeffs={(1, 0): 1, (0, 0): 1, (1, 1): 1},
-            initial_values={0: 0, 1: 1, 2: 1}, n0=0, n1=0)
+            initial_values={0: 0, 1: 1, 2: 1}, offset=0, n1=0)
 
         TESTS:
 
@@ -618,7 +618,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
                 sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
                 recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={}, initial_values={}, n0=0, n1=0)
+                coeffs={}, initial_values={}, offset=0, n1=0)
         """
         from collections import namedtuple
 
@@ -763,16 +763,16 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
-        n1 = n0 - floor(ll/k**M)
+        n1 = offset - floor(ll/k**M)
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
 
         recursion_rules = namedtuple('recursion_rules',
                                      ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
-                                      'coeffs', 'initial_values', 'n0', 'n1'])
+                                      'coeffs', 'initial_values', 'offset', 'n1'])
 
         return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
                                coeffs=coeffs, initial_values=initial_values,
-                               n0=n0, n1=n1)
+                               offset=offset, n1=n1)
 
 
     @cached_method
@@ -976,7 +976,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         u = recursion_rules.u
         ll = recursion_rules.ll
         uu = recursion_rules.uu
-        n0 = recursion_rules.n0
+        offset = recursion_rules.offset
         n1 = recursion_rules.n1
         dim = recursion_rules.dim
         dim_without_corr = dim - n1
@@ -1121,7 +1121,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return vector(right)
 
 
-    def recursions(self, equations, function, var, n0=0, minimize=False):
+    def recursions(self, equations, function, var, offset=0, minimize=False):
         r"""
         Construct a `k`-regular sequence that fulfills the recurrence relations
         given in ``equations``.
@@ -1133,7 +1133,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
           - ``f(k^M*n + r) == sum(f(k^m * n + k) for k in srange(l, u + 1))``
             for some integers `0 \leq r < k^M` and `M > m \geq 0`
-            and some `l \leq u`, valid for all integers `n \geq n0`,
+            and some `l \leq u`, valid for all integers ``n >= offset``,
             and there is an equation of this form for all ``r``
 
           or the form
@@ -1206,7 +1206,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         k = self.k
         mu = []
 
-        recursion_rules = self._parse_recursions_(equations, function, var, n0)
+        recursion_rules = self._parse_recursions_(equations, function, var, offset)
 
         for rem in srange(k):
             mu.append(self._get_matrix_from_recursions_(recursion_rules, rem, function, var))

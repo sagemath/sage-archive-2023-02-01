@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_namespace_packages
+from setuptools import setup
 
-setup(
-    packages=find_namespace_packages(include=['sage_docbuild'])
-)
+setup()

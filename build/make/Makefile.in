@@ -346,7 +346,10 @@ sagelib-clean:
 	@echo "Deleting Sage library build artifacts..."
 	(cd "$(SAGE_SRC)" && rm -rf c_lib .cython_version; rm -rf build; find . -name '*.pyc' | xargs rm -f; rm -rf sage/ext/interpreters) && (cd "$(SAGE_ROOT)/build/pkgs/sagelib/src/" && rm -rf build)
 
-build-clean: clean doc-clean sagelib-clean
+sage_docbuild-clean:
+	(cd "$(SAGE_ROOT)/build/pkgs/sage_docbuild/src" && rm -rf build)
+
+build-clean: clean doc-clean sagelib-clean sage_docbuild-clean
 
 # Special target for cleaning up a broken GCC install detected by configure
 # This should check for the .clean-broken-gcc stamp, and if found clean

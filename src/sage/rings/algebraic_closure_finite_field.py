@@ -764,6 +764,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             from sage.rings.finite_rings.finite_field_constructor import FiniteField
             return FiniteField(self.base_ring().cardinality() ** n,
                                name=self.variable_name() + str(n),
+                               prefix=self.variable_name(),
                                modulus=self._get_polynomial(n),
                                check_irreducible=False)
 

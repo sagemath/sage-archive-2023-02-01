@@ -1,5 +1,9 @@
 from sage.rings.polynomial.polydict cimport ETuple
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 
+
+cpdef tuple poly_to_tup(MPolynomial_libsingular poly)
+cpdef MPolynomial_libsingular tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent)
 cpdef tuple resize(tuple eq_tup, dict idx_map, int nvars)
 cdef ETuple degrees(tuple poly_tup)
 cpdef ETuple get_variables_degrees(list eqns)
@@ -14,12 +18,4 @@ cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq)
 cpdef dict compute_known_powers(ETuple max_deg, dict val_dict)
 cpdef dict subs(tuple poly_tup, dict known_powers)
 cdef tuple tup_mul(tuple p1, tuple p2)
-cpdef update_reduce(tuple eq_tup, factory, mr_eng)
 cpdef int poly_tup_cmp(tuple tleft, tuple tright)
-cpdef tuple req_cy(factory, tuple sextuple, side=*)
-cpdef tuple feq_cy(factory, tuple nonuple, bint prune=*)
-cpdef feq_verif(factory, tuple nonuple, float tol=*)
-cpdef pent_verify(tuple mp_params, factory)
-cpdef tuple rationalify(factory, tuple eq_tup)
-cpdef tuple cyclotomify(factory, tuple rat_tup)
-

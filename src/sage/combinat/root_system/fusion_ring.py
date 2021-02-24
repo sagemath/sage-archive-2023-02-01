@@ -3,8 +3,9 @@ Fusion Rings
 """
 # ****************************************************************************
 #  Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
-#                     Nicolas Thiery <nthiery at users.sf.net>
 #                     Guillermo Aboumrad <gh_willieab>
+#                     Travis Scrimshaw <tcscrims at gmail.com>
+#                     Nicolas Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
@@ -18,6 +19,11 @@ from sage.misc.misc import inject_variable
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.misc.cachefunc import cached_method
+
+from itertools import product
+import sage.combinat.root_system.f_matrix as FMatrix
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.matrix.special import diagonal_matrix
 
 class FusionRing(WeylCharacterRing):
     r"""
@@ -116,7 +122,7 @@ class FusionRing(WeylCharacterRing):
     The fusion ring has a number of methods that reflect its role
     as the Grothendieck ring of a *modular tensor category* (MTC). These
     include twist methods :meth:`Element.twist` and :meth:`Element.ribbon`
-    for its elements related to the ribbon structure, and the 
+    for its elements related to the ribbon structure, and the
     S-matrix :meth:`s_ij`.
 
     There are two natural normalizations of the S-matrix. Both
@@ -128,7 +134,7 @@ class FusionRing(WeylCharacterRing):
     The unitary S-matrix is `s=D^{-1/2}\tilde{s}` where
 
     .. MATH::
-    
+
         D = \sum_V d_i(V)^2.
 
     The sum is over all simple objects `V` with
@@ -546,7 +552,7 @@ class FusionRing(WeylCharacterRing):
         field theory associated with the Fusion Ring.
 
         If `\mathfrak{g}` is the corresponding semisimple Lie algebra, this is
-        
+
         .. MATH::
 
             \frac{k\dim\mathfrak{g}}{k+h^\vee},
@@ -561,7 +567,7 @@ class FusionRing(WeylCharacterRing):
         is computed in :meth:`D_plus` and `D = \sum d_i^2 > 0` is computed
         by :meth:`global_q_dimension`. Squaring this identity and
         remembering that `D_+ D_- = D` gives
-        
+
         .. MATH::
 
             D_+ / D_- = e^{i\pi c/2}.
@@ -706,7 +712,7 @@ class FusionRing(WeylCharacterRing):
         - ``unitary`` -- (default: ``False``) set to ``True`` to obtain
           the unitary S-matrix
 
-        Without the ``unitary`` parameter, this is the matrix denoted 
+        Without the ``unitary`` parameter, this is the matrix denoted
         `\widetilde{s}` in [BaKi2001]_.
 
         EXAMPLES::
@@ -734,11 +740,18 @@ class FusionRing(WeylCharacterRing):
             return S / self.total_q_order()
         else:
             return S
-        
+
+    @cached_method
     def r_matrix(self, i, j, k):
         r"""
         Return the R-matrix entry corresponding to the subobject ``k``
         in the tensor product of ``i`` with ``j``.
+
+        .. WARNING::
+
+            This method only gives complete information when `N_{ij}^k = 1`
+            (an important special case). Tables of MTC including R-matrices
+            may be found in Section 5.3 of [RoStWa2009]_ and in [Bond2007]_.
 
         The R-matrix is a homomorphism `i \otimes j \rightarrow j \otimes i`.
         This may be hard to describe since the object `i \otimes j`
@@ -749,21 +762,15 @@ class FusionRing(WeylCharacterRing):
         R-matrix. This method computes that scalar. It is possible to
         adjust the set of embeddings `k \rightarrow i \otimes j` (called
         a *gauge*) so that this scalar equals
-        
+
         .. MATH::
 
             \pm \sqrt{\frac{ \theta_k }{ \theta_i \theta_j }}.
 
         If `i \neq j`, the gauge may be used to control the sign of
         the square root. But if `i = j` then we must be careful
-        about the sign. This sign is `+` if `k` is a subobject of 
-        the symmetric square of `i` and `-` if it is a subobject of 
-        the exterior square. See [LR1997]_ Corollary 2.22
-        (actually due to Reshetikhin).
-
-        This method only gives complete information when `N_{ij}^k = 1`
-        (an important special case). Tables of MTC including R-matrices
-        may be found in Section 5.3 of [RoStWa2009]_ and in [Bond2007]_.
+        about the sign. These cases are computed by a formula
+        of [BDGRTW2019]_, Proposition 2.3.
 
         EXAMPLES::
 
@@ -782,14 +789,14 @@ class FusionRing(WeylCharacterRing):
         """
         if self.Nk_ij(i, j, k) == 0:
             return 0
-        r = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
         if i != j:
-            return r
-        wt = k.weight()
-        if wt in i.symmetric_power(2).monomial_coefficients():
-            return r
-        # We instead have wt in i.exterior_power(2).monomial_coefficients():
-        return -r
+            return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
+        i0 = self.one()
+        B = self.basis()
+        return sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
+                   * self.s_ij(i0,y) * self.s_ij(i,z) * self.s_ij(x,z).conjugate()
+                   * self.s_ij(k,x).conjugate() * self.s_ij(y,z).conjugate() / self.s_ij(i0,z)
+                   for x in B for y in B for z in B) / (self.total_q_order()**4)
 
     def global_q_dimension(self):
         r"""
@@ -864,6 +871,176 @@ class FusionRing(WeylCharacterRing):
         """
         return sum((x.q_dimension())**2 / x.ribbon() for x in self.basis())
 
+    ###################################
+    ### Braid group representations ###
+    ###################################
+
+    #Recursively enumerate all the admissible trees with given top row and root.
+    #Returns a list of tuples (l1,...,lk) such that
+    #root -> lk # m[-1], lk -> l_{k-1} # m[-2], ..., l1 -> m[0] # m[1],
+    #with top_row = m
+    def get_trees(self,top_row,root):
+        if len(top_row) == 2:
+            m1, m2 = top_row
+            return [[]] if self.Nk_ij(m1,m2,root) else []
+        else:
+            m1, m2 = top_row[:2]
+            return [tuple([l,*b]) for l in self.basis() for b in self.get_trees([l]+top_row[2:],root) if self.Nk_ij(m1,m2,l)]
+
+    #Get the so-called computational basis for Hom(b, a^n). The basis is a list of
+    #(n-2)-tuples (m_1,...,m_{n//2},l_1,...,l_{(n-3)//2}) such that
+    #each m_i is a monomial in a^2 and l_{j+1} \in l_j # a, and l[-1] \in a # b
+    def get_comp_basis(self,a,b,n_strands):
+        comp_basis = list()
+        for top in product((a*a).monomials(),repeat=n_strands//2):
+            #If the n_strands is odd, we must extend the top row by a fusing anyon
+            top_row = list(top)+[a]*(n_strands%2)
+            comp_basis.extend(tuple([*top,*levels]) for levels in self.get_trees(top_row,b))
+        return comp_basis
+
+    #Compute the (xi,yi), (xj,yj) entry of generator braiding the middle two strands
+    #in the tree b -> xi # yi -> (a # a) # (a # a), which results in a sum over j
+    #of trees b -> xj # yj -> (a # a) # (a # a)
+    @cached_method
+    def mid_sig_ij(self,row,col,a,b):
+        xi, yi = row
+        xj, yj = col
+        entry = 0
+        for c in self.basis():
+            for d in self.basis():
+                ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
+                f1 = self.fmats.fmat(a,a,yi,b,xi,c)
+                f2 = self.fmats.fmat(a,a,a,c,d,yi)
+                f3 = self.fmats.fmat(a,a,a,c,d,yj)
+                f4 = self.fmats.fmat(a,a,yj,b,xj,c)
+                r = self.r_matrix(a,a,d)
+                entry += f1 * f2 * r * f3 * f4
+        return entry
+
+    #Compute the xi, xj entry of the braid generator on the right-most strands,
+    #corresponding to the tree b -> (xi # a) -> (a # a) # a, which results in a
+    #sum over j of trees b -> xj -> (a # a) # (a # a)
+    @cached_method
+    def odd_one_out_ij(self,xi,xj,a,b):
+        entry = 0
+        for c in self.basis():
+            ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
+            f1 = self.fmats.fmat(a,a,a,b,xi,c)
+            f2 = self.fmats.fmat(a,a,a,b,xj,c)
+            r = self.r_matrix(a,a,c)
+            entry += f1 * r * f2
+        return entry
+
+    @lazy_attribute
+    def fmats(self):
+        return FMatrix.FMatrix(self)
+
+    #Compute generators of the Artin braid group on n_strands strands. If
+    #fusing_anyon = a and total_topological_charge = b, the generators are
+    #endomorphisms of Hom(a^n_strands, b).
+    ###NOTE: For now, we assume existence of fmats with relevant F-symbols ready.
+    #In the future this method will call an appropriate F-matrix solver...
+    #For useful group calculations, the F-symbols should lie in a NumberField.
+    def get_braid_generators(self,fusing_anyon,total_topological_charge,n_strands):
+        assert n_strands > 2, "The number of strands must be an integer greater than 2"
+        a, b = fusing_anyon, total_topological_charge
+
+        #Construct associated FMatrix object and solve for F-symbols
+        if not self.fmats.symbols_known:
+            self.fmats.find_real_orthogonal_solution()
+
+        #Set up the computational basis
+        comp_basis = self.get_comp_basis(a,b,n_strands)
+        basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
+        dim = len(comp_basis)
+        print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(dim,n_strands))
+
+        #Compute diagonal odd-indexed generators using the 3j-symbols
+        gens = { 2*i+1 : diagonal_matrix(self.r_matrix(a,a,c[i]) for c in comp_basis) for i in range(n_strands//2) }
+
+        #Compute even-indexed generators using F-matrices
+        for k in range(1,n_strands//2):
+            entries = dict()
+            for i in range(dim):
+                for f,e,q in product(self.basis(),repeat=3):
+                    #Compute appropriate possible nonzero row index
+                    nnz_pos = list(comp_basis[i])
+                    nnz_pos[k-1:k+1] = f,e
+                    #Handle the special case k = 1
+                    if k > 1:
+                        nnz_pos[n_strands//2+k-2] = q
+                    nnz_pos = tuple(nnz_pos)
+
+                    #Skip repeated entries when k = 1
+                    if nnz_pos in comp_basis and (basis_dict[nnz_pos],i) not in entries:
+                        m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
+                        #A few special cases
+                        top_left = m[0]
+                        if k >= 3:
+                            top_left = l[k-3]
+                        root = b
+                        if k - 1 < len(l):
+                            root = l[k-1]
+
+                        #Handle the special case k = 1
+                        if k == 1:
+                            entries[basis_dict[nnz_pos],i] = self.mid_sig_ij(m[:2],(f,e),a,root)
+                            continue
+
+                        entry = 0
+                        for p in self.basis():
+                            f1 = self.fmats.fmat(top_left,m[k-1],m[k],root,l[k-2],p)
+                            f2 = self.fmats.fmat(top_left,f,e,root,q,p)
+                            entry += f1 * self.mid_sig_ij((m[k-1],m[k]),(f,e),a,p) * f2
+                        entries[basis_dict[nnz_pos],i] = entry
+            gens[2*k] = matrix(entries)
+
+        #If n_strands is odd, we compute the final generator
+        if n_strands % 2:
+            entries = dict()
+            for i in range(dim):
+                for f, q in product(self.basis(),repeat=2):
+                    #Compute appropriate possible nonzero row index
+                    nnz_pos = list(comp_basis[i])
+                    nnz_pos[n_strands//2-1] = f
+                    #Handle small special case
+                    if n_strands > 3:
+                        nnz_pos[-1] = q
+                    nnz_pos = tuple(nnz_pos)
+
+                    if nnz_pos in comp_basis:
+                        m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
+
+                        #Handle a couple of small special cases
+                        if n_strands == 3:
+                            entries[basis_dict[nnz_pos],i] = self.odd_one_out_ij(m[-1],f,a,b)
+                            continue
+                        top_left = m[0]
+                        if n_strands > 5:
+                            top_left = l[-2]
+                        root = b
+
+                        #Compute relevant entry
+                        entry = 0
+                        for p in self.basis():
+                            f1 = self.fmats.fmat(top_left,m[-1],a,root,l[-1],p)
+                            f2 = self.fmats.fmat(top_left,f,a,root,q,p)
+                            entry += f1 * self.odd_one_out_ij(m[-1],f,a,p) * f2
+                        entries[basis_dict[nnz_pos],i] = entry
+                gens[n_strands-1] = matrix(entries)
+
+        return comp_basis, [gens[k] for k in sorted(gens)]
+
+    #A useful sanity check
+    #Determine if given iterable of n matrices defines a representation of
+    #the Artin braid group on (n+1) strands
+    def gens_satisfy_braid_gp_rels(self,sig):
+        n = len(sig)
+        braid_rels = all(sig[i] * sig[i+1] * sig[i] == sig[i+1] * sig[i] * sig[i+1] for i in range(n-1))
+        far_comm = all(sig[i] * sig[j] == sig[j] * sig[i] for i, j in product(range(n),repeat=2) if abs(i-j) > 1 and i > j)
+        singular = any(s.is_singular() for s in sig)
+        return braid_rels and far_comm and not singular
+
     class Element(WeylCharacterRing.Element):
         """
         A class for FusionRing elements.
@@ -904,7 +1081,7 @@ class FusionRing(WeylCharacterRing):
 
         def twist(self, reduced=True):
             r"""
-            Return a rational number `h` such that `\theta = e^{i \pi h}` 
+            Return a rational number `h` such that `\theta = e^{i \pi h}`
             is the twist of ``self``. The quantity `e^{i \pi h}` is
             also available using :meth:`ribbon`.
 
@@ -913,7 +1090,7 @@ class FusionRing(WeylCharacterRing):
             `h = \langle \lambda, \lambda+2\rho \rangle`, where
             `\rho` is half the sum of the positive roots.
             As in [Row2006]_, this requires normalizing
-            the invariant bilinear form so that 
+            the invariant bilinear form so that
             `\langle \alpha, \alpha \rangle = 2` for short roots.
 
             INPUT:
@@ -1026,4 +1203,3 @@ class FusionRing(WeylCharacterRing):
             expr = expr.substitute(q=q**4) / (q**(2*expr.degree()))
             zet = P.field().gen() ** (P._cyclotomic_order/P._l)
             return expr.substitute(q=zet)
-

@@ -1,0 +1,5 @@
+cpdef get_reduced_hexagons(factory, int child_id, int n_proc)
+cpdef get_reduced_pentagons(factory, int child_id, int n_proc, bint prune=*)
+cpdef update_reduce(factory, tuple eq_tup)
+cpdef compute_gb(factory,eqns,term_order=*)
+cpdef pent_verify(tuple mp_params, factory)

@@ -1,11 +1,8 @@
+from functools import cmp_to_key
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
-from sage.rings.polynomial.polydict cimport ETuple, PolyDict
+from sage.rings.polynomial.polydict cimport ETuple
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.rational_field import RationalField as QQ
-
-###NOTE: issues with importing NumberFieldElement_absolute and FMatrix
-#from sage.rings.number_field.number_field_element cimport NumberFieldElement
-#from sage.combinat.root_system.f_matrix import FMatrix
 
 ###################################################
 ### Arithmetic Engine for polynomials as tuples ###
@@ -36,7 +33,7 @@ cpdef MPolynomial_libsingular tup_to_poly(tuple eq_tup, MPolynomialRing_libsingu
 
 #Given a tuple of pairs representing a univariate polynomial and a univariate
 #polynomial ring generator, return a univariate polynomial object
-def tup_to_univ_poly(eq_tup, gen):
+def tup_to_univ_poly(tuple eq_tup, gen):
     univ_tup = tuple((exp.nonzero_values()[0] if exp.nonzero_values() else 0, c) for exp, c in eq_tup)
     return sum(c * gen ** p for p, c in univ_tup)
 
@@ -210,19 +207,11 @@ cdef tuple tup_mul(tuple p1, tuple p2):
                 prod[xi.eadd(yj)] = ai*bj
     return tuple(prod.items())
 
-#Substitute known values, known squares, and reduce!
-cpdef update_reduce(tuple eq_tup, factory, mr_eng):
-    cdef dict eq_dict = subs(eq_tup,factory._kp)
-    cdef reduced
-    if tup_fixes_sq(tuple(eq_dict.items())):
-        reduced = to_monic(eq_dict)
-    else:
-        reduced = reduce_poly_dict(eq_dict,factory._nnz,factory._ks)
-    mr_eng.worker_results.append(reduced)
-
 ###############
 ### Sorting ###
 ###############
+
+#Implement richcmp comparator object that can be passed in as key to sorted method
 
 #Determine which polynomial is larger with respect to the degrevlex ordering
 cpdef int poly_tup_cmp(tuple tleft, tuple tright):
@@ -244,147 +233,3 @@ cpdef int poly_tup_cmp(tuple tleft, tuple tright):
         if ret != 0:
             return ret
     return len(tleft) - len(tright)
-
-############################
-### Fast FMatrix methods ###
-############################
-from itertools import product
-
-#Given an FMatrix factory and a sextuple, return a pentagon equation as a polynomial object
-cpdef tuple req_cy(factory, tuple sextuple, side="left"):
-    a, b, c, d, e, g = sextuple
-    #To add typing we need to ensure all fmats.fmat are of the same type?
-    #Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
-    lhs = factory.FR.r_matrix(a,c,e)*factory.fmat(a,c,b,d,e,g)*factory.FR.r_matrix(b,c,g)
-    rhs = 0
-    for f in factory.FR.basis():
-      rhs += factory.fmat(c,a,b,d,e,f)*factory.FR.r_matrix(f,c,d)*factory.fmat(a,b,c,d,f,g)
-    he = lhs - rhs
-    if he:
-        return reduce_poly_dict(he.dict(),factory._nnz,factory._ks)
-    else:
-        return tuple()
-
-#Set up and reduce the hexagon equations corresponding to this worker
-# cpdef get_reduced_hexagons(factory, int child_id, int n_proc):
-#   cdef int i
-#   cdef tuple sextuple
-#   for i, sextuple in enumerate(product(factory.FR.basis(),repeat=6)):
-#       if i % n_proc == child_id:
-#           he = req_cy(factory,sextuple)
-#           if he:
-#               factory.temp_eqns.append(reduce_poly_dict(he.dict(),factory._nnz,factory._ks))
-
-#Given an FMatrix factory and a nonuple, return a pentagon equation as a polynomial object
-
-cpdef tuple feq_cy(factory, tuple nonuple, bint prune=False):
-    a, b, c, d, e, f, g, k, l = nonuple
-    cdef lhs = factory.fmat(f,c,d,e,g,l)*factory.fmat(a,b,l,e,f,k)
-    if lhs == 0 and prune: # it is believed that if lhs=0, the equation carries no new information
-      return factory._poly_ring.zero()
-    cdef MPolynomial_libsingular rhs = factory._poly_ring.zero()
-    for h in factory.FR.basis():
-      rhs += factory.fmat(a,b,c,g,f,h)*factory.fmat(a,h,d,e,g,k)*factory.fmat(b,c,d,k,h,l)
-    return reduce_poly_dict((lhs - rhs).dict(),factory._nnz,factory._ks)
-  
-#Set up and reduce the pentagon equations corresponding to this worker
-# cpdef get_reduced_pentagons(factory, int child_id, int n_proc, bint prune=True):
-#   cdef int i
-#   cdef tuple nonuple
-#   cdef MPolynomial_libsingular pe
-#   for i, nonuple in enumerate(product(factory.FR.basis(),repeat=9)):
-#       if i % n_proc == child_id:
-#           pe = feq_cy(factory,nonuple,prune=prune)
-#           if pe:
-#               factory.temp_eqns.append(reduce_poly_dict(pe.dict(),factory._nnz,factory._ks))
-
-####################
-### Verification ###
-####################
-
-#Check the pentagon equation corresponding to the given nonuple
-cpdef feq_verif(factory, tuple nonuple, float tol=5e-8):
-    a, b, c, d, e, f, g, k, l = nonuple
-    cdef float diff, lhs, rhs
-    lhs = factory.fmat(f,c,d,e,g,l)*factory.fmat(a,b,l,e,f,k)
-    rhs = 0.0
-    for h in factory.FR.basis():
-      rhs += factory.fmat(a,b,c,g,f,h)*factory.fmat(a,h,d,e,g,k)*factory.fmat(b,c,d,k,h,l)
-    diff = lhs - rhs
-    if diff > tol or diff < -tol:
-      factory.temp_eqns.append(diff)
-
-#Generate all the pentagon equations assigned to this process, and reduce them
-from time import time
-from os import getpid
-cimport cython
-@cython.wraparound(False)
-@cython.nonecheck(False)
-@cython.cdivision(True)
-cpdef pent_verify(tuple mp_params, factory):
-    child_id, n_proc = mp_params
-    cdef float t0
-    cdef tuple nonuple
-    cdef long i
-    t0 = time()
-    for i, nonuple in enumerate(product(factory.FR.basis(),repeat=9)):
-        if i % n_proc == child_id:
-          feq_verif(factory,nonuple)
-        if i % 50000000 == 0 and i:
-          print("{:5d}m equations checked in {:8.2f}... {} misses so far...".format(i // 1000000,time()-t0,len(factory.temp_eqns)))
-    print("Ran through {} pentagons in {:8.2f}... Worker {} with {} reporting {} total misses...".format(i,time()-t0,child_id,getpid(),len(factory.temp_eqns)))
-
-################################
-### Well, this was a bust... ###
-################################
-
-#Given a tuple representation of an n-variate polynomial over a cyclotomic field,
-#return a tuple representation of an (n+1)-variate polynomial over the rationals,
-#with the cyclotomic field generator treated as an indeterminate and used as the
-#last variable in the parent polynomial ring
-cpdef tuple rationalify(factory, tuple eq_tup):
-    F = factory.FR.field()
-    cdef list rat_tup = list()
-    cdef ETuple exp
-    for exp, coeff in eq_tup:
-      #In the future we should avoid casting by ensuring all coeffs created are
-      #in fmats.FR.field (eg. cython reducers, FMatrix.fmat)
-      for cyc_power, rat_coeff in F(coeff).polynomial().dict().items():
-          nnz = { len(exp) : cyc_power }
-          for idx, val in exp.sparse_iter():
-              nnz[idx] = val
-          new_e = ETuple(nnz, len(exp)+1)
-          rat_tup.append((new_e, rat_coeff))
-    return tuple(rat_tup)
-
-#Given a tuple representation of an n-variate polynomial over the rationals,
-#return a tuple repn of the polynomial with integer coefficients, obtained by
-#multiplying all coefficients by the least common multiple of denominators
-# cpdef tuple integralify(tuple rat_tup):
-#     cdef int cdenom = LCM(coeff.denominator() for exp, coeff in rat_tup)
-#     cdef list int_tup = list()
-#     for exp, coeff in rat_tup:
-#         int_tup.append((exp, int(cdenom * coeff)))
-#     return tuple(int_tup)
-
-#Left inverse of rationalify...
-#cylcotomify(factory, rationalify(factory, eq_tup)) == eq_tup
-cpdef tuple cyclotomify(factory, tuple rat_tup):
-    gen = factory.FR.field().gen()
-    cdef cyc_dict = dict()
-    cdef ETuple exp
-    for exp, coeff in rat_tup:
-      cyc_pow = exp.get_exp(len(exp)-1)
-      new_e = ETuple({ pos : val for pos, val in exp.sparse_iter() if pos != len(exp)-1 }, len(exp)-1)
-      if new_e in cyc_dict:
-          cyc_dict[new_e] += gen ** cyc_pow * coeff
-      else:
-          cyc_dict[new_e] = gen ** cyc_pow * coeff
-    return tuple(cyc_dict.items())
-
-# def clear_denom(eq):
-#     for var in eq.variables():
-#         if int(str(var)[1:]) >= fmats._poly_ring.ngens():
-#             d = eq.degree(var)
-#             eq *= var ** d
-#     return eq

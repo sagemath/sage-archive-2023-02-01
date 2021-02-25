@@ -3202,7 +3202,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def real_components(self):
         """
-        Return 1 if there is 1 real component and 2 if there are 2.
+        Return the number of real components.
 
         EXAMPLES::
 
@@ -3216,13 +3216,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.real_components ()
             1
         """
-        invs = self.short_weierstrass_model().ainvs()
-        x = rings.polygen(self.base_ring())
-        f = x**3 + invs[3]*x + invs[4]
-        if f.discriminant() > 0:
-            return 2
-        else:
-            return 1
+        return 2 if self.discriminant() > 0 else 1
 
     def has_good_reduction_outside_S(self, S=[]):
         r"""

@@ -2598,6 +2598,61 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self,embedding)
 
+
+    def real_components(self, embedding):
+        """
+        Return the number of real components with respect to a real embedding of the base field..
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: embs = K.real_embeddings()
+            sage: E = EllipticCurve([0,1,1,a,a])
+            sage: [e(E.discriminant()) > 0 for e in embs]
+            [True, False]
+            sage: [E.real_components(e) for e in embs]
+            [2, 1]
+
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: e = K.complex_embeddings()[0]
+            sage: E = EllipticCurve([0,1,1,a,a])
+            sage: E.real_components(e)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid embedding specified: should be real
+
+            sage: E.real_components('banana')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid embedding
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: E = EllipticCurve([0,1,1,a,a])
+            sage: K1.<a> = QuadraticField(5)
+            sage: e = K1.real_embeddings()[0]
+            sage: E.real_components(e)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid embedding specified: should have domain ...
+        """
+        from sage.rings.real_mpfr import is_RealField
+        try:
+            if not embedding.domain() is self.base_field():
+                raise ValueError("invalid embedding specified: should have domain {}".format(self.base_field()))
+            if not is_RealField(embedding.codomain()):
+                raise ValueError("invalid embedding specified: should be real")
+        except AttributeError:
+                raise ValueError("invalid embedding")
+
+        from sage.rings.number_field.number_field import refine_embedding
+        from sage.rings.infinity import Infinity
+        e = refine_embedding(embedding,Infinity)
+
+        return 2 if e(self.discriminant()) > 0 else 1
+
     def height_function(self):
         """
         Return the canonical height function attached to self.

@@ -1801,18 +1801,20 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         """
         n = self.dimension_relative()
         R = self.base_ring()
-        zero = R(0)
+        zero = R.zero()
         i = n
-        while not i < 0:
-            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
-            yield self(P)
-            iters = [ iter(R) for _ in range(i) ]
-            for x in iters: next(x) # put at zero
+        PHom = self.point_homset()
+        while i >= 0:
+            P = [zero]*i + [R.one()] + [zero]*(n-i)
+            yield PHom(P, check=False)
+            iters = [iter(R) for _ in range(i)]
+            for x in iters:
+                next(x) # put at zero
             j = 0
             while j < i:
                 try:
                     P[j] = next(iters[j])
-                    yield self(P)
+                    yield PHom(P, check=False)
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset

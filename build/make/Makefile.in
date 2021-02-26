@@ -54,7 +54,7 @@ SAGE_SPKG_OPTIONS = @SAGE_SPKG_OPTIONS@
 
 # Where the Sage distribution installs Python packages.
 # This can be overridden by 'make SAGE_VENV=/some/venv'.
-SAGE_VENV = $(SAGE_LOCAL)
+SAGE_VENV = @SAGE_VENV@
 
 # Generate/install sage-specific .pc files.
 # see build/pkgs/gsl/spkg-configure.m4

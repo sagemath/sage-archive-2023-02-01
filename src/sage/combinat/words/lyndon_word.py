@@ -415,6 +415,11 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: length is not k=3
+
+        Make sure that the correct length is checked (:trac:`30186`)::
+
+            sage: L = LyndonWords(2, 4)
+            sage: _ = L(L.random_element())
         """
         w = self._words(*args, **kwds)
         if kwds.get('check', True) and not w.is_lyndon():
@@ -547,7 +552,7 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
         return standard_bracketing(self._lyndon(*args, **kwds))
 
     def __contains__(self, sblw):
-        r"""
+        """
         EXAMPLES:
 
             sage: S = StandardBracketedLyndonWords(2, 3)

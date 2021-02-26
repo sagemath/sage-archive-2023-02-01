@@ -2601,7 +2601,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def real_components(self, embedding):
         """
-        Return the number of real components with respect to a real embedding of the base field..
+        Return the number of real components with respect to a real embedding of the base field.
 
         EXAMPLES::
 

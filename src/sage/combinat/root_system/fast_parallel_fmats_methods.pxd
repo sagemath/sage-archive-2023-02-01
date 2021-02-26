@@ -4,3 +4,5 @@ cpdef update_reduce(factory, tuple eq_tup)
 cpdef compute_gb(factory, tuple args)
 cpdef update_child_fmats(factory, tuple data_tup)
 cpdef pent_verify(factory, tuple mp_params)
+
+cdef _fmat(factory, a, b, c, d, x, y)

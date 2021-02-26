@@ -25,14 +25,16 @@ worker_results = list()
 ### Parallel code executor ###
 ##############################
 
-#Execute a function defined in this module (sage.combinat.root_system.fast_parallel_fmats_methods)
-#in a worker process, and supply the factory parameter by constructing a reference
-#to the FMatrix object in the worker's memory adress space from its id
-###  NOTE: When the parent process is forked, each worker gets a copy of
-#every  global variable. The virtual memory address of object X in the parent
-#process equals the VIRTUAL memory address of the copy of object X in each
-#worker, so we may construct references to forked copies of X
 def executor(params):
+    """
+    Execute a function defined in this module (sage.combinat.root_system.fast_parallel_fmats_methods)
+    in a worker process, and supply the factory parameter by constructing a reference
+    to the FMatrix object in the worker's memory adress space from its id
+    ##  NOTE: When the parent process is forked, each worker gets a copy of
+    every  global variable. The virtual memory address of object X in the parent
+    process equals the VIRTUAL memory address of the copy of object X in each
+    worker, so we may construct references to forked copies of X
+    """
     (fn_name, fmats_id), args = params
     #Construct a reference to global FMatrix object in this worker's memory
     fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
@@ -44,8 +46,10 @@ def executor(params):
 ### Mappers ###
 ###############
 
-#Cython version of fmat class method. Using cdef for fastest dispatch
 cdef _fmat(factory, a, b, c, d, x, y):
+      """
+      Cython version of fmat class method. Using cdef for fastest dispatch
+      """
       if factory.FR.Nk_ij(a,b,x) == 0 or factory.FR.Nk_ij(x,c,d) == 0 or factory.FR.Nk_ij(b,c,y) == 0 or factory.FR.Nk_ij(a,y,d) == 0:
               return 0
       #Some known zero F-symbols

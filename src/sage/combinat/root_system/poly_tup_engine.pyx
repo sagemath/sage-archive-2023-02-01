@@ -67,7 +67,6 @@ cpdef tuple resize(tuple eq_tup, dict idx_map, int nvars):
 ### Convenience methods ###
 ###########################
 
-
 cdef ETuple degrees(tuple poly_tup):
     """
     Return the maximal degree of each variable in the polynomial
@@ -197,7 +196,6 @@ cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq):
 ### Substitution ###
 ####################
 
-#Pre-compute powers of known values for efficiency
 cpdef dict compute_known_powers(ETuple max_deg, dict val_dict):
     """
     Pre-compute powers of known values for efficiency

@@ -1,6 +1,13 @@
-############################
-### Fast FMatrix methods ###
-############################
+"""
+Fast FMatrix methods
+"""
+# ****************************************************************************
+#  Copyright (C) 2021 Guillermo Aboumrad <gh_willieab>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 cimport cython
 import ctypes
 from itertools import product
@@ -59,8 +66,10 @@ cdef _fmat(factory, a, b, c, d, x, y):
               return 0
       return factory._fvars[a,b,c,d,x,y]
 
-#Given an FMatrix factory and a sextuple, return a pentagon equation as a polynomial object
 cdef req_cy(factory, tuple sextuple, side="left"):
+    """
+    Given an FMatrix factory and a sextuple, return a hexagon equation as a polynomial object
+    """
     a, b, c, d, e, g = sextuple
     #To add typing we need to ensure all fmats.fmat are of the same type?
     #Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
@@ -70,50 +79,59 @@ cdef req_cy(factory, tuple sextuple, side="left"):
       rhs += _fmat(factory,c,a,b,d,e,f)*factory.FR.r_matrix(f,c,d)*_fmat(factory,a,b,c,d,f,g)
     return lhs-rhs
 
-#Set up and reduce the hexagon equations corresponding to this worker
 @cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef get_reduced_hexagons(factory, tuple mp_params):
-  cdef int child_id, n_proc, i
-  child_id, n_proc = mp_params
-  cdef tuple sextuple
-  global worker_results
-  for i, sextuple in enumerate(product(factory.FR.basis(),repeat=6)):
-      if i % n_proc == child_id:
-          he = req_cy(factory,sextuple)
-          if he:
-              worker_results.append(reduce_poly_dict(he.dict(),factory._nnz,factory._ks))
+    """
+    Set up and reduce the hexagon equations corresponding to this worker
+    """
+    global worker_results
+    cdef int i, child_id, n_proc
+    child_id, n_proc = mp_params
+    cdef tuple sextuple
+    for i, sextuple in enumerate(product(factory.FR.basis(),repeat=6)):
+        if i % n_proc == child_id:
+            he = req_cy(factory,sextuple)
+            if he:
+                worker_results.append(reduce_poly_dict(he.dict(),factory._nnz,factory._ks))
 
-#Given an FMatrix factory and a nonuple, return a pentagon equation as a polynomial object
 cdef MPolynomial_libsingular feq_cy(factory, tuple nonuple, bint prune=False):
+    """
+    Given an FMatrix factory and a nonuple, return a pentagon equation as a polynomial object
+    """
     a, b, c, d, e, f, g, k, l = nonuple
     cdef lhs = _fmat(factory,f,c,d,e,g,l)*_fmat(factory,a,b,l,e,f,k)
     if lhs == 0 and prune: # it is believed that if lhs=0, the equation carries no new information
-      return factory._poly_ring.zero()
+        return factory._poly_ring.zero()
     cdef rhs = factory._poly_ring.zero()
     for h in factory.FR.basis():
       rhs += _fmat(factory,a,b,c,g,f,h)*_fmat(factory,a,h,d,e,g,k)*_fmat(factory,b,c,d,k,h,l)
     return lhs - rhs
 
-#Set up and reduce the pentagon equations corresponding to this worker
 @cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
-  cdef int child_id, n_proc, i
-  child_id, n_proc = mp_params
-  cdef tuple nonuple
-  cdef MPolynomial_libsingular pe
-  global worker_results
-  for i, nonuple in enumerate(product(factory.FR.basis(),repeat=9)):
-      if i % n_proc == child_id:
-          pe = feq_cy(factory,nonuple,prune=prune)
-          if pe:
-              worker_results.append(reduce_poly_dict(pe.dict(),factory._nnz,factory._ks))
+    """
+    Set up and reduce the pentagon equations corresponding to this worker
+    """
+    global worker_results
+    cdef int i, child_id, n_proc
+    child_id, n_proc = mp_params
+    cdef tuple nonuple
+    cdef MPolynomial_libsingular pe
+    for i, nonuple in enumerate(product(factory.FR.basis(),repeat=9)):
+        if i % n_proc == child_id:
+            pe = feq_cy(factory,nonuple,prune=prune)
+            if pe:
+                worker_results.append(reduce_poly_dict(pe.dict(),factory._nnz,factory._ks))
 
-#Substitute known values, known squares, and reduce!
+
 cpdef update_reduce(factory, tuple eq_tup):
+    """
+    Substitute known values, known squares, and reduce!
+    """
     global worker_results
     cdef dict eq_dict = subs(eq_tup,factory._kp)
     cdef reduced
@@ -123,10 +141,12 @@ cpdef update_reduce(factory, tuple eq_tup):
         reduced = reduce_poly_dict(eq_dict,factory._nnz,factory._ks)
     worker_results.append(reduced)
 
-#Compute Groebner basis for given equations iterable
 cpdef compute_gb(factory, tuple args):
-    eqns, term_order = args
+    """
+    Compute Groebner basis for given equations iterable
+    """
     global worker_results
+    eqns, term_order = args
     #Define smaller poly ring in component vars
     sorted_vars = list()
     for eq_tup in eqns:
@@ -165,9 +185,11 @@ cpdef update_child_fmats(factory, tuple data_tup):
 ### Reducers ###
 ################
 
-#Helper function for returning processed results back to parent process
-#Trivial reducer: simply collects objects with the same key in the worker
 def collect_eqns(proc):
+    """
+    Helper function for returning processed results back to parent process.
+    Trivial reducer: simply collects objects with the same key in the worker
+    """
     #Discard the zero polynomial
     global worker_results
     reduced = set(worker_results)-set([tuple()])
@@ -178,8 +200,10 @@ def collect_eqns(proc):
 ### Verification ###
 ####################
 
-#Check the pentagon equation corresponding to the given nonuple
 cdef feq_verif(factory, tuple nonuple, float tol=5e-8):
+    """
+    Check the pentagon equation corresponding to the given nonuple
+    """
     global worker_results
     a, b, c, d, e, f, g, k, l = nonuple
     cdef float diff, lhs, rhs
@@ -191,11 +215,14 @@ cdef feq_verif(factory, tuple nonuple, float tol=5e-8):
     if diff > tol or diff < -tol:
       worker_results.append(diff)
 
-#Generate all the pentagon equations assigned to this process, and reduce them
+
 @cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef pent_verify(factory, tuple mp_params):
+    """
+    Generate all the pentagon equations assigned to this process, and reduce them
+    """
     child_id, n_proc = mp_params
     cdef float t0
     cdef tuple nonuple

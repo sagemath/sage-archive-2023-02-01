@@ -119,13 +119,7 @@ PIP_PACKAGES = @SAGE_PIP_PACKAGES@
 # Packages that use the 'script' package build rules
 SCRIPT_PACKAGES = @SAGE_SCRIPT_PACKAGES@
 
-# Generate variables for installation locations
 
-$(foreach pkgname,$(BUILT_PACKAGES) $(DUMMY_PACKAGES),\
-	$(eval local_$(pkgname) = $(SAGE_LOCAL)))
-# Override this for Python packages, which we install in the SAGE_VENV tree.
-$(foreach pkgname,$(PYTHON_PACKAGES),\
-	$(eval local_$(pkgname) = $(SAGE_VENV)))
 
 # Generate the actual inst_<pkgname> variables; for each package that is
 # actually built this generates a line like:
@@ -143,17 +137,14 @@ $(foreach pkgname,$(PYTHON_PACKAGES),\
 #
 # inst_git = $(INST)/.dummy
 
-$(foreach pkgname,$(BUILT_PACKAGES) $(DUMMY_PACKAGES),\
-	$(eval real_inst_$(pkgname) = $(local_$(pkgname))/$(SPKG_INST_RELDIR)/$(pkgname)-$(vers_$(pkgname))))
 $(foreach pkgname,$(BUILT_PACKAGES),\
-	$(eval inst_$(pkgname) = $(real_inst_$(pkgname))))
+	$(eval inst_$(pkgname) = $(foreach tree, $(trees_$(pkgname)), $($(tree))/$(SPKG_INST_RELDIR)/$(pkgname)-$(vers_$(pkgname)))))
 $(foreach pkgname,$(DUMMY_PACKAGES),\
 	$(eval inst_$(pkgname) = $(SAGE_LOCAL)/$(SPKG_INST_RELDIR)/.dummy))
 
 # Override this for pip packages, for which we do not keep an installation record
 # in addition to what pip is already doing.
 $(foreach pkgname,$(PIP_PACKAGES),\
-	$(eval real_inst_$(pkgname) = $(pkgname))\
 	$(eval inst_$(pkgname) = $(pkgname)))
 
 # Dummy target for packages which are not installed
@@ -531,37 +522,44 @@ pkg_deps = \
 #     $(1): package name
 #     $(2): package version
 #     $(3): package dependencies
+#     $(4): package tree variable
 
 define NORMAL_PACKAGE_templ ##########################################
 
 $(1)-build-deps: $(3)
 
-$$(real_inst_$(1)): $(3)
-	+$(MAKE_REC) $(1)-no-deps
+$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2): $(3)
+	+$(MAKE_REC) $(1)-$(4)-no-deps
 
-$(1): $$(real_inst_$(1))
+$(1): $$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)
 
-$(1)-no-deps:
-	+$(AM_V_at)sage-logger -p 'SAGE_CHECK=$$(SAGE_CHECK_$(1)) PATH=$$(local_$(1))/bin:$$$$PATH $$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
+$(1)-$(4)-no-deps:
+	+$(AM_V_at)sage-logger -p 'SAGE_CHECK=$$(SAGE_CHECK_$(1)) PATH=$$($(4))/bin:$$$$PATH $$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
 		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
-		$(1)-$(2) $$(local_$(1))' '$$(SAGE_LOGS)/$(1)-$(2).log'
+		$(1)-$(2) $$($(4))' '$$(SAGE_LOGS)/$(1)-$(2).log'
 
-$(1)-clean:
-	SAGE_INST_LOCAL=$$(local_$(1)) sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
-		$(1) '$$(local_$(1))'
+$(1)-no-deps: $(1)-$(4)-no-deps
+
+$(1)-$(4)-clean:
+	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
+		$(1) '$$($(4))'
+
+$(1)-clean: $(1)-$(4)-clean
 
 .PHONY: $(1) $(1)-clean $(1)-build-deps $(1)-no-deps
 endef #################################################################
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\
+    $(foreach tree, $(trees_$(pkgname)), \
 	$(eval $(call NORMAL_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
-	                                   $(call pkg_deps,$(pkgname)))))
+	                                   $(call pkg_deps,$(pkgname)),$(tree)))))
 
 ifdef DEBUG_RULES
 $(info # Rules for standard packages)
 $(foreach pkgname, $(NORMAL_PACKAGES),\
+    $(foreach tree, $(trees_$(pkgname)), \
 	$(info $(call NORMAL_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
-	                                   $(call pkg_deps,$(pkgname)))))
+	                                   $(call pkg_deps,$(pkgname)),$(tree)))))
 endif
 
 # ================================ pip packages ===============================
@@ -627,44 +625,52 @@ endif
 #     $(1): package name
 #     $(2): package version
 #     $(3): package dependencies
+#     $(4): package tree variable
+
 define SCRIPT_PACKAGE_templ
 $(1)-build-deps: $(3)
 
-$$(real_inst_$(1)): $(3)
-	+$(MAKE_REC) $(1)-no-deps
+$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2): $(3)
+	+$(MAKE_REC) $(1)-$(4)-no-deps
 
-$(1): $$(real_inst_$(1))
+$(1): $$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)
 
-$(1)-no-deps:
+$(1)-$(4)-no-deps:
 	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env' && \
-		SAGE_SPKG_WHEELS=$$(SAGE_LOCAL)/var/lib/sage/wheels \
-		SAGE_INST_LOCAL=$$(SAGE_LOCAL) \
+		SAGE_SPKG_WHEELS=$$($(4))/var/lib/sage/wheels \
+		SAGE_INST_LOCAL=$$($(4)) \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log'
-	touch "$$(real_inst_$(1))"
+	touch "$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)"
 
-$(1)-uninstall:
+$(1)-no-deps: $(1)-$(4)-no-deps
+
+$(1)-$(4)-uninstall:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env-config' && \
 		. '$$(SAGE_ROOT)/build/bin/sage-build-env' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
-	-rm -f "$$(real_inst_$(1))"
+	-rm -f "$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)"
+
+$(1)-uninstall: $(1)-$(4)-uninstall
 
 .PHONY: $(1) $(1)-uninstall $(1)-build-deps $(1)-no-deps $(1)-clean
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
-	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
+    $(foreach tree, $(trees_$(pkgname)), \
+	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)),$(tree)))))
 
 ifdef DEBUG_RULES
 $(info # Rules for script packages)
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
-	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)))))
+    $(foreach tree, $(trees_$(pkgname)), \
+	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),$(call pkg_deps,$(pkgname)),$(tree)))))
 endif
 
 # sagelib depends on this so that its install script is always executed

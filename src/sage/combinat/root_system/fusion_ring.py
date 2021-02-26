@@ -790,13 +790,19 @@ class FusionRing(WeylCharacterRing):
         if self.Nk_ij(i, j, k) == 0:
             return 0
         if i != j:
-            return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
+            ret = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
+            if self._basecoer is None:
+                return ret
+            return self._basecoer(ret)
         i0 = self.one()
         B = self.basis()
-        return sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
+        ret = sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
                    * self.s_ij(i0,y) * self.s_ij(i,z) * self.s_ij(x,z).conjugate()
                    * self.s_ij(k,x).conjugate() * self.s_ij(y,z).conjugate() / self.s_ij(i0,z)
                    for x in B for y in B for z in B) / (self.total_q_order()**4)
+        if self._basecoer is None:
+            return ret
+        return self._basecoer(ret)
 
     def global_q_dimension(self):
         r"""
@@ -975,7 +981,8 @@ class FusionRing(WeylCharacterRing):
         print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d,n_strands))
 
         #Compute diagonal odd-indexed generators using the 3j-symbols
-        gens = { 2*i+1 : diagonal_matrix(self.r_matrix(a,a,c[i]) for c in comp_basis) for i in range(n_strands//2) }
+        phi = self.fmats.get_coerce_map_from_fr_cyclotomic_field()
+        gens = { 2*i+1 : diagonal_matrix(phi(self.r_matrix(a,a,c[i])) for c in comp_basis) for i in range(n_strands//2) }
 
         #Compute even-indexed generators using F-matrices
         for k in range(1,n_strands//2):

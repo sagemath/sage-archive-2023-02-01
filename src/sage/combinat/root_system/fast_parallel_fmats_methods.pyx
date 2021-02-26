@@ -17,6 +17,7 @@ from sage.combinat.root_system.poly_tup_engine cimport *
 from sage.rings.ideal import Ideal
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.qqbar import number_field_elements_from_algebraics
 
 #Define a global temporary worker results repository
 worker_results = list()
@@ -40,7 +41,7 @@ def executor(params):
     fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
     mod = sage.combinat.root_system.fast_parallel_fmats_methods
     #Bind module method to FMatrix object in worker process, and call the method
-    getattr(mod,fn_name)(fmats_obj,args)
+    return getattr(mod,fn_name)(fmats_obj,args)
 
 ###############
 ### Mappers ###
@@ -91,7 +92,8 @@ cpdef get_reduced_hexagons(factory, tuple mp_params):
     Set up and reduce the hexagon equations corresponding to this worker
     """
     global worker_results
-    cdef int i, child_id, n_proc
+    cdef child_id, n_proc
+    cdef unsigned long i
     child_id, n_proc = mp_params
     cdef tuple sextuple
     for i, sextuple in enumerate(product(factory.FR.basis(),repeat=6)):
@@ -121,8 +123,9 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
     Set up and reduce the pentagon equations corresponding to this worker
     """
     global worker_results
-    cdef int i, child_id, n_proc
+    cdef int child_id, n_proc
     child_id, n_proc = mp_params
+    cdef unsigned long i
     cdef tuple nonuple
     cdef MPolynomial_libsingular pe
     for i, nonuple in enumerate(product(factory.FR.basis(),repeat=9)):
@@ -185,6 +188,11 @@ cpdef update_child_fmats(factory, tuple data_tup):
     factory._nnz = factory.get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory.get_known_vals())
 
+def get_appropriate_number_field(factory,non_cyclotomic_roots):
+    #If needed, find a NumberField containing all the roots
+    roots = [factory.FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
+    return number_field_elements_from_algebraics(roots,minimal=True)
+
 ################
 ### Reducers ###
 ################
@@ -230,7 +238,7 @@ cpdef pent_verify(factory, tuple mp_params):
     child_id, n_proc = mp_params
     cdef float t0
     cdef tuple nonuple
-    cdef long i
+    cdef unsigned long i
     for i, nonuple in enumerate(product(factory.FR.basis(),repeat=9)):
         if i % n_proc == child_id:
           feq_verif(factory,nonuple)

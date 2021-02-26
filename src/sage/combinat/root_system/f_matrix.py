@@ -27,12 +27,12 @@ try:
     import cPickle as pickle
 except:
     import pickle
-from multiprocessing import cpu_count, Pool, set_start_method
+from multiprocessing import cpu_count, Pool, set_start_method, TimeoutError
 import numpy as np
 from sage.combinat.root_system.fast_parallel_fmats_methods import *
 from sage.combinat.root_system.poly_tup_engine import *
 from sage.rings.polynomial.polydict import ETuple
-from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
+from sage.rings.qqbar import AA, QQbar
 from sage.rings.real_double import RDF
 
 from itertools import zip_longest
@@ -220,12 +220,12 @@ class FMatrix():
 
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
-        self.FR = fusion_ring
-        if self.FR._fusion_labels is None:
-            self.FR.fusion_labels(fusion_label, inject_variables=True)
+        self._FR = fusion_ring
+        if self._FR._fusion_labels is None:
+            self._FR.fusion_labels(fusion_label, inject_variables=True)
         #Set up F-symbols entry by entry
         n_vars = self.findcases()
-        self._poly_ring = PolynomialRing(self.FR.field(),n_vars,var_prefix)
+        self._poly_ring = PolynomialRing(self._FR.field(),n_vars,var_prefix)
         if inject_variables:
             print ("creating variables %s%s..%s%s"%(var_prefix,1,var_prefix,n_vars))
             self._poly_ring.inject_variables()
@@ -241,9 +241,9 @@ class FMatrix():
         self.solved = set()
 
         #New attributes of the FMatrix class
-        self.field = self.FR.field()
-        r = self.field.defining_polynomial().roots(ring=QQbar,multiplicities=False)[0]
-        self._qqbar_embedding = self.field.hom([r],QQbar)
+        self._field = self._FR.field()
+        r = self._field.defining_polynomial().roots(ring=QQbar,multiplicities=False)[0]
+        self._qqbar_embedding = self._field.hom([r],QQbar)
         self._var_to_idx = { var : idx for idx, var in enumerate(self._poly_ring.gens()) }
         self._ks = self.get_known_sq()
         self._nnz = self.get_known_nonz()
@@ -265,7 +265,7 @@ class FMatrix():
             sage: FMatrix(FusionRing("B2",1))
             F-Matrix factory for The Fusion Ring of Type B2 and level 1 with Integer Ring coefficients
         """
-        return "F-Matrix factory for %s"%self.FR
+        return "F-Matrix factory for %s"%self._FR
 
     def remaining_vars(self):
         """
@@ -316,21 +316,21 @@ class FMatrix():
             (zeta60^14 - zeta60^6 - zeta60^4 + 1)]
 
         """
-        if self.FR.Nk_ij(a,b,x) == 0 or self.FR.Nk_ij(x,c,d) == 0 or self.FR.Nk_ij(b,c,y) == 0 or self.FR.Nk_ij(a,y,d) == 0:
+        if self._FR.Nk_ij(a,b,x) == 0 or self._FR.Nk_ij(x,c,d) == 0 or self._FR.Nk_ij(b,c,y) == 0 or self._FR.Nk_ij(a,y,d) == 0:
             return 0
 
         #Some known zero F-symbols
-        if a == self.FR.one():
+        if a == self._FR.one():
             if x == b and y == d:
                 return 1
             else:
                 return 0
-        if b == self.FR.one():
+        if b == self._FR.one():
             if x == a and y == c:
                 return 1
             else:
                 return 0
-        if c == self.FR.one():
+        if c == self._FR.one():
             if x == d and y == b:
                 return 1
             else:
@@ -374,6 +374,12 @@ class FMatrix():
         Y = self.f_to(a,b,c,d)
         return matrix([[self.fmat(a,b,c,d,x,y) for y in Y] for x in X])
 
+    def field(self):
+        return self._field
+
+    def FR(self):
+        return self._FR
+
     def findcases(self,output=False):
         """
         Return unknown F-matrix entries. If run with output=True,
@@ -402,7 +408,7 @@ class FMatrix():
         if output:
             idx_map = dict()
             ret = dict()
-        for (a,b,c,d) in list(product(self.FR.basis(), repeat=4)):
+        for (a,b,c,d) in list(product(self._FR.basis(), repeat=4)):
             for x in self.f_from(a, b, c, d):
                 for y in self.f_to(a, b, c, d):
                     fm = self.fmat(a, b, c, d, x, y, data=False)
@@ -422,7 +428,7 @@ class FMatrix():
         Find x_i that are automatically nonzero, because their F-matrix is 1x1
         """
         ret = []
-        for (a, b, c, d) in list(product(self.FR.basis(), repeat=4)):
+        for (a, b, c, d) in list(product(self._FR.basis(), repeat=4)):
             (ff,ft) = (self.f_from(a,b,c,d),self.f_to(a,b,c,d))
             if len(ff) == 1 and len(ft) == 1:
                 v = self._fvars.get((a,b,c,d,ff[0],ft[0]), None)
@@ -451,7 +457,7 @@ class FMatrix():
             [a1, a3]
         """
 
-        return [x for x in self.FR.basis() if self.FR.Nk_ij(a,b,x) != 0 and self.FR.Nk_ij(x,c,d) != 0]
+        return [x for x in self._FR.basis() if self._FR.Nk_ij(a,b,x) != 0 and self._FR.Nk_ij(x,c,d) != 0]
 
     def f_to(self,a,b,c,d):
         r"""
@@ -476,7 +482,7 @@ class FMatrix():
 
         """
 
-        return [y for y in self.FR.basis() if self.FR.Nk_ij(b,c,y) != 0 and self.FR.Nk_ij(a,y,d) != 0]
+        return [y for y in self._FR.basis() if self._FR.Nk_ij(b,c,y) != 0 and self._FR.Nk_ij(a,y,d) != 0]
 
     ####################
     ### Data getters ###
@@ -519,6 +525,28 @@ class FMatrix():
             nonz[idx] = 100
         return ETuple(nonz, self._poly_ring.ngens())
 
+    def get_qqbar_embedding(self):
+        """
+        Return an embedding from the base field containing F-symbols (the
+        FusionRing's CyclotomicField, a NumberField, or QQbar) into QQbar
+        """
+        return self._qqbar_embedding
+
+    def get_coerce_map_from_fr_cyclotomic_field(self):
+        """
+        Return a coercion map from the FusionRing's cyclotomic field into the
+        base field containing all F-symbols (this could be the FusionRing's
+        CyclotomicField, a NumberField, or QQbar).
+        """
+        #If base field is different from associated FusionRing's CyclotomicField,
+        #return coercion map
+        try:
+            return self._coerce_map_from_cyc_field
+        #Otherwise, return identity map CyclotomicField <-> CyclotomicField
+        except AttributeError:
+            F = self._FR.field()
+            return F.hom([F.gen()], F)
+
     #########################
     ### Useful predicates ###
     #########################
@@ -543,7 +571,7 @@ class FMatrix():
         """
         Get the size of the largest F-matrix F^{abc}_d
         """
-        return max(self.fmatrix(*tup).nrows() for tup in product(self.FR.basis(),repeat=4))
+        return max(self.fmatrix(*tup).nrows() for tup in product(self._FR.basis(),repeat=4))
 
     def get_fmats_by_size(self,n):
         """
@@ -554,7 +582,7 @@ class FMatrix():
         solved_copy = deepcopy(self.solved)
         self.clear_vars()
         var_set = set()
-        for quadruple in product(self.FR.basis(),repeat=4):
+        for quadruple in product(self._FR.basis(),repeat=4):
             F = self.fmatrix(*quadruple)
             #Discard trivial 1x1 F-matrix, if applicable
             if F.nrows() == n and F.coefficients() != [1]:
@@ -571,7 +599,7 @@ class FMatrix():
         """
         Auto-generate filename string for saving results
         """
-        return self.FR.cartan_type()[0] + str(self.FR.cartan_type()[1]) + str(self.FR.fusion_level())
+        return self._FR.cartan_type()[0] + str(self._FR.cartan_type()[1]) + str(self._FR.fusion_level())
 
     def save_fvars(self,filename):
         """
@@ -649,7 +677,7 @@ class FMatrix():
         appended to self.ideal_basis
         """
         eqns = list()
-        for tup in product(self.FR.basis(), repeat=4):
+        for tup in product(self._FR.basis(), repeat=4):
             mat = self.fmatrix(*tup)
             eqns.extend((mat.T * mat - matrix.identity(mat.nrows())).coefficients())
         if output:
@@ -768,7 +796,7 @@ class FMatrix():
             self.backward_subs()
 
             #Support early termination in case only some F-symbols are needed
-            req_vars_known = all(self._fvars[self._var_to_sextuple[var]] in self.FR.field() for var in required_vars)
+            req_vars_known = all(self._fvars[self._var_to_sextuple[var]] in self._FR.field() for var in required_vars)
             if req_vars_known: return 1
 
             #Compute new reduction params, send to child processes if any, and update eqns
@@ -862,7 +890,7 @@ class FMatrix():
         so we can call built-in variety method.
         """
         #Define smaller poly ring in component vars
-        R = PolynomialRing(self.FR.field(),len(var),'a',order='lex')
+        R = PolynomialRing(self._FR.field(),len(var),'a',order='lex')
 
         #Zip tuples into R and compute Groebner basis
         idx_map = { old : new for new, old in enumerate(sorted(var)) }
@@ -878,7 +906,7 @@ class FMatrix():
     ### Solution method ###
     #######################
 
-    def get_numeric_solution(self,eqns=None,verbose=True):
+    def og_get_numeric_solution(self,eqns=None,verbose=True):
         """
         Get a numeric solution for given equations by using the partitioning the equations
         graph and selecting an arbitrary point on the discrete degrees-of-freedom variety,
@@ -888,11 +916,11 @@ class FMatrix():
             eqns = self.ideal_basis
         eqns_partition = self.partition_eqns(self.equations_graph(eqns),verbose=verbose)
 
-        x = self.FR.field()['x'].gen()
+        x = self._FR.field()['x'].gen()
         numeric_fvars = dict()
         non_cyclotomic_roots = list()
         must_change_base_field = False
-        phi = self.FR.field().hom([self.field.gen()],self.FR.field())
+        phi = self._FR.field().hom([self._field.gen()],self._FR.field())
         for comp, part in eqns_partition.items():
             #If component have only one equation in a single variable, get a root
             if len(comp) == 1 and len(part) == 1:
@@ -916,17 +944,96 @@ class FMatrix():
 
         if must_change_base_field:
             #If needed, find a NumberField containing all the roots
-            roots = [self.FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
-            self.field, nf_elts, self._qqbar_embedding = number_field_elements_from_algebraics(roots,minimal=True)
+            roots = [self._FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
+            self._field, nf_elts, self._qqbar_embedding = number_field_elements_from_algebraics(roots,minimal=True)
             #Embed cyclotomic field into newly constructed NumberField
             cyc_gen_as_nf_elt = nf_elts.pop(0)
-            phi = self.FR.field().hom([cyc_gen_as_nf_elt], self.field)
+            phi = self._FR.field().hom([cyc_gen_as_nf_elt], self._field)
             numeric_fvars = { k : phi(v) for k, v in numeric_fvars.items() }
             for i, elt in enumerate(nf_elts):
                 numeric_fvars[non_cyclotomic_roots[i][0]] = elt
 
             #Do some appropriate conversions
-            new_poly_ring = self._poly_ring.change_ring(self.field)
+            new_poly_ring = self._poly_ring.change_ring(self._field)
+            nvars = self._poly_ring.ngens()
+            self._var_to_idx = { new_poly_ring.gen(i) : i for i in range(nvars) }
+            self._var_to_sextuple = { new_poly_ring.gen(i) : self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(nvars) }
+            self._poly_ring = new_poly_ring
+
+        #Ensure all F-symbols are known
+        self.solved.update(numeric_fvars)
+        nvars = self._poly_ring.ngens()
+        assert len(self.solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in set(range(nvars)).difference(self.solved)])
+
+        #Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
+        self._fvars = { sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items() }
+        for fx, rhs in numeric_fvars.items():
+            self._fvars[self._var_to_sextuple[self._poly_ring.gen(fx)]] = ((ETuple({},nvars),rhs),)
+        self.backward_subs()
+        self._fvars = { sextuple : constant_coeff(rhs) for sextuple, rhs in self._fvars.items() }
+        self.clear_equations()
+
+    def get_numeric_solution(self,eqns=None,verbose=True):
+        """
+        Get a numeric solution for given equations by using the partitioning the equations
+        graph and selecting an arbitrary point on the discrete degrees-of-freedom variety,
+        which is computed as a Cartesian product
+        """
+        if eqns is None:
+            eqns = self.ideal_basis
+        eqns_partition = self.partition_eqns(self.equations_graph(eqns),verbose=verbose)
+
+        F = self._field
+        x = F['x'].gen()
+        numeric_fvars = dict()
+        non_cyclotomic_roots = list()
+        must_change_base_field = False
+        phi = F.hom([F.gen()],F)
+        for comp, part in eqns_partition.items():
+            #If component have only one equation in a single variable, get a root
+            if len(comp) == 1 and len(part) == 1:
+                #Attempt to find cyclotomic root
+                univ_poly = tup_to_univ_poly(part[0],x)
+                real_roots = univ_poly.roots(ring=AA,multiplicities=False)
+                assert real_roots, "No real solution exists... {} has no real roots".format(univ_poly)
+                roots = univ_poly.roots(multiplicities=False)
+                if roots:
+                    numeric_fvars[comp[0]] = roots[0]
+                else:
+                    non_cyclotomic_roots.append((comp[0],real_roots[0]))
+                    must_change_base_field = True
+            #Otherwise, compute the component variety and select a point to obtain a numerical solution
+            else:
+                sols = self.get_component_variety(comp,part)
+                assert len(sols) > 1, "No real solution exists... component with variables {} has no real points".format(comp)
+                for fx, rhs in sols[0].items():
+                    non_cyclotomic_roots.append((fx,rhs))
+                must_change_base_field = True
+
+        if must_change_base_field:
+            #Attempt to compute smallest number field containing all the F-symbols
+            #If calculation takes too long, we use QQbar as the base field
+            proc = Pool(1)
+            input_args = ((('get_appropriate_number_field',id(self)),non_cyclotomic_roots),)
+            p = proc.apply_async(executor,input_args)
+            try:
+                self._field, bf_elts, self._qqbar_embedding = p.get(timeout=100)
+            except TimeoutError:
+                self._field = QQbar
+                bf_elts = [self._qqbar_embedding(F.gen())]
+                bf_elts += [rhs for fx,rhs in non_cyclotomic_roots]
+                self._qqbar_embedding = lambda x : x
+
+            #Embed cyclotomic field into newly constructed base field
+            cyc_gen_as_bf_elt = bf_elts.pop(0)
+            phi = self._FR.field().hom([cyc_gen_as_bf_elt], self._field)
+            self._coerce_map_from_cyc_field = phi
+            numeric_fvars = { k : phi(v) for k, v in numeric_fvars.items() }
+            for i, elt in enumerate(bf_elts):
+                numeric_fvars[non_cyclotomic_roots[i][0]] = elt
+
+            #Do some appropriate conversions
+            new_poly_ring = self._poly_ring.change_ring(self._field)
             nvars = self._poly_ring.ngens()
             self._var_to_idx = { new_poly_ring.gen(i) : i for i in range(nvars) }
             self._var_to_sextuple = { new_poly_ring.gen(i) : self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(nvars) }
@@ -957,7 +1064,7 @@ class FMatrix():
         except RuntimeError:
             pass
         pool = Pool(processes=max(cpu_count()-1,1)) if use_mp else None
-        print("Computing F-symbols for {} with {} variables...".format(self.FR, len(self._fvars)))
+        print("Computing F-symbols for {} with {} variables...".format(self._FR, len(self._fvars)))
 
         #Set up hexagon equations and orthogonality constraints
         poly_sortkey = cmp_to_key(poly_tup_cmp)
@@ -1001,6 +1108,7 @@ class FMatrix():
         self.get_numeric_solution(verbose=verbose)
         self.save_fvars(filename)
         self.symbols_known = True
+        self._FR._coer = self.get_coerce_map_from_fr_cyclotomic_field()
 
     #########################
     ### Cyclotomic method ###
@@ -1161,12 +1269,12 @@ class FMatrix():
         Ensure the hexagon equations are satisfied
         """
         hex = []
-        for a,b,c,d,e,g in product(self.FR.basis(),repeat=6):
-            lhs = self.field(self.FR.r_matrix(a,c,e))*self.fmat(a,c,b,d,e,g)*self.field(self.FR.r_matrix(b,c,g))
-            rhs = sum(self.fmat(c,a,b,d,e,f)*self.field(self.FR.r_matrix(f,c,d))*self.fmat(a,b,c,d,f,g) for f in self.FR.basis())
+        for a,b,c,d,e,g in product(self._FR.basis(),repeat=6):
+            lhs = self._field(self._FR.r_matrix(a,c,e))*self.fmat(a,c,b,d,e,g)*self._field(self._FR.r_matrix(b,c,g))
+            rhs = sum(self.fmat(c,a,b,d,e,f)*self._field(self._FR.r_matrix(f,c,d))*self.fmat(a,b,c,d,f,g) for f in self._FR.basis())
             hex.append(lhs-rhs)
-        if all(h == self.field.zero() for h in hex):
-            print("Success!!! Found valid F-symbols for {}".format(self.FR))
+        if all(h == self._field.zero() for h in hex):
+            print("Success!!! Found valid F-symbols for {}".format(self._FR))
         else:
             print("Ooops... something went wrong... These pentagons remain:")
             print(hex)
@@ -1176,7 +1284,7 @@ class FMatrix():
         """
         Ensure the pentagon equations are satisfied
         """
-        print("Testing F-symbols for {}...".format(self.FR))
+        print("Testing F-symbols for {}...".format(self._FR))
         fvars_copy = deepcopy(self._fvars)
         self._fvars = { sextuple : float(RDF(rhs)) for sextuple, rhs in self.get_fmats_in_alg_field().items() }
         if use_mp:
@@ -1187,7 +1295,7 @@ class FMatrix():
         params = [(child_id,n_proc) for child_id in range(n_proc)]
         pe = self.map_triv_reduce('pent_verify',params,worker_pool=pool,chunksize=1,mp_thresh=0)
         if np.all(np.isclose(np.array(pe),0,atol=1e-7)):
-            print("Success!!! Found valid F-symbols for {}".format(self.FR))
+            print("Success!!! Found valid F-symbols for {}".format(self._FR))
             pe = None
         else:
             print("Ooops... something went wrong... These pentagons remain:")
@@ -1200,7 +1308,7 @@ class FMatrix():
         Verify that all F-matrices are real and unitary (orthogonal)
         """
         is_orthog = []
-        for a,b,c,d in product(self.FR.basis(),repeat=4):
+        for a,b,c,d in product(self._FR.basis(),repeat=4):
             mat = self.fmatrix(a,b,c,d)
             is_orthog.append(mat.T * mat == matrix.identity(mat.nrows()))
         return all(is_orthog)

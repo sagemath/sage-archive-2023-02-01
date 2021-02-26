@@ -221,7 +221,7 @@ class FMatrix():
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
         self._FR = fusion_ring
-        if self._FR._fusion_labels is None:
+        if inject_variables:
             self._FR.fusion_labels(fusion_label, inject_variables=True)
         #Set up F-symbols entry by entry
         n_vars = self.findcases()

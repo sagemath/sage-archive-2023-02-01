@@ -51,20 +51,20 @@ cdef _fmat(factory, a, b, c, d, x, y):
       """
       Cython version of fmat class method. Using cdef for fastest dispatch
       """
-      if factory.FR.Nk_ij(a,b,x) == 0 or factory.FR.Nk_ij(x,c,d) == 0 or factory.FR.Nk_ij(b,c,y) == 0 or factory.FR.Nk_ij(a,y,d) == 0:
+      if factory._FR.Nk_ij(a,b,x) == 0 or factory._FR.Nk_ij(x,c,d) == 0 or factory._FR.Nk_ij(b,c,y) == 0 or factory._FR.Nk_ij(a,y,d) == 0:
               return 0
       #Some known zero F-symbols
-      if a == factory.FR.one():
+      if a == factory._FR.one():
           if x == b and y == d:
               return 1
           else:
               return 0
-      if b == factory.FR.one():
+      if b == factory._FR.one():
           if x == a and y == c:
               return 1
           else:
               return 0
-      if c == factory.FR.one():
+      if c == factory._FR.one():
           if x == d and y == b:
               return 1
           else:
@@ -78,10 +78,10 @@ cdef req_cy(factory, tuple sextuple, side="left"):
     a, b, c, d, e, g = sextuple
     #To add typing we need to ensure all fmats.fmat are of the same type?
     #Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
-    lhs = factory.FR.r_matrix(a,c,e)*_fmat(factory,a,c,b,d,e,g)*factory.FR.r_matrix(b,c,g)
+    lhs = factory._FR.r_matrix(a,c,e)*_fmat(factory,a,c,b,d,e,g)*factory._FR.r_matrix(b,c,g)
     rhs = 0
-    for f in factory.FR.basis():
-      rhs += _fmat(factory,c,a,b,d,e,f)*factory.FR.r_matrix(f,c,d)*_fmat(factory,a,b,c,d,f,g)
+    for f in factory._FR.basis():
+      rhs += _fmat(factory,c,a,b,d,e,f)*factory._FR.r_matrix(f,c,d)*_fmat(factory,a,b,c,d,f,g)
     return lhs-rhs
 
 @cython.wraparound(False)
@@ -96,7 +96,7 @@ cpdef get_reduced_hexagons(factory, tuple mp_params):
     cdef unsigned long i
     child_id, n_proc = mp_params
     cdef tuple sextuple
-    for i, sextuple in enumerate(product(factory.FR.basis(),repeat=6)):
+    for i, sextuple in enumerate(product(factory._FR.basis(),repeat=6)):
         if i % n_proc == child_id:
             he = req_cy(factory,sextuple)
             if he:
@@ -111,7 +111,7 @@ cdef MPolynomial_libsingular feq_cy(factory, tuple nonuple, bint prune=False):
     if lhs == 0 and prune: # it is believed that if lhs=0, the equation carries no new information
         return factory._poly_ring.zero()
     cdef rhs = factory._poly_ring.zero()
-    for h in factory.FR.basis():
+    for h in factory._FR.basis():
       rhs += _fmat(factory,a,b,c,g,f,h)*_fmat(factory,a,h,d,e,g,k)*_fmat(factory,b,c,d,k,h,l)
     return lhs - rhs
 
@@ -128,7 +128,7 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
     cdef unsigned long i
     cdef tuple nonuple
     cdef MPolynomial_libsingular pe
-    for i, nonuple in enumerate(product(factory.FR.basis(),repeat=9)):
+    for i, nonuple in enumerate(product(factory._FR.basis(),repeat=9)):
         if i % n_proc == child_id:
             pe = feq_cy(factory,nonuple,prune=prune)
             if pe:
@@ -160,7 +160,7 @@ cpdef compute_gb(factory, tuple args):
       for fx in variables(eq_tup):
         sorted_vars.append(fx)
     sorted_vars = sorted(set(sorted_vars))
-    R = PolynomialRing(factory.FR.field(),len(sorted_vars),'a',order=term_order)
+    R = PolynomialRing(factory._FR.field(),len(sorted_vars),'a',order=term_order)
 
     #Zip tuples into R and compute Groebner basis
     cdef idx_map = dict()
@@ -190,7 +190,7 @@ cpdef update_child_fmats(factory, tuple data_tup):
 
 def get_appropriate_number_field(factory,non_cyclotomic_roots):
     #If needed, find a NumberField containing all the roots
-    roots = [factory.FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
+    roots = [factory._FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
     return number_field_elements_from_algebraics(roots,minimal=True)
 
 ################
@@ -221,7 +221,7 @@ cdef feq_verif(factory, tuple nonuple, float tol=5e-8):
     cdef float diff, lhs, rhs
     lhs = _fmat(factory,f,c,d,e,g,l)*_fmat(factory,a,b,l,e,f,k)
     rhs = 0.0
-    for h in factory.FR.basis():
+    for h in factory._FR.basis():
       rhs += _fmat(factory,a,b,c,g,f,h)*_fmat(factory,a,h,d,e,g,k)*_fmat(factory,b,c,d,k,h,l)
     diff = lhs - rhs
     if diff > tol or diff < -tol:

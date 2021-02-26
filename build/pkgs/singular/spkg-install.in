@@ -60,7 +60,7 @@ config()
 {
     if [ "$UNAME" = "CYGWIN" ]; then
         # from Hans Schoenemann - https://github.com/Singular/Singular/issues/1017
-        SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-static --disable-p-procs-dynamic --enable-p-procs-static --with-builtinmodules=gfanlib,gitfan,interval,loctriv,partialgb,syzextra,customstd,cohomo,subsets,freealgebra,systhreads --disable-cf-inline"
+        SINGULAR_CONFIGURE="$SINGULAR_CONFIGURE --disable-static --disable-p-procs-dynamic --enable-p-procs-static --with-builtinmodules=gfanlib,gitfan,interval,loctriv,partialgb,syzextra,customstd,cohomo,subsets,freealgebra,systhreads --disable-cf-inline --disable-Order-module --disable-bigintm-module --disable-pyobject-module"
     fi
 
     # configure notes (dates from Singular 3.x, maybe outdated for 4.x):
@@ -83,6 +83,8 @@ config()
                   --without-python \
                   --without-pythonmodule \
                   --disable-python \
+                  --disable-python_module \
+                  --disable-python-module \
                   $SINGULAR_CONFIGURE
 }
 

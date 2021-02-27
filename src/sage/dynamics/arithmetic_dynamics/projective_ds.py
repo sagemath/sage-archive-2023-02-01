@@ -7012,6 +7012,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: system.potential_good_reduction(3, return_conjugation=True)
             (False, None, None)
 
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([x**5 - 11*y**5, x**4*y])
+            sage: conj = system.potential_good_reduction(11, True)[2]
+            sage: system.conjugate(conj).resultant() == 1
+            True
+
         """
         if self.domain().base_ring() not in NumberFields:
             raise ValueError('dynamical system must be defined over number field')

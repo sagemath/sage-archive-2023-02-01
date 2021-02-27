@@ -7020,6 +7020,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: system.conjugate(conj).resultant() == 1
             True
 
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: system = DynamicalSystem_projective([3*x^2 + x*y+y^2, 9*y^2])
+            sage: prime = system.field_of_definition_periodic(1).prime_above(3)
+            sage: system.potential_good_reduction(prime)
+
         """
         if self.domain().base_ring() not in NumberFields:
             raise ValueError('dynamical system must be defined over number field')

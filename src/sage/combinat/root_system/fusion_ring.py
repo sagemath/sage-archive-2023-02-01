@@ -447,7 +447,9 @@ class FusionRing(WeylCharacterRing):
             sage: FusionRing("B2",2).field()
             Cyclotomic Field of order 40 and degree 16
         """
-        return CyclotomicField(4 * self._cyclotomic_order)
+        if self._field is None:
+            self._field = CyclotomicField(4 * self._cyclotomic_order)
+        return self._field
 
     def root_of_unity(self, r):
         r"""

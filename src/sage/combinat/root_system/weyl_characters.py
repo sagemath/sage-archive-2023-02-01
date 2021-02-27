@@ -121,7 +121,6 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._base_ring = base_ring
         self._space = RootSystem(self._cartan_type).ambient_space()
         self._origin = self._space.zero()
-        self._coer = None
         if prefix is None:
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
@@ -130,6 +129,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._prefix = prefix
         self._style = style
         self._fusion_labels = None
+        self._field = None
         self._basecoer = None
         self._k = k
         if ct.is_irreducible():

@@ -993,6 +993,7 @@ class FMatrix():
         Supports "warm" start. Use load_fvars to re-start computation from checkpoint
         """
         #Set multiprocessing parameters. Context can only be set once, so we try to set it
+        self.clear_equations()
         self.clear_vars()
         try:
             set_start_method('fork')
@@ -1043,6 +1044,7 @@ class FMatrix():
         self.get_explicit_solution(verbose=verbose)
         self.save_fvars(filename)
         self.symbols_known = True
+        self._FR._field = self.field()
         self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
         for x in self._FR.basis():
             x.q_dimension.clear_cache()

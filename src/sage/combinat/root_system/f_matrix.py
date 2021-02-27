@@ -906,78 +906,12 @@ class FMatrix():
     ### Solution method ###
     #######################
 
-    def og_get_numeric_solution(self,eqns=None,verbose=True):
+    def get_explicit_solution(self,eqns=None,verbose=True):
         """
-        Get a numeric solution for given equations by using the partitioning the equations
-        graph and selecting an arbitrary point on the discrete degrees-of-freedom variety,
-        which is computed as a Cartesian product
-        """
-        if eqns is None:
-            eqns = self.ideal_basis
-        eqns_partition = self.partition_eqns(self.equations_graph(eqns),verbose=verbose)
-
-        x = self._FR.field()['x'].gen()
-        numeric_fvars = dict()
-        non_cyclotomic_roots = list()
-        must_change_base_field = False
-        phi = self._FR.field().hom([self._field.gen()],self._FR.field())
-        for comp, part in eqns_partition.items():
-            #If component have only one equation in a single variable, get a root
-            if len(comp) == 1 and len(part) == 1:
-                #Attempt to find cyclotomic root
-                univ_poly = tup_to_univ_poly(part[0],x)
-                real_roots = univ_poly.roots(ring=AA,multiplicities=False)
-                assert real_roots, "No real solution exists... {} has no real roots".format(univ_poly)
-                roots = univ_poly.roots(multiplicities=False)
-                if roots:
-                    numeric_fvars[comp[0]] = roots[0]
-                else:
-                    non_cyclotomic_roots.append((comp[0],real_roots[0]))
-                    must_change_base_field = True
-            #Otherwise, compute the component variety and select a point to obtain a numerical solution
-            else:
-                sols = self.get_component_variety(comp,part)
-                assert len(sols) > 1, "No real solution exists... component with variables {} has no real points".format(comp)
-                for fx, rhs in sols[0].items():
-                    non_cyclotomic_roots.append((fx,rhs))
-                must_change_base_field = True
-
-        if must_change_base_field:
-            #If needed, find a NumberField containing all the roots
-            roots = [self._FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
-            self._field, nf_elts, self._qqbar_embedding = number_field_elements_from_algebraics(roots,minimal=True)
-            #Embed cyclotomic field into newly constructed NumberField
-            cyc_gen_as_nf_elt = nf_elts.pop(0)
-            phi = self._FR.field().hom([cyc_gen_as_nf_elt], self._field)
-            numeric_fvars = { k : phi(v) for k, v in numeric_fvars.items() }
-            for i, elt in enumerate(nf_elts):
-                numeric_fvars[non_cyclotomic_roots[i][0]] = elt
-
-            #Do some appropriate conversions
-            new_poly_ring = self._poly_ring.change_ring(self._field)
-            nvars = self._poly_ring.ngens()
-            self._var_to_idx = { new_poly_ring.gen(i) : i for i in range(nvars) }
-            self._var_to_sextuple = { new_poly_ring.gen(i) : self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(nvars) }
-            self._poly_ring = new_poly_ring
-
-        #Ensure all F-symbols are known
-        self.solved.update(numeric_fvars)
-        nvars = self._poly_ring.ngens()
-        assert len(self.solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in set(range(nvars)).difference(self.solved)])
-
-        #Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
-        self._fvars = { sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items() }
-        for fx, rhs in numeric_fvars.items():
-            self._fvars[self._var_to_sextuple[self._poly_ring.gen(fx)]] = ((ETuple({},nvars),rhs),)
-        self.backward_subs()
-        self._fvars = { sextuple : constant_coeff(rhs) for sextuple, rhs in self._fvars.items() }
-        self.clear_equations()
-
-    def get_numeric_solution(self,eqns=None,verbose=True):
-        """
-        Get a numeric solution for given equations by using the partitioning the equations
-        graph and selecting an arbitrary point on the discrete degrees-of-freedom variety,
-        which is computed as a Cartesian product
+        When this method is called, the solution is already found in
+        terms of Groeber basis. A few degrees of freedom remain.
+        By specializing the free variables and back substituting, a solution in
+        the base field is now obtained.
         """
         if eqns is None:
             eqns = self.ideal_basis
@@ -1059,6 +993,7 @@ class FMatrix():
         Supports "warm" start. Use load_fvars to re-start computation from checkpoint
         """
         #Set multiprocessing parameters. Context can only be set once, so we try to set it
+        self.clear_vars()
         try:
             set_start_method('fork')
         except RuntimeError:
@@ -1105,10 +1040,12 @@ class FMatrix():
         #Set up new equations graph and compute variety for each component
         self.ideal_basis = sorted(self.par_graph_gb(term_order="lex"), key=poly_sortkey)
         self.triangular_elim(verbose=verbose)
-        self.get_numeric_solution(verbose=verbose)
+        self.get_explicit_solution(verbose=verbose)
         self.save_fvars(filename)
         self.symbols_known = True
-        self._FR._coer = self.get_coerce_map_from_fr_cyclotomic_field()
+        self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
+        for x in self._FR.basis():
+            x.q_dimension.clear_cache()
 
     #########################
     ### Cyclotomic method ###
@@ -1239,6 +1176,7 @@ class FMatrix():
             []
 
         """
+        self.clear_vars()
         if equations is None:
             if verbose:
                 print("Setting up hexagons and pentagons...")

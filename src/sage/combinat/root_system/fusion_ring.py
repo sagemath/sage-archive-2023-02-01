@@ -467,7 +467,10 @@ class FusionRing(WeylCharacterRing):
         """
         n = 2 * r * self._cyclotomic_order
         if n in ZZ:
-            return self.field().gen() ** n
+            ret = self.field().gen() ** n
+            if self._basecoer is None:
+                return ret
+            return self._basecoer(ret)
         else:
             return None
 
@@ -672,7 +675,7 @@ class FusionRing(WeylCharacterRing):
         return (elt_i * elt_j).monomial_coefficients(copy=False).get(elt_k.weight(), 0)
 
     @cached_method
-    def s_ij(self, elt_i, elt_j):
+    def s_ij(self, elt_i, elt_j, base_coercion=True):
         r"""
         Return the element of the S-matrix of this fusion ring corresponding to
         the given elements.
@@ -699,9 +702,20 @@ class FusionRing(WeylCharacterRing):
             [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
         """
         ijtwist = elt_i.twist() + elt_j.twist()
-        return sum(k.q_dimension() * self.Nk_ij(elt_i, k, elt_j)
+        ret = sum(k.q_dimension() * self.Nk_ij(elt_i, k, elt_j)
                    * self.root_of_unity(k.twist() - ijtwist)
                    for k in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
+
+    def s_ijconj(self, elt_i, elt_j, base_coercion=True):
+        """
+        """
+        ret = self.s_ij(elt_i, elt_j, base_coercion=False).conjugate()
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
     def s_matrix(self, unitary=False):
         r"""
@@ -790,19 +804,13 @@ class FusionRing(WeylCharacterRing):
         if self.Nk_ij(i, j, k) == 0:
             return 0
         if i != j:
-            ret = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
-            if self._basecoer is None:
-                return ret
-            return self._basecoer(ret)
+            return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
         i0 = self.one()
         B = self.basis()
-        ret = sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
-                   * self.s_ij(i0,y) * self.s_ij(i,z) * self.s_ij(x,z).conjugate()
-                   * self.s_ij(k,x).conjugate() * self.s_ij(y,z).conjugate() / self.s_ij(i0,z)
+        return sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
+                   * self.s_ij(i0,y) * self.s_ij(i,z) * self.s_ijconj(x,z)
+                   * self.s_ijconj(k,x) * self.s_ijconj(y,z) / self.s_ij(i0,z)
                    for x in B for y in B for z in B) / (self.total_q_order()**4)
-        if self._basecoer is None:
-            return ret
-        return self._basecoer(ret)
 
     def global_q_dimension(self):
         r"""
@@ -832,7 +840,10 @@ class FusionRing(WeylCharacterRing):
             True
         """
         c = self.virasoro_central_charge()
-        return self.D_plus() * self.root_of_unity(-c/4)
+        ret = self.D_plus() * self.root_of_unity(-c/4)
+        if self._basecoer is None:
+            return ret
+        return self._basecoer(ret)
 
     def D_plus(self):
         r"""
@@ -1169,4 +1180,8 @@ class FusionRing(WeylCharacterRing):
             expr = R(expr)
             expr = expr.substitute(q=q**4) / (q**(2*expr.degree()))
             zet = P.field().gen() ** (P._cyclotomic_order/P._l)
-            return expr.substitute(q=zet)
+            ret = expr.substitute(q=zet)
+            if self.parent()._basecoer is None:
+                return ret
+            return self.parent()._basecoer(ret)
+

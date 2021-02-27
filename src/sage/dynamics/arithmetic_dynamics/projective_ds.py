@@ -6966,9 +6966,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         Using ``return_conjugation``, we can get the conjugation that achieves good reduction::
 
-            sage: system.potential_good_reduction(prime, True)[2]
+            sage: conj = system.potential_good_reduction(prime, True)[2]; conj
             [-1/2*a    1/2]
             [     0      1]
+
+        We can check that this conjugation achieves good reduction::
+
+            sage: system.conjugate(conj).resultant()
+            1
 
         ::
 
@@ -6999,7 +7004,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 Number Field in a with defining polynomial x^2 + 1
                 Defn: Defined on coordinates by sending (x : y) to
                         ((-1/2*a)*x^2 + (-5/2*a)*y^2 : (-a)*x*y + y^2))
-
 
         ::
 
@@ -7052,9 +7056,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 indifferent_point = fixed_points[multipliers.index(mult)]
         if indifferent_point is not None:
             point = indifferent_point
-            field_of_definition = system.field_of_definition_preimage(point, 2)
+            field_of_definition, embedding_preimage = system.field_of_definition_preimage(point, 2, True)
             system = system.change_ring(field_of_definition)
-            point = indifferent_point.change_ring(field_of_definition)
+            point = system.domain()([embedding_preimage(indifferent_point[0]), embedding_preimage(indifferent_point[1])])
             preimages = [point]
             for i in [1,2]:
                 preimages_of_point = system.rational_preimages(point, 1)
@@ -7072,7 +7076,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         new_system = system.change_ring(field_of_definition)
         new_system = new_system.conjugate(conjugation)
         res = new_system.resultant()
-        if res.valuation(field_of_definition.prime_above(prime)) != 0:
+        if 'embedding_preimage' in locals():
+            check_value = res.valuation(field_of_definition.prime_above(embedding_preimage(prime)))
+        else:
+            check_value = res.valuation(field_of_definition.prime_above(prime))
+        if check_value != 0:
             if return_conjugation:
                 return (False, None, None)
             else:

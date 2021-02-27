@@ -217,7 +217,7 @@ sdh_pip_install() {
         local sudo="$SAGE_SUDO"
     fi
     $sudo sage-pip-uninstall "$@" || \
-        sdh_die "Error uninstalling a previous version of $PKG_NAME"
+        echo 2>&1 "Warning: Failure trying to uninstall a previous version of $PKG_NAME"
 
     mkdir -p dist
     rm -f dist/*.whl

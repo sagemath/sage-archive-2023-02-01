@@ -20,6 +20,7 @@ from sage.matrix.constructor import matrix
 from sage.misc.misc import inject_variable
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.ideal import Ideal
+from sage.misc.misc import get_main_globals
 
 from copy import deepcopy
 #Import pickle for checkpointing and loading certain variables
@@ -228,9 +229,7 @@ class FMatrix():
         self._poly_ring = PolynomialRing(self._FR.field(),n_vars,var_prefix)
         if inject_variables:
             print ("creating variables %s%s..%s%s"%(var_prefix,1,var_prefix,n_vars))
-            self._poly_ring.inject_variables()
-            # for i in range(self._poly_ring.ngens()):
-            #     inject_variable("%s%s"%(var_prefix,i),self._poly_ring.gens()[i])
+            self._poly_ring.inject_variables(get_main_globals())
         self._var_to_sextuple, self._fvars = self.findcases(output=True)
         self._singles = self.singletons()
 

@@ -39,9 +39,7 @@
 #include "infinity.h"
 #include "exprseq.h"
 #include "relational.h"
-#ifdef HAVE_CONFIG_H
 #include "pynac-config.h"
-#endif
 #include "tostring.h"
 
 #include <iostream>

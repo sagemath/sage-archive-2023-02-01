@@ -360,7 +360,7 @@ class FusionRing(WeylCharacterRing):
             sage: G22._test_total_q_order()
         """
         tester = self._tester(**options)
-        tqo = self.total_q_order()
+        tqo = self.total_q_order(base_coercion=False)
         tester.assertTrue(tqo.is_real_positive())
         tester.assertEqual(tqo**2, self.global_q_dimension())
 
@@ -451,7 +451,7 @@ class FusionRing(WeylCharacterRing):
             self._field = CyclotomicField(4 * self._cyclotomic_order)
         return self._field
 
-    def root_of_unity(self, r):
+    def root_of_unity(self, r, base_coercion=True):
         r"""
         Return `e^{i\pi r}` as an element of ``self.field()`` if possible.
 
@@ -470,7 +470,7 @@ class FusionRing(WeylCharacterRing):
         n = 2 * r * self._cyclotomic_order
         if n in ZZ:
             ret = self.field().gen() ** n
-            if self._basecoer is None:
+            if (not base_coercion) or (self._basecoer is None):
                 return ret
             return self._basecoer(ret)
         else:
@@ -704,8 +704,8 @@ class FusionRing(WeylCharacterRing):
             [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
         """
         ijtwist = elt_i.twist() + elt_j.twist()
-        ret = sum(k.q_dimension() * self.Nk_ij(elt_i, k, elt_j)
-                   * self.root_of_unity(k.twist() - ijtwist)
+        ret = sum(k.q_dimension(base_coercion=False) * self.Nk_ij(elt_i, k, elt_j)
+                   * self.root_of_unity(k.twist() - ijtwist, base_coercion=False)
                    for k in self.basis())
         if (not base_coercion) or (self._basecoer is None):
             return ret
@@ -719,7 +719,7 @@ class FusionRing(WeylCharacterRing):
             return ret
         return self._basecoer(ret)
 
-    def s_matrix(self, unitary=False):
+    def s_matrix(self, unitary=False, base_coercion=True):
         r"""
         Return the S-matrix of this fusion ring.
 
@@ -751,14 +751,14 @@ class FusionRing(WeylCharacterRing):
             [0 0 0 1]
         """
         b = self.basis()
-        S = matrix([[self.s_ij(b[x], b[y]) for x in self.get_order()] for y in self.get_order()])
+        S = matrix([[self.s_ij(b[x], b[y], base_coercion=base_coercion) for x in self.get_order()] for y in self.get_order()])
         if unitary:
-            return S / self.total_q_order()
+            return S / self.total_q_order(base_coercion=base_coercion)
         else:
             return S
 
     @cached_method
-    def r_matrix(self, i, j, k):
+    def r_matrix(self, i, j, k, base_coercion=True):
         r"""
         Return the R-matrix entry corresponding to the subobject ``k``
         in the tensor product of ``i`` with ``j``.
@@ -804,19 +804,23 @@ class FusionRing(WeylCharacterRing):
             True
         """
         if self.Nk_ij(i, j, k) == 0:
-            return 0
+            ret = 0
         if i != j:
-            return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
-        i0 = self.one()
-        B = self.basis()
-        return sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
-                   * self.s_ij(i0,y) * self.s_ij(i,z) * self.s_ijconj(x,z)
-                   * self.s_ijconj(k,x) * self.s_ijconj(y,z) / self.s_ij(i0,z)
-                   for x in B for y in B for z in B) / (self.total_q_order()**4)
+            ret = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2, base_coercion=False)
+        else:
+            i0 = self.one()
+            B = self.basis()
+            return sum(y.ribbon(base_coercion=False)**2 / (i.ribbon(base_coercion=False) * x.ribbon(base_coercion=False)**2)
+                   * self.s_ij(i0,y,base_coercion=False) * self.s_ij(i,z,base_coercion=False) * self.s_ijconj(x,z,base_coercion=False)
+                   * self.s_ijconj(k,x,base_coercion=False) * self.s_ijconj(y,z,base_coercion=False) / self.s_ij(i0,z,base_coercion=False)
+                   for x in B for y in B for z in B) / (self.total_q_order(base_coercion=False)**4)
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def global_q_dimension(self):
+    def global_q_dimension(self, base_coercion=True):
         r"""
-        Return `\sum d_i^2`, where the sum is over all simple objects
+        Return `\sum d_i^2`, where the sum is over all simple objects 
         and `d_i` is the quantum dimension. It is a positive real number.
 
         EXAMPLES::
@@ -824,9 +828,12 @@ class FusionRing(WeylCharacterRing):
             sage: FusionRing("E6",1).global_q_dimension()
             3
         """
-        return sum(x.q_dimension()**2 for x in self.basis())
+        ret = sum(x.q_dimension(base_coercion=False)**2 for x in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def total_q_order(self):
+    def total_q_order(self, base_coercion=True):
         r"""
         Return the positive square root of ``self.global_q_dimension()``
         as an element of ``self.field()``.
@@ -842,12 +849,12 @@ class FusionRing(WeylCharacterRing):
             True
         """
         c = self.virasoro_central_charge()
-        ret = self.D_plus() * self.root_of_unity(-c/4)
-        if self._basecoer is None:
+        ret = self.D_plus(base_coercion=False) * self.root_of_unity(-c/4,base_coercion=False)
+        if (not base_coercion) or (self._basecoer is None):
             return ret
         return self._basecoer(ret)
 
-    def D_plus(self):
+    def D_plus(self, base_coercion=True):
         r"""
         Return `\sum d_i^2\theta_i` where `i` runs through the simple objects,
         `d_i` is the quantum dimension and `\theta_i` is the twist.
@@ -868,9 +875,13 @@ class FusionRing(WeylCharacterRing):
             sage: Dp/Dm == B31.root_of_unity(c/2)
             True
         """
-        return sum((x.q_dimension())**2 * x.ribbon() for x in self.basis())
+        ret = sum((x.q_dimension(base_coercion=False))**2 * x.ribbon(base_coercion=False) for x in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def D_minus(self):
+
+    def D_minus(self, base_coercion=True):
         r"""
         Return `\sum d_i^2\theta_i^{-1}` where `i` runs through the simple
         objects, `d_i` is the quantum dimension and `\theta_i` is the twist.
@@ -888,8 +899,11 @@ class FusionRing(WeylCharacterRing):
             sage: Dp*Dm == E83.global_q_dimension()
             True
         """
-        return sum((x.q_dimension())**2 / x.ribbon() for x in self.basis())
-
+        ret = sum((x.q_dimension(base_coercion=False))**2 / x.ribbon(base_coercion=False) for x in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
+ 
     ###################################
     ### Braid group representations ###
     ###################################
@@ -1114,7 +1128,7 @@ class FusionRing(WeylCharacterRing):
             else:
                 return twist
 
-        def ribbon(self):
+        def ribbon(self,base_coercion=True):
             r"""
             Return the twist or ribbon element of ``self``.
 
@@ -1135,10 +1149,13 @@ class FusionRing(WeylCharacterRing):
                 sage: [F.root_of_unity(x) for x in [0, 3/10, 4/5, 3/2]]
                 [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
             """
-            return self.parent().root_of_unity(self.twist())
+            ret = self.parent().root_of_unity(self.twist(),base_coercion=False)
+            if (not base_coercion) or (self.parent()._basecoer is None):
+                return ret
+            return self.parent()._basecoer(ret)
 
         @cached_method
-        def q_dimension(self):
+        def q_dimension(self, base_coercion=True):
             r"""
             Return the quantum dimension as an element of the cyclotomic
             field of the `2\ell`-th roots of unity, where `l = m (k+h^\vee)`
@@ -1183,7 +1200,8 @@ class FusionRing(WeylCharacterRing):
             expr = expr.substitute(q=q**4) / (q**(2*expr.degree()))
             zet = P.field().gen() ** (P._cyclotomic_order/P._l)
             ret = expr.substitute(q=zet)
-            if self.parent()._basecoer is None:
+
+            if (not base_coercion) or (self.parent()._basecoer is None):
                 return ret
             return self.parent()._basecoer(ret)
 

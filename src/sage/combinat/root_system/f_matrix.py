@@ -283,6 +283,7 @@ class FMatrix():
         """
         Clear the set of variables.
         """
+        self._FR._basecoer = None
         self._fvars = { self._var_to_sextuple[key] : key for key in self._var_to_sextuple }
         self.solved = set()
 
@@ -1179,6 +1180,7 @@ class FMatrix():
 
         """
         self.clear_vars()
+        self.clear_equations()
         if equations is None:
             if verbose:
                 print("Setting up hexagons and pentagons...")

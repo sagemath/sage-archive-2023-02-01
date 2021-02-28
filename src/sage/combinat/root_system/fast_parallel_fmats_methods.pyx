@@ -78,10 +78,10 @@ cdef req_cy(factory, tuple sextuple, side="left"):
     a, b, c, d, e, g = sextuple
     #To add typing we need to ensure all fmats.fmat are of the same type?
     #Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
-    lhs = factory._FR.r_matrix(a,c,e)*_fmat(factory,a,c,b,d,e,g)*factory._FR.r_matrix(b,c,g)
+    lhs = factory._FR.r_matrix(a,c,e,base_coercion=False)*_fmat(factory,a,c,b,d,e,g)*factory._FR.r_matrix(b,c,g,base_coercion=False)
     rhs = 0
     for f in factory._FR.basis():
-      rhs += _fmat(factory,c,a,b,d,e,f)*factory._FR.r_matrix(f,c,d)*_fmat(factory,a,b,c,d,f,g)
+      rhs += _fmat(factory,c,a,b,d,e,f)*factory._FR.r_matrix(f,c,d,base_coercion=False)*_fmat(factory,a,b,c,d,f,g)
     return lhs-rhs
 
 @cython.wraparound(False)

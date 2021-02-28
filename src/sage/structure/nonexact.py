@@ -37,8 +37,8 @@ class Nonexact:
 
     INPUT:
 
-    -  ``prec`` - a non-negative integer representing the default precision of
-      ``self``  (default: ``20``)
+    - ``prec`` -- a non-negative integer representing the default precision of
+      ``self`` (default: ``20``)
 
     """
     def __init__(self, prec=20):

@@ -5,7 +5,7 @@ In order to use this template you need to write a linkage file and
 gluing file.
 
 The linkage file implements a common API that is then used in the
-class FMElement defined here.  
+class FMElement defined here.
 See sage/libs/linkages/padics/lazy/API.pxi for the functions needed.
 
 The gluing file does the following:
@@ -129,7 +129,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         .. NOTE:
 
-            This function do not check that the requested digit
+            This function does not check that the requested digit
             has been already computed.
 
         INPUT:
@@ -228,8 +228,8 @@ cdef class LazyElement(pAdicGenericElement):
 
         - ``prec`` -- an integer
 
-        - ``halt`` -- an integer; the absolute precision after which the 
-          computation is abandonned if the first significant digit has not 
+        - ``halt`` -- an integer; the absolute precision after which the
+          computation is abandonned if the first significant digit has not
           been found yet
 
         OUTPUT:
@@ -318,8 +318,8 @@ cdef class LazyElement(pAdicGenericElement):
 
     def expansion(self, n=None, lift_mode='simple', start_val=None):
         r"""
-        Return an iterator over the list of coefficients in a `p`-adic 
-        expansion of this element, that is the list of `a_i` so that 
+        Return an iterator over the list of coefficients in a `p`-adic
+        expansion of this element, that is the list of `a_i` so that
         this element can be expressed as
 
         .. MATH::
@@ -689,7 +689,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         - ``right`` -- a lazy `p`-adic number
 
-        - ``prec`` -- an integer or ``None`` (default: ``None``); if 
+        - ``prec`` -- an integer or ``None`` (default: ``None``); if
           given, compare the two elements at this precision; otherwise
           use the default precision of the parent and raise an error
           if equality could not be decided
@@ -714,7 +714,7 @@ cdef class LazyElement(pAdicGenericElement):
             ...
             PrecisionError: unable to decide equality; try to bound precision
 
-        Bounding precision gives a 
+        Bounding precision gives a
 
             sage: a.is_equal_to(b + c, prec=20)
             True
@@ -840,7 +840,7 @@ cdef class LazyElement(pAdicGenericElement):
             sage: R = ZpL(5, print_mode="digits")
             sage: a = R(20/21)
 
-        Computations have not started yet, 
+        Computations have not started yet,
 
             sage: a._is_inexact_zero()
             True
@@ -1094,7 +1094,7 @@ cdef class LazyElement(pAdicGenericElement):
             4*5 + 4*5^2 + 5^4 + O(5^6)
 
         We illustrate the behaviour of the parameter ``halt``.
-        We create a very small number whose first significant is bar beyond
+        We create a very small number whose first significant is far beyond
         the default precision::
 
             sage: b = R(5^20)
@@ -1123,7 +1123,7 @@ cdef class LazyElement(pAdicGenericElement):
         .. NOTE:
 
             It is also possible to pass in ``halt=False`` but it is not recommended
-            because the computation can hang forever if this element were `0`.
+            because the computation can hang forever if this element is `0`.
 
         .. SEEALSO::
 
@@ -1273,7 +1273,7 @@ cdef class LazyElement(pAdicGenericElement):
             20
 
         We illustrate the behaviour of the parameter ``halt``.
-        We create a very small number whose first significant is bar beyond
+        We create a very small number whose first significant is far beyond
         the default precision::
 
             sage: z = R(5^20)
@@ -1302,7 +1302,7 @@ cdef class LazyElement(pAdicGenericElement):
         .. NOTE:
 
             It is also possible to pass in ``halt=False`` but it is not recommended
-            because the computation can hang forever if this element were `0`.
+            because the computation can hang forever if this element is `0`.
 
         TESTS::
 
@@ -1430,7 +1430,7 @@ cdef class LazyElement(pAdicGenericElement):
         - ``field`` -- boolean (default ``True``); when ``absprec`` is ``1``,
           whether to return an element of GF(p) or Zmod(p).
 
-        - ``check_prec`` -- boolean (default ``True``); whether to raise an error 
+        - ``check_prec`` -- boolean (default ``True``); whether to raise an error
           if this element has insufficient precision to determine the reduction.
 
         EXAMPLES::
@@ -1796,7 +1796,7 @@ cdef class LazyElement(pAdicGenericElement):
             sage: c.parent()
             3-adic Field with lazy precision
 
-        This method also work for self-referent numbers 
+        This method also works for self-referent numbers
         (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`)::
 
             sage: x = R.selfref(); x
@@ -1859,7 +1859,7 @@ cdef class LazyElement(pAdicGenericElement):
             sage: x.sqrt()
             1 + 2^3 + O(2^4)
 
-        This method also work for self-referent numbers 
+        This method also work for self-referent numbers
         (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`)::
 
             sage: x = R.selfref(); x
@@ -2356,7 +2356,7 @@ cdef class LazyElement_value(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``value`` -- the value in the exact subright
+        - ``value`` -- the value in the exact subring
 
         - ``shift`` -- an integer (default: `0`), the position at which
           the given value is written
@@ -2472,7 +2472,7 @@ cdef class LazyElement_random(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``valuation`` -- an integer or ``None``, the position from which 
+        - ``valuation`` -- an integer or ``None``, the position from which
           random digits are picked;
           if ``None``, it is randomly chosen if the parent is a field and
           set to `0` otherwise
@@ -2796,7 +2796,7 @@ cdef class LazyElement_add(LazyElementWithDigits):
 
         An error code (see :meth:`LazyElement._next_c` for details).
         """
-        # We reimplement _jump_c for better performances
+        # We reimplement _jump_c for better performance
         cdef long n = self._valuation + self._precrel
         cdef LazyElement x = self._x
         cdef LazyElement y = self._y
@@ -2955,7 +2955,7 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 
     ALGORITHM:
 
-    We compute digits using relaxed arithmetics by var der Hoeven and al.,
+    We compute digits using relaxed arithmetic by var der Hoeven et al.,
     whose cost is quasi-linear with respect to the precision.
 
     The algorithm uses the entries behind the current position in the table
@@ -3274,7 +3274,7 @@ cdef class LazyElement_div(LazyElementWithDigits):
         Bootstrap the computation of the digits of this element, that is:
 
         - find the valuation
-        - compute the first digit, and 
+        - compute the first digit, and
         - set up the recursive definition of the next digits.
 
         OUTPUT:
@@ -3352,7 +3352,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
     ALGORITHM:
 
-    When `p \neq 2`, we compute `y = \sqrt{x}` as the self-referent number 
+    When `p \neq 2`, we compute `y = \sqrt{x}` as the self-referent number
     defined by
 
     .. MATH::
@@ -3422,7 +3422,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
         Bootstrap the computation of the digits of this element, that is:
 
         - find the valuation
-        - compute the first digit, and 
+        - compute the first digit, and
         - set up the recursive definition of the next digits.
 
         OUTPUT:
@@ -3431,7 +3431,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
         .. NOTE::
 
-            This code does not work for nontrivial extensions of `\QQ_2`.    
+            This code does not work for nontrivial extensions of `\QQ_2`.
 
         """
         cdef LazyElement x = self._x
@@ -3480,7 +3480,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
             self._definition = lazyelement_abandon
             u = element_class_slice(parent, self, val + 2, maxordp, val)
             y = element_class_slice(parent, x, -maxordp, maxordp, val + 1)
-            c = element_class_value(parent, zd, shift=-val+1) 
+            c = element_class_value(parent, zd, shift=-val+1)
             d = element_class_slice(parent, u*u, -maxordp, maxordp, -val + 1)
             self._definition = y + c - d
         else:
@@ -3579,7 +3579,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
         cdef LazyElement xn
         cdef Integer p
-        cdef int size, i        
+        cdef int size, i
         if not self._trivial:
             xn = self
             p = self.prime_pow.prime
@@ -3670,7 +3670,7 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         sage: TestSuite(x).run()
 
         sage: x.set(1 + 7*x^2)
-        sage: TestSuite(x).run()        
+        sage: TestSuite(x).run()
     """
     def __init__(self, parent, long valuation, digits=None):
         r"""
@@ -3680,7 +3680,7 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``valuation`` -- an integer, a lower bound on the valuation of 
+        - ``valuation`` -- an integer, a lower bound on the valuation of
           this number
 
         - ``digits`` -- a list or ``None`` (default: ``None``), the first
@@ -3849,7 +3849,7 @@ cdef class LazyElement_zeroone(LazyElementWithDigits):
     `0` and `1` as digits.
 
     This class is used for computing expansion in Teichmuller mode.
-    It is not supposed to be instanciate in other situations.
+    It is not supposed to be instantiated in other situations.
     """
     def __init__(self, parent, long valuation):
         r"""
@@ -4093,7 +4093,7 @@ cdef class ExpansionIter(object):
             ....:     R = x.parent()
             ....:     E = x.expansion(lift_mode=mode)
             ....:     y = 0
-            ....:     for i in range(len(E)): 
+            ....:     for i in range(len(E)):
             ....:         digit = next(E)
             ....:         if mode == 'teichmuller':
             ....:             y += R.teichmuller(digit) << i

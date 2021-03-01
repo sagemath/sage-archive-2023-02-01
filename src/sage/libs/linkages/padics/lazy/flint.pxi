@@ -250,7 +250,7 @@ cdef inline void digit_quorem(fmpz_t quo, fmpz_t rem, fmpz_t a, PowComputer_flin
 
 cdef inline void digit_smallest(cdigit res, cdigit carry, cdigit a, PowComputer_flint prime_pow):
     r"""
-    Compute the smallest representative of a digit.     
+    Compute the smallest representative of a digit.
 
     INPUT:
 
@@ -342,7 +342,7 @@ cdef inline Integer element_get_sage(fmpz_poly_t x, PowComputer_flint prime_pow)
 
     OUTPUT:
 
-    A Sage `p`-adics representing the same element.
+    A Sage integer representing the same element modulo the known precision
     """
     cdef fmpz_t value
     fmpz_init(value)

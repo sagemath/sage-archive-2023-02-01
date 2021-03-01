@@ -101,7 +101,7 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 cdef class LazyElement_muldigit(LazyElementWithDigits):
     cdef cdigit_ptr _x
     cdef LazyElement _y
-    
+
 cdef class LazyElement_div(LazyElementWithDigits):
     cdef long _maxprec
     cdef cdigit _inverse

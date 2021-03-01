@@ -2,19 +2,19 @@ r"""
 This file defines the common API for lazy `p`-adic numbers.
 
 Let `K` be a given `p`-adic ring/field with uniformizer `\pi`.
-In the lazy model, we represent elements of `K` as (Laurent) polynomials over an 
-explcit exact subring of `K` (whose evaluation at `\pi` are good approximations
+In the lazy model, we represent elements of `K` as (Laurent) polynomials over an
+explicit exact subring of `K` (whose evaluation at `\pi` are good approximations
 of the element we want to represent).
 
-The coefficients of the aforementionned polynomials are called the *digits*. 
-They are intended to be chosed in a fixed set of small representatives of elements 
+The coefficients of the aforementioned polynomials are called the *digits*.
+They are intended to be chosen in a fixed set of small representatives of elements
 of the residue field of `K`, but we do not impose this condition because we want
 to keep stability under addition and multiplication.
 On the contrary, we let the digits be arbitrary elements in the exact subring
 but provide functions to reduce digits (i.e. replace them by the representative
 of its reduction modulo `\pi`) and propagate the carry accordingly.
 
-Our API is based on two template types (which have to be instanciated in
+Our API is based on two template types (which have to be instantiated in
 implementations):
 
 - ``cdigit``: the type of a digit
@@ -320,7 +320,7 @@ cdef inline Element element_get_sage(celement x, PowComputer_class prime_pow):
 
     OUTPUT:
 
-    A Sage `p`-adics representing the same element.
+    A Sage `p`-adic representing the same element.
     """
     pass
 

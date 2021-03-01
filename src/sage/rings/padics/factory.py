@@ -2958,12 +2958,12 @@ def ZpL(p, prec=None, *args, **kwds):
         sage: R
         5-adic Ring with lazy precision
 
-    The precision is not capped on `R`::
+    The precision is not capped in `R`::
 
         sage: R.precision_cap()
         +Infinity
 
-    However, a default precision is settled. This is the precision
+    However, a default precision is fixed. This is the precision
     at which the elements will be printed::
 
         sage: R.default_prec()

@@ -1231,6 +1231,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: latex(1+x^(2/3)+x^(-2/3))
             x^{\frac{2}{3}} + \frac{1}{x^{\frac{2}{3}}} + 1
+
+        Check that pynac understands rational powers (:trac:`30446`)::
+
+            sage: QQ((24*sqrt(3))^(100/50))==1728
+            True
+            sage: float((24*sqrt(3))^(100/51))
+            1493.0092154...
         """
         return self._parent._latex_element_(self)
 

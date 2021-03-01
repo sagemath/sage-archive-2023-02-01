@@ -323,11 +323,11 @@ class UnitGroup(AbelianGroupWithValues_class):
             self.__S = S
             self.__pS = pS = [P.pari_prime() for P in S]
 
-        # compute units
-        # NOTE: old pari syntax for S-units (< 2.13.0): pK.bnfsunit(pS)
-        # NOTE: pari >= 2.13.0: the first component of the result of bnfunits
-        # are *all* units starting with S-units, followed by fundamental units
-        # followed by the torsion unit.
+        # compute the fundamental units via pari:
+        fu = [K(u, check=False) for u in pK.bnf_get_fu()]
+        self.__nfu = len(fu)
+
+        # compute the additional S-unit generators:
         if S:
             self.__S_unit_data = pK.bnfunits(pS)
         else:
@@ -345,9 +345,12 @@ class UnitGroup(AbelianGroupWithValues_class):
         gens = [K(u, check=False) for u in su_fu_tu]
         gens = [gens[-1]] + gens[self.__nsu:-1] + gens[:self.__nsu]
 
-        # Construct the abtract group:
-        gens_orders = tuple([ZZ(self.__ntu)]+[ZZ(0)]*(self.__rank))
-        AbelianGroupWithValues_class.__init__(self, gens_orders, 'u', gens, number_field)
+        # Store the actual generators (torsion first):
+        gens = [z] + fu + su
+        values = Sequence(gens, immutable=True, universe=self, check=False)
+        # Construct the abstract group:
+        gens_orders = tuple([ZZ(n)]+[ZZ(0)]*(self.__rank))
+        AbelianGroupWithValues_class.__init__(self, gens_orders, 'u', values, number_field)
 
     def _element_constructor_(self, u):
         """

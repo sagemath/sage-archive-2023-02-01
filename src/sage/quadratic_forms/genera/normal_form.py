@@ -125,6 +125,7 @@ def collect_small_blocks(G):
         blocks.append(block)
     return blocks
 
+
 def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
     r"""
     Return the transformation to the `p`-adic normal form of a symmetric matrix.
@@ -291,7 +292,7 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
 
 def _find_min_p(G, cnt, lower_bound=0):
     r"""
-    Find smallest valuation below and right from ``cnt`` prefering the diagonal.
+    Find smallest valuation below and right from ``cnt`` preferring the diagonal.
 
     INPUT:
 
@@ -348,6 +349,7 @@ def _find_min_p(G, cnt, lower_bound=0):
                 min_j = j
                 minval = v
     return minval, min_i, min_j
+
 
 def _get_small_block_indices(G):
     r"""
@@ -591,7 +593,7 @@ def _jordan_odd_adic(G):
     # transformation matrix
     B = Matrix.identity(R, n)
 
-    # indices of the diagonal entrys which are already used
+    # indices of the diagonal entries which are already used
     cnt = 0
     minval = 0
     while cnt < n:
@@ -625,9 +627,10 @@ def _jordan_odd_adic(G):
             # the smallest valuation is now on the diagonal
     return D, B
 
+
 def _jordan_2_adic(G):
     r"""
-    Transform a symmetric matrix over the `2`-adic integers into jordan form.
+    Transform a symmetric matrix over the `2`-adic integers into Jordan form.
 
     Note that if the precision is too low, this method fails.
     The method is only tested for input over `\ZZ_2` of ``'type=fixed-mod'``.
@@ -675,7 +678,7 @@ def _jordan_2_adic(G):
     # transformation matrix
     B = Matrix.identity(R, n)
 
-    # indices of the diagonal entrys which are already used
+    # indices of the diagonal entries which are already used
     cnt = 0
     minval = None
     while cnt < n:
@@ -1376,7 +1379,7 @@ def _two_adic_normal_forms(G, partial=False):
     INPUT:
 
     - ``G`` -- block diagonal matrix with blocks of type `U`, `V`, `W`
-    - ``partial`` -- bool (defaul: ``False``)
+    - ``partial`` -- bool (default: ``False``)
 
     OUTPUT:
 

@@ -247,7 +247,7 @@ cpdef gen_to_sage(Gen z, locals=None):
     cdef GEN g = z.g
     cdef long t = typ(g)
     cdef long tx, ty
-    cdef Gen real, imag
+    cdef Gen real, imag, prec, xprec, yprec
     cdef Py_ssize_t i, j, nr, nc
 
     if t == t_INT:
@@ -256,9 +256,11 @@ cpdef gen_to_sage(Gen z, locals=None):
         return Rational(z)
     elif t == t_REAL:
         prec = z.bitprecision()
-        if prec.type() == 't_INFINITY':
-            prec = 53
-        return RealField(prec)(z)
+        if typ(prec.g) == t_INFINITY:
+            sage_prec = 53
+        else:
+            sage_prec = prec
+        return RealField(sage_prec)(z)
     elif t == t_COMPLEX:
         real = z.real()
         imag = z.imag()
@@ -267,22 +269,20 @@ cpdef gen_to_sage(Gen z, locals=None):
         if tx in [t_INTMOD, t_PADIC] or ty in [t_INTMOD, t_PADIC]:
             raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
         if tx == t_REAL or ty == t_REAL:
-            xprec = real.bitprecision()  # will be 0 if exact
-            yprec = imag.bitprecision()  # will be 0 if exact
-            if xprec == 0 or yprec == 0:
-                raise RuntimeError
-            if xprec.type() == 't_INFINITY':
-                if yprec.type() == 't_INFINITY':
-                    prec = 53
+            xprec = real.bitprecision()  # will be infinite if exact
+            yprec = imag.bitprecision()  # will be infinite if exact
+            if typ(xprec.g) == t_INFINITY:
+                if typ(yprec.g) == t_INFINITY:
+                    sage_prec = 53
                 else:
-                    prec = yprec
-            elif yprec.type() == 't_INFINITY':
-                prec = xprec
+                    sage_prec = yprec
+            elif typ(yprec.g) == t_INFINITY:
+                sage_prec = xprec
             else:
-                prec = max(xprec, yprec)
+                sage_prec = max(xprec, yprec)
 
-            R = RealField(prec)
-            C = ComplexField(prec)
+            R = RealField(sage_prec)
+            C = ComplexField(sage_prec)
             return C(R(real), R(imag))
         else:
             K = QuadraticField(-1, 'i')

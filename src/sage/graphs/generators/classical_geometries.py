@@ -15,7 +15,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         https://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import absolute_import, division
 
 from sage.graphs.graph import Graph
 from sage.arith.all import is_prime_power
@@ -1421,7 +1420,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 def OrthogonalDualPolarGraph(e, d, q):
     r"""
     Return dual polar graph on $GO^e(n,q)$ of diameter `d`.
-    The value of `n` is determinded by `d` and `e`.
+    The value of `n` is determined by `d` and `e`.
 
     The graph is distance-regular with classical parameters
     `(d, q, 0, q^e)`.

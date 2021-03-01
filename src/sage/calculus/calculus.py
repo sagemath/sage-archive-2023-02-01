@@ -393,6 +393,14 @@ see :trac:`9538`::
     f1
     sage: sage.calculus.calculus.maxima('f1')
     f1
+
+To check that :trac:`14821` is fixed::
+
+    sage: H = exp(-1.0 * x)
+    sage: H.integral(x, 0, 1)
+    0.6321205588285577
+    sage: integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    4.62770039817000e-9
 """
 
 import re
@@ -2210,7 +2218,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #replace all instances of Maxima's scientific notation
     #with regular notation
     search = sci_not.search(s)
-    while not search is None:
+    while search is not None:
         (start, end) = search.span()
         r = create_RealNumber(s[start:end]).str(no_sci=2, truncate=True)
         s = s.replace(s[start:end], r)

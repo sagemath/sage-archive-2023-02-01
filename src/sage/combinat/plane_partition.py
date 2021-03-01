@@ -22,7 +22,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -584,12 +583,12 @@ class PlanePartition(ClonableArray,
         c1 = len(Z)
         c2 = len(Z[0])
         size = max(c1, c2)
-        T = [[0 for i in range(0,size)] for j in range(0,size)]
-        for i in range(0,c1):
-            for j in range(0,c2):
-                T[i][j]=Z[i][j]
+        T = [[0 for i in range(size)] for j in range(size)]
+        for i in range(c1):
+            for j in range(c2):
+                T[i][j] = Z[i][j]
         return all(T[r][c] == T[c][r]
-            for r in range(0,size)
+            for r in range(size)
             for c in range(r, size))
 
     def is_CSPP(self):

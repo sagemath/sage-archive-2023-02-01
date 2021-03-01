@@ -11,7 +11,6 @@ Inline cython methods for lists of faces.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces cimport *
 from .face_data_structure             cimport *
 from libc.string                      cimport memset
 from cysignals.signals                cimport sig_on, sig_off
@@ -159,14 +158,17 @@ cdef inline bint is_contained_in_one_fused(face_t face, face_list_t faces, algor
             return True
     return False
 
-cdef inline bint is_not_maximal_fused(face_list_t faces, size_t j, algorithm_variant algorithm) nogil:
+cdef inline bint is_not_maximal_fused(face_list_t faces, size_t j, algorithm_variant algorithm, bint* is_not_new_face) nogil:
     """
     Return whether face ``j`` is not maximal in ``faces``.
     """
     cdef size_t i
     if algorithm_variant is standard:
         for i in range(j):
-            if face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
+            if (not is_not_new_face[i]) and face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
+                # It suffices to check those faces, that are maximal.
+                # This way, if multiple identical faces are maximal,
+                # exactly the last one is considered maximal.
                 return True
         for i in range(j+1, faces.n_faces):
             if face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
@@ -248,7 +250,7 @@ cdef inline size_t get_next_level_fused(
 
     cdef size_t j
     for j in range(n_faces):
-        if (is_not_maximal_fused(new_faces, j, algorithm) or  # Step 2
+        if (is_not_maximal_fused(new_faces, j, algorithm, is_not_new_face) or  # Step 2
                 is_contained_in_one_fused(new_faces.faces[j], visited_all, algorithm)):  # Step 3
             is_not_new_face[j] = True
 

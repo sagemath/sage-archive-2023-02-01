@@ -1,5 +1,5 @@
-pari_jupyter
-============
+pari_jupyter: Jupyter kernel for PARI/GP
+========================================
 
 Description
 -----------

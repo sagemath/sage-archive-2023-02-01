@@ -374,7 +374,9 @@ def package_systems():
         # to obtain system package advice.
         try:
             proc = run('sage-guess-package-system', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True, check=True)
-            _cache_package_systems = [PackageSystem(proc.stdout.strip())]
+            system_name = proc.stdout.strip()
+            if system_name != 'unknown':
+                _cache_package_systems = [PackageSystem(system_name)]
         except CalledProcessError:
             pass
         more_package_systems = [SagePackageSystem(), PipPackageSystem()]
@@ -673,7 +675,7 @@ class StaticFile(Feature):
             sage: feature.absolute_path() == file_path
             True
 
-        A ``FeatureNotPresentError`` is raised if the file can not be found::
+        A ``FeatureNotPresentError`` is raised if the file cannot be found::
 
             sage: from sage.features import StaticFile
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()  # optional - sage_spkg

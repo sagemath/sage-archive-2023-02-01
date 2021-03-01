@@ -1248,7 +1248,7 @@ cdef class Matrix(Matrix1):
             sage: A.permanent()
             32
 
-        A huge permanent that can not be reasonably computed with the Ryser
+        A huge permanent that cannot be reasonably computed with the Ryser
         algorithm (a `50 \times 50` band matrix with width `5`)::
 
             sage: n, w = 50, 5
@@ -1881,7 +1881,7 @@ cdef class Matrix(Matrix1):
 
     def determinant(self, algorithm=None):
         r"""
-        Returns the determinant of self.
+        Return the determinant of ``self``.
 
         ALGORITHM:
 
@@ -1984,41 +1984,41 @@ cdef class Matrix(Matrix1):
             sage: _ = A.charpoly()
             sage: A.determinant() == B.determinant()
             True
-
         """
-
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+        from sage.symbolic.ring import is_SymbolicExpressionRing
 
-        if self._nrows != self._ncols:
+        cdef Py_ssize_t n
+        n = self._ncols
+
+        if self._nrows != n:
             raise ValueError("self must be a square matrix")
 
         d = self.fetch('det')
-        if not d is None:
-            return d
-
-        R = self._base_ring
-        if hasattr(R, '_matrix_determinant'):
-            d = R._matrix_determinant(self)
-            self.cache('det', d)
+        if d is not None:
             return d
 
         # If charpoly known, then det is easy.
         f = self.fetch('charpoly')
         if f is not None:
             c = f[0]
-            if self._nrows % 2:
+            if n % 2:
                 c = -c
             d = self._coerce_element(c)
             self.cache('det', d)
             return d
 
-        cdef Py_ssize_t n
-        n = self._ncols
+        # for base rings with their own specific determinant methods
+        R = self._base_ring
+        if hasattr(R, '_matrix_determinant'):
+            d = R._matrix_determinant(self)
+            self.cache('det', d)
+            return d
 
-        # For small matrices, you can't beat the naive formula.
+        # For small matrices, you cannot beat the naive formula.
         if n <= 3:
             if n == 0:
-                d = R(1)
+                d = R.one()
             elif n == 1:
                 d = self.get_unsafe(0,0)
             elif n == 2:
@@ -2057,10 +2057,11 @@ cdef class Matrix(Matrix1):
         # seems to be quite large for Q[x].)
         if (algorithm is None and R in _Fields and R.is_exact()) or (algorithm == "hessenberg"):
             try:
-                c = self.charpoly('x', algorithm="hessenberg")[0]
+                charp = self.charpoly('x', algorithm="hessenberg")
             except ValueError:
                 # Hessenberg algorithm not supported, so we use whatever the default algorithm is.
-                c = self.charpoly('x')[0]
+                charp = self.charpoly('x')
+            c = charp[0]
             if self._nrows % 2:
                 c = -c
             d = self._coerce_element(c)
@@ -2074,15 +2075,14 @@ cdef class Matrix(Matrix1):
         # nice to avoid hardcoding a reserved variable name as below, as this
         # is then assumed to not be a variable in the symbolic ring.  But this
         # resulted in further exceptions/ errors.
-        from sage.symbolic.ring import is_SymbolicExpressionRing
 
         var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
         try:
-            c = self.charpoly(var, algorithm="df")[0]
+            charp = self.charpoly(var, algorithm="df")
         except ValueError:
             # Division free algorithm not supported, so we use whatever the default algorithm is.
-            c = self.charpoly(var)[0]
-
+            charp = self.charpoly(var)
+        c = charp[0]
         if self._nrows % 2:
             c = -c
         d = self._coerce_element(c)
@@ -8597,27 +8597,27 @@ cdef class Matrix(Matrix1):
         window.set(block.matrix_window())
 
     def subdivide(self, row_lines=None, col_lines=None):
-        """
-        Divides self into logical submatrices which can then be queried and
-        extracted. If a subdivision already exists, this method forgets the
+        r"""
+        Divides ``self`` into logical submatrices which can then be queried
+        and extracted.
+
+        If a subdivision already exists, this method forgets the
         previous subdivision and flushes the cache.
 
         INPUT:
 
+        - ``row_lines`` -- ``None``, an integer, or a list of
+          integers (lines at which self must be split)
 
-        -  ``row_lines`` - None, an integer, or a list of
-           integers (lines at which self must be split).
+        - ``col_lines`` -- ``None``, an integer, or a list of
+          integers (columns at which self must be split)
 
-        -  ``col_lines`` - None, an integer, or a list of
-           integers (columns at which self must be split).
-
-
-        OUTPUT: changes self
+        OUTPUT: ``None`` but changes ``self``
 
         .. NOTE::
 
            One may also pass a tuple into the first argument which
-           will be interpreted as (row_lines, col_lines)
+           will be interpreted as ``(row_lines, col_lines)``.
 
         EXAMPLES::
 
@@ -8686,8 +8686,25 @@ cdef class Matrix(Matrix1):
             [53|59 61|67 71]
             [--+-----+-----]
             [73|79 83|89 97]
-        """
 
+        TESTS:
+
+        Input such that the matrix has no subdivision results in
+        the ``_subdivision`` attribute being set to ``None``::
+
+            sage: A = matrix.identity(QQ, 4)
+            sage: A._subdivisions is None
+            True
+            sage: A.subdivide()
+            sage: A._subdivisions is None
+            True
+            sage: A.subdivide(2, 3)  # perform a subdivision
+            sage: A._subdivisions is None
+            False
+            sage: A.subdivide(([], []))  # now reset
+            sage: A._subdivisions is None
+            True
+        """
         self.check_mutability()
         if col_lines is None and row_lines is not None and isinstance(row_lines, tuple):
             tmp = row_lines
@@ -8700,13 +8717,16 @@ cdef class Matrix(Matrix1):
             col_lines = []
         elif not isinstance(col_lines, list):
             col_lines = [col_lines]
-        l_row = sorted(row_lines)
-        l_col = sorted(col_lines)
-        l_row = [0] + [int(ZZ(x)) for x in l_row] + [self._nrows]
-        l_col = [0] + [int(ZZ(x)) for x in l_col] + [self._ncols]
         if self._subdivisions is not None:
             self.clear_cache()
-        self._subdivisions = (l_row, l_col)
+        if (not row_lines) and (not col_lines):
+            self._subdivisions = None
+        else:
+            l_row = sorted(row_lines)
+            l_col = sorted(col_lines)
+            l_row = [0] + [int(ZZ(x)) for x in l_row] + [self._nrows]
+            l_col = [0] + [int(ZZ(x)) for x in l_col] + [self._ncols]
+            self._subdivisions = (l_row, l_col)
 
     def subdivision(self, i, j):
         """

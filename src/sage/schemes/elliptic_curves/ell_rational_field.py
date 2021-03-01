@@ -49,7 +49,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function, division, absolute_import
 
 from . import constructor
 from . import BSD
@@ -83,6 +82,8 @@ from sage.rings.all import (
     IntegerRing, RealField,
     ComplexField, RationalField)
 
+from sage.structure.coerce import py_scalar_to_element
+from sage.structure.element import Element
 import sage.misc.all as misc
 from sage.misc.verbose import verbose as verbose_verbose
 
@@ -1620,7 +1621,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``root_number`` -- (default: "compute") String or integer
 
           - ``"compute"`` -- the root number of self is computed and used to
-            (possibly) lower ther analytic rank estimate by 1.
+            (possibly) lower the analytic rank estimate by 1.
           - ``"ignore"`` -- the above step is omitted
           - ``1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
@@ -2129,8 +2130,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if algorithm == 'mwrank_lib':
             verbose_verbose("using mwrank lib")
-            if self.is_integral(): E = self
-            else: E = self.integral_model()
+            E = self if self.is_integral() else self.integral_model()
             C = E.mwrank_curve()
             C.set_verbose(verbose)
             rank = Integer(C.rank())
@@ -2644,11 +2644,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         while True:
             ok, index, unsat = mw.saturate(max_prime=max_prime, odd_primes_only = odd_primes_only)
             reg = mw.regulator()
-            if ok or not repeat_until_saturated: break
+            if ok or not repeat_until_saturated:
+                break
             max_prime = arith.next_prime(max_prime + 1000)
             prec += 50
             mwrank_set_precision(prec)
-        if prec!=prec0: mwrank_set_precision(prec0)
+        if prec != prec0:
+            mwrank_set_precision(prec0)
         sat = mw.points()
         sat = [Emin(P) for P in sat]
         if not minimal:
@@ -4042,8 +4044,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             p = p.next_prime()
             # check if the formal group at the place is torsion-free
             # if so the torsion injects into the reduction
-            while not E.is_local_integral_model(p) or not E.is_good(p): p = p.next_prime()
-            bound = arith.gcd(bound,E.reduction(p).cardinality())
+            while not E.is_local_integral_model(p) or not E.is_good(p):
+                p = p.next_prime()
+            bound = arith.gcd(bound, E.reduction(p).cardinality())
             if bound == 1:
                 return bound
             k += 1
@@ -4975,8 +4978,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if N == 990 and isogeny == 'h':
             optimal_label = '990h3'
         else:
-            optimal_label = '%s%s1'%(N,isogeny)
-        if optimal_label == label: return self
+            optimal_label = '%s%s1' % (N, isogeny)
+        if optimal_label == label:
+            return self
         return constructor.EllipticCurve(optimal_label)
 
     def isogeny_graph(self, order=None):
@@ -5407,13 +5411,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              0.0018604485340371083710285594393397945456,
             -0.0018743978548152085771342944989052703431]
 
-            sage: E.eval_modular_form(2.1+I, 100) # abs tol 1e-20
+            sage: E.eval_modular_form(2.1+I, 100) # abs tol 1e-16
+            [0.00150864362757267079 + 0.00109100341113449845*I]
+
+        TESTS::
+
+            sage: E.eval_modular_form(CDF(2.1+I), 100) # abs tol 1e-16
             [0.00150864362757267079 + 0.00109100341113449845*I]
         """
         if not isinstance(points, list):
-            try:
-                points = list(points)
-            except TypeError:
+            points = py_scalar_to_element(points)
+            if isinstance(points, Element):
                 return self.eval_modular_form([points], order)
         an = self.pari_mincurve().ellan(order)
         s = 0
@@ -5986,9 +5994,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         n=r+1
         c10 = R(2 * 10**(8+7*n) * R((2/e)**(2 * n**2)) * (n+1)**(4 * n**2 + 10 * n) * log(c9)**(-2*n - 1) * misc.prod(mod_h_list))
 
-        top = Z(128) #arbitrary first upper bound
+        top = Z(128)  # arbitrary first upper bound
         bottom = Z(0)
-        log_c9=log(c9); log_c5=log(c5)
+        log_c9 = log(c9)
+        log_c5 = log(c5)
         log_r_top = log(R(r*(10**top)))
 
         while R(c10*(log_r_top+log_c9)*(log(log_r_top)+h_E+log_c9)**(n+1)) > R(c2/2 * (10**top)**2 - log_c5):

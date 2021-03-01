@@ -231,7 +231,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^2 + 3); K
             Number Field in a with defining polynomial x^2 + 3
             sage: f = K.factor(15); f
-            (Fractional ideal (-a))^2 * (Fractional ideal (5))
+            (Fractional ideal (1/2*a + 3/2))^2 * (Fractional ideal (5))
             sage: (f[0][0] < f[1][0])
             True
             sage: (f[0][0] == f[0][0])
@@ -620,7 +620,7 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: K.<z> = CyclotomicField(7)
             sage: I = K.factor(11)[0][0]; I
-            Fractional ideal (-2*z^4 - 2*z^2 - 2*z + 1)
+            Fractional ideal (-3*z^4 - 2*z^3 - 2*z^2 - 2)
             sage: A = I.free_module()
             sage: A              # warning -- choice of basis can be somewhat random
             Free module of degree 6 and rank 6 over Integer Ring
@@ -3118,7 +3118,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: K.<a> = NumberField(x^5 + 2); K
             Number Field in a with defining polynomial x^5 + 2
             sage: f = K.factor(19); f
-            (Fractional ideal (a^2 + a - 3)) * (Fractional ideal (-2*a^4 - a^2 + 2*a - 1)) * (Fractional ideal (a^2 + a - 1))
+            (Fractional ideal (a^2 + a - 3)) * (Fractional ideal (2*a^4 + a^2 - 2*a + 1)) * (Fractional ideal (a^2 + a - 1))
             sage: [i.residue_class_degree() for i, _ in f]
             [2, 2, 1]
         """

@@ -100,29 +100,29 @@ A relative number field example::
     sage: UL.zeta_order()
     24
     sage: UL.roots_of_unity()
-    [-b*a - b,
-     b^2*a,
-     b^3,
-     a + 1,
-     -b*a,
-     -b^2,
-     b^3*a + b^3,
-     a,
-     b,
+    [-b*a,
      -b^2*a - b^2,
-     b^3*a,
-     -1,
-     b*a + b,
-     -b^2*a,
      -b^3,
-     -a - 1,
-     b*a,
-     b^2,
-     -b^3*a - b^3,
      -a,
+     -b*a - b,
+     -b^2,
+     b^3*a,
+     -a - 1,
      -b,
+     b^2*a,
+     b^3*a + b^3,
+     -1,
+     b*a,
      b^2*a + b^2,
+     b^3,
+     a,
+     b*a + b,
+     b^2,
      -b^3*a,
+     a + 1,
+     b,
+     -b^2*a,
+     -b^3*a - b^3,
      1]
 
 A relative extension example, which worked thanks to the code review by F.W.Clarke::
@@ -199,7 +199,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         sage: UK.gen(5)
         u5
         sage: UK.gen(5).value()
-        z^7 + z
+        -z^7 - z
 
     An S-unit group::
 
@@ -216,7 +216,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         sage: SUK.zeta_order()
         26
         sage: SUK.log(21*z)
-        (12, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+        (25, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
     """
     # This structure is not a parent in the usual sense. The
     # "elements" are NumberFieldElement_absolute. Instead, they should
@@ -250,7 +250,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: UK.gens()
             (u0, u1)
             sage: UK.gens_values()
-            [-1, 6*a - 37]
+            [-1, -6*a + 37]
 
             sage: K.<a> = QuadraticField(-3)
             sage: UK = K.unit_group(); UK
@@ -258,7 +258,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: UK.gens()
             (u,)
             sage: UK.gens_values()
-            [1/2*a + 1/2]
+            [-1/2*a + 1/2]
 
             sage: K.<z> = CyclotomicField(13)
             sage: UK = K.unit_group(); UK
@@ -372,7 +372,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: UK.gens()
             (u0, u1)
             sage: UK.gens_values()
-            [-1, 6*a - 37]
+            [-1, -6*a + 37]
             sage: UK.ngens()
             2
             sage: [UK(u) for u in UK.gens()]
@@ -523,9 +523,9 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: U.zeta(2, all=True)
             [-1]
             sage: U.zeta(3)
-            1/2*z - 1/2
+            -1/2*z - 1/2
             sage: U.zeta(3, all=True)
-            [1/2*z - 1/2, -1/2*z - 1/2]
+            [-1/2*z - 1/2, 1/2*z - 1/2]
             sage: U.zeta(4)
             Traceback (most recent call last):
             ...
@@ -641,7 +641,7 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           -8732*z^11 + 15496*z^10 + 51840*z^9 + 68804*z^8 + 51840*z^7 + 15496*z^6 - 8732*z^5 + 34216*z^3 + 64312*z^2 + 64312*z + 34216
+           8732*z^11 - 15496*z^10 - 51840*z^9 - 68804*z^8 - 51840*z^7 - 15496*z^6 + 8732*z^5 - 34216*z^3 - 64312*z^2 - 64312*z - 34216
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v
@@ -688,7 +688,7 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           -8732*z^11 + 15496*z^10 + 51840*z^9 + 68804*z^8 + 51840*z^7 + 15496*z^6 - 8732*z^5 + 34216*z^3 + 64312*z^2 + 64312*z + 34216
+           8732*z^11 - 15496*z^10 - 51840*z^9 - 68804*z^8 - 51840*z^7 - 15496*z^6 + 8732*z^5 - 34216*z^3 - 64312*z^2 - 64312*z - 34216
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v

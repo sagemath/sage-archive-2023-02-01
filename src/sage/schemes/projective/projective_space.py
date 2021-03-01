@@ -1776,22 +1776,22 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             sage: PP = ProjectiveSpace(2,FF)
             sage: [ x for x in PP ]
             [(0 : 0 : 1),
-             (1 : 0 : 1),
-             (2 : 0 : 1),
-             (0 : 1 : 1),
-             (1 : 1 : 1),
-             (2 : 1 : 1),
-             (0 : 2 : 1),
-             (1 : 2 : 1),
-             (2 : 2 : 1),
-             (0 : 1 : 0),
-             (1 : 1 : 0),
-             (2 : 1 : 0),
-             (1 : 0 : 0)]
+            (0 : 1 : 1),
+            (0 : 2 : 1),
+            (1 : 0 : 1),
+            (1 : 1 : 1),
+            (1 : 2 : 1),
+            (2 : 0 : 1),
+            (2 : 1 : 1),
+            (2 : 2 : 1),
+            (0 : 1 : 0),
+            (1 : 1 : 0),
+            (2 : 1 : 0),
+            (1 : 0 : 0)]
 
         AUTHORS:
 
-        - David Kohel
+        - David Kohel, John Cremona
 
         .. TODO::
 
@@ -1801,27 +1801,13 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         """
         n = self.dimension_relative()
         R = self.base_ring()
-        zero = R.zero()
-        i = n
+        zero = (R.zero(), )
+        one = (R.one(), )
         PHom = self.point_homset()
-        while i >= 0:
-            P = [zero]*i + [R.one()] + [zero]*(n-i)
-            yield PHom(P, check=False)
-            iters = [iter(R) for _ in range(i)]
-            for x in iters:
-                next(x) # put at zero
-            j = 0
-            while j < i:
-                try:
-                    P[j] = next(iters[j])
-                    yield PHom(P, check=False)
-                    j = 0
-                except StopIteration:
-                    iters[j] = iter(R)  # reset
-                    next(iters[j]) # put at zero
-                    P[j] = zero
-                    j += 1
-            i -= 1
+
+        for k in range(n + 1): # position of last 1 before the 0's
+            for v in cartesian_product_iterator([R for _ in range(n - k)]):
+                yield PHom(v + one + zero * k, check=False)
 
     def rational_points(self, F=None):
         """

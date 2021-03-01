@@ -345,12 +345,9 @@ class UnitGroup(AbelianGroupWithValues_class):
         gens = [K(u, check=False) for u in su_fu_tu]
         gens = [gens[-1]] + gens[self.__nsu:-1] + gens[:self.__nsu]
 
-        # Store the actual generators (torsion first):
-        gens = [z] + fu + su
-        values = Sequence(gens, immutable=True, universe=self, check=False)
         # Construct the abstract group:
-        gens_orders = tuple([ZZ(n)]+[ZZ(0)]*(self.__rank))
-        AbelianGroupWithValues_class.__init__(self, gens_orders, 'u', values, number_field)
+        gens_orders = tuple([ZZ(self.__ntu)]+[ZZ(0)]*(self.__rank))
+        AbelianGroupWithValues_class.__init__(self, gens_orders, 'u', gens, number_field)
 
     def _element_constructor_(self, u):
         """

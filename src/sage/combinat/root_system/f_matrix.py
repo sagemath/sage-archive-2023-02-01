@@ -222,8 +222,10 @@ class FMatrix():
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
         self._FR = fusion_ring
-        if inject_variables:
+        if inject_variables and self._FR.fusion_labels is None:
             self._FR.fusion_labels(fusion_label, inject_variables=True)
+        if not self._FR.is_multiplicity_free():
+            raise ValueError("FMatrix is only available for multiplicity free FusionRings")
         #Set up F-symbols entry by entry
         n_vars = self.findcases()
         self._poly_ring = PolynomialRing(self._FR.field(),n_vars,var_prefix)
@@ -986,7 +988,7 @@ class FMatrix():
         self._fvars = { sextuple : constant_coeff(rhs) for sextuple, rhs in self._fvars.items() }
         self.clear_equations()
 
-    def find_real_orthogonal_solution(self,use_mp=True,save_dir="",verbose=True):
+    def find_orthogonal_solution(self,use_mp=True,save_dir="",verbose=True):
         """
         Solver
         If provided, optional param save_dir (for saving computed _fvars) should have a trailing forward slash
@@ -1246,7 +1248,7 @@ class FMatrix():
 
     def fmats_are_orthogonal(self):
         """
-        Verify that all F-matrices are real and unitary (orthogonal)
+        Verify that all F-matrices are orthogonal
         """
         is_orthog = []
         for a,b,c,d in product(self._FR.basis(),repeat=4):

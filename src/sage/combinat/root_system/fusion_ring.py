@@ -904,6 +904,31 @@ class FusionRing(WeylCharacterRing):
             return ret
         return self._basecoer(ret)
  
+    def is_multiplicity_free(self):
+        """
+        Return ``True`` if the fusion multiplicities
+        :meth:`Nk_ij` are bounded by 1. The :class:`FMatrix`
+        is available only for multiplicity free :class:`FusionRing`s.
+
+        EXAMPLES::
+
+            sage: [FusionRing(ct,k).is_multiplicity_free() for ct in ("A1","A2","B2","C3") for k in (1,2,3)]
+            [True, True, True, True, True, False, True, True, False, True, False, False]
+
+        """
+        ct = self.cartan_type()
+        k = self.fusion_level()
+        if ct.letter == 'A':
+            if ct.n == 1:
+                return True
+            return k <= 2
+        if ct.letter in ['B','D','G','F','E']:
+            return k <= 2
+        if ct.letter == 'C':
+            if ct.n == 2:
+                return k <= 2
+            return k == 1
+
     ###################################
     ### Braid group representations ###
     ###################################

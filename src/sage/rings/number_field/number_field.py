@@ -100,6 +100,7 @@ We do some arithmetic in a tower of relative number fields::
 
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecation
 
 import sage.libs.ntl.all as ntl
 import sage.interfaces.gap
@@ -5767,11 +5768,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: NumberField(x^15 + x^14 - 14*x^13 - 13*x^12 + 78*x^11 + 66*x^10 - 220*x^9 - 165*x^8 + 330*x^7 + 210*x^6 - 252*x^5 - 126*x^4 + 84*x^3 + 28*x^2 - 8*x - 10, 'a').is_galois()
             False
         """
-        #return self.galois_group(type="pari").order() == self.degree()
-        if self.degree() < 12:
-            return self.galois_group(type='pari').order() == self.degree()
-        else:
-            return len(self.automorphisms()) == self.degree()
+        return self.galois_group().is_galois()
 
     @cached_method
     def is_abelian(self):
@@ -5808,7 +5805,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         return pari_pol.galoisinit().galoisisabelian(1)==1
 
     @cached_method
-    def galois_group(self, type=None, algorithm='pari', names=None):
+    def galois_group(self, type=None, algorithm='pari', names=None, gc_numbering=None):
         r"""
         Return the Galois group of the Galois closure of this number field.
 
@@ -5821,17 +5818,27 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
            is quicker to compute, but rather less useful (in particular, it
            can't be made to act on self).
 
-        -  ``algorithm`` - 'pari', 'kash', 'magma'. (default: 'pari', except
-           when the degree is >= 12 when 'kash' is tried.)
+        -  ``algorithm`` - 'pari', 'gap', 'kash', 'magma'. (default: 'pari';
+            for degrees between 12 and 15 default is 'gap', and
+            when the degree is >= 16 it is 'kash'.)
+
 
         -  ``name`` - a string giving a name for the generator of the Galois
            closure of self, when self is not Galois. This is ignored if type is
            not None.
 
+        -  ``gc_numbering`` -- if ``True``, permutations will be written
+           in terms of the action on the roots of a defining polynomial
+           for the Galois closure, rather than the defining polynomial for
+           the original number field.  This is significantly faster;
+           but not the standard way of presenting Galois groups.
+           The default currently depends on the algorithm (``True`` for ``'pari'``,
+           ``False`` for ``'magma'``) and may change in the future.
+
         Note that computing Galois groups as abstract groups is often much
         faster than computing them as explicit automorphism groups (but of
         course you get less information out!) For more (important!)
-        documentation, so the documentation for Galois groups of polynomials
+        documentation, see the documentation for Galois groups of polynomials
         over `\QQ`, e.g., by typing ``K.polynomial().galois_group?``,
         where `K` is a number field.
 
@@ -5900,18 +5907,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             ]
             sage: G[2](b1)
             1/12*b1^4 + 1/2*b1
+
+        many examples for higher degrees may be found in the online databases
+        http://galoisdb.math.upb.de/ by Jürgen Klüners and Gunter Malle and
+        https://www.lmfdb.org/NumberField/ by the LMFDB collaboration,
+        although these might need a lot of computing time.
         """
-        from .galois_group import GaloisGroup_v1, GaloisGroup_v2
+        if type is not None:
+            deprecation(28782, "the different Galois types have been merged into one class")
 
-        if type is None:
-            return GaloisGroup_v2(self, names)
-
-        elif type=="pari":
-            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group=True, algorithm=algorithm), self)
-        elif type=="gap":
-            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group=False, algorithm=algorithm), self)
-        else:
-            raise ValueError("Galois group type must be None, 'pari', or 'gap'.")
+        from .galois_group import GaloisGroup_v2
+        return GaloisGroup_v2(self, algorithm=algorithm, names=names, gc_numbering=gc_numbering)
 
     def _normalize_prime_list(self, v):
         """
@@ -8655,10 +8661,7 @@ class NumberField_absolute(NumberField_generic):
             pass
 
         # Compute degree of Galois closure if possible
-        try:
-            deg = self.galois_group(type='pari').order()
-        except NotImplementedError:
-            deg = None
+        deg = self.galois_group().easy_order()
 
         L, self_into_L = self.defining_polynomial().change_ring(self).splitting_field(names, map=True, degree_multiple=deg)
         self.__galois_closure = L
@@ -8780,37 +8783,21 @@ class NumberField_absolute(NumberField_generic):
             sage: prod(x - sigma(a) for sigma in A) == f.monic()
             True
         """
-        try:
-            # this should be concordant with embeddings
-            return self.__embeddings[self]
-        except AttributeError:
-            self.__embeddings = {}
-        except KeyError:
-            pass
-        f = self.pari_polynomial('y')
-        # Compute the conjugates of Mod(x, f).
-        conj = self.pari_nf().nfgaloisconj()
-        # Convert these to conjugates of self.gen().
-        P = self._pari_absolute_structure()[1].lift()
-        conj = sorted([self(P(g.Mod(f))) for g in conj])
-        v = [self.hom([e]) for e in conj]    # check=False here?
-        put_natural_embedding_first(v)
-        self.__embeddings[self] = Sequence(v, cr=(v != []), immutable=True,
-                                           check=False, universe=self.Hom(self))
-        return self.__embeddings[self]
+        return self.embeddings(self)
 
+    @cached_method
     def embeddings(self, K):
         """
-        Compute all field embeddings of self into the field K (which need
+        Compute all field embeddings of this field into the field K (which need
         not even be a number field, e.g., it could be the complex numbers).
         This will return an identical result when given K as input again.
 
-        If possible, the most natural embedding of self into K is put first
+        If possible, the most natural embedding of this field into K is put first
         in the list.
 
         INPUT:
 
-        -  ``K`` - a number field
+        -  ``K`` - a field
 
         EXAMPLES::
 
@@ -8866,16 +8853,18 @@ class NumberField_absolute(NumberField_generic):
             sage: K.embeddings(GF(3))
             []
         """
-        try:
-            # this should be concordant with automorphisms
-            return self.__embeddings[K]
-        except AttributeError:
-            self.__embeddings = {}
-        except KeyError:
-            pass
         if K is self:
-            return self.automorphisms()
-        if K.characteristic() != 0:
+            f = self.pari_polynomial('y')
+            # Compute the conjugates of Mod(x, f).
+            conj = self.pari_nf().nfgaloisconj()
+            # Convert these to conjugates of self.gen().
+            P = self._pari_absolute_structure()[1].lift()
+            conj = sorted([self(P(g.Mod(f))) for g in conj])
+            v = [self.hom([e]) for e in conj]    # check=False here?
+            put_natural_embedding_first(v)
+            return Sequence(v, cr=(v != []), immutable=True,
+                            check=False, universe=self.Hom(self))
+        elif K.characteristic() != 0:
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
         f = self.defining_polynomial()
@@ -8884,10 +8873,8 @@ class NumberField_absolute(NumberField_generic):
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)
-
-        self.__embeddings[K] = Sequence(v, cr=v!=[], immutable=True,
-                                        check=False, universe=self.Hom(K))
-        return self.__embeddings[K]
+        return Sequence(v, cr=v!=[], immutable=True,
+                        check=False, universe=self.Hom(K))
 
     def minkowski_embedding(self, B=None, prec=None):
         r"""
@@ -11060,6 +11047,46 @@ class NumberField_cyclotomic(NumberField_absolute):
         CC = sage.rings.complex_mpfr.ComplexField(prec)
         return self.hom([CC.zeta(self._n())], check=False)
 
+    @cached_method
+    def embeddings(self, K):
+        r"""
+        Compute all field embeddings of this field into the field ``K``.
+
+        INPUT:
+
+        - ``K`` -- a field
+
+        EXAMPLES::
+
+            sage: CyclotomicField(5).embeddings(ComplexField(53))[1]
+            Ring morphism:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta5 |--> -0.809016994374947 + 0.587785252292473*I
+            sage: CyclotomicField(5).embeddings(Qp(5, 4, print_mode='digits'))[1]
+            Ring morphism:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   11-adic Field with capped relative precision 4
+              Defn: zeta5 |--> ...1525
+        """
+        n = self._n()
+        if K.characteristic() == 0:
+            try:
+                z = K.zeta(n)
+            except ValueError:
+                # No nth root of unity
+                v = []
+            except AttributeError:
+                # zeta not defined
+                return super(NumberField_cyclotomic, self).embeddings(K)
+            else:
+                X = [m for m in range(n) if arith.gcd(m,n) == 1]
+                v = [self.hom([z**i], check=False) for i in X]
+        else:
+            v = []
+        return Sequence(v, cr=True, immutable=True,
+                        check=False, universe=self.Hom(K))
+
     def complex_embeddings(self, prec=53):
         r"""
         Return all embeddings of this cyclotomic field into the approximate
@@ -11091,19 +11118,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             ]
         """
         CC = sage.rings.complex_mpfr.ComplexField(prec)
-        try:
-            return self.__embeddings[CC]
-        except AttributeError:
-            self.__embeddings = {}
-        except KeyError:
-            pass
-        n = self._n()
-        z = CC.zeta(n)
-        X = [m for m in range(n) if arith.gcd(m,n) == 1]
-        v = [self.hom([z**i], check=False) for i in X]
-        self.__embeddings[CC] = Sequence(v, cr=True, immutable=True,
-                                         check=False, universe=self.Hom(CC))
-        return self.__embeddings[CC]
+        return self.embeddings(CC)
 
     def real_embeddings(self, prec=53):
         r"""
@@ -11125,12 +11140,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             ]
         """
         K = sage.rings.real_mpfr.RealField(prec)
-        n = self._n()
-        if n > 2:
-            return Sequence([], cr=False, immutable=True,
-                                         check=False, universe=self.Hom(K))
-        else:
-            return self.embeddings(K)
+        return self.embeddings(K)
 
     def signature(self):
         """

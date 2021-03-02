@@ -1821,8 +1821,8 @@ class TransitiveGroup(PermutationGroup_unique):
             ...
             ValueError: Index n must be in {1,..,1}
         """
-        d = Integer(d)
-        n = Integer(n)
+        self._d = d = Integer(d)
+        self._n = n = Integer(n)
         if d < 0:
             raise ValueError("Degree d must not be negative")
         max_n = TransitiveGroups(d).cardinality()
@@ -1834,8 +1834,12 @@ class TransitiveGroup(PermutationGroup_unique):
             gap_group = libgap.TransitiveGroup(d, n)
             PermutationGroup_generic.__init__(self, gap_group=gap_group)
 
-        self._d = d
-        self._n = n
+
+    def transitive_number(self):
+        return self._n
+
+    def degree(self):
+        return self._d
 
     def _repr_(self):
         """

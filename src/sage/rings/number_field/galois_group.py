@@ -601,17 +601,6 @@ class GaloisGroup_v2(GaloisGroup_base):
         else:
             return len(K.automorphisms()) == d
 
-    def ngens(self):
-        r"""
-        Number of generators of this Galois group
-
-        EXAMPLES::
-
-            sage: QuadraticField(-23, 'a').galois_group().ngens()
-            1
-        """
-        return len(self._gens)
-
     def _repr_(self):
         r"""
         String representation of this Galois group
@@ -649,20 +638,6 @@ class GaloisGroup_v2(GaloisGroup_base):
             True
         """
         return self._field
-
-    def splitting_field(self):
-        r"""
-        The Galois closure of the ambient number field.
-
-        EXAMPLES::
-
-            sage: K = NumberField(x^3 - x + 1, 'a')
-            sage: K.galois_group(names='b').splitting_field()
-            Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
-            sage: L = QuadraticField(-23, 'c'); L.galois_group().splitting_field() is L
-            True
-        """
-        return self._galois_closure
 
     def list(self):
         r"""

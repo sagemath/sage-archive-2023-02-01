@@ -1836,9 +1836,25 @@ class TransitiveGroup(PermutationGroup_unique):
 
 
     def transitive_number(self):
+        """
+        Return the index of this group in the GAP database, starting at 1
+
+        EXAMPLES::
+
+            sage: TransitiveGroup(8, 44).transitive_number()
+            44
+        """
         return self._n
 
     def degree(self):
+        """
+        Return the degree of this permutation group
+
+        EXAMPLES::
+
+            sage: TransitiveGroup(8, 44).degree()
+            8
+        """
         return self._d
 
     def _repr_(self):

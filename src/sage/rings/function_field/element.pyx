@@ -276,23 +276,22 @@ cdef class FunctionFieldElement(FieldElement):
         """
         return self.matrix().determinant()
 
-
-    def height_ff_element(self):
+    def degree(self):
         """
-         Return the max degree between the denominator and numerator .
+        Return the max degree between the denominator and numerator.
 
         EXAMPLES::
         
             sage: FF.<t> = FunctionField(QQ)
-            sage: f = (t+1) / (t^2 - 1/3); f
-            (t + 1)/(t^2 - 1/3)
-            sage: f.height_ff_element()
-            2
+            sage: f = (t^2 + 3) / (t^3 - 1/3); f
+            (t^2 + 3)/(t^3 - 1/3)
+            sage: f.degree()
+            3
         
             sage: FF.<t> = FunctionField(QQ)
-            sage: f = (t+1); f
-            t + 1
-            sage: f.height_ff_element()
+            sage: f = (t+8); f
+            t + 8
+            sage: f.degree()
             1
 
         TESTS::
@@ -300,21 +299,17 @@ cdef class FunctionFieldElement(FieldElement):
             sage: FF.<t> = FunctionField(QQ)
             sage: f = FF(0); f
             0
-            sage: f.height_ff_element()
+            sage: f.degree()
             0
             sage: f = (t+1) / (t^2 - 1/3); f
             (t + 1)/(t^2 - 1/3)
-            sage: f.height_ff_element()
+            sage: f.degree()
             2
             sage: f = (t+1); f
             t + 1
-            sage: f.height_ff_element()
+            sage: f.degree()
             1
-        
-
-         
         """
-
         return max(self._x.denominator().degree(),self._x.numerator().degree())
 
     def characteristic_polynomial(self, *args, **kwds):

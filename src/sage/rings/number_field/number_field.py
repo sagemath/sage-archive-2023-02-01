@@ -752,8 +752,8 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
 
     The Galois group is a product of 3 groups of order 2::
 
-        sage: k.galois_group(type="pari")
-        Galois group PARI group [8, 1, 3, "E(8)=2[x]2[x]2"] of degree 8 of the Number Field in a with defining polynomial x^2 + 1 over its base field
+        sage: k.absolute_field(names='c').galois_group()
+        Galois group 8T3 (2[x]2[x]2) with order 8 of x^8 + 36*x^6 + 302*x^4 + 564*x^2 + 121
 
     Repeatedly calling base_field allows us to descend the internally
     constructed tower of fields::
@@ -5811,21 +5811,15 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         INPUT:
 
-        -  ``type`` - ``none``, ``gap``, or ``pari``. If None (the default),
-           return an explicit group of automorphisms of self as a
-           ``GaloisGroup_v2`` object.  Otherwise, return a ``GaloisGroup_v1``
-           wrapper object based on a PARI or Gap transitive group object, which
-           is quicker to compute, but rather less useful (in particular, it
-           can't be made to act on self).
+        -  ``type`` - Deprecated; the different versions of Galois groups have been
+           merged in :trac:`28782`.
 
         -  ``algorithm`` - 'pari', 'gap', 'kash', 'magma'. (default: 'pari';
             for degrees between 12 and 15 default is 'gap', and
             when the degree is >= 16 it is 'kash'.)
 
-
-        -  ``name`` - a string giving a name for the generator of the Galois
-           closure of self, when self is not Galois. This is ignored if type is
-           not None.
+        -  ``names`` - a string giving a name for the generator of the Galois
+           closure of self, when this field is not Galois.
 
         -  ``gc_numbering`` -- if ``True``, permutations will be written
            in terms of the action on the roots of a defining polynomial
@@ -5835,23 +5829,18 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
            The default currently depends on the algorithm (``True`` for ``'pari'``,
            ``False`` for ``'magma'``) and may change in the future.
 
-        Note that computing Galois groups as abstract groups is often much
-        faster than computing them as explicit automorphism groups (but of
-        course you get less information out!) For more (important!)
+        The resulting group will only compute with automorphisms when necessary,
+        so certain functions (such as :meth:`sage.rings.number_field.galois_group.GaloisGroup_v2.order`)
+        will still be fast.  For more (important!)
         documentation, see the documentation for Galois groups of polynomials
         over `\QQ`, e.g., by typing ``K.polynomial().galois_group?``,
         where `K` is a number field.
 
-        To obtain actual field homomorphisms from the number field to its
-        splitting field, use type=None.
-
-        EXAMPLES:
-
-        With type ``None``::
+        EXAMPLES::
 
             sage: k.<b> = NumberField(x^2 - 14) # a Galois extension
             sage: G = k.galois_group(); G
-            Galois group of Number Field in b with defining polynomial x^2 - 14
+            Galois group 2T1 (S2) with order 2 of x^2 - 14
             sage: G.gen(0)
             (1,2)
             sage: G.gen(0)(b)
@@ -5861,29 +5850,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: k.<b> = NumberField(x^3 - x + 1) # not Galois
             sage: G = k.galois_group(names='c'); G
-            Galois group of Galois closure in c of Number Field in b with defining polynomial x^3 - x + 1
+            Galois group 3T2 (S3) with order 6 of x^3 - x + 1
             sage: G.gen(0)
             (1,2,3)(4,5,6)
 
-        With type ``'pari'``::
-
-            sage: NumberField(x^3-2, 'a').galois_group(type="pari")
-            Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field in a with defining polynomial x^3 - 2
-
-        ::
-
-            sage: NumberField(x-1, 'a').galois_group(type="gap")
-            Galois group Transitive group number 1 of degree 1 of the Number Field in a with defining polynomial x - 1
-            sage: NumberField(x^2+2, 'a').galois_group(type="gap")
-            Galois group Transitive group number 1 of degree 2 of the Number Field in a with defining polynomial x^2 + 2
-            sage: NumberField(x^3-2, 'a').galois_group(type="gap")
-            Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
-
-        ::
-
-            sage: x = polygen(QQ)
-            sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(type='gap')
-            Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
             sage: NumberField(x^3 + 2*x + 1, 'a').galois_group(algorithm='magma')   # optional - magma
             Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 + 2*x + 1
 
@@ -5912,12 +5882,37 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         http://galoisdb.math.upb.de/ by Jürgen Klüners and Gunter Malle and
         https://www.lmfdb.org/NumberField/ by the LMFDB collaboration,
         although these might need a lot of computing time.
+
+        If `L/K` is a relative number field, this method will currently return `Gal(L/\Q)`.  This behavior will
+        change in the future, so it's better to explicitly call :meth:`absolute_field` if that is
+        the desired behavior::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L = K.extension(t^5-t+a, 'b')
+            sage: L.galois_group()
+            ...DeprecationWarning: Use .absolute_field().galois_group() if you want the Galois group of the absolute field
+            See https://trac.sagemath.org/28782 for details.
+            Galois group 10T22 (S(5)[x]2) with order 240 of t^5 - t + a
+
+        TESTS:
+
+        We check that the changes in :trac:`28782` won't break code that used v1 Galois groups::
+
+            sage: G = NumberField(x^3-2, 'a').galois_group(type="pari")
+            ...DeprecationWarning: the different Galois types have been merged into one class
+            See https://trac.sagemath.org/28782 for details.
+            sage: G.group()
+            ...DeprecationWarning: the group method is deprecated; you can use _pol_galgp if you really need it
+            See https://trac.sagemath.org/28782 for details.
+            PARI group [6, -1, 2, "S3"] of degree 3
         """
         if type is not None:
             deprecation(28782, "the different Galois types have been merged into one class")
 
         from .galois_group import GaloisGroup_v2
-        return GaloisGroup_v2(self, algorithm=algorithm, names=names, gc_numbering=gc_numbering)
+        return GaloisGroup_v2(self, algorithm=algorithm, names=names, gc_numbering=gc_numbering, _type=type)
 
     def _normalize_prime_list(self, v):
         """
@@ -8637,7 +8632,7 @@ class NumberField_absolute(NumberField_generic):
         this computation is feasible::
 
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2)
-            sage: K.galois_group(type='pari').order()
+            sage: K.galois_group().order()
             48
             sage: L, phi = K._galois_closure_and_embedding('c')
             sage: phi.domain() is K, phi.codomain() is L
@@ -11063,7 +11058,7 @@ class NumberField_cyclotomic(NumberField_absolute):
               From: Cyclotomic Field of order 5 and degree 4
               To:   Complex Field with 53 bits of precision
               Defn: zeta5 |--> -0.809016994374947 + 0.587785252292473*I
-            sage: CyclotomicField(5).embeddings(Qp(5, 4, print_mode='digits'))[1]
+            sage: CyclotomicField(5).embeddings(Qp(11, 4, print_mode='digits'))[1]
             Ring morphism:
               From: Cyclotomic Field of order 5 and degree 4
               To:   11-adic Field with capped relative precision 4
@@ -11129,8 +11124,8 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         EXAMPLES::
 
-            sage: CyclotomicField(4).real_embeddings()
-            []
+            sage: len(CyclotomicField(4).real_embeddings())
+            0
             sage: CyclotomicField(2).real_embeddings()
             [
             Ring morphism:

@@ -30,9 +30,7 @@
 // CINT needs <algorithm> to work properly with <vector>
 #include <algorithm>
 
-#if HAVE_CONFIG_H
-# include "pynac-config.h"
-#endif
+#include "pynac-config.h"
 #include "flags.h"
 #include "ptr.h"
 #include "assertion.h"

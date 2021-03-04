@@ -19,7 +19,6 @@ Standard test of pickleability::
 from sage.structure.sage_object import SageObject
 from sage.groups.galois_group import _alg_key, GaloisGroup as GaloisGroup_base
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic, standardize_generator
-from sage.structure.category_object import normalize_names
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.superseded import deprecation
@@ -29,7 +28,6 @@ from sage.libs.pari.all import pari
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.integer_ring import ZZ
 
 

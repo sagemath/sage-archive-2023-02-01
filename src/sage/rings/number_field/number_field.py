@@ -126,7 +126,6 @@ from sage.categories.number_fields import NumberFields
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
 from sage.misc.misc import union
-from sage.misc.superseded import deprecation
 
 from .unit_group import UnitGroup
 from .class_group import ClassGroup

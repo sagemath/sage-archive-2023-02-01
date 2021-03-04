@@ -7,12 +7,9 @@ AUTHORS:
 """
 
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.abstract_method import abstract_method
 from sage.structure.category_object import normalize_names
-from functools import wraps
 
 def _alg_key(self, algorithm=None, recompute=False):
     r"""
@@ -49,6 +46,20 @@ class GaloisGroup(PermutationGroup_generic):
         roots of the defining polynomial of the splitting field (versus the defining polynomial
         of the original extension).  The default value may vary based on the type of field.
     """
+    # Subclasses should implement the following methods and lazy attributes
+
+    # methods (taking algorithm and recompute as arguments):
+    # * transitive_number
+    # * order
+    # * _element_constructor_ -- for creating elements
+
+    # lazy_attributes
+    # * _gcdata -- a pair, the Galois closure and an embedding of the top field into it
+    # * _gens -- the list of generators of this group, as elements.  This is not computed during __init__ for speed
+    # * _elts -- the list of all elements of this group.
+
+    # * Element (for coercion)
+
     def __init__(self, field, algorithm=None, names=None, gc_numbering=False):
         r"""
         EXAMPLES::
@@ -105,18 +116,6 @@ class GaloisGroup(PermutationGroup_generic):
             'magma'
         """
         return self._default_algorithm if algorithm is None else algorithm
-
-    # Subclasses should implement the following methods and lazy attributes
-
-    # methods (taking algorithm and recompute as arguments):
-    # * transitive_number
-    # * order
-    # * _element_constructor_ -- for creating elements
-
-    # lazy_attributes
-    # * _gcdata -- a pair, the Galois closure and an embedding of the top field into it
-    # * _gens -- the list of generators of this group, as elements.  This is not computed during __init__ for speed
-    # * _elts -- the list of all elements of this group.
 
     def top_field(self):
         r"""

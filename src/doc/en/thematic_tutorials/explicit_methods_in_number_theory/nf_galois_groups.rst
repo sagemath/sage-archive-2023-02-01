@@ -40,7 +40,7 @@ Some more advanced number-theoretical tools are available via G:
 
     sage: P = K.primes_above(2)[0]
     sage: G.inertia_group(P)
-    Subgroup [(), (1,4,6)(2,5,3), (1,6,4)(2,3,5)] of Galois group of Number Field in alpha with defining polynomial x^6 + 40*x^3 + 1372
+    Subgroup [(), (1,4,6)(2,5,3), (1,6,4)(2,3,5)] of Galois group 6T2 ([3]2) with order 6 of x^6 + 40*x^3 + 1372
     sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])  # random order, see Trac #18308
     [(1,3)(2,6)(4,5), (1,2)(3,4)(5,6), (1,5)(2,4)(3,6)]
 
@@ -51,7 +51,7 @@ command will construct its Galois closure and return the Galois group of that:
 
     sage: K.<a> = NumberField(x^3 - 2)
     sage: G = K.galois_group(names='b'); G
-    Galois group of Galois closure in b of Number Field in a with defining polynomial x^3 - 2
+    Galois group 3T2 (S3) with order 6 of x^3 - 2
     sage: G.order()
     6
 

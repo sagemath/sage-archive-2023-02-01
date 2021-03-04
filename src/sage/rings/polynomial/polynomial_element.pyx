@@ -3238,7 +3238,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = K[]
             sage: f = x^2 + z
             sage: f.change_ring(K.embeddings(CC)[1])
-            x^2 - 0.500000000000000 - 0.866025403784439*I
+            x^2 - 0.500000000000000 - 0.866025403784438*I
 
         ::
 

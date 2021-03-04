@@ -1804,10 +1804,11 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         zero = (R.zero(), )
         one = (R.one(), )
         PHom = self.point_homset()
+        C = PHom.codomain()
 
         for k in range(n + 1): # position of last 1 before the 0's
             for v in cartesian_product_iterator([R for _ in range(n - k)]):
-                yield PHom(v + one + zero * k, check=False)
+                yield C._point(PHom, v + one + zero * k, check=False)
 
     def rational_points(self, F=None):
         """

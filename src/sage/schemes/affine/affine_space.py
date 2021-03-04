@@ -218,9 +218,10 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         n = self.dimension_relative()
         R = self.base_ring()
         AHom = self.point_homset()
+        C = AHom.codomain()
 
         for v in cartesian_product_iterator([R for _ in range(n)]):
-            yield AHom(v, check=False)
+            yield C._point(AHom, v, check=False)
 
 
     def ngens(self):

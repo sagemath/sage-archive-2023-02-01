@@ -56,7 +56,7 @@ from sage.misc.cachefunc import cached_method
 
 cdef inline bint _do_sig(fmpq_poly_t op):
     """
-    Returns 1 when signal handling should be carried out for an operation
+    Return 1 when signal handling should be carried out for an operation
     on this polynomial and 0 otherwise.
 
     Strictly speaking, whether or not signal handling should be carried
@@ -315,7 +315,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def __copy__(self):
         """
-        Returns a copy of self.
+        Return a copy of self.
 
         TESTS::
 
@@ -330,7 +330,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def _singular_(self, singular=singular_default, have_ring=False):
         """
-        Returns a Singular representation of self.
+        Return a Singular representation of self.
 
         INPUT:
 
@@ -551,7 +551,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef Polynomial truncate(self, long n):
         """
-        Returns self truncated modulo `t^n`.
+        Return self truncated modulo `t^n`.
 
         INPUT:
 
@@ -719,7 +719,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef bint is_zero(self) except -1:
         """
-        Returns whether or not self is the zero polynomial.
+        Return whether or not self is the zero polynomial.
 
         EXAMPLES::
 
@@ -734,7 +734,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef bint is_one(self) except -1:
         r"""
-        Returns whether or not this polynomial is one.
+        Return whether or not this polynomial is one.
 
         EXAMPLES::
 
@@ -754,7 +754,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def __nonzero__(self):
         """
-        Returns whether or not self is non-zero.
+        Return whether or not self is non-zero.
 
         EXAMPLES::
 
@@ -838,7 +838,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _add_(self, right):
         """
-        Returns the sum of two rational polynomials.
+        Return the sum of two rational polynomials.
 
         EXAMPLES::
 
@@ -866,7 +866,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _sub_(self, right):
         """
-        Returns the difference of two rational polynomials.
+        Return the difference of two rational polynomials.
 
         EXAMPLES::
 
@@ -894,7 +894,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _neg_(self):
         """
-        Returns the difference of two rational polynomials.
+        Return the difference of two rational polynomials.
 
         EXAMPLES::
 
@@ -921,7 +921,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     @coerce_binop
     def quo_rem(self, right):
         """
-        Returns the quotient and remainder of the Euclidean division of
+        Return the quotient and remainder of the Euclidean division of
         self and right.
 
         Raises a ZerodivisionError if right is zero.
@@ -952,7 +952,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     @coerce_binop
     def gcd(self, right):
         """
-        Returns the (monic) greatest common divisor of self and right.
+        Return the (monic) greatest common divisor of self and right.
 
         Corner cases:  if self and right are both zero, returns zero.  If
         only one of them is zero, returns the other polynomial, up to
@@ -981,7 +981,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     @coerce_binop
     def lcm(self, right):
         """
-        Returns the monic (or zero) least common multiple of self and right.
+        Return the monic (or zero) least common multiple of self and right.
 
         Corner cases:  if either of self and right are zero, returns zero.
         This behaviour is ensures that the relation lcm(a,b) gcd(a,b) == a b
@@ -1008,7 +1008,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     @coerce_binop
     def xgcd(self, right):
         """
-        Returns polynomials d, s, and t such that d == s * self + t * right,
+        Return polynomials d, s, and t such that d == s * self + t * right,
         where d is the (monic) greatest common divisor of self and right.
         The choice of s and t is not specified any further.
 
@@ -1048,7 +1048,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _mul_(self, right):
         """
-        Returns the product of self and right.
+        Return the product of self and right.
 
         EXAMPLES::
 
@@ -1114,7 +1114,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _rmul_(self, Element left):
         r"""
-        Returns left * self, where left is a rational number.
+        Return left * self, where left is a rational number.
 
         EXAMPLES::
 
@@ -1134,7 +1134,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _lmul_(self, Element right):
         r"""
-        Returns self * right, where right is a rational number.
+        Return self * right, where right is a rational number.
 
         EXAMPLES::
 
@@ -1154,7 +1154,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def __pow__(Polynomial_rational_flint self, exp, ignored):
         """
-        Returns self raised to the power of exp.
+        Return self raised to the power of exp.
 
         The corner case of ``exp == 0`` is handled by returning the constant
         polynomial 1.  Note that this includes the case ``0^0 == 1``.
@@ -1297,7 +1297,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def __floordiv__(Polynomial_rational_flint self, right):
         """
-        Returns the quotient of self and right obtain by Euclidean division.
+        Return the quotient of self and right obtain by Euclidean division.
 
         EXAMPLES::
 
@@ -1394,7 +1394,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     cpdef _mod_(self, right):
         """
-        Returns the remainder of self and right obtain by Euclidean division.
+        Return the remainder of self and right obtain by Euclidean division.
 
         EXAMPLES::
 
@@ -1433,7 +1433,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def numerator(self):
         """
-        Returns the numerator of self.
+        Return the numerator of self.
 
         Representing self as the quotient of an integer polynomial and
         a positive integer denominator (coprime to the content of the
@@ -1458,7 +1458,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def denominator(self):
         """
-        Returns the denominator of self.
+        Return the denominator of self.
 
         EXAMPLES::
 
@@ -1525,7 +1525,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def real_root_intervals(self):
         """
-        Returns isolating intervals for the real roots of self.
+        Return isolating intervals for the real roots of self.
 
         EXAMPLES:
 
@@ -1543,7 +1543,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     @coerce_binop
     def resultant(Polynomial_rational_flint self, right):
         r"""
-        Returns the resultant of self and right.
+        Return the resultant of self and right.
 
         Enumerating the roots over `\QQ` as `r_1, \cdots, r_m` and
         `s_1, \cdots, s_n` and letting `x` and `y` denote the leading
@@ -2056,7 +2056,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def galois_group(self, pari_group=False, algorithm='pari'):
         """
-        Returns the Galois group of this polynomial as a permutation group.
+        Return the Galois group of this polynomial as a permutation group.
 
         INPUT:
 
@@ -2231,7 +2231,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def factor_mod(self, p):
         """
-        Returns the factorization of self modulo the prime ``p``.
+        Return the factorization of self modulo the prime ``p``.
 
         Assumes that the degree of this polynomial is at least one, and raises
         a ``ValueError`` otherwise.
@@ -2355,7 +2355,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         monic factors, computes the Hensel lifts of these factors modulo
         `p^e`. We assume that ``self`` has integer coefficients.
 
-        Returns an empty list if this polynomial has degree less than one.
+        Return an empty list if this polynomial has degree less than one.
 
         INPUT:
 
@@ -2430,7 +2430,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def discriminant(self):
         r"""
-        Returns the discriminant of this polynomial.
+        Return the discriminant of this polynomial.
 
         The discriminant `R_n` is defined as
 

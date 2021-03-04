@@ -400,7 +400,7 @@ class GaloisGroup_v2(GaloisGroup_base):
     @cached_method
     def signature(self):
         """
-        Returns 1 if contained in the alternating group, -1 otherwise.
+        Return 1 if contained in the alternating group, -1 otherwise.
 
         EXAMPLES::
 

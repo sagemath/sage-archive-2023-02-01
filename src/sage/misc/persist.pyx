@@ -44,7 +44,32 @@ from .misc import SAGE_DB
 from .sage_unittest import TestSuite
 
 
-# For cycling pickling
+# We define two global dictionaries `already_pickled` and
+# `already_unpickled`, which are intended to help you to implement
+# pickling when cyclic definitions could happen.
+#
+# You have the guarantee that the dictionary `already_pickled`
+# (resp. `already_unpickled`) will be cleared after the complete
+# pickling (resp. unpickling) process has been completed (and not
+# before!).
+# Apart from this, you are free to use these variables as you like.
+#
+# However, the standard utilisation is the following.
+# The pickling method (namely `__reduce__`) checks if the id of the
+# current element appears in the dictionary `already_pickled`. If it
+# does not, the methods records that this element is about to be
+# pickled by adding the entry { id: True } to `already_pickled`.
+# In all cases, the pickling method pickles the element and includes
+# the id in the tuple of arguments that will be passed in afterwards
+# to the unpickling function.
+# The unpickling function then receives all the necessary information
+# to reconstruct the element, together with an id.
+# If this id appears as a key of the dictionary `already_unpickled`, it
+# returns the corresponding value.
+# Otherwise, it builds the element, adds the entry { id: element } to
+# `already_unpickled` and finally returns the element.
+#
+# For a working example, see sage.rings.padics.lazy_template.LazyElement_selfref.
 already_pickled = { }
 already_unpickled = { }
 

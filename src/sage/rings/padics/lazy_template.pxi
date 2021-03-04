@@ -311,8 +311,7 @@ cdef class LazyElement(pAdicGenericElement):
             0
         """
         cdef int error = self._jump_c(i+1)
-        if error:
-            raise_error(error)
+        raise_error(error)
         cdef cdigit_ptr coeff = self._getdigit_absolute(i)
         return digit_get_sage(coeff)
 
@@ -544,6 +543,15 @@ cdef class LazyElement(pAdicGenericElement):
             3 + 6*7 + 4*7^2 + ...
             sage: x.slice(stop=4)
             3 + 6*7 + 4*7^2 + O(7^3)
+
+        Taking slices of slices work as expected::
+
+            sage: a1 = a.slice(5, 10); a1
+            7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
+            sage: a2 = a1.slice(3, 8); a2
+            7^5 + 6*7^6 + 3*7^7 + ...
+            sage: a2[:100] == a.slice(5, 8)
+            True
         """
         if start is None:
             start = -maxordp
@@ -1014,7 +1022,7 @@ cdef class LazyElement(pAdicGenericElement):
             :meth:`at_precision_relative`, :meth:`add_bigoh`
         """
         if prec is Infinity:
-            if permissive is False and self._precbound < maxordp:
+            if not permissive and self._precbound < maxordp:
                 raise_error(ERROR_PRECISION)
             return self
         if prec is None:
@@ -1136,6 +1144,10 @@ cdef class LazyElement(pAdicGenericElement):
             ...
             ValueError: precision must be nonnegative
         """
+        if prec is Infinity:
+            if not permissive and self._precbound < maxordp:
+                raise_error(ERROR_PRECISION)
+            return self
         default_prec = self._parent.default_prec()
         if prec is None:
             if permissive is None:
@@ -1457,8 +1469,7 @@ cdef class LazyElement(pAdicGenericElement):
         if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of p")
         error = self._jump_c(absprec)
-        if error:
-            raise_error(error, not check_prec)
+        raise_error(error, not check_prec)
         if self._valuation < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue")
         cdef celement digits
@@ -1520,8 +1531,7 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             absprec = Integer(absprec)
         cdef int error = self._jump_c(absprec)
-        if error:
-            raise_error(error)
+        raise_error(error)
         if absprec < self._valuation:
             return Integer(0)
         cdef celement digits
@@ -1638,8 +1648,6 @@ cdef class LazyElement(pAdicGenericElement):
             if self._precbound < maxordp:
                 ans = element_class_bound(self._parent, ans, self._precbound)
             return ans
-        if isinstance(self, LazyElement_zero):
-            return other
         if isinstance(other, LazyElement_zero):
             return self
         return element_class_sub(self._parent, self, <LazyElement>other)
@@ -2551,10 +2559,10 @@ cdef class LazyElement_random(LazyElementWithDigits):
         digit_random(r, self.prime_pow, self._generator)
         if self._precrel == 0 and digit_is_zero(r):
             self._valuation += 1
-            digit_clear(r)
         else:
             element_set_digit(self._digits, r, self._precrel)
             self._precrel += 1
+        digit_clear(r)
         return 0
 
 
@@ -3250,9 +3258,8 @@ cdef class LazyElement_div(LazyElementWithDigits):
             self._precbound = min(self._precbound, num._precbound - denom._valuation)
         if denom._precbound < maxordp:
             self._precbound = min(self._precbound, denom._precbound + num._valuation - 2*denom._valuation)
-        if error:
-            raise_error(error, permissive=True)
-        else:
+        raise_error(error, permissive=True)
+        if not error:
             self._init_jump()
 
     def __reduce__(self):
@@ -3324,23 +3331,19 @@ cdef class LazyElement_div(LazyElementWithDigits):
         An error code (see :meth:`LazyElement._next_c` for details).
         """
         cdef LazyElement definition = self._definition
-        cdef long val
         if definition is None:
-            error = self._bootstrap_c()
-            if error:
-                return error
+            return self._bootstrap_c()
+        cdef long val = self._valuation + self._denom._valuation
+        cdef int error = definition._jump_c(val + self._precrel + 1)
+        if error:
+            return error
+        if definition._valuation > val:
+            self._valuation = min(self._precbound, definition._valuation - self._denom._valuation)
+            self._precbound = min(self._precbound, definition._precbound - self._denom._valuation)
         else:
-            val = self._valuation + self._denom._valuation
-            error = definition._jump_c(val + self._precrel + 1)
-            if error:
-                return error
-            if definition._valuation > val:
-                self._valuation = min(self._precbound, definition._valuation - self._denom._valuation)
-                self._precbound = min(self._precbound, definition._precbound - self._denom._valuation)
-            else:
-                digit = definition._getdigit_relative(self._precrel)
-                element_set_digit(self._digits, digit, self._precrel)
-                self._precrel += 1
+            digit = definition._getdigit_relative(self._precrel)
+            element_set_digit(self._digits, digit, self._precrel)
+            self._precrel += 1
         return 0
 
 
@@ -3507,24 +3510,16 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
         An error code (see :meth:`LazyElement._next_c` for details).
         """
-        cdef LazyElement x = self._x
         cdef LazyElement definition = self._definition
-        cdef long n = self._valuation + self._precrel
-        cdef int error
         if definition is None:
-            error = self._bootstrap_c()
-            if error:
-                return error
-        else:
-            error = definition._jump_c(n+1)
-            if error:
-                return error
-            element_set_digit(self._digits, definition._getdigit_relative(self._precrel), self._precrel)
-            self._precrel += 1
+            return self._bootstrap_c()
+        cdef long n = self._valuation + self._precrel
+        cdef int error = definition._jump_c(n+1)
+        if error:
+            return error
+        element_set_digit(self._digits, definition._getdigit_relative(self._precrel), self._precrel)
+        self._precrel += 1
         return 0
-
-    def next(self):
-        return self._next_c()
 
 
 # Teichmüller lifts

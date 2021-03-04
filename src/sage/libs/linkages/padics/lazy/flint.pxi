@@ -258,6 +258,11 @@ cdef inline void digit_smallest(cdigit res, cdigit carry, cdigit a, PowComputer_
     - ``carry`` -- a ``cdigit`` to store the carry
     - ``a`` -- a ``cdigit``, the digit to reduce
     - ``prime_pow`` -- the PowComputer for the ring
+
+    NOTE::
+
+        This function assumes that ``a`` is always reduced in the
+        usual sense, that is belongs to the range `[0, p-1]`.
     """
     cdef fmpz_t b
     fmpz_init(b)
@@ -268,6 +273,7 @@ cdef inline void digit_smallest(cdigit res, cdigit carry, cdigit a, PowComputer_
     else:
         fmpz_set(res, a)
         fmpz_set_ui(carry, 0)
+    fmpz_clear(b)
 
 cdef inline void digit_inv(fmpz_t res, fmpz_t a, PowComputer_flint prime_pow):
     r"""

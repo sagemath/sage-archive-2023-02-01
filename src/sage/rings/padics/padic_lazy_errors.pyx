@@ -17,9 +17,9 @@ cdef inline int ERROR_NOTDEFINED   = 1 << 1
 cdef inline int ERROR_PRECISION    = 1 << 2
 cdef inline int ERROR_OVERFLOW     = 1 << 3
 cdef inline int ERROR_NOTSQUARE    = 1 << 4  # maybe we should have something more generic here
-cdef inline int ERROR_INTEGRAL     = 1 << 6
-cdef inline int ERROR_DIVISION     = 1 << 7
-cdef inline int ERROR_CIRCULAR     = 1 << 8
+cdef inline int ERROR_INTEGRAL     = 1 << 5
+cdef inline int ERROR_DIVISION     = 1 << 6
+cdef inline int ERROR_CIRCULAR     = 1 << 7
 
 cdef inline int ERROR_UNEXPECTED   = 1 << 30
 
@@ -39,7 +39,7 @@ def raise_error(error, permissive=False):
 
         sage: from sage.rings.padics.padic_lazy_errors import *
         sage: raise_error(0)
-        sage: raise_error(128)
+        sage: raise_error(64)
         Traceback (most recent call last):
         ...
         ZeroDivisionError: denominator is not invertible

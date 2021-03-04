@@ -219,9 +219,9 @@ Guide](https://doc.sagemath.org/html/en/installation).
    * Build tools: GNU `make`, GNU `m4`, `perl` (including
      ``ExtUtils::MakeMaker``), `ranlib`, `git`, `tar`, `bc`
 
-   * Any version of `python` (full installation including `urllib`),
-     but ideally version 3.7.x or 3.8.x, which will avoid having to build Sage's
-     own copy of Python 3.
+   * Python 3.4 or later, or Python 2.7, a full installation including
+     `urllib`; but ideally version 3.7.x, 3.8.x, or 3.9.x, which will
+     avoid having to build Sage's own copy of Python 3.
 
    We have collected lists of system packages that provide these build
    prerequisites. See [build/pkgs/arch.txt](build/pkgs/arch.txt),

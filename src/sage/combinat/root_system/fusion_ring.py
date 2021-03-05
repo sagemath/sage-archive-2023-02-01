@@ -804,13 +804,13 @@ class FusionRing(WeylCharacterRing):
             True
         """
         if self.Nk_ij(i, j, k) == 0:
-            ret = 0
+            return 0
         if i != j:
             ret = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2, base_coercion=False)
         else:
             i0 = self.one()
             B = self.basis()
-            return sum(y.ribbon(base_coercion=False)**2 / (i.ribbon(base_coercion=False) * x.ribbon(base_coercion=False)**2)
+            ret = sum(y.ribbon(base_coercion=False)**2 / (i.ribbon(base_coercion=False) * x.ribbon(base_coercion=False)**2)
                    * self.s_ij(i0,y,base_coercion=False) * self.s_ij(i,z,base_coercion=False) * self.s_ijconj(x,z,base_coercion=False)
                    * self.s_ijconj(k,x,base_coercion=False) * self.s_ijconj(y,z,base_coercion=False) / self.s_ij(i0,z,base_coercion=False)
                    for x in B for y in B for z in B) / (self.total_q_order(base_coercion=False)**4)

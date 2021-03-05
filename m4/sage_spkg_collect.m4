@@ -105,10 +105,10 @@ SAGE_BUILT_PACKAGES=''
 # underlying system.
 SAGE_DUMMY_PACKAGES=''
 
-# List of currently installed and to-be-installed optional packages - filled in SAGE_SPKG_ENABLE
-#SAGE_OPTIONAL_INSTALLED_PACKAGES
-# List of optional packages to be uninstalled - filled in SAGE_SPKG_ENABLE
-#SAGE_OPTIONAL_CLEANED_PACKAGES
+# List of currently installed and to-be-installed standard/optional/experimental packages
+SAGE_OPTIONAL_INSTALLED_PACKAGES=''
+# List of optional packages to be uninstalled
+SAGE_OPTIONAL_CLEANED_PACKAGES=''
 
 # List of all packages that should be downloaded
 SAGE_SDIST_PACKAGES=''
@@ -285,6 +285,22 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     if test "$in_sdist" = yes; then
         SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
     fi
+
+    # Determine whether package is enabled
+    AS_VAR_SET([is_installed], [no])
+    for f in "$SAGE_SPKG_INST/${SPKG_NAME}"-*; do
+        AS_IF([test -r "$f"],
+              [AS_VAR_SET([is_installed], [yes])])
+    done
+
+    AS_VAR_IF([SAGE_ENABLE_${SPKG_NAME}}], [if_installed],
+          [AS_VAR_SET([SAGE_ENABLE_${SPKG_NAME}], $is_installed)])
+    AS_VAR_COPY([want_spkg], [SAGE_ENABLE_${SPKG_NAME}])
+
+    spkg_line=" \\$(printf '\n    ')$SPKG_NAME"
+    AS_CASE([$is_installed-$want_spkg],
+            [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
+            [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_CLEANED_PACKAGES, "$spkg_line")])
 
     # Determine package dependencies
     #

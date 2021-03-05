@@ -81,10 +81,13 @@ bootstrap () {
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
 
-    # --disable-SPKG options for standard packages, followed by
+    # initialize SAGE_ENABLE... options for standard packages
+    for pkgname in $(./sage --package list :standard: | sort); do
+        spkg_configures="$spkg_configures
+AC_SUBST(SAGE_ENABLE_$pkgname, [yes])"
+    done
     # --enable-SPKG options
-    for pkgname in $(./sage --package list :standard: | sort) \
-                   $(./sage --package list :optional: :experimental: | sort); do
+    for pkgname in $(./sage --package list :optional: :experimental: | sort); do
                 # Trac #29629: Temporary solution for Sage 9.1: Do not provide
                 # --enable-SPKG options for installing pip packages
                 if [ ! -f build/pkgs/$pkgname/requirements.txt ]; then
@@ -93,6 +96,7 @@ bootstrap () {
                     case "$pkgname" in
                         _*) ;;
                         *)  spkg_configures="$spkg_configures
+AC_SUBST(SAGE_ENABLE_$pkgname, [if_installed])
 SAGE_SPKG_ENABLE([$pkgname], [$pkgtype])" ;;
                     esac
                 fi

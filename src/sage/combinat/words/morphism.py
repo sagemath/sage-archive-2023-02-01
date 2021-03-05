@@ -3066,7 +3066,7 @@ class WordMorphism(SageObject):
             Combinatorics, automata and number theory, 163--247, Encyclopedia
             Math. Appl., 135, Cambridge Univ. Press, Cambridge, 2010.
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return True
         if letter is None:
             I = range(self.domain().alphabet().cardinality())
@@ -3099,7 +3099,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).growing_letters()
             ['0', '1', '2']
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return self.domain().alphabet().list()
         last_coef = 0
         coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)

@@ -2015,12 +2015,14 @@ class WordMorphism(SageObject):
 
         A = self.domain().alphabet()
         d = dict((letter,self(letter)[0]) for letter in A)
+        G = set(self.growing_letters())
 
         res = []
         parent = self.codomain().shift()
         for cycle in get_cycles(CallableDict(d),A):
-            P = PeriodicPointIterator(self, cycle)
-            res.append([parent(P._cache[i]) for i in range(len(cycle))])
+            if cycle[0] in G:
+                P = PeriodicPointIterator(self, cycle)
+                res.append([parent(P._cache[i]) for i in range(len(cycle))])
 
         return res
 

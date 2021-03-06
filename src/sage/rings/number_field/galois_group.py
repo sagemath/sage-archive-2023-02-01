@@ -262,7 +262,7 @@ class GaloisGroup_v2(GaloisGroup_base):
         self._type = _type
         super(GaloisGroup_v2, self).__init__(number_field, algorithm, names, gc_numbering)
 
-    @cached_method(key=lambda self, algorithm: self._get_algorithm(algorithm))
+    @cached_method(key=GaloisGroup_base._get_algorithm)
     def _pol_galgp(self, algorithm=None):
         """
         Return the Galois group object associated to the defining polynomial of this field extension.
@@ -438,12 +438,41 @@ class GaloisGroup_v2(GaloisGroup_base):
                From: Number Field in a with defining polynomial x^3 - 2
                To:   Number Field in ac with defining polynomial x^6 + 108
                Defn: a |--> -1/36*ac^4 - 1/2*ac)
+
+        TESTS:
+
+        Check that it works for relative number fields.  This behavior will change in the future::
+
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: L.<b> = NumberField(x^2 - x + 17*a)
+            sage: G = L.galois_group()
+            ...DeprecationWarning: Use .absolute_field().galois_group() if you want the Galois group of the absolute field
+            See https://trac.sagemath.org/28782 for details.
+            sage: G
+            sage: M, emb = G._gcdata
+            sage: emb.domain() is L
+            True
+            sage: emb.codomain() is M
+            True
+            sage: G
+            Galois group 6T11 (2 wr S(3)) with order 48 of x^2 - x + 17*a
+            sage: M.degree()
+            48
         """
         K = self._field
         if self.is_galois():
             return K, K.hom(K.gen(), K)
         else:
-            return K.galois_closure(names=self._gc_names, map=True)
+            if K.is_relative():
+                # Switch to the absolute field
+                K = K.absolute_field(K.variable_name() + 'a')
+                from_abs, to_abs = K.structure()
+            else:
+                to_abs = None
+            L, emb = K.galois_closure(names=self._gc_names, map=True)
+            if to_abs is not None:
+                emb = emb * to_abs
+            return L, emb
 
     @lazy_attribute
     def _pari_data(self):
@@ -512,7 +541,7 @@ class GaloisGroup_v2(GaloisGroup_base):
             gens = [self.element_class(x, self, check=False) for x in gens]
             return sorted(set(gens))
         else:
-            self._gc_numbered = G = self._field.galois_group(algorithm=self._default_algorithm, names=self._gc_names, gc_numbering=True)
+            G = self._field.galois_group(algorithm=self._default_algorithm, names=self._gc_names, gc_numbering=True)
             self._galois_closure = L = G._galois_closure
             gens = [g.as_hom() for g in G._gens]
             if gens:

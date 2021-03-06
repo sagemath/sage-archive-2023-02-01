@@ -36,6 +36,12 @@ class FusionRing(WeylCharacterRing):
     - ``conjugate`` -- (default ``False``) set ``True`` to obtain
       the complex conjugate ring
     - ``cyclotomic_order`` -- (default computed depending on ``ct`` and ``k``)
+    - ``fusion_labels`` --  (default None) either a tuple of strings to use as labels of the
+      basis of simple objects, or a string from which the labels will be
+      constructed
+    - ``inject_variables`` -- (default ``False``): use with ``fusion_labels``.
+      If ``inject_variables`` is ``True``, the fusion labels will be variables 
+      that can be accessed from the command line
 
     The cyclotomic order is an integer `N` such that all computations
     will return elements of the cyclotomic field of `N`-th roots of unity.
@@ -284,7 +290,7 @@ class FusionRing(WeylCharacterRing):
         True
     """
     @staticmethod
-    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False, cyclotomic_order=None):
+    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False, cyclotomic_order=None, fusion_labels=None, inject_variables=False):
         """
         Normalize input to ensure a unique representation.
 
@@ -326,7 +332,9 @@ class FusionRing(WeylCharacterRing):
         return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
                                                     prefix=prefix, style=style, k=k,
                                                     conjugate=conjugate,
-                                                    cyclotomic_order=cyclotomic_order)
+                                                    cyclotomic_order=cyclotomic_order,
+                                                    fusion_labels=fusion_labels,
+                                                    inject_variables=inject_variables)
 
     def _test_verlinde(self, **options):
         """

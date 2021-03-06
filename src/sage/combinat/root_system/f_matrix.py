@@ -21,13 +21,14 @@ from sage.misc.misc import inject_variable
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.ideal import Ideal
 from sage.misc.misc import get_main_globals
-
 from copy import deepcopy
+
 #Import pickle for checkpointing and loading certain variables
 try:
     import cPickle as pickle
 except:
     import pickle
+
 from multiprocessing import cpu_count, Pool, set_start_method, TimeoutError
 import numpy as np
 from sage.combinat.root_system.fast_parallel_fmats_methods import *
@@ -167,46 +168,41 @@ class FMatrix():
     definition of a monoidal category. The hexagon relations
     reflect the axioms of a *braided monoidal category*,
     which are constraints on both the F-matrix and on
-    the R-matrix. Finally, orthogonality constraints
-    may be imposed to obtain a unitary F-matrix.
+    the R-matrix. Optionally, orthogonality constraints
+    may be imposed to obtain an orthogonal F-matrix.
 
     EXAMPLES::
 
-        sage: f.get_pentagons()[1:3]
+        sage: f.get_defining_equations("pentagons")[1:3]
         [fx1*fx5 - fx7^2, fx5*fx8*fx13 - fx2*fx12]
-        sage: f.get_hexagons()[1:3]
+        sage: f.get_defining_equations("hexagons")[1:3]
         [fx10*fx12 + (-zeta128^32)*fx12*fx13 + (-zeta128^16)*fx12, fx0 - 1]
         sage: f.get_orthogonality_constraints()[1:3]
         [fx1^2 - 1, fx2^2 - 1]
 
-    You may solve these 41+14=55 equations to compute the F-matrix.
+    There are two methods available to compute an F-matrix.
+    The first, :meth:`find_cyclotomic_solution` uses only
+    the pentagon and hexagon relations. The second,
+    :meth:`find_orthogonal_solution` uses additionally
+    the orthogonality relations. There are some differences
+    that should be kept in mind.
+
+    :meth:`find_cyclotomic_solution` currently works only with
+    smaller examples. For example the FusionRing for A2 at
+    level 2 is too large. When it is available, this method
+    produces an F-matrix whose entries are in the same
+    cyclotomic field as the underlying FusionRing.
 
     EXAMPLES::
 
-        sage: f.get_solution(output=True)
+        sage: f.find_cyclotomic_solution()
         Setting up hexagons and pentagons...
-        equations: 14
-        equations: 37
         Finding a Groebner basis...
         Solving...
         Fixing the gauge...
         adding equation... fx1 - 1
         adding equation... fx11 - 1
         Done!
-        {(s, s, s, s, i0, i0): (-1/2*zeta128^48 + 1/2*zeta128^16),
-         (s, s, s, s, i0, p): 1,
-         (s, s, s, s, p, i0): 1/2,
-         (s, s, s, s, p, p): (1/2*zeta128^48 - 1/2*zeta128^16),
-         (s, s, p, i0, p, s): (-1/2*zeta128^48 + 1/2*zeta128^16),
-         (s, s, p, p, i0, s): (-zeta128^48 + zeta128^16),
-         (s, p, s, i0, s, s): 1,
-         (s, p, s, p, s, s): -1,
-         (s, p, p, s, s, i0): 1,
-         (p, s, s, i0, s, p): (-zeta128^48 + zeta128^16),
-         (p, s, s, p, s, i0): (-1/2*zeta128^48 + 1/2*zeta128^16),
-         (p, s, p, s, s, s): -1,
-         (p, p, s, s, i0, s): 1,
-         (p, p, p, p, i0, i0): 1}
 
     We now have access to the values of the F-mstrix using
     the methods :meth:`fmatrix` and :meth:`fmat`.
@@ -219,10 +215,20 @@ class FMatrix():
         sage: f.fmat(s,s,s,s,p,p)
         (1/2*zeta128^48 - 1/2*zeta128^16)
 
+    :meth:`find_orthogonal_solution` is much more powerful
+    and is capable of handling large cases, sometimes
+    quickly but sometimes (in larger cases) hours of
+    computation. Its F-matrices are not always in the
+    cyclotomic field that is the base ring of the underlying
+    FusionRing, but sometimes in an extension field adjoining
+    some square roots. When this happens, the FusionRing is
+    modified, adding an attribute :attr:`_basecoer that is
+    a coercion from the cyclotomic field to the F-matrix.
+
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
         self._FR = fusion_ring
-        if inject_variables and self._FR.fusion_labels is None:
+        if inject_variables and (self._FR._fusion_labels is None):
             self._FR.fusion_labels(fusion_label, inject_variables=True)
         if not self._FR.is_multiplicity_free():
             raise ValueError("FMatrix is only available for multiplicity free FusionRings")
@@ -294,29 +300,26 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"])
-            sage: [f.fmat(t,t,t,t,x,y) for x in f.FR.basis() for y in f.FR.basis()]
+            sage: f=FMatrix(FusionRing("G2",1,fusion_labels=("i0","t"),inject_variables=True))
+            sage: [f.fmat(t,t,t,t,x,y) for x in f._FR.basis() for y in f._FR.basis()]
             [fx1, fx2, fx3, fx4]
-            sage: f.get_solution(output=True)
+            sage: f.find_cyclotomic_solution(output=True)
             Setting up hexagons and pentagons...
-            equations: 5
-            equations: 10
             Finding a Groebner basis...
             Solving...
             Fixing the gauge...
             adding equation... fx2 - 1
             Done!
             {(t, t, t, i0, t, t): 1,
-            (t, t, t, t, i0, i0): (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
-            (t, t, t, t, i0, t): 1,
-            (t, t, t, t, t, i0): (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
-            (t, t, t, t, t, t): (zeta60^14 - zeta60^6 - zeta60^4 + 1)}
-            sage: [f.fmat(t,t,t,t,x,y) for x in f.FR.basis() for y in f.FR.basis()]
+             (t, t, t, t, i0, i0): (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
+             (t, t, t, t, i0, t): 1,
+             (t, t, t, t, t, i0): (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
+             (t, t, t, t, t, t): (zeta60^14 - zeta60^6 - zeta60^4 + 1)}
+            sage: [f.fmat(t,t,t,t,x,y) for x in f._FR.basis() for y in f._FR.basis()]
             [(-zeta60^14 + zeta60^6 + zeta60^4 - 1),
-            1,
-            (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
-            (zeta60^14 - zeta60^6 - zeta60^4 + 1)]
-
+             1,
+             (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
+             (zeta60^14 - zeta60^6 - zeta60^4 + 1)]
         """
         if self._FR.Nk_ij(a,b,x) == 0 or self._FR.Nk_ij(x,c,d) == 0 or self._FR.Nk_ij(b,c,y) == 0 or self._FR.Nk_ij(a,y,d) == 0:
             return 0
@@ -357,10 +360,11 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f=FMatrix(FusionRing("A1",2),fusion_label="c")
-            sage: f.get_solution(verbose=False);
-            equations: 14
-            equations: 37
+            sage: f=FMatrix(FusionRing("A1",2,fusion_labels="c",inject_variables=True))
+            sage: f.fmatrix(c1,c1,c1,c1)
+            [fx0 fx1]
+            [fx2 fx3]
+            sage: f.find_cyclotomic_solution(verbose=False);
             adding equation... fx4 - 1
             adding equation... fx10 - 1
             sage: f.f_from(c1,c1,c1,c1)
@@ -390,7 +394,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f=FMatrix(FusionRing("G2",1),fusion_label=["i0","t"])
+            sage: f=FMatrix(FusionRing("G2",1,fusion_labels=("i0","t")))
             sage: f.findcases()
             5
             sage: f.findcases(output=True)
@@ -449,7 +453,8 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f=FMatrix(FusionRing("A1",3),fusion_label="a")
+            sage: fr = FusionRing("A1", 3, fusion_labels="a", inject_variables=True)
+            sage: f = FMatrix(fr)
             sage: f.fmatrix(a1,a1,a2,a2)
             [fx6 fx7]
             [fx8 fx9]
@@ -472,15 +477,17 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: B=FMatrix(FusionRing("B2",2),fusion_label="b")
-            sage: B.fmatrix(b2,b4,b4,b2)
-            [fx278 fx279 fx280]
-            [fx281 fx282 fx283]
-            [fx284 fx285 fx286]
-            sage: B.f_from(b2,b4,b4,b2)
+            sage: b22 = FusionRing("B2",2)
+            sage: b22.fusion_labels("b",inject_variables=True)
+            sage: B=FMatrix(b22)
+            sage: B.fmatrix(b2,b4,b2,b4)
+            [fx266 fx267 fx268]
+            [fx269 fx270 fx271]
+            [fx272 fx273 fx274]
+            sage: B.f_from(b2,b4,b2,b4)
             [b1, b3, b5]
-            sage: B.f_to(b2,b4,b4,b2)
-            [b0, b1, b5]
+            sage: B.f_to(b2,b4,b2,b4)
+            [b1, b3, b5]
 
         """
 
@@ -1123,7 +1130,7 @@ class FMatrix():
         self.ideal_basis = set(eq.subs(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)
 
-    def find_cyclotomic_solution(self, equations=None, factor=True, verbose=True, prune=True, algorithm='', output=False):
+    def find_cyclotomic_solution(self, equations=None, algorithm='', verbose=True, output=False):
         """
         Solve the the hexagon and pentagon relations to evaluate the F-matrix.
         This method (omitting the orthogonality constraints) produces
@@ -1136,9 +1143,6 @@ class FMatrix():
 
         - ``equations`` -- (optional) a set of equations to be
           solved. Defaults to the hexagon and pentagon equations.
-        - ``factor`` -- (default: ``True``). Set true to use
-          the sreduce method to simplify the hexagon and pentagon
-          equations before solving them.
         - ``algorithm`` -- (optional). Algorithm to compute Groebner Basis.
         - ``output`` -- (optional, default False). Output a dictionary of
           F-matrix values. This may be useful to see but may be omitted
@@ -1147,36 +1151,35 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A2",1),fusion_label="a")
-            sage: f.get_solution(verbose=False,output=True)
-            equations: 8
-            equations: 16
+            sage: f=FMatrix(FusionRing("A2",1,fusion_labels="a",inject_variables=True),inject_variables=True)
+            creating variables fx1..fx8
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
+            sage: f.find_cyclotomic_solution(output=True)
+            Setting up hexagons and pentagons...
+            Finding a Groebner basis...
+            Solving...
+            Fixing the gauge...
             adding equation... fx4 - 1
+            Done!
             {(a2, a2, a2, a0, a1, a1): 1,
-            (a2, a2, a1, a2, a1, a0): 1,
-            (a2, a1, a2, a2, a0, a0): 1,
-            (a2, a1, a1, a1, a0, a2): 1,
-            (a1, a2, a2, a2, a0, a1): 1,
-            (a1, a2, a1, a1, a0, a0): 1,
-            (a1, a1, a2, a1, a2, a0): 1,
-            (a1, a1, a1, a0, a2, a2): 1}
+             (a2, a2, a1, a2, a1, a0): 1,
+             (a2, a1, a2, a2, a0, a0): 1,
+             (a2, a1, a1, a1, a0, a2): 1,
+             (a1, a2, a2, a2, a0, a1): 1,
+             (a1, a2, a1, a1, a0, a0): 1,
+             (a1, a1, a2, a1, a2, a0): 1,
+             (a1, a1, a1, a0, a2, a2): 1}
 
         After you successfully run ``get_solution`` you may check
         the correctness of the F-matrix by running :meth:`hexagon`
         and :meth:`pentagon`. These should return empty lists
-        of equations. In this example, we turn off the factor
-        and prune optimizations to test all instances.
+        of equations. 
         
         EXAMPLES::
 
-            sage: f.hexagon(factor=False)
-            equations: 0
+            sage: f.get_defining_equations("hexagons")
             []
-            sage: f.hexagon(factor=False,side="right")
-            equations: 0
-            []
-            sage: f.pentagon(factor=False,prune=False)
-            equations: 0
+            sage: f.get_defining_equations("pentagons")
             []
 
         """
@@ -1186,7 +1189,6 @@ class FMatrix():
             if verbose:
                 print("Setting up hexagons and pentagons...")
             equations = self.get_defining_equations("hexagons")+self.get_defining_equations("pentagons")
-            #equations = self.hexagon(verbose=False, factor=factor)+self.pentagon(verbose=False, factor=factor, prune=prune)
         if verbose:
             print("Finding a Groebner basis...")
         self.ideal_basis = set(Ideal(equations).groebner_basis(algorithm=algorithm))

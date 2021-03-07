@@ -239,6 +239,7 @@ TESTS::
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for <: ...
+"""
 
 # ****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>

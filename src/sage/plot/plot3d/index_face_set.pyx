@@ -62,6 +62,7 @@ from sage.cpython.string cimport bytes_to_str
 from sage.rings.real_double import RDF
 
 from sage.matrix.constructor import matrix
+
 from sage.modules.free_module_element import vector
 
 from sage.plot.colors import Color, float_to_integer
@@ -203,7 +204,6 @@ cdef inline format_pmesh_face(face_c face, int has_color):
     # PyBytes_FromFormat is almost twice as slow
     return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
-
 def midpoint(pointa, pointb, w):
     """
     Return the weighted mean of two points in 3-space.
@@ -228,6 +228,56 @@ def midpoint(pointa, pointb, w):
     v = 1 - w
     return ((w * xa + v * xb), (w * ya + v * yb), (w * za + v * zb))
 
+def vnorm (v):
+    return sqrt(v.dot_product(v))
+
+def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-12,N=40):
+    """
+    Given two points (points and point b) and a condition (boolean function), 
+    calculates the position at the edge (defined by both points) where the 
+    the boolean condition switches its value.
+
+    INPUT: 
+
+    - ``pointa``, ``pointb`` -- two points in 3-dimensional space
+    
+    - ``N`` -- max number of steps using Bisection method (default: 40) 
+      to cut the boundary triangles that are not entirely within 
+      the domain.
+
+    - ``eps`` target accuracy in the intersection (default: 1.0e-12)
+
+    OUTPUT
+    
+    - point intersection of the edge defined by (pointa, pointb) and the condiction.
+    
+    EXAMPLE 
+   
+    sage: from sage.plot.plot3d.index_face_set import cut_edge_by_bisection
+    sage: cut_edge_by_bisection((0.0,0.0,0.0),(1.0,1.0,0.0),( (lambda x,y,z: x**2+y**2+z**2<1) ),eps=1.0E-12)
+    (0.707106781186440, 0.707106781186440, 0.000000000000000)
+
+    sage: cut_edge_by_bisection((0,0,0),(1,1,0),  ( (lambda x,y,z: x**2+y**2+z**2<1) ), eps=1.0E-12)
+    (3109888511975/4398046511104, 3109888511975/4398046511104, 0)
+    """
+    a=vector(pointa)
+    b=vector(pointb)   
+    itern=0
+
+    while (vnorm(b-a)>eps):
+ 
+        itern+=1       
+        #assert(itern<N)
+        
+        midp=(b+a)/2
+        
+        if condition(*a) and condition(*midp):
+            a=midp
+        else:
+            b=midp
+
+    return tuple((b+a)/2)
+        
 
 cdef class IndexFaceSet(PrimitiveObject):
     """
@@ -927,7 +977,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         sig_free(partition)
         return all
 
-    def add_condition(self, condition, N=40):
+    def add_condition(self, condition, N=40,eps=1.0E-12 ):
         """
         Cut the surface according to the given condition.
 
@@ -940,10 +990,11 @@ cdef class IndexFaceSet(PrimitiveObject):
         - ``condition`` -- boolean function on ambient space, that
           defines the domain
 
-        - ``N`` -- number of steps (default: 40) used on the boundary
-          to cut the triangles that are not entirely within the domain
+        - ``N`` -- max number of steps considering the Bisection Method 
+          (default: 40) to cut the boundary triangles that are not 
+          entirely within the domain.
 
-        For higher quality, meaning smoother boundary, use larger ``N``.
+        - ``eps`` target accuracy in the intersection (default: 1.0e-12)
 
         OUTPUT:
 
@@ -1030,7 +1081,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: P = plot3d(cos(x*y),(x,-2,2),(y,-2,2),color='red',opacity=0.1)
             sage: def condi(x,y,z):
             ....:     return not(x*x+y*y <= 1)
-            sage: Q = P.add_condition(condi, 8)
+            sage: Q = P.add_condition(condi, 20)
             sage: L = Q.json_repr(Q.default_render_params())
             sage: '"opacity":0.1' in L[-1]
             True
@@ -1040,8 +1091,12 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: p = polygon3d([[2,0,0], [0,2,0], [0,0,3]])
             sage: def f(x,y,z):
             ....:     return bool(x*x+y*y+z*z<=5)
-            sage: cut = p.add_condition(f,80); cut.face_list()
-            [[(0.575, 0.0, 2.1375),...]
+            sage: cut = p.add_condition(f,60,1.0e-12); cut.face_list()
+            [[(0.556128491210302, 0.0, 2.165807263184547),
+            (2.0, 0.0, 0.0),
+            (0.0, 2.0, 0.0),
+            (0.0, 0.556128491210302, 2.165807263184547)]]
+
 
         .. TODO::
 
@@ -1108,14 +1163,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 va = V[old_a]
                 vb = V[old_b]
                 vc = V[old_c]
-                for k in range(N + 1):
-                    middle_ac = midpoint(va, vc, k / N)
-                    if condition(*middle_ac):
-                        break
-                for k in range(N + 1):
-                    middle_bc = midpoint(vb, vc, k / N)
-                    if condition(*middle_bc):
-                        break
+                middle_ac=cut_edge_by_bisection(va, vc, condition,eps,N)
+                middle_bc=cut_edge_by_bisection(vb, vc, condition,eps,N)
                 point_list += [middle_ac, middle_bc]
                 face_list.append([index, old_index_to_index[old_a],
                                   old_index_to_index[old_b], index + 1])
@@ -1129,14 +1178,10 @@ cdef class IndexFaceSet(PrimitiveObject):
                 va = V[old_a]
                 vb = V[old_b]
                 vc = V[old_c]
-                for k in range(N + 1):
-                    middle_ab = midpoint(va, vb, k / N)
-                    if condition(*middle_ab):
-                        break
-                for k in range(N + 1):
-                    middle_ac = midpoint(va, vc, k / N)
-                    if condition(*middle_ac):
-                        break
+                # Use bisection to find the intersection 
+                middle_ab=cut_edge_by_bisection(va, vb, condition,eps,N)
+                middle_ac=cut_edge_by_bisection(va, vc, condition,eps,N)
+
                 point_list += [middle_ac, middle_ab]
                 face_list.append([index, old_index_to_index[old_a], index + 1])
                 index += 2

@@ -6,10 +6,15 @@ import os
 import platform
 import sys
 import time
-from distutils import log
 from setuptools import setup, find_namespace_packages
+from distutils import log
 import multiprocessing.pool
+
+# PEP 517 builds do not have . in sys.path
+sys.path.insert(0, os.path.dirname(__file__))
+
 import sage.misc.lazy_import_cache
+
 from sage_setup.optional_extension import is_package_installed_and_updated
 from sage_setup.command.sage_build_ext_minimal import sage_build_ext_minimal
 from sage_setup.command.sage_install import sage_install
@@ -71,7 +76,7 @@ files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
 
 log.debug(f"files_to_exclude = {files_to_exclude}")
 
-python_packages = find_namespace_packages(where=SAGE_SRC, exclude=['bin', 'doc'])
+python_packages = find_namespace_packages(where=SAGE_SRC, include=['sage', 'sage_setup'])
 log.debug(f"python_packages = {python_packages}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")
@@ -79,6 +84,7 @@ log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} secon
 # from sage_build_cython:
 import Cython.Compiler.Options
 Cython.Compiler.Options.embed_pos_in_docstring = True
+gdb_debug = os.environ.get('SAGE_DEBUG', None) != 'no'
 
 try:
     log.info("Generating auto-generated sources")
@@ -95,6 +101,7 @@ try:
         compiler_directives=compiler_directives(False),
         aliases=cython_aliases(),
         create_extension=create_extension,
+        gdb_debug=gdb_debug,
         nthreads=4)
 except Exception as exception:
     log.warn(f"Exception while generating and cythonizing source files: {exception}")

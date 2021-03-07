@@ -42,6 +42,7 @@ Elliptic curves over number fields
 
    sage/schemes/elliptic_curves/sha_tate
    sage/schemes/elliptic_curves/cm
+   sage/schemes/elliptic_curves/Qcurves
 
 
 The following relate to elliptic curves over local nonarchimedean fields.

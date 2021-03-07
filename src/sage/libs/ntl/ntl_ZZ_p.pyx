@@ -47,8 +47,11 @@ def ntl_ZZ_p_random_element(v):
 
     EXAMPLES::
 
-        sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
-        9
+        sage: a = sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
+        sage: type(a)
+        <class 'sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p'>
+        sage: a.modulus()
+        17
     """
     current_randstate().set_seed_ntl(False)
 

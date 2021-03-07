@@ -871,18 +871,32 @@ if [ "$1" = '-ba' ]; then
     exit $?
 fi
 
+exec-runtests() {
+    sage_setup
+    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
+    # Trac #31191: Some versions of Python 3.6 disable utf-8 even if
+    # the locale is just "POSIX".  This leads to errors in both the
+    # doctest framework and in various individual doctests.
+    if locale | grep -q -E -i '^LC_CTYPE="(C|POSIX)"$'; then
+        # Get an UTF-8 locale if possible.
+        LC_ALL=$(locale -a | grep -E -i '^(c|en_us)[-.]utf-?8$' | head -n 1)
+        LANG=$LC_ALL
+        export LC_ALL
+        export LANG
+    fi
+    exec sage-runtests "$@"
+}
+
 if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
     if [ "$1" = '-bt' -o "$1" = '-btp' ]; then
         build_sage
     fi
-    sage_setup
-    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
         shift
-        exec sage-runtests -p "$@"
+        exec-runtests -p "$@"
     else
         shift
-        exec sage-runtests "$@"
+        exec-runtests "$@"
     fi
 fi
 
@@ -891,16 +905,12 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
         build_sage
     fi
     shift
-    sage_setup
-    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
-    exec sage-runtests --new "$@"
+    exec-runtests --new "$@"
 fi
 
 if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     shift
-    sage_setup
-    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
-    exec sage-runtests -a "$@"
+    exec-runtests -a "$@"
 fi
 
 if [ "$1" = '-fixdoctests' -o "$1" = '--fixdoctests' ]; then

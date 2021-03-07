@@ -215,12 +215,11 @@ Note that Sage verifies that the morphism is valid::
 
 Endomorphism of power series ring::
 
-    sage: R.<t> = PowerSeriesRing(QQ); R
+    sage: R.<t> = PowerSeriesRing(QQ, default_prec=10); R
     Power Series Ring in t over Rational Field
     sage: f = R.hom([t^2]); f
     Ring endomorphism of Power Series Ring in t over Rational Field
       Defn: t |--> t^2
-    sage: R.set_default_prec(10)
     sage: s = 1/(1 + t); s
     1 - t + t^2 - t^3 + t^4 - t^5 + t^6 - t^7 + t^8 - t^9 + O(t^10)
     sage: f(s)

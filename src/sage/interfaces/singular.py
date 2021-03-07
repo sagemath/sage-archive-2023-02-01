@@ -306,6 +306,17 @@ see :trac:`11645`::
 
     sage: singular.eval("ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);")
     ''
+
+Verify that :trac:`17720` is fixed::
+
+    sage: R.<p> = QQ[]
+    sage: K.<p> = QQ.extension(p^2 - p - 1)
+    sage: r.<x,z> = K[]
+    sage: I = r.ideal(z)
+    sage: I.primary_decomposition()
+    [Ideal (z) of Multivariate Polynomial Ring in x, z over Number Field in p with defining polynomial p^2 - p - 1]
+    sage: [ J.gens() for J in I.primary_decomposition("gtz")]
+    [[z]]
 """
 
 # ****************************************************************************

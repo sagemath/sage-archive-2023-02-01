@@ -239,9 +239,9 @@ class SageShellOverride(object):
             sage: shell.system_raw('true')
             sage: shell.user_ns['_exit_code']
             0
-            sage: shell.system_raw('R --version')
+            sage: shell.system_raw('R --version')   # optional - r
             R version ...
-            sage: shell.user_ns['_exit_code']
+            sage: shell.user_ns['_exit_code']       # optional - r
             0
             sage: shell.quit()
         """

@@ -7026,6 +7026,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: system = DynamicalSystem_projective([3*x^2 + x*y+y^2, 9*y^2])
             sage: prime = system.field_of_definition_periodic(1).prime_above(3)
             sage: system.potential_good_reduction(prime)
+            (False, None)
 
         """
         if self.domain().base_ring() not in NumberFields:
@@ -7072,8 +7073,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if indifferent_point is not None:
             point = indifferent_point
             field_of_definition, embedding_preimage = system.field_of_definition_preimage(point, 2, True)
-            system = system.change_ring(field_of_definition)
-            point = system.domain()([embedding_preimage(indifferent_point[0]), embedding_preimage(indifferent_point[1])])
+            system = system.change_ring(embedding_preimage)
+            point = point.change_ring(embedding_preimage)
             preimages = [point]
             for i in [1,2]:
                 preimages_of_point = system.rational_preimages(point, 1)

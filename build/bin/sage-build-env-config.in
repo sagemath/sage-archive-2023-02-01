@@ -27,7 +27,7 @@ export SAGE_FAT_BINARY="@SAGE_FAT_BINARY@"
 
 # Export SAGE_DEBUG if this was enabled during configure,
 # but be respectful of the current settings.
-if [ "x$SAGE_DEBUG" == "x" ]; then
+if [ "x$SAGE_DEBUG" = "x" ]; then
     export SAGE_DEBUG="@SAGE_DEBUG@"
 fi
 

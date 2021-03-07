@@ -73,9 +73,34 @@ SAGE_SPKG_CONFIGURE([python3], [
     dnl PRE
 ], [
     dnl POST
-    AS_IF([test x$sage_spkg_install_python3 = xno],
-          [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"],
-          [SAGE_MACOSX_DEPLOYMENT_TARGET=legacy])
+    AS_IF([test x$sage_spkg_install_python3 = xno], [
+        PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"
+        AS_IF([test "$SAGE_ARCHFLAGS" = "unset"], [
+           AC_MSG_CHECKING([whether $PYTHON_FOR_VENV is configured to build multiarch extensions])
+           AS_IF([[CC="$CC" CXX="$CXX" conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-arch.* -arch' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+               AC_MSG_RESULT([yes; disabling it by setting ARCHFLAGS])
+               SAGE_ARCHFLAGS=""
+           ], [
+               AC_MSG_RESULT([no])
+           ])
+        ])
+        AS_IF([test "$SAGE_ARCHFLAGS" != "unset"], [
+            ARCHFLAGS="$SAGE_ARCHFLAGS"
+            export ARCHFLAGS
+        ])
+        AS_IF([test -n "$CFLAGS_MARCH"], [
+            dnl Trac #31228
+            AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS_MARCH" conftest_venv/bin/python3], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, with these flags, $reason; disabling use of "$CFLAGS_MARCH"])
+                CFLAGS_MARCH=""
+            ])
+        ])
+    ], [
+        SAGE_MACOSX_DEPLOYMENT_TARGET=legacy
+    ])
     AC_SUBST([PYTHON_FOR_VENV])
     AC_SUBST([SAGE_MACOSX_DEPLOYMENT_TARGET])
 

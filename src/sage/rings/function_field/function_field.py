@@ -3444,13 +3444,8 @@ class FunctionField_global(FunctionField_simple):
 
         R = IntegerRing()[[L.parent().gen()]] # power series ring
 
-        old_prec = R.default_prec()
-        R.set_default_prec(r)
-
-        f = R(Lp / L)
+        f = R(Lp / L, prec=r)
         n = f[r-1] + q**r + 1
-
-        R.set_default_prec(old_prec)
 
         return n
 

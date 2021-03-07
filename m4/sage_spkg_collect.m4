@@ -164,7 +164,14 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     base)
         message="came preinstalled with the SageMath tarball"
         ;;
-    standard|optional|experimental)
+    standard)
+        AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
+            message="$SPKG_TYPE, will be installed as an SPKG"
+        ], [
+            message="$SPKG_TYPE, but disabled using configure option"
+        ])
+        ;;
+    optional|experimental)
         AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
             message="$SPKG_TYPE, will be installed as an SPKG"
         ], [

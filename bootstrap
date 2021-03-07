@@ -84,7 +84,7 @@ bootstrap () {
     # initialize SAGE_ENABLE... options for standard packages
     for pkgname in $(./sage --package list :standard: | sort); do
         spkg_configures="$spkg_configures
-AC_SUBST(SAGE_ENABLE_$pkgname, [yes])"
+AS_VAR_SET_IF([SAGE_ENABLE_$pkgname], [], [AS_VAR_SET([SAGE_ENABLE_$pkgname], [yes])])"
     done
     # --enable-SPKG options
     for pkgname in $(./sage --package list :optional: :experimental: | sort); do

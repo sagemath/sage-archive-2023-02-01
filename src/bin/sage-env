@@ -202,6 +202,16 @@ export F77="$FC"
 export F90="$FC"   # Needed for SciPy
 export F95="$FC"
 
+# For ARCHFLAGS (#31227) we need to distinguish unset and empty.
+# If the environment defines ARCHFLAGS, even when empty, then take that.
+# Otherwise, use the configured value; but if that is "unset", do not set
+# the variable at all.
+if [ "${ARCHFLAGS-unset}" = "unset" ]; then
+    if [ "${SAGE_ARCHFLAGS-unset}" != "unset" ]; then
+        export ARCHFLAGS="${SAGE_ARCHFLAGS}"
+    fi
+fi
+
 # Call with: contains_spaces X${VAR}X
 # i.e., WITHOUT quotes but some character(s) around the environment variable to test.
 # (This function does return false for empty/unset variables.)

@@ -1709,7 +1709,7 @@ class EllipticCurveCanonicalHeight:
                     break
         else:
             z = CIF(intersection.innermost_point())
-            if all(wp((k+1)*z) < B for k, B in enumerate(bounds)):
+            if all(wp((k+1)*z).upper() < B for k, B in enumerate(bounds)):
                 return False
 
         # Now try to prove a positive result.
@@ -1719,6 +1719,7 @@ class EllipticCurveCanonicalHeight:
         for B, n in sorted(zip(bounds, ZZ.range(1, k+1))):
 
             T = PeriodicRegion(CDF(1), CDF(tau), vals < B, full=not use_half).expand().refine()
+            B = RIF(B)
             leaning_right = tau.real() / tau.imag() >= 0
             def check_line(z):
                 wpz = wp(z)

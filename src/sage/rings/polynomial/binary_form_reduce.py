@@ -231,13 +231,13 @@ def covariant_z0(F, z0_cov=False, prec=53, emb=None, error_limit=0.000001):
             w = z
             v0 = v0 - NJinv*G.subs({u: v0[0], t: v0[1]})
             z = v0[1].constant_coefficient() + v0[0].constant_coefficient()*CF.gen(0)
-            err = z.diameter()  # precision
-            zz = (w - z).abs()  # difference in w and z
+            err = z.diameter() # precision
+            zz = (w - z).abs().lower() # difference in w and z
         else:
             # despite there is no break, this happens
             if err > error_limit or err.is_NaN():
                 raise ValueError("accuracy of Newton's root not within tolerance(%s > %s), increase precision" % (err, error_limit))
-        if z.imag() <= z.diameter():
+        if z.imag().upper() <= z.diameter():
             raise ArithmeticError("Newton's method converged to z not in the upper half plane")
         z = z.center()
 

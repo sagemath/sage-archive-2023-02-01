@@ -1064,6 +1064,24 @@ cdef class PowerSeries(AlgebraElement):
             t + O(t^21)
             sage: (t^5/(t^2 - 2)) * (t^2 -2 )
             t^5 + O(t^25)
+            
+        TESTS:
+
+        The following tests against bugs that were fixed in :trac:`8972`::
+
+            sage: P.<t> = ZZ[]
+            sage: R.<x> = P[[]]
+            sage: 1/(t*x)
+            1/t*x^-1
+            sage: R.<x> = ZZ[[]]
+            sage: (1/x).parent()
+            Laurent Series Ring in x over Rational Field
+            sage: F = FractionField(R)
+            sage: 1/x in F
+            True
+            sage: (1/(2*x)).parent()
+            Laurent Series Ring in x over Rational Field
+            
         """
         denom = <PowerSeries>denom_r
         if denom.is_zero():
@@ -1073,8 +1091,11 @@ cdef class PowerSeries(AlgebraElement):
 
         v = denom.valuation()
         if v > self.valuation():
-            R = self._parent.laurent_series_ring()
-            return R(self)/R(denom)
+            try:
+                R = self._parent.fraction_field()
+            except (TypeError, NotImplementedError):  # no integral domain
+                R = self._parent.laurent_series_ring()
+            return R(self) / R(denom)
 
         # Algorithm: Cancel common factors of q from top and bottom,
         # then invert the denominator.  We do the cancellation first

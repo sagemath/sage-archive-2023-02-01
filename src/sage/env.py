@@ -36,6 +36,7 @@ import sys
 import sysconfig
 from . import version
 from pathlib import Path
+import subprocess
 
 
 # All variables set by var() appear in this SAGE_ENV dict
@@ -209,6 +210,7 @@ MAXIMA_FAS = var("MAXIMA_FAS")
 SAGE_NAUTY_BINS_PREFIX = var("SAGE_NAUTY_BINS_PREFIX", "")
 ARB_LIBRARY = var("ARB_LIBRARY", "arb")
 CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
+ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
 
 # misc
 SAGE_BANNER = var("SAGE_BANNER", "")
@@ -461,5 +463,14 @@ def cython_aliases():
         aliases["M4RI_CFLAGS"].remove("-pedantic")
     except ValueError:
         pass
+
+    # Determine ecl-specific compiler arguments using the ecl-config script
+    ecl_cflags = subprocess.run([ECL_CONFIG, "--cflags"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.split()
+    aliases["ECL_CFLAGS"] = list(filter(lambda s: not s.startswith('-I'), ecl_cflags))
+    aliases["ECL_INCDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-I'), ecl_cflags)))
+    ecl_libs = subprocess.run([ECL_CONFIG, "--libs"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.split()
+    aliases["ECL_LIBDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-L'), ecl_libs)))
+    aliases["ECL_LIBRARIES"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-l'), ecl_libs)))
+    aliases["ECL_LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), ecl_libs))
 
     return aliases

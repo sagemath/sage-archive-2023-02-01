@@ -1,7 +1,7 @@
 """
 Recursive Directory Contents
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -9,8 +9,7 @@ Recursive Directory Contents
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+# ****************************************************************************
 
 import importlib.machinery
 import importlib.util
@@ -18,6 +17,7 @@ import importlib.util
 import os
 
 from collections import defaultdict
+
 
 def read_distribution(src_file):
     """
@@ -57,6 +57,7 @@ def read_distribution(src_file):
                 if key == "distribution":
                     return value
     return ''
+
 
 def find_python_sources(src_dir, modules=['sage'], distributions=None):
     """
@@ -115,7 +116,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     Filtering by distribution (distutils package)::
 
         sage: find_python_sources(SAGE_SRC, distributions=['sage-tdlib'])
-        ([], [], [<distutils.extension.Extension('sage.graphs.graph_decompositions.tdlib')...>])
+        ([], [], [<setuptools.extension.Extension('sage.graphs.graph_decompositions.tdlib')...>])
 
     Benchmarking::
 
@@ -130,7 +131,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         sage: find_python_sources(SAGE_SRC, modules=['sage_setup'])
         (['sage_setup', ...], [...'sage_setup.find'...], [])
     """
-    from distutils.extension import Extension
+    from setuptools import Extension
 
     PYMOD_EXT = get_extensions('source')[0]
     INIT_FILE = '__init__' + PYMOD_EXT
@@ -171,6 +172,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     finally:
         os.chdir(cwd)
     return python_packages, python_modules, cython_modules
+
 
 def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
     """

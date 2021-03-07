@@ -663,7 +663,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: P(B.gen(0))
             x
 
-        If everything else fails, we try to coerce to the base ring::
+        If everything else fails, we try to convert to the base ring::
 
             sage: R.<x,y,z> = GF(3)[]
             sage: R(1/2)
@@ -777,9 +777,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef poly *mon
         cdef poly *El_poly
         cdef ring *_ring = self._ring
-        cdef number *_n
         cdef ring *El_ring
-        cdef long mpos
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
         cdef int i, j
@@ -787,27 +785,61 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         cdef list ind_map = []
         cdef sBucket *bucket
 
-        if _ring!=currRing: rChangeCurrRing(_ring)
+        if _ring != currRing: rChangeCurrRing(_ring)
 
-        base_ring = self.base_ring()
+        base_ring = self._base
 
         if isinstance(element, MPolynomial_libsingular):
-            n = (<MPolynomial_libsingular>element)._parent.ngens()
-            if element.parent() is self:
+            Element = <MPolynomial_libsingular>element
+            El_parent = Element._parent
+            if El_parent is self:
                 return element
-            elif(base_ring is element.base_ring() and
-                 self.ngens() >= n and
-                 self.variable_names()[:n] == (<MPolynomial_libsingular>element)._parent.variable_names()):
-                if self.term_order() == (<MPolynomial_libsingular>element)._parent.term_order():
-                    _p = prCopyR_NoSort((<MPolynomial_libsingular>element)._poly,
-                                        (<MPolynomial_libsingular>element)._parent_ring,
-                                        _ring)
+            El_poly = Element._poly
+            El_ring = Element._parent_ring
+            El_base = El_parent._base
+            El_n = El_parent.ngens()
+            if (base_ring is El_base and self.ngens() >= El_n
+                    and self.variable_names()[:El_n] == El_parent.variable_names()):
+                if self.term_order() == El_parent.term_order():
+                    _p = prCopyR_NoSort(El_poly, El_ring, _ring)
                 else:
-                    _p = prCopyR((<MPolynomial_libsingular>element)._poly,
-                                 (<MPolynomial_libsingular>element)._parent_ring, _ring)
+                    _p = prCopyR(El_poly, El_ring, _ring)
                 return new_MP(self, _p)
-            elif base_ring.has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
-                return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
+            variable_names_t = self.variable_names()
+            if base_ring.has_coerce_map_from(El_parent._mpoly_base_ring(variable_names_t)):
+                return self(element._mpoly_dict_recursive(variable_names_t, base_ring))
+            else:
+                variable_names_s = El_parent.variable_names()
+                if set(variable_names_s).issubset(variable_names_t):
+                    for v in variable_names_s:
+                        ind_map.append(variable_names_t.index(v)+1)
+                else:
+                    ind_map = [i+1 for i in range(_ring.N)]
+
+                if El_n <= self.ngens():
+                    # Map the variables by indices
+                    _p = p_ISet(0, _ring)
+
+                    #this loop needs improvement
+                    while El_poly:
+                        c = si2sa(p_GetCoeff(El_poly, El_ring), El_ring, El_base)
+                        if check:
+                            try:
+                                c = base_ring(c)
+                            except TypeError:
+                                p_Delete(&_p, _ring)
+                                raise
+                        if c:
+                            mon = p_Init(_ring)
+                            p_SetCoeff(mon, sa2si(c, _ring), _ring)
+                            for j from 1 <= j <= El_ring.N:
+                                e = p_GetExp(El_poly, j, El_ring)
+                                if e:
+                                    p_SetExp(mon, ind_map[j-1], e, _ring)
+                            p_Setm(mon, _ring)
+                            _p = p_Add_q(_p, mon, _ring)
+                        El_poly = pNext(El_poly)
+                    return new_MP(self, _p)
 
         elif isinstance(element, MPolynomial_polydict):
             if element.parent() == self:
@@ -838,126 +870,45 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                 return new_MP(self, _p)
             elif base_ring.has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
                 return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
+            else:
+                variable_names_s = element.parent().variable_names()
+                variable_names_t = self.variable_names()
+
+                if set(variable_names_s).issubset(variable_names_t):
+                    for v in variable_names_s:
+                        ind_map.append(variable_names_t.index(v)+1)
+                else:
+                    ind_map = [i+1 for i in range(_ring.N)]
+
+                if element.parent().ngens() <= self.ngens():
+                    bucket = sBucketCreate(_ring)
+                    try:
+                        for (m,c) in element.element().dict().iteritems():
+                            if check:
+                                c = base_ring(c)
+                            if not c:
+                                continue
+                            mon = p_Init(_ring)
+                            p_SetCoeff(mon, sa2si(c , _ring), _ring)
+                            for pos in m.nonzero_positions():
+                                overflow_check(m[pos], _ring)
+                                p_SetExp(mon, ind_map[pos], m[pos], _ring)
+                            p_Setm(mon, _ring)
+                            sBucket_Merge_m(bucket, mon)
+                        e=0
+                        sBucketClearMerge(bucket, &_p, &e)
+                        sBucketDestroy(&bucket)
+                    except TypeError:
+                        sBucketDeleteAndDestroy(&bucket)
+                        raise
+                    return new_MP(self, _p)
 
         elif isinstance(element, polynomial_element.Polynomial):
             if base_ring.has_coerce_map_from(element.parent()._mpoly_base_ring(self.variable_names())):
                 return self(element._mpoly_dict_recursive(self.variable_names(), base_ring))
 
-        if isinstance(element, (SingularElement, cypari2.gen.Gen)):
-            element = str(element)
-
-        if isinstance(element, MPolynomial_libsingular) and element.parent() is not self and element.parent() != self:
-            variable_names_s = element.parent().variable_names()
-            variable_names_t = self.variable_names()
-
-            if set(variable_names_s).issubset(variable_names_t):
-                for v in variable_names_s:
-                    ind_map.append(variable_names_t.index(v)+1)
-            else:
-                ind_map = [i+1 for i in range(_ring.N)]
-
-            if element.parent().ngens() <= self.ngens():
-                # Map the variables by indices
-                _p = p_ISet(0, _ring)
-                Element = <MPolynomial_libsingular>element
-                El_poly = Element._poly
-                El_parent = Element._parent
-                El_ring = Element._parent_ring
-                El_base = El_parent._base
-
-                #this loop needs improvement
-                while El_poly:
-                    c = si2sa(p_GetCoeff(El_poly, El_ring), El_ring, El_base)
-                    if check:
-                        try:
-                            c = base_ring(c)
-                        except TypeError:
-                            p_Delete(&_p, _ring)
-                            raise
-                    if c:
-                        mon = p_Init(_ring)
-                        p_SetCoeff(mon, sa2si(c, _ring), _ring)
-                        for j from 1 <= j <= El_ring.N:
-                            e = p_GetExp(El_poly, j, El_ring)
-                            if e:
-                                p_SetExp(mon, ind_map[j-1], e, _ring)
-                        p_Setm(mon, _ring)
-                        _p = p_Add_q(_p, mon, _ring)
-                    El_poly = pNext(El_poly)
-                return new_MP(self, _p)
-
-        if isinstance(element, MPolynomial_polydict):
-            variable_names_s = element.parent().variable_names()
-            variable_names_t = self.variable_names()
-
-            if set(variable_names_s).issubset(variable_names_t):
-                for v in variable_names_s:
-                    ind_map.append(variable_names_t.index(v)+1)
-            else:
-                ind_map = [i+1 for i in range(_ring.N)]
-
-            if element.parent().ngens() <= self.ngens():
-                bucket = sBucketCreate(_ring)
-                try:
-                    for (m,c) in element.element().dict().iteritems():
-                        if check:
-                            c = base_ring(c)
-                        if not c:
-                            continue
-                        mon = p_Init(_ring)
-                        p_SetCoeff(mon, sa2si(c , _ring), _ring)
-                        for pos in m.nonzero_positions():
-                            overflow_check(m[pos], _ring)
-                            p_SetExp(mon, ind_map[pos], m[pos], _ring)
-                        p_Setm(mon, _ring)
-                        sBucket_Merge_m(bucket, mon)
-                    e=0
-                    sBucketClearMerge(bucket, &_p, &e)
-                    sBucketDestroy(&bucket)
-                except TypeError:
-                    sBucketDeleteAndDestroy(&bucket)
-                    raise
-                return new_MP(self, _p)
-
-        from sage.rings.polynomial.pbori.pbori import BooleanPolynomial
-        if isinstance(element, BooleanPolynomial):
-            if element.constant():
-                if element:
-                    return self._one_element
-                else:
-                    return self._zero_element
-
-            variable_names_s = set(element.parent().variable_names())
-            variable_names_t = self.variable_names()
-
-            if variable_names_s.issubset(variable_names_t):
-                return eval(str(element),self.gens_dict(copy=False))
-
-            elif element.parent().ngens() <= self.ngens():
-                Q = element.parent()
-                gens_map = dict(zip(Q.variable_names(),self.gens()[:Q.ngens()]))
-                return eval(str(element),gens_map)
-
-        if isinstance(element, str):
-            # let python do the parsing
-            d = self.gens_dict()
-            if self.base_ring().gen() != 1:
-                d[str(self.base_ring().gen())]=self.base_ring().gen()
-            try:
-                if '/' in element:
-                    element = sage_eval(element,d)
-                else:
-                    element = element.replace("^","**")
-                    element = eval(element, d, {})
-            except (SyntaxError, NameError):
-                raise TypeError("Could not find a mapping of the passed element to this ring.")
-
-            # we need to do this, to make sure that we actually get an
-            # element in self.
-            return self._coerce_c(element)
-
-        if isinstance(element, dict):
-            if len(element)==0:
+        elif isinstance(element, dict):
+            if not element:
                 _p = p_ISet(0, _ring)
             else:
                 bucket = sBucketCreate(_ring)
@@ -985,14 +936,51 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                     raise
             return new_MP(self, _p)
 
-        try: #if hasattr(element,'_polynomial_'):
-            # SymbolicVariable
-            return element._polynomial_(self)
-        except AttributeError:
-            pass
+        from sage.rings.polynomial.pbori.pbori import BooleanPolynomial
+        if isinstance(element, BooleanPolynomial):
+            if element.constant():
+                if element:
+                    return self._one_element
+                else:
+                    return self._zero_element
 
-        if is_Macaulay2Element(element):
-            return self(element.external_string())
+            variable_names_s = set(element.parent().variable_names())
+            variable_names_t = self.variable_names()
+
+            if variable_names_s.issubset(variable_names_t):
+                return eval(str(element),self.gens_dict(copy=False))
+
+            elif element.parent().ngens() <= self.ngens():
+                Q = element.parent()
+                gens_map = dict(zip(Q.variable_names(),self.gens()[:Q.ngens()]))
+                return eval(str(element),gens_map)
+
+        if isinstance(element, (SingularElement, cypari2.gen.Gen)):
+            element = str(element)
+        elif is_Macaulay2Element(element):
+            element = element.external_string()
+
+        if isinstance(element, str):
+            # let python do the parsing
+            d = self.gens_dict()
+            if self.base_ring().gen() != 1:
+                d[str(self.base_ring().gen())]=self.base_ring().gen()
+            try:
+                if '/' in element:
+                    element = sage_eval(element,d)
+                else:
+                    element = element.replace("^","**")
+                    element = eval(element, d, {})
+            except (SyntaxError, NameError):
+                raise TypeError("Could not find a mapping of the passed element to this ring.")
+
+            # we need to do this, to make sure that we actually get an
+            # element in self.
+            return self._coerce_c(element)
+
+        if hasattr(element,'_polynomial_'): # symbolic.expression.Expression
+            return element._polynomial_(self)
+
         try:
             return self(str(element))
         except TypeError:

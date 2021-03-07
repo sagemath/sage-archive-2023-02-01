@@ -5599,7 +5599,7 @@ def _key_complex_for_display(a):
     ai = a.imag()
     if not ai:
         return (0, ar)
-    epsilon = 1e-10
+    epsilon = ar.parent()(1e-10)
     if ar.abs() < epsilon:
         ar_truncated = 0
     elif ar.prec() < 34:

@@ -2723,13 +2723,8 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
         L = R(L)
         Lp = R(Lp)
 
-        previous_prec = R.default_prec()
-        R.set_default_prec(r)
-
-        f = Lp / L
+        f = R(Lp / L, prec=r)
         n = f[r-1] + q**r + 1
-
-        R.set_default_prec(previous_prec)
 
         return n
 

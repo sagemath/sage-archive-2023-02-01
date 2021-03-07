@@ -935,17 +935,17 @@ class SageOutputChecker(doctest.OutputChecker):
             sage: want_tol = MarkedOutput().update(tol=0.0001)
             sage: want_abs = MarkedOutput().update(abs_tol=0.0001)
             sage: want_rel = MarkedOutput().update(rel_tol=0.0001)
-            sage: OC.add_tolerance(pi.n(64), want_tol).endpoints()
+            sage: OC.add_tolerance(RIF(pi.n(64)), want_tol).endpoints()
             (3.14127849432443, 3.14190681285516)
-            sage: OC.add_tolerance(pi.n(64), want_abs).endpoints()
+            sage: OC.add_tolerance(RIF(pi.n(64)), want_abs).endpoints()
             (3.14149265358979, 3.14169265358980)
-            sage: OC.add_tolerance(pi.n(64), want_rel).endpoints()
+            sage: OC.add_tolerance(RIF(pi.n(64)), want_rel).endpoints()
             (3.14127849432443, 3.14190681285516)
-            sage: OC.add_tolerance(1e1000, want_tol)
+            sage: OC.add_tolerance(RIF(1e1000), want_tol)
             1.000?e1000
-            sage: OC.add_tolerance(1e1000, want_abs)
+            sage: OC.add_tolerance(RIF(1e1000), want_abs)
             1.000000000000000?e1000
-            sage: OC.add_tolerance(1e1000, want_rel)
+            sage: OC.add_tolerance(RIF(1e1000), want_rel)
             1.000?e1000
             sage: OC.add_tolerance(0, want_tol)
             0.000?
@@ -956,13 +956,13 @@ class SageOutputChecker(doctest.OutputChecker):
         """
         if want.tol:
             if wantval == 0:
-                return want.tol * RIFtol(-1,1)
+                return RIFtol(want.tol) * RIFtol(-1,1)
             else:
-                return wantval * (1 + want.tol * RIFtol(-1,1))
+                return wantval * (1 + RIFtol(want.tol) * RIFtol(-1,1))
         elif want.abs_tol:
-            return wantval + want.abs_tol * RIFtol(-1,1)
+            return wantval + RIFtol(want.abs_tol) * RIFtol(-1,1)
         elif want.rel_tol:
-            return wantval * (1 + want.rel_tol * RIFtol(-1,1))
+            return wantval * (1 + RIFtol(want.rel_tol) * RIFtol(-1,1))
         else:
             return wantval
 

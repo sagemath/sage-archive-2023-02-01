@@ -20,11 +20,8 @@ if [ "$SAGE_VALGRIND" = "yes" ]; then
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-pymalloc"
 fi
 
-# Use EXTRA_CFLAGS for user-defined CFLAGS since Python puts its own
-# default flags like -O3 after CFLAGS but before EXTRA_CFLAGS.
-# We also disable warnings about unused variables/functions which are
-# common in Cython-generated code.
-export EXTRA_CFLAGS="`testcflags.sh -Wno-unused` $CFLAGS"
+# We will use EXTRA_CFLAGS for user-defined CFLAGS below.
+OLD_CFLAGS="$CFLAGS"
 unset CFLAGS
 
 if [ "$UNAME" = Darwin ]; then
@@ -57,6 +54,12 @@ elif [ "$UNAME" = SunOS ]; then
     # http://trac.sagemath.org/sage_trac/ticket/14265
     export CFLAGS="-D__C99FEATURES__ $CFLAGS"
 fi
+
+# Use EXTRA_CFLAGS for user-defined CFLAGS since Python puts its own
+# default flags like -O3 after CFLAGS but before EXTRA_CFLAGS.
+# We also disable warnings about unused variables/functions which are
+# common in Cython-generated code.
+export EXTRA_CFLAGS="`testcflags.sh -Wno-unused $OLD_CFLAGS`"
 
 # Remove old symbolic link: it is not needed and its presence can
 # interfere with the Python build.

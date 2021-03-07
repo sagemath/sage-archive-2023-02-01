@@ -29,6 +29,9 @@ SAGE_SPKG_CONFIGURE([python3], [
            SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
                                            MIN_VERSION, LT_VERSION,
                                            $check_modules, [
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                        AC_MSG_WARN([this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132])
+                    ])
                     dnl It is good
                     ac_cv_path_PYTHON3="$ac_path_PYTHON3"
                     ac_path_PYTHON3_found=:
@@ -45,17 +48,24 @@ SAGE_SPKG_CONFIGURE([python3], [
                 SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
                                            MIN_VERSION, LT_VERSION,
                                            $check_modules, [
-                    dnl It is good
-                    ac_cv_path_PYTHON3="$ac_path_PYTHON3"
-                    ac_path_PYTHON3_found=:
-                    AC_MSG_RESULT([yes])
-                    dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
-                    AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                        AC_MSG_RESULT([no, this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132; to use it anyway, use ./configure --with-python=$ac_path_PYTHON3])
+                    ], [
+                        dnl It is good
+                        ac_cv_path_PYTHON3="$ac_path_PYTHON3"
+                        ac_path_PYTHON3_found=:
+                        AC_MSG_RESULT([yes])
+                        dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
+                        AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+                    ])
                 ])
             ])
 	])
       ])
-      AS_IF([test -z "$ac_cv_path_PYTHON3"], [sage_spkg_install_python3=yes])
+      AS_IF([test -z "$ac_cv_path_PYTHON3"], [
+          AC_MSG_NOTICE([to try to use a different system python, use ./configure --with-python=/path/to/python])
+          sage_spkg_install_python3=yes
+      ])
       m4_popdef([MIN_VERSION])
       m4_popdef([LT_VERSION])
     ])
@@ -63,9 +73,34 @@ SAGE_SPKG_CONFIGURE([python3], [
     dnl PRE
 ], [
     dnl POST
-    AS_IF([test x$sage_spkg_install_python3 = xno],
-          [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"],
-          [SAGE_MACOSX_DEPLOYMENT_TARGET=legacy])
+    AS_IF([test x$sage_spkg_install_python3 = xno], [
+        PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"
+        AS_IF([test "$SAGE_ARCHFLAGS" = "unset"], [
+           AC_MSG_CHECKING([whether $PYTHON_FOR_VENV is configured to build multiarch extensions])
+           AS_IF([[CC="$CC" CXX="$CXX" conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-arch.* -arch' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+               AC_MSG_RESULT([yes; disabling it by setting ARCHFLAGS])
+               SAGE_ARCHFLAGS=""
+           ], [
+               AC_MSG_RESULT([no])
+           ])
+        ])
+        AS_IF([test "$SAGE_ARCHFLAGS" != "unset"], [
+            ARCHFLAGS="$SAGE_ARCHFLAGS"
+            export ARCHFLAGS
+        ])
+        AS_IF([test -n "$CFLAGS_MARCH"], [
+            dnl Trac #31228
+            AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS_MARCH" conftest_venv/bin/python3], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, with these flags, $reason; disabling use of "$CFLAGS_MARCH"])
+                CFLAGS_MARCH=""
+            ])
+        ])
+    ], [
+        SAGE_MACOSX_DEPLOYMENT_TARGET=legacy
+    ])
     AC_SUBST([PYTHON_FOR_VENV])
     AC_SUBST([SAGE_MACOSX_DEPLOYMENT_TARGET])
 

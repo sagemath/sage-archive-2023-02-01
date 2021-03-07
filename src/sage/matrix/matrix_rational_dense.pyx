@@ -1443,7 +1443,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: a.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can...t change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ
             sage: b = a.change_ring(QQ['x']); b
             [1/2  -1]
             [  2   3]
@@ -1480,8 +1480,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         if is_IntegerRing(R):
             A, d = self._clear_denom()
             if not d.is_one():
-                raise TypeError("matrix has denominators so can't change to ZZ.")
-            A.subdivide(self.subdivisions())
+                raise TypeError("matrix has denominators so can't change to ZZ")
+            if self._subdivisions is not None:
+                A.subdivide(self.subdivisions())
             return A
 
         from .matrix_modn_dense_double import MAX_MODULUS
@@ -1492,7 +1493,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
                 raise TypeError("matrix denominator not coprime to modulus")
             B = A._mod_int(b)
             C = (1/(B.base_ring()(d))) * B
-            C.subdivide(self.subdivisions())
+            if self._subdivisions is not None:
+                C.subdivide(self.subdivisions())
             return C
 
         # fallback to the generic version

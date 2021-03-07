@@ -1032,8 +1032,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self.__contractible = copy(C.__contractible)
             self.__enlarged = copy(C.__enlarged)
             self._graph = copy(C._graph)
-            self._is_mutable = is_mutable
             self._vertex_to_index = copy(C._vertex_to_index)
+            self._is_immutable = False
+            if not is_mutable or is_immutable:
+                self.set_immutable()
             return
 
         try:
@@ -1122,7 +1124,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         self._graph = None
 
         # Handle mutability keywords
-        self._is_mutable = True
+        self._is_immutable = False
         if not is_mutable or is_immutable:
             self.set_immutable()
 
@@ -1149,7 +1151,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: hash(S) == hash(S2)
             True
         """
-        if self._is_mutable:
+        if not self._is_immutable:
             raise ValueError("This simplicial complex must be immutable. Call set_immutable().")
         return hash(frozenset(self._facets))
 
@@ -1320,7 +1322,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             {-1: set(), 0: {(4,)}, 1: {(1, 4)}}
         """
         # Make the subcomplex immutable if it is not
-        if subcomplex is not None and subcomplex._is_mutable:
+        if subcomplex is not None and not subcomplex._is_immutable:
             subcomplex = SimplicialComplex(subcomplex._facets, maximality_check=False,
                                            is_mutable=False)
 
@@ -2076,7 +2078,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             # subcomplex is not empty, so don't augment the chain complex
             augmented = False
             # Use an immutable copy of the subcomplex
-            if not subcomplex._is_mutable:
+            if subcomplex._is_immutable:
                 subcomplex = SimplicialComplex(subcomplex._facets, maximality_check=False,
                                                is_mutable=False)
         # now construct the range of dimensions in which to compute
@@ -2558,7 +2560,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: temp = X.faces(SimplicialComplex(()))
             sage: X.add_face([0,1])
         """
-        if not self._is_mutable:
+        if self._is_immutable:
             raise ValueError("This simplicial complex is not mutable")
 
         vertex_to_index = self._translation_to_numeric()
@@ -2676,7 +2678,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S
             Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}
         """
-        if not self._is_mutable:
+        if self._is_immutable:
             raise ValueError("This simplicial complex is not mutable")
 
         getindex = self._translation_to_numeric().__getitem__
@@ -3585,7 +3587,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ValueError: this simplicial complex is not mutable
         """
 
-        if inplace and not self._is_mutable:
+        if inplace and self._is_immutable:
             raise ValueError("this simplicial complex is not mutable")
 
         if not Simplex(simplex) in self:
@@ -3742,7 +3744,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # make sure it's a list (it will be a tuple if immutable)
         facets = [f for f in self._facets if f.dimension() < n]
         facets.extend(self.faces()[n])
-        return SimplicialComplex(facets, is_mutable=self._is_mutable)
+        return SimplicialComplex(facets, is_immutable=self._is_immutable)
 
     def _contractible_subcomplex(self, verbose=False):
         """
@@ -3825,7 +3827,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Z
         """
         # Make the subcomplex immutable if not
-        if subcomplex is not None and subcomplex._is_mutable:
+        if subcomplex is not None and not subcomplex._is_immutable:
             subcomplex = SimplicialComplex(subcomplex._facets,
                                            maximality_check=False,
                                            is_mutable=False)
@@ -3859,7 +3861,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if verbose:
             print("  now constructing a simplicial complex with %s vertices and %s facets" % (len(self.vertices()), len(new_facets)))
         L = SimplicialComplex(new_facets, maximality_check=False,
-                              is_mutable=self._is_mutable)
+                              is_immutable=self._is_immutable)
         self.__enlarged[subcomplex] = L
         # Use the same sorting on the vertices in L as in the ambient complex.
         L._vertex_to_index = self._vertex_to_index
@@ -4474,7 +4476,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S.is_mutable()
             False
         """
-        self._is_mutable = False
+        self._is_immutable = True
         self._facets = tuple(self._facets)
 
     def is_mutable(self):
@@ -4496,7 +4498,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S3.is_mutable()
             False
         """
-        return self._is_mutable
+        return not self._is_immutable
 
     def is_immutable(self):
         """
@@ -4511,7 +4513,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S.is_immutable()
             True
         """
-        return not self._is_mutable
+        return self._is_immutable
 
     def cone_vertices(self):
         r"""

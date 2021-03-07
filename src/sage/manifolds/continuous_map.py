@@ -253,9 +253,8 @@ class ContinuousMap(Morphism):
          topological manifold R^2 to the 2-dimensional topological manifold R^2
         sage: Phi.parent()
         Set of Morphisms from Open subset D of the 2-dimensional topological
-         manifold R^2 to 2-dimensional topological manifold R^2 in Join of
-         Category of subobjects of sets and Category of manifolds over Real
-         Field with 53 bits of precision
+         manifold R^2 to 2-dimensional topological manifold R^2 in Category of
+         manifolds over Real Field with 53 bits of precision
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
@@ -1734,11 +1733,9 @@ class ContinuousMap(Morphism):
              from the Open subset U of the 2-dimensional topological manifold R^2
              to the 2-dimensional topological manifold R^2
             sage: Phi.restrict(U).parent()
-            Set of Morphisms
-             from Open subset U of the 2-dimensional topological manifold R^2
-             to 2-dimensional topological manifold R^2
-             in Join of Category of subobjects of sets
-                and Category of manifolds over Real Field with 53 bits of precision
+            Set of Morphisms from Open subset U of the 2-dimensional topological
+             manifold R^2 to 2-dimensional topological manifold R^2 in Category
+             of manifolds over Real Field with 53 bits of precision
             sage: Phi.domain()
             Open subset D of the 2-dimensional topological manifold R^2
             sage: Phi.restrict(U).domain()

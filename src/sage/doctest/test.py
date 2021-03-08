@@ -165,11 +165,13 @@ Test the ``--exitfirst`` option::
     ...
     1
 
-Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
+Test a timeout using the ``SAGE_TIMEOUT`` environment variable.  Also set
+``CYSIGNALS_CRASH_NDEBUG`` to help ensure the test times out in a timely
+manner (:trac:`26912`)::
 
     sage: from copy import deepcopy
     sage: kwds2 = deepcopy(kwds)
-    sage: kwds2['env']['SAGE_TIMEOUT'] = "3"
+    sage: kwds2['env'].update({'SAGE_TIMEOUT': '3', 'CYSIGNALS_CRASH_NDEBUG': '1'})
     sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--random-seed=0", "99seconds.rst"], **kwds2)  # long time
     Running doctests...
     Doctesting 1 file.

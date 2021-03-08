@@ -27,7 +27,7 @@ cdef struct face_list_s:
 ctypedef face_list_s face_list_t[1]
 
 #############################################################################
-# Face List Initalization
+# Face List Initialization
 #############################################################################
 
 cdef inline int face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:

@@ -6869,9 +6869,9 @@ class ANRoot(ANDescr):
                 newton_lower = not newton_lower
 
                 if newton_lower:
-                    interval = interval.intersection(l - pl/slope)
+                    interval = interval.intersection(field(l) - pl/slope)
                 else:
-                    interval = interval.intersection(u - pu/slope)
+                    interval = interval.intersection(field(u) - pu/slope)
                 new_diam = interval.diameter()
 
                 if new_diam == 0:

@@ -1955,18 +1955,16 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: A.sage(ZZ)   # indirect doctest
             [0 0]
             [0 0]
-            sage: A = random_matrix(ZZ,3,3); A
+            sage: A = random_matrix(ZZ,3,3); A  # random
             [ -8   2   0]
             [  0   1  -1]
             [  2   1 -95]
-            sage: As = singular(A); As
+            sage: As = singular(A); As  # random
             -8     2     0
             0     1    -1
             2     1   -95
-            sage: As.sage()
-            [ -8   2   0]
-            [  0   1  -1]
-            [  2   1 -95]
+            sage: As.sage() == A
+            True
 
         ::
 

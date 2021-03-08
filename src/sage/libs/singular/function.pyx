@@ -1733,8 +1733,8 @@ def singular_function(name):
         sage: matrix = Matrix(P,2,2)
         sage: matrix.randomize(terms=1)
         sage: det = singular_function("det")
-        sage: det(matrix)
-        -3/5*x*y*z
+        sage: det(matrix) == matrix[0, 0] * matrix[1, 1] - matrix[0, 1] * matrix[1, 0]
+        True
         sage: coeffs = singular_function("coeffs")
         sage: coeffs(x*y+y+1,y)
         [    1]

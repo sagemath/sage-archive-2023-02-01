@@ -3475,11 +3475,81 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Fractional ideal (i + 2)
             sage: K.ideal(0)
             Ideal (0) of Number Field in i with defining polynomial x^2 + 1
+
+        TESTS:
+
+        Check that :trac:`25934` is fixed::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^6 - x^5 - 5*x^4 + 4*x^3 + 6*x^2 - 3*x - 1)
+            sage: K.ideal(1,1)
+            Fractional ideal (1)
+
         """
         try:
             return self.fractional_ideal(*gens, **kwds)
         except ValueError:
             return sage.rings.ring.Ring.ideal(self, gens, **kwds)
+
+    def idealchinese(self,ideals,residues):
+        r"""
+        Return a solution of the Chinese Remainder Theorem problem
+        for ideals in a number field.
+
+        This is a wrapper around the pari function :pari:`idealchinese`.
+
+        INPUT:
+
+        - ``ideals`` - a list of ideals of the number field.
+
+        - ``residues`` - a list of elements of the number field.
+
+        OUTPUT:
+
+        Return an element `b` of the number field such that
+        `b \equiv x_i \bmod I_i` for all residues `x_i` and
+        respective ideals `I_i`.
+
+        .. SEEALSO::
+
+            - :func:`crt`
+
+        EXAMPLES:
+
+        This is the example from the pari page on ``idealchinese``::
+
+            sage: K.<sqrt2> = NumberField(sqrt(2).minpoly())
+            sage: ideals = [K.ideal(4),K.ideal(3)]
+            sage: residues = [sqrt2,1]
+            sage: r = K.idealchinese(ideals,residues); r
+            -3*sqrt2 + 4
+            sage: all((r - a) in I for I,a in zip(ideals,residues))
+            True
+
+        The result may be non-integral if the results are non-integral::
+
+            sage: K.<sqrt2> = NumberField(sqrt(2).minpoly())
+            sage: ideals = [K.ideal(4),K.ideal(21)]
+            sage: residues = [1/sqrt2,1]
+            sage: r = K.idealchinese(ideals,residues); r
+            -63/2*sqrt2 - 20
+            sage: all(
+            ....:     (r-a).valuation(P) >= k
+            ....:     for I,a in zip(ideals,residues)
+            ....:     for P,k in I.factor()
+            ....: )
+            True
+
+        """
+        factorizations = [I.factor() for I in ideals]
+        y = [a for a,f in zip(residues,factorizations) for _ in f]
+        x = pari.Mat([
+            pari.Col([p.pari_prime(),k])
+            for f in factorizations
+            for p,k in f
+        ]).mattranspose()
+        r = self.pari_nf().idealchinese(x,y)
+        return self(r)
 
     def fractional_ideal(self, *gens, **kwds):
         r"""

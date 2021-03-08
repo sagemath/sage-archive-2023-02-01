@@ -5882,7 +5882,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         https://www.lmfdb.org/NumberField/ by the LMFDB collaboration,
         although these might need a lot of computing time.
 
-        If `L/K` is a relative number field, this method will currently return `Gal(L/\Q)`.  This behavior will
+        If `L/K` is a relative number field, this method will currently return `Gal(L/\QQ)`.  This behavior will
         change in the future, so it's better to explicitly call :meth:`absolute_field` if that is
         the desired behavior::
 

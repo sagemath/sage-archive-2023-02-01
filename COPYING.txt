@@ -130,7 +130,6 @@ symmetrica                  MIT-like License (see below)
 sympow                      Modified BSD
 sympy                       Modified BSD
 tachyon                     Modified BSD
-termcap                     GPLv2+
 threejs                     MIT License
 tornado                     Apache License
 zlib                        Custom (Modified BSD)

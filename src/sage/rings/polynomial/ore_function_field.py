@@ -615,9 +615,9 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             sage: k.<a> = GF(5^3)
             sage: S.<x> = k['x', k.frobenius_endomorphism()]
             sage: K = S.fraction_field()
-            sage: zero_matrix(K, 2)
-            [0 0]
-            [0 0]
+            sage: zero_matrix(K, 2).row(0)
+            ...
+            (0, 0)
         """
         return True
 

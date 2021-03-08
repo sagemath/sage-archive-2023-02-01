@@ -1114,9 +1114,9 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
 
             sage: k.<a> = GF(5^3)
             sage: S.<x> = k['x', k.frobenius_endomorphism()]
-            sage: zero_matrix(S, 2)
-            [0 0]
-            [0 0]
+            sage: zero_matrix(S, 2).row(0)
+            ...
+            (0, 0)
         """
         return False
 

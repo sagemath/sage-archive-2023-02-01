@@ -419,7 +419,7 @@ AC_SUBST([SAGE_SPKG_OPTIONS])
 AC_ARG_ENABLE([notebook],
   AS_HELP_STRING([--disable-notebook],
                  [disable build of the Jupyter notebook and related packages]), [
-    for pkg in notebook nbconvert nbformat tornado terminado send2trash prometheus_client mistune traitlets pandocfilters bleach defusedxml jsonschema widgetsnbextension jupyter_jsmol; do
+    for pkg in notebook nbconvert nbformat tornado terminado send2trash prometheus_client mistune traitlets pandocfilters bleach defusedxml jsonschema jupyter_jsmol; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])

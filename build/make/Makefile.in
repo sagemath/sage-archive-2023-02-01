@@ -335,7 +335,7 @@ base: $(inst_patch) $(inst_pkgconf)
 # Building the documentation has many dependencies, because all
 # documented modules are imported and because we use matplotlib to
 # produce plots.
-DOC_DEPENDENCIES = sagelib $(inst_sphinx) \
+DOC_DEPENDENCIES = sagelib sage_docbuild $(inst_sphinx) \
 	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) $(inst_sympy) \
 	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \
@@ -391,7 +391,10 @@ sagelib-clean:
 	 rm -rf sage/ext/interpreters) \
 	&& (cd "$(SAGE_ROOT)/build/pkgs/sagelib/src/" && rm -rf build)
 
-build-clean: clean doc-clean sagelib-clean
+sage_docbuild-clean:
+	(cd "$(SAGE_ROOT)/build/pkgs/sage_docbuild/src" && rm -rf build)
+
+build-clean: clean doc-clean sagelib-clean sage_docbuild-clean
 
 # Special target for cleaning up a broken GCC install detected by configure
 # This should check for the .clean-broken-gcc stamp, and if found clean

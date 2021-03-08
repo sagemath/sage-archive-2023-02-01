@@ -34,6 +34,7 @@ class dot(Executable):
             True
         """
         Executable.__init__(self, "dot", executable="dot",
+                            spkg="graphviz",
                             url="https://www.graphviz.org/")
 
 
@@ -57,6 +58,7 @@ class neato(Executable):
             True
         """
         Executable.__init__(self, "neato", executable="neato",
+                            spkg="graphviz",
                             url="https://www.graphviz.org/")
 
 
@@ -80,6 +82,7 @@ class twopi(Executable):
             True
         """
         Executable.__init__(self, "twopi", executable="twopi",
+                            spkg="graphviz",
                             url="https://www.graphviz.org/")
 
 
@@ -103,6 +106,7 @@ class Graphviz(Feature):
             True
         """
         Feature.__init__(self, "Graphviz",
+                         spkg="graphviz",
                          url="https://www.graphviz.org/")
 
     def _is_present(self):

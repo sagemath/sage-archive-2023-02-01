@@ -914,14 +914,43 @@ def random_sublist(X, s):
 
     EXAMPLES::
 
+        sage: from sage.misc.misc import is_sublist
         sage: S = [1,7,3,4,18]
-        sage: random_sublist(S, 0.5)
+        sage: sublist = random_sublist(S, 0.5); sublist  # random
         [1, 3, 4]
-        sage: random_sublist(S, 0.5)
+        sage: is_sublist(sublist, S)
+        True
+        sage: sublist = random_sublist(S, 0.5); sublist  # random
         [1, 3]
+        sage: is_sublist(sublist, S)
+        True
     """
     return [a for a in X if random.random() <= s]
 
+def is_sublist(X, Y):
+    """
+    Test whether ``X`` is a sublist of ``Y``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import is_sublist
+        sage: S = [1, 7, 3, 4, 18]
+        sage: is_sublist([1, 7], S)
+        True
+        sage: is_sublist([1, 3, 4], S)
+        True
+        sage: is_sublist([1, 4, 3], S)
+        False
+        sage: is_sublist(S, S)
+        True
+    """
+    X_i = 0
+    for Y_i, y in enumerate(Y):
+        if X_i == len(X):
+            return True
+        if y == X[X_i]:
+            X_i += 1
+    return X_i == len(X)
 
 def some_tuples(elements, repeat, bound, max_samples=None):
     r"""
@@ -986,10 +1015,18 @@ def _some_tuples_sampling(elements, repeat, max_samples, n):
     TESTS::
 
         sage: from sage.misc.misc import _some_tuples_sampling
-        sage: list(_some_tuples_sampling(range(3), 3, 2, 3))
-        [(0, 1, 0), (1, 1, 1)]
-        sage: list(_some_tuples_sampling(range(20), None, 4, 20))
-        [0, 6, 9, 3]
+        sage: l = list(_some_tuples_sampling(range(3), 3, 2, 3))
+        sage: len(l)
+        2
+        sage: all(len(tup) == 3 for tup in l)
+        True
+        sage: all(el in range(3) for tup in l for el in tup)
+        True
+        sage: l = list(_some_tuples_sampling(range(20), None, 4, 20))
+        sage: len(l)
+        4
+        sage: all(el in range(20) for el in l)
+        True
     """
     from sage.rings.integer import Integer
     N = n if repeat is None else n**repeat

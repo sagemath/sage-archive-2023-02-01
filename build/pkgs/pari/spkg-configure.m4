@@ -134,9 +134,18 @@ SAGE_SPKG_CONFIGURE([pari], [
                       [t=strcmp(paricfg_datadir,$gp_datadir);]
                       [pari_close()];
                       [return t;]])],
-                    [AC_MSG_RESULT([libpari's and GP's datadirs match. Good])],
-	            [AC_MSG_RESULT([libpari's datadir does not match GP's datadir. Not good])
-		         sage_spkg_install_pari=yes])
+                    [AC_MSG_RESULT([libpari's and GP's datadirs match. Good])
+                     AC_MSG_CHECKING([whether pari is configured with pthreads])
+                     AC_RUN_IFELSE([AC_LANG_PROGRAM([
+                         [#include <pari/pari.h>
+                          #include <string.h>]],
+                        [[return strcmp(PARI_MT_ENGINE, "pthread") != 0]])],
+                       [AC_MSG_RESULT([yes. Good])],
+                       [AC_MSG_RESULT([no. Not good])
+                        sage_spkg_install_pari=yes])
+                    ],
+                    [AC_MSG_RESULT([libpari's datadir does not match GP's datadir. Not good])
+                     sage_spkg_install_pari=yes])
                  ], [
                   AC_MSG_RESULT([no])
                   sage_spkg_install_pari=yes])

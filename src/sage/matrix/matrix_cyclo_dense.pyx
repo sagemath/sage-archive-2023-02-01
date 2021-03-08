@@ -1285,7 +1285,8 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         if algorithm == 'multimodular':
             f = self._charpoly_multimodular(var, proof=proof)
         elif algorithm == 'pari':
-            f = self._charpoly_over_number_field(var)
+            paripoly = self.__pari__().charpoly()
+            f = self.base_ring()[var](paripoly)
         elif algorithm == 'hessenberg':
             f = self._charpoly_hessenberg(var)
         else:

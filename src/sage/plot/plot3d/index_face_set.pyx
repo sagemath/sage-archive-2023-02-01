@@ -229,10 +229,21 @@ def midpoint(pointa, pointb, w):
     return ((w * xa + v * xb), (w * ya + v * yb), (w * za + v * zb))
 
 def vnorm (v):
+    """
+    Norm of a vector
+
+    INPUT:
+
+    - ``v`` vector
+
+    """
+
     return sqrt(v.dot_product(v))
 
-def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-12,N=40):
+def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-6,N=100):
     """
+    Cuts (an intersecting) edge using the Bisection Method.   
+
     Given two points (points and point b) and a condition (boolean function), 
     calculates the position at the edge (defined by both points) where the 
     the boolean condition switches its value.
@@ -241,24 +252,23 @@ def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-12,N=40):
 
     - ``pointa``, ``pointb`` -- two points in 3-dimensional space
     
-    - ``N`` -- max number of steps using Bisection method (default: 40) 
+    - ``N`` -- max number of steps using Bisection method (default: 100) 
       to cut the boundary triangles that are not entirely within 
       the domain.
 
-    - ``eps`` target accuracy in the intersection (default: 1.0e-12)
+    - ``eps`` target accuracy in the intersection (default: 1.0e-6)
 
-    OUTPUT
+    OUTPUT:
     
-    - point intersection of the edge defined by (pointa, pointb) and the condiction.
+    intersection of the edge defined by ``pointa`` and ``pointb``, and ``condiction``.
     
-    EXAMPLE 
+    EXAMPLES:: 
    
-    sage: from sage.plot.plot3d.index_face_set import cut_edge_by_bisection
-    sage: cut_edge_by_bisection((0.0,0.0,0.0),(1.0,1.0,0.0),( (lambda x,y,z: x**2+y**2+z**2<1) ),eps=1.0E-12)
-    (0.707106781186440, 0.707106781186440, 0.000000000000000)
-
-    sage: cut_edge_by_bisection((0,0,0),(1,1,0),  ( (lambda x,y,z: x**2+y**2+z**2<1) ), eps=1.0E-12)
-    (3109888511975/4398046511104, 3109888511975/4398046511104, 0)
+        sage: from sage.plot.plot3d.index_face_set import cut_edge_by_bisection
+        sage: cut_edge_by_bisection((0.0,0.0,0.0),(1.0,1.0,0.0),( (lambda x,y,z: x**2+y**2+z**2<1) ),eps=1.0E-12)
+        (0.707106781186440, 0.707106781186440, 0.000000000000000)
+        sage: cut_edge_by_bisection((0,0,0),(1,1,0),  ( (lambda x,y,z: x**2+y**2+z**2<1) ), eps=1.0E-12)
+        (3109888511975/4398046511104, 3109888511975/4398046511104, 0)
     """
     a=vector(pointa)
     b=vector(pointb)   
@@ -267,7 +277,7 @@ def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-12,N=40):
     while (vnorm(b-a)>eps):
  
         itern+=1       
-        #assert(itern<N)
+        assert(itern<N)
         
         midp=(b+a)/2
         
@@ -977,7 +987,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         sig_free(partition)
         return all
 
-    def add_condition(self, condition, N=40,eps=1.0E-12 ):
+    def add_condition(self, condition, N=100,eps=1.0E-6 ):
         """
         Cut the surface according to the given condition.
 
@@ -991,10 +1001,10 @@ cdef class IndexFaceSet(PrimitiveObject):
           defines the domain
 
         - ``N`` -- max number of steps considering the Bisection Method 
-          (default: 40) to cut the boundary triangles that are not 
+          (default: 100) to cut the boundary triangles that are not 
           entirely within the domain.
 
-        - ``eps`` target accuracy in the intersection (default: 1.0e-12)
+        - ``eps`` target accuracy in the intersection (default: 1.0e-6)
 
         OUTPUT:
 
@@ -1009,7 +1019,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: P = implicit_plot3d(z-x*y,(-2,2),(-2,2),(-2,2))
             sage: def condi(x,y,z):
             ....:     return bool(x*x+y*y+z*z <= Integer(1))
-            sage: R = P.add_condition(condi,8);R
+            sage: R = P.add_condition(condi,20);R
             Graphics3d Object
 
         .. PLOT::
@@ -1018,7 +1028,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             P = implicit_plot3d(z-x*y,(-2,2),(-2,2),(-2,2))
             def condi(x,y,z):
                 return bool(x*x+y*y+z*z <= Integer(1))
-            sphinx_plot(P.add_condition(condi,8))
+            sphinx_plot(P.add_condition(condi,40))
 
         An example with colors::
 
@@ -1027,7 +1037,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: cm = colormaps.hsv
             sage: cf = lambda x,y,z: float(x+y) % 1
             sage: P = implicit_plot3d(x**2+y**2+z**2-1-x**2*z+y**2*z,(-2,2),(-2,2),(-2,2),color=(cm,cf))
-            sage: R = P.add_condition(condi,18); R
+            sage: R = P.add_condition(condi,40); R
             Graphics3d Object
 
         .. PLOT::
@@ -1038,7 +1048,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             cm = colormaps.hsv
             cf = lambda x,y,z: float(x+y) % 1
             P = implicit_plot3d(x**2+y**2+z**2-1-x**2*z+y**2*z,(-2,2),(-2,2),(-2,2),color=(cm,cf))
-            sphinx_plot(P.add_condition(condi,18))
+            sphinx_plot(P.add_condition(condi,40))
 
         An example with transparency::
 
@@ -1081,7 +1091,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: P = plot3d(cos(x*y),(x,-2,2),(y,-2,2),color='red',opacity=0.1)
             sage: def condi(x,y,z):
             ....:     return not(x*x+y*y <= 1)
-            sage: Q = P.add_condition(condi, 20)
+            sage: Q = P.add_condition(condi, 40)
             sage: L = Q.json_repr(Q.default_render_params())
             sage: '"opacity":0.1' in L[-1]
             True

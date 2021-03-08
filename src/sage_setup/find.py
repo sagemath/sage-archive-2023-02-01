@@ -173,6 +173,92 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         os.chdir(cwd)
     return python_packages, python_modules, cython_modules
 
+def filter_cython_sources(src_dir, distributions):
+    """
+    Find all Cython modules in the given source directory that belong to the
+    given distributions.
+
+    INPUT:
+
+    - ``src_dir`` -- root directory for the sources
+
+    - ``distributions`` -- a sequence or set of strings: only find modules whose
+      ``distribution`` (from a ``# sage_setup: distribution = PACKAGE``
+      directive in the module source file) is an element of
+      ``distributions``.
+
+    OUTPUT: List of absolute paths to Cython files (``*.pyx``).
+
+    EXAMPLES::
+
+        sage: from sage.env import SAGE_SRC
+        sage: from sage_setup.find import filter_cython_sources
+        sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sage-tdlib"])
+
+    Cython module relying on tdlib::
+
+        sage: any(f.endswith('sage/graphs/graph_decompositions/tdlib.pyx') for f in cython_modules)
+        True
+
+    Cython module not relying on tdlib::
+
+        sage: any(f.endswith('sage/structure/sage_object.pyx') for f in cython_modules)
+        False
+
+    Benchmarking::
+
+        sage: timeit('filter_cython_sources(SAGE_SRC, ["sage-tdlib"])', # random output
+        ....:        number=1, repeat=1)
+        1 loops, best of 1: 850 ms per loop
+    """
+    files: list[str] = []
+
+    for dirpath, dirnames, filenames in os.walk(src_dir):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            base, ext = os.path.splitext(filename)
+            if ext == '.pyx' and read_distribution(filepath) in distributions:
+                files.append(filepath)
+
+    return files
+
+def _cythonized_dir(src_dir=None, editable_install=None):
+    """
+    Return the path where Cython-generated files are placed by the build system.
+
+    INPUT:
+
+    - ``src_dir`` -- string or path (default: the value of ``SAGE_SRC``).  The
+      root directory for the sources.
+
+    - ``editable_install`` -- boolean (default: determined from the existing
+      installation). Whether this is an editable install of the Sage library.
+
+    EXAMPLES::
+
+        sage: from sage_setup.find import _cythonized_dir
+        sage: from sage.env import SAGE_SRC
+        sage: _cythonized_dir(SAGE_SRC)  # optional - build
+        PosixPath('...')
+        sage: _cythonized_dir(SAGE_SRC, editable_install=False)
+        PosixPath('.../build/cythonized')
+
+    """
+    from importlib import import_module
+    from pathlib import Path
+    from sage.env import SAGE_ROOT, SAGE_SRC
+    if editable_install is None:
+        if src_dir is None:
+            src_dir = SAGE_SRC
+        src_dir = Path(src_dir)
+        sage = import_module('sage')
+        d = Path(sage.__file__).resolve().parent.parent
+        editable_install = d == src_dir.resolve()
+    if editable_install:
+        # Editable install: Cython generates files in the source tree
+        return src_dir
+    else:
+        return Path(SAGE_ROOT) / "build" / "pkgs" / "sagelib" / "src" / "build" / "cythonized"
 
 def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
     """
@@ -208,9 +294,9 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
 
     EXAMPLES::
 
-        sage: from sage_setup.find import find_extra_files
+        sage: from sage_setup.find import find_extra_files, _cythonized_dir
         sage: from sage.env import SAGE_SRC, SAGE_ROOT
-        sage: cythonized_dir = os.path.join(SAGE_ROOT, "build", "pkgs", "sagelib", "src", "build", "cythonized")
+        sage: cythonized_dir = _cythonized_dir(SAGE_SRC)
         sage: extras = find_extra_files(SAGE_SRC, ["sage"], cythonized_dir)
         sage: extras["sage/libs/mpfr"]
         [...sage/libs/mpfr/types.pxd...]
@@ -269,8 +355,7 @@ def installed_files_by_module(site_packages, modules=('sage',)):
 
     EXAMPLES::
 
-        sage: from site import getsitepackages
-        sage: site_packages = getsitepackages()[0]
+        sage: site_packages = os.path.dirname(os.path.dirname(sage.__file__))
         sage: from sage_setup.find import installed_files_by_module
         sage: files_by_module = installed_files_by_module(site_packages)
         sage: from sage.misc.sageinspect import loadable_module_extension

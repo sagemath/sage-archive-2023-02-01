@@ -1238,6 +1238,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: latex(1+x^(2/3)+x^(-2/3))
             x^{\frac{2}{3}} + \frac{1}{x^{\frac{2}{3}}} + 1
+
+        Check that pynac understands rational powers (:trac:`30446`)::
+
+            sage: QQ((24*sqrt(3))^(100/50))==1728
+            True
+            sage: float((24*sqrt(3))^(100/51))
+            1493.0092154...
         """
         return self._parent._latex_element_(self)
 
@@ -4162,6 +4169,20 @@ cdef class Expression(CommutativeRingElement):
             4*pi^2
             sage: exp(-3*ln(-9*x)/3)
             -1/9/x
+
+        Check that :trac:`31137` is also fixed::
+
+            sage: _ = var('A, L, G, R, f, k, n, q, u, beta, gamma', domain="positive")
+            sage: a = I*R^2*f^3*k*q*A*u
+            sage: b = 2*pi*L*R^2*G*f^4*k^2*q - 2*pi*L*R^2*G*f^4*q - 2*pi*L*R^2*beta^2*G*q
+            sage: c = (2*I*pi*L*R^2*beta*gamma*q + 2*I*pi*L*R*(beta + q))*G*f^3
+            sage: d = 2*(pi*(beta^2 + 1)*L*R^2*q + pi*L*R*beta*gamma*q + pi*L*beta)*G*f^2
+            sage: e = (-2*I*pi*L*R^2*beta*gamma*q - 2*I*pi*(beta^2*q + beta)*L*R)*G*f
+            sage: expr = a / ((b + c + d + e)*n)
+            sage: R = ((sqrt(expr.real()^2 + expr.imag()^2).factor())^2).factor()
+            sage: Rs = R.subs(f = 2*beta)
+            sage: len(str(Rs))
+            520
         """
         cdef Expression nexp = <Expression>other
         cdef GEx x

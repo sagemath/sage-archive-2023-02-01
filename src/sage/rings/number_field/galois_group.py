@@ -448,7 +448,6 @@ class GaloisGroup_v2(GaloisGroup_base):
             sage: G = L.galois_group()
             ...DeprecationWarning: Use .absolute_field().galois_group() if you want the Galois group of the absolute field
             See https://trac.sagemath.org/28782 for details.
-            sage: G
             sage: M, emb = G._gcdata
             sage: emb.domain() is L
             True

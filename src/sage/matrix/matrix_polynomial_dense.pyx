@@ -1962,7 +1962,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     if residual[i,j].truncate(order[j]) != 0:
                         return False
                     residual[i,j] = residual[i,j].shift(-order[j])
-            cert_mat = residual(0)
+            cert_mat = residual.constant_matrix()
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,
@@ -1974,7 +1974,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # 2/ the m x (m+n) constant matrix [self(0) | cert_mat] should have
             # full rank, that is, rank m
             from sage.matrix.constructor import block_matrix
-            if block_matrix([[self(0), cert_mat]]).rank() < m:
+            if block_matrix([[self.constant_matrix(), cert_mat]]).rank() < m:
                 return False
 
         else:
@@ -1987,7 +1987,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     if residual[i,j].truncate(order[i]) != 0:
                         return False
                     residual[i,j] = residual[i,j].shift(-order[i])
-            cert_mat = residual(0)
+            cert_mat = residual.constant_matrix()
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,
@@ -1999,7 +1999,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # 2/ the (m+n) x n constant matrix [self(0).T | cert_mat.T].T
             # should have full rank, that is, rank n
             from sage.matrix.constructor import block_matrix
-            if block_matrix([[self(0)], [cert_mat]]).rank() < n:
+            if block_matrix([[self.constant_matrix()], [cert_mat]]).rank() < n:
                 return False
 
         return True
@@ -2526,7 +2526,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 from sage.matrix.constructor import Matrix
                 return Matrix.identity(self.base_ring(), m, m)
 
-            if m <= n and self(0).rank() == m: # early exit: kernel is empty
+            if m <= n and self.constant_matrix().rank() == m:
+                # early exit: kernel is empty
                 from sage.matrix.constructor import Matrix
                 return Matrix(self.base_ring(), 0, m)
 
@@ -2551,7 +2552,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 from sage.matrix.constructor import Matrix
                 return Matrix.identity(self.base_ring(), n, n)
 
-            if n <= m and self(0).rank() == n: # early exit: kernel is empty
+            if n <= m and self.constant_matrix().rank() == n:
+                # early exit: kernel is empty
                 from sage.matrix.constructor import Matrix
                 return Matrix(self.base_ring(), n, 0)
 

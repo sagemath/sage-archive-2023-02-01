@@ -31,6 +31,24 @@ def executor(params):
     every  global variable. The virtual memory address of object X in the parent
     process equals the VIRTUAL memory address of the copy of object X in each
     worker, so we may construct references to forked copies of X
+
+    TESTS:
+
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
+        sage: FR = FusionRing("A1",4)
+        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
+        sage: params = (('sig_2k',id(FR)),(0,1,(1,one,one,5)))
+        sage: executor(params)
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results
+        sage: len(collect_results(0)) == 13
+        True
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor, collect_results
+        sage: FR = FusionRing("B2",2)
+        sage: FR.fusion_labels(['I0','Y1','X','Z','Xp','Y2'],inject_variables=True)
+        sage: params = (('odd_one_out',id(FR)),(0,1,(X,Xp,5)))
+        sage: executor(params)
+        sage: len(collect_results(0)) == 54
+        True
     """
     (fn_name, fr_id), args = params
     #Construct a reference to global FMatrix object in this worker's memory
@@ -48,7 +66,24 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
     Compute the (xi,yi), (xj,yj) entry of generator braiding the middle two strands
     in the tree b -> xi # yi -> (a # a) # (a # a), which results in a sum over j
     of trees b -> xj # yj -> (a # a) # (a # a)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import mid_sig_ij
+        sage: FR = FusionRing("A1",4)
+        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
+        sage: one.weight()
+        (1/2, -1/2)
+        sage: FR.get_comp_basis(one,two,4)
+        [(two, two), (two, idd), (idd, two)]
+        sage: mid_sig_ij(FR, (two, two), (two, idd), one, two)
+        (zeta48^10 - zeta48^2)*fx0*fx1*fx8 + (zeta48^2)*fx2*fx3*fx8
     """
+    #Pre-compute common parameters for efficiency
+    _fvars = fusion_ring.fmats._fvars
+    _Nk_ij = fusion_ring.Nk_ij
+    one = fusion_ring.one()
+
     xi, yi = row
     xj, yj = col
     entry = 0
@@ -56,10 +91,10 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
     for c in fusion_ring.basis():
         for d in fusion_ring.basis():
             ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
-            f1 = _fmat(fusion_ring.fmats,a,a,yi,b,xi,c)
-            f2 = _fmat(fusion_ring.fmats,a,a,a,c,d,yi)
-            f3 = _fmat(fusion_ring.fmats,a,a,a,c,d,yj)
-            f4 = _fmat(fusion_ring.fmats,a,a,yj,b,xj,c)
+            f1 = _fmat(_fvars,_Nk_ij,one,a,a,yi,b,xi,c)
+            f2 = _fmat(_fvars,_Nk_ij,one,a,a,a,c,d,yi)
+            f3 = _fmat(_fvars,_Nk_ij,one,a,a,a,c,d,yj)
+            f4 = _fmat(_fvars,_Nk_ij,one,a,a,yj,b,xj,c)
             r = fusion_ring.r_matrix(a,a,d)
             if not phi.is_identity():
                 r = phi(r)
@@ -71,13 +106,30 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     Compute the xi, xj entry of the braid generator on the right-most strands,
     corresponding to the tree b -> (xi # a) -> (a # a) # a, which results in a
     sum over j of trees b -> xj -> (a # a) # (a # a)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import odd_one_out_ij
+        sage: FR = FusionRing("B2",2)
+        sage: FR.fusion_labels(['I0','Y1','X','Z','Xp','Y2'],inject_variables=True)
+        sage: X.weight()
+        (1/2, 1/2)
+        sage: FR.get_comp_basis(X,X,3)
+        [(Y2,), (Y1,), (I0,)]
+        sage: odd_one_out_ij(FR,Y2,Y1,X,X)
+        (zeta40^10)*fx205*fx208 + (zeta40^14 - zeta40^10 + zeta40^6 - zeta40^2)*fx206*fx209 + (zeta40^2)*fx207*fx210
     """
-    entry = 0
+    #Pre-compute common parameters for efficiency
+    _fvars = fusion_ring.fmats._fvars
+    _Nk_ij = fusion_ring.Nk_ij
+    one = fusion_ring.one()
+
     phi = fusion_ring.fmats.get_coerce_map_from_fr_cyclotomic_field()
+    entry = 0
     for c in fusion_ring.basis():
         ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
-        f1 = _fmat(fusion_ring.fmats,a,a,a,b,xi,c)
-        f2 = _fmat(fusion_ring.fmats,a,a,a,b,xj,c)
+        f1 = _fmat(_fvars,_Nk_ij,one,a,a,a,b,xi,c)
+        f2 = _fmat(_fvars,_Nk_ij,one,a,a,a,b,xj,c)
         r = fusion_ring.r_matrix(a,a,c)
         if not phi.is_identity():
             r = phi(r)
@@ -95,6 +147,11 @@ cpdef sig_2k(fusion_ring, tuple args):
     """
     Compute entries of the 2k-th braid generator
     """
+    #Pre-compute common parameters for efficiency
+    _fvars = fusion_ring.fmats._fvars
+    _Nk_ij = fusion_ring.Nk_ij
+    one = fusion_ring.one()
+
     child_id, n_proc, fn_args = args
     k, a, b, n_strands = fn_args
     cdef int ctr = -1
@@ -139,8 +196,8 @@ cpdef sig_2k(fusion_ring, tuple args):
 
                 entry = 0
                 for p in fusion_ring.basis():
-                    f1 = _fmat(fusion_ring.fmats,top_left,m[k-1],m[k],root,l[k-2],p)
-                    f2 = _fmat(fusion_ring.fmats,top_left,f,e,root,q,p)
+                    f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[k-1],m[k],root,l[k-2],p)
+                    f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,e,root,q,p)
                     entry += f1 * mid_sig_ij(fusion_ring,(m[k-1],m[k]),(f,e),a,p) * f2
                 worker_results.append(((basis_dict[nnz_pos],i), entry))
                 entries.add((basis_dict[nnz_pos],i))
@@ -153,6 +210,11 @@ cpdef odd_one_out(fusion_ring, tuple args):
     Compute entries of the rightmost braid generator, in case we have an odd number
     of strands
     """
+    #Pre-compute common parameters for efficiency
+    _fvars = fusion_ring.fmats._fvars
+    _Nk_ij = fusion_ring.Nk_ij
+    one = fusion_ring.one()
+
     global worker_results
     child_id, n_proc, fn_args = args
     a, b, n_strands = fn_args
@@ -192,8 +254,8 @@ cpdef odd_one_out(fusion_ring, tuple args):
                 #Compute relevant entry
                 entry = 0
                 for p in fusion_ring.basis():
-                    f1 = _fmat(fusion_ring.fmats,top_left,m[-1],a,root,l[-1],p)
-                    f2 = _fmat(fusion_ring.fmats,top_left,f,a,root,q,p)
+                    f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[-1],a,root,l[-1],p)
+                    f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,a,root,q,p)
                     entry += f1 * odd_one_out_ij(fusion_ring,m[-1],f,a,p) * f2
                 worker_results.append(((basis_dict[nnz_pos],i), entry))
 
@@ -201,7 +263,7 @@ cpdef odd_one_out(fusion_ring, tuple args):
 ### Reducers ###
 ################
 
-def collect_eqns(proc):
+def collect_results(proc):
     """
     Helper function for returning processed results back to parent process.
     Trivial reducer: simply collects objects with the same key in the worker

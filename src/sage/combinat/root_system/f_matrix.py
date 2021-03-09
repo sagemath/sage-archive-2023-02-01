@@ -217,13 +217,17 @@ class FMatrix():
 
     :meth:`find_orthogonal_solution` is much more powerful
     and is capable of handling large cases, sometimes
-    quickly but sometimes (in larger cases) hours of
+    quickly but sometimes (in larger cases) after hours of
     computation. Its F-matrices are not always in the
     cyclotomic field that is the base ring of the underlying
     FusionRing, but sometimes in an extension field adjoining
     some square roots. When this happens, the FusionRing is
-    modified, adding an attribute :attr:`_basecoer that is
+    modified, adding an attribute :attr:`_basecoer` that is
     a coercion from the cyclotomic field to the F-matrix.
+
+    EXAMPLES::
+
+        (B3 level 2, F4 level 1 conjugated)
 
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -252,7 +256,7 @@ class FMatrix():
         r = self._field.defining_polynomial().roots(ring=QQbar,multiplicities=False)[0]
         self._qqbar_embedding = self._field.hom([r],QQbar)
         self._var_to_idx = { var : idx for idx, var in enumerate(self._poly_ring.gens()) }
-        self._ks = self.get_known_sq()
+        self._ks = dict()
         self._nnz = self.get_known_nonz()
         self._known_vals = dict()
         self.symbols_known = False
@@ -522,7 +526,12 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        return { variables(eq_tup)[0] : -eq_tup[-1][1] for eq_tup in eqns if tup_fixes_sq(eq_tup) }
+        ks = deepcopy(self._ks)
+        for eq_tup in eqns:
+            if tup_fixes_sq(eq_tup):
+                ks[variables(eq_tup)[0]] = -eq_tup[-1][1]
+        # return { variables(eq_tup)[0] : -eq_tup[-1][1] for eq_tup in eqns if tup_fixes_sq(eq_tup) }
+        return ks
 
     def get_known_nonz(self):
         """
@@ -861,6 +870,14 @@ class FMatrix():
             print(graph.connected_components_sizes())
         return partition
 
+    def add_square_fixers(self):
+        """
+        Add square fixing equations back to ideal basis
+        """
+        for fx, rhs in self._ks.items():
+            if fx not in self.solved:
+                self.ideal_basis.append(poly_to_tup(self._poly_ring.gen(fx)**2 - rhs))
+
     def par_graph_gb(self,worker_pool=None,eqns=None,term_order="degrevlex",verbose=True):
         """
         Compute a Groebner basis for a set of equations partitioned according to their corresponding graph
@@ -924,6 +941,7 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
+        self.add_square_fixers()
         eqns_partition = self.partition_eqns(self.equations_graph(eqns),verbose=verbose)
 
         F = self._field

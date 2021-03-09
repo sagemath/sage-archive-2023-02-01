@@ -15,7 +15,7 @@ from itertools import product, zip_longest
 from multiprocessing import Pool, set_start_method
 from sage.combinat.q_analogues import q_int
 import sage.combinat.root_system.f_matrix as FMatrix
-from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_eqns, executor
+from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results, executor
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 from sage.matrix.constructor import matrix
 from sage.matrix.special import diagonal_matrix
@@ -1008,10 +1008,10 @@ class FusionRing(WeylCharacterRing):
             list(worker_pool.imap_unordered(executor,input_iter,chunksize=1))
         #Reduce phase
         if no_mp:
-            results = collect_eqns(0)
+            results = collect_results(0)
         else:
             results = set()
-            for worker_results in worker_pool.imap_unordered(collect_eqns,range(worker_pool._processes),chunksize=1):
+            for worker_results in worker_pool.imap_unordered(collect_results,range(worker_pool._processes),chunksize=1):
                 results.update(worker_results)
             results = list(results)
         return results
@@ -1139,10 +1139,10 @@ class FusionRing(WeylCharacterRing):
             list(worker_pool.imap_unordered(executor,input_iter,chunksize=1))
         #Reduce phase
         if no_mp:
-            results = collect_eqns(0)
+            results = collect_results(0)
         else:
             results = set()
-            for worker_results in worker_pool.imap_unordered(collect_eqns,range(worker_pool._processes),chunksize=1):
+            for worker_results in worker_pool.imap_unordered(collect_results,range(worker_pool._processes),chunksize=1):
                 results.update(worker_results)
             results = list(results)
         return results

@@ -223,21 +223,51 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 if self[i,j] != 0 else zero_degree
                 for j in range(self.ncols()) ] for i in range(self.nrows())] )
 
+    def constant_matrix(self):
+        r"""
+        Return the constant coefficient of this matrix seen as a polynomial
+        with matrix coefficients; this is also this matrix evaluated at zero.
+
+        OUTPUT: a matrix over the base field.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+
+            sage: M = Matrix([
+            ....:    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0],
+            ....:    [      6*x^2+3*x+1,       1,           2,         0],
+            ....:    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]
+            ....:     ])
+            sage: M.constant_matrix()
+            [1 5 4 0]
+            [1 1 2 0]
+            [4 1 5 6]
+        """
+        from sage.matrix.constructor import Matrix
+        return Matrix([[self[i,j].constant_coefficient()
+            for j in range(self.ncols())] for i in range(self.nrows())])
+
     def truncate(self, d, row_wise=True):
         r"""
         Return the matrix which is obtained from this matrix after truncating
-        all its entries according to precisions specified by `d`:
+        all its entries according to precisions specified by `d`.
 
         - if `d` is an integer, the truncation is at precision `d` for all
           entries;
-        - if `d` is a list $(d_1,\ldots,d_m)$ and ``row_wise`` is ``True``,
-          the $i$th row is truncated at precision $d_i$ for each $i$;
+        - if `d` is a list $(d_1,\ldots,d_m)$ and ``row_wise`` is ``True``, all
+          entries of the $i$th row are truncated at precision $d_i$ for each
+          $i$;
         - if `d` is a list $(d_1,\ldots,d_n)$ and ``row_wise`` is ``False``,
-          the $j$th column is truncated at precision $d_j$ for each $j$.
+          all entries of the $j$th column are truncated at precision $d_j$ for
+          each $j$.
+
+        Here the convention for univariate polynomials is to take zero
+        for the truncation for a negative `d`.
 
         INPUT:
 
-        - ``d`` -- a list of positive integers, or a positive integer,
+        - ``d`` -- a list of integers, or an integer,
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
           (resp. ``False``) then `d` should be a list of length equal to the
@@ -258,6 +288,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [5*x + 1       5 6*x + 4       0]
             [3*x + 1       1       2       0]
             [6*x + 4 5*x + 1 5*x + 5 5*x + 6]
+            sage: M.truncate(1) == M.constant_matrix()
+            True
+
+        Row-wise and column-wise truncation are available::
 
             sage: M.truncate([3,2,1])
             [5*x^2 + 5*x + 1               5         6*x + 4               0]
@@ -268,6 +302,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [5*x + 1       5       4       0]
             [3*x + 1       1       2       0]
             [6*x + 4       1       5 5*x + 6]
+
+        Length of list of truncation orders is checked::
 
             sage: M.truncate([2,1,1,2])
             Traceback (most recent call last):
@@ -308,13 +344,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     def shift(self, d, row_wise=True):
         r"""
         Return the matrix which is obtained from this matrix after shifting
-        all its entries as specified by `d`:
+        all its entries as specified by `d`.
 
         - if `d` is an integer, the shift is by `d` for all entries;
-        - if `d` is a list $(d_1,\ldots,d_m)$ and ``row_wise`` is ``True``,
-          the $i$th row is shifted by $d_i$ for each $i$;
+        - if `d` is a list $(d_1,\ldots,d_m)$ and ``row_wise`` is ``True``, all
+          entries of the $i$th row are shifted by $d_i$ for each $i$;
         - if `d` is a list $(d_1,\ldots,d_n)$ and ``row_wise`` is ``False``,
-          the $j$th column is shifted by $d_j$ for each $j$.
+          all entries of the $j$th column are shifted by $d_j$ for each $j$.
 
         Shifting by `d` means multiplying by the variable to the power `d`; if
         `d` is negative then terms of negative degree after shifting are
@@ -344,6 +380,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [      6       0       0       0]
             [2*x + 4       0       2       1]
 
+        Row-wise and column-wise shifting are available::
+
             sage: M.shift([-1,2,-2])
             [      x^2 + 5*x + 5                   0                   6                   0]
             [6*x^4 + 3*x^3 + x^2                 x^2               2*x^2                   0]
@@ -356,6 +394,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: M.shift([-d for d in M.row_degrees()]) == M.leading_matrix()
             True
+
+        Length of input shift degree list is checked::
 
             sage: M.shift([1,3,1,4])
             Traceback (most recent call last):
@@ -391,6 +431,128 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         return Matrix(self.base_ring(), m, n, [[self[i,j].shift(d[i])
             if row_wise else self[i,j].shift(d[j])
+            for j in range(n)] for i in range(m)])
+
+    def reverse(self, degree=None, row_wise=True):
+        r"""
+        Return the matrix which is obtained from this matrix after reversing
+        all its entries with respect to the degree as specified by ``degree``.
+
+        - if ``degree`` is an integer, all entries are reversed with respect to
+          it;
+        - if ``degree`` is not provided, then all entries are reversed with
+          respect to the degree of the whole matrix;
+        - if ``degree`` is a list $(d_1,\ldots,d_m)$ and ``row_wise`` is
+          ``True``, all entries of the $i$th row are reversed with respect to
+          $d_i$ for each $i$;
+        - if ``degree`` is a list $(d_1,\ldots,d_n)$ and ``row_wise`` is
+          ``False``, all entries of the $j$th column are reversed with respect
+          to $d_j$ for each $j$.
+
+        Reversing a polynomial with respect to ``degree`` follows the
+        convention for univariate polynomials, in particular it uses truncation
+        or zero-padding as necessary if ``degree`` differs from the degree of
+        this polynomial.
+
+        INPUT:
+
+        - ``degree`` -- (optional, default: ``None``) a list of nonnegative
+          integers, or a nonnegative integer,
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          (resp. ``False``) then ``degree`` should be a list of length equal to
+          the row (resp. column) dimension of this matrix.
+
+        OUTPUT: a polynomial matrix.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+
+            sage: M = Matrix([
+            ....:    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0],
+            ....:    [      6*x^2+3*x+1,       1,           2,         0],
+            ....:    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]
+            ....:     ])
+            sage: M.reverse()
+            [  x^3 + 5*x^2 + 5*x + 1                   5*x^3           4*x^3 +
+            6*x^2                       0]
+            [      x^3 + 3*x^2 + 6*x                     x^3
+            2*x^3                       0]
+            [4*x^3 + 6*x^2 + 4*x + 2             x^3 + 5*x^2     5*x^3 + 5*x^2
+            + 2*x       6*x^3 + 5*x^2 + x]
+
+            sage: M.reverse(1)
+            [  x + 5     5*x 4*x + 6       0]
+            [  x + 3       x     2*x       0]
+            [4*x + 6   x + 5 5*x + 5 6*x + 5]
+
+            sage: M.reverse(0) == M.constant_matrix()
+            True
+
+        Row-wise and column-wise degree reversing are available::
+
+            sage: M.reverse([2,3,1])
+            [    x^2 + 5*x + 5             5*x^2       4*x^2 + 6*x
+            0]
+            [x^3 + 3*x^2 + 6*x               x^3             2*x^3
+            0]
+            [          4*x + 6             x + 5           5*x + 5
+            6*x + 5]
+
+            sage: M.reverse(M.column_degrees(),row_wise=False)
+            [  x^3 + 5*x^2 + 5*x + 1                     5*x             4*x^2
+            + 6*x                       0]
+            [      x^3 + 3*x^2 + 6*x                       x
+            2*x^2                       0]
+            [4*x^3 + 6*x^2 + 4*x + 2                   x + 5         5*x^2 +
+            5*x + 2         6*x^2 + 5*x + 1]
+
+        Wrong length or negativity of input degree raise errors:
+
+            sage: M.reverse([1,3,1,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: length of input degree list should be the row
+            dimension of the input matrix
+
+            sage: M.reverse([5,2,1], row_wise=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: length of input degree list should be the column
+            dimension of the input matrix
+
+            sage: M.reverse([2,3,-1])
+            Traceback (most recent call last):
+            ...
+            OverflowError: can't convert negative value to unsigned long
+        """
+        m = self.nrows()
+        n = self.ncols()
+        from sage.matrix.constructor import Matrix
+
+
+        # empty matrix does not require any action
+        if m == 0 or n == 0:
+            return Matrix(self.base_ring(), m, n)
+
+        # if degree is None, make it the matrix degree
+        if degree==None:
+            degree = self.degree()
+        # if degree is an integer, make it a uniform list
+        if not isinstance(degree,list):
+            degree = [degree]*m if row_wise else [degree]*n
+
+        # raise an error if degree does not have the right length
+        if row_wise and len(degree) != m:
+            raise ValueError("length of input degree list should be the " \
+                                      + "row dimension of the input matrix")
+        elif (not row_wise) and len(degree) != n:
+            raise ValueError("length of input degree list should be the " \
+                                      + "column dimension of the input matrix")
+
+        return Matrix(self.base_ring(), m, n, [[self[i,j].reverse(degree[i])
+            if row_wise else self[i,j].reverse(degree[j])
             for j in range(n)] for i in range(m)])
 
     def row_degrees(self, shifts=None):

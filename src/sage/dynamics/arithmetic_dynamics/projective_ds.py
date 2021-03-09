@@ -7016,8 +7016,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: system = DynamicalSystem_projective([x**5 - 11*y**5, x**4*y])
-            sage: conj = system.potential_good_reduction(11, True)[2]
+            sage: B, new_sys, conj = system.potential_good_reduction(11, True)
             sage: system.conjugate(conj).resultant() == 1
+            True
+            sage: system.conjugate(conj) == new_sys
             True
 
         ::

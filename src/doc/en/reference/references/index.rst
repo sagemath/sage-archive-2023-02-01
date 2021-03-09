@@ -144,6 +144,12 @@ REFERENCES:
 .. [AHK2015] Karim Adiprasito, June Huh, and Eric Katz. *Hodge theory
              for combinatorial geometries*. :arxiv:`1511.02888`.
 
+.. [AHKOS2014] Aubin Arroyo, Isabel Hubard, Klavdija Kutnar, Eugenia
+               O’Reilly, and Primož Šparl. *Classification of
+               Symmetric Tabačjn Graphs*. Graphs and Combinatorics
+               31:1137-1153, 2015.
+               :doi:`10.1007/s00373-014-1447-8`
+
 .. [AHMP2008] \J.-P. Aumasson, L. Henzen, W. Meier, and R. C-W Phan,
               *Sha-3 proposal blake*; in Submission to NIST, (2008).
 
@@ -557,6 +563,9 @@ REFERENCES:
            Fast and Simple Computation of Top-k Closeness Centralities.
            :arxiv:`1507.01490`.
 
+.. [BCMS1988] \I. Z. Bouwer, W. W. Chernoff, B. Monson, and Z. Star.
+             *The Foster Census*, Charles Babbage Research Centre, 1988.
+
 .. [BCN1989] Andries E. Brouwer, Arjeh M. Cohen, and Arnold Neumaier.
              *Distance-Regular Graphs*, Springer, 1989.
 
@@ -793,6 +802,11 @@ REFERENCES:
             Finding All Cliques of an Undirected Graph*. Commun. ACM. v
             16. n 9. 1973,  pages 575-577. ACM Press. [Online] Available:
             http://www.ram.org/computing/rambin/rambin.html
+
+.. [BK1977] James R. Bunch and Linda Kaufman.
+            Some Stable Methods for Calculating Inertia and Solving
+            Symmetric Linear Systems.
+            Mathematics of Computation, 31(137):163-179, 1977.
 
 .. [BK1992] \U. Brehm and W. Kuhnel, *15-vertex triangulations of an
             8-manifold*, Math. Annalen 294 (1992), no. 1, 167-193.
@@ -1521,6 +1535,8 @@ REFERENCES:
 .. [CN2019] \B. Chakraborty, M. Nandi
             "Orange"
             https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/orange-spec.pdf
+
+.. [CrNa2020] \J.E. Cremona and F. Najman,  `\QQ`-curves over odd degree number fields, :arxiv:`2004.10054`.
 
 .. [CoCo1] J.H. Conway, H.S.M. Coxeter
     *Triangulated polygons and frieze patterns*,
@@ -2743,6 +2759,10 @@ REFERENCES:
              designs*.
              In: Recent Developments in Algebra and Related Areas, ALM vol. 8,
              pp. 129--153. International Press, Somerville (2009).
+
+.. [Hig2002] Nicholas J. Higham. Accuracy and Stability of Numerical Algorithms,
+             Second Edition. Society for Industrial and Applied Mathematics,
+             Philadelphia, 2002.
 
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
              Society for Industrial and Applied Mathematics (2008).
@@ -5645,6 +5665,10 @@ REFERENCES:
 .. [Wie2000] \B. Wieland. *A large dihedral symmetry of the set of
              alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
+.. [Wilson2008] Steve Wilson. *Rose Window Graphs*. Ars Mathematica
+                Contemporanea 1(1):7-19, 2008.
+                :doi:`10.26493/1855-3974.13.5bb`
+
 .. [Wilson2016] \A. T. Wilson. *An extension of MacMahon's Equidistribution
                 Theorem to ordered multiset partitions*. Electron. J. Combin.,
                 **23** (1) (2016).
@@ -5792,6 +5816,10 @@ REFERENCES:
 .. [Zhedanov1991] \A.S. Zhedanov.
                   *"Hidden symmetry" of the Askey–Wilson polynomials*,
                   Theoret. and Math. Phys. **89** (1991), 1146--1157.
+
+.. [ZF2012] Jin-Xin Zhou and Yan-Quan Feng. *Cubic Vertex-Transitive
+            Non-Cayley Graphs of Order 8p*. The Electronic Journal of
+            Combinatorics, 19(1), P53, 2012. :doi:`10.37236/2087`
 
 .. [Zie1998] \G. M. Ziegler. *Shelling polyhedral 3-balls and
              4-polytopes*. Discrete Comput. Geom. 19 (1998), 159-174.

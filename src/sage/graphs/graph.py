@@ -889,7 +889,7 @@ class Graph(GenericGraph):
         ...
         ValueError: the adjacency matrix of a Seidel graph must have 0s on the main diagonal
 
-    From a a list of vertices and a list of edges::
+    From a list of vertices and a list of edges::
 
         sage: G = Graph([[1,2,3], [(1,2)]]); G
         Graph on 3 vertices

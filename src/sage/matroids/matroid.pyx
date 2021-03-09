@@ -6966,7 +6966,7 @@ cdef class Matroid(SageObject):
 
     cpdef _intersection_augmentation(self, other, weights, Y):
         r"""
-        Return a an augmenting set for the matroid intersection problem.
+        Return an augmenting set for the matroid intersection problem.
 
         INPUT:
 

@@ -1078,7 +1078,7 @@ cdef class Expression(CommutativeRingElement):
         Return string representation in Magma of this symbolic expression.
 
         Since Magma has no notation of symbolic calculus, this simply
-        returns something that evaluates in Magma to a a Magma string.
+        returns something that evaluates in Magma to a Magma string.
 
         EXAMPLES::
 

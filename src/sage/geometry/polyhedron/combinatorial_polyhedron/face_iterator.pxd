@@ -35,7 +35,7 @@ cdef struct iter_s:
     face_list_t* new_faces
 
     # After having visited a face completely, we want to add it to ``visited_all``.
-    # ``first_dim[i]`` will indicate, wether there is one more face in
+    # ``first_time[i]`` will indicate, wether there is one more face in
     # ``newfaces[i]`` then ``n_newfaces[i]`` suggests
     # that has to be added to ``visited_all``.
     # If ``first_time[i] == False``, we still need to
@@ -45,6 +45,7 @@ cdef struct iter_s:
     # The number of elements in newfaces[current_dimension],
     # that have not been visited yet.
     size_t yet_to_visit
+    size_t n_coatoms
 
 ctypedef iter_s iter_t[1]
 
@@ -80,8 +81,10 @@ cdef class FaceIterator_geom(FaceIterator_base):
     cdef object _requested_dim  # Dimension requested on init.
     cdef readonly object P      # The original polyhedron.
 
+cdef int parallel_f_vector(iter_t* structures, size_t num_threads, size_t parallelization_depth, size_t *f_vector) except -1
+
 # Nogil definitions of crucial functions.
 
-cdef int next_dimension(iter_t structure) nogil except -1
+cdef int next_dimension(iter_t structure, size_t parallelization_depth=?) nogil except -1
 cdef int next_face_loop(iter_t structure) nogil except -1
 cdef size_t n_atom_rep(iter_t structure) nogil except -1

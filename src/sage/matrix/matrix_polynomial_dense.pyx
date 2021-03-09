@@ -283,10 +283,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
+        from sage.matrix.constructor import Matrix
 
         # empty matrix is already truncated
         if m == 0 or n == 0:
-            return self
+            return Matrix(self.base_ring(), m, n)
 
         # if d is an integer, make it a uniform list
         if not isinstance(d,list):
@@ -300,9 +301,96 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input precision list should be the " \
                                       + "column dimension of the input matrix")
 
-        from sage.matrix.constructor import Matrix
         return Matrix(self.base_ring(), m, n, [[self[i,j].truncate(d[i])
             if row_wise else self[i,j].truncate(d[j])
+            for j in range(n)] for i in range(m)])
+
+    def shift(self, d, row_wise=True):
+        r"""
+        Return the matrix which is obtained from this matrix after shifting
+        all its entries as specified by `d`:
+
+        - if `d` is an integer, the shift is by `d` for all entries;
+        - if `d` is a list $(d_1,\ldots,d_m)$ and ``row_wise`` is ``True``,
+          the $i$th row is shifted by $d_i$ for each $i$;
+        - if `d` is a list $(d_1,\ldots,d_n)$ and ``row_wise`` is ``False``,
+          the $j$th column is shifted by $d_j$ for each $j$.
+
+        Shifting by `d` means multiplying by the variable to the power `d`; if
+        `d` is negative then terms of negative degree after shifting are
+        discarded.
+
+        INPUT:
+
+        - ``d`` -- a list of integers, or an integer,
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          (resp. ``False``) then `d` should be a list of length equal to the
+          row (resp. column) dimension of this matrix.
+
+        OUTPUT: a polynomial matrix.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+
+            sage: M = Matrix([
+            ....:    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0],
+            ....:    [      6*x^2+3*x+1,       1,           2,         0],
+            ....:    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]
+            ....:     ])
+            sage: M.shift(-2)
+            [  x + 5       0       0       0]
+            [      6       0       0       0]
+            [2*x + 4       0       2       1]
+
+            sage: M.shift([-1,2,-2])
+            [      x^2 + 5*x + 5                   0                   6                   0]
+            [6*x^4 + 3*x^3 + x^2                 x^2               2*x^2                   0]
+            [            2*x + 4                   0                   2                   1]
+
+            sage: M.shift([-1,1,0,0], row_wise=False)
+            [  x^2 + 5*x + 5             5*x         6*x + 4               0]
+            [        6*x + 3               x               2               0]
+            [2*x^2 + 4*x + 6       5*x^2 + x 2*x^2 + 5*x + 5   x^2 + 5*x + 6]
+
+            sage: M.shift([-d for d in M.row_degrees()]) == M.leading_matrix()
+            True
+
+            sage: M.shift([1,3,1,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: length of input shift list should be the row
+            dimension of the input matrix
+
+            sage: M.shift([5,2,-1], row_wise=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: length of input shift list should be the column
+            dimension of the input matrix
+        """
+        m = self.nrows()
+        n = self.ncols()
+        from sage.matrix.constructor import Matrix
+
+        # empty matrix does not require any action
+        if m == 0 or n == 0:
+            return Matrix(self.base_ring(), m, n)
+
+        # if d is an integer, make it a uniform list
+        if not isinstance(d,list):
+            d = [d]*m if row_wise else [d]*n
+
+        # raise an error if d does not have the right length
+        if row_wise and len(d) != m:
+            raise ValueError("length of input shift list should be the " \
+                                      + "row dimension of the input matrix")
+        elif (not row_wise) and len(d) != n:
+            raise ValueError("length of input shift list should be the " \
+                                      + "column dimension of the input matrix")
+
+        return Matrix(self.base_ring(), m, n, [[self[i,j].shift(d[i])
+            if row_wise else self[i,j].shift(d[j])
             for j in range(n)] for i in range(m)])
 
     def row_degrees(self, shifts=None):

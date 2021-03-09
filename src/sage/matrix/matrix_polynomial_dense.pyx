@@ -259,10 +259,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [3*x + 1       1       2       0]
             [6*x + 4 5*x + 1 5*x + 5 5*x + 6]
 
-            sage: M.truncate([4,2,1])
-            [x^3 + 5*x^2 + 5*x + 1                     5               6*x + 4                     0]
-            [              3*x + 1                     1                     2                     0]
-            [                    4                     1                     5                     6]
+            sage: M.truncate([3,2,1])
+            [5*x^2 + 5*x + 1               5         6*x + 4               0]
+            [        3*x + 1               1               2               0]
+            [              4               1               5               6]
 
             sage: M.truncate([2,1,1,2], row_wise=False)
             [5*x + 1       5       4       0]
@@ -272,12 +272,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.truncate([2,1,1,2])
             Traceback (most recent call last):
             ...
-            ValueError: length of input precision list should be the row dimension of the input matrix
+            ValueError: length of input precision list should be the row
+            dimension of the input matrix
 
-            sage: M.truncate([4,2,1], row_wise=False)
+            sage: M.truncate([3,2,1], row_wise=False)
             Traceback (most recent call last):
             ...
-            ValueError: length of input precision list should be the column dimension of the input matrix
+            ValueError: length of input precision list should be the column
+            dimension of the input matrix
         """
         m = self.nrows()
         n = self.ncols()

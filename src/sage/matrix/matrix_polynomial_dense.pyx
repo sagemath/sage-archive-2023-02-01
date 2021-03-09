@@ -248,6 +248,32 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return Matrix([[self[i,j].constant_coefficient()
             for j in range(self.ncols())] for i in range(self.nrows())])
 
+    def is_constant(self):
+        r"""
+        Return ``True`` if and only if this polynomial matrix is constant,
+        that is, all its entries are constant.
+
+        OUTPUT: a boolean.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+
+            sage: M = Matrix([
+            ....:    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0],
+            ....:    [      6*x^2+3*x+1,       1,           2,         0],
+            ....:    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]
+            ....:     ])
+            sage: M.is_constant()
+            False
+            sage: M = Matrix(pR,[[1,5,2],[3,1,5]]); M.is_constant()
+            True
+            sage: M = Matrix.zero(pR,3,5); M.is_constant()
+            True
+        """
+        return all([self[i,j].is_constant()
+            for j in range(self.ncols()) for i in range(self.nrows())])
+
     def truncate(self, d, row_wise=True):
         r"""
         Return the matrix which is obtained from this matrix after truncating
@@ -1963,6 +1989,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                         return False
                     residual[i,j] = residual[i,j].shift(-order[j])
             cert_mat = residual.constant_matrix()
+            ## TODO update the above few lines with new truncate/shift meths
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,
@@ -1988,6 +2015,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                         return False
                     residual[i,j] = residual[i,j].shift(-order[i])
             cert_mat = residual.constant_matrix()
+            ## TODO update the above few lines with new truncate/shift meths
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,

@@ -318,25 +318,25 @@ def complementary_subform_to_vector(self, v):
         sage: Q1 = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q1.complementary_subform_to_vector([1,0,0,0])
         Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 3 0 0 ]
+        [ 7 0 0 ]
         [ * 5 0 ]
-        [ * * 7 ]
+        [ * * 3 ]
 
     ::
 
         sage: Q1.complementary_subform_to_vector([1,1,0,0])
         Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 12 0 0 ]
+        [ 7 0 0 ]
         [ * 5 0 ]
-        [ * * 7 ]
+        [ * * 12 ]
 
     ::
 
         sage: Q1.complementary_subform_to_vector([1,1,1,1])
         Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 624 -480 -672 ]
-        [ * 880 -1120 ]
-        [ * * 1008 ]
+        [ 880 -480 -160 ]
+        [ * 624 -96 ]
+        [ * * 240 ]
 
     """
     n = self.dim()
@@ -417,8 +417,8 @@ def split_local_cover(self):
         sage: Q1.split_local_cover()
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 3 0 0 ]
-        [ * 7 0 ]
-        [ * * 5 ]
+        [ * 5 0 ]
+        [ * * 7 ]
 
     """
     ## 0. If a split local cover already exists, then return it.

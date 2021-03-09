@@ -274,6 +274,99 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return all([self[i,j].is_constant()
             for j in range(self.ncols()) for i in range(self.nrows())])
 
+    def matrix_coefficient_of_degree(self,d,row_wise=True):
+        r"""
+        Return the constant matrix which is obtained from this matrix by taking
+        the coefficient of its entries with degree specified by `d`.
+
+        - if `d` is an integer, this selects the coefficient of `d` for all
+          entries;
+        - if `d` is a list $(d_1,\ldots,d_m)$ and ``row_wise`` is ``True``,
+          this selects the coefficient of degree $d_i$ for all entries of the
+          $i$th row for each $i$;
+        - if `d` is a list $(d_1,\ldots,d_n)$ and ``row_wise`` is ``False``,
+          this selects the coefficient of degree $d_i$ for all entries of the
+          $j$th column for each $j$.
+
+        INPUT:
+
+        - ``d`` -- a list of integers, or an integer,
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          (resp. ``False``) then `d` should be a list of length equal to the
+          row (resp. column) dimension of this matrix.
+
+        OUTPUT: a polynomial matrix.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+
+            sage: M = Matrix([
+            ....:    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0],
+            ....:    [      6*x^2+3*x+1,       1,           2,         0],
+            ....:    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]
+            ....:     ])
+            sage: M.matrix_coefficient_of_degree(2)
+            [5 0 0 0]
+            [6 0 0 0]
+            [4 0 2 1]
+            sage: M.matrix_coefficient_of_degree(0) == M.constant_matrix()
+            True
+
+        Row-wise and column-wise coefficient extraction are available::
+
+            sage: M.matrix_coefficient_of_degree([3,2,1])
+            [1 0 0 0]
+            [6 0 0 0]
+            [6 5 5 5]
+
+            sage: M.matrix_coefficient_of_degree([2,0,1,3], row_wise=False)
+            [5 5 6 0]
+            [6 1 0 0]
+            [4 1 5 0]
+
+        Negative degrees give zero coefficients::
+
+            sage: M.matrix_coefficient_of_degree([-1,0,1,3], row_wise=False)
+            [0 5 6 0]
+            [0 1 0 0]
+            [0 1 5 0]
+
+        Length of list of degrees is checked::
+
+            sage: M.matrix_coefficient_of_degree([2,1,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: length of input degree list should be the row
+            dimension of the input matrix
+
+            sage: M.matrix_coefficient_of_degree([3,2,1], row_wise=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: length of input degree list should be the column
+            dimension of the input matrix
+        """
+        m = self.nrows()
+        n = self.ncols()
+
+        # if d is an integer, make it a uniform list
+        if not isinstance(d,list):
+            d = [d]*m if row_wise else [d]*n
+
+        # raise an error if d does not have the right length
+        if row_wise and len(d) != m:
+            raise ValueError("length of input degree list should be the " \
+                                      + "row dimension of the input matrix")
+        elif (not row_wise) and len(d) != n:
+            raise ValueError("length of input degree list should be the " \
+                                      + "column dimension of the input matrix")
+
+        from sage.matrix.constructor import Matrix
+        return Matrix(self.base_ring().base_ring(), m, n,
+                [[self[i,j][d[i]] if row_wise else self[i,j][d[j]]
+            for j in range(n)] for i in range(m)])
+
     def truncate(self, d, row_wise=True):
         r"""
         Return the matrix which is obtained from this matrix after truncating
@@ -1983,13 +2076,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # and compute certificate matrix ``cert_mat`` which is
             # the constant term of (self * pmat) * x^(-order)
             residual = self * pmat
-            for i in range(m):
-                for j in range(n):
-                    if residual[i,j].truncate(order[j]) != 0:
-                        return False
-                    residual[i,j] = residual[i,j].shift(-order[j])
-            cert_mat = residual.constant_matrix()
-            ## TODO update the above few lines with new truncate/shift meths
+            if not residual.truncate(order,row_wise=False).is_zero():
+                return False
+            cert_mat = residual.matrix_coefficient_of_degree(order,row_wise=False)
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,
@@ -2009,13 +2098,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             # and compute certificate matrix ``cert_mat`` which is
             # the constant term of x^(-order) * (pmat * self)
             residual = pmat * self
-            for i in range(m):
-                for j in range(n):
-                    if residual[i,j].truncate(order[i]) != 0:
-                        return False
-                    residual[i,j] = residual[i,j].shift(-order[i])
-            cert_mat = residual.constant_matrix()
-            ## TODO update the above few lines with new truncate/shift meths
+            if not residual.truncate(order).is_zero():
+                return False
+            cert_mat = residual.matrix_coefficient_of_degree(order)
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,

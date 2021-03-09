@@ -202,10 +202,8 @@ class ParkingFunctions_all(Parent, UniqueRepresentation):
         """
         TESTS::
 
-            sage: from sage.combinat.parking_functions import ParkingFunctions
-            sage: DW = ParkingFunctions()
-            sage: DW == loads(dumps(DW))
-            True
+            sage: PF = ParkingFunctions()
+            sage: TestSuite(PF).run()
         """
         cat = InfiniteEnumeratedSets() & SetsWithGrading()
         Parent.__init__(self, category=cat)
@@ -557,6 +555,18 @@ class ParkingFunction_class(CombinatorialObject):
             2
         """
         return self._list[n]
+
+    def grade(self):
+        """
+        Return the length of the parking function.
+
+        EXAMPLES::
+
+            sage: PF = ParkingFunction([1, 1, 2, 2, 5, 6])
+            sage: PF.grade()
+            6
+        """
+        return len(self)
 
     def __call__(self, n):
         """

@@ -32,59 +32,11 @@ def _alg_key(self, algorithm=None, recompute=False):
         algorithm = self._get_algorithm(algorithm)
         return algorithm
 
-class GaloisGroup(PermutationGroup_generic):
+class _GaloisMixin:
     r"""
-    The group of automorphisms of a Galois closure of a given field.
-
-    INPUT:
-
-    - ``field`` -- a field, separable over its base
-
-    - ``names`` -- a string or tuple of length 1, giving a variable name for the splitting field
-
-    - ``gc_numbering`` -- boolean, whether to express permutations in terms of the
-        roots of the defining polynomial of the splitting field (versus the defining polynomial
-        of the original extension).  The default value may vary based on the type of field.
+    This class provides some methods for Galois groups to be used for both permutation groups
+    and abelian groups (finite fields).
     """
-    # Subclasses should implement the following methods and lazy attributes
-
-    # methods (taking algorithm and recompute as arguments):
-    # * transitive_number
-    # * order
-    # * _element_constructor_ -- for creating elements
-
-    # lazy_attributes
-    # * _gcdata -- a pair, the Galois closure and an embedding of the top field into it
-    # * _gens -- the list of generators of this group, as elements.  This is not computed during __init__ for speed
-    # * _elts -- the list of all elements of this group.
-
-    # * Element (for coercion)
-
-    def __init__(self, field, algorithm=None, names=None, gc_numbering=False):
-        r"""
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group()
-            sage: TestSuite(G).run()
-        """
-        self._field = field
-        self._default_algorithm = algorithm
-        self._base = field.base_field()
-        self._gc_numbering = gc_numbering
-        if names is None:
-            # add a c for Galois closure
-            names = field.variable_name() + 'c'
-        self._gc_names = normalize_names(1, names)
-        # We do only the parts of the initialization of PermutationGroup_generic
-        # that don't depend on _gens
-        from sage.categories.permutation_groups import PermutationGroups
-        category = PermutationGroups().FinitelyGenerated().Finite()
-        # Note that we DON'T call the __init__ method for PermutationGroup_generic
-        # Instead, the relevant attributes are computed lazily
-        super(PermutationGroup_generic, self).__init__(category=category)
-
     def _repr_(self):
         """
         String representation of this Galois group
@@ -216,6 +168,61 @@ class GaloisGroup(PermutationGroup_generic):
               Defn: a |--> 1/36*b^4 + 5/18*b^2 - 1/2*b + 4/9
         """
         return self._gcdata[1]
+
+
+
+class GaloisGroup(PermutationGroup_generic, _GaloisMixin):
+    r"""
+    The group of automorphisms of a Galois closure of a given field.
+
+    INPUT:
+
+    - ``field`` -- a field, separable over its base
+
+    - ``names`` -- a string or tuple of length 1, giving a variable name for the splitting field
+
+    - ``gc_numbering`` -- boolean, whether to express permutations in terms of the
+        roots of the defining polynomial of the splitting field (versus the defining polynomial
+        of the original extension).  The default value may vary based on the type of field.
+    """
+    # Subclasses should implement the following methods and lazy attributes
+
+    # methods (taking algorithm and recompute as arguments):
+    # * transitive_number
+    # * order
+    # * _element_constructor_ -- for creating elements
+
+    # lazy_attributes
+    # * _gcdata -- a pair, the Galois closure and an embedding of the top field into it
+    # * _gens -- the list of generators of this group, as elements.  This is not computed during __init__ for speed
+    # * _elts -- the list of all elements of this group.
+
+    # * Element (for coercion)
+
+    def __init__(self, field, algorithm=None, names=None, gc_numbering=False):
+        r"""
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group()
+            sage: TestSuite(G).run()
+        """
+        self._field = field
+        self._default_algorithm = algorithm
+        self._base = field.base_field()
+        self._gc_numbering = gc_numbering
+        if names is None:
+            # add a c for Galois closure
+            names = field.variable_name() + 'c'
+        self._gc_names = normalize_names(1, names)
+        # We do only the parts of the initialization of PermutationGroup_generic
+        # that don't depend on _gens
+        from sage.categories.permutation_groups import PermutationGroups
+        category = PermutationGroups().FinitelyGenerated().Finite()
+        # Note that we DON'T call the __init__ method for PermutationGroup_generic
+        # Instead, the relevant attributes are computed lazily
+        PermutationGroup_generic.__init__(self, category=category)
 
     @lazy_attribute
     def _deg(self):

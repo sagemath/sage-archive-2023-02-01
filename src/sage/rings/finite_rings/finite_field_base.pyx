@@ -1604,12 +1604,23 @@ cdef class FiniteField(Field):
             True
             sage: all(f is not None for (l, f) in S)
             True
+
+        We choose a default variable name::
+
+            sage: GF(3^8, 'a').subfield(4)
+            Finite Field in a4 of size 3^4
         """
         from .finite_field_constructor import GF
         p = self.characteristic()
         n = self.degree()
         if not n % degree == 0:
             raise ValueError("no subfield of order {}^{}".format(p, degree))
+
+        if name is None:
+            if hasattr(self, '_prefix'):
+                name = self._prefix + str(degree)
+            else:
+                name = self.variable_name() + str(degree)
 
         if degree == 1:
             K = self.prime_subfield()
@@ -1619,8 +1630,6 @@ cdef class FiniteField(Field):
             inc = self.coerce_map_from(self)
         elif hasattr(self, '_prefix'):
             modulus = self.prime_subfield().algebraic_closure(self._prefix)._get_polynomial(degree)
-            if name is None:
-                name = self._prefix + str(degree)
             K = GF(p**degree, name=name, prefix=self._prefix, modulus=modulus, check_irreducible=False)
             a = self.gen()**((p**n-1)//(p**degree - 1))
             inc = K.hom([a], codomain=self, check=False)

@@ -4875,6 +4875,20 @@ cdef class Expression(CommutativeRingElement):
             sage: ((-x)^(3/4)).expand()
             (-x)^(3/4)
             sage: forget()
+
+        Check that :trac:`31077` is fixed::
+
+            sage: a,b,c,d = var("a b c d")
+            sage: ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
+            d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36
+
+        Check that :trac:`31411` is fixed::
+
+            sage: q, j = var("q, j")
+            sage: A = q^(2/3) + q^(2/5)
+            sage: B = product(1 - q^j, j, 1, 31) * q^(1/24)
+            sage: bool((A * B).expand() == (A * B.expand()).expand())
+            True
         """
         if side is not None:
             if not is_a_relational(self._gobj):

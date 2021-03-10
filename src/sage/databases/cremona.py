@@ -1324,7 +1324,7 @@ class MiniCremonaDatabase(SQLDatabase):
         To create the large database from Cremona's text files, see
         sage.databases.cremona.build.  Alternatively:
 
-        If the cremona database has already been installed, remove
+        If the Cremona database has already been installed, remove
         `SAGE_DATA/cremona/cremona.db`. Then run::
 
             sage: C = sage.databases.cremona.LargeCremonaDatabase('cremona',False, True)  # not tested

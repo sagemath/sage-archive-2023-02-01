@@ -17984,7 +17984,7 @@ class GenericGraph(GenericGraph_pyx):
         `(v, x)` is an edge of other.
 
         The tensor product is also known as the categorical product and the
-        kronecker product (referring to the kronecker matrix product). See
+        Kronecker product (referring to the Kronecker matrix product). See
         the :wikipedia:`Kronecker_product`.
 
         EXAMPLES::

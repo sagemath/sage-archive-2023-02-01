@@ -63,7 +63,7 @@ echo "Checking whether SageMath should install SPKG $1..." >& AS_MESSAGE_FD
 AS_BOX([Checking whether SageMath should install SPKG $1...]) >& AS_MESSAGE_LOG_FD
 
 AC_ARG_WITH([system-]SPKG_NAME,
-       AS_HELP_STRING(--with-system-SPKG_NAME={no|yes⁽ᵈᵉᶠᵃᵘˡᵗ⁾|force (error if no usable version is found)},
+       AS_HELP_STRING(--with-system-SPKG_NAME={no|yes (default)|force (exit with an error if no usable version is found)},
            [detect and use an existing system SPKG_NAME]),
        [AS_VAR_SET(SPKG_USE_SYSTEM, [$withval])],
        [AS_VAR_SET(SPKG_USE_SYSTEM, [yes])]

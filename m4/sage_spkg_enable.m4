@@ -12,7 +12,7 @@ AC_DEFUN([SAGE_SPKG_ENABLE], [dnl
   ], [dnl
     dnl optional/experimental packages
     AC_ARG_ENABLE(SPKG_NAME,
-      AS_HELP_STRING([--enable-]SPKG_NAME={no|if_installed⁽ᵈᵉᶠᵃᵘˡᵗ⁾|yes},
+      AS_HELP_STRING([--enable-]SPKG_NAME={no|if_installed (default)|yes},
                      [enable build and use of the SPKG_TYPE package $3], [26], [100])
 AS_HELP_STRING([], [* package info: ./sage -info SPKG_NAME])
 AS_HELP_STRING([--disable-]SPKG_NAME,

@@ -137,7 +137,7 @@ cdef class Lfunction:
 
         EXAMPLES::
 
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L=Lfunction_from_character(chi, type="int")
             sage: L.value(.5)  # abs tol 3e-15
@@ -151,7 +151,7 @@ cdef class Lfunction:
             sage: L.value(.6+I)
             0.362258705721... + 0.433888250620...*I
 
-            sage: chi=DirichletGroup(5)[1]
+            sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: L.value(.5)
             0.763747880117... + 0.216964767518...*I
@@ -215,7 +215,7 @@ cdef class Lfunction:
 
         EXAMPLES::
 
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L=Lfunction_from_character(chi, type="int")
             sage: L.compute_rank()
@@ -236,7 +236,7 @@ cdef class Lfunction:
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: L.__N(10)
             3.17043978326...
@@ -269,7 +269,7 @@ cdef class Lfunction:
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="int")
             sage: L.find_zeros(5,15,.1)
             [6.64845334472..., 9.83144443288..., 11.9588456260...]
@@ -278,7 +278,7 @@ cdef class Lfunction:
             sage: L.find_zeros(1,15,.1)
             [6.64845334472..., 9.83144443288..., 11.9588456260...]
 
-            sage: chi=DirichletGroup(5)[1]
+            sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: L.find_zeros(-8,8,.1)
             [-4.13290370521..., 6.18357819545...]
@@ -335,7 +335,7 @@ cdef class Lfunction:
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="int")
             sage: L.find_zeros_via_N(3)
             [6.64845334472..., 9.83144443288..., 11.9588456260...]
@@ -344,7 +344,7 @@ cdef class Lfunction:
             sage: L.find_zeros_via_N(3)
             [6.64845334472..., 9.83144443288..., 11.9588456260...]
 
-            sage: chi=DirichletGroup(5)[1]
+            sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: L.find_zeros_via_N(3)
             [6.18357819545..., 8.45722917442..., 12.6749464170...]
@@ -368,7 +368,7 @@ cdef class Lfunction:
         result.clear()
         return returnvalue
 
-    #### Needs to be overriden
+    # Needs to be overriden
     cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r):
         raise NotImplementedError
 
@@ -449,7 +449,7 @@ cdef class Lfunction_I(Lfunction):
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="int")
             sage: type(L)
             <type 'sage.libs.lcalc.lcalc_Lfunction.Lfunction_I'>
@@ -457,7 +457,7 @@ cdef class Lfunction_I(Lfunction):
         Lfunction.__init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue)
         self._repr += " with integer Dirichlet coefficients"
 
-    ### override
+    # override
     cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r):
         cdef int N = len(dirichlet_coeff)
         cdef Integer tmpi
@@ -486,7 +486,7 @@ cdef class Lfunction_I(Lfunction):
     cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
         (<c_Lfunction_I *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
 
-    ### debug tools
+    # debug tools
     def _print_data_to_standard_output(self):
         """
         This is used in debugging. It prints out information from
@@ -495,13 +495,13 @@ cdef class Lfunction_I(Lfunction):
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="int")
             sage: L._print_data_to_standard_output() # tol 1e-15
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
-            number of Dirichlet coefficients = 5
+            number of dirichlet coefficients = 5
             coefficients are periodic
             b[1] = 1
             b[2] = -1
@@ -585,7 +585,7 @@ cdef class Lfunction_D(Lfunction):
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="double")
             sage: type(L)
             <type 'sage.libs.lcalc.lcalc_Lfunction.Lfunction_D'>
@@ -593,7 +593,7 @@ cdef class Lfunction_D(Lfunction):
         Lfunction.__init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue)
         self._repr += " with real Dirichlet coefficients"
 
-    ### override
+    # override
     cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r):
         cdef int i
         cdef RealNumber tmpr
@@ -624,7 +624,7 @@ cdef class Lfunction_D(Lfunction):
     cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
         (<c_Lfunction_D *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
 
-    ### debug tools
+    # debug tools
     def _print_data_to_standard_output(self):
         """
         This is used in debugging. It prints out information from
@@ -633,13 +633,13 @@ cdef class Lfunction_D(Lfunction):
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="double")
             sage: L._print_data_to_standard_output() # tol 1e-15
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
-            number of Dirichlet coefficients = 5
+            number of dirichlet coefficients = 5
             coefficients are periodic
             b[1] = 1
             b[2] = -1
@@ -725,7 +725,7 @@ cdef class Lfunction_C:
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[1]
+            sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: type(L)
             <type 'sage.libs.lcalc.lcalc_Lfunction.Lfunction_C'>
@@ -733,7 +733,7 @@ cdef class Lfunction_C:
         Lfunction.__init__(self, name, what_type_L, dirichlet_coefficient,  period, Q, OMEGA, gamma,lambd, pole,residue)
         self._repr += " with complex Dirichlet coefficients"
 
-    ### override
+    # override
     cdef void __init_fun(self, char *NAME, int what_type, dirichlet_coeff, long long Period, double q,  c_Complex w, int A, double *g, c_Complex *l, int n_poles, c_Complex *p, c_Complex *r):
         cdef int i
         cdef int N = len(dirichlet_coeff)
@@ -769,7 +769,7 @@ cdef class Lfunction_C:
     cdef void __find_zeros_via_N_v(self, long count,int do_negative,double max_refine, int rank, int test_explicit_formula, doublevec *result):
         (<c_Lfunction_C *>self.thisptr).find_zeros_via_N_v(count, do_negative, max_refine, rank, test_explicit_formula, result[0])
 
-    ### debug tools
+    # debug tools
     def _print_data_to_standard_output(self):
         """
         This is used in debugging. It prints out information from
@@ -778,13 +778,13 @@ cdef class Lfunction_C:
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi=DirichletGroup(5)[1]
+            sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: L._print_data_to_standard_output() # tol 1e-15
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
-            number of Dirichlet coefficients = 5
+            number of dirichlet coefficients = 5
             coefficients are periodic
             b[1] = (1,0)
             b[2] = (0,1)
@@ -814,7 +814,7 @@ cdef class Lfunction_C:
 
 
 ##############################################################################
-#Zeta function
+# Zeta function
 ##############################################################################
 
 cdef class Lfunction_Zeta(Lfunction):

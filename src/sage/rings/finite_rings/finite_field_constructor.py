@@ -538,8 +538,6 @@ class FiniteFieldFactory(UniqueFactory):
             elif order.is_prime_power():
                 if names is not None:
                     name = names
-                if name is not None:
-                    name = normalize_names(1, name)
 
                 p, n = order.factor()[0]
                 if name is None:
@@ -555,6 +553,7 @@ class FiniteFieldFactory(UniqueFactory):
                     # and a pseudo-Conway polynomial if it's not.
                     modulus = Fpbar._get_polynomial(n)
                     check_irreducible = False
+                name = normalize_names(1, name)
 
                 if impl is None:
                     if order < zech_log_bound:

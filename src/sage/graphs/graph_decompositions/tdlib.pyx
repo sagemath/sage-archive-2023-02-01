@@ -67,7 +67,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 
-cdef extern from "tdlib/sage_tdlib.cpp":
+cdef extern from "sage_tdlib.cpp":
      int sage_exact_decomposition(vector[unsigned int] &V_G, vector[unsigned int] &E_G, vector[vector[int]] &V_T, vector[unsigned int] &E_T, int lb)
 
 ##############################################################

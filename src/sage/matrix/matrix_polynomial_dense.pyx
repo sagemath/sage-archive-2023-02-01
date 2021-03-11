@@ -440,10 +440,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = self.ncols()
         from sage.matrix.constructor import Matrix
 
-        # empty matrix is already truncated
-        if m == 0 or n == 0:
-            return Matrix(self.base_ring(), m, n)
-
         # if d is an integer, make it a uniform list
         if not isinstance(d,list):
             d = [d]*m if row_wise else [d]*n
@@ -531,10 +527,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         m = self.nrows()
         n = self.ncols()
         from sage.matrix.constructor import Matrix
-
-        # empty matrix does not require any action
-        if m == 0 or n == 0:
-            return Matrix(self.base_ring(), m, n)
 
         # if d is an integer, make it a uniform list
         if not isinstance(d,list):
@@ -666,10 +658,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         m = self.nrows()
         n = self.ncols()
         from sage.matrix.constructor import Matrix
-
-        # empty matrix does not require any action
-        if m == 0 or n == 0:
-            return Matrix(self.base_ring(), m, n)
 
         # if entry_wise, just return the matrix with all entries reversed
         if entry_wise:

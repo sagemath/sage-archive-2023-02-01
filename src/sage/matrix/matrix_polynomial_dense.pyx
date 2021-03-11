@@ -274,7 +274,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return all([self[i,j].is_constant()
             for j in range(self.ncols()) for i in range(self.nrows())])
 
-    def matrix_coefficient_of_degree(self,d,row_wise=True):
+    def coefficient_matrix(self,d,row_wise=True):
         r"""
         Return the constant matrix which is obtained from this matrix by taking
         the coefficient of its entries with degree specified by `d`.
@@ -296,7 +296,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           (resp. ``False``) then `d` should be a list of length equal to the
           row (resp. column) dimension of this matrix.
 
-        OUTPUT: a polynomial matrix.
+        OUTPUT: a matrix over the base field.
 
         EXAMPLES::
 
@@ -307,41 +307,41 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ....:    [      6*x^2+3*x+1,       1,           2,         0],
             ....:    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]
             ....:     ])
-            sage: M.matrix_coefficient_of_degree(2)
+            sage: M.coefficient_matrix(2)
             [5 0 0 0]
             [6 0 0 0]
             [4 0 2 1]
-            sage: M.matrix_coefficient_of_degree(0) == M.constant_matrix()
+            sage: M.coefficient_matrix(0) == M.constant_matrix()
             True
 
         Row-wise and column-wise coefficient extraction are available::
 
-            sage: M.matrix_coefficient_of_degree([3,2,1])
+            sage: M.coefficient_matrix([3,2,1])
             [1 0 0 0]
             [6 0 0 0]
             [6 5 5 5]
 
-            sage: M.matrix_coefficient_of_degree([2,0,1,3], row_wise=False)
+            sage: M.coefficient_matrix([2,0,1,3], row_wise=False)
             [5 5 6 0]
             [6 1 0 0]
             [4 1 5 0]
 
         Negative degrees give zero coefficients::
 
-            sage: M.matrix_coefficient_of_degree([-1,0,1,3], row_wise=False)
+            sage: M.coefficient_matrix([-1,0,1,3], row_wise=False)
             [0 5 6 0]
             [0 1 0 0]
             [0 1 5 0]
 
         Length of list of degrees is checked::
 
-            sage: M.matrix_coefficient_of_degree([2,1,1,2])
+            sage: M.coefficient_matrix([2,1,1,2])
             Traceback (most recent call last):
             ...
             ValueError: length of input degree list should be the row
             dimension of the input matrix
 
-            sage: M.matrix_coefficient_of_degree([3,2,1], row_wise=False)
+            sage: M.coefficient_matrix([3,2,1], row_wise=False)
             Traceback (most recent call last):
             ...
             ValueError: length of input degree list should be the column
@@ -552,11 +552,21 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             if row_wise else self[i,j].shift(d[j])
             for j in range(n)] for i in range(m)])
 
-    def reverse(self, degree=None, row_wise=True):
+    def reverse(self, degree=None, row_wise=True, entry_wise=False):
         r"""
         Return the matrix which is obtained from this matrix after reversing
         all its entries with respect to the degree as specified by ``degree``.
 
+        Reversing a polynomial with respect to an integer `d` follows the
+        convention for univariate polynomials, in particular it uses truncation
+        or zero-padding as necessary if `d` differs from the degree of this
+        polynomial.
+
+        If ``entry_wise`` is ``True``: the input ``degree`` and ``row_wise``
+        are ignored, and all entries of the matrix are reversed with respect to
+        their respective degrees.
+
+        If ``entry_wise`` is ``False`` (the default):
         - if ``degree`` is an integer, all entries are reversed with respect to
           it;
         - if ``degree`` is not provided, then all entries are reversed with
@@ -568,11 +578,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           ``False``, all entries of the $j$th column are reversed with respect
           to $d_j$ for each $j$.
 
-        Reversing a polynomial with respect to ``degree`` follows the
-        convention for univariate polynomials, in particular it uses truncation
-        or zero-padding as necessary if ``degree`` differs from the degree of
-        this polynomial.
-
         INPUT:
 
         - ``degree`` -- (optional, default: ``None``) a list of nonnegative
@@ -581,6 +586,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
           (resp. ``False``) then ``degree`` should be a list of length equal to
           the row (resp. column) dimension of this matrix.
+
+        - ``entry_wise`` -- (optional, default: ``False``) boolean, if ``True``
+          then the input ``degree`` and ``row_wise`` are ignored.
 
         OUTPUT: a polynomial matrix.
 
@@ -608,6 +616,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: M.reverse(0) == M.constant_matrix()
             True
+
+        Entry-wise reversing with respect to each entry's degree::
+            sage: M.reverse(entry_wise=True)
+            [  x^3 + 5*x^2 + 5*x + 1                       5
+            4*x + 6                       0]
+            [          x^2 + 3*x + 6                       1
+            2                       0]
+            [4*x^3 + 6*x^2 + 4*x + 2                   x + 5         5*x^2 +
+            5*x + 2         6*x^2 + 5*x + 1]
 
         Row-wise and column-wise degree reversing are available::
 
@@ -650,10 +667,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         n = self.ncols()
         from sage.matrix.constructor import Matrix
 
-
         # empty matrix does not require any action
         if m == 0 or n == 0:
             return Matrix(self.base_ring(), m, n)
+
+        # if entry_wise, just return the matrix with all entries reversed
+        if entry_wise:
+            return Matrix(self.base_ring(), m, n, [[self[i,j].reverse()
+                for j in range(n)] for i in range(m)])
 
         # if degree is None, make it the matrix degree
         if degree==None:
@@ -2078,7 +2099,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             residual = self * pmat
             if not residual.truncate(order,row_wise=False).is_zero():
                 return False
-            cert_mat = residual.matrix_coefficient_of_degree(order,row_wise=False)
+            cert_mat = residual.coefficient_matrix(order,row_wise=False)
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,
@@ -2100,7 +2121,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             residual = pmat * self
             if not residual.truncate(order).is_zero():
                 return False
-            cert_mat = residual.matrix_coefficient_of_degree(order)
+            cert_mat = residual.coefficient_matrix(order)
 
             # check that self generates the set of approximants
             # 1/ determinant of self should be a monomial c*x^d,

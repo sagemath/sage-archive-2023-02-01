@@ -1,5 +1,9 @@
 r"""
-Galois groups of field extensions
+Galois groups of field extensions.
+
+We don't necessarily require extensions to be normal, but we do require them to be separable.
+When an extension is not normal, the Galois group refers to
+the automorphism group of the normal closure.
 
 AUTHORS:
 
@@ -7,9 +11,12 @@ AUTHORS:
 """
 
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 from sage.structure.category_object import normalize_names
+from sage.rings.integer_ring import ZZ
 
 def _alg_key(self, algorithm=None, recompute=False):
     r"""
@@ -35,7 +42,7 @@ def _alg_key(self, algorithm=None, recompute=False):
 class _GaloisMixin:
     r"""
     This class provides some methods for Galois groups to be used for both permutation groups
-    and abelian groups (finite fields).
+    and abelian groups.
     """
     def _repr_(self):
         """
@@ -43,11 +50,11 @@ class _GaloisMixin:
 
         EXAMPLES::
 
-            sage: from sage.groups.galois_group import GaloisGroup
+            sage: from sage.groups.galois_group import GaloisGroup_perm
             sage: R.<x> = ZZ[]
             sage: K.<a> = NumberField(x^3 + 2*x + 2)
             sage: G = K.galois_group()
-            sage: GaloisGroup._repr_(G)
+            sage: GaloisGroup_perm._repr_(G)
             'Galois group of x^3 + 2*x + 2'
         """
         f = self._field.defining_polynomial()
@@ -116,8 +123,8 @@ class _GaloisMixin:
             sage: R.<x> = ZZ[]
             sage: K.<a> = NumberField(x^8 - x^5 + x^4 - x^3 + 1)
             sage: G = K.galois_group()
-            sage: from sage.groups.galois_group import GaloisGroup
-            sage: GaloisGroup.is_galois(G)
+            sage: from sage.groups.galois_group import GaloisGroup_perm
+            sage: GaloisGroup_perm.is_galois(G)
             False
         """
         return self.order() == self._field.degree()
@@ -171,7 +178,7 @@ class _GaloisMixin:
 
 
 
-class GaloisGroup(PermutationGroup_generic, _GaloisMixin):
+class GaloisGroup_perm(_GaloisMixin, PermutationGroup_generic):
     r"""
     The group of automorphisms of a Galois closure of a given field.
 
@@ -222,7 +229,7 @@ class GaloisGroup(PermutationGroup_generic, _GaloisMixin):
         category = PermutationGroups().FinitelyGenerated().Finite()
         # Note that we DON'T call the __init__ method for PermutationGroup_generic
         # Instead, the relevant attributes are computed lazily
-        PermutationGroup_generic.__init__(self, category=category)
+        super(PermutationGroup_generic, self).__init__(category=category)
 
     @lazy_attribute
     def _deg(self):
@@ -309,3 +316,100 @@ class GaloisGroup(PermutationGroup_generic, _GaloisMixin):
             1
         """
         return len(self._gens)
+
+class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
+    r"""
+    Abelian Galois groups
+    """
+    def __init__(self, field, generator_orders, algorithm=None, gen_names='sigma'):
+        r"""
+        Initialize this Galois group.
+        """
+        self._field = field
+        self._default_algorithm = algorithm
+        AbelianGroup_class.__init__(self, generator_orders, gen_names)
+
+    def is_galois(self):
+        r"""
+        Abelian extensions are Galois.
+
+        For compatibility with Galois groups of number fields.
+
+        EXAMPLES::
+
+            sage: GF(9).galois_group().is_galois()
+            True
+        """
+        return True
+
+    @lazy_attribute
+    def _gcdata(self):
+        r"""
+        Return the Galois closure (ie, the finite field itself) together with the identity
+
+        EXAMPLES::
+
+            sage: GF(3^2).galois_group()._gcdata
+            (Finite Field in z2 of size 3^2,
+             Identity endomorphism of Finite Field in z2 of size 3^2)
+        """
+        k = self._field
+        return k, k.Hom(k).identity()
+
+    @cached_method(key=_alg_key)
+    def transitive_number(self, algorithm=None, recompute=False):
+        r"""
+        Return the transitive number for the action on the roots of the defining polynomial.
+
+        For abelian groups, there is only one transitive action up to isomorphism
+        (left multiplication of the group on itself), so we identify that action.
+
+        EXAMPLES::
+
+            sage: from sage.groups.galois_group import GaloisGroup_ab
+            sage: Gtest = GaloisGroup_ab(field=None, generator_orders=(2,2,4))
+            sage: Gtest.transitive_number()
+            2
+        """
+        return ZZ(self._gap_().RegularActionHomomorphism().Image().TransitiveIdentification())
+
+class GaloisGroup_cyc(GaloisGroup_ab):
+    r"""
+    Cyclic Galois groups
+    """
+    def transitive_number(self, algorithm=None, recompute=False):
+        r"""
+        Return the transitive number for the action on the roots of the defining polynomial.
+
+        EXAMPLES::
+
+            sage: GF(2^8).galois_group().transitive_number()
+            1
+            sage: GF(3^32).galois_group().transitive_number()
+            33
+            sage: GF(2^60).galois_group().transitive_number()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: transitive database only computed up to degree 47
+        """
+        d = self.order()
+        if d > 47:
+            raise NotImplementedError("transitive database only computed up to degree 47")
+        elif d == 32:
+            # I don't know why this case is special, but you can check this in Magma (GAP only goes up to 22)
+            return ZZ(33)
+        else:
+            return ZZ(1)
+
+    def signature(self):
+        r"""
+        Return 1 if contained in the alternating group, -1 otherwise.
+
+        EXAMPLES::
+
+            sage: GF(3^2).galois_group().signature()
+            -1
+            sage: GF(3^3).galois_group().signature()
+            1
+        """
+        return ZZ(1) if (self._field.degree() % 2) else ZZ(-1)

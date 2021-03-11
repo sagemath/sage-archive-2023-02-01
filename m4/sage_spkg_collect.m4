@@ -24,7 +24,7 @@
 #        "standard", "optional", or "experimental" type that should be installed.
 #
 #      - SAGE_OPTIONAL_CLEANED_PACKAGES - lists the names of packages with the
-#        "standard", "optional", or "experimental" type that should be installed.
+#        "standard", "optional", or "experimental" type that should be uninstalled.
 #
 #      - SAGE_SDIST_PACKAGES - lists the names of all packages whose sources
 #        need to be downloaded to be included in the source distribution.

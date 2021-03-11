@@ -180,7 +180,7 @@ REFERENCES:
 
 .. [AKMRVW] \A. Alvarado, A. Koutsianas, B. Malmskog, C. Rasmussen, C. Vincent,
             and M. West,
-            *A robust implementation for solving the S-unit equation and 
+            *A robust implementation for solving the S-unit equation and
             several applications.*
             :arxiv:`1903.00977`
 
@@ -655,7 +655,7 @@ REFERENCES:
 
 .. [Ber1987] \M. Berger, *Geometry I*, Springer (Berlin) (1987);
              :doi:`10.1007/978-3-540-93815-6`
-             
+
 .. [Ber1987a] \M. Berger, *Geometry II*, Springer (Berlin) (1987);
               :doi:`10.1007/978-3-540-93816-3`
 
@@ -1616,6 +1616,9 @@ REFERENCES:
              Bull. Belg. Math. Soc. 12(2006), 707-718.
              http://projecteuclid.org/euclid.bbms/1136902608
 
+.. [Cou2014] Alain Couvreur, *Codes and the Cartier operator*,
+             Proceedings of the American Mathematical Society 142.6 (2014): 1983-1996.
+
 .. [Cox] David Cox, "What is a Toric Variety",
          https://dacox.people.amherst.edu/lectures/tutorial.ps
 
@@ -1999,7 +2002,7 @@ REFERENCES:
             *Differential Geometry of Lightlike Submanifolds*,
             Frontiers in Mathematics, 2010.
 
-.. [DSK2006] \A. De Sole and V. Kac. "Finite vs Affine W-algebras". Jpn. J. Math. 
+.. [DSK2006] \A. De Sole and V. Kac. "Finite vs Affine W-algebras". Jpn. J. Math.
              (2006) vol. 1, no. 1, pp 137--261
 
 .. [Du2001] \I. Duursma, "From weight enumerators to zeta functions", in
@@ -2534,6 +2537,9 @@ REFERENCES:
              crosscorrelation functions*. IEEE Transactions on Information
              Theory, 14, pp. 154-156, 1968.
 
+.. [Gop1981] \V. D. Goppa, “Codes on algebraic curves,” Sov. Math. Dokl., vol.
+             24, no. 1, pp. 170–172, 1981.
+
 .. [Gos1972] Bill Gosper, "Continued Fraction Arithmetic"
              https://perl.plover.com/classes/cftalk/INFO/gosper.txt
 
@@ -2558,11 +2564,11 @@ REFERENCES:
 .. [GR2001] Chris Godsil and Gordon Royle, *Algebraic Graph Theory*. Graduate
             Texts in Mathematics, Springer, 2001.
 
-.. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow 
+.. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow
             Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
 
 .. [GX2020] \R. M. Green, Tianyuan Xu, *Classification of Coxeter groups with
-            finitely many elements of a-value 2*, Algebraic Combinatorics, 
+            finitely many elements of a-value 2*, Algebraic Combinatorics,
             Volume 3 (2020) no. 2, pp. 331-364.
 
 .. [Gr2006] Matthew Greenberg,
@@ -3177,8 +3183,8 @@ REFERENCES:
 .. [Ka1990] Victor G. Kac. *Infinite-dimensional Lie Algebras*. Third
             edition. Cambridge University Press, Cambridge, 1990.
 
-.. [Kac1997] \V. Kac, "Vertex algebras for beginners". Second Edition. vol 10. 
-             university lecture series. AMS, Cambridge, 1997. 
+.. [Kac1997] \V. Kac, "Vertex algebras for beginners". Second Edition. vol 10.
+             university lecture series. AMS, Cambridge, 1997.
 
 .. [Kal1992] \B. Kaliski,
              *The MD2 message-digest algorithm*; in
@@ -3636,6 +3642,10 @@ REFERENCES:
             graph by a set of intervals on the real line*. Fundamenta
             Mathematicae, 51:45-64, 1962; :doi:`10.4064/fm-51-1-45-64`.
 
+.. [LBO2014] Kwankyu Lee, Maria Bras-Amorós, and Michael E. O'Sullivan,
+             *Unique decoding of general AG codes*, IEEE Transactions on
+             Information Theory, vol 60, no. 4 (2014), pp. 2038--2053.
+
 .. [LB1988] Lee, P.J., Brickell, E.F. An observation on the security of
             McEliece's public-key cryptosystem. EuroCrypt 1988. LNCS, vol. 330, pp.
             275–280.
@@ -3643,6 +3653,9 @@ REFERENCES:
 .. [LdB1982] \A. Liberato de Brito, 'FORTRAN program for the integral
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
+
+.. [Lee2016] Kwankyu Lee, *Decoding of differential AG codes*, Advances in
+             Mathematics of Communications, vol. 10, no. 2 (2016), pp. 307-–319.
 
 .. [Lee1996] Marc van Leeuwen.  *The Robinson-Schensted and
              Sch\"utzenberger algorithms, an elementary approach*.
@@ -3906,11 +3919,11 @@ REFERENCES:
              (2002). http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html
 
 .. [Lus1985] George Lusztig, *Cells in affine Weyl groups*, Algebraic Groups
-             and Related Topics, Advanced Studies in Pure mathematics 6, 1985, 
+             and Related Topics, Advanced Studies in Pure mathematics 6, 1985,
              pp. 255-287.
 
 .. [Lus2013] George Lusztig, *Hecke algebras with unequal parameters*,
-             :arxiv:`math/0208154`. 
+             :arxiv:`math/0208154`.
 
 .. [Lut2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
              Combinatorial Manifolds", preprint (2005),
@@ -5766,7 +5779,7 @@ REFERENCES:
              upper-triangular nilpotent matrices."
              Electronic J. Comb. 25(1) (2018) #P1.68. :arxiv:`1703.00057`.
 
-.. [Yu2007] \K. Yu, *p-adic logarithmic forms and group varieties. III.* 
+.. [Yu2007] \K. Yu, *p-adic logarithmic forms and group varieties. III.*
             Forum Math., 19(2):187–280, 2007.
 
 .. [Yun1976] Yun, David YY. On square-free decomposition

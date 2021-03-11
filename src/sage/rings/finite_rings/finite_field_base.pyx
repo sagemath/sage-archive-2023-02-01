@@ -1506,6 +1506,11 @@ cdef class FiniteField(Field):
             ....:         assert c^((3^n-1)//(3^m-1)) == b
         """
         p = self.characteristic()
+        # We try to use the appropriate power of the generator,
+        # as in the definition of Conway polynomials.
+        # this can fail if the generator is not a primitive element,
+        # but it can succeed sometimes even
+        # if the generator is not primitive.
         g = self.gen()
         f = self.modulus()
         d = self.degree()
@@ -1634,11 +1639,6 @@ cdef class FiniteField(Field):
             a = self.gen()**((p**n-1)//(p**degree - 1))
             inc = K.hom([a], codomain=self, check=False)
         else:
-            # Try to use the appropriate power of the generator, as in the definition of Conway polynomials.
-            # this can fail if the generator is not a primitive element, but it can succeed sometimes even
-            # if the generator is not primitive.  If compatible is set then we need to be consistent across
-            # different subfields, so we first use a cached check that the minimal polynomials of powers
-            # all have the right degrees
             fam = self._compatible_family()
             a, modulus = fam[degree]
             K = GF(p**degree, modulus=modulus, name=name)

@@ -86,6 +86,7 @@ cpdef list[list] contpath_mp_comps(int deg, list values, RealNumber y0r, RealNum
     - A extra argument is needed, indicating the bits of precision used
       in the computations.
     """
+
     cdef mpfr_t* cvalues = <mpfr_t*> check_allocarray(len(values), sizeof(mpfr_t))
     cdef mpfr_t* cothercoefs = <mpfr_t*> check_allocarray(len(othercoefs), sizeof(mpfr_t))
     cdef int* cotherdegs = <int*> check_allocarray(len(otherdegs), sizeof(int))
@@ -207,6 +208,8 @@ cpdef list[list] contpath_comps(int deg, list values, double y0r, double y0i, li
     and the real and imaginary parts of the `y` value of a vertex in
     the piecewise linear approximation of the path tracked by the root.
     """
+
+
     cdef double* rop
     cdef double* c_values = <double*> check_allocarray(len(values), sizeof(double))
     cdef int* c_otherdegrees = <int*> check_allocarray(len(otherdegrees), sizeof(int))
@@ -237,3 +240,4 @@ cpdef list[list] contpath_comps(int deg, list values, double y0r, double y0i, li
     free(c_otherdegrees)
     free(c_othercoefs)
     return l
+

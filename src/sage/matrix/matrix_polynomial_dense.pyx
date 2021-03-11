@@ -610,6 +610,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
         Entry-wise reversing with respect to each entry's degree::
+
             sage: M.reverse(entry_wise=True)
             [  x^3 + 5*x^2 + 5*x + 1                       5
             4*x + 6                       0]

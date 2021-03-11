@@ -324,6 +324,10 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
     def __init__(self, field, generator_orders, algorithm=None, gen_names='sigma'):
         r"""
         Initialize this Galois group.
+
+        TESTS::
+
+            sage: TestSuite(GF(9).galois_group()).run()
         """
         self._field = field
         self._default_algorithm = algorithm

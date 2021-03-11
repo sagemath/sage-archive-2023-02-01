@@ -18,6 +18,9 @@ AUTHORS:
 
 - Vincent Neiger (2020-04-01): added functions for computing and for verifying
   minimal kernel bases
+
+- Vincent Neiger (2021-03-11): added matrix-wise basic functions for univariate
+  polynomials (shifts, reverse, truncate, get coefficient of specified degree)
 """
 # ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
@@ -270,6 +273,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
             sage: M = Matrix.zero(pR,3,5); M.is_constant()
             True
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_constant` .
         """
         return all([self[i,j].is_constant()
             for j in range(self.ncols()) for i in range(self.nrows())])
@@ -435,6 +442,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ...
             ValueError: length of input precision list should be the column
             dimension of the input matrix
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.truncate` .
         """
         m = self.nrows()
         n = self.ncols()
@@ -523,6 +534,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ...
             ValueError: length of input shift list should be the column
             dimension of the input matrix
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.shift` .
         """
         m = self.nrows()
         n = self.ncols()
@@ -559,6 +574,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         their respective degrees.
 
         If ``entry_wise`` is ``False`` (the default):
+
         - if ``degree`` is an integer, all entries are reversed with respect to
           it;
         - if ``degree`` is not provided, then all entries are reversed with
@@ -655,6 +671,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             Traceback (most recent call last):
             ...
             OverflowError: can't convert negative value to unsigned long
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.reverse` .
         """
         m = self.nrows()
         n = self.ncols()

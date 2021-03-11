@@ -105,9 +105,9 @@ INSTALLED_PACKAGE_INSTS = \
     $(foreach pkgname,$(INSTALLED_PACKAGES),$(inst_$(pkgname)))
 
 # All previously installed standard/optional/experimental packages that are to be uninstalled
-OPTIONAL_CLEANED_PACKAGES = @SAGE_OPTIONAL_CLEANED_PACKAGES@
-CLEANED_PACKAGES = $(OPTIONAL_CLEANED_PACKAGES)
-CLEANED_PACKAGES_CLEANS = $(CLEANED_PACKAGES:%=%-clean)
+OPTIONAL_UNINSTALLED_PACKAGES = @SAGE_OPTIONAL_UNINSTALLED_PACKAGES@
+UNINSTALLED_PACKAGES = $(OPTIONAL_UNINSTALLED_PACKAGES)
+UNINSTALLED_PACKAGES_CLEANS = $(UNINSTALLED_PACKAGES:%=%-clean)
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
@@ -233,18 +233,18 @@ base-toolchain: _clean-broken-gcc base
 all-sage: \
 		sagelib \
 		$(INSTALLED_PACKAGE_INSTS) \
-                $(CLEANED_PACKAGES_CLEANS)
+                $(UNINSTALLED_PACKAGES_CLEANS)
 
 # Same but filtered by installation trees:
 all-build-local: toolchain-deps
 	+$(MAKE_REC) all-sage-local
 
-all-sage-local: $(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_CLEANED_PACKAGES_CLEANS)
+all-sage-local: $(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_UNINSTALLED_PACKAGES_CLEANS)
 
 all-build-venv: toolchain-deps
 	+$(MAKE_REC) all-sage-venv
 
-all-sage-venv:  $(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_CLEANED_PACKAGES_CLEANS)
+all-sage-venv:  $(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_UNINSTALLED_PACKAGES_CLEANS)
 
 # Download all packages which should be inside an sdist tarball (the -B
 # option to make forces all targets to be built unconditionally)

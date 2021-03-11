@@ -23,7 +23,7 @@
 #      - SAGE_OPTIONAL_INSTALLED_PACKAGES - lists the names of packages with the
 #        "standard", "optional", or "experimental" type that should be installed.
 #
-#      - SAGE_OPTIONAL_CLEANED_PACKAGES - lists the names of packages with the
+#      - SAGE_OPTIONAL_UNINSTALLED_PACKAGES - lists the names of packages with the
 #        "standard", "optional", or "experimental" type that should be uninstalled.
 #
 #      - SAGE_SDIST_PACKAGES - lists the names of all packages whose sources
@@ -108,7 +108,7 @@ SAGE_DUMMY_PACKAGES=''
 # List of currently installed and to-be-installed standard/optional/experimental packages
 SAGE_OPTIONAL_INSTALLED_PACKAGES=''
 # List of optional packages to be uninstalled
-SAGE_OPTIONAL_CLEANED_PACKAGES=''
+SAGE_OPTIONAL_UNINSTALLED_PACKAGES=''
 
 # List of all packages that should be downloaded
 SAGE_SDIST_PACKAGES=''
@@ -307,7 +307,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     spkg_line=" \\$(printf '\n    ')$SPKG_NAME"
     AS_CASE([$is_installed-$want_spkg],
             [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
-            [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_CLEANED_PACKAGES, "$spkg_line")])
+            [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_UNINSTALLED_PACKAGES, "$spkg_line")])
 
     # Determine package dependencies
     #
@@ -354,7 +354,7 @@ AC_SUBST([SAGE_SCRIPT_PACKAGES])
 AC_SUBST([SAGE_BUILT_PACKAGES])
 AC_SUBST([SAGE_DUMMY_PACKAGES])
 AC_SUBST([SAGE_OPTIONAL_INSTALLED_PACKAGES])
-AC_SUBST([SAGE_OPTIONAL_CLEANED_PACKAGES])
+AC_SUBST([SAGE_OPTIONAL_UNINSTALLED_PACKAGES])
 AC_SUBST([SAGE_SDIST_PACKAGES])
 ])
 

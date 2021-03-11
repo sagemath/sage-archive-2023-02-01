@@ -55,6 +55,7 @@ from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.combinat.permutation import Permutation
 from sage.functions.generalized import sign
+from sage.combinat.subset import Subsets
 
 
 def braid_from_piecewise(strands):
@@ -63,8 +64,8 @@ def braid_from_piecewise(strands):
 
     INPUT:
 
-    - ``strands`` -- a list of lists of tuples ``(t, c)``, where ``t``
-      is a number between 0 and 1, and ``c`` is a complex number
+    - ``strands`` -- a list of lists of tuples ``(t, c1, c2)``, where ``t``
+      is a number between 0 and 1, and ``c1`` and ``c2`` are rationals or algebraic reals.
 
     OUTPUT:
 
@@ -73,34 +74,36 @@ def braid_from_piecewise(strands):
     EXAMPLES::
 
         sage: from sage.schemes.curves.zariski_vankampen import braid_from_piecewise # optional - sirocco
-        sage: paths = [[(0, I), (0.2, -1 - 0.5*I), (0.8, -1), (1, -I)],
-        ....:          [(0, -1), (0.5, -I), (1, 1)],
-        ....:          [(0, 1), (0.5, 1 + I), (1, I)]]
+        sage: paths = [[(0, 0, 1), (0.2, -1, -0.5), (0.8, -1, 0), (1, 0, -1)],
+        ....:          [(0, -1, 0), (0.5, 0, -1), (1, 1, 0)],
+        ....:          [(0, 1, 0), (0.5, 1, 1), (1, 0, 1)]]
         sage: braid_from_piecewise(paths) # optional - sirocco
         s0*s1
     """
     L = strands
     i = min(val[1][0] for val in L)
-    totalpoints = [[[a[0][1].real(), a[0][1].imag()]] for a in L]
+    totalpoints = [[[a[0][1], a[0][2]]] for a in L]
     indices = [1 for a in range(len(L))]
     while i < 1:
         for j, val in enumerate(L):
             if val[indices[j]][0] > i:
-                xaux = val[indices[j] - 1][1]
-                yaux = val[indices[j]][1]
+                xauxr = val[indices[j] - 1][1]
+                xauxi = val[indices[j] - 1][2]
+                yauxr = val[indices[j]][1]
+                yauxi = val[indices[j]][2]
                 aaux = val[indices[j] - 1][0]
                 baux = val[indices[j]][0]
-                interpola = xaux + (yaux - xaux) * (i - aaux) / (baux - aaux)
-                totalpoints[j].append([interpola.real(), interpola.imag()])
+                interpolar = xauxr + (yauxr - xauxr) * (i - aaux) / (baux - aaux)
+                interpolai = xauxi + (yauxi - xauxi) * (i - aaux) / (baux - aaux)
+                totalpoints[j].append([interpolar, interpolai])
             else:
-                totalpoints[j].append([val[indices[j]][1].real(),
-                                       val[indices[j]][1].imag()])
+                totalpoints[j].append([val[indices[j]][1],
+                                       val[indices[j]][2]])
                 indices[j] = indices[j] + 1
         i = min(val[indices[k]][0] for k, val in enumerate(L))
 
     for j, val in enumerate(L):
-        totalpoints[j].append([val[-1][1].real(), val[-1][1].imag()])
-
+        totalpoints[j].append([val[-1][1], val[-1][2]])
     braid = []
     G = SymmetricGroup(len(totalpoints))
 
@@ -121,7 +124,7 @@ def braid_from_piecewise(strands):
         for j in range(len(l2)):
             for k in range(j):
                 if l2[j] < l2[k]:
-                    t = (l1[j][0] - l1[k][0])/(l2[k][0] - l1[k][0] + l1[j][0] - l2[j][0])
+                    t = (l1[j][0] - l1[k][0])/((l2[k][0]-l2[j][0]) + (l1[j][0] - l1[k][0]))
                     s = sgn(l1[k][1]*(1 - t) + t*l2[k][1], l1[j][1]*(1 - t) + t*l2[j][1])
                     cruces.append([t, k, j, s])
         if cruces:
@@ -171,9 +174,9 @@ def discrim(f):
         -0.500000000000000? - 0.866025403784439?*I,
         -0.500000000000000? + 0.866025403784439?*I]
     """
-    x, y = f.variables()
+    x, y = f.parent().gens()
     F = f.base_ring()
-    poly = F[x](f.discriminant(y).resultant(f, y)).radical()
+    poly = F[x](f.discriminant(y)).radical()
     return poly.roots(QQbar, multiplicities=False)
 
 
@@ -233,7 +236,7 @@ def segments(points):
     return res
 
 
-def followstrand(f, x0, x1, y0a, prec=53):
+def followstrand(f, factors, x0, x1, y0a, prec=53):
     r"""
     Return a piecewise linear approximation of the homotopy continuation
     of the root ``y0a`` from ``x0`` to ``x1``.
@@ -269,10 +272,18 @@ def followstrand(f, x0, x1, y0a, prec=53):
          (0.7500000000000001, -1.015090921153253, -0.24752813818386948),
          (1.0, -1.026166099551513, -0.32768940253604323)]
     """
+    if f.degree() == 1:
+        CF = ComplexField(prec)
+        g = f.change_ring(CF)
+        (x, y) = g.parent().gens()
+        y0 = CF[y](g.subs({x: x0})).roots()[0][0]
+        y1 = CF[y](g.subs({x: x1})).roots()[0][0]
+        res = [(0.0, y0.real(), y0.imag()), (1.0, y1.real(), y1.imag())]
+        return res
     CIF = ComplexIntervalField(prec)
     CC = ComplexField(prec)
     G = f.change_ring(QQbar).change_ring(CIF)
-    (x, y) = G.variables()
+    (x, y) = G.parent().gens()
     g = G.subs({x: (1 - x) * CIF(x0) + x * CIF(x1)})
     coefs = []
     deg = g.total_degree()
@@ -285,19 +296,40 @@ def followstrand(f, x0, x1, y0a, prec=53):
             coefs += list(ci.endpoints())
     yr = CC(y0a).real()
     yi = CC(y0a).imag()
-    from sage.libs.sirocco import contpath, contpath_mp
+    coefsfactors = []
+    degsfactors = []
+    for fc in factors:
+        degfc = fc.degree()
+        degsfactors.append(degfc)
+        G = fc.change_ring(QQbar).change_ring(CIF)
+        g = G.subs({x: (1 - x) * CIF(x0) + x * CIF(x1)})
+        for d in range(degfc + 1):
+            for i in range(d + 1):
+                c = CIF(g.coefficient({x: d - i, y: i}))
+                cr = c.real()
+                ci = c.imag()
+                coefsfactors += list(cr.endpoints())
+                coefsfactors += list(ci.endpoints())
+    from sage.libs.sirocco import contpath, contpath_mp, contpath_comps, contpath_mp_comps
     try:
         if prec == 53:
-            points = contpath(deg, coefs, yr, yi)
+            if factors:
+                points = contpath_comps(deg, coefs, yr, yi, degsfactors, coefsfactors)
+            else:
+                points = contpath(deg, coefs, yr, yi)
         else:
-            points = contpath_mp(deg, coefs, yr, yi, prec)
+            if factors:
+                points = contpath_mp_comps(deg, coefs, yr, yi, prec, degsfactors, coefsfactors)
+            else:
+                points = contpath_mp(deg, coefs, yr, yi, prec)
         return points
     except Exception:
-        return followstrand(f, x0, x1, y0a, 2 * prec)
+        return followstrand(f, factors, x0, x1, y0a, 2 * prec)
+
 
 
 @parallel
-def braid_in_segment(f, x0, x1):
+def braid_in_segment(g, x0, x1):
     """
     Return the braid formed by the `y` roots of ``f`` when `x` moves
     from ``x0`` to ``x1``.
@@ -339,41 +371,78 @@ def braid_in_segment(f, x0, x1):
         sage: B.left_normal_form()  # optional - sirocco
         (1, s5)
     """
-    CC = ComplexField(64)
-    (x, y) = f.variables()
+    (x, y) = g.value().parent().gens()
     I = QQbar.gen()
     X0 = QQ(x0.real()) + I * QQ(x0.imag())
     X1 = QQ(x1.real()) + I * QQ(x1.imag())
-    F0 = QQbar[y](f(X0, y))
-    y0s = F0.roots(multiplicities=False)
-    strands = [followstrand(f, x0, x1, CC(a)) for a in y0s]
-    complexstrands = [[(a[0], CC(a[1], a[2])) for a in b] for b in strands]
+    intervals = {}
+    precision = {}
+    y0s = []
+    for (f, naux) in g:
+        if f.variables() == (y,):
+            F0 = QQbar[y](f.base_ring()[y](f))
+        else:
+            F0 = QQbar[y](f(X0, y))
+        y0sf = F0.roots(multiplicities=False)
+        y0s += list(y0sf)
+        precision[f]=53
+        while True:
+            intervals[f] = [r.interval(ComplexIntervalField(precision[f])) for r in y0sf]
+            if not any([a.overlaps(b) for a,b in Subsets(intervals[f], 2)]):
+                break
+            precision[f] *= 2
+    strands = [followstrand(f[0], [p[0] for p in g if p[0]!= f[0]], x0, x1, i.center(), precision[f[0]]) for f in g for i in intervals[f[0]]]
+    complexstrands = [[(QQ(a[0]), QQ(a[1]), QQ(a[2])) for a in b] for b in strands]
     centralbraid = braid_from_piecewise(complexstrands)
+    y0aps = [QQ(c[0][1])+QQbar.gen()*QQ(c[0][2]) for c in complexstrands]
+
+
+    CIF = ComplexIntervalField()
+    y0ints = QQbar[y](g.value()(X0,y)).roots(CIF, multiplicities=False)
     initialstrands = []
-    y0aps = [c[0][1] for c in complexstrands]
-    used = []
+    f = g.value()
     for y0ap in y0aps:
-        distances = [((y0ap - y0).norm(), y0) for y0 in y0s]
-        y0 = sorted(distances)[0][1]
-        if y0 in used:
-            raise ValueError("different roots are too close")
-        used.append(y0)
-        initialstrands.append([(0, y0), (1, y0ap)])
+        dist, point = min([((y0ap-i.center()).abs(),i) for i in y0ints])
+        diam = max((point.real().absolute_diameter(), point.imag().absolute_diameter()))
+        y0api = y0ap + (dist+diam)*CIF((-1,1),(-1,1))
+        newton = y0ap -f(X0,y).change_ring(CIF)(0,y0ap)/f.derivative(y)(X0,y).change_ring(CIF)(0,y0api)
+        if newton in y0api and point in y0api:
+            initialstrands.append([(0, QQ(point.center().real()),QQ(point.center().imag())), (1, y0ap.real(), y0ap.imag())])
+        else:
+            print(y0ap)
+            print(y0api)
+            print(point)
+            print(newton)
+            print(dist)
+            print(diam)
+            print(point in y0api)
+            print(newton in y0api)
+            y0api2 = y0ap + 0.00025*(dist)*CIF((-1,1),(-1,1))
+            newton2 = y0ap -f(X0,y).change_ring(CIF)(0,y0ap)/f.derivative(y)(X0,y).change_ring(CIF)(0,y0api2)
+            print(newton2 in y0api2)
+            raise ValueError("could not ensure that gluing of segments is correct")
     initialbraid = braid_from_piecewise(initialstrands)
-    F1 = QQbar[y](f(X1, y))
-    y1s = F1.roots(multiplicities=False)
+
+    y1aps = [QQ(c[-1][1])+QQbar.gen()*QQ(c[-1][2]) for c in complexstrands]
+    y1ints = QQbar[y](g.value()(X1,y)).roots(CIF, multiplicities=False)
     finalstrands = []
-    y1aps = [c[-1][1] for c in complexstrands]
-    used = []
     for y1ap in y1aps:
-        distances = [((y1ap - y1).norm(), y1) for y1 in y1s]
-        y1 = sorted(distances)[0][1]
-        if y1 in used:
-            raise ValueError("different roots are too close")
-        used.append(y1)
-        finalstrands.append([(0, y1ap), (1, y1)])
-    finallbraid = braid_from_piecewise(finalstrands)
-    return initialbraid * centralbraid * finallbraid
+        dist, point = min([((y1ap-i.center()).abs(),i) for i in y1ints])
+        diam = max((point.real().absolute_diameter(), point.imag().absolute_diameter()))
+        y1api = y1ap + (dist+diam)*CIF((-1,1),(-1,1))
+        newton = y1ap -f(X1,y).change_ring(CIF)(0,y1ap)/f.derivative(y)(x1,y).change_ring(CIF)(0,y1api)
+        if newton in y1api and point in y1api:
+            finalstrands.append([(0, y1ap.real(), y1ap.imag()), (1, QQ(point.center().real()),QQ(point.center().imag())) ])
+        else:
+            print(y0ap)
+            print(y0api)
+            print(point)
+            print(newton)
+            raise ValueError("could not ensure that gluing of segments is correct")
+    finalbraid = braid_from_piecewise(finalstrands)
+
+
+    return initialbraid * centralbraid * finalbraid
 
 
 def fundamental_group(f, simplified=True, projective=False):
@@ -437,7 +506,7 @@ def fundamental_group(f, simplified=True, projective=False):
         sage: fundamental_group(f) # optional - sirocco
         Finitely presented group < x0 |  >
     """
-    (x, y) = f.variables()
+    (x, y) = f.parent().gens()
     F = f.base_ring()
     g = f.radical()
     d = g.degree(y)
@@ -452,7 +521,8 @@ def fundamental_group(f, simplified=True, projective=False):
     rels = []
     if projective:
         rels.append(prod(F.gen(i) for i in range(d)))
-    braidscomputed = braid_in_segment([(g, seg[0], seg[1]) for seg in segs])
+    gfac = g.factor()
+    braidscomputed = braid_in_segment([(gfac, seg[0], seg[1]) for seg in segs])
     for braidcomputed in braidscomputed:
         seg = (braidcomputed[0][0][1], braidcomputed[0][0][2])
         b = braidcomputed[1]

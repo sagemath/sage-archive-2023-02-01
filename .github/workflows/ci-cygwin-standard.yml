@@ -39,6 +39,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -97,6 +99,8 @@ jobs:
       matrix:
         pkgs: [standard]
     steps:
+    - run: |
+        cat /proc/cpuinfo
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
@@ -161,6 +165,8 @@ jobs:
       matrix:
         pkgs: [standard]
     steps:
+    - run: |
+        cat /proc/cpuinfo
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
@@ -231,6 +237,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -297,6 +305,8 @@ jobs:
       matrix:
         pkgs: [standard]
     steps:
+    - run: |
+        cat /proc/cpuinfo
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
@@ -365,6 +375,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -431,6 +443,8 @@ jobs:
       matrix:
         pkgs: [standard]
     steps:
+    - run: |
+        cat /proc/cpuinfo
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
@@ -503,6 +517,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -573,6 +589,8 @@ jobs:
       matrix:
         pkgs: [standard]
     steps:
+    - run: |
+        cat /proc/cpuinfo
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
@@ -645,6 +663,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -714,6 +734,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -780,6 +802,8 @@ jobs:
       matrix:
         pkgs: [standard]
     steps:
+    - run: |
+        cat /proc/cpuinfo
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
@@ -848,6 +872,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -915,6 +941,8 @@ jobs:
         pkgs: [standard]
     steps:
     - run: |
+        cat /proc/cpuinfo
+    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -981,6 +1009,8 @@ jobs:
       matrix:
         pkgs: [standard]
     steps:
+    - run: |
+        cat /proc/cpuinfo
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true

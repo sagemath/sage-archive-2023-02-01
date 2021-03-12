@@ -36,8 +36,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -49,6 +47,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -97,8 +96,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -110,6 +107,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -163,8 +161,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -183,6 +179,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -234,8 +231,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -254,6 +249,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -303,8 +299,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -323,6 +317,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -372,8 +367,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -392,6 +385,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -441,8 +435,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -461,6 +453,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -514,8 +507,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -534,6 +525,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -587,8 +579,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -607,6 +597,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -660,8 +651,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -680,6 +669,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -731,8 +721,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -751,6 +739,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -800,8 +789,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -820,6 +807,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -869,8 +857,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -889,6 +875,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -938,8 +925,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -958,6 +943,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -1007,8 +993,6 @@ jobs:
         pkgs: [minimal]
     steps:
     - run: |
-        cat /proc/cpuinfo
-    - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
     - uses: actions/checkout@v1
@@ -1027,6 +1011,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact

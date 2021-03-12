@@ -424,6 +424,14 @@ AC_ARG_ENABLE([notebook],
     done
   ])
 
+AC_ARG_ENABLE([r],
+  AS_HELP_STRING([--disable-r],
+                 [disable build of the R package and related packages]), [
+    for pkg in r rpy2 r_jupyter; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
 SAGE_SPKG_COLLECT()
 
 dnl AC_CONFIG_HEADERS([config.h])

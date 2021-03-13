@@ -383,13 +383,11 @@ class FusionRing(WeylCharacterRing):
 
             sage: F41 = FusionRing("F4",1)
             sage: F41.test_braid_representation()
-
             sage: B22 = FusionRing("B2",2)             # long time
             sage: B22.test_braid_representation()      # long time (~45s)
         """
         if not self.is_multiplicity_free(): # Braid group representation is not available if self is not multiplicity free
            return True
-        print ("test_braid_representation:%s"%self)
         tester = self._tester(**options)
         b = self.basis()
         #Test with different numbers of strands
@@ -531,12 +529,12 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A14 = FusionRing("A1",4)
-            sage: w = A14.get_order(); w
-            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
-            sage: A14.set_order([w[k] for k in [0,4,1,3,2]])
-            sage: [A14(x) for x in A14.get_order()]
-            [A14(0), A14(4), A14(1), A14(3), A14(2)]
+            sage: A15 = FusionRing("A1",5)
+            sage: w = A15.get_order(); w
+            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2), (5/2, -5/2)]
+            sage: A15.set_order([w[k] for k in [0,4,1,3,5,2]])
+            sage: [A15(x) for x in A15.get_order()]
+            [A15(0), A15(4), A15(1), A15(3), A15(5), A15(2)]
 
         .. WARNING::
 
@@ -1069,7 +1067,7 @@ class FusionRing(WeylCharacterRing):
 
         Given a simple object in the fusion category, here called
         ``fusing_anyon`` allowing the universal R-matrix to act on adjacent
-        pairs in the fusion of ``n_strands`` copies of ``fusing_anyon`` 
+        pairs in the fusion of ``n_strands`` copies of ``fusing_anyon``
         produces an action of the braid group. This representation can
         be decomposed over another anyon, here called ``total_charge_anyon``.
         See [CHW2015]_.
@@ -1092,9 +1090,11 @@ class FusionRing(WeylCharacterRing):
         EXAMPLES::
 
             sage: A14 = FusionRing("A1",4)
+            sage: A14.get_order()
+            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
             sage: A14.fusion_labels(["one","two","three","four","five"],inject_variables=True)
-            sage: A14.basis()
-            Finite family {(0, 0): one, (1/2, -1/2): two, (1, -1): three, (3/2, -3/2): four, (2, -2): five}
+            sage: [A14(x) for x in A14.get_order()]
+            [one, two, three, four, five]
             sage: two ** 5
             5*two + 4*four
             sage: comp_basis, sig = A14.get_braid_generators(two,two,5,verbose=False)
@@ -1102,6 +1102,7 @@ class FusionRing(WeylCharacterRing):
             True
             sage: len(comp_basis) == 5
             True
+
         """
         assert n_strands > 2, "The number of strands must be an integer greater than 2"
         #Construct associated FMatrix object and solve for F-symbols

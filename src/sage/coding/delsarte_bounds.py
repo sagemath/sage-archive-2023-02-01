@@ -149,10 +149,12 @@ def eberlein(n, k, l, x, check=True, inef=False):
     from sage.arith.srange import srange
 
     # TODO: include these with check?, check whether these constraints are
-    # actually essential or we can have binmials==0
+    # actually essential or we can have binomials==0
+    """
     if not (k>=0 and l-n-x>k and n-x>k) and not inef:
         print("Wrong Arguments: n={}, k={}, l={}, x={}".format(n,k,l,x))
-        return -1
+        raise ValueError('In Eberlein polynomial')
+    """
 
     if inef:
         return sum([(-1)**j*binomial(x,j)*binomial(n-x,k-j)*binomial(l-n-x,k-j)
@@ -248,14 +250,20 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
     A = p.new_variable(integer=isinteger, nonnegative=True)
     p.set_objective(sum([A[2*r] for r in range(d/2,w+1)])+1)
+    # below (commented out) constraints are useless, will delete!
     # p.add_constraint(A[0]==1)
-    for j in range(d/2,w+1):
-        if j<d or 2*w<j: p.add_constraint(A[j]==0)
+    # for j in range(d/2,w+1):
+    #    if j<d or 2*w<j: p.add_constraint(A[j]==0)
+    def _q(i,k):
+        mu_i = (n-2*i+1)*binomial(n,i)/(n-i+1)
+        v_k = binomial(w,k)*binomial(n-w,k)
+        return mu_i*eberlein(w,k,n,i,inef=True)/v_k
+
     for k in range(1,w+1): # could be range(d/2,n+1)
         # could make more efficient calculation of the binomials in the future
         # by keeping track of the divisor
-        p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k, inef=True)
-            / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
+        p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k, inef=True) / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
+        # p.add_constraint(sum([A[2*i]*_q(i,k) for i in range(d/2,w+1)]),min=-1)
     p.show()
     return A, p
 

@@ -14,6 +14,8 @@ from sage.rings.polynomial.polydict cimport ETuple
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.rational_field import QQ
 
+from sage.arith.functions cimport LCM_list
+
 #Pre-compute common values for speed
 one = QQ.one()
 degrevlex_sortkey = TermOrder().sortkey_degrevlex
@@ -179,7 +181,7 @@ cpdef list variables(tuple eq_tup):
     EXAMPLES::
 
       sage: from sage.combinat.root_system.poly_tup_engine import variables
-      sage: from sage.rings.polynomial.polydict import ETuple 
+      sage: from sage.rings.polynomial.polydict import ETuple
       sage: poly_tup = ((ETuple([0,3,0]),2), (ETuple([0,1,0]),-1), (ETuple([0,0,0]),-2/3))
       sage: variables(poly_tup)
       [1]
@@ -323,7 +325,8 @@ cdef tuple to_monic(dict eq_dict):
     cdef ETuple lm = ord_monoms[-1]
     lc = eq_dict[lm]
     if not lc: return tuple()
-    cdef list ret = [(lm, one)]
+    # cdef list ret = [(lm, one)]
+    cdef list ret = [(lm, lc.parent().one())]
     inv_lc = lc.inverse_of_unit()
     cdef ETuple exp
     for exp in reversed(ord_monoms[:-1]):
@@ -337,6 +340,31 @@ cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq):
     """
     if not eq_dict: return tuple()
     return to_monic(remove_gcf(subs_squares(eq_dict, known_sq), nonz))
+
+# cdef int common_denom(tuple eq_tup):
+#     #Compute the common denominator
+#     cdef list denoms = list()
+#     cdef int common_denom
+#     cdef ETuple exp
+#     for exp, c in eq_tup:
+#         denoms.append(c.denominator())
+#     return LCM_list(denoms)
+#
+# cdef tuple integralify(tuple eq_tup):
+#     if not eq_tup: return tuple()
+#     cdef list ret = list()
+#     cdef int cd = common_denom(eq_tup)
+#     for exp, c in eq_tup:
+#         ret.append((exp, c * cd))
+#     return tuple(ret)
+#
+# cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq):
+#     """
+#     Return a dictionary describing a monic polynomial with no known nonzero gcd and
+#     no known squares
+#     """
+#     if not eq_dict: return tuple()
+#     return integralify(to_monic(remove_gcf(subs_squares(eq_dict, known_sq), nonz)))
 
 ####################
 ### Substitution ###
@@ -410,7 +438,8 @@ cpdef dict subs(tuple poly_tup, dict known_powers):
     cdef tuple temp
     for exp, coeff in poly_tup:
         #Get polynomial unit as tuple
-        temp = ((exp._new(), one),)
+        # temp = ((exp._new(), one),)
+        temp = ((exp._new(), coeff.parent().one()),)
         for var_idx, power in exp.sparse_iter():
             if var_idx in known_powers:
                 exp = exp.eadd_p(-power,var_idx)

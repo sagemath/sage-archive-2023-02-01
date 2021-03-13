@@ -370,7 +370,46 @@ class FusionRing(WeylCharacterRing):
         tester = self._tester(**options)
         tqo = self.total_q_order(base_coercion=False)
         tester.assertTrue(tqo.is_real_positive())
-        tester.assertEqual(tqo**2, self.global_q_dimension())
+        tester.assertEqual(tqo**2, self.global_q_dimension(base_coercion=False))
+
+    def test_braid_representation(self, **options):
+        """
+        Check that we can compute valid braid group representations.
+
+        This test indirectly partially verifies the correctness of the orthogonal
+        F-matrix solver.
+
+        EXAMPLES::
+
+            sage: F41 = FusionRing("F4",1)
+            sage: F41.test_braid_representation()
+
+            sage: B22 = FusionRing("B2",2)             # long time
+            sage: B22.test_braid_representation()      # long time (~45s)
+        """
+        if not self.is_multiplicity_free(): # Braid group representation is not available if self is not multiplicity free
+           return True
+        print ("test_braid_representation:%s"%self)
+        tester = self._tester(**options)
+        b = self.basis()
+        #Test with different numbers of strands
+        for n_strands in range(3,7):
+            #Randomly select a fusing anyon. Skip the identity element, since
+            #its braiding matrices are trivial
+            while True:
+                a = b.random_element()
+                if a != self.one():
+                    break
+            pow = a ** n_strands
+            d = pow.monomials()[0]
+            #Try to find 'interesting' braid group reps i.e. skip 1-d reps
+            for k, v in pow.monomial_coefficients().items():
+                if v > 1:
+                    d = self(k)
+                break
+            comp_basis, sig = self.get_braid_generators(a,d,n_strands,verbose=False)
+            tester.assertTrue(len(comp_basis) > 0)
+            tester.assertTrue(self.gens_satisfy_braid_gp_rels(sig))
 
     def fusion_labels(self, labels=None, inject_variables=False):
         r"""
@@ -1016,16 +1055,58 @@ class FusionRing(WeylCharacterRing):
             results = list(results)
         return results
 
-    def get_braid_generators(self,fusing_anyon,total_topological_charge,n_strands,use_mp=True):
+    def get_braid_generators(self,fusing_anyon,total_charge_anyon,n_strands,use_mp=True,verbose=True):
         """
+        INPUT:
+
         Compute generators of the Artin braid group on n_strands strands. If
-        fusing_anyon = a and total_topological_charge = b, the generators are
+        fusing_anyon = a and total_charge_anyon = b, the generators are
         endomorphisms of Hom(a^n_strands, b)
+
+        - ``fusing_anyon`` -- a basis element of self
+        - ``total_charge_anyon`` -- a basis element of self
+        - ``n_strands`` -- a positive integer greater than 2
+
+        Given a simple object in the fusion category, here called
+        ``fusing_anyon`` allowing the universal R-matrix to act on adjacent
+        pairs in the fusion of ``n_strands`` copies of ``fusing_anyon`` 
+        produces an action of the braid group. This representation can
+        be decomposed over another anyon, here called ``total_charge_anyon``.
+        See [CHW2015]_.
+
+        The method outputs a pair of data ``(comp_basis,sig)`` where
+        ``comp_basis`` is a list of basis elements of the braid group
+        module, parametrized by a list of fusion ring elements describing
+        a fusion tree. For example with 5 strands the fusion tree
+        is as follows::
+
+        .. image:: ../../../media/fusiontree.png
+
+        ``sig`` is a list of braid group generators as matrices. In
+        some cases these will be represented as sparse matrices.
+
+        In the following example we compute a 5-dimensional braid group
+        representation on 5 strands associated to the spin representation in the
+        modular tensor category `SU(2)_4 \cong SO(3)_2`.
+
+        EXAMPLES::
+
+            sage: A14 = FusionRing("A1",4)
+            sage: A14.fusion_labels(["one","two","three","four","five"],inject_variables=True)
+            sage: A14.basis()
+            Finite family {(0, 0): one, (1/2, -1/2): two, (1, -1): three, (3/2, -3/2): four, (2, -2): five}
+            sage: two ** 5
+            5*two + 4*four
+            sage: comp_basis, sig = A14.get_braid_generators(two,two,5,verbose=False)
+            sage: A14.gens_satisfy_braid_gp_rels(sig)
+            True
+            sage: len(comp_basis) == 5
+            True
         """
         assert n_strands > 2, "The number of strands must be an integer greater than 2"
         #Construct associated FMatrix object and solve for F-symbols
         if not self.fmats.symbols_known:
-            self.fmats.find_real_orthogonal_solution()
+            self.fmats.find_orthogonal_solution(verbose=verbose)
 
         #Set multiprocessing parameters. Context can only be set once, so we try to set it
         try:
@@ -1035,141 +1116,11 @@ class FusionRing(WeylCharacterRing):
         pool = Pool() if use_mp else None
 
         #Set up computational basis and compute generators one at a time
-        a, b = fusing_anyon, total_topological_charge
+        a, b = fusing_anyon, total_charge_anyon
         comp_basis = self.get_comp_basis(a,b,n_strands)
         d = len(comp_basis)
-        print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d,n_strands))
-
-        #Compute diagonal odd-indexed generators using the 3j-symbols
-        phi = self.fmats.get_coerce_map_from_fr_cyclotomic_field()
-        gens = { 2*i+1 : diagonal_matrix(phi(self.r_matrix(a,a,c[i])) for c in comp_basis) for i in range(n_strands//2) }
-
-        #Compute even-indexed generators using F-matrices
-        for k in range(1,n_strands//2):
-            entries = self.emap('sig_2k',(k,a,b,n_strands),pool)
-            gens[2*k] = matrix(dict(entries))
-
-        #If n_strands is odd, we compute the final generator
-        if n_strands % 2:
-            entries = self.emap('odd_one_out',(a,b,n_strands),pool)
-            gens[n_strands-1] = matrix(dict(entries))
-
-        return comp_basis, [gens[k] for k in sorted(gens)]
-
-    def gens_satisfy_braid_gp_rels(self,sig):
-        """
-        Determine if given iterable of n matrices defines a representation of
-        the Artin braid group on (n+1) strands. Tests correctness of
-        get_braid_generators method.
-        """
-        n = len(sig)
-        braid_rels = all(sig[i] * sig[i+1] * sig[i] == sig[i+1] * sig[i] * sig[i+1] for i in range(n-1))
-        far_comm = all(sig[i] * sig[j] == sig[j] * sig[i] for i, j in product(range(n),repeat=2) if abs(i-j) > 1 and i > j)
-        singular = any(s.is_singular() for s in sig)
-        return braid_rels and far_comm and not singular
-
-    ###################################
-    ### Braid group representations ###
-    ###################################
-
-    def get_trees(self,top_row,root):
-        """
-        Recursively enumerate all the admissible trees with given top row and root.
-        Returns a list of tuples (l1,...,lk) such that
-        root -> lk # m[-1], lk -> l_{k-1} # m[-2], ..., l1 -> m[0] # m[1],
-        with top_row = m
-        """
-        if len(top_row) == 2:
-            m1, m2 = top_row
-            return [[]] if self.Nk_ij(m1,m2,root) else []
-        else:
-            m1, m2 = top_row[:2]
-            return [tuple([l,*b]) for l in self.basis() for b in self.get_trees([l]+top_row[2:],root) if self.Nk_ij(m1,m2,l)]
-
-    def get_comp_basis(self,a,b,n_strands):
-        """
-        Get the so-called computational basis for Hom(b, a^n). The basis is a list of
-        (n-2)-tuples (m_1,...,m_{n//2},l_1,...,l_{(n-3)//2}) such that
-        each m_i is a monomial in a^2 and l_{j+1} \in l_j # a, and l[-1] \in a # b
-        """
-        comp_basis = list()
-        for top in product((a*a).monomials(),repeat=n_strands//2):
-            #If the n_strands is odd, we must extend the top row by a fusing anyon
-            top_row = list(top)+[a]*(n_strands%2)
-            comp_basis.extend(tuple([*top,*levels]) for levels in self.get_trees(top_row,b))
-        return comp_basis
-
-    @lazy_attribute
-    def fmats(self):
-        """
-        Construct an FMatrix factory to solve the pentagon relations and
-        organize the resulting F-symbols. We only need this attribute to compute
-        braid group representations.
-        """
-        return FMatrix.FMatrix(self)
-
-    def emap(self,mapper,input_args,worker_pool=None):
-        """
-        Apply the given mapper to each element of the given input iterable and
-        return the results (with no duplicates) in a list. This method applies the
-        mapper in parallel if a worker_pool is provided.
-
-        # INPUT:
-        mapper is a string specifying the name of a function defined in the
-        fast_parallel_fmats_methods module.
-
-        input_args should be a tuple holding arguments to be passed to mapper
-
-        ##NOTES:
-        If worker_pool is not provided, function maps and reduces on a single process.
-        If worker_pool is provided, the function attempts to determine whether it should
-        use multiprocessing based on the length of the input iterable. If it can't determine
-        the length of the input iterable then it uses multiprocessing with the default chunksize of 1
-        if chunksize is not explicitly provided.
-        """
-        n_proc = worker_pool._processes if worker_pool is not None else 1
-        input_iter = [(child_id, n_proc, input_args) for child_id in range(n_proc)]
-        no_mp = worker_pool is None
-        #Map phase. Casting Async Object blocks execution... Each process holds results
-        #in its copy of fmats.temp_eqns
-        input_iter = zip_longest([],input_iter,fillvalue=(mapper,id(self)))
-        if no_mp:
-            list(map(executor,input_iter))
-        else:
-            list(worker_pool.imap_unordered(executor,input_iter,chunksize=1))
-        #Reduce phase
-        if no_mp:
-            results = collect_results(0)
-        else:
-            results = set()
-            for worker_results in worker_pool.imap_unordered(collect_results,range(worker_pool._processes),chunksize=1):
-                results.update(worker_results)
-            results = list(results)
-        return results
-
-    def get_braid_generators(self,fusing_anyon,total_topological_charge,n_strands,use_mp=True):
-        """
-        Compute generators of the Artin braid group on n_strands strands. If
-        fusing_anyon = a and total_topological_charge = b, the generators are
-        endomorphisms of Hom(a^n_strands, b)
-        """
-        assert n_strands > 2, "The number of strands must be an integer greater than 2"
-        #Construct associated FMatrix object and solve for F-symbols
-        if not self.fmats.symbols_known:
-            self.fmats.find_real_orthogonal_solution()
-
-        #Set multiprocessing parameters. Context can only be set once, so we try to set it
-        try:
-            set_start_method('fork')
-        except RuntimeError:
-            pass
-        pool = Pool() if use_mp else None
-
-        #Set up computational basis and compute generators one at a time
-        a, b = fusing_anyon, total_topological_charge
-        comp_basis = self.get_comp_basis(a,b,n_strands)
-        d = len(comp_basis)
-        print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d,n_strands))
+        if verbose:
+            print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d,n_strands))
 
         #Compute diagonal odd-indexed generators using the 3j-symbols
         gens = { 2*i+1 : diagonal_matrix(self.r_matrix(a,a,c[i]) for c in comp_basis) for i in range(n_strands//2) }
@@ -1191,6 +1142,10 @@ class FusionRing(WeylCharacterRing):
         Determine if given iterable of n matrices defines a representation of
         the Artin braid group on (n+1) strands. Tests correctness of
         get_braid_generators method.
+
+        EXAMPLES::
+
+
         """
         n = len(sig)
         braid_rels = all(sig[i] * sig[i+1] * sig[i] == sig[i+1] * sig[i] * sig[i+1] for i in range(n-1))

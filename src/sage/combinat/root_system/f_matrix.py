@@ -227,7 +227,7 @@ class FMatrix():
 
     EXAMPLES::
 
-        (B3 level 2, F4 level 1 conjugated)
+
 
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -263,7 +263,6 @@ class FMatrix():
 
         #Multiprocessing attributes
         self.mp_thresh = 10000
-
 
     #######################
     ### Class utilities ###
@@ -1027,7 +1026,8 @@ class FMatrix():
         except RuntimeError:
             pass
         pool = Pool(processes=max(cpu_count()-1,1)) if use_mp else None
-        print("Computing F-symbols for {} with {} variables...".format(self._FR, len(self._fvars)))
+        if verbose:
+            print("Computing F-symbols for {} with {} variables...".format(self._FR, len(self._fvars)))
 
         #Set up hexagon equations and orthogonality constraints
         poly_sortkey = cmp_to_key(poly_tup_cmp)
@@ -1037,8 +1037,7 @@ class FMatrix():
             print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
 
         #Set up equations graph. Find GB for each component in parallel. Eliminate variables
-        self.ideal_basis = sorted(self.par_graph_gb(worker_pool=pool), key=poly_sortkey)
-        print("GB is of length",len(self.ideal_basis))
+        self.ideal_basis = sorted(self.par_graph_gb(worker_pool=pool,verbose=verbose), key=poly_sortkey)
         self.triangular_elim(worker_pool=pool,verbose=verbose)
 
         #Report progress and checkpoint!
@@ -1066,7 +1065,7 @@ class FMatrix():
         if pool is not None: pool.close()
 
         #Set up new equations graph and compute variety for each component
-        self.ideal_basis = sorted(self.par_graph_gb(term_order="lex"), key=poly_sortkey)
+        self.ideal_basis = sorted(self.par_graph_gb(term_order="lex",verbose=verbose), key=poly_sortkey)
         self.triangular_elim(verbose=verbose)
         self.get_explicit_solution(verbose=verbose)
         self.save_fvars(filename)
@@ -1191,8 +1190,8 @@ class FMatrix():
         After you successfully run ``get_solution`` you may check
         the correctness of the F-matrix by running :meth:`hexagon`
         and :meth:`pentagon`. These should return empty lists
-        of equations. 
-        
+        of equations.
+
         EXAMPLES::
 
             sage: f.get_defining_equations("hexagons")

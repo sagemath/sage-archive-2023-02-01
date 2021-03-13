@@ -67,6 +67,9 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
     in the tree b -> xi # yi -> (a # a) # (a # a), which results in a sum over j
     of trees b -> xj # yj -> (a # a) # (a # a)
 
+    ..warning:
+        This method assumes F-matrices are orthogonal
+
     EXAMPLES::
 
         sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import mid_sig_ij
@@ -87,7 +90,6 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
     xi, yi = row
     xj, yj = col
     entry = 0
-    phi = fusion_ring.fmats.get_coerce_map_from_fr_cyclotomic_field()
     for c in fusion_ring.basis():
         for d in fusion_ring.basis():
             ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
@@ -96,8 +98,6 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
             f3 = _fmat(_fvars,_Nk_ij,one,a,a,a,c,d,yj)
             f4 = _fmat(_fvars,_Nk_ij,one,a,a,yj,b,xj,c)
             r = fusion_ring.r_matrix(a,a,d)
-            if not phi.is_identity():
-                r = phi(r)
             entry += f1 * f2 * r * f3 * f4
     return entry
 
@@ -106,6 +106,9 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     Compute the xi, xj entry of the braid generator on the right-most strands,
     corresponding to the tree b -> (xi # a) -> (a # a) # a, which results in a
     sum over j of trees b -> xj -> (a # a) # (a # a)
+
+    ..warning:
+        This method assumes F-matrices are orthogonal
 
     EXAMPLES::
 
@@ -124,15 +127,12 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
-    phi = fusion_ring.fmats.get_coerce_map_from_fr_cyclotomic_field()
     entry = 0
     for c in fusion_ring.basis():
         ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
         f1 = _fmat(_fvars,_Nk_ij,one,a,a,a,b,xi,c)
         f2 = _fmat(_fvars,_Nk_ij,one,a,a,a,b,xj,c)
         r = fusion_ring.r_matrix(a,a,c)
-        if not phi.is_identity():
-            r = phi(r)
         entry += f1 * r * f2
     return entry
 

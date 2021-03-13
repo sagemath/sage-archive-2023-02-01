@@ -1725,6 +1725,8 @@ REFERENCES:
 .. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
             curves. preprint, 2005.
 
+.. [CHW2015] Shawn X.; Hong, Seung-Moon; Wang, Zhenghan Universal quantum computation 
+            with weakly integral anyons. Quantum Inf. Process. 14 (2015), no. 8, 2687–2727. 
 .. _ref-D:
 
 **D**

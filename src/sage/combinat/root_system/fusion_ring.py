@@ -951,9 +951,10 @@ class FusionRing(WeylCharacterRing):
 
     def is_multiplicity_free(self):
         """
-        Return ``True`` if the fusion multiplicities
+        Return True if the fusion multiplicities
         :meth:`Nk_ij` are bounded by 1. The :class:`FMatrix`
-        is available only for multiplicity free :class:`FusionRing`s.
+        is available only for multiplicity free instances of
+        :class:`FusionRing`.
 
         EXAMPLES::
 
@@ -1140,13 +1141,20 @@ class FusionRing(WeylCharacterRing):
 
     def gens_satisfy_braid_gp_rels(self,sig):
         """
-        Determine if given iterable of n matrices defines a representation of
-        the Artin braid group on (n+1) strands. Tests correctness of
+        Return True if the matrices in the list ``sig`` satisfy
+        the braid relations. This if `n` is the cardinality of ``sig``, this
+        confirms that these matrices define a representation of
+        the Artin braid group on `n+1` strands.Tests correctness of
         get_braid_generators method.
 
         EXAMPLES::
 
-
+            sage: F41 = FusionRing("F4",1,fusion_labels="f",inject_variables=True)
+            sage: f1*f1
+            f0 + f1
+            sage: comp, sig = F41.get_braid_generators(f1,f0,4,verbose=False)
+            sage: F41.gens_satisfy_braid_gp_rels(sig)
+            True
         """
         n = len(sig)
         braid_rels = all(sig[i] * sig[i+1] * sig[i] == sig[i+1] * sig[i] * sig[i+1] for i in range(n-1))

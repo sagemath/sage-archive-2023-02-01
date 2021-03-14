@@ -135,7 +135,7 @@ case $system:$command in
         [ -n "$system_packages" ] && print_shell_command "${SUDO}slackpkg install $system_packages"
         ;;
     cygwin*:update)
-        print_commment "first install apt-cyg from https://github.com/transcode-open/apt-cyg"
+        print_comment "first install apt-cyg from https://github.com/transcode-open/apt-cyg"
         ;;
     cygwin*:install)
         [ -n "$system_packages" ] && print_shell_command "apt-cyg install $system_packages"

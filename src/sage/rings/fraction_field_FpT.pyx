@@ -1,4 +1,8 @@
-# distutils: libraries = gmp ntl zn_poly
+# distutils: libraries = gmp NTL_LIBRARIES zn_poly
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 "Univariate rational functions over prime fields"
 

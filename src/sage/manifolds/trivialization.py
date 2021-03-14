@@ -733,7 +733,7 @@ class TransitionMap(SageObject):
 
     def __ne__(self, other):
         r"""
-        Unequality operator.
+        Non-equality operator.
 
         TESTS::
 

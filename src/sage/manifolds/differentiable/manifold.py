@@ -952,7 +952,7 @@ class DifferentiableManifold(TopologicalManifold):
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name)
 
-    def diffeomorphism(self, codomain, coord_functions=None, chart1=None,
+    def diffeomorphism(self, codomain=None, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
         r"""
         Define a diffeomorphism between the current manifold and another one.
@@ -962,8 +962,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
-        - ``codomain`` -- codomain of the diffeomorphism (the arrival manifold
-          or some subset of it)
+        - ``codomain`` -- (default: ``None``) codomain of the diffeomorphism (the arrival manifold
+          or some subset of it). If ``None``, the current manifold is taken.
         - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
           either
 
@@ -1030,6 +1030,9 @@ class DifferentiableManifold(TopologicalManifold):
         examples.
 
         """
+        if codomain is None:
+            codomain = self
+
         homset = Hom(self, codomain)
         if coord_functions is None:
             coord_functions = {}
@@ -3073,7 +3076,7 @@ class DifferentiableManifold(TopologicalManifold):
             Vector field f_0 on the 2-dimensional differentiable manifold M
 
         Thanks to the keywords ``dest_map`` and ``from_frame``, one can also
-        define a vector frame from one prexisting on another manifold, via a
+        define a vector frame from one preexisting on another manifold, via a
         differentiable map (here provided by the curve ``c``)::
 
             sage: fc = I.vector_frame(dest_map=c, from_frame=f); fc

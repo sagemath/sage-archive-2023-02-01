@@ -1,8 +1,9 @@
-# distutils: extra_compile_args = -D_XPG6 M4RI_CFLAGS
-# distutils: libraries = iml ntl m CBLAS_LIBRARIES
-# distutils: library_dirs = CBLAS_LIBDIR
-# distutils: include_dirs = M4RI_INCDIR CBLAS_INCDIR
-
+# distutils: extra_compile_args = -D_XPG6 NTL_CFLAGS M4RI_CFLAGS
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: libraries = iml NTL_LIBRARIES m CBLAS_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR CBLAS_LIBDIR
+# distutils: include_dirs = NTL_INCDIR M4RI_INCDIR CBLAS_INCDIR
+# distutils: language = c++
 """
 Dense matrices over the rational field
 

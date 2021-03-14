@@ -1099,6 +1099,24 @@ class RationalField(Singleton, number_field_base.NumberField):
         from sage.rings.infinity import Infinity
         return Infinity
 
+    def polynomial(self):
+        r"""Return a defining polynomial of `\QQ`, as for other number fields.
+
+        This is is also aliased to :meth:`self.defining_polynomial()`
+        and :meth:`self.absolute_polynomial()`.
+
+        EXAMPLES::
+
+            sage: QQ.polynomial()
+            x
+
+        """
+        from sage.rings.polynomial.polynomial_ring import polygen
+        return polygen(self)
+
+    defining_polynomial = polynomial
+    absolute_polynomial = polynomial
+
     def _an_element_(self):
         r"""
         Return an element of `\QQ`.

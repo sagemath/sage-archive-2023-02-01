@@ -2207,7 +2207,7 @@ class Permutation(CombinatorialElement):
         r"""
         Return the list of the longest increasing subsequences of ``self``
         
-        A theorem of Schensted ([Sch1961]) states that an increasing
+        A theorem of Schensted ([Sch1961_]) states that an increasing
         subsequence of length `i` ends with the value entered in the `i`-th
         column of the p-tableau. The algorithm records which column of the
         p-tableau each value of the permutation is entered into, and
@@ -2225,7 +2225,7 @@ class Permutation(CombinatorialElement):
     
         def is_subsequence_of(seq, self):
             r"""
-            Returns whether seq1 is a subsequence of permutation ``self``
+            Returns whether seq is a subsequence of permutation ``self``
             """
         
             j = 0
@@ -2250,7 +2250,7 @@ class Permutation(CombinatorialElement):
                     first_row_p_tableau[j] = self[i]
                     column.append(j)
                     inserted = True
-                j = j+1
+                j += 1
             if not inserted:
                 first_row_p_tableau.append(self[i])
                 column.append(j)
@@ -2263,8 +2263,7 @@ class Permutation(CombinatorialElement):
     
         # getting the increasing sequences
         import itertools
-        potential_sequences = list(itertools.product(*s))
-        for seq in potential_sequences:
+        for seq in itertools.product(*s):
             seq = list(seq)
             if seq == sorted(seq) and is_subsequence_of(seq, self):
                 increasing_sequences.append(seq)

@@ -982,9 +982,27 @@ class FusionRing(WeylCharacterRing):
     def get_trees(self,top_row,root):
         """
         Recursively enumerate all the admissible trees with given top row and root.
-        Returns a list of tuples (l1,...,lk) such that
-        root -> lk # m[-1], lk -> l_{k-1} # m[-2], ..., l1 -> m[0] # m[1],
-        with top_row = m
+
+        INPUT:
+
+        - ``top_row`` -- a list of basis elements of self
+        - ``root`` -- a simple element of self
+
+        Let `k` denote the length ``top_row``. This method returns
+        Returns a list of tuples `(l_1,...,l_{k-2})` such that
+
+        .. MATH::
+
+            \begin{array}{l}
+            root \righthookarrow l_{k-2} \otimes m_{k},\\
+            l_{k-2} \righthookarrow l_{k-3} \otimes m_{k-1},\\
+            \vdots\\
+            l_2\righthookarrow l_1\otimes m_3\\
+            l_1\righthookarrow m_1\otimes m_2
+            \end{array}
+
+        where `a\righthookarrow b\otimes c` means `N_{bc}^a\neq 0`.
+
         """
         if len(top_row) == 2:
             m1, m2 = top_row
@@ -995,9 +1013,29 @@ class FusionRing(WeylCharacterRing):
 
     def get_comp_basis(self,a,b,n_strands):
         """
-        Get the so-called computational basis for Hom(b, a^n). The basis is a list of
-        (n-2)-tuples (m_1,...,m_{n//2},l_1,...,l_{(n-3)//2}) such that
-        each m_i is a monomial in a^2 and l_{j+1} \in l_j # a, and l[-1] \in a # b
+        Return the so-called computational basis for `\text{Hom}(b, a^n)`. 
+
+        INPUT:
+
+        - ``a`` -- a basis element
+        - ``b`` -- another basis elements
+        - ``n_strands`` -- the number of strands for a braid group
+
+        Let `n=` ``n_strands`` and let `k` be the greatest integer `\leqslant n/2`.
+        The braid group acts on ``\text{Hom}(b,a^n)``. This action
+        is computed in :meth:`get_braid_generators`. This method
+        returns the computational basis in the form of a set of
+        fusion trees. Each tree is represented by a `(n-2)`-tuple
+
+        .. MATH::
+
+            (m_1,\cdots,m_k,l_1,\cdots,l_{k-2})
+
+        These are computed by :meth:`get_trees`. As a computational
+        device when ``n_strands`` is odd, we pad the vector `(m_1,\cdots,m_k)` 
+        with an additional `m_{k+1}` equal to `a` before passing it to
+        :meth:`get_trees`. This `m_{k+1}` does not appear in the output
+        of this method.
         """
         comp_basis = list()
         for top in product((a*a).monomials(),repeat=n_strands//2):

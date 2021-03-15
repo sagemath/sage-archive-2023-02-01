@@ -710,13 +710,13 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
-            sage: pd = I.complete_primary_decomposition(); sorted(pd)
-            [(Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
-              Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field),
-             (Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field,
-              Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
+            sage: pd = I.complete_primary_decomposition(); sorted(pd, key=str)
+            [(Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field,
+              Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field),
+             (Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
+              Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
 
-            sage: pdc = I.primary_decomposition_complete(algorithm = 'gtz'); sorted(pdc)
+            sage: pdc = I.primary_decomposition_complete(algorithm = 'gtz'); sorted(pdc, key=str)
             [(Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
               Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field),
              (Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
@@ -822,9 +822,9 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
-            sage: pd = I.primary_decomposition(); sorted(pd)
-            [Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
-             Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field]
+            sage: pd = I.primary_decomposition(); sorted(pd, key=str)
+            [Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field,
+             Ideal (z^6 + 4*z^3 + 4, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field]
 
         ::
 
@@ -894,9 +894,9 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y,z> = PolynomialRing(QQ, 3, order='lex')
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
-            sage: pd = I.associated_primes(); sorted(pd)
-            [Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
-             Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field]
+            sage: pd = I.associated_primes(); sorted(pd, key=str)
+            [Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field,
+             Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM:
 
@@ -1616,9 +1616,9 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y,z> = PolynomialRing(QQ, 3, 'xyz')
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
-            sage: sorted(I.minimal_associated_primes())
-            [Ideal (z^3 + 2, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field,
-             Ideal (z^2 + 1, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field]
+            sage: sorted(I.minimal_associated_primes(), key=str)
+            [Ideal (z^2 + 1, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field,
+             Ideal (z^3 + 2, -z^2 + y) of Multivariate Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM:
 

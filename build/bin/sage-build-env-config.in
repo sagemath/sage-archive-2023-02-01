@@ -38,13 +38,6 @@ export CONFIGURED_FCFLAGS="@FCFLAGS@"
 export CONFIGURED_F77FLAGS="@F77FLAGS@"
 export CFLAGS_MARCH="@CFLAGS_MARCH@"
 
-# OpenMP flags, if available.
-export SAGE_HAVE_OPENMP="@SAGE_HAVE_OPENMP@"
-if [ -n "$SAGE_HAVE_OPENMP" ]; then
-    export SAGE_OPENMP_CFLAGS="@OPENMP_CFLAGS@"
-    export SAGE_OPENMP_CXXFLAGS="@OPENMP_CXXFLAGS@"
-fi
-
 # This is usually blank if the system GMP is used, or $SAGE_LOCAL otherwise
 export SAGE_GMP_PREFIX="@SAGE_GMP_PREFIX@"
 export SAGE_GMP_INCLUDE="@SAGE_GMP_INCLUDE@"

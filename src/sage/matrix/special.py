@@ -713,7 +713,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         sage: A.parent()
         Full MatrixSpace of 3 by 3 sparse matrices over Real Double Field
 
-        sage: j = numpy.complex(0,1)
+        sage: j = complex(0,1)
         sage: entries = numpy.array([2.0+j, 8.1, 3.4+2.6*j]); entries
         array([2. +1.j , 8.1+0.j , 3.4+2.6j])
         sage: A = diagonal_matrix(entries); A

@@ -101,7 +101,7 @@ src/sage/modular/arithgroup/farey_symbol.h
 !src/sage/cpython/debugimpl.c
 !src/sage/graphs/base/boost_interface.cpp
 !src/sage/graphs/cliquer/cl.c
-!src/sage/graphs/graph_decompositions/tdlib/sage_tdlib.cpp
+!src/sage/graphs/graph_decompositions/sage_tdlib.cpp
 !src/sage/libs/eclib/wrap.cpp
 !src/sage/misc/inherit_comparison_impl.c
 !src/sage/modular/arithgroup/farey.cpp
@@ -118,6 +118,7 @@ src/sage/modular/arithgroup/farey_symbol.h
 !src/sage/stats/distributions/dgs_bern.c
 !src/sage/stats/distributions/dgs_gauss_dp.c
 !src/sage/stats/distributions/dgs_gauss_mp.c
+/src/cython_debug
 
 # Temporary build files
 build/temp.*/

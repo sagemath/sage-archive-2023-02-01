@@ -227,17 +227,14 @@ sdh_pip_install() {
     sdh_store_and_pip_install_wheel .
 }
 
-sdh_store_and_pip_install_wheel() {
+sdh_store_wheel() {
     if [ -n "$SAGE_DESTDIR" ]; then
         local sudo=""
-        # --no-warn-script-location: Suppress a warning caused by --root
-        local root="--root=$SAGE_DESTDIR --no-warn-script-location"
     else
         local sudo="$SAGE_SUDO"
-        local root=""
     fi
     if [ "$*" != "." ]; then
-        sdh_die "Error: sdh_store_and_pip_install_wheel requires . as only argument"
+        sdh_die "Error: sdh_store_wheel requires . as only argument"
     fi
     wheel=""
     for w in dist/*.whl; do
@@ -252,11 +249,24 @@ sdh_store_and_pip_install_wheel() {
         sdh_die "Error: no wheel found after building"
     fi
 
-    $sudo sage-pip-install $root "$wheel" || \
-        sdh_die "Error installing $wheel"
     mkdir -p "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}" && \
         $sudo mv "$wheel" "${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/" || \
         sdh_die "Error storing $wheel"
+    wheel="${SAGE_DESTDIR}${SAGE_SPKG_WHEELS}/${wheel##*/}"
+}
+
+sdh_store_and_pip_install_wheel() {
+    sdh_store_wheel "$@"
+    if [ -n "$SAGE_DESTDIR" ]; then
+        local sudo=""
+        # --no-warn-script-location: Suppress a warning caused by --root
+        local root="--root=$SAGE_DESTDIR --no-warn-script-location"
+    else
+        local sudo="$SAGE_SUDO"
+        local root=""
+    fi
+    $sudo sage-pip-install $root "$wheel" || \
+        sdh_die "Error installing ${wheel##*/}"
 }
 
 sdh_cmake() {

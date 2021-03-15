@@ -66,7 +66,7 @@ class BezierPath(GraphicPrimitive_xydata):
             vertices += curve
             codes += (len(curve)) * [len(curve)+1]
         self.codes = codes
-        self.vertices = np.array(vertices, np.float)
+        self.vertices = np.array(vertices, float)
         GraphicPrimitive_xydata.__init__(self, options)
 
     def _allowed_options(self):

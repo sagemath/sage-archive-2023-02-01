@@ -107,7 +107,7 @@ def _Sympy_to_SR(expression):
         # sympy abstract function
         a = expression._sage_()
         # As all sage objects have a ._sage_ operator, they have to be
-        # catched
+        # caught
         if type(a) is type(expression):
             raise TypeError
         return a

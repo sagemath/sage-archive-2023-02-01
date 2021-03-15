@@ -306,6 +306,17 @@ see :trac:`11645`::
 
     sage: singular.eval("ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);")
     ''
+
+Verify that :trac:`17720` is fixed::
+
+    sage: R.<p> = QQ[]
+    sage: K.<p> = QQ.extension(p^2 - p - 1)
+    sage: r.<x,z> = K[]
+    sage: I = r.ideal(z)
+    sage: I.primary_decomposition()
+    [Ideal (z) of Multivariate Polynomial Ring in x, z over Number Field in p with defining polynomial p^2 - p - 1]
+    sage: [ J.gens() for J in I.primary_decomposition("gtz")]
+    [[z]]
 """
 
 # ****************************************************************************
@@ -1955,18 +1966,16 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: A.sage(ZZ)   # indirect doctest
             [0 0]
             [0 0]
-            sage: A = random_matrix(ZZ,3,3); A
+            sage: A = random_matrix(ZZ,3,3); A  # random
             [ -8   2   0]
             [  0   1  -1]
             [  2   1 -95]
-            sage: As = singular(A); As
+            sage: As = singular(A); As  # random
             -8     2     0
             0     1    -1
             2     1   -95
-            sage: As.sage()
-            [ -8   2   0]
-            [  0   1  -1]
-            [  2   1 -95]
+            sage: As.sage() == A
+            True
 
         ::
 

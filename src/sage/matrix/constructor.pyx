@@ -457,7 +457,7 @@ def matrix(*args, **kwds):
     Check conversion from numpy::
 
         sage: import numpy
-        sage: n = numpy.array([[numpy.complex(0,1),numpy.complex(0,2)],[3,4]],complex)
+        sage: n = numpy.array([[complex(0,1),complex(0,2)],[3,4]],complex)
         sage: m = matrix(n); m; m.parent()
         [1.0*I 2.0*I]
         [  3.0   4.0]

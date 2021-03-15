@@ -132,12 +132,12 @@ cpdef py_scalar_parent(py_type):
         sage: py_scalar_parent(numpy.uint64)
         Integer Ring
 
-        sage: py_scalar_parent(numpy.float)
+        sage: py_scalar_parent(float)
         Real Double Field
         sage: py_scalar_parent(numpy.double)
         Real Double Field
 
-        sage: py_scalar_parent(numpy.complex)
+        sage: py_scalar_parent(complex)
         Complex Double Field
 
         sage: import gmpy2
@@ -328,7 +328,7 @@ cpdef bint parent_is_integers(P) except -1:
         True
         sage: parent_is_integers(numpy.uint64)
         True
-        sage: parent_is_integers(numpy.float)
+        sage: parent_is_integers(float)
         False
 
         sage: import gmpy2
@@ -420,8 +420,6 @@ cpdef bint is_numpy_type(t):
         True
         sage: is_numpy_type(numpy.floating)
         True
-        sage: is_numpy_type(numpy.float)  # Alias for Python float
-        False
         sage: is_numpy_type(numpy.ndarray)
         True
         sage: is_numpy_type(numpy.matrix)
@@ -512,9 +510,9 @@ cdef class CoercionModel:
         sage: x * numpy.float32('1.5')
         1.50000000000000*x
         sage: p = x**3 + 2*x - 1
-        sage: p(numpy.float('1.2'))
+        sage: p(float('1.2'))
         3.12800000000000
-        sage: p(numpy.int('2'))
+        sage: p(int('2'))
         11.0000000000000
 
     This used to fail (see :trac:`18076`)::

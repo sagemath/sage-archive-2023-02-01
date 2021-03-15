@@ -1194,9 +1194,9 @@ cdef class NumpyToSRMorphism(Morphism):
 
     This behavior also applies to standard functions::
 
-        sage: cos(numpy.int('2'))
+        sage: cos(int('2'))
         cos(2)
-        sage: numpy.cos(numpy.int('2'))
+        sage: numpy.cos(int('2'))
         -0.4161468365471424
     """
     cdef _intermediate_ring

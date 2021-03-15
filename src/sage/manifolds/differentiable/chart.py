@@ -303,7 +303,7 @@ class DiffChart(Chart):
         on `U\cap V`.
 
         By definition, the transition map `\psi\circ\varphi^{-1}` must be
-        of classe `C^k`, where `k` is the degree of differentiability of the
+        of class `C^k`, where `k` is the degree of differentiability of the
         manifold (cf.
         :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.diff_degree`).
 
@@ -1074,7 +1074,7 @@ class DiffCoordChange(CoordChange):
     charts intersect, i.e. on `U\cap V`.
 
     By definition, the transition map `\psi\circ\varphi^{-1}` must be
-    of classe `C^k`, where `k` is the degree of differentiability of the
+    of class `C^k`, where `k` is the degree of differentiability of the
     manifold (cf.
     :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.diff_degree`).
 

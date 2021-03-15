@@ -1647,7 +1647,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()     # rel tol 1e-15
             6.666666666666666
 
-        The two constraints can alse be combined into a single
+        The two constraints can also be combined into a single
         vector-valued constraint::
 
             sage: p = MixedIntegerLinearProgram(maximization=True, solver='GLPK')

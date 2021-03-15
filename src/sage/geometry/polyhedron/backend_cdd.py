@@ -535,7 +535,7 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
             In comparison, the "normal" initialization from Vrepresentation over RDF
             expects the output length to be consistent with the computed length
-            when re-feeding cdd the outputed Hrepresentation.
+            when re-feeding cdd the outputted Hrepresentation.
 
         EXAMPLES::
 

@@ -476,7 +476,7 @@ class HyperplaneArrangementElement(Element):
 
     def hyperplanes(self):
         r"""
-        Return the number of hyperplanes in the arrangement.
+        Return the hyperplanes in the arrangement as a tuple.
 
         OUTPUT:
 

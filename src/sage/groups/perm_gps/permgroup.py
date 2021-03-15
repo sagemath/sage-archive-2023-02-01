@@ -2113,7 +2113,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         subgroup_order = self._order()
         if subgroup_order is not None:
-          return subgroup_order
+            return subgroup_order
 
         return Integer(self.gap().Size())
 

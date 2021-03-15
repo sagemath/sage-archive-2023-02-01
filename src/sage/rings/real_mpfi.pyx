@@ -235,7 +235,7 @@ TESTS::
     True
     sage: numpy.int8('2') == RIF(2)
     True
-    sage: RIF(0,1) < numpy.float('2')
+    sage: RIF(0,1) < float('2')
     Traceback (most recent call last):
     ...
     TypeError: unsupported operand parent(s) for <: ...

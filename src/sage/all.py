@@ -65,7 +65,7 @@ import math
 ############ setup warning filters before importing Sage stuff ####
 import warnings
 
-__with_pydebug = hasattr(sys, 'gettotalrefcount')   # This is a Python debug build (--with-pydebug) 
+__with_pydebug = hasattr(sys, 'gettotalrefcount')   # This is a Python debug build (--with-pydebug)
 if __with_pydebug:
     # a debug build does not install the default warning filters. Sadly, this breaks doctests so we
     # have to re-add them:
@@ -204,7 +204,7 @@ from sage.parallel.all   import *
 from sage.ext.fast_callable  import fast_callable
 from sage.ext.fast_eval      import fast_float
 
-sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
+from sage.sandpiles.all import *
 
 from sage.tensor.all     import *
 
@@ -218,8 +218,7 @@ from sage.manifolds.all import *
 
 from cysignals.alarm import alarm, cancel_alarm
 
-# Lazily import notebook functions and interacts (#15335)
-lazy_import('sage.interacts.debugger', 'debug')
+# Lazily import interacts (#15335)
 lazy_import('sage.interacts', 'all', 'interacts')
 
 from copy import copy, deepcopy

@@ -99,3 +99,4 @@ class InventoryBuilder(StandaloneHTMLBuilder):
 
 def setup(app):
     app.add_builder(InventoryBuilder)
+    return {'parallel_read_safe': True} 

@@ -267,7 +267,7 @@ def normalize_bound_method_repr(s):
 # should be a simple fast test on the expected and/or actual output to
 # determine if a fixup should be applied.  The second function is the actual
 # fixup, which is applied if the test function passes.  In most fixups only one
-# of the expected or recevied outputs are normalized, depending on the
+# of the expected or received outputs are normalized, depending on the
 # application.
 # For example, on Python 3 we strip all u prefixes from unicode strings in the
 # expected output, because we never expect to see those on Python 3.
@@ -527,7 +527,7 @@ class MarkedOutput(str):
 
 def make_marked_output(s, D):
     """
-    Auxilliary function for pickling.
+    Auxiliary function for pickling.
 
     EXAMPLES::
 
@@ -693,7 +693,7 @@ class SageDocTestParser(doctest.DocTestParser):
 
     def __ne__(self, other):
         """
-        Test for unequality.
+        Test for non-equality.
 
         EXAMPLES::
 

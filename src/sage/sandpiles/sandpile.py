@@ -2790,7 +2790,7 @@ class Sandpile(DiGraph):
             True
         """
         L = self._reduced_laplacian.transpose().dense_matrix()
-        n = self.num_verts()-1;
+        n = self.num_verts() - 1
         D, U, V = L.smith_form()
         self._points = []
         one = [1]*n

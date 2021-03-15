@@ -1093,7 +1093,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return self.modular_symbol_space(sign=0).abelian_variety()
 
-    def _modular_symbol_normalize(self, sign, normalize, implementation):
+    def _modular_symbol_normalize(self, sign, normalize, implementation, nap):
         r"""
         Normalize parameters for :meth:`modular_symbol`.
 
@@ -1106,109 +1106,93 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if sign not in [1,-1]:
             raise ValueError("The sign of a modular symbol must be 1 or -1")
         sign = ZZ(sign)
+        if implementation == 'eclib' and nap == 0:
+            nap = min(100*self.conductor().isqrt(), 10000)
         if normalize is None:
             normalize = "L_ratio"
         if normalize not in ["L_ratio", "period", "none"]:
             raise ValueError("normalize should be one of 'L_ratio', 'period' or 'none'")
         if implementation not in ["sage", "eclib", "num"]:
             raise ValueError("Implementation should be one of 'sage', 'num' or 'eclib'")
-        return (sign, normalize, implementation)
+        return (sign, normalize, implementation, nap)
 
     @cached_method(key = _modular_symbol_normalize)
-    def modular_symbol(self, sign=+1, normalize=None, implementation='eclib'):
-        r"""
-        Return the modular symbol associated to this elliptic curve
-        with given sign.  This is a map that sends any rational number`r`
-        to a rational number `[r]_E`, defined to be a certain
-        multiple of the integral of `2 \pi i f(z) dz`
-        from `\infty` to `r` where `f` is the newform attached to `E`.
-
-        More precisely: If the sign is +1, then the value returned is the
-        quotient of the real part of this integral by the least positive
-        period `\Omega_E^{+}` of `E`. In particular for `r=0`, the value
-        is equal to `L(E,1)/\Omega_E^{+}` (unlike in ``L_ratio`` of
-        ``lseries()``, where the value is also divided by the number of
-        connected components of `E(\RR)`). In particular the modular
-        symbol depends on `E` and not only the isogeny class of `E`.
-        For sign `-1`, it is the quotient of the imaginary part of the
-        integral divided by the purely imaginary period of `E` with
-        smallest positive imaginary part. Note however there is an
-        issue about these normalizations, hence the optional argument
-        ``normalize`` explained below
+    def modular_symbol(self, sign=+1, normalize=None, implementation='eclib', nap=0):
+        r"""Return the modular symbol map associated to this elliptic curve
+        with given sign.
 
         INPUT:
 
         -  ``sign`` - +1 (default) or -1.
 
-        -  ``normalize`` - (default: None); either 'L_ratio', 'period',
-           or 'none' when ``implementation`` is 'sage'; ignored if
-           ``implementation`` is ``eclib`` or ``num``.
+        - ``normalize`` - (default: None); either 'L_ratio', 'period',
+           or 'none'; ignored unless ``implementation`` is 'sage'.
            For 'L_ratio', the modular symbol tries to normalize
-           correctly as explained below by comparing it to
-           ``L_ratio`` for the curve and some small twists.
-           The normalization 'period' uses the
-           ``integral_period_map`` for modular symbols which is known
-           to be equal to the desired normalization, up to the sign
-           and a possible power of 2.  With normalization 'none', the
-           modular symbol is almost certainly not correctly
-           normalized, i.e. all values will be a fixed scalar multiple
-           of what they should be.  However, the initial computation
-           of the modular symbol is much faster when implementation
-           ``sage`` is chosen, though evaluation of it after computing
-           it is no faster.
+           correctly as explained below by comparing it to ``L_ratio``
+           for the curve and some small twists.  The normalization
+           'period' uses the ``integral_period_map`` for modular
+           symbols which is known to be equal to the desired
+           normalization, up to the sign and a possible power of 2.
+           With normalization 'none', the modular symbol is almost
+           certainly not correctly normalized, i.e. all values will be
+           a fixed scalar multiple of what they should be.
 
+        - ``implementation`` - either 'eclib' (default), 'sage' or
+           'num'. Here, 'eclib' uses Cremona's ``C++`` implementation
+           in the ``eclib`` library, 'sage' uses an implementation
+           within Sage which is often quite a bit slower, and 'num'
+           uses Wuthrich's implementation of numerical modular
+           symbols.
 
-        -  ``implementation`` - either 'eclib' (default), 'sage' or
-           'num'. Here 'eclib' uses John Cremona's implementation in
-           his eclib library. Instead 'sage' uses an implementation
-           within Sage which is often quite a bit slower.
-           Finally 'num' uses an implementation of numerical
-           modular symbols.
+        - ``nap`` - (int, default 0); ignored unless implementation is
+          'eclib'.  The number of ap of E to use in determining the
+          normalisation of the modular symbols.  If 0 (the default),
+          then the value of 100*E.conductor().isqrt() is used.  Using
+          too small a value can lead to incorrect normalisation.
+
+        DEFINITION:
+
+           The modular symbol map sends any rational number `r` to the
+           rational number whichis the ratio of the real or imaginary
+           part (depending on the sign) of the integral of `2 \pi i
+           f(z) dz` from `\infty` to `r`, where `f` is the newform
+           attached to `E`, to the real or imaginary period of `E`.
+
+           More precisely: If the sign is +1, then the value returned
+           is the quotient of the real part of this integral by the
+           least positive period `\Omega_E^{+}` of `E`. In particular
+           for `r=0`, the value is equal to `L(E,1)/\Omega_E^{+}`
+           (unlike in ``L_ratio`` of ``lseries()``, where the value is
+           also divided by the number of connected components of
+           `E(\RR)`). In particular the modular symbol depends on `E`
+           and not only the isogeny class of `E`.  For sign `-1`, it
+           is the quotient of the imaginary part of the integral
+           divided by the purely imaginary period of `E` with smallest
+           positive imaginary part. Note however there is an issue
+           about these normalizations, hence the optional argument
+           ``normalize`` explained below
 
         ALGORITHM:
 
            For the implementations 'sage' and 'eclib', the used
            algorithm starts by finding the space of modular symbols
            within the full space of all modular symbols of that
-           level. This initial step will take a very long time if
-           the conductor is large (e.g. minutes for five digit
-           conductors). Once the space is determined, each
-           evaluation is very fast (logarithmic in the
-           denominator of `r`).
+           level. This initial step will take a very long time if the
+           conductor is large (e.g. minutes for five digit
+           conductors). Once the space is determined, each evaluation
+           is very fast (logarithmic in the denominator of `r`).
 
-           The implementation 'num' uses a different algorithm.
-           It uses numerical integration along paths in the upper
-           half plane. The bounds are rigorously proved so that
-           the outcome is known to be correct. The initial step
-           costs no time, instead each evaluation will take more
-           time than in the above. More information in the
-           documentation of the class ``ModularSymbolNumerical``.
+           The implementation 'num' uses a different algorithm.  It
+           uses numerical integration along paths in the upper half
+           plane. The bounds are rigorously proved so that the outcome
+           is known to be correct. The initial step costs no time,
+           instead each evaluation will take more time than in the
+           above. More information in the documentation of the class
+           ``ModularSymbolNumerical``.
 
         .. SEEALSO::
 
             :meth:`modular_symbol_numerical`
-
-        .. note::
-
-           The value at a rational number `r` is proportional to the
-           real or imaginary part of the integral of `2 \pi i f(z) dz`
-           from `\infty` to `r`, where `f` is the newform attached to
-           `E`, suitably normalized so that all values of this map
-           take values in `\QQ`.
-
-           The normalization is such that for sign +1, the value at
-           the cusp `r` is equal to the quotient of the real part of
-           `\int_{\infty}^{r}2\pi i f(z)dz` by the least positive
-           period of `E`, where `f` is the newform attached to the
-           isogeny class of `E`.  This is in contrast to the method
-           ``L_ratio`` of ``lseries()``, where the value is also
-           divided by the number of connected components of
-           `E(\RR)`). In particular the modular symbol depends on `E`
-           and not only the isogeny class of `E`.  For negative
-           modular symbols, the value is the quotient of the imaginary
-           part of the above integral by the imaginary part of the
-           smallest positive imaginary period.
-
 
         EXAMPLES::
 
@@ -1298,10 +1282,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Modular symbol with sign -1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: [Mminus(1/i) for i in [1..11]]
             [0, 0, 1/2, 1/2, 0, 0, -1/2, -1/2, 0, 0, 0]
+
+        With the default 'eclib' implementation, if ``nap`` is too
+        small, the normalization may be computed incorrectly.  See
+        :trac:`31317`::
+
+            sage: E = EllipticCurve('1590g1')
+            sage: m = E.modular_symbol(nap=300)
+            sage: [m(a/5) for a in [1..4]]
+            [1001/153, -1001/153, -1001/153, 1001/153]
+
+        Those values are incorrect.  The correct values may be
+        obtained by increasing ``nap``, as verified by the numerical
+        implementation::
+
+            sage: m = E.modular_symbol(nap=400)
+            sage: [m(a/5) for a in [1..4]]
+            [13/2, -13/2, -13/2, 13/2]
+            sage: m = E.modular_symbol(implementation='num')
+            sage: [m(a/5) for a in [1..4]]
+            [13/2, -13/2, -13/2, 13/2]
+
         """
-        sign, normalize, implementation = self._modular_symbol_normalize(sign, normalize, implementation)
+        sign, normalize, implementation, nap = self._modular_symbol_normalize(sign, normalize, implementation, nap)
         if implementation == 'eclib':
-            M = ell_modular_symbols.ModularSymbolECLIB(self, sign)
+            M = ell_modular_symbols.ModularSymbolECLIB(self, sign, nap)
         elif implementation == 'sage':
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         else: # implementation == "num":
@@ -3202,7 +3207,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def real_components(self):
         """
-        Return 1 if there is 1 real component and 2 if there are 2.
+        Return the number of real components.
 
         EXAMPLES::
 
@@ -3216,13 +3221,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.real_components ()
             1
         """
-        invs = self.short_weierstrass_model().ainvs()
-        x = rings.polygen(self.base_ring())
-        f = x**3 + invs[3]*x + invs[4]
-        if f.discriminant() > 0:
-            return 2
-        else:
-            return 1
+        return 2 if self.discriminant() > 0 else 1
 
     def has_good_reduction_outside_S(self, S=[]):
         r"""

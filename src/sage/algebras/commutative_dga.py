@@ -953,7 +953,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         else:
             # Deal with multigrading: convert lists and tuples to elements
             # of an additive abelian group.
-            if len(degrees) > 0:
+            if degrees:
                 multigrade = False
                 try:
                     rank = len(list(degrees[0]))

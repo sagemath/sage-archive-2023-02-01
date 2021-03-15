@@ -118,6 +118,7 @@ src/sage/modular/arithgroup/farey_symbol.h
 !src/sage/stats/distributions/dgs_bern.c
 !src/sage/stats/distributions/dgs_gauss_dp.c
 !src/sage/stats/distributions/dgs_gauss_mp.c
+/src/cython_debug
 
 # Temporary build files
 build/temp.*/

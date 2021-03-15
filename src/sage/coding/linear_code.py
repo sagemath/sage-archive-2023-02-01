@@ -951,7 +951,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
         `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
-        [BH12]_).
+        [BH2012]_).
 
         EXAMPLES::
 

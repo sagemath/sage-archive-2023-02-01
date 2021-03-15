@@ -162,7 +162,7 @@ if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
         export OMP_NUM_THREADS=1
     fi
 
-    exec sage-python -m sage_setup.docbuild "$@" </dev/null
+    exec sage-python -m sage_docbuild "$@" </dev/null
 fi
 
 if [ "$1" = '-git-branch' -o "$1" = '--git-branch' ]; then

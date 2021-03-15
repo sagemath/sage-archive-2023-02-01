@@ -118,9 +118,10 @@ SAGE_STANDARD_PACKAGES=''
 # List of all packages that should be downloaded
 SAGE_SDIST_PACKAGES=''
 
-# Generate package version and dependency lists
+# Generate package version/dependency/tree lists
 SAGE_PACKAGE_VERSIONS=""
 SAGE_PACKAGE_DEPENDENCIES=""
+SAGE_PACKAGE_TREES=""
 # Lists of packages categorized according to their build rules
 SAGE_NORMAL_PACKAGES=''
 SAGE_PIP_PACKAGES=''
@@ -148,6 +149,19 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     SPKG_VERSION=$(newest_version $SPKG_NAME)
 
     in_sdist=no
+
+    dnl Write out information about the installation tree, using the name of the tree prefix
+    dnl variable (SAGE_LOCAL or SAGE_VENV).  The makefile variable of SPKG is called "trees_SPKG",
+    dnl note plural, for possible future extension in which an SPKG would be installed into several
+    dnl trees.  For example, if we decide to create a separate tree for a venv with the
+    dnl Jupyter notebook, then packages such as jupyter_core would have to be installed into
+    dnl two trees.
+    SPKG_TREE_VAR=SAGE_LOCAL
+    if test -f "$DIR/requirements.txt" -o -f "$DIR/install-requires.txt"; then
+        dnl A Python package
+        SPKG_TREE_VAR=SAGE_VENV
+    fi
+    SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')${SPKG_NAME} = ${SPKG_TREE_VAR}"
 
     uninstall_message=""
     # Check consistency of 'DIR/type' file
@@ -320,6 +334,7 @@ done
 
 AC_SUBST([SAGE_PACKAGE_VERSIONS])
 AC_SUBST([SAGE_PACKAGE_DEPENDENCIES])
+AC_SUBST([SAGE_PACKAGE_TREES])
 AC_SUBST([SAGE_NORMAL_PACKAGES])
 AC_SUBST([SAGE_PIP_PACKAGES])
 AC_SUBST([SAGE_SCRIPT_PACKAGES])

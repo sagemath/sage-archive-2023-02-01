@@ -1199,9 +1199,10 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             seen_before = False
             j = 0
-            for D_iso,_ in iso_classes:
+            for D_iso, _ in iso_classes:
                 if D_abs.is_isomorphic(D_iso):
-                    seen_before = True; break
+                    seen_before = True
+                    break
                 j += 1
             if not seen_before:
                 S_abs = []

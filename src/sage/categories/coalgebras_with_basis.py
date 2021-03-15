@@ -196,11 +196,12 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 return self
             if n == 1:
                 return self.coproduct()
-            from sage.functions.all import floor, ceil
+            from sage.functions.all import ceil
             from sage.rings.integer import Integer
 
             # Use coassociativity of `\Delta` to perform many coproducts simultaneously.
-            fn = floor(Integer(n-1)/2); cn = ceil(Integer(n-1)/2)
+            fn = Integer(n - 1) // 2
+            cn = ceil(Integer(n - 1) / 2)
             split = lambda a,b: tensor([a.coproduct_iterated(fn), b.coproduct_iterated(cn)])
             return self.coproduct().apply_multilinear_morphism(split)
 

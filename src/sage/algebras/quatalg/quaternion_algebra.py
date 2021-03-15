@@ -2701,10 +2701,13 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
                 lines.append(P1.normalize(x[0,0], x[0,1]))
                 x *= alpha
 
-        for u,v in lines:
+        for u, v in lines:
             # The following does:
             #    z = matrix(QQ,2,4,[0,-v,0,u, -v,0,u,0],check=False) * AiB
-            Z[0,1]=-v; Z[0,3]=u; Z[1,0]=-v; Z[1,2]=u
+            Z[0, 1] = -v
+            Z[0, 3] = u
+            Z[1, 0] = -v
+            Z[1, 2] = u
             z = Z * AiB
             # Now construct submodule of the ideal I spanned by the
             # linear combinations given by z of the basis for J along

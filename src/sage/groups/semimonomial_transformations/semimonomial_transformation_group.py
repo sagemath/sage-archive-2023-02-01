@@ -51,7 +51,7 @@ TESTS::
     sage: TestSuite(S).run()
     sage: TestSuite(S.an_element()).run()
 """
-from numbers import Integral
+from sage.rings.integer import Integer
 
 from sage.groups.group import FiniteGroup
 from sage.structure.unique_representation import UniqueRepresentation
@@ -236,7 +236,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
         """
         return self._R
 
-    def degree(self) -> Integral:
+    def degree(self) -> Integer:
         r"""
         Return the degree of ``self``.
 
@@ -308,7 +308,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
             l.append(self(autom=R.hom([R.primitive_element()**R.characteristic()])))
         return l
 
-    def order(self) -> Integral:
+    def order(self) -> Integer:
         r"""
         Return the number of elements of ``self``.
 

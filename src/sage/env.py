@@ -404,6 +404,27 @@ def cython_aliases():
          'CBLAS_CFLAGS',
          ...,
          'ZLIB_LIBRARIES']
+
+    TESTS:
+
+    We can use ``cython.parallel`` regardless of whether OpenMP is supported.
+    This will run in parallel, if OpenMP is supported::
+
+        sage: cython('''
+        ....: #distutils: extra_compile_args = OPENMP_CFLAGS
+        ....: #distutils: extra_link_args = OPENMP_CFLAGS
+        ....: from cython.parallel import prange
+        ....:
+        ....: cdef int i
+        ....: cdef int n = 30
+        ....: cdef int sum = 0
+        ....:
+        ....: for i in prange(n, num_threads=4, nogil=True):
+        ....:     sum += i
+        ....:
+        ....: print(sum)
+        ....: ''')
+        435
     """
     import pkgconfig
 

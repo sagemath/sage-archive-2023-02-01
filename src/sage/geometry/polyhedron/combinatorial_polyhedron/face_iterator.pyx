@@ -1,5 +1,5 @@
-# distutils: extra_compile_args = -fopenmp
-# distutils: extra_link_args = -fopenmp
+# distutils: extra_compile_args = OPENMP_CFLAGS
+# distutils: extra_link_args = OPENMP_CFLAGS
 r"""
 Face iterator for polyhedra
 

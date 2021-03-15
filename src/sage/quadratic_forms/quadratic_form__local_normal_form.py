@@ -65,13 +65,13 @@ def find_entry_with_minimal_scale_at_prime(self, p):
 
             # Compute the valuation of the entry
             if d == 0:
-                tmp_val = valuation(self[e, e+d], p)
+                tmp_val = valuation(self[e, e + d], p)
             else:
-                tmp_val = valuation(self[e, e+d], p) - val_2
+                tmp_val = valuation(self[e, e + d], p) - val_2
 
             # Check if it's any smaller than what we have
             if tmp_val < min_val:
-                ij_index = (e,e+d)
+                ij_index = (e, e + d)
                 min_val = tmp_val
 
     # Return the result
@@ -166,22 +166,9 @@ def local_normal_form(self, p):
             else:
                 block_size = 2
 
-        # DIAGNOSTIC
-        #print("\n Finished Step 2 \n")
-        #print("\n Q is: \n" + str(Q)  + "\n")
-        #print("  p is: " + str(p))
-        #print("  min_val is: " + str( min_val))
-        #print("  block_size is: " + str(block_size))
-        #print("\n Starting Step 3 \n")
-
         # Step 3: Clear out the remaining entries
         #  ---------------------------------------
         min_scale = p ** min_val                             # This is the minimal valuation of the Hessian matrix entries.
-
-        ##DIAGNOSTIC
-        #print("Starting Step 3:")
-        #print("----------------")
-        #print("  min_scale is: " + str(min_scale))
 
         # Perform cancellation over Z by ensuring divisibility
         if (block_size == 1):
@@ -189,17 +176,6 @@ def local_normal_form(self, p):
             for j in range(block_size, n):
                 b = Q[0, j]
                 g = GCD(a, b)
-
-                # DIAGNOSTIC
-                #print "Cancelling from a 1x1 block:"
-                #print "----------------------------"
-                #print "  Cancelling entry with index (" + str(upper_left) + ", " + str(j) + ")"
-                #print "  entry = " + str(b)
-                #print "  gcd = " + str(g)
-                #print "  a = " + str(a)
-                #print "  b = " + str(b)
-                #print "  a/g = " + str(a/g) + "   (used for stretching)"
-                #print "  -b/g = " + str(-b/g) + "   (used for cancelling)"
 
                 # Sanity Check:  a/g is a p-unit
                 if valuation (g, p) != valuation(a, p):
@@ -432,10 +408,10 @@ def jordan_blocks_in_unimodular_list_by_scale_power(self, p):
 
     # Find the Jordan Decomposition
     list_of_jordan_pairs = self.jordan_blocks_by_scale_and_unimodular(p)
-    scale_list =  [P[0] for P in list_of_jordan_pairs]
+    scale_list = [P[0] for P in list_of_jordan_pairs]
     s_max = max(scale_list)
     if min(scale_list) < 0:
-        raise TypeError("Oops!  The given quadratic form has a Jordan component with a negative scale exponent!\n" \
+        raise TypeError("Oops!  The given quadratic form has a Jordan component with a negative scale exponent!\n"
         + "This routine requires an integer-matrix quadratic form for the output indexing to work properly!")
 
     # Make the new list of unimodular Jordan components

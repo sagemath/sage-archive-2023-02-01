@@ -1028,8 +1028,10 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         try:
             ret = ret and self.modulus().is_irreducible()
         except NotImplementedError:
-            if proof: raise
-            else: ret = False
+            if proof:
+                raise
+            else:
+                ret = False
 
         if ret:
             from sage.categories.all import Fields

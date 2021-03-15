@@ -97,6 +97,17 @@ SAGE_SPKG_CONFIGURE([python3], [
                 CFLAGS_MARCH=""
             ])
         ])
+
+        AS_IF([test -n "$SAGE_HAVE_OPENMP"], [
+            AC_MSG_CHECKING([whether OpenMP works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS $OPENMP_CFLAGS" CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS" conftest_venv/bin/python3], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, $reason; disabling use OpenMP])
+                SAGE_HAVE_OPENMP=""
+            ])
+        ])
+
         AX_COMPARE_VERSION([$python3_version], [lt], MIN_NONDEPRECATED_VERSION, [
             AC_MSG_NOTICE([deprecation notice: Support for system python < MIN_NONDEPRECATED_VERSION is deprecated
 and will be removed in the next development cycle.  Consider using a newer version of Python

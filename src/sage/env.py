@@ -214,6 +214,10 @@ ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
 NTL_INCDIR = var("NTL_INCDIR")
 NTL_LIBDIR = var("NTL_LIBDIR")
 
+# OpenMP
+SAGE_OPENMP_CFLAGS = var("SAGE_OPENMP_CFLAGS")
+SAGE_OPENMP_CXXFLAGS = var("SAGE_OPENMP_CXXFLAGS")
+
 # misc
 SAGE_BANNER = var("SAGE_BANNER", "")
 SAGE_IMPORTALL = var("SAGE_IMPORTALL", "yes")
@@ -285,7 +289,7 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
                 search_directories.append(libdir)
 
                 multiarchlib = sysconfig.get_config_var('MULTIARCH')
-                if multiarchlib is not None: 
+                if multiarchlib is not None:
                     search_directories.append(libdir / multiarchlib),
 
             patterns = [f'lib{libname}.{ext}']
@@ -481,5 +485,9 @@ def cython_aliases():
     aliases["NTL_LIBDIR"] = [NTL_LIBDIR] if NTL_LIBDIR else []
     aliases["NTL_LIBRARIES"] = ['ntl']
     aliases["NTL_LIBEXTRA"] = []
+
+    # OpenMP
+    aliases["OPENMP_CFLAGS"] = SAGE_OPENMP_CFLAGS
+    aliases["OPENMP_CXXFLAGS"] = SAGE_OPENMP_CXXFLAGS
 
     return aliases

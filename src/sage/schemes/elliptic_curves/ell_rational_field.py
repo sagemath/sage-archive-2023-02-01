@@ -1283,22 +1283,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [Mminus(1/i) for i in [1..11]]
             [0, 0, 1/2, 1/2, 0, 0, -1/2, -1/2, 0, 0, 0]
 
-        With the default 'eclib' implementation, if ``nap`` is too
-        small, the normalization may be computed incorrectly.  See
-        :trac:`31317`::
+        With older version of eclib, in the default 'eclib'
+        implementation, if ``nap`` is too small, the normalization may
+        be computed incorrectly (see :trac:`31317`).  This was fixed
+        in eclib version v20210310, since now eclib increase ``nap``
+        automatically. The following used to give incorrect results.
+        See :trac:`31443`::
 
             sage: E = EllipticCurve('1590g1')
             sage: m = E.modular_symbol(nap=300)
             sage: [m(a/5) for a in [1..4]]
-            [1001/153, -1001/153, -1001/153, 1001/153]
+            [13/2, -13/2, -13/2, 13/2]
 
-        Those values are incorrect.  The correct values may be
-        obtained by increasing ``nap``, as verified by the numerical
+        These values are correct, as verified by the numerical
         implementation::
 
-            sage: m = E.modular_symbol(nap=400)
-            sage: [m(a/5) for a in [1..4]]
-            [13/2, -13/2, -13/2, 13/2]
             sage: m = E.modular_symbol(implementation='num')
             sage: [m(a/5) for a in [1..4]]
             [13/2, -13/2, -13/2, 13/2]

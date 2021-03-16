@@ -592,7 +592,7 @@ class OreFunctionField(Algebra, UniqueRepresentation):
         """
         return self._ring.is_commutative()
 
-    def is_field(self):
+    def is_field(self, proof=False):
         r"""
         Return always ``True`` since Ore function field are (skew) fields.
 
@@ -607,6 +607,17 @@ class OreFunctionField(Algebra, UniqueRepresentation):
             False
             sage: K.is_field()
             True
+
+        TESTS:
+
+        We check that :trac:`31470` is fixed::
+
+            sage: k.<a> = GF(5^3)
+            sage: S.<x> = k['x', k.frobenius_endomorphism()]
+            sage: K = S.fraction_field()
+            sage: zero_matrix(K, 2).row(0)
+            ...
+            (0, 0)
         """
         return True
 

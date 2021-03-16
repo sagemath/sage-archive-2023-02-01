@@ -1095,7 +1095,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         """
         return self._morphism is None and self._derivation is None
 
-    def is_field(self):
+    def is_field(self, proof=False):
         r"""
         Return always ``False`` since Ore polynomial rings are never
         fields.
@@ -1107,6 +1107,16 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             sage: S.<x> = k['x', Frob]
             sage: S.is_field()
             False
+
+        TESTS:
+
+        We check that :trac:`31470` is fixed::
+
+            sage: k.<a> = GF(5^3)
+            sage: S.<x> = k['x', k.frobenius_endomorphism()]
+            sage: zero_matrix(S, 2).row(0)
+            ...
+            (0, 0)
         """
         return False
 

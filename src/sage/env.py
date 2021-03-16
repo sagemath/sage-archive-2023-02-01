@@ -508,7 +508,7 @@ def cython_aliases():
     aliases["NTL_LIBEXTRA"] = []
 
     # OpenMP
-    aliases["OPENMP_CFLAGS"] = [SAGE_OPENMP_CFLAGS] if SAGE_OPENMP_CFLAGS else []
-    aliases["OPENMP_CXXFLAGS"] = [SAGE_OPENMP_CXXFLAGS] if SAGE_OPENMP_CXXFLAGS else []
+    aliases["OPENMP_CFLAGS"] = SAGE_OPENMP_CFLAGS.split() if SAGE_OPENMP_CFLAGS else []
+    aliases["OPENMP_CXXFLAGS"] = SAGE_OPENMP_CXXFLAGS.split() if SAGE_OPENMP_CXXFLAGS else []
 
     return aliases

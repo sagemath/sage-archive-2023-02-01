@@ -21,6 +21,11 @@ PYTHON=python3
 # The PIP variable is only used to determine the name of the lock file.
 PIP=pip3
 
+# For PEP 517 packages, do not try to uninstall
+if [ ! -f setup.py ]; then
+    exit 0
+fi
+
 # Find out the name of the package that we are installing
 name="$($PYTHON setup.py --name)"
 

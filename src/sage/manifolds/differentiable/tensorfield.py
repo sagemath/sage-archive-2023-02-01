@@ -2928,7 +2928,7 @@ class TensorField(ModuleElementWithMutability):
         """
         p = len(args)
         if p == 1 and self._tensor_type == (1,1):
-            # type-(1,1) tensor acting as a a field of tangent-space
+            # type-(1,1) tensor acting as a field of tangent-space
             # endomorphisms:
             vector = args[0]
             if vector._tensor_type != (1,0):

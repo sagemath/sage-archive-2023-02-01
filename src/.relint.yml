@@ -30,10 +30,7 @@
     Hint: # no :: after INPUT, OUTPUT, REFERENCE blocks
     Hint: # no " :" at the end of lines
     Hint: # no "Returns" at the start of lines
-  pattern: '(\.\.SEE|SEE ALSO|SEEALSO:($|[^:])|^\s*TEST:|^\s*EXAMPLE:|^\s*NOTES:|^\s*[A-Z]*PUT::|^\s*REFERENCES?::|\s:$|^[ 	]*Returns)'
-
-- name: 'oldstyle_print: python2-only print syntax'
-  pattern: '(^\s*(()|(.*[:;]\s*))|^\s*sage:.*|^\s*\.\.\.\.:.*|^\s*\.\.\..*)[^a-z]print((\s\s*[^\(])|(\s*$))'
+  pattern: '(\.\.SEE|SEE ALSO|SEEALSO:($|[^:])|^\s*TEST:|^\s*EXAMPLE:|^\s*NOTES:|^\s*[A-Z]*PUT::|^\s*REFERENCES?::|\s:$)'
 
 - name: 'trac_links: bad trac link'
   hint: |

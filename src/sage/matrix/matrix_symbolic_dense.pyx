@@ -275,6 +275,12 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ...
             NotImplementedError: generalized eigenvector decomposition is
             implemented for RDF and CDF, but not for Symbolic Ring
+
+        Check that :trac:`23332` is fixed::
+
+            sage: matrix([[x, x^2], [1, 0]]).eigenvectors_left()
+            [(-1/2*x*(sqrt(5) - 1), [(1, -1/2*x*(sqrt(5) + 1))], 1),
+             (1/2*x*(sqrt(5) + 1), [(1, 1/2*x*(sqrt(5) - 1))], 1)]
         """
         if other is not None:
             raise NotImplementedError('generalized eigenvector decomposition '
@@ -334,6 +340,12 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ...
             NotImplementedError: generalized eigenvector decomposition is
             implemented for RDF and CDF, but not for Symbolic Ring
+
+        Check that :trac:`23332` is fixed::
+
+            sage: matrix([[x, x^2], [1, 0]]).eigenvectors_right()
+            [(-1/2*x*(sqrt(5) - 1), [(1, -1/2*(sqrt(5) + 1)/x)], 1),
+             (1/2*x*(sqrt(5) + 1), [(1, 1/2*(sqrt(5) - 1)/x)], 1)]
         """
         return self.transpose().eigenvectors_left(other=other)
 

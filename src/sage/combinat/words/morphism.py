@@ -2007,6 +2007,11 @@ class WordMorphism(SageObject):
              word: 10,9,8,7,6,5,4,3,2,9,8,7,6,5,4,3,2,8,7,6...,
              word: 7654326543254324323221654325432432322154...,
              word: 4,3,2,3,2,2,1,3,2,2,1,2,1,1,10,9,8,7,6,5...]
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a,b->bb').periodic_points()
+            [[word: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...]]
         """
         assert self.is_endomorphism(), "f should be an endomorphism"
 
@@ -2015,12 +2020,14 @@ class WordMorphism(SageObject):
 
         A = self.domain().alphabet()
         d = dict((letter,self(letter)[0]) for letter in A)
+        G = set(self.growing_letters())
 
         res = []
         parent = self.codomain().shift()
         for cycle in get_cycles(CallableDict(d),A):
-            P = PeriodicPointIterator(self, cycle)
-            res.append([parent(P._cache[i]) for i in range(len(cycle))])
+            if cycle[0] in G:
+                P = PeriodicPointIterator(self, cycle)
+                res.append([parent(P._cache[i]) for i in range(len(cycle))])
 
         return res
 
@@ -3060,13 +3067,20 @@ class WordMorphism(SageObject):
             sage: m.is_growing('c')
             False
 
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').is_growing('a')
+            False
+
         REFERENCES:
 
         ..  [CassNic10] Cassaigne J., Nicolas F. Factor complexity.
             Combinatorics, automata and number theory, 163--247, Encyclopedia
             Math. Appl., 135, Cambridge Univ. Press, Cambridge, 2010.
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return True
         if letter is None:
             I = range(self.domain().alphabet().cardinality())
@@ -3098,8 +3112,15 @@ class WordMorphism(SageObject):
             ['0']
             sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).growing_letters()
             ['0', '1', '2']
+
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').growing_letters()
+            []
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return self.domain().alphabet().list()
         last_coef = 0
         coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)

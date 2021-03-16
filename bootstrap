@@ -136,8 +136,21 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
                 else
                     verb="upgrade"
                 fi
-                echo >&2 "Bootstrap failed. Either $verb autotools or run bootstrap with"
+                echo >&2 "Bootstrap failed. Either $verb autotools and gettext; or run bootstrap with"
                 echo >&2 "the -d option to download the auto-generated files instead."
+
+                SYSTEM=$(build/bin/sage-guess-package-system)
+                if test $SYSTEM != unknown; then
+                    SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM _bootstrap)
+                    if test -n "$SYSTEM_PACKAGES"; then
+                        PRINT_SYS="build/bin/sage-print-system-package-command $SYSTEM --verbose=\"    \" --prompt=\"      \$ \" --sudo"
+                        COMMAND=$(eval "$PRINT_SYS" update && eval "$PRINT_SYS" install $SYSTEM_PACKAGES && SAGE_ROOT="$SAGE_ROOT" eval "$PRINT_SYS" setup-build-env )
+                        echo >&2
+                        echo >&2 "hint: On your system ($SYSTEM), you can install the required system packages as follows:"
+                        echo >&2 "$COMMAND"
+                        echo >&2
+                    fi
+                fi
                 exit $st
             fi;;
 

@@ -993,16 +993,15 @@ class FusionRing(WeylCharacterRing):
 
         .. MATH::
 
-            \begin{array}{l}
-            root \righthookarrow l_{k-2} \otimes m_{k},\\
-            l_{k-2} \righthookarrow l_{k-3} \otimes m_{k-1},\\
-            \vdots\\
-            l_2\righthookarrow l_1\otimes m_3\\
-            l_1\righthookarrow m_1\otimes m_2
+            \\begin{array}{l}
+            root \\to l_{k-2} \otimes m_{k},\\
+            l_{k-2} \\to l_{k-3} \otimes m_{k-1},\\
+            \\cdots\\
+            l_2\\to l_1\otimes m_3\\
+            l_1\\to m_1\otimes m_2
             \end{array}
 
-        where `a\righthookarrow b\otimes c` means `N_{bc}^a\neq 0`.
-
+        where `a \\to b\otimes c` means `N_{bc}^a\\neq 0`.
         """
         if len(top_row) == 2:
             m1, m2 = top_row
@@ -1011,7 +1010,7 @@ class FusionRing(WeylCharacterRing):
             m1, m2 = top_row[:2]
             return [tuple([l,*b]) for l in self.basis() for b in self.get_trees([l]+top_row[2:],root) if self.Nk_ij(m1,m2,l)]
 
-    def get_comp_basis(self,a,b,n_strands):
+    def get_computational_basis(self,a,b,n_strands):
         """
         Return the so-called computational basis for `\text{Hom}(b, a^n)`. 
 
@@ -1115,7 +1114,8 @@ class FusionRing(WeylCharacterRing):
         ``comp_basis`` is a list of basis elements of the braid group
         module, parametrized by a list of fusion ring elements describing
         a fusion tree. For example with 5 strands the fusion tree
-        is as follows::
+        is as follows. See :meth:`get_computational_basis` and :meth:`get_trees`
+        for more information.
 
         .. image:: ../../../media/fusiontree.png
 
@@ -1157,7 +1157,7 @@ class FusionRing(WeylCharacterRing):
 
         #Set up computational basis and compute generators one at a time
         a, b = fusing_anyon, total_charge_anyon
-        comp_basis = self.get_comp_basis(a,b,n_strands)
+        comp_basis = self.get_computational_basis(a,b,n_strands)
         d = len(comp_basis)
         if verbose:
             print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d,n_strands))

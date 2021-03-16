@@ -172,7 +172,7 @@ class SageSphinxLogger(object):
         EXAMPLES::
 
             sage: from sys import stdout
-            sage: from sage_setup.docbuild.sphinxbuild import SageSphinxLogger
+            sage: from sage_docbuild.sphinxbuild import SageSphinxLogger
             sage: logger = SageSphinxLogger(stdout, "doctesting")
             sage: logger._log_line("Segmentation fault!\n") # indirect doctest
             [doctestin] Segmentation fault!
@@ -200,7 +200,7 @@ class SageSphinxLogger(object):
         EXAMPLES::
 
             sage: from sys import stdout
-            sage: from sage_setup.docbuild.sphinxbuild import SageSphinxLogger
+            sage: from sage_docbuild.sphinxbuild import SageSphinxLogger
             sage: logger = SageSphinxLogger(stdout, "doctesting")
             sage: logger._log_line("building documentation…\n")
             [doctestin] building documentation…
@@ -243,7 +243,7 @@ class SageSphinxLogger(object):
         EXAMPLES::
 
             sage: from sys import stdout
-            sage: from sage_setup.docbuild.sphinxbuild import SageSphinxLogger
+            sage: from sage_docbuild.sphinxbuild import SageSphinxLogger
             sage: logger = SageSphinxLogger(stdout, "doctesting")
             sage: logger._log_line("This is a SEVERE error\n")
             [doctestin] This is a SEVERE error

@@ -66,8 +66,7 @@ r"""
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
     sage: G = L.galois_group(); G
-    Galois group of Number Field in b with
-    defining polynomial x^8 + 28*x^4 + 2500
+    Galois group 8T4 ([4]2) with order 8 of x^8 + 28*x^4 + 2500
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 

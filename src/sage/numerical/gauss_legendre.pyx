@@ -93,8 +93,7 @@ def nodes(degree,prec):
     else:
         nodes = []
         n = degree
-        upto = n//2+1
-        for j in xrange(1,upto):
+        for j in xrange(1, n // 2 + 1):
             r = R(math.cos(math.pi*(j-0.25)/(n+0.5)))
             while True:
                 t1,t2=ONE,ZERO

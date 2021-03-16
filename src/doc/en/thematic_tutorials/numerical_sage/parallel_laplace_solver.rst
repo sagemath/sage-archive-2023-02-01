@@ -24,7 +24,7 @@ this with the solver we wrote in the section on f2py.
     root=0
     dx=1.0/(num_points-1)
     from numpy import r_
-    j=numpy.complex(0,1)
+    j=complex(0,1)
     rows_per_process=num_points/size
     max_iter=5000
     num_iter=0

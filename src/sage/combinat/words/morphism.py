@@ -2007,6 +2007,11 @@ class WordMorphism(SageObject):
              word: 10,9,8,7,6,5,4,3,2,9,8,7,6,5,4,3,2,8,7,6...,
              word: 7654326543254324323221654325432432322154...,
              word: 4,3,2,3,2,2,1,3,2,2,1,2,1,1,10,9,8,7,6,5...]
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a,b->bb').periodic_points()
+            [[word: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...]]
         """
         assert self.is_endomorphism(), "f should be an endomorphism"
 
@@ -3062,6 +3067,13 @@ class WordMorphism(SageObject):
             sage: m.is_growing('c')
             False
 
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').is_growing('a')
+            False
+
         REFERENCES:
 
         ..  [CassNic10] Cassaigne J., Nicolas F. Factor complexity.
@@ -3100,6 +3112,13 @@ class WordMorphism(SageObject):
             ['0']
             sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).growing_letters()
             ['0', '1', '2']
+
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').growing_letters()
+            []
         """
         if self.is_primitive() and len(self._morph) > 1:
             return self.domain().alphabet().list()

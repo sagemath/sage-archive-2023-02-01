@@ -3433,7 +3433,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             raise TypeError("Illegal initializer for algebraic number")
 
-        self._value = self._descr._interval_fast(64)
+        prec = 64
+        self._value = self._descr._interval_fast(prec)
+        while self._value.is_NaN():
+            prec = 2 * prec
+            self._value = self._descr._interval_fast(prec)
 
     def _repr_(self):
         """

@@ -2207,7 +2207,7 @@ class Permutation(CombinatorialElement):
         r"""
         Return the list of the longest increasing subsequences of ``self``
         
-        A theorem of Schensted ([Sch1961_]) states that an increasing
+        A theorem of Schensted ([Sch1961]_) states that an increasing
         subsequence of length `i` ends with the value entered in the `i`-th
         column of the p-tableau. The algorithm records which column of the
         p-tableau each value of the permutation is entered into, and

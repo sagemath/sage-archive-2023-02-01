@@ -35,7 +35,8 @@ Dependencies
 Special Update/Build Instructions
 ---------------------------------
 
-See spkg-src to create the source tarball.
+The current upstream tarball is made from the branch at
+https://github.com/mkoeppe/Singular/tree/Release-4-2-0-p1%2Bsage
 
 Other notes:
 

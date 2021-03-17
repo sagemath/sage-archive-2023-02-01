@@ -5128,8 +5128,8 @@ REFERENCES:
              :doi:`10.13140/RG.2.2.28238.46409`
 
 .. [Sch1961] Craige Schensted. *Longest increasing and decreasing
-         	subsequences*, Canadian Journal of Mathematics, Vol 13
-         	(1961), pp. 179--191.
+             subsequences*, Canadian Journal of Mathematics, Vol 13
+             (1961), pp. 179--191.
 
 .. [Sch1990] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
              Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,

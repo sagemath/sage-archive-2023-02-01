@@ -254,7 +254,7 @@ def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-6,N=100):
    
         sage: from sage.plot.plot3d.index_face_set import cut_edge_by_bisection
         sage: cut_edge_by_bisection((0.0,0.0,0.0),(1.0,1.0,0.0),( (lambda x,y,z: x**2+y**2+z**2<1) ),eps=1.0E-12)
-        (0.7071067811865532, 0.7071067811865532, 0.0) 
+        (0.7071067811864395, 0.7071067811864395, 0.0)
     """
     cdef point_c a,b
     cdef point_c midp,b_min_a
@@ -269,16 +269,19 @@ def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-6,N=100):
    
     while (point_c_len(b_min_a) >eps):
 
-        point_c_sub(&b_min_a, b, a) 
         itern+=1       
         assert(itern<N)
-        point_c_add(&midp, b, a)        
+        # (b+a)
+        point_c_add(&midp, b, a)
+        # (b+a)/2        
         point_c_mul(&midp, midp, half)
 
         if condition(a.x,a.y,a.z) and condition(midp.x,midp.y,midp.z):
             a=midp
         else:
             b=midp
+        # (b-a)   
+        point_c_sub(&b_min_a, b, a)
 
     point_c_add(&midp, b, a)        
     point_c_mul(&midp, midp, half)
@@ -1099,11 +1102,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: def f(x,y,z):
             ....:     return bool(x*x+y*y+z*z<=5)
             sage: cut = p.add_condition(f,60,1.0e-12); cut.face_list()
-            [[(0.5561284912101883, 0.0, 2.1658072631847176),
+            [[(0.556128491210302, 0.0, 2.165807263184547),
             (2.0, 0.0, 0.0),
             (0.0, 2.0, 0.0),
-            (0.0, 0.5561284912101883, 2.1658072631847176)]]
-
+            (0.0, 0.556128491210302, 2.165807263184547)]]
 
         .. TODO::
 

@@ -17,7 +17,7 @@ from sage.combinat.root_system.poly_tup_engine cimport *
 from sage.rings.ideal import Ideal
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.qqbar import number_field_elements_from_algebraics
+# from sage.rings.qqbar import number_field_elements_from_algebraics
 
 #Define a global temporary worker results repository
 cdef list worker_results = list()
@@ -89,41 +89,41 @@ def executor(params):
 ### Mappers ###
 ###############
 
-cdef _fmat(fvars, _Nk_ij, one, a, b, c, d, x, y):
+cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):
       """
       Cython version of fmat class method. Using cdef for fastest dispatch
       """
       if _Nk_ij(a,b,x) == 0 or _Nk_ij(x,c,d) == 0 or _Nk_ij(b,c,y) == 0 or _Nk_ij(a,y,d) == 0:
               return 0
       #Some known F-symbols
-      if a == one:
+      if a == id_anyon:
           if x == b and y == d:
               return 1
           else:
               return 0
-      if b == one:
+      if b == id_anyon:
           if x == a and y == c:
               return 1
           else:
               return 0
-      if c == one:
+      if c == id_anyon:
           if x == d and y == b:
               return 1
           else:
               return 0
       return fvars[a,b,c,d,x,y]
 
-cdef req_cy(tuple basis, r_matrix, dict fvars, Nk_ij, one, tuple sextuple):
+cdef req_cy(tuple basis, r_matrix, dict fvars, Nk_ij, id_anyon, tuple sextuple):
     """
     Given an FMatrix factory and a sextuple, return a hexagon equation as a polynomial object
     """
     a, b, c, d, e, g = sextuple
     #To add typing we need to ensure all fmats.fmat are of the same type?
     #Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
-    lhs = r_matrix(a,c,e)*_fmat(fvars,Nk_ij,one,a,c,b,d,e,g)*r_matrix(b,c,g)
+    lhs = r_matrix(a,c,e)*_fmat(fvars,Nk_ij,id_anyon,a,c,b,d,e,g)*r_matrix(b,c,g)
     rhs = 0
     for f in basis:
-      rhs += _fmat(fvars,Nk_ij,one,c,a,b,d,e,f)*r_matrix(f,c,d)*_fmat(fvars,Nk_ij,one,a,b,c,d,f,g)
+      rhs += _fmat(fvars,Nk_ij,id_anyon,c,a,b,d,e,f)*r_matrix(f,c,d)*_fmat(fvars,Nk_ij,id_anyon,a,b,c,d,f,g)
     return lhs-rhs
 
 @cython.wraparound(False)
@@ -138,35 +138,37 @@ cpdef get_reduced_hexagons(factory, tuple mp_params):
     cdef child_id, n_proc
     cdef unsigned long i
     child_id, n_proc = mp_params
-    cdef tuple sextuple
+    cdef tuple sextuple, red
 
     #Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
     cdef dict fvars = factory._fvars
     r_matrix = factory._FR.r_matrix
     _Nk_ij = factory._FR.Nk_ij
-    one = factory._FR.one()
+    id_anyon = factory._FR.one()
+    cdef NumberFieldElement_absolute one = factory._field.one()
     cdef ETuple _nnz = factory._nnz
     cdef dict _ks = factory._ks
 
     #Computation loop
     for i, sextuple in enumerate(product(basis,repeat=6)):
         if i % n_proc == child_id:
-            he = req_cy(basis,r_matrix,fvars,_Nk_ij,one,sextuple)
+            he = req_cy(basis,r_matrix,fvars,_Nk_ij,id_anyon,sextuple)
             if he:
-                worker_results.append(reduce_poly_dict(he.dict(),_nnz,_ks))
+                red = reduce_poly_dict(he.dict(),_nnz,_ks,one)
+                worker_results.append(red)
 
-cdef MPolynomial_libsingular feq_cy(tuple basis, fvars, Nk_ij, one, zero, tuple nonuple, bint prune=False):
+cdef MPolynomial_libsingular feq_cy(tuple basis, fvars, Nk_ij, id_anyon, zero, tuple nonuple, bint prune=False):
     """
     Given an FMatrix factory and a nonuple, return a pentagon equation as a polynomial object
     """
     a, b, c, d, e, f, g, k, l = nonuple
-    cdef lhs = _fmat(fvars,Nk_ij,one,f,c,d,e,g,l)*_fmat(fvars,Nk_ij,one,a,b,l,e,f,k)
+    cdef lhs = _fmat(fvars,Nk_ij,id_anyon,f,c,d,e,g,l)*_fmat(fvars,Nk_ij,id_anyon,a,b,l,e,f,k)
     if lhs == 0 and prune: # it is believed that if lhs=0, the equation carries no new information
         return zero
     cdef rhs = zero
     for h in basis:
-      rhs += _fmat(fvars,Nk_ij,one,a,b,c,g,f,h)*_fmat(fvars,Nk_ij,one,a,h,d,e,g,k)*_fmat(fvars,Nk_ij,one,b,c,d,k,h,l)
+      rhs += _fmat(fvars,Nk_ij,id_anyon,a,b,c,g,f,h)*_fmat(fvars,Nk_ij,id_anyon,a,h,d,e,g,k)*_fmat(fvars,Nk_ij,id_anyon,b,c,d,k,h,l)
     return lhs - rhs
 
 @cython.wraparound(False)
@@ -189,7 +191,8 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
     cdef dict fvars = factory._fvars
     r_matrix = factory._FR.r_matrix
     _Nk_ij = factory._FR.Nk_ij
-    one = factory._FR.one()
+    id_anyon = factory._FR.one()
+    cdef NumberFieldElement_absolute one = factory._field.one()
     cdef ETuple _nnz = factory._nnz
     cdef dict _ks = factory._ks
     cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
@@ -197,9 +200,9 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
     #Computation loop
     for i, nonuple in enumerate(product(basis,repeat=9)):
         if i % n_proc == child_id:
-            pe = feq_cy(basis,fvars,_Nk_ij,one,zero,nonuple,prune=prune)
+            pe = feq_cy(basis,fvars,_Nk_ij,id_anyon,zero,nonuple,prune=prune)
             if pe:
-                red = reduce_poly_dict(pe.dict(),_nnz,_ks)
+                red = reduce_poly_dict(pe.dict(),_nnz,_ks,one)
                 worker_results.append(red)
 
 cpdef update_reduce(factory, tuple eq_tup):
@@ -207,8 +210,9 @@ cpdef update_reduce(factory, tuple eq_tup):
     Substitute known values, known squares, and reduce!
     """
     global worker_results
-    cdef dict eq_dict = subs(eq_tup,factory._kp)
-    cdef tuple red = reduce_poly_dict(eq_dict,factory._nnz,factory._ks)
+    cdef NumberFieldElement_absolute one =factory._field.one()
+    cdef dict eq_dict = subs(eq_tup,factory._kp,one)
+    cdef tuple red = reduce_poly_dict(eq_dict,factory._nnz,factory._ks,one)
     worker_results.append(red)
 
 cpdef compute_gb(factory, tuple args):
@@ -243,20 +247,22 @@ cpdef compute_gb(factory, tuple args):
 
 cpdef update_child_fmats(factory, tuple data_tup):
     """
-    One-to-all communication used to update fvars after triangular elim step.
+    One-to-all communication used to update FMatrix object after each triangular
+    elim step. We must update the algorithm's state values. These are:
+    _fvars, solved, _ks, _var_degs, _nnz, and _kp.
     """
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
     factory._fvars, factory.solved, factory._ks, factory._var_degs = data_tup
-    factory._nnz = factory.get_known_nonz()
-    factory._kp = compute_known_powers(factory._var_degs,factory.get_known_vals())
+    factory._nnz = factory._get_known_nonz()
+    factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
 
-def get_appropriate_number_field(factory,non_cyclotomic_roots):
-    """
-    If needed, find a NumberField containing the roots given roots
-    """
-    roots = [factory._FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
-    return number_field_elements_from_algebraics(roots,minimal=True)
+# def get_appropriate_number_field(factory,non_cyclotomic_roots):
+#     """
+#     If needed, find a NumberField containing the roots given roots
+#     """
+#     roots = [factory._FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
+#     return number_field_elements_from_algebraics(roots,minimal=True)
 
 ################
 ### Reducers ###

@@ -1012,7 +1012,7 @@ class FusionRing(WeylCharacterRing):
 
     def get_computational_basis(self,a,b,n_strands):
         """
-        Return the so-called computational basis for `\text{Hom}(b, a^n)`. 
+        Return the so-called computational basis for `\\text{Hom}(b, a^n)`.
 
         INPUT:
 
@@ -1021,7 +1021,7 @@ class FusionRing(WeylCharacterRing):
         - ``n_strands`` -- the number of strands for a braid group
 
         Let `n=` ``n_strands`` and let `k` be the greatest integer `\leqslant n/2`.
-        The braid group acts on ``\text{Hom}(b,a^n)``. This action
+        The braid group acts on `\\text{Hom}(b,a^n)`. This action
         is computed in :meth:`get_braid_generators`. This method
         returns the computational basis in the form of a set of
         fusion trees. Each tree is represented by a `(n-2)`-tuple
@@ -1031,7 +1031,7 @@ class FusionRing(WeylCharacterRing):
             (m_1,\cdots,m_k,l_1,\cdots,l_{k-2})
 
         These are computed by :meth:`get_trees`. As a computational
-        device when ``n_strands`` is odd, we pad the vector `(m_1,\cdots,m_k)` 
+        device when ``n_strands`` is odd, we pad the vector `(m_1,\cdots,m_k)`
         with an additional `m_{k+1}` equal to `a` before passing it to
         :meth:`get_trees`. This `m_{k+1}` does not appear in the output
         of this method.
@@ -1052,17 +1052,17 @@ class FusionRing(WeylCharacterRing):
         """
         return FMatrix.FMatrix(self)
 
-    def emap(self,mapper,input_args,worker_pool=None):
+    def _emap(self,mapper,input_args,worker_pool=None):
         """
         Apply the given mapper to each element of the given input iterable and
         return the results (with no duplicates) in a list. This method applies the
         mapper in parallel if a worker_pool is provided.
 
-        # INPUT:
-        mapper is a string specifying the name of a function defined in the
-        fast_parallel_fmats_methods module.
+        INPUT:
 
-        input_args should be a tuple holding arguments to be passed to mapper
+        - ``mapper`` -- a string specifying the name of a function defined in the
+          fast_parallel_fmats_methods module.
+        - ``input_args`` -- a tuple holding arguments to be passed to mapper
 
         ##NOTES:
         If worker_pool is not provided, function maps and reduces on a single process.
@@ -1095,9 +1095,9 @@ class FusionRing(WeylCharacterRing):
         """
         INPUT:
 
-        Compute generators of the Artin braid group on n_strands strands. If
+        Compute generators of the Artin braid group on `n=` n_strands strands. If
         fusing_anyon = a and total_charge_anyon = b, the generators are
-        endomorphisms of Hom(a^n_strands, b)
+        endomorphisms of `\\text{Hom}(b, a^n)`
 
         - ``fusing_anyon`` -- a basis element of self
         - ``total_charge_anyon`` -- a basis element of self
@@ -1143,7 +1143,7 @@ class FusionRing(WeylCharacterRing):
             True
 
         """
-        assert n_strands > 2, "The number of strands must be an integer greater than 2"
+        assert int(n_strands) > 2, "The number of strands must be an integer greater than 2"
         #Construct associated FMatrix object and solve for F-symbols
         if not self.fmats.symbols_known:
             self.fmats.find_orthogonal_solution(verbose=verbose)
@@ -1167,12 +1167,12 @@ class FusionRing(WeylCharacterRing):
 
         #Compute even-indexed generators using F-matrices
         for k in range(1,n_strands//2):
-            entries = self.emap('sig_2k',(k,a,b,n_strands),pool)
+            entries = self._emap('sig_2k',(k,a,b,n_strands),pool)
             gens[2*k] = matrix(dict(entries))
 
         #If n_strands is odd, we compute the final generator
         if n_strands % 2:
-            entries = self.emap('odd_one_out',(a,b,n_strands),pool)
+            entries = self._emap('odd_one_out',(a,b,n_strands),pool)
             gens[n_strands-1] = matrix(dict(entries))
 
         return comp_basis, [gens[k] for k in sorted(gens)]

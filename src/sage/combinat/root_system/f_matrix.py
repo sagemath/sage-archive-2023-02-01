@@ -11,8 +11,7 @@ F-Matrix Factory for FusionRings
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from functools import cmp_to_key, partial
-from itertools import product
+from itertools import product, zip_longest
 import sage.combinat.root_system.fusion_ring as FusionRing
 import sage.graphs
 from sage.graphs.generators.basic import EmptyGraph
@@ -29,15 +28,17 @@ try:
 except:
     import pickle
 
-from multiprocessing import cpu_count, Pool, set_start_method, TimeoutError
+from multiprocessing import cpu_count, Pool, set_start_method
 import numpy as np
+import os
 from sage.combinat.root_system.fast_parallel_fmats_methods import *
 from sage.combinat.root_system.poly_tup_engine import *
+#Import faster unsafe method (not for client use)
+from sage.combinat.root_system.poly_tup_engine import _tup_to_poly
 from sage.rings.polynomial.polydict import ETuple
-from sage.rings.qqbar import AA, QQbar
+from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 from sage.rings.real_double import RDF
 
-from itertools import zip_longest
 
 class FMatrix():
     r"""Return an F-Matrix factory for a FusionRing.
@@ -248,16 +249,18 @@ class FMatrix():
         #Initialize list of defining equations
         self.ideal_basis = list()
 
-        #Initialize empty set of solved F-symbols
-        self.solved = set()
-
-        #New attributes of the FMatrix class
+        #Base field attributes
         self._field = self._FR.field()
         r = self._field.defining_polynomial().roots(ring=QQbar,multiplicities=False)[0]
         self._qqbar_embedding = self._field.hom([r],QQbar)
+        self._non_cyc_roots = list()
+
+        #Solver state attributes
+        #Initialize empty set of solved F-symbols
+        self.solved = set()
         self._var_to_idx = { var : idx for idx, var in enumerate(self._poly_ring.gens()) }
         self._ks = dict()
-        self._nnz = self.get_known_nonz()
+        self._nnz = self._get_known_nonz()
         self._known_vals = dict()
         self.symbols_known = False
 
@@ -291,7 +294,7 @@ class FMatrix():
 
     def clear_vars(self):
         """
-        Clear the set of variables.
+        Clear the set of variables. Also reset the set of solved F-symbols.
         """
         self._FR._basecoer = None
         self._fvars = { self._var_to_sextuple[key] : key for key in self._var_to_sextuple }
@@ -384,9 +387,32 @@ class FMatrix():
         return matrix([[self.fmat(a,b,c,d,x,y) for y in Y] for x in X])
 
     def field(self):
+        r"""
+        Return the base field containing the F-symbols. When ``self`` is initialized,
+        the field is set to be the cyclotomic field of the FusionRing associated
+        to ``self``. The field may change after running :meth:`find_orthogonal_solution`.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("F4",1,conjugate=True))
+            sage: f.field()
+            Cyclotomic Field of order 80 and degree 32
+            sage: f.find_orthogonal_solution(verbose=False)
+            sage: f.field()
+            Number Field in a with defining polynomial y^64 - 16*y^62 + 104*y^60 - 320*y^58 + 258*y^56 + 1048*y^54 - 2864*y^52 - 3400*y^50 + 47907*y^48 - 157616*y^46 + 301620*y^44 - 322648*y^42 + 2666560*y^40 + 498040*y^38 + 54355076*y^36 - 91585712*y^34 + 592062753*y^32 - 1153363592*y^30 + 3018582788*y^28 - 4848467552*y^26 + 7401027796*y^24 - 8333924904*y^22 + 8436104244*y^20 - 7023494736*y^18 + 4920630467*y^16 - 2712058560*y^14 + 1352566244*y^12 - 483424648*y^10 + 101995598*y^8 - 12532920*y^6 + 1061168*y^4 - 57864*y^2 + 1681
+        """
         return self._field
 
     def FR(self):
+        r"""
+        Return the FusionRing associated to ``self``.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("D3",1))
+            sage: f.FR()
+            The Fusion Ring of Type D3 and level 1 with Integer Ring coefficients
+        """
         return self._FR
 
     def findcases(self,output=False):
@@ -493,67 +519,75 @@ class FMatrix():
             [b1, b3, b5]
 
         """
-
         return [y for y in self._FR.basis() if self._FR.Nk_ij(b,c,y) != 0 and self._FR.Nk_ij(a,y,d) != 0]
 
     ####################
     ### Data getters ###
     ####################
 
-    def get_fmats_in_alg_field(self):
-        """
-        Return F-symbols as elements of the AlgebraicField. This method uses
-        self._qqbar_embedding to coerce F-symbols into QQbar.
-        """
-        return { sextuple : self._qqbar_embedding(fvar) for sextuple, fvar in self._fvars.items() }
+    def get_fvars(self):
+        r"""
+        Return a dictionary of F-symbols.
 
-    def get_radical_expression(self):
-        """
-        Return radical expression of F-symbols for easy visualization
-        """
-        return { sextuple : val.radical_expression() for sextuple, val in get_fmats_in_alg_field().items() }
+        The keys are sextuples `(a,b,c,d,x,y)` basis elements of ``self`` and
+        the values are the corresponding F-symbols `(F^{a,b,c}_d)_{xy}`.
 
-    def get_known_vals(self):
-        """
-        Construct a dictionary of idx, known_val pairs for equation substitution
-        """
-        return { var_idx : self._fvars[self._var_to_sextuple[self._poly_ring.gen(var_idx)]] for var_idx in self.solved }
+        These values reflect the current state of a solver's computation.
 
-    def get_known_sq(self,eqns=None):
-        """
-        Construct a dictionary of known squares. Keys are variable indices and corresponding values are the squares
-        """
-        if eqns is None:
-            eqns = self.ideal_basis
-        ks = deepcopy(self._ks)
-        for eq_tup in eqns:
-            if tup_fixes_sq(eq_tup):
-                ks[variables(eq_tup)[0]] = -eq_tup[-1][1]
-        # return { variables(eq_tup)[0] : -eq_tup[-1][1] for eq_tup in eqns if tup_fixes_sq(eq_tup) }
-        return ks
+        EXAMPLES::
 
-    def get_known_nonz(self):
+            sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
+            creating variables fx1..fx8
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
+            sage: f.get_fvars()[(f1, f1, f1, f0, f2, f2)]
+            fx0
+            sage: f.find_orthogonal_solution(verbose=False)
+            sage: f.get_fvars()[(f1, f1, f1, f0, f2, f2)]
+            1
         """
-        Construct an ETuple indicating positions of known nonzero variables.
-        MUST be called after self._ks = get_known_sq()
+        return self._fvars
+
+    def get_non_cyclotomic_roots(self):
+        r"""
+        Return a list of roots that define the extension of the associated
+        ``FusionRing``'s base ``CyclotomicField`` containing all the F-symbols.
+
+        OUTPUT:
+
+        The list of non-cyclotomic roots is given as a list of elements of
+        ``self.field()``.
+
+        If ``self.field() == self.FR().field()`` this method returns an empty list.
+
+        When ``self.field()`` is a ``NumberField``, one may use
+        :meth:``get_qqbar_embedding`` to embed the resulting values into ``QQbar``.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("E6",1))
+            sage: f.find_orthogonal_solution(verbose=False)
+            sage: f.get_non_cyclotomic_roots()
+            []
+            sage: f = FMatrix(FusionRing("E7",2))   # long time
+            sage: f.find_orthogonal_solution(verbose=False)  # long time
+            sage: f.get_non_cyclotomic_roots()      # long time
+            [-0.7861513777574233?, -0.5558929702514212?]
         """
-        nonz = { self._var_to_idx[var] : 100 for var in self._singles }
-        for idx in self._ks:
-            nonz[idx] = 100
-        return ETuple(nonz, self._poly_ring.ngens())
+        return sorted(set(self._non_cyc_roots))
 
     def get_qqbar_embedding(self):
-        """
+        r"""
         Return an embedding from the base field containing F-symbols (the
-        FusionRing's CyclotomicField, a NumberField, or QQbar) into QQbar
+        ``FusionRing``'s ``CyclotomicField``, a ``NumberField``, or ``QQbar``)
+        into ``QQbar``.
         """
         return self._qqbar_embedding
 
     def get_coerce_map_from_fr_cyclotomic_field(self):
-        """
-        Return a coercion map from the FusionRing's cyclotomic field into the
-        base field containing all F-symbols (this could be the FusionRing's
-        CyclotomicField, a NumberField, or QQbar).
+        r"""
+        Return a coercion map from the associated ``FusionRing``'s cyclotomic
+        field into the base field containing all F-symbols (this could be the
+        ``FusionRing``'s ``CyclotomicField``, a ``NumberField``, or ``QQbar``).
         """
         #If base field is different from associated FusionRing's CyclotomicField,
         #return coercion map
@@ -564,19 +598,70 @@ class FMatrix():
             F = self._FR.field()
             return F.hom([F.gen()], F)
 
-    #########################
-    ### Useful predicates ###
-    #########################
-
-    def is_univariate_in_unknown(self,monom_exp):
+    def get_fmats_in_alg_field(self):
+        r"""
+        Return F-symbols as elements of the ``AlgebraicField``. This method uses
+        the embedding defined by :meth:``self.get_qqbar_embedding`` to coerce
+        F-symbols into QQbar.
         """
-        Determine if monomial exponent is univariate in a still unknown F-symbol
+        return { sextuple : self._qqbar_embedding(fvar) for sextuple, fvar in self._fvars.items() }
+
+    def get_radical_expression(self):
+        """
+        Return radical expression of F-symbols for easy visualization
+        """
+        return { sextuple : val.radical_expression() for sextuple, val in get_fmats_in_alg_field().items() }
+
+    #######################
+    ### Private helpers ###
+    #######################
+
+    def _get_known_vals(self):
+        r"""
+        Construct a dictionary of ``idx``, ``known_val`` pairs used for substituting
+        into remaining equations.
+        """
+        return { var_idx : self._fvars[self._var_to_sextuple[self._poly_ring.gen(var_idx)]] for var_idx in self.solved }
+
+    def _get_known_sq(self,eqns=None):
+        r"""
+        Update ```self``'s dictionary of known squares. Keys are variable
+        indices and corresponding values are the squares.
+        """
+        if eqns is None:
+            eqns = self.ideal_basis
+        ks = deepcopy(self._ks)
+        for eq_tup in eqns:
+            if tup_fixes_sq(eq_tup):
+                ks[variables(eq_tup)[0]] = -eq_tup[-1][1]
+        return ks
+
+    def _get_known_nonz(self):
+        r"""
+        Construct an ETuple indicating positions of known nonzero variables.
+
+        NOTES:
+
+            MUST be called after ``self._ks = _get_known_sq()``.
+        """
+        nonz = { self._var_to_idx[var] : 100 for var in self._singles }
+        for idx in self._ks:
+            nonz[idx] = 100
+        return ETuple(nonz, self._poly_ring.ngens())
+
+    #################################
+    ### Useful private predicates ###
+    #################################
+
+    def _is_univariate_in_unknown(self,monom_exp):
+        """
+        Determine if monomial exponent is univariate in an unknown F-symbol
         """
         return len(monom_exp.nonzero_values()) == 1 and monom_exp.nonzero_positions()[0] not in self.solved
 
-    def is_uni_linear_in_unkwown(self,monom_exp):
+    def _is_uni_linear_in_unkwown(self,monom_exp):
         """
-        Determine if monomial exponent is univariate and linear in a vstill unknown F-symbol
+        Determine if monomial exponent is univariate and linear in an unknown F-symbol
         """
         return monom_exp.nonzero_values() == [1] and monom_exp.nonzero_positions()[0] not in self.solved
 
@@ -585,15 +670,46 @@ class FMatrix():
     ##############################
 
     def largest_fmat_size(self):
-        """
-        Get the size of the largest F-matrix F^{abc}_d
+        r"""
+        Get the size of the largest F-matrix `F^{abc}_d`.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("B3",2))
+            sage: f.largest_fmat_size()
+            4
         """
         return max(self.fmatrix(*tup).nrows() for tup in product(self._FR.basis(),repeat=4))
 
-    def get_fmats_by_size(self,n):
-        """
-        Partition the F-symbols according to the size of the F-matrix F^{abc}_d
-        they belong to
+    def get_fvars_by_size(self,n,indices=False):
+        r"""
+        Return the set of F-symbols that are entries of an `n \times n` matrix
+        `F^{a,b,c}_d`.
+
+        INPUT:
+
+            -``n`` -- positive integer
+            -``indices`` -- If ``indices`` is ``False`` (default), this method
+            returns a set of sextuples `(a,b,c,d,x,y)` identifying the
+            corresponding F-symbol. Each sextuple is a key in the dictionary
+            returned by :meth:`get_fvars`.
+
+            Otherwise the method returns a list of integer indices that internally
+            identify the F-symbols. The ``indices=True`` option is meant
+            for internal use mostly.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("E8",2), inject_variables=True)
+            creating variables fx1..fx14
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+            sage: f.largest_fmat_size()
+            2
+            sage: f.get_fvars_by_size(2)
+            {(f2, f2, f2, f2, f0, f0),
+             (f2, f2, f2, f2, f0, f1),
+             (f2, f2, f2, f2, f1, f0),
+             (f2, f2, f2, f2, f1, f1)}
         """
         fvars_copy = deepcopy(self._fvars)
         solved_copy = deepcopy(self.solved)
@@ -603,10 +719,12 @@ class FMatrix():
             F = self.fmatrix(*quadruple)
             #Discard trivial 1x1 F-matrix, if applicable
             if F.nrows() == n and F.coefficients() != [1]:
-                var_set.update(self._var_to_idx[fx] for fx in F.coefficients())
+                var_set.update(F.coefficients())
         self._fvars = fvars_copy
         self.solved = solved_copy
-        return var_set
+        if indices:
+            return { self._var_to_idx[fx] for fx in var_set }
+        return { self._var_to_sextuple[fx] for fx in var_set }
 
     ############################
     ### Checkpoint utilities ###
@@ -614,9 +732,16 @@ class FMatrix():
 
     def get_fr_str(self):
         """
-        Auto-generate filename string for saving results
+        Auto-generate identifying key for saving results
+
+        EXAMPLES::
+
+                sage: f = FMatrix(FusionRing("B3",1))
+                sage: f.get_fr_str()
+                'B31'
         """
-        return self._FR.cartan_type()[0] + str(self._FR.cartan_type()[1]) + str(self._FR.fusion_level())
+        ct = self._FR.cartan_type()
+        return ct.letter + str(ct.n) + str(self._FR.fusion_level())
 
     def save_fvars(self,filename):
         """
@@ -626,8 +751,12 @@ class FMatrix():
             pickle.dump([self._fvars, self.solved], f)
 
     def load_fvars(self,save_dir=""):
-        """
-        If provided, optional param save_dir should have a trailing forward slash
+        r"""
+        Load solver state from file. Use this method both for warm-starting
+        :meth:`find_orthogonal_solution` and to load pickled results.
+
+        If provided, the optional parameter ``save_dir`` must have a trailing
+        forward slash e.g. "my_dir/"
         """
         with open(save_dir + "saved_fvars_" + self.get_fr_str() + ".pickle", 'rb') as f:
             self._fvars, self.solved = pickle.load(f)
@@ -642,11 +771,13 @@ class FMatrix():
         return the results (with no duplicates) in a list. This method applies the
         mapper in parallel if a worker_pool is provided.
 
-        # INPUT:
-        mapper is a string specifying the name of a function defined in the
-        fast_parallel_fmats_methods module.
+        INPUT:
 
-        ##NOTES:
+            -``mapper`` -- string specifying the name of a function defined in the
+            ``fast_parallel_fmats_methods`` module.
+
+        NOTES:
+
         If worker_pool is not provided, function maps and reduces on a single process.
         If worker_pool is provided, the function attempts to determine whether it should
         use multiprocessing based on the length of the input iterable. If it can't determine
@@ -686,12 +817,19 @@ class FMatrix():
     ########################
 
     def get_orthogonality_constraints(self,output=True):
-        """
+        r"""
         Get equations imposed on the F-matrix by orthogonality.
 
-        If output=True, equations are returned as polynomial objects. Otherwise,
-        polynomial generators (stored in the internal tuple representation) are
-        appended to self.ideal_basis
+        INPUT:
+
+        -``output``-- a boolean.
+
+        If ``output==True``, orthogonality constraints are returned as
+        polynomial objects.
+
+        Otherwise, the constraints are appended to ``self.ideal_basis``.
+        They are stored in the internal tuple representation. The ``output==False``
+        option is meant mostly for internal use by the F-matrix solver.
         """
         eqns = list()
         for tup in product(self._FR.basis(), repeat=4):
@@ -702,26 +840,31 @@ class FMatrix():
         self.ideal_basis.extend([poly_to_tup(eq) for eq in eqns])
 
     def get_defining_equations(self,option,worker_pool=None,output=True):
-        """
+        r"""
         Get the equations defining the ideal generated by the hexagon or
         pentagon relations.
 
-        Use option='hexagons' to get equations imposed on the F-matrix by the hexagon
+        Use ``option='hexagons'`` to get equations imposed on the F-matrix by the hexagon
         relations in the definition of a braided category.
 
-        Use option='pentagons' to get equations imposed on the F-matrix by the pentagon
+        Use ``option='pentagons'`` to get equations imposed on the F-matrix by the pentagon
         relations in the definition of a monoidal category.
 
-        If output=True, equations are returned as polynomial objects. Otherwise,
-        polynomial generators (stored in the internal tuple representation) are
-        appended to self.ideal_basis
-        If a worker_pool is passed, then we use multiprocessing
+        If ``output=True``, equations are returned as polynomial objects.
+
+        Otherwise, the constraints are appended to ``self.ideal_basis``.
+        They are stored in the internal tuple representation. The ``output==False``
+        option is meant mostly for internal use by the F-matrix solver.
+
+        If a ``worker_pool`` object is passed, then we use multiprocessing.
+        The ``worker_pool`` object is assumed to be a ``Pool`` object of the
+        Python ``multiprocessing`` module.
         """
         n_proc = worker_pool._processes if worker_pool is not None else 1
         params = [(child_id, n_proc) for child_id in range(n_proc)]
         eqns = self.map_triv_reduce('get_reduced_'+option,params,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
         if output:
-            return [self.tup_to_fpoly(p) for p in eqns]
+            return [self._tup_to_fpoly(p) for p in eqns]
         self.ideal_basis.extend(eqns)
 
     ############################
@@ -734,7 +877,14 @@ class FMatrix():
         """
         return tup_to_poly(eq_tup,parent=self._poly_ring)
 
-    def solve_for_linear_terms(self,eqns=None):
+    def _tup_to_fpoly(self,eq_tup):
+        r"""
+        Faster version of :meth:`tup_to_fpoly`. Unsafe for client use, since it
+        avoids implicit casting and it may lead to segmentation faults.
+        """
+        return _tup_to_poly(eq_tup,parent=self._poly_ring)
+
+    def _solve_for_linear_terms(self,eqns=None):
         """
         Solve for a linear term occurring in a two-term equation.
         """
@@ -745,7 +895,7 @@ class FMatrix():
         for eq_tup in eqns:
             if len(eq_tup) == 1:
                 m = eq_tup[0][0]
-                if self.is_univariate_in_unknown(m):
+                if self._is_univariate_in_unknown(m):
                     var = m.nonzero_positions()[0]
                     self._fvars[self._var_to_sextuple[self._poly_ring.gen(var)]] = tuple()
                     self.solved.add(var)
@@ -755,7 +905,7 @@ class FMatrix():
                 max_var = monomials[0].emax(monomials[1]).nonzero_positions()[0]
                 for this, m in enumerate(monomials):
                     other = (this+1)%2
-                    if self.is_uni_linear_in_unkwown(m) and m.nonzero_positions()[0] == max_var and monomials[other][m.nonzero_positions()[0]] == 0:
+                    if self._is_uni_linear_in_unkwown(m) and m.nonzero_positions()[0] == max_var and monomials[other][m.nonzero_positions()[0]] == 0:
                         var = m.nonzero_positions()[0]
                         rhs_key = monomials[other]
                         rhs_coeff = -eq_tup[other][1] / eq_tup[this][1]
@@ -764,17 +914,18 @@ class FMatrix():
                         linear_terms_exist = True
         return linear_terms_exist
 
-    def backward_subs(self):
+    def _backward_subs(self):
         """
         Backward substitution step. Traverse variables in reverse lexicographical order.
         """
+        one = self._field.one()
         for var in reversed(self._poly_ring.gens()):
             sextuple = self._var_to_sextuple[var]
             rhs = self._fvars[sextuple]
             d = { var_idx : self._fvars[self._var_to_sextuple[self._poly_ring.gen(var_idx)]] for var_idx in variables(rhs) if var_idx in self.solved }
             if d:
-                kp = compute_known_powers(get_variables_degrees([rhs]), d)
-                self._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp),self._ks).items())
+                kp = compute_known_powers(get_variables_degrees([rhs]), d, one)
+                self._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp,one),self._ks).items())
 
     def update_reduction_params(self,eqns=None,worker_pool=None,children_need_update=False):
         """
@@ -782,9 +933,9 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        self._ks, self._var_degs = self.get_known_sq(eqns), get_variables_degrees(eqns)
-        self._nnz = self.get_known_nonz()
-        self._kp = compute_known_powers(self._var_degs,self.get_known_vals())
+        self._ks, self._var_degs = self._get_known_sq(eqns), get_variables_degrees(eqns)
+        self._nnz = self._get_known_nonz()
+        self._kp = compute_known_powers(self._var_degs,self._get_known_vals(), self._field.one())
         if worker_pool is not None and children_need_update:
             #self._nnz and self._kp are computed in child processes to reduce IPC overhead
             n_proc = worker_pool._processes
@@ -802,15 +953,16 @@ class FMatrix():
             ret = False
         if required_vars is None:
             required_vars = self._poly_ring.gens()
-        poly_sortkey = cmp_to_key(poly_tup_cmp)
+        # poly_sortkey = cmp_to_key(poly_tup_cmp)
+        poly_sortkey = poly_tup_sortkey_degrevlex
 
-        #Testing new _fvars representation... Unzip polynomials
+        #Unzip polynomials
         self._fvars = { sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items() }
 
         while True:
-            linear_terms_exist = self.solve_for_linear_terms(eqns)
+            linear_terms_exist = self._solve_for_linear_terms(eqns)
             if not linear_terms_exist: break
-            self.backward_subs()
+            self._backward_subs()
 
             #Support early termination in case only some F-symbols are needed
             req_vars_known = all(self._fvars[self._var_to_sextuple[var]] in self._FR.field() for var in required_vars)
@@ -818,12 +970,13 @@ class FMatrix():
 
             #Compute new reduction params, send to child processes if any, and update eqns
             self.update_reduction_params(eqns=eqns,worker_pool=worker_pool,children_need_update=len(eqns)>self.mp_thresh)
-            eqns = sorted(self.map_triv_reduce('update_reduce',eqns,worker_pool=worker_pool), key=poly_sortkey)
+            eqns = self.map_triv_reduce('update_reduce',eqns,worker_pool=worker_pool)
+            eqns.sort(key=poly_sortkey)
             if verbose:
                 print("Elimination epoch completed... {} eqns remain in ideal basis".format(len(eqns)))
 
         #Zip up _fvars before exiting
-        self._fvars = { sextuple : self.tup_to_fpoly(rhs_tup) for sextuple, rhs_tup in self._fvars.items() }
+        self._fvars = { sextuple : self._tup_to_fpoly(rhs_tup) for sextuple, rhs_tup in self._fvars.items() }
         if ret:
             return eqns
         self.ideal_basis = eqns
@@ -890,7 +1043,7 @@ class FMatrix():
         # nmax = self.largest_fmat_size()
         # vars_by_size = list()
         # for i in range(nmax+1):
-        #     vars_by_size.append(self.get_fmats_by_size(i))
+        #     vars_by_size.append(self.get_fvars_by_size(i))
 
         for comp, comp_eqns in self.partition_eqns(graph,verbose=verbose).items():
             #Check if component is too large to process
@@ -930,6 +1083,42 @@ class FMatrix():
     #######################
     ### Solution method ###
     #######################
+
+    def attempt_number_field_computation(self):
+        """
+        Based on the ``CartanType`` of ``self``, determine whether to attempt
+        to find a ``NumberField`` containing all the F-symbols based on data
+        known on March 17, 2021.
+
+        For certain ``FusionRing``s, the number field computation does not
+        seem to terminate. In these cases, we report F-symbols as elements
+        of the ``AlgebraicField``.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("E6",2))
+            sage: f.attempt_number_field_computation()
+            False
+            sage: f = FMatrix(FusionRing("G2",1))
+            sage: f.attempt_number_field_computation()
+            True
+        """
+        ct = self._FR.cartan_type()
+        k = self._FR._k
+        if ct.letter == 'A':
+            if ct.n == 1 and k >= 9:
+                return False
+        if ct.letter == 'C':
+            if ct.n >= 9 and k == 1:
+                return False
+        if ct.letter == 'E':
+            if ct.n < 8 and k == 2:
+                return False
+        if ct.letter == 'F' and k == 2:
+            return False
+        if ct.letter == 'G' and k == 2:
+            return False
+        return True
 
     def get_explicit_solution(self,eqns=None,verbose=True):
         """
@@ -973,16 +1162,21 @@ class FMatrix():
         if must_change_base_field:
             #Attempt to compute smallest number field containing all the F-symbols
             #If calculation takes too long, we use QQbar as the base field
-            proc = Pool(1)
-            input_args = ((('get_appropriate_number_field',id(self)),non_cyclotomic_roots),)
-            p = proc.apply_async(executor,input_args)
-            try:
-                self._field, bf_elts, self._qqbar_embedding = p.get(timeout=100)
-            except TimeoutError:
+            if self.attempt_number_field_computation():
+                roots = [self._FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
+                self._field, bf_elts, self._qqbar_embedding = number_field_elements_from_algebraics(roots,minimal=True)
+            else:
+            # proc = Pool(1)
+            # input_args = ((('get_appropriate_number_field',id(self)),non_cyclotomic_roots),)
+            # p = proc.apply_async(executor,input_args)
+            # try:
+            #     self._field, bf_elts, self._qqbar_embedding = p.get(timeout=100)
+            # except TimeoutError:
                 self._field = QQbar
                 bf_elts = [self._qqbar_embedding(F.gen())]
                 bf_elts += [rhs for fx,rhs in non_cyclotomic_roots]
                 self._qqbar_embedding = lambda x : x
+            self._non_cyc_roots = bf_elts[1:]
 
             #Embed cyclotomic field into newly constructed base field
             cyc_gen_as_bf_elt = bf_elts.pop(0)
@@ -1008,15 +1202,58 @@ class FMatrix():
         self._fvars = { sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items() }
         for fx, rhs in numeric_fvars.items():
             self._fvars[self._var_to_sextuple[self._poly_ring.gen(fx)]] = ((ETuple({},nvars),rhs),)
-        self.backward_subs()
+        self._backward_subs()
         self._fvars = { sextuple : constant_coeff(rhs) for sextuple, rhs in self._fvars.items() }
         self.clear_equations()
 
-    def find_orthogonal_solution(self,use_mp=True,save_dir="",verbose=True):
-        """
-        Solver
-        If provided, optional param save_dir (for saving computed _fvars) should have a trailing forward slash
-        Supports "warm" start. Use load_fvars to re-start computation from checkpoint
+        #Update base field attributes
+        self._FR._field = self.field()
+        self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
+        for x in self._FR.basis():
+            x.q_dimension.clear_cache()
+
+    def find_orthogonal_solution(self,checkpoint=False,save_results=False,save_dir="",verbose=True,use_mp=True):
+        r"""
+        Find an orthogonal solution to the pentagon equations associated to the
+        monoidal category represented by ``self``.
+
+        INPUT:
+
+        -``checkpoint`` -- (optional) a boolean indicating whether the computation should
+          be checkpointed. Depending on the associated ``CartanType``, the computation
+          may take hours to complete. For large examples, checkpoints are
+          recommended. This method supports "warm" starting, so the calculation
+          may be resumed from a checkpoint. Checkpoints store necessary state in
+          the form of pickle files.
+
+        -``save_results`` -- (optional) a boolean indicating whether the F-symbols
+          should be stored to file as a pickle for later use.
+
+        -``save_dir`` -- (optional) a string specifying the directory in which
+          to save the pickled F-symbols. If used, the string must have a trailing
+          forward slash e.g. "my_dir/"
+          The file name is "saved_fvars_" + ``key`` + .pickle, where
+          key is computed by :meth:`get_fr_str`. The file name is fixed to allow
+          for automatic loading. The ``save_dir`` is also used to specify the
+          location of a checkpoint pickle, if one exists.
+
+        -``use_mp`` -- (optional) a boolean indicating whether to use
+          multiprocessing to speed up calculation. The default value
+          ``True`` is recommended, since parallel processing yields results
+          much quicker.
+
+        OUTPUT:
+
+        This method returns ``None``. If the solver ran successfully, the
+        results may be accessed through various methods, such as
+        :meth:``get_fvars``, :meth:``fmatrix``, :meth:``fmat``, etc.
+
+        In many cases the F-symbols obtained are in fact real. In any case, the
+        F-symbols are obtained as elements of the associated ``FusionRing``'s
+        ``CyclotomicField``, a computed ``NumberField``, or ``QQbar``.
+        Currently, the output field is determined based on the ``CartanType``
+        associated to ``self``. See :meth:``attempt_number_field_computation``
+        for details.
         """
         #Set multiprocessing parameters. Context can only be set once, so we try to set it
         self.clear_equations()
@@ -1029,22 +1266,29 @@ class FMatrix():
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, len(self._fvars)))
 
+        #Attempt warm-start
+        try:
+            self.load_fvars(save_dir)
+        except FileNotFoundError:
+            pass
+
         #Set up hexagon equations and orthogonality constraints
-        poly_sortkey = cmp_to_key(poly_tup_cmp)
+        poly_sortkey = poly_tup_sortkey_degrevlex
         self.get_orthogonality_constraints(output=False)
         self.get_defining_equations('hexagons',worker_pool=pool,output=False)
         if verbose:
             print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
 
         #Set up equations graph. Find GB for each component in parallel. Eliminate variables
-        self.ideal_basis = sorted(self.par_graph_gb(worker_pool=pool,verbose=verbose), key=poly_sortkey)
+        self.ideal_basis = self.par_graph_gb(worker_pool=pool,verbose=verbose)
+        self.ideal_basis.sort(key=poly_sortkey)
         self.triangular_elim(worker_pool=pool,verbose=verbose)
 
         #Report progress and checkpoint!
         if verbose:
             print("Hex elim step solved for {} / {} variables".format(len(self.solved), len(self._poly_ring.gens())))
         filename = save_dir + "saved_fvars_" + self.get_fr_str() + ".pickle"
-        self.save_fvars(filename)
+        if checkpoint: self.save_fvars(filename)
 
         #Update reduction parameters, also in children if any
         self.update_reduction_params(worker_pool=pool,children_need_update=True)
@@ -1053,27 +1297,30 @@ class FMatrix():
         self.get_defining_equations('pentagons',worker_pool=pool,output=False)
         if verbose:
             print("Set up {} reduced pentagons...".format(len(self.ideal_basis)))
-        self.ideal_basis = sorted(self.ideal_basis, key=poly_sortkey)
+        self.ideal_basis.sort(key=poly_sortkey)
         self.triangular_elim(worker_pool=pool,verbose=verbose)
 
         #Report progress and checkpoint!
         if verbose:
             print("Pent elim step solved for {} / {} variables".format(len(self.solved), len(self._poly_ring.gens())))
-        self.save_fvars(filename)
+        if checkpoint: self.save_fvars(filename)
 
         #Close worker pool to free resources
         if pool is not None: pool.close()
 
         #Set up new equations graph and compute variety for each component
-        self.ideal_basis = sorted(self.par_graph_gb(term_order="lex",verbose=verbose), key=poly_sortkey)
+        self.ideal_basis = self.par_graph_gb(term_order="lex",verbose=verbose)
+        self.ideal_basis.sort(key=poly_sortkey)
         self.triangular_elim(verbose=verbose)
+        if checkpoint: self.save_fvars(filename)
         self.get_explicit_solution(verbose=verbose)
-        self.save_fvars(filename)
+
+        #The calculation was successful, so we may delete checkpoints
         self.symbols_known = True
-        self._FR._field = self.field()
-        self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
-        for x in self._FR.basis():
-            x.q_dimension.clear_cache()
+        if checkpoint:
+            os.remove(filename)
+        if save_results:
+            self.save_fvars(filename)
 
     #########################
     ### Cyclotomic method ###
@@ -1114,29 +1361,12 @@ class FMatrix():
                 new_knowns.add(eq.lm())
                 useless.add(eq)
 
-            #Solve equation of the form x_i x_j + k == 0 for x_i
-            # print("equation: ", eq, "variables ", eq.variables())
-            # if eq.degree() == 2 and max(eq.degrees()) == 1 and len(eq.variables()) == 2 and eq.variable(0) not in self.solved:
-            #     self._fvars[self._var_to_sextuple[str(eq.variable(0))]] = - eq.constant_coefficient() / eq.variable(1)
-            #     print("Subbed {} for {}".format(- eq.constant_coefficient() / eq.variable(1), eq.variable(0)))
-            #     #Add variable to set of known values and remove this equation
-            #     new_knowns.add(eq.variable(0))
-            #     useless.add(eq)
-
         #Update fvars depending on other variables
         self.solved.update(new_knowns)
         for sextuple, rhs in self._fvars.items():
             d = { var : self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if var in self.solved }
-            if len(d) == 2: print("THREE TERM LINEAR EQUATION ENCOUNTERED!")
             if d:
                 self._fvars[sextuple] = rhs.subs(d)
-
-            # if rhs.variables() and rhs.variable() in self.solved:
-            #     assert rhs.is_univariate(), "RHS expression is not univariate"
-            #     d = { rhs.variable() :  }
-            #     # print("Performing substitution of {} with dictionary {}".format(rhs, d))
-            #     self._fvars[sextuple] = rhs.subs(d)
-
         return new_knowns, useless
 
     def update_equations(self):
@@ -1224,7 +1454,6 @@ class FMatrix():
     #####################
     ### Verifications ###
     #####################
-
 
     def verify_hexagons(self):
         """

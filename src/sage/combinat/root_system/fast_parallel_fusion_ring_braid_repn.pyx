@@ -77,7 +77,7 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
         sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
         sage: one.weight()
         (1/2, -1/2)
-        sage: FR.get_comp_basis(one,two,4)
+        sage: FR.get_computational_basis(one,two,4)
         [(two, two), (two, idd), (idd, two)]
         sage: mid_sig_ij(FR, (two, two), (two, idd), one, two)
         (zeta48^10 - zeta48^2)*fx0*fx1*fx8 + (zeta48^2)*fx2*fx3*fx8
@@ -117,7 +117,7 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
         sage: FR.fusion_labels(['I0','Y1','X','Z','Xp','Y2'],inject_variables=True)
         sage: X.weight()
         (1/2, 1/2)
-        sage: FR.get_comp_basis(X,X,3)
+        sage: FR.get_computational_basis(X,X,3)
         [(Y2,), (Y1,), (I0,)]
         sage: odd_one_out_ij(FR,Y2,Y1,X,X)
         (zeta40^10)*fx205*fx208 + (zeta40^14 - zeta40^10 + zeta40^6 - zeta40^2)*fx206*fx209 + (zeta40^2)*fx207*fx210
@@ -157,7 +157,7 @@ cpdef sig_2k(fusion_ring, tuple args):
     cdef int ctr = -1
     global worker_results
     #Get computational basis
-    cdef list comp_basis = fusion_ring.get_comp_basis(a,b,n_strands)
+    cdef list comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
     cdef dict basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
     cdef int dim = len(comp_basis)
     cdef set entries = set()
@@ -220,7 +220,7 @@ cpdef odd_one_out(fusion_ring, tuple args):
     a, b, n_strands = fn_args
     cdef ctr = -1
     #Get computational basis
-    comp_basis = fusion_ring.get_comp_basis(a,b,n_strands)
+    comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
     basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
     dim = len(comp_basis)
     for i in range(dim):

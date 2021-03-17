@@ -81,6 +81,13 @@ We do some arithmetic in a tower of relative number fields::
     sage: a.parent()
     Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
+TESTS:
+
+Check that :trac:`23459` is fixed::
+
+    sage: QuadraticField(4**1000+1)
+    Number Field ...
+
 .. warning::
 
    Doing arithmetic in towers of relative fields that depends on

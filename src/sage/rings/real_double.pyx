@@ -115,7 +115,7 @@ cdef class RealDoubleField_class(Field):
         sage: RDF(QQ['x'].0)
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce nonconstant polynomial to float
+        TypeError: cannot convert nonconstant polynomial
         sage: RDF(QQ['x'](3))
         3.0
 

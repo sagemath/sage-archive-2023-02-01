@@ -235,7 +235,7 @@ class ComplexField_class(ring.Field):
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce to a ComplexNumber: <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
+        TypeError: cannot convert nonconstant polynomial
 
     This illustrates precision::
 

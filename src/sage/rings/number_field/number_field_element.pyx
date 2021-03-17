@@ -2650,7 +2650,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: int(1/I)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            TypeError: cannot convert nonconstant polynomial
             sage: int(I*I)
             -1
 
@@ -2660,7 +2660,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            TypeError: cannot convert nonconstant polynomial
             sage: int(K(9390283))
             9390283
 

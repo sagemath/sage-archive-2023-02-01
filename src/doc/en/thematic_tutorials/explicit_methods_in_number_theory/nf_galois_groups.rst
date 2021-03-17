@@ -305,7 +305,7 @@ ideal classes containing :math:`(5,\sqrt{-30})` and
     sage: category(C)
     Category of finite enumerated commutative groups
     sage: C.gens()
-    (Fractional ideal class (2, a), Fractional ideal class (3, a))
+    (Fractional ideal class (5, a), Fractional ideal class (3, a))
 
 
 Arithmetic in the class group
@@ -322,17 +322,17 @@ means "the product of the 0th and 1st generators of the class group
     sage: K.<a> = QuadraticField(-30)
     sage: C = K.class_group()
     sage: C.0
-    Fractional ideal class (2, a)
+    Fractional ideal class (5, a)
     sage: C.0.ideal()
-    Fractional ideal (2, a)
+    Fractional ideal (5, a)
     sage: I = C.0 * C.1
     sage: I
-    Fractional ideal class (5, a)
+    Fractional ideal class (2, a)
 
 
 Next we find that the class of the fractional ideal
 :math:`(2,\sqrt{-30}+4/3)` is equal to the ideal class
-:math:`C.0`.
+:math:`C.0*C.1`.
 
 .. link
 
@@ -342,7 +342,7 @@ Next we find that the class of the fractional ideal
     sage: J = C(A)
     sage: J
     Fractional ideal class (2/3, 1/3*a)
-    sage: J == C.0
+    sage: J == C.0*C.1
     True
 
 

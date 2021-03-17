@@ -18,8 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
-from sage.rings.all import ZZ
-
+from sage.rings.all import ZZ, Integer
 
 class WeylCharacterRing(CombinatorialFreeModule):
     r"""
@@ -132,6 +131,8 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._field = None
         self._basecoer = None
         self._k = k
+        if k is not None:
+           self._k = Integer(k)
         if ct.is_irreducible():
             self._opposition = ct.opposition_automorphism()
             self._highest = self._space.highest_root()

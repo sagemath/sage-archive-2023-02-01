@@ -1,1 +1,1 @@
-gcc9
+gcc10 +gfortran

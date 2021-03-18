@@ -230,7 +230,7 @@ def midpoint(pointa, pointb, w):
 
 def cut_edge_by_bisection(pointa, pointb, condition, eps=1.0e-6, N=100):
     """
-    Cut an intersecting edge using the bisection Method.
+    Cut an intersecting edge using the bisection method.
 
     Given two points (pointa and pointb) and a condition (boolean
     function), this calculates the position at the edge (defined by
@@ -985,7 +985,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         sig_free(partition)
         return all
 
-    def add_condition(self, condition, N=100,eps=1.0E-6 ):
+    def add_condition(self, condition, N=100, eps=1.0E-6):
         """
         Cut the surface according to the given condition.
 
@@ -1170,8 +1170,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 va = V[old_a]
                 vb = V[old_b]
                 vc = V[old_c]
-                middle_ac=cut_edge_by_bisection(va, vc, condition,eps,N)
-                middle_bc=cut_edge_by_bisection(vb, vc, condition,eps,N)
+                middle_ac = cut_edge_by_bisection(va, vc, condition, eps, N)
+                middle_bc = cut_edge_by_bisection(vb, vc, condition, eps, N)
                 point_list += [middle_ac, middle_bc]
                 face_list.append([index, old_index_to_index[old_a],
                                   old_index_to_index[old_b], index + 1])
@@ -1186,8 +1186,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 vb = V[old_b]
                 vc = V[old_c]
                 # Use bisection to find the intersection
-                middle_ab=cut_edge_by_bisection(va, vb, condition,eps,N)
-                middle_ac=cut_edge_by_bisection(va, vc, condition,eps,N)
+                middle_ab = cut_edge_by_bisection(va, vb, condition, eps, N)
+                middle_ac = cut_edge_by_bisection(va, vc, condition, eps, N)
 
                 point_list += [middle_ac, middle_ab]
                 face_list.append([index, old_index_to_index[old_a], index + 1])

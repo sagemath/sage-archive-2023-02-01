@@ -5,8 +5,7 @@ TODO: add more info
 
 .. NOTE:
 
-    Currently, all the methods are implemented only for the full modular groups. Congruence subgroups
-    of higher level are not yet supported
+    Only the space of quasimodular forms for the full modular group have been implemented.
 
 AUTHORS:
 
@@ -84,7 +83,7 @@ class QuasiModularFormsRing(SageObject):
             sage: QuasiModularFormsRing(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: The space of quasimodular forms for higher levels are not yet implemented
+            NotImplementedError: space of quasimodular forms have only been implemented for the full modular group
             sage: QuasiModularFormsRing(Integers(5))
             Traceback (most recent call last):
             ...
@@ -94,12 +93,12 @@ class QuasiModularFormsRing(SageObject):
         """
         if isinstance(group, (int, Integer)):
             if group>1:
-                raise NotImplementedError("The space of quasimodular forms for higher levels are not yet implemented")
+                raise NotImplementedError("space of quasimodular forms have only been implemented for the full modular group")
             group = Gamma0(1)
         elif not is_CongruenceSubgroup(group):
             raise ValueError("Group (=%s) should be a congruence subgroup" % group)
         elif group is not Gamma0(1):
-            raise NotImplementedError("The space of quasimodular forms for higher levels are not yet implemented")
+            raise NotImplementedError("space of quasimodular forms have only been implemented for the full modular group")
         
         self.__group = group
         self.__base_ring = base_ring
@@ -121,7 +120,7 @@ class QuasiModularFormsRing(SageObject):
             sage: QuasiModularFormsRing(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: The space of quasimodular forms for higher levels are not yet implemented
+            NotImplementedError: space of quasimodular forms have only been implemented for the full modular group
 
         """
         return self.__group

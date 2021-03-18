@@ -15,7 +15,6 @@ env:
   SAGE_CHECK: warn
   SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
   CYGWIN: winsymlinks:native
-  CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url
   SAGE_FAT_BINARY: yes
   SAGE_LOCAL: /opt/sage-${{ github.sha }}
 

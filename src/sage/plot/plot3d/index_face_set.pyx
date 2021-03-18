@@ -248,7 +248,7 @@ def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-6,N=100):
 
     OUTPUT:
     
-    intersection of the edge defined by ``pointa`` and ``pointb``, and ``condiction``.
+    intersection of the edge defined by ``pointa`` and ``pointb``, and ``condition``.
     
     EXAMPLES:: 
    
@@ -270,11 +270,9 @@ def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-6,N=100):
     while (point_c_len(b_min_a) >eps):
 
         itern+=1       
-        assert(itern<N)
-        # (b+a)
-        point_c_add(&midp, b, a)
+        if (itern>N): break
         # (b+a)/2        
-        point_c_mul(&midp, midp, half)
+        point_c_middle(&midp, b, a, half)
 
         if condition(a.x,a.y,a.z) and condition(midp.x,midp.y,midp.z):
             a=midp
@@ -283,8 +281,7 @@ def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-6,N=100):
         # (b-a)   
         point_c_sub(&b_min_a, b, a)
 
-    point_c_add(&midp, b, a)        
-    point_c_mul(&midp, midp, half)
+    point_c_middle(&midp, b, a, half)
 
     return  midp.x,midp.y,midp.z 
         

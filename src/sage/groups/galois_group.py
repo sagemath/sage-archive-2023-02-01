@@ -10,8 +10,8 @@ AUTHORS:
 - David Roe (2019): initial version
 """
 
-from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
+from sage.groups.perm_gps.permgroup import PermutationGroup_generic, PermutationGroup_subgroup
+from sage.groups.abelian_gps.abelian_group import AbelianGroup_class, AbelianGroup_subgroup
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -417,3 +417,26 @@ class GaloisGroup_cyc(GaloisGroup_ab):
             1
         """
         return ZZ(1) if (self._field.degree() % 2) else ZZ(-1)
+
+class GaloisSubgroup_perm(PermutationGroup_subgroup):
+    """
+    Subgroups of Galois groups are specified by giving a list of generators.
+
+    Unlike ambient Galois groups, where we work hard to enable creation without
+    determining a list of generators, we require that generators for a subgroup
+    be specified during initialization.
+
+    Subclasses are encouraged to implement a fixed_field method.
+    """
+    pass
+
+class GaloisSubgroup_ab(AbelianGroup_subgroup):
+    """
+    Subgroups of abelian Galois groups.
+
+    Subclasses are encouraged to implement a fixed_field method.
+    """
+    pass
+
+GaloisGroup_perm.Subgroup = GaloisSubgroup_perm
+GaloisGroup_ab.Subgroup = GaloisSubgroup_ab

@@ -62,7 +62,6 @@ from sage.cpython.string cimport bytes_to_str
 from sage.rings.real_double import RDF
 
 from sage.matrix.constructor import matrix
-
 from sage.modules.free_module_element import vector
 
 from sage.plot.colors import Color, float_to_integer
@@ -228,63 +227,65 @@ def midpoint(pointa, pointb, w):
     v = 1 - w
     return ((w * xa + v * xb), (w * ya + v * yb), (w * za + v * zb))
 
-def cut_edge_by_bisection(pointa, pointb, condition,eps=1.0e-6,N=100):
+
+def cut_edge_by_bisection(pointa, pointb, condition, eps=1.0e-6, N=100):
     """
-    Cuts (an intersecting) edge using the Bisection Method.   
+    Cut an intersecting edge using the bisection Method.
 
-    Given two points (points and point b) and a condition (boolean function), 
-    calculates the position at the edge (defined by both points) where the 
-    the boolean condition switches its value.
+    Given two points (pointa and pointb) and a condition (boolean
+    function), this calculates the position at the edge (defined by
+    both points) where the boolean condition switches its value.
 
-    INPUT: 
+    INPUT:
 
     - ``pointa``, ``pointb`` -- two points in 3-dimensional space
-    
-    - ``N`` -- max number of steps using Bisection method (default: 100) 
-      to cut the boundary triangles that are not entirely within 
+
+    - ``N`` -- max number of steps in the bisection method (default: 100)
+      to cut the boundary triangles that are not entirely within
       the domain.
 
-    - ``eps`` target accuracy in the intersection (default: 1.0e-6)
+    - ``eps`` -- target accuracy in the intersection (default: 1.0e-6)
 
     OUTPUT:
-    
-    intersection of the edge defined by ``pointa`` and ``pointb``, and ``condition``.
-    
-    EXAMPLES:: 
-   
+
+    intersection of the edge defined by ``pointa`` and ``pointb``,
+    and ``condition``.
+
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.index_face_set import cut_edge_by_bisection
         sage: cut_edge_by_bisection((0.0,0.0,0.0),(1.0,1.0,0.0),( (lambda x,y,z: x**2+y**2+z**2<1) ),eps=1.0E-12)
         (0.7071067811864395, 0.7071067811864395, 0.0)
     """
-    cdef point_c a,b
-    cdef point_c midp,b_min_a
-    cdef double half=0.5 
+    cdef point_c a, b
+    cdef point_c midp, b_min_a
+    cdef double half = 0.5
 
-    point_c_set(&a,pointa)
-    point_c_set(&b,pointb)
+    point_c_set(&a, pointa)
+    point_c_set(&b, pointb)
 
-    itern=0
+    itern = 0
 
-    point_c_sub(&b_min_a, b, a)    
-   
-    while (point_c_len(b_min_a) >eps):
+    point_c_sub(&b_min_a, b, a)
 
-        itern+=1       
-        if (itern>N): break
-        # (b+a)/2        
+    while point_c_len(b_min_a) > eps:
+        itern += 1
+        if itern > N:
+            break
+        # (b+a)/2
         point_c_middle(&midp, b, a, half)
 
-        if condition(a.x,a.y,a.z) and condition(midp.x,midp.y,midp.z):
-            a=midp
+        if condition(a.x, a.y, a.z) and condition(midp.x, midp.y, midp.z):
+            a = midp
         else:
-            b=midp
-        # (b-a)   
+            b = midp
+        # (b-a)
         point_c_sub(&b_min_a, b, a)
 
     point_c_middle(&midp, b, a, half)
 
-    return  midp.x,midp.y,midp.z 
-        
+    return  midp.x, midp.y, midp.z
+
 
 cdef class IndexFaceSet(PrimitiveObject):
     """
@@ -997,11 +998,11 @@ cdef class IndexFaceSet(PrimitiveObject):
         - ``condition`` -- boolean function on ambient space, that
           defines the domain
 
-        - ``N`` -- max number of steps considering the Bisection Method 
-          (default: 100) to cut the boundary triangles that are not 
+        - ``N`` -- max number of steps used by the bisection method
+          (default: 100) to cut the boundary triangles that are not
           entirely within the domain.
 
-        - ``eps`` target accuracy in the intersection (default: 1.0e-6)
+        - ``eps`` -- target accuracy in the intersection (default: 1.0e-6)
 
         OUTPUT:
 
@@ -1184,7 +1185,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                 va = V[old_a]
                 vb = V[old_b]
                 vc = V[old_c]
-                # Use bisection to find the intersection 
+                # Use bisection to find the intersection
                 middle_ab=cut_edge_by_bisection(va, vb, condition,eps,N)
                 middle_ac=cut_edge_by_bisection(va, vc, condition,eps,N)
 

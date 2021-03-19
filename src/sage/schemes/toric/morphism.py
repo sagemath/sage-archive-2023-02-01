@@ -1692,7 +1692,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
           From: 2-d toric variety covered by 4 affine patches
           To:   4-d toric variety covered by 23 affine patches
           Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                [1 : 1 : 1 : 1 : z3 : 0 : 1 : z2 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
+                [1 : 1 : 1 : 1 : z2 : 0 : 1 : z3 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
         sage: type(fiber_component.embedding_morphism())
         <class 'sage.schemes.toric.morphism.SchemeMorphism_fan_fiber_component_toric_variety'>
     """
@@ -1775,7 +1775,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
               From: 2-d toric variety covered by 4 affine patches
               To:   4-d toric variety covered by 23 affine patches
               Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                    [1 : 1 : 1 : 1 : z3 : 0 : 1 : z2 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
+                    [1 : 1 : 1 : 1 : z2 : 0 : 1 : z3 : 1 : 1 : 1 : z1 : z0 : 1 : 1]
 
             sage: primitive_cone = Cone([(-1, 2, -1, 0)])
             sage: f = fibration.fiber_component(primitive_cone).embedding_morphism()
@@ -1997,7 +1997,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             V(z0) + V(z1) + 3*V(z2) + 4*V(z3)
             sage: fc = f.fiber_component(Cone([(1,1,0)]))
             sage: fc.embedding_morphism().pullback_divisor(D)
-            2*V(z0) + 3*V(z1)
+            4*V(z0) + V(z1) + 4*V(z2)
             sage: fc = f.fiber_component(Cone([(1,0,0)]))
             sage: fc.embedding_morphism().pullback_divisor(D)
             -V(z0) - 3*V(z1) - 3*V(z2)

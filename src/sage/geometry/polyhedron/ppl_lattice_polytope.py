@@ -863,7 +863,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: proj = poly.base_projection(fiber)
             sage: proj_matrix = poly.base_projection_matrix(fiber)
             sage: [ proj(p) for p in poly.integral_points() ]
-            [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (1, 0), (0, 1)]
+            [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 1), (1, 0)]
             sage: [ proj_matrix*p for p in poly.integral_points() ]
             [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 1), (1, 0)]
         """

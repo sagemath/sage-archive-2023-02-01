@@ -3475,11 +3475,81 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Fractional ideal (i + 2)
             sage: K.ideal(0)
             Ideal (0) of Number Field in i with defining polynomial x^2 + 1
+
+        TESTS:
+
+        Check that :trac:`25934` is fixed::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^6 - x^5 - 5*x^4 + 4*x^3 + 6*x^2 - 3*x - 1)
+            sage: K.ideal(1,1)
+            Fractional ideal (1)
+
         """
         try:
             return self.fractional_ideal(*gens, **kwds)
         except ValueError:
             return sage.rings.ring.Ring.ideal(self, gens, **kwds)
+
+    def idealchinese(self,ideals,residues):
+        r"""
+        Return a solution of the Chinese Remainder Theorem problem
+        for ideals in a number field.
+
+        This is a wrapper around the pari function :pari:`idealchinese`.
+
+        INPUT:
+
+        - ``ideals`` - a list of ideals of the number field.
+
+        - ``residues`` - a list of elements of the number field.
+
+        OUTPUT:
+
+        Return an element `b` of the number field such that
+        `b \equiv x_i \bmod I_i` for all residues `x_i` and
+        respective ideals `I_i`.
+
+        .. SEEALSO::
+
+            - :func:`crt`
+
+        EXAMPLES:
+
+        This is the example from the pari page on ``idealchinese``::
+
+            sage: K.<sqrt2> = NumberField(sqrt(2).minpoly())
+            sage: ideals = [K.ideal(4),K.ideal(3)]
+            sage: residues = [sqrt2,1]
+            sage: r = K.idealchinese(ideals,residues); r
+            -3*sqrt2 + 4
+            sage: all((r - a) in I for I,a in zip(ideals,residues))
+            True
+
+        The result may be non-integral if the results are non-integral::
+
+            sage: K.<sqrt2> = NumberField(sqrt(2).minpoly())
+            sage: ideals = [K.ideal(4),K.ideal(21)]
+            sage: residues = [1/sqrt2,1]
+            sage: r = K.idealchinese(ideals,residues); r
+            -63/2*sqrt2 - 20
+            sage: all(
+            ....:     (r-a).valuation(P) >= k
+            ....:     for I,a in zip(ideals,residues)
+            ....:     for P,k in I.factor()
+            ....: )
+            True
+
+        """
+        factorizations = [I.factor() for I in ideals]
+        y = [a for a,f in zip(residues,factorizations) for _ in f]
+        x = pari.Mat([
+            pari.Col([p.pari_prime(),k])
+            for f in factorizations
+            for p,k in f
+        ]).mattranspose()
+        r = self.pari_nf().idealchinese(x,y)
+        return self(r)
 
     def fractional_ideal(self, *gens, **kwds):
         r"""
@@ -5882,7 +5952,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         https://www.lmfdb.org/NumberField/ by the LMFDB collaboration,
         although these might need a lot of computing time.
 
-        If `L/K` is a relative number field, this method will currently return `Gal(L/\Q)`.  This behavior will
+        If `L/K` is a relative number field, this method will currently return `Gal(L/\QQ)`.  This behavior will
         change in the future, so it's better to explicitly call :meth:`absolute_field` if that is
         the desired behavior::
 
@@ -6275,87 +6345,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 if self(theta).is_totally_positive():
                     S.append(self(theta))
         return S
-
-    def zeta_function(self, prec=53,
-                      max_imaginary_part=0,
-                      max_asymp_coeffs=40, algorithm=None):
-        r"""
-        Return the Dedekind zeta function of this number field.
-
-        Actually, this returns an interface for computing with the
-        Dedekind zeta function `\zeta_F(s)` of the number field `F`.
-
-        INPUT:
-
-        - ``prec`` -- optional integer (default 53) bits precision
-
-        - ``max_imaginary_part`` -- optional real number (default 0)
-
-        - ``max_asymp_coeffs`` -- optional integer (default 40)
-
-        - ``algorithm`` -- optional (default "gp") either "gp" or "pari"
-
-        OUTPUT: The zeta function of this number field.
-
-        If algorithm is "gp", this returns an interface to Tim
-        Dokchitser's gp script for computing with L-functions.
-
-        If algorithm is "pari", this returns instead an interface to Pari's
-        own general implementation of L-functions.
-
-        EXAMPLES::
-
-            sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
-            sage: Z = K.zeta_function(); Z
-            PARI zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
-            sage: Z(-1)
-            0.0333333333333333
-            sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
-            sage: Z = L.zeta_function()
-            sage: Z(5)
-            1.00199015670185
-
-        Using the algorithm "pari"::
-
-            sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
-            sage: Z = K.zeta_function(algorithm="pari")
-            sage: Z(-1)
-            0.0333333333333333
-            sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
-            sage: Z = L.zeta_function(algorithm="pari")
-            sage: Z(5)
-            1.00199015670185
-        """
-        if algorithm is None:
-            algorithm = 'pari'
-
-        if algorithm == 'gp':
-            from sage.lfunctions.all import Dokchitser
-            r1, r2 = self.signature()
-            zero = [0]
-            one = [1]
-            Z = Dokchitser(conductor=abs(self.absolute_discriminant()),
-                           gammaV=(r1 + r2) * zero + r2 * one,
-                           weight=1,
-                           eps=1,
-                           poles=[1],
-                           prec=prec)
-            s = 'nf = nfinit(%s);' % self.absolute_polynomial()
-            s += 'dzk = dirzetak(nf,cflength());'
-            Z.init_coeffs('dzk[k]', pari_precode=s,
-                          max_imaginary_part=max_imaginary_part,
-                          max_asymp_coeffs=max_asymp_coeffs)
-            Z.check_functional_equation()
-            Z.rename('Dokchitser Zeta function associated to %s' % self)
-            return Z
-
-        if algorithm == 'pari':
-            from sage.lfunctions.pari import lfun_number_field, LFunction
-            Z = LFunction(lfun_number_field(self), prec=prec)
-            Z.rename('PARI zeta function associated to %s' % self)
-            return Z
-
-        raise ValueError('algorithm must be "gp" or "pari"')
 
     @cached_method
     def narrow_class_group(self, proof=None):

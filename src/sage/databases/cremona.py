@@ -50,7 +50,6 @@ from sage.misc.prandom import randint
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 from .sql_db import SQLDatabase, verify_column
-from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR, SAGE_SHARE
 from sage.features.databases import DatabaseCremona
 from sage.misc.all import walltime
 
@@ -298,7 +297,7 @@ cremona_label_regex = re.compile(r'(\d+)([a-z]*)(\d*)$')
 lmfdb_label_regex = re.compile(r'(\d+)\.([a-z]+)(\d*)$')
 
 
-def parse_cremona_label(label):
+def parse_cremona_label(label, numerical_class_code=False):
     """
     Given a Cremona label that defines an elliptic
     curve, e.g., 11a1 or 37b3, parse the label and return the
@@ -314,12 +313,16 @@ def parse_cremona_label(label):
 
     INPUT:
 
-    -  ``label`` - str
+    -  ``label`` (string) - a valid Cremona elliptic curve label
+
+    - ``numerical_class_code`` (boolean, default False) - if ``True``,
+       convert the isogeny class label from a letter code in base 26
+       to an integer;  this is useful for sorting
 
     OUTPUT:
 
     -  ``int`` - the conductor
-    -  ``str`` - the isogeny class label
+    -  ``str`` or ``int`` - the isogeny class label
     -  ``int`` - the number
 
     EXAMPLES::
@@ -345,6 +348,14 @@ def parse_cremona_label(label):
         ...
         ValueError: 5AB2 is not a valid Cremona label
 
+    When ``numerical_class_code`` is ``True``, the output is a triple of integers::
+
+        sage: from sage.databases.cremona import parse_cremona_label
+        sage: parse_cremona_label('100800hj2')
+        (100800, 'hj', 2)
+        sage: parse_cremona_label('100800hj2', numerical_class_code=True)
+        (100800, 191, 2)
+
     TESTS::
 
         sage: from sage.databases.cremona import parse_cremona_label
@@ -352,6 +363,7 @@ def parse_cremona_label(label):
         Traceback (most recent call last):
         ...
         ValueError: x11 is not a valid Cremona label
+
     """
     m = cremona_label_regex.match(str(label))
     if m is None:
@@ -373,10 +385,14 @@ def parse_cremona_label(label):
     if iso.lower() != iso:
         raise ValueError('%s is not a valid Cremona label' % label)
 
+    # convert class label to an int if requested
+    if numerical_class_code:
+        iso = class_to_int(iso)
+
     return int(conductor), iso, int(num)
 
 
-def parse_lmfdb_label(label):
+def parse_lmfdb_label(label, numerical_class_code=False):
     """
     Given an LMFDB label that defines an elliptic curve, e.g., 11.a1
     or 37.b3, parse the label and return the conductor, isogeny class
@@ -405,10 +421,14 @@ def parse_lmfdb_label(label):
 
     -  ``label`` - str
 
+    - ``numerical_class_code`` (boolean, default False) - if ``True``,
+       convert the isogeny class label from a letter code in base 26
+       to an integer;  this is useful for sorting
+
     OUTPUT:
 
     -  ``int`` - the conductor
-    -  ``str`` - the isogeny class label
+    -  ``str`` or ``int`` - the isogeny class label
     -  ``int`` - the number
 
     EXAMPLES::
@@ -420,6 +440,14 @@ def parse_lmfdb_label(label):
         (37, 'b', 1)
         sage: parse_lmfdb_label('10.bb2')
         (10, 'bb', 2)
+
+    When ``numerical_class_code`` is ``True``, the output is a triple of integers::
+
+        sage: from sage.databases.cremona import parse_lmfdb_label
+        sage: parse_lmfdb_label('100800.bg4')
+        (100800, 'bg', 4)
+        sage: parse_lmfdb_label('100800.bg4', numerical_class_code=True)
+        (100800, 32, 4)
     """
     m = lmfdb_label_regex.match(str(label).lower())
     if m is None:
@@ -429,6 +457,10 @@ def parse_lmfdb_label(label):
         iso = "a"
     if len(num) == 0:
         num = "1"
+    # convert class label to an int if requested
+    if numerical_class_code:
+        iso = class_to_int(iso)
+
     return int(conductor), iso, int(num)
 
 

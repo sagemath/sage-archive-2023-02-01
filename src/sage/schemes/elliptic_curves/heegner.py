@@ -6765,7 +6765,7 @@ def _adjust_heegner_index(self, a):
     EXAMPLES::
 
         sage: E = EllipticCurve('11a1')
-        sage: a = RIF(sqrt(2))-1.4142135623730951
+        sage: a = RIF(sqrt(2))-RIF(1.4142135623730951)
         sage: E._adjust_heegner_index(a)
         1.?e-8
     """

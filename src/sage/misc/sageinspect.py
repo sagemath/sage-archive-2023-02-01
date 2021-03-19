@@ -2242,7 +2242,7 @@ def sage_getsourcelines(obj):
 
         sage: cachedfib = cached_function(fibonacci)
         sage: sage_getsourcelines(cachedfib)[0][0]
-        'def fibonacci(n, algorithm="pari") -> Integral:\n'
+        'def fibonacci(n, algorithm="pari") -> Integer:\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
         'cdef class CachedFunction(object):\n'
 

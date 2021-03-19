@@ -157,7 +157,7 @@ class DocTestSource(object):
 
     def __ne__(self, other):
         """
-        Test for unequality.
+        Test for non-equality.
 
         EXAMPLES::
 

@@ -1,5 +1,8 @@
-# distutils: libraries = m ntl Lfunction
-# distutils: extra_compile_args = -O3 -ffast-math
+# distutils: libraries = m NTL_LIBRARIES Lfunction
+# distutils: extra_compile_args = NTL_CFLAGS -O3 -ffast-math
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 r"""
 Rubinstein's lcalc library

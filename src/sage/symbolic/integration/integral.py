@@ -972,6 +972,15 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: f = (I*a*tan(d*x + c) + a)^3*tan(d*x + c)
         sage: integrate(f, x, algorithm="fricas")  # optional - fricas
         -2/3*(24*a^3*e^(4*I*d*x + 4*I*c) + 33*a^3*e^(2*I*d*x + 2*I*c) + 13*a^3 + 6*(a^3*e^(6*I*d*x + 6*I*c) + 3*a^3*e^(4*I*d*x + 4*I*c) + 3*a^3*e^(2*I*d*x + 2*I*c) + a^3)*log(e^(2*I*d*x + 2*I*c) + 1))/(d*e^(6*I*d*x + 6*I*c) + 3*d*e^(4*I*d*x + 4*I*c) + 3*d*e^(2*I*d*x + 2*I*c) + d)
+
+    The fundamental theorem of calculus holds for elliptic integrals
+    of the second kind, :trac:`26563`::
+
+        sage: x,m = SR.var('x,m', domain='real')    # long time
+        sage: integrate(elliptic_e(x,m).diff(x), x) # long time
+        elliptic_e(x, m)
+
+
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

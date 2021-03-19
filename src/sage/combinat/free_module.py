@@ -1796,8 +1796,8 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``elements`` -- a tuple with one element of each Cartesian
-          factor of ``self``
+        - ``elements`` -- an iterable (e.g. tuple, list) with one element of
+          each Cartesian factor of ``self``
 
         EXAMPLES::
 
@@ -1811,8 +1811,32 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: S._cartesian_product_of_elements([f, g]).parent() == S
             True
 
+        TESTS:
+
+        The ``elements`` can be a generator as in :trac:`31453`::
+
+            sage: from sage.categories.magmatic_algebras import (
+            ....:     MagmaticAlgebras
+            ....: )
+            sage: class TrivialCFM(CombinatorialFreeModule):
+            ....:     def __init__(self):
+            ....:         c = MagmaticAlgebras(QQ).WithBasis().Unital()
+            ....:         super().__init__(QQ,[1],category=c)
+            ....:
+            ....:     def one(self):
+            ....:         return self.monomial(0)
+            ....:
+            sage: c1 = TrivialCFM()
+            sage: c1.one()
+            B[0]
+            sage: CP = cartesian_product([c1,c1])
+            sage: CP.one()
+            B[(0, 0)] + B[(1, 0)]
+
         """
-        return self.sum(self.summand_embedding(i)(elements[i]) for i in self._sets_keys())
+        return self.sum( self.summand_embedding(i)(element_i)
+                         for (i, element_i) in zip(self._sets_keys(),
+                                                   elements) )
 
     def cartesian_factors(self):
         """

@@ -903,6 +903,14 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         var('x y')
         sphinx_plot(plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True))
 
+    The same with thicker mesh lines (not supported in all viewers)::
+
+        sage: var('x,y')
+        (x, y)
+        sage: plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True,
+        ....:        thickness=2, viewer='threejs')
+        Graphics3d Object
+
     Two wobby translucent planes::
 
         sage: x,y = var('x,y')

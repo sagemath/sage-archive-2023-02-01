@@ -324,9 +324,9 @@ sink.
     [1, 1, 3]
     sage: S.reduced_laplacian().dense_matrix().smith_form()
     (
-    [1 0 0]  [ 0  0  1]  [3 1 4]
-    [0 1 0]  [ 1  0  0]  [4 1 6]
-    [0 0 3], [ 0  1 -1], [4 1 5]
+    [1 0 0]  [ 1  0  0]  [1 3 5]
+    [0 1 0]  [ 0  1  0]  [1 4 6]
+    [0 0 3], [ 0 -1  1], [1 4 7]
     )
 
 Adding the identity to any recurrent configuration and stabilizing yields
@@ -687,7 +687,7 @@ Approximation to the zero set (setting ``x_0 = 1``)::
 The zeros are generated as a group by a single vector::
 
     sage: S.points()
-    [[(1/2*I + 1/2)*sqrt(2), -(1/2*I + 1/2)*sqrt(2)]]
+    [[-(1/2*I + 1/2)*sqrt(2), (1/2*I + 1/2)*sqrt(2)]]
 
 
 Resolutions

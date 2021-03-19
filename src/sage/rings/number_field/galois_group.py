@@ -966,7 +966,7 @@ class GaloisGroup_v2(GaloisGroup_perm):
         t = []
         gens = self.number_field().ring_of_integers().ring_generators()
         for s in self.decomposition_group(P):
-            w = [(s.as_hom()(g) - g**p).valuation(P) for g in gens]
+            w = [(s(g) - g**p).valuation(P) for g in gens]
             if min(w) >= 1:
                 t.append(s)
         if len(t) > 1:
@@ -1027,20 +1027,6 @@ class GaloisGroup_subgroup(GaloisSubgroup_perm):
         sage: G.artin_symbol(P)
         ()
     """
-    def splitting_field(self):
-        """
-        The splitting field of this subgroup is just the splitting field of the ambient Galois group.
-
-        EXAMPLES::
-
-            sage: L.<a> = NumberField(x^4 + 1)
-            sage: G = L.galois_group()
-            sage: H = G.decomposition_group(L.primes_above(3)[0])
-            sage: H.splitting_field()
-            Number Field in a with defining polynomial x^4 + 1
-        """
-        return self._ambient_group.splitting_field()
-
     @lazy_attribute
     def _pari_data(self):
         """
@@ -1127,7 +1113,7 @@ class GaloisGroup_subgroup(GaloisSubgroup_perm):
         if polred:
             f = x.minpoly()
             bitsize = QQ(f[0]).numerator().nbits() + QQ(f[0]).denominator().nbits()
-            cost = 2 * bitsize.nbits() + 5 * f.degree().nbits()
+            cost = 2 * bitsize + 5 * ZZ(f.poldegree()).nbits()
             # time(polredbest) ≈ b²d⁵
             if threshold is None or cost <= threshold:
                 f, elt_back = f.polredbest(flag=1)

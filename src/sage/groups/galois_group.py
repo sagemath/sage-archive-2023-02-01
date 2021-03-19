@@ -39,10 +39,78 @@ def _alg_key(self, algorithm=None, recompute=False):
         algorithm = self._get_algorithm(algorithm)
         return algorithm
 
-class _GaloisMixin:
+class _GMixin:
     r"""
     This class provides some methods for Galois groups to be used for both permutation groups
-    and abelian groups.
+    and abelian groups, subgroups and full Galois groups.
+    """
+    def _get_algorithm(self, algorithm):
+        r"""
+        Allows overriding the default algorithm specified at object creation.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group()
+            sage: G._get_algorithm(None)
+            'pari'
+            sage: G._get_algorithm('magma')
+            'magma'
+        """
+        return self._default_algorithm if algorithm is None else algorithm
+
+    @lazy_attribute
+    def _galois_closure(self):
+        r"""
+        The Galois closure of the top field.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group(names='b')
+            sage: G._galois_closure
+            Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
+        """
+        return self._gcdata[0]
+
+    def splitting_field(self):
+        r"""
+        The Galois closure of the top field.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x^3 - x + 1, 'a')
+            sage: K.galois_group(names='b').splitting_field()
+            Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
+            sage: L = QuadraticField(-23, 'c'); L.galois_group().splitting_field() is L
+            True
+        """
+        return self._galois_closure
+
+    @lazy_attribute
+    def _gc_map(self):
+        r"""
+        The inclusion of the top field into the Galois closure.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group(names='b')
+            sage: G._gc_map
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2*x + 2
+              To:   Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
+              Defn: a |--> 1/36*b^4 + 5/18*b^2 - 1/2*b + 4/9
+        """
+        return self._gcdata[1]
+
+class _GaloisMixin(_GMixin):
+    """
+    This class provides methods for Galois groups, allowing concrete instances
+    to inherit from both permutation group and abelian group classes.
     """
     def _repr_(self):
         """
@@ -59,22 +127,6 @@ class _GaloisMixin:
         """
         f = self._field.defining_polynomial()
         return "Galois group of %s" % f
-
-    def _get_algorithm(self, algorithm):
-        r"""
-        Allows overriding the default algorithm specified at object creation.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group()
-            sage: G._get_algorithm(None)
-            'pari'
-            sage: G._get_algorithm('magma')
-            'magma'
-        """
-        return self._default_algorithm if algorithm is None else algorithm
 
     def top_field(self):
         r"""
@@ -129,54 +181,25 @@ class _GaloisMixin:
         """
         return self.order() == self._field.degree()
 
+class _SubGaloisMixin(_GMixin):
+    """
+    This class provides methods for subgroups of Galois groups, allowing concrete instances
+    to inherit from both permutation group and abelian group classes.
+    """
     @lazy_attribute
-    def _galois_closure(self):
-        r"""
-        The Galois closure of the top field.
+    def _gcdata(self):
+        """
+        The Galois closure data is just that of the ambient group.
 
         EXAMPLES::
 
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group(names='b')
-            sage: G._galois_closure
-            Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
+            sage: L.<a> = NumberField(x^4 + 1)
+            sage: G = L.galois_group()
+            sage: H = G.decomposition_group(L.primes_above(3)[0])
+            sage: H.splitting_field() # indirect doctest
+            Number Field in a with defining polynomial x^4 + 1
         """
-        return self._gcdata[0]
-
-    def splitting_field(self):
-        r"""
-        The Galois closure of the top field.
-
-        EXAMPLES::
-
-            sage: K = NumberField(x^3 - x + 1, 'a')
-            sage: K.galois_group(names='b').splitting_field()
-            Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
-            sage: L = QuadraticField(-23, 'c'); L.galois_group().splitting_field() is L
-            True
-        """
-        return self._galois_closure
-
-    @lazy_attribute
-    def _gc_map(self):
-        r"""
-        The inclusion of the top field into the Galois closure.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group(names='b')
-            sage: G._gc_map
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^3 + 2*x + 2
-              To:   Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
-              Defn: a |--> 1/36*b^4 + 5/18*b^2 - 1/2*b + 4/9
-        """
-        return self._gcdata[1]
-
-
+        return self._ambient_group._gcdata
 
 class GaloisGroup_perm(_GaloisMixin, PermutationGroup_generic):
     r"""
@@ -418,7 +441,7 @@ class GaloisGroup_cyc(GaloisGroup_ab):
         """
         return ZZ(1) if (self._field.degree() % 2) else ZZ(-1)
 
-class GaloisSubgroup_perm(PermutationGroup_subgroup):
+class GaloisSubgroup_perm(PermutationGroup_subgroup, _SubGaloisMixin):
     """
     Subgroups of Galois groups are specified by giving a list of generators.
 
@@ -430,7 +453,7 @@ class GaloisSubgroup_perm(PermutationGroup_subgroup):
     """
     pass
 
-class GaloisSubgroup_ab(AbelianGroup_subgroup):
+class GaloisSubgroup_ab(AbelianGroup_subgroup, _SubGaloisMixin):
     """
     Subgroups of abelian Galois groups.
 

@@ -17,3 +17,5 @@ Upstream Contact
 ----------------
 
 -  Sebastian Pancratz: sebastian.pancratz@gmail.com
+
+-  We use the fork at https://github.com/jpflori/deformation

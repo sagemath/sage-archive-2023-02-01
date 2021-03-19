@@ -18,20 +18,18 @@ Standard test of pickleability::
 
 from sage.structure.sage_object import SageObject
 from sage.groups.galois_group import _alg_key, GaloisGroup_perm, GaloisSubgroup_perm
-from sage.groups.perm_gps.permgroup import PermutationGroup_generic, standardize_generator
+from sage.groups.perm_gps.permgroup import standardize_generator
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.libs.pari.all import pari
-from sage.libs.gap.libgap import libgap
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.integer import Integer
 
 
 class GaloisGroup_v1(SageObject):
@@ -888,7 +886,6 @@ class GaloisGroup_v2(GaloisGroup_perm):
         elif v + 1 >= len(ramdata):
             return self.subgroup([])
         else:
-            p = P.smallest_integer()
             return self.subgroup(ramdata[v + 1][0])
 
     def inertia_group(self, P):
@@ -1065,8 +1062,9 @@ class GaloisGroup_subgroup(GaloisSubgroup_perm):
 
         INPUT:
 
-        - ``polred`` -- whether to optimize the generator of the newly created field.
-            Defaults to True when the degree of the fixed field is at most 8.
+        - ``polred`` -- whether to optimize the generator of the newly created field
+            for a simpler polynomial, using pari's polredbest.
+            Defaults to ``True`` when the degree of the fixed field is at most 8.
 
         - ``threshold`` -- positive number; polred only performed if the cost is at most this threshold
 
@@ -1082,13 +1080,36 @@ class GaloisGroup_subgroup(GaloisSubgroup_perm):
                To:   Number Field in a with defining polynomial x^4 + 1
                Defn: a0 |--> a^3 + a)
 
+        You can use the ``polred`` option to get a simpler defining polynomial::
+
+            sage: K.<a> = NumberField(x^5 - 5*x^2 - 3)
+            sage: G = K.galois_group(); G
+            Galois group 5T2 (5:2) with order 10 of x^5 - 5*x^2 - 3
+            sage: sigma, tau = G.gens()
+            sage: H = G.subgroup([tau])
+            sage: H.fixed_field(polred=False)
+            (Number Field in a0 with defining polynomial x^2 + 84375 with a0 = 5*ac^5 + 25*ac^3,
+             Ring morphism:
+               From: Number Field in a0 with defining polynomial x^2 + 84375 with a0 = 5*ac^5 + 25*ac^3
+               To:   Number Field in ac with defining polynomial x^10 + 10*x^8 + 25*x^6 + 3375
+               Defn: a0 |--> 5*ac^5 + 25*ac^3)
+            sage: H.fixed_field(polred=True)
+            (Number Field in a0 with defining polynomial x^2 - x + 4 with a0 = -1/30*ac^5 - 1/6*ac^3 + 1/2,
+             Ring morphism:
+               From: Number Field in a0 with defining polynomial x^2 - x + 4 with a0 = -1/30*ac^5 - 1/6*ac^3 + 1/2
+               To:   Number Field in ac with defining polynomial x^10 + 10*x^8 + 25*x^6 + 3375
+               Defn: a0 |--> -1/30*ac^5 - 1/6*ac^3 + 1/2)
+            sage: G.splitting_field()
+            Number Field in ac with defining polynomial x^10 + 10*x^8 + 25*x^6 + 3375
+
+
         An embedding is returned also if the subgroup is trivial
         (:trac:`26817`)::
 
-            sage: H = G.subgroup([G.identity()])
+            sage: H = G.subgroup([])
             sage: H.fixed_field()
-            (Number Field in a with defining polynomial x^4 + 1,
-             Identity endomorphism of Number Field in a with defining polynomial x^4 + 1)
+            (Number Field in ac with defining polynomial x^10 + 10*x^8 + 25*x^6 + 3375,
+             Identity endomorphism of Number Field in ac with defining polynomial x^10 + 10*x^8 + 25*x^6 + 3375)
         """
         G = self._ambient_group
         L = G._galois_closure
@@ -1105,6 +1126,7 @@ class GaloisGroup_subgroup(GaloisSubgroup_perm):
         if polred:
             f = x.minpoly()
             bitsize = QQ(f[0]).numerator().nbits() + QQ(f[0]).denominator().nbits()
+            cost = 2 * bitsize.nbits() + 5 * f.degree().nbits()
             # time(polredbest) ≈ b²d⁵
             if threshold is None or cost <= threshold:
                 f, elt_back = f.polredbest(flag=1)

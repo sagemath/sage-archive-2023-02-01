@@ -352,31 +352,6 @@ cpdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq, NumberFie
     cdef dict gcf_rmvd = remove_gcf(sq_rmvd, nonz)
     return to_monic(gcf_rmvd, one)
 
-# cdef int common_denom(tuple eq_tup):
-#     #Compute the common denominator
-#     cdef list denoms = list()
-#     cdef int common_denom
-#     cdef ETuple exp
-#     for exp, c in eq_tup:
-#         denoms.append(c.denominator())
-#     return LCM_list(denoms)
-#
-# cdef tuple integralify(tuple eq_tup):
-#     if not eq_tup: return tuple()
-#     cdef list ret = list()
-#     cdef int cd = common_denom(eq_tup)
-#     for exp, c in eq_tup:
-#         ret.append((exp, c * cd))
-#     return tuple(ret)
-#
-# cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq):
-#     """
-#     Return a dictionary describing a monic polynomial with no known nonzero gcd and
-#     no known squares
-#     """
-#     if not eq_dict: return tuple()
-#     return integralify(to_monic(remove_gcf(subs_squares(eq_dict, known_sq), nonz)))
-
 ####################
 ### Substitution ###
 ####################

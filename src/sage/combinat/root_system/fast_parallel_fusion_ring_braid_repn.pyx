@@ -24,10 +24,15 @@ worker_results = list()
 
 def executor(params):
     """
-    Execute a function defined in this module (sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn)
-    in a worker process, and supply the factory parameter by constructing a reference
-    to the FMatrix object in the worker's memory adress space from its id
-    ##  NOTE: When the parent process is forked, each worker gets a copy of
+    Execute a function defined in this module
+    (sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn)
+    in a worker process, and supply the factory parameter by constructing a
+    reference to the FMatrix object in the worker's memory adress space
+    from its id.
+
+    NOTES:
+
+    When the parent process is forked, each worker gets a copy of
     every  global variable. The virtual memory address of object X in the parent
     process equals the VIRTUAL memory address of the copy of object X in each
     worker, so we may construct references to forked copies of X
@@ -102,10 +107,10 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
     return entry
 
 cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
-    """
-    Compute the xi, xj entry of the braid generator on the right-most strands,
-    corresponding to the tree b -> (xi # a) -> (a # a) # a, which results in a
-    sum over j of trees b -> xj -> (a # a) # (a # a)
+    r"""
+    Compute the `xi`, `xj` entry of the braid generator on the two right-most
+    strands, corresponding to the tree b -> (xi # a) -> (a # a) # a, which
+    results in a sum over j of trees b -> xj -> (a # a) # (a # a)
 
     ..warning:
         This method assumes F-matrices are orthogonal

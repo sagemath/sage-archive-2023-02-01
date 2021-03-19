@@ -120,10 +120,10 @@ cdef req_cy(tuple basis, r_matrix, dict fvars, Nk_ij, id_anyon, tuple sextuple):
     a, b, c, d, e, g = sextuple
     #To add typing we need to ensure all fmats.fmat are of the same type?
     #Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
-    lhs = r_matrix(a,c,e)*_fmat(fvars,Nk_ij,id_anyon,a,c,b,d,e,g)*r_matrix(b,c,g)
+    lhs = r_matrix(a,c,e,base_coercion=False)*_fmat(fvars,Nk_ij,id_anyon,a,c,b,d,e,g)*r_matrix(b,c,g,base_coercion=False)
     rhs = 0
     for f in basis:
-      rhs += _fmat(fvars,Nk_ij,id_anyon,c,a,b,d,e,f)*r_matrix(f,c,d)*_fmat(fvars,Nk_ij,id_anyon,a,b,c,d,f,g)
+      rhs += _fmat(fvars,Nk_ij,id_anyon,c,a,b,d,e,f)*r_matrix(f,c,d,base_coercion=False)*_fmat(fvars,Nk_ij,id_anyon,a,b,c,d,f,g)
     return lhs-rhs
 
 @cython.wraparound(False)
@@ -189,7 +189,6 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
     #Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
     cdef dict fvars = factory._fvars
-    r_matrix = factory._FR.r_matrix
     _Nk_ij = factory._FR.Nk_ij
     id_anyon = factory._FR.one()
     cdef NumberFieldElement_absolute one = factory._field.one()
@@ -249,11 +248,11 @@ cpdef update_child_fmats(factory, tuple data_tup):
     """
     One-to-all communication used to update FMatrix object after each triangular
     elim step. We must update the algorithm's state values. These are:
-    _fvars, solved, _ks, _var_degs, _nnz, and _kp.
+    _fvars, _solved, _ks, _var_degs, _nnz, and _kp.
     """
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
-    factory._fvars, factory.solved, factory._ks, factory._var_degs = data_tup
+    factory._fvars, factory._solved, factory._ks, factory._var_degs = data_tup
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
 

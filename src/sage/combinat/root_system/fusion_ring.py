@@ -492,9 +492,59 @@ class FusionRing(WeylCharacterRing):
             sage: FusionRing("B2",2).field()
             Cyclotomic Field of order 40 and degree 16
         """
-        if self._field is None:
-            self._field = CyclotomicField(4 * self._cyclotomic_order)
-        return self._field
+        # if self._field is None:
+        #     self._field = CyclotomicField(4 * self._cyclotomic_order)
+        # return self._field
+        return CyclotomicField(4 * self._cyclotomic_order)
+
+    def fvars_field(self):
+        r"""
+        Return a field containing the ``CyclotomicField`` computed by
+        :meth:`field` as well as all the F-symbols of the associated
+        ``FMatrix`` factory object.
+
+        This method is only available if ``self`` is multiplicity-free.
+
+        OUTPUT:
+
+        Depending on the ``CartanType`` associated to ``self`` and whether
+        a call to an F-matrix solver has been made, this method
+        will return the same field as :meth:`field`, a ``NumberField``,
+        or the ``AlgebraicField`` ``QQbar``.
+        See :meth:`FMatrix.attempt_number_field_computation` for more details.
+
+        Before running an F-matrix solver, the output of this method matches
+        that of :meth:`field`. However, the output may change upon successfully
+        computing F-symbols. Requesting braid generators triggers a call to
+        :meth:`FMatrix.find_orthogonal_solution`, so the output of this method
+        may change after such a computation.
+
+        By default, the output of methods like :meth:`r_matrix`,
+        :meth:`s_matrix`, :meth:`twists_matrix`, etc. will lie in the
+        ``fvars_field``, unless the ``base_coercion`` option is set to
+        ``False``.
+
+        This method does not trigger a solver run.
+
+        EXAMPLES::
+
+            sage: A13 = FusionRing("A1",3,fusion_labels="a",inject_variables=True)
+            sage: A13.fvars_field()
+            Cyclotomic Field of order 40 and degree 16
+            sage: A13.field()
+            Cyclotomic Field of order 40 and degree 16
+            sage: a2**4
+            2*a0 + 3*a2
+            sage: comp_basis, sig = A13.get_braid_generators(a2,a2,4,verbose=False)
+            sage: A13.fvars_field()
+            Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
+            sage: a2.q_dimension().parent()
+            Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
+            sage: A13.field()
+            Cyclotomic Field of order 40 and degree 16
+        """
+        if self.is_multiplicity_free():
+            return self.fmats.field()
 
     def root_of_unity(self, r, base_coercion=True):
         r"""
@@ -1061,15 +1111,18 @@ class FusionRing(WeylCharacterRing):
         INPUT:
 
         - ``mapper`` -- a string specifying the name of a function defined in the
-          fast_parallel_fmats_methods module.
-        - ``input_args`` -- a tuple holding arguments to be passed to mapper
+          ``fast_parallel_fusion_ring_braid_repn`` module.
+        - ``input_args`` -- a tuple of arguments to be passed to mapper
 
-        ##NOTES:
-        If worker_pool is not provided, function maps and reduces on a single process.
-        If worker_pool is provided, the function attempts to determine whether it should
-        use multiprocessing based on the length of the input iterable. If it can't determine
-        the length of the input iterable then it uses multiprocessing with the default chunksize of 1
-        if chunksize is not explicitly provided.
+        NOTES:
+
+            If ``worker_pool`` is not provided, function maps and reduces on a
+            single process.
+            If ``worker_pool`` is provided, the function attempts to determine
+            whether it should use multiprocessing based on the length of the
+            input iterable. If it can't determine the length of the input
+            iterable then it uses multiprocessing with the default chunksize of
+            `1` if chunksize is not explicitly provided.
         """
         n_proc = worker_pool._processes if worker_pool is not None else 1
         input_iter = [(child_id, n_proc, input_args) for child_id in range(n_proc)]
@@ -1091,17 +1144,40 @@ class FusionRing(WeylCharacterRing):
             results = list(results)
         return results
 
-    def get_braid_generators(self,fusing_anyon,total_charge_anyon,n_strands,use_mp=True,verbose=True):
+    def get_braid_generators(self,
+                            fusing_anyon,
+                            total_charge_anyon,
+                            n_strands,
+                            checkpoint=False,
+                            save_results="",
+                            warm_start="",
+                            use_mp=True,
+                            verbose=True):
         """
-        INPUT:
+        Compute generators of the Artin braid group on `n=` ``n_strands``
+        strands. If `a` = ``fusing_anyon`` and `b` = ``total_charge_anyon``
+        the generators are endomorphisms of `\\text{Hom}(b, a^n)`.
 
-        Compute generators of the Artin braid group on `n=` n_strands strands. If
-        fusing_anyon = a and total_charge_anyon = b, the generators are
-        endomorphisms of `\\text{Hom}(b, a^n)`
+        INPUT:
 
         - ``fusing_anyon`` -- a basis element of self
         - ``total_charge_anyon`` -- a basis element of self
         - ``n_strands`` -- a positive integer greater than 2
+        - ``checkpoint`` -- (optional) a boolean indicating whether the
+          F-matrix solver should pickle checkpoints.
+        - ``save_results`` -- (optional) a string indicating the name of
+          a file in which to pickle computed F-symbols for later use.
+        - ``warm_start`` -- (optional) a string indicating the name of a
+          pickled checkpoint file to "warm" start the F-matrix solver.
+          The pickle may be a checkpoint generated by the solver, or
+          a file containing solver results. If all F-symbols are known,
+          we don't run the solver again.
+        - ``use_mp`` -- (optional) a boolean indicating whether to use
+          multiprocessing to speed up the computation. This is highly
+          recommended.
+
+        For more information on the optional parameters, see
+        :meth:`find_orthogonal_solution` of the :class:`FMatrix` module.
 
         Given a simple object in the fusion category, here called
         ``fusing_anyon`` allowing the universal R-matrix to act on adjacent
@@ -1109,6 +1185,8 @@ class FusionRing(WeylCharacterRing):
         produces an action of the braid group. This representation can
         be decomposed over another anyon, here called ``total_charge_anyon``.
         See [CHW2015]_.
+
+        OUTPUT:
 
         The method outputs a pair of data ``(comp_basis,sig)`` where
         ``comp_basis`` is a list of basis elements of the braid group
@@ -1145,8 +1223,12 @@ class FusionRing(WeylCharacterRing):
         """
         assert int(n_strands) > 2, "The number of strands must be an integer greater than 2"
         #Construct associated FMatrix object and solve for F-symbols
-        if not self.fmats.symbols_known:
-            self.fmats.find_orthogonal_solution(verbose=verbose)
+        if self.fmats._chkpt_status < 7:
+            self.fmats.find_orthogonal_solution(checkpoint=checkpoint,
+                                                save_results=save_results,
+                                                warm_start=warm_start,
+                                                use_mp=use_mp,
+                                                verbose=verbose)
 
         #Set multiprocessing parameters. Context can only be set once, so we try to set it
         try:

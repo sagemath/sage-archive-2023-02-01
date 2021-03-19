@@ -1731,7 +1731,9 @@ REFERENCES:
             curves. preprint, 2005.
 
 .. [CHW2015] Shawn X.; Hong, Seung-Moon; Wang, Zhenghan Universal quantum computation 
-            with weakly integral anyons. Quantum Inf. Process. 14 (2015), no. 8, 2687–2727. 
+             with weakly integral anyons. Quantum Inf. Process. 14 (2015), no. 8, 2687–2727. 
+
+
 .. _ref-D:
 
 **D**
@@ -5475,6 +5477,9 @@ REFERENCES:
             increasing tableaux, with applications to K-theoretic Schubert
             calculus*, Algebra and Number Theory 3 (2009), 121-148,
             https://projecteuclid.org/euclid.ant/1513797353
+
+.. [TTWL2009] Trebst, Troyer, Wang and Ludwig, A short introduction to
+              Fibonacci anyon models, :arxiv:`0902.3275`.
 
 .. _ref-U:
 

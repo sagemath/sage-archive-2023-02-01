@@ -398,6 +398,31 @@ cdef class Graphics3d(SageObject):
             sage: (css in str) or (html in str)
             False
 
+        "Fat" line scripts are only included when at least one line
+        (or one surface with ``mesh=True``) exists with ``thickness > 1``::
+
+            sage: fat = '// fat_lines.js'
+            sage: L = line3d([(0, 0, 0), (1, 1, 1)], thickness=1)
+            sage: str = L._rich_repr_threejs(online=True).html.get_str()
+            sage: fat in str
+            False
+            sage: L = line3d([(0, 0, 0), (1, 1, 1)], thickness=10)
+            sage: str = L._rich_repr_threejs(online=True).html.get_str()
+            sage: fat in str
+            True
+            sage: d = dodecahedron(mesh=False, thickness=10)
+            sage: str = d._rich_repr_threejs(online=True).html.get_str()
+            sage: fat in str
+            False
+            sage: d = dodecahedron(mesh=True, thickness=1)
+            sage: str = d._rich_repr_threejs(online=True).html.get_str()
+            sage: fat in str
+            False
+            sage: d = dodecahedron(mesh=True, thickness=10)
+            sage: str = d._rich_repr_threejs(online=True).html.get_str()
+            sage: fat in str
+            True
+
         If a page title is provided, it is stripped and HTML-escaped::
 
             sage: d = dodecahedron(page_title='\t"Page" & <Title>\n')
@@ -490,16 +515,25 @@ cdef class Graphics3d(SageObject):
 
         reprs = {'point': [], 'line': [], 'text': [], 'surface': []}
         frame_count = 0
+        fat_lines = False
         for kind, desc in self.threejs_repr(self.default_render_params()):
             reprs[kind].append(desc)
             keyframe = int(desc.get('keyframe', -1))
             frame_count = max(frame_count, keyframe + 1)
+            if kind == 'line' or (kind == 'surface' and desc.get('showMeshGrid')):
+                linewidth = float(desc.get('linewidth', 1))
+                if linewidth > 1:
+                    fat_lines = True
         reprs = {kind: json.dumps(descs) for kind, descs in reprs.items()}
 
         from sage.env import SAGE_EXTCODE
         with open(os.path.join(
                 SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
             html = f.read()
+
+        if fat_lines:
+            with open(os.path.join(SAGE_EXTCODE, 'threejs', 'fat_lines.js')) as f:
+                scripts += '<script>' + f.read() + '</script>'
 
         js_options['animate'] = js_options['animate'] and frame_count > 1
         if js_options['animate']:

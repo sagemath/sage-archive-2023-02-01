@@ -516,7 +516,7 @@ return(listpoints);
 \\ pol is a squarefree polynomial in Z[x].
 \\ Returns a list of vectors [a,b] with a and b rationals
 \\ such that the intervals ]a,b] are disjoint and contain
-\\ all the real roots of pol, and excatly one in each interval.
+\\ all the real roots of pol, and exactly one in each interval.
 my(st,a,res,ind,b,c,stab,stac);
 
 if( DEBUGLEVEL_ell >= 5, print("     starting polrealrootsisolate with pol = ",pol));

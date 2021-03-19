@@ -15,6 +15,12 @@ all: base-toolchain
 build: base-toolchain
 	$(MAKE) all-build
 
+build-local: base-toolchain
+	$(MAKE) all-build-local
+
+build-venv: base-toolchain
+	$(MAKE) all-build-venv
+
 start: base-toolchain
 	$(MAKE) build-start
 

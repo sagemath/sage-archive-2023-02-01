@@ -60,7 +60,7 @@ jobs:
       - name: Install test prerequisites
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
       - name: Try to login to docker.pkg.github.com
         # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
         run: |
@@ -114,7 +114,7 @@ jobs:
       - name: Install test prerequisites
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install python-tox
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
       - name: Build and test with tox
         # We use a high parallelization on purpose in order to catch possible parallelization bugs in the build scripts.
         # For doctesting, we use a lower parallelization to avoid timeouts.

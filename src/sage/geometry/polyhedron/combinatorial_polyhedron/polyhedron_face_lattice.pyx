@@ -3,7 +3,7 @@ PolyhedronFaceLattice
 
 This module provides a class that stores and sorts all faces of the polyhedron.
 
-:class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron` implicitely uses this class to generate
+:class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron` implicitly uses this class to generate
 the face lattice of a polyhedron.
 
 Terminology in this module:
@@ -106,7 +106,7 @@ cdef class PolyhedronFaceLattice:
 
     The faces are recorded with :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator` in Bit-representation.
     Once created, all level-sets but the coatoms are sorted with merge sort.
-    Non-trivial incidences of elements whos rank differs by 1 are determined
+    Non-trivial incidences of elements whose rank differs by 1 are determined
     by intersecting with all coatoms. Then each intersection is looked up in
     the sorted level sets.
     """
@@ -220,7 +220,7 @@ cdef class PolyhedronFaceLattice:
             if unlikely(self.f_vector[i] != self.faces[i].n_faces):
                 raise ValueError("``PolyhedronFaceLattice`` does not contain all faces")
 
-        for i in range(0, dim-1):
+        for i in range(dim - 1):
             # Sort each level set, except for the facets, the full- and empty polyhedron.
             sort_faces_list(self.faces[i+1])
 
@@ -477,7 +477,7 @@ cdef class PolyhedronFaceLattice:
                               coatoms.faces[self.incidence_counter_two])
 
             # Get the location of the intersection and
-            # check, wether it is correct.
+            # check whether it is correct.
             location = self.find_face(self.incidence_dim_two, self.incidence_face)
             two[0] = location
 

@@ -334,7 +334,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     - ``backend`` -- string (default: `None`);
       the backend to be use to construct a polyhedral,
-      used interally in case the center is not the origin,
+      used internally in case the center is not the origin,
       see :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
 
     OUTPUT: An ordered point configuration as list of vectors.
@@ -3045,7 +3045,7 @@ class Polytopes():
             phi = (1 + sqrt5) / 2
             phi_inv = base_ring.one() / phi
 
-            # The 24 permutations of [0,0,±2,±2] (the ± are independant)
+            # The 24 permutations of [0,0,±2,±2] (the ± are independent)
             verts = Permutations([0,0,2,2]).list() + Permutations([0,0,-2,-2]).list() + Permutations([0,0,2,-2]).list()
 
             # The 64 permutations of the following vectors:

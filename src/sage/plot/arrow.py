@@ -44,7 +44,7 @@ class CurveArrow(GraphicPrimitive):
             vertices += curve
             codes += (len(curve))*[len(curve)+1]
         self.codes = codes
-        self.vertices = np.array(vertices, np.float)
+        self.vertices = np.array(vertices, float)
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):

@@ -3983,10 +3983,10 @@ class TensorField(ModuleElementWithMutability):
             False
 
         """
-        n_con = self._tensor_type[0] # number of contravariant indices = k
+        n_con = self._tensor_type[0]  # number of contravariant indices = k
         if pos is None:
             result = self
-            for p in range(0, n_con):
+            for p in range(n_con):
                 k = result._tensor_type[0]
                 result = result.down(metric, k-1)
             return result

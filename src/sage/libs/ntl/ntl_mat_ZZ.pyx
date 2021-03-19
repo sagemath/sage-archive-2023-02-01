@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp m
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 
 #*****************************************************************************
@@ -369,7 +373,7 @@ cdef class ntl_mat_ZZ(object):
             TypeError: cannot take determinant of non-square matrix.
             sage: ntl.mat_ZZ(4,4,[next_prime(2**i) for i in range(16)]).determinant()
             -10248
-            sage: ntl.mat_ZZ(4,4,[ ZZ.random_element() for _ in range(16) ]).determinant()
+            sage: ntl.mat_ZZ(4,4,[ ZZ.random_element() for _ in range(16) ]).determinant()  # random
             678
         """
         if self.__nrows != self.__ncols:

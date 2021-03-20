@@ -150,11 +150,14 @@ def eberlein(n, k, l, x, check=True, inef=False):
 
     # TODO: include these with check?, check whether these constraints are
     # actually essential or we can have binomials==0
+    # ADD CHECK x>=k
     """
     if not (k>=0 and l-n-x>k and n-x>k) and not inef:
         print("Wrong Arguments: n={}, k={}, l={}, x={}".format(n,k,l,x))
         raise ValueError('In Eberlein polynomial')
     """
+    print("eberlein, {} {} {} {}".format(n,k,l,x))
+
 
     if inef:
         return sum([(-1)**j*binomial(x,j)*binomial(n-x,k-j)*binomial(l-n-x,k-j)
@@ -167,9 +170,16 @@ def eberlein(n, k, l, x, check=True, inef=False):
             raise ValueError('l must be a nonnegative integer')
         l = l0
     eber = jth_term = binomial(n-x,k) * binomial(l-n-x,k)
+    print(jth_term)
+    if jth_term==0:jth_term=1
     for j in srange(1,k+1):
-        jth_term *= (-1) * ((x-j+1)/j) * ((k-j+1)/(n-x-k+j)) * ((k-j+1)/(l-n-x-k+j))
+        print("n={}, k={}, l={}, x={}, j={}".format(n,k,l,x,j))
+        jth_term *= (-1) * ((x-j+1)*(k-j+1)*(k-j+1)/(j*(n-x-k+j)*(l-n-x-k+j))) 
+        # print('j: '+str(j) + ' ' + str(jth_term))
         eber += jth_term
+        if jth_term==0:
+            jth_term = 1
+            print('fixed')
     return eber
 
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
@@ -254,16 +264,17 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
     # p.add_constraint(A[0]==1)
     # for j in range(d/2,w+1):
     #    if j<d or 2*w<j: p.add_constraint(A[j]==0)
-    def _q(i,k):
-        mu_i = (n-2*i+1)*binomial(n,i)/(n-i+1)
-        v_k = binomial(w,k)*binomial(n-w,k)
-        return mu_i*eberlein(w,k,n,i,inef=True)/v_k
+    def _q(k,i):
+        # mu_k = ((n-2*k+1)/(n-k+1))*binomial(n,k)
+        mu_k = 1
+        v_i = binomial(w,i)*binomial(n-w,i)
+        return mu_k*eberlein(w,i,n,k,inef=True)/v_i
 
     for k in range(1,w+1): # could be range(d/2,n+1)
         # could make more efficient calculation of the binomials in the future
         # by keeping track of the divisor
-        p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k, inef=True) / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
-        # p.add_constraint(sum([A[2*i]*_q(i,k) for i in range(d/2,w+1)]),min=-1)
+        # p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k) / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
+        p.add_constraint(sum([A[2*i]*_q(k,i) for i in range(d/2,w+1)]),min=-1)
     p.show()
     return A, p
 

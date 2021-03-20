@@ -1112,8 +1112,8 @@ class GaloisGroup_subgroup(GaloisSubgroup_perm):
             polred = (index <= 8)
         if polred:
             f = x.minpoly()
-            bitsize = QQ(f[0]).numerator().nbits() + QQ(f[0]).denominator().nbits()
-            cost = 2 * bitsize + 5 * ZZ(f.poldegree()).nbits()
+            bitsize = ZZ(QQ(f[0]).numerator().nbits() + QQ(f[0]).denominator().nbits())
+            cost = 2 * bitsize.nbits() + 5 * ZZ(f.poldegree()).nbits()
             # time(polredbest) ≈ b²d⁵
             if threshold is None or cost <= threshold:
                 f, elt_back = f.polredbest(flag=1)

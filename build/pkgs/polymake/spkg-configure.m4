@@ -11,5 +11,8 @@ SAGE_SPKG_CONFIGURE([polymake], [
             ])
         ])
     ])
-    AS_IF([test -z "$ac_cv_path_POLYMAKE_CONFIG"], [sage_spkg_install_polymake=yes])
+    AS_IF([test -z "$ac_cv_path_POLYMAKE_CONFIG"],
+          [sage_spkg_install_polymake=yes],
+          [sage_require_perl_cpan_polymake_prereq=no
+           sage_require_perl_term_readline_gnu=no])
 ])

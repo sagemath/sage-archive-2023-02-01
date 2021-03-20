@@ -12,10 +12,8 @@ on:
 env:
   MAKE: make -j8
   SAGE_NUM_THREADS: 3
-  SAGE_CHECK: warn
-  SAGE_CHECK_PACKAGES: "!cython,!r,!python3,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl"
   CYGWIN: winsymlinks:native
-  SAGE_FAT_BINARY: yes
+  CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url --enable-fat-binary
   SAGE_LOCAL: /opt/sage-${{ github.sha }}
 
 jobs:
@@ -49,6 +47,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -108,6 +107,7 @@ jobs:
         choco install $PACKAGES --source cygwin
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -176,9 +176,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -245,9 +246,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -312,9 +314,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -379,9 +382,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -446,9 +450,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -517,9 +522,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -588,9 +594,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -659,9 +666,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -728,9 +736,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -795,9 +804,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -862,9 +872,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -929,9 +940,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact
@@ -996,9 +1008,10 @@ jobs:
         path: C:\\tools\\cygwin\\tmp
     - name: Extract sage-local artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
+        C:\\tools\\cygwin\\bin\\dash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && .github/workflows/extract-sage-local.sh /tmp/sage-local-*.tar && tar --create --listed-incremental=/tmp/sage-local.snar --file /dev/null "${{ env.SAGE_LOCAL }}"'
     - name: tox
       run: |
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e local-cygwin-choco-${{ matrix.pkgs }} -- $TARGETS'
     - name: Prepare logs artifact

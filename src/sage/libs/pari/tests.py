@@ -1760,12 +1760,12 @@ These are some doctests that used to be part of Sage and were removed from the c
 library::
 
     sage: e = pari([0,0,0,-82,0]).ellinit()
-    sage: eta1 = e.elleta(precision=100)[0]
+    sage: eta1 = e.elleta(precision=50)[0]
     sage: eta1.sage()
     3.6054636014326520859158205642077267748
-    sage: eta1 = e.elleta(precision=180)[0]
+    sage: eta1 = e.elleta(precision=150)[0]
     sage: eta1.sage()
-    3.60546360143265208591582056420772677481026899659802474544
+    3.605463601432652085915820564207726774810268996598024745444380641429820491740
 
     sage: from cypari2 import Pari
     sage: pari = Pari()

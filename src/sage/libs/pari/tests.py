@@ -1737,7 +1737,7 @@ General number fields::
     sage: pari(-23).quadhilbert()
     x^3 - x^2 + 1
     sage: pari(145).quadhilbert()
-    x^4 - 6*x^2 - 5*x - 1
+    x^4 - x^3 - 5*x^2 - x + 1
     sage: pari(-12).quadhilbert()   # Not fundamental
     Traceback (most recent call last):
     ...

@@ -789,7 +789,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.gens()[0].order()
             433680868994201773603067114808243933797236
             sage: E.gens()[1].order()
-            433680868994201773603067114808243933797236
+            30977204928157269543076222486303138128374
         """
         G = self.__pari__().ellgroup(flag=1)
         return tuple(self.point(list(pt)) for pt in G[2])

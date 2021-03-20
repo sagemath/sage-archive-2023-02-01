@@ -14,10 +14,10 @@ from sage.arith.all import is_prime, prime_divisors
 
 def global_genus_symbol(self):
     r"""
-    Return the genus of a two times a quadratic form over `\ZZ`.
+    Return the genus of two times a quadratic form over `\ZZ`.
 
     These are defined by a collection of local genus symbols (a la
-    Chapter 15 of Conway-Sloane), and a signature.
+    Chapter 15 of Conway-Sloane [CS1999]_), and a signature.
 
     EXAMPLES::
 
@@ -53,7 +53,7 @@ def global_genus_symbol(self):
 def local_genus_symbol(self, p):
     r"""
     Return the Conway-Sloane genus symbol of 2 times a quadratic form
-    defined over `\ZZ` at a prime number p.
+    defined over `\ZZ` at a prime number `p`.
 
     This is defined (in the
     Genus_Symbol_p_adic_ring() class in the quadratic_forms/genera
@@ -87,7 +87,7 @@ def local_genus_symbol(self, p):
         The Conway-Sloane convention for describing the prime 'p = -1'
         is not supported here, and neither is the convention for
         including the 'prime' Infinity.  See note on p370 of Conway-Sloane
-        (3rd ed) for a discussion of this convention.
+        (3rd ed) [CS1999]_ for a discussion of this convention.
 
     INPUT:
 
@@ -95,7 +95,7 @@ def local_genus_symbol(self, p):
 
     OUTPUT:
 
-    Return a Conway-Sloane genus symbol at p, which is an
+    a Conway-Sloane genus symbol at `p`, which is an
     instance of the Genus_Symbol_p_adic_ring class.
 
     EXAMPLES::

@@ -1564,9 +1564,6 @@ REFERENCES:
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
 
-.. [Co1999] \J. H. Conway, N. J. A. Sloane. *Sphere Packings, Lattices and Groups*,
-            Springer Verlag 1999.
-
 .. [CO2010] Jonathan Comes, Viktor Ostrik.
             *On blocks of Deligne's category*
             `\underline{\mathrm{Rep}}(S_t)`.
@@ -1707,8 +1704,8 @@ REFERENCES:
             error-correcting codes from game theory*, IEEE
             Trans. Infor. Theory **32** (1986) 337-348.
 
-.. [CS1999] \J.H. Conway and N.J.A. Sloane, Sphere packings, lattices
-            and groups, 3rd. ed., Grundlehren der Mathematischen
+.. [CS1999] \J. H. Conway and N. J. A. Sloane, *Sphere packings, lattices
+            and groups*, 3rd. ed., Grundlehren der Mathematischen
             Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
 .. [CS1988] Conway, J. H., and N. J. A. Sloane. “Low-Dimensional Lattices. IV.

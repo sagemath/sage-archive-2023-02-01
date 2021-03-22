@@ -518,7 +518,7 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         """
         if not self.is_homogeneous():
             raise ValueError("this element is not homogeneous")
-        subs_dict = dict()
+        subs_dict = {}
         A = self.parent()
         for x in A.initial_cluster_variables():
             subs_dict[x.lift()] = A._U(1)
@@ -560,7 +560,7 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         """
         deg_matrix = block_matrix([[identity_matrix(self.parent().rank()),
                                     -self.parent().b_matrix()]])
-        components = dict()
+        components = {}
         x = self.lift()
         monomials = x.monomials()
         for m in monomials:
@@ -1260,7 +1260,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             M0 = Q.b_matrix()[n:, :]
         m = M0.nrows()
 
-        B0 = block_matrix([[B0],[M0]])
+        B0 = block_matrix([[B0], [M0]])
         B0.set_immutable()
 
         # Determine the names of the initial cluster variables
@@ -1285,7 +1285,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # mutate_initial to name new cluster variables.
         splitnames = map(lambda w: w.partition(kwargs['cluster_variable_prefix']),
                 kwargs['cluster_variable_names'] + kwargs['coefficient_names'])
-        nfi = 1 + max( [-1] + [int(v) for u,_,v in splitnames if u == '' and v.isdigit()] )
+        nfi = 1 + max([-1] + [int(v) for u, _, v in splitnames
+                              if u == '' and v.isdigit()])
         kwargs.setdefault('next_free_index', nfi)
 
         # Determine scalars
@@ -2336,7 +2337,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
                     tmp_path_dict[new_g_vect] = new_path
 
             # update storage
-            initial_g = (0,)*(k)+(1,)+(0,)*(n-k-1)
+            initial_g = (0,) * (k) + (1,) + (0,) * (n - k - 1)
             tmp_path_dict[initial_g] = []
             path_dict = tmp_path_dict
             path_to_current = ([k] + path_to_current[:1] if path_to_current[:1] != [k] else []) + path_to_current[1:]
@@ -2348,7 +2349,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # create new algebra
         coeff_names = self.coefficient_names()
         scalars = self.scalars()
-        A = ClusterAlgebra(B0, cluster_variable_names=cv_names, next_free_index = nfi,
+        A = ClusterAlgebra(B0, cluster_variable_names=cv_names,
+                           next_free_index=nfi,
                            coefficient_names=coeff_names, scalars=scalars)
 
         # store computed data
@@ -2409,8 +2411,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         elif a2 < 0:
             return self.retract(((1 + x1 ** b) / x2) ** a1 * x2 ** (-a2))
         output = 0
-        for p in range(0, a2 + 1):
-            for q in range(0, a1 + 1):
+        for p in range(a2 + 1):
+            for q in range(a1 + 1):
                 output += self._greedy_coefficient(d_vector, p, q) * x1 ** (b * p) * x2 ** (c * q)
         return self.retract(x1 ** (-a1) * x2 ** (-a2) * output)
 

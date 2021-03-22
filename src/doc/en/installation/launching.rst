@@ -48,6 +48,69 @@ Note that this assumes that a firewall which might be present between server
 and client allows connections on port 8888. See details on port forwarding on
 the internet, e.g. https://www.ssh.com/ssh/tunneling/example.
 
+.. _sec-launching-wsl-post-installation:
+
+WSL Post-installation steps
+---------------------------
+
+If you've installed Sage Math from source on WSL, there are a couple of extra steps you can do to make your life easier:
+
+Create a notebook launch script
+"""""""""""""""""""""""""""""""
+
+If you plan to use JupyterLab, install that first.
+
+Now create a script called ``~/sage_nb.sh`` containing the following lines, and fill in the correct paths for your desired starting directory and ``SAGE_ROOT``
+
+
+.. CODE-BLOCK:: bash
+
+    #!/bin/bash
+    # Switch to desired windows directory
+    cd /mnt/c/path/to/desired/starting/directory
+    # Start the Jupyter notebook
+    SAGE_ROOT/sage --notebook
+    # Alternatively you can run JupyterLab - delete the line above, and uncomment the line below
+    #SAGE_ROOT/sage --notebook jupyterlab
+
+Make it executable:
+
+.. CODE-BLOCK:: bash
+
+    chmod ug+x ~/sage_nb.sh
+
+Run it to test:
+
+.. CODE-BLOCK:: bash
+
+    cd ~
+    ./sage_nb.sh
+
+The Jupyter(Lab) server should start in the terminal window, and you windows browser should open a page showing the Jupyter or JupyterLab starting page, at the directory you specified.
+
+Create a shortcut
+"""""""""""""""""
+
+This is a final nicety that lets you start the Jupyter or JupyterLab server in one click:
+
+* Open Windows explorer, and type ``%APPDATA%\Microsoft\Windows\Start Menu\Programs`` in the address bar and press enter. This is the folder that contains you start menu shortcuts. If you want the sage shortcut somewhere else (like your desktop), open that folder instead.
+* Open a separate window and go to ``%LOCALAPPDATA%\Microsoft\WindowsApps\``
+* Right-click-drag the ``ubuntu.exe`` icon from the second window into the first, then choose ``Create shortcuts here`` from the context menu when you drop it. 
+* To customize this shortcut, right-click on it and choose properties.
+
+  * On the General tab:
+
+    * Change the name to whatever you want, e.g. "Sage 9.2 JupyterLab"
+  
+  * On the Shortcut tab:
+
+    * Change Target to: ``ubuntu.exe run ~/sage_nb.sh``
+    * Change Start in to: ``%USERPROFILE%``
+    * Change Run to: Minimised
+    * Change the icon if you want
+
+Now hit the start button or key and type the name you gave it. it should appear in the list, and should load the server and fire up your browser when you click on it.
+
 ------------------------------------------------------------------------
 
 For further reading you can have a look at the other documents in the

@@ -2388,7 +2388,8 @@ cdef class Matrix(Matrix0):
         cdef Matrix A
         A = self.new_matrix(self._nrows, self._ncols, self,
                 coerce=False, sparse=False)
-        A.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(self.subdivisions())
         return A
 
     def sparse_matrix(self):
@@ -2431,7 +2432,8 @@ cdef class Matrix(Matrix0):
             return self
         A = self.new_matrix(self._nrows, self._ncols, self,
                 coerce=False, sparse=True)
-        A.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(self.subdivisions())
         return A
 
     def matrix_space(self, nrows=None, ncols=None, sparse=None):

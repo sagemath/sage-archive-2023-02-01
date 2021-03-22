@@ -1743,7 +1743,7 @@ done from the right side.""")
             sage: M.basis_matrix(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can...t change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ
         """
         try:
             A = self.__basis_matrix

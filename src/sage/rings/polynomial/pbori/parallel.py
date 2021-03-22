@@ -40,10 +40,10 @@ def to_fast_pickable(l):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.pbori.frontend import *
+        sage: from sage.rings.polynomial.pbori import Ring, Polynomial
         sage: from sage.rings.polynomial.pbori.parallel import to_fast_pickable, from_fast_pickable
         sage: r = Ring(1000)
-        sage: x=r.variable
+        sage: x = r.variable
         sage: to_fast_pickable([Polynomial(1, r)])
         [[1], []]
         sage: to_fast_pickable([Polynomial(0, r)])
@@ -103,13 +103,16 @@ def to_fast_pickable(l):
 
 def from_fast_pickable(l, r):
     r"""
-    Undoes the operation to_fast_pickable. The first argument is an object created by to_fast_pickable.
-    For the specified format, see the documentation of to_fast_pickable.
+    Undo the operation :func:`to_fast_pickable`.
+
+    The first argument is an object created by :func:`to_fast_pickable`.
+
+    For the specified format, see the documentation of :func:`to_fast_pickable`.
     The second argument is ring, in which this polynomial should be created.
 
     INPUT:
 
-    See OUTPUT of to_fast_pickable
+    See OUTPUT of :func:`to_fast_pickable`
 
     OUTPUT:
 
@@ -117,7 +120,7 @@ def from_fast_pickable(l, r):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.pbori.frontend import *
+        sage: from sage.rings.polynomial.pbori import Ring
         sage: from sage.rings.polynomial.pbori.parallel import from_fast_pickable
         sage: r = Ring(1000)
         sage: x = r.variable

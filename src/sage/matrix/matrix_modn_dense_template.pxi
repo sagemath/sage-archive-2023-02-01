@@ -3032,7 +3032,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             A_row = self._matrix[i]
             for j in range(self._ncols):
                 L.set_unsafe_double(i, j, A_row[j])
-        L.subdivide(self.subdivisions())
+        if self._subdivisions is not None:
+            L.subdivide(*self.subdivisions())
         return L
 
     def transpose(self):

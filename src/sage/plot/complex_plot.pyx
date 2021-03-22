@@ -100,7 +100,7 @@ def complex_to_rgb(z_values):
 
     imax = len(z_values)
     jmax = len(z_values[0])
-    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = numpy.empty(dtype=numpy.float, shape=(imax, jmax, 3))
+    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = numpy.empty(dtype=float, shape=(imax, jmax, 3))
 
     sig_on()
     for i from 0 <= i < imax:

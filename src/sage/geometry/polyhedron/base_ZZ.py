@@ -2,7 +2,7 @@ r"""
 Base class for polyhedra over `\ZZ`
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -10,7 +10,7 @@ Base class for polyhedra over `\ZZ`
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
@@ -741,7 +741,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             yield self
             return
         edge_vectors = []
-        for i in range(0,n):
+        for i in range(n):
             v = vertices[(i+1) % n].vector() - vertices[i].vector()
             d = gcd(list(v))
             v_prim = (v/d).change_ring(ZZ)

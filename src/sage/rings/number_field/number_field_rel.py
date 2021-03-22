@@ -2345,40 +2345,6 @@ class NumberField_relative(NumberField_generic):
         gens = [self(x) for x in gens]
         return relative_order_from_ring_generators(gens, **kwds)
 
-    def galois_group(self, type='pari', algorithm='pari', names=None):
-        r"""
-        Return the Galois group of the Galois closure of this number
-        field as an abstract group.  Note that even though this is an
-        extension `L/K`, the group will be computed as if it were `L/\QQ`.
-
-        INPUT:
-
-        - ``type`` - ``'pari'`` or ``'gap'``: type of object to return -- a
-          wrapper around a Pari or Gap transitive group object.         -
-
-        - algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except when
-          the degree is >= 12 when 'kash' is tried)
-
-        At present much less functionality is available for Galois groups of
-        relative extensions than absolute ones, so try the galois_group method
-        of the corresponding absolute field.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQ)
-            sage: K.<a> = NumberField(x^2 + 1)
-            sage: R.<t> = PolynomialRing(K)
-            sage: L = K.extension(t^5-t+a, 'b')
-            sage: L.galois_group(type="pari")
-            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 - t + a over its base field
-        """
-
-        if type is None:
-            raise NotImplementedError("Galois groups of relative extensions not implemented (use the corresponding absolute field)")
-        else:
-            # silly bug in cached_method
-            return NumberField_generic.galois_group.f(self, type, algorithm, names)
-
     def is_free(self, proof=None):
         r"""
         Determine whether or not `L/K` is free (i.e. if `\mathcal{O}_L` is

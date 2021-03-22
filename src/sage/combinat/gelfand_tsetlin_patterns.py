@@ -1170,7 +1170,7 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
             True
             sage: len(x)
             4
-            sage: all(y in range(0, 5+1) for z in x for y in z)
+            sage: all(y in range(5+1) for z in x for y in z)
             True
             sage: x.check()
 
@@ -1182,7 +1182,7 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
             True
             sage: len(x)
             4
-            sage: all(y in range(0, 5+1) for z in x for y in z)
+            sage: all(y in range(5+1) for z in x for y in z)
             True
             sage: x.check()
             sage: x.is_strict()

@@ -982,7 +982,7 @@ class MixedForm(AlgebraElement):
         resu = self._new_instance()
         resu[0] = self._domain.zero_scalar_field()
         resu[1:] = [self[j].exterior_derivative()
-                    for j in range(0, self._max_deg)]
+                    for j in range(self._max_deg)]
         # Compose name:
         from sage.tensor.modules.format_utilities import (format_unop_txt,
                                                           format_unop_latex)

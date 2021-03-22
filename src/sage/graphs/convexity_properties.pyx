@@ -30,7 +30,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/data_structures/binary_matrix.pxi"
+from sage.data_structures.binary_matrix cimport *
 from sage.numerical.backends.generic_backend cimport GenericBackend
 from sage.numerical.backends.generic_backend import get_solver
 from sage.graphs.distances_all_pairs cimport c_distances_all_pairs

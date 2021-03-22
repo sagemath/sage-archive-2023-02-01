@@ -628,9 +628,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 12 == numpy.int8('12')
             True
 
-            sage: numpy.float('15') == 15
+            sage: float('15') == 15
             True
-            sage: 15 == numpy.float('15')
+            sage: 15 == float('15')
             True
 
         Test underscores as digit separators (PEP 515,

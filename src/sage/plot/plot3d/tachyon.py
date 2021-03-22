@@ -445,8 +445,8 @@ class Tachyon(WithEqualityById, SageObject):
 
         -  ``png`` - 24-bit PNG (compressed, lossless)
 
-        -  ``verbose`` - integer (default: ``None``); if no verbosity setting 
-           is supplied, the verbosity level set by 
+        -  ``verbose`` - integer (default: ``None``); if no verbosity setting
+           is supplied, the verbosity level set by
            ``sage.misc.verbose.set_verbose`` is used.
 
         -  ``0`` - silent
@@ -544,7 +544,7 @@ class Tachyon(WithEqualityById, SageObject):
             sage: set_verbose(1)
             sage: s.show()
             tachyon ...
-            Scene contains 2713 objects.
+            Scene contains 2711 objects.
             ...
 
         The last example shows how you can override the global Sage

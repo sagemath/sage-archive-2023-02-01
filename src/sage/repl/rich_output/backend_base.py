@@ -452,38 +452,89 @@ class BackendBase(SageObject):
             sage: from sage.repl.rich_output.backend_base import BackendBase
             sage: backend = BackendBase()
             sage: out = backend.latex_formatter(1/2)
+            ...
+            DeprecationWarning: If you want an html representation of the object, use html formatter instead.
+            See https://trac.sagemath.org/31536 for details.
             sage: out
             OutputLatex container
             sage: out.latex
-            buffer containing 45 bytes
+            buffer containing 11 bytes
             sage: out.latex.get_str()
-            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}'
-            sage: out.mathjax()
-            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}</script></html>'
+            '\\frac{1}{2}'
 
             sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=False)
             sage: out.latex.get_str()
-            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]'
+            '\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]'
             sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=True)
             sage: out.latex.get_str()
-            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}'
+            '\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]'
 
         TESTS::
 
             sage: backend.latex_formatter([], concatenate=False).latex.get_str()
-            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\right]'
+            '\\left[\\right]'
             sage: backend.latex_formatter([], concatenate=True).latex.get_str()
-            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}'
+            '\\left[\\right]'
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(31536, "If you want an html representation of the object, use html formatter instead.")
+        concatenate = kwds.get('concatenate', False)
+        from sage.misc.latex import latex
+        from sage.repl.rich_output.output_basic import OutputLatex
+        return OutputLatex(str(latex(obj, combine_all=concatenate)))
+
+    def html_formatter(self, obj, **kwds):
+        r"""
+        Hook to override how HTML is being formatted.
+
+        INPUT:
+
+        - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.output_browser.OutputHtml`
+        containing the HTML string representation of the object.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: out = backend.html_formatter(1/2)
+            sage: out
+            OutputHtml container
+            sage: out.html
+            buffer containing 105 bytes
+            sage: out.html.get_str()
+            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}</script></html>'
+
+            sage: out = backend.html_formatter([1/2, x, 3/4, ZZ], concatenate=False)
+            sage: out.html.get_str()
+            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]</script></html>'
+            sage: out = backend.html_formatter([1/2, x, 3/4, ZZ], concatenate=True)
+            sage: out.html.get_str()
+            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}</script></html>'
+
+        TESTS::
+
+            sage: backend.html_formatter([], concatenate=False).html.get_str()
+            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\right]</script></html>'
+            sage: backend.html_formatter([], concatenate=True).html.get_str()
+            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}</script></html>'
         """
         concatenate = kwds.get('concatenate', False)
-        from sage.misc.latex import MathJax
-        if concatenate:
-            obj = tuple(obj)    # MathJax treats tuples special
-            mathjax = MathJax().eval(obj, mode='plain', combine_all=True)
-        else:
-            mathjax = MathJax().eval(obj, mode='plain', combine_all=False)
-        from sage.repl.rich_output.output_basic import OutputLatex
-        return OutputLatex(str(mathjax))
+        from sage.misc.html import html
+        from sage.repl.rich_output.output_browser import OutputHtml
+        return OutputHtml(html(obj, concatenate=concatenate))
 
     def set_underscore_variable(self, obj):
         """

@@ -48,11 +48,11 @@ Properties have documentation attached::
 
 Values can also be specified as keyword arguments to the constructor::
 
-    sage: DisplayPreferences(text='latex')
+    sage: DisplayPreferences(text='html')
     Display preferences:
     * graphics is not specified
     * supplemental_plot is not specified
-    * text = latex
+    * text = html
 
 .. TODO::
 
@@ -399,7 +399,7 @@ class DisplayPreferences(PreferencesABC):
 
 DisplayPreferences._add_option(
     'text',
-    ('plain', 'ascii_art', 'unicode_art', 'latex'),
+    ('plain', 'ascii_art', 'unicode_art', 'latex', 'html'),
     """
     Which textual representation is preferred
     """

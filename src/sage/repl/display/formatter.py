@@ -68,8 +68,8 @@ from IPython.utils.py3compat import unicode_to_str
 from sage.repl.display.pretty_print import SagePrettyPrinter
 
 
-PLAIN_TEXT = u'text/plain'
-TEXT_HTML = u'text/html'
+PLAIN_TEXT = 'text/plain'
+TEXT_HTML = 'text/html'
 
 
 class SageDisplayFormatter(DisplayFormatter):
@@ -119,14 +119,14 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell = get_test_shell()
             sage: backend.install(shell=shell)
             sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
-            [u'text/plain']
-            sage: shell.run_cell('%display latex')   # indirect doctest
+            ['text/plain']
+            sage: shell.run_cell('%display html')   # indirect doctest
             sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
-            \newcommand{\Bold}[1]{\mathbf{#1}}\left[\verb|text/plain|, \verb|text/html|\right]
+            ['text/plain', 'text/html']
             sage: shell.run_cell('%display default')
             sage: shell.quit()
         """
-        if self.dm.preferences.text == 'latex':
+        if self.dm.preferences.text == 'html':
             return [PLAIN_TEXT, TEXT_HTML]
         return [PLAIN_TEXT]
 
@@ -181,10 +181,10 @@ class SageDisplayFormatter(DisplayFormatter):
 
         Test that IPython images still work even in latex output mode::
 
-            sage: shell.run_cell('%display latex')   # indirect doctest
+            sage: shell.run_cell('%display html')   # indirect doctest
             sage: shell.run_cell('set(get_ipython().display_formatter.format(ipython_image)[0].keys())'
             ....:                ' == set(["text/plain", "image/png"])')
-            \newcommand{\Bold}[1]{\mathbf{#1}}\mathrm{True}
+            True
             sage: shell.run_cell('%display default')
             sage: shell.quit()
 

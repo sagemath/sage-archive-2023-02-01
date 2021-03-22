@@ -233,9 +233,10 @@ from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
 from .encoder import Encoder
 from .decoder import Decoder
 
-#******************************************************************************
+# *****************************************************************************
 # coding theory functions
-#******************************************************************************
+# *****************************************************************************
+
 
 def _dump_code_in_leon_format(C):
     r"""
@@ -950,7 +951,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
         `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
-        [BH12]_).
+        [BH2012]_).
 
         EXAMPLES::
 
@@ -1302,13 +1303,12 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C.is_galois_closed()
             False
         """
-        F = self.base_ring()
-        p = F.characteristic()
+        p = self.base_ring().characteristic()
         return self == self.galois_closure(GF(p))
 
     def _magma_init_(self, magma):
         r"""
-        Retun a string representation in Magma of this linear code.
+        Return a string representation in Magma of this linear code.
 
         EXAMPLES::
 
@@ -1316,11 +1316,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: Cm = magma(C)                 # optional - magma, indirect doctest
             sage: Cm.MinimumWeight()            # optional - magma
             3
-
         """
         G = magma(self.generator_matrix())._ref()
-        s = 'LinearCode(%s)' % G
-        return s
+        return 'LinearCode(%s)' % G
 
     @cached_method
     def minimum_distance(self, algorithm=None):

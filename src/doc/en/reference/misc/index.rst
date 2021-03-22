@@ -99,7 +99,7 @@ Miscellaneous Useful Functions
    sage/misc/misc_c
    sage/misc/verbose
 
-Lazyness
+Laziness
 ~~~~~~~~
 
 .. toctree::

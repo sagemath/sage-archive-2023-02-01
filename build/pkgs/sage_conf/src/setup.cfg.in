@@ -3,7 +3,7 @@
 [metadata]
 name = sage_conf
 version = @PACKAGE_VERSION@
-description = Sage: Open Source Mathematics Software: Configuration for sagelib
+description = Sage: Open Source Mathematics Software: Configuration module for the SageMath library
 long_description = file: README.rst
 license = GNU General Public License (GPL) v3 or later
 author = The Sage Developers

@@ -461,7 +461,7 @@ class SineGordonYsystem(SageObject):
         EXAMPLES::
 
             sage: Y = SineGordonYsystem('A',(6,4,3))
-            sage: Y.plot()  # long time 2s  # known bug
+            sage: Y.plot()  # long time 2s
             Graphics object consisting of 219 graphics primitives
         """
         # Set up plotting options

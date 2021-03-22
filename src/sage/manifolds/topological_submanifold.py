@@ -434,7 +434,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: N.set_embedding(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
 
-        Now ``N`` appears as an embbeded submanifold::
+        Now ``N`` appears as an embedded submanifold::
 
             sage: N
             2-dimensional topological submanifold N embedded in the

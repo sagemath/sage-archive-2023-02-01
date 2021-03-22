@@ -1,5 +1,5 @@
-boost
-=====
+boost: Portable C++ libraries (full set)
+========================================
 
 Description
 -----------

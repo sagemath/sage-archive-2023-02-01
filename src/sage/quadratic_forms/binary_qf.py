@@ -61,6 +61,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 
+
 @total_ordering
 class BinaryQF(SageObject):
     r"""
@@ -477,9 +478,8 @@ class BinaryQF(SageObject):
             sage: Q = BinaryQF([0, 0, 0])
             sage: Q.polynomial()
             0
-
         """
-        # Note: Cacheing in _poly seems to give a very slight
+        # Note: Caching in _poly seems to give a very slight
         # improvement (~0.2 usec) in 'timeit()' runs.  Not sure it
         # is worth the instance variable.
         if self._poly is None:

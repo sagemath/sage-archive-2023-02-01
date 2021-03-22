@@ -201,7 +201,7 @@ def _local_genera(p, rank, det_val, max_scale, even):
                 g1 = Genus_Symbol_p_adic_ring(p, g1)
                 symbols.append(g1)
     # for p == 2 we have to include determinant, even/odd, oddity
-    # further restrictions apply and are defered to _blocks
+    # further restrictions apply and are deferred to _blocks
     # (brute force sieving is too slow)
     # TODO: If this is too slow, enumerate only the canonical symbols.
     # as a drawback one has to reconstruct the symbol from the canonical symbol
@@ -374,6 +374,7 @@ def Genus(A, factored_determinant=None):
         local_symbols.append(G)
     return GenusSymbol_global_ring(sig_pair, local_symbols, representative=A)
 
+
 def LocalGenusSymbol(A, p):
     r"""
     Return the local symbol of `A` at the prime `p`.
@@ -512,12 +513,12 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
             if s[3] == 0 or s[2] != s[4]:
                 return False
         if s[1] == 2 and s[3] == 1:
-            if s[2]%8 in (1,7):
-               if not s[4] in (0,2,6):
-                  return False
-            if s[2]%8 in (3,5):
-               if not s[4] in (2,4,6):
-                  return False
+            if s[2] % 8 in (1, 7):
+                if not s[4] in (0, 2, 6):
+                    return False
+            if s[2] % 8 in (3, 5):
+                if not s[4] in (2, 4, 6):
+                    return False
         if (s[1] - s[4])% 2 == 1:
             return False
         if s[3] == 0 and s[4] != 0:
@@ -1037,7 +1038,7 @@ def split_odd(A):
     """
     n0 = A.nrows()
     if n0 == 1:
-       return A[0,0], MatrixSpace(IntegerRing(), 0, A.ncols())([])
+        return A[0, 0], MatrixSpace(IntegerRing(), 0, A.ncols())([])
     even, i = is_even_matrix(A)
     R = A.parent().base_ring()
     C = MatrixSpace(R, n0 - 1, n0)(0)
@@ -1065,8 +1066,8 @@ def split_odd(A):
         C = MatrixSpace(R,n0-1,n0)(0)
         for j in range(n0-1):
             if j < i:
-               C[j,j] = 1
-               C[j,i] = -A[j,i] * u
+                C[j,j] = 1
+                C[j,i] = -A[j,i] * u
             else:
                 C[j,j+1] = 1
                 C[j,i] = -A[j+1,i] * u
@@ -1118,11 +1119,10 @@ def trace_diag_mod_8(A):
         2
     """
     tr = 0
-    while A.nrows() > 0:
-       u, A = split_odd(A)
-       tr += u
+    while A.nrows():
+        u, A = split_odd(A)
+        tr += u
     return IntegerRing()(tr)
-
 
 
 def two_adic_symbol(A, val):
@@ -2244,7 +2244,7 @@ class Genus_Symbol_p_adic_ring(object):
            for s in self._symbol:
                if s[0] % 2 == 1 and s[2] == -1:
                    k += 1
-           return Integer(sum([ s[1] * (p**s[0]-1) for s in self._symbol ]) + 4*k).mod(8)
+           return Integer(sum([ s[1] * (p**s[0]-1) for s in self._symbol]) + 4*k).mod(8)
 
     def scale(self):
         r"""

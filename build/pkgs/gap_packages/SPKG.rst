@@ -1,5 +1,5 @@
-gap_packages
-============
+gap_packages: A collection of GAP packages
+==========================================
 
 Description
 -----------

@@ -422,7 +422,7 @@ class LocalFrame(FreeModuleBasis):
     of the base space `M`, such that `e(p)` is a basis of the fiber `E_p` for
     any `p \in U`.
 
-    For each instanciation of a local frame, a local coframe is automatically
+    For each instantiation of a local frame, a local coframe is automatically
     created, as an instance of the class :class:`LocalCoFrame`. It is returned
     by the method :meth:`coframe`.
 

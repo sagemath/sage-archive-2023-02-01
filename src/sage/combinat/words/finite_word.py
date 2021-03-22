@@ -3797,13 +3797,13 @@ class FiniteWord_class(Word_class):
 
     def subword_complementaries(self, other):
         """
-        Returns the possible complementaries ``other`` minus ``self`` if
+        Return the possible complementaries ``other`` minus ``self`` if
         ``self`` is a subword of ``other`` (empty list otherwise).
         The complementary is made of all the letters that are in ``other`` once
         we removed the letters of ``self``.
         There can be more than one.
 
-        To check wether ``self`` is a subword of ``other` (without knowing its
+        To check whether ``self`` is a subword of ``other` (without knowing its
         complementaries), use ``self.is_subword_of(other)``, and to count the
         number of occurrences of ``self`` in ``other``, use
         ``other.number_of_subword_occurrences(self)``.

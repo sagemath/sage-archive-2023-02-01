@@ -345,8 +345,9 @@ def ModularSymbols(group  = 1,
     key = canonical_parameters(group, weight, sign, base_ring)
 
     if use_cache and key in _cache:
-         M = _cache[key]()
-         if not (M is None): return M
+        M = _cache[key]()
+        if M is not None:
+            return M
 
     (group, weight, sign, base_ring) = key
 

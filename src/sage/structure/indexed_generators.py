@@ -73,12 +73,13 @@ class IndexedGenerators(object):
 
     - ``tensor_symbol`` -- string or ``None`` (default: ``None``),
       string to use for tensor product in the print representation. If
-      ``None``, use  ``sage.categories.tensor.symbol``.
+      ``None``, use  ``sage.categories.tensor.symbol`` and
+      ``sage.categories.tensor.unicode_symbol``.
 
     - ``sorting_key`` -- a key function (default: ``lambda x: x``),
       to use for sorting elements in the output of elements
 
-    - ``sorting_reverse`` -- bool (default: ``False``), if ``True`` 
+    - ``sorting_reverse`` -- bool (default: ``False``), if ``True``
       sort elements in reverse order in the output of elements
 
     - ``string_quotes`` -- bool (default: ``True``), if ``True`` then

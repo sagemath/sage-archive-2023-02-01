@@ -132,6 +132,9 @@ class Tarball(object):
         sha1 = self._compute_sha1()
         return sha1 == self.package.sha1
 
+    def is_distributable(self):
+        return not 'do-not-distribute' in self.filename
+
     def download(self, allow_upstream=False):
         """
         Download the tarball to the upstream directory.

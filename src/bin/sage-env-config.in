@@ -50,5 +50,6 @@ CONFIGURED_OBJCXX="@OBJCXX@"
 #######################################
 # Other configuration (not exported, only used in sage-env)
 #######################################
+SAGE_ARCHFLAGS="@SAGE_ARCHFLAGS@"
 SAGE_PKG_CONFIG_PATH="@SAGE_PKG_CONFIG_PATH@"
 SAGE_MACOSX_DEPLOYMENT_TARGET="@SAGE_MACOSX_DEPLOYMENT_TARGET@"

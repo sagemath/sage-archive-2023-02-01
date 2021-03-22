@@ -149,7 +149,7 @@ Sage example in ./integration.tex, line 846::
   sage: mpmath.quad(sin(sin(x)), [0, 1])
   Traceback (most recent call last):
   ...
-  TypeError: no canonical coercion from <type 'sage.libs.mpmath.ext_main.mpf'> to Symbolic Ring
+  TypeError: unable to convert mpf('0.5') to a symbolic expression
 
 Sage example in ./integration.tex, line 866::
 

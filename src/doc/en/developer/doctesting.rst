@@ -1268,8 +1268,8 @@ code loads the globals from that file into the namespace before
 running tests.  To disable this behaviour (and require imports to be
 explicitly specified), use the ``--force-lib`` option.
 
-Auxilliary files
-^^^^^^^^^^^^^^^^
+Auxiliary files
+^^^^^^^^^^^^^^^
 
 To specify a logfile (rather than use the default which is created for
 ``sage -t --all``), use the ``--logfile`` flag::

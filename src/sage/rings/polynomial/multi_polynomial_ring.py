@@ -379,6 +379,9 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: f = pari(a*d)
             sage: B(f)
             a*d
+            sage: f = pari(a*d - (a+1)*d*e^3 + a*d^2)
+            sage: B(f)
+            (-a - 1)*d*e^3 + a*d^2 + a*d
 
             sage: A.<a,b> = PolynomialRing(QQ)
             sage: B.<d,e> = PolynomialRing(A)
@@ -525,8 +528,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             # univariate polynomials.  Below, v is the variable
             # with highest priority, and the x[i] are expressions
             # in the remaining variables.
+            d = x.poldegree()
+            if d.type() == 't_INFINITY':
+                return self.zero()
             v = self.gens_dict_recursive()[str(x.variable())]
-            return sum(self(x[i]) * v ** i for i in range(x.poldegree() + 1))
+            return sum(self(x[i]) * v ** i for i in range(d + 1))
 
         if isinstance(x, dict):
             return MPolynomial_polydict(self, x)

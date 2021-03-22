@@ -1,5 +1,5 @@
-Send2Trash
-==========
+send2trash: Send file to trash natively under Mac OS X, Windows and Linux
+=========================================================================
 
 Description
 -----------

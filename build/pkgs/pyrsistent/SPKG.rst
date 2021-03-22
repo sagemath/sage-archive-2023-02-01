@@ -1,5 +1,5 @@
-pyrsistent
-==========
+pyrsistent: Persistent data structures in Python
+================================================
 
 Description
 -----------

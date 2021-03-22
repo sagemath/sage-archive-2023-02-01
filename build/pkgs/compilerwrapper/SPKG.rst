@@ -1,6 +1,5 @@
-
-Compiler Wrapper
-================
+compilerwrapper: A wrapper for compiler and binutils that sets rpath and works around broken archs
+==================================================================================================
 
 Description
 -----------

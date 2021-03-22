@@ -327,7 +327,7 @@ class EllipticCurveFactory(UniqueFactory):
         EXAMPLES::
 
             sage: EllipticCurve.create_key_and_extra_args(j=8000)
-            ((Rational Field, (0, -1, 0, -3, -1)), {})
+            ((Rational Field, (0, 1, 0, -3, 1)), {})
 
         When constructing a curve over `\\QQ` from a Cremona or LMFDB
         label, the invariants from the database are returned as
@@ -597,8 +597,13 @@ def EllipticCurve_from_j(j, minimal_twist=True):
 
     - ``j`` -- an element of some field.
 
-    - ``minimal_twist`` (boolean, default True) -- If True and ``j`` is in `\QQ`, the curve returned is a
-      minimal twist, i.e. has minimal conductor.  If `j` is not in `\QQ` this parameter is ignored.
+    - ``minimal_twist`` (boolean, default True) -- If True and ``j``
+      is in `\QQ`, the curve returned is a minimal twist, i.e. has
+      minimal conductor; when there is more than one curve with
+      minimal conductor, the curve returned is the one whose label
+      comes first if the curves are in the CremonaDatabase, otherwise
+      the one whose minimal a-invarinats are first lexicographically.
+      If `j` is not in `\QQ` this parameter is ignored.
 
     OUTPUT:
 
@@ -721,7 +726,15 @@ def coefficients_from_j(j, minimal_twist=True):
         tw = [-1,2,-2,3,-3,6,-6]
         E1 = EllipticCurve([0,0,0,a4,a6])
         Elist = [E1] + [E1.quadratic_twist(t) for t in tw]
-        Elist.sort(key=lambda E: E.conductor())
+        min_cond = min(E.conductor() for E in Elist)
+        Elist = [E for E in Elist if E.conductor() == min_cond]
+        if len(Elist) > 1:
+            from sage.databases.cremona import CremonaDatabase, parse_cremona_label
+            if min_cond <= CremonaDatabase().largest_conductor():
+                sorter = lambda E: parse_cremona_label(E.label(), numerical_class_code=True)
+            else:
+                sorter = lambda E: E.ainvs()
+            Elist.sort(key=sorter)
         return Sequence(Elist[0].ainvs())
 
     # defaults for all other fields:

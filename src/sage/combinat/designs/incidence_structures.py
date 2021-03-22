@@ -1652,7 +1652,7 @@ class IncidenceStructure(object):
         r"""
         Test if the incidence structure is a generalized quadrangle.
 
-        An incidence structure is a generalized quadrangle iff (see [BH12]_,
+        An incidence structure is a generalized quadrangle iff (see [BH2012]_,
         section 9.6):
 
         - two blocks intersect on at most one point.

@@ -479,7 +479,7 @@ class VectorFrame(FreeModuleBasis):
     immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
-    For each instanciation of a vector frame, a coframe is automatically
+    For each instantiation of a vector frame, a coframe is automatically
     created, as an instance of the class :class:`CoFrame`. It is returned by
     the method :meth:`coframe`.
 

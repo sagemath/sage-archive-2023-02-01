@@ -1,5 +1,5 @@
-ecm
-===
+ecm: Elliptic curve method for integer factorization
+====================================================
 
 Description
 -----------

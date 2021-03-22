@@ -13,8 +13,7 @@ if [ "x$SAGE_DEBUG" = "xyes" ]; then
 fi
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
-    # See https://github.com/xianyi/OpenBLAS/issues/510
-    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=PRESCOTT"
+    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE DYNAMIC_ARCH=1"
 fi
 
 echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"

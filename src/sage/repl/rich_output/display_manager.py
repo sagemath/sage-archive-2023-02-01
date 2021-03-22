@@ -584,7 +584,7 @@ class DisplayManager(SageObject):
             return obj._rich_repr_(self, **rich_repr_kwds)
         try:
             return obj._rich_repr_(self)
-        except NotImplementedError as e:
+        except NotImplementedError:
             # don't warn on NotImplementedErrors
             return None
         except Exception as e:

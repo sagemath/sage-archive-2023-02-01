@@ -53,7 +53,6 @@ def find_primitive_p_divisible_vector__random(self, p):
     raise RuntimeError("unable to find a p divisible vector")
 
 
-
 def find_primitive_p_divisible_vector__next(self, p, v=None):
     """
     Find the next `p`-primitive vector (up to scaling) in `L/pL` whose
@@ -230,13 +229,14 @@ def find_p_neighbor_from_vec(self, p, y):
     Gnew = (B*G*B.T).change_ring(R)
     return QF(Gnew)
 
+
 def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
                        algorithm=None, max_neighbors=1000, verbose=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
     Starting from the given seeds, this function successively
-    finds p-neighbors untill no new quadratic form (class) is obtained.
+    finds p-neighbors until no new quadratic form (class) is obtained.
 
     INPUT:
 
@@ -250,7 +250,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
 
     - ``algorithm`` -- (optional) one of 'orbits', 'random', 'exaustion'
 
-    - ``max_random_trys`` -- (default: ``1000``) the maximum number of neigbors
+    - ``max_random_trys`` -- (default: ``1000``) the maximum number of neighbors
                              computed for a single lattice
 
     OUTPUT:

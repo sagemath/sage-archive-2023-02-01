@@ -1146,7 +1146,7 @@ class FockSpace(Parent, UniqueRepresentation):
             while any(c[1]*k + c[0] >= b for c in corners):
                 power = 0
                 i = -b + r # This will be converted to a mod n number
-                for x in range(0, b // k + 1):
+                for x in range(b // k + 1):
                     if (b-x*k, x) in cells:
                         power += 1
                         cur = cur.f(i)
@@ -1907,7 +1907,7 @@ class FockSpaceTruncated(FockSpace):
             while any(c[1]*k + c[0] >= b for c in corners): # While there is some cell left to count
                 power = 0
                 i = -b + r # This will be converted to a mod n number
-                for x in range(0, b // k + 1):
+                for x in range(b // k + 1):
                     if (b-x*k, x) in cells:
                         power += 1
                         cur = cur.f(i)

@@ -49,6 +49,12 @@ SAGE_SPKG_CONFIGURE([ntl], [
         AC_SUBST(SAGE_NTL_PREFIX, ['$SAGE_LOCAL'])
     else
         AC_SUBST(SAGE_NTL_PREFIX, [''])
+        AX_ABSOLUTE_HEADER([NTL/ZZ.h])
+        ntl_inc_ntl_dir=`AS_DIRNAME(["$gl_cv_absolute_NTL_ZZ_h"])`
+        ntl_inc_dir=`AS_DIRNAME(["$ntl_inc_ntl_dir"])`
+        ntl_prefix=`AS_DIRNAME(["$ntl_inc_dir"])`
+        AC_SUBST(NTL_INCDIR, [$ntl_inc_dir])
+        AC_SUBST(NTL_LIBDIR, [$ntl_prefix/lib])
     fi
 ])
 

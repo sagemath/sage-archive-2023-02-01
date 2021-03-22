@@ -229,6 +229,7 @@ __append_to_doc(
      "cospectral_graphs",
      "CubeGraph",
      "CubeConnectedCycle",
+     "distance_regular_graph",
      "DorogovtsevGoltsevMendesGraph",
      "DoubleGrassmannGraph",
      "DoubleOddGraph",
@@ -240,6 +241,9 @@ __append_to_doc(
      "FurerGadget",
      "fusenes",
      "FuzzyBallGraph",
+     "GeneralisedDodecagonGraph",
+     "GeneralisedHexagonGraph",
+     "GeneralisedOctagonGraph",
      "GeneralizedPetersenGraph",
      "GoethalsSeidelGraph",
      "GrassmannGraph",
@@ -2069,7 +2073,9 @@ class GraphGenerators():
     CubeGraph              = staticmethod(families.CubeGraph)
     CubeConnectedCycle     = staticmethod(families.CubeConnectedCycle)
     DipoleGraph            = staticmethod(families.DipoleGraph)
+    distance_regular_graph = staticmethod(distance_regular.distance_regular_graph)
     DorogovtsevGoltsevMendesGraph = staticmethod(families.DorogovtsevGoltsevMendesGraph)
+    DoubleGeneralizedPetersenGraph = staticmethod(families.DoubleGeneralizedPetersenGraph)
     DoubleGrassmannGraph   = staticmethod(distance_regular.DoubleGrassmannGraph)
     DoubleOddGraph         = staticmethod(distance_regular.DoubleOddGraph)
     EgawaGraph             = staticmethod(families.EgawaGraph)
@@ -2078,6 +2084,9 @@ class GraphGenerators():
     FriendshipGraph        = staticmethod(families.FriendshipGraph)
     FurerGadget            = staticmethod(families.FurerGadget)
     FuzzyBallGraph         = staticmethod(families.FuzzyBallGraph)
+    GeneralisedDodecagonGraph = staticmethod(distance_regular.GeneralisedDodecagonGraph)
+    GeneralisedHexagonGraph = staticmethod(distance_regular.GeneralisedHexagonGraph)
+    GeneralisedOctagonGraph = staticmethod(distance_regular.GeneralisedOctagonGraph)
     GeneralizedPetersenGraph = staticmethod(families.GeneralizedPetersenGraph)
     GoethalsSeidelGraph    = staticmethod(families.GoethalsSeidelGraph)
     GrassmannGraph         = staticmethod(distance_regular.GrassmannGraph)
@@ -2087,6 +2096,7 @@ class GraphGenerators():
     HararyGraph            = staticmethod(families.HararyGraph)
     HermitianFormsGraph     = staticmethod(distance_regular.HermitianFormsGraph)
     HyperStarGraph         = staticmethod(families.HyperStarGraph)
+    IGraph                 = staticmethod(families.IGraph)
     JohnsonGraph           = staticmethod(families.JohnsonGraph)
     KneserGraph            = staticmethod(families.KneserGraph)
     LCFGraph               = staticmethod(families.LCFGraph)
@@ -2104,10 +2114,12 @@ class GraphGenerators():
     PasechnikGraph         = staticmethod(families.PasechnikGraph)
     petersen_family        = staticmethod(families.petersen_family)
     RingedTree             = staticmethod(families.RingedTree)
+    RoseWindowGraph        = staticmethod(families.RoseWindowGraph)
     SierpinskiGasketGraph  = staticmethod(families.SierpinskiGasketGraph)
     SquaredSkewHadamardMatrixGraph = staticmethod(families.SquaredSkewHadamardMatrixGraph)
     SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(families.SwitchedSquaredSkewHadamardMatrixGraph)
     strongly_regular_graph = staticmethod(strongly_regular_db.strongly_regular_graph)
+    TabacjnGraph           = staticmethod(families.TabacjnGraph)
     TadpoleGraph           = staticmethod(families.TadpoleGraph)
     trees                  = staticmethod(families.trees)
     TuranGraph             = staticmethod(families.TuranGraph)

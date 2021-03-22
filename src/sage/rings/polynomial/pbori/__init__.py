@@ -38,15 +38,10 @@ from .nf import normal_form
 from .blocks import declare_ring
 from .blocks import HigherOrderBlock, AlternatingBlock, Block
 from .gbrefs import load_file
-from .specialsets import *
-
-
-def plist(a, b):
-    return [a, b]
+from .specialsets import all_monomials_of_degree_d, power_set
 
 # Advertised reimports
 # ... any from below? ...
-
 
 # Deprecated reimports
 

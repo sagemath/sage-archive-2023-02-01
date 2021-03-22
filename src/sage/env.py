@@ -385,10 +385,18 @@ def get_cblas_pc_module_name() -> str:
     cblas_pc_modules = CBLAS_PC_MODULES.split(':')
     return next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
 
-def cython_aliases():
+def cython_aliases(required_modules=('fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
+                                     'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas'),
+                   optional_modules=('lapack',)):
     """
     Return the aliases for compiling Cython code. These aliases are
     macros which can occur in ``# distutils`` headers.
+
+    INPUT:
+
+    - ``required_modules`` -- iterable of ``str`` values.
+
+    - ``optional_modules`` -- iterable of ``str`` values.
 
     EXAMPLES::
 
@@ -400,13 +408,21 @@ def cython_aliases():
          'CBLAS_CFLAGS',
          ...,
          'ZLIB_LIBRARIES']
+        sage: cython_aliases(required_modules=('module-that-is-assumed-to-not-exist'))
+        Traceback (most recent call last):
+        ...
+        PackageNotFoundError: ...
+        sage: cython_aliases(required_modules=(), optional_modules=('module-that-is-assumed-to-not-exist'))
+        {...}
+
     """
     import pkgconfig
+    import itertools
 
     aliases = {}
 
-    for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
-                'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
+    for lib, required in itertools.chain(((lib, True) for lib in required_modules),
+                                         ((lib, False) for lib in optional_modules)):
         var = lib.upper().replace("-", "") + "_"
         if lib == 'cblas':
             lib = get_cblas_pc_module_name()
@@ -425,9 +441,10 @@ def cython_aliases():
                 pc = pkgconfig.parse(lib)
                 libs = pkgconfig.libs(lib)
             except pkgconfig.PackageNotFoundError:
-                from distutils import log
-                log.warn('Package {0} not installed'.format(lib))
-                continue
+                if required:
+                    raise
+                else:
+                    continue
 
         # It may seem that INCDIR is redundant because the -I options are also
         # passed in CFLAGS.  However, "extra_compile_args" are put at the end

@@ -29,6 +29,7 @@ classifiers =
 [options]
 python_requires = >=3.6, <3.10
 install_requires =
+    sage_conf
     esyscmd(`sage-get-system-packages install-requires \
         six \
         | sed "2,\$s/^/    /;"')dnl

@@ -1679,7 +1679,7 @@ end_scene""".format(
          By default, the jmol and tachyon viewers perform
          some non-uniform scaling of the axes.
 
-        If this is not desired, on can set ``aspect_ratio=1``::
+        If this is not desired, one can set ``aspect_ratio=1``::
 
             sage: p = plot3d(lambda u,v:(cos(u)-cos(v)), (-0.2,0.2),(-0.2,0.2))
             sage: p.show(viewer="threejs")

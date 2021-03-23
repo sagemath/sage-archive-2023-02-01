@@ -23,7 +23,7 @@ AUTHORS:
 
 - Joshua Campbell (2020): Three.js animation support
 
-- Günter Rote (2021): camera and light for tachyon
+- Günter Rote (2021): camera and light parameters for tachyon
 
 .. TODO::
 
@@ -969,8 +969,8 @@ cdef class Graphics3d(SageObject):
       
     # The tachyon "aspectratio" parameter is outdated for normal users:
     # From the tachyon documentation:
-    # "By using the aspect ratio parameter, one can produce images which look on
-    # correct any screen.  Aspect ratio alters the relative width of the image,
+    # "By using the aspect ratio parameter, one can produce images which look
+    # correct on any screen.  Aspect ratio alters the relative width of the image,
     # while keeping plane the height of the image plane constant.  In general,
     # most workstation displays have an aspect ratio of 1.0."
 

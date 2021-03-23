@@ -815,7 +815,7 @@ REFERENCES:
             and root vectors for the* `q`-*Onsager algebra*.
             Preprint, (2017) :arxiv:`1706.08747`.
 
-.. [BK2005] P. Baseilhac and K. Koizumi. *A new (in)finite dimensional algebra
+.. [BK2005] \P. Baseilhac and K. Koizumi. *A new (in)finite dimensional algebra
             for quantum integrable models*. Nuclear Phys. B **720** (2005),
             pp. 325-347.
 
@@ -1146,7 +1146,7 @@ REFERENCES:
             no. 1 (2003): 97-111,
             http://www.moi.math.bas.bg/moiuser/~iliya/pdf_site/gf5srev.pdf.
 
-.. [BS2010] P. Baseilhac and K. Shigechi. *A new current algebra and the
+.. [BS2010] \P. Baseilhac and K. Shigechi. *A new current algebra and the
             reflection equation*. Lett. Math. Phys. **92** (2010),
             pp. 47-65. :arxiv:`0906.1482`.
 

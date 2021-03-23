@@ -3271,8 +3271,15 @@ def point_list_bounding_box(v):
 
 def optimal_aspect_ratios(ratios):
     """
+    Average the aspect ratios.
+    compute the elementwise maximum of triples.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import optimal_aspect_ratios
+            sage: optimal_aspect_ratios([(2,4,6), (5,4,4), (1,2,7)])
+            [5, 4, 7]
     """
-    # average the aspect ratios
     n = len(ratios)
     if n > 0:
         return [max([z[i] for z in ratios]) for i in range(3)]
@@ -3281,17 +3288,28 @@ def optimal_aspect_ratios(ratios):
 
 def optimal_extra_kwds(v):
     """
-    Given a list v of dictionaries, this function merges them such that
-    later dictionaries have precedence.
+    Merge a list v of dictionaries such that later
+    dictionaries have precedence.
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import optimal_extra_kwds
+            sage: optimal_extra_kwds([{1:2, 2:3}, {2:4, 3:5}])
+            {1: 2, 2: 4, 3: 5}
     """
-    if len(v) == 0:
-        return {}
-    a = dict(v[0])   # make a copy!
-    for b in v[1:]:
-        for k, w in b.iteritems():
-            a[k] = w
+    a = {}
+    for b in v:
+        a.update(b)
     return a
 
 def _flip_orientation(v):
-    "switch from LH to RH coords to be consistent with Java rendition"
+    """
+    switch from LH to RH coords to be consistent with Java rendition
+
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import _flip_orientation
+            sage: _flip_orientation((1, 2, 3))
+            (1, -2, 3)
+    """
     return (v[0],-v[1],v[2])

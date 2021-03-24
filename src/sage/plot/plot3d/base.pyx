@@ -591,7 +591,7 @@ cdef class Graphics3d(SageObject):
             sage: sum(point3d((cos(n), sin(n), n)) for n in [0..10, step=.1])
             Graphics3d Object
 
-        A Graphics 3d object can also be added a 2d graphic object::
+        A Graphics 3d object and a 2d object can also be added::
 
             sage: A = sphere((0, 0, 0), 1) + circle((0, 0), 1.5)
             sage: A.show(aspect_ratio=1)

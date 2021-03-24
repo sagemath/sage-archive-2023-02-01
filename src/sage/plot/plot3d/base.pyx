@@ -723,7 +723,7 @@ cdef class Graphics3d(SageObject):
         within this box.
 
         Specifically, the first point returned should have x, y, and z
-        coordinates that are be the respective minimum over all points
+        coordinates that are the respective minimum over all points
         in the graphics, and the second point is the maximum.
 
         The default return value is simply the box containing the origin.

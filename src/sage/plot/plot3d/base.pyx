@@ -622,7 +622,7 @@ cdef class Graphics3d(SageObject):
 
     def aspect_ratio(self, v=None):
         """
-        Set or get the preferred aspect ratio of ``self``.
+        Set or get the preferred aspect ratio.
 
         INPUT:
 
@@ -656,7 +656,7 @@ cdef class Graphics3d(SageObject):
 
     def frame_aspect_ratio(self, v=None):
         """
-        Set or get the preferred frame aspect ratio of ``self``.
+        Set or get the preferred frame aspect ratio.
 
         INPUT:
 
@@ -717,14 +717,14 @@ cdef class Graphics3d(SageObject):
 
     def bounding_box(self):
         """
-        Return the lower and upper corners of a 3d bounding box for ``self``.
+        Return the lower and upper corners of a 3d bounding box.
 
-        This is used for rendering and ``self`` should fit entirely
+        This is used for rendering, and the scene should fit entirely
         within this box.
 
         Specifically, the first point returned should have x, y, and z
-        coordinates should be the respective infimum over all points
-        in ``self``, and the second point is the supremum.
+        coordinates that are be the respective minimum over all points
+        in the graphics, and the second point is the maximum.
 
         The default return value is simply the box containing the origin.
 
@@ -740,7 +740,7 @@ cdef class Graphics3d(SageObject):
 
     def transform(self, **kwds):
         """
-        Apply a transformation to ``self``, where the inputs are
+        Apply a transformation, where the inputs are
         passed onto a TransformGroup object.
 
         Mostly for internal use; see the translate, scale, and rotate
@@ -755,7 +755,7 @@ cdef class Graphics3d(SageObject):
 
     def translate(self, *x):
         """
-        Return ``self`` translated by the given vector (which can be
+        Return the object translated by the given vector (which can be
         given either as a 3-iterable or via positional arguments).
 
         EXAMPLES::
@@ -781,7 +781,7 @@ cdef class Graphics3d(SageObject):
 
     def scale(self, *x):
         """
-        Return ``self`` scaled in the x, y, and z directions.
+        Return the object scaled in the x, y, and z directions.
 
         EXAMPLES::
 
@@ -805,7 +805,7 @@ cdef class Graphics3d(SageObject):
 
     def rotate(self, v, theta):
         r"""
-        Return ``self`` rotated about the vector `v` by `\theta` radians.
+        Return the object rotated about the vector `v` by `\theta` radians.
 
         EXAMPLES::
 
@@ -825,7 +825,7 @@ cdef class Graphics3d(SageObject):
 
     def rotateX(self, theta):
         """
-        Return ``self`` rotated about the `x`-axis by the given angle.
+        Return the object rotated about the `x`-axis by the given angle.
 
         EXAMPLES::
 
@@ -837,7 +837,7 @@ cdef class Graphics3d(SageObject):
 
     def rotateY(self, theta):
         """
-        Return ``self`` rotated about the `y`-axis by the given angle.
+        Return the object rotated about the `y`-axis by the given angle.
 
         EXAMPLES::
 
@@ -849,7 +849,7 @@ cdef class Graphics3d(SageObject):
 
     def rotateZ(self, theta):
         """
-        Return ``self`` rotated about the `z`-axis by the given angle.
+        Return the object rotated about the `z`-axis by the given angle.
 
         EXAMPLES::
 
@@ -1262,7 +1262,7 @@ end_scene""".format(
         A (possibly nested) list of strings. Each entry is formatted
         as JSON, so that a JavaScript client could eval it and get an
         object. Each object has fields to encapsulate the faces and
-        vertices of ``self``. This representation is intended to be
+        vertices of the object. This representation is intended to be
         consumed by the canvas3d viewer backend.
 
         EXAMPLES::
@@ -1276,7 +1276,7 @@ end_scene""".format(
     def jmol_repr(self, render_params):
         r"""
         A (possibly nested) list of strings which will be concatenated and
-        used by jmol to render ``self``.
+        used by jmol to render the object.
 
         (Nested lists of strings are used because otherwise all the
         intermediate concatenations can kill performance). This may
@@ -1297,7 +1297,7 @@ end_scene""".format(
     def tachyon_repr(self, render_params):
         r"""
         A (possibly nested) list of strings which will be concatenated and
-        used by tachyon to render ``self``.
+        used by tachyon to render the object.
 
         (Nested lists of strings are used because otherwise all the
         intermediate concatenations can kill performance). This may
@@ -1318,7 +1318,7 @@ end_scene""".format(
     def obj_repr(self, render_params):
         """
         A (possibly nested) list of strings which will be concatenated and
-        used to construct an .obj file of ``self``.
+        used to construct an .obj file of the object.
 
         (Nested lists of strings are used because otherwise all the
         intermediate concatenations can kill performance). This may
@@ -2253,7 +2253,7 @@ class Graphics3dGroup(Graphics3d):
     def bounding_box(self):
         """
         Box that contains the bounding boxes of
-        all the objects that make up ``self``.
+        the objects.
 
         EXAMPLES::
 
@@ -2536,8 +2536,8 @@ class TransformGroup(Graphics3dGroup):
 
     def bounding_box(self):
         """
-        Return the bounding box of ``self``, i.e., the box containing the
-        contents of ``self`` after applying the transformation.
+        Return the bounding box, i.e., the box containing the
+        contents of the object after applying the transformation.
 
         EXAMPLES::
 
@@ -2701,7 +2701,7 @@ class TransformGroup(Graphics3dGroup):
 
     def get_transformation(self):
         """
-        Return the actual transformation object associated with ``self``.
+        Return the current transformation object.
 
         EXAMPLES::
 

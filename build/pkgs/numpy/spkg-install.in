@@ -22,11 +22,7 @@ python3 ../lapack_conf.py
 export FFLAGS="$FFLAGS -fPIC"
 export FCFLAGS="$FCFLAGS -fPIC"
 
-if [ "$SAGE_FAT_BINARY" = "yes" ]; then
-    export NUMPY_FCONFIG="config_fc --noopt --noarch --cpu-dispatch=\"min\""
-else
-    export NUMPY_FCONFIG="config_fc --noopt --noarch"
-fi
+export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################
 

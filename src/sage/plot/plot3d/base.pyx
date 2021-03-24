@@ -722,7 +722,7 @@ cdef class Graphics3d(SageObject):
         This is used for rendering, and the scene should fit entirely
         within this box.
 
-        Specifically, the first point returned should have x, y, and z
+        Specifically, the first point returned has x, y, and z
         coordinates that are the respective minimum over all points
         in the graphics, and the second point is the maximum.
 

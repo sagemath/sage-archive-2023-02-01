@@ -67,7 +67,6 @@ from copy import copy
 
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
-from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.non_decreasing_parking_function import is_a as check_NDPF
@@ -294,7 +293,6 @@ class ParkingFunction_class(ClonableArray):
             2
         """
         if isinstance(lst, ParkingFunction_class):
-            parent = lst.parent()
             lst = list(lst)
         if not isinstance(lst, list):
             raise TypeError('input must be a list')
@@ -1198,7 +1196,7 @@ class ParkingFunction_class(ClonableArray):
             if q not in R:
                 raise ValueError("q=%s must be an element of the base ring %s" % (q, R))
         F = QuasiSymmetricFunctions(R).Fundamental()
-        return q ** self.dinv() * F(self.ides_composition())
+        return q**self.dinv() * F(self.ides_composition())
 
     def pretty_print(self, underpath=True):
         r"""
@@ -1438,8 +1436,29 @@ class ParkingFunctions_all(Parent, UniqueRepresentation):
             sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [2, 1], [1, 1, 1], [1, 1, 2], [1, 2, 1]]
         """
-        for n in NN:
-            yield from ParkingFunctions_n(n).__iter__()
+        n = 0
+        while True:
+            for pf in ParkingFunctions_n(n):
+                yield self.element_class(self, list(pf))
+            n += 1
+
+    def _coerce_map_from_(self, S):
+        """
+        Coercion from the homogenous component to the graded set.
+
+        EXAMPLES::
+
+            sage: PF = ParkingFunctions()
+            sage: PF3 = ParkingFunctions(3)
+            sage: x = PF([1,3,2])
+            sage: y = PF3([1,3,2])
+            sage: PF(y).parent()
+            Parking functions
+            sage: x == y
+            True
+        """
+        if isinstance(S, ParkingFunctions_n):
+            return True
 
 
 class ParkingFunctions_n(Parent, UniqueRepresentation):
@@ -1547,7 +1566,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
             sage: [ParkingFunctions(i).cardinality() for i in range(6)]
             [1, 1, 3, 16, 125, 1296]
         """
-        return Integer((self.n + 1) ** (self.n - 1))
+        return Integer((self.n + 1)**(self.n - 1))
 
     def __iter__(self) -> Iterator:
         """
@@ -1606,7 +1625,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
             return
         for res in iterator_rec(self.n):
             for pi in Permutations(res):
-                yield ParkingFunction(list(pi))
+                yield self.element_class(self, list(pi))
         return
 
     def random_element(self) -> PF:
@@ -1637,4 +1656,4 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
             while not(position in free):
                 position += Zm.one()
             free.remove(position)
-        return ParkingFunction([(i - free[0]).lift() for i in fun])
+        return self.element_class(self, [(i - free[0]).lift() for i in fun])

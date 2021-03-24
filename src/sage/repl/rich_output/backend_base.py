@@ -444,7 +444,7 @@ class BackendBase(SageObject):
         OUTPUT:
 
         Instance of :class:`~sage.repl.rich_output.output_browser.OutputHtml`
-        containing the MathJax string representation of the object.
+        containing the latex string representation of the object.
 
         EXAMPLES::
 

@@ -2,6 +2,7 @@ r"""
 Graded quasi-modular forms ring
 
 TODO: add more info
+TODO: Implement an element class
 
 .. NOTE:
 
@@ -28,8 +29,13 @@ from sage.modular.modform.eis_series import eisenstein_series_qexp
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
 from sage.rings.all import Integer, QQ, ZZ
 from sage.structure.sage_object  import SageObject
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.graded_modules import GradedModules
 
-class QuasiModularFormsRing(SageObject):
+class QuasiModularForms(Parent, UniqueRepresentation):
+    Element = QuasiModularFormsElement
     def __init__(self, group=1, base_ring=QQ):
         r"""
         The graded ring of quasimodular forms for the full modular group `{\rm SL}_2(\ZZ)`, with
@@ -45,7 +51,7 @@ class QuasiModularFormsRing(SageObject):
 
         EXAMPLES::
 
-            sage: M = QuasiModularFormsRing(); M
+            sage: M = QuasiModularForms(); M
             Ring of quasimodular forms for Modular Group SL(2,Z) with coefficients in Rational Field
             sage: B = M.generators(); B
             [(2,
@@ -60,7 +66,7 @@ class QuasiModularFormsRing(SageObject):
             -24*q - 144*q^2 - 288*q^3 - 672*q^4 - 720*q^5 - 1728*q^6 - 1344*q^7 - 2880*q^8 - 2808*q^9 + O(q^10)
             sage: (P^2 - Q)/12
             -24*q - 144*q^2 - 288*q^3 - 672*q^4 - 720*q^5 - 1728*q^6 - 1344*q^7 - 2880*q^8 - 2808*q^9 + O(q^10)
-            sage: M = QuasiModularFormsRing(1, Integers(5)); M
+            sage: M = QuasiModularForms(1, Integers(5)); M
             Ring of quasimodular forms for Modular Group SL(2,Z) with coefficients in Ring of integers modulo 5
             sage: B = M.generators(); B
             [(2, 1 + q + 3*q^2 + 4*q^3 + 2*q^4 + q^5 + 2*q^6 + 3*q^7 + 3*q^9 + O(q^10)),
@@ -69,22 +75,22 @@ class QuasiModularFormsRing(SageObject):
 
         .. TESTS:
 
-            sage: M = QuasiModularFormsRing(1)
+            sage: M = QuasiModularForms(1)
             sage: M.group()
             Modular Group SL(2,Z)
             sage: M.base_ring()
             Rational Field
-            sage: M = QuasiModularFormsRing(1, ZZ)
+            sage: M = QuasiModularForms(1, ZZ)
             sage: M.base_ring()
             Integer Ring
-            sage: M = QuasiModularFormsRing(1, Integers(5))
+            sage: M = QuasiModularForms(1, Integers(5))
             sage: M.base_ring()
             Ring of integers modulo 5
-            sage: QuasiModularFormsRing(2)
+            sage: QuasiModularForms(2)
             Traceback (most recent call last):
             ...
             NotImplementedError: space of quasimodular forms have only been implemented for the full modular group
-            sage: QuasiModularFormsRing(Integers(5))
+            sage: QuasiModularForms(Integers(5))
             Traceback (most recent call last):
             ...
             ValueError: Group (=Ring of integers modulo 5) should be a congruence subgroup           
@@ -102,6 +108,7 @@ class QuasiModularFormsRing(SageObject):
         
         self.__group = group
         self.__base_ring = base_ring
+        Parent.__init__(self, base=base_ring, category=GradedModules(base_ring))
 
     def group(self):
         r"""
@@ -109,15 +116,15 @@ class QuasiModularFormsRing(SageObject):
 
         EXAMPLES::
 
-            sage: M = QuasiModularFormsRing(1)
+            sage: M = QuasiModularForms(1)
             sage: M.group() is SL2Z
             True
-            sage: M = QuasiModularFormsRing(Gamma0(1)); M
+            sage: M = QuasiModularForms(Gamma0(1)); M
             Ring of quasimodular forms for Modular Group SL(2,Z) with coefficients in Rational Field
             
         Higher level congruence subgroups are not yet implemented::
 
-            sage: QuasiModularFormsRing(2)
+            sage: QuasiModularForms(2)
             Traceback (most recent call last):
             ...
             NotImplementedError: space of quasimodular forms have only been implemented for the full modular group
@@ -131,11 +138,11 @@ class QuasiModularFormsRing(SageObject):
 
         EXAMPLES::
 
-            sage: QuasiModularFormsRing(1).base_ring()
+            sage: QuasiModularForms(1).base_ring()
             Rational Field
-            sage: QuasiModularFormsRing(1, base_ring = ZZ).base_ring()
+            sage: QuasiModularForms(1, base_ring=ZZ).base_ring()
             Integer Ring
-            sage: QuasiModularFormsRing(1, base_ring = Integers(5)).base_ring()
+            sage: QuasiModularForms(1, base_ring=Integers(5)).base_ring()
             Ring of integers modulo 5
         """
         return self.__base_ring
@@ -146,15 +153,18 @@ class QuasiModularFormsRing(SageObject):
 
         EXAMPLES::
 
-            sage: QuasiModularFormsRing(1)._repr_()
+            sage: QuasiModularForms(1)._repr_()
             'Ring of quasimodular forms for Modular Group SL(2,Z) with coefficients in Rational Field'
-            sage: QuasiModularFormsRing(1, base_ring=Integers(13))._repr_()
+            sage: QuasiModularForms(1, base_ring=Integers(13))._repr_()
             'Ring of quasimodular forms for Modular Group SL(2,Z) with coefficients in Ring of integers modulo 13'
         """
         return "Ring of quasimodular forms for %s with coefficients in %s" % (self.group(), self.base_ring())
 
     def generators(self, prec=10):
         r"""
+
+        TODO: implement element class
+
         If `R` is the base ring of self, then this method returns a set of
         quasimodular forms which generate the `R`-algebra of all quasimodular forms.
 
@@ -171,7 +181,7 @@ class QuasiModularFormsRing(SageObject):
 
         EXAMPLES::
 
-            sage: M = QuasiModularFormsRing(1)
+            sage: M = QuasiModularForms(1)
             sage: M.generators()
             [(2,
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 - 288*q^6 - 192*q^7 - 360*q^8 - 312*q^9 + O(q^10)),
@@ -179,7 +189,7 @@ class QuasiModularFormsRing(SageObject):
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + 60480*q^6 + 82560*q^7 + 140400*q^8 + 181680*q^9 + O(q^10)),
             (6,
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 - 4058208*q^6 - 8471232*q^7 - 17047800*q^8 - 29883672*q^9 + O(q^10))]
-            sage: QuasiModularFormsRing(1, Integers(17)).generators(prec=6)
+            sage: QuasiModularForms(1, Integers(17)).generators(prec=6)
             [(2, 1 + 10*q + 13*q^2 + 6*q^3 + 2*q^4 + 9*q^5 + O(q^6)),
             (4, 1 + 2*q + q^2 + 5*q^3 + 10*q^4 + 14*q^5 + O(q^6)),
             (6, 1 + 6*q + 11*q^2 + 2*q^3 + q^4 + 5*q^5 + O(q^6))]
@@ -203,7 +213,7 @@ class QuasiModularFormsRing(SageObject):
 
         EXAMPLES::
 
-            sage: M = QuasiModularFormsRing()
+            sage: M = QuasiModularForms()
             sage: D = M.differentiation_operator
             sage: B = M.generators()
             sage: P = B[0][1]; Q = B[1][1]; R = B[2][1]
@@ -222,6 +232,3 @@ class QuasiModularFormsRing(SageObject):
         """
         q = f.parent().gen()
         return q*f.derivative()
-    
-
-    

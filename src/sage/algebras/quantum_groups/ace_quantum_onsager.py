@@ -168,7 +168,7 @@ class ACEQuantumOnsagerAlgebra(CombinatorialFreeModule):
              + ((-q^8+2*q^4-1)/q^5)*W[-1]*W[1] + ((-q^8+2*q^4-1)/q^5)*W[0]^2
              + ((q^8-2*q^4+1)/q^5)*W[0]*W[2] + ((q^8-2*q^4+1)/q^5)*W[1]^2
         """
-        return (-len(x), [l for l in x.to_word_list()])
+        return (-len(x), x.to_word_list())
 
     def _repr_(self):
         r"""
@@ -373,7 +373,7 @@ class ACEQuantumOnsagerAlgebra(CombinatorialFreeModule):
     @cached_method
     def quantum_onsager_pbw_generator(self, i):
         r"""
-        Return the image of the PBW generator or the `q`-Onsager algebra
+        Return the image of the PBW generator of the `q`-Onsager algebra
         in ``self``.
 
         INPUT:

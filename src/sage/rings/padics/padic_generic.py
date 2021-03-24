@@ -12,7 +12,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
 #                               William Stein <wstein@gmail.com>
 #                               Julian Rueth <julian.rueth@fsfe.org>
@@ -21,8 +21,8 @@ AUTHORS:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.misc import some_tuples
 from copy import copy
@@ -606,13 +606,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: F.teichmuller_system()[3]
             (2*a + 2) + (4*a + 1)*5 + 4*5^2 + (2*a + 1)*5^3 + (4*a + 1)*5^4 + (2*a + 3)*5^5 + O(5^6)
 
-        NOTES:
+        .. NOTE::
 
-        Should this return 0 as well?
+            Should this return 0 as well?
         """
         R = self.residue_class_field()
         prec = self.precision_cap()
-        return [self.teichmuller(self(i).lift_to_precision(prec)) for i in R if i != 0]
+        return [self.teichmuller(self(i).lift_to_precision(prec))
+                for i in R if i != 0]
 
 #     def different(self):
 #         raise NotImplementedError

@@ -612,9 +612,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         - boolean -- whether ``self`` is a unit
 
-        NOTES:
+        .. NOTE::
 
-        For fields all nonzero elements are units. For DVR's, only those elements of valuation 0 are. An older implementation ignored the case of fields, and returned always the negation of self.valuation()==0. This behavior is now supported with self.is_padic_unit().
+            For fields all nonzero elements are units. For DVR's, only
+            those elements of valuation 0 are. An older implementation
+            ignored the case of fields, and returned always the
+            negation of self.valuation()==0. This behavior is now
+            supported with self.is_padic_unit().
 
         EXAMPLES::
 

@@ -47,12 +47,8 @@ CONFIGURED_OBJCXX="@OBJCXX@"
 # Other configuration (exported)
 #######################################
 # OpenMP flags, if available.
-export SAGE_HAVE_OPENMP="@SAGE_HAVE_OPENMP@"
-if [ -n "$SAGE_HAVE_OPENMP" ]; then
-    export SAGE_OPENMP_CFLAGS="@OPENMP_CFLAGS@"
-    export SAGE_OPENMP_CXXFLAGS="@OPENMP_CXXFLAGS@"
-fi
-
+export SAGE_OPENMP_CFLAGS="@OPENMP_CFLAGS@"
+export SAGE_OPENMP_CXXFLAGS="@OPENMP_CXXFLAGS@"
 
 #######################################
 # Other configuration (not exported, only used in sage-env)

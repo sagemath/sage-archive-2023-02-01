@@ -227,11 +227,9 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
         AX_OPENMP([
             AC_SUBST(OPENMP_CFLAGS)
             AC_SUBST(OPENMP_CXXFLAGS)
-            SAGE_HAVE_OPENMP=yes
         ])
         AC_LANG_POP()
     ])
-    AC_SUBST(SAGE_HAVE_OPENMP)
     AC_LANG_POP()
 
 

@@ -2,8 +2,8 @@ r"""
 Base Classes for 3D Graphics Objects and Plotting
 
 The most important facts about these classes are
-that you can add simply add graphics objects
-together (``G1+G2``, see :meth:`Graphics3d.__add__`)
+that you can simply add graphics objects
+together (``G1+G2``, see :meth:`Graphics3d.__add__`),
 and the :meth:`Graphics3d.show` method with its options for
 choosing a viewer and setting
 various parameters for displaying the graphics.

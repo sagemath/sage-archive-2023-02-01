@@ -519,7 +519,7 @@ class DisplayManager(SageObject):
             sage: dm._preferred_text_formatter([1/42])
             OutputUnicodeArt container
 
-            sage: dm.preferences.text = 'html'
+            sage: dm.preferences.text = 'latex'
             sage: dm._preferred_text_formatter([1/42])  # doctest backend does not support html
             OutputPlainText container
 
@@ -537,13 +537,8 @@ class DisplayManager(SageObject):
             if type(out) is not OutputUnicodeArt:
                 raise OutputTypeException('backend returned wrong output type, require UnicodeArt')
             return out
-        if want == 'latex' and OutputLatex in supported:
+        if want == 'latex' and OutputHtml in supported:
             out = self._backend.latex_formatter(obj, **kwds)
-            if type(out) is not OutputLatex:
-                raise OutputTypeException('backend returned wrong output type, require Latex')
-            return out
-        if want == 'html' and OutputHtml in supported:
-            out = self._backend.html_formatter(obj, **kwds)
             if type(out) is not OutputHtml:
                 raise OutputTypeException('backend returned wrong output type, require Html')
             return out

@@ -120,9 +120,9 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: backend.install(shell=shell)
             sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
             ['text/plain']
-            sage: shell.run_cell('%display html')   # indirect doctest
+            sage: shell.run_cell('%display latex')   # indirect doctest
             sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
-            ['text/plain', 'text/html']
+            ['text/plain']
             sage: shell.run_cell('%display default')
             sage: shell.quit()
         """
@@ -181,7 +181,7 @@ class SageDisplayFormatter(DisplayFormatter):
 
         Test that IPython images still work even in latex output mode::
 
-            sage: shell.run_cell('%display html')   # indirect doctest
+            sage: shell.run_cell('%display latex')   # indirect doctest
             sage: shell.run_cell('set(get_ipython().display_formatter.format(ipython_image)[0].keys())'
             ....:                ' == set(["text/plain", "image/png"])')
             True

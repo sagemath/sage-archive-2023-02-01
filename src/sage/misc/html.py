@@ -572,4 +572,4 @@ def pretty_print_default(enable=True):
     """
     from sage.repl.rich_output import get_display_manager
     dm = get_display_manager()
-    dm.preferences.text = 'html' if enable else None
+    dm.preferences.text = 'latex' if enable else None

@@ -216,7 +216,7 @@ def pretty_print(*args, **kwds):
     old_preferences_text = dm.preferences.text
     try:
         if dm.preferences.text is None:
-            dm.preferences.text = 'html'
+            dm.preferences.text = 'latex'
         if len(args) == 0:
             pass
         elif len(args) == 1:

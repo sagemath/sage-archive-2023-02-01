@@ -258,7 +258,7 @@ class SageMagics(Magics):
         As yet another option, typeset mode. This is used in the emacs
         interface::
 
-            sage: shell.run_cell('%display text html')
+            sage: shell.run_cell('%display text latex')
             sage: shell.run_cell('1/2')
             1/2
 
@@ -274,7 +274,7 @@ class SageMagics(Magics):
         TESTS::
 
             sage: shell.run_cell('%display invalid_mode')
-            value must be unset (None) or one of ('plain', 'ascii_art', 'unicode_art', 'latex', 'html'), got invalid_mode
+            value must be unset (None) or one of ('plain', 'ascii_art', 'unicode_art', 'latex'), got invalid_mode
             sage: shell.quit()
         """
         from sage.repl.rich_output import get_display_manager

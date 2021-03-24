@@ -215,8 +215,8 @@ NTL_INCDIR = var("NTL_INCDIR")
 NTL_LIBDIR = var("NTL_LIBDIR")
 
 # OpenMP
-SAGE_OPENMP_CFLAGS = var("SAGE_OPENMP_CFLAGS")
-SAGE_OPENMP_CXXFLAGS = var("SAGE_OPENMP_CXXFLAGS")
+OPENMP_CFLAGS = var("OPENMP_CFLAGS")
+OPENMP_CXXFLAGS = var("OPENMP_CXXFLAGS")
 
 # misc
 SAGE_BANNER = var("SAGE_BANNER", "")
@@ -508,7 +508,7 @@ def cython_aliases():
     aliases["NTL_LIBEXTRA"] = []
 
     # OpenMP
-    aliases["OPENMP_CFLAGS"] = SAGE_OPENMP_CFLAGS.split() if SAGE_OPENMP_CFLAGS else []
-    aliases["OPENMP_CXXFLAGS"] = SAGE_OPENMP_CXXFLAGS.split() if SAGE_OPENMP_CXXFLAGS else []
+    aliases["OPENMP_CFLAGS"] = OPENMP_CFLAGS.split()
+    aliases["OPENMP_CXXFLAGS"] = OPENMP_CXXFLAGS.split()
 
     return aliases

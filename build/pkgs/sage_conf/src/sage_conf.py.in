@@ -25,8 +25,8 @@ MATHJAX_DIR = "@prefix@/share/mathjax"
 THREEJS_DIR = "@prefix@/share/threejs"
 
 # OpenMP flags, if available.
-SAGE_OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
-SAGE_OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
+OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
+OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
 
 # The following must not be used during build to determine source or installation
 # location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in

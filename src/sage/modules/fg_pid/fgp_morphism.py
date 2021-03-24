@@ -457,6 +457,8 @@ from sage.categories.homset import Homset
 
 import sage.misc.weak_dict
 _fgp_homset = sage.misc.weak_dict.WeakValueDictionary()
+
+
 def FGP_Homset(X, Y):
     """
     EXAMPLES::
@@ -469,9 +471,11 @@ def FGP_Homset(X, Y):
         sage: type(Q.Hom(Q))
         <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
     """
-    key = (X,Y)
-    try: return _fgp_homset[key]
-    except KeyError: pass
+    key = (X, Y)
+    try:
+        return _fgp_homset[key]
+    except KeyError:
+        pass
     H = FGP_Homset_class(X, Y)
     # Caching breaks tests in fgp_module.
     # _fgp_homset[key] = H

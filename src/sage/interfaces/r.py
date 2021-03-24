@@ -444,7 +444,7 @@ def _setup_r_to_sage_converter():
             '_Names': rpy2py(names),
             # We don't give the rclass here because the old expect interface
             # didn't do that either and we want to maintain compatibility.
-        };
+        }
     rpy2py.register(ListSexpVector, _list_vector)
 
     return cv

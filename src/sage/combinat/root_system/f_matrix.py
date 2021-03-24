@@ -48,7 +48,7 @@ class FMatrix():
     - ``FR`` -- a FusionRing.
 
     The :class:`FusionRing` or Verlinde algebra is the
-    Grothendieck ring of a modular tensor category [Baki2001]_. 
+    Grothendieck ring of a modular tensor category [BaKi2001]_. 
     Such categories arise in conformal field theory or in the
     representation theories of affine Lie algebras, or
     quantum groups at roots of unity. They have applications

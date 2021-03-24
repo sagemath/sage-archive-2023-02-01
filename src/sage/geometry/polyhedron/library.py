@@ -962,7 +962,7 @@ class Polytopes():
         """
         Return the rhombic dodecahedron.
 
-        The rhombic dodecahedron is a a polytope  dual to the cuboctahedron. It
+        The rhombic dodecahedron is a polytope dual to the cuboctahedron. It
         has 14 vertices and 12 faces. For more information see
         the :wikipedia:`Rhombic_dodecahedron`.
 

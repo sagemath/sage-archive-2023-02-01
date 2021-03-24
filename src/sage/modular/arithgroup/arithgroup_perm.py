@@ -895,8 +895,10 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             True
         """
         n = self.index()
-        S2_win = [None]*n;  S3_win = [None]*n
-        S2_test = [None]*n; S3_test = [None]*n
+        S2_win = [None] * n
+        S3_win = [None] * n
+        S2_test = [None] * n
+        S3_test = [None] * n
 
         m_win = self._canonical_rooted_labels(0)
         for i in range(n): # conjugation
@@ -960,7 +962,8 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
                 j = x[j]
 
             # if everybody is labelled do not go further
-            if k == n: break
+            if k == n:
+                break
 
             # find another guy with y
             j0 = y[waiting.pop(0)]

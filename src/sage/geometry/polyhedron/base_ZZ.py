@@ -347,7 +347,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
         OUTPUT:
 
-        The Ehrhart polynomial as a a univariate polynomial in ``variable``
+        The Ehrhart polynomial as a univariate polynomial in ``variable``
         over a rational field.
 
         .. SEEALSO::

@@ -238,6 +238,22 @@ class Polyhedron_cdd(Polyhedron_base):
             sage: V.points()[1], R[V.points()[1]]
             (P(-2686.81000000000, -2084.19000000000),
              A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line)
+
+        Check that :trac:`31253` is fixed::
+
+        sage: P = polytopes.permutahedron(2, backend='cdd')
+        sage: P.Hrepresentation()
+        (An inequality (0, 1) x - 1 >= 0,
+         An inequality (1, 0) x - 1 >= 0,
+         An equation (1, 1) x - 3 == 0)
+        sage: Q = Polyhedron(P.vertices(), backend='cdd')
+        sage: Q.Hrepresentation()
+        (An inequality (-1, 0) x + 2 >= 0,
+         An inequality (1, 0) x - 1 >= 0,
+         An equation (1, 1) x - 3 == 0)
+        sage: [x.ambient_Hrepresentation() for x in P.facets()]
+        [(An equation (1, 1) x - 3 == 0, An inequality (1, 0) x - 1 >= 0),
+         (An equation (1, 1) x - 3 == 0, An inequality (0, 1) x - 1 >= 0)]
         """
         cddout = cddout.splitlines()
 
@@ -271,7 +287,12 @@ class Polyhedron_cdd(Polyhedron_base):
             assert self.ambient_dim() == dimension - 1, "Unexpected ambient dimension"
             assert len(data) == count, "Unexpected number of lines"
             R = self.base_ring()
-            for i, line in enumerate(data):
+            from itertools import chain
+            # We add equations to the end of the Hrepresentation.
+            for i in chain(
+                    (j for j in range(len(data)) if not j in equations),
+                    equations):
+                line = data[i]
                 coefficients = [R(x) for x in line]
                 if coefficients[0] != 0 and all(e == 0 for e in coefficients[1:]):
                     # cddlib sometimes includes an implicit plane at infinity: 1 0 0 ... 0

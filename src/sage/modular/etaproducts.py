@@ -30,7 +30,7 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
-from numbers import Integral
+
 
 from sage.arith.misc import divisors, prime_divisors, euler_phi, is_square, gcd
 from sage.categories.groups import Groups
@@ -255,7 +255,7 @@ class EtaGroupElement(Element):
         """
         return "Eta product of level %s : " % self.level() + self._short_repr()
 
-    def level(self) -> Integral:
+    def level(self) -> Integer:
         r"""
         Return the level of this eta product.
 
@@ -299,10 +299,10 @@ class EtaGroupElement(Element):
         """
         R, q = PowerSeriesRing(ZZ, 'q').objgen()
         pr = R.one().O(n)
-        if not self._rdict: #  if self.is_one():
+        if not self._rdict:  # if self.is_one():
             return pr
         # self.r(d) should always be nonzero since we filtered out the 0s
-        eta_n = max(n // d for d in self._rdict) #  if self.r(d)
+        eta_n = max(n // d for d in self._rdict)  # if self.r(d)
         eta = qexp_eta(R, eta_n)
         for d in self._rdict:
             rd = self._rdict[d]
@@ -324,7 +324,7 @@ class EtaGroupElement(Element):
         """
         return self.q_expansion(n)
 
-    def order_at_cusp(self, cusp: 'CuspFamily') -> Integral:
+    def order_at_cusp(self, cusp: 'CuspFamily') -> Integer:
         r"""
         Return the order of vanishing of ``self`` at the given cusp.
 
@@ -371,7 +371,7 @@ class EtaGroupElement(Element):
         return FormalSum([(self.order_at_cusp(c), c)
                           for c in AllCusps(self.level())])
 
-    def degree(self) -> Integral:
+    def degree(self) -> Integer:
         r"""
         Return the degree of ``self`` as a map `X_0(N) \to \mathbb{P}^1`.
 
@@ -388,7 +388,7 @@ class EtaGroupElement(Element):
                    for c in AllCusps(self._N)
                    if self.order_at_cusp(c) > 0)
 
-    def r(self, d) -> Integral:
+    def r(self, d) -> Integer:
         r"""
         Return the exponent `r_d` of `\eta(q^d)` in ``self``.
 
@@ -482,7 +482,7 @@ class EtaGroup_class(UniqueRepresentation, Parent):
         """
         return self.element_class(self, dic)
 
-    def level(self) -> Integral:
+    def level(self) -> Integer:
         r"""
         Return the level of ``self``.
 
@@ -666,7 +666,7 @@ def EtaProduct(level, dic) -> 'EtaGroupElement':
     return EtaGroup(level)(dic)
 
 
-def num_cusps_of_width(N, d) -> Integral:
+def num_cusps_of_width(N, d) -> Integer:
     r"""
     Return the number of cusps on `X_0(N)` of width ``d``.
 
@@ -807,7 +807,7 @@ class CuspFamily(SageObject):
         """
         return hash(self.__tuple)
 
-    def width(self) -> Integral:
+    def width(self) -> Integer:
         r"""
         Return the width of this cusp.
 
@@ -819,7 +819,7 @@ class CuspFamily(SageObject):
         """
         return self._width
 
-    def level(self) -> Integral:
+    def level(self) -> Integer:
         r"""
         Return the level of this cusp.
 
@@ -1062,4 +1062,3 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
                      for c in V.basis()]
         id = R.ideal(relations)
         return id.groebner_basis()
-

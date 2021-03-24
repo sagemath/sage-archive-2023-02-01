@@ -83,7 +83,7 @@ def has_finite_length(obj):
         return True
 
 
-def Set(X=[]):
+def Set(X=None):
     r"""
     Create the underlying set of ``X``.
 
@@ -182,7 +182,9 @@ def Set(X=[]):
         sage: Set()
         {}
     """
-    if isinstance(X, CategoryObject):
+    if X is None:
+        X = []
+    elif isinstance(X, CategoryObject):
         if isinstance(X, Set_generic):
             return X
         elif X in Sets().Finite():

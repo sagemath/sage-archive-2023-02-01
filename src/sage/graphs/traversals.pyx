@@ -1937,7 +1937,7 @@ def maximum_cardinality_search_M(G, initial_vertex=None):
     - `F` is the list of edges of a minimal triangulation of `G` according
       `\alpha`
 
-    - `X` is is a list of vertices such that for each `x \in X`, the
+    - `X` is a list of vertices such that for each `x \in X`, the
       neighborhood of `x` in `G` is a separator (i.e., `G \setminus N(x)` is not
       connected). Note that we may have `N(x) = \emptyset` if `G` is not
       connected and `x` has degree 0.

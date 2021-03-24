@@ -7305,9 +7305,11 @@ cdef class long_to_Z(Morphism):
 cdef int sizeof_Integer
 
 # We use a global Integer element to steal all the references
-# from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
+# from. DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
+#
+# Use actual calculation to avoid libgmp's new lazy allocation :trac:`31340`
 cdef Integer global_dummy_Integer
-global_dummy_Integer = Integer()
+global_dummy_Integer = Integer(1) - Integer(1)
 
 
 # A global pool for performance when integers are rapidly created and destroyed.

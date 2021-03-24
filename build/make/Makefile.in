@@ -98,23 +98,16 @@ GCC_DEP = @SAGE_GCC_DEP@
 
 @SAGE_PACKAGE_TREES@
 
-# All standard packages
-STANDARD_PACKAGES = @SAGE_STANDARD_PACKAGES@
-STANDARD_PACKAGE_INSTS = \
-	$(foreach pkgname,$(STANDARD_PACKAGES),$(inst_$(pkgname)))
-
-# Optional/experimental packages to be installed
+# All standard/optional/experimental installed packages (triggers the auto-update)
 OPTIONAL_INSTALLED_PACKAGES = @SAGE_OPTIONAL_INSTALLED_PACKAGES@
-
-# All packages to be installed
-INSTALLED_PACKAGES = $(STANDARD_PACKAGES) $(OPTIONAL_INSTALLED_PACKAGES)
+INSTALLED_PACKAGES = $(OPTIONAL_INSTALLED_PACKAGES)
 INSTALLED_PACKAGE_INSTS = \
     $(foreach pkgname,$(INSTALLED_PACKAGES),$(inst_$(pkgname)))
 
-# All previously installed packages that are to be uninstalled
-OPTIONAL_CLEANED_PACKAGES = @SAGE_OPTIONAL_CLEANED_PACKAGES@
-CLEANED_PACKAGES = $(OPTIONAL_CLEANED_PACKAGES)
-CLEANED_PACKAGES_CLEANS = $(CLEANED_PACKAGES:%=%-clean)
+# All previously installed standard/optional/experimental packages that are to be uninstalled
+OPTIONAL_UNINSTALLED_PACKAGES = @SAGE_OPTIONAL_UNINSTALLED_PACKAGES@
+UNINSTALLED_PACKAGES = $(OPTIONAL_UNINSTALLED_PACKAGES)
+UNINSTALLED_PACKAGES_CLEANS = $(UNINSTALLED_PACKAGES:%=%-clean)
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
@@ -240,18 +233,18 @@ base-toolchain: _clean-broken-gcc base
 all-sage: \
 		sagelib \
 		$(INSTALLED_PACKAGE_INSTS) \
-                $(CLEANED_PACKAGES_CLEANS)
+                $(UNINSTALLED_PACKAGES_CLEANS)
 
 # Same but filtered by installation trees:
 all-build-local: toolchain-deps
 	+$(MAKE_REC) all-sage-local
 
-all-sage-local: $(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_CLEANED_PACKAGES_CLEANS)
+all-sage-local: $(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_UNINSTALLED_PACKAGES_CLEANS)
 
 all-build-venv: toolchain-deps
 	+$(MAKE_REC) all-sage-venv
 
-all-sage-venv:  $(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_CLEANED_PACKAGES_CLEANS)
+all-sage-venv:  $(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_UNINSTALLED_PACKAGES_CLEANS)
 
 # Download all packages which should be inside an sdist tarball (the -B
 # option to make forces all targets to be built unconditionally)
@@ -306,7 +299,7 @@ build-start: all-build
 # We make this depend on all standard packages because running
 # sage-starts runs sage-location, which should be run after installing
 # any package.
-$(STARTED): $(STANDARD_PACKAGE_INSTS)
+$(STARTED): $(OPTIONAL_INSTALLED_PACKAGE_INSTS)
 	$(AM_V_at)"$(SAGE_ROOT)/build/bin/sage-starts"
 
 

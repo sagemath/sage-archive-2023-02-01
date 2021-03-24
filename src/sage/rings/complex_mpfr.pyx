@@ -235,7 +235,7 @@ class ComplexField_class(ring.Field):
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce to a ComplexNumber: <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
+        TypeError: cannot convert nonconstant polynomial
 
     This illustrates precision::
 
@@ -296,7 +296,8 @@ class ComplexField_class(ring.Field):
         self._prec = int(prec)
         from sage.categories.fields import Fields
         ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Infinite().Metric().Complete())
-        self._populate_coercion_lists_(coerce_list=[RRtoCC(self._real_field(), self)])
+        self._populate_coercion_lists_(coerce_list=[RRtoCC(self._real_field(), self)],
+                convert_method_name='_complex_mpfr_')
 
     def __reduce__(self):
         """

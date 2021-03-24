@@ -109,6 +109,7 @@ potential `A(t)`::
     sage: nab[0, 0].display()
     connection (0,0) of bundle connection nabla^E w.r.t. Local frame
      (E|_M, (e_0)) = I*A(t) dx
+    sage: nab.set_immutable()
 
 The Chern character is then given by::
 
@@ -116,6 +117,10 @@ The Chern character is then given by::
     Characteristic class ch of additive type associated to e^x on the
      Differentiable complex vector bundle E -> M of rank 1 over the base space
      2-dimensional Lorentzian manifold M
+
+The corresponding characteristic form w.r.t. the bundle connection can be
+obtained via :meth:`get_form`.
+
     sage: ch_form = ch.get_form(nab); ch_form.display_expansion()
     ch(E, nabla^E) = [1] + [0] + [1/2*d(A)/dt/pi dt/\dx]
 
@@ -182,6 +187,7 @@ is given by `1+|z|^2`::
     sage: omega = U.one_form(name='omega')
     sage: omega[c_comp.frame(),1,c_comp] = zbar/(1+z*zbar)
     sage: nab[e, 1, 1] = omega
+    sage: nab.set_immutable()
 
 Now, the Chern class can be constructed::
 
@@ -671,9 +677,18 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: omega = M.one_form(name='omega')
             sage: A = function('A')
             sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+            sage: nab.set_immutable()
             sage: nab[0, 0].display()
             connection (0,0) of bundle connection nabla^E w.r.t. Local frame
              (E|_M, (e_0)) = I*A(t) dx
+
+        .. NOTE::
+
+            The characteristic form is strongly linked to the connection
+            which is why we must make the connection unchangeable,
+            i.e. immutable, with the command
+            :meth:`sage.manifolds.differentiable.bundle_connection.BundleConnection.set_immutable`
+            before we can use :meth:`get_form`.
 
         The Chern character is then given by::
 

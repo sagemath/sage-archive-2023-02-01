@@ -3888,14 +3888,127 @@ cdef class Matrix(sage.structure.element.Matrix):
                     return False
         return True
 
-    def is_hermitian(self):
+    def _is_hermitian(self, skew = False):
         r"""
-        Returns ``True`` if the matrix is equal to its conjugate-transpose.
+        Return ``True`` if the matrix is (skew-)Hermitian.
+
+        For internal purposes. This function is used in `is_hermitian`
+        and `is_skew_hermitian` functions.
+
+        INPUT:
+
+        - ``skew`` - default: ``False`` - Specifies the type of the
+          test. Set to ``True`` to check whether the matrix is
+          skew-Hermitian.
 
         OUTPUT:
 
-        ``True`` if the matrix is square and equal to the transpose
-        with every entry conjugated, and ``False`` otherwise.
+        ``True`` if the matrix is square and (skew-)Hermitian, and
+        ``False`` otherwise.
+
+        Note that if conjugation has no effect on elements of the base
+        ring (such as for integers), then the :meth:`is_(skew_)symmetric`
+        method is equivalent and faster.
+
+        This routine is for matrices over exact rings and so may not
+        work properly for matrices over ``RR`` or ``CC``.  For
+        matrices with approximate entries, the rings of
+        double-precision floating-point numbers, ``RDF`` and ``CDF``,
+        are a better choice since the
+        :meth:`sage.matrix.matrix_double_dense.Matrix_double_dense.is_(skew_)hermitian`
+        method has a tolerance parameter.  This provides control over
+        allowing for minor discrepancies between entries when checking
+        equality.
+
+        The result is cached.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQbar, [[ 1 + I,  1 - 6*I, -1 - I],
+            ....:                    [-3 - I,     -4*I,     -2],
+            ....:                    [-1 + I, -2 - 8*I,  2 + I]])
+            sage: A._is_hermitian()
+            False
+            sage: B = A*A.conjugate_transpose()
+            sage: B._is_hermitian()
+            True
+
+        Sage has several fields besides the entire complex numbers
+        where conjugation is non-trivial. ::
+
+            sage: F.<b> = QuadraticField(-7)
+            sage: C = matrix(F, [[-2*b - 3,  7*b - 6, -b + 3],
+            ....:                [-2*b - 3, -3*b + 2,   -2*b],
+            ....:                [   b + 1,        0,     -2]])
+            sage: C._is_hermitian()
+            False
+            sage: C = C*C.conjugate_transpose()
+            sage: C._is_hermitian()
+            True
+
+        A matrix that is nearly Hermitian, but for a non-real
+        diagonal entry. ::
+
+            sage: A = matrix(QQbar, [[    2,   2-I, 1+4*I],
+            ....:                    [  2+I,   3+I, 2-6*I],
+            ....:                    [1-4*I, 2+6*I,     5]])
+            sage: A._is_hermitian()
+            False
+            sage: A[1,1] = 132
+            sage: A._is_hermitian()
+            True
+
+        Rectangular matrices are never Hermitian. ::
+
+            sage: A = matrix(QQbar, 3, 4)
+            sage: A._is_hermitian()
+            False
+
+        A square, empty matrix is trivially Hermitian. ::
+
+            sage: A = matrix(QQ, 0, 0)
+            sage: A._is_hermitian()
+            True
+
+        A matrix that is skew-Hermitian. ::
+            sage: A = matrix(QQbar, [[-I, 2+I], [-2+I, 0]])
+            sage: A._is_hermitian()
+            False
+            sage: A._is_hermitian(skew = True)
+            True
+        """
+        key = 'skew_hermitian' if skew else 'hermitian'
+        h = self.fetch(key)
+        if not h is None:
+            return h
+        if not self.is_square():
+            self.cache(key, False)
+            return False
+        if self._nrows == 0:
+            self.cache(key, True)
+            return True
+
+        s = -1 if skew else 1
+        cdef Py_ssize_t i,j
+        hermitian = True
+        for i in range(self._nrows):
+            for j in range(i+1):
+                if self.get_unsafe(i,j) != s*self.get_unsafe(j,i).conjugate():
+                    hermitian = False
+                    break
+            if not hermitian:
+                break
+        self.cache(key, hermitian)
+        return hermitian
+
+    def is_hermitian(self):
+        r"""
+        Return ``True`` if the matrix is equal to its conjugate-transpose.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and equal to the transpose with
+        every entry conjugated, and ``False`` otherwise.
 
         Note that if conjugation has no effect on elements of the base
         ring (such as for integers), then the :meth:`is_symmetric`
@@ -3960,28 +4073,65 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.is_hermitian()
             True
         """
-        key = 'hermitian'
-        h = self.fetch(key)
-        if not h is None:
-            return h
-        if not self.is_square():
-            self.cache(key, False)
-            return False
-        if self._nrows == 0:
-            self.cache(key, True)
-            return True
+        return self._is_hermitian(skew = False)
 
-        cdef Py_ssize_t i,j
-        hermitian = True
-        for i in range(self._nrows):
-            for j in range(i+1):
-                if self.get_unsafe(i,j) != self.get_unsafe(j,i).conjugate():
-                    hermitian = False
-                    break
-            if not hermitian:
-                break
-        self.cache(key, hermitian)
-        return hermitian
+    def is_skew_hermitian(self):
+        r"""
+        Return ``True`` if the matrix is equal to the negative of its
+        conjugate transpose.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and equal to the negative of
+        its conjugate transpose, and ``False`` otherwise.
+
+        Note that if conjugation has no effect on elements of the base
+        ring (such as for integers), then the :meth:`is_skew_symmetric`
+        method is equivalent and faster.
+
+        This routine is for matrices over exact rings and so may not
+        work properly for matrices over ``RR`` or ``CC``.  For matrices with
+        approximate entries, the rings of double-precision floating-point
+        numbers, ``RDF`` and ``CDF``, are a better choice since the
+        :meth:`sage.matrix.matrix_double_dense.Matrix_double_dense.is_skew_hermitian`
+        method has a tolerance parameter.  This provides control over
+        allowing for minor discrepancies between entries when checking
+        equality.
+
+        The result is cached.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQbar, [[0, -1],
+            ....:                    [1,  0]])
+            sage: A.is_skew_hermitian()
+            True
+
+        A matrix that is nearly skew-Hermitian, but for a non-real
+        diagonal entry. ::
+
+            sage: A = matrix(QQbar, [[  -I, -1, 1-I],
+            ....:                    [   1,  1,  -1],
+            ....:                    [-1-I,  1,  -I]])
+            sage: A.is_skew_hermitian()
+            False
+            sage: A[1,1] = -I
+            sage: A.is_skew_hermitian()
+            True
+
+        Rectangular matrices are never skew-Hermitian. ::
+
+            sage: A = matrix(QQbar, 3, 4)
+            sage: A.is_skew_hermitian()
+            False
+
+        A square, empty matrix is trivially Hermitian. ::
+
+            sage: A = matrix(QQ, 0, 0)
+            sage: A.is_skew_hermitian()
+            True
+        """
+        return self._is_hermitian(skew = True)
 
     def is_skew_symmetric(self):
         """

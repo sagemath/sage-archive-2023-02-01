@@ -238,7 +238,8 @@ def saturation(A, proof=True, p=0, max_dets=5):
 
     if max_dets > 0:
         # Take the GCD of at most num_dets randomly chosen determinants.
-        nr = A.nrows(); nc = A.ncols()
+        nr = A.nrows()
+        nc = A.ncols()
         d = 0
         trials = min(binomial(nc, nr), max_dets)
         already_tried = []

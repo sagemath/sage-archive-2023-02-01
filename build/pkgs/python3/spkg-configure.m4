@@ -98,7 +98,7 @@ SAGE_SPKG_CONFIGURE([python3], [
             ])
         ])
 
-        AS_IF([test -n "$OPENMP_CFLAGS"], [
+        AS_IF([test -n "$OPENMP_CFLAGS$OPENMP_CXXFLAGS"], [
             AC_MSG_CHECKING([whether OpenMP works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
             SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS $OPENMP_CFLAGS" CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS" conftest_venv/bin/python3], [
                 AC_MSG_RESULT([yes])

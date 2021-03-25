@@ -291,6 +291,14 @@ class ParkingFunction_class(ClonableArray):
             1
             sage: PF[2]
             2
+
+            sage: PF4 = ParkingFunctions(4)
+            sage: a = PF4.list()[36]
+            sage: b = PF4([1,3,2,1])
+            sage: type(a)
+            <class 'sage.combinat.parking_functions.ParkingFunctions_n_with_category.element_class'>
+            sage: type(b)
+            <class 'sage.combinat.parking_functions.ParkingFunctions_n_with_category.element_class'>
         """
         if isinstance(lst, ParkingFunction_class):
             lst = list(lst)

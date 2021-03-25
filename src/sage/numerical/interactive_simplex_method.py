@@ -2038,7 +2038,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         EXAMPLES::
 
             sage: InteractiveLPProblemStandardForm.random_element(3, 4)
-            LP problem (use typeset mode to see details)
+            LP problem (use 'view(...)' or '%display typeset' for details)
         """
         if not kwds.pop('is_primal', True):
             raise NotImplementedError('only random primal problems are implemented')
@@ -3930,7 +3930,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: from sage.numerical.interactive_simplex_method \
             ....:     import random_dictionary
             sage: random_dictionary(3, 4)  # indirect doctest
-            LP problem dictionary (use typeset mode to see details)
+            LP problem dictionary (use 'view(...)' or '%display typeset' for details)
         """
         A = random_matrix(ZZ, m, n, x=-bound, y=bound).change_ring(QQ)
         if special_probability < random():

@@ -1434,7 +1434,7 @@ class IncidenceStructure(object):
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         # List of blocks containing a given point x
-        d = [[] for x in self._points]
+        d = [[] for _ in self._points]
         for i, B in enumerate(self._blocks):
             for x in B:
                 d[x].append(i)
@@ -1947,7 +1947,7 @@ class IncidenceStructure(object):
                 domain = list(range(self.num_points()))
 
                 # Lists of blocks containing i for every i
-                dual = [[] for i in domain]
+                dual = [[] for _ in domain]
                 for i,B in enumerate(self._blocks):
                     for x in B:
                         dual[x].append(i)
@@ -2078,7 +2078,7 @@ class IncidenceStructure(object):
         except MIPSolverException:
             raise ValueError("This hypergraph is not {}-colorable".format(k))
 
-        col = [[] for i in range(k)]
+        col = [[] for _ in range(k)]
 
         for (x,i),v in p.get_values(b).items():
             if v:

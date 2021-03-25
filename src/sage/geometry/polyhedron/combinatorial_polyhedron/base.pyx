@@ -682,7 +682,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def Hrepresentation(self):
         r"""
-        Returns a list of names of facets and possibly some equalities.
+        Return a list of names of facets and possibly some equalities.
 
         EXAMPLES::
 
@@ -1727,7 +1727,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                         # There are no faces of dimension 0,...,n_lines.
                         flag[comb] = smallInteger(0)
                     else:
-                        # Shift the old entires up by the number of lines.
+                        # Shift the old entries up by the number of lines.
                         flag[comb] = flag_old[tuple(i - n_lines for i in comb)]
 
             flag[self.dimension()] = smallInteger(1)
@@ -2577,7 +2577,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: G._elements
             ((), (0,), (0, 1), (0, 2), (0, 1, 2))
         """
-        self._record_all_faces()                            # Initalize ``_all_faces``, if not done yet.
+        self._record_all_faces()                            # Initialize ``_all_faces``, if not done yet.
         dim = self._face_lattice_dimension(index)           # Determine dimension to that index.
         newindex = index - sum(self._f_vector[:dim + 1])    # Index in that level-set.
 

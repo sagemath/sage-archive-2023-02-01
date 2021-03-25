@@ -191,13 +191,21 @@ The 1x1 and 2x2 minors::
     6*y+2*x^3-6*x^2*y,
     6*x^2*y-6*x*y^2,
     6*x^2*y-6*x*y^2,
-    6*x+6*x*y^2-2*y^3
+    6*x+6*x*y^2-2*y^3,
+    0,
+    0,
+    0,
+    0
     sage: H.minor(2)
     12*y+4*x^3-12*x^2*y,
     12*x^2*y-12*x*y^2,
     12*x^2*y-12*x*y^2,
     12*x+12*x*y^2-4*y^3,
-    -36*x*y-12*x^4+36*x^3*y-36*x*y^3+12*y^4+24*x^4*y^2-32*x^3*y^3+24*x^2*y^4
+    -36*x*y-12*x^4+36*x^3*y-36*x*y^3+12*y^4+24*x^4*y^2-32*x^3*y^3+24*x^2*y^4,
+    0,
+    0,
+    0,
+    0
 
 ::
 
@@ -240,7 +248,7 @@ Groebner basis for some ideal, using Singular through Sage.
 
 ::
 
-    sage: singular.lib('poly.lib')
+    sage: singular.lib('polylib.lib')
     sage: singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
             polynomial ring, over a field, global ordering
             //   coefficients: ZZ/32003
@@ -260,7 +268,7 @@ We restart everything and try again, but correctly.
 ::
 
     sage: singular.quit()
-    sage: singular.lib('poly.lib'); R = singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
+    sage: singular.lib('polylib.lib'); R = singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
     sage: I = singular.ideal('cyclic(6)')
     sage: I.groebner()
     f^48-2554*f^42-15674*f^36+12326*f^30-12326*f^18+15674*f^12+2554*f^6-1,
@@ -306,6 +314,17 @@ see :trac:`11645`::
 
     sage: singular.eval("ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);")
     ''
+
+Verify that :trac:`17720` is fixed::
+
+    sage: R.<p> = QQ[]
+    sage: K.<p> = QQ.extension(p^2 - p - 1)
+    sage: r.<x,z> = K[]
+    sage: I = r.ideal(z)
+    sage: I.primary_decomposition()
+    [Ideal (z) of Multivariate Polynomial Ring in x, z over Number Field in p with defining polynomial p^2 - p - 1]
+    sage: [ J.gens() for J in I.primary_decomposition("gtz")]
+    [[z]]
 """
 
 # ****************************************************************************
@@ -1955,18 +1974,16 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: A.sage(ZZ)   # indirect doctest
             [0 0]
             [0 0]
-            sage: A = random_matrix(ZZ,3,3); A
+            sage: A = random_matrix(ZZ,3,3); A  # random
             [ -8   2   0]
             [  0   1  -1]
             [  2   1 -95]
-            sage: As = singular(A); As
+            sage: As = singular(A); As  # random
             -8     2     0
             0     1    -1
             2     1   -95
-            sage: As.sage()
-            [ -8   2   0]
-            [  0   1  -1]
-            [  2   1 -95]
+            sage: As.sage() == A
+            True
 
         ::
 

@@ -179,8 +179,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     - ``degree`` -- an integer specifying the number of
       entries in the vector or free module element
 
-    - ``sparse`` -- boolean, whether the result should be a sparse
-      vector
+    - ``sparse`` -- boolean, whether the result should be a sparse vector
 
     - ``immutable`` -- boolean (default: ``False``); whether the result
       should be an immutable vector
@@ -298,7 +297,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         the principal ideal domain Integer Ring
 
     Here we illustrate the creation of sparse vectors by using a
-    dictionary. ::
+    dictionary::
 
         sage: vector({1:1.1, 3:3.14})
         (0.000000000000000, 1.10000000000000, 0.000000000000000, 3.14000000000000)
@@ -359,7 +358,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         Vector space of dimension 10 over Complex Double Field
         sage: parent(vector(RR, x))
         Vector space of dimension 10 over Real Field with 53 bits of precision
-        sage: v = numpy.random.randn(10) * numpy.complex(0,1)
+        sage: v = numpy.random.randn(10) * complex(0,1)
         sage: w = vector(v)
         sage: parent(w)
         Vector space of dimension 10 over Complex Double Field
@@ -454,24 +453,31 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         sage: v.is_immutable()
         True
         sage: import numpy as np
-        sage: w = np.array([1, 2, pi], np.float)
+        sage: w = np.array([1, 2, pi], float)
         sage: v = vector(w, immutable=True)
         sage: v.is_immutable()
         True
-        sage: w = np.array([i, 2, 3], np.complex)
+        sage: w = np.array([i, 2, 3], complex)
         sage: v = vector(w, immutable=True)
         sage: v.is_immutable()
         True
+
+    TESTS:
+
+    We check that :trac:`31470` is fixed::
+
+        sage: k.<a> = GF(5^3)
+        sage: S.<x> = k['x', k.frobenius_endomorphism()]
+        sage: vector(S, 3)
+        ...
+        (0, 0, 0)
     """
+    from sage.modules.free_module import FreeModule
     # We first efficiently handle the important special case of the zero vector
     # over a ring. See trac 11657.
     # !! PLEASE DO NOT MOVE THIS CODE LOWER IN THIS FUNCTION !!
     if arg2 is None and is_Ring(arg0) and (isinstance(arg1, (int, long, Integer))):
-        if sparse:
-            from .free_module import FreeModule
-            M = FreeModule(arg0, arg1, sparse=True)
-        else:
-            M = arg0 ** arg1
+        M = FreeModule(arg0, arg1, bool(sparse))
         v = M.zero_vector()
         if immutable:
             v.set_immutable()
@@ -559,12 +565,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
 
     v, R = prepare(v, R, degree)
 
-    if sparse:
-        from .free_module import FreeModule
-        M = FreeModule(R, len(v), sparse=True)
-    else:
-        M = R ** len(v)
-
+    M = FreeModule(R, len(v), bool(sparse))
     w = M(v)
     if immutable:
         w.set_immutable()

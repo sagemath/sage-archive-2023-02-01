@@ -32,6 +32,18 @@ Check that :trac:`24212` is fixed::
     sage: integrate(sin(x^2), x, algorithm='sympy')
     3/8*sqrt(2)*sqrt(pi)*fresnel_sin(sqrt(2)*x/sqrt(pi))*gamma(3/4)/gamma(7/4)
 
+Test that conversion of symbolic functions with latex names works (:trac:`31047`)::
+
+    sage: var('phi')
+    phi
+    sage: function('Cp', latex_name='C_+')
+    Cp
+    sage: test = Cp(phi)._sympy_()._sage_()
+    sage: test.operator() == Cp
+    True
+    sage: test.operator()._latex_() == 'C_+'
+    True
+
 AUTHORS:
 
 - Ralf Stephan (2017-10)
@@ -262,6 +274,60 @@ def _sympysage_Subs(self):
 
 ##############       functions       ###############
 
+def _sympysage_function_by_name(fname):
+    """
+    Given a sympy function with name ``fname`` find the corresponding
+    sage function or create a new one with the given name.
+
+    EXAMPLES::
+
+        sage: from sympy import Function
+        sage: f = function('f')
+        sage: F = Function('f')
+        sage: assert f._sympy_() == F
+        sage: assert f == F._sage_()
+    """
+    from sage.functions import all as sagefuncs
+    func = getattr(sagefuncs, fname, None)
+    # In the case the function is not known in sage:
+    if func is None:
+        import sympy
+        if getattr(sympy, fname, None) is None:
+            # symbolic function
+            from sage.libs.pynac.pynac import symbol_table
+            func = symbol_table['functions'].get(fname)
+            if func is None:
+                from sage.calculus.var import function
+                return function(fname)
+
+        else:
+            # the function defined in sympy is not known in sage
+            raise AttributeError
+    return func
+
+# the convoluted class structure with metaclasses and stuff sympy uses
+# to implement undefined functions makes things a bit harder for us
+# here
+class UndefSageHelper:
+    """
+    Helper class to convert sympy function objects to sage functions
+
+    EXAMPLES::
+
+        sage: from sympy import Function
+        sage: f = function('f')
+        sage: F = Function('f')
+        sage: assert f._sympy_() == F
+        sage: assert f == F._sage_()
+    """
+    def __get__(self, ins, typ):
+        import sage.all as sage
+        if ins is None:
+            return lambda: _sympysage_function_by_name(typ.__name__)
+        else:
+            args = [arg._sage_() for arg in ins.args]
+            return lambda : _sympysage_function_by_name(ins.__class__.__name__)(*args)
+
 def _sympysage_function(self):
     """
     EXAMPLES::
@@ -287,22 +353,9 @@ def _sympysage_function(self):
         ...
         AttributeError...
         """
-    from sage.functions import all as sagefuncs
     fname = self.func.__name__
-    func = getattr(sagefuncs, fname, None)
+    func = _sympysage_function_by_name(fname)
     args = [arg._sage_() for arg in self.args]
-
-    # In the case the function is not known in sage:
-    if func is None:
-        import sympy
-        if getattr(sympy, fname, None) is None:
-            # abstract function
-            from sage.calculus.var import function
-            return function(fname)(*args)
-
-        else:
-            # the function defined in sympy is not known in sage
-            raise AttributeError
 
     return func(*args)
 
@@ -815,6 +868,8 @@ def sympy_init():
     Subs._sage_ = _sympysage_Subs
     Function._sage_ = _sympysage_function
     AppliedUndef._sage_ = _sympysage_function
+    import sympy.core.function
+    sympy.core.function._undef_sage_helper = UndefSageHelper()
     Integral._sage_ = _sympysage_integral
     Derivative._sage_ = _sympysage_derivative
     Order._sage_ = _sympysage_order

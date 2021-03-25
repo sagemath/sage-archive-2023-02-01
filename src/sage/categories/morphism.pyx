@@ -339,6 +339,13 @@ cdef class Morphism(Map):
             Traceback (most recent call last):
             ...
             NotImplementedError: unable to compare morphisms of type <... 'sage.categories.morphism.IdentityMorphism'> and <... 'sage.categories.morphism.SetMorphism'> with domain Partitions of the integer 5
+
+        Check that :trac:`29632` is fixed::
+
+            sage: R.<x,y> = QuadraticField(-1)[]
+            sage: f = R.hom(R.gens(), R)
+            sage: f.is_identity()
+            True
         """
         if self is other:
             return rich_to_bool(op, 0)
@@ -362,7 +369,8 @@ cdef class Morphism(Map):
             # gens by picking an element of the initial domain (e) and
             # multiplying it with the gens of the scalar ring.
             if e is not None and isinstance(e, ModuleElement):
-                gens = [(<ModuleElement>e)._lmul_(x) for x in gens]
+                B = (<ModuleElement>e)._parent._base
+                gens = [(<ModuleElement>e)._lmul_(B.coerce(x)) for x in gens]
             for e in gens:
                 x = self(e)
                 y = other(e)

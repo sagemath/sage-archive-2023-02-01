@@ -177,6 +177,71 @@ cdef class Mutability:
         """
         return not self._is_immutable
 
+    def __getstate__(self):
+        r"""
+        Get the current state of ``self`` including the mutability status.
+        
+        TESTS::
+        
+            sage: class A(SageObject, Mutability):
+            ....:     def __init__(self, val):
+            ....:         self._val = val
+            ....:     def change(self, val):
+            ....:         self._require_mutable()
+            ....:         self._val = val
+            ....:     def __hash__(self):
+            ....:         self._require_immutable()
+            ....:         return hash(self._val)
+            sage: a = A(4)
+            sage: a.__dict__
+            {'_val': 4}
+            sage: a.__getstate__()
+            {'_is_immutable': False, '_val': 4}
+            sage: a.__reduce__()  # indirect doctest
+            (<function _reconstructor at ...>,
+             (<class '__main__.A'>,
+              <class 'sage.structure.sage_object.SageObject'>,
+              <sage.structure.sage_object.SageObject object at ...>),
+             {'_is_immutable': False, '_val': 4})
+            
+        """
+        state = getattr(self, '__dict__', {})
+        state['_is_immutable'] = self._is_immutable
+        return state
+
+    def __setstate__(self, state):
+        r"""
+        Set the state of ``self`` from the dictionary ``state`` including the
+        mutability status.
+
+        TESTS::
+
+            sage: class A(SageObject, Mutability):
+            ....:     def __init__(self, val):
+            ....:         self._val = val
+            ....:     def change(self, val):
+            ....:         self._require_mutable()
+            ....:         self._val = val
+            ....:     def __hash__(self):
+            ....:         self._require_immutable()
+            ....:         return hash(self._val)
+            sage: a = A(4)
+            sage: a.is_immutable()
+            False
+            sage: d = a.__getstate__(); d
+            {'_is_immutable': False, '_val': 4}
+            sage: d['_is_immutable'] = True
+            sage: a.__setstate__(d)
+            sage: a.is_immutable()
+            True
+            sage: a.__getstate__()
+            {'_is_immutable': True, '_val': 4}
+
+        """
+        if hasattr(self, '__dict__'):
+            self.__dict__ = state
+        self._is_immutable = state['_is_immutable']
+
 ##########################################################################
 ## Method decorators for mutating methods resp. methods that assume immutability
 

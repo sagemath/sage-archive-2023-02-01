@@ -649,7 +649,7 @@ class ManifoldPoint(Element):
                     common_chart = chart
                     break
         if common_chart is None:
-            # A commont chart is searched via a coordinate transformation,
+            # A common chart is searched via a coordinate transformation,
             # privileging the default chart
             if def_chart in self._coordinates:
                 try:
@@ -665,7 +665,7 @@ class ManifoldPoint(Element):
                 except ValueError:
                     pass
         if common_chart is None:
-            # At this stage, a commont chart is searched via a coordinate
+            # At this stage, a common chart is searched via a coordinate
             # transformation from any chart
             for chart in self._coordinates:
                 try:

@@ -6,6 +6,9 @@ MAXIMA = "@prefix@/bin/maxima"
 
 ARB_LIBRARY = "@SAGE_ARB_LIBRARY@"
 
+NTL_INCDIR = "@NTL_INCDIR@"
+NTL_LIBDIR = "@NTL_LIBDIR@"
+
 # Path to the ecl-config script
 # TODO: At the moment this is hard-coded, needs to be set during the configure phase if we want to support system-installed ecl.
 ECL_CONFIG = "@prefix@/bin/ecl-config"

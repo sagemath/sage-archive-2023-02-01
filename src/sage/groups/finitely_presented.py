@@ -1264,7 +1264,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         if not isinstance(H, FinitelyPresentedGroup):
             raise TypeError("input must be a finitely presented group")
 
-        GAP_self = self.gap(); GAP_H = H.gap()
+        GAP_self = self.gap()
+        GAP_H = H.gap()
         auto_grp = libgap.AutomorphismGroup(H.gap())
         self_gens = [h.gap() for h in hom[0]]
         # construct image automorphisms in GAP

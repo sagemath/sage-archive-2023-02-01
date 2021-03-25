@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/dash
 # to be run from $SAGE_ROOT, with arguments sage-local-${{ env.PREVIOUS_STAGES }}.tar
 
 if [ -z "$SAGE_LOCAL" ]; then
@@ -24,4 +24,4 @@ ls -l "$SAGE_LOCAL" "$SAGE_LOCAL"/var/lib/sage/installed/
 df -h
 
 # Rebase!
-src/bin/sage-rebase.sh "$SAGE_LOCAL"
+exec src/bin/sage-rebase.sh --all "$SAGE_LOCAL"

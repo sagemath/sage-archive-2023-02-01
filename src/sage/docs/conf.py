@@ -12,17 +12,14 @@ from sphinx import highlighting
 import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
-# If your extensions are in another directory, add it here.
-sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
-
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['inventory_builder',
-              'multidocs',
-              'sage_autodoc',
+extensions = ['sage_docbuild.ext.inventory_builder',
+              'sage_docbuild.ext.multidocs',
+              'sage_docbuild.ext.sage_autodoc',
               'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.todo',

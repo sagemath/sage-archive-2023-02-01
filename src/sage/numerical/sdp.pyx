@@ -1137,15 +1137,15 @@ cdef class SemidefiniteProgram(SageObject):
         """
         d = {}
         for v in L:
-            for id, coeff  in v.iteritems():
+            for id, coeff in v.iteritems():
                 d[id] = coeff + d.get(id, 0)
         return self.linear_functions_parent()(d)
 
     def get_backend(self):
         r"""
-        Returns the backend instance used.
+        Return the backend instance used.
 
-        This might be useful when acces to additional functions provided by
+        This might be useful when access to additional functions provided by
         the backend is needed.
 
         EXAMPLES:

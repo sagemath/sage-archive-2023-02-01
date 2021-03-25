@@ -188,7 +188,7 @@ class CoveringDesign(SageObject):
     - ``method``, ``creator``, ``timestamp`` -- database information
     """
 
-    def __init__(self, v=0, k=0, t=0, size=0, points=[], blocks=[],
+    def __init__(self, v=0, k=0, t=0, size=0, points=None, blocks=None,
                  low_bd=0, method='', creator='', timestamp=''):
         """
         EXAMPLES::
@@ -215,6 +215,10 @@ class CoveringDesign(SageObject):
         self.__method = method
         self.__creator = creator
         self.__timestamp = timestamp
+        if points is None:
+            points = []
+        if blocks is None:
+            blocks = []
         self.__incidence_structure = IncidenceStructure(points, blocks)
 
     def __repr__(self):

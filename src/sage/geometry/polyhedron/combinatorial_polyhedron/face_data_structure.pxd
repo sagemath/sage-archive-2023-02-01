@@ -28,7 +28,7 @@ ctypedef fused algorithm_variant:
     standard
 
 #############################################################################
-# Face Initalization
+# Face Initialization
 #############################################################################
 
 cdef inline bint face_init(face_t face, mp_bitcnt_t n_atoms, mp_bitcnt_t n_coatoms, MemoryAllocator mem) except -1:

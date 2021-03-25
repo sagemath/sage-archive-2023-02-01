@@ -1596,8 +1596,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
             c, b, a = self._poly.list()
             self._quadratic_disc = b*b - 4*a*c
         if isinstance(parent, RealLazyField_class):
-            from sage.rings.real_double import RDF
-            if len(self._poly.roots(RDF)) == 0:
+            if not self._poly.number_of_real_roots():
                 raise ValueError("%s has no real roots" % self._poly)
             approx = (RR if prec == 0 else RealField(prec))(approx)
         else:

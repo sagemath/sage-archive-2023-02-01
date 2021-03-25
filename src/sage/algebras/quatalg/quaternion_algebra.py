@@ -1198,7 +1198,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         i2inv = 1/i2
         a = None
         for b in list(F):
-            if not b: continue
+            if not b:
+                continue
             c = j2 + i2inv * b*b
             if c.is_square():
                 a = -c.sqrt()
@@ -1301,7 +1302,7 @@ class QuaternionOrder(Algebra):
             <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder_with_category'>
 
             Over QQ and number fields it is checked whether the given
-            basis actually gives a an order (as a module over the maximal order):
+            basis actually gives an order (as a module over the maximal order):
 
             sage: A.<i,j,k> = QuaternionAlgebra(-1,-1)
             sage: A.quaternion_order([1,i,j,i-j])
@@ -2056,8 +2057,10 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: R.unit_ideal().quaternion_order() is R
             True
         """
-        try: return self.__quaternion_order
-        except AttributeError: pass
+        try:
+            return self.__quaternion_order
+        except AttributeError:
+            pass
         if self.__left_order is not None:
             A = self.__left_order
         elif self.__right_order is not None:
@@ -2185,8 +2188,10 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             [   0    1    0    0]
             [   0    0    0   -1]
         """
-        try: return self.__hermite_basis_matrix
-        except AttributeError: pass
+        try:
+            return self.__hermite_basis_matrix
+        except AttributeError:
+            pass
         B = quaternion_algebra_cython.rational_matrix_from_rational_quaternions(self.__basis)
         self.__hermite_basis_matrix = B
         return B
@@ -2701,10 +2706,13 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
                 lines.append(P1.normalize(x[0,0], x[0,1]))
                 x *= alpha
 
-        for u,v in lines:
+        for u, v in lines:
             # The following does:
             #    z = matrix(QQ,2,4,[0,-v,0,u, -v,0,u,0],check=False) * AiB
-            Z[0,1]=-v; Z[0,3]=u; Z[1,0]=-v; Z[1,2]=u
+            Z[0, 1] = -v
+            Z[0, 3] = u
+            Z[1, 0] = -v
+            Z[1, 2] = u
             z = Z * AiB
             # Now construct submodule of the ideal I spanned by the
             # linear combinations given by z of the basis for J along

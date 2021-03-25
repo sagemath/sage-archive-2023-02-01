@@ -509,15 +509,15 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         sage: c2 = Cone([(2,1)])
         sage: c3 = Cone([(-1,-2)])
         sage: fan = Fan([c1, c2, c3], allow_arrangement=True)
-        sage: for cone in fan.generating_cones(): print(cone.rays())
+        sage: for cone in sorted(fan.generating_cones()): print(sorted(cone.rays()))
         N(1, 0),
         N(2, 1)
         in 2-d lattice N
         N(1, 2),
         N(2, 1)
         in 2-d lattice N
-        N(1, 2),
-        N(0, 1)
+        N(0, 1),
+        N(1, 2)
         in 2-d lattice N
         N(-1, -2)
         in 2-d lattice N

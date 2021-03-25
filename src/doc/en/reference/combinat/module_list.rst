@@ -290,6 +290,7 @@ Comprehensive Module list
     sage/combinat/root_system/weight_space
     sage/combinat/root_system/weyl_characters
     sage/combinat/root_system/fusion_ring
+    sage/combinat/root_system/f_matrix
     sage/combinat/root_system/weyl_group
     sage/combinat/rooted_tree
     sage/combinat/rsk

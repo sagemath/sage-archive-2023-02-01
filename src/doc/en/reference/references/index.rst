@@ -1760,6 +1760,10 @@ REFERENCES:
 .. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
             curves. preprint, 2005.
 
+.. [CHW2015] Shawn X.; Hong, Seung-Moon; Wang, Zhenghan Universal quantum computation 
+             with weakly integral anyons. Quantum Inf. Process. 14 (2015), no. 8, 2687–2727. 
+
+
 .. _ref-D:
 
 **D**
@@ -5519,6 +5523,9 @@ REFERENCES:
 
 .. [TOPCOM] \J. Rambau, TOPCOM
             <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
+
+.. [TTWL2009] Trebst, Troyer, Wang and Ludwig, A short introduction to
+              Fibonacci anyon models, :arxiv:`0902.3275`.
 
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
             Publishing, 1980)

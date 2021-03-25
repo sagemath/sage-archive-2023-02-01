@@ -18,8 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
-from sage.rings.all import ZZ
-
+from sage.rings.all import ZZ, Integer
 
 class WeylCharacterRing(CombinatorialFreeModule):
     r"""
@@ -90,7 +89,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
     https://doc.sagemath.org/html/en/thematic_tutorials/lie.html
     """
     @staticmethod
-    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False, cyclotomic_order=None):
+    def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False, cyclotomic_order=None, fusion_labels=None, inject_variables=False):
         """
         TESTS::
 
@@ -106,9 +105,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 prefix = ct[0]+str(ct[1])
             else:
                 prefix = repr(ct)
-        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k, conjugate=conjugate, cyclotomic_order=cyclotomic_order)
+        return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style, k=k, conjugate=conjugate, cyclotomic_order=cyclotomic_order, fusion_labels=fusion_labels, inject_variables=inject_variables)
 
-    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False, cyclotomic_order=None):
+    def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice", k=None, conjugate=False, cyclotomic_order=None, fusion_labels=None, inject_variables=False):
         """
         EXAMPLES::
 
@@ -129,7 +128,11 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._prefix = prefix
         self._style = style
         self._fusion_labels = None
+        self._field = None
+        self._basecoer = None
         self._k = k
+        if k is not None:
+           self._k = Integer(k)
         if ct.is_irreducible():
             self._opposition = ct.opposition_automorphism()
             self._highest = self._space.highest_root()
@@ -194,6 +197,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 self._cyclotomic_order = self._fg * self._l
             else:
                 self._cyclotomic_order = cyclotomic_order
+            self._fusion_labels = fusion_labels
+            if fusion_labels:
+                self.fusion_labels(labels=fusion_labels, inject_variables=inject_variables)
 
     @cached_method
     def ambient(self):

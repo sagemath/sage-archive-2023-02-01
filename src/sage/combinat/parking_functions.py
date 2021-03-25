@@ -1383,7 +1383,7 @@ class ParkingFunctions_all(Parent, UniqueRepresentation):
 
     Element = ParkingFunction_class
 
-    def __repr__(self) -> str:
+    def _repr_(self) -> str:
         """
         TESTS::
 
@@ -1488,7 +1488,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
         sage: [ParkingFunctions(i).cardinality() for i in range(6)]
         [1, 1, 3, 16, 125, 1296]
 
-    .. warning::
+    .. WARNING::
 
         The precise order in which the parking function are generated or
         listed is not fixed, and may change in the future.
@@ -1523,7 +1523,7 @@ class ParkingFunctions_n(Parent, UniqueRepresentation):
 
     Element = ParkingFunction_class
 
-    def __repr__(self) -> str:
+    def _repr_(self) -> str:
         """
         TESTS::
 

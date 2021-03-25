@@ -1378,7 +1378,7 @@ def from_labelled_dyck_word(LDW) -> PF:
     return from_labelling_and_area_sequence(L, D.to_area_sequence())
 
 
-class ParkingFunctions_all(Parent, UniqueRepresentation):
+class ParkingFunctions_all(UniqueRepresentation, Parent):
     def __init__(self):
         """
         TESTS::

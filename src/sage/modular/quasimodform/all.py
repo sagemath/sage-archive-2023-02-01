@@ -1,1 +1,1 @@
-from .quasimodform import QuasiModularForms, QuasiModularFormsElement
+from .quasimodform import QuasiModularForms

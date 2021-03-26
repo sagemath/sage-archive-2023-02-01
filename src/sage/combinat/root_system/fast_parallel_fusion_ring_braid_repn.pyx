@@ -28,7 +28,7 @@ def executor(params):
     """
     Execute a function defined in this module
     (sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn)
-    in a worker process, and supply the factory parameter by constructing a
+    in a worker process, and supply the `FusionRing` parameter by constructing a
     reference to the FMatrix object in the worker's memory adress space
     from its id.
 
@@ -149,7 +149,6 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
 mid_sig_ij = cached_function(mid_sig_ij, name='mid_sig_ij')
 odd_one_out_ij = cached_function(odd_one_out_ij, name='odd_one_out_ij')
 
-#@cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef sig_2k(fusion_ring, tuple args):
@@ -227,7 +226,6 @@ cpdef sig_2k(fusion_ring, tuple args):
 
                 worker_results.append(((basis_dict[nnz_pos],i), entry))
 
-#@cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef odd_one_out(fusion_ring, tuple args):
@@ -312,7 +310,7 @@ def collect_results(proc):
     """
     #Discard the zero polynomial
     global worker_results
-    reduced = worker_results #set(worker_results)-set([tuple()])
+    reduced = worker_results
     worker_results = list()
     return reduced
 
@@ -321,6 +319,13 @@ def collect_results(proc):
 ######################################
 
 cdef _flatten_entry(fusion_ring, entry):
+    """
+    Flatten cyclotomic coefficients to a representation as a tuple of rational
+    coefficients.
+
+    This is used to avoid pickling cyclotomic coefficient objects, which fails
+    with new PARI settings introduced in trac ticket #30537
+    """
     #The entry is either a polynomial or a base field element
     if entry.parent() == fusion_ring.fmats._poly_ring:
         entry = _flatten_coeffs(poly_to_tup(entry))
@@ -328,9 +333,27 @@ cdef _flatten_entry(fusion_ring, entry):
         entry = entry.list()
     return entry
 
-cpdef _unflatten_entries(factory, list entries):
-    F = factory.fvars_field()
-    fm = factory.fmats
+cpdef _unflatten_entries(fusion_ring, list entries):
+    """
+    Restore cyclotomic coefficient object from its tuple of rational
+    coefficients representation.
+
+    Used to circumvent pickling issue introduced by PARI settigs in trac
+    ticket #30537
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import _unflatten_entries
+        sage: fr = FusionRing("B2",2)
+        sage: F = fr.field()
+        sage: coeff = [F.random_element() for i in range(2)]
+        sage: entries = [((0,0), coeff[0].list()), ((0,1), coeff[1].list())]
+        sage: _unflatten_entries(fr, entries)
+        sage: all(cyc_elt_obj == c for (coord, cyc_elt_obj), c in zip(entries, coeff))
+        True
+    """
+    F = fusion_ring.fvars_field()
+    fm = fusion_ring.fmats
     must_unflatten = F != QQbar
     if must_unflatten:
         for i, (coord, entry) in enumerate(entries):

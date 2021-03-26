@@ -104,6 +104,19 @@ cpdef tuple _unflatten_coeffs(field, tuple eq_tup):
 
     Used to circumvent pickling issue introduced by PARI settigs in trac
     ticket #30537
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.poly_tup_engine import _unflatten_coeffs
+        sage: fm = FMatrix(FusionRing("A2",2))
+        sage: p = fm._poly_ring.random_element()
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: flat_poly_tup = list()
+        sage: for exp, cyc_coeff in poly_to_tup(p):
+        ....:     flat_poly_tup.append((exp, tuple(cyc_coeff._coefficients())))
+        sage: flat_poly_tup = tuple(flat_poly_tup)
+        sage: _unflatten_coeffs(fm.field(), flat_poly_tup) == poly_to_tup(p)
+        True
     """
     cdef list unflat = list()
     for exp, coeff_tup in eq_tup:

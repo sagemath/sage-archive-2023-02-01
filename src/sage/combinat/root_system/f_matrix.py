@@ -41,11 +41,11 @@ from sage.rings.real_double import RDF
 
 
 class FMatrix():
-    r"""Return an F-Matrix factory for a FusionRing.
+    r"""Return an F-Matrix factory for a :class:`FusionRing`.
 
     INPUT:
 
-    - ``FR`` -- a FusionRing.
+    - ``FR`` -- a :class:`FusionRing`.
 
     The :class:`FusionRing` or Verlinde algebra is the
     Grothendieck ring of a modular tensor category [BaKi2001]_.
@@ -54,13 +54,13 @@ class FMatrix():
     quantum groups at roots of unity. They have applications
     to low dimensional topology and knot theory, to conformal
     field theory and to topological quantum computing. The
-    FusionRing captures much information about a fusion category,
-    but to complete the picture, the F-matrices or 6j-symbols
-    are needed. For example these are required in order to
-    construct braid group representations.
+    :class:`FusionRing` captures much information about a fusion
+    category, but to complete the picture, the F-matrices or
+    6j-symbols are needed. For example these are required in
+    order to construct braid group representations.
 
     We only undertake to compute the F-matrix if the
-    FusionRing is *multiplicity free* meaning that
+    :class:`FusionRing` is *multiplicity free* meaning that
     the Fusion coefficients `N^{ij}_k` are bounded
     by 1. For Cartan Types `X_r` and level `k`,
     the multiplicity-free cases are given by the
@@ -87,10 +87,11 @@ class FMatrix():
     Beyond this limitation, computation of the F-matrix
     can involve very large systems of equations. A
     rule of thumb is that this code can compute the
-    F-matrix for systems with `\leq 4` primary fields,
-    with the exception of `G_2` at level `2`.
+    F-matrix for systems with `\leq 14` primary fields
+    (simple objects), on a machine with 16 GB of memory.
+    Larger examples can be quite time consuming.
 
-    The FusionRing and its methods capture much
+    The :class:`FusionRing` and its methods capture much
     of the structure of the underlying tensor category.
     But an important aspect that is not encoded in the
     fusion ring is the associator, which is a homomorphism
@@ -202,10 +203,10 @@ class FMatrix():
     that should be kept in mind.
 
     :meth:`find_cyclotomic_solution` currently works only with
-    smaller examples. For example the FusionRing for A2 at
+    smaller examples. For example the :class:`FusionRing` for A2 at
     level 2 is too large. When it is available, this method
     produces an F-matrix whose entries are in the same
-    cyclotomic field as the underlying FusionRing.
+    cyclotomic field as the underlying :class:`FusionRing`.
 
     EXAMPLES::
 
@@ -234,18 +235,24 @@ class FMatrix():
     quickly but sometimes (in larger cases) after hours of
     computation. Its F-matrices are not always in the
     cyclotomic field that is the base ring of the underlying
-    FusionRing, but sometimes in an extension field adjoining
-    some square roots. When this happens, the FusionRing is
+    :class:`FusionRing`, but sometimes in an extension field adjoining
+    some square roots. When this happens, the :class:`FusionRing` is
     modified, adding an attribute :attr:`_basecoer` that is
-    a coercion from the cyclotomic field to the F-matrix.
+    a coercion from the cyclotomic field to the field
+    containing the F-matrix. The field containing the F-matrix
+    is available through :meth:`field`.
 
     EXAMPLES::
 
         sage: f = FMatrix(FusionRing("B3",2))
-        sage: f.find_orthogonal_solution(verbose=False,checkpoint=True) # long time
+        sage: f.find_orthogonal_solution(verbose=False,checkpoint=True) # long time (~100 s)
         sage: all(v in CyclotomicField(56) for v in f.get_fvars().values()) # long time
         True
 
+        sage: f = FMatrix(FusionRing("G2",2))
+        sage: f.find_orthogonal_solution(verbose=False) # long time (~18 s)
+        sage: f.field()                                 # long time
+        Algebraic Field
     """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
         self._FR = fusion_ring
@@ -312,7 +319,8 @@ class FMatrix():
 
     def _reset_solver_state(self):
         """
-        Reset solver state and clear relevant cache.
+        Reset solver state and clear relevant cache. Used to ensure
+        state variables are the same for each orthogonal solver run.
         """
         self._FR._basecoer = None
         self._field = self._FR.field()
@@ -402,7 +410,7 @@ class FMatrix():
 
         INPUT:
 
-        - ``a,b,c,d`` -- basis elements of the FusionRing
+        - ``a,b,c,d`` -- basis elements of the associated :class:`FusionRing`
 
         EXAMPLES::
 
@@ -429,7 +437,7 @@ class FMatrix():
     def field(self):
         r"""
         Return the base field containing the F-symbols. When ``self`` is initialized,
-        the field is set to be the cyclotomic field of the FusionRing associated
+        the field is set to be the cyclotomic field of the :class:`FusionRing` associated
         to ``self``. The field may change after running :meth:`find_orthogonal_solution`.
 
         EXAMPLES::
@@ -445,7 +453,7 @@ class FMatrix():
 
     def FR(self):
         r"""
-        Return the FusionRing associated to ``self``.
+        Return the :class:`FusionRing` associated to ``self``.
 
         EXAMPLES::
 
@@ -501,7 +509,14 @@ class FMatrix():
     def singletons(self):
         r"""
         Find `x_i` that are automatically nonzero, because their F-matrix is
-        `1 \\times 1`.
+        `1 \times 1`.
+
+        EXAMPLES::
+
+            sage: fm = FMatrix(FusionRing("E7", 1))
+            sage: singles = fm.singletons()
+            sage: all(fm.fmatrix(*fm._var_to_sextuple[v][:4]).nrows() == 1 for v in singles)
+            True
         """
         ret = []
         for (a, b, c, d) in list(product(self._FR.basis(), repeat=4)):
@@ -519,7 +534,7 @@ class FMatrix():
 
         INPUT:
 
-        - ``a,b,c,d`` -- basis elements of the FusionRing.
+        - ``a,b,c,d`` -- basis elements of the associated :class:`FusionRing`.
 
         EXAMPLES::
 
@@ -543,7 +558,7 @@ class FMatrix():
 
         INPUT:
 
-        - ``a,b,c,d`` -- basis elements of the FusionRing.
+        - ``a,b,c,d`` -- basis elements of the associated :class:`FusionRing`.
 
         EXAMPLES::
 
@@ -591,7 +606,8 @@ class FMatrix():
     def get_non_cyclotomic_roots(self):
         r"""
         Return a list of roots that define the extension of the associated
-        ``FusionRing``'s base ``CyclotomicField`` containing all the F-symbols.
+        :class:`FusionRing`'s base :class:`CyclotomicField` containing all
+        the F-symbols.
 
         OUTPUT:
 
@@ -601,7 +617,7 @@ class FMatrix():
         If ``self.field() == self.FR().field()`` this method returns an empty list.
 
         When ``self.field()`` is a ``NumberField``, one may use
-        :meth:``get_qqbar_embedding`` to embed the resulting values into ``QQbar``.
+        :meth:`get_qqbar_embedding` to embed the resulting values into ``QQbar``.
 
         EXAMPLES::
 
@@ -619,16 +635,32 @@ class FMatrix():
     def get_qqbar_embedding(self):
         r"""
         Return an embedding from the base field containing F-symbols (the
-        ``FusionRing``'s ``CyclotomicField``, a ``NumberField``, or ``QQbar``)
+        associated :class:`FusionRing`'s :class:`CyclotomicField`, a
+        :class:`NumberField`, or ``QQbar``)
         into ``QQbar``.
+
+        This embedding is useful for getting a better sense for the
+        F-symbols, particularly when they are computed as elements of a
+        :class:`NumberField`.
+
+        EXAMPLES::
+
+            sage: fm = FMatrix(FusionRing("C3",1), fusion_label="c", inject_variables=True)
+            creating variables fx1..fx71
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26, fx27, fx28, fx29, fx30, fx31, fx32, fx33, fx34, fx35, fx36, fx37, fx38, fx39, fx40, fx41, fx42, fx43, fx44, fx45, fx46, fx47, fx48, fx49, fx50, fx51, fx52, fx53, fx54, fx55, fx56, fx57, fx58, fx59, fx60, fx61, fx62, fx63, fx64, fx65, fx66, fx67, fx68, fx69, fx70
+            sage: fm.find_orthogonal_solution(verbose=False)
+            sage: phi = fm.get_qqbar_embedding()
+            sage: phi(fm.get_fvars()[c1,c2,c2,c1,c1,c2])
+            -0.61803399? + 0.?e-8*I
         """
         return self._qqbar_embedding
 
     def get_coerce_map_from_fr_cyclotomic_field(self):
         r"""
-        Return a coercion map from the associated ``FusionRing``'s cyclotomic
-        field into the base field containing all F-symbols (this could be the
-        ``FusionRing``'s ``CyclotomicField``, a ``NumberField``, or ``QQbar``).
+        Return a coercion map from the associated :class:`FusionRing`'s
+        cyclotomic field into the base field containing all F-symbols
+        (this could be the :class:`FusionRing`'s :class:`CyclotomicField`, a
+        :class:`NumberField`, or ``QQbar``).
         """
         #If base field is different from associated FusionRing's CyclotomicField,
         #return coercion map
@@ -643,7 +675,7 @@ class FMatrix():
         r"""
         Return F-symbols as elements of the :class:`AlgebraicField` ``QQbar``.
         This method uses the embedding defined by
-        :meth:``self.get_qqbar_embedding`` to coerce
+        :meth:`self.get_qqbar_embedding` to coerce
         F-symbols into ``QQbar``.
         """
         return { sextuple : self._qqbar_embedding(fvar) for sextuple, fvar in self._fvars.items() }
@@ -651,8 +683,18 @@ class FMatrix():
     def get_radical_expression(self):
         """
         Return radical expression of F-symbols for easy visualization
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("A1",3), fusion_label="a", inject_variables=True)
+            creating variables fx1..fx71
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26, fx27, fx28, fx29, fx30, fx31, fx32, fx33, fx34, fx35, fx36, fx37, fx38, fx39, fx40, fx41, fx42, fx43, fx44, fx45, fx46, fx47, fx48, fx49, fx50, fx51, fx52, fx53, fx54, fx55, fx56, fx57, fx58, fx59, fx60, fx61, fx62, fx63, fx64, fx65, fx66, fx67, fx68, fx69, fx70
+            sage: f.find_orthogonal_solution(verbose=False)
+            sage: fvars = f.get_radical_expression()
+            sage: fvars[a1, a1, a1, a1, a2, a0]
+            -sqrt(1/2*sqrt(5) - 1/2)
         """
-        return { sextuple : val.radical_expression() for sextuple, val in get_fmats_in_alg_field().items() }
+        return { sextuple : val.radical_expression() for sextuple, val in self.get_fmats_in_alg_field().items() }
 
     #######################
     ### Private helpers ###
@@ -726,7 +768,7 @@ class FMatrix():
 
     def get_fvars_by_size(self,n,indices=False):
         r"""
-        Return the set of F-symbols that are entries of an `n \\times n` matrix
+        Return the set of F-symbols that are entries of an `n \times n` matrix
         `F^{a,b,c}_d`.
 
         INPUT:
@@ -907,7 +949,7 @@ class FMatrix():
         polynomial objects.
 
         Otherwise, the constraints are appended to ``self.ideal_basis``.
-        They are stored in the internal tuple representation. The ``output==False``
+        They are stored in the internal tuple representation. The ``output=False``
         option is meant mostly for internal use by the F-matrix solver.
         """
         eqns = list()
@@ -1083,7 +1125,7 @@ class FMatrix():
         a given equation.
 
         If no list of equations is passed, the graph is built from equations in
-        self.ideal_basis
+        ``self.ideal_basis``.
         """
         if eqns is None:
             eqns = self.ideal_basis
@@ -1127,7 +1169,7 @@ class FMatrix():
             return sq_fixers
         self.ideal_basis.extend(sq_fixers)
 
-    def par_graph_gb(self,worker_pool=None,eqns=None,term_order="degrevlex",verbose=True):
+    def _par_graph_gb(self,worker_pool=None,eqns=None,term_order="degrevlex",verbose=True):
         """
         Compute a Groebner basis for a set of equations partitioned according to their corresponding graph
         """
@@ -1159,7 +1201,7 @@ class FMatrix():
         ret = small_comp_gb + temp_eqns
         return ret
 
-    def get_component_variety(self,var,eqns):
+    def _get_component_variety(self,var,eqns):
         """
         Translate equations in each connected component to smaller polynomial rings
         so we can call built-in variety method.
@@ -1184,12 +1226,13 @@ class FMatrix():
     def attempt_number_field_computation(self):
         """
         Based on the ``CartanType`` of ``self``, determine whether to attempt
-        to find a ``NumberField`` containing all the F-symbols based on data
+        to find a :class:`NumberField` containing all the F-symbols based on data
         known on March 17, 2021.
 
-        For certain ``FusionRing``s, the number field computation does not
-        seem to terminate. In these cases, we report F-symbols as elements
-        of the ``AlgebraicField``.
+        For certain :class:`FusionRing` 's, the number field computation does
+        not terminate in a reasonable amount of time.
+        In these cases, we report F-symbols as elements
+        of the ``AlgebraicField`` :class:`QQbar`.
 
         EXAMPLES::
 
@@ -1202,11 +1245,12 @@ class FMatrix():
         """
         ct = self._FR.cartan_type()
         k = self._FR._k
+        #Don't try when k is large and odd for SU(2)_k
         if ct.letter == 'A':
-            if ct.n == 1 and k >= 9:
+            if ct.n == 1 and k >= 9 and k % 2:
                 return False
         if ct.letter == 'C':
-            if ct.n >= 9 and k == 1:
+            if ct.n >= 9 and ct.n % 2 and k == 1:
                 return False
         if ct.letter == 'E':
             if ct.n < 8 and k == 2:
@@ -1252,7 +1296,7 @@ class FMatrix():
                     must_change_base_field = True
             #Otherwise, compute the component variety and select a point to obtain a numerical solution
             else:
-                sols = self.get_component_variety(comp,part)
+                sols = self._get_component_variety(comp,part)
                 assert len(sols) > 1, "No real solution exists... component with variables {} has no real points".format(comp)
                 for fx, rhs in sols[0].items():
                     non_cyclotomic_roots.append((fx,rhs))
@@ -1318,14 +1362,14 @@ class FMatrix():
           ``"fmatrix_solver_checkpoint_" + key + ".pickle"``, where ``key``
           is the result of :meth:`get_fr_str`.
 
-          Generated checkpoint pickles are automatically deleted when the
-          solver runs successfully.
+          Checkpoint pickles are automatically deleted when the solver exits
+          a successful run.
 
         - ``save_results`` -- (optional) a string indicating the name of a
           pickle file in which to store calculated F-symbols for later use.
 
-          If ``save_results`` is not provided (default), results are not
-          stored to file.
+          If ``save_results`` is not provided (default), F-matrix results
+          are not stored to file.
 
           The F-symbols may be saved to file after running the solver using
           :meth:`save_fvars`.
@@ -1349,11 +1393,11 @@ class FMatrix():
         :meth:`get_fvars`, :meth:`fmatrix`, :meth:`fmat`, etc.
 
         In many cases the F-symbols obtained are in fact real. In any case, the
-        F-symbols are obtained as elements of the associated ``FusionRing``'s
-        ``CyclotomicField``, a computed ``NumberField``, or ``QQbar``.
-        Currently, the output field is determined based on the ``CartanType``
-        associated to ``self``. See :meth:`attempt_number_field_computation`
-        for details.
+        F-symbols are obtained as elements of the associated
+        :class:`FusionRing`'s :class:`CyclotomicField`, a computed
+        :class:`NumberField`, or ``QQbar``. Currently, the output field is
+        determined based on the ``CartanType`` associated to ``self``.
+        See :meth:`attempt_number_field_computation` for details.
         """
         self._reset_solver_state()
 
@@ -1386,7 +1430,7 @@ class FMatrix():
 
         if self._chkpt_status < 2:
             #Set up equations graph. Find GB for each component in parallel. Eliminate variables
-            self.ideal_basis = self.par_graph_gb(worker_pool=pool,verbose=verbose)
+            self.ideal_basis = self._par_graph_gb(worker_pool=pool,verbose=verbose)
             self.ideal_basis.sort(key=poly_sortkey)
             self._triangular_elim(worker_pool=pool,verbose=verbose)
 
@@ -1428,7 +1472,7 @@ class FMatrix():
 
         #Set up new equations graph and compute variety for each component
         if self._chkpt_status < 5:
-            self.ideal_basis = self.par_graph_gb(term_order="lex",verbose=verbose)
+            self.ideal_basis = self._par_graph_gb(term_order="lex",verbose=verbose)
             self.ideal_basis.sort(key=poly_sortkey)
             self._triangular_elim(verbose=verbose)
 
@@ -1452,7 +1496,8 @@ class FMatrix():
     def fix_gauge(self, algorithm=''):
         """
         Fix the gauge by forcing F-symbols not already fixed to equal 1.
-        This method should be used AFTER adding hex and pentagon eqns to ideal_basis
+        This method should be used AFTER adding hex and pentagon eqns to
+        ``self.ideal_basis``
         """
         while len(self._solved) < len(self._poly_ring.gens()):
             #Get a variable that has not been fixed
@@ -1465,10 +1510,10 @@ class FMatrix():
             self.ideal_basis.add(var-1)
             print("adding equation...", var-1)
             self.ideal_basis = set(Ideal(list(self.ideal_basis)).groebner_basis(algorithm=algorithm))
-            self.substitute_degree_one()
-            self.update_equations()
+            self._substitute_degree_one()
+            self._update_equations()
 
-    def substitute_degree_one(self, eqns=None):
+    def _substitute_degree_one(self, eqns=None):
         if eqns is None:
             eqns = self.ideal_basis
 
@@ -1492,7 +1537,7 @@ class FMatrix():
                 self._fvars[sextuple] = rhs.subs(d)
         return new_knowns, useless
 
-    def update_equations(self):
+    def _update_equations(self):
         """
         Update ideal_basis equations by plugging in known values
         """
@@ -1540,8 +1585,8 @@ class FMatrix():
              (a1, a1, a2, a1, a2, a0): 1,
              (a1, a1, a1, a0, a2, a2): 1}
 
-        After you successfully run ``get_solution`` you may check
-        the correctness of the F-matrix by running :meth:`hexagon`
+        After you successfully run :meth:`find_cyclotomic_solution` you may
+        check the correctness of the F-matrix by running :meth:`hexagon`
         and :meth:`pentagon`. These should return empty lists
         of equations.
 
@@ -1564,7 +1609,7 @@ class FMatrix():
         self.ideal_basis = set(Ideal(equations).groebner_basis(algorithm=algorithm))
         if verbose:
             print("Solving...")
-        self.substitute_degree_one()
+        self._substitute_degree_one()
         if verbose:
             print("Fixing the gauge...")
         self.fix_gauge(algorithm=algorithm)

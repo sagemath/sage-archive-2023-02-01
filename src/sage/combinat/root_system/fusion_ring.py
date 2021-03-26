@@ -544,6 +544,10 @@ class FusionRing(WeylCharacterRing):
             Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
             sage: A13.field()
             Cyclotomic Field of order 40 and degree 16
+
+        In some cases, the :meth:`NumberField.optimized_representation`
+        may be used to obtain a better defining polynomial for the
+        computed ``NumberField``.
         """
         if self.is_multiplicity_free():
             return self.fmats.field()
@@ -1275,8 +1279,8 @@ class FusionRing(WeylCharacterRing):
         Return True if the matrices in the list ``sig`` satisfy
         the braid relations. This if `n` is the cardinality of ``sig``, this
         confirms that these matrices define a representation of
-        the Artin braid group on `n+1` strands.Tests correctness of
-        get_braid_generators method.
+        the Artin braid group on `n+1` strands. Tests correctness of
+        :meth:`get_braid_generators`.
 
         EXAMPLES::
 

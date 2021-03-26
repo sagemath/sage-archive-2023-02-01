@@ -1685,8 +1685,8 @@ end_scene""".format(
             sage: p.show(viewer="threejs")
             sage: p.show(viewer="jmol")
             sage: p.show(viewer="jmol",aspect_ratio=1)
-            sage: p.show(viewer="tachyon",camera_center=(4,0,0))
-            sage: p.show(viewer="tachyon",camera_center=(2,2,0.3),aspect_ratio=1)
+            sage: p.show(viewer="tachyon",camera_position=(4,0,0))
+            sage: p.show(viewer="tachyon",camera_position=(2,2,0.3),aspect_ratio=1)
 
         CHANGING DEFAULTS: Defaults can be uniformly changed by importing a
         dictionary and changing it. For example, here we change the default

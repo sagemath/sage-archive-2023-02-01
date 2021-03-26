@@ -84,7 +84,31 @@ cpdef MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_libsing
     """
     return parent._element_constructor_(dict(eq_tup), check=False)
 
+cdef tuple _flatten_coeffs(tuple eq_tup):
+    """
+    Flatten cyclotomic coefficients to a representation as a tuple of rational
+    coefficients.
 
+    This is used to avoid pickling cyclotomic coefficient objects, which fails
+    with new PARI settings introduced in trac ticket #30537
+    """
+    cdef list flat = list()
+    for exp, cyc_coeff in eq_tup:
+        flat.append((exp, tuple(cyc_coeff._coefficients())))
+    return tuple(flat)
+
+cpdef tuple _unflatten_coeffs(field, tuple eq_tup):
+    """
+    Restore cyclotomic coefficient object from its tuple of rational
+    coefficients representation.
+
+    Used to circumvent pickling issue introduced by PARI settigs in trac
+    ticket #30537
+    """
+    cdef list unflat = list()
+    for exp, coeff_tup in eq_tup:
+        unflat.append((exp, field(list(coeff_tup))))
+    return tuple(unflat)
 
 ######################
 ### "Change rings" ###

@@ -18,3 +18,7 @@ cpdef tuple poly_tup_sortkey_degrevlex(tuple eq_tup)
 
 cpdef MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent)
 cpdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq, NumberFieldElement_absolute one)
+
+
+cdef tuple _flatten_coeffs(tuple eq_tup)
+cpdef tuple _unflatten_coeffs(field, tuple eq_tup)

@@ -34,7 +34,7 @@ import os
 from sage.combinat.root_system.fast_parallel_fmats_methods import *
 from sage.combinat.root_system.poly_tup_engine import *
 #Import faster unsafe method (not for client use)
-from sage.combinat.root_system.poly_tup_engine import _tup_to_poly
+from sage.combinat.root_system.poly_tup_engine import _tup_to_poly, _unflatten_coeffs
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 from sage.rings.real_double import RDF
@@ -48,7 +48,7 @@ class FMatrix():
     - ``FR`` -- a FusionRing.
 
     The :class:`FusionRing` or Verlinde algebra is the
-    Grothendieck ring of a modular tensor category [BaKi2001]_. 
+    Grothendieck ring of a modular tensor category [BaKi2001]_.
     Such categories arise in conformal field theory or in the
     representation theories of affine Lie algebras, or
     quantum groups at roots of unity. They have applications
@@ -187,9 +187,10 @@ class FMatrix():
     EXAMPLES::
 
         sage: f.get_defining_equations("pentagons")[1:3]
-        [fx1*fx5 - fx7^2, fx5*fx8*fx13 - fx2*fx12]
+        [fx9*fx12 - fx2*fx13, fx3*fx8 - fx4*fx9]
         sage: f.get_defining_equations("hexagons")[1:3]
-        [fx10*fx12 + (-zeta128^32)*fx12*fx13 + (-zeta128^16)*fx12, fx0 - 1]
+        [fx11*fx12 + (-zeta128^32)*fx13^2 + (-zeta128^48)*fx13,
+         fx10*fx11 + (-zeta128^32)*fx11*fx13 + (-zeta128^16)*fx11]
         sage: f.get_orthogonality_constraints()[1:3]
         [fx1^2 - 1, fx2^2 - 1]
 
@@ -672,9 +673,10 @@ class FMatrix():
         if eqns is None:
             eqns = self.ideal_basis
         ks = deepcopy(self._ks)
+        F = self._field
         for eq_tup in eqns:
             if tup_fixes_sq(eq_tup):
-                ks[variables(eq_tup)[0]] = -eq_tup[-1][1]
+                ks[variables(eq_tup)[0]] = -F(list(eq_tup[-1][1]))
         return ks
 
     def _get_known_nonz(self):
@@ -941,6 +943,9 @@ class FMatrix():
         params = [(child_id, n_proc) for child_id in range(n_proc)]
         eqns = self._map_triv_reduce('get_reduced_'+option,params,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
         if output:
+            F = self._field
+            for i, eq_tup in enumerate(eqns):
+                eqns[i] = _unflatten_coeffs(F, eq_tup)
             return [self._tup_to_fpoly(p) for p in eqns]
         self.ideal_basis.extend(eqns)
 
@@ -970,8 +975,15 @@ class FMatrix():
         if eqns is None:
             eqns = self.ideal_basis
 
+        F = self._field
         linear_terms_exist = False
         for eq_tup in eqns:
+
+            #Only unflatten relevant polynomials
+            if len(eq_tup) > 2:
+                continue
+            eq_tup = _unflatten_coeffs(F, eq_tup)
+
             if len(eq_tup) == 1:
                 m = eq_tup[0][0]
                 if self._is_univariate_in_unknown(m):

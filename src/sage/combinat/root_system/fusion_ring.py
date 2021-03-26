@@ -15,7 +15,7 @@ from itertools import product, zip_longest
 from multiprocessing import Pool, set_start_method
 from sage.combinat.q_analogues import q_int
 import sage.combinat.root_system.f_matrix as FMatrix
-from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results, executor
+from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results, executor, _unflatten_entries
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 from sage.matrix.constructor import matrix
 from sage.matrix.special import diagonal_matrix
@@ -24,6 +24,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import inject_variable
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import CyclotomicField
+
+from sage.rings.qqbar import QQbar
 
 class FusionRing(WeylCharacterRing):
     r"""
@@ -1138,10 +1140,10 @@ class FusionRing(WeylCharacterRing):
         if no_mp:
             results = collect_results(0)
         else:
-            results = set()
+            results = list()
             for worker_results in worker_pool.imap_unordered(collect_results,range(worker_pool._processes),chunksize=1):
-                results.update(worker_results)
-            results = list(results)
+                results.extend(worker_results)
+            # results = list(results)
         return results
 
     def get_braid_generators(self,
@@ -1235,7 +1237,8 @@ class FusionRing(WeylCharacterRing):
             set_start_method('fork')
         except RuntimeError:
             pass
-        pool = Pool() if use_mp else None
+        #Turn off multiprocessing when field is QQbar due to pickling issues introduced by PARI upgrade in trac ticket #30537
+        pool = Pool() if use_mp and self.fvars_field() != QQbar else None
 
         #Set up computational basis and compute generators one at a time
         a, b = fusing_anyon, total_charge_anyon
@@ -1250,11 +1253,19 @@ class FusionRing(WeylCharacterRing):
         #Compute even-indexed generators using F-matrices
         for k in range(1,n_strands//2):
             entries = self._emap('sig_2k',(k,a,b,n_strands),pool)
+
+            #Build cyclotomic field element objects from tuple of rationals repn
+            _unflatten_entries(self, entries)
+
             gens[2*k] = matrix(dict(entries))
 
         #If n_strands is odd, we compute the final generator
         if n_strands % 2:
             entries = self._emap('odd_one_out',(a,b,n_strands),pool)
+
+            #Build cyclotomic field element objects from tuple of rationals repn
+            _unflatten_entries(self, entries)
+
             gens[n_strands-1] = matrix(dict(entries))
 
         return comp_basis, [gens[k] for k in sorted(gens)]
@@ -1451,4 +1462,3 @@ class FusionRing(WeylCharacterRing):
             if (not base_coercion) or (self.parent()._basecoer is None):
                 return ret
             return self.parent()._basecoer(ret)
-

@@ -156,6 +156,10 @@ cpdef get_reduced_hexagons(factory, tuple mp_params):
             he = req_cy(basis,r_matrix,fvars,_Nk_ij,id_anyon,sextuple)
             if he:
                 red = reduce_poly_dict(he.dict(),_nnz,_ks,one)
+
+                #Avoid pickling cyclotomic coefficients
+                red = _flatten_coeffs(red)
+
                 worker_results.append(red)
 
 cdef MPolynomial_libsingular feq_cy(tuple basis, fvars, Nk_ij, id_anyon, zero, tuple nonuple, bint prune=False):
@@ -202,6 +206,10 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
             pe = feq_cy(basis,fvars,_Nk_ij,id_anyon,zero,nonuple,prune=prune)
             if pe:
                 red = reduce_poly_dict(pe.dict(),_nnz,_ks,one)
+
+                #Avoid pickling cyclotomic coefficients
+                red = _flatten_coeffs(red)
+
                 worker_results.append(red)
 
 cpdef update_reduce(factory, tuple eq_tup):
@@ -209,9 +217,17 @@ cpdef update_reduce(factory, tuple eq_tup):
     Substitute known values, known squares, and reduce!
     """
     global worker_results
-    cdef NumberFieldElement_absolute one =factory._field.one()
+    cdef NumberFieldElement_absolute one = factory._field.one()
+
+    #Construct cyclotomic field elts from list repn
+    eq_tup = _unflatten_coeffs(factory._field, eq_tup)
+
     cdef dict eq_dict = subs(eq_tup,factory._kp,one)
     cdef tuple red = reduce_poly_dict(eq_dict,factory._nnz,factory._ks,one)
+
+    #Avoid pickling cyclotomic coefficients
+    red = _flatten_coeffs(red)
+
     worker_results.append(red)
 
 cpdef compute_gb(factory, tuple args):
@@ -231,8 +247,10 @@ cpdef compute_gb(factory, tuple args):
     #Zip tuples into R and compute Groebner basis
     cdef idx_map = { old : new for new, old in enumerate(sorted_vars) }
     nvars = len(sorted_vars)
+    F = factory.field()
     cdef list polys = list()
     for eq_tup in eqns:
+        eq_tup = _unflatten_coeffs(F, eq_tup)
         polys.append(tup_to_poly(resize(eq_tup,idx_map,nvars),parent=R))
     gb = Ideal(sorted(polys)).groebner_basis(algorithm="libsingular:slimgb")
 
@@ -242,6 +260,10 @@ cpdef compute_gb(factory, tuple args):
     nvars = factory._poly_ring.ngens()
     for p in gb:
         t = resize(poly_to_tup(p),inv_idx_map,nvars)
+
+        #Avoid pickling cyclotomic coefficients
+        t = _flatten_coeffs(t)
+
         worker_results.append(t)
 
 cpdef update_child_fmats(factory, tuple data_tup):

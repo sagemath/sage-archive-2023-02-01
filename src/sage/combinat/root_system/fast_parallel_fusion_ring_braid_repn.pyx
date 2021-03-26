@@ -12,8 +12,10 @@ cimport cython
 import ctypes
 from itertools import product
 import sage
+from sage.combinat.root_system.poly_tup_engine cimport _flatten_coeffs, _unflatten_coeffs, poly_to_tup
 from sage.combinat.root_system.fast_parallel_fmats_methods cimport _fmat
 from sage.misc.cachefunc import cached_function
+from sage.rings.qqbar import QQbar
 
 #Define a global temporary worker results repository
 worker_results = list()
@@ -72,7 +74,8 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
     in the tree b -> xi # yi -> (a # a) # (a # a), which results in a sum over j
     of trees b -> xj # yj -> (a # a) # (a # a)
 
-    ..warning:
+    .. WARNING::
+
         This method assumes F-matrices are orthogonal
 
     EXAMPLES::
@@ -112,7 +115,8 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     strands, corresponding to the tree b -> (xi # a) -> (a # a) # a, which
     results in a sum over j of trees b -> xj -> (a # a) # (a # a)
 
-    ..warning:
+    .. WARNING::
+
         This method assumes F-matrices are orthogonal
 
     EXAMPLES::
@@ -145,7 +149,7 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
 mid_sig_ij = cached_function(mid_sig_ij, name='mid_sig_ij')
 odd_one_out_ij = cached_function(odd_one_out_ij, name='odd_one_out_ij')
 
-@cython.wraparound(False)
+#@cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef sig_2k(fusion_ring, tuple args):
@@ -165,8 +169,10 @@ cpdef sig_2k(fusion_ring, tuple args):
     cdef list comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
     cdef dict basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
     cdef int dim = len(comp_basis)
-    cdef set entries = set()
+    cdef set coords = set()
     cdef int i
+    #Avoid pickling cyclotomic field element objects
+    must_flatten_coeff = fusion_ring.fvars_field() != QQbar
     for i in range(dim):
         for f,e,q in product(fusion_ring.basis(),repeat=3):
             #Distribute work amongst processes
@@ -183,7 +189,7 @@ cpdef sig_2k(fusion_ring, tuple args):
             nnz_pos = tuple(nnz_pos)
 
             #Skip repeated entries when k = 1
-            if nnz_pos in comp_basis and (basis_dict[nnz_pos],i) not in entries:
+            if nnz_pos in comp_basis and (basis_dict[nnz_pos],i) not in coords:
                 m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
                 #A few special cases
                 top_left = m[0]
@@ -196,7 +202,13 @@ cpdef sig_2k(fusion_ring, tuple args):
                 #Handle the special case k = 1
                 if k == 1:
                     entry = mid_sig_ij(fusion_ring,m[:2],(f,e),a,root)
+
+                    #Avoid pickling cyclotomic field element objects
+                    if must_flatten_coeff:
+                        entry = _flatten_entry(fusion_ring, entry)
+
                     worker_results.append(((basis_dict[nnz_pos],i), entry))
+                    coords.add((basis_dict[nnz_pos],i))
                     continue
 
                 entry = 0
@@ -204,10 +216,18 @@ cpdef sig_2k(fusion_ring, tuple args):
                     f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[k-1],m[k],root,l[k-2],p)
                     f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,e,root,q,p)
                     entry += f1 * mid_sig_ij(fusion_ring,(m[k-1],m[k]),(f,e),a,p) * f2
-                worker_results.append(((basis_dict[nnz_pos],i), entry))
-                entries.add((basis_dict[nnz_pos],i))
 
-@cython.wraparound(False)
+                #Avoid pickling cyclotomic field element objects
+                if must_flatten_coeff:
+                    #The entry is either a polynomial or a base field element
+                    if entry.parent() == fusion_ring.fmats._poly_ring:
+                        entry = _flatten_coeffs(poly_to_tup(entry))
+                    else:
+                        entry = entry.list()
+
+                worker_results.append(((basis_dict[nnz_pos],i), entry))
+
+#@cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cpdef odd_one_out(fusion_ring, tuple args):
@@ -228,6 +248,9 @@ cpdef odd_one_out(fusion_ring, tuple args):
     comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
     basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
     dim = len(comp_basis)
+
+    #Avoid pickling cyclotomic field element objects
+    must_flatten_coeff = fusion_ring.fvars_field() != QQbar
     for i in range(dim):
         for f, q in product(fusion_ring.basis(),repeat=2):
             #Distribute work amongst processes
@@ -249,6 +272,15 @@ cpdef odd_one_out(fusion_ring, tuple args):
                 #Handle a couple of small special cases
                 if n_strands == 3:
                     entry = odd_one_out_ij(fusion_ring,m[-1],f,a,b)
+
+                    #Avoid pickling cyclotomic field element objects
+                    if must_flatten_coeff:
+                        #The entry is either a polynomial or a base field element
+                        if entry.parent() == fusion_ring.fmats._poly_ring:
+                            entry = _flatten_coeffs(poly_to_tup(entry))
+                        else:
+                            entry = entry.list()
+
                     worker_results.append(((basis_dict[nnz_pos],i), entry))
                     continue
                 top_left = m[0]
@@ -262,6 +294,11 @@ cpdef odd_one_out(fusion_ring, tuple args):
                     f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[-1],a,root,l[-1],p)
                     f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,a,root,q,p)
                     entry += f1 * odd_one_out_ij(fusion_ring,m[-1],f,a,p) * f2
+
+                #Avoid pickling cyclotomic field element objects
+                if must_flatten_coeff:
+                    entry = _flatten_entry(fusion_ring, entry)
+
                 worker_results.append(((basis_dict[nnz_pos],i), entry))
 
 ################
@@ -275,6 +312,32 @@ def collect_results(proc):
     """
     #Discard the zero polynomial
     global worker_results
-    reduced = set(worker_results)-set([tuple()])
+    reduced = worker_results #set(worker_results)-set([tuple()])
     worker_results = list()
-    return list(reduced)
+    return reduced
+
+######################################
+### Pickling circumvention helpers ###
+######################################
+
+cdef _flatten_entry(fusion_ring, entry):
+    #The entry is either a polynomial or a base field element
+    if entry.parent() == fusion_ring.fmats._poly_ring:
+        entry = _flatten_coeffs(poly_to_tup(entry))
+    else:
+        entry = entry.list()
+    return entry
+
+cpdef _unflatten_entries(factory, list entries):
+    F = factory.fvars_field()
+    fm = factory.fmats
+    must_unflatten = F != QQbar
+    if must_unflatten:
+        for i, (coord, entry) in enumerate(entries):
+            #In this case entry represents a polynomial
+            if type(entry) == type(tuple()):
+                entry = fm.tup_to_fpoly(_unflatten_coeffs(F,entry))
+            #Otherwise entry belongs to base field
+            else:
+                entry = F(entry)
+            entries[i] = (coord, entry)

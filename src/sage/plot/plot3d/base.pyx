@@ -220,17 +220,12 @@ cdef class Graphics3d(SageObject):
         T = self._prepare_for_tachyon(
             opts['frame'], opts['axes'], opts['frame_aspect_ratio'],
             opts['aspect_ratio'],
-            1 # opts['zoom']
-            # let zoom be handled by tachyon.
+            1 # opts['zoom']. Let zoom be handled by tachyon.
             # We don't want the perspective to change by zooming
         )
-#        x, y = opts['figsize'][0]*100, opts['figsize'][1]*100
-#        if DOCTEST_MODE:
-#            x, y = 10, 10
 
         tachyon_args = dict((key,val) for key,val in opts.items() if key in Graphics3d.tachyon_keywords)
         tachyon_rt(T.tachyon(**tachyon_args), filename, opts['verbosity'])
-#                   '-res %s %s' % (x, y)) ## handled by the tachyon method.
         from sage.repl.rich_output.buffer import OutputBuffer
         import sage.repl.rich_output.output_catalog as catalog
         import PIL.Image as Image
@@ -953,15 +948,15 @@ cdef class Graphics3d(SageObject):
 """%(self.viewpoint().x3d_str(), self.x3d_str())
 
 
-################ TACHYON ################
+    ################ TACHYON ################
 
-####### insertion of camera parameters
+    ####### insertion of camera parameters
 
     tachyon_keywords = (
       "antialiasing",
       # "aspectratio",
       "zoom",  # zoom was previously handled directly by scaling the scene.
-               # this has now been disabled, and zoom is handled by tachyon
+               # This has now been disabled, and zoom is handled by tachyon.
       "raydepth", "figsize", "light_position",
       "camera_position","updir",
       # "look_at", # omit look_at. viewdir is sufficient for most purposes
@@ -977,9 +972,10 @@ cdef class Graphics3d(SageObject):
     # Instead, the tachyon aspectratio is set to match nonsquare
     # drawing area in "figsize".
 
-    # Parameters are taken from tachyion.py
+    # Parameters are mostly taken from tachyion.py,
+    # but camera_center is renamed camera_position.
     # Apparently reST strips () from default parameters in the automatic documentation.
-    # Thus, replaced () by [].
+    # Thus, I replaced () by [] as default values.
 
     def tachyon(self,
         zoom=1.0,
@@ -988,10 +984,10 @@ cdef class Graphics3d(SageObject):
         raydepth=8,
         camera_position=[2.3, 2.4, 2.0], # old default values
         updir=[0, 0, 1],
-  #      look_at=(0, 0, 0), # viewdir is good enough
+        # look_at=(0, 0, 0), # could be nice to have, but viewdir is good enough
         light_position=[4.0, 3.0, 2.0],
         viewdir=None,
-        #projection='PERSPECTIVE',
+        # projection='PERSPECTIVE', # future extension, allow different projection types
     ):
         """
         A tachyon input file (as a string) containing the this object.
@@ -1043,13 +1039,9 @@ cdef class Graphics3d(SageObject):
             raise ValueError('Camera center must consist of three numbers')
 
         if viewdir is None:
-#            viewdir = [float(look_at[i] - camera_position[i]) for i in range(3)]
             viewdir = [float(- camera_position[i]) for i in range(3)]
             if viewdir == [0.0,0.0,0.0]:
-                # print("Warning: camera_position and look_at coincide")
-                #print("Warning: camera_position at origin")
-                viewdir = (1,0,0)
-
+                viewdir = (1,0,0) # issue a Warning? "camera_position at origin"
         # switch from LH to RH coords to be consistent with java rendition
         viewdir = _flip_orientation(viewdir)
         updir = _flip_orientation(updir)
@@ -1676,8 +1668,8 @@ end_scene""".format(
 
         .. WARNING::
 
-         By default, the jmol and tachyon viewers perform
-         some non-uniform scaling of the axes.
+            By default, the jmol and tachyon viewers perform
+            some non-uniform scaling of the axes.
 
         If this is not desired, one can set ``aspect_ratio=1``::
 
@@ -3304,7 +3296,7 @@ def optimal_extra_kwds(v):
 
 def _flip_orientation(v):
     """
-    switch from LH to RH coords to be consistent with Java rendition
+    Switch from LH to RH coords to be consistent with Java rendition
 
         TESTS::
 

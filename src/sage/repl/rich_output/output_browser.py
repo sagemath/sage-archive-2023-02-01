@@ -8,7 +8,8 @@ import re
 from sage.repl.rich_output.output_basic import OutputBase
 from sage.repl.rich_output.buffer import OutputBuffer
 
-latex_re = re.compile(r'<html><script type="math/tex; mode=(?P<mode>[^"]+)">(?P<latex>.*)</script></html>')
+latex_re = re.compile(r'<html><script type="math/tex; mode=(?P<mode>[^"]+)">(?P<latex>.*)</script></html>',
+                     flags=re.DOTALL)
 
 class OutputHtml(OutputBase):
 

@@ -39,7 +39,7 @@ class FGP_Element(ModuleElement):
         sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
         sage: Q = V/W
         sage: x = Q(V.0-V.1); x #indirect doctest
-        (0, 3)
+        (0, 9)
         sage: isinstance(x, sage.modules.fg_pid.fgp_element.FGP_Element)
         True
         sage: type(x)
@@ -94,14 +94,14 @@ class FGP_Element(ModuleElement):
             sage: Q.1
             (0, 1)
             sage: Q.0.lift()
-            (0, 0, 1)
+            (0, 6, 1)
             sage: Q.1.lift()
-            (0, 2, 0)
+            (0, -2, 0)
             sage: x = Q(V.0); x
-            (0, 4)
+            (0, 8)
             sage: x.lift()
             (1/2, 0, 0)
-            sage: x == 4*Q.1
+            sage: x == 8*Q.1
             True
             sage: x.lift().parent() == V
             True
@@ -158,9 +158,9 @@ class FGP_Element(ModuleElement):
         We test canonical coercion from V and W.
 
             sage: Q.0 + V.0
-            (1, 4)
+            (1, 8)
             sage: V.0 + Q.0
-            (1, 4)
+            (1, 8)
             sage: W.0 + Q.0
             (1, 0)
             sage: W.0 + Q.0 == Q.0
@@ -291,7 +291,7 @@ class FGP_Element(ModuleElement):
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
             sage: Q(V.1)._repr_()
-            '(0, 1)'
+            '(0, 11)'
         """
         return repr(self.vector())
 

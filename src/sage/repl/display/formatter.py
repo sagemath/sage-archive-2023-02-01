@@ -69,7 +69,9 @@ from sage.repl.display.pretty_print import SagePrettyPrinter
 
 
 PLAIN_TEXT = 'text/plain'
+TEXT_LATEX = 'text/latex'
 TEXT_HTML = 'text/html'
+
 
 
 class SageDisplayFormatter(DisplayFormatter):
@@ -126,9 +128,9 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell.run_cell('%display default')
             sage: shell.quit()
         """
-        if self.dm.preferences.text == 'html':
-            return [PLAIN_TEXT, TEXT_HTML]
-        return [PLAIN_TEXT]
+        if self.dm.preferences.text == 'latex':
+            return [PLAIN_TEXT, TEXT_HTML, TEXT_LATEX]
+        return [PLAIN_TEXT,TEXT_HTML]
 
     def format(self, obj, include=None, exclude=None):
         r"""

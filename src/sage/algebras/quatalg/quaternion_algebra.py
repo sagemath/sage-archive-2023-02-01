@@ -1101,7 +1101,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             Fractional ideal (2, 2*i, 2*j, 2*k)
         """
         if self.base_ring() == QQ:
-            return QuaternionFractionalIdeal_rational(gens, left_order=left_order, right_order=right_order, check=check)
+            return QuaternionFractionalIdeal_rational(self, gens, left_order=left_order, right_order=right_order, check=check)
         else:
             raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
@@ -1661,7 +1661,7 @@ class QuaternionOrder(Algebra):
             Fractional ideal (1 + i, 2*i, j + k, 2*k)
         """
         if self.base_ring() == ZZ:
-            return QuaternionFractionalIdeal_rational(gens, left_order=self, check=check)
+            return QuaternionFractionalIdeal_rational(self.quaternion_algebra(), gens, left_order=self, check=check)
         else:
             raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
@@ -1683,7 +1683,7 @@ class QuaternionOrder(Algebra):
             Fractional ideal (1 + i, 2*i, j + k, 2*k)
         """
         if self.base_ring() == ZZ:
-            return QuaternionFractionalIdeal_rational(gens, right_order=self, check=check)
+            return QuaternionFractionalIdeal_rational(self.quaternion_algebra(), gens, right_order=self, check=check)
         else:
             raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
@@ -1698,7 +1698,7 @@ class QuaternionOrder(Algebra):
             Fractional ideal (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
         if self.base_ring() == ZZ:
-            return QuaternionFractionalIdeal_rational(self.basis(), left_order=self, right_order=self, check=False)
+            return QuaternionFractionalIdeal_rational(self.quaternion_algebra(), self.basis(), left_order=self, right_order=self, check=False)
         else:
             raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
@@ -1811,7 +1811,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
     - ``check`` -- bool (default: ``True``); if ``False``, do no type
       checking, and the input basis *must* be in Hermite form.
     """
-    def __init__(self, basis, left_order=None, right_order=None, check=True):
+    def __init__(self, Q, basis, left_order=None, right_order=None, check=True):
         """
         EXAMPLES::
 
@@ -1838,18 +1838,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
                 raise TypeError("right_order must be a quaternion order or None")
             if not isinstance(basis, (list, tuple)):
                 raise TypeError("basis must be a list or tuple")
-
-        self.__left_order = left_order
-        self.__right_order = right_order
-
-        if check:
-            try:
-                Q = self.quaternion_order().quaternion_algebra()
-            except RuntimeError:
-                Q = basis[0].parent()
             basis = tuple([Q(v) for v in
                            (QQ**4).span([Q(v).coefficient_tuple() for v in basis], ZZ).basis()])
-        Ideal_fractional.__init__(self, basis[0].parent(), basis)
+        self.__left_order = left_order
+        self.__right_order = right_order
+        Ideal_fractional.__init__(self, Q, basis)
 
     def scale(self, alpha, left=False):
         r"""

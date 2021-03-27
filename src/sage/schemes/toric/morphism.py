@@ -1949,11 +1949,11 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: f = fc.embedding_morphism()
             sage: for r in fc.fan().rays():
             ....:     print("{} {}".format(r, f._image_ray_multiplicity(r)))
-            N(-1, 2) (11, 1)
+            N(-1, -1) (9, 2)
             N(0, 1) (5, 1)
-            N(1, -3) (9, 2)
+            N(1, 0) (11, 1)
             sage: f._ray_index_map
-            {N(-3, 4): 10, N(-1, 2): 11, N(0, 1): 5, N(1, 0): 4, N(2, -6): 9}
+            {N(-2, -2): 9, N(-1, 2): 4, N(0, 1): 5, N(1, 0): 11, N(3, -2): 10}
         """
         try:
             image_ray_index = self._ray_index_map[fiber_ray]

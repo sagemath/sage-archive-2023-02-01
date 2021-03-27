@@ -1580,7 +1580,6 @@ class GraphGenerators():
         edges = ''
         if minimum_edges is None:
             if maximum_edges is not None:
-                from math import ceil
                 if maximum_edges < order - 1:
                     raise ValueError("the number of edges cannot be less than order - 1")
                 edges = '-e:{}'.format(maximum_edges)

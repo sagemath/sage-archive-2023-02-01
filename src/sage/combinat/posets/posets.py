@@ -136,6 +136,7 @@ List of Poset methods
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
     :meth:`~FinitePoset.maximal_antichains` | Return the maximal antichains of the poset.
     :meth:`~FinitePoset.maximal_chains_iterator` | Return an iterator over the maximal chains of the poset.
+    :meth:`~FinitePoset.maximal_chain_length` | Return the maximum length of maximal chains of the poset.
     :meth:`~FinitePoset.antichains_iterator` | Return an iterator over the antichains of the poset.
     :meth:`~FinitePoset.random_maximal_chain` | Return a random maximal chain.
     :meth:`~FinitePoset.random_maximal_antichain` | Return a random maximal antichain.
@@ -6788,6 +6789,36 @@ class FinitePoset(UniqueRepresentation, Parent):
             parts = (partial + [x] for x in start)
             for new in parts:
                 yield from self.maximal_chains_iterator(partial=new)
+
+    def maximal_chain_length(self):
+        """
+        Return the maximum length of a maximal chain in the poset.
+
+        The length here is the number of vertices.
+
+        EXAMPLES::
+
+            sage: P = posets.TamariLattice(5)
+            sage: P.maximal_chain_length()
+            11
+
+        TESTS::
+
+            sage: Poset().maximal_chain_length()
+            0
+
+        .. SEEALSO:: :meth:`maximal_chains`, :meth:`maximal_chains_iterator`
+        """
+        if not self.cardinality():
+            return 0
+        store = {}
+        for x in self:
+            below = self.lower_covers(x)
+            if not below:
+                store[x] = 1
+            else:
+                store[x] = 1 + max(store[y] for y in below)
+        return max(store.values())
 
     def order_complex(self, on_ints=False):
         r"""

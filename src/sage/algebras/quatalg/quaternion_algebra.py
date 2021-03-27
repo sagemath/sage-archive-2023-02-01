@@ -1820,6 +1820,16 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             Fractional ideal (1/2 + 1/2*i, i, 1/2*j + 1/2*k, k)
             sage: R.right_ideal(tuple(R.basis()), check=False)
             Fractional ideal (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
+
+        TESTS::
+
+            sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().gens()
+            (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
+
+        Check that :trac:`31582` is fixed::
+
+            sage: BrandtModule(23).right_ideals()[0].parent()
+            Monoid of ideals of Quaternion Algebra (-1, -23) with base ring Rational Field
         """
         if check:
             if left_order is not None and not isinstance(left_order, QuaternionOrder):
@@ -1839,7 +1849,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
                 Q = basis[0].parent()
             basis = tuple([Q(v) for v in
                            (QQ**4).span([Q(v).coefficient_tuple() for v in basis], ZZ).basis()])
-        self.__basis = basis
+        Ideal_fractional.__init__(self, basis[0].parent(), basis)
 
     def scale(self, alpha, left=False):
         r"""
@@ -1862,11 +1872,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: B = BrandtModule(5,37); I = B.right_ideals()[0]; i,j,k = B.quaternion_algebra().gens(); I
             Fractional ideal (2 + 2*j + 106*k, i + 2*j + 105*k, 4*j + 64*k, 148*k)
             sage: I.scale(i)
-            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
             sage: I.scale(i, left=True)
-            Fractional ideal [2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j]
+            Fractional ideal (2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j)
             sage: I.scale(i, left=False)
-            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
             sage: i * I.gens()[0]
             2*i - 212*j + 2*k
             sage: I.gens()[0] * i
@@ -1894,13 +1904,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I.quaternion_algebra()
             Quaternion Algebra (-1, -3) with base ring Rational Field
         """
-        try:
-            return self.__quaternion_algebra
-        except AttributeError:
-            pass
-        A = self.__basis[0].parent()
-        self.__quaternion_algebra = A
-        return A
+        return Ideal_fractional.ring(self)
 
     def _compute_order(self, side='left'):
         r"""
@@ -2095,33 +2099,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().basis()
             (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
         """
-        return self.__basis
+        return self.gens()
 
-    def gens(self):
-        r"""
-        Return the generators for this ideal, which are the same as
-        the `\ZZ`-basis for this ideal.
-
-        EXAMPLES::
-
-            sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().gens()
-            (1/2 + 1/2*i, 1/2*j - 1/2*k, i, -k)
-        """
-        return self.__basis
-
-    def __eq__(self, right):
+    def _richcmp_(self, right, op):
         """
         Compare this fractional quaternion ideal to ``right``.
-
-        If ``right`` is not a fractional quaternion ideal, return ``False``.
-
-        If the fractional ideals are in different ambient
-        quaternion algebras, then the quaternion algebras themselves
-        are compared.
-
-        INPUT:
-
-        - ``right`` - another fractional quaternion ideal
 
         EXAMPLES::
 
@@ -2130,26 +2112,10 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             True
             sage: I == 5
             False
-        """
-        if not isinstance(right, QuaternionFractionalIdeal_rational):
-            return False
-        return self.__basis == right.__basis
-
-    def __ne__(self, other):
-        """
-        Compare this fractional quaternion ideal to ``right``.
-
-        INPUT:
-
-        - ``right`` - another fractional quaternion ideal
-
-        EXAMPLES::
-
-            sage: I = QuaternionAlgebra(-11,-1).maximal_order().unit_ideal()
             sage: I != I                # indirect doctest
             False
         """
-        return not self.__eq__(other)
+        return self.basis_matrix()._richcmp_(right.basis_matrix(), op)
 
     def __hash__(self):
         """
@@ -2166,7 +2132,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: H = hash(R.right_ideal(R.basis()))
         """
-        return hash(self.__basis)
+        return hash(self.gens())
 
     def basis_matrix(self):
         r"""
@@ -2192,7 +2158,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             return self.__hermite_basis_matrix
         except AttributeError:
             pass
-        B = quaternion_algebra_cython.rational_matrix_from_rational_quaternions(self.__basis)
+        B = quaternion_algebra_cython.rational_matrix_from_rational_quaternions(self.gens())
         self.__hermite_basis_matrix = B
         return B
 
@@ -2328,8 +2294,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             [ 2112 13440 13056 15360]
             [ 1920 16320 15360 19200]
         """
-        A = self.__basis
-        B = [z.conjugate() for z in self.__basis]
+        A = self.gens()
+        B = [z.conjugate() for z in A]
         two = QQ(2)
         m = [two * (a * b).reduced_trace() for b in B for a in A]
         M44 = MatrixSpace(QQ, 4, 4)

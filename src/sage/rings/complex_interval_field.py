@@ -21,7 +21,7 @@ heavily modified:
 
     The :class:`ComplexIntervalField` differs from :class:`ComplexField` in
     that :class:`ComplexIntervalField` only gives the digits with exact
-    precision, then a ``?`` signifying that that digit can have an error of
+    precision, then a ``?`` signifying that the last digit can have an error of
     ``+/-1``.
 """
 
@@ -117,7 +117,7 @@ class ComplexIntervalField_class(Field):
         sage: C(x)
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x to real interval
+        TypeError: cannot convert nonconstant polynomial
 
     This illustrates precision::
 

@@ -1997,7 +1997,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
             sage: C.riemann_roch_basis(D)
-            [(-x - 2*y)/(-2*x - 2*y), (-x + z)/(x + y)]
+            [(-2*x + y)/(x + y), (-x + z)/(x + y)]
 
         .. NOTE::
 

@@ -498,7 +498,7 @@ class DiGraph(GenericGraph):
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
 
-    From a a list of vertices and a list of edges::
+    From a list of vertices and a list of edges::
 
         sage: G = DiGraph([[1,2,3],[(1,2)]]); G
         Digraph on 3 vertices

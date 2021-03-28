@@ -416,6 +416,14 @@ AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
 ])
 AC_SUBST([SAGE_SPKG_OPTIONS])
 
+AC_ARG_ENABLE([notebook],
+  AS_HELP_STRING([--disable-notebook],
+                 [disable build of the Jupyter notebook and related packages]), [
+    for pkg in notebook nbconvert sagenb_export nbformat terminado send2trash prometheus_client mistune pandocfilters bleach defusedxml jsonschema jupyter_jsmol; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
 SAGE_SPKG_COLLECT()
 
 dnl AC_CONFIG_HEADERS([config.h])

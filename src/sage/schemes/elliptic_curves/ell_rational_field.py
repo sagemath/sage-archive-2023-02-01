@@ -5627,6 +5627,87 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             h_gs = max(1, log_g2)
         return max(R(1),h_j, h_gs)
 
+    def faltings_height(self, stable=False, prec=None):
+        r"""Return the Faltings height (stable or unstable) of this elliptic curve.
+
+        INPUT:
+
+        - ``stable`` (boolean, default ``False``) -- if ``True``,
+           return the *stable* Faltings height, otherwise the unstable
+           height.
+
+        - ``prec`` (integer or ``None``, default ``None``) -- bit
+          precision of output.  If ``None`` (default), use standard
+          precision (53 bits).
+
+        OUTPUT:
+
+        (real) the Faltings height of this elliptic curve.
+
+        .. note::
+
+           Different authors normalise the Faltings height
+           differently.  We use the formula `-\frac{1}{2}\log(A)`,
+           where `A` is the area of the fundamental period
+           parallelogram; some authors use `-\frac{1}{2\pi}\log(A)`
+           instead.
+
+           The unstable Faltings height does depend on the model.  The
+           *stable* Faltings height is defined to be
+
+           .. MATH::
+
+               \frac{1}{12}\log\mathrm{denom}(j) - \frac{1}{12}\log|\Delta| -\frac{1}{2}\log A,
+
+           This is independent of the model.  For the minimal model of
+           a semistable elliptic curve, we have
+           `\mathrm{denom}(j)=|\Delta|`, and the stable and unstable
+           heights agree.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('32a1')
+            sage: E.faltings_height()
+            -0.617385745351564
+            sage: E.faltings_height(stable=True)
+            -1.31053292591151
+
+        These differ since the curve is not semistable::
+
+            sage: E.is_semistable()
+            False
+
+        If the model is changed, the Faltings height changes but the
+        stable height does not.  It is reduced by $\log(u)$ where $u$
+        is the scale factor::
+
+            sage: E1 = E.change_weierstrass_model([10,0,0,0])
+            sage: E1.faltings_height()
+            -2.91997083834561
+            sage: E1.faltings_height(stable=True)
+            -1.31053292591151
+            sage: E.faltings_height() - log(10.0)
+            -2.91997083834561
+
+        For a semistable curve (that is, one with squarefree
+        conductor), the stable and unstable heights are equal.  Here
+        we also show that one can specify the (bit) precision of the
+        result::
+
+            sage: E = EllipticCurve('210a1')
+            sage: E.is_semistable()
+            True
+            sage: E.faltings_height(prec=100)
+            -0.043427311858075396288912139225
+            sage: E.faltings_height(stable=True, prec=100)
+            -0.043427311858075396288912139225
+
+        """
+        R = RealField(prec) if prec else RealField()
+        log_vol = self.period_lattice().complex_area(prec).log()
+        h = R(self.j_invariant().denominator()/self.discriminant().abs()).log() / 12 if stable else R(0)
+        return h - log_vol / 2
+
     def antilogarithm(self, z, max_denominator=None):
         r"""
         Return the rational point (if any) associated to this complex

@@ -544,7 +544,7 @@ class Tachyon(WithEqualityById, SageObject):
             sage: set_verbose(1)
             sage: s.show()
             tachyon ...
-            Scene contains 2711 objects.
+            Scene contains 2713 objects.
             ...
 
         The last example shows how you can override the global Sage

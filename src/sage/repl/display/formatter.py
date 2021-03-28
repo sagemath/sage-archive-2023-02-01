@@ -124,10 +124,10 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell = get_test_shell()
             sage: backend.install(shell=shell)
             sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
-            ['text/plain']
+            ['text/plain', 'text/html']
             sage: shell.run_cell('%display latex')   # indirect doctest
             sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
-            ['text/plain']
+            ['text/plain', 'text/html', 'text/latex']
             sage: shell.run_cell('%display default')
             sage: shell.quit()
         """

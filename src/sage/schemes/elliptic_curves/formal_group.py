@@ -732,14 +732,14 @@ class EllipticCurveFormalGroup(SageObject):
         return result
 
     def sigma(self, prec=10):
-        """
+        r"""
         Returns the Weierstrass sigma function as a formal powerseries
         solution to the differential equation
         
         .. MATH::
-        
+
             \frac{d^2 \log \sigma}{dz^2} = - \wp(z)
-            
+
         with initial conditions `\sigma(O)=0` and `\sigma'(O)=1`, 
         expressed in the variable `t=\log_E(z)` of the formal group. 
  
@@ -755,7 +755,7 @@ class EllipticCurveFormalGroup(SageObject):
         then there is a canonical choice of `c` that produces
         the canonical `p`-adic sigma function.
         To obtain that,  please use ``E.padic_sigma(p)`` instead.
-        See :func:`~sage.schemes.elliptic_curves.padics.padic_sigma`
+        See :meth:`~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.padic_sigma`
         
         EXAMPLES::
 

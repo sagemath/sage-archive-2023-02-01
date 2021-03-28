@@ -575,12 +575,12 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])
-        sage: out.find("R version ") >= 0
+        sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])  # optional - r
+        sage: out.find("R version ") >= 0                                      # optional - r
         True
-        sage: err
+        sage: err                                                              # optional - r
         ''
-        sage: ret
+        sage: ret                                                              # optional - r
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--sqlite3", "--version"])

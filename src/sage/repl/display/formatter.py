@@ -64,14 +64,17 @@ from io import StringIO
 
 from IPython.core.formatters import DisplayFormatter, PlainTextFormatter
 from IPython.utils.py3compat import unicode_to_str
+from IPython.core.display import Javascript, HTML
+
+from ipywidgets.widgets.interaction import interactive
 
 from sage.repl.display.pretty_print import SagePrettyPrinter
 
+IPYTHON_NATIVE_TYPES = (Javascript, HTML, interactive)
 
 PLAIN_TEXT = 'text/plain'
 TEXT_LATEX = 'text/latex'
 TEXT_HTML = 'text/html'
-
 
 
 class SageDisplayFormatter(DisplayFormatter):
@@ -200,15 +203,17 @@ class SageDisplayFormatter(DisplayFormatter):
             __repr__ called
             I am repper
         """
-        # First, use Sage rich output if there is any
+        # use IPython display for IPython native objects
+        if isinstance(obj, IPYTHON_NATIVE_TYPES):
+            if self.ipython_display_formatter(obj):
+                return {}, {}
+        # use Sage rich output if there is any
         sage_format, sage_metadata = self.dm.displayhook(obj)
         assert PLAIN_TEXT in sage_format, 'plain text is always present'
         if not set(sage_format.keys()).issubset(self.default_mime()):
             return sage_format, sage_metadata
-        # Second, try IPython widgets (obj._ipython_display_ and type registry)
-        if self.ipython_display_formatter(obj):
-            return {}, {}
-        # Finally, try IPython rich representation (obj._repr_foo_ methods and ipython hardcoded types)
+        # finally try IPython rich representation (obj._repr_foo_ methods and
+        # ipython hardcoded types)
         if exclude is not None:
             exclude = list(exclude) + self.default_mime()
         else:

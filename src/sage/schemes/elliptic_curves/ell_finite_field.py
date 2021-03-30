@@ -786,10 +786,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             2
             sage: E.cardinality()
             867361737988403547206134229616487867594472
-            sage: E.gens()[0].order()
+            sage: a = E.gens()[0].order(); a # random
             433680868994201773603067114808243933797236
-            sage: E.gens()[1].order()
+            sage: b = E.gens()[1].order(); b # random
             30977204928157269543076222486303138128374
+            sage: lcm(a,b)
+            433680868994201773603067114808243933797236
         """
         G = self.__pari__().ellgroup(flag=1)
         return tuple(self.point(list(pt)) for pt in G[2])

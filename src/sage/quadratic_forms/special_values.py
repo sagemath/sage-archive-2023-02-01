@@ -67,15 +67,15 @@ def gamma__exact(n):
     if denominator(n) == 1:
         if n <= 0:
             return infinity
-        if n > 0:
-            return factorial(n-1)
+        else:
+            return factorial(n - 1)
     elif denominator(n) == 2:
         ans = QQ.one()
         while n != QQ((1, 2)):
             if n < 0:
                 ans /= n
                 n += 1
-            elif n > 0:
+            else:
                 n += -1
                 ans *= n
 

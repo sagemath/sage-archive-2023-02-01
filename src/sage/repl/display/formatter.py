@@ -174,8 +174,10 @@ class SageDisplayFormatter(DisplayFormatter):
         """
         sage_format, sage_metadata = self.dm.displayhook(obj)
         assert PLAIN_TEXT in sage_format, 'plain text is always present'
-        # use Sage rich output for any except those native to IPython
-        if not isinstance(obj, IPYTHON_NATIVE_TYPES):
+        # use Sage rich output for any except those native to IPython, but only
+        # if it is not plain and dull
+        if (not isinstance(obj, IPYTHON_NATIVE_TYPES) and
+            not set(sage_format.keys()).issubset([PLAIN_TEXT])):
             return sage_format, sage_metadata
         if self.ipython_display_formatter(obj):
             # object handled itself, don't proceed

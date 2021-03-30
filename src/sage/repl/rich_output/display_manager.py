@@ -750,7 +750,6 @@ class DisplayManager(SageObject):
         """
         if online:
             import sage.env
-            import re
             import os
             with open(os.path.join(sage.env.THREEJS_DIR, 'version')) as f:
                 version = f.read().strip()

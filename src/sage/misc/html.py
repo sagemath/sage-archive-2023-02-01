@@ -19,7 +19,6 @@ renderable in a browser-based notebook with the help of MathJax.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import warnings
 from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject

@@ -368,7 +368,7 @@ class BackendBase(SageObject):
             sage: backend.ascii_art_formatter([1,2,3], concatenate=True).ascii_art.get_str()
             '1 2 3'
         """
-        from sage.typeset.ascii_art import ascii_art, empty_ascii_art
+        from sage.typeset.ascii_art import ascii_art
         if kwds.get('concatenate', False):
             result = ascii_art(*obj, sep=' ')
         else:
@@ -417,7 +417,7 @@ class BackendBase(SageObject):
             sage: backend.unicode_art_formatter([1,2,3], concatenate=True).unicode_art.get_str()
             '1 2 3'
         """
-        from sage.typeset.unicode_art import unicode_art, empty_unicode_art
+        from sage.typeset.unicode_art import unicode_art
         if kwds.get('concatenate', False):
             result = unicode_art(*obj, sep=' ')
         else:

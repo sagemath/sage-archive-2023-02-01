@@ -64,13 +64,13 @@ from io import StringIO
 
 from IPython.core.formatters import DisplayFormatter, PlainTextFormatter
 from IPython.utils.py3compat import unicode_to_str
-from IPython.core.display import Javascript, HTML
+from IPython.core.display import DisplayObject
 
 from ipywidgets.widgets.interaction import interactive
 
 from sage.repl.display.pretty_print import SagePrettyPrinter
 
-IPYTHON_NATIVE_TYPES = (Javascript, HTML, interactive)
+IPYTHON_NATIVE_TYPES = (DisplayObject, interactive)
 
 PLAIN_TEXT = 'text/plain'
 TEXT_LATEX = 'text/latex'
@@ -103,37 +103,6 @@ class SageDisplayFormatter(DisplayFormatter):
         self.dm = get_display_manager()
         from sage.repl.rich_output.backend_ipython import BackendIPython
         self.dm.check_backend_class(BackendIPython)
-
-    def default_mime(self):
-        r"""
-        Return the default mime output(s)
-
-        If these are the only output mime types from the Sage rich output machinery, then
-        :meth:`format` will try to fall back to IPythons internal formatting.
-
-        OUTPUT:
-
-        List of mime type strings. Usually just text/plain, though possibly more depending on
-        display manager preferences.
-
-        EXAMPLES::
-
-            sage: from sage.repl.interpreter import get_test_shell
-            sage: from sage.repl.rich_output.backend_ipython import BackendIPython
-            sage: backend = BackendIPython()
-            sage: shell = get_test_shell()
-            sage: backend.install(shell=shell)
-            sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
-            ['text/plain', 'text/html']
-            sage: shell.run_cell('%display latex')   # indirect doctest
-            sage: shell.run_cell('get_ipython().display_formatter.default_mime()')
-            ['text/plain', 'text/html', 'text/latex']
-            sage: shell.run_cell('%display default')
-            sage: shell.quit()
-        """
-        if self.dm.preferences.text == 'latex':
-            return [PLAIN_TEXT, TEXT_HTML, TEXT_LATEX]
-        return [PLAIN_TEXT,TEXT_HTML]
 
     def format(self, obj, include=None, exclude=None):
         r"""
@@ -203,23 +172,20 @@ class SageDisplayFormatter(DisplayFormatter):
             __repr__ called
             I am repper
         """
-        # use IPython display for IPython native objects
-        if isinstance(obj, IPYTHON_NATIVE_TYPES):
-            if self.ipython_display_formatter(obj):
-                return {}, {}
-        # use Sage rich output if there is any
         sage_format, sage_metadata = self.dm.displayhook(obj)
         assert PLAIN_TEXT in sage_format, 'plain text is always present'
-        if not set(sage_format.keys()).issubset(self.default_mime()):
+        # use Sage rich output for any except those native to IPython
+        if not isinstance(obj, IPYTHON_NATIVE_TYPES):
             return sage_format, sage_metadata
-        # finally try IPython rich representation (obj._repr_foo_ methods and
-        # ipython hardcoded types)
+        if self.ipython_display_formatter(obj):
+            # object handled itself, don't proceed
+            return {}, {}
+        # try IPython display formatter
         if exclude is not None:
-            exclude = list(exclude) + self.default_mime()
+            exclude = list(exclude) + [PLAIN_TEXT]
         else:
-            exclude = self.default_mime()
-        ipy_format, ipy_metadata = super(SageDisplayFormatter, self).format(
-            obj, include=include, exclude=exclude)
+            exclude = [PLAIN_TEXT]
+        ipy_format, ipy_metadata = super().format(obj, include=include, exclude=exclude)
         if not ipy_format:
             return sage_format, sage_metadata
         ipy_format[PLAIN_TEXT] = sage_format[PLAIN_TEXT]

@@ -44,10 +44,7 @@ import sys
 
 from os import path as pth
 
-try:
-    import argparse
-except ImportError:
-    from sage_bootstrap.compat import argparse
+import argparse
 
 from .env import SAGE_ROOT
 

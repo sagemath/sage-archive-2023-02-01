@@ -525,7 +525,7 @@ class DiffScalarField(ScalarField):
            (x, y) |--> x*y*H(x, y)
         on W: (u, v) |--> u*v*H(u/(u^2 + v^2), v/(u^2 + v^2))/(u^4 + 2*u^2*v^2 + v^4)
 
-    Thanks to the coercion `C^k(M)\rightarrow C^k(U)` mentionned
+    Thanks to the coercion `C^k(M)\rightarrow C^k(U)` mentioned
     above, it is possible to multiply a scalar field defined on `M` by a
     scalar field defined on `U`, the result being a scalar field defined on
     `U`::

@@ -851,7 +851,7 @@ class CubicalComplex(GenericCellComplex):
 
     Therefore, neither are cones or suspensions.
     """
-    def __init__(self, maximal_faces=[], maximality_check=True):
+    def __init__(self, maximal_faces=None, maximality_check=True):
         r"""
         Define a cubical complex.  See ``CubicalComplex`` for more
         documentation.
@@ -863,6 +863,8 @@ class CubicalComplex(GenericCellComplex):
             sage: X == loads(dumps(X))
             True
         """
+        if maximal_faces is None:
+            maximal_faces = []
         C = None
         if isinstance(maximal_faces, CubicalComplex):
             C = maximal_faces

@@ -140,6 +140,13 @@ Test if :trac:`24883` is fixed::
     sage: a*b
     1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 
+Test that :trac:`20784` is fixed (equations should stay unevaluated)::
+
+    sage: limit(1/x, x=0) == unsigned_infinity
+    Infinity == Infinity
+    sage: SR(unsigned_infinity) == unsigned_infinity
+    Infinity == Infinity
+
 Many tests about comparison.
 
 Use :func:`sage.symbolic.comparison.mixed_order`` instead of
@@ -1078,7 +1085,7 @@ cdef class Expression(CommutativeRingElement):
         Return string representation in Magma of this symbolic expression.
 
         Since Magma has no notation of symbolic calculus, this simply
-        returns something that evaluates in Magma to a a Magma string.
+        returns something that evaluates in Magma to a Magma string.
 
         EXAMPLES::
 
@@ -4147,6 +4154,35 @@ cdef class Expression(CommutativeRingElement):
             sage: elem = SR(2)^n
             sage: (elem, elem.parent())
             (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
+
+        Check that pynac understands rational powers (:trac:`30446`,
+        :trac:`28620`, :trac:`30304`, and :trac:`30786`)::
+
+            sage: QQ((24*sqrt(3))^(100/50))==1728
+            True
+            sage: float((24*sqrt(3))^(100/51))
+            1493.0092154...
+            sage: t=((1/10)*I/pi)^(3/2)
+            sage: t^2
+            -1/1000*I/pi^3
+            sage: (2*pi)^QQ(2)
+            4*pi^2
+            sage: exp(-3*ln(-9*x)/3)
+            -1/9/x
+
+        Check that :trac:`31137` is also fixed::
+
+            sage: _ = var('A, L, G, R, f, k, n, q, u, beta, gamma', domain="positive")
+            sage: a = I*R^2*f^3*k*q*A*u
+            sage: b = 2*pi*L*R^2*G*f^4*k^2*q - 2*pi*L*R^2*G*f^4*q - 2*pi*L*R^2*beta^2*G*q
+            sage: c = (2*I*pi*L*R^2*beta*gamma*q + 2*I*pi*L*R*(beta + q))*G*f^3
+            sage: d = 2*(pi*(beta^2 + 1)*L*R^2*q + pi*L*R*beta*gamma*q + pi*L*beta)*G*f^2
+            sage: e = (-2*I*pi*L*R^2*beta*gamma*q - 2*I*pi*(beta^2*q + beta)*L*R)*G*f
+            sage: expr = a / ((b + c + d + e)*n)
+            sage: R = ((sqrt(expr.real()^2 + expr.imag()^2).factor())^2).factor()
+            sage: Rs = R.subs(f = 2*beta)
+            sage: len(str(Rs))
+            520
         """
         cdef Expression nexp = <Expression>other
         cdef GEx x
@@ -12578,6 +12614,11 @@ cdef class Expression(CommutativeRingElement):
             (x, y) |--> 2*x + 2*y
             sage: integral(f, z)
             (x, y) |--> (x + y)*z
+
+        We check that :trac:`13097` is resolved::
+
+            sage: integrate(ln(1+4/5*sin(x)), x, -3.1415, 3.1415)  # tol 10e-6
+            -1.40205228301000
         """
         from sage.symbolic.integration.integral import \
             integral, _normalize_integral_input

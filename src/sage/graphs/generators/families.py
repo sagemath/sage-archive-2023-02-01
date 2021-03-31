@@ -1834,7 +1834,7 @@ def RoseWindowGraph(n, a, r):
         sage: all(G.degree(u) == 4 for u in G)
         True
 
-    TESTS:
+    TESTS::
 
         sage: graphs.RoseWindowGraph(1, 1, 1)
         Traceback (most recent call last):
@@ -1925,7 +1925,7 @@ def TabacjnGraph(n, a, b, r):
         sage: G.is_isomorphic(I)
         True
 
-    TESTS:
+    TESTS::
 
         sage: graphs.TabacjnGraph(1, 1, 1, 1)
         Traceback (most recent call last):
@@ -2587,7 +2587,7 @@ def SwitchedSquaredSkewHadamardMatrixGraph(n):
     <sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
 
     In this case, the other possible parameter set of a strongly regular graph
-    in the Seidel switching class of the latter graph (see [BH12]_) coincides
+    in the Seidel switching class of the latter graph (see [BH2012]_) coincides
     with the set of parameters of the complement of the graph returned by this
     function.
 

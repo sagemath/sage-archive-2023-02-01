@@ -470,6 +470,11 @@ REFERENCES:
                  "PHOTON-BeetleAuthenticated Encryption and Hash Family"
                  https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/PHOTON-Beetle-spec.pdf
 
+.. [BH2012] \A. Brouwer and W. Haemers,
+            Spectra of graphs,
+            Springer, 2012,
+            http://homepages.cwi.nl/~aeb/math/ipm/ipm.pdf
+
 .. [BPPSST2017] Banik, Pandey, Peyrin, Sasaki, Sim, and Todo,
                 GIFT : A Small Present Towards Reaching the Limit of Lightweight
                 Encryption. *Cryptographic Hardware and Embedded Systems - CHES 2017*,
@@ -931,6 +936,11 @@ REFERENCES:
 .. [Bond2007] P. Bonderson, Nonabelian anyons and interferometry,
               Dissertation (2007). https://thesis.library.caltech.edu/2447/
 
+.. [BDGRTW2019] Bonderson, Delaney, Galindo, Rowell, Tran, and Wang,
+        On invariants of modular categories beyond modular data.
+        J. Pure Appl. Algebra 223 (2019), no. 9, 4065–4088.
+        :arXiv:`1805.05736`.
+
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
             Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
@@ -1246,6 +1256,10 @@ REFERENCES:
 .. [Car1972] \R. W. Carter. *Simple groups of Lie type*, volume 28 of
              Pure and Applied Mathematics. John Wiley and Sons, 1972.
 
+.. [Cha2005] \F. Chapoton, *Une Base Symétrique de l'algèbre des
+             Coinvariants Quasi-Symétriques*, Electronic Journal of
+             Combinatorics Vol 12(1) (2005) N16.
+
 .. [CQ2019] \A. Cassella and C. Quadrelli.
             *Right-angled Artin groups and enhanced Koszul properties*.
             Preprint, :arxiv:`1907.03824`, (2019).
@@ -1550,9 +1564,6 @@ REFERENCES:
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
 
-.. [Co1999] \J. H. Conway, N. J. A. Sloane. *Sphere Packings, Lattices and Groups*,
-            Springer Verlag 1999.
-
 .. [CO2010] Jonathan Comes, Viktor Ostrik.
             *On blocks of Deligne's category*
             `\underline{\mathrm{Rep}}(S_t)`.
@@ -1645,6 +1656,11 @@ REFERENCES:
             *Counting smaller elements in the tamari and m-tamari lattices*.
             Journal of Combinatorial Theory, Series A. (2015). :arxiv:`1311.3922`.
 
+.. [CP2016] \N. Cohen, D. Pasechnik,
+            *Implementing Brouwer's database of strongly regular graphs*,
+            Designs, Codes, and Cryptography, 2016
+            :doi:`10.1007/s10623-016-0264-x`
+
 .. [CPdA2014] Maria Chlouveraki and Loïc Poulain
               d'Andecy. *Representation theory of the Yokonuma-Hecke
               algebra*. (2014) :arxiv:`1302.6225v2`.
@@ -1691,8 +1707,8 @@ REFERENCES:
             error-correcting codes from game theory*, IEEE
             Trans. Infor. Theory **32** (1986) 337-348.
 
-.. [CS1999] \J.H. Conway and N.J.A. Sloane, Sphere packings, lattices
-            and groups, 3rd. ed., Grundlehren der Mathematischen
+.. [CS1999] \J. H. Conway and N. J. A. Sloane, *Sphere packings, lattices
+            and groups*, 3rd. ed., Grundlehren der Mathematischen
             Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
 .. [CS1988] Conway, J. H., and N. J. A. Sloane. “Low-Dimensional Lattices. IV.
@@ -1836,6 +1852,11 @@ REFERENCES:
 .. [Deo1987b] \V.V. Deodhar, On some geometric aspects of Bruhat
               orderings II. The parabolic analogue of Kazhdan-Lusztig
               polynomials, J. Alg. 111 (1987) 483-506.
+
+.. [DesignHandbook] Handbook of Combinatorial Designs (2ed)
+                    Charles Colbourn, Jeffrey Dinitz
+                    Chapman & Hall/CRC
+                    2012
 
 .. [DerZak1980] Nachum Dershowitz and Schmuel Zaks,
                 *Enumerations of ordered trees*,
@@ -2567,6 +2588,9 @@ REFERENCES:
 .. [Gre2006] \R. M. Green, *Star reducible Coxeter groups*, Glasgow
             Mathematical Journal, Volume 48, Issue 3, pp. 583-609.
 
+.. [Gri2021] \O. Gritsenko, *On strongly regular graph with parameters (65; 32; 15; 16)*,
+              :arxiv:`2102.05432`.
+
 .. [GX2020] \R. M. Green, Tianyuan Xu, *Classification of Coxeter groups with
             finitely many elements of a-value 2*, Algebraic Combinatorics,
             Volume 3 (2020) no. 2, pp. 331-364.
@@ -2964,6 +2988,11 @@ REFERENCES:
              in Quantum graphs and their applications, 173-189,
              Contemp. Math., Vol. 415.
 
+.. [HST2008] \F. Hivert, A. Schilling, N. Thiery,
+             *Hecke group algebras as quotients of affine Hecke algebras at level 0*,
+             Journal of Combinatorial Theory, Series A 116 (2009) 844-863
+             (:arxiv:`0804.3781`)
+
 .. [HSV2006] Hess, Smart, Vercauteren, "The Eta Pairing Revisited",
              IEEE Trans. Information Theory, 52(10): 4595-4602, 2006.
 
@@ -2994,6 +3023,14 @@ REFERENCES:
 
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).
+
+
+.. [HX2010] \W. Haemers and Q. Xiang,
+            Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)`
+            exist for all `m>1`,
+            European Journal of Combinatorics,
+            Volume 31, Issue 6, August 2010, Pages 1553-1559,
+            :doi:`10.1016/j.ejc.2009.07.009`
 
 .. [HZ1999] \C. Holton, L. Q. Zamboni, *Descendants of primitive
             substitutions*, Theory Comput. Syst. 32 (1999) 133-157.
@@ -5391,6 +5428,10 @@ REFERENCES:
              Jennings. *A linear approximation method for the Shapley
              value.* Artificial Intelligence 172.14 (2008): 1673-1699.
 
+.. [SWW1972] \A. Street, W. Wallis, J. Wallis,
+             Combinatorics: Room squares, sum-free sets, Hadamard matrices.
+             Lecture notes in Mathematics 292 (1972).
+
 .. [Sys1987] Maciej M. SysŁo,
              *Minimizing the jump number for partially-ordered sets: a
              graph-theoretic approach, II*.
@@ -5400,6 +5441,10 @@ REFERENCES:
 .. [SYYTIYTT2002] \T. Shimoyama, H. Yanami, K. Yokoyama, M. Takenaka, K. Itoh,
                   \J. Yajima, N. Torii, and H. Tanaka, *The block cipher SC2000*; in
                   FSE, (2001), pp. 312-327.
+
+.. [Sz1969] \G. Szekeres,
+            Tournaments and Hadamard matrices,
+            Enseignement Math. (2) 15(1969), 269-278
 
 .. [SZ1994] Bruno Salvy and Paul Zimmermann. Gfun: a Maple package for
             the manipulation of generating and holonomic functions in
@@ -5736,6 +5781,10 @@ REFERENCES:
 .. [Wu2018] Wuthrich, Christian.
             *Numerical modular symbols for elliptic curves*.
             Math. Comp. 87 (2018), no. 313, 2393–2423.
+
+.. [WW1972] \J. Wallis and A.L. Whiteman,
+            Some classes of Hadamard matrices with constant diagonal,
+            Bull. Austral. Math. Soc. 7(1972), 233-249
 
 .. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
             and set partition statistics*, Journal of Combinatorial

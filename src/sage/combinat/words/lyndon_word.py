@@ -553,7 +553,7 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
 
     def __contains__(self, sblw):
         """
-        EXAMPLES:
+        EXAMPLES::
 
             sage: S = StandardBracketedLyndonWords(2, 3)
             sage: [[1, 2], 2] in S

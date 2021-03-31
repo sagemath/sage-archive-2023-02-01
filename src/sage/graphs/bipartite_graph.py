@@ -307,6 +307,24 @@ class BipartiteGraph(Graph):
             sage: P = graphs.PetersenGraph()
             sage: partition = [list(range(5)), list(range(5, 10))]
             sage: B = BipartiteGraph(P, partition, check=False)
+
+        TESTS:
+
+        Test that the memory leak in :trac:`31313` is fixed::
+
+            sage: A = Matrix(ZZ, 100, 125)
+            sage: for i in range(A.nrows()):
+            ....:     for j in Subsets(A.ncols()).random_element():
+            ....:         A[i, j - 1] = 1
+            sage: def make_bip_graph(A):
+            ....:     G = BipartiteGraph(A)
+            sage: for _ in range(10):
+            ....:     make_bip_graph(A)
+            sage: start_mem = get_memory_usage()
+            sage: for _ in range(10):
+            ....:     make_bip_graph(A)
+            sage: print(round(get_memory_usage() - start_mem))
+            0.0
         """
         if kwds is None:
             kwds = {'loops': False}
@@ -364,17 +382,17 @@ class BipartiteGraph(Graph):
             if kwds.get("multiedges", False):
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if data[jj][ii]:
-                            self.add_edges([(ii, jj + ncols)] * data[jj][ii])
+                        if data[jj, ii]:
+                            self.add_edges([(ii, jj + ncols)] * data[jj, ii])
             elif kwds.get("weighted", False):
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if data[jj][ii]:
-                            self.add_edge((ii, jj + ncols, data[jj][ii]))
+                        if data[jj, ii]:
+                            self.add_edge((ii, jj + ncols, data[jj, ii]))
             else:
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if data[jj][ii]:
+                        if data[jj, ii]:
                             self.add_edge((ii, jj + ncols))
         elif isinstance(data, GenericGraph) and partition is not None:
             left, right = set(partition[0]), set(partition[1])

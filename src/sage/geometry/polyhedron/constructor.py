@@ -440,8 +440,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
         sage: R0.<r0> = QQ[]
         sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))
-        sage: grat = (1+r1)/2
-        sage: v = [[0, 1, grat], [0, 1, -grat], [0, -1, grat], [0, -1, -grat]]
+        sage: gold = (1+r1)/2
+        sage: v = [[0, 1, gold], [0, 1, -gold], [0, -1, gold], [0, -1, -gold]]
         sage: pp = Permutation((1, 2, 3))
         sage: icosah = Polyhedron([(pp^2).action(w) for w in v]
         ....:             + [pp.action(w) for w in v] + v, base_ring=R1)

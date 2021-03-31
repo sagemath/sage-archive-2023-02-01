@@ -39,7 +39,15 @@ two-sided ideals, and thus provide ideal containment tests::
     Free Associative Unital Algebra on 3 generators (x, y, z) over Rational Field
     sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
     sage: I.groebner_basis(degbound=4)
-    Twosided Ideal (y*z*y*y - y*z*y*z + y*z*z*y - y*z*z*z, y*z*y*x + y*z*y*z + y*z*z*x + y*z*z*z, y*y*z*y - y*y*z*z + y*z*z*y - y*z*z*z, y*y*z*x + y*y*z*z + y*z*z*x + y*z*z*z, y*y*y - y*y*z + y*z*y - y*z*z, y*y*x + y*y*z + y*z*x + y*z*z, x*y + y*z, x*x - y*x - y*y - y*z) of Free Associative Unital Algebra on 3 generators (x, y, z) over Rational Field
+    Twosided Ideal (x*y + y*z,
+        x*x - y*x - y*y - y*z,
+        y*y*y - y*y*z + y*z*y - y*z*z,
+        y*y*x + y*y*z + y*z*x + y*z*z,
+        y*y*z*y - y*y*z*z + y*z*z*y - y*z*z*z,
+        y*z*y*y - y*z*y*z + y*z*z*y - y*z*z*z,
+        y*y*z*x + y*y*z*z + y*z*z*x + y*z*z*z,
+        y*z*y*x + y*z*y*z + y*z*z*x + y*z*z*z) of Free Associative Unital
+        Algebra on 3 generators (x, y, z) over Rational Field
     sage: y*z*y*y*z*z + 2*y*z*y*z*z*x + y*z*y*z*z*z - y*z*z*y*z*x + y*z*z*z*z*x in I
     True
 
@@ -232,7 +240,7 @@ class FreeAlgebraFactory(UniqueFactory):
         a*b^2*c^3
     """
     def create_key(self, base_ring, arg1=None, arg2=None,
-            sparse=None, order='degrevlex',
+            sparse=None, order=None,
             names=None, name=None,
             implementation=None, degrees=None):
         """
@@ -263,6 +271,8 @@ class FreeAlgebraFactory(UniqueFactory):
             return tuple(degrees),base_ring
         # test if we can use libSingular/letterplace
         if implementation == "letterplace":
+            if order is None:
+                order = 'degrevlex' if degrees is None else 'deglex'
             args = [arg for arg in (arg1, arg2) if arg is not None]
             kwds = dict(sparse=sparse, order=order, implementation="singular")
             if name is not None:
@@ -273,7 +283,7 @@ class FreeAlgebraFactory(UniqueFactory):
             if degrees is None:
                 return (PolRing,)
             from sage.all import TermOrder
-            T = PolRing.term_order() + TermOrder('lex',1)
+            T = TermOrder(PolRing.term_order(), PolRing.ngens() + 1)
             varnames = list(PolRing.variable_names())
             newname = 'x'
             while newname in varnames:

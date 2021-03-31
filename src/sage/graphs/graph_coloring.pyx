@@ -103,7 +103,7 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
     The construction works as follows. Columns:
 
     * The first `|V|` columns correspond to a vertex -- a `1` in this column
-      indicates that that vertex has a color.
+      indicates that this vertex has a color.
 
     * After those `|V|` columns, we add `n*|E|` columns -- a `1` in these
       columns indicate that a particular edge is incident to a vertex with a

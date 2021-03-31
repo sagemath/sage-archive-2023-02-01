@@ -12190,7 +12190,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: (x^2 + 1).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{2} + 1</script></html>
+            x^2 + 1
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)

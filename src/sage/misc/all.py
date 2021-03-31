@@ -27,7 +27,7 @@ add = sum
 
 from .dev_tools import runsnake, import_statements
 
-from .html import html
+from .html import html, pretty_print_default
 
 from .repr import repr_lincomb
 
@@ -144,7 +144,7 @@ from .functional import (additive_order,
                         transpose)
 
 
-from .latex import LatexExpr, latex, view, pretty_print_default
+from .latex import LatexExpr, latex, view
 
 from .trace import trace
 

@@ -2006,6 +2006,20 @@ class _Decoder_K_extension(object):
         sage: code = codes.EvaluationAGCode(pls, G)
         sage: code.decoder('K')
         Unique decoder for [9, 4] evaluation AG code over GF(4)
+
+    ::
+
+        sage: P.<x,y> = ProjectiveSpace(GF(4), 1)
+        sage: C = Curve(P)
+        sage: pls = C.places()
+        sage: len(pls)
+        5
+        sage: F = C.function_field()
+        sage: G = F.get_place(2).divisor()
+        sage: code = codes.EvaluationAGCode(pls, G)
+        sage: code.decoder('K')
+        Unique decoder for [5, 3] evaluation AG code over GF(4)
+
     """
     def __init__(self, pls, G, Q, verbose=False):
         """
@@ -2033,9 +2047,12 @@ class _Decoder_K_extension(object):
 
         F_ext_base = FunctionField(K_ext, F_base.variable_name())
 
-        # construct constant field extension F_ext of F
-        def_poly = F.polynomial().base_extend(F_ext_base)
-        F_ext = F_ext_base.extension(def_poly, names=def_poly.variable_name())
+        if F.degree() > 1:
+            # construct constant field extension F_ext of F
+            def_poly = F.polynomial().base_extend(F_ext_base)
+            F_ext = F_ext_base.extension(def_poly, names=def_poly.variable_name())
+        else: # rational function field
+            F_ext = F_ext_base
 
         O_ext = F_ext.maximal_order()
         Oinf_ext = F_ext.maximal_order_infinite()
@@ -2043,7 +2060,11 @@ class _Decoder_K_extension(object):
         # embedding of F into F_ext
         embedK = K_ext.coerce_map_from(K)
         embedF_base = F_base.hom(F_ext_base.gen(), embedK)
-        embedF = F.hom(F_ext.gen(), embedF_base)
+
+        if F.degree() > 1:
+            embedF = F.hom(F_ext.gen(), embedF_base)
+        else:
+            embedF = embedF_base
 
         self._embedK = embedK
         self._K = K

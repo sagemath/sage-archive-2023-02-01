@@ -19,12 +19,12 @@ the action of a group with the functions :func:`fixed_subpolytopes` and
 :func:`fixed_subpolytope`.`
 Finally, the module contains the function :func:`match_perms_to_mats` which
 returns a dictionary between elements of the group written as permutations of a
-polytope's vertices and written as a matrices.
+polytope's vertices and written as matrices.
 
 REFERENCES:
 
     - [1] Alan Stapledon. Equivariant Ehrhart Theory. Advances in Mathematics 226 (2011), no. 4, 3622-3654
-    - [2] Federico Ardila, Mariel Supina, and Andr\ ́{e}s R. Vindas-Mel\ ́{e}ndez, The equivariant ehrhart theory of the permutahedron, 2020.
+    - [2] Federico Ardila, Mariel Supina, and Andr\ ́{e}s R. Vindas-Mel\ ́{e}ndez, The Equivariant Ehrhart Theory of the Permutahedron, 2020.
 
 EXAMPLES:
 
@@ -94,7 +94,7 @@ def Hstar_function(polytope, acting_group=None, output=None):
 
     Here, `\H^*(t) = \sum\_{m} \chi\_{m\text{``polytope``}}t^m det(Id-\rho(t))`.
     The irreducible characters of ``acting_group`` form an orthonormal basis
-    for the ring (algebra) of class functions with values in `\mathbb C`.
+    for the ring of class functions with values in `\mathbb C`.
     The coefficients of `H^*(t)` are expressed in this basis.
 
     INPUT:
@@ -105,7 +105,7 @@ def Hstar_function(polytope, acting_group=None, output=None):
     - ``acting_group`` -- (default=None) a permgroup object. A subgroup of
       `polytope`'s `restricted_automorphism_group` output as a permutation.
        If ``None``, it is set to the full `restricted_automorphism_group`
-       of `polytope`. The acting group should always use output = 'permutation'.
+       of `polytope`. The acting group should always use output='permutation'.
 
     - ``output`` -- string. an output option. The allowed values are:
 
@@ -203,7 +203,6 @@ def Hstar_function(polytope, acting_group=None, output=None):
     L = [cl.Representative() for cl in cls]
     conj_classes = [ConjugacyClassGAP(G_perm, G_perm.element_class(rep, G_perm, check=False)) for rep in L]
     conj_reps = [cl[0] for cl in conj_classes]
-    # print(conj_reps)
 
     # Creating the Character Table
     n_classes = len(conj_reps)
@@ -281,7 +280,7 @@ def fixed_subpolytope(polytope, vertex_permutation):
 
     INPUT:
 
-    - ``polytope`` -- polyhedron object; a compact lattice polytope
+    - ``polytope`` -- polyhedron object; a compact lattice polytope.
 
     - ``vertex_permutation`` -- permutation; a permutation of the vertices of
       ``polytope``.

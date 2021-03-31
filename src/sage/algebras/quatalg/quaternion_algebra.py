@@ -83,9 +83,8 @@ class QuaternionAlgebraFactory(UniqueFactory):
 
     There are three input formats:
 
-    - ``QuaternionAlgebra(a, b)``, where `a` and `b` are nonzero
-      elements of a field `K` of characteristic different from 2 that
-      is deduced from `(a, b)`.
+    - ``QuaternionAlgebra(a, b)``, where `a` and `b` can be coerced to
+      units in a common field `K` of characteristic different from 2.
 
     - ``QuaternionAlgebra(K, a, b)``, where `K` is a ring in which 2
       is a unit and `a` and `b` are units of `K`.
@@ -103,7 +102,8 @@ class QuaternionAlgebraFactory(UniqueFactory):
     EXAMPLES:
 
     ``QuaternionAlgebra(a, b)`` -- return the quaternion algebra
-    `(a, b)_K`, where the base ring `K` is deduced from `(a, b)`::
+    `(a, b)_K`, where the base ring `K` is a suitably chosen field
+    containing `a` and `b`::
 
         sage: QuaternionAlgebra(-2,-3)
         Quaternion Algebra (-2, -3) with base ring Rational Field
@@ -117,6 +117,9 @@ class QuaternionAlgebraFactory(UniqueFactory):
         Quaternion Algebra (I, sqrt(-3)) with base ring Symbolic Ring
         sage: QuaternionAlgebra(1r,1)
         Quaternion Algebra (1, 1) with base ring Rational Field
+        sage: A.<t> = ZZ[]
+        sage: QuaternionAlgebra(-1, t)
+        Quaternion Algebra (-1, t) with base ring Fraction Field of Univariate Polynomial Ring in t over Integer Ring
 
     Python ints and floats may be passed to the
     ``QuaternionAlgebra(a, b)`` constructor, as may all pairs of

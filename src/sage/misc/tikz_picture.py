@@ -27,7 +27,7 @@ Setting ``view=True``, which is the default, opens the pdf in a viewer.
 
 ::
 
-    zage: t
+    sage: t
     \documentclass[tikz]{standalone}
     \usepackage{amsmath}
     \begin{document}
@@ -43,7 +43,7 @@ Setting ``view=True``, which is the default, opens the pdf in a viewer.
     \end{tikzpicture}
     \end{document}
 
-Use ``print t`` to see the complete content of the file.
+Use ``print(t)`` to see the complete content of the file.
 
 Adding a border avoids croping the vertices of a graph::
 
@@ -90,7 +90,7 @@ class StandaloneTex(SageObject):
     def __init__(self, content, standalone_options=None, usepackage=['amsmath'],
             usetikzlibrary=None, macros=None, use_sage_preamble=False):
         r"""
-        See the class documentation for full information.
+        See :mod:`sage.misc.tikz_picture` for full information.
 
         EXAMPLES::
 
@@ -144,7 +144,7 @@ class StandaloneTex(SageObject):
 
     def _repr_(self):
         r"""
-        Returns the first few and last few lines.
+        Return the first few and last few lines.
 
         EXAMPLES::
 
@@ -179,7 +179,7 @@ class StandaloneTex(SageObject):
         else:
             lines.extend(L[:5])
             lines.append('...')
-            lines.append('... {} lines not printed ({} characters in total) ...'.format(len(L)-10, 
+            lines.append('... {} lines not printed ({} characters in total) ...'.format(len(L)-10,
                                                            len(self._content)))
             lines.append('...')
             lines.extend(L[-5:])

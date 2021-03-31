@@ -130,6 +130,7 @@ __append_to_doc(
      "GossetGraph",
      "graph_3O73",
      "GrayGraph",
+     "GritsenkoGraph",
      "GrotzschGraph",
      "HallJankoGraph",
      "HarborthGraph",
@@ -1980,6 +1981,7 @@ class GraphGenerators():
     GossetGraph              = staticmethod(smallgraphs.GossetGraph)
     graph_3O73               = staticmethod(distance_regular.graph_3O73)
     GrayGraph                = staticmethod(smallgraphs.GrayGraph)
+    GritsenkoGraph           = staticmethod(smallgraphs.GritsenkoGraph)
     GrotzschGraph            = staticmethod(smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(smallgraphs.HallJankoGraph)
     WellsGraph               = staticmethod(smallgraphs.WellsGraph)

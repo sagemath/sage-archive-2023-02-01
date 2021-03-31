@@ -1834,7 +1834,7 @@ def RoseWindowGraph(n, a, r):
         sage: all(G.degree(u) == 4 for u in G)
         True
 
-    TESTS:
+    TESTS::
 
         sage: graphs.RoseWindowGraph(1, 1, 1)
         Traceback (most recent call last):
@@ -1925,7 +1925,7 @@ def TabacjnGraph(n, a, b, r):
         sage: G.is_isomorphic(I)
         True
 
-    TESTS:
+    TESTS::
 
         sage: graphs.TabacjnGraph(1, 1, 1, 1)
         Traceback (most recent call last):

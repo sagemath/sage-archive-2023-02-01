@@ -1253,20 +1253,6 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         1
         sage: harmonic_number(x,1)
         harmonic_number(x)
-
-    Arguments are swapped with respect to the same functions in
-    Maxima::
-
-        sage: maxima(harmonic_number(x,2)) # maxima expect interface
-        gen_harmonic_number(2,_SAGE_VAR_x)
-        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
-        sage: sefms('gen_harmonic_number(3,x)')
-        harmonic_number(x, 3)
-        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
-        sage: c=maxima_lib(harmonic_number(x,2)); c
-        gen_harmonic_number(2,_SAGE_VAR_x)
-        sage: max_to_sr(c.ecl())
-        harmonic_number(x, 2)
     """
 
     def __init__(self):
@@ -1438,14 +1424,32 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
 harmonic_number = Function_harmonic_number_generalized()
 
+class _Function_swap_harmonic(BuiltinFunction):
+    r"""
+    Harmonic number function with swapped arguments. For internal use only.
 
-def _swap_harmonic(a, b):
-    return harmonic_number(b, a)
+    EXAMPLES::
 
+        sage: maxima(harmonic_number(x,2)) # maxima expect interface
+        gen_harmonic_number(2,_SAGE_VAR_x)
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('gen_harmonic_number(3,x)')
+        harmonic_number(x, 3)
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        sage: c=maxima_lib(harmonic_number(x,2)); c
+        gen_harmonic_number(2,_SAGE_VAR_x)
+        sage: max_to_sr(c.ecl())
+        harmonic_number(x, 2)
+    """
+    def __init__(self):
+        BuiltinFunction.__init__(self, "_swap_harmonic", nargs=2)
+    def _eval_(self, a, b, **kwds):
+        return harmonic_number(b,a,**kwds)
+
+_swap_harmonic = _Function_swap_harmonic()
 
 register_symbol(_swap_harmonic, {'maxima': 'gen_harmonic_number'})
 register_symbol(_swap_harmonic, {'maple': 'harmonic'})
-
 
 class Function_harmonic_number(BuiltinFunction):
     r"""

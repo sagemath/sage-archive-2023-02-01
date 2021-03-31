@@ -409,7 +409,7 @@ from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement
 from sage.rings.real_mpfr import create_RealNumber
 
 from sage.misc.latex import latex
-from sage.misc.parser import Parser
+from sage.misc.parser import Parser, LookupNameMaker
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
 from sage.symbolic.expression import Expression
@@ -2044,8 +2044,6 @@ symtable = {'%pi': 'pi', '%e': 'e', '%i': 'I',
             'e': '_e', 'i': '_i', 'I': '_I'}
 
 
-maxima_tick = re.compile(r"'[\w]*")
-
 maxima_qp = re.compile(r"\?\%[\w]*")  # e.g., ?%jacobi_cd
 
 maxima_var = re.compile(r"[\w\%]*")  # e.g., %jacobi_cd
@@ -2145,8 +2143,10 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('%inf')
         +Infinity
     """
-    global _syms
-    syms = symbol_table.get('maxima', {}).copy()
+    var_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
+                if not isinstance(v,Function)}
+    function_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
+                     if isinstance(v,Function)}
 
     if not len(x):
         raise RuntimeError("invalid symbolic expression -- ''")
@@ -2157,17 +2157,15 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = maxima._eval_line('_tmp_;')
 
-    formal_functions = maxima_tick.findall(s)
-    if len(formal_functions):
-        for X in formal_functions:
-            try:
-                syms[X[1:]] = _syms[X[1:]]
-            except KeyError:
-                syms[X[1:]] = function_factory(X[1:])
-        # You might think there is a potential very subtle bug if 'foo
-        # is in a string literal -- but string literals should *never*
-        # ever be part of a symbolic expression.
-        s = s.replace("'","")
+    # We don't actually implement a parser for maxima expressions.
+    # Instead we simply transform the string until it is a valid
+    # sagemath expression and parse that.
+
+    # Remove ticks in front of symbolic functions. You might think
+    # there is a potential very subtle bug if 'foo is in a string
+    # literal -- but string literals should *never* ever be part of a
+    # symbolic expression.
+    s = s.replace("'","")
 
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions):
@@ -2175,7 +2173,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
             if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
                 pass
             else:
-                syms[X[2:]] = function_factory(X[2:])
+                function_syms[X[2:]] = function_factory(X[2:])
         s = s.replace("?%", "")
 
     s = maxima_hyper.sub('hypergeometric', s)
@@ -2229,25 +2227,20 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s.replace(s[start:end], r)
         search = sci_not.search(s)
 
-    # have to do this here, otherwise maxima_tick catches it
-    syms['diff'] = dummy_diff
-    syms['integrate'] = dummy_integrate
-    syms['laplace'] = dummy_laplace
-    syms['ilt'] = dummy_inverse_laplace
-    syms['at'] = at
+    function_syms['diff'] = dummy_diff
+    function_syms['integrate'] = dummy_integrate
+    function_syms['laplace'] = dummy_laplace
+    function_syms['ilt'] = dummy_inverse_laplace
+    function_syms['at'] = at
 
     global is_simplified
     try:
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        _syms = symbol_table['functions'].copy()
-        try:
-            global _augmented_syms
-            _augmented_syms = syms
-            return SRM_parser.parse_sequence(s)
-        finally:
-            _augmented_syms = {}
+        parser_make_Mvar.set_names(var_syms)
+        parser_make_function.set_names(function_syms)
+        return SRM_parser.parse_sequence(s)
     except SyntaxError:
         raise TypeError("unable to make sense of Maxima expression '%s' in Sage" % s)
     finally:
@@ -2301,17 +2294,10 @@ def maxima_options(**kwds):
 # We keep two dictionaries syms_cur and syms_default to keep the current symbol
 # table and the state of the table at startup respectively. These are used by
 # the restore() function (see sage.misc.reset).
-#
-# The dictionary _syms is used as a lookup table for the system function
-# registry by _find_func() below. It gets updated by
-# symbolic_expression_from_string() before calling the parser.
-_syms = syms_cur = symbol_table.get('functions', {})
+
+syms_cur = symbol_table.get('functions', {})
 syms_default = dict(syms_cur)
 
-# This dictionary is used to pass a lookup table other than the system registry
-# to the parser. A global variable is necessary since the parser calls the
-# _find_var() and _find_func() functions below without extra arguments.
-_augmented_syms = {}
 
 
 def _find_var(name):
@@ -2327,20 +2313,9 @@ def _find_var(name):
         sage: sage.calculus.calculus._find_var('I')
         I
     """
-    try:
-        res = _augmented_syms[name]
-    except KeyError:
-        pass
-    else:
-        # _augmented_syms might contain entries pointing to functions if
-        # previous computations polluted the maxima workspace
-        if not isinstance(res, Function):
-            return res
-
-    try:
-        return SR.symbols[name]
-    except KeyError:
-        pass
+    v = SR.symbols.get(name)
+    if v is not None:
+        return v
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
@@ -2370,33 +2345,30 @@ def _find_func(name, create_when_missing=True):
         sage: s(0)
         0
     """
-    try:
-        func = _augmented_syms.get(name)
-        if func is None:
-            func = _syms[name]
-        if not isinstance(func, Expression):
-            return func
-    except KeyError:
-        pass
+    f = symbol_table['functions'].get(name)
+    if f is not None:
+        return f
+
     import sage.all
     try:
-        func = SR(sage.all.__dict__[name])
-        if not isinstance(func, Expression):
-            return func
+        f = SR(sage.all.__dict__[name])
+        if not isinstance(f, Expression):
+            return f
     except (KeyError, TypeError):
         if create_when_missing:
             return function_factory(name)
         else:
             return None
 
+parser_make_var = LookupNameMaker({}, fallback=_find_var)
+parser_make_function = LookupNameMaker({}, fallback=_find_func)
 
-SR_parser = Parser(make_int=lambda x: SR(Integer(x)),
-                   make_float=lambda x: SR(create_RealNumber(x)),
-                   make_var=_find_var,
-                   make_function=_find_func)
+SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
+                   make_float    = lambda x: SR(create_RealNumber(x)),
+                   make_var      = parser_make_var,
+                   make_function = parser_make_function)
 
-
-def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
+def symbolic_expression_from_string(s, syms={}, accept_sequence=False):
     """
     Given a string, (attempt to) parse it and return the
     corresponding Sage symbolic expression.  Normally used
@@ -2406,7 +2378,7 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
 
     - ``s`` - a string
 
-    - ``syms`` - (default: None) dictionary of
+    - ``syms`` - (default: {}) dictionary of
       strings to be regarded as symbols or functions
 
     - ``accept_sequence`` - (default: False) controls whether
@@ -2428,18 +2400,12 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         sage: sage.calculus.calculus.symbolic_expression_from_string(str(RealField(100)(10^-500/3)))
         3.333333333333333333333333333e-501
     """
-    global _syms
-    _syms = symbol_table['functions'].copy()
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
-    if syms is None:
-        return parse_func(s)
-    else:
-        try:
-            global _augmented_syms
-            _augmented_syms = syms
-            return parse_func(s)
-        finally:
-            _augmented_syms = {}
+    parser_make_var.set_names({k: v for k, v in syms.items()
+                               if not isinstance(v,Function)})
+    parser_make_function.set_names({k: v for k, v in syms.items()
+                                    if isinstance(v,Function)})
+    return parse_func(s)
 
 
 def _find_Mvar(name):
@@ -2457,9 +2423,6 @@ def _find_Mvar(name):
     """
     if name[:10] == "_SAGE_VAR_":
         return var(name[10:])
-    res = _augmented_syms.get(name)
-    if res is not None and not isinstance(res, Function):
-        return res
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
@@ -2469,8 +2432,9 @@ def _find_Mvar(name):
     except (KeyError, TypeError):
         return var(name)
 
+parser_make_Mvar = LookupNameMaker({}, fallback=_find_Mvar)
 
-SRM_parser = Parser(make_int=lambda x: SR(Integer(x)),
-                    make_float=lambda x: SR(RealDoubleElement(x)),
-                    make_var=_find_Mvar,
-                    make_function=_find_func)
+SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
+                    make_float    = lambda x: SR(RealDoubleElement(x)),
+                    make_var      = parser_make_Mvar,
+                    make_function = parser_make_function)

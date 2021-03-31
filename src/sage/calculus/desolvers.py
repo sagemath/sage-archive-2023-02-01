@@ -933,6 +933,16 @@ def desolve_system(des, vars, ics=None, ivar=None, algorithm="maxima"):
         ...
         ValueError: Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = [1, 1], vars = [x1(t), x2(t)]
 
+    Check that :trac:`9825` is fixed::
+
+        sage: t = var('t')
+        sage: x1, x2=function("x1, x2")
+        sage: de1=x1(t).diff(t)==-3*(x2(t)-1)
+        sage: de2=x2(t).diff(t)==1
+        sage: Sol=desolve_system([de1, de2],[x1(t),x2(t)],ivar=t) ; Sol
+        [x1(t) == -3/2*t^2 - 3*t*x2(0) + 3*t + x1(0), x2(t) == t + x2(0)]
+
+
     AUTHORS:
 
     - Robert Bradshaw (10-2008)

@@ -575,7 +575,7 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
 
     .. NOTE::
 
-        See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
+        See [CS1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
         and examples.
     """
     symbol = genus_symbol_quintuple_list
@@ -659,7 +659,7 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
     .. NOTE::
 
-        See [Co1999]_, pp. 381-382 for definitions and examples.
+        See [CS1999]_, pp. 381-382 for definitions and examples.
 
     """
     if compartments is not None:
@@ -749,7 +749,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
     .. NOTE::
 
-        See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
+        See [CS1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
         and examples.
 
     .. TODO::
@@ -1246,7 +1246,7 @@ class Genus_Symbol_p_adic_ring(object):
     The genus symbol is a list of such symbols (ordered by `m`) for each
     of the Jordan blocks `A_1,...,A_t`.
 
-    Reference: [Co1999]_ Conway and Sloane 3rd edition, Chapter 15, Section 7.
+    Reference: [CS1999]_ Conway and Sloane 3rd edition, Chapter 15, Section 7.
 
 
     .. WARNING::
@@ -1538,7 +1538,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         A `p`-adic square class `r` is called automorphous if it is
         the spinor norm of a proper `p`-adic integral automorphism of this form.
-        These classes form a group. See [Co1999]_ Chapter 15, 9.6 for details.
+        These classes form a group. See [CS1999]_ Chapter 15, 9.6 for details.
 
         OUTPUT:
 
@@ -1548,7 +1548,7 @@ class Genus_Symbol_p_adic_ring(object):
         EXAMPLES:
 
         The following examples are given in
-        [Co1999]_ 3rd edition, Chapter 15, 9.6 pp. 392::
+        [CS1999]_ 3rd edition, Chapter 15, 9.6 pp. 392::
 
             sage: A = matrix.diagonal([3, 16])
             sage: G = Genus(A)
@@ -1750,7 +1750,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         .. NOTE::
 
-            See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
+            See [CS1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
             and examples.
 
         .. TODO::
@@ -2184,7 +2184,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         REFERENCE:
 
-        [Co1999]_ Conway and Sloane Book, 3rd edition, pp 370-371.
+        [CS1999]_ Conway and Sloane Book, 3rd edition, pp 370-371.
 
         OUTPUT:
 

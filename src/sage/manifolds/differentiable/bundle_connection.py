@@ -40,12 +40,13 @@ AUTHORS:
 # ******************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.mutability import Mutability
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.vector_bundle import \
     DifferentiableVectorBundle
 
 
-class BundleConnection(SageObject):
+class BundleConnection(SageObject, Mutability):
     r"""
     An instance of this class represents a bundle connection `\nabla` on a
     smooth vector bundle `E \to M`.
@@ -128,6 +129,10 @@ class BundleConnection(SageObject):
         sage: nab[1, 2] is omega
         False
 
+    Hence, this is therefore equivalent to::
+
+        sage: nab[2, 2].copy_from(omega)
+
     Preferably, we use :meth:`set_connection_form` to specify the connection
     1-forms::
 
@@ -146,6 +151,15 @@ class BundleConnection(SageObject):
         Notice that item assignments and :meth:`set_connection_form` delete
         the connection 1-forms w.r.t. other frames for consistency reasons. To
         avoid this behavior, :meth:`add_connection_form` must be used instead.
+
+    In conclusion, the connection 1-forms of a bundle connection are mutable
+    until the connection itself is set immutable::
+
+        sage: nab.set_immutable()
+        sage: nab[1, 2] = omega
+        Traceback (most recent call last):
+        ...
+        ValueError: object is immutable; please change a copy instead
 
     By definition, a bundle connection acts on vector fields and sections::
 
@@ -250,6 +264,7 @@ class BundleConnection(SageObject):
         if not isinstance(vbundle, DifferentiableVectorBundle):
             raise TypeError("the first argument must be a differentiable " +
                             "vector bundle")
+        Mutability.__init__(self)
         self._vbundle = vbundle
         self._base_space = vbundle.base_space()
         self._name = name
@@ -815,6 +830,7 @@ class BundleConnection(SageObject):
         To delete them, use the method :meth:`set_connection_form` instead.
 
         """
+        self._require_mutable()
         if frame is None:
             smodule = self._vbundle.section_module(domain=self._base_space)
             frame = smodule.default_frame()
@@ -898,6 +914,7 @@ class BundleConnection(SageObject):
         To keep them, use the method :meth:`add_connection_form` instead.
 
         """
+        self._require_mutable()
         omega = self.add_connection_form(i, j, frame=frame)
         self.del_other_forms(frame)
         return omega
@@ -1035,6 +1052,11 @@ class BundleConnection(SageObject):
             sage: X.<x,y> = M.chart()
             sage: E = M.vector_bundle(2, 'E')
             sage: nab = E.bundle_connection('nabla', latex_name=r'\nabla')
+            sage: hash(nab)
+            Traceback (most recent call last):
+            ...
+            ValueError: object is mutable; please make it immutable first
+            sage: nab.set_immutable()
             sage: hash(nab) == nab.__hash__()
             True
 
@@ -1044,8 +1066,9 @@ class BundleConnection(SageObject):
             1
 
         """
+        self._require_immutable()
         if self._hash == -1:
-            self._hash = hash(repr(self))
+            self._hash = hash((type(self).__name__, self._vbundle))
         return self._hash
 
     def __getitem__(self, args):
@@ -1358,3 +1381,96 @@ class BundleConnection(SageObject):
         rtxt = rtxt[:-1]  # remove the last new line
         rlatex = rlatex[:-2] + r'\end{array}'
         return FormattedExpansion(rtxt, rlatex)
+
+    def copy(self, name, latex_name=None):
+        r"""
+        Return an exact copy of ``self``.
+
+        INPUT:
+
+        - ``name`` -- name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
+
+        .. NOTE::
+
+            The name and the derived quantities are not copied.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: nab = E.bundle_connection('nabla')
+            sage: nab.set_connection_form(1, 1)[:] = [x^2, x-z, y^3]
+            sage: nab.set_connection_form(1, 2)[:] = [1, x, z*y^3]
+            sage: nab.set_connection_form(2, 1)[:] = [1, 2, 3]
+            sage: nab.set_connection_form(2, 2)[:] = [0, 0, 0]
+            sage: nab.display()
+            connection (1,1) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x^2 dx + (x - z) dy + y^3 dz
+            connection (1,2) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = dx + x dy + y^3*z dz
+            connection (2,1) of bundle connection nabla w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = dx + 2 dy + 3 dz
+            sage: nab_copy = nab.copy('nablo'); nab_copy
+            Bundle connection nablo on the Differentiable real vector bundle
+             E -> M of rank 2 over the base space 3-dimensional differentiable
+             manifold M
+            sage: nab is nab_copy
+            False
+            sage: nab == nab_copy
+            True
+            sage: nab_copy.display()
+            connection (1,1) of bundle connection nablo w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = x^2 dx + (x - z) dy + y^3 dz
+            connection (1,2) of bundle connection nablo w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = dx + x dy + y^3*z dz
+            connection (2,1) of bundle connection nablo w.r.t. Local frame
+             (E|_M, (e_1,e_2)) = dx + 2 dy + 3 dz
+
+        """
+        copy = type(self)(self._vbundle, name, latex_name=latex_name)
+        for frame, form_dict in self._connection_forms.items():
+            copy._coefficients[frame] = copy._new_forms(frame=frame)
+            for ind, form in form_dict.items():
+                copy._coefficients[frame][ind].copy_from(form)
+        return copy
+
+    def set_immutable(self):
+        r"""
+        Set ``self`` and all restrictions of ``self`` immutable.
+
+        EXAMPLES:
+
+        An affine connection can be set immutable::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: E = M.vector_bundle(2, 'E')
+            sage: e = E.local_frame('e')
+            sage: nab = E.bundle_connection('nabla')
+            sage: nab.set_connection_form(1, 1)[:] = [x^2, x-z, y^3]
+            sage: nab.set_connection_form(1, 2)[:] = [1, x, z*y^3]
+            sage: nab.set_connection_form(2, 1)[:] = [1, 2, 3]
+            sage: nab.set_connection_form(2, 2)[:] = [0, 0, 0]
+            sage: nab.is_immutable()
+            False
+            sage: nab.set_immutable()
+            sage: nab.is_immutable()
+            True
+
+        The coefficients of immutable elements cannot be changed::
+
+            sage: f = E.local_frame('f')
+            sage: nab.add_connection_form(1, 1, frame=f)[:] = [x, y, z]
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead
+
+        """
+        for form_dict in self._connection_forms.values():
+            for form in form_dict.values():
+                form.set_immutable()
+        Mutability.set_immutable(self)

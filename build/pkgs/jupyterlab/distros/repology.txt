@@ -1,1 +1,2 @@
 jupyterlab
+python:jupyterlab

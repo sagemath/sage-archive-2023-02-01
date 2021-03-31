@@ -12,7 +12,7 @@ standalone LaTeX document class.
 
 EXAMPLES::
 
-    sage: from slabbe import TikzPicture
+    sage: from sage.misc.tikz_picture import TikzPicture
     sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
     sage: P = Polyhedron(vertices=V).polar()
     sage: s = P.projection().tikz([674,108,-731],112)
@@ -67,6 +67,7 @@ AUTHORS:
 
 - Sébastien Labbé, initial version in slabbe-0.2.spkg, nov 2015.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2015-2019 Sébastien Labbé <slabqc@gmail.com>
 #
@@ -76,7 +77,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import, print_function
+from collections import defaultdict
+
 from sage.misc.latex import have_pdflatex, have_convert, have_program
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
@@ -90,13 +94,13 @@ class StandaloneTex(SageObject):
 
         EXAMPLES::
 
-            sage: from slabbe import StandaloneTex
+            sage: from sage.misc.tikz_picture import StandaloneTex
             sage: content = "\\section{Intro}\n\nTest\n"
             sage: t = StandaloneTex(content)
 
         ::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s)
         """
@@ -109,7 +113,7 @@ class StandaloneTex(SageObject):
             from sage.misc.latex import _Latex_prefs
             for key in ['preamble', 'macros']:
                 s = _Latex_prefs._option[key]
-                if s: 
+                if s:
                     self._macros.append(s)
             from sage.misc.latex_macros import sage_latex_macros
             self._macros.extend(sage_latex_macros())
@@ -119,7 +123,7 @@ class StandaloneTex(SageObject):
         EXAMPLES::
 
             sage: latex.extra_preamble('')
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
             sage: t._latex_file_header_lines()[:6]
@@ -144,7 +148,7 @@ class StandaloneTex(SageObject):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: g = graphs.PetersenGraph()
             sage: s = latex(g)
             sage: t = TikzPicture(s, usepackage=['tkz-graph'])
@@ -195,7 +199,7 @@ class StandaloneTex(SageObject):
             sage: dm.is_in_terminal()
             False
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: g = graphs.PetersenGraph()
             sage: t = TikzPicture.from_graph(g)            # optional dot2tex
             sage: g._rich_repr_(dm)      # random result is Text in doctest
@@ -247,7 +251,7 @@ class StandaloneTex(SageObject):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s)
             sage: print(t)
@@ -275,7 +279,7 @@ class StandaloneTex(SageObject):
         r"""
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s)
             sage: print(t.tikz_picture_code())
@@ -291,7 +295,7 @@ class StandaloneTex(SageObject):
 
         INPUT:
 
-        - ``filename`` -- string (default:``None``), the output filename. 
+        - ``filename`` -- string (default:``None``), the output filename.
           If ``None``, it saves the file in a temporary directory.
 
         - ``view`` -- bool (default:``True``), whether to open the file in a
@@ -308,7 +312,7 @@ class StandaloneTex(SageObject):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
             sage: P = Polyhedron(vertices=V).polar()
             sage: s = P.projection().tikz([674,108,-731],112)
@@ -334,7 +338,7 @@ class StandaloneTex(SageObject):
 
         # Check availability of programs
         if program == 'pdflatex' and not have_pdflatex():
-            raise RuntimeError("PDFLaTeX does not seem to be installed. " 
+            raise RuntimeError("PDFLaTeX does not seem to be installed. "
                     "Download it from ctan.org and try again.")
         elif program == 'lualatex' and not have_program(program):
             raise RuntimeError("lualatex does not seem to be installed.")
@@ -389,7 +393,7 @@ class StandaloneTex(SageObject):
 
         INPUT:
 
-        - ``filename`` -- string (default:``None``), the output filename. 
+        - ``filename`` -- string (default:``None``), the output filename.
           If ``None``, it saves the file in a temporary directory.
 
         - ``density`` -- integer, (default: ``150``), horizontal and vertical
@@ -405,7 +409,7 @@ class StandaloneTex(SageObject):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
             sage: P = Polyhedron(vertices=V).polar()
             sage: s = P.projection().tikz([674,108,-731],112)
@@ -477,7 +481,7 @@ class StandaloneTex(SageObject):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
             sage: P = Polyhedron(vertices=V).polar()
             sage: s = P.projection().tikz([674,108,-731],112)
@@ -495,7 +499,7 @@ class StandaloneTex(SageObject):
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
         if not have_program('pdf2svg'):
-            raise RuntimeError("pdf2svg does not seem to be installed. " 
+            raise RuntimeError("pdf2svg does not seem to be installed. "
                     "Install it for example with ``brew install pdf2svg``"
                     " or ``apt-get install pdf2svg``.")
 
@@ -545,7 +549,7 @@ class StandaloneTex(SageObject):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
             sage: P = Polyhedron(vertices=V).polar()
             sage: s = P.projection().tikz([674,108,-731],112)
@@ -602,7 +606,7 @@ class TikzPicture(StandaloneTex):
 
     EXAMPLES::
 
-        sage: from slabbe import TikzPicture
+        sage: from sage.misc.tikz_picture import TikzPicture
         sage: g = graphs.PetersenGraph()
         sage: s = latex(g)
         sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
@@ -619,7 +623,7 @@ class TikzPicture(StandaloneTex):
         ....:      'positioning', 'pgfplots.groupplots', 'mindmap']
         sage: macros = [r'\newcommand{\ZZ}{\mathbb{Z}}']
         sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
-        sage: t = TikzPicture(s, standalone_options=options, usepackage=usepackage, 
+        sage: t = TikzPicture(s, standalone_options=options, usepackage=usepackage,
         ....:        usetikzlibrary=tikzlib, macros=macros)
         sage: _ = t.pdf(view=False)   # long time (2s)
     """
@@ -642,7 +646,7 @@ class TikzPicture(StandaloneTex):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: G = graphs.PetersenGraph()
             sage: dotdata = G.graphviz_string()
             sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex # long time (3s)
@@ -710,7 +714,7 @@ class TikzPicture(StandaloneTex):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: g = graphs.PetersenGraph()
             sage: tikz = TikzPicture.from_graph(g) # optional dot2tex # long time (3s)
             sage: _ = tikz.pdf()      # not tested
@@ -738,7 +742,7 @@ class TikzPicture(StandaloneTex):
             sage: fn = lambda L: LatexExpr(','.join(map(str, L)))
             sage: G = DiGraph([(0,1,'a'), (0,1,'b'), (0,2,'c'), (0,2,'d')], multiedges=True)
             sage: tikz = TikzPicture.from_graph(G, merge_multiedges=True,   # optional dot2tex
-            ....:               merge_label_function=fn)            
+            ....:               merge_label_function=fn)
             sage: _ = tikz.pdf()      # not tested
 
         Using subgraphs clusters (broken when using labels, see
@@ -766,7 +770,7 @@ class TikzPicture(StandaloneTex):
             sage: G = DiGraph()
             sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4))
             sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4))
-            sage: t = TikzPicture.from_graph(G)
+            sage: t = TikzPicture.from_graph(G)  # optional dot2tex
             sage: _ = tikz.pdf()      # not tested
             sage: def edge_options(data):
             ....:     u, v, label = data
@@ -777,7 +781,7 @@ class TikzPicture(StandaloneTex):
             ....:     if (u,v) == (1,  1/2): options["edge_string"] = "<-"
             ....:     if (u,v) == (1/2,  1): options["backward"]    = True
             ....:     return options
-            sage: t = TikzPicture.from_graph(G, edge_options=edge_options)
+            sage: t = TikzPicture.from_graph(G, edge_options=edge_options)  # optional dot2tex 
             sage: _ = tikz.pdf()      # not tested
 
         .. TODO:: improve the previous example
@@ -787,12 +791,21 @@ class TikzPicture(StandaloneTex):
         assert have_pdflatex(), "pdflatex does not seem to be installed"
         from sage.features.graphviz import Graphviz
         assert Graphviz().is_present(), "graphviz does not seem to be installed"
-        # TODO: test the presence of dot2tex
+        from sage.graphs.dot2tex_utils import assert_have_dot2tex
+        assert_have_dot2tex()
 
         if merge_multiedges and graph.has_multiple_edges():
-            from slabbe.graph import merge_multiedges
-            graph = merge_multiedges(graph,
-                    label_function=merge_label_function)
+            d = defaultdict(list)
+            for (u, v, label) in graph.edges():
+                d[(u, v)].append(label)
+            edges = [(u, v, merge_label_function(label_list)) for (u, v), label_list in d.items()]
+            loops = graph.has_loops()
+            if graph.is_directed():
+                from sage.graphs.digraph import DiGraph
+                graph = DiGraph(edges, format='list_of_edges', loops=loops)
+            else:
+                from sage.graphs.graph import Graph
+                graph = Graph(edges, format='list_of_edges', loops=loops)
 
         default = dict(format='dot2tex', edge_labels=True,
                        color_by_label=False, prog='dot', rankdir='down')
@@ -822,7 +835,7 @@ class TikzPicture(StandaloneTex):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: g = graphs.PetersenGraph()
             sage: tikz = TikzPicture.from_graph_with_pos(g)
 
@@ -865,9 +878,17 @@ class TikzPicture(StandaloneTex):
             raise ValueError('vertex positions need to be set first')
 
         if merge_multiedges and graph.has_multiple_edges():
-            from slabbe.graph import merge_multiedges
-            graph = merge_multiedges(graph,
-                    label_function=merge_label_function)
+            d = defaultdict(list)
+            for (u, v, label) in graph.edges():
+                d[(u, v)].append(label)
+            edges = [(u, v, merge_label_function(label_list)) for (u, v), label_list in d.items()]
+            loops = graph.has_loops()
+            if graph.is_directed():
+                from sage.graphs.digraph import DiGraph
+                graph = DiGraph(edges, format='list_of_edges', loops=loops)
+            else:
+                from sage.graphs.graph import Graph
+                graph = Graph(edges, format='list_of_edges', loops=loops)
 
         keys_for_vertices = graph._keys_for_vertices()
 
@@ -933,7 +954,7 @@ class TikzPicture(StandaloneTex):
 
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: P = posets.PentagonPoset()
             sage: tikz = TikzPicture.from_poset(P) # optional dot2tex # long time (3s)
             sage: tikz = TikzPicture.from_poset(P, prog='neato', color_by_label=True) # optional dot2tex # long time (3s)
@@ -951,7 +972,7 @@ class TikzPicture(StandaloneTex):
         r"""
         EXAMPLES::
 
-            sage: from slabbe import TikzPicture
+            sage: from sage.misc.tikz_picture import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s)
             sage: print(t.tikz_picture_code())
@@ -960,4 +981,3 @@ class TikzPicture(StandaloneTex):
             \end{tikzpicture}
         """
         return self.content()
-

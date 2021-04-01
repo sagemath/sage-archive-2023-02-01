@@ -550,7 +550,7 @@ cdef class LazyElement(pAdicGenericElement):
             7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
             sage: a2 = a1.slice(3, 8); a2
             7^5 + 6*7^6 + 3*7^7 + ...
-            sage: a2[:100] == a.slice(5, 8)
+            sage: a2 == a.slice(5, 8)
             True
         """
         if start is None:
@@ -699,8 +699,8 @@ cdef class LazyElement(pAdicGenericElement):
 
         - ``prec`` -- an integer or ``None`` (default: ``None``); if
           given, compare the two elements at this precision; otherwise
-          use the default precision of the parent and raise an error
-          if equality could not be decided
+          use the default halting precision of the parent and raise an
+          error if equality could not be decided
 
         EXAMPLES::
 
@@ -712,62 +712,51 @@ cdef class LazyElement(pAdicGenericElement):
 
             sage: a.is_equal_to(b)
             False
-
-        When equality indeed holds, it is not possible to conclude by
-        comparing more and more accurate approximations.
-        In this case, the computation is abandonned::
-
             sage: a.is_equal_to(b + c)
-            Traceback (most recent call last):
-            ...
-            PrecisionError: unable to decide equality; try to bound precision
-
-        Bounding precision gives a
-
-            sage: a.is_equal_to(b + c, prec=20)
-            True
-            sage: a.is_equal_to(b + c, prec=100)
             True
 
-        In some cases, equality tests may fail when the first different
-        digit is beyond the default precision of the parent::
+        When `prec` is not given, elements are compared at the maximum
+        of the working precision (i.e. the precision at which the elements 
+        to compare have been already computed) and the default halting precision
+        of the parent.
+        This may sometimes lead to unexpected behaviour::
 
-            sage: a.is_equal_to(a + 7^50)
-            Traceback (most recent call last):
-            ...
-            PrecisionError: unable to decide equality; try to bound precision
+            sage: s = b + c + 7^50
+            sage: a.is_equal_to(s)
+            True
+            sage: a[:100].is_equal_to(s)
+            False
+            sage: a.is_equal_to(s)
+            False
+
+        For this reason, explictely bounding precision is strongly recommended::
+
+            sage: a.is_equal_to(s, prec=20)
+            True
+            sage: a.is_equal_to(s, prec=100)
+            False
 
         """
-        cdef long default_prec
+        cdef long halt
         if self is right:
             return True
         if self._valuation >= maxordp and right._valuation >= maxordp:
             return True
         if prec is None:
-            default_prec = self._parent.default_prec()
-            if self.prime_pow.in_field:
-                self._jump_relative_c(default_prec, self._valuation + default_prec)
-                right._jump_relative_c(default_prec, right._valuation + default_prec)
-            else:
-                self._jump_c(default_prec)
-                right._jump_c(default_prec)
-            prec = min(self._valuation + self._precrel, right._valuation + right._precrel)
-            if not self._is_equal(right, prec, True):
-                return False
             prec = min(self._precbound, right._precbound)
         else:
             prec = Integer(prec)
         if prec < maxordp:
             return self._is_equal(right, prec, True)
-        else:
-            raise PrecisionError("unable to decide equality; try to bound precision")
+        prec = min(self._valuation + self._precrel, right._valuation + right._precrel)
+        halt = min(self._parent.halting_prec(), maxordp)
+        return self._is_equal(right, max(prec, halt), True)
 
     def __eq__(self, other):
         r"""
         Return ``True`` of this element is equal to ``other`` at the
-        working precision.
-
-        If equality cannot be decided, an error is raised.
+        maximum between the working precision and the default halting
+        precision of the parent.
 
         TESTS::
 
@@ -777,12 +766,15 @@ cdef class LazyElement(pAdicGenericElement):
             sage: z = R(1/6)
 
             sage: x == y + z
-            Traceback (most recent call last):
-            ...
-            PrecisionError: unable to decide equality; try to bound precision
-
-            sage: x[:20] == y + z
             True
+
+            sage: s = y + z + 5^50
+            sage: x == s
+            True
+            sage: x[:100] == s
+            False
+            sage: x == s
+            False
         """
         if not have_same_parent(self, other):
             try:
@@ -804,17 +796,21 @@ cdef class LazyElement(pAdicGenericElement):
             sage: bool(x)
             True
 
-        In the next example, only `20` digits (which is the default precision)
-        are computed so `x` is indistinguishable from `0` at this stage::
+        In the next example, only `40` digits (which is the default halting
+        precision) are computed so `x` is indistinguishable from `0` at this
+        stage::
 
-            sage: x = R(5^21)
+            sage: x = R(5^41)
             sage: bool(x)
             False
         """
+        cdef long halt
         if self._precrel:
             return True
-        # return self != 0
-        self._jump_relative_c(1, self._valuation + self._parent.default_prec())
+        prec = self._precbound
+        if prec >= maxordp:
+            halt = min(self._parent.halting_prec(), maxordp)
+            self._jump_c(max(self._valuation + self._precrel, halt))
         return bool(self._precrel)
 
     cpdef bint _is_exact_zero(self) except -1:
@@ -1086,7 +1082,7 @@ cdef class LazyElement(pAdicGenericElement):
         - ``halt`` -- an integer or a boolean (default: ``True``);
           the absolute precision after which the computation is abandonned
           if the first significant digit has not been found yet;
-          if ``True``, the default precision of the parent is used;
+          if ``True``, the default halting precision of the parent is used;
           if ``False``, the computation is never abandonned
 
         - ``permissive`` -- a boolean (default: ``False`` if ``prec``
@@ -1095,7 +1091,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpL(5, prec=10, halt=10)
             sage: a = R(20/21); a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
             sage: a.at_precision_relative(5)
@@ -1160,7 +1156,7 @@ cdef class LazyElement(pAdicGenericElement):
             if prec > maxordp:
                 raise OverflowError("beyond maximal precision (which is %s)" % maxordp)
         if halt is True:
-            halt = self._valuation + default_prec
+            halt = self._parent.halting_prec()
         elif halt is False:
             halt = maxordp
         else:
@@ -1258,12 +1254,12 @@ cdef class LazyElement(pAdicGenericElement):
         - ``halt`` -- an integer or a boolean (default: ``True``);
           the absolute precision after which the computation is abandonned
           if the first significant digit has not been found yet;
-          if ``True``, the default precision of the parent is used;
+          if ``True``, the default halting precision of the parent is used;
           if ``False``, the computation is never abandonned
 
         EXAMPLES::
 
-            sage: R = ZpL(5, 10)
+            sage: R = ZpL(5, prec=10, halt=10)
             sage: a = R(2001); a
             1 + 5^3 + 3*5^4 + ...
             sage: a.valuation()
@@ -1329,7 +1325,7 @@ cdef class LazyElement(pAdicGenericElement):
         if self._valuation <= -maxordp:
             raise PrecisionError("no lower bound on the valuation is known")
         if halt is True:
-            halt = self._valuation + self._parent.default_prec()
+            halt = self._parent.halting_prec()
         elif halt is False:
             halt = maxordp
         else:
@@ -1348,12 +1344,12 @@ cdef class LazyElement(pAdicGenericElement):
         - ``halt`` -- an integer or a boolean (default: ``True``);
           the absolute precision after which the computation is abandonned
           if the first significant digit has not been found yet;
-          if ``True``, the default precision of the parent is used;
+          if ``True``, the default halting precision of the parent is used;
           if ``False``, the computation is never abandonned
 
         EXAMPLES::
 
-            sage: R = ZpL(5, 10)
+            sage: R = ZpL(5, prec=10, halt=10)
             sage: a = R(20/21); a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
             sage: a.unit_part()
@@ -1393,7 +1389,7 @@ cdef class LazyElement(pAdicGenericElement):
         - ``halt`` -- an integer or a boolean (default: ``True``);
           the absolute precision after which the computation is abandonned
           if the first significant digit has not been found yet;
-          if ``True``, the default precision of the parent is used;
+          if ``True``, the default halting precision of the parent is used;
           if ``False``, the computation is never abandonned
 
         EXAMPLES::
@@ -1883,7 +1879,7 @@ cdef class LazyElement(pAdicGenericElement):
             ....:     R = ZpL(p)
             ....:     x = 1 + p * R.random_element()
             ....:     y = x.sqrt()
-            ....:     assert(x[:100] == y^2)
+            ....:     assert(x == y^2)
         """
         return element_class_sqrt(self._parent, self)
 
@@ -2541,7 +2537,7 @@ cdef class LazyElement_random(LazyElementWithDigits):
             sage: b[:30]
             ...?343214211432220241412003314311
 
-            sage: a[:100] == b
+            sage: a == b
             True
         """
         return self.__class__, (self._parent, self._initialvaluation, self._precbound, self._seed)
@@ -2638,7 +2634,7 @@ cdef class LazyElement_slice(LazyElement):
             sage: R = ZpL(5, print_mode="digits")
             sage: x = R(20/21)
             sage: y = x.slice(3, 6)
-            sage: y[:20] == loads(dumps(y))  # indirect doctest
+            sage: y == loads(dumps(y))  # indirect doctest
             True
         """
         return self.__class__, (self._parent, self._x, self._start, self._stop, self._shift)
@@ -2786,7 +2782,7 @@ cdef class LazyElement_add(LazyElementWithDigits):
 
             sage: R = ZpL(5)
             sage: x = R.random_element() + R.random_element()
-            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            sage: x == loads(dumps(x))  # indirect doctest
             True
         """
         return self.__class__, (self._parent, self._x, self._y)
@@ -2893,7 +2889,7 @@ cdef class LazyElement_sub(LazyElementWithDigits):
 
             sage: R = ZpL(5)
             sage: x = R.random_element() - R.random_element()
-            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            sage: x == loads(dumps(x))  # indirect doctest
             True
         """
         return self.__class__, (self._parent, self._x, self._y)
@@ -3028,7 +3024,7 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 
             sage: R = ZpL(5)
             sage: x = R.random_element() * R.random_element()
-            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            sage: x == loads(dumps(x))  # indirect doctest
             True
         """
         return self.__class__, (self._parent, self._x, self._y)
@@ -3270,7 +3266,7 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
             sage: R = ZpL(5)
             sage: x = R(20) / R(21)
-            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            sage: x == loads(dumps(x))  # indirect doctest
             True
         """
         return self.__class__, (self._parent, self._num, self._denom, self._valuation, self._precbound)
@@ -3414,7 +3410,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
             sage: R = ZpL(5)
             sage: x = R(6).sqrt()
-            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            sage: x == loads(dumps(x))  # indirect doctest
             True
         """
         return self.__class__, (self._parent, self._x)
@@ -3599,7 +3595,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
             sage: R = ZpL(7)
             sage: x = R.teichmuller(2)
-            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            sage: x == loads(dumps(x))  # indirect doctest
             True
         """
         xbar = digit_get_sage(element_get_digit(self._digits, 0))
@@ -3720,7 +3716,7 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
             sage: x = R.unknown()
             sage: x.set(1 + 7*x^2)
             True
-            sage: x[:20] == loads(dumps(x))  # indirect doctest
+            sage: x == loads(dumps(x))  # indirect doctest
             True
         """
         digits = [ ]
@@ -3845,9 +3841,9 @@ def unpickle_unknown(uid, cls, parent, valuation, digits, definition):
         sage: y.set(3 + 14*x^2)
         True
 
-        sage: x[:20] == loads(dumps(x))  # indirect doctest
+        sage: x == loads(dumps(x))  # indirect doctest
         True
-        sage: y[:20] == loads(dumps(y))  # indirect doctest
+        sage: y == loads(dumps(y))  # indirect doctest
         True
     """
     if uid in persist.already_unpickled:

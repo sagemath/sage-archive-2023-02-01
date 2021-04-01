@@ -795,7 +795,24 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: S(1/17)
             ...4201213403
         """
-        return self._prec
+        return self._default_prec
+
+    def halting_prec(self):
+        r"""
+        Return the default halting precision of this lazy `p`-adic ring.
+
+        The halting precision is the precision at which elements of this
+        parent are compared (unless more digits have been previously
+        computed).
+        By default, it is twice the default precision.
+
+        EXAMPLES::
+
+            sage: R = ZpL(5, print_mode="digits")
+            sage: R.halting_prec()
+            40
+        """
+        return self._halting_prec
 
     def precision_cap(self):
         r"""
@@ -1370,7 +1387,11 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
         extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
         if hasattr(self, '_label'):
             extras['label'] = self._label
-        return (CompletionFunctor(self.prime(), self._precision_cap(), extras), ZZ)
+        if self._prec_type() == "lazy":
+            prec = (self._default_prec, self._halting_prec)
+        else:
+            prec = self._precision_cap()
+        return (CompletionFunctor(self.prime(), prec, extras), ZZ)
 
     def random_element(self, algorithm='default'):
         r"""
@@ -1539,6 +1560,10 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
             extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
             if hasattr(self, '_label'):
                 extras['label'] = self._label
-            return (CompletionFunctor(self.prime(), self._precision_cap(), extras), QQ)
+            if self._prec_type() == "lazy":
+                prec = (self._default_prec, self._halting_prec)
+            else:
+                prec = self._precision_cap()
+            return (CompletionFunctor(self.prime(), prec, extras), QQ)
         else:
             return FractionField(), self.integer_ring()

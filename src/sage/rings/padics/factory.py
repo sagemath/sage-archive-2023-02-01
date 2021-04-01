@@ -216,6 +216,19 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
             elif absolute_cap is None:
                 absolute_cap = 2 * relative_cap
             prec = (relative_cap, absolute_cap)
+        elif type == 'lazy':
+            default_prec = halting_prec = None
+            if prec is not None:
+                try:
+                    default_prec, halting_prec = prec
+                except (ValueError, TypeError):
+                    default_prec = halting_prec = prec
+            if default_prec is None:
+                default_prec = DEFAULT_PREC
+            if halting_prec is None:
+                halting_prec = 2 * default_prec
+            halting_prec = max(default_prec, halting_prec)
+            prec = (default_prec, halting_prec)
         else:
             if prec is not None:
                 prec = Integer(prec)
@@ -308,6 +321,7 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
 
 padic_field_cache = {}
 DEFAULT_PREC = Integer(20)
+
 class Qp_class(UniqueFactory):
     r"""
     A creation function for `p`-adic fields.
@@ -320,6 +334,9 @@ class Qp_class(UniqueFactory):
       In the lattice capped case, ``prec`` can either be a
       pair (``relative_cap``, ``absolute_cap``) or an integer
       (understood at relative cap).
+      In the lazy case, ``prec`` can be either a
+      pair (``default_prec``, ``halting_prec``) or an integer
+      (understood at default precision).
       Except in the floating point case, individual elements keep track of
       their own precision.  See TYPES and PRECISION below.
 
@@ -2939,7 +2956,7 @@ def ZpLF(p, prec=None, *args, **kwds):
     """
     return Zp(p, prec, 'lattice-float', *args, **kwds)
 
-def ZpL(p, prec=None, *args, **kwds):
+def ZpL(p, prec=None, halt=None, *args, **kwds):
     r"""
     A shortcut function to create lazy `p`-adic rings.
 
@@ -2968,6 +2985,22 @@ def ZpL(p, prec=None, *args, **kwds):
 
         sage: R.default_prec()
         20
+
+    A default halting precision is also set. It is the default absolute
+    precision at which the elements will be compared. By default, it is
+    twice the default precision::
+
+        sage: R.halting_prec()
+        40
+
+    However, both the default precision and the halting precision can be
+    customized at the creation of the parent as follows:
+
+        sage: S = ZpL(5, prec=10, halt=100)
+        sage: S.default_prec()
+        10
+        sage: S.halting_prec()
+        100
 
     One creates elements as usual::
 
@@ -3022,37 +3055,30 @@ def ZpL(p, prec=None, *args, **kwds):
 
     Checking equalities between lazy `p`-adics is a bit subtle and can
     sometimes be puzzling at first glance.
-    Actually, when it is obvious (from the previous computations) that
-    the two sides of the equality are different, everything works well::
+    Basically, elements are compared at the default halting precision::
 
         sage: a == b
         False
 
-    On the contrary, when the two numbers we want to compare are indeed
-    equal, it is not possible to conclude after a finite amount of
-    computations. In this case, an error is raised::
-
         sage: a == sqrt(a)^2
-        Traceback (most recent call last):
-        ...
-        PrecisionError: unable to decide equality; try to bound precision
-
-    and we are forced to check equality at some given finite precision
-    as follows::
-
-        sage: a[:20] == sqrt(a)^2
         True
-        sage: a[:100] == sqrt(a)^2
+        sage: a == sqrt(a)^2 + 5^50
         True
 
-    Finally, note that checking equality may fail even when the two
-    operands are different but when the first different digit is beyond
-    the default precision::
+    However, if both sides of the equalities have been previously
+    computed with more digits, those digits are taken into account.
+    Hence comparing two elements at different times can produce
+    different results::
 
-        sage: b == b + 5^50
-        Traceback (most recent call last):
-        ...
-        PrecisionError: unable to decide equality; try to bound precision
+        sage: aa = sqrt(a)^2 + 5^50
+        sage: a == aa
+        True
+        sage: a[:60]
+        ...?244200244200244200244200244200244200244200244200244200244201
+        sage: aa[:60]
+        ...?244200244300244200244200244200244200244200244200244200244201
+        sage: a == aa
+        False
 
     .. RUBRIC:: Self-referent numbers
 
@@ -3112,7 +3138,7 @@ def ZpL(p, prec=None, *args, **kwds):
         sage: w
         ...30212422041102444403
     """
-    return Zp(p, prec, 'lazy', *args, **kwds)
+    return Zp(p, (prec, halt), 'lazy', *args, **kwds)
 
 
 #######################################################################################################

@@ -11,7 +11,7 @@ Cython data structure for combinatorial faces.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.ext.memory_allocator  cimport MemoryAllocator
+from memory_allocator                 cimport MemoryAllocator
 from sage.data_structures.bitset_base cimport *
 
 ctypedef int simple

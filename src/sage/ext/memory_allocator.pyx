@@ -1,4 +1,5 @@
 from cysignals.memory cimport *
+from sage.misc.superseded import deprecation
 
 
 cdef class MemoryAllocator:
@@ -39,6 +40,7 @@ cdef class MemoryAllocator:
             1
             16
         """
+        deprecation(31591, "this class is deprecated; use the class from the python package `memory_allocator`")
         self.n = 0
         self.size = 16
         self.pointers = self.static_pointers

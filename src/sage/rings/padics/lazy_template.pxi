@@ -909,7 +909,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: s = R.selfref()
+            sage: s = R.unknown()
             sage: (1/s).precision_absolute()
             Traceback (most recent call last):
             ...
@@ -960,7 +960,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: s = R.selfref()
+            sage: s = R.unknown()
             sage: (1/s).precision_relative()
             Traceback (most recent call last):
             ...
@@ -1318,7 +1318,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: x = R.selfref()
+            sage: x = R.unknown()
             sage: (~x).valuation()
             Traceback (most recent call last):
             ...
@@ -1721,7 +1721,7 @@ cdef class LazyElement(pAdicGenericElement):
             ...
             ZeroDivisionError: cannot divide by something indistinguishable from zero
 
-            sage: y = R.selfref()
+            sage: y = R.unknown()
             sage: x / y
             O(7^-Infinity)
         """
@@ -1762,7 +1762,7 @@ cdef class LazyElement(pAdicGenericElement):
             ...
             ZeroDivisionError: cannot divide by something indistinguishable from zero
 
-            sage: y = R.selfref()
+            sage: y = R.unknown()
             sage: ~y
             O(7^-Infinity)
         """
@@ -1805,24 +1805,22 @@ cdef class LazyElement(pAdicGenericElement):
             3-adic Field with lazy precision
 
         This method also works for self-referent numbers
-        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`)::
+        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.unknown`)::
 
-            sage: x = R.selfref(); x
+            sage: x = R.unknown(); x
             O(3^0)
             sage: x.inverse_of_unit()
             O(3^0)
             sage: x.set(1 + 3 * x.inverse_of_unit())
+            True
             sage: x
             1 + 3 + 2*3^2 + 3^3 + 3^4 + ...
 
         Actually, in many cases, it is preferable to use it than an actual
         division. Indeed, compare::
 
-            sage: y = R.selfref()
+            sage: y = R.unknown()
             sage: y.set(1 + 3/y)
-            sage: y
-            O(3^0)
-            sage: y[:5]
             Traceback (most recent call last):
             ...
             RecursionError: definition looks circular
@@ -1868,13 +1866,14 @@ cdef class LazyElement(pAdicGenericElement):
             1 + 2^3 + O(2^4)
 
         This method also work for self-referent numbers
-        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`)::
+        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.unknown`)::
 
-            sage: x = R.selfref(); x
+            sage: x = R.unknown(); x
             O(7^0)
             sage: x.sqrt()
             O(7^0)
             sage: x.set(1 + 7*sqrt(x))
+            True
             sage: x
             1 + 7 + 4*7^2 + 4*7^3 + 2*7^4 + 3*7^8 + 3*7^9 + ...
 
@@ -1920,7 +1919,7 @@ cdef class LazyElement(pAdicGenericElement):
             sage: R = ZpL(5)
             sage: R(0)._test_nonzero_equal()
             sage: R(5^30)._test_nonzero_equal()
-            sage: R.selfref()._test_nonzero_equal()
+            sage: R.unknown()._test_nonzero_equal()
         """
         tester = self._tester(**options)
         try:
@@ -3233,7 +3232,7 @@ cdef class LazyElement_div(LazyElementWithDigits):
             sage: type(x)
             <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_div'>
 
-            sage: y = R.selfref()
+            sage: y = R.unknown()
             sage: 1/y
             O(5^-Infinity)
             sage: y.inverse_of_unit()
@@ -3654,17 +3653,18 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 # Self-referent definitions
 ###########################
 
-cdef class LazyElement_selfref(LazyElementWithDigits):
+cdef class LazyElement_unknown(LazyElementWithDigits):
     r"""
     A class for self-referent lazy `p`-adic numbers.
 
     TESTS::
 
         sage: R = ZpL(7)
-        sage: x = R.selfref()
+        sage: x = R.unknown()
         sage: TestSuite(x).run()
 
         sage: x.set(1 + 7*x^2)
+        True
         sage: TestSuite(x).run()
     """
     def __init__(self, parent, long valuation, digits=None):
@@ -3684,9 +3684,9 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         TESTS::
 
             sage: R = ZpL(7)
-            sage: x = R.selfref()
+            sage: x = R.unknown()
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_selfref'>
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_unknown'>
         """
         LazyElement.__init__(self, parent)
         if valuation >= maxordp:
@@ -3717,8 +3717,9 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         TESTS::
 
             sage: R = ZpL(7)
-            sage: x = R.selfref()
+            sage: x = R.unknown()
             sage: x.set(1 + 7*x^2)
+            True
             sage: x[:20] == loads(dumps(x))  # indirect doctest
             True
         """
@@ -3729,7 +3730,7 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         if id(self) not in persist.already_pickled:
             persist.already_pickled[id(self)] = True
             definition = self._definition
-        return unpickle_selfref, (id(self), self.__class__, self._parent, self._initialvaluation, digits, definition)
+        return unpickle_unknown, (id(self), self.__class__, self._parent, self._initialvaluation, digits, definition)
 
     cpdef set(self, LazyElement definition):
         r"""
@@ -3740,11 +3741,17 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         - ``definition`` -- a lazy `p`-adic number, to which this
           number is equal
 
+        OUTPUT:
+
+        A boolean indicating if the definition is coherent with the
+        already known digits of this number.
+
         EXAMPLES::
 
             sage: R = ZpL(5, 10)
-            sage: x = R.selfref()
+            sage: x = R.unknown()
             sage: x.set(1 + 5*x)
+            True
             sage: x
             1 + 5 + 5^2 + 5^3 + 5^4 + 5^5 + 5^6 + 5^7 + 5^8 + 5^9 + ...
 
@@ -3754,8 +3761,9 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
 
         On the contrary, the following does not work::
 
-            sage: y = R.selfref()
+            sage: y = R.unknown()
             sage: y.set(1 + 3*y)
+            True
             sage: y
             O(5^0)
             sage: y[:20]
@@ -3763,15 +3771,30 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
             ...
             RecursionError: definition looks circular
 
+        In the next example, we give explicit values for the first digits
+        and then a recursive definition for the next digits. However, the
+        recursive definition does not hold for the first digits; that is the
+        reason why the call to :meth:`set` returns ``False``::
+
+            sage: z = R.unknown(digits=[2])
+            sage: z
+            2 + O(5)
+            sage: z.set(1 + 5*z)
+            False
+            sage: z
+            2 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + ...
+
         .. SEEALSO::
 
-            :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.selfref`
+            :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.unknown`
         """
         if self._definition is not None:
             raise ValueError("this self-referent number is already defined")
         self._definition = definition
         self._precbound = max(self._valuation + self._precrel, definition._precbound)
+        eq = self._is_equal(definition, self._valuation + self._precrel, True)
         self._init_jump()
+        return eq
 
     cdef int _next_c(self):
         r"""
@@ -3805,7 +3828,7 @@ cdef class LazyElement_selfref(LazyElementWithDigits):
         self._next = svenext
         return error
 
-def unpickle_selfref(uid, cls, parent, valuation, digits, definition):
+def unpickle_unknown(uid, cls, parent, valuation, digits, definition):
     r"""
     Unpickle a self-referent lazy `p`-adic number.
 
@@ -3815,10 +3838,12 @@ def unpickle_selfref(uid, cls, parent, valuation, digits, definition):
     handled correctly::
 
         sage: R = ZpL(7)
-        sage: x = R.selfref()
-        sage: y = R.selfref()
+        sage: x = R.unknown()
+        sage: y = R.unknown()
         sage: x.set(1 + 2*y + 7*x*y)
+        True
         sage: y.set(3 + 14*x^2)
+        True
 
         sage: x[:20] == loads(dumps(x))  # indirect doctest
         True

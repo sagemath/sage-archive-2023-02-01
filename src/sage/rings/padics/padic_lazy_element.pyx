@@ -11,7 +11,7 @@ cdef inline type element_class_muldigit = pAdicLazyElement_muldigit
 cdef inline type element_class_div = pAdicLazyElement_div
 cdef inline type element_class_sqrt = pAdicLazyElement_sqrt
 cdef inline type element_class_teichmuller = pAdicLazyElement_teichmuller
-cdef inline type element_class_selfref = pAdicLazyElement_selfref
+cdef inline type element_class_unknown = pAdicLazyElement_unknown
 
 include "sage/libs/linkages/padics/lazy/flint.pxi"
 include "lazy_template.pxi"

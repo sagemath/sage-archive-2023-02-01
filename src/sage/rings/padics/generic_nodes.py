@@ -733,13 +733,13 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: R._get_element_class("add")
             <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_add'>
 
-            sage: R._get_element_class("selfref")
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_selfref'>
-
             sage: R._get_element_class("unknown")
+            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_unknown'>
+
+            sage: R._get_element_class("foobar")
             Traceback (most recent call last):
             ...
-            AttributeError: module 'sage.rings.padics.padic_lazy_element' has no attribute 'pAdicLazyElement_unknown'
+            AttributeError: module 'sage.rings.padics.padic_lazy_element' has no attribute 'pAdicLazyElement_foobar'
         """
         if name is None:
             return self.Element
@@ -962,13 +962,13 @@ class pAdicLazyGeneric(pAdicGeneric):
             L = [ x.at_precision_absolute() for x in L ]
         return L
 
-    def selfref(self, valuation=0, digits=None):
+    def unknown(self, start_val=0, digits=None):
         r"""
         Return a self-referent number in this ring.
 
         INPUT:
 
-        - ``valuation`` -- an integer (default: 0); a lower bound on the
+        - ``start_val`` -- an integer (default: 0); a lower bound on the
           valuation of the returned element
 
         - ``digits`` -- an element, a list or ``None`` (default: ``None``);
@@ -980,7 +980,7 @@ class pAdicLazyGeneric(pAdicGeneric):
         of the previous ones. This method is used to declare a self-referent
         number (and optionally, to set its first digits).
         The definition of the number itself will be given afterwords using
-        to method meth:`sage.rings.padics.lazy_template.LazyElement_selfref.set`
+        to method meth:`sage.rings.padics.lazy_template.LazyElement_unknown.set`
         of the element.
 
         EXAMPLES:
@@ -989,7 +989,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         We declare a self-referent number::
 
-            sage: a = R.selfref()
+            sage: a = R.unknown()
 
         So far, we do not know anything on `a` (except that it has nonnegative
         valuation)::
@@ -997,12 +997,13 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: a
             O(5^0)
 
-        We can now use the method meth:`sage.rings.padics.lazy_template.LazyElement_selfref.set`
+        We can now use the method meth:`sage.rings.padics.lazy_template.LazyElement_unknown.set`
         to define `a`. Below, for example, we say that the digits of `a` have to
         agree with the digits of `1 + 5 a`. Note that the factor `5` shifts the
         digits; the `n`-th digit of `a` is then defined by the previous ones::
 
             sage: a.set(1 + 5*a)
+            True
 
         After this, `a` contains the solution of the equation `a = 1 + 5 a`, that
         is `a = -1/4`::
@@ -1012,8 +1013,9 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         Here is another example with an equation of degree `2`::
 
-            sage: b = R.selfref()
+            sage: b = R.unknown()
             sage: b.set(1 - 5*b^2)
+            True
             sage: b
             1 + 4*5 + 5^2 + 3*5^4 + 4*5^6 + 4*5^8 + 2*5^9 + ...
             sage: (sqrt(R(21)) - 1) / 10
@@ -1021,13 +1023,16 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         Cross self-referent definitions are also allowed::
 
-            sage: u = R.selfref()
-            sage: v = R.selfref()
-            sage: w = R.selfref()
+            sage: u = R.unknown()
+            sage: v = R.unknown()
+            sage: w = R.unknown()
 
             sage: u.set(1 + 2*v + 3*w^2 + 5*u*v*w)
+            True
             sage: v.set(2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w))
+            True
             sage: w.set(3 + 25*(u*v + v*w + u*w))
+            True
 
             sage: u
             3 + 3*5 + 4*5^2 + 5^3 + 3*5^4 + 5^5 + 5^6 + 3*5^7 + 5^8 + 3*5^9 + ...
@@ -1038,8 +1043,9 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         TESTS::
 
-            sage: a = R.selfref()
+            sage: a = R.unknown()
             sage: a.set(1 + 3*a)
+            True
             sage: a
             O(5^0)
             sage: a.at_precision_absolute(10)
@@ -1047,12 +1053,12 @@ class pAdicLazyGeneric(pAdicGeneric):
             ...
             RecursionError: definition looks circular
         """
-        valuation = ZZ(valuation)
+        valuation = ZZ(start_val)
         if (not self.is_field()) and valuation < 0:
             raise ValueError("valuation must be nonnegative")
         if digits is not None and not isinstance(digits, (list, tuple)):
             digits = [digits]
-        return self._get_element_class('selfref')(self, valuation, digits)
+        return self._get_element_class('unknown')(self, valuation, digits)
 
     def random_element(self, integral=False, prec=None):
         r"""

@@ -125,7 +125,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
 # Self-referent numbers
 
-cdef class LazyElement_selfref(LazyElementWithDigits):
+cdef class LazyElement_unknown(LazyElementWithDigits):
     cdef LazyElement _definition
     cdef long _next
     cpdef set(self, LazyElement definition)

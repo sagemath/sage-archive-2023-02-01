@@ -51,5 +51,5 @@ cdef class pAdicLazyElement_sqrt(LazyElement_sqrt):
 cdef class pAdicLazyElement_teichmuller(LazyElement_teichmuller):
     pass
 
-cdef class pAdicLazyElement_selfref(LazyElement_selfref):
+cdef class pAdicLazyElement_unknown(LazyElement_unknown):
     pass

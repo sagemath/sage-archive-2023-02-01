@@ -3060,7 +3060,7 @@ def ZpL(p, prec=None, *args, **kwds):
     create (in some cases) self-referent numbers. Here is an example.
     We first declare a new variable as follows::
 
-        sage: x = R.selfref()
+        sage: x = R.unknown()
         sage: x
         ...?.0
 
@@ -3068,6 +3068,7 @@ def ZpL(p, prec=None, *args, **kwds):
     it satisfies::
 
         sage: x.set(1 + 5*x^2)
+        True
 
     The variable `x` now contains the unique solution of the equation
     `x = 1 + 5 x^2`::
@@ -3081,8 +3082,9 @@ def ZpL(p, prec=None, *args, **kwds):
 
     As a comparison, the following does not work::
 
-        sage: y = R.selfref()
+        sage: y = R.unknown()
         sage: y.set(1 + 3*y^2)
+        True
         sage: y
         ...?.0
         sage: y[:20]
@@ -3092,13 +3094,16 @@ def ZpL(p, prec=None, *args, **kwds):
 
     Self-referent definitions also work with systems of equations::
 
-        sage: u = R.selfref()
-        sage: v = R.selfref()
-        sage: w = R.selfref()
+        sage: u = R.unknown()
+        sage: v = R.unknown()
+        sage: w = R.unknown()
 
         sage: u.set(1 + 2*v + 3*w^2 + 5*u*v*w)
+        True
         sage: v.set(2 + 4*w + sqrt(1 + 5*u + 10*v + 15*w))
+        True
         sage: w.set(3 + 25*(u*v + v*w + u*w))
+        True
 
         sage: u
         ...31203130103131131433

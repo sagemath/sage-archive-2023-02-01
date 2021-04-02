@@ -34,4 +34,8 @@ SAGE_SPKG_CONFIGURE([ecl], [
   else
     AC_SUBST(SAGE_ECL_CONFIG, [$ECL_CONFIG])
   fi
+
+  # Maxima cannot yet be provided by the system, so we always use
+  # the SAGE_LOCAL path for now.
+  AC_SUBST(SAGE_MAXIMA_FAS, ['${prefix}'/lib/ecl/maxima.fas])
 ])

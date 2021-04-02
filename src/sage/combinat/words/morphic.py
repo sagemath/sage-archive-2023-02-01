@@ -25,7 +25,7 @@ class WordDatatype_morphic(WordDatatype_callable):
     r"""
     Datatype for a word defined by a callable.
     """
-    def __init__(self, parent, morphism, letter, coding=None):
+    def __init__(self, parent, morphism, letter, coding=None, length=Infinity):
         r"""
         INPUT:
 
@@ -34,6 +34,8 @@ class WordDatatype_morphic(WordDatatype_callable):
         - ``letter`` - a starting letter
         - ``coding`` - dict (default: ``None``), if ``None`` 
           the identity map is used for the coding
+        - ``length`` - integer or ``'finite'`` or ``Infinity`` or
+          ``'unknown'`` (default: ``Infinity``) the length of the word
 
         EXAMPLES::
 
@@ -43,6 +45,8 @@ class WordDatatype_morphic(WordDatatype_callable):
             word: abaababaabaababaababaabaababaabaababaaba...
             sage: w[555:1000]
             word: abaababaabaababaababaabaababaabaababaaba...
+            sage: w.length()
+            +Infinity
         
         ::
 
@@ -57,20 +61,27 @@ class WordDatatype_morphic(WordDatatype_callable):
             sage: w[500:503]
             word: caa
 
-            
-        TESTS::
+        When the morphic word is finite::
 
-            sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
-            sage: WordDatatype_callable(Words(),lambda n:n%3)
-            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
-            sage: WordDatatype_callable(Words([0,1,2]),lambda n:n%3)
-            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
+            sage: m = WordMorphism("a->ab,b->")
+            sage: w = m.fixed_point("a")
+            sage: w
+            word: ab
+            sage: w.length()
+            2
+
         """
-        self._len = Infinity
         self._parent = parent
         # self._func = callable
         # for hashing
         self._hash = None
+
+        if length is Infinity:
+            self._len = Infinity
+        elif length is None or length == 'unknown' or length == 'finite':
+            self._len = None
+        else:
+            self._len = length
         
         self._morphism = morphism
         self._letter = letter
@@ -80,6 +91,46 @@ class WordDatatype_morphic(WordDatatype_callable):
         else:
             self._coding = coding
             
+    def __reduce__(self):
+        r"""
+        EXAMPLES::
+
+            sage: m = WordMorphism('a->ab,b->a')
+            sage: w = m.fixed_point('a')
+            sage: w.__reduce__()
+            (<class 'sage.combinat.words.word.InfiniteWord_morphic'>,
+             (Infinite words over {'a', 'b'},
+              WordMorphism: a->ab, b->a,
+              'a',
+              {'a': 'a', 'b': 'b'},
+              +Infinity))
+
+        Below is the behavior for words of finite length. When the word is
+        finite and reaches its end, it then learns its length::
+
+            sage: m = WordMorphism("a->ab,b->")
+            sage: w = m.fixed_point("a")
+            sage: w.__reduce__()
+            (<class 'sage.combinat.words.word.FiniteWord_morphic'>,
+             (Finite words over {'a', 'b'},
+              WordMorphism: a->ab, b->,
+              'a',
+              {'a': 'a', 'b': 'b'},
+              None))
+            sage: w.length()
+            2
+            sage: w.__reduce__()
+            (<class 'sage.combinat.words.word.FiniteWord_morphic'>,
+             (Finite words over {'a', 'b'},
+              WordMorphism: a->ab, b->,
+              'a',
+              {'a': 'a', 'b': 'b'},
+              2))
+
+        """
+        return self.__class__, (self._parent, self._morphism, self._letter,
+                                self._coding, self._len)
+
     def representation(self, n):
         r"""
         Return the representation of the integer n in the numeration system
@@ -99,6 +150,16 @@ class WordDatatype_morphic(WordDatatype_callable):
             sage: w = m.fixed_point('a')
             sage: w.representation(5)
             [1, 0, 0, 0]
+
+        When the morphic word is finite::
+
+            sage: m = WordMorphism("a->ab,b->")
+            sage: w = m.fixed_point("a")
+            sage: w.representation(0)
+            []
+            sage: w.representation(1)
+            [1]
+            sage: w.representation(2)  # not tested: infinite loop
 
         TESTS:
 
@@ -169,8 +230,8 @@ class WordDatatype_morphic(WordDatatype_callable):
 
         TESTS:
 
-        Accessing this method from an instance of the current class (no using
-        the inherited word classes)::
+        Accessing this method from an instance of the current class
+        (without using the inherited word classes)::
             
             sage: m = WordMorphism('a->ab,b->a')
             sage: W = m.domain()

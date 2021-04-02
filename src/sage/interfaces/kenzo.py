@@ -107,7 +107,7 @@ kenzo_names = ['add',
 # are replaced with underscores to get valid Python identifiers.
 if Kenzo().is_present():
     from sage.env import KENZO_FAS
-    if KENZO_FAS is not None:
+    if KENZO_FAS:
         ecl_eval("(require :kenzo \"{}\")".format(KENZO_FAS))
     else:
         ecl_eval("(require :kenzo)")

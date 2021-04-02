@@ -47,7 +47,7 @@ class Kenzo(Feature):
 
         try:
             from sage.env import KENZO_FAS
-            if KENZO_FAS is not None:
+            if KENZO_FAS:
                 ecl_eval("(require :kenzo \"{}\")".format(KENZO_FAS))
             else:
                 ecl_eval("(require :kenzo)")

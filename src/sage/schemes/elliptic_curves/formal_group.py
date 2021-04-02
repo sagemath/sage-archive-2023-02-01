@@ -733,7 +733,7 @@ class EllipticCurveFormalGroup(SageObject):
 
     def sigma(self, prec=10):
         r"""
-        Return the Weierstrass sigma function as a formal powerseries
+        Return the Weierstrass sigma function as a formal power series
         solution to the differential equation
 
         .. MATH::
@@ -750,7 +750,7 @@ class EllipticCurveFormalGroup(SageObject):
         OUTPUT: a power series with given precision
 
         Other solutions can be obtained by multiplication with
-        an function of the form `\exp(c z^2)`.
+        a function of the form `\exp(c z^2)`.
         If the curve has good ordinary reduction at a prime `p`
         then there is a canonical choice of `c` that produces
         the canonical `p`-adic sigma function.
@@ -768,12 +768,9 @@ class EllipticCurveFormalGroup(SageObject):
 
         k = self.curve().base_ring()
         fl = self.log(prec)
-        #R = rings.PolynomialRing(k, 'c')
-        #c = R.gen()
         F = fl.reverse()
 
         S = rings.LaurentSeriesRing(k,'z')
-        #c = S(c)
         z = S.gen()
         F = F(z + O(z**prec))
         wp = self.x()(F) + (a1**2 + 4*a2)/12

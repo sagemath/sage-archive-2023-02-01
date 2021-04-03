@@ -78,7 +78,7 @@ AC_ARG_WITH([sage-venv],
             [AS_HELP_STRING([--with-sage-venv=SAGE_VENV],
                             [put Python packages into an installation hierarchy separate from prefix])],
             [SAGE_VENV="$withval"],
-            [SAGE_VENV="$SAGE_LOCAL"])   ############ FIXME: need to make absolute
+            [SAGE_VENV='${SAGE_LOCAL}'])dnl Quoted so that it is resolved at build time by shell/Makefile
 AC_SUBST([SAGE_VENV])
 
 #---------------------------------------------------------

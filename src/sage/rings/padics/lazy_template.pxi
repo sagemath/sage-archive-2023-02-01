@@ -689,7 +689,7 @@ cdef class LazyElement(pAdicGenericElement):
         return self._is_equal(right, min(prec, maxordp), False)
 
     @coerce_binop
-    def is_equal_to(self, LazyElement right, prec=None, quiet=None):
+    def is_equal_to(self, LazyElement right, prec=None, secure=None):
         r"""
         Compare this element with ``right``.
 
@@ -701,9 +701,9 @@ cdef class LazyElement(pAdicGenericElement):
           given, compare the two elements at this precision; otherwise
           use the default halting precision of the parent
 
-        - ``quiet`` -- a boolean (default: ``True`` if ``prec`` is given,
-          ``False`` otherwise); when the elements cannot be distingiushed
-          at the given precision, raise an error if ``quiet`` is ``False``,
+        - ``secure`` -- a boolean (default: ``False`` if ``prec`` is given,
+          ``True`` otherwise); when the elements cannot be distingiushed
+          at the given precision, raise an error if ``secure`` is ``True``,
           return ``True`` otherwise.
 
         EXAMPLES::
@@ -725,9 +725,9 @@ cdef class LazyElement(pAdicGenericElement):
             ...
             PrecisionError: unable to decide equality; try to bound precision
 
-        You can get around this behaviour by passing in ``quiet=True``::
+        You can get around this behaviour by passing ``secure=False``::
 
-            sage: a.is_equal_to(b + c, quiet=True)
+            sage: a.is_equal_to(b + c, secure=False)
             True
 
         Another option (which is actually recommended) is to provide an explicit
@@ -745,19 +745,19 @@ cdef class LazyElement(pAdicGenericElement):
         if self._valuation >= maxordp and right._valuation >= maxordp:
             return True
         if prec is None:
-            if quiet is None:
-                quiet = False
+            if secure is None:
+                secure = True
             prec = min(self._precbound, right._precbound)
         else:
-            if quiet is None:
-                quiet = True
+            if secure is None:
+                secure = False
             prec = Integer(prec)
         if prec < maxordp:
             return self._is_equal(right, prec, True)
         prec = min(self._valuation + self._precrel, right._valuation + right._precrel)
         halt = min(self._parent.halting_prec(), maxordp)
         eq = self._is_equal(right, max(prec, halt), True)
-        if not quiet and eq:
+        if secure and eq:
             raise PrecisionError("unable to decide equality; try to bound precision")
         return eq
 
@@ -795,7 +795,7 @@ cdef class LazyElement(pAdicGenericElement):
             except TypeError:
                 return False
             return a == b
-        return self.is_equal_to(other, quiet=True)
+        return self.is_equal_to(other, secure=False)
 
     def __nonzero__(self):
         r"""
@@ -1231,7 +1231,7 @@ cdef class LazyElement(pAdicGenericElement):
         if permissive is None:
             permissive = False
         raise_error(error, permissive)
-        return element_class_bound((<LazyElement>self)._parent, self, self._valuation +  prec)
+        return element_class_bound((<LazyElement>self)._parent, self, self._valuation + prec)
 
     def lift_to_precision(self, absprec=None):
         """
@@ -1320,7 +1320,7 @@ cdef class LazyElement(pAdicGenericElement):
             error = self._next_c()
         return self._valuation
 
-    def valuation(self, halt=True):
+    def valuation(self, halt=True, secure=False):
         r"""
         Return the valuation of this element.
 
@@ -1331,6 +1331,11 @@ cdef class LazyElement(pAdicGenericElement):
           if the first significant digit has not been found yet;
           if ``True``, the default halting precision of the parent is used;
           if ``False``, the computation is never abandonned
+
+        - ``secure`` -- a boolean (default: ``False``); when the valuation
+          cannot be determined for sure, raise an error if ``secure`` is
+          ``True``, return the best known lower bound on the valuation
+          otherwise.
 
         EXAMPLES::
 
@@ -1364,9 +1369,14 @@ cdef class LazyElement(pAdicGenericElement):
             0 + ...
 
         Without any help, Sage does not run the computation far enough to determine
-        the valuation and an error is raised::
+        the valuation and outputs only a lower bound::
 
             sage: z.valuation()
+            10
+
+        With ``secure=True``, an error is raised::
+
+            sage: z.valuation(secure=True)
             Traceback (most recent call last):
             ...
             PrecisionError: cannot determine the valuation; try to increase the halting precision
@@ -1406,7 +1416,7 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             halt = min(maxordp, halt)
         cdef val = self.valuation_c(halt)
-        if self._precbound >= maxordp and self._precrel == 0:
+        if secure and self._precbound >= maxordp and self._precrel == 0:
             raise PrecisionError("cannot determine the valuation; try to increase the halting precision")
         return Integer(val)
 
@@ -3416,7 +3426,8 @@ cdef class LazyElement_div(LazyElementWithDigits):
             return error
         if definition._valuation > val:
             self._valuation = min(self._precbound, definition._valuation - self._denom._valuation)
-            self._precbound = min(self._precbound, definition._precbound - self._denom._valuation)
+            if definition._precbound < maxordp:
+                self._precbound = min(self._precbound, definition._precbound - self._denom._valuation)
         else:
             digit = definition._getdigit_relative(self._precrel)
             element_set_digit(self._digits, digit, self._precrel)

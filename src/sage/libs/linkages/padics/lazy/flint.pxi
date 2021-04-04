@@ -300,16 +300,7 @@ cdef bint digit_sqrt(fmpz_t ans, fmpz_t x, PowComputer_flint prime_pow):
     - ``a`` -- a ``cdigit``, the digit to square root
     - ``prime_pow`` -- the PowComputer for the ring
     """
-    # Need to do something better
-    cdef Integer zx = digit_get_sage(x)
-    cdef Integer zp = digit_get_sage(prime_pow.fprime)
-    try:
-        k = GF(zp)
-        zans = Integer(k(zx).sqrt(extend=False))
-    except ValueError:
-        return 1
-    digit_set_sage(ans, zans)
-    return 0
+    return not fmpz_sqrtmod(ans, x, prime_pow.fprime)
 
 
 # Operations on elements (represented as series of digits)

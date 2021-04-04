@@ -42,6 +42,8 @@ cdef class LazyElement(pAdicGenericElement):
     cdef int _jump_c(self, long prec)
     cdef int _jump_relative_c(self, long prec, long halt)
     cdef int _next_c(self)
+
+    cdef long valuation_c(self, long halt=*)
     cdef bint _is_equal(self, LazyElement right, long prec, bint permissive) except -1
 
 cdef class LazyElement_abandon(LazyElement):

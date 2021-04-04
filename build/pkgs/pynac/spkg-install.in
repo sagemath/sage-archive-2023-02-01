@@ -11,7 +11,7 @@ build_pynac()
 {
     cd ${PYNACDIR}
     PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig; export PKG_CONFIG_PATH
-    sdh_configure --disable-static --with-giac=no PYTHON=python3
+    sdh_configure --disable-static --with-giac=no PYTHON=${PYTHON_FOR_VENV}
     sdh_make
     cd ${WORKDIR}
 }

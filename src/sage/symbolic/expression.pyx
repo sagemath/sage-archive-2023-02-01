@@ -5489,6 +5489,13 @@ cdef class Expression(CommutativeRingElement):
             sage: f = function("f")
             sage: integrate(f(x), x, 0, a).subs(a=cos(a))
             integrate(f(x), x, 0, cos(a))
+
+        Check that :trac:`31554` is fixed::
+
+            sage: a,b,c,d,x,y = var("a b c d x y")
+            sage: with hold:
+            ....:     print((2*x^0*a + b*y^1).subs({x:c, y:c*d}))
+            b*c*d + 2*a
         """
         cdef dict sdict = {}
         cdef GEx res

@@ -12253,6 +12253,13 @@ cdef class Matrix(Matrix1):
         fails to be positive definite (perhaps because it is not
         symmetric or Hermitian), then a ``ValueError`` results.
 
+        If possible, the output matrix will be over the fraction field
+        of the base ring of the input matrix. If that fraction field
+        is missing the requisite square roots but if no imaginaries
+        are encountered, then the algebraic-reals will be used.
+        Otherwise, the algebraic closure of the fraction field
+        (typically ``QQbar``) will be used.
+
         ALGORITHM:
 
         Whether or not the matrix is positive definite is checked
@@ -12487,18 +12494,27 @@ cdef class Matrix(Matrix1):
         if not self.is_positive_definite():
             msg = 'matrix is not positive definite, so cannot compute Cholesky decomposition'
             raise ValueError(msg)
-        # the successful positive definite check will cache a Hermitian
-        # or symmetric indefinite factorization, as appropriate
+
+        # Check to see if a factorization is cached first.
         factors = self.fetch('indefinite_factorization_hermitian')
         if factors is None:
             factors = self.fetch('indefinite_factorization_symmetric')
-            from sage.rings.qqbar import AA as F_ac
-        else:
-            from sage.rings.qqbar import QQbar as F_ac
+            if factors is None:
+                # The "hermitian" algorithm works on real matrices, too.
+                factors = self._indefinite_factorization(algorithm='hermitian',
+                                                         check=False)
 
         L = factors[0]
         d = factors[1]
         F = L.base_ring()  # field really
+
+        F_ac = F
+        if hasattr(F, 'algebraic_closure'):
+            # This can fail if, say, F is the symbolic ring which does
+            # contain the requisite roots in its own special way but
+            # does not have an algebraic_closure() method.
+            F_ac = F.algebraic_closure()
+
         splits = []        # square roots of diagonal entries
         extend = False
         for x in d:
@@ -12513,7 +12529,14 @@ cdef class Matrix(Matrix1):
         # We need a copy, to break immutability
         # and the field may have changed as well
         if extend:
-            C = L.change_ring(F_ac)
+            # Try to use the algebraic reals but fall back to what is
+            # probably QQbar if we find an entry in "L" that won't fit
+            # in AA.
+            from sage.rings.qqbar import AA
+            try:
+                C = L.change_ring(AA)
+            except ValueError: # cannot coerce...
+                C = L.change_ring(F_ac)
         else:
             C = L.__copy__()
 

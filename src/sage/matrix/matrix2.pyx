@@ -14344,12 +14344,12 @@ cdef class Matrix(Matrix1):
         from sage.rings.real_lazy import RLF,CLF
 
         R = self.base_ring()
-        if RLF.has_coerce_map_from(R):
+        if RLF.has_coerce_map_from(R) or R.has_coerce_map_from(RLF):
             if not self.is_symmetric():
                 return False
             L, d = self._indefinite_factorization('symmetric', check=False)
             real = True
-        elif CLF.has_coerce_map_from(R):
+        elif CLF.has_coerce_map_from(R) or R.has_coerce_map_from(CLF):
             if not self.is_hermitian():
                 return False
             L, d = self._indefinite_factorization('hermitian', check=False)

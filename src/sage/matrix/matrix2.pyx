@@ -14344,19 +14344,22 @@ cdef class Matrix(Matrix1):
         from sage.rings.real_lazy import RLF,CLF
 
         R = self.base_ring()
-        if RLF.has_coerce_map_from(R) or R.has_coerce_map_from(RLF):
-            if not self.is_symmetric():
-                return False
-            L, d = self._indefinite_factorization('symmetric', check=False)
-            real = True
-        elif CLF.has_coerce_map_from(R) or R.has_coerce_map_from(CLF):
-            if not self.is_hermitian():
-                return False
-            L, d = self._indefinite_factorization('hermitian', check=False)
-            real = False
-        else:
+
+        if not (RLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(RLF) or
+                CLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(CLF)):
+            # This is necessary to avoid "going through the motions"
+            # with e.g. a one-by-one identity matrix over the finite
+            # field of order 5^2, which might otherwise look positive-
+            # definite.
             raise ValueError("Could not see {} as a subring of the "
                     "real or complex numbers".format(R))
+
+        if not self.is_hermitian():
+            return False
+
+        L, d = self._indefinite_factorization('hermitian', check=False)
 
         if L is False:
             return False
@@ -14364,11 +14367,8 @@ cdef class Matrix(Matrix1):
         # Now have diagonal entries (hopefully real) and so can
         # test with a generator (which will short-circuit)
         # positive definite iff all entries of d are positive
-        zero = R.fraction_field().zero()
-        if real:
-            is_pos = all(x > zero for x in d)
-        else:
-            is_pos = all(x.real() > zero for x in d)
+        zero = QQ.zero()
+        is_pos = all(x > zero for x in d)
 
         if certificate:
             if is_pos:

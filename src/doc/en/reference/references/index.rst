@@ -1763,6 +1763,9 @@ REFERENCES:
 .. [CHW2015] Shawn X.; Hong, Seung-Moon; Wang, Zhenghan Universal quantum computation 
              with weakly integral anyons. Quantum Inf. Process. 14 (2015), no. 8, 2687–2727. 
 
+.. [CW2015] Cui, S. X. and Wang, Z. (2015). Universal quantum computation with
+            metaplectic anyons. Journal of Mathematical Physics, 56(3), 032202.
+            doi:10.1063/1.4914941
 
 .. _ref-D:
 

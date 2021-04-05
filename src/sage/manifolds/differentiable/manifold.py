@@ -4213,7 +4213,7 @@ class DifferentiableManifold(TopologicalManifold):
             # the components are provided as args[1], args[2], ..., args[dim]
             dim = self._dim
             if len(args) != dim + 1:
-                raise ValueError("{} components must be provided".format(dim))
+                raise ValueError(f"{dim} components must be provided")
             comp = args[1:dim + 1]
         return tspace._element_constructor_(comp=comp, basis=basis, name=name,
                                             latex_name=latex_name)

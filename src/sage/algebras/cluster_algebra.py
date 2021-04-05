@@ -583,9 +583,10 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         OUTPUT:
 
         A dictionary whose keys are the g-vectors and whose values are the coefficients
-        in the decoposition of ``self`` in the theta basis.
+        in the decomposition of ``self`` in the theta basis.
 
         EXAMPLES::
+
             sage: A = ClusterAlgebra(matrix([[0,-2],[3,0]]), principal_coefficients=True)
             sage: f = (A.theta_basis_element((1,0)) + A.theta_basis_element((0,1)))**2 + A.coefficient(1)* A.theta_basis_element((1,1))
             sage: decomposition = f.theta_basis_decomposition()
@@ -1721,7 +1722,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         ALGORITHM:
 
-            This method returns the matrix of the biliinear form defined in Equation (2.1) of [ReSt2020]_ .
+            This method returns the matrix of the bilinear form defined in Equation (2.1) of [ReSt2020]_ .
 
         EXAMPLES::
 

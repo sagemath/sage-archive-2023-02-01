@@ -14341,6 +14341,7 @@ cdef class Matrix(Matrix1):
             sage: Matrix(0).is_positive_definite()
             True
         """
+        from sage.symbolic.ring import SR
         from sage.rings.real_lazy import RLF,CLF
 
         R = self.base_ring()
@@ -14348,7 +14349,8 @@ cdef class Matrix(Matrix1):
         if not (RLF.has_coerce_map_from(R) or
                 R.has_coerce_map_from(RLF) or
                 CLF.has_coerce_map_from(R) or
-                R.has_coerce_map_from(CLF)):
+                R.has_coerce_map_from(CLF) or
+                R is SR):
             # This is necessary to avoid "going through the motions"
             # with e.g. a one-by-one identity matrix over the finite
             # field of order 5^2, which might otherwise look positive-

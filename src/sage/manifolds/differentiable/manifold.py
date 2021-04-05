@@ -4108,3 +4108,112 @@ class DifferentiableManifold(TopologicalManifold):
         else:
             signat = 2 - dim
         return vmodule.metric(name, signature=signat, latex_name=latex_name)
+
+    def vector(self, *args, **kwargs):
+        r"""
+        Define a tangent vector at a point of ``self``.
+
+        INPUT:
+
+        - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
+          point `p` on ``self``
+        - ``comp`` -- components of the vector with respect to the basis
+          specified by the argument ``basis``, either as an iterable or as a
+          sequence of `n` components, `n` being the dimension of ``self`` (see
+          examples below)
+        - ``basis`` -- (default: ``None``)
+          :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`;
+          basis of the tangent space at `p` with respect to which the
+          components are defined; if ``None``, the default basis of the tangent
+          space is used
+        - ``name`` -- (default: ``None``) string; symbol given to the vector
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the vector; if ``None``, ``name`` will be used
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.tangent_vector.TangentVector`
+          representing the tangent vector at point `p`
+
+
+        EXAMPLES:
+
+        Vector at some point `p` of the Euclidean plane::
+
+            sage: E.<x,y>= EuclideanSpace()
+            sage: p = E((1, 2), name='p')
+            sage: v = E.vector(p, -1, 3, name='v'); v
+            Vector v at Point p on the Euclidean plane E^2
+            sage: v.display()
+            v = -e_x + 3 e_y
+            sage: v.parent()
+            Tangent space at Point p on the Euclidean plane E^2
+            sage: v in E.tangent_space(p)
+            True
+
+        The components can be passed as a tuple or a list::
+
+            sage: v1 = E.vector(p, (-1, 3)); v1
+            Vector at Point p on the Euclidean plane E^2
+            sage: v1 == v
+            True
+
+        or as a ``vector`` object::
+
+            sage: v2 = E.vector(p, vector([-1, 3])); v2
+            Vector at Point p on the Euclidean plane E^2
+            sage: v2 == v
+            True
+
+        Example of use with the options ``basis`` and ``latex_name``::
+
+            sage: polar_basis = E.polar_frame().at(p)
+            sage: polar_basis
+            Basis (e_r,e_ph) on the Tangent space at Point p on the Euclidean plane E^2
+            sage: v = E.vector(p, 2, -1, basis=polar_basis, name='v',
+            ....:              latex_name=r'\vec{v}')
+            sage: v
+            Vector v at Point p on the Euclidean plane E^2
+            sage: v.display(polar_basis)
+            v = 2 e_r - e_ph
+            sage: v.display()
+            v = 4/5*sqrt(5) e_x + 3/5*sqrt(5) e_y
+            sage: latex(v)
+            \vec{v}
+
+        TESTS::
+
+            sage: E.vector(-1, 3)
+            Traceback (most recent call last):
+            ...
+            TypeError: -1 is not a manifold point
+            sage: E.vector([-1, 3])
+            Traceback (most recent call last):
+            ...
+            TypeError: a point and a set of components must be provided
+            sage: E.vector(p, 4, 2, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 components must be provided
+
+
+        """
+        basis = kwargs.pop('basis', None)
+        name = kwargs.pop('name', None)
+        latex_name = kwargs.pop('latex_name', None)
+        if len(args) < 2:
+            raise TypeError("a point and a set of components must be provided")
+        point = args[0]
+        tspace = self.tangent_space(point) # checks on point are performed here
+        comp0 = args[1]
+        if hasattr(comp0, '__len__') and hasattr(comp0, '__getitem__'):
+            # comp0 is a list/vector of components
+            comp = comp0
+        else:
+            # the components are provided as args[1], args[2], ..., args[dim]
+            dim = self._dim
+            if len(args) != dim + 1:
+                raise ValueError("{} components must be provided".format(dim))
+            comp = args[1:dim + 1]
+        return tspace._element_constructor_(comp=comp, basis=basis, name=name,
+                                            latex_name=latex_name)

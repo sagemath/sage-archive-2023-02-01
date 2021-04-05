@@ -2594,14 +2594,14 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             NotImplementedError: Currently only implemented for cluster algebras of rank 2.
 
         .. NOTE::
-            
+
             Elements of the theta basis correspond with the associated cluster
             monomial only for appropriate coefficient choices. For example::
 
                 sage: A = ClusterAlgebra(matrix([[0,-1],[1,0],[-1,0]]))
                 sage: A.theta_basis_element((-1,0))
                 (x1 + y0)/(x0*y0)
-        
+
             while::
 
                 sage: _ = A.find_g_vector((-1,0));
@@ -2621,7 +2621,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         g_vector = tuple(g_vector)
         F = self.theta_basis_F_polynomial(g_vector).subs(self._yhat)
         g_mon = prod(self.ambient().gen(i) ** g_vector[i] for i in range(self.rank()))
-        # we only return the monomal g_mon times the evaluated F-polynomial because this is how 
+        # we only return the monomal g_mon times the evaluated F-polynomial because this is how
         # theta basis elements behave.
         return self.retract(g_mon * F)
 
@@ -2637,7 +2637,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         .. WARNING::
 
             Elements of the theta basis do not satisfy a separation of additions formula.
-            See the implementation of :meth:`sage.algebras.cluster_algebra.theta_basis_F_polynomial` 
+            See the implementation of :meth:`sage.algebras.cluster_algebra.theta_basis_F_polynomial`
             for further details.
 
         ALGORITHM:

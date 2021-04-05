@@ -13970,7 +13970,7 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: n = ZZ.random_element(6)
-            sage: F = NumberField(x^2 +1, 'I')
+            sage: F = QuadraticField(-1, 'I')
             sage: A = matrix.random(F, n)
             sage: A = A + A.conjugate_transpose()
             sage: P,L,D = A.block_ldlt()
@@ -13983,7 +13983,7 @@ cdef class Matrix(Matrix1):
 
             sage: set_random_seed()
             sage: n = ZZ.random_element(6)
-            sage: F = NumberField(x^2 +1, 'I')
+            sage: F = QuadraticField(-1, 'I')
             sage: A = matrix.random(F, n)
             sage: A = A*A.conjugate_transpose()
             sage: P,L,D = A.block_ldlt()
@@ -14138,7 +14138,7 @@ cdef class Matrix(Matrix1):
         return ``False``)::
 
             sage: set_random_seed()
-            sage: F = NumberField(x^2 + 1, 'I')
+            sage: F = QuadraticField(-1, 'I')
             sage: from sage.misc.prandom import choice
             sage: ring = choice([ZZ, QQ, F, RDF, CDF])
             sage: A = matrix.random(ring, 10); A = A + A.conjugate_transpose()
@@ -14151,7 +14151,37 @@ cdef class Matrix(Matrix1):
             sage: actual = A.is_positive_semidefinite()
             sage: actual == expected
             True
+
+        We reject matrices whose base fields cannot be coerced to
+        either real numbers, complex numbers, or symbolics; otherwise
+        we risk returning nonsensical results::
+
+            sage: F = FiniteField(5^2)
+            sage: A = matrix.identity(F, 1)
+            sage: A.is_positive_semidefinite()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not see Finite Field in z2 of size 5^2
+            as a subring of the real or complex numbers
+
         """
+        from sage.symbolic.ring import SR
+        from sage.rings.real_lazy import RLF,CLF
+
+        R = self.base_ring()
+
+        if not (RLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(RLF) or
+                CLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(CLF) or
+                R is SR):
+            # This is necessary to avoid "going through the motions"
+            # with e.g. a one-by-one identity matrix over the finite
+            # field of order 5^2, which might otherwise look positive-
+            # definite.
+            raise ValueError("Could not see {} as a subring of the "
+                    "real or complex numbers".format(R))
+
         if not self.is_hermitian():
             return False
 

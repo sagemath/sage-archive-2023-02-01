@@ -156,7 +156,7 @@ def eberlein(n, k, l, x, check=True, inef=False):
         print("Wrong Arguments: n={}, k={}, l={}, x={}".format(n,k,l,x))
         raise ValueError('In Eberlein polynomial')
     """
-    print("eberlein, {} {} {} {}".format(n,k,l,x))
+    # print("eberlein, {} {} {} {}".format(n,k,l,x))
 
 
     if inef:
@@ -259,23 +259,20 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
     A = p.new_variable(integer=isinteger, nonnegative=True)
-    p.set_objective(sum([A[2*r] for r in range(d/2,w+1)])+1)
-    # below (commented out) constraints are useless, will delete!
-    # p.add_constraint(A[0]==1)
-    # for j in range(d/2,w+1):
-    #    if j<d or 2*w<j: p.add_constraint(A[j]==0)
-    def _q(k,i):
-        # mu_k = ((n-2*k+1)/(n-k+1))*binomial(n,k)
-        mu_k = 1
-        v_i = binomial(w,i)*binomial(n-w,i)
-        return mu_k*eberlein(w,i,n,k,inef=True)/v_i
+    p.set_objective(sum([A[2*r] for r in range(d//2,w+1)])+1)
+
+    def _q(i,k):
+        mu_i = ((n-2*i+1)/(n-i+1))*binomial(n,i)
+        # mu_i = 1
+        v_k = binomial(w,k)*binomial(n-w,k)
+        return mu_i*eberlein(w,k,n,i,inef=True)/v_k
 
     for k in range(1,w+1): # could be range(d/2,n+1)
         # could make more efficient calculation of the binomials in the future
         # by keeping track of the divisor
         # p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k) / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
-        p.add_constraint(sum([A[2*i]*_q(k,i) for i in range(d/2,w+1)]),min=-1)
-    p.show()
+        p.add_constraint(sum([A[2*i]*_q(k,i) for i in range(d//2,w+1)]),min=-1)
+    # p.show()
     return A, p
 
 
@@ -308,6 +305,16 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
     """
     from sage.numerical.mip import MIPSolverException
 
+    if d<4:
+        raise ValueError("Violated constraint d>=4 for Binary Constant Weight Codes")
+    
+    if d>=2*w or 2*w>n:
+        raise ValueError("Violated constraint d<2w<=n for Binary Constant Weight Codes")
+
+    # minimum distance is even => if there is an odd lower bound on d we can
+    # increase it by 1
+    if d%2: d+=1
+
     A, p = _delsarte_cwc_LP_building(n, d, w, solver, isinteger)
     try:
         bd = p.solve()
@@ -320,7 +327,42 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
     if return_data:
         return A,p,bd
     else:
-        return bd
+        return int(bd)
+
+def cwc_tests(ilp=False):
+    import pandas as pd
+    d_vals = [4,6,8,10,12,14,16,18]
+    # uncomment below accordingly to get computationally feasible subproblems
+    # if ilp:d_vals=[16,18]
+    d_tables = {i:pd.read_csv(f'src/sage/coding/d{i}.csv',index_col=0) for i in d_vals}
+    for d in d_vals:
+        print(20*'*')
+        print(f'd={d}')
+        print(20*'*')
+        curr = d_tables[d]
+        leq = eq = geq = 0
+        improved = []
+        for n in curr.index:
+            for w in list(curr):
+                b = curr.at[n,w]
+                if not pd.isna(b):
+                    print(f'n={n}, d={d}, w={w}, exp={curr.at[n,w]}')
+                    if not ilp:
+                        exp = delsarte_bound_constant_weight_code(int(n),int(d),int(w))
+                    else:
+                        exp = delsarte_bound_constant_weight_code(int(n),int(d),int(w),isinteger=True)
+                    print(f'Got:{exp}')
+                    if exp<b:
+                        print('IMP')
+                        leq+=1
+                        improved.append(f'A({n},{d},{w})={exp} --- was {b}')
+                    elif exp>b:geq+=1
+                    else:eq+=1
+        print('RESULTS')
+        print(f'leq={leq},eq={eq},geq={geq}')
+        print('******IMPROVED*****')
+        for imp in improved:print(imp)
+
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
     """

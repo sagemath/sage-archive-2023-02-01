@@ -12475,50 +12475,52 @@ cdef class Matrix(Matrix1):
         """
         from copy import copy
         C = self.fetch('cholesky')
-        if C is None:
-            if not self.is_square():
-                msg = "matrix must be square, not {0} x {1}"
-                raise ValueError(msg.format(self.nrows(), self.ncols()))
-            if not self.base_ring().is_exact():
-                msg = 'base ring of the matrix must be exact, not {0}'
-                raise TypeError(msg.format(self.base_ring()))
-            if not self.is_positive_definite():
-                msg = 'matrix is not positive definite, so cannot compute Cholesky decomposition'
-                raise ValueError(msg)
-            # the successful positive definite check will cache a Hermitian
-            # or symmetric indefinite factorization, as appropriate
-            factors = self.fetch('indefinite_factorization_hermitian')
-            if factors is None:
-                factors = self.fetch('indefinite_factorization_symmetric')
-                from sage.rings.qqbar import AA as F_ac
-            else:
-                from sage.rings.qqbar import QQbar as F_ac
+        if C is not None:
+            return C
 
-            L = factors[0]
-            d = factors[1]
-            F = L.base_ring()  # field really
-            splits = []        # square roots of diagonal entries
-            extend = False
-            for x in d:
-                if not extend and x.is_square():
-                    sqrt = x.sqrt()
-                else:
-                    extend = True
-                    sqrt = F_ac(x).sqrt()
-                splits.append(sqrt)
-            # move square root of the diagonal matrix
-            # into the lower triangular matrix
-            # We need a copy, to break immutability
-            # and the field may have changed as well
-            if extend:
-                C = L.change_ring(F_ac)
-            else:
-                C = L.__copy__()
+        if not self.is_square():
+            msg = "matrix must be square, not {0} x {1}"
+            raise ValueError(msg.format(self.nrows(), self.ncols()))
+        if not self.base_ring().is_exact():
+            msg = 'base ring of the matrix must be exact, not {0}'
+            raise TypeError(msg.format(self.base_ring()))
+        if not self.is_positive_definite():
+            msg = 'matrix is not positive definite, so cannot compute Cholesky decomposition'
+            raise ValueError(msg)
+        # the successful positive definite check will cache a Hermitian
+        # or symmetric indefinite factorization, as appropriate
+        factors = self.fetch('indefinite_factorization_hermitian')
+        if factors is None:
+            factors = self.fetch('indefinite_factorization_symmetric')
+            from sage.rings.qqbar import AA as F_ac
+        else:
+            from sage.rings.qqbar import QQbar as F_ac
 
-            for c in range(C.ncols()):
-                C.rescale_col(c, splits[c])
-            C.set_immutable()
-            self.cache('cholesky', C)
+        L = factors[0]
+        d = factors[1]
+        F = L.base_ring()  # field really
+        splits = []        # square roots of diagonal entries
+        extend = False
+        for x in d:
+            if not extend and x.is_square():
+                sqrt = x.sqrt()
+            else:
+                extend = True
+                sqrt = F_ac(x).sqrt()
+            splits.append(sqrt)
+        # move square root of the diagonal matrix
+        # into the lower triangular matrix
+        # We need a copy, to break immutability
+        # and the field may have changed as well
+        if extend:
+            C = L.change_ring(F_ac)
+        else:
+            C = L.__copy__()
+
+        for c in range(C.ncols()):
+            C.rescale_col(c, splits[c])
+        C.set_immutable()
+        self.cache('cholesky', C)
         return C
 
     def inverse_positive_definite(self):

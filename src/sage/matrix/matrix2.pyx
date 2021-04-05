@@ -13573,7 +13573,7 @@ cdef class Matrix(Matrix1):
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
-    def _block_ldlt(self):
+    def _block_ldlt(self, classical=False):
         r"""
         Perform a user-unfriendly block-`LDL^{T}` factorization of the
         Hermitian matrix `A`
@@ -13704,6 +13704,19 @@ cdef class Matrix(Matrix1):
                 d.append( one_by_one_space(A_kk) )
                 k += 1
                 continue
+
+            if classical:
+                try:
+                    # This is a "step zero" that doesn't appear in the published algorithms.
+                    # It's a back door that lets us escape with only the standard non-block
+                    # non-pivoting LDL^T factorization. This allows us to implement e.g.
+                    # indefinite_factorization() in terms of this method.
+                    d.append( one_by_one_space(A_kk) )
+                    _block_ldlt_pivot1x1(A,k)
+                    k += 1
+                    continue
+                except ZeroDivisionError:
+                    raise ValueError("matrix has no classical LDL^T factorization")
 
             # Find the largest subdiagonal entry (in magnitude) in the
             # kth column. This occurs prior to Step (1) in Higham,
@@ -13842,7 +13855,7 @@ cdef class Matrix(Matrix1):
 
         return (p,A,d)
 
-    def block_ldlt(self):
+    def block_ldlt(self, classical=False):
         r"""
         Compute a block-`LDL^{T}` factorization of a Hermitian
         matrix.
@@ -13868,9 +13881,23 @@ cdef class Matrix(Matrix1):
         Hermitian systems, and that is how we choose our row and
         column swaps.
 
+        INPUT:
+
+          * ``classical`` -- (default: ``False``) whether or not to
+            attempt a classical non-block `LDL^{T}` factorization
+            with no row/column swaps.
+
+        .. WARNING::
+
+            Not all matrices have a classical `LDL^{T}` factorization.
+            Set ``classical=True`` at your own risk, preferably after
+            verifying that your matrix is positive-definite and (over
+            inexact rings) not ill-conditioned.
+
         OUTPUT:
 
-        If the input matrix is Hermitian, we return a triple `(P,L,D)`
+        If the input matrix is not Hermitian, the output from this
+        function is undefined. Otherwise, we return a triple `(P,L,D)`
         such that `A = PLDL^{*}P^{T}` and
 
           * `P` is a permutation matrix,
@@ -13878,8 +13905,10 @@ cdef class Matrix(Matrix1):
           * `D` is a block-diagonal matrix whose blocks are of size
             one or two.
 
-        If the input matrix is not Hermitian, the output from this
-        function is undefined.
+        With ``classical=True``, the permutation matrix `P` is always
+        an identity matrix and the diagonal blocks are always
+        one-by-one. A ``ValueError`` is raised if the matrix has no
+        classical `LDL^{T}` factorization.
 
         ALGORITHM:
 
@@ -13923,11 +13952,15 @@ cdef class Matrix(Matrix1):
             sage: P.transpose()*A*P == L*D*L.transpose()
             True
 
-        This two-by-two matrix has no standard factorization, but it
+        This two-by-two matrix has no classical factorization, but it
         constitutes its own block-factorization::
 
             sage: A = matrix(QQ, [ [0,1],
             ....:                  [1,0] ])
+            sage: A.block_ldlt(classical=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix has no classical LDL^T factorization
             sage: A.block_ldlt()
             (
             [1 0]  [1 0]  [0 1]
@@ -13938,6 +13971,10 @@ cdef class Matrix(Matrix1):
 
             sage: A = matrix(QQbar, [ [ 0,I],
             ....:                     [-I,0] ])
+            sage: A.block_ldlt(classical=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix has no classical LDL^T factorization
             sage: A.block_ldlt()
             (
             [1 0]  [1 0]  [ 0  I]
@@ -13951,6 +13988,10 @@ cdef class Matrix(Matrix1):
 
             sage: A = matrix(RDF, 2, 2, [ [1e-10, 1    ],
             ....:                         [1    , 2e-10] ])
+            sage: _,L,D = A.block_ldlt(classical=True)
+            sage: L*D*L.T
+            [1e-10   1.0]
+            [  1.0   0.0]
             sage: A.block_ldlt()
             (
             [1.0 0.0]  [1.0 0.0]  [1e-10   1.0]
@@ -13968,6 +14009,72 @@ cdef class Matrix(Matrix1):
             False
             sage: (P.T*A*P - L*D*L.H).norm() < 1e-10
             True
+
+        This matrix has a singular three-by-three leading principal
+        submatrix, and therefore has no classical factorization::
+
+            sage: A = matrix(QQ, [[21, 15, 12, -2],
+            ....:                 [15, 12,  9,  6],
+            ....:                 [12,  9,  7,  3],
+            ....:                 [-2,  6,  3,  8]])
+            sage: A[0:3,0:3].det() == 0
+            True
+            sage: A.block_ldlt(classical=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix has no classical LDL^T factorization
+            sage: A.block_ldlt()
+            (
+            [1 0 0 0]  [     1      0      0      0]
+            [0 0 1 0]  [ -2/21      1      0      0]
+            [0 0 0 1]  [   5/7  39/41      1      0]
+            [0 1 0 0], [   4/7 87/164  48/79      1],
+            <BLANKLINE>
+            [     21|      0|      0|      0]
+            [-------+-------+-------+-------]
+            [      0| 164/21|      0|      0]
+            [-------+-------+-------+-------]
+            [      0|      0|-237/41|      0]
+            [-------+-------+-------+-------]
+            [      0|      0|      0| 25/316]
+            )
+
+        An indefinite symmetric matrix that happens to have a
+        classical factorization::
+
+            sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
+            ....:                 [-6,  11, -16, -11,  17],
+            ....:                 [ 9, -16,  28,  16, -40],
+            ....:                 [ 6, -11,  16,   9, -19],
+            ....:                 [-9,  17, -40, -19,  68]])
+            sage: A.block_ldlt(classical=True)[1:]
+            (
+                              [ 3| 0| 0| 0| 0]
+                              [--+--+--+--+--]
+                              [ 0|-1| 0| 0| 0]
+                              [--+--+--+--+--]
+            [ 1  0  0  0  0]  [ 0| 0| 5| 0| 0]
+            [-2  1  0  0  0]  [--+--+--+--+--]
+            [ 3 -2  1  0  0]  [ 0| 0| 0|-2| 0]
+            [ 2 -1  0  1  0]  [--+--+--+--+--]
+            [-3  1 -3  1  1], [ 0| 0| 0| 0|-1]
+            )
+
+        An indefinite Hermitian matrix that happens to have a
+        classical factorization::
+
+            sage: F.<I> = QuadraticField(-1)
+            sage: A = matrix(F, [[      2, 4 - 2*I, 2 + 2*I],
+            ....:                [4 + 2*I,       8,    10*I],
+            ....:                [2 - 2*I,   -10*I,      -3]])
+            sage: A.block_ldlt(classical=True)[1:]
+            (
+                                       [ 2| 0| 0]
+                                       [--+--+--]
+            [      1       0       0]  [ 0|-2| 0]
+            [  I + 2       1       0]  [--+--+--]
+            [ -I + 1 2*I + 1       1], [ 0| 0| 3]
+            )
 
         TESTS:
 
@@ -14037,12 +14144,25 @@ cdef class Matrix(Matrix1):
             sage: L.base_ring() == D.base_ring()
             True
 
+        Ensure that a "random" real positive-definite symmetric matrix
+        has a classical factorization that agrees with
+        :meth:`indefinite_factorization`::
+
+            sage: set_random_seed()
+            sage: n = ZZ.random_element(6)
+            sage: A = matrix.random(QQ, n)
+            sage: A = A*A.transpose() + matrix.identity(QQ, n)
+            sage: _,L,D = A.block_ldlt(classical=True)
+            sage: l,d = A.indefinite_factorization()
+            sage: L == l and D == matrix.diagonal(d)
+            True
+
         """
         cdef Py_ssize_t n    # size of the matrices
         cdef Py_ssize_t i, j # loop indices
         cdef Matrix P,L,D    # output matrices
 
-        p,L,d = self._block_ldlt()
+        p,L,d = self._block_ldlt(classical=classical)
         MS = L.matrix_space()
         P = MS.matrix(lambda i,j: p[j] == i)
 
@@ -17828,7 +17948,7 @@ class NotFullRankError(ValueError):
     pass
 
 
-cdef inline void _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k):
+cdef inline bint _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k) except 1:
     r"""
     Update the `n`-by-`n` matrix `A` as part of a 1x1 pivot in the
     ``k,k`` position (whose value is ``pivot``). Relies on the fact
@@ -17836,7 +17956,9 @@ cdef inline void _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k):
     this routine should overwrite its argument.
 
     There is no return value from this function, as its intended
-    effect is to update the matrix `A` in-place.
+    effect is to update the matrix `A` in-place, but we allow it
+    to return zero/one so that ``1`` can be used to indicate that
+    a python exception occurred.
     """
     cdef Py_ssize_t i,j # dumy loop indices
     cdef Py_ssize_t n = A._nrows
@@ -17862,4 +17984,4 @@ cdef inline void _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k):
                      k,
                      A.get_unsafe(k+i+1,k)/ pivot)
 
-    return
+    return 0

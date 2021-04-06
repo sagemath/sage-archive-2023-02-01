@@ -14203,7 +14203,7 @@ cdef class Matrix(Matrix1):
                 return False
         return True
 
-    def is_positive_definite(self, certificate=False):
+    def is_positive_definite(self):
         r"""
         Determines if a real or symmetric matrix is positive definite.
 
@@ -14220,19 +14220,16 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
-        A matrix is positive definite if and only if the
-        diagonal entries from the indefinite factorization
-        are all positive (see :meth:`indefinite_factorization`).
-        So this algorithm is of order ``n^3/3`` and may be applied
-        to matrices with elements of any ring that has a fraction
-        field contained within the reals or complexes.
+        A matrix is positive definite if and only if the diagonal
+        blocks in its :meth:`block_ldlt` factorization are all 1-by-1
+        and have positive entries. This algorithm is of order
+        ``n^3/3`` and may be applied to matrices with elements of any
+        ring that has a fraction field contained within the reals or
+        complex numbers.
 
         INPUT:
 
         Any square matrix.
-
-        - ``certificate`` -- (default: ``False``) return the
-          decomposition from the indefinite factorization if possible
 
         OUTPUT:
 
@@ -14240,10 +14237,10 @@ cdef class Matrix(Matrix1):
         symmetric or Hermitian, and meets the condition above
         for the quadratic form.
 
-        The base ring for the elements of the matrix needs to
-        have a fraction field implemented and the computations
-        that result from the indefinite factorization must be
-        convertible to real numbers that are comparable to zero.
+        The base ring for the elements of the matrix needs to have a
+        fraction field implemented and the computations that result
+        from the factorization must be convertible to real numbers
+        that are comparable to zero.
 
         EXAMPLES:
 
@@ -14370,6 +14367,17 @@ cdef class Matrix(Matrix1):
 
             sage: Matrix(0).is_positive_definite()
             True
+
+        We can check positive-definiteness of matrices over
+        approximate real/complex and symbolic rings::
+
+            sage: matrix.identity(RR,4).is_positive_definite()
+            True
+            sage: matrix.identity(CC,4).is_positive_definite()
+            True
+            sage: matrix.identity(SR,4).is_positive_definite()
+            True
+
         """
         from sage.symbolic.ring import SR
         from sage.rings.real_lazy import RLF,CLF
@@ -14391,24 +14399,24 @@ cdef class Matrix(Matrix1):
         if not self.is_hermitian():
             return False
 
-        L, d = self._indefinite_factorization('hermitian', check=False)
+        if self._nrows == 0:
+            return True # vacuously
 
-        if L is False:
-            return False
+        cdef list d
+        _,_,d = self._block_ldlt()
 
-        # Now have diagonal entries (hopefully real) and so can
-        # test with a generator (which will short-circuit)
-        # positive definite iff all entries of d are positive
-        zero = QQ.zero()
-        is_pos = all(x > zero for x in d)
-
-        if certificate:
-            if is_pos:
-                return is_pos, L, d
+        # Check each 1x1 block for a nonpositive entry. If we don't
+        # find any, it's positive-definite. The presence of
+        # any 2x2 blocks also indicates indefiniteness.
+        for d_i in d:
+            if d_i.nrows() == 1:
+                if d_i <= 0:
+                    return False
             else:
-                return is_pos, None, None
-        else:
-            return is_pos
+                # There's a 2x2 block
+                return False
+        return True
+
 
     def principal_square_root(self, check_positivity=True):
         r"""

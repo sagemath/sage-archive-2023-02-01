@@ -47,6 +47,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import URLError
 
@@ -344,14 +345,20 @@ def installed_packages(exclude_pip=True):
     if not exclude_pip:
         installed.update(pip_installed_packages(normalization='spkg'))
     # Sage packages should override pip packages (Trac #23997)
-    SAGE_SPKG_INST = sage.env.SAGE_SPKG_INST
-    if SAGE_SPKG_INST:
-        try:
-            lp = os.listdir(SAGE_SPKG_INST)
-            installed.update(pkgname_split(pkgname) for pkgname in lp
-                             if not pkgname.startswith('.'))
-        except FileNotFoundError:
-            pass
+
+    last_inst_dir = None
+    for inst_dir in (sage.env.SAGE_SPKG_INST, sage.env.SAGE_VENV_SPKG_INST):
+        if inst_dir:
+            inst_dir = Path(inst_dir).resolve()
+            if inst_dir == last_inst_dir:
+                continue
+            try:
+                lp = os.listdir(inst_dir)
+                installed.update(pkgname_split(pkgname) for pkgname in lp
+                                 if not pkgname.startswith('.'))
+                last_inst_dir = inst_dir
+            except FileNotFoundError:
+                pass
     return installed
 
 

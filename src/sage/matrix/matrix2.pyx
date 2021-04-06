@@ -14038,6 +14038,56 @@ cdef class Matrix(Matrix1):
         return (P,L,D)
 
 
+    cdef bint _is_positive_definite_or_semidefinite(self, bint semi) except -1:
+        """
+        This is an internal wrapper that allows us to implement both
+        :meth:`is_positive_definite` and
+        :meth:`is_positive_semidefinite` with essentially the same
+        code. The boolean ``semi`` argument exists only to change
+        "greater than zero" into "greater than or equal to zero."
+        """
+        from sage.symbolic.ring import SR
+        from sage.rings.real_lazy import RLF,CLF
+
+        R = self.base_ring()
+
+        if not (RLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(RLF) or
+                CLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(CLF) or
+                R is SR):
+            # This is necessary to avoid "going through the motions"
+            # with e.g. a one-by-one identity matrix over the finite
+            # field of order 5^2, which might otherwise look positive-
+            # definite.
+            raise ValueError("Could not see {} as a subring of the "
+                    "real or complex numbers".format(R))
+
+        if not self.is_hermitian():
+            return False
+
+        if self._nrows == 0:
+            return True # vacuously
+
+        cdef list d
+        _,_,d = self._block_ldlt()
+
+        # Check each 1x1 block for a nonpositive (negative) entry. If
+        # we don't find any, the matrix is positive-(semi)definite. The
+        # presence of any 2x2 blocks also indicates indefiniteness.
+        for d_i in d:
+            if d_i.nrows() == 1:
+                if semi:
+                    if d_i < 0:
+                        return False
+                else:
+                    if d_i <= 0:
+                        return False
+            else:
+                # There's a 2x2 block
+                return False
+        return True
+
     def is_positive_semidefinite(self):
         r"""
         Returns whether or not this matrix is positive-semidefinite.
@@ -14165,43 +14215,7 @@ cdef class Matrix(Matrix1):
             as a subring of the real or complex numbers
 
         """
-        from sage.symbolic.ring import SR
-        from sage.rings.real_lazy import RLF,CLF
-
-        R = self.base_ring()
-
-        if not (RLF.has_coerce_map_from(R) or
-                R.has_coerce_map_from(RLF) or
-                CLF.has_coerce_map_from(R) or
-                R.has_coerce_map_from(CLF) or
-                R is SR):
-            # This is necessary to avoid "going through the motions"
-            # with e.g. a one-by-one identity matrix over the finite
-            # field of order 5^2, which might otherwise look positive-
-            # definite.
-            raise ValueError("Could not see {} as a subring of the "
-                    "real or complex numbers".format(R))
-
-        if not self.is_hermitian():
-            return False
-
-        if self._nrows == 0:
-            return True # vacuously
-
-        cdef list d
-        _,_,d = self._block_ldlt()
-
-        # Check each 1x1 block for a negative entry. If we don't
-        # find any, it's positive-semidefinite. The presence of
-        # any 2x2 blocks also indicates indefiniteness.
-        for d_i in d:
-            if d_i.nrows() == 1:
-                if d_i < 0:
-                    return False
-            else:
-                # There's a 2x2 block
-                return False
-        return True
+        return self._is_positive_definite_or_semidefinite(True)
 
     def is_positive_definite(self):
         r"""
@@ -14379,43 +14393,7 @@ cdef class Matrix(Matrix1):
             True
 
         """
-        from sage.symbolic.ring import SR
-        from sage.rings.real_lazy import RLF,CLF
-
-        R = self.base_ring()
-
-        if not (RLF.has_coerce_map_from(R) or
-                R.has_coerce_map_from(RLF) or
-                CLF.has_coerce_map_from(R) or
-                R.has_coerce_map_from(CLF) or
-                R is SR):
-            # This is necessary to avoid "going through the motions"
-            # with e.g. a one-by-one identity matrix over the finite
-            # field of order 5^2, which might otherwise look positive-
-            # definite.
-            raise ValueError("Could not see {} as a subring of the "
-                    "real or complex numbers".format(R))
-
-        if not self.is_hermitian():
-            return False
-
-        if self._nrows == 0:
-            return True # vacuously
-
-        cdef list d
-        _,_,d = self._block_ldlt()
-
-        # Check each 1x1 block for a nonpositive entry. If we don't
-        # find any, it's positive-definite. The presence of
-        # any 2x2 blocks also indicates indefiniteness.
-        for d_i in d:
-            if d_i.nrows() == 1:
-                if d_i <= 0:
-                    return False
-            else:
-                # There's a 2x2 block
-                return False
-        return True
+        return self._is_positive_definite_or_semidefinite(False)
 
 
     def principal_square_root(self, check_positivity=True):

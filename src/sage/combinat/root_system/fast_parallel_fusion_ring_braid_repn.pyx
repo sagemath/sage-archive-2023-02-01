@@ -8,61 +8,16 @@ Fast FusionRing methods for computing braid group representations
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-cimport cython
 import ctypes
-from itertools import product
-import sage
-from sage.combinat.root_system.poly_tup_engine cimport _flatten_coeffs, _unflatten_coeffs, poly_to_tup
+cimport cython
 from sage.combinat.root_system.fast_parallel_fmats_methods cimport _fmat
+
+from itertools import product
 from sage.misc.cachefunc import cached_function
 from sage.rings.qqbar import QQbar
 
 #Define a global temporary worker results repository
 worker_results = list()
-
-##############################
-### Parallel code executor ###
-##############################
-
-def executor(params):
-    """
-    Execute a function defined in this module
-    (sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn)
-    in a worker process, and supply the `FusionRing` parameter by constructing a
-    reference to the FMatrix object in the worker's memory adress space
-    from its id.
-
-    NOTES:
-
-    When the parent process is forked, each worker gets a copy of
-    every  global variable. The virtual memory address of object X in the parent
-    process equals the VIRTUAL memory address of the copy of object X in each
-    worker, so we may construct references to forked copies of X
-
-    TESTS:
-
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
-        sage: FR = FusionRing("A1",4)
-        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
-        sage: params = (('sig_2k',id(FR)),(0,1,(1,one,one,5)))
-        sage: executor(params)
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results
-        sage: len(collect_results(0)) == 13
-        True
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor, collect_results
-        sage: FR = FusionRing("B2",2)
-        sage: FR.fusion_labels(['I0','Y1','X','Z','Xp','Y2'],inject_variables=True)
-        sage: params = (('odd_one_out',id(FR)),(0,1,(X,Xp,5)))
-        sage: executor(params)
-        sage: len(collect_results(0)) == 54
-        True
-    """
-    (fn_name, fr_id), args = params
-    #Construct a reference to global FMatrix object in this worker's memory
-    fusion_ring_obj = ctypes.cast(fr_id, ctypes.py_object).value
-    mod = sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn
-    #Bind module method to FMatrix object in worker process, and call the method
-    getattr(mod,fn_name)(fusion_ring_obj,args)
 
 ###############
 ### Mappers ###
@@ -87,8 +42,32 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
         (1/2, -1/2)
         sage: FR.get_computational_basis(one,two,4)
         [(two, two), (two, idd), (idd, two)]
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
         sage: mid_sig_ij(FR, (two, two), (two, idd), one, two)
-        (zeta48^10 - zeta48^2)*fx0*fx1*fx8 + (zeta48^2)*fx2*fx3*fx8
+        1/3*zeta48^10 - 2/3*zeta48^2
+
+    This method works for all possible types of fields returned by
+    ``self.fmats.field()``.
+
+    TESTS::
+
+        sage: FR = FusionRing("A1",3)
+        sage: FR.fusion_labels("a",inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: _, _, to_opt = FR.fmats.field().optimized_representation()
+        sage: a2**4
+        2*a0 + 3*a2
+        sage: FR.get_computational_basis(a2,a2,4)
+        [(a2, a2), (a2, a0), (a0, a2)]
+        sage: to_opt(mid_sig_ij(FR,(a2, a0),(a2, a2),a2,a2))
+        -2024728666370660589/10956322398441542221*a1^30 - 34142146914395596291/21912644796883084442*a1^28 - 21479437628091413631/21912644796883084442*a1^26 + 260131910217202103829/21912644796883084442*a1^24 + 69575612911670713183/10956322398441542221*a1^22 + 25621808994337724689/1992058617898462222*a1^20 - 1975139725303994650417/21912644796883084442*a1^18 - 1315664901396537703585/21912644796883084442*a1^16 - 2421451803369354765026/10956322398441542221*a1^14 - 5963323855935165859057/21912644796883084442*a1^12 - 4477124943233705460859/21912644796883084442*a1^10 - 2001454824483021618178/10956322398441542221*a1^8 - 2120319455379289595185/21912644796883084442*a1^6 - 15722612944437234961/755608441271830498*a1^4 - 39862668562651453480/10956322398441542221*a1^2 - 6967145776903524195/10956322398441542221
+        sage: FR = FusionRing("G2",2)
+        sage: FR.fusion_labels("g",inject_variables=True)
+        sage: FR.get_computational_basis(g1,g2,4)
+        [(g3, g2), (g3, g1), (g2, g3), (g2, g0), (g1, g3), (g1, g1), (g0, g2)]
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time (~11 s)
+        sage: mid_sig_ij(FR,(g2, g3),(g1, g1),g1,g2)              # long time
+        -0.4566723195695565? + 0.0805236512828312?*I
     """
     #Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
@@ -122,14 +101,38 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     EXAMPLES::
 
         sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import odd_one_out_ij
-        sage: FR = FusionRing("B2",2)
-        sage: FR.fusion_labels(['I0','Y1','X','Z','Xp','Y2'],inject_variables=True)
-        sage: X.weight()
-        (1/2, 1/2)
-        sage: FR.get_computational_basis(X,X,3)
-        [(Y2,), (Y1,), (I0,)]
-        sage: odd_one_out_ij(FR,Y2,Y1,X,X)
-        (zeta40^10)*fx205*fx208 + (zeta40^14 - zeta40^10 + zeta40^6 - zeta40^2)*fx206*fx209 + (zeta40^2)*fx207*fx210
+        sage: FR = FusionRing("A1",4)
+        sage: FR.fusion_labels(["one","two","three","four","five"],inject_variables=True)
+        sage: FR.get_computational_basis(two,two,5)
+        [(three, three, one),
+         (three, three, three),
+         (three, one, three),
+         (one, three, three),
+         (one, one, one)]
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: odd_one_out_ij(FR,one,three,two,two)
+        2/3*zeta48^12 - 1/3*zeta48^8 - 1/3*zeta48^4 - 1/3
+
+    This method works for all possible types of fields returned by
+    ``self.fmats.field()``.
+
+    TESTS::
+
+        sage: FR = FusionRing("A1",3)
+        sage: FR.fusion_labels("a",inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: _, _, to_opt = FR.fmats.field().optimized_representation()
+        sage: a2**3
+        a0 + 2*a2
+        sage: FR.get_computational_basis(a2,a2,3)
+        [(a2,), (a0,)]
+        sage: to_opt(odd_one_out_ij(FR,a0,a2,a2,a2))
+        6341990144855406911/21912644796883084442*a1^30 + 47313529044493641571/21912644796883084442*a1^28 - 6964289120109414595/10956322398441542221*a1^26 - 406719371329322780627/21912644796883084442*a1^24 + 87598732372849355687/10956322398441542221*a1^22 - 456724726845194775/19723352652460022*a1^20 + 3585892725441116840515/21912644796883084442*a1^18 - 645866255979227573282/10956322398441542221*a1^16 + 7958479159087829772639/21912644796883084442*a1^14 + 789748976956837633826/10956322398441542221*a1^12 + 3409710648897945752185/21912644796883084442*a1^10 + 903956381582048110980/10956322398441542221*a1^8 + 192973084151342020307/21912644796883084442*a1^6 - 9233312083438019435/755608441271830498*a1^4 + 667869266552877781/10956322398441542221*a1^2 + 17644302696056968099/21912644796883084442
+        sage: FR = FusionRing("G2",2)
+        sage: FR.fusion_labels("g",inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time (~11 s)
+        sage: odd_one_out_ij(FR,g1,g2,g1,g1)                      # long time
+        -0.2636598866349343? + 0.4566723195695565?*I
     """
     #Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
@@ -151,7 +154,7 @@ odd_one_out_ij = cached_function(odd_one_out_ij, name='odd_one_out_ij')
 
 @cython.nonecheck(False)
 @cython.cdivision(True)
-cpdef sig_2k(fusion_ring, tuple args):
+cdef sig_2k(fusion_ring, tuple args):
     """
     Compute entries of the 2k-th braid generator
     """
@@ -204,7 +207,7 @@ cpdef sig_2k(fusion_ring, tuple args):
 
                     #Avoid pickling cyclotomic field element objects
                     if must_flatten_coeff:
-                        entry = _flatten_entry(fusion_ring, entry)
+                        entry = entry.list()
 
                     worker_results.append(((basis_dict[nnz_pos],i), entry))
                     coords.add((basis_dict[nnz_pos],i))
@@ -218,17 +221,13 @@ cpdef sig_2k(fusion_ring, tuple args):
 
                 #Avoid pickling cyclotomic field element objects
                 if must_flatten_coeff:
-                    #The entry is either a polynomial or a base field element
-                    if entry.parent() == fusion_ring.fmats._poly_ring:
-                        entry = _flatten_coeffs(poly_to_tup(entry))
-                    else:
-                        entry = entry.list()
+                    entry = entry.list()
 
                 worker_results.append(((basis_dict[nnz_pos],i), entry))
 
 @cython.nonecheck(False)
 @cython.cdivision(True)
-cpdef odd_one_out(fusion_ring, tuple args):
+cdef odd_one_out(fusion_ring, tuple args):
     """
     Compute entries of the rightmost braid generator, in case we have an odd number
     of strands
@@ -273,11 +272,7 @@ cpdef odd_one_out(fusion_ring, tuple args):
 
                     #Avoid pickling cyclotomic field element objects
                     if must_flatten_coeff:
-                        #The entry is either a polynomial or a base field element
-                        if entry.parent() == fusion_ring.fmats._poly_ring:
-                            entry = _flatten_coeffs(poly_to_tup(entry))
-                        else:
-                            entry = entry.list()
+                        entry = entry.list()
 
                     worker_results.append(((basis_dict[nnz_pos],i), entry))
                     continue
@@ -295,7 +290,7 @@ cpdef odd_one_out(fusion_ring, tuple args):
 
                 #Avoid pickling cyclotomic field element objects
                 if must_flatten_coeff:
-                    entry = _flatten_entry(fusion_ring, entry)
+                    entry = entry.list()
 
                 worker_results.append(((basis_dict[nnz_pos],i), entry))
 
@@ -303,10 +298,25 @@ cpdef odd_one_out(fusion_ring, tuple args):
 ### Reducers ###
 ################
 
-def collect_results(proc):
+cpdef collect_results(proc):
     """
     Helper function for returning processed results back to parent process.
-    Trivial reducer: simply collects objects with the same key in the worker
+
+    Trivial reducer: simply collects objects with the same key in the worker.
+    This method is only useful when called after :meth:`executor`, whose
+    function argument appends output to the ``worker_results`` list.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
+        sage: FR = FusionRing("A1",4)
+        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: params = (('sig_2k',id(FR)),(0,1,(2,one,one,9)))
+        sage: executor(params)
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results
+        sage: len(collect_results(0)) == 171
+        True
     """
     #Discard the zero polynomial
     global worker_results
@@ -314,24 +324,60 @@ def collect_results(proc):
     worker_results = list()
     return reduced
 
+##############################
+### Parallel code executor ###
+##############################
+
+#Hard-coded module __dict__-style attribute with visible cdef methods
+cdef dict mappers = {
+    "sig_2k": sig_2k,
+    "odd_one_out": odd_one_out
+}
+
+cpdef executor(params):
+    r"""
+    Execute a function registered in this module's ``mappers``
+    in a worker process, and supply the ``FusionRing`` parameter by
+    constructing a reference to the FMatrix object in the worker's memory
+    adress space from its ``id``.
+
+    .. NOTES::
+
+        When the parent process is forked, each worker gets a copy of
+        every  global variable. The virtual memory address of object `X` in
+        the parent process equals the *virtual* memory address of the copy of
+        object `X` in each worker, so we may construct references to forked
+        copies of `X`.
+
+    TESTS::
+
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
+        sage: FR = FusionRing("A1",4)
+        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: params = (('sig_2k',id(FR)),(0,1,(1,one,one,5)))
+        sage: executor(params)
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results
+        sage: len(collect_results(0)) == 13
+        True
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor, collect_results
+        sage: FR = FusionRing("B2",2)
+        sage: FR.fusion_labels(['I0','Y1','X','Z','Xp','Y2'],inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time (~23 s)
+        sage: params = (('odd_one_out',id(FR)),(0,1,(X,Xp,5)))
+        sage: executor(params)                                    # long time
+        sage: len(collect_results(0)) == 54                       # long time
+        True
+    """
+    (fn_name, fr_id), args = params
+    #Construct a reference to global FMatrix object in this worker's memory
+    fusion_ring_obj = ctypes.cast(fr_id, ctypes.py_object).value
+    #Bind module method to FMatrix object in worker process, and call the method
+    mappers[fn_name](fusion_ring_obj,args)
+
 ######################################
 ### Pickling circumvention helpers ###
 ######################################
-
-cdef _flatten_entry(fusion_ring, entry):
-    """
-    Flatten cyclotomic coefficients to a representation as a tuple of rational
-    coefficients.
-
-    This is used to avoid pickling cyclotomic coefficient objects, which fails
-    with new PARI settings introduced in trac ticket #30537
-    """
-    #The entry is either a polynomial or a base field element
-    if entry.parent() == fusion_ring.fmats._poly_ring:
-        entry = _flatten_coeffs(poly_to_tup(entry))
-    else:
-        entry = entry.list()
-    return entry
 
 cpdef _unflatten_entries(fusion_ring, list entries):
     """
@@ -357,10 +403,4 @@ cpdef _unflatten_entries(fusion_ring, list entries):
     must_unflatten = F != QQbar
     if must_unflatten:
         for i, (coord, entry) in enumerate(entries):
-            #In this case entry represents a polynomial
-            if type(entry) == type(tuple()):
-                entry = fm.tup_to_fpoly(_unflatten_coeffs(F,entry))
-            #Otherwise entry belongs to base field
-            else:
-                entry = F(entry)
-            entries[i] = (coord, entry)
+            entries[i] = (coord, F(entry))

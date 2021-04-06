@@ -8,19 +8,11 @@ Arithmetic Engine for polynomials as tuples
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from functools import cmp_to_key
-from sage.rings.polynomial.term_order import TermOrder
-
-# from sage.arith.functions cimport LCM_list
-
-#Pre-compute common values for speed
-degrevlex_sortkey = TermOrder().sortkey_degrevlex
-
 ###########
 ### API ###
 ###########
 
-cpdef tuple poly_to_tup(MPolynomial_libsingular poly):
+cpdef inline tuple poly_to_tup(MPolynomial_libsingular poly):
     """
     Convert a polynomial object into the internal representation as tuple of
     (ETuple exp, NumberFieldElement coeff) pairs
@@ -36,55 +28,55 @@ cpdef tuple poly_to_tup(MPolynomial_libsingular poly):
     """
     return tuple(poly.dict().items())
 
-cpdef MPolynomial_libsingular tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent):
-    """
-    Return a polynomial object from its tuple representation. Inverse of poly_to_tup.
-    poly_to_tup(tup_to_poly(eq_tup, ring)) == eq_tup && tup_to_poly(poly_to_tup(eq), eq.parent()) == eq
+cpdef inline MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent):
+    r"""
+    Return a polynomial object from its tuple of pairs representation.
 
-    NOTE:
-      Assumes parent.ngens() == len(exp_tup) for exp_tup, c in eq_tup
+    Inverse of :meth:`poly_to_tup`:
+
+    ``poly_to_tup(tup_to_poly(eq_tup, ring)) == eq_tup`` and
+
+    ``tup_to_poly(poly_to_tup(eq), eq.parent()) == eq``.
+
+    .. NOTE::
+
+        Assumes ``parent.ngens() == len(exp_tup) for exp_tup, c in eq_tup``.
+
+        This method is meant for internal use.
+
+    .. WARNING::
+
+      Unsafe for client use, since it avoids implicit casting and
+      it may lead to segmentation faults.
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import tup_to_poly
-        sage: R.<x,y> = PolynomialRing(CyclotomicField(20))
-        sage: poly_tup = (((2,0),1), ((0,0),1))
-        sage: tup_to_poly(poly_tup, parent=R)
+        sage: from sage.combinat.root_system.poly_tup_engine import _tup_to_poly
+        sage: K = CyclotomicField(20)
+        sage: R.<x,y> = PolynomialRing(K)
+        sage: poly_tup = (((2,0),K.one()), ((0,0),K.one()))
+        sage: _tup_to_poly(poly_tup, parent=R)
         x^2 + 1
         sage: poly = x**2*y**4 - 4/5*x*y**2 + 1/3 * y
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-        sage: tup_to_poly(poly_to_tup(poly), parent=R) == poly
+        sage: _tup_to_poly(poly_to_tup(poly), parent=R) == poly
         True
 
     TESTS:
 
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, tup_to_poly
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, _tup_to_poly
         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
         sage: r = R.random_element()
-        sage: tup_to_poly(poly_to_tup(r), parent=R) == r
+        sage: _tup_to_poly(poly_to_tup(r), parent=R) == r
         True
         sage: R = PolynomialRing(QQ, 'fx', 100)
         sage: r = R.random_element()
-        sage: tup_to_poly(poly_to_tup(r), parent=R) == r
+        sage: _tup_to_poly(poly_to_tup(r), parent=R) == r
         True
-    """
-    # Maybe the following is faster but we need to ensure all coefficients are
-    # already in fmats._poly_ring.base_ring() so that implicit casting is avoided
-    # (this is pretty slow)
-    # return parent._element_constructor_(dict(eq_tup), check=False)
-    return parent(dict(eq_tup))
-
-cpdef MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent):
-    r"""
-    Faster version of :meth:`tup_to_poly`. Unsafe for client use, since it
-    avoids implicit casting and it may lead to segmentation faults.
-
-    Safe for internal use because our methods ensure that
-    polynomial coefficients always lie in the same base ring.
     """
     return parent._element_constructor_(dict(eq_tup), check=False)
 
-cdef tuple _flatten_coeffs(tuple eq_tup):
+cdef inline tuple _flatten_coeffs(tuple eq_tup):
     """
     Flatten cyclotomic coefficients to a representation as a tuple of rational
     coefficients.
@@ -93,6 +85,8 @@ cdef tuple _flatten_coeffs(tuple eq_tup):
     with new PARI settings introduced in trac ticket #30537
     """
     cdef list flat = list()
+    cdef ETuple exp
+    cdef NumberFieldElement_absolute cyc_coeff
     for exp, cyc_coeff in eq_tup:
         flat.append((exp, tuple(cyc_coeff._coefficients())))
     return tuple(flat)
@@ -119,63 +113,104 @@ cpdef tuple _unflatten_coeffs(field, tuple eq_tup):
         True
     """
     cdef list unflat = list()
+    cdef ETuple exp
     for exp, coeff_tup in eq_tup:
         unflat.append((exp, field(list(coeff_tup))))
     return tuple(unflat)
+
+#################################
+### Useful private predicates ###
+#################################
+
+cdef inline int has_appropriate_linear_term(tuple eq_tup):
+    """
+    Determine whether the given tuple of pairs (of length 2) contains
+    an *appropriate* linear term.
+
+    In this context, a linear term is said to be *appropriate* if the
+    it is in the largest variable in the given polynomial (w.r.t.
+    the degrevlex ordering), the monomial in which the linear term
+    appears is univariate, and the linear term is not a common factor in
+    the polynomial.
+
+    OUTPUT:
+
+    If the given polynomial contains an appropriate linear term, this method
+    returns the index of the monomial in which the term appears.
+
+    Otherwise, the method returns -1.
+    """
+    max_var = variables(eq_tup)[0]
+    cdef ETuple m
+    for i in range(2):
+        m = eq_tup[i][0]
+        if m._nonzero == 1 and m._data[1] == 1 and m._data[0] == max_var and eq_tup[(i+1) % 2][0][max_var] == 0:
+            return i
+    return -1
 
 ######################
 ### "Change rings" ###
 ######################
 
-def tup_to_univ_poly(tuple eq_tup, gen):
+cpdef inline tup_to_univ_poly(tuple eq_tup, univ_poly_ring):
     """
     Given a tuple of pairs representing a univariate polynomial and a univariate
-    polynomial ring generator, return a univariate polynomial object.
+    polynomial ring, return a univariate polynomial object.
 
-    Each pair in the tuple is assumed to be of the form (ETuple, coeff), where
-    coeff is an element of gen.parent().base_ring().
+    Each pair in the tuple is assumed to be of the form ``(ETuple, coeff)``,
+    where ``coeff`` is an element of ``univ_poly_ring.base_ring()``.
 
     EXAMPLES::
 
       sage: from sage.combinat.root_system.poly_tup_engine import tup_to_univ_poly
       sage: from sage.rings.polynomial.polydict import ETuple
-      sage: poly_tup = ((ETuple([0,3,0]),2), (ETuple([0,1,0]),-1), (ETuple([0,0,0]),-2/3))
-      sage: b = QQ['b'].gen()
-      sage: tup_to_univ_poly(poly_tup, b)
+      sage: K = CyclotomicField(56)
+      sage: poly_tup = ((ETuple([0,3,0]),K(2)), (ETuple([0,1,0]),K(-1)), (ETuple([0,0,0]),K(-2/3)))
+      sage: R = K['b']
+      sage: tup_to_univ_poly(poly_tup, R)
       2*b^3 - b - 2/3
-      sage: poly_tup = ((ETuple([0, 0, 0]), -1/5),)
-      sage: tup_to_univ_poly(poly_tup, b)
+
+    TESTS::
+
+      sage: poly_tup = ((ETuple([0, 0, 0]), K(-1/5)),)
+      sage: tup_to_univ_poly(poly_tup, R)
       -1/5
     """
-    univ_tup = tuple((exp.nonzero_values()[0] if exp.nonzero_values() else 0, c) for exp, c in eq_tup)
-    return sum(c * gen ** p for p, c in univ_tup)
+    cdef ETuple exp
+    cdef NumberFieldElement_absolute c
+    return univ_poly_ring({ exp._data[1] if exp._nonzero else 0 : c for exp, c in eq_tup })
 
-cpdef tuple resize(tuple eq_tup, dict idx_map, int nvars):
+cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
     """
-    Return a tuple representing a polynomial in a ring with len(sorted_vars) generators
-    This method is used for creating polynomial objects with the "right number" of
-    variables for computing Groebner bases of the partitioned equations graph
-    and for adding constraints ensuring certain F-symbols are nonzero
+    Return a tuple representing a polynomial in a ring with
+    ``len(sorted_vars)`` generators.
+
+    This method is used for creating polynomial objects with the
+    "right number" of variables for computing Groebner bases of the
+    partitioned equations graph and for adding constraints ensuring certain
+    F-symbols are nonzero.
 
     EXAMPLES::
 
       sage: from sage.combinat.root_system.poly_tup_engine import resize
       sage: from sage.rings.polynomial.polydict import ETuple
-      sage: poly_tup = ((ETuple([0,3,0,2]),2), (ETuple([0,1,0,1]),-1), (ETuple([0,0,0,0]),-2/3))
+      sage: K = CyclotomicField(56)
+      sage: poly_tup = ((ETuple([0,3,0,2]),K(2)), (ETuple([0,1,0,1]),K(-1)), (ETuple([0,0,0,0]),K(-2/3)))
       sage: idx_map = { 1 : 0, 3 : 1 }
       sage: resize(poly_tup,idx_map,2)
       (((3, 2), 2), ((1, 1), -1), ((0, 0), -2/3))
 
-      sage: R = PolynomialRing(ZZ, 'fx', 20)
+      sage: R = PolynomialRing(K, 'fx', 20)
       sage: R.inject_variables()
       Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19
-      sage: sparse_poly = fx0**2 * fx17 + fx3
-      sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, tup_to_poly
-      sage: S.<x,y,z> = PolynomialRing(ZZ)
-      sage: tup_to_poly(resize(poly_to_tup(sparse_poly),{0:0,3:1,17:2},3), parent=S)
+      sage: sparse_poly = R(fx0**2 * fx17 + fx3)
+      sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, _tup_to_poly
+      sage: S.<x,y,z> = PolynomialRing(K)
+      sage: _tup_to_poly(resize(poly_to_tup(sparse_poly),{0:0,3:1,17:2},3), parent=S)
       x^2*z + y
     """
-    cdef ETuple new_e
+    cdef ETuple exp, new_e
+    cdef NumberFieldElement_absolute c
     cdef list resized = list()
     for exp, c in eq_tup:
       new_e = ETuple({ idx_map[pos] : d for pos, d in exp.sparse_iter() }, nvars)
@@ -186,7 +221,7 @@ cpdef tuple resize(tuple eq_tup, dict idx_map, int nvars):
 ### Convenience methods ###
 ###########################
 
-cdef ETuple degrees(tuple poly_tup):
+cdef inline ETuple degrees(tuple poly_tup):
     """
     Return the maximal degree of each variable in the polynomial
     """
@@ -241,7 +276,8 @@ cpdef list variables(tuple eq_tup):
 
 cpdef constant_coeff(tuple eq_tup):
     """
-    Return the constant coefficient of the polynomial represented by given tuple
+    Return the constant coefficient of the polynomial represented by
+    given tuple.
 
     EXAMPLES::
 
@@ -263,15 +299,15 @@ cpdef constant_coeff(tuple eq_tup):
 
 cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
     """
-    Apply `coeff_map` to coefficients
+    Apply ``coeff_map`` to coefficients.
 
     EXAMPLES::
 
         sage: from sage.combinat.root_system.poly_tup_engine import apply_coeff_map
         sage: sq = lambda x : x**2
-        sage: R.<x,y,z> = PolynomialRing(QQ)
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, tup_to_poly
-        sage: tup_to_poly(apply_coeff_map(poly_to_tup(x + 2*y + 3*z), sq), parent=R)
+        sage: R.<x,y,z> = PolynomialRing(ZZ)
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, _tup_to_poly
+        sage: _tup_to_poly(apply_coeff_map(poly_to_tup(x + 2*y + 3*z), sq), parent=R)
         x + 4*y + 9*z
     """
     cdef ETuple exp
@@ -280,10 +316,12 @@ cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
       new_tup.append((exp, coeff_map(coeff)))
     return tuple(new_tup)
 
-cpdef bint tup_fixes_sq(tuple eq_tup):
-    """
-    Determine if given equation fixes the square of a variable. An equation
-    fixes the sq of a variable if it is of the form `a*x^2 + c` for *nonzero* constants `a`, `c`
+cpdef inline bint tup_fixes_sq(tuple eq_tup):
+    r"""
+    Determine if given equation fixes the square of a variable.
+
+    An equation fixes the sq of a variable if it is of the form `a*x^2 + c`
+    for *nonzero* constants `a`, `c`.
 
     EXAMPLES::
 
@@ -301,27 +339,38 @@ cpdef bint tup_fixes_sq(tuple eq_tup):
         False
     """
     #Make this faster by combining two conditions into one... don't create temp variables
-    return len(eq_tup) == 2 and len(variables(eq_tup)) == 1 and eq_tup[0][0].nonzero_values() == [2]
+    # return len(eq_tup) == 2 and len(variables(eq_tup)) == 1 and eq_tup[0][0].nonzero_values() == [2]
+    # return len(eq_tup) == 2 and eq_tup[0][0].emax(eq_tup[1][0]).nonzero_values() == [2]
+    if len(eq_tup) != 2:
+        return False
+    #In order to access _attributes, we must cdef ETuple
+    cdef ETuple lm = eq_tup[0][0]
+    if lm._nonzero != 1 or lm._data[1] != 2:
+        return False
+    cdef ETuple tm = eq_tup[1][0]
+    if tm._nonzero != 0:
+        return False
+    return True
 
 ######################
 ### Simplification ###
 ######################
 
-cpdef dict subs_squares(dict eq_dict, dict known_sq):
-    """
-    Substitutes for known squares in a given polynomial.
-    The parameter known_sq is a dictionary of (int i, NumberFieldElement a) pairs such that x_i^2 - a == 0
-    Returns a dictionary of (ETuple, coeff) pairs representing polynomial
+cdef dict subs_squares(dict eq_dict, dict known_sq):
+    r"""
+    Substitute for known squares into a given polynomial.
 
-    EXAMPLES::
+    INPUT:
 
-        sage: from sage.combinat.root_system.poly_tup_engine import subs_squares
-        sage: R.<x,y,z> = PolynomialRing(QQ)
-        sage: poly = x**2 + y**3 + x*z**3
-        sage: known_sq = { 0 : 2, 1 : -1, 2 : -1/2 }
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-        sage: subs_squares(dict(poly_to_tup(poly)), known_sq)
-        {(0, 0, 0): 2, (0, 1, 0): -1, (1, 0, 1): -1/2}
+    - ``eq_dict`` -- a dictionary of ``(ETuple, coeff)`` pairs representing
+      a polynomial.
+
+    - ``known_sq`` -- a dictionary of ``(int i, NumberFieldElement a)`` pairs
+      such that `x_i^2 - a = 0`.
+
+    OUTPUT:
+
+    Returns a dictionary of ``(ETuple, coeff)`` pairs representing polynomial
     """
     cdef dict subbed, new_e
     cdef ETuple exp, lm
@@ -346,13 +395,17 @@ cpdef dict subs_squares(dict eq_dict, dict known_sq):
     return subbed
 
 cdef dict remove_gcf(dict eq_dict, ETuple nonz):
-    """
-    Returns a dictionary of (ETuple, coeff) pairs describing the polynomial eq / GCF(eq)
-    The input nonz is an ETuple indicating the positions of variables known to be nonzero.
-    The entries of nonz are assumed to be some relatively large number, like 100
+    r"""
+    Returns a dictionary of ``(ETuple, coeff)`` pairs describing the
+    polynomial ``eq / GCF(eq)``.
+
+    The input ``nonz`` is an ``ETuple`` indicating the positions of
+    variables known to be nonzero. The entries of ``nonz`` are assumed to
+    be some relatively large number, like 100.
     """
     #Find common variables, filtered according to known nonzeros
     cdef ETuple common_powers, exp
+    cdef NumberFieldElement_absolute c
     common_powers = nonz
     for exp, c in eq_dict.items():
         common_powers = common_powers.emin(exp)
@@ -363,26 +416,29 @@ cdef dict remove_gcf(dict eq_dict, ETuple nonz):
 
 cdef tuple to_monic(dict eq_dict, one):
     """
-    Return tuple of pairs (ETuple, coeff) describing the monic polynomial associated to eq_dict
-    Here, the leading coefficient is chosen according to the degree reverse lexicographic ordering
-    (default for multivariate polynomial rings)
+    Return tuple of pairs ``(ETuple, coeff)`` describing the monic polynomial
+    associated to ``eq_dict``.
+
+    Here, the leading coefficient is chosen according to the degree reverse
+    lexicographic ordering (default for multivariate polynomial rings).
     """
     if not eq_dict: return tuple()
-    cdef list ord_monoms = sorted(eq_dict, key=degrevlex_sortkey)
+    cdef list ord_monoms = sorted(eq_dict, key=monom_sortkey)
     cdef ETuple lm = ord_monoms[-1]
-    lc = eq_dict[lm]
+    cdef NumberFieldElement_absolute lc = eq_dict[lm]
     if not lc: return tuple()
     cdef list ret = [(lm, one)]
     inv_lc = lc.inverse_of_unit()
-    cdef ETuple exp
-    for exp in reversed(ord_monoms[:-1]):
-        ret.append((exp, inv_lc * eq_dict[exp]))
+    cdef int i, n
+    n = len(ord_monoms)
+    for i in range(n-1):
+        ret.append((ord_monoms[n-2-i], inv_lc * eq_dict[ord_monoms[n-2-i]]))
     return tuple(ret)
 
-cpdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq, NumberFieldElement_absolute one):
+cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq, NumberFieldElement_absolute one):
     """
-    Return a dictionary describing a monic polynomial with no known nonzero gcd and
-    no known squares
+    Return a tuple describing a monic polynomial with no known nonzero
+    gcf and no known squares.
     """
     if not eq_dict: return tuple()
     cdef dict sq_rmvd = subs_squares(eq_dict, known_sq)
@@ -395,14 +451,17 @@ cpdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq, NumberFie
 
 cpdef dict compute_known_powers(ETuple max_deg, dict val_dict, one):
     """
-    Pre-compute powers of known values for efficiency when preparing to substitute
-    into a list of polynomials.
+    Pre-compute powers of known values for efficiency when preparing to
+    substitute into a list of polynomials.
 
     INPUTS:
 
-        max_deg is an ETuple indicating the maximal degree of each variable
-        val_dict is a dictionary of (var_idx, poly_tup) key-value pairs. poly_tup
-        is a tuple of (ETuple, coeff) pairs reperesenting a multivariate polynomial
+        - ``max_deg`` -- an ``ETuple`` indicating the maximal degree of
+          each variable.
+        - ``val_dict`` -- a dictionary of ``(var_idx, poly_tup)`` key-value
+          pairs.
+        - ``poly_tup`` -- a tuple of (ETuple, coeff) pairs reperesenting a
+          multivariate polynomial.
 
     EXAMPLES::
 
@@ -436,25 +495,9 @@ cpdef dict compute_known_powers(ETuple max_deg, dict val_dict, one):
             known_powers[var_idx][power+1] = tup_mul(known_powers[var_idx][power],val_dict[var_idx])
     return known_powers
 
-cpdef dict subs(tuple poly_tup, dict known_powers, one):
+cdef dict subs(tuple poly_tup, dict known_powers, one):
     """
     Substitute given variables into a polynomial tuple
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.poly_tup_engine import subs
-        sage: R.<x,y,z> = PolynomialRing(QQ)
-        sage: polys = [x**3 + 1, x**2*y + z**3, y**2 - 3*y]
-        sage: from sage.combinat.root_system.poly_tup_engine import compute_known_powers, get_variables_degrees, poly_to_tup
-        sage: known_val = { 0 : poly_to_tup(R(-1)), 2 : poly_to_tup(y**2) }
-        sage: max_deg = get_variables_degrees([poly_to_tup(p) for p in polys])
-        sage: poly_tup = poly_to_tup(polys[0])
-        sage: one = R.base_ring().one()
-        sage: subs(poly_tup, compute_known_powers(max_deg, known_val, one), one)
-        {(0, 0, 0): 0}
-        sage: poly_tup = poly_to_tup(polys[1])
-        sage: subs(poly_tup, compute_known_powers(max_deg, known_val, one), one)
-        {(0, 1, 0): 1, (0, 6, 0): 1}
     """
     cdef dict subbed = {}
     cdef ETuple exp, m, shifted_exp
@@ -494,106 +537,68 @@ cdef tuple tup_mul(tuple p1, tuple p2):
 ### Sorting ###
 ###############
 
-#Implement richcmp comparator object that can be passed in as key to sorted method
-
-# cpdef int poly_tup_cmp(tuple tleft, tuple tright):
-#     """
-#     Determine which polynomial is larger with respect to the degrevlex ordering
-#
-#     EXAMPLES::
-#
-#         sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_cmp
-#         sage: R.<x,y,z> = PolynomialRing(QQ)
-#         sage: p1 = x*y*z - x**2 + 3/2
-#         sage: p2 = x*y*z - x * y +1/2
-#         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-#         sage: (p1 < p2) == (poly_tup_cmp(poly_to_tup(p1), poly_to_tup(p2)) < 0)
-#         True
-#         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
-#         sage: zeta20 = R.base_ring().gen()
-#         sage: p1 = zeta20**2 * x*z**2 - 2*zeta20
-#         sage: p2 = y**3 + 1/4
-#         sage: (p1 < p2) == (poly_tup_cmp(poly_to_tup(p1), poly_to_tup(p2)) < 0)
-#         True
-#
-#     TESTS:
-#
-#         sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_cmp, poly_to_tup
-#         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
-#         sage: p1 = R.random_element()
-#         sage: p2 = R.random_element()
-#         sage: (p1 < p2) == (poly_tup_cmp(poly_to_tup(p1), poly_to_tup(p2)) < 0)
-#         True
-#         sage: (p1 > p2) == (poly_tup_cmp(poly_to_tup(p1), poly_to_tup(p2)) > 0)
-#         True
-#         sage: poly_tup_cmp(poly_to_tup(p1), poly_to_tup(p1)) == 0
-#         True
-#     """
-#     cdef int i, ret, sf, sg, val
-#     cdef ETuple f, g
-#     ret = 0
-#     for i in range(min(len(tleft),len(tright))):
-#         f, g = tleft[i][0], tright[i][0]
-#         if f == g:
-#             if tleft[i][1] != tright[i][1]:
-#                 ret = -1 + 2*(tleft[i][1] > tright[i][1])
-#         else:
-#             sf, sg = 0, 0
-#             for val in f.nonzero_values(sort=False):
-#               sf += val
-#             for val in g.nonzero_values(sort=False):
-#               sg += val
-#             ret = -1 + 2*(sf > sg or ( sf == sg and f.reversed() < g.reversed() ))
-#         if ret != 0:
-#             return ret
-#     return len(tleft) - len(tright)
-
-import numpy as np
-cpdef tuple poly_tup_sortkey_degrevlex(tuple eq_tup):
+cdef tuple monom_sortkey(ETuple exp):
     """
-    Return the sortkey of a polynomial represented as a tuple of (ETuple, coeff)
-    pairs with respect to the degree reversed lexicographical term order.
+    Produce a sortkey for a monomial exponent w.r.t. degree reversed
+    lexicographic ordering.
+    """
+    cdef int deg = exp.unweighted_degree()
+    # for i in range(exp._nonzero):
+    #     exp._data[2*i+1] = -exp._data[2*i+1]
+    cdef ETuple rev = exp.reversed().emul(-1)
+    return (deg, rev)
+
+cpdef tuple poly_tup_sortkey(tuple eq_tup):
+    """
+    Return the sortkey of a polynomial represented as a tuple of
+    ``(ETuple, coeff)`` pairs with respect to the degree
+    lexicographical term order.
 
     Using this key to sort polynomial tuples results in comparing polynomials
     term by term (we assume the tuple representation is sorted so that the
-    leading term with respect to the degree reverse lexicographical order comes
-    first). For each term, we first compare degrees, then the monomials themselves,
-    then the corresponding coefficient.
+    leading term with respect to the degree reverse lexicographical order
+    comes first). For each term, we first compare degrees, then the monomials
+    themselves.
 
-    This method relies on the built-in comparison of ETuple's.
+    EXAMPLES::
 
-    EXAMPLES ::
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: R.<x,y,z> = PolynomialRing(QQ, order='deglex')
+        sage: p1 = x*y*z - x**2 + 3/2
+        sage: p2 = x*y*z - x*y + 1/2
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
+        True
+        sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20), order='deglex')
+        sage: zeta20 = R.base_ring().gen()
+        sage: p1 = zeta20**2 * x*z**2 - 2*zeta20
+        sage: p2 = y**3 + 1/4
+        sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
+        True
 
+    TESTS:
+
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
+        sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
+        sage: p1 = R.random_element()
+        sage: p2 = R.random_element()
+        sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
+        True
+        sage: (p1 > p2) == (poly_tup_sortkey(poly_to_tup(p1)) > poly_tup_sortkey(poly_to_tup(p2)))
+        True
+        sage: poly_tup_sortkey(poly_to_tup(p1)) == poly_tup_sortkey(poly_to_tup(p1))
+        True
     """
     cdef ETuple exp
     cdef int i, l, nnz
-    key = list()
-    # for exp, c in eq_tup:
-    #     key.extend([sum(exp.nonzero_values(sort=False)),exp.reversed().emul(-1),c._coefficients()])
-    # for exp, c in eq_tup:
-    #     #Compare by term degree
-    #     key.append(exp.unweighted_degree())
-    #     revlex_exp = exp.reversed().emul(-1)
-    #     #Then by term w.r.t. revlex order
-    #     revlex_exp_key = list()
-    #     for i from 0 <= i < exp._nonzero:
-    #         #Reverse tuple and negate values
-    #         # key.append(-(exp._length - exp._data[2*(exp._nonzero-i-1)] - 1))
-    #         # key.append(-exp._data[2*(exp._nonzero-i-1)+1])
-    #         key.append(-exp._data[2*i])
-    #         key.append(exp._data[2*i+1])
-    #     #Finally by coefficient
-    #     key.extend(c._coefficients())
+    cdef list key = list()
     for exp, c in eq_tup:
        #Compare by term degree
        key.append(exp.unweighted_degree())
-       #Next compare by term w.r.t. revlex order
-       l = exp._length
-       nnz = exp._nonzero
-       for i from 0 <= i < nnz:
-           # key.append(l-1-exp._data[2*(nnz-i-1)])
+       #Next compare by term w.r.t. lex order
+       for i in range(exp._nonzero):
+           # key.append(exp._length-1-exp._data[2*(nnz-i-1)])
            # key.append(-exp._data[2*(nnz-i-1)+1])
-           # Try sorting in lex order instead
            key.append(-exp._data[2*i])
            key.append(exp._data[2*i+1])
     return tuple(key)

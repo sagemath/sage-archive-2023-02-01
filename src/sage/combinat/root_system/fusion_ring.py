@@ -15,7 +15,10 @@ from itertools import product, zip_longest
 from multiprocessing import Pool, set_start_method
 from sage.combinat.q_analogues import q_int
 import sage.combinat.root_system.f_matrix as FMatrix
-from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results, executor, _unflatten_entries
+from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import (
+    collect_results, executor,
+    _unflatten_entries
+)
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 from sage.matrix.constructor import matrix
 from sage.matrix.special import diagonal_matrix
@@ -24,7 +27,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import inject_variable
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import CyclotomicField
-
 from sage.rings.qqbar import QQbar
 
 class FusionRing(WeylCharacterRing):
@@ -374,26 +376,36 @@ class FusionRing(WeylCharacterRing):
         tester.assertTrue(tqo.is_real_positive())
         tester.assertEqual(tqo**2, self.global_q_dimension(base_coercion=False))
 
-    def test_braid_representation(self, **options):
+    def test_braid_representation(self, max_strands=6):
         """
         Check that we can compute valid braid group representations.
 
-        This test indirectly partially verifies the correctness of the orthogonal
-        F-matrix solver.
+        INPUT:
+
+        - ``max_strands`` -- (default: 6): maximum number of braid group strands
+
+        Create a braid group representation using :meth:`get_braid_generators`
+        and confirms the braid relations.  This test indirectly partially verifies
+        the correctness of the orthogonal F-matrix solver. If the code were
+        incorrect the method would not be deterministic because the fusing anyon
+        is chosen randomly. (A different choice is made for each number of strands tested.)
+        However the doctest is deterministic since it will always return True.
 
         EXAMPLES::
 
             sage: F41 = FusionRing("F4",1)
-            sage: F41.test_braid_representation()
+            sage: F41.test_braid_representation(max_strands=4)
+            True
             sage: B22 = FusionRing("B2",2)             # long time
-            sage: B22.test_braid_representation()      # long time (~45s)
+            sage: B22.test_braid_representation()      # long time
+            True
         """
         if not self.is_multiplicity_free(): # Braid group representation is not available if self is not multiplicity free
            return True
-        tester = self._tester(**options)
         b = self.basis()
+        results = []
         #Test with different numbers of strands
-        for n_strands in range(3,7):
+        for n_strands in range(3,max_strands+1):
             #Randomly select a fusing anyon. Skip the identity element, since
             #its braiding matrices are trivial
             while True:
@@ -408,8 +420,9 @@ class FusionRing(WeylCharacterRing):
                     d = self(k)
                 break
             comp_basis, sig = self.get_braid_generators(a,d,n_strands,verbose=False)
-            tester.assertTrue(len(comp_basis) > 0)
-            tester.assertTrue(self.gens_satisfy_braid_gp_rels(sig))
+            results.append(len(comp_basis) > 0)
+            results.append(self.gens_satisfy_braid_gp_rels(sig))
+        return all(results)
 
     def fusion_labels(self, labels=None, inject_variables=False):
         r"""
@@ -537,7 +550,7 @@ class FusionRing(WeylCharacterRing):
             Cyclotomic Field of order 40 and degree 16
             sage: a2**4
             2*a0 + 3*a2
-            sage: comp_basis, sig = A13.get_braid_generators(a2,a2,4,verbose=False)
+            sage: comp_basis, sig = A13.get_braid_generators(a2,a2,3,verbose=False)
             sage: A13.fvars_field()
             Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
             sage: a2.q_dimension().parent()
@@ -814,6 +827,37 @@ class FusionRing(WeylCharacterRing):
 
     def s_ijconj(self, elt_i, elt_j, base_coercion=True):
         """
+        Return the conjugate of the element of the S-matrix given by
+        ``self.s_ij(elt_i,elt_j,base_coercion=base_coercion)``.
+
+        See :meth:`s_ij`.
+
+        EXAMPLES::
+
+            sage: G21 = FusionRing("G2", 1)
+            sage: b = G21.basis()
+            sage: [G21.s_ijconj(x, y) for x in b for y in b]
+            [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
+
+        This method works with all possible types of fields returned by
+        ``self.fmats.field()``.
+
+        TESTS::
+
+            sage: E62 = FusionRing("E6",2)
+            sage: E62.fusion_labels("e", inject_variables=True)
+            sage: E62.s_ij(e8,e1).conjugate() == E62.s_ijconj(e8,e1)
+            True
+            sage: F41 = FusionRing("F4",1)
+            sage: F41.fmats.find_orthogonal_solution(verbose=False)
+            sage: b = F41.basis()
+            sage: all(F41.s_ijconj(x,y) == F41._basecoer(F41.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)
+            True
+            sage: G22 = FusionRing("G2",2)
+            sage: G22.fmats.find_orthogonal_solution(verbose=False)     # long time (~11 s)
+            sage: b = G22.basis()
+            sage: all(G22.s_ijconj(x,y) == G22.fmats.field()(G22.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)
+            True
         """
         ret = self.s_ij(elt_i, elt_j, base_coercion=False).conjugate()
         if (not base_coercion) or (self._basecoer is None):
@@ -1035,36 +1079,36 @@ class FusionRing(WeylCharacterRing):
     ### Braid group representations ###
     ###################################
 
-    def get_trees(self,top_row,root):
-        """
-        Recursively enumerate all the admissible trees with given top row and root.
-
-        INPUT:
-
-        - ``top_row`` -- a list of basis elements of self
-        - ``root`` -- a simple element of self
-
-        Let `k` denote the length ``top_row``. This method returns
-        Returns a list of tuples `(l_1,...,l_{k-2})` such that
-
-        .. MATH::
-
-            \\begin{array}{l}
-            root \\to l_{k-2} \otimes m_{k},\\
-            l_{k-2} \\to l_{k-3} \otimes m_{k-1},\\
-            \\cdots\\
-            l_2\\to l_1\otimes m_3\\
-            l_1\\to m_1\otimes m_2
-            \end{array}
-
-        where `a \\to b\otimes c` means `N_{bc}^a\\neq 0`.
-        """
-        if len(top_row) == 2:
-            m1, m2 = top_row
-            return [[]] if self.Nk_ij(m1,m2,root) else []
-        else:
-            m1, m2 = top_row[:2]
-            return [tuple([l,*b]) for l in self.basis() for b in self.get_trees([l]+top_row[2:],root) if self.Nk_ij(m1,m2,l)]
+    # def get_trees(self,top_row,root):
+    #     """
+    #     Recursively enumerate all the admissible trees with given top row and root.
+    #
+    #     INPUT:
+    #
+    #     - ``top_row`` -- a list of basis elements of self
+    #     - ``root`` -- a simple element of self
+    #
+    #     Let `k` denote the length ``top_row``. This method returns
+    #     Returns a list of tuples `(l_1,...,l_{k-2})` such that
+    #
+    #     .. MATH::
+    #
+    #         \\begin{array}{l}
+    #         root \\in l_{k-2} \otimes m_{k},\\
+    #         l_{k-2} \\in l_{k-3} \otimes m_{k-1},\\
+    #         \\cdots\\
+    #         l_2 \\in l_1\otimes m_3\\
+    #         l_1 \\in m_1\otimes m_2
+    #         \end{array}
+    #
+    #     where `a \\to b\otimes c` means `N_{bc}^a\\neq 0`.
+    #     """
+    #     if len(top_row) == 2:
+    #         m1, m2 = top_row
+    #         return [[]] if self.Nk_ij(m1,m2,root) else []
+    #     else:
+    #         m1, m2 = top_row[:2]
+    #         return [tuple([l,*b]) for l in self.basis() for b in self.get_trees([l]+top_row[2:],root) if self.Nk_ij(m1,m2,l)]
 
     def get_computational_basis(self,a,b,n_strands):
         """
@@ -1073,38 +1117,79 @@ class FusionRing(WeylCharacterRing):
         INPUT:
 
         - ``a`` -- a basis element
-        - ``b`` -- another basis elements
+        - ``b`` -- another basis element
         - ``n_strands`` -- the number of strands for a braid group
 
         Let `n=` ``n_strands`` and let `k` be the greatest integer `\leqslant n/2`.
         The braid group acts on `\\text{Hom}(b,a^n)`. This action
         is computed in :meth:`get_braid_generators`. This method
-        returns the computational basis in the form of a set of
-        fusion trees. Each tree is represented by a `(n-2)`-tuple
+        returns the computational basis in the form of a list of
+        fusion trees. Each tree is represented by an `(n-2)`-tuple
 
         .. MATH::
 
-            (m_1,\cdots,m_k,l_1,\cdots,l_{k-2})
+            (m_1,\ldots,m_k,l_1,\ldots,l_{k-2})
 
-        These are computed by :meth:`get_trees`. As a computational
-        device when ``n_strands`` is odd, we pad the vector `(m_1,\cdots,m_k)`
-        with an additional `m_{k+1}` equal to `a` before passing it to
-        :meth:`get_trees`. This `m_{k+1}` does not appear in the output
-        of this method.
+        such that each `m_j` is an irreducible constituent in `a \otimes a`
+        and
+
+        .. MATH::
+
+            \\begin{array}{l}
+            b \\in l_{k-2} \otimes m_{k},\\\\
+            l_{k-2} \\in l_{k-3} \otimes m_{k-1},\\\\
+            \\cdots,\\\\
+            l_2 \\in l_1\otimes m_3,\\\\
+            l_1 \\in m_1\otimes m_2.
+            \end{array}
+
+        where `z \\in x\otimes y` means `N_{xy}^z\\neq 0`.
+
+        As a computational device when ``n_strands`` is odd, we pad the
+        vector `(m_1,\ldots,m_k)` with an additional `m_{k+1}` equal to `a`.
+        However, this `m_{k+1}` does *not* appear in the output of this method.
+
+        The following example appears in Section 3.1 of [CW2015]_.
+
+        EXAMPLES::
+
+            sage: A14 = FusionRing("A1",4)
+            sage: A14.get_order()
+            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
+            sage: A14.fusion_labels(["zero","one","two","three","four"],inject_variables=True)
+            sage: [A14(x) for x in A14.get_order()]
+            [zero, one, two, three, four]
+            sage: A14.get_computational_basis(one,two,4)
+            [(two, two), (two, zero), (zero, two)]
         """
+        def _get_trees(fr,top_row,root):
+            if len(top_row) == 2:
+                m1, m2 = top_row
+                return [[]] if fr.Nk_ij(m1,m2,root) else []
+            else:
+                m1, m2 = top_row[:2]
+                return [tuple([l,*b]) for l in fr.basis() for b in _get_trees(fr,[l]+top_row[2:],root) if fr.Nk_ij(m1,m2,l)]
+
         comp_basis = list()
         for top in product((a*a).monomials(),repeat=n_strands//2):
             #If the n_strands is odd, we must extend the top row by a fusing anyon
             top_row = list(top)+[a]*(n_strands%2)
-            comp_basis.extend(tuple([*top,*levels]) for levels in self.get_trees(top_row,b))
+            comp_basis.extend(tuple([*top,*levels]) for levels in _get_trees(self,top_row,b))
         return comp_basis
 
     @lazy_attribute
     def fmats(self):
         """
         Construct an FMatrix factory to solve the pentagon relations and
-        organize the resulting F-symbols. We only need this attribute to compute
-        braid group representations.
+        organize the resulting F-symbols.
+
+        We only need this attribute to compute braid group representations.
+
+        EXAMPLES::
+
+            sage: A15 = FusionRing("A1",5)
+            sage: A15.fmats
+            F-Matrix factory for The Fusion Ring of Type A1 and level 5 with Integer Ring coefficients
         """
         return FMatrix.FMatrix(self)
 
@@ -1120,7 +1205,7 @@ class FusionRing(WeylCharacterRing):
           ``fast_parallel_fusion_ring_braid_repn`` module.
         - ``input_args`` -- a tuple of arguments to be passed to mapper
 
-        NOTES:
+        .. NOTE::
 
             If ``worker_pool`` is not provided, function maps and reduces on a
             single process.
@@ -1129,6 +1214,19 @@ class FusionRing(WeylCharacterRing):
             input iterable. If it can't determine the length of the input
             iterable then it uses multiprocessing with the default chunksize of
             `1` if chunksize is not explicitly provided.
+
+        EXAMPLES::
+
+            sage: FR = FusionRing("A1",4)
+            sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
+            sage: FR.fmats.find_orthogonal_solution(verbose=False)      # long time
+            sage: len(FR._emap('sig_2k',(1,one,one,5)))                 # long time
+            13
+            sage: FR = FusionRing("A1",2)
+            sage: FR.fusion_labels("a",inject_variables=True)
+            sage: FR.fmats.find_orthogonal_solution(verbose=False)
+            sage: len(FR._emap('odd_one_out',(a1,a1,7)))
+            16
         """
         n_proc = worker_pool._processes if worker_pool is not None else 1
         input_iter = [(child_id, n_proc, input_args) for child_id in range(n_proc)]
@@ -1147,7 +1245,6 @@ class FusionRing(WeylCharacterRing):
             results = list()
             for worker_results in worker_pool.imap_unordered(collect_results,range(worker_pool._processes),chunksize=1):
                 results.extend(worker_results)
-            # results = list(results)
         return results
 
     def get_braid_generators(self,
@@ -1198,7 +1295,7 @@ class FusionRing(WeylCharacterRing):
         ``comp_basis`` is a list of basis elements of the braid group
         module, parametrized by a list of fusion ring elements describing
         a fusion tree. For example with 5 strands the fusion tree
-        is as follows. See :meth:`get_computational_basis` and :meth:`get_trees`
+        is as follows. See :meth:`get_computational_basis`
         for more information.
 
         .. image:: ../../../media/fusiontree.png
@@ -1220,10 +1317,10 @@ class FusionRing(WeylCharacterRing):
             [one, two, three, four, five]
             sage: two ** 5
             5*two + 4*four
-            sage: comp_basis, sig = A14.get_braid_generators(two,two,5,verbose=False)
-            sage: A14.gens_satisfy_braid_gp_rels(sig)
+            sage: comp_basis, sig = A14.get_braid_generators(two,two,5,verbose=False) # long time
+            sage: A14.gens_satisfy_braid_gp_rels(sig)                                 # long time
             True
-            sage: len(comp_basis) == 5
+            sage: len(comp_basis) == 5                                                # long time
             True
 
         """
@@ -1406,9 +1503,9 @@ class FusionRing(WeylCharacterRing):
                 sage: F = FusionRing("A1",3)
                 sage: [x.twist() for x in F.basis()]
                 [0, 3/10, 4/5, 3/2]
-                sage: [x.ribbon() for x in F.basis()]
+                sage: [x.ribbon(base_coercion=False) for x in F.basis()]
                 [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
-                sage: [F.root_of_unity(x) for x in [0, 3/10, 4/5, 3/2]]
+                sage: [F.root_of_unity(x,base_coercion=False) for x in [0, 3/10, 4/5, 3/2]]
                 [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
             """
             ret = self.parent().root_of_unity(self.twist(),base_coercion=False)

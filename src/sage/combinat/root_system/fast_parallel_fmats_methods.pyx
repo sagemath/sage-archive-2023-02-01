@@ -9,56 +9,135 @@ Fast FMatrix methods
 # ****************************************************************************
 
 cimport cython
+from sage.combinat.root_system.poly_tup_engine cimport (
+    compute_known_powers,
+    get_variables_degrees, variables,
+    poly_to_tup, _tup_to_poly,
+    subs, subs_squares, reduce_poly_dict, resize,
+    _flatten_coeffs, _unflatten_coeffs,
+    has_appropriate_linear_term,
+    resize
+)
+from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
+from sage.rings.polynomial.polydict cimport ETuple
+
 import ctypes
 from itertools import product
-from os import getpid
-import sage
-from sage.combinat.root_system.poly_tup_engine cimport *
 from sage.rings.ideal import Ideal
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-# from sage.rings.qqbar import number_field_elements_from_algebraics
 
-#Define a global temporary worker results repository
-cdef list worker_results = list()
+##########################
+### Fast class methods ###
+##########################
 
-##############################
-### Parallel code executor ###
-##############################
-
-def executor(params):
+cpdef _solve_for_linear_terms(factory,eqns=None):
     """
-    Execute a function defined in this module (sage.combinat.root_system.fast_parallel_fmats_methods)
-    in a worker process, and supply the factory parameter by constructing a reference
-    to the FMatrix object in the worker's memory adress space from its id
-    ##  NOTE: When the parent process is forked, each worker gets a copy of
-    every  global variable. The virtual memory address of object X in the parent
-    process equals the VIRTUAL memory address of the copy of object X in each
-    worker, so we may construct references to forked copies of X using an id
-    obtained in the parent process
+    Solve for a linear term occurring in a two-term equation, and for
+    variables appearing in univariate single-term equations.
 
-    TESTS:
+    EXAMPLES::
 
-        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import executor
-        sage: fmats = FMatrix(FusionRing("A1",3))
-        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
-        sage: executor(params)
-        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import collect_eqns
-        sage: len(collect_eqns(0)) == 63
+        sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
+        creating variables fx1..fx27
+        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
+        sage: f.ideal_basis = [fx0**3, fx0 + fx3**4, fx2**2 - fx3, fx2 - fx3**2, fx4 - fx2]
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+        sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _solve_for_linear_terms
+        sage: _solve_for_linear_terms(f)
         True
-        sage: fmats = FMatrix(FusionRing("E8",2))
-        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
-        sage: executor(params)
-        sage: len(collect_eqns(0)) == 11
-        True
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[0]])
+        0
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[2]])
+        fx4
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[3]])
+        fx3
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[4]])
+        fx4
     """
-    (fn_name, fmats_id), args = params
-    #Construct a reference to global FMatrix object in this worker's memory
-    fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
-    mod = sage.combinat.root_system.fast_parallel_fmats_methods
-    #Bind module method to FMatrix object in worker process, and call the method
-    return getattr(mod,fn_name)(fmats_obj,args)
+    if eqns is None:
+            eqns = factory.ideal_basis
 
+    linear_terms_exist = False
+    for eq_tup in eqns:
+        #Only unflatten relevant polynomials
+        if len(eq_tup) > 2:
+            continue
+        eq_tup = _unflatten_coeffs(factory._field, eq_tup)
+
+        if len(eq_tup) == 1:
+            vars = variables(eq_tup)
+            if len(vars) == 1 and vars[0] not in factory._solved:
+                factory._fvars[factory._idx_to_sextuple[vars[0]]] = tuple()
+                factory._solved.add(vars[0])
+                linear_terms_exist = True
+        if len(eq_tup) == 2:
+            idx = has_appropriate_linear_term(eq_tup)
+            if idx < 0: continue
+            #The chosen term is guaranteed to be univariate in the largest variable
+            max_var = eq_tup[idx][0].nonzero_positions()[0]
+            if max_var not in factory._solved:
+                rhs_exp = eq_tup[(idx+1) % 2][0]
+                rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]
+                factory._fvars[factory._idx_to_sextuple[max_var]] = ((rhs_exp,rhs_coeff),)
+                factory._solved.add(max_var)
+                linear_terms_exist = True
+    return linear_terms_exist
+
+cpdef _backward_subs(factory):
+    """
+    Perform backward substitution on ``self.ideal_basis``, traversing
+    variables in reverse lexicographical order.
+
+    EXAMPLES::
+
+        sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
+        creating variables fx1..fx27
+        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
+        sage: f.ideal_basis = [fx0**3, fx0 + fx3**4, fx2**2 - fx3, fx2 - fx3**2, fx4 - fx2]
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+        sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _solve_for_linear_terms
+        sage: _solve_for_linear_terms(f)
+        True
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[0]])
+        0
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[2]])
+        fx4
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[3]])
+        fx3
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[4]])
+        fx4
+        sage: f.ideal_basis.append(poly_to_tup(fx4-1))
+        sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+        sage: _solve_for_linear_terms(f)
+        True
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _backward_subs
+        sage: _backward_subs(f)
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[0]])
+        0
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[2]])
+        1
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[3]])
+        fx3
+        sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[4]])
+        1
+    """
+    one = factory._field.one()
+    for var in reversed(factory._poly_ring.gens()):
+        sextuple = factory._var_to_sextuple[var]
+        rhs = factory._fvars[sextuple]
+        d = {var_idx : factory._fvars[factory._idx_to_sextuple[var_idx]] for var_idx in variables(rhs) if var_idx in factory._solved}
+        if d:
+            kp = compute_known_powers(get_variables_degrees([rhs]), d, one)
+            factory._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp,one),factory._ks).items())
 
 ######################################
 ### Fast fusion coefficients cache ###
@@ -84,10 +163,12 @@ def executor(params):
 #
 # _Nk_ij = cached_function(_Nk_ij, name='_Nk_ij')
 
-
 ###############
 ### Mappers ###
 ###############
+
+#Define a global temporary worker results repository
+cdef list worker_results = list()
 
 cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):
       """
@@ -129,7 +210,7 @@ cdef req_cy(tuple basis, r_matrix, dict fvars, Nk_ij, id_anyon, tuple sextuple):
 @cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
-cpdef get_reduced_hexagons(factory, tuple mp_params):
+cdef get_reduced_hexagons(factory, tuple mp_params):
     """
     Set up and reduce the hexagon equations corresponding to this worker
     """
@@ -178,7 +259,7 @@ cdef MPolynomial_libsingular feq_cy(tuple basis, fvars, Nk_ij, id_anyon, zero, t
 @cython.wraparound(False)
 @cython.nonecheck(False)
 @cython.cdivision(True)
-cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
+cdef get_reduced_pentagons(factory, tuple mp_params):
     """
     Set up and reduce the pentagon equations corresponding to this worker
     """
@@ -201,9 +282,11 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
     cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
 
     #Computation loop
-    for i, nonuple in enumerate(product(basis,repeat=9)):
+    it = product(basis,repeat=9)
+    for i in range(len(basis)**9):
+        nonuple = next(it)
         if i % n_proc == child_id:
-            pe = feq_cy(basis,fvars,_Nk_ij,id_anyon,zero,nonuple,prune=prune)
+            pe = feq_cy(basis,fvars,_Nk_ij,id_anyon,zero,nonuple,prune=True)
             if pe:
                 red = reduce_poly_dict(pe.dict(),_nnz,_ks,one)
 
@@ -215,14 +298,34 @@ cpdef get_reduced_pentagons(factory, tuple mp_params, bint prune=True):
 cpdef update_reduce(factory, tuple eq_tup):
     """
     Substitute known values, known squares, and reduce!
+
+    EXAMPLES::
+
+        sage: f = FMatrix(FusionRing("B4",1), fusion_label="b", inject_variables=True)
+        creating variables fx1..fx14
+        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+        sage: p = 2*fx0**2 - 3/7*fx0*fx1*fx3**3 + 5*fx0*fx4
+        sage: from sage.combinat.root_system.poly_tup_engine import *
+        sage: f.ideal_basis = [poly_to_tup(p)]
+        sage: f._ks = {3: 2}
+        sage: f._var_degs = get_variables_degrees(f.ideal_basis)
+        sage: known_vals = {4: poly_to_tup(fx11**2)}
+        sage: f._nnz
+        (100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0, 0, 0, 0)
+        sage: f._kp = compute_known_powers(f._var_degs,known_vals,f._field.one())
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import update_reduce, collect_eqns
+        sage: update_reduce(f, f.ideal_basis[0])
+        sage: from sage.combinat.root_system.poly_tup_engine import _unflatten_coeffs
+        sage: [f._tup_to_fpoly(_unflatten_coeffs(f._field,p)) for p in collect_eqns(0)]
+        [fx1*fx3 - 35/6*fx11^2 - 7/3*fx0]
     """
     global worker_results
     cdef NumberFieldElement_absolute one = factory._field.one()
 
     #Construct cyclotomic field elts from list repn
-    eq_tup = _unflatten_coeffs(factory._field, eq_tup)
+    cdef tuple unflat = _unflatten_coeffs(factory._field, eq_tup)
 
-    cdef dict eq_dict = subs(eq_tup,factory._kp,one)
+    cdef dict eq_dict = subs(unflat,factory._kp,one)
     cdef tuple red = reduce_poly_dict(eq_dict,factory._nnz,factory._ks,one)
 
     #Avoid pickling cyclotomic coefficients
@@ -232,17 +335,48 @@ cpdef update_reduce(factory, tuple eq_tup):
 
 cpdef compute_gb(factory, tuple args):
     """
-    Compute Groebner basis for given equations iterable
+    Compute the reduced Groebner basis for given equations iterable.
+
+    EXAMPLES::
+
+        sage: f = FMatrix(FusionRing("A2",2))
+        sage: from multiprocessing import Pool, set_start_method
+        sage: try:
+        ....:     set_start_method('fork') # context can be set only once
+        ....: except RuntimeError:
+        ....:     pass
+        sage: f.get_defining_equations('hexagons',worker_pool=Pool(),output=False)
+        sage: partition = f._partition_eqns()
+        Partitioned 261 equations into 57 components of size:
+        [24, 12, 12, 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1]
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import compute_gb, collect_eqns
+        sage: args = (partition[(29, 40, 83, 111, 148, 154)], "degrevlex")
+        sage: compute_gb(f, args)
+        sage: from sage.combinat.root_system.poly_tup_engine import _unflatten_coeffs
+        sage: [f._tup_to_fpoly(_unflatten_coeffs(f._field,t)) for t in collect_eqns(0)]
+        [fx83*fx154 - fx111,
+         fx29^2*fx154 + fx29,
+         fx29*fx148 - fx40,
+         fx29*fx154^2 + fx154,
+         fx83*fx148 + fx29*fx154,
+         fx40*fx83 - fx29,
+         fx111*fx148 - fx154,
+         fx40*fx154 + fx148,
+         fx40*fx111 - fx29*fx154,
+         fx29*fx111 + fx83]
     """
     global worker_results
+    cdef list eqns, sorted_vars
     eqns, term_order = args
     #Define smaller poly ring in component vars
     sorted_vars = list()
+    cdef tuple eq_tup
+    cdef int fx
     for eq_tup in eqns:
       for fx in variables(eq_tup):
         sorted_vars.append(fx)
     sorted_vars = sorted(set(sorted_vars))
-    R = PolynomialRing(factory._FR.field(),len(sorted_vars),'a',order=term_order)
+    cdef MPolynomialRing_libsingular R = PolynomialRing(factory._FR.field(),len(sorted_vars),'a',order=term_order)
 
     #Zip tuples into R and compute Groebner basis
     cdef idx_map = { old : new for new, old in enumerate(sorted_vars) }
@@ -251,7 +385,7 @@ cpdef compute_gb(factory, tuple args):
     cdef list polys = list()
     for eq_tup in eqns:
         eq_tup = _unflatten_coeffs(F, eq_tup)
-        polys.append(tup_to_poly(resize(eq_tup,idx_map,nvars),parent=R))
+        polys.append(_tup_to_poly(resize(eq_tup,idx_map,nvars),parent=R))
     gb = Ideal(sorted(polys)).groebner_basis(algorithm="libsingular:slimgb")
 
     #Change back to fmats poly ring and append to temp_eqns
@@ -271,6 +405,27 @@ cpdef update_child_fmats(factory, tuple data_tup):
     One-to-all communication used to update FMatrix object after each triangular
     elim step. We must update the algorithm's state values. These are:
     _fvars, _solved, _ks, _var_degs, _nnz, and _kp.
+
+    TESTS::
+
+        sage: f = FMatrix(FusionRing("A1",3))
+        sage: f.get_orthogonality_constraints(output=False)
+        sage: from multiprocessing import Pool, set_start_method
+        sage: try:
+        ....:     set_start_method('fork') # context can be set only once
+        ....: except RuntimeError:
+        ....:     pass
+        sage: pool = Pool()
+        sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
+        sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+        sage: f.mp_thresh = 0
+        sage: f._triangular_elim(worker_pool=pool)          # indirect doctest
+        Elimination epoch completed... 10 eqns remain in ideal basis
+        Elimination epoch completed... 0 eqns remain in ideal basis
+        sage: f.ideal_basis
+        []
     """
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
@@ -278,21 +433,32 @@ cpdef update_child_fmats(factory, tuple data_tup):
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
 
-# def get_appropriate_number_field(factory,non_cyclotomic_roots):
-#     """
-#     If needed, find a NumberField containing the roots given roots
-#     """
-#     roots = [factory._FR.field().gen()]+[r[1] for r in non_cyclotomic_roots]
-#     return number_field_elements_from_algebraics(roots,minimal=True)
-
 ################
 ### Reducers ###
 ################
 
-def collect_eqns(proc):
+cpdef collect_eqns(proc):
     """
     Helper function for returning processed results back to parent process.
-    Trivial reducer: simply collects objects with the same key in the worker
+
+    Trivial reducer: simply collects objects with the same key in the worker.
+    This method is only useful when called after :meth:`executor`, whose
+    function argument appends output to the ``worker_results`` list.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import executor
+        sage: fmats = FMatrix(FusionRing("A1",3))
+        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
+        sage: executor(params)
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import collect_eqns
+        sage: len(collect_eqns(0)) == 63
+        True
+        sage: fmats = FMatrix(FusionRing("G2",2))
+        sage: params = (('get_reduced_pentagons', id(fmats)), (0,1))
+        sage: executor(params)
+        sage: len(collect_eqns(0)) == 4911
+        True
     """
     #Discard the zero polynomial
     global worker_results
@@ -300,39 +466,102 @@ def collect_eqns(proc):
     worker_results = list()
     return list(reduced)
 
-# ####################
-# ### Verification ###
-# ####################
-#
-# cdef feq_verif(factory, tuple nonuple, float tol=5e-8):
-#     """
-#     Check the pentagon equation corresponding to the given nonuple
-#     """
-#     global worker_results
-#     a, b, c, d, e, f, g, k, l = nonuple
-#     cdef float diff, lhs, rhs
-#     lhs = _fmat(factory,f,c,d,e,g,l)*_fmat(factory,a,b,l,e,f,k)
-#     rhs = 0.0
-#     for h in factory._FR.basis():
-#       rhs += _fmat(factory,a,b,c,g,f,h)*_fmat(factory,a,h,d,e,g,k)*_fmat(factory,b,c,d,k,h,l)
-#     diff = lhs - rhs
-#     if diff > tol or diff < -tol:
-#       worker_results.append(diff)
-#
-# @cython.wraparound(False)
-# @cython.nonecheck(False)
-# @cython.cdivision(True)
-# cpdef pent_verify(factory, tuple mp_params):
-#     """
-#     Generate all the pentagon equations assigned to this process, and reduce them
-#     """
-#     child_id, n_proc = mp_params
-#     cdef float t0
-#     cdef tuple nonuple
-#     cdef unsigned long i
-#     for i, nonuple in enumerate(product(factory._FR.basis(),repeat=9)):
-#         if i % n_proc == child_id:
-#           feq_verif(factory,nonuple)
-#         if i % 50000000 == 0 and i:
-#           print("{:5d}m equations checked... {} potential misses so far...".format(i // 1000000,len(worker_results)))
-#     print("Ran through {} pentagons... Worker {} with pid {} reporting {} potential misses...".format(i,child_id,getpid(),len(worker_results)))
+##############################
+### Parallel code executor ###
+##############################
+
+#Hard-coded module __dict__-style attribute with visible cdef methods
+cdef dict mappers = {
+    "get_reduced_hexagons": get_reduced_hexagons,
+    "get_reduced_pentagons": get_reduced_pentagons,
+    "update_reduce": update_reduce,
+    "compute_gb": compute_gb,
+    "update_child_fmats": update_child_fmats,
+    "pent_verify": pent_verify
+    }
+
+cpdef executor(params):
+    r"""
+    Execute a function defined in this module
+    (``sage.combinat.root_system.fast_parallel_fmats_methods``) in a worker
+    process, and supply the factory parameter by constructing a reference
+    to the ``FMatrix`` object in the worker's memory adress space from
+    its ``id``.
+
+    INPUT:
+
+    - ``params`` -- a tuple ``((fn_name, fmats_id), fn_args)`` where
+      ``fn_name`` is the name of the function to be executed, ``fmats_id``
+      is the ``id`` of the :class:`FMatrix` object, and ``fn_args`` is a
+      tuple containing all arguments to be passed to the function ``fn_name``.
+
+    .. NOTES::
+
+        When the parent process is forked, each worker gets a copy of
+        every  global variable. The virtual memory address of object `X` in
+        the parent process equals the *virtual* memory address of the copy
+        of object `X` in each worker, so we may construct references to
+        forked copies of `X` using an ``id`` obtained in the parent process.
+
+    TESTS:
+
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import executor
+        sage: fmats = FMatrix(FusionRing("A1",3))
+        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
+        sage: executor(params)
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import collect_eqns
+        sage: len(collect_eqns(0)) == 63
+        True
+        sage: fmats = FMatrix(FusionRing("E8",2))
+        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
+        sage: executor(params)
+        sage: len(collect_eqns(0)) == 11
+        True
+    """
+    (fn_name, fmats_id), args = params
+    #Construct a reference to global FMatrix object in this worker's memory
+    fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
+    #Bind module method to FMatrix object in worker process, and call the method
+    return mappers[fn_name](fmats_obj,args)
+
+####################
+### Verification ###
+####################
+
+cdef feq_verif(factory, fvars, Nk_ij, id_anyon, tuple nonuple, float tol=5e-8):
+    """
+    Check the pentagon equation corresponding to the given nonuple
+    """
+    global worker_results
+    a, b, c, d, e, f, g, k, l = nonuple
+    cdef float diff, lhs, rhs
+
+    lhs = _fmat(fvars,Nk_ij,id_anyon,f,c,d,e,g,l)*_fmat(fvars,Nk_ij,id_anyon,a,b,l,e,f,k)
+    rhs = 0.0
+    for h in factory._FR.basis():
+      rhs += _fmat(fvars,Nk_ij,id_anyon,a,b,c,g,f,h)*_fmat(fvars,Nk_ij,id_anyon,a,h,d,e,g,k)*_fmat(fvars,Nk_ij,id_anyon,b,c,d,k,h,l)
+    diff = lhs - rhs
+    if diff > tol or diff < -tol:
+      worker_results.append(diff)
+
+@cython.wraparound(False)
+@cython.nonecheck(False)
+@cython.cdivision(True)
+cdef pent_verify(factory, tuple mp_params):
+    """
+    Generate all the pentagon equations assigned to this process, and reduce them
+    """
+    child_id, n_proc, verbose = mp_params
+    cdef float t0
+    cdef tuple nonuple
+    cdef unsigned long long i
+
+    #Pre-compute common parameters for speed
+    Nk_ij = factory._FR.Nk_ij
+    cdef dict fvars = factory._fvars
+    id_anyon = factory._FR.one()
+    for i, nonuple in enumerate(product(factory._FR.basis(),repeat=9)):
+        if i % n_proc == child_id:
+          feq_verif(factory,fvars,Nk_ij,id_anyon,nonuple)
+        if i % 50000000 == 0 and i and verbose:
+          print("{:5d}m equations checked... {} potential misses so far...".format(i // 1000000,len(worker_results)))

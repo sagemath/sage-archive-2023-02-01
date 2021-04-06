@@ -34,7 +34,6 @@ _lazy_import("sage.coding.delsarte_bounds",
             ["krawtchouk",
              "eberlein",
              "delsarte_bound_constant_weight_code",
-             "cwc_tests",
              "delsarte_bound_hamming_space",
              "delsarte_bound_additive_hamming_space"])
 

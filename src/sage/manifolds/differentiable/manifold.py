@@ -4109,9 +4109,9 @@ class DifferentiableManifold(TopologicalManifold):
             signat = 2 - dim
         return vmodule.metric(name, signature=signat, latex_name=latex_name)
 
-    def vector(self, *args, **kwargs):
+    def tangent_vector(self, *args, **kwargs):
         r"""
-        Define a tangent vector at a point of ``self``.
+        Define a tangent vector at a given point of ``self``.
 
         INPUT:
 
@@ -4138,11 +4138,11 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        Vector at some point `p` of the Euclidean plane::
+        Vector at a point `p` of the Euclidean plane::
 
             sage: E.<x,y>= EuclideanSpace()
             sage: p = E((1, 2), name='p')
-            sage: v = E.vector(p, -1, 3, name='v'); v
+            sage: v = E.tangent_vector(p, -1, 3, name='v'); v
             Vector v at Point p on the Euclidean plane E^2
             sage: v.display()
             v = -e_x + 3 e_y
@@ -4151,6 +4151,11 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v in E.tangent_space(p)
             True
 
+        An alias of ``tangent_vector`` is ``vector``::
+
+            sage: v = E.vector(p, -1, 3, name='v'); v
+            Vector v at Point p on the Euclidean plane E^2
+
         The components can be passed as a tuple or a list::
 
             sage: v1 = E.vector(p, (-1, 3)); v1
@@ -4158,7 +4163,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v1 == v
             True
 
-        or as a ``vector`` object::
+        or as an object created by the ``vector`` function::
 
             sage: v2 = E.vector(p, vector([-1, 3])); v2
             Vector at Point p on the Euclidean plane E^2
@@ -4196,7 +4201,6 @@ class DifferentiableManifold(TopologicalManifold):
             ...
             ValueError: 2 components must be provided
 
-
         """
         basis = kwargs.pop('basis', None)
         name = kwargs.pop('name', None)
@@ -4217,3 +4221,5 @@ class DifferentiableManifold(TopologicalManifold):
             comp = args[1:dim + 1]
         return tspace._element_constructor_(comp=comp, basis=basis, name=name,
                                             latex_name=latex_name)
+
+    vector = tangent_vector

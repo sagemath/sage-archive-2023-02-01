@@ -63,9 +63,9 @@ class TangentVector(FiniteRankFreeModuleElement):
         True
 
     Tangent vectors can also be constructed via the manifold method
-    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.vector`::
+    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tangent_vector`::
 
-        sage: v = M.vector(p, (-2, 1), name='v'); v
+        sage: v = M.tangent_vector(p, (-2, 1), name='v'); v
         Tangent vector v at Point p on the 2-dimensional differentiable
          manifold M
         sage: v.display()

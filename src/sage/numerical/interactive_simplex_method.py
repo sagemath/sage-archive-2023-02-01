@@ -2721,9 +2721,7 @@ class LPAbstractDictionary(SageObject):
             ...
             \end{equation*}
         """
-        return HtmlFragment("\n".join([r"\begin{equation*}",
-                                       latex(self),
-                                       r"\end{equation*}"]))
+        return "\n".join([r"\begin{equation*}", latex(self), r"\end{equation*}"])
 
     def _preupdate_output(self, direction):
         r"""

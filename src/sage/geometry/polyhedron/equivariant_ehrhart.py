@@ -10,7 +10,7 @@ the permutation character of the group action on the lattice points in the
 `m`th dilate of `P`. The equivariant Ehrhart series has the rational generating
 function
 `\sum_{m \geq 0} \chi_{mP}t^m = \frac{H^*(t)} {(1-t)det(Id-\rho(t)}.`
-For details, see [1]_.
+For details, see [Stap2011]_.
 There are also functions to test whether the `H^*` series is polynomial,
 :func:`is_polynomial`, and effective, :func:`is_effective`.
 
@@ -23,12 +23,12 @@ polytope's vertices and written as matrices.
 
 REFERENCES:
 
-    - [1] Alan Stapledon. Equivariant Ehrhart Theory. Advances in Mathematics 226 (2011), no. 4, 3622-3654
-    - [2] Federico Ardila, Mariel Supina, and Andr\ ́{e}s R. Vindas-Mel\ ́{e}ndez, The Equivariant Ehrhart Theory of the Permutahedron, 2020.
+    - [Stap2011]_ Alan Stapledon. Equivariant Ehrhart Theory. Advances in Mathematics 226 (2011), no. 4, 3622-3654
+    - [ASV2020]_ Federico Ardila, Mariel Supina, and Andr\ ́{e}s R. Vindas-Mel\ ́{e}ndez, The Equivariant Ehrhart Theory of the Permutahedron, 2020.
 
 EXAMPLES:
 
-A first example follows Prop 6.1 of [1]_  which states that for a simplex,
+A first example follows Prop 6.1 of [Stap2011]_  which states that for a simplex,
 `H^*` is given by the permutation character of the group on the box points at
 each height. The one dimensional simplex [(-1,1),(1,1)] has two box points,
 one at (0,0) and the other at (0,1). The group Z/2Z acts linearly on the simplex
@@ -47,10 +47,10 @@ so we expect an `H^*` polynomial of `\chi_triv + \chi_triv t`::
 
 A second example is the action of the symmetric group on the 2-dimensional
 permutahedron in 3-dimensional space, given by permuting the three basis
-vectors. As shown in [2]_, the corresponding Hstar function is polynomial and
+vectors. As shown in [ASV2020]_, the corresponding Hstar function is polynomial and
 effective, while for all higher dimensional permutahedra under the symmetric
 group action, it is not. The following computation agrees with the
-`H^*`-polynomial recovered in [2]_::
+`H^*`-polynomial recovered in [ASV2020]_::
 
     sage: p2 = polytopes.permutahedron(3, backend = 'normaliz')      # optional - pynormaliz
     sage: G = p2.restricted_automorphism_group(output='permutation') # optional - pynormaliz
@@ -133,7 +133,7 @@ def Hstar_function(polytope, acting_group=None, output=None):
 
     The `H^*`-polynomial of the standard `d-1` dimensional simplex
     `S = conv(e_1, \dots, e_d)` under its ``restricted_automorphism_group``
-    is equal to 1 = `\chi_{trivial}` (Prop 6.1 [1]_).
+    is equal to 1 = `\chi_{trivial}` (Prop 6.1 [Stap2011]_).
     Here is the computation for the 3-dimensional standard simplex::
 
         sage: S = polytopes.simplex(3, backend = 'normaliz'); S              # optional - pynormaliz
@@ -151,7 +151,7 @@ def Hstar_function(polytope, acting_group=None, output=None):
         [ 3  1  0 -1 -1]
         [ 1  1  1  1  1]
 
-    The next example is Example 7.6 in [1]_, and shows that `H^*` is not always
+    The next example is Example 7.6 in [Stap2011]_, and shows that `H^*` is not always
     a polynomial. Let P be the polytope with vertices
     `\pm(0,0,1),\pm(1,0,1), \pm(0,1,1), \pm(1,1,1)` and let
     G = `\mathbb Z / 2\mathbb Z` act on P as follows::
@@ -181,7 +181,7 @@ def Hstar_function(polytope, acting_group=None, output=None):
         sage: Hst = Hstar_function(P,G); Hst     # optional - pynormaliz
         (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
 
-    To see the exact as written in [1]_, we can format it as
+    To see the exact as written in [Stap2011]_, we can format it as
     ``'Hstar_as_lin_comb'``. The first coordinate is the coefficient of the
     trivial character; the second is the coefficient of the sign character::
 

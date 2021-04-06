@@ -1802,8 +1802,6 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             g += min(g[i],0)*E.column(i)
         return tuple(-g+dp)
 
-        return d
-
     def g_vectors(self, mutating_F=True):
         r"""
         Return an iterator producing all the g-vectors of ``self``.

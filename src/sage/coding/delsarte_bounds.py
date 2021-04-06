@@ -262,8 +262,8 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
     p.set_objective(sum([A[2*r] for r in range(d//2,w+1)])+1)
 
     def _q(i,k):
-        mu_i = ((n-2*i+1)/(n-i+1))*binomial(n,i)
-        # mu_i = 1
+        # mu_i = ((n-2*i+1)/(n-i+1))*binomial(n,i)
+        mu_i = 1
         v_k = binomial(w,k)*binomial(n-w,k)
         return mu_i*eberlein(w,k,n,i,inef=True)/v_k
 
@@ -328,40 +328,6 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
         return A,p,bd
     else:
         return int(bd)
-
-def cwc_tests(ilp=False):
-    import pandas as pd
-    d_vals = [4,6,8,10,12,14,16,18]
-    # uncomment below accordingly to get computationally feasible subproblems
-    # if ilp:d_vals=[16,18]
-    d_tables = {i:pd.read_csv(f'src/sage/coding/d{i}.csv',index_col=0) for i in d_vals}
-    for d in d_vals:
-        print(20*'*')
-        print(f'd={d}')
-        print(20*'*')
-        curr = d_tables[d]
-        leq = eq = geq = 0
-        improved = []
-        for n in curr.index:
-            for w in list(curr):
-                b = curr.at[n,w]
-                if not pd.isna(b):
-                    print(f'n={n}, d={d}, w={w}, exp={curr.at[n,w]}')
-                    if not ilp:
-                        exp = delsarte_bound_constant_weight_code(int(n),int(d),int(w))
-                    else:
-                        exp = delsarte_bound_constant_weight_code(int(n),int(d),int(w),isinteger=True)
-                    print(f'Got:{exp}')
-                    if exp<b:
-                        print('IMP')
-                        leq+=1
-                        improved.append(f'A({n},{d},{w})={exp} --- was {b}')
-                    elif exp>b:geq+=1
-                    else:eq+=1
-        print('RESULTS')
-        print(f'leq={leq},eq={eq},geq={geq}')
-        print('******IMPROVED*****')
-        for imp in improved:print(imp)
 
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):

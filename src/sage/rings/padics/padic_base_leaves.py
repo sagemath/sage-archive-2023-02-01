@@ -1130,7 +1130,7 @@ class pAdicRingLazy(pAdicLazyGeneric, pAdicRingBaseGeneric):
             sage: TestSuite(R).run(skip=['_test_log', '_test_matrix_smith'])
         """
         from sage.rings.padics import padic_lazy_element
-        self._default_prec, self._halting_prec = prec
+        self._default_prec, self._halting_prec, self._secure = prec
         pAdicRingBaseGeneric.__init__(self, p, self._default_prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
         self._element_class_module = padic_lazy_element
         self._element_class_prefix = "pAdicLazyElement_"
@@ -1165,7 +1165,7 @@ class pAdicFieldLazy(pAdicLazyGeneric, pAdicFieldBaseGeneric):
             sage: TestSuite(K).run(skip=['_test_log', '_test_matrix_smith'])
         """
         from sage.rings.padics import padic_lazy_element
-        self._default_prec, self._halting_prec = prec
+        self._default_prec, self._halting_prec, self._secure = prec
         pAdicFieldBaseGeneric.__init__(self, p, self._default_prec, print_mode, names, padic_lazy_element.pAdicLazyElement)
         self._element_class_module = padic_lazy_element
         self._element_class_prefix = "pAdicLazyElement_"

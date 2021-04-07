@@ -218,17 +218,24 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
             prec = (relative_cap, absolute_cap)
         elif type == 'lazy':
             default_prec = halting_prec = None
-            if prec is not None:
-                try:
+            secure = False
+            if isinstance(prec, (list, tuple)):
+                if len(prec) == 1:
+                    default_prec = prec
+                elif len(prec) == 2:
                     default_prec, halting_prec = prec
-                except (ValueError, TypeError):
-                    default_prec = halting_prec = prec
+                else:
+                    default_prec = prec[0]
+                    halting_prec = prec[1]
+                    secure = prec[2]
+            else:
+                default_prec = prec
             if default_prec is None:
                 default_prec = DEFAULT_PREC
             if halting_prec is None:
                 halting_prec = 2 * default_prec
             halting_prec = max(default_prec, halting_prec)
-            prec = (default_prec, halting_prec)
+            prec = (default_prec, halting_prec, secure)
         else:
             if prec is not None:
                 prec = Integer(prec)
@@ -365,7 +372,7 @@ class Qp_class(UniqueFactory):
     - ``print_max_terms`` -- integer (default ``None``) The maximum number of
       terms shown.  See PRINTING below.
 
-    - ``show_prec`` -- a boolean or a string (default ``None``) Specify how 
+    - ``show_prec`` -- a boolean or a string (default ``None``) Specify how
       the precision is printed. See PRINTING below.
 
     - ``check`` -- bool (default ``True``) whether to check if `p` is prime.
@@ -1443,7 +1450,7 @@ def QpLF(p, prec = None, *args, **kwds):
     """
     return Qp(p, prec, 'lattice-float', *args, **kwds)
 
-def QpL(p, prec=None, *args, **kwds):
+def QpL(p, prec=None, halt=None, secure=False, *args, **kwds):
     r"""
     A shortcut function to create lazy `p`-adic fields.
 
@@ -1455,7 +1462,7 @@ def QpL(p, prec=None, *args, **kwds):
         sage: R
         2-adic Field with lazy precision
     """
-    return Qp(p, prec, 'lazy', *args, **kwds)
+    return Qp(p, (prec, halt, secure), 'lazy', *args, **kwds)
 
 #######################################################################################################
 #
@@ -1478,6 +1485,9 @@ class Zp_class(UniqueFactory):
       ring.  In the lattice capped case, ``prec`` can either be a
       pair (``relative_cap``, ``absolute_cap``) or an integer
       (understood at relative cap).
+      In the lazy case, ``prec`` can be either a
+      pair (``default_prec``, ``halting_prec``) or an integer
+      (understood at default precision).
       Except for the fixed modulus and floating point cases, individual elements
       keep track of their own precision.  See TYPES and PRECISION
       below.
@@ -2956,11 +2966,24 @@ def ZpLF(p, prec=None, *args, **kwds):
     """
     return Zp(p, prec, 'lattice-float', *args, **kwds)
 
-def ZpL(p, prec=None, halt=None, *args, **kwds):
+def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
     r"""
     A shortcut function to create lazy `p`-adic rings.
 
-    See documentation for :func:`Zp` for a description of the input parameters.
+    INPUT:
+
+    - ``prec`` -- an integer (default: ``20``), the default
+      precision
+
+    - ``halt`` -- an integer (default: twice ``prec``), the
+      halting precision
+
+    - ``secure`` -- a boolean (default: ``False``); if ``False``,
+      consider indistinguishable elements at the working precision
+      as equal; otherwise, raise an error.
+
+    See documentation for :func:`Zp` for a description of the other
+    input parameters.
 
     A SHORT INTRODUCTION TO LAZY `p`-ADICS:
 
@@ -3055,7 +3078,10 @@ def ZpL(p, prec=None, halt=None, *args, **kwds):
 
     Checking equalities between lazy `p`-adics is a bit subtle and can
     sometimes be puzzling at first glance.
-    Basically, elements are compared at the default halting precision::
+
+    When the parent is created with ``secure=False`` (which is the
+    default), elements are compared at the current precision, or at the
+    default halting precision if it is higher::
 
         sage: a == b
         False
@@ -3065,6 +3091,8 @@ def ZpL(p, prec=None, halt=None, *args, **kwds):
         sage: a == sqrt(a)^2 + 5^50
         True
 
+    In the above example, the halting precision is `40`; it is the
+    reason why a congruence modulo `5^50` is considered as an equality.
     However, if both sides of the equalities have been previously
     computed with more digits, those digits are taken into account.
     Hence comparing two elements at different times can produce
@@ -3078,6 +3106,23 @@ def ZpL(p, prec=None, halt=None, *args, **kwds):
         sage: aa[:60]
         ...?244200244300244200244200244200244200244200244200244200244201
         sage: a == aa
+        False
+
+    This annoying situation, where the output of `a == aa` may change
+    depending on previous computations, cannot occur when the parent is
+    created with ``secure=True``.
+    Indeed, in this case, if the equality cannot be decided, an error
+    is raised::
+
+        sage: S = ZpL(5, secure=True)
+        sage: u = S.random_element()
+        sage: uu = u + 5^50
+        sage: u == uu
+        Traceback (most recent call last):
+        ...
+        PrecisionError: unable to decide equality; try to bound precision
+
+        sage: u[:60] == uu
         False
 
     .. RUBRIC:: Self-referent numbers
@@ -3138,7 +3183,7 @@ def ZpL(p, prec=None, halt=None, *args, **kwds):
         sage: w
         ...30212422041102444403
     """
-    return Zp(p, (prec, halt), 'lazy', *args, **kwds)
+    return Zp(p, (prec, halt, secure), 'lazy', *args, **kwds)
 
 
 #######################################################################################################

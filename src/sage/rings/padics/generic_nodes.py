@@ -756,7 +756,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: ZpL(5)._prec_type()
             'lazy'
         """
-        return "lazy"
+        return 'lazy'
 
     def is_lazy(self):
         r"""
@@ -772,6 +772,35 @@ class pAdicLazyGeneric(pAdicGeneric):
             True
         """
         return True
+
+    def is_secure(self):
+        r"""
+        Return ``False`` if this `p`-adic lazy ring is not secure
+        (i.e. if indistinguishable elements at the working precision
+        are considered as equal); ``True`` otherwise (in which case,
+        an error is raised when equality cannot be decided).
+
+        EXAMPLES::
+
+            sage: R = ZpL(5)
+            sage: R.is_secure()
+            False
+            sage: x = R(20/21)
+            sage: y = x + 5^50
+            sage: x == y
+            True
+
+            sage: S = ZpL(5, secure=True)
+            sage: S.is_secure()
+            True
+            sage: x = S(20/21)
+            sage: y = x + 5^50
+            sage: x == y
+            Traceback (most recent call last):
+            ...
+            PrecisionError: unable to decide equality; try to bound precision
+        """
+        return self._secure
 
     def default_prec(self):
         r"""

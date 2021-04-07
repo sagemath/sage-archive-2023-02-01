@@ -129,7 +129,9 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
         # We don't want to multiply by e again.
         return k
     elif isinstance(x, pAdicGenericElement):
-        k = (<pAdicGenericElement>x).valuation()
+        if x.parent().is_lazy():
+            return x.valuation()
+        k = (<pAdicGenericElement>x).valuation_c()
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
             # We have to be careful with overflow
             ratio = e // x.parent().absolute_e()

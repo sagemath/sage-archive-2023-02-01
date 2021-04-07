@@ -763,9 +763,7 @@ cdef class LazyElement(pAdicGenericElement):
 
     def __eq__(self, other):
         r"""
-        Return ``True`` of this element is equal to ``other`` at the
-        maximum between the working precision and the default halting
-        precision of the parent.
+        Return ``True`` of this element is equal to ``other``.
 
         TESTS::
 
@@ -777,9 +775,23 @@ cdef class LazyElement(pAdicGenericElement):
             sage: x == y + z
             True
 
+        We illustrate the effect of the keyword ``secure``::
+
+            sage: R.is_secure()
+            False
             sage: s = y + z + 5^50
             sage: x == s
             True
+
+            sage: S = ZpL(5, secure=True)
+            sage: S(x) == S(s)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: unable to decide equality; try to bound precision
+
+        Note that, when ``secure=False``, once more digits have been
+        computed, the answer can change::
+
             sage: x[:100] == s
             False
             sage: x == s
@@ -795,7 +807,7 @@ cdef class LazyElement(pAdicGenericElement):
             except TypeError:
                 return False
             return a == b
-        return self.is_equal_to(other, secure=False)
+        return self.is_equal_to(other, secure=self._parent.is_secure())
 
     def __nonzero__(self):
         r"""
@@ -1320,7 +1332,7 @@ cdef class LazyElement(pAdicGenericElement):
             error = self._next_c()
         return self._valuation
 
-    def valuation(self, halt=True, secure=False):
+    def valuation(self, halt=True, secure=None):
         r"""
         Return the valuation of this element.
 
@@ -1332,10 +1344,10 @@ cdef class LazyElement(pAdicGenericElement):
           if ``True``, the default halting precision of the parent is used;
           if ``False``, the computation is never abandonned
 
-        - ``secure`` -- a boolean (default: ``False``); when the valuation
-          cannot be determined for sure, raise an error if ``secure`` is
-          ``True``, return the best known lower bound on the valuation
-          otherwise.
+        - ``secure`` -- a boolean (default: the value given at the creation
+          of the parent); when the valuation cannot be determined for sure,
+          raise an error if ``secure`` is ``True``, return the best known
+          lower bound on the valuation otherwise.
 
         EXAMPLES::
 
@@ -1384,7 +1396,9 @@ cdef class LazyElement(pAdicGenericElement):
         By setting the argument ``halt``, one can force the computation to continue
         until a prescribed limit::
 
-            sage: z.valuation(halt=20)   # not enough to find the valuation
+            sage: z.valuation(halt=15)   # not enough to find the correct valuation
+            15
+            sage: z.valuation(halt=20, secure=True)
             Traceback (most recent call last):
             ...
             PrecisionError: cannot determine the valuation; try to increase the halting precision
@@ -1416,6 +1430,8 @@ cdef class LazyElement(pAdicGenericElement):
         else:
             halt = min(maxordp, halt)
         cdef val = self.valuation_c(halt)
+        if secure is None:
+            secure = self._parent.is_secure()
         if secure and self._precbound >= maxordp and self._precrel == 0:
             raise PrecisionError("cannot determine the valuation; try to increase the halting precision")
         return Integer(val)

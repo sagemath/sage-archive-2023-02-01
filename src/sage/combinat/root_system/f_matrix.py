@@ -1489,9 +1489,7 @@ class FMatrix():
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f.mp_thresh = 0
-            sage: f._triangular_elim(worker_pool=pool)          # indirect doctest
-            Elimination epoch completed... 10 eqns remain in ideal basis
-            Elimination epoch completed... 0 eqns remain in ideal basis
+            sage: f._triangular_elim(worker_pool=pool,verbose=False)          # indirect doctest
             sage: f.ideal_basis
             []
         """

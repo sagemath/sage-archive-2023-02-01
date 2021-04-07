@@ -393,8 +393,8 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: F41 = FusionRing("F4",1)
-            sage: F41.test_braid_representation(max_strands=4)
+            sage: A21 = FusionRing("A2",1)
+            sage: A21.test_braid_representation(max_strands=4)
             True
             sage: B22 = FusionRing("B2",2)             # long time
             sage: B22.test_braid_representation()      # long time
@@ -550,10 +550,10 @@ class FusionRing(WeylCharacterRing):
             Cyclotomic Field of order 40 and degree 16
             sage: a2**4
             2*a0 + 3*a2
-            sage: comp_basis, sig = A13.get_braid_generators(a2,a2,3,verbose=False)
-            sage: A13.fvars_field()
+            sage: comp_basis, sig = A13.get_braid_generators(a2,a2,3,verbose=False)    # long time (<3s)
+            sage: A13.fvars_field()                                                    # long time
             Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
-            sage: a2.q_dimension().parent()
+            sage: a2.q_dimension().parent()                                            # long time
             Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
             sage: A13.field()
             Cyclotomic Field of order 40 and degree 16
@@ -855,8 +855,8 @@ class FusionRing(WeylCharacterRing):
             True
             sage: G22 = FusionRing("G2",2)
             sage: G22.fmats.find_orthogonal_solution(verbose=False)     # long time (~11 s)
-            sage: b = G22.basis()
-            sage: all(G22.s_ijconj(x,y) == G22.fmats.field()(G22.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)
+            sage: b = G22.basis()                                       # long time
+            sage: all(G22.s_ijconj(x,y) == G22.fmats.field()(G22.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)   # long time
             True
         """
         ret = self.s_ij(elt_i, elt_j, base_coercion=False).conjugate()

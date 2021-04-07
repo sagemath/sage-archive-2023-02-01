@@ -581,12 +581,15 @@ def package_manifest(package):
         KeyError: 'dummy-package'
     """
     version = installed_packages()[package]
-    stamp_file = os.path.join(sage.env.SAGE_SPKG_INST,
-                              '{}-{}'.format(package, version))
-    with open(stamp_file) as f:
-        spkg_meta = json.load(f)
-    return spkg_meta
-
+    for inst_dir in _spkg_inst_dirs():
+        stamp_file = os.path.join(inst_dir,
+                                  '{}-{}'.format(package, version))
+        try:
+            with open(stamp_file) as f:
+                return json.load(f)
+        except FileNotFoundError:
+            pass
+    raise RuntimeError('package manifest directory changed at runtime')
 
 class PackageNotFoundError(RuntimeError):
     """

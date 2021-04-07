@@ -1840,27 +1840,24 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",4))  # indirect doctest
+            sage: f = FMatrix(FusionRing("A1",3))  # indirect doctest
             sage: f.find_orthogonal_solution()     # long time
-            Computing F-symbols for The Fusion Ring of Type A1 and level 4 with Integer Ring coefficients with 238 variables...
-            Set up 460 hex and orthogonality constraints...
-            Partitioned 460 equations into 41 components of size:
-            [24, 12, 12, 12, 12, 12, 12, 12, 12, 9, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1]
-            Elimination epoch completed... 63 eqns remain in ideal basis
+            Set up 134 hex and orthogonality constraints...
+            Partitioned 134 equations into 17 components of size:
+            [12, 12, 6, 6, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1]
+            Elimination epoch completed... 10 eqns remain in ideal basis
+            Elimination epoch completed... 0 eqns remain in ideal basis
+            Hex elim step solved for 51 / 71 variables
+            Set up 121 reduced pentagons...
+            Elimination epoch completed... 18 eqns remain in ideal basis
             Elimination epoch completed... 5 eqns remain in ideal basis
+            Pent elim step solved for 64 / 71 variables
+            Partitioned 5 equations into 1 components of size:
+            [4]
             Elimination epoch completed... 0 eqns remain in ideal basis
-            Hex elim step solved for 173 / 238 variables
-            Set up 888 reduced pentagons...
-            Elimination epoch completed... 562 eqns remain in ideal basis
-            Elimination epoch completed... 209 eqns remain in ideal basis
-            Elimination epoch completed... 26 eqns remain in ideal basis
-            Elimination epoch completed... 8 eqns remain in ideal basis
-            Elimination epoch completed... 0 eqns remain in ideal basis
-            Pent elim step solved for 225 / 238 variables
-            Partitioned 0 equations into 0 components of size:
-            []
-            Partitioned 13 equations into 13 components of size:
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            Partitioned 6 equations into 6 components of size:
+            [1, 1, 1, 1, 1, 1]
+            Computing appropriate NumberField...
         """
         if eqns is None:
             eqns = self.ideal_basis
@@ -1939,7 +1936,6 @@ class FMatrix():
         self._fvars = {sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items()}
         for fx, rhs in numeric_fvars.items():
             self._fvars[self._idx_to_sextuple[fx]] = ((ETuple({},nvars),rhs),)
-        # self._backward_subs()
         _backward_subs(self)
         self._fvars = {sextuple : constant_coeff(rhs) for sextuple, rhs in self._fvars.items()}
 

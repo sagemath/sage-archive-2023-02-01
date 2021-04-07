@@ -12660,17 +12660,14 @@ cdef class Matrix(Matrix1):
             sage: actual == expected
             True
         """
-        # Does it hurt if we conjugate a real number?
-        L, diags = self.indefinite_factorization(algorithm='hermitian',
-                                                 check=False)
+        P,L,D = self.block_ldlt()
 
         # The default "echelonize" inverse() method works just fine for
         # triangular matrices.
         L_inv = L.inverse()
-        from sage.matrix.constructor import diagonal_matrix
-        D_inv = diagonal_matrix( ~d for d in diags )
 
-        return L_inv.conjugate_transpose()*D_inv*L_inv
+        # Take A = PLDL^{*}P^{T} and simply invert.
+        return P*L_inv.conjugate_transpose()*D.inverse()*L_inv*P.transpose()
 
 
     def LU(self, pivot=None, format='plu'):

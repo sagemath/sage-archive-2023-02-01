@@ -341,7 +341,7 @@ cpdef executor(params):
     constructing a reference to the FMatrix object in the worker's memory
     adress space from its ``id``.
 
-    .. NOTES::
+    .. NOTE::
 
         When the parent process is forked, each worker gets a copy of
         every  global variable. The virtual memory address of object `X` in

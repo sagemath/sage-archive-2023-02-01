@@ -370,7 +370,7 @@ cdef dict subs_squares(dict eq_dict, dict known_sq):
 
     OUTPUT:
 
-    Returns a dictionary of ``(ETuple, coeff)`` pairs representing polynomial
+    A dictionary of ``(ETuple, coeff)`` pairs.
     """
     cdef dict subbed, new_e
     cdef ETuple exp, lm
@@ -396,7 +396,7 @@ cdef dict subs_squares(dict eq_dict, dict known_sq):
 
 cdef dict remove_gcf(dict eq_dict, ETuple nonz):
     r"""
-    Returns a dictionary of ``(ETuple, coeff)`` pairs describing the
+    Return a dictionary of ``(ETuple, coeff)`` pairs describing the
     polynomial ``eq / GCF(eq)``.
 
     The input ``nonz`` is an ``ETuple`` indicating the positions of

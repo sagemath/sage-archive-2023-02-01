@@ -1079,37 +1079,6 @@ class FusionRing(WeylCharacterRing):
     ### Braid group representations ###
     ###################################
 
-    # def get_trees(self,top_row,root):
-    #     """
-    #     Recursively enumerate all the admissible trees with given top row and root.
-    #
-    #     INPUT:
-    #
-    #     - ``top_row`` -- a list of basis elements of self
-    #     - ``root`` -- a simple element of self
-    #
-    #     Let `k` denote the length ``top_row``. This method returns
-    #     Returns a list of tuples `(l_1,...,l_{k-2})` such that
-    #
-    #     .. MATH::
-    #
-    #         \\begin{array}{l}
-    #         root \\in l_{k-2} \otimes m_{k},\\
-    #         l_{k-2} \\in l_{k-3} \otimes m_{k-1},\\
-    #         \\cdots\\
-    #         l_2 \\in l_1\otimes m_3\\
-    #         l_1 \\in m_1\otimes m_2
-    #         \end{array}
-    #
-    #     where `a \\to b\otimes c` means `N_{bc}^a\\neq 0`.
-    #     """
-    #     if len(top_row) == 2:
-    #         m1, m2 = top_row
-    #         return [[]] if self.Nk_ij(m1,m2,root) else []
-    #     else:
-    #         m1, m2 = top_row[:2]
-    #         return [tuple([l,*b]) for l in self.basis() for b in self.get_trees([l]+top_row[2:],root) if self.Nk_ij(m1,m2,l)]
-
     def get_computational_basis(self,a,b,n_strands):
         """
         Return the so-called computational basis for `\\text{Hom}(b, a^n)`.

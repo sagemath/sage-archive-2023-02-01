@@ -495,7 +495,7 @@ cpdef executor(params):
       is the ``id`` of the :class:`FMatrix` object, and ``fn_args`` is a
       tuple containing all arguments to be passed to the function ``fn_name``.
 
-    .. NOTES::
+    .. NOTE::
 
         When the parent process is forked, each worker gets a copy of
         every  global variable. The virtual memory address of object `X` in

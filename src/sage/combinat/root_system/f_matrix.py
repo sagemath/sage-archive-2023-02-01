@@ -44,7 +44,6 @@ from sage.rings.ideal import Ideal
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
-from sage.rings.real_double import RDF
 
 class FMatrix():
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -362,7 +361,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("F4",1))
+            sage: f = FMatrix(FusionRing("G2",1))
             sage: K = f.field()
             sage: len(f._nnz.nonzero_positions())
             1
@@ -542,15 +541,15 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("F4",1,conjugate=True))
+            sage: f = FMatrix(FusionRing("G2",1))
             sage: f.field()
-            Cyclotomic Field of order 80 and degree 32
+            Cyclotomic Field of order 60 and degree 16
             sage: f.find_orthogonal_solution(verbose=False)
             sage: f.field()
-            Number Field in a with defining polynomial y^64 - 16*y^62 + 104*y^60 - 320*y^58 + 258*y^56 + 1048*y^54 - 2864*y^52 - 3400*y^50 + 47907*y^48 - 157616*y^46 + 301620*y^44 - 322648*y^42 + 2666560*y^40 + 498040*y^38 + 54355076*y^36 - 91585712*y^34 + 592062753*y^32 - 1153363592*y^30 + 3018582788*y^28 - 4848467552*y^26 + 7401027796*y^24 - 8333924904*y^22 + 8436104244*y^20 - 7023494736*y^18 + 4920630467*y^16 - 2712058560*y^14 + 1352566244*y^12 - 483424648*y^10 + 101995598*y^8 - 12532920*y^6 + 1061168*y^4 - 57864*y^2 + 1681
+            Number Field in a with defining polynomial y^32 - 6*y^30 - 7*y^28 + 62*y^26 - 52*y^24 - 308*y^22 + 831*y^20 + 7496*y^18 + 18003*y^16 - 2252*y^14 + 42259*y^12 - 65036*y^10 + 29368*y^8 - 3894*y^6 + 377*y^4 - 22*y^2 + 1
             sage: phi = f.get_qqbar_embedding()
             sage: [phi(r).n() for r in f.get_non_cyclotomic_roots()]
-            [-0.786151377757423 + 1.73579267033929e-59*I]
+            [-0.786151377757423 - 8.92806368517581e-31*I]
 
         .. NOTE::
 
@@ -750,12 +749,13 @@ class FMatrix():
             True
             sage: f.get_non_cyclotomic_roots()
             []
-            sage: f = FMatrix(FusionRing("E7",2))            # long time
-            sage: f.find_orthogonal_solution(verbose=False)  # long time
-            sage: f.field() == f.FR().field()                # long time
+            sage: f = FMatrix(FusionRing("F4",1))
+            sage: f.find_orthogonal_solution(verbose=False)
+            sage: f.field() == f.FR().field()
             False
-            sage: f.get_non_cyclotomic_roots()               # long time
-            [-0.7861513777574233?, -0.5558929702514212?]
+            sage: phi = f.get_qqbar_embedding()
+            sage: [phi(r).n() for r in f.get_non_cyclotomic_roots()]
+            [-0.786151377757423 + 1.73579267033929e-59*I]
 
         When ``self.field()`` is a ``NumberField``, one may use
         :meth:`get_qqbar_embedding` to embed the resulting values into
@@ -881,8 +881,8 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("G2",1))
             sage: f.FR().fusion_labels("g", inject_variables=True)
             sage: f.find_orthogonal_solution(verbose=False)
-            sage: radical_fvars = f.get_radical_expression()
-            sage: radical_fvars[g1, g1, g1, g1, g1, g0]
+            sage: radical_fvars = f.get_radical_expression()       # long time (~1.5s)
+            sage: radical_fvars[g1, g1, g1, g1, g1, g0]            # long time
             -sqrt(1/2*sqrt(5) - 1/2)
         """
         return {sextuple : val.radical_expression() for sextuple, val in self.get_fvars_in_alg_field().items()}
@@ -1202,7 +1202,6 @@ class FMatrix():
             return
         filename = "fmatrix_solver_checkpoint_" + self.get_fr_str() + ".pickle"
         with open(filename, 'wb') as f:
-            # pickle.dump([self._fvars, self._solved, eqns, status], f)
             pickle.dump([self._fvars, self._solved, self._ks, self.ideal_basis, status], f)
         if verbose:
             print(f"Checkpoint {status} reached!")
@@ -1214,7 +1213,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",3))
+            sage: f = FMatrix(FusionRing("A1",2))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
             sage: f.get_defining_equations('hexagons',output=False)
@@ -1231,8 +1230,8 @@ class FMatrix():
             sage: f._checkpoint(do_chkpt=True,status=2)
             Checkpoint 2 reached!
             sage: del f
-            sage: f = FMatrix(FusionRing("A1",3))
-            sage: f._restore_state("fmatrix_solver_checkpoint_A13.pickle")
+            sage: f = FMatrix(FusionRing("A1",2))
+            sage: f._restore_state("fmatrix_solver_checkpoint_A12.pickle")
             sage: fvars == f._fvars
             True
             sage: ib == f.ideal_basis
@@ -1243,7 +1242,7 @@ class FMatrix():
             True
             sage: 2 == f._chkpt_status
             True
-            sage: os.remove("fmatrix_solver_checkpoint_A13.pickle")
+            sage: os.remove("fmatrix_solver_checkpoint_A12.pickle")
 
         TESTS::
 
@@ -1843,27 +1842,27 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A2",2))  # indirect doctest
+            sage: f = FMatrix(FusionRing("A1",4))  # indirect doctest
             sage: f.find_orthogonal_solution()     # long time
-            Computing F-symbols for The Fusion Ring of Type A2 and level 2 with Integer Ring coefficients with 287 variables...
-            Set up 548 hex and orthogonality constraints...
-            Partitioned 548 equations into 57 components of size:
-            [24, 12, 12, 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1]
-            Elimination epoch completed... 53 eqns remain in ideal basis
+            Computing F-symbols for The Fusion Ring of Type A1 and level 4 with Integer Ring coefficients with 238 variables...
+            Set up 460 hex and orthogonality constraints...
+            Partitioned 460 equations into 41 components of size:
+            [24, 12, 12, 12, 12, 12, 12, 12, 12, 9, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1]
+            Elimination epoch completed... 63 eqns remain in ideal basis
             Elimination epoch completed... 5 eqns remain in ideal basis
             Elimination epoch completed... 0 eqns remain in ideal basis
-            Hex elim step solved for 203 / 287 variables
-            Set up 994 reduced pentagons...
-            Elimination epoch completed... 699 eqns remain in ideal basis
-            Elimination epoch completed... 279 eqns remain in ideal basis
-            Elimination epoch completed... 9 eqns remain in ideal basis
-            Pent elim step solved for 270 / 287 variables
-            Partitioned 9 equations into 1 components of size:
-            [5]
+            Hex elim step solved for 173 / 238 variables
+            Set up 888 reduced pentagons...
+            Elimination epoch completed... 562 eqns remain in ideal basis
+            Elimination epoch completed... 209 eqns remain in ideal basis
+            Elimination epoch completed... 26 eqns remain in ideal basis
+            Elimination epoch completed... 8 eqns remain in ideal basis
             Elimination epoch completed... 0 eqns remain in ideal basis
-            Partitioned 16 equations into 16 components of size:
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-            Computing appropriate NumberField...
+            Pent elim step solved for 225 / 238 variables
+            Partitioned 0 equations into 0 components of size:
+            []
+            Partitioned 13 equations into 13 components of size:
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
         if eqns is None:
             eqns = self.ideal_basis

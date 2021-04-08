@@ -395,6 +395,7 @@ SAGE_SCRIPTS
 
         var side = json.singleSide ? THREE.FrontSide : THREE.DoubleSide;
         var transparent = json.opacity < 1 ? true : false;
+        var depthWrite = 'depthWrite' in json ? json.depthWrite : !transparent;
         var flatShading = json.useFlatShading ? json.useFlatShading : false;
 
         var material = new THREE.MeshPhongMaterial( { side: side,
@@ -402,7 +403,7 @@ SAGE_SCRIPTS
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
                                      shininess: 20, flatShading: flatShading,
-                                     depthWrite: !transparent } );
+                                     depthWrite: depthWrite } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();

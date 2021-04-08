@@ -12356,7 +12356,7 @@ cdef class Matrix(Matrix1):
             [4.242640687119285? + 2.828427124746190?*I   -2*I + 2   1.732050807568878?]
             sage: L.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Algebraic Field
-            sage: (L*L.conjugate_transpose() - A.change_ring(QQbar)).norm() < 10^-10
+            sage: L*L.conjugate_transpose() == A
             True
 
 
@@ -12370,7 +12370,6 @@ cdef class Matrix(Matrix1):
             sage: L = A.cholesky()
             sage: L.is_immutable()
             True
-
             sage: from copy import copy
             sage: LC = copy(L)
             sage: LC[0,0] = 1000
@@ -12380,50 +12379,47 @@ cdef class Matrix(Matrix1):
             [   2    0    2    0]
             [   1   -2    1    1]
 
-        There are a variety of situations which will prevent the computation of a Cholesky decomposition.
-
-        The base ring must be exact.  For numerical work, create a
-        matrix with a base ring of ``RDF`` or ``CDF`` and use the
-        :meth:`~sage.matrix.matrix_double_dense.Matrix_double_dense.cholesky`
-        method for matrices of that type. ::
+        The base ring need not be exact, although you should expect
+        the result to be inexact (correct in the norm) as well::
 
             sage: F = RealField(100)
-            sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
-            sage: A.cholesky()
-            Traceback (most recent call last):
-            ...
-            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+            sage: A = A = matrix(F, [[1.0, 2.0], [2.0, 6.0]])
+            sage: L = A.cholesky(); L
+            [ 1.000... 0.000...]
+            [ 2.000... 1.414...]
+            sage: (L*L.transpose() - A).norm() < 1e-10
+            True
 
-        The base ring may not have a fraction field.  ::
+        Even symbolic matrices can sometimes be factored::
+
+            sage: A = matrix(SR, [[pi,0],[0,pi]])
+            sage: A.cholesky()
+            [sqrt(pi)        0]
+            [       0 sqrt(pi)]
+
+        There are a variety of situations which will prevent the
+        computation of a Cholesky decomposition.
+
+        The base ring may not be able to be viewed as a subset of the
+        complex numbers, implying that "Hermitian" is meaningless:
 
             sage: A = matrix(Integers(6), [[2, 0], [0, 4]])
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Could not see Ring of integers modulo 6 as a subring of
-            the real or complex numbers
+            AttributeError: 'sage.rings.finite_rings.integer_mod.IntegerMod_int'
+            object has no attribute 'conjugate'
 
-        The base field may not have elements that are comparable to zero.  ::
+        The matrix may not be Hermitian::
 
             sage: F.<a> = FiniteField(5^4)
             sage: A = matrix(F, [[2+a^3, 3], [3, 3]])
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Could not see Finite Field in a of size 5^4 as a subring
-            of the real or complex numbers
+            ValueError: matrix is not Hermitian
 
-        The algebraic closure of the fraction field of the base ring may not be implemented.  ::
-
-            sage: F = Integers(7)
-            sage: A = matrix(F, [[4, 0], [0, 3]])
-            sage: A.cholesky()
-            Traceback (most recent call last):
-            ...
-            ValueError: Could not see Ring of integers modulo 7 as a subring of
-            the real or complex numbers
-
-        The matrix may not be positive definite.  ::
+        The matrix may not be positive-definite::
 
             sage: C.<I> = QuadraticField(-1)
             sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
@@ -12434,11 +12430,9 @@ cdef class Matrix(Matrix1):
             sage: B.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: matrix is not positive definite,
-            so cannot compute Cholesky decomposition
+            ValueError: matrix is not positive definite
 
-        The matrix could be positive semi-definite, and thus
-        lack a Cholesky decomposition.  ::
+        ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -3],
             ....:                 [15, 12,  9,  12],
@@ -12446,13 +12440,10 @@ cdef class Matrix(Matrix1):
             ....:                 [-3,  12,  3,  8]])
             sage: A.is_positive_definite()
             False
-            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
-            [21, 27, 0, 0]
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: matrix is not positive definite,
-            so cannot compute Cholesky decomposition
+            ValueError: matrix is not positive definite
 
         TESTS:
 
@@ -12479,49 +12470,61 @@ cdef class Matrix(Matrix1):
             sage: E = matrix(QQ, [[2, 1], [1, 1]])
             sage: E.cholesky().base_ring()
             Algebraic Real Field
+
+        Check that sparse floating-point matrices can be factored
+        using a toy example reported as part of :trac:`13674`::
+
+            sage: A = matrix(RDF, [[1, 1], [1, 2]], sparse=True)
+            sage: A.cholesky()
+            [1.0 0.0]
+            [1.0 1.0]
+            sage: A = matrix(CDF, [[1, I], [-I, 2]], sparse=True)
+            sage: A.cholesky()
+            [   1.0    0.0]
+            [-1.0*I    1.0]
+
         """
-        from copy import copy
+        cdef Matrix C # output matrix
         C = self.fetch('cholesky')
         if C is not None:
             return C
 
-        if not self.is_square():
-            msg = "matrix must be square, not {0} x {1}"
-            raise ValueError(msg.format(self.nrows(), self.ncols()))
-        if not self.base_ring().is_exact():
-            msg = 'base ring of the matrix must be exact, not {0}'
-            raise TypeError(msg.format(self.base_ring()))
-        if not self.is_positive_definite():
-            msg = 'matrix is not positive definite, so cannot compute Cholesky decomposition'
-            raise ValueError(msg)
+        cdef Py_ssize_t n = self.nrows()
 
-        # Check to see if a factorization is cached first.
-        factors = self.fetch('indefinite_factorization_hermitian')
-        if factors is None:
-            factors = self.fetch('indefinite_factorization_symmetric')
-            if factors is None:
-                # The "hermitian" algorithm works on real matrices, too.
-                factors = self._indefinite_factorization(algorithm='hermitian',
-                                                         check=False)
+        if not self.is_hermitian():
+            raise ValueError("matrix is not Hermitian")
 
-        L = factors[0]
-        d = factors[1]
+        # Use classical=True to ensure that we don't get a permuted L.
+        cdef Matrix L  # block_ldlt() results
+        cdef list d    # block_ldlt() results
+        try:
+            _,L,d = self._block_ldlt(classical=True)
+        except ValueError:
+            # If the matrix was positive-definite, that would
+            # have worked.
+            raise ValueError("matrix is not positive definite")
+
         F = L.base_ring()  # field really
+        zero = F.zero()
 
-        F_ac = F
-        if hasattr(F, 'algebraic_closure'):
-            # This can fail if, say, F is the symbolic ring which does
-            # contain the requisite roots in its own special way but
-            # does not have an algebraic_closure() method.
-            F_ac = F.algebraic_closure()
+        cdef list splits = []        # square roots of diagonal entries
+        cdef bint extend = False
+        for X in d:
+            # The X are guaranteed to be one-by-one blocks.
+            x = X[0,0]
 
-        splits = []        # square roots of diagonal entries
-        extend = False
-        for x in d:
+            if x <= zero:
+                raise ValueError("matrix is not positive definite")
+
             if not extend and x.is_square():
                 sqrt = x.sqrt()
             else:
                 extend = True
+                if hasattr(F, 'algebraic_closure'):
+                    # This can fail if, say, F is the symbolic ring which does
+                    # contain the requisite roots in its own special way but
+                    # does not have an algebraic_closure() method.
+                    F_ac = F.algebraic_closure()
                 sqrt = F_ac(x).sqrt()
             splits.append(sqrt)
         # move square root of the diagonal matrix
@@ -12531,7 +12534,7 @@ cdef class Matrix(Matrix1):
         if extend:
             # Try to use the algebraic reals but fall back to what is
             # probably QQbar if we find an entry in "L" that won't fit
-            # in AA.
+            # in AA. This was Trac ticket #18381.
             from sage.rings.qqbar import AA
             try:
                 C = L.change_ring(AA)
@@ -12540,8 +12543,14 @@ cdef class Matrix(Matrix1):
         else:
             C = L.__copy__()
 
-        for c in range(C.ncols()):
-            C.rescale_col(c, splits[c])
+        # Overwrite the (strict) upper-triangular part of "C", since a
+        # priori it contains junk after _block_ldlt().
+        zero = C.base_ring().zero()
+        cdef Py_ssize_t i, j # loop indices
+        for i in range(n):
+            C.rescale_col_c(i, splits[i], 0)
+            for j in range(i+1,n):
+                C.set_unsafe(i,j,zero)
         C.set_immutable()
         self.cache('cholesky', C)
         return C

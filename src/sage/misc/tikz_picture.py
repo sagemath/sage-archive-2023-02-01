@@ -21,7 +21,7 @@ EXAMPLES::
 Creation of a pdf in a temporary directory. The returned value is a string
 giving the file path::
 
-    sage: path_to_file = t.pdf(view=False)   # long time (2s)
+    sage: path_to_file = t.pdf(view=False)   # long time (2s) # optional latex
 
 Setting ``view=True``, which is the default, opens the pdf in a viewer.
 
@@ -48,7 +48,7 @@ Use ``print(t)`` to see the complete content of the file.
 Adding a border avoids croping the vertices of a graph::
 
     sage: g = graphs.PetersenGraph()
-    sage: s = latex(g)   # takes 3s but the result is cached
+    sage: s = latex(g)   # takes 3s but the result is cached # optional latex
     sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
     sage: _ = t.pdf()    # not tested
 
@@ -61,7 +61,7 @@ one liner works::
 
     sage: s = latex(transducers.GrayCode())
     sage: t = TikzPicture(s, usetikzlibrary=['automata'])
-    sage: _ = t.pdf(view=False)  # long time (2s)
+    sage: _ = t.pdf(view=False)  # long time (2s) # optional latex
 
 AUTHORS:
 
@@ -322,7 +322,7 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.pdf')
-            sage: _ = t.pdf(filename)   # long time (2s)
+            sage: _ = t.pdf(filename)   # long time (2s) # optional latex
 
         ACKNOWLEDGEMENT:
 
@@ -419,7 +419,7 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.png')
-            sage: _ = t.png(filename)      # long time (2s)
+            sage: _ = t.png(filename)      # long time (2s) # optional imagemagick
 
         ACKNOWLEDGEMENT:
 
@@ -491,7 +491,7 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.svg')
-            sage: _ = t.svg(filename)      # long time (2s)
+            sage: _ = t.svg(filename)      # long time (2s) # optional pdf2svg
 
         ACKNOWLEDGEMENT:
 
@@ -609,7 +609,7 @@ class TikzPicture(StandaloneTex):
         sage: g = graphs.PetersenGraph()
         sage: s = latex(g)
         sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
-        sage: _ = t.pdf(view=False)   # long time (2s)
+        sage: _ = t.pdf(view=False)   # long time (2s) # optional latex
 
     Here are standalone configurations, packages, tikz libraries and macros you
     may want to set::
@@ -624,7 +624,7 @@ class TikzPicture(StandaloneTex):
         sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
         sage: t = TikzPicture(s, standalone_options=options, usepackage=usepackage,
         ....:        usetikzlibrary=tikzlib, macros=macros)
-        sage: _ = t.pdf(view=False)   # long time (2s)
+        sage: _ = t.pdf(view=False)   # long time (2s) # optional latex
     """
     @classmethod
     def from_dot_string(cls, dotdata, prog='dot'):

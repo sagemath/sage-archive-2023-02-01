@@ -89,8 +89,7 @@ Many other functionalities...::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from collections import Counter
-from itertools import chain, count
+from itertools import chain
 
 from sage.misc.callable_dict import CallableDict
 from sage.structure.sage_object import SageObject
@@ -3412,6 +3411,8 @@ class WordMorphism(SageObject):
             sage: sorted(m.infinite_repetitions_bounded())
             [word: c, word: d]
         """
+        from itertools import count
+
         def impl():
             U = {}
             for x in unbounded:
@@ -3497,6 +3498,8 @@ class WordMorphism(SageObject):
             sage: sorted(m.infinite_repetitions_growing())
             [word: bc]
         """
+        from collections import Counter
+
         if w is None:
             w = self._morph
         f = self.restrict_domain(self.reach(w))
@@ -3764,6 +3767,7 @@ class WordMorphism(SageObject):
             return self, self, self.domain().identity_morphism(), 0
         g = h * k
 
+        from itertools import count
         for i in count(start=1):
             try:
                 h_new, k_new = g.simplify()

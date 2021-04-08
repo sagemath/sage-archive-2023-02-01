@@ -78,7 +78,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 from collections import defaultdict
 
 from sage.misc.latex import have_pdflatex, have_convert, have_program

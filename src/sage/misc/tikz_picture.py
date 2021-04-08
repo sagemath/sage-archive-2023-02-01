@@ -149,9 +149,9 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.tikz_picture import TikzPicture
             sage: g = graphs.PetersenGraph()
-            sage: s = latex(g)
-            sage: t = TikzPicture(s, usepackage=['tkz-graph'])
-            sage: t
+            sage: s = latex(g)                                 # optional latex
+            sage: t = TikzPicture(s, usepackage=['tkz-graph']) # optional latex
+            sage: t                                            # optional latex
             \documentclass[tikz]{standalone}
             \usepackage{tkz-graph}
             \begin{document}

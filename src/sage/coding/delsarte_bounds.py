@@ -114,6 +114,7 @@ def eberlein(n, k, l, x, check=True, inef=False):
     r"""
     Compute ``E^{n,l}_k(x)``, the Eberlein polynomial.
 
+    # TODO: Fix documentation here
     # See :wikipedia:`Eberlein_polynomials`.
 
     It is defined by the generating function
@@ -261,11 +262,11 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
     A = p.new_variable(integer=isinteger, nonnegative=True)
     p.set_objective(sum([A[2*r] for r in range(d//2,w+1)])+1)
 
-    def _q(i,k):
+    def _q(k,i):
         # mu_i = ((n-2*i+1)/(n-i+1))*binomial(n,i)
         mu_i = 1
-        v_k = binomial(w,k)*binomial(n-w,k)
-        return mu_i*eberlein(w,k,n,i,inef=True)/v_k
+        v_i = binomial(w,i)*binomial(n-w,i)
+        return mu_i*eberlein(w,i,n,k,inef=True)/v_i
 
     for k in range(1,w+1): # could be range(d/2,n+1)
         # could make more efficient calculation of the binomials in the future
@@ -278,14 +279,16 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
 
 def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL", isinteger=False):
     """
-    Find the Delsarte bound on a constant weight code of weight w, length n,
-    ...d
+    Find the Delsarte bound on a constant weight code of weight ``w``, length
+    ``n``, lower bound on minimal distance ``d`` 
 
     INPUT:
 
     - ``n`` -- the code length
 
     - ``d`` -- the (lower bound on) minimal distance of the code
+
+    - ``w`` -- the weight of the code
 
     - ``return_data`` -- if ``True``, return a triple
       ``(W,LP,bound)``, where ``W`` is a weights vector, and ``LP``

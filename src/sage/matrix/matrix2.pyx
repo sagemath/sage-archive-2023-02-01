@@ -12199,31 +12199,6 @@ cdef class Matrix(Matrix1):
         else:
             return subspace
 
-    def _cholesky_decomposition_(self):
-        r"""
-        Return the Cholesky decomposition of ``self``; see ``cholesky_decomposition``.
-
-        This generic implementation uses a standard recursion.
-        """
-        L = self.fetch('cholesky_broken')
-        if L is None:
-            A = self.__copy__()
-            L = A.parent()(0)
-            n = self.nrows()
-            for k in range(0, n-1 + 1):
-                try:
-                    L[k, k] = A[k, k].sqrt()
-                except TypeError:
-                    raise ValueError("The input matrix was not symmetric and positive definite")
-
-                for s in range(k+1, n):
-                    L[s, k] = A[s, k] / L[k, k]
-                for j in range(k+1, n):
-                    for i in range(j, n):
-                        A[i, j] -= L[i, k]*L[j, k].conjugate()
-            L.set_immutable()
-            self.cache('cholesky_broken', L)
-        return L
 
     def cholesky(self):
         r"""

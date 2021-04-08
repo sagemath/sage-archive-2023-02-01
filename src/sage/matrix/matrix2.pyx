@@ -13621,6 +13621,13 @@ cdef class Matrix(Matrix1):
             [[1], [-4], [0]]
 
         """
+        cdef str cache_string = "_block_ldlt"
+        if classical:
+            cache_string += "_classical"
+        cdef tuple result = self.fetch(cache_string)
+        if result is not None:
+            return result
+
         cdef Py_ssize_t i, j, k # loop indices
         cdef Py_ssize_t r       # another row/column index
 
@@ -13859,7 +13866,9 @@ cdef class Matrix(Matrix1):
             # correctness.
             A.set_unsafe(i, i, one)
 
-        return (p,A,d)
+        result = (p,A,d)
+        self.cache(cache_string, result)
+        return result
 
     def block_ldlt(self, classical=False):
         r"""

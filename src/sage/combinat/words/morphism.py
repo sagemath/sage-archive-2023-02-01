@@ -3410,25 +3410,30 @@ class WordMorphism(SageObject):
             sage: m = WordMorphism('c->d,d->c,e->fc,f->ed')
             sage: sorted(m.infinite_repetitions_bounded())
             [word: c, word: d]
+
+        TESTS::
+
+            sage: m = WordMorphism('a->Cab,b->1c1,c->E2bd5,d->BbaA,5->6,6->7,7->8,8->9,9->5,1->2,2->1,A->B,B->C,C->D,D->E,E->')
+            sage: sorted(m.infinite_repetitions_bounded())
+            [word: 1, word: 1519181716, word: 2, word: 2529282726]
         """
         from itertools import count
 
         def impl():
             U = {}
             for x in unbounded:
-                hx = g.image(x)
-                for i, y in enumerate(hx):
+                gx = g.image(x)
+                for i, y in enumerate(reversed(gx)):
                     if y in unbounded:
                         break
-                U[x] = y, hx[:i]
+                U[x] = y, gx[gx.length() - i:]
             for cycle in get_cycles(lambda x: U[x][0], domain=unbounded):
                 if all(not U[x][1] for x in cycle):
                     continue
                 for cycle in g.domain()(cycle).conjugates_iterator():
                     u = g.domain()()
                     for x in cycle:
-                        u = g(u)
-                        u = u + U[x][1]
+                        u = U[x][1] + g(u)
                     history = dict({u: 0})
                     for i in count(1):
                         u = g(u)
@@ -3438,14 +3443,12 @@ class WordMorphism(SageObject):
                             break
                         history[u] = i
                     q = len(cycle)
-                    l0 = (s / q).ceil() * q
-                    l1 = l0 + (t.lcm(q) / q)
                     gq = gb ** q
-                    uql = gq(u, l0)
+                    uq = gq(u, (s / q).ceil())
                     res = g.domain()()
-                    for _ in range(l0 + 1, l1 + 1):
-                        uql = gq(uql)
-                        res = uql + res
+                    for _ in range(t.lcm(q) / q):
+                        uq = gq(uq)
+                        res += uq
                     yield k(res.primitive()).primitive()
 
         if w is None:
@@ -3456,10 +3459,10 @@ class WordMorphism(SageObject):
         gb = g.restrict_domain(set(g._morph) - unbounded)
 
         result = set()
-        for x in impl():
+        for x in impl():  # UR.
             result.add(x.minimal_conjugate())
         g, k = g.reversal(), k.reversal()
-        for x in impl():
+        for x in impl():  # UL.
             result.add(self.domain()(reversed(x)).minimal_conjugate())
 
         return result

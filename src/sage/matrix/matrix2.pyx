@@ -12498,7 +12498,7 @@ cdef class Matrix(Matrix1):
         cdef Matrix L  # block_ldlt() results
         cdef list d    # block_ldlt() results
         try:
-            _,L,d = self._block_ldlt(classical=True)
+            _,L,d = self._block_ldlt(True)
         except ValueError:
             # If the matrix was positive-definite, that would
             # have worked.
@@ -13579,7 +13579,7 @@ cdef class Matrix(Matrix1):
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
-    def _block_ldlt(self, classical=False):
+    cdef tuple _block_ldlt(self, bint classical):
         r"""
         Perform a user-unfriendly block-`LDL^{T}` factorization of the
         Hermitian matrix `A`
@@ -13605,20 +13605,6 @@ cdef class Matrix(Matrix1):
         All of the real documentation, examples, and tests for this
         method can be found in the user-facing :meth:`block_ldlt`
         method.
-
-        EXAMPLES:
-
-        Test that this method can be called directly; the returned ``l``
-        is not inspected because its upper-triangular part is undefined::
-
-            sage: A =  matrix(QQ, [[0, 1, 0],
-            ....:                  [1, 1, 2],
-            ....:                  [0, 2, 0]])
-            sage: p,l,d = A._block_ldlt()
-            sage: p
-            array('I', [1, 2, 0])
-            sage: d
-            [[1], [-4], [0]]
 
         """
         cdef str cache_string = "_block_ldlt"
@@ -14177,7 +14163,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t i, j # loop indices
         cdef Matrix P,L,D    # output matrices
 
-        p,L,d = self._block_ldlt(classical=classical)
+        p,L,d = self._block_ldlt(classical)
         MS = L.matrix_space()
         P = MS.matrix(lambda i,j: p[j] == i)
 
@@ -14230,7 +14216,7 @@ cdef class Matrix(Matrix1):
             return True # vacuously
 
         cdef list d
-        _,_,d = self._block_ldlt()
+        _,_,d = self._block_ldlt(False)
 
         # Check each 1x1 block for a nonpositive (negative) entry. If
         # we don't find any, the matrix is positive-(semi)definite. The

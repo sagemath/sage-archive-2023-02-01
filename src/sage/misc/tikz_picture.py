@@ -246,7 +246,7 @@ class StandaloneTex(SageObject):
 
     def __str__(self):
         r"""
-        Returns the complete string.
+        Return the complete string.
 
         EXAMPLES::
 

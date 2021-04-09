@@ -393,12 +393,12 @@ A vector field on the Riemann sphere::
 The vector field `v` acting on the scalar field `f`::
 
     sage: v(f)
-    Scalar field v(f) on the 1-dimensional complex manifold C*
+    Scalar field zero on the 1-dimensional complex manifold C*
 
 Since `f` is constant, `v(f)` is vanishing::
 
     sage: v(f).display()
-    v(f): C* --> C
+    zero: C* --> C
     on U: z |--> 0
     on V: w |--> 0
 

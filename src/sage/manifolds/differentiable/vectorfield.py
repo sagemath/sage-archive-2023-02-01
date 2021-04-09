@@ -353,8 +353,7 @@ class VectorField(MultivectorField):
             else:
                 name = None
             if self._latex_name is not None and scalar._latex_name is not None:
-                latex_name = r"{}\left({}\right)".format(self._latex_name,
-                                                         scalar._latex_name)
+                latex_name = fr"{self._latex_name}\left({scalar._latex_name}\right)"
             else:
                 latex_name = None
             resu.set_name(name=name, latex_name=latex_name)

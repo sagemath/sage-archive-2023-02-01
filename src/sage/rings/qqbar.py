@@ -1178,6 +1178,9 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             sage: AA.has_coerce_map_from(SR)
             False
 
+            sage: K = NumberField(x^3 - 2, 'a', embedding=2.**(1/3))
+            sage: AA.has_coerce_map_from(K)
+            True
             sage: K.<s> = QuadraticField(3, embedding=-2.)
             sage: s + AA(1)
             -0.732050807568878?

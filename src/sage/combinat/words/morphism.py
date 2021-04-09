@@ -96,7 +96,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_list import lazy_list
 from sage.sets.set import Set
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import QQ
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
@@ -3417,39 +3417,29 @@ class WordMorphism(SageObject):
             sage: sorted(m.infinite_repetitions_bounded())
             [word: 1, word: 1519181716, word: 2, word: 2529282726]
         """
-        from itertools import count
-
         def impl():
             U = {}
             for x in unbounded:
-                gx = g.image(x)
-                for i, y in enumerate(reversed(gx)):
+                xg = g.image(x)
+                for i, y in enumerate(reversed(xg)):
                     if y in unbounded:
                         break
-                U[x] = y, gx[gx.length() - i:]
+                U[x] = y, xg[xg.length() - i:]
             for cycle in get_cycles(lambda x: U[x][0], domain=unbounded):
                 if all(not U[x][1] for x in cycle):
                     continue
+                gq = gb ** len(cycle)
                 for cycle in g.domain()(cycle).conjugates_iterator():
                     u = g.domain()()
                     for x in cycle:
-                        u = U[x][1] + g(u)
-                    history = dict({u: 0})
-                    for i in count(1):
-                        u = g(u)
-                        if u in history:
-                            s = ZZ(history[u])
-                            t = ZZ(i - history[u])
-                            break
-                        history[u] = i
-                    q = len(cycle)
-                    gq = gb ** q
-                    uq = gq(u, (s / q).ceil())
-                    res = g.domain()()
-                    for _ in range(t.lcm(q) / q):
-                        uq = gq(uq)
-                        res += uq
-                    yield k(res.primitive()).primitive()
+                        u = U[x][1] + gb(u)
+                    inf_rep = g.domain()()
+                    history = set()
+                    while u not in history:
+                        history.add(u)
+                        inf_rep += u
+                        u = gq(u)
+                    yield k(inf_rep.primitive()).primitive()
 
         if w is None:
             w = self._morph

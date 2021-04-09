@@ -2391,10 +2391,16 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
     of symbolic expressions to make the behavior of ``a + I*b`` with rational
     ``a``, ``b`` closer to that when ``a``, ``b`` are expressions.
 
-    TESTS::
+    EXAMPLES::
 
         sage: type(I)
         <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
+
+        sage: mi = QuadraticField(-1, embedding=CC(0,-1)).gen()
+        sage: type(mi)
+        <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
+        sage: CC(mi)
+        -1.00000000000000*I
     """
 
     def _symbolic_(self, SR):
@@ -2403,9 +2409,13 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
 
             sage: SR(1 + 2*i)
             2*I + 1
+
+            sage: K.<mi> = QuadraticField(-1, embedding=CC(0,-1))
+            sage: SR(1 + mi)
+            -I + 1
         """
         from sage.symbolic.constants import I
-        return self[1]*I + self[0]
+        return self[1]*(I if self.standard_embedding else -I) + self[0]
 
     cpdef real_part(self):
         r"""
@@ -2432,8 +2442,15 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
             2
             sage: (1 + 2*I).imag().parent()
             Rational Field
+
+            sage: K.<mi> = QuadraticField(-1, embedding=CC(0,-1))
+            sage: (1 - mi).imag()
+            1
         """
-        return self[1]
+        if self.standard_embedding:
+            return self[1]
+        else:
+            return -self[1]
 
     imag = imag_part
 

@@ -5489,6 +5489,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f = function("f")
             sage: integrate(f(x), x, 0, a).subs(a=cos(a))
             integrate(f(x), x, 0, cos(a))
+
+        Check that :trac:`31530` is fixed::
+
+            sage: a, b = var("a b")
+            sage: (a + b*x).series(x, 2).subs(a=a, b=b)
+            (a) + (b)*x + Order(x^2)
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -5509,28 +5515,6 @@ cdef class Expression(CommutativeRingElement):
             # Check for duplicate
             _dict_update_check_duplicate(sdict, varkwds)
 
-        # To work around the pynac bug in :trac:`30378`, we use two steps to do a
-        # substitution that only involves plugging expressions into variables, but
-        # where some of the expressions include variables that are in self.
-        if all(self.parent(k).is_symbol() for k in sdict.keys()):
-            dict_vars = tuple(v for k in sdict.keys()
-                for v in self.parent(sdict[k]).variables())
-            if not set(self.variables()).isdisjoint(dict_vars):
-                # Step 1: replace each variable with a new temporary variable
-                temp_vars = {v : self.parent().symbol() for v in self.variables()}
-                with hold:
-                    first_step = self.substitute(temp_vars)
-                # Step 2: make the original substitutions into the new variables
-                result = first_step.substitute({
-                    temp_vars[v] :
-                    sdict[v] if v in sdict.keys() else v
-                    for v in self.variables()})
-                if not set(result.variables()).issubset(self.variables() + dict_vars):
-                    raise RuntimeError("substitution failed")
-                return result
-
-        # We are not in the basic case of only substituting expressions into
-        # variables, so we ask Ginac to do the work.
         cdef GExMap smap
         for k, v in sdict.iteritems():
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
@@ -12190,7 +12174,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: (x^2 + 1).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{2} + 1</script></html>
+            x^2 + 1
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)

@@ -15,7 +15,7 @@ else
     # Trac #28890: zlib does not use a standard autoconf-generated configure
     # script, so don't use the sdh_configure helper as it may have minor
     # incompatibilities
-    ./configure --shared --prefix="$SAGE_LOCAL" --libdir="SAGE_LOCAL/lib"
+    ./configure --shared --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 fi
 
 sdh_make

@@ -2525,8 +2525,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return reg
 
     def saturation(self, points, verbose=False, max_prime=-1, min_prime=2):
-        """
-        Given a list of rational points on E, compute the saturation in
+        """Given a list of rational points on E, compute the saturation in
         E(Q) of the subgroup they generate.
 
         INPUT:
@@ -2552,7 +2551,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            ``min_prime`` both to `p`.  One situation where this is
            useful is after mapping saturated points from another
            elliptic curve by a `p`-isogeny, since the images may not
-           be `p`-saturated but with be saturated at all other primes.
+           be `p`-saturated but will be saturated at all other primes.
 
         OUTPUT:
 
@@ -2588,7 +2587,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            The computed index of saturation may be large, in which
            case saturation may take a long time.  For example, the
            rank 4 curve ``EllipticCurve([0,1,1,-9872,374262])`` has a
-           saturation index bound of 86682 and takes around 15 minutes
+           saturation index bound of 11816 and takes around 40 seconds
            to prove saturation.
 
 

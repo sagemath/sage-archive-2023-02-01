@@ -3490,9 +3490,11 @@ class WordMorphism(SageObject):
             sage: m = WordMorphism('b->c,c->bcb')
             sage: sorted(m.infinite_repetitions_growing())
             [word: bc]
-        """
-        from collections import Counter
 
+            sage: m = WordMorphism('a->abc,b->dab,c->abc,d->dab')
+            sage: sorted(m.infinite_repetitions_growing())
+            [word: ababcd]
+        """
         if w is None:
             w = self._morph
         f = self.restrict_domain(self.reach(w))
@@ -3501,29 +3503,33 @@ class WordMorphism(SageObject):
 
         result = set()
         for periodic_orbit in g.periodic_points():
-            q = len(periodic_orbit)
-            gq = g**q
+            gq = g ** len(periodic_orbit)
             for periodic_point in periodic_orbit:
                 # Check if this periodic point is a periodic infinite word.
                 periodic_point = periodic_point[:1]
-                letter_cnts = Counter(periodic_point)
+                occurred = set(periodic_point)
+                one_unbounded_twice = False
                 for _ in g.domain().alphabet():
                     previous_length = periodic_point.length()
                     periodic_point = gq(periodic_point)
-                    letter_cnts.update(periodic_point[previous_length:])
-                    if any(letter_cnts[letter] >= 2 for letter in unbounded):
+                    for i, letter in enumerate(periodic_point[previous_length:]):
+                        if letter in unbounded:
+                            if letter in occurred:
+                                one_unbounded_twice = True
+                                break
+                            occurred.add(letter)
+                    if one_unbounded_twice:
                         break
-                else:  # nobreak
-                    continue
-                if letter_cnts[periodic_point[0]] < 2:
-                    continue
-                v = periodic_point[:periodic_point.find(periodic_point[0], start=1)]
+                if not one_unbounded_twice or letter != periodic_point[0]:
+                    break
+                v = periodic_point[:previous_length + i]
                 vq = gq(v)
                 m = 0
                 while vq[m * v.length() : (m + 1) * v.length()] == v:
                     m += 1
-                if m >= 2 and m * v.length() == vq.length():
-                    result.add(k(v).primitive().minimal_conjugate())
+                if m * v.length() != vq.length():
+                    break
+                result.add(k(v).primitive().minimal_conjugate())
 
         return result
 

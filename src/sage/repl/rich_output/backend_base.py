@@ -454,23 +454,23 @@ class BackendBase(SageObject):
             sage: out
             OutputHtml container
             sage: out.html
-            buffer containing 105 bytes
+            buffer containing 62 bytes
             sage: out.html.get_str()
-            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}</script></html>'
+            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}\\]</html>'
 
             sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=False)
             sage: out.html.get_str()
-            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]</script></html>'
+            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]\\]</html>'
             sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=True)
             sage: out.html.get_str()
-            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}</script></html>'
+            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}\\]</html>'
 
         TESTS::
 
             sage: backend.latex_formatter([], concatenate=False).html.get_str()
-            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\right]</script></html>'
+            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\right]\\]</html>'
             sage: backend.latex_formatter([], concatenate=True).html.get_str()
-            '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}</script></html>'
+            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\]</html>'
         """
         concatenate = kwds.get('concatenate', False)
         from sage.misc.html import html

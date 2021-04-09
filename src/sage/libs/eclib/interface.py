@@ -1102,7 +1102,7 @@ class mwrank_MordellWeil(SageObject):
 
           In versions up to v20190909, ``eclib`` used floating point
           methods based on elliptic logarithms to divide points, and
-          did not compute the precision necessary, which could casue
+          did not compute the precision necessary, which could cause
           failures. Since v20210310, ``eclib`` uses exact method based
           on division polynomials, which should mean that such
           failures does not happen.

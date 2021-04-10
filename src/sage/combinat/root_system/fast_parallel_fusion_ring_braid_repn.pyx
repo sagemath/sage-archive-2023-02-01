@@ -24,14 +24,14 @@ worker_results = list()
 ###############
 
 cpdef mid_sig_ij(fusion_ring,row,col,a,b):
-    """
-    Compute the (xi,yi), (xj,yj) entry of generator braiding the middle two strands
-    in the tree b -> xi # yi -> (a # a) # (a # a), which results in a sum over j
-    of trees b -> xj # yj -> (a # a) # (a # a)
+    r"""
+    Compute the (xi,yi), (xj,yj) entry of generator braiding the middle two
+    strands in the tree b -> xi # yi -> (a # a) # (a # a), which results in
+    a sum over j of trees b -> xj # yj -> (a # a) # (a # a)
 
     .. WARNING::
 
-        This method assumes F-matrices are orthogonal
+        This method assumes F-matrices are orthogonal.
 
     EXAMPLES::
 
@@ -60,7 +60,14 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
         sage: FR.get_computational_basis(a2,a2,4)                                         # long time
         [(a2, a2), (a2, a0), (a0, a2)]
         sage: to_opt(mid_sig_ij(FR,(a2, a0),(a2, a2),a2,a2))                              # long time
-        -2024728666370660589/10956322398441542221*a1^30 - 34142146914395596291/21912644796883084442*a1^28 - 21479437628091413631/21912644796883084442*a1^26 + 260131910217202103829/21912644796883084442*a1^24 + 69575612911670713183/10956322398441542221*a1^22 + 25621808994337724689/1992058617898462222*a1^20 - 1975139725303994650417/21912644796883084442*a1^18 - 1315664901396537703585/21912644796883084442*a1^16 - 2421451803369354765026/10956322398441542221*a1^14 - 5963323855935165859057/21912644796883084442*a1^12 - 4477124943233705460859/21912644796883084442*a1^10 - 2001454824483021618178/10956322398441542221*a1^8 - 2120319455379289595185/21912644796883084442*a1^6 - 15722612944437234961/755608441271830498*a1^4 - 39862668562651453480/10956322398441542221*a1^2 - 6967145776903524195/10956322398441542221
+        -2024728666370660589/10956322398441542221*a1^30 - 34142146914395596291/21912644796883084442*a1^28
+         - 21479437628091413631/21912644796883084442*a1^26 + 260131910217202103829/21912644796883084442*a1^24
+         + 69575612911670713183/10956322398441542221*a1^22 + 25621808994337724689/1992058617898462222*a1^20
+         - 1975139725303994650417/21912644796883084442*a1^18 - 1315664901396537703585/21912644796883084442*a1^16
+         - 2421451803369354765026/10956322398441542221*a1^14 - 5963323855935165859057/21912644796883084442*a1^12
+         - 4477124943233705460859/21912644796883084442*a1^10 - 2001454824483021618178/10956322398441542221*a1^8
+         - 2120319455379289595185/21912644796883084442*a1^6 - 15722612944437234961/755608441271830498*a1^4
+         - 39862668562651453480/10956322398441542221*a1^2 - 6967145776903524195/10956322398441542221
         sage: FR = FusionRing("G2",2)                             # long time
         sage: FR.fusion_labels("g",inject_variables=True)         # long time
         sage: FR.get_computational_basis(g1,g2,4)                 # long time
@@ -96,7 +103,7 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
 
     .. WARNING::
 
-        This method assumes F-matrices are orthogonal
+        This method assumes F-matrices are orthogonal.
 
     EXAMPLES::
 
@@ -127,7 +134,14 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
         sage: FR.get_computational_basis(a2,a2,3)                           # long time
         [(a2,), (a0,)]
         sage: to_opt(odd_one_out_ij(FR,a0,a2,a2,a2))                        # long time
-        6341990144855406911/21912644796883084442*a1^30 + 47313529044493641571/21912644796883084442*a1^28 - 6964289120109414595/10956322398441542221*a1^26 - 406719371329322780627/21912644796883084442*a1^24 + 87598732372849355687/10956322398441542221*a1^22 - 456724726845194775/19723352652460022*a1^20 + 3585892725441116840515/21912644796883084442*a1^18 - 645866255979227573282/10956322398441542221*a1^16 + 7958479159087829772639/21912644796883084442*a1^14 + 789748976956837633826/10956322398441542221*a1^12 + 3409710648897945752185/21912644796883084442*a1^10 + 903956381582048110980/10956322398441542221*a1^8 + 192973084151342020307/21912644796883084442*a1^6 - 9233312083438019435/755608441271830498*a1^4 + 667869266552877781/10956322398441542221*a1^2 + 17644302696056968099/21912644796883084442
+        6341990144855406911/21912644796883084442*a1^30 + 47313529044493641571/21912644796883084442*a1^28
+         - 6964289120109414595/10956322398441542221*a1^26 - 406719371329322780627/21912644796883084442*a1^24
+         + 87598732372849355687/10956322398441542221*a1^22 - 456724726845194775/19723352652460022*a1^20
+         + 3585892725441116840515/21912644796883084442*a1^18 - 645866255979227573282/10956322398441542221*a1^16
+         + 7958479159087829772639/21912644796883084442*a1^14 + 789748976956837633826/10956322398441542221*a1^12
+         + 3409710648897945752185/21912644796883084442*a1^10 + 903956381582048110980/10956322398441542221*a1^8
+         + 192973084151342020307/21912644796883084442*a1^6 - 9233312083438019435/755608441271830498*a1^4
+         + 667869266552877781/10956322398441542221*a1^2 + 17644302696056968099/21912644796883084442
         sage: FR = FusionRing("G2",2)                             # long time
         sage: FR.fusion_labels("g",inject_variables=True)         # long time
         sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time (~11 s)
@@ -155,7 +169,7 @@ odd_one_out_ij = cached_function(odd_one_out_ij, name='odd_one_out_ij')
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cdef sig_2k(fusion_ring, tuple args):
-    """
+    r"""
     Compute entries of the 2k-th braid generator
     """
     #Pre-compute common parameters for efficiency
@@ -163,6 +177,7 @@ cdef sig_2k(fusion_ring, tuple args):
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
+    cdef int child_id, n_proc
     child_id, n_proc, fn_args = args
     k, a, b, n_strands = fn_args
     cdef int ctr = -1
@@ -174,9 +189,9 @@ cdef sig_2k(fusion_ring, tuple args):
     cdef set coords = set()
     cdef int i
     #Avoid pickling cyclotomic field element objects
-    must_flatten_coeff = fusion_ring.fvars_field() != QQbar
+    cdef bint must_flatten_coeff = fusion_ring.fvars_field() != QQbar
     for i in range(dim):
-        for f,e,q in product(fusion_ring.basis(),repeat=3):
+        for f,e,q in product(fusion_ring.basis(), repeat=3):
             #Distribute work amongst processes
             ctr += 1
             if ctr % n_proc != child_id:
@@ -184,7 +199,8 @@ cdef sig_2k(fusion_ring, tuple args):
 
             #Compute appropriate possible nonzero row index
             nnz_pos = list(comp_basis[i])
-            nnz_pos[k-1:k+1] = f,e
+            nnz_pos[k-1] = f
+            nnz_pos[k] = e
             #Handle the special case k = 1
             if k > 1:
                 nnz_pos[n_strands//2+k-2] = q
@@ -223,14 +239,14 @@ cdef sig_2k(fusion_ring, tuple args):
                 if must_flatten_coeff:
                     entry = entry.list()
 
-                worker_results.append(((basis_dict[nnz_pos],i), entry))
+                worker_results.append(((basis_dict[nnz_pos], i), entry))
 
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cdef odd_one_out(fusion_ring, tuple args):
     """
-    Compute entries of the rightmost braid generator, in case we have an odd number
-    of strands
+    Compute entries of the rightmost braid generator, in case we have an
+    odd number of strands.
     """
     #Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
@@ -238,16 +254,17 @@ cdef odd_one_out(fusion_ring, tuple args):
     one = fusion_ring.one()
 
     global worker_results
+    cdef int child_id, n_proc
     child_id, n_proc, fn_args = args
     a, b, n_strands = fn_args
-    cdef ctr = -1
+    cdef int ctr = -1
     #Get computational basis
-    comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
-    basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
+    comp_basis = fusion_ring.get_computational_basis(a, b, n_strands)
+    basis_dict = {elt: i for i, elt in enumerate(comp_basis)}
     dim = len(comp_basis)
 
     #Avoid pickling cyclotomic field element objects
-    must_flatten_coeff = fusion_ring.fvars_field() != QQbar
+    cdef bint must_flatten_coeff = fusion_ring.fvars_field() != QQbar
     for i in range(dim):
         for f, q in product(fusion_ring.basis(),repeat=2):
             #Distribute work amongst processes
@@ -274,7 +291,7 @@ cdef odd_one_out(fusion_ring, tuple args):
                     if must_flatten_coeff:
                         entry = entry.list()
 
-                    worker_results.append(((basis_dict[nnz_pos],i), entry))
+                    worker_results.append(((basis_dict[nnz_pos], i), entry))
                     continue
                 top_left = m[0]
                 if n_strands > 5:
@@ -321,7 +338,7 @@ cpdef collect_results(proc):
     #Discard the zero polynomial
     global worker_results
     reduced = worker_results
-    worker_results = list()
+    worker_results = []
     return reduced
 
 ##############################
@@ -384,8 +401,8 @@ cpdef _unflatten_entries(fusion_ring, list entries):
     Restore cyclotomic coefficient object from its tuple of rational
     coefficients representation.
 
-    Used to circumvent pickling issue introduced by PARI settigs in trac
-    ticket #30537
+    Used to circumvent pickling issue introduced by PARI settigs
+    in :trac:`30537`.
 
     EXAMPLES::
 
@@ -400,7 +417,7 @@ cpdef _unflatten_entries(fusion_ring, list entries):
     """
     F = fusion_ring.fvars_field()
     fm = fusion_ring.fmats
-    must_unflatten = F != QQbar
-    if must_unflatten:
+    if F != QQbar:
         for i, (coord, entry) in enumerate(entries):
             entries[i] = (coord, F(entry))
+

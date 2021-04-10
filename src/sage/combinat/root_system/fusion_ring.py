@@ -14,7 +14,6 @@ Fusion Rings
 from itertools import product, zip_longest
 from multiprocessing import Pool, set_start_method
 from sage.combinat.q_analogues import q_int
-import sage.combinat.root_system.f_matrix as FMatrix
 from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import (
     collect_results, executor,
     _unflatten_entries
@@ -385,11 +384,12 @@ class FusionRing(WeylCharacterRing):
         - ``max_strands`` -- (default: 6): maximum number of braid group strands
 
         Create a braid group representation using :meth:`get_braid_generators`
-        and confirms the braid relations.  This test indirectly partially verifies
-        the correctness of the orthogonal F-matrix solver. If the code were
-        incorrect the method would not be deterministic because the fusing anyon
-        is chosen randomly. (A different choice is made for each number of strands tested.)
-        However the doctest is deterministic since it will always return True.
+        and confirms the braid relations.  This test indirectly partially
+        verifies the correctness of the orthogonal F-matrix solver. If the
+        code were incorrect the method would not be deterministic because the
+        fusing anyon is chosen randomly. (A different choice is made for each
+        number of strands tested.) However the doctest is deterministic since
+        it will always return ``True``.
 
         EXAMPLES::
 
@@ -401,7 +401,7 @@ class FusionRing(WeylCharacterRing):
             True
         """
         if not self.is_multiplicity_free(): # Braid group representation is not available if self is not multiplicity free
-           return True
+           raise NotImplementedError("only implemented for multiplicity free fusion rings")
         b = self.basis()
         results = []
         #Test with different numbers of strands
@@ -552,9 +552,9 @@ class FusionRing(WeylCharacterRing):
             2*a0 + 3*a2
             sage: comp_basis, sig = A13.get_braid_generators(a2,a2,3,verbose=False)    # long time (<3s)
             sage: A13.fvars_field()                                                    # long time
-            Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
+            Number Field in a with defining polynomial y^32 - ... - 500*y^2 + 25
             sage: a2.q_dimension().parent()                                            # long time
-            Number Field in a with defining polynomial y^32 - 8*y^30 + 18*y^28 - 44*y^26 + 93*y^24 - 56*y^22 + 2132*y^20 - 1984*y^18 + 19738*y^16 - 28636*y^14 + 77038*y^12 - 109492*y^10 + 92136*y^8 - 32300*y^6 + 5640*y^4 - 500*y^2 + 25
+            Number Field in a with defining polynomial y^32 - ... - 500*y^2 + 25
             sage: A13.field()
             Cyclotomic Field of order 40 and degree 16
 
@@ -1050,17 +1050,17 @@ class FusionRing(WeylCharacterRing):
         return self._basecoer(ret)
 
     def is_multiplicity_free(self):
-        """
-        Return True if the fusion multiplicities
-        :meth:`Nk_ij` are bounded by 1. The :class:`FMatrix`
-        is available only for multiplicity free instances of
-        :class:`FusionRing`.
+        r"""
+        Return ``True`` if the fusion multiplicities
+        :meth:`Nk_ij` are bounded by 1.
+
+        The :class:`FMatrix` is available only for multiplicity free
+        instances of :class:`FusionRing`.
 
         EXAMPLES::
 
             sage: [FusionRing(ct,k).is_multiplicity_free() for ct in ("A1","A2","B2","C3") for k in (1,2,3)]
             [True, True, True, True, True, False, True, True, False, True, False, False]
-
         """
         ct = self.cartan_type()
         k = self.fusion_level()
@@ -1080,8 +1080,8 @@ class FusionRing(WeylCharacterRing):
     ###################################
 
     def get_computational_basis(self,a,b,n_strands):
-        """
-        Return the so-called computational basis for `\\text{Hom}(b, a^n)`.
+        r"""
+        Return the so-called computational basis for `\text{Hom}(b, a^n)`.
 
         INPUT:
 
@@ -1089,8 +1089,8 @@ class FusionRing(WeylCharacterRing):
         - ``b`` -- another basis element
         - ``n_strands`` -- the number of strands for a braid group
 
-        Let `n=` ``n_strands`` and let `k` be the greatest integer `\leqslant n/2`.
-        The braid group acts on `\\text{Hom}(b,a^n)`. This action
+        Let `n=` ``n_strands`` and let `k` be the greatest integer `\leq n/2`.
+        The braid group acts on `\text{Hom}(b,a^n)`. This action
         is computed in :meth:`get_braid_generators`. This method
         returns the computational basis in the form of a list of
         fusion trees. Each tree is represented by an `(n-2)`-tuple
@@ -1104,18 +1104,18 @@ class FusionRing(WeylCharacterRing):
 
         .. MATH::
 
-            \\begin{array}{l}
-            b \\in l_{k-2} \otimes m_{k},\\\\
-            l_{k-2} \\in l_{k-3} \otimes m_{k-1},\\\\
-            \\cdots,\\\\
-            l_2 \\in l_1\otimes m_3,\\\\
-            l_1 \\in m_1\otimes m_2.
+            \begin{array}{l}
+            b \in l_{k-2} \otimes m_{k},\\
+            l_{k-2} \in l_{k-3} \otimes m_{k-1},\\
+            \cdots,\\
+            l_2 \in l_1 \otimes m_3,\\
+            l_1 \in m_1 \otimes m_2.
             \end{array}
 
-        where `z \\in x\otimes y` means `N_{xy}^z\\neq 0`.
+        where `z \in x \otimes y` means `N_{xy}^z \neq 0`.
 
         As a computational device when ``n_strands`` is odd, we pad the
-        vector `(m_1,\ldots,m_k)` with an additional `m_{k+1}` equal to `a`.
+        vector `(m_1, \ldots, m_k)` with an additional `m_{k+1}` equal to `a`.
         However, this `m_{k+1}` does *not* appear in the output of this method.
 
         The following example appears in Section 3.1 of [CW2015]_.
@@ -1148,9 +1148,9 @@ class FusionRing(WeylCharacterRing):
 
     @lazy_attribute
     def fmats(self):
-        """
-        Construct an FMatrix factory to solve the pentagon relations and
-        organize the resulting F-symbols.
+        r"""
+        Construct an :class:`FMatrix` factory to solve the pentagon relations
+        and organize the resulting F-symbols.
 
         We only need this attribute to compute braid group representations.
 
@@ -1160,34 +1160,37 @@ class FusionRing(WeylCharacterRing):
             sage: A15.fmats
             F-Matrix factory for The Fusion Ring of Type A1 and level 5 with Integer Ring coefficients
         """
-        return FMatrix.FMatrix(self)
+        from sage.combinat.root_system.f_matrix import FMatrix
+        return FMatrix(self)
 
-    def _emap(self,mapper,input_args,worker_pool=None):
-        """
-        Apply the given mapper to each element of the given input iterable and
-        return the results (with no duplicates) in a list. This method applies the
-        mapper in parallel if a worker_pool is provided.
+    def _emap(self, mapper, input_args, worker_pool=None):
+        r"""
+        Apply the given mapper to each element of the given input iterable
+        and return the results (with no duplicates) in a list.
 
         INPUT:
 
-        - ``mapper`` -- a string specifying the name of a function defined in the
-          ``fast_parallel_fusion_ring_braid_repn`` module.
+        - ``mapper`` -- a string specifying the name of a function defined
+          in the ``fast_parallel_fusion_ring_braid_repn`` module
         - ``input_args`` -- a tuple of arguments to be passed to mapper
+
+        This method applies the mapper in parallel if a ``worker_pool``
+        is provided.
 
         .. NOTE::
 
-            If ``worker_pool`` is not provided, function maps and reduces on a
-            single process.
-            If ``worker_pool`` is provided, the function attempts to determine
-            whether it should use multiprocessing based on the length of the
-            input iterable. If it can't determine the length of the input
-            iterable then it uses multiprocessing with the default chunksize of
-            `1` if chunksize is not explicitly provided.
+            If ``worker_pool`` is not provided, function maps and reduces on
+            a single process. If ``worker_pool`` is provided, the function
+            attempts to determine whether it should use multiprocessing
+            based on the length of the input iterable. If it cannot determine
+            the length of the input iterable then it uses multiprocessing 
+            with the default chunksize of `1` if chunksize is not
+            explicitly provided.
 
         EXAMPLES::
 
             sage: FR = FusionRing("A1",4)
-            sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
+            sage: FR.fusion_labels(['idd','one','two','three','four'], inject_variables=True)
             sage: FR.fmats.find_orthogonal_solution(verbose=False)      # long time
             sage: len(FR._emap('sig_2k',(1,one,one,5)))                 # long time
             13
@@ -1211,7 +1214,7 @@ class FusionRing(WeylCharacterRing):
         if no_mp:
             results = collect_results(0)
         else:
-            results = list()
+            results = []
             for worker_results in worker_pool.imap_unordered(collect_results,range(worker_pool._processes),chunksize=1):
                 results.extend(worker_results)
         return results
@@ -1225,28 +1228,31 @@ class FusionRing(WeylCharacterRing):
                             warm_start="",
                             use_mp=True,
                             verbose=True):
-        """
-        Compute generators of the Artin braid group on `n=` ``n_strands``
-        strands. If `a` = ``fusing_anyon`` and `b` = ``total_charge_anyon``
-        the generators are endomorphisms of `\\text{Hom}(b, a^n)`.
+        r"""
+        Compute generators of the Artin braid group on ``n_strands`` strands.
+
+        If `a = ` ``fusing_anyon`` and `b = ` ``total_charge_anyon``
+        the generators are endomorphisms of `\text{Hom}(b, a^n)`.
 
         INPUT:
 
-        - ``fusing_anyon`` -- a basis element of self
-        - ``total_charge_anyon`` -- a basis element of self
+        - ``fusing_anyon`` -- a basis element of ``self``
+        - ``total_charge_anyon`` -- a basis element of ``self``
         - ``n_strands`` -- a positive integer greater than 2
-        - ``checkpoint`` -- (optional) a boolean indicating whether the
-          F-matrix solver should pickle checkpoints.
+        - ``checkpoint`` -- (default: ``False``) a boolean indicating
+          whether the F-matrix solver should pickle checkpoints
         - ``save_results`` -- (optional) a string indicating the name of
-          a file in which to pickle computed F-symbols for later use.
+          a file in which to pickle computed F-symbols for later use
         - ``warm_start`` -- (optional) a string indicating the name of a
           pickled checkpoint file to "warm" start the F-matrix solver.
           The pickle may be a checkpoint generated by the solver, or
           a file containing solver results. If all F-symbols are known,
           we don't run the solver again.
-        - ``use_mp`` -- (optional) a boolean indicating whether to use
-          multiprocessing to speed up the computation. This is highly
-          recommended.
+        - ``use_mp`` -- (default: ``True``) a boolean indicating whether
+          to use multiprocessing to speed up the computation; this is
+          highly recommended
+        - ``verbose`` -- (default: ``True``) boolean indicating whether
+          to be verbose with the computation
 
         For more information on the optional parameters, see
         :meth:`find_orthogonal_solution` of the :class:`FMatrix` module.
@@ -1273,8 +1279,8 @@ class FusionRing(WeylCharacterRing):
         some cases these will be represented as sparse matrices.
 
         In the following example we compute a 5-dimensional braid group
-        representation on 5 strands associated to the spin representation in the
-        modular tensor category `SU(2)_4 \cong SO(3)_2`.
+        representation on 5 strands associated to the spin representation
+        in the modular tensor category `SU(2)_4 \cong SO(3)_2`.
 
         EXAMPLES::
 
@@ -1291,9 +1297,9 @@ class FusionRing(WeylCharacterRing):
             True
             sage: len(comp_basis) == 5                                                # long time
             True
-
         """
-        assert int(n_strands) > 2, "The number of strands must be an integer greater than 2"
+        if n_strands < 3:
+            raise ValueError("the number of strands must be an integer at least 3")
         #Construct associated FMatrix object and solve for F-symbols
         if self.fmats._chkpt_status < 7:
             self.fmats.find_orthogonal_solution(checkpoint=checkpoint,
@@ -1315,18 +1321,17 @@ class FusionRing(WeylCharacterRing):
         comp_basis = self.get_computational_basis(a,b,n_strands)
         d = len(comp_basis)
         if verbose:
-            print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d,n_strands))
+            print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d, n_strands))
 
         #Compute diagonal odd-indexed generators using the 3j-symbols
-        gens = { 2*i+1 : diagonal_matrix(self.r_matrix(a,a,c[i]) for c in comp_basis) for i in range(n_strands//2) }
+        gens = {2*i+1: diagonal_matrix(self.r_matrix(a,a,c[i]) for c in comp_basis) for i in range(n_strands//2)}
 
         #Compute even-indexed generators using F-matrices
-        for k in range(1,n_strands//2):
+        for k in range(1, n_strands//2):
             entries = self._emap('sig_2k',(k,a,b,n_strands),pool)
 
             #Build cyclotomic field element objects from tuple of rationals repn
             _unflatten_entries(self, entries)
-
             gens[2*k] = matrix(dict(entries))
 
         #If n_strands is odd, we compute the final generator
@@ -1335,15 +1340,16 @@ class FusionRing(WeylCharacterRing):
 
             #Build cyclotomic field element objects from tuple of rationals repn
             _unflatten_entries(self, entries)
-
             gens[n_strands-1] = matrix(dict(entries))
 
         return comp_basis, [gens[k] for k in sorted(gens)]
 
-    def gens_satisfy_braid_gp_rels(self,sig):
-        """
-        Return True if the matrices in the list ``sig`` satisfy
-        the braid relations. This if `n` is the cardinality of ``sig``, this
+    def gens_satisfy_braid_gp_rels(self, sig):
+        r"""
+        Return ``True`` if the matrices in the list ``sig`` satisfy
+        the braid relations.
+
+        This if `n` is the cardinality of ``sig``, this
         confirms that these matrices define a representation of
         the Artin braid group on `n+1` strands. Tests correctness of
         :meth:`get_braid_generators`.

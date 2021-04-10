@@ -13,9 +13,9 @@ Arithmetic Engine for polynomials as tuples
 ###########
 
 cpdef inline tuple poly_to_tup(MPolynomial_libsingular poly):
-    """
+    r"""
     Convert a polynomial object into the internal representation as tuple of
-    (ETuple exp, NumberFieldElement coeff) pairs
+    ``(ETuple exp, NumberFieldElement coeff)`` pairs.
 
     EXAMPLES::
 
@@ -34,14 +34,12 @@ cpdef inline MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_
 
     Inverse of :meth:`poly_to_tup`:
 
-    ``poly_to_tup(tup_to_poly(eq_tup, ring)) == eq_tup`` and
-
-    ``tup_to_poly(poly_to_tup(eq), eq.parent()) == eq``.
+    - ``poly_to_tup(tup_to_poly(eq_tup, ring)) == eq_tup`` and
+    - ``tup_to_poly(poly_to_tup(eq), eq.parent()) == eq``.
 
     .. NOTE::
 
-        Assumes ``parent.ngens() == len(exp_tup) for exp_tup, c in eq_tup``.
-
+        Assumes ``all(parent.ngens() == len(exp_tup) for exp_tup, c in eq_tup)``.
         This method is meant for internal use.
 
     .. WARNING::
@@ -62,7 +60,7 @@ cpdef inline MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_
         sage: _tup_to_poly(poly_to_tup(poly), parent=R) == poly
         True
 
-    TESTS:
+    TESTS::
 
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, _tup_to_poly
         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
@@ -77,27 +75,26 @@ cpdef inline MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_
     return parent._element_constructor_(dict(eq_tup), check=False)
 
 cdef inline tuple _flatten_coeffs(tuple eq_tup):
-    """
+    r"""
     Flatten cyclotomic coefficients to a representation as a tuple of rational
     coefficients.
 
     This is used to avoid pickling cyclotomic coefficient objects, which fails
     with new PARI settings introduced in trac ticket #30537
     """
-    cdef list flat = list()
-    cdef ETuple exp
+    cdef list flat = []
     cdef NumberFieldElement_absolute cyc_coeff
     for exp, cyc_coeff in eq_tup:
         flat.append((exp, tuple(cyc_coeff._coefficients())))
     return tuple(flat)
 
 cpdef tuple _unflatten_coeffs(field, tuple eq_tup):
-    """
+    r"""
     Restore cyclotomic coefficient object from its tuple of rational
     coefficients representation.
 
-    Used to circumvent pickling issue introduced by PARI settigs in trac
-    ticket #30537
+    Used to circumvent pickling issue introduced by PARI settigs
+    in :trac:`30537`.
 
     EXAMPLES::
 
@@ -112,8 +109,7 @@ cpdef tuple _unflatten_coeffs(field, tuple eq_tup):
         sage: _unflatten_coeffs(fm.field(), flat_poly_tup) == poly_to_tup(p)
         True
     """
-    cdef list unflat = list()
-    cdef ETuple exp
+    cdef list unflat = []
     for exp, coeff_tup in eq_tup:
         unflat.append((exp, field(list(coeff_tup))))
     return tuple(unflat)
@@ -123,7 +119,7 @@ cpdef tuple _unflatten_coeffs(field, tuple eq_tup):
 #################################
 
 cdef inline int has_appropriate_linear_term(tuple eq_tup):
-    """
+    r"""
     Determine whether the given tuple of pairs (of length 2) contains
     an *appropriate* linear term.
 
@@ -140,8 +136,9 @@ cdef inline int has_appropriate_linear_term(tuple eq_tup):
 
     Otherwise, the method returns -1.
     """
-    max_var = variables(eq_tup)[0]
+    max_var = degrees(eq_tup).nonzero_positions()[0]
     cdef ETuple m
+    cdef int i
     for i in range(2):
         m = eq_tup[i][0]
         if m._nonzero == 1 and m._data[1] == 1 and m._data[0] == max_var and eq_tup[(i+1) % 2][0][max_var] == 0:
@@ -196,7 +193,7 @@ cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
       sage: from sage.rings.polynomial.polydict import ETuple
       sage: K = CyclotomicField(56)
       sage: poly_tup = ((ETuple([0,3,0,2]),K(2)), (ETuple([0,1,0,1]),K(-1)), (ETuple([0,0,0,0]),K(-2/3)))
-      sage: idx_map = { 1 : 0, 3 : 1 }
+      sage: idx_map = {1: 0, 3: 1}
       sage: resize(poly_tup,idx_map,2)
       (((3, 2), 2), ((1, 1), -1), ((0, 0), -2/3))
 
@@ -213,8 +210,8 @@ cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
     cdef NumberFieldElement_absolute c
     cdef list resized = list()
     for exp, c in eq_tup:
-      new_e = ETuple({ idx_map[pos] : d for pos, d in exp.sparse_iter() }, nvars)
-      resized.append((new_e,c))
+        new_e = ETuple({idx_map[pos]: d for pos, d in exp.sparse_iter()}, nvars)
+        resized.append((new_e, c))
     return tuple(resized)
 
 ###########################
@@ -222,20 +219,22 @@ cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
 ###########################
 
 cdef inline ETuple degrees(tuple poly_tup):
-    """
-    Return the maximal degree of each variable in the polynomial
+    r"""
+    Return the maximal degree of each variable in the polynomial.
     """
     #Deal with the empty tuple, representing the zero polynomial
-    if not poly_tup: return ETuple()
+    if not poly_tup:
+        return ETuple()
     cdef ETuple max_degs, exp
-    max_degs = poly_tup[0][0]
-    for exp, c in poly_tup[1:]:
-        max_degs = max_degs.emax(exp)
+    cdef int i
+    max_degs = <ETuple> (<tuple> poly_tup[0])[0]
+    for i in range(1, len(poly_tup)):
+        max_degs = max_degs.emax(<ETuple> (<tuple> poly_tup[i])[0])
     return max_degs
 
 cpdef ETuple get_variables_degrees(list eqns):
-    """
-    Find maximum degrees for each variable in equations
+    r"""
+    Find maximum degrees for each variable in equations.
 
     EXAMPLES::
 
@@ -246,12 +245,13 @@ cpdef ETuple get_variables_degrees(list eqns):
         sage: get_variables_degrees([poly_to_tup(p) for p in polys])
         (2, 1, 3)
     """
-    if not eqns: return ETuple([])
-    cdef tuple eq_tup
+    if not eqns:
+        return ETuple([])
     cdef ETuple max_deg
+    cdef int i
     max_deg = degrees(eqns[0])
-    for eq_tup in eqns[1:]:
-        max_deg = max_deg.emax(degrees(eq_tup))
+    for i in range(1, len(eqns)):
+        max_deg = max_deg.emax(degrees( <tuple>(eqns[i]) ))
     return max_deg
 
 cpdef list variables(tuple eq_tup):
@@ -275,7 +275,7 @@ cpdef list variables(tuple eq_tup):
     return degrees(eq_tup).nonzero_positions()
 
 cpdef constant_coeff(tuple eq_tup):
-    """
+    r"""
     Return the constant coefficient of the polynomial represented by
     given tuple.
 
@@ -293,8 +293,8 @@ cpdef constant_coeff(tuple eq_tup):
     """
     cdef ETuple exp
     for exp, coeff in eq_tup:
-      if exp.is_constant():
-        return coeff
+        if exp.is_constant():
+            return coeff
     return 0
 
 cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
@@ -311,7 +311,7 @@ cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
         x + 4*y + 9*z
     """
     cdef ETuple exp
-    cdef list new_tup = list()
+    cdef list new_tup = []
     for exp, coeff in eq_tup:
       new_tup.append((exp, coeff_map(coeff)))
     return tuple(new_tup)
@@ -409,7 +409,7 @@ cdef dict remove_gcf(dict eq_dict, ETuple nonz):
     common_powers = nonz
     for exp, c in eq_dict.items():
         common_powers = common_powers.emin(exp)
-    cdef dict ret = dict()
+    cdef dict ret = {}
     for exp, c in eq_dict.items():
         ret[exp.esub(common_powers)] = c
     return ret
@@ -422,11 +422,13 @@ cdef tuple to_monic(dict eq_dict, one):
     Here, the leading coefficient is chosen according to the degree reverse
     lexicographic ordering (default for multivariate polynomial rings).
     """
-    if not eq_dict: return tuple()
+    if not eq_dict:
+        return ()
     cdef list ord_monoms = sorted(eq_dict, key=monom_sortkey)
     cdef ETuple lm = ord_monoms[-1]
     cdef NumberFieldElement_absolute lc = eq_dict[lm]
-    if not lc: return tuple()
+    if not lc:
+        return ()
     cdef list ret = [(lm, one)]
     inv_lc = lc.inverse_of_unit()
     cdef int i, n
@@ -440,7 +442,8 @@ cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq, NumberFiel
     Return a tuple describing a monic polynomial with no known nonzero
     gcf and no known squares.
     """
-    if not eq_dict: return tuple()
+    if not eq_dict:
+        return ()
     cdef dict sq_rmvd = subs_squares(eq_dict, known_sq)
     cdef dict gcf_rmvd = remove_gcf(sq_rmvd, nonz)
     return to_monic(gcf_rmvd, one)
@@ -454,14 +457,14 @@ cpdef dict compute_known_powers(ETuple max_deg, dict val_dict, one):
     Pre-compute powers of known values for efficiency when preparing to
     substitute into a list of polynomials.
 
-    INPUTS:
+    INPUT:
 
-        - ``max_deg`` -- an ``ETuple`` indicating the maximal degree of
-          each variable.
-        - ``val_dict`` -- a dictionary of ``(var_idx, poly_tup)`` key-value
-          pairs.
-        - ``poly_tup`` -- a tuple of (ETuple, coeff) pairs reperesenting a
-          multivariate polynomial.
+    - ``max_deg`` -- an ``ETuple`` indicating the maximal degree of
+      each variable
+    - ``val_dict`` -- a dictionary of ``(var_idx, poly_tup)`` key-value
+      pairs
+    - ``poly_tup`` -- a tuple of ``(ETuple, coeff)`` pairs reperesenting a
+      multivariate polynomial
 
     EXAMPLES::
 
@@ -482,22 +485,23 @@ cpdef dict compute_known_powers(ETuple max_deg, dict val_dict, one):
         (((0, 4, 0), 1),),
         (((0, 6, 0), 1),)]}
     """
-    if not max_deg: return dict()
+    if not max_deg:
+        return {}
     assert max(max_deg.nonzero_values(sort=False)) <= 100, "NotImplementedError: Cannot substitute for degree larger than 100"
-    max_deg = max_deg.emin(ETuple({ idx : 100 for idx in val_dict }, len(max_deg)))
+    max_deg = max_deg.emin(ETuple({idx: 100 for idx in val_dict}, len(max_deg)))
     cdef dict known_powers
     #Get polynomial unit as tuple to initialize list elements
     cdef tuple one_tup = ((max_deg._new(), one),)
     cdef int d, power, var_idx
-    known_powers = { var_idx : [one_tup]*(d+1) for var_idx, d in max_deg.sparse_iter() }
+    known_powers = {var_idx: [one_tup]*(d+1) for var_idx, d in max_deg.sparse_iter()}
     for var_idx, d in max_deg.sparse_iter():
         for power in range(d):
-            known_powers[var_idx][power+1] = tup_mul(known_powers[var_idx][power],val_dict[var_idx])
+            known_powers[var_idx][power+1] = tup_mul(known_powers[var_idx][power], val_dict[var_idx])
     return known_powers
 
 cdef dict subs(tuple poly_tup, dict known_powers, one):
     """
-    Substitute given variables into a polynomial tuple
+    Substitute given variables into a polynomial tuple.
     """
     cdef dict subbed = {}
     cdef ETuple exp, m, shifted_exp
@@ -513,24 +517,24 @@ cdef dict subs(tuple poly_tup, dict known_powers, one):
         for m, c in temp:
             shifted_exp = exp.eadd(m)
             if shifted_exp in subbed:
-                subbed[shifted_exp] += coeff*c
+                subbed[shifted_exp] += coeff * c
             else:
-                subbed[shifted_exp] = coeff*c
+                subbed[shifted_exp] = coeff * c
     return subbed
 
 cdef tuple tup_mul(tuple p1, tuple p2):
+    r"""
+    Multiplication of two polynomial tuples using schoolbook multiplication.
     """
-    Multiplication of two tuples... may have to make this faster
-    """
-    cdef dict prod = dict()
+    cdef dict prod = {}
     cdef ETuple xi, yj, shifted_exp
     for xi, ai in p1:
         for yj, bj in p2:
             shifted_exp = xi.eadd(yj)
             if shifted_exp in prod:
-                prod[shifted_exp] += ai*bj
+                prod[shifted_exp] += ai * bj
             else:
-                prod[shifted_exp] = ai*bj
+                prod[shifted_exp] = ai * bj
     return tuple(prod.items())
 
 ###############
@@ -538,7 +542,7 @@ cdef tuple tup_mul(tuple p1, tuple p2):
 ###############
 
 cdef tuple monom_sortkey(ETuple exp):
-    """
+    r"""
     Produce a sortkey for a monomial exponent w.r.t. degree reversed
     lexicographic ordering.
     """
@@ -549,7 +553,7 @@ cdef tuple monom_sortkey(ETuple exp):
     return (deg, rev)
 
 cpdef tuple poly_tup_sortkey(tuple eq_tup):
-    """
+    r"""
     Return the sortkey of a polynomial represented as a tuple of
     ``(ETuple, coeff)`` pairs with respect to the degree
     lexicographical term order.
@@ -576,7 +580,7 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
         sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
         True
 
-    TESTS:
+    TESTS::
 
         sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
@@ -591,7 +595,7 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
     """
     cdef ETuple exp
     cdef int i, l, nnz
-    cdef list key = list()
+    cdef list key = []
     for exp, c in eq_tup:
        #Compare by term degree
        key.append(exp.unweighted_degree())
@@ -602,3 +606,4 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
            key.append(-exp._data[2*i])
            key.append(exp._data[2*i+1])
     return tuple(key)
+

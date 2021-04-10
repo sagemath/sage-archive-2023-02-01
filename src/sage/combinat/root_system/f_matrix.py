@@ -1837,6 +1837,7 @@ class FMatrix():
 
             sage: f = FMatrix(FusionRing("A1",3))  # indirect doctest
             sage: f.find_orthogonal_solution()     # long time
+            Computing F-symbols for The Fusion Ring of Type A1 and level 3 with Integer Ring coefficients with 71 variables...
             Set up 134 hex and orthogonality constraints...
             Partitioned 134 equations into 17 components of size:
             [12, 12, 6, 6, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1]

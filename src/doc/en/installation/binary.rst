@@ -97,15 +97,15 @@ This section explains how to install from ``dmg``. For the
 installation of the binary tarball ``tar.bz2`` just follow the steps
 of the Linux installation.
 
-After downloading the file, double click on the dmg file to mount it
+After downloading the file, double click on the dmg file to mount it,
 which will take some time.  Then drag the folder ``SageMath`` that
 just appeared to ``/Applications/``.  You might want to have shortcuts
 so that ``sage`` in the console simply works out of the box.  For that
 purpose, follows the steps at the end of the section "Linux".
 
 Alternative macOS binaries are available `here
-<http://https://github.com/3-manifolds/Sage_macOS/releases/>`_.  These
-have been signed and notarized, eliminating various errors caused
+<https://github.com/3-manifolds/Sage_macOS/releases/>`_.  These
+have been signed and notarized, eliminating various errors caused by
 Apple's gatekeeper antimalware protections.
 
 

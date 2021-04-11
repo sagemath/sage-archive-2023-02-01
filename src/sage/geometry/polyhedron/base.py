@@ -10110,7 +10110,7 @@ class Polyhedron_base(Element):
             sage: AA(Pgonal.volume()^2) == (Pnormal.volume()^2)*AA(Adet)
             True
 
-        An other example with ``as_affine_map=True``::
+        Another example with ``as_affine_map=True``::
 
             sage: P = polytopes.permutahedron(4)
             sage: A, b = P.affine_hull_projection(orthonormal=True, as_affine_map=True, extend=True)
@@ -10400,6 +10400,53 @@ class Polyhedron_base(Element):
             return result['polyhedron']
 
     affine_hull = deprecated_function_alias(29326, affine_hull_projection)
+
+    def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
+                             names=None, **kwds):
+        """
+        Return the affine hull of ``self`` as a submanifold of the ambient Euclidean space.
+
+        INPUT:
+
+        - ``ambient_space`` -- a :class:`~sage.manifolds.differentiable.examples.euclidean.EuclideanSpace`
+          of the ambient dimension (default: a new instance of ``EuclideanSpace``)
+          the ambient space.
+
+        - optional arguments accepted by :meth:`~sage.geometry.polyhedron.base.affine_hull_projection`.
+
+        The default chart is determined by the optional arguments of
+        :meth:`~sage.geometry.polyhedron.base.affine_hull_projection`.
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]);  triangle
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: triangle.affine_hull_manifold()
+
+
+
+        """
+        if ambient_space is None:
+            from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
+            ambient_space = EuclideanSpace(self.ambient_dim(), start_index=start_index)
+        CE = ambient_space.default_chart()
+
+        from sage.manifolds.manifold import Manifold
+        if name is None:
+            name = 'H'
+        H = Manifold(self.dim(), name, ambient=ambient_space,
+                     latex_name=latex_name, start_index=start_index)
+        if names is None:
+            names = tuple(f'x{i}' for i in range(self.dim()))
+        CH = H.chart(names=names)
+
+        # The inverse
+        A, b = self.affine_hull_projection(as_affine_map=True, **kwds)
+
+
+        #phi = H.continuous_map(ambient_space, {(CH, CE): ....}
+        #H.set_embedding()
+        return H
 
     def _polymake_init_(self):
         """

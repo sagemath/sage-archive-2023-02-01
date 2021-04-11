@@ -160,7 +160,7 @@ sdh_configure() {
     if [ -z "$CONFIG_SHELL" ]; then
         export CONFIG_SHELL=`command -v bash`
     fi
-    if [ "$UNAME" == "CYGWIN" ]; then
+    if [ "$UNAME" = "CYGWIN" ]; then
         # TODO: To use --disable-static for all packages on Cygwin, need
         # #30814: Cygwin: Fix remaining packages to build shared libraries, using AM_LDFLAGS=-no-undefined
         DISABLE_STATIC=

@@ -6,9 +6,19 @@ from sage.manifolds.subset import ManifoldSubset
 
 class ImageManifoldSubset(ManifoldSubset):
 
-    def __init__(self, map, name=None, latex_name=None):
+    def __init__(self, map, inverse=None, name=None, latex_name=None):
+        """
+        INPUT:
 
+        - ``map`` -- continuous map `\phi`
+        - ``inverse`` -- (default: ``None``) continuous map from
+          ``map.codomain()`` to ``map.domain()``, which once restricted to the image
+          of `\phi` is the inverse of `\phi` onto its image if the latter
+          exists (NB: no check of this is performed)
+
+        """
         self._map = map
+        self._inverse = inverse
         base_manifold = map.codomain()
         map_name = map._name or 'f'
         map_latex_name = map._latex_name or map_name
@@ -55,9 +65,26 @@ class ImageManifoldSubset(ManifoldSubset):
         Check whether ``point`` is contained in ``self``.
 
         TESTS::
+
+            sage: M = Manifold(2, 'M', structure="topological")
+            sage: N = Manifold(1, 'N', ambient=M, structure="topological")
+            sage: CM.<x,y> = M.chart()
+            sage: CN.<u> = N.chart()
+            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='phi')
+            sage: phi_inv = M.continuous_map(N, {(CM, CN): [x]}, name='phi_inv')
+            sage: phi_N = phi.image(inverse=phi_inv)
+            sage: M((0, 0)) in phi_N
+            sage: M((0, 1)) in phi_N
+
         """
         if super().__contains__(point):
             return True
         if point not in self._map.codomain():
             return False
+        if self._inverse is not None:
+            preimage = self._inverse(point)
+            if preimage not in self._map.domain():
+                False
+            return self._map(preimage) == point
         raise NotImplementedError

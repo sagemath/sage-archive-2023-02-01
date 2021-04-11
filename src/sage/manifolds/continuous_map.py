@@ -816,7 +816,7 @@ class ContinuousMap(Morphism):
                         pass
         return homset(resu_funct)
 
-    def image(self, subset=None):
+    def image(self, subset=None, inverse=None):
         """
         Return the image of ``self``.
 
@@ -841,9 +841,9 @@ class ContinuousMap(Morphism):
             else:
                 return subset
         if subset is None:
-            return ImageManifoldSubset(self)
+            return ImageManifoldSubset(self, inverse=inverse)
         else:
-            return ImageManifoldSubset(self.restrict(subset))
+            return ImageManifoldSubset(self.restrict(subset), inverse=inverse)
 
     #
     # Monoid methods

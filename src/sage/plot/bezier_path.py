@@ -18,7 +18,6 @@ Bezier Paths
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from copy import deepcopy
 from sage.plot.primitive import GraphicPrimitive_xydata
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color

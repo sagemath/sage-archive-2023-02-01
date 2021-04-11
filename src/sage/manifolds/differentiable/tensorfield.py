@@ -2167,9 +2167,17 @@ class TensorField(ModuleElementWithMutability):
 
         """
         resu = self._new_instance()
+        # set resu name
+        if name is not None:
+            resu._name = name
+            if latex_name is None:
+                resu._latex_name = name
+        if latex_name is not None:
+            resu._latex_name = latex_name
+        # set restrictions
         for dom, rst in self._restrictions.items():
-            resu._restrictions[dom] = rst.copy()
-        resu.set_name(name=name, latex_name=latex_name)
+            resu._restrictions[dom] = rst.copy(name=name,
+                                               latex_name=latex_name)
         resu._is_zero = self._is_zero
         return resu
 

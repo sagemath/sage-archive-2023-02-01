@@ -30,6 +30,26 @@ class ImageManifoldSubset(ManifoldSubset):
         """
         return "Image of the {}".format(self._map)
 
+    def _an_element_(self):
+        r"""
+        Construct some point in the subset.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure="topological")
+            sage: N = Manifold(1, 'N', ambient=M, structure="topological")
+            sage: CM.<x,y> = M.chart()
+            sage: CN.<u> = N.chart()
+            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='phi')
+            sage: phi_N = phi.image()
+            sage: p = phi_N.an_element(); p   # indirect doctest
+            Point on the 2-dimensional topological manifold M
+            sage: p.coordinates()
+            (0, 1)
+        """
+        return self._map(self._map.domain().an_element())
+
     def __contains__(self, point):
         r"""
         Check whether ``point`` is contained in ``self``.

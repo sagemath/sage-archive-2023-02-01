@@ -2573,5 +2573,24 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         self.declare_union(other, diff, disjoint=True)
         return diff
 
-    #### End of construction of new sets from self
+    def closure(self, name=None, latex_name=None):
+        r"""
+        Return the topological closure of ``self`` as a subset of the manifold.
 
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: M.closure() is M
+            True
+            sage: D = M.open_subset('D', coord_def={c_cart: x^2+y^2<1}); D
+            Open subset D of the 2-dimensional topological manifold R^2
+            sage: cl_D = D.closure(); cl_D
+            Topological closure cl_D of the Open subset D of the 2-dimensional topological manifold R^2
+        """
+        if self.manifold().is_subset(self):
+            return self
+        from .subsets.closure import ManifoldSubsetClosure
+        return ManifoldSubsetClosure(self, name=name, latex_name=latex_name)
+
+    #### End of construction of new sets from self

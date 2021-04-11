@@ -75,7 +75,9 @@ class ImageManifoldSubset(ManifoldSubset):
             sage: phi_inv = M.continuous_map(N, {(CM, CN): [x]}, name='phi_inv')
             sage: phi_N = phi.image(inverse=phi_inv)
             sage: M((0, 0)) in phi_N
+            False
             sage: M((0, 1)) in phi_N
+            True
 
         """
         if super().__contains__(point):

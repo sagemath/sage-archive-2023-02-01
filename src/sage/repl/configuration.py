@@ -152,7 +152,7 @@ class SageIpythonConfiguration(object):
             InteractiveShellApp=Config(extensions=[SAGE_EXTENSION]),
             # TODO: jedi is disabled by default because it causes too many troubles
             # disabling ticket: https://trac.sagemath.org/ticket/31648
-            # reanabling ticket: https://trac.sagemath.org/ticket/31649
+            # reenabling ticket: https://trac.sagemath.org/ticket/31649
             IPCompleter=Config(use_jedi=False),
         )
         if self._doctest_mode():

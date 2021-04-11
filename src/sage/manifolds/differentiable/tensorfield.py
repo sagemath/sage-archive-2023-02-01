@@ -2056,7 +2056,7 @@ class TensorField(ModuleElementWithMutability):
 
     def copy_from(self, other):
         r"""
-        Make ``self`` to a copy from ``other``.
+        Make ``self`` to a copy of ``other``.
 
         INPUT:
 
@@ -2092,7 +2092,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s == t
             True
 
-        If the original tensor field is modified, the copy is not::
+        While the original tensor field is modified, the copy is not::
 
             sage: t[e_xy,0,0] = -1
             sage: t.display(e_xy)

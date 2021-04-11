@@ -816,6 +816,35 @@ class ContinuousMap(Morphism):
                         pass
         return homset(resu_funct)
 
+    def image(self, subset=None):
+        """
+        Return the image of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure="topological")
+            sage: N = Manifold(1, 'N', ambient=M, structure="topological")
+            sage: CM.<x,y> = M.chart()
+            sage: CN.<u> = N.chart()
+            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: phi = N.continuous_map(M, {(CN,CM): [u, u^2]}, name='phi')
+            sage: phi.image()
+            Image of the Continuous map phi
+              from the 1-dimensional topological submanifold N
+                immersed in the 2-dimensional topological manifold M
+              to the 2-dimensional topological manifold M
+        """
+        from .continuous_map_image import ImageManifoldSubset
+        if self._is_identity:
+            if subset is None:
+                return self.domain()
+            else:
+                return subset
+        if subset is None:
+            return ImageManifoldSubset(self)
+        else:
+            return ImageManifoldSubset(self.restrict(subset))
+
     #
     # Monoid methods
     #

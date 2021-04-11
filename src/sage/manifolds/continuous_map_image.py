@@ -30,4 +30,14 @@ class ImageManifoldSubset(ManifoldSubset):
         """
         return "Image of the {}".format(self._map)
 
+    def __contains__(self, point):
+        r"""
+        Check whether ``point`` is contained in ``self``.
 
+        TESTS::
+        """
+        if super().__contains__(point):
+            return True
+        if point not in self._map.codomain():
+            return False
+        raise NotImplementedError

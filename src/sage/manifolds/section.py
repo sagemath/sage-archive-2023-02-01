@@ -1646,12 +1646,11 @@ class Section(ModuleElementWithMutability):
 
     def copy_from(self, other):
         r"""
-        Make ``self`` to a copy from ``other``.
+        Make ``self`` a copy of ``other``.
 
         INPUT:
 
-        - ``other`` -- other section in the very same module from which
-          ``self`` should be a copy of
+        - ``other`` -- other section, in the same module as ``self``
 
         .. NOTE::
 
@@ -1702,8 +1701,8 @@ class Section(ModuleElementWithMutability):
             raise ValueError("the components of an immutable element "
                              "cannot be changed")
         if other not in self.parent():
-            raise TypeError("the original must be an element "
-                            + "of {}".format(self.parent()))
+            raise TypeError("the original must be an element of "
+                            f"{self.parent()}")
         self._del_derived()
         self._del_restrictions() # delete restrictions
         name, latex_name = self._name, self._latex_name # keep names

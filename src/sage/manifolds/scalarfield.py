@@ -1616,12 +1616,11 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
     def copy_from(self, other):
         r"""
-        Make ``self`` to a copy of ``other``.
+        Make ``self`` a copy of ``other``.
 
         INPUT:
 
-        - ``other`` -- other scalar field in the very same module from which
-          ``self`` should be a copy of
+        - ``other`` -- other scalar field, in the same module as ``self``
 
         .. NOTE::
 
@@ -1664,8 +1663,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             raise ValueError("the expressions of an immutable element "
                              "cannot be changed")
         if other not in self.parent():
-            raise TypeError("the original must be an element "
-                            + "of {}".format(self.parent()))
+            raise TypeError("the original must be an element of "
+                            f"{self.parent()}")
         self._del_derived()
         for chart, funct in other._express.items():
             self._express[chart] = funct.copy()

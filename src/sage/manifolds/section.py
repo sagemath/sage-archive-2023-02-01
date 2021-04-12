@@ -1706,10 +1706,9 @@ class Section(ModuleElementWithMutability):
                             + "of {}".format(self.parent()))
         self._del_derived()
         self._del_restrictions() # delete restrictions
-        name, latex_name = self._name, self._latex_name # keep names
         for dom, rst in other._restrictions.items():
-            self._restrictions[dom] = rst.copy()
-        self.set_name(name=name, latex_name=latex_name)
+            self._restrictions[dom] = rst.copy(name=self._name,
+                                               latex_name=self._latex_name)
         self._is_zero = other._is_zero
 
     def copy(self, name=None, latex_name=None):

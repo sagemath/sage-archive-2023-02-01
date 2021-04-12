@@ -34,11 +34,11 @@ An order `R` in a quaternion algebra `A` over `\QQ` is a 4-dimensional
 lattice in `A` which is also a subring containing the identity.  A
 maximal order is one that is not properly contained in another order.
 
-To each order `\mathcal{O}` one attaches a positive integer called the
-level of `\mathcal{O}`; see Definition 1.2 in [Piz1980]_.  This is an
-integer `N` such that every prime that ramifies in `A` divides `N` to
-an odd power.  An order is maximal if and only if its level equals the
-discriminant of `A`.
+A particularly important kind of orders are those that have a level;
+see Definition 1.2 in [Piz1980]_.  This is a positive integer `N` such
+that every prime that ramifies in `A` divides `N` to an odd power.
+The maximal orders are those that have level equal to the discriminant
+of `A`.
 
 ``R = A.maximal_order()`` returns a maximal order `R` in the quaternion
 algebra `A.`

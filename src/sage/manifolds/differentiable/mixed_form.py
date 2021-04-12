@@ -29,6 +29,7 @@ from sage.structure.element import AlgebraElement
 from sage.rings.integer import Integer
 
 class MixedForm(AlgebraElement):
+    # TODO: refactor documentation according in favor of `set_comp`
     r"""
     An instance of this class is a mixed form along some differentiable map
     `\varphi: M \to N` between two differentiable manifolds `M` and `N`. More
@@ -257,12 +258,21 @@ class MixedForm(AlgebraElement):
             True
             sage: A._init_comp()
             sage: A._comp
-            [Scalar field on the 2-dimensional differentiable manifold M,
-             1-form on the 2-dimensional differentiable manifold M,
-             2-form on the 2-dimensional differentiable manifold M]
+            [Scalar field A_0 on the 2-dimensional differentiable manifold M,
+             1-form A_1 on the 2-dimensional differentiable manifold M,
+             2-form A_2 on the 2-dimensional differentiable manifold M]
 
         """
-        self._comp = [self._domain.diff_form(j) for j in self.irange()]
+        self._comp = []
+        for i in self.irange():
+            comp_name, comp_latex_name = None, None
+            if self._name is not None:
+                comp_name = f"{self._name}_{i}"
+            if self._latex_name is not None:
+                comp_latex_name = '{' + self._latex_name + '}_{' + str(i) + '}'
+            diff_form = self._domain.diff_form
+            self._comp.append(diff_form(i, name=comp_name,
+                                           latex_name=comp_latex_name))
 
     def _repr_(self):
         r"""
@@ -477,7 +487,7 @@ class MixedForm(AlgebraElement):
 
     disp = display
 
-    def set_name(self, name=None, latex_name=None):
+    def set_name(self, name=None, latex_name=None, set_all=True):
         r"""
         Redefine the string and LaTeX representation of the object.
 
@@ -486,6 +496,9 @@ class MixedForm(AlgebraElement):
         - ``name`` -- (default: ``None``) name given to the mixed form
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           mixed form; if none is provided, the LaTeX symbol is set to ``name``
+        - ``set_all`` -- (default: ``True``) if ``True`` all homogeneous
+          components will be renamed accordingly; if ``False`` only the mixed
+          form will be renamed
 
         EXAMPLES::
 
@@ -501,6 +514,8 @@ class MixedForm(AlgebraElement):
             sage: latex(F)
             \eta
 
+        # TODO: add more examples with `set_all`
+
         """
         if name is not None:
             self._name = name
@@ -508,6 +523,33 @@ class MixedForm(AlgebraElement):
                 self._latex_name = self._name
         if latex_name is not None:
             self._latex_name = latex_name
+        if set_all:
+            for i in self.irange():
+                comp_name, comp_latex_name = None, None
+                if self._name is not None:
+                    comp_name = f"{self._name}_{i}"
+                if self._latex_name is not None:
+                    comp_latex_name = '{' + self._latex_name + '}_{' + str(i) + '}'
+                self.set_name_comp(i, name=comp_name,
+                                   latex_name=comp_latex_name)
+
+    def set_name_comp(self, i, name=None, latex_name=None):
+        r"""
+        Redefine the string and LaTeX representation of the `i`-th
+        homogeneous component of ``self``.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the mixed form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          mixed form; if none is provided, the LaTeX symbol is set to ``name``
+
+        EXAMPLES::
+
+        # TODO: add examples
+
+        """
+        self[i].set_name(name=name, latex_name=latex_name)
 
     def __bool__(self):
         r"""
@@ -551,8 +593,6 @@ class MixedForm(AlgebraElement):
             return True
         self._is_zero = True
         return False
-
-    __nonzero__ = __bool__  # For Python2 compatibility
 
     def _richcmp_(self, other, op):
         r"""
@@ -1093,11 +1133,9 @@ class MixedForm(AlgebraElement):
         """
         if self is self.parent().one() or self is self.parent().zero():
             raise ValueError("the components of the element "
-                             "{} cannot be changed".format(self._name))
+                             f"{self._name} cannot be changed")
         if isinstance(index, (int, Integer)):
-            start = index
-            stop = index + 1
-            step = 1
+            start, stop, step = index, index + 1, 1
         elif isinstance(index, slice):
             start, stop, step = index.indices(self._max_deg + 1)
         else:
@@ -1376,6 +1414,8 @@ class MixedForm(AlgebraElement):
     def set_comp(self, i):
         r"""
         Return the `i`-th homogeneous component for assignment.
+
+        # TODO: add examples
 
         """
         return self[i]

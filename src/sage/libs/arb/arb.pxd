@@ -1,10 +1,12 @@
-# distutils: libraries = gmp flint arb
+# distutils: libraries = gmp flint ARB_LIBRARY
+# distutils: depends = arb.h
 
 from sage.libs.arb.types cimport *
 from sage.libs.flint.types cimport fmpz_t, fmpq_t
 from sage.libs.mpfr.types cimport mpfr_t
 
-cdef extern from "arb.h":
+# arb.h
+cdef extern from "arb_wrap.h":
 
     arf_t arb_midref(arb_t x)
     mag_t arb_radref(arb_t x)
@@ -27,6 +29,7 @@ cdef extern from "arb.h":
     void arb_set_fmpq(arb_t y, const fmpq_t x, long prec)
     int arb_set_str(arb_t res, const char * inp, long prec)
     char * arb_get_str(const arb_t x, long n, unsigned long flags)
+    char * arb_version
 
     void arb_zero(arb_t x)
     void arb_one(arb_t f)
@@ -104,6 +107,8 @@ cdef extern from "arb.h":
     void arb_neg(arb_t y, const arb_t x)
     void arb_neg_round(arb_t y, const arb_t x, long prec)
     void arb_abs(arb_t x, const arb_t y)
+    void arb_min(arb_t z, const arb_t x, const arb_t y, long prec)
+    void arb_max(arb_t z, const arb_t x, const arb_t y, long prec)
     void arb_add(arb_t z, const arb_t x, const arb_t y, long prec)
     void arb_add_arf(arb_t z, const arb_t x, const arf_t y, long prec)
     void arb_add_ui(arb_t z, const arb_t x, unsigned long y, long prec)
@@ -182,6 +187,8 @@ cdef extern from "arb.h":
     void arb_cos_pi_fmpq(arb_t c, const fmpq_t x, long prec)
     void arb_tan_pi(arb_t y, const arb_t x, long prec)
     void arb_cot_pi(arb_t y, const arb_t x, long prec)
+    void arb_sec(arb_t s, const arb_t x, long prec)
+    void arb_csc(arb_t c, const arb_t x, long prec)
 
     void arb_atan_arf(arb_t z, const arf_t x, long prec)
     void arb_atan(arb_t z, const arb_t x, long prec)
@@ -194,6 +201,8 @@ cdef extern from "arb.h":
     void arb_sinh_cosh(arb_t s, arb_t c, const arb_t x, long prec)
     void arb_tanh(arb_t y, const arb_t x, long prec)
     void arb_coth(arb_t y, const arb_t x, long prec)
+    void arb_sech(arb_t s, const arb_t x, long prec)
+    void arb_csch(arb_t c, const arb_t x, long prec)
 
     void arb_asinh(arb_t z, const arb_t x, long prec)
     void arb_acosh(arb_t z, const arb_t x, long prec)
@@ -209,6 +218,8 @@ cdef extern from "arb.h":
     void arb_const_khinchin(arb_t z, long prec)
     void arb_const_glaisher(arb_t z, long prec)
     void arb_const_apery(arb_t z, long prec)
+
+    void arb_lambertw(arb_t res, const arb_t x, int flags, long prec)
 
     void arb_rising_ui_bs(arb_t z, const arb_t x, unsigned long n, long prec)
     void arb_rising_ui_rs(arb_t z, const arb_t x, unsigned long n, unsigned long step, long prec)

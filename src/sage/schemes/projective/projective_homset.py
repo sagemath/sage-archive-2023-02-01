@@ -41,7 +41,7 @@ AUTHORS:
 from sage.rings.all import ZZ, CC, RR
 from sage.schemes.generic.homset import SchemeHomset_points
 
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 
 from sage.rings.rational_field import is_RationalField
 from sage.categories.fields import Fields
@@ -143,14 +143,14 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
             sage: P.<x,y,z> = ProjectiveSpace(CC, 2)
             sage: E = P.subscheme([y^3 - x^3 - x*z^2, x*y*z])
-            sage: L=E(P.base_ring()).points();L
+            sage: L=E(P.base_ring()).points(); sorted(L, key=str)
             verbose 0 (71: projective_homset.py, points) Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.
             [(-0.500000000000000 + 0.866025403784439*I : 1.00000000000000 : 0.000000000000000),
             (-0.500000000000000 - 0.866025403784439*I : 1.00000000000000 : 0.000000000000000),
             (-1.00000000000000*I : 0.000000000000000 : 1.00000000000000),
             (0.000000000000000 : 0.000000000000000 : 1.00000000000000),
-            (1.00000000000000*I : 0.000000000000000 : 1.00000000000000),
-            (1.00000000000000 : 1.00000000000000 : 0.000000000000000)]
+            (1.00000000000000 : 1.00000000000000 : 0.000000000000000),
+            (1.00000000000000*I : 0.000000000000000 : 1.00000000000000)]
             sage: L[0].codomain()
             Projective Space of dimension 2 over Complex Field with 53 bits of precision
 
@@ -241,7 +241,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                                 if len(points[i]) == N + 1:
                                     S = PS([points[i][R.gen(j)] for j in range(N + 1)])
                                     S.normalize_coordinates()
-                                    if all([g(list(S)) < zero_tol for g in X.defining_polynomials()]):
+                                    if all(g(list(S)) < zero_tol for g in X.defining_polynomials()):
                                         rat_points.add(S)
                             else:
                                 if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
@@ -256,7 +256,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                         u = dupl_points[i]
                         for j in range(i+1, len(dupl_points)):
                             v = dupl_points[j]
-                            if all([(u[k]-v[k]).abs() < pt_tol for k in range(len(u))]):
+                            if all((u[k] - v[k]).abs() < pt_tol
+                                   for k in range(len(u))):
                                 rat_points.remove(u)
                                 break
 
@@ -379,7 +380,6 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             raise TypeError('base ring must be a number field')
 
         PP = X.ambient_space().change_ring(F)
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(X) and X.base_ring() in Fields():
             #Then it must be a subscheme
             dim_ideal = X.defining_ideal().dimension()
@@ -398,7 +398,6 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                 R = PolynomialRing(BR, N + 1, PS.variable_names(), order='lex')
                 RF = R.change_ring(F)
                 I = R.ideal(X.defining_polynomials())
-                I0 = R.ideal(0)
                 #Determine the points through elimination
                 #This is much faster than using the I.variety() function on each affine chart.
                 for k in range(N + 1):
@@ -440,7 +439,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                             if len(points[i]) == N + 1:
                                 S = PP([points[i][RF.gen(j)] for j in range(N + 1)])
                                 S.normalize_coordinates()
-                                if all([g(list(S)) < zero_tol for g in polys]):
+                                if all(g(list(S)) < zero_tol for g in polys):
                                     rat_points.add(S)
                         # remove duplicate element using tolerance
                         #since they are normalized we can just compare coefficients
@@ -449,7 +448,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                             u = dupl_points[i]
                             for j in range(i+1, len(dupl_points)):
                                 v = dupl_points[j]
-                                if all([(u[k]-v[k]).abs() < pt_tol for k in range(len(u))]):
+                                if all((u[k] - v[k]).abs() < pt_tol
+                                       for k in range(len(u))):
                                     rat_points.remove(u)
                                     break
 

@@ -24,7 +24,6 @@ the IPython simple prompt is being used::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
 
 import sys
 import copy
@@ -119,10 +118,28 @@ class SageIpythonConfiguration(object):
         EXAMPLES::
 
             sage: from sage.repl.configuration import sage_ipython_config
-            sage: sage_ipython_config.default()
-            {'InteractiveShell': {'colors': ...
+            sage: conf = sage_ipython_config.default()
+            sage: type(conf)
+            <class 'traitlets.config.loader.Config'>
+            sage: 'InteractiveShell' in conf
+            True
         """
         from sage.repl.interpreter import SageTerminalInteractiveShell
+
+        # Use the same config for both InteractiveShell, and its subclass
+        # TerminalInteractiveShell (note: in fact some configs like term_title
+        # only apply to the latter, but we can still use the same config for
+        # both for simplicity's sake; see Trac #28289)
+        InteractiveShell=Config(
+            prompts_class=SagePrompts,
+            ast_node_interactivity='all',
+            colors=self.colors(),
+            simple_prompt=self.simple_prompt(),
+            term_title=self.term_title(),
+            confirm_exit=False,
+            separate_in=''
+        )
+
         cfg = Config(
             TerminalIPythonApp=Config(
                 display_banner=False,
@@ -130,15 +147,8 @@ class SageIpythonConfiguration(object):
                 test_shell=False,
                 shell_class=SageTerminalInteractiveShell,
             ),
-            InteractiveShell=Config(
-                prompts_class=SagePrompts,
-                ast_node_interactivity='all',
-                colors=self.colors(),
-                simple_prompt=self.simple_prompt(),
-                term_title=self.term_title(),
-                confirm_exit=False,
-                separate_in=''
-            ),
+            InteractiveShell=InteractiveShell,
+            TerminalInteractiveShell=InteractiveShell,
             InteractiveShellApp=Config(extensions=[SAGE_EXTENSION]),
         )
         if self._doctest_mode():
@@ -153,8 +163,11 @@ class SageIpythonConfiguration(object):
         EXAMPLES::
 
             sage: from sage.repl.configuration import sage_ipython_config
-            sage: sage_ipython_config.copy()
-            {'InteractiveShell': {'colors': ...
+            sage: conf = sage_ipython_config.copy()
+            sage: type(conf)
+            <class 'traitlets.config.loader.Config'>
+            sage: 'InteractiveShell' in conf
+            True
         """
         try:
             return copy.deepcopy(get_ipython().config)

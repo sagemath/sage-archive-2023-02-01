@@ -11,9 +11,8 @@ slopes (and hence a last infinite slope).
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #############################################################################
-from __future__ import division
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -59,7 +58,7 @@ class NewtonPolygon_element(Element):
         """
         Return a string representation of this Newton polygon.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (2,5) ]); NP
@@ -96,7 +95,7 @@ class NewtonPolygon_element(Element):
         The list of vertices of this Newton polygon (or a copy of it
         if ``copy`` is set to True)
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (2,5) ]); NP
@@ -127,7 +126,7 @@ class NewtonPolygon_element(Element):
         Returns the last (infinite) slope of this Newton polygon
         if it is infinite and ``+Infinity`` otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP1 = NewtonPolygon([ (0,0), (1,1), (2,8), (3,5) ], last_slope=3)
@@ -138,7 +137,7 @@ class NewtonPolygon_element(Element):
             sage: NP2.last_slope()
             +Infinity
 
-        We check that the last slope of a sum (resp. a produit) is the
+        We check that the last slope of a sum (resp. a product) is the
         minimum of the last slopes of the summands (resp. the factors)::
 
             sage: (NP1 + NP2).last_slope()
@@ -168,7 +167,7 @@ class NewtonPolygon_element(Element):
         If ``repetition`` is True, each slope is repeated a number of
         times equal to its length. Otherwise, it appears only one time.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (3,6) ]); NP
@@ -204,7 +203,7 @@ class NewtonPolygon_element(Element):
 
         The Newton polygon, which is the convex hull of this Newton polygon and ``other``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP1 = NewtonPolygon([ (0,0), (1,1), (2,6) ]); NP1
@@ -235,7 +234,7 @@ class NewtonPolygon_element(Element):
             If ``self`` and ``other`` are respective Newton polygons of some polynomials
             `f` and `g` the self*other is the Newton polygon of the product `fg`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP1 = NewtonPolygon([ (0,0), (1,1), (2,6) ]); NP1
@@ -246,7 +245,7 @@ class NewtonPolygon_element(Element):
             sage: NP = NP1 * NP2; NP
             Infinite Newton polygon with 3 vertices: (0, 0), (1, 1), (2, 5/2) ending by an infinite line of slope 2
 
-        The slopes of ``NP`` is the union of thos of ``NP1`` and those of ``NP2``
+        The slopes of ``NP`` is the union of those of ``NP1`` and those of ``NP2``
         which are less than the last slope::
 
             sage: NP1.slopes()
@@ -276,7 +275,7 @@ class NewtonPolygon_element(Element):
             If ``self`` is the Newton polygon of a polynomial `f`, then
             ``self^exp`` is the Newton polygon of `f^{exp}`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (2,6) ]); NP
@@ -300,7 +299,7 @@ class NewtonPolygon_element(Element):
 
         This Newton polygon shifted by the vector `(0,i)`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (2,6) ]); NP
@@ -324,7 +323,7 @@ class NewtonPolygon_element(Element):
 
         This Newton polygon shifted by the vector `(0,-i)`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (2,6) ]); NP
@@ -348,7 +347,7 @@ class NewtonPolygon_element(Element):
 
         The value of this Newton polygon at abscissa `x`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (3,6) ]); NP
@@ -358,7 +357,6 @@ class NewtonPolygon_element(Element):
             [0, 1, 7/2, 6]
         """
         # complexity: O(log(n))
-        from sage.functions.other import floor
         vertices = self.vertices()
         lastslope = self.last_slope()
         if len(vertices) == 0 or x < vertices[0][0]:
@@ -377,8 +375,8 @@ class NewtonPolygon_element(Element):
                 a = c
             else:
                 b = c
-        (xg,yg) = vertices[a]
-        (xd,yd) = vertices[b]
+        xg, yg = vertices[a]
+        xd, yd = vertices[b]
         return ((x-xg)*yd + (xd-x)*yg) / (xd-xg)
 
     def _richcmp_(self, other, op):
@@ -460,7 +458,7 @@ class NewtonPolygon_element(Element):
 
             All usual rendering options (color, thickness, etc.) are available.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (2,6) ])
@@ -497,7 +495,7 @@ class NewtonPolygon_element(Element):
         The image this Newton polygon under the symmetry
         '(x,y) \mapsto (degree-x, y)`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.newton_polygon import NewtonPolygon
             sage: NP = NewtonPolygon([ (0,0), (1,1), (2,5) ])
@@ -597,7 +595,7 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
         sage: NP == NP2
         True
 
-    except if the contrary is explicitely mentioned::
+    except if the contrary is explicitly mentioned::
 
         sage: NewtonPolygon([0, 1, 1/2, 2/3, 1/2, 2/3, 1, 2/3], sort_slopes=False)
         Finite Newton polygon with 4 vertices: (0, 0), (1, 0), (6, 10/3), (8, 5)

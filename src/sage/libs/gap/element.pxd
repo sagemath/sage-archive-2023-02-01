@@ -13,6 +13,7 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 cdef Obj make_gap_list(sage_list) except NULL
+cdef Obj make_gap_matrix(sage_list, gap_ring) except NULL
 cdef Obj make_gap_record(sage_dict) except NULL
 cdef Obj make_gap_integer(sage_dict) except NULL
 cdef Obj make_gap_string(sage_string) except NULL
@@ -26,7 +27,11 @@ cdef GapElement_Rational make_GapElement_Rational(parent, Obj obj)
 cdef GapElement_String make_GapElement_String(parent, Obj obj)
 cdef GapElement_Boolean make_GapElement_Boolean(parent, Obj obj)
 cdef GapElement_Function make_GapElement_Function(parent, Obj obj)
-cdef char *crepr(Obj)
+cdef GapElement_Permutation make_GapElement_Permutation(parent, Obj obj)
+
+cdef char *capture_stdout(Obj, Obj)
+cdef char *gap_element_str(Obj)
+cdef char *gap_element_repr(Obj)
 
 
 cdef class GapElement(RingElement):
@@ -46,7 +51,8 @@ cdef class GapElement(RingElement):
     cpdef is_bool(self)
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
-    cpdef _mod_(self, right)
+    cpdef _mod_(self, other)
+    cpdef _pow_(self, other)
 
     cpdef GapElement deepcopy(self, bint mut)
 

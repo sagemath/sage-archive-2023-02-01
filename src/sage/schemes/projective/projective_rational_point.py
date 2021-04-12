@@ -127,13 +127,12 @@ def enum_projective_rational_field(X, B):
     - John Cremona and Charlie Turner (06-2010)
     """
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if(is_Scheme(X)):
-        if (not is_ProjectiveSpace(X.ambient_space())):
+    if is_Scheme(X):
+        if not is_ProjectiveSpace(X.ambient_space()):
             raise TypeError("ambient space must be projective space over the rational field")
         X = X(X.base_ring())
-    else:
-        if (not is_ProjectiveSpace(X.codomain().ambient_space())):
-            raise TypeError("codomain must be projective space over the rational field")
+    elif not is_ProjectiveSpace(X.codomain().ambient_space()):
+        raise TypeError("codomain must be projective space over the rational field")
 
     n = X.codomain().ambient_space().ngens()
     zero = (0,) * n
@@ -164,7 +163,7 @@ def enum_projective_number_field(X, **kwds):
     ALGORITHM:
 
     This is an implementation of the revised algorithm (Algorithm 4) in
-    [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
+    [DK2013]_. Algorithm 5 is used for imaginary quadratic fields.
     
     INPUT:
 
@@ -286,13 +285,12 @@ def enum_projective_finite_field(X):
     - John Cremona and Charlie Turner (06-2010).
     """
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if(is_Scheme(X)):
-        if (not is_ProjectiveSpace(X.ambient_space())):
+    if is_Scheme(X):
+        if not is_ProjectiveSpace(X.ambient_space()):
             raise TypeError("ambient space must be projective space over a finite")
         X = X(X.base_ring())
-    else:
-        if (not is_ProjectiveSpace(X.codomain().ambient_space())):
-            raise TypeError("codomain must be projective space over a finite field")
+    elif not is_ProjectiveSpace(X.codomain().ambient_space()):
+        raise TypeError("codomain must be projective space over a finite field")
 
     n = X.codomain().ambient_space().ngens()-1
     F = X.value_ring()
@@ -322,7 +320,7 @@ def sieve(X, bound):
 
     Main idea behind the algorithm is to find points modulo primes
     and then reconstruct them using chinese remainder theorem.
-    We find modulo primes parallely and then lift them and apply
+    We find modulo primes parallelly and then lift them and apply
     LLL in parallel.
 
     For the algorithm to work correctly, sufficient primes need
@@ -465,7 +463,7 @@ def sieve(X, bound):
     def points_modulo_primes(X, primes):
         r"""
         Return a list of rational points modulo all `p` in primes,
-        computed parallely.
+        computed parallelly.
         """
         normalized_input = []
         for p in primes_list:
@@ -474,11 +472,7 @@ def sieve(X, bound):
 
         points_pair = list(p_iter(parallel_function, normalized_input))
         points_pair.sort()
-        modulo_points = []
-        for pair in points_pair:
-            modulo_points.append(pair[1])
-
-        return modulo_points
+        return [pair[1] for pair in points_pair]
 
     def parallel_function_combination(point_p_max):
         r"""
@@ -511,15 +505,17 @@ def sieve(X, bound):
                 continue
 
             try:
-                rat_points.add(X(list(A[1]))) # checks if this point lies on X or not
-            except:
+                pt = X(list(A[1]))
+            except TypeError:
                 pass
+            else:
+                rat_points.add(pt)
 
         return [list(_) for _ in rat_points]
 
     def lift_all_points():
         r"""
-        Returns list of all rational points lifted parallely.
+        Return list of all rational points lifted parallelly.
         """
         normalized_input = []
         points = modulo_points.pop() # remove the list of points corresponding to largest prime
@@ -537,7 +533,6 @@ def sieve(X, bound):
                 lifted_points.add(X(tuple(point)))
 
         return list(lifted_points)
-
 
     # start of main algorithm
 

@@ -15,7 +15,7 @@ Crystals of letters
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.misc.cachefunc import cached_method
@@ -314,7 +314,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
             return True
         return False
 
-    # temporary workaround while an_element is overriden by Parent
+    # temporary workaround while an_element is overridden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
 # Utility. Note: much of this class should be factored out at some point!
@@ -354,8 +354,6 @@ cdef class Letter(Element):
         sage: C(1) != C(-1)
         True
     """
-    cdef readonly int value
-
     def __init__(self, parent, int value):
         """
         EXAMPLES::
@@ -504,11 +502,11 @@ cdef class Letter(Element):
         if op == Py_LT:
             return self._parent.lt_elements(self, x)
         if op == Py_GT:
-            return x.parent().lt_elements(x, self)
+            return x._parent.lt_elements(x, self)
         if op == Py_LE:
             return self.value == x.value or self._parent.lt_elements(self, x)
         if op == Py_GE:
-            return self.value == x.value or x.parent().lt_elements(x, self)
+            return self.value == x.value or x._parent.lt_elements(x, self)
         return False
 
 cdef class EmptyLetter(Element):
@@ -522,8 +520,6 @@ cdef class EmptyLetter(Element):
 
     Used in the rigged configuration bijections.
     """
-    cdef readonly str value
-
     def __init__(self, parent):
         """
         Initialize ``self``.
@@ -623,7 +619,7 @@ cdef class EmptyLetter(Element):
             sage: C('E').weight()
             (0, 0, 0)
         """
-        return self.parent().weight_lattice_realization().zero()
+        return self._parent.weight_lattice_realization().zero()
 
     cpdef e(self, int i):
         """
@@ -1304,8 +1300,6 @@ cdef class LetterTuple(Element):
     """
     Abstract class for type `E` letters.
     """
-    cdef readonly tuple value
-
     def __init__(self, parent, tuple value):
         """
         Initialize ``self``.
@@ -2568,7 +2562,7 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
             ret += " (dual)"
         return ret
 
-    # temporary workaround while an_element is overriden by Parent
+    # temporary workaround while an_element is overridden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     Element = BKKLetter
@@ -2675,7 +2669,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         """
         return self._index_set
 
-    # temporary workaround while an_element is overriden by Parent
+    # temporary workaround while an_element is overridden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     Element = QueerLetter_element
@@ -2785,8 +2779,6 @@ cdef class LetterWrapped(Element):
     Element which uses another crystal implementation and converts
     those elements to a tuple with `\pm i`.
     """
-    cdef readonly Element value
-
     def __init__(self, parent, Element value):
         """
         Initialize ``self``.
@@ -2940,7 +2932,7 @@ cdef class LetterWrapped(Element):
         cdef Element ret = self.value.e(i)
         if ret is None:
             return None
-        return type(self)(self.parent(), ret)
+        return type(self)(self._parent, ret)
 
     cpdef LetterWrapped f(self, int i):
         r"""
@@ -2956,7 +2948,7 @@ cdef class LetterWrapped(Element):
         cdef Element ret = self.value.f(i)
         if ret is None:
             return None
-        return type(self)(self.parent(), ret)
+        return type(self)(self._parent, ret)
 
     cpdef int epsilon(self, int i):
         r"""
@@ -2995,7 +2987,7 @@ class ClassicalCrystalOfLettersWrapped(ClassicalCrystalOfLetters):
     This class follows the same output as the other crystal of letters,
     where `b` is represented by the "letter" with `\varphi_i(b)` (resp.,
     `\varepsilon_i`) number of `i`'s (resp., `-i`'s or `\bar{i}`'s).
-    However, this uses an auxillary crystal to construct these letters
+    However, this uses an auxiliary crystal to construct these letters
     to avoid hardcoding the crystal elements and the corresponding edges;
     in particular, the 248 nodes of `E_8`.
     """

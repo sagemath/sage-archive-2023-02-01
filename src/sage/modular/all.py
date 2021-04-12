@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
 from .quatalg.all import *
@@ -12,28 +11,25 @@ from .ssmod.all import *
 from .abvar.all import *
 
 from .dirichlet import (DirichletGroup,
-                       kronecker_character, kronecker_character_upside_down,
-                       trivial_character)
+                        kronecker_character, kronecker_character_upside_down,
+                        trivial_character)
 
 from .arithgroup.all import (Gamma0, Gamma1, GammaH, Gamma, SL2Z,
-                            ArithmeticSubgroup_Permutation,
-                            CongruenceSubgroup, FareySymbol)
+                             ArithmeticSubgroup_Permutation,
+                             CongruenceSubgroup, FareySymbol)
 
 from .cusps import Cusp, Cusps
 
 from .dims import (dimension_cusp_forms,
-                  dimension_new_cusp_forms,
-                  dimension_eis,
-                  dimension_modular_forms,
-                  sturm_bound)
-
-from .buzzard import buzzard_tpslopes
+                   dimension_new_cusp_forms,
+                   dimension_eis,
+                   dimension_modular_forms,
+                   sturm_bound)
 
 from .etaproducts import (EtaGroup, EtaProduct, EtaGroupElement,
                           AllCusps, CuspFamily)
-lazy_import("sage.modular.etaproducts", ['num_cusps_of_width', 'qexp_eta',
-                                         'eta_poly_relations'],
-            deprecation=26196)
+
+lazy_import('sage.modular.multiple_zeta', ['Multizeta', 'Multizetas'])
 
 from .overconvergent.all import *
 
@@ -44,5 +40,3 @@ from .cusps_nf import NFCusp, NFCusps, Gamma0_NFCusps
 from .btquotients.all import *
 
 from .pollack_stevens.all import *
-
-del absolute_import

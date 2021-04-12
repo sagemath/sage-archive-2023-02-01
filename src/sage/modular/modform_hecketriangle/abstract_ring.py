@@ -6,7 +6,6 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -319,15 +318,14 @@ class FormsRing_abstract(Parent):
             sage: MF.E4()
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
-
-        if (prec == "max"):
-            self._disp_prec = self._prec;
-        elif (prec is not None):
+        if prec == "max":
+            self._disp_prec = self._prec
+        elif prec is not None:
             self._disp_prec = ZZ(prec)
         else:
             return self._disp_prec
 
-    def default_num_prec(self, prec = None):
+    def default_num_prec(self, prec=None):
         r"""
         Set the default numerical precision to ``prec`` (default: ``53``).
         If ``prec=None`` (default) the current default numerical
@@ -342,10 +340,10 @@ class FormsRing_abstract(Parent):
             sage: MF.default_num_prec()
             10
             sage: E6 = MF.E6()
-            sage: E6(i + 1e-1000)
+            sage: E6(i + 10^(-1000))
             0.002... - 6.7...e-1000*I
             sage: MF.default_num_prec(100)
-            sage: E6(i + 1e-1000)
+            sage: E6(i + 10^(-1000))
             3.9946838...e-1999 - 6.6578064...e-1000*I
 
             sage: MF = ModularForms(n=5, k=4/3)
@@ -779,22 +777,23 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dX*X: X*dX + 1, dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1}
 
             sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dX*X: X*dX + 1, dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1}
         """
-
-        # We only use two operators for now which do not involve 'd', so for performance
-        # reason and due to restrictions for possible rings that can be used with algebra
-        # relations we choose FractionField(base_ring) instead of self.coeff_ring().
-        # For our purposes it is currently enough to define the operators over ZZ resp. QQ.
-        free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
-        (X,Y,Z,dX,dY,dZ) = free_alg.gens()
-        diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
-
-        return diff_alg
+        # We only use two operators for now which do not involve 'd',
+        # so for performance reason and due to restrictions for
+        # possible rings that can be used with algebra relations we
+        # choose FractionField(base_ring) instead of
+        # self.coeff_ring().  For our purposes it is currently enough
+        # to define the operators over ZZ resp. QQ.
+        free_alg = FreeAlgebra(QQ, 6, 'X,Y,Z,dX,dY,dZ')
+        X, Y, Z, dX, dY, dZ = free_alg.gens()
+        return free_alg.g_algebra({dX * X: 1 + X * dX,
+                                   dY * Y: 1 + Y * dY,
+                                   dZ * Z: 1 + Z * dZ})
 
     @cached_method
     def _derivative_op(self):

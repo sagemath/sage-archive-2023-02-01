@@ -6,7 +6,6 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
-from __future__ import absolute_import
 
 # ****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -109,7 +108,7 @@ class FormsElement(FormsRingElement):
             sage: latex(QuasiModularForms(n=5, k=10, ep=-1)(x^3*z^3-y^3))
             f_{\rho}^{3} E_{2}^{3} -  f_{i}^{3}
             sage: latex(QuasiModularForms(n=infinity, k=8, ep=1)(x*(x-y^2)))
-            - E_{4} f_{i}^{2} + E_{4}^{2}
+            -E_{4} f_{i}^{2} + E_{4}^{2}
         """
         return super(FormsElement, self)._latex_()
 

@@ -16,7 +16,7 @@ from cysignals.signals cimport sig_check
 
 from sage.libs.gmp.mpz cimport mpz_lcm, mpz_set_ui
 from sage.rings.integer cimport Integer
-from sage.structure.element cimport coercion_model
+from sage.structure.coerce cimport coercion_model
 
 
 def lcm(a, b=None):
@@ -168,7 +168,6 @@ cpdef LCM_list(v):
 
         sage: LCM_list(Sequence(srange(100)))
         0
-        sage: from six.moves import range
         sage: LCM_list(range(100))
         0
 

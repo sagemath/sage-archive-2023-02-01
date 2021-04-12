@@ -1,3 +1,6 @@
+# distutils: libraries = mtx
+# sage_setup: distribution = sage-meataxe
+
 r"""
 Dense Matrices over `\mathbb F_q`, with `q<255`.
 
@@ -26,10 +29,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
+from sage.cpython.string cimport str_to_bytes
 from cysignals.signals cimport sig_on, sig_off, sig_check
 cimport cython
 
@@ -52,6 +55,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
+from sage.structure.richcmp import rich_to_bool
 from .args cimport MatrixArgs_init
 
 from libc.string cimport memset, memcpy
@@ -117,6 +121,7 @@ cdef class FieldConverter_class:
             <sage.matrix.matrix_gfpn_dense.FieldConverter_class object at ...>
         """
         self.field = field._cache.fetch_int
+        self.zero_FEL = self.field_to_fel(field.zero())
 
     cpdef fel_to_field(self, FEL x):
         """
@@ -374,7 +379,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         - ``coerce`` -- ignored
 
-        - ``mutable`` -- if False, the resulting matrix can not be
+        - ``mutable`` -- if False, the resulting matrix cannot be
           changed, and it can be used as key in a Python dictionary
 
         EXAMPLES::
@@ -440,6 +445,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             for j in range(nc):
                 c = self._converter.field_to_fel(self._coerce_element(next(it)))
                 FfInsert(x, j, c)
+                sig_check()
             FfStepPtr(&x)
 
         self._is_immutable = not mutable
@@ -459,16 +465,20 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: Matrix_gfpn_dense.from_filename('')                          # optional: meataxe
             Traceback (most recent call last):
             ...
-            ValueError: can not construct meataxe matrix from empty filename
+            ValueError: cannot construct meataxe matrix from empty filename
         """
         if not filename:
-            raise ValueError("can not construct meataxe matrix from empty filename")
+            raise ValueError("cannot construct meataxe matrix from empty filename")
 
         if type(filename) is not bytes:
             filename = str_to_bytes(filename, FS_ENCODING,
                                     'surrogateescape')
-
-        return new_mtx(MatLoad(filename), None)
+        sig_on()
+        try:
+            mat = MatLoad(filename)
+        finally:
+            sig_off()
+        return new_mtx(mat, None)
 
     def __copy__(self):
         """
@@ -495,7 +505,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         if self.Data is NULL:
             raise ValueError("cannot copy an uninitialized matrix")
-        retval = new_mtx(MatDup(self.Data), self)
+        sig_on()
+        try:
+            mat = MatDup(self.Data)
+        finally:
+            sig_off()
+        retval = new_mtx(mat, self)
         if self._cache:
             retval._cache = dict(self._cache)
         return retval
@@ -564,6 +579,21 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         # This method is here for speed!
         return FfToInt(FfExtract(MatGetPtr(self.Data,i), j))
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: F.<z> = GF(9)
+            sage: M = MatrixSpace(F,2,5)(sorted(list(F))+[0])
+            sage: M.zero_pattern_matrix()  # indirect doctest
+            [1 0 0 0 0]
+            [0 0 0 0 1]
+        """
+        FfSetField(self.Data.Field)
+        return FfExtract(MatGetPtr(self.Data,i), j) == self._converter.zero_FEL
+
     cpdef Matrix_gfpn_dense get_slice(self, Py_ssize_t i, Py_ssize_t j):
         """
         Return a horizontal slice of this matrix.
@@ -593,8 +623,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         if not 0 <= i < j <= self.Data.Nor:
             raise IndexError("Indices i={}, j={} violate the condition 0 < i < j < {}".format(i,j,self.Data.Nor))
-        mat = MatAlloc(self.Data.Field, j-i, self.Data.Noc)
-        memcpy(mat.Data, FfGetPtr(self.Data.Data, i), FfCurrentRowSize*(j-i))
+        sig_on()
+        try:
+            mat = MatAlloc(self.Data.Field, j-i, self.Data.Noc)
+            memcpy(mat.Data, FfGetPtr(self.Data.Data, i), FfCurrentRowSize*(j-i))
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
@@ -641,7 +675,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         # NOTE:
         # It is essential that you call FfSetField and FfSetNoc YOURSELF
         # and that the dimensions of self and S match!
-        memcpy(FfGetPtr(self.Data.Data, i), S.Data.Data, FfCurrentRowSize*S.Data.Nor)
+        sig_on()
+        try:
+            memcpy(FfGetPtr(self.Data.Data, i), S.Data.Data, FfCurrentRowSize*S.Data.Nor)
+        finally:
+            sig_off()
 
     def randomize(self, density=None, nonzero=False, *args, **kwds):
         """
@@ -781,11 +819,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 ##################
 ## comparison
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare two :class:`Matrix_gfpn_dense` matrices.
 
-        Of course, '<' and '>' doesn't make much sense for matrices.
+        Of course, '<' and '>' do not make much sense for matrices.
 
         EXAMPLES::
 
@@ -806,37 +844,39 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense self = left
         cdef Matrix_gfpn_dense N = right
         if self is None or N is None:
-            return -1
-        cdef char* d1
-        cdef char* d2
+            return rich_to_bool(op, -1)
         if self.Data == NULL:
             if N.Data == NULL:
-                return 0
+                return rich_to_bool(op, 0)
             else:
-                return 1
+                return rich_to_bool(op, 1)
         elif N.Data == NULL:
-            return -1
+            return rich_to_bool(op, -1)
         if self.Data.Field != N.Data.Field:
             if self.Data.Field > N.Data.Field:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
         if self.Data.Noc != N.Data.Noc:
             if self.Data.Noc > N.Data.Noc:
-                return 1
-            return -1
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
         if self.Data.Nor != N.Data.Nor:
             if self.Data.Nor > N.Data.Nor:
-                return 1
-            return -1
-        d1 = <char*>(self.Data.Data)
-        d2 = <char*>(N.Data.Data)
-        cdef bytes s1 = PyBytes_FromStringAndSize(d1,self.Data.RowSize * self.Data.Nor)
-        cdef bytes s2 = PyBytes_FromStringAndSize(d2,N.Data.RowSize * N.Data.Nor)
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
+
+        cdef char* d1 = <char*>self.Data.Data
+        cdef char* d2 = <char*>N.Data.Data
+        cdef Py_ssize_t total_size = self.Data.RowSize
+        total_size *= self.Data.Nor
+        cdef bytes s1, s2
+        s1 = PyBytes_FromStringAndSize(d1, total_size)
+        s2 = PyBytes_FromStringAndSize(d2, total_size)
         if s1 != s2:
             if s1 > s2:
-                return 1
-            return -1
-        return 0
+                return rich_to_bool(op, 1)
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
     cpdef list _rowlist_(self, i, j=-1):
         """
@@ -1148,9 +1188,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return other.__copy__()
         if other._nrows == 0 or other.Data == NULL:
             return self.__copy__()
-        mat = MatAlloc(self.Data.Field, self.Data.Nor+other.Data.Nor, self.Data.Noc)
-        memcpy(mat.Data, self.Data.Data, FfCurrentRowSize*self.Data.Nor)
-        memcpy(MatGetPtr(mat, self.Data.Nor), other.Data.Data, FfCurrentRowSize*other.Data.Nor)
+        sig_on()
+        try:
+            mat = MatAlloc(self.Data.Field, self.Data.Nor+other.Data.Nor, self.Data.Noc)
+            memcpy(mat.Data, self.Data.Data, FfCurrentRowSize*self.Data.Nor)
+            memcpy(MatGetPtr(mat, self.Data.Nor), other.Data.Data, FfCurrentRowSize*other.Data.Nor)
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     cpdef _add_(self, right):
@@ -1172,8 +1216,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         assert Right is not None
         if Self.Data == NULL or Right.Data == NULL:
             raise NotImplementedError("The matrices must not be empty")
-        mat = MatDup(Self.Data)
-        MatAdd(mat, Right.Data)
+        sig_on()
+        try:
+            mat = MatDup(Self.Data)
+            MatAdd(mat, Right.Data)
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     cpdef _sub_(self, right):
@@ -1195,8 +1243,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         assert Right is not None
         if Self.Data == NULL or Right.Data == NULL:
             raise NotImplementedError("The matrices must not be empty")
-        mat = MatDup(Self.Data)
-        MatAddMul(mat, Right.Data, mtx_taddinv[1])
+        sig_on()
+        try:
+            mat = MatDup(Self.Data)
+            MatAddMul(mat, Right.Data, mtx_taddinv[1])
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     def __neg__(self):
@@ -1250,8 +1302,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data == NULL:
             return self.__copy__()
         FfSetField(self.Data.Field)
-        mat = MatDup(self.Data)
-        MatMulScalar(mat, self._converter.field_to_fel(right))
+        sig_on()
+        try:
+            mat = MatDup(self.Data)
+            MatMulScalar(mat, self._converter.field_to_fel(right))
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     cdef int _strassen_default_cutoff(self, sage.matrix.matrix0.Matrix right) except -2:
@@ -1282,9 +1338,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
         sig_on()
-        mat = MatDup(self.Data)
-        MatMul(mat, right.Data)
-        sig_off()
+        try:
+            mat = MatDup(self.Data)
+            MatMul(mat, right.Data)
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     cpdef Matrix_gfpn_dense _multiply_strassen(Matrix_gfpn_dense self, Matrix_gfpn_dense right, cutoff=0):
@@ -1315,10 +1373,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
         StrassenSetCutoff(cutoff // sizeof(long))
-        mat = MatAlloc(self.Data.Field, self._nrows, right._ncols)
         sig_on()
-        MatMulStrassen(mat, self.Data, right.Data)
-        sig_off()
+        try:
+            mat = MatAlloc(self.Data.Field, self._nrows, right._ncols)
+            MatMulStrassen(mat, self.Data, right.Data)
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     cdef _mul_long(self, long n):
@@ -1341,11 +1401,15 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef FEL r
         with cython.cdivision(False):
             r = FfFromInt(n%FfChar)
-        mat = MatDup(self.Data)
-        MatMulScalar(mat, r)
+        sig_on()
+        try:
+            mat = MatDup(self.Data)
+            MatMulScalar(mat, r)
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
-    def __div__(Matrix_gfpn_dense self, p):
+    def __truediv__(Matrix_gfpn_dense self, p):
         """
         Divide a matrix by a scalar.
 
@@ -1375,9 +1439,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("{} is not a scalar".format(p))
         p = self._base_ring(p)
         FfSetField(self.Data.Field)
-        mat = MatDup(self.Data)
         cdef FEL r = mtx_tmultinv[self._converter.field_to_fel(p)]
-        MatMulScalar(mat, r)
+        sig_on()
+        try:
+            mat = MatDup(self.Data)
+            MatMulScalar(mat, r)
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     def __invert__(Matrix_gfpn_dense self):
@@ -1444,8 +1512,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
         sig_on()
-        mat = MatTransposed(self.Data)
-        sig_off()
+        try:
+            mat = MatTransposed(self.Data)
+        finally:
+            sig_off()
         return new_mtx(mat, self)
 
     def order(self):
@@ -1471,8 +1541,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data.Nor != self.Data.Noc:
             raise ValueError("only defined for square matrices")
         sig_on()
-        o = MatOrder(self.Data)
-        sig_off()
+        try:
+            o = MatOrder(self.Data)
+        finally:
+            sig_off()
         if o == -1:
             raise ArithmeticError("order too large")
         else:
@@ -1521,8 +1593,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         if self.Data is NULL:
             raise ValueError("The matrix must not be empty")
         sig_on()
-        mat = MatNullSpace(self.Data)
-        sig_off()
+        try:
+            mat = MatNullSpace(self.Data)
+        finally:
+            sig_off()
         OUT = new_mtx(mat, self)
         self.cache("left_kernel_matrix", OUT)
         return OUT
@@ -1678,8 +1752,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return ()
         self._cache = None
         sig_on()
-        MatEchelonize(self.Data)
-        sig_off()
+        try:
+            MatEchelonize(self.Data)
+        finally:
+            sig_off()
         # Now, self.Data is in semi-echelon form.
         r = self.Data.Nor
         cdef size_t i, j, pos
@@ -1735,7 +1811,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 from sage.misc.superseded import deprecation
 
-def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
+def mtx_unpickle(f, int nr, int nc, data, bint m):
     r"""
     Helper function for unpickling.
 
@@ -1849,6 +1925,12 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
     """
+    # The expected input type is bytes. However, Python-2 legacy pickles do
+    # not distinguish between str and bytes. If such pickle is unpickled
+    # in Python-3, Sage will receive a str in `latin1` encoding. Therefore,
+    # in the following line, we use a helper function that would return bytes,
+    # regardless whether the input is bytes or str.
+    cdef bytes Data = str_to_bytes(data, encoding='latin1')
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
         MS = MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense)
@@ -1859,7 +1941,11 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         f = MS.base_ring().order()
 
     OUT = <Matrix_gfpn_dense>Matrix_gfpn_dense.__new__(Matrix_gfpn_dense, MS)
-    OUT.Data = MatAlloc(f, nr, nc)
+    sig_on()
+    try:
+        OUT.Data = MatAlloc(f, nr, nc)
+    finally:
+        sig_off()
     OUT._is_immutable = not m
     OUT._converter = FieldConverter(OUT._base_ring)
     cdef char *x
@@ -1880,6 +1966,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
                 memcpy(pt,x,FfCurrentRowSizeIo)
                 x += FfCurrentRowSizeIo
                 FfStepPtr(&(pt))
+                sig_check()
         elif pickled_rowsize >= FfCurrentRowSizeIo:
             deprecation(23411, "Reading this pickle may be machine dependent")
             if pickled_rowsize == FfCurrentRowSize:
@@ -1890,6 +1977,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
                     memcpy(pt,x,FfCurrentRowSizeIo)
                     x += pickled_rowsize
                     FfStepPtr(&(pt))
+                    sig_check()
         else:
             raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes, got {pickled_rowsize}*{nr} instead")
     return OUT

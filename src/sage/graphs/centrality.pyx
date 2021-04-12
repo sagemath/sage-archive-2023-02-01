@@ -15,14 +15,13 @@ This module is meant for all functions related to centrality in networks.
 Functions
 ---------
 """
-from __future__ import print_function, absolute_import
 
 from libc.string cimport memset
 from libc.stdint cimport uint32_t
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_check
 
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 from sage.graphs.base.static_sparse_graph cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
@@ -101,7 +100,7 @@ def centrality_betweenness(G, bint exact=False, bint normalize=True):
 
         sage: import networkx
         sage: g = graphs.RandomGNP(100, .2)
-        sage: nw = networkx.betweenness_centrality(g.networkx_graph(copy=False))
+        sage: nw = networkx.betweenness_centrality(g.networkx_graph())
         sage: sg = centrality_betweenness(g)
         sage: max(abs(nw[x] - sg[x]) for x in g) # abs tol 1e-10
         0
@@ -269,7 +268,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, bint normalize=True):
             # We enumerate vertices in reverse order of discovery.
             for i in range(layer_current_end - 1, -1, -1):
                 u = queue[i]
-                for j in range(degrees[u]):
+                for j in range(<int>degrees[u]):
                     v = bfs_dag.neighbors[u][j]
                     if v != source: # better to not 'if' but set it to 0 afterwards?
                         if numerical_type is double:
@@ -455,7 +454,7 @@ cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* re
 
     for i in range(n):
         reachL[i] = reachL_scc[scc[i]]
-        reachU[i] = <int> min(reachU_scc[scc[i]], g.n)
+        reachU[i] = min(<int>reachU_scc[scc[i]], g.n)
 
 cdef void _compute_reachable_vertices_undir(short_digraph g, int* reachable):
     r"""
@@ -581,14 +580,14 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         sage: from sage.graphs.centrality import centrality_closeness_top_k
         sage: g = graphs.PathGraph(10)
         sage: centrality_closeness_top_k(g, 4, 1)
-        Final performance ratio: 0.711111111111
+        Final performance ratio: 0.711111111111...
         [(0.36, 5),
          (0.36, 4),
          (0.3333333333333333, 6),
          (0.3333333333333333, 3)]
         sage: g = digraphs.Path(10)
         sage: centrality_closeness_top_k(g, 5, 1)
-        Final performance ratio: 0.422222222222
+        Final performance ratio: 0.422222222222...
         [(0.2, 0),
          (0.19753086419753085, 1),
          (0.19444444444444442, 2),
@@ -917,7 +916,7 @@ def centrality_closeness_random_k(G, int k=1):
     # Shuffle the vertices
     cdef list l = list(range(n))
     random.shuffle(l)
-    
+
     if G.weighted():
         # For all random nodes take as a source then run Dijstra and
         # calculate closeness centrality for k random vertices from l.

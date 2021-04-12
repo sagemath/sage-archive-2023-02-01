@@ -97,11 +97,10 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     TESTS::
 
-        sage: all([hilbert_class_polynomial(d, algorithm="arb") == \
-        ....:      hilbert_class_polynomial(d, algorithm="sage") \
-        ....:        for d in range(-1,-100,-1) if d%4 in [0,1]])
+        sage: all(hilbert_class_polynomial(d, algorithm="arb") ==
+        ....:      hilbert_class_polynomial(d, algorithm="sage")
+        ....:        for d in range(-1,-100,-1) if d % 4 in [0, 1])
         True
-
     """
     if algorithm is None:
         algorithm = "arb"
@@ -496,11 +495,14 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 
     # This lower bound gets used in an inner loop below.
     from math import log
+
     def lb(f):
         """Lower bound on euler_phi."""
         # 1.79 > e^gamma = 1.7810724...
-        if f <= 1: return 0  # don't do log(log(1)) = log(0)
-        return f/(1.79*log(log(f)) + 3.0/log(log(f)))
+        if f <= 1:
+            return 0  # don't do log(log(1)) = log(0)
+        llf = log(log(f))
+        return f/(1.79*llf + 3.0/llf)
 
     for D in range(-B, -2):
         D = Integer(D)
@@ -617,9 +619,8 @@ def is_cm_j_invariant(j, method='new'):
     TESTS::
 
         sage: from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
-        sage: all([is_cm_j_invariant(j) == (True, (d,f)) for d,f,j in cm_j_invariants_and_orders(QQ)])
+        sage: all(is_cm_j_invariant(j) == (True, (d,f)) for d,f,j in cm_j_invariants_and_orders(QQ))
         True
-
     """
     # First we check that j is an algebraic number:
 

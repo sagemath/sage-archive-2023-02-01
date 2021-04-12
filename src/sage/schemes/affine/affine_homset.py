@@ -33,7 +33,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.rings.all import ZZ, CC, RR
 from sage.rings.rational_field import is_RationalField
 from sage.categories.fields import Fields
@@ -135,7 +135,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
 
         For number fields, this uses the
         Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        computing algebraic numbers up to a given height [DK2013]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.
@@ -296,7 +296,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                         if numerical:
                             if len(points[i]) == N:
                                 S = AS([points[i][R.gen(j)] for j in range(N)])
-                                if all([g(list(S)) < zero_tol for g in X.defining_polynomials()]):
+                                if all(g(list(S)) < zero_tol for g in X.defining_polynomials()):
                                     rat_points.append(S)
                         else:
                             if len(points[i]) == N and I.subs(points[i]) == I0:
@@ -425,7 +425,6 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         R = PolynomialRing(BR, N, PS.gens(), order='lex')
         RF = R.change_ring(F)
         I = R.ideal(X.defining_polynomials())
-        I0 = R.ideal(0)
         # Determine the points through elimination This is much faster
         # than using the I.variety() function on each affine chart.
         G = I.groebner_basis()
@@ -464,7 +463,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             for P in points:
                 if len(P) == N:
                     S = AA([P[R.gen(j)] for j in range(N)])
-                    if all([g(list(S)) < zero_tol for g in polys]):
+                    if all(g(list(S)) < zero_tol for g in polys):
                         rat_points.append(S)
 
         rat_points = sorted(rat_points)

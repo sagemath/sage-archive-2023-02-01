@@ -17,7 +17,6 @@ See :class:`LoggingBackendFactory` for more information.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
 
 from sage.numerical.backends.generic_backend import GenericBackend
 
@@ -91,7 +90,7 @@ def _make_wrapper(backend, attr):
     update_wrapper(m, getattr(backend, attr))
     return m
 
-class LoggingBackend (GenericBackend):
+class LoggingBackend(GenericBackend):
 
     """
     See :class:`LoggingBackendFactory` for documentation.

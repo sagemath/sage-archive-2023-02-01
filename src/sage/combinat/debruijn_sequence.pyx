@@ -64,7 +64,7 @@ AUTHOR:
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 def debruijn_sequence(int k, int n):
     """
@@ -330,7 +330,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
 
         - ``seq`` -- A sequence of integers.
 
-        EXAMPLES:
+        EXAMPLES::
 
            sage: Sequences =  DeBruijnSequences(2, 3)
            sage: Sequences.an_element() in Sequences

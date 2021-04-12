@@ -50,7 +50,7 @@ TESTS::
      ((2, 0, 1, 1, 0, 0, 0), (0, 1, 1, 0, 0, 0, 0))]
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011, 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -62,10 +62,9 @@ TESTS::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from six.moves import range
 import itertools
 
 from sage.misc.lazy_attribute import lazy_attribute
@@ -73,15 +72,14 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.misc_c import prod
 from sage.arith.all import binomial
+from sage.features import FeatureNotPresentError
 from sage.rings.integer import Integer
-from sage.rings.all import ZZ
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.modules.free_module import FreeModule
 
 from sage.combinat.root_system.cartan_type import CartanType
 
@@ -836,7 +834,7 @@ class KleberTree(UniqueRepresentation, Parent):
         try:
             poly = Polyhedron(ieqs=ieqs, backend='normaliz')
             self._has_normaliz = True
-        except ImportError:
+        except FeatureNotPresentError:
             poly = Polyhedron(ieqs=ieqs)
             self._has_normaliz = False
 
@@ -930,7 +928,7 @@ class KleberTree(UniqueRepresentation, Parent):
         """
         cur = []
         next = [self.root]
-        while len(next) > 0:
+        while next:
             cur = next
             next = []
             for node in cur:

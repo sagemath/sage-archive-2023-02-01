@@ -86,11 +86,10 @@ REFERENCES:
 
 - [CGW2013]_
 """
-from six.moves import range
 
 from sage.functions.log import log
 from sage.functions.other import sqrt, floor, ceil
-from sage.misc.functional import cyclotomic_polynomial
+from sage.misc.functional import cyclotomic_polynomial, round
 from sage.misc.randstate import set_random_seed
 from sage.misc.prandom import randint
 from sage.modules.free_module import FreeModule
@@ -104,6 +103,7 @@ from sage.symbolic.constants import pi
 from sage.symbolic.ring import SR
 from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
+
 
 class UniformSampler(SageObject):
     """
@@ -312,7 +312,7 @@ class LWE(SageObject):
             self.__s = vector(self.K, self.n, [self.D() for _ in range(n)])
         else:
             try:
-                lb, ub = map(ZZ,secret_dist)
+                lb, ub = map(ZZ, secret_dist)
                 self.__s = vector(self.K, self.n, [randint(lb,ub) for _ in range(n)])
             except (IndexError, TypeError):
                 raise TypeError("Parameter secret_dist=%s not understood."%(secret_dist))
@@ -459,10 +459,10 @@ class UniformNoiseLWE(LWE):
 
             sage: from sage.crypto.lwe import UniformNoiseLWE
             sage: UniformNoiseLWE(89)
-            LWE(89, 154262477, UniformSampler(0, 351), 'noise', 131)
+            LWE(89, 64311834871, UniformSampler(0, 6577), 'noise', 131)
 
             sage: UniformNoiseLWE(89, instance='encrypt')
-            LWE(131, 154262477, UniformSampler(0, 497), 'noise', 181)
+            LWE(131, 64311834871, UniformSampler(0, 11109), 'noise', 181)
         """
 
         if n<89:
@@ -471,14 +471,16 @@ class UniformNoiseLWE(LWE):
         n2 = n
         C  = 4/sqrt(2*pi)
         kk = floor((n2-2*log(n2, 2)**2)/5)
-        n1 = floor((3*n2-5*kk)/2)
+        n1 = (3*n2-5*kk) // 2
         ke = floor((n1-2*log(n1, 2)**2)/5)
-        l  = floor((3*n1-5*ke)/2)-n2
-        sk = ceil((C*(n1+n2))**(3/2))
-        se = ceil((C*(n1+n2+l))**(3/2))
-        q = next_prime(max(ceil((4*sk)**((n1+n2)/n1)), ceil((4*se)**((n1+n2+l)/(n2+l))), ceil(4*(n1+n2)*se*sk+4*se+1)))
+        l  = (3*n1-5*ke) // 2 - n2
+        sk = ceil((C*(n1+n2))**(ZZ(3)/2))
+        se = ceil((C*(n1+n2+l))**(ZZ(3)/2))
+        q = next_prime(max(ceil((4*sk)**(ZZ(n1+n2)/n1)),
+                           ceil((4*se)**(ZZ(n1+n2+l)/(n2+l))),
+                           ceil(4*(n1+n2)*se*sk+4*se+1)))
 
-        if kk<=0:
+        if kk <= 0:
             raise TypeError("Parameter too small")
 
         if instance == 'key':
@@ -740,15 +742,15 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
     if isinstance(lwe, type):
         lwe = lwe(n, m=m, **kwds)
     else:
-        lwe = lwe
         if lwe.n != n:
-            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function."%(lwe.n, n))
+            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function." % (lwe.n, n))
 
     if balanced is False:
         f = lambda a_c: a_c
     else:
         f = balance_sample
     return [f(lwe()) for _ in range(m)]
+
 
 def balance_sample(s, q=None):
     r"""
@@ -767,7 +769,7 @@ def balance_sample(s, q=None):
     EXAMPLES::
 
         sage: from sage.crypto.lwe import balance_sample, samples, Regev
-        sage: list(map(balance_sample, samples(10, 5, Regev)))
+        sage: [balance_sample(s) for s in samples(10, 5, Regev)]
         [((-9, -4, -4, 4, -4), 4), ((-8, 11, 12, -11, -11), -7),
         ...
         ((-11, 12, 0, -6, -3), 7), ((-7, 14, 8, 11, -8), -12)]
@@ -776,7 +778,7 @@ def balance_sample(s, q=None):
         sage: from sage.crypto.lwe import balance_sample, DiscreteGaussianDistributionPolynomialSampler, RingLWE, samples
         sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 5)
         sage: rlwe = RingLWE(20, 257, D)
-        sage: list(map(balance_sample, samples(10, 8, rlwe)))
+        sage: [balance_sample(s) for s in samples(10, 8, rlwe)]
         [((-64, 107, -91, -24, 120, 54, 38, -35), (-84, 121, 28, -99, 91, 54, -60, 11)),
         ...
         ((-40, -117, 35, -69, -11, 10, 122, 48), (-80, -2, 119, -91, 27, 66, 121, -1))]

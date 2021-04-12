@@ -100,16 +100,10 @@ class MixedForm(AlgebraElement):
         A = [x] + [x*y dx] + [x*y^2 dx/\dy]
         sage: A[0]
         Scalar field f on the 2-dimensional differentiable manifold M
-        sage: A[0] is f
-        True
         sage: A[1]
         1-form omega on the 2-dimensional differentiable manifold M
-        sage: A[1] is omega
-        True
         sage: A[2]
         2-form eta on the 2-dimensional differentiable manifold M
-        sage: A[2] is eta
-        True
 
     Alternatively, the components can be determined from scratch::
 
@@ -243,14 +237,32 @@ class MixedForm(AlgebraElement):
         self._max_deg = vmodule._ambient_domain.dim()
         self._is_zero = False # a priori, may be changed below or via
                               # method __bool__()
-        # Set components:
-        self._comp = [self._domain.diff_form(j) for j in self.irange()]
+        self._comp = None # initialized on demand; see _init_comp
         # Set names:
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
+
+    def _init_comp(self):
+        r"""
+        Initialize homogeneous components of ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: A = M.mixed_form(name='A')
+            sage: A._comp is None
+            True
+            sage: A._init_comp()
+            sage: A._comp
+            [Scalar field on the 2-dimensional differentiable manifold M,
+             1-form on the 2-dimensional differentiable manifold M,
+             2-form on the 2-dimensional differentiable manifold M]
+
+        """
+        self._comp = [self._domain.diff_form(j) for j in self.irange()]
 
     def _repr_(self):
         r"""
@@ -534,7 +546,7 @@ class MixedForm(AlgebraElement):
         """
         if self._is_zero:
             return False
-        if any(bool(form) for form in self._comp):
+        if any(bool(form) for form in self):
             self._is_zero = False
             return True
         self._is_zero = True
@@ -665,7 +677,7 @@ class MixedForm(AlgebraElement):
             return self
         # Generic case:
         resu = self._new_instance()
-        resu[:] = [self[j] + other[j] for j in self.irange()]
+        resu._comp = [self[j] + other[j] for j in self.irange()]
         # Compose name:
         if self._name is not None and other._name is not None:
             resu._name = self._name + '+' + other._name
@@ -739,7 +751,7 @@ class MixedForm(AlgebraElement):
             return self
         # Generic case:
         resu = self._new_instance()
-        resu[:] = [self[j] - other[j] for j in self.irange()]
+        resu._comp = [self[j] - other[j] for j in self.irange()]
         # Compose name:
         from sage.tensor.modules.format_utilities import is_atomic
 
@@ -860,8 +872,8 @@ class MixedForm(AlgebraElement):
             return self
         # Generic case:
         resu = self._new_instance()
-        for j in self.irange():
-            resu[j] = sum(self[k].wedge(other[j - k]) for k in range(j + 1))
+        resu._comp = [sum(self[k].wedge(other[j-k]) for k in range(j+1))
+                      for j in self.irange()]
         # Compose name:
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
@@ -913,7 +925,7 @@ class MixedForm(AlgebraElement):
             if other == 1:
                 return self
         resu = self._new_instance()
-        resu[:] = [other * form for form in self._comp]
+        resu._comp = [other * form for form in self]
         # Compose name:
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import (format_mul_txt,
@@ -1046,20 +1058,9 @@ class MixedForm(AlgebraElement):
             sage: A is B
             False
 
-        Notice, that changes in the differential forms usually cause changes in
-        the original instance. But for the copy of a mixed form, the components
-        are copied as well::
-
-            sage: omega[e_xy,0] = y; omega.display()
-            omega = y dx
-            sage: A.display_expansion(e_xy)
-            A = [x] + [y dx] + [0]
-            sage: B.display_expansion(e_xy)
-            [x] + [x dx] + [0]
-
         """
         resu = self._new_instance()
-        resu[:] = [form.copy() for form in self]
+        resu._comp = [form.copy() for form in self]
         resu.set_name(name=name, latex_name=latex_name)
         resu._is_zero = self._is_zero  # a priori
 
@@ -1098,7 +1099,7 @@ class MixedForm(AlgebraElement):
             stop = index + 1
             step = 1
         elif isinstance(index, slice):
-            start, stop, step = index.indices(len(self._comp))
+            start, stop, step = index.indices(self._max_deg + 1)
         else:
             raise TypeError("index must be int, Integer or slice")
         if isinstance(values, list):
@@ -1108,8 +1109,11 @@ class MixedForm(AlgebraElement):
         if len(form_list) != len(range(start, stop, step)):
             raise IndexError("either input or index out of range")
         for deg, j in zip(range(start, stop, step), range(len(form_list))):
-            self._comp[deg] = self._domain.diff_form_module(deg,
-                                            self._dest_map)(form_list[j])
+            dmodule = self._domain.diff_form_module(deg, self._dest_map)
+            form = dmodule(form_list[j])
+            self[deg].copy_from(form)
+            self[deg].set_name(name=form._name,
+                               latex_name=form._latex_name)
         self._is_zero = False  # a priori
 
     def __getitem__(self, deg):
@@ -1141,6 +1145,8 @@ class MixedForm(AlgebraElement):
              2-form b on the 2-dimensional differentiable manifold M]
 
         """
+        if self._comp is None:
+            self._init_comp()
         return self._comp[deg]
 
     def set_restriction(self, rst):
@@ -1199,7 +1205,7 @@ class MixedForm(AlgebraElement):
         if not isinstance(rst, MixedForm):
             raise TypeError("the argument must be a mixed form")
         if not rst._domain.is_subset(self._domain):
-            raise ValueError("the specified domain is not a subset of " +
+            raise ValueError("the specified domain is not a subset of "
                              "the domain of definition of the mixed form")
         for j in self.irange():
             self[j].set_restriction(rst[j])
@@ -1366,3 +1372,10 @@ class MixedForm(AlgebraElement):
 
         """
         return self.parent().irange(start=start)
+
+    def set_comp(self, i):
+        r"""
+        Return the `i`-th homogeneous component for assignment.
+
+        """
+        return self[i]

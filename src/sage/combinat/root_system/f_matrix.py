@@ -268,7 +268,7 @@ class FMatrix():
             True
 
             sage: f = FMatrix(FusionRing("G2",2))
-            sage: f.find_orthogonal_solution(verbose=False) # long time (~18 s)
+            sage: f.find_orthogonal_solution(verbose=False) # long time (~11 s)
             sage: f.field()                                 # long time
             Algebraic Field
         """
@@ -2335,7 +2335,7 @@ class FMatrix():
             Partitioned 6 equations into 6 components of size:
             [1, 1, 1, 1, 1, 1]
             Computing appropriate NumberField...
-            sage: f.certify_pentagons()            # long time
+            sage: f.certify_pentagons()            # long time (~1.5s)
             Success!!! Found valid F-symbols for The Fusion Ring of Type C3 and level 1 with Integer Ring coefficients
         """
         fvars_copy = deepcopy(self._fvars)
@@ -2394,4 +2394,3 @@ class FMatrix():
             print("The F-symbol {} (key {}) has a nonzero imaginary part!".format(v,k))
             return False
         return True
-

@@ -23,7 +23,7 @@ worker_results = list()
 ### Mappers ###
 ###############
 
-cpdef mid_sig_ij(fusion_ring,row,col,a,b):
+cdef mid_sig_ij(fusion_ring,row,col,a,b):
     r"""
     Compute the (xi,yi), (xj,yj) entry of generator braiding the middle two
     strands in the tree b -> xi # yi -> (a # a) # (a # a), which results in
@@ -32,49 +32,6 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
     .. WARNING::
 
         This method assumes F-matrices are orthogonal.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import mid_sig_ij
-        sage: FR = FusionRing("A1",4)   # long time
-        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)  # long time
-        sage: one.weight()                                                                # long time
-        (1/2, -1/2)
-        sage: FR.get_computational_basis(one,two,4)                                       # long time
-        [(two, two), (two, idd), (idd, two)]
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)                            # long time (~7s)
-        sage: mid_sig_ij(FR, (two, two), (two, idd), one, two)                            # long time
-        1/3*zeta48^10 - 2/3*zeta48^2
-
-    This method works for all possible types of fields returned by
-    ``self.fmats.field()``.
-
-    TESTS::
-
-        sage: FR = FusionRing("A1",3)                                                     # long time
-        sage: FR.fusion_labels("a",inject_variables=True)                                 # long time
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)                            # long time
-        sage: _, _, to_opt = FR.fmats.field().optimized_representation()                  # long time
-        sage: a2**4                                                                       # long time
-        2*a0 + 3*a2
-        sage: FR.get_computational_basis(a2,a2,4)                                         # long time
-        [(a2, a2), (a2, a0), (a0, a2)]
-        sage: to_opt(mid_sig_ij(FR,(a2, a0),(a2, a2),a2,a2))                              # long time
-        -2024728666370660589/10956322398441542221*a1^30 - 34142146914395596291/21912644796883084442*a1^28
-         - 21479437628091413631/21912644796883084442*a1^26 + 260131910217202103829/21912644796883084442*a1^24
-         + 69575612911670713183/10956322398441542221*a1^22 + 25621808994337724689/1992058617898462222*a1^20
-         - 1975139725303994650417/21912644796883084442*a1^18 - 1315664901396537703585/21912644796883084442*a1^16
-         - 2421451803369354765026/10956322398441542221*a1^14 - 5963323855935165859057/21912644796883084442*a1^12
-         - 4477124943233705460859/21912644796883084442*a1^10 - 2001454824483021618178/10956322398441542221*a1^8
-         - 2120319455379289595185/21912644796883084442*a1^6 - 15722612944437234961/755608441271830498*a1^4
-         - 39862668562651453480/10956322398441542221*a1^2 - 6967145776903524195/10956322398441542221
-        sage: FR = FusionRing("G2",2)                             # long time
-        sage: FR.fusion_labels("g",inject_variables=True)         # long time
-        sage: FR.get_computational_basis(g1,g2,4)                 # long time
-        [(g3, g2), (g3, g1), (g2, g3), (g2, g0), (g1, g3), (g1, g1), (g0, g2)]
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time (~11 s)
-        sage: mid_sig_ij(FR,(g2, g3),(g1, g1),g1,g2)              # long time
-        -0.4566723195695565? + 0.0805236512828312?*I
     """
     #Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
@@ -95,7 +52,7 @@ cpdef mid_sig_ij(fusion_ring,row,col,a,b):
             entry += f1 * f2 * r * f3 * f4
     return entry
 
-cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
+cdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     r"""
     Compute the `xi`, `xj` entry of the braid generator on the two right-most
     strands, corresponding to the tree b -> (xi # a) -> (a # a) # a, which
@@ -104,49 +61,6 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     .. WARNING::
 
         This method assumes F-matrices are orthogonal.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import odd_one_out_ij
-        sage: FR = FusionRing("A1",4)                                                       # long time
-        sage: FR.fusion_labels(["one","two","three","four","five"],inject_variables=True)   # long time
-        sage: FR.get_computational_basis(two,two,5)                                         # long time
-        [(three, three, one),
-         (three, three, three),
-         (three, one, three),
-         (one, three, three),
-         (one, one, one)]
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)                              # long time
-        sage: odd_one_out_ij(FR,one,three,two,two)                                          # long time
-        2/3*zeta48^12 - 1/3*zeta48^8 - 1/3*zeta48^4 - 1/3
-
-    This method works for all possible types of fields returned by
-    ``self.fmats.field()``.
-
-    TESTS::
-
-        sage: FR = FusionRing("A1",3)                                       # long time
-        sage: FR.fusion_labels("a",inject_variables=True)                   # long time
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)              # long time
-        sage: _, _, to_opt = FR.fmats.field().optimized_representation()    # long time
-        sage: a2**3                                                         # long time
-        a0 + 2*a2
-        sage: FR.get_computational_basis(a2,a2,3)                           # long time
-        [(a2,), (a0,)]
-        sage: to_opt(odd_one_out_ij(FR,a0,a2,a2,a2))                        # long time
-        6341990144855406911/21912644796883084442*a1^30 + 47313529044493641571/21912644796883084442*a1^28
-         - 6964289120109414595/10956322398441542221*a1^26 - 406719371329322780627/21912644796883084442*a1^24
-         + 87598732372849355687/10956322398441542221*a1^22 - 456724726845194775/19723352652460022*a1^20
-         + 3585892725441116840515/21912644796883084442*a1^18 - 645866255979227573282/10956322398441542221*a1^16
-         + 7958479159087829772639/21912644796883084442*a1^14 + 789748976956837633826/10956322398441542221*a1^12
-         + 3409710648897945752185/21912644796883084442*a1^10 + 903956381582048110980/10956322398441542221*a1^8
-         + 192973084151342020307/21912644796883084442*a1^6 - 9233312083438019435/755608441271830498*a1^4
-         + 667869266552877781/10956322398441542221*a1^2 + 17644302696056968099/21912644796883084442
-        sage: FR = FusionRing("G2",2)                             # long time
-        sage: FR.fusion_labels("g",inject_variables=True)         # long time
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time (~11 s)
-        sage: odd_one_out_ij(FR,g1,g2,g1,g1)                      # long time
-        -0.2636598866349343? + 0.4566723195695565?*I
     """
     #Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
@@ -162,9 +76,23 @@ cpdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
         entry += f1 * r * f2
     return entry
 
-#Cache methods
-mid_sig_ij = cached_function(mid_sig_ij, name='mid_sig_ij')
-odd_one_out_ij = cached_function(odd_one_out_ij, name='odd_one_out_ij')
+#Cache methods (manually for cdef methods)
+cdef odd_one_out_ij_cache = dict()
+cdef mid_sig_ij_cache = dict()
+
+cdef cached_mid_sig_ij(fusion_ring,row,col,a,b):
+    if (row,col,a,b) in mid_sig_ij_cache:
+        return mid_sig_ij_cache[row,col,a,b]
+    entry = mid_sig_ij(fusion_ring,row,col,a,b)
+    mid_sig_ij_cache[row,col,a,b] = entry
+    return entry
+
+cdef cached_odd_one_out_ij(fusion_ring,xi,xj,a,b):
+    if (xi,xj,a,b) in odd_one_out_ij_cache:
+        return odd_one_out_ij_cache[xi,xj,a,b]
+    entry = odd_one_out_ij(fusion_ring,xi,xj,a,b)
+    odd_one_out_ij_cache[xi,xj,a,b] = entry
+    return entry
 
 @cython.nonecheck(False)
 @cython.cdivision(True)
@@ -219,7 +147,7 @@ cdef sig_2k(fusion_ring, tuple args):
 
                 #Handle the special case k = 1
                 if k == 1:
-                    entry = mid_sig_ij(fusion_ring,m[:2],(f,e),a,root)
+                    entry = cached_mid_sig_ij(fusion_ring,m[:2],(f,e),a,root)
 
                     #Avoid pickling cyclotomic field element objects
                     if must_flatten_coeff:
@@ -233,7 +161,7 @@ cdef sig_2k(fusion_ring, tuple args):
                 for p in fusion_ring.basis():
                     f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[k-1],m[k],root,l[k-2],p)
                     f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,e,root,q,p)
-                    entry += f1 * mid_sig_ij(fusion_ring,(m[k-1],m[k]),(f,e),a,p) * f2
+                    entry += f1 * cached_mid_sig_ij(fusion_ring,(m[k-1],m[k]),(f,e),a,p) * f2
 
                 #Avoid pickling cyclotomic field element objects
                 if must_flatten_coeff:
@@ -285,7 +213,7 @@ cdef odd_one_out(fusion_ring, tuple args):
 
                 #Handle a couple of small special cases
                 if n_strands == 3:
-                    entry = odd_one_out_ij(fusion_ring,m[-1],f,a,b)
+                    entry = cached_odd_one_out_ij(fusion_ring,m[-1],f,a,b)
 
                     #Avoid pickling cyclotomic field element objects
                     if must_flatten_coeff:
@@ -303,7 +231,7 @@ cdef odd_one_out(fusion_ring, tuple args):
                 for p in fusion_ring.basis():
                     f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[-1],a,root,l[-1],p)
                     f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,a,root,q,p)
-                    entry += f1 * odd_one_out_ij(fusion_ring,m[-1],f,a,p) * f2
+                    entry += f1 * cached_odd_one_out_ij(fusion_ring,m[-1],f,a,p) * f2
 
                 #Avoid pickling cyclotomic field element objects
                 if must_flatten_coeff:
@@ -315,7 +243,7 @@ cdef odd_one_out(fusion_ring, tuple args):
 ### Reducers ###
 ################
 
-cpdef collect_results(proc):
+cpdef list collect_results(int proc):
     """
     Helper function for returning processed results back to parent process.
 
@@ -326,13 +254,13 @@ cpdef collect_results(proc):
     EXAMPLES::
 
         sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
-        sage: FR = FusionRing("A1",4)                                                    # long time
-        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True) # long time
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)                           # long time
-        sage: params = (('sig_2k',id(FR)),(0,1,(2,one,one,9)))                           # long time
-        sage: executor(params)                                                           # long time
+        sage: FR = FusionRing("A2",1)
+        sage: FR.fusion_labels("a",inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: params = (('sig_2k',id(FR)),(0,1,(2,a2,a0,9)))
+        sage: executor(params)
         sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results
-        sage: len(collect_results(0)) == 171                                             # long time
+        sage: len(collect_results(0)) == 1
         True
     """
     #Discard the zero polynomial
@@ -351,7 +279,7 @@ cdef dict mappers = {
     "odd_one_out": odd_one_out
 }
 
-cpdef executor(params):
+cpdef executor(tuple params):
     r"""
     Execute a function registered in this module's ``mappers``
     in a worker process, and supply the ``FusionRing`` parameter by
@@ -378,12 +306,12 @@ cpdef executor(params):
         sage: len(collect_results(0)) == 13                       # long time
         True
         sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor, collect_results
-        sage: FR = FusionRing("B2",2)                             # long time
-        sage: FR.fusion_labels(['I0','Y1','X','Z','Xp','Y2'],inject_variables=True)         # long time
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time (~23 s)
-        sage: params = (('odd_one_out',id(FR)),(0,1,(X,Xp,5)))    # long time
-        sage: executor(params)                                    # long time
-        sage: len(collect_results(0)) == 54                       # long time
+        sage: FR = FusionRing("A1",2)
+        sage: FR.fusion_labels("a",inject_variables=True)
+        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: params = (('odd_one_out',id(FR)),(0,1,(a2,a2,5)))
+        sage: executor(params)
+        sage: len(collect_results(0)) == 1
         True
     """
     (fn_name, fr_id), args = params
@@ -420,4 +348,3 @@ cpdef _unflatten_entries(fusion_ring, list entries):
     if F != QQbar:
         for i, (coord, entry) in enumerate(entries):
             entries[i] = (coord, F(entry))
-

@@ -443,7 +443,7 @@ cpdef update_child_fmats(factory, tuple data_tup):
 ### Reducers ###
 ################
 
-cpdef collect_eqns(proc):
+cpdef list collect_eqns(int proc):
     r"""
     Helper function for returning processed results back to parent process.
 
@@ -460,10 +460,10 @@ cpdef collect_eqns(proc):
         sage: from sage.combinat.root_system.fast_parallel_fmats_methods import collect_eqns
         sage: len(collect_eqns(0)) == 63
         True
-        sage: fmats = FMatrix(FusionRing("G2",2))
+        sage: fmats = FMatrix(FusionRing("C3",1))
         sage: params = (('get_reduced_pentagons', id(fmats)), (0,1))
         sage: executor(params)
-        sage: len(collect_eqns(0)) == 4911
+        sage: len(collect_eqns(0)) == 374
         True
     """
     #Discard the zero polynomial
@@ -486,7 +486,7 @@ cdef dict mappers = {
     "pent_verify": pent_verify
     }
 
-cpdef executor(params):
+cpdef executor(tuple params):
     r"""
     Execute a function defined in this module
     (``sage.combinat.root_system.fast_parallel_fmats_methods``) in a worker
@@ -518,10 +518,10 @@ cpdef executor(params):
         sage: from sage.combinat.root_system.fast_parallel_fmats_methods import collect_eqns
         sage: len(collect_eqns(0)) == 63
         True
-        sage: fmats = FMatrix(FusionRing("E8",2))
+        sage: fmats = FMatrix(FusionRing("E6",1))
         sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
         sage: executor(params)
-        sage: len(collect_eqns(0)) == 11
+        sage: len(collect_eqns(0)) == 6
         True
     """
     (fn_name, fmats_id), args = params
@@ -572,4 +572,3 @@ cdef pent_verify(factory, tuple mp_params):
             feq_verif(factory,fvars,Nk_ij,id_anyon,nonuple)
         if i % 50000000 == 0 and i and verbose:
             print("{:5d}m equations checked... {} potential misses so far...".format(i // 1000000,len(worker_results)))
-

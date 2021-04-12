@@ -1,7 +1,7 @@
 # @configure_input@
 
 [metadata]
-name = sage_conf
+name = sage-conf
 version = @PACKAGE_VERSION@
 description = Sage: Open Source Mathematics Software: Configuration module for the SageMath library
 long_description = file: README.rst

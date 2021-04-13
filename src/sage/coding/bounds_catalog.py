@@ -35,7 +35,8 @@ _lazy_import("sage.coding.delsarte_bounds",
              "eberlein",
              "delsarte_bound_constant_weight_code",
              "delsarte_bound_hamming_space",
-             "delsarte_bound_additive_hamming_space"])
+             "delsarte_bound_additive_hamming_space",
+             "delsarte_bound_Q_matrix"])
 
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index

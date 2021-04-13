@@ -406,6 +406,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
     """
     from sage.numerical.mip import MIPSolverException
     A, p = _delsarte_LP_building(n, d, 0, q, isinteger, solver)
+    p.show()
     try:
         bd=p.solve()
     except MIPSolverException as exc:
@@ -539,3 +540,71 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       return A, p, m
    else:
       return m
+  
+def _delsarte_Q_LP_building(q,d,solver,isinteger):
+    from sage.numerical.mip import MixedIntegerLinearProgram
+
+    n, m = q.dimensions() # q is an nxm matrix
+
+    p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+    A = p.new_variable(integer=isinteger, nonnegative=True)
+    p.set_objective(sum([A[i] for i in range(m)]))
+
+    p.add_constraint(A[0]==1)
+    for i in range(1,d):
+        p.add_constraint(A[i]==0)
+
+    for k in range(1,n):
+        p.add_constraint(sum([q[i][k]*A[i] for i in range(m)]),min=0)
+
+    p.show()
+    return A, p
+
+
+def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False):
+    """
+    Find the Delsarte bound on a code with Q matrix ``q`` and lower bound on minimal distance ``d`` 
+
+    INPUT:
+
+    - ``q`` -- the Q matrix
+
+    - ``d`` -- the (lower bound on) minimal distance of the code
+
+    - ``return_data`` -- if ``True``, return a triple
+      ``(W,LP,bound)``, where ``W`` is a weights vector, and ``LP``
+      the Delsarte upper bound LP; both of them are Sage LP data.
+      ``W`` need not be a weight distribution of a code.
+
+    - ``solver`` -- the LP/ILP solver to be used. Defaults to
+      ``PPL``. It is arbitrary precision, thus there will be no
+      rounding errors. With other solvers (see
+      :class:`MixedIntegerLinearProgram` for the list), you are on
+      your own!
+
+    - ``isinteger`` -- if ``True``, uses an integer programming solver
+      (ILP), rather that an LP solver. Can be very slow if set to
+      ``True``.
+
+    """
+
+    from sage.structure.element import is_Matrix
+    from sage.numerical.mip import MIPSolverException
+
+    if not is_Matrix(q):
+        raise ValueError("Input to delsarte_bound_Q_matrix should be a sage Matrix()")
+
+    A, p = _delsarte_Q_LP_building(q, d, solver, isinteger)
+    try:
+        bd=p.solve()
+    except MIPSolverException as exc:
+        print("Solver exception: {}".format(exc))
+        if return_data:
+            return A,p,False
+        return False
+
+    if return_data:
+        return A,p,bd
+    else:
+        return bd
+

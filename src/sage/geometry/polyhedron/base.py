@@ -9935,10 +9935,9 @@ class Polyhedron_base(Element):
           is a linear transformation and its second component a shift;
           see above.
 
-        - ``parametric_form`` -- a pair `(v_0, V)` where `v_0` is a vector
-          and `V` a tuple of vectors. `v_0` is used as a base point
-          in the transformation and the vectors `V` are its neighbors
-          (in the already shifted polyhedron).
+        - ``parametric_form`` -- a pair `(v_0, V)` where `v_0` is a point
+          of ``self`` and `V` is a tuple of vectors spanning the linear
+          space parallel to the affine hull of ``self``.
 
         - ``coordinate_images`` -- a tuple of the images of the variables
           in the standard coordinate system of the ambient space. These

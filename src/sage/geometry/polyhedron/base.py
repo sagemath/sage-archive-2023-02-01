@@ -10174,8 +10174,8 @@ class Polyhedron_base(Element):
         Return polyhedron and affine map::
 
             sage: S = polytopes.simplex(2)
-            sage: S.affine_hull(orthogonal=True,
-            ....:               as_polyhedron=True, as_affine_map=True)
+            sage: S.affine_hull_projection(orthogonal=True,
+            ....:                          as_polyhedron=True, as_affine_map=True)
             {'affine_map': (Vector space morphism represented by the matrix:
               [   0    1]
               [   1 -1/2]
@@ -10186,7 +10186,7 @@ class Polyhedron_base(Element):
 
         Return additional data::
 
-            sage: S.affine_hull(orthogonal=True, return_all_data=True)
+            sage: S.affine_hull_projection(orthogonal=True, return_all_data=True)
             {'affine_map': (Vector space morphism represented by the matrix:
               [   0    1]
               [   1 -1/2]
@@ -10206,7 +10206,7 @@ class Polyhedron_base(Element):
             sage: P = P0.intersection(Polyhedron(eqns=[(-1, 1, 1, 1, 1, 1)]))
             sage: P.dim()
             4
-            sage: P.affine_hull(orthogonal=True, as_affine_map=True)[0]
+            sage: P.affine_hull_projection(orthogonal=True, as_affine_map=True)[0]
             Vector space morphism represented by the matrix:
             [ -1/3  -1/3  -1/6  1/12]
             [  1/2     0   1/6  1/12]

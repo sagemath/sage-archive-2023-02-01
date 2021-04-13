@@ -29,7 +29,6 @@ from sage.structure.element import AlgebraElement
 from sage.rings.integer import Integer
 
 class MixedForm(AlgebraElement):
-    # TODO: refactor documentation according in favor of `set_comp`
     r"""
     An instance of this class is a mixed form along some differentiable map
     `\varphi: M \to N` between two differentiable manifolds `M` and `N`. More
@@ -79,8 +78,20 @@ class MixedForm(AlgebraElement):
         Graded algebra Omega^*(M) of mixed differential forms on the
          2-dimensional differentiable manifold M
 
-    One convenient way to define the homogeneous components of a mixed form is
-    to define some differential forms first::
+    The most straightforward way to define the `i`-th homogeneous components
+    of a mixed form is via :meth:`set_comp` or ``A[i]``::
+
+        sage: A = M.mixed_form(name='A')
+        sage: A[0].set_expr(x) # scalar field
+        sage: A.set_comp(1)[0] = y*x
+        sage: A.set_comp(2)[0,1] = y^2*x
+        sage: A.display() # display names
+        A = A_0 + A_1 + A_2
+        sage: A.display_expansion() # display expansion in basis
+        A = [x] + [x*y dx] + [x*y^2 dx/\dy]
+
+    Another way to define the homogeneous components is using predefined
+    differential forms::
 
         sage: f = M.scalar_field(x, name='f'); f
         Scalar field f on the 2-dimensional differentiable manifold M
@@ -93,26 +104,34 @@ class MixedForm(AlgebraElement):
         sage: eta[e_xy,0,1] = y^2*x; eta.display()
         eta = x*y^2 dx/\dy
 
-    The components of the mixed form ``F`` can be set very easily::
+    The components of a mixed form ``B`` can then be set as follows::
 
-        sage: A[:] = [f, omega, eta]; A.display() # display names
-        A = f + omega + eta
-        sage: A.display_expansion() # display in coordinates
-        A = [x] + [x*y dx] + [x*y^2 dx/\dy]
-        sage: A[0]
+        sage: B = M.mixed_form(name='B')
+        sage: B[:] = [f, omega, eta]
+        sage: B.display()
+        B = f + omega + eta
+        sage: B.display_expansion()
+        B = [x] + [x*y dx] + [x*y^2 dx/\dy]
+        sage: B[0]
         Scalar field f on the 2-dimensional differentiable manifold M
-        sage: A[1]
+        sage: B[1]
         1-form omega on the 2-dimensional differentiable manifold M
-        sage: A[2]
+        sage: B[2]
         2-form eta on the 2-dimensional differentiable manifold M
+
+    As we can see, the names are applied. However, the differential
+    forms are different instances::
+
+        sage: f is B[0]
+        False
 
     Alternatively, the components can be determined from scratch::
 
         sage: B = M.mixed_form([f, omega, eta], name='B')
-        sage: A == B
-        True
+        sage: B.display()
+        B = f + omega + eta
 
-    Mixed forms are elements of an algebra, so they can be added, and multiplied
+    Mixed forms are elements of an algebra so they can be added, and multiplied
     via the wedge product::
 
         sage: C = x*A; C
@@ -144,7 +163,7 @@ class MixedForm(AlgebraElement):
     mixed form::
 
         sage: dA = A.exterior_derivative(); dA.display()
-        dA = zero + df + domega
+        dA = zero + dA_0 + dA_1
         sage: dA.display_expansion()
         dA = [0] + [dx] + [-x dx/\dy]
 
@@ -162,18 +181,15 @@ class MixedForm(AlgebraElement):
         sage: W = U.intersection(V)
         sage: e_xy = c_xy.frame(); e_uv = c_uv.frame() # define frames
         sage: A = M.mixed_form(name='A')
-        sage: A[0].set_name('f')
         sage: A[0].set_expr(x, c_xy)
         sage: A[0].display()
-        f: M --> R
+        A_0: M --> R
         on U: (x, y) |--> x
         on W: (u, v) |--> 1/2*u + 1/2*v
-        sage: A[1].set_name('omega')
         sage: A[1][0] = y*x; A[1].display(e_xy)
-        omega = x*y dx
-        sage: A[2].set_name('eta')
+        A_1 = x*y dx
         sage: A[2][e_uv,0,1] = u*v^2; A[2].display(e_uv)
-        eta = u*v^2 du/\dv
+        A_2 = u*v^2 du/\dv
         sage: A.add_comp_by_continuation(e_uv, W, c_uv)
         sage: A.display_expansion(e_uv)
         A = [1/2*u + 1/2*v] + [(1/8*u^2 - 1/8*v^2) du + (1/8*u^2 - 1/8*v^2) dv]
@@ -500,7 +516,9 @@ class MixedForm(AlgebraElement):
           components will be renamed accordingly; if ``False`` only the mixed
           form will be renamed
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Rename a mixed form::
 
             sage: M = Manifold(4, 'M')
             sage: F = M.mixed_form(name='dummy', latex_name=r'\ugly'); F
@@ -508,13 +526,29 @@ class MixedForm(AlgebraElement):
              manifold M
             sage: latex(F)
             \ugly
-            sage: F.set_name(name='fancy', latex_name=r'\eta'); F
-            Mixed differential form fancy on the 4-dimensional differentiable
+            sage: F.set_name(name='F', latex_name=r'\mathcal{F}'); F
+            Mixed differential form F on the 4-dimensional differentiable
              manifold M
             sage: latex(F)
-            \eta
+            \mathcal{F}
 
-        # TODO: add more examples with `set_all`
+        If not stated otherwise, all homogeneous components are renamed
+        accordingly:
+
+            sage: F.display()
+            F = F_0 + F_1 + F_2 + F_3 + F_4
+
+        Setting the argument ``set_all`` to ``False`` prevents the renaming
+        in the homogeneous components::
+
+            sage: F.set_name(name='eta', latex_name=r'\eta', set_all=False)
+            sage: F.display()
+            eta = F_0 + F_1 + F_2 + F_3 + F_4
+
+        .. SEEALSO::
+
+            To rename a homogeneous component individually, use
+            :meth:`set_name_comp`.
 
         """
         if name is not None:
@@ -546,7 +580,15 @@ class MixedForm(AlgebraElement):
 
         EXAMPLES::
 
-        # TODO: add examples
+            sage: M = Manifold(3, 'M')
+            sage: F = M.mixed_form(name='F', latex_name=r'\mathcal{F}'); F
+            Mixed differential form F on the 3-dimensional differentiable
+             manifold M
+            sage: F.display()
+            F = F_0 + F_1 + F_2 + F_3
+            sage: F.set_name_comp(0, name='g')
+            sage: F.display()
+            F = g + F_1 + F_2 + F_3
 
         """
         self[i].set_name(name=name, latex_name=latex_name)
@@ -1415,7 +1457,18 @@ class MixedForm(AlgebraElement):
         r"""
         Return the `i`-th homogeneous component for assignment.
 
-        # TODO: add examples
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: A = M.mixed_form(name='A')
+            sage: A.set_comp(0).set_expr(x^2) # scalar field
+            sage: A.set_comp(1)[:] = [-y, x]
+            sage: A.set_comp(2)[0,1] = x-y
+            sage: A.display()
+            A = A_0 + A_1 + A_2
+            sage: A.display_expansion()
+            A = [x^2] + [-y dx + x dy] + [(x - y) dx/\dy]
 
         """
         return self[i]

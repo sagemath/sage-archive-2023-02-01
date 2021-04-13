@@ -10331,9 +10331,6 @@ class Polyhedron_base(Element):
             # ``convert=True`` takes care of the case, where there might be no coercion (``AA`` and quadratic field).
             if as_polyhedron:
                 result['polyhedron'] = self.linear_transformation(A, new_base_ring=A.base_ring()) - A*translate_vector
-                    [A*vector(A.base_ring(), v)
-                     for v in self.translation(-v0).vertices()],
-                    base_ring=A.base_ring())
             if as_affine_map:
                 result['affine_map'] = (L, - A*translate_vector)
             if return_all_data:

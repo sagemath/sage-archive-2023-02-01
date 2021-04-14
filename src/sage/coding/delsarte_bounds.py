@@ -123,18 +123,20 @@ def eberlein(n, w, k, u, check=True, inef=False):
 
         # (1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l
 
+    # TODO: up to here
+
     and is equal to
 
     .. MATH::
 
-        E^{n,l}_k(x)=\sum_{j=0}^k (-1)^j \binom{x}{j} \binom{n-x}{k-j}
-        \binom{l-n-x}{k-j},
+        E^{w,n}_k(u)=\sum_{j=0}^k (-1)^j \binom{u}{j} \binom{w-u}{k-j}
+        \binom{n-w-u}{k-j},
 
     INPUT:
 
-    - ``n, k, x`` -- arbitrary numbers
+    - ``w, k, x`` -- arbitrary numbers
 
-    - ``l`` -- a nonnegative integer
+    - ``n`` -- a nonnegative integer
 
     - ``check`` -- check the input for correctness. ``True`` by
       default. Otherwise, pass it as it is. Use ``check=False`` at
@@ -142,7 +144,7 @@ def eberlein(n, w, k, u, check=True, inef=False):
 
 
     EXAMPLES:
-        sage: codes.bounds.eberlein(10,2,24,6)
+        sage: codes.bounds.eberlein(24,10,2,6)
         -9
 
     """
@@ -558,7 +560,7 @@ def _delsarte_Q_LP_building(q,d,solver,isinteger):
     for k in range(1,n):
         p.add_constraint(sum([q[i][k]*A[i] for i in range(m)]),min=0)
 
-    p.show()
+    # p.show()
     return A, p
 
 

@@ -8168,7 +8168,7 @@ class Polyhedron_base(Element):
                 return self._volume_normaliz(measure='euclidean')
             # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
             affine_hull = self.affine_hull_projection(orthogonal=True, as_polyhedron=True, as_affine_map=True)
-            A = affine_hull['affine_map'][0].matrix()
+            A = affine_hull['projection_map'][0].matrix()
             Adet = (A.transpose() * A).det()
             scaled_volume = self.affine_hull_projection(orthogonal=True).volume(measure='ambient', engine=engine, **kwds)
             if Adet.is_square():
@@ -9865,16 +9865,18 @@ class Polyhedron_base(Element):
     @cached_method
     def affine_hull_projection(self, as_polyhedron=None, as_affine_map=False, orthogonal=False,
                                orthonormal=False, extend=False, minimal=False, return_all_data=False):
-        """
-        Return the polyhedron projected into its affine hull.
+        """Return the polyhedron projected into its affine hull.
 
         Each polyhedron is contained in some smallest affine subspace
-        (possibly the entire ambient space) -- its affine hull.
-        We provide a projection of the ambient
-        space of the polyhedron to Euclidean space of dimension of the
-        polyhedron. Then the image of the polyhedron under this
-        projection (or, depending on the parameter ``as_affine_map``,
-        the projection itself) is returned.
+        (possibly the entire ambient space) -- its affine hull.  We
+        provide an affine linear map that projects the ambient space of
+        the polyhedron to the standard Euclidean space of dimension of
+        the polyhedron, which restricts to a bijection from the affine
+        hull.
+
+        The projection map is not unique; some parameters control the
+        choice of the map.  Other parameters control the output of the
+        function.
 
         INPUT:
 
@@ -9897,6 +9899,13 @@ class Polyhedron_base(Element):
           If both ``as_polyhedron`` and ``as_affine_map`` are set, then
           both are returned, encapsulated in a dictionary.
 
+        - ``return_all_data`` -- (boolean, default ``False``)
+
+          If set, then ``as_polyhedron`` and ``as_affine_map`` will set
+          (possibly overridden) and additional (internal) data concerning
+          the transformation is returned. Everything is encapsulated
+          in a dictionary in this case.
+
         - ``orthogonal`` -- boolean (default: ``False``); if ``True``,
           provide an orthogonal transformation.
 
@@ -9913,13 +9922,6 @@ class Polyhedron_base(Element):
           when doing an extension, it computes the minimal base ring of the
           extension, otherwise the base ring is ``AA``.
 
-        - ``return_all_data`` -- (boolean, default ``False``)
-
-          If set, then ``as_polyhedron`` and ``as_affine_map`` will set
-          (possibly overridden) and additional (internal) data concerning
-          the transformation is returned. Everything is encapsulated
-          in a dictionary in this case.
-
         OUTPUT:
 
         A full-dimensional polyhedron or an affine transformation,
@@ -9929,25 +9931,18 @@ class Polyhedron_base(Element):
         In case the output is a dictionary, the following entries might
         be included:
 
-        - ``polyhedron`` -- the affine hull of the original polyhedron
+        - ``polyhedron`` -- the projection of the original polyhedron
 
-        - ``affine_map`` -- the affine map as a pair whose first component
+        - ``projection_map`` -- the affine map as a pair whose first component
           is a linear transformation and its second component a shift;
           see above.
 
-        - ``parametric_form`` -- a pair `(v_0, V)` where `v_0` is a point
-          of ``self`` and `V` is a tuple of vectors spanning the linear
-          space parallel to the affine hull of ``self``.
+        - ``section_map`` -- an affine map as a pair whose first component
+          is a linear transformation and its second component a shift.
+          It maps the codomain of ``affine_map`` to the affine hull of
+          ``self``.  It is a right inverse of ``projection_map``.
 
-        - ``coordinate_images`` -- a tuple of the images of the variables
-          in the standard coordinate system of the ambient space. These
-          images are degree one polynomials and are used for mapping a
-          function in the ambient space to a function in the affine hull
-          such that the values of this function are preserved.
-
-        Note that all entries of this dictionary are compatible (in the
-        sense that the order of points/columns/etc are compatible)
-        with each other.
+        Note that all entries of this dictionary are compatible.
 
          .. TODO::
 
@@ -10173,28 +10168,41 @@ class Polyhedron_base(Element):
         Return polyhedron and affine map::
 
             sage: S = polytopes.simplex(2)
-            sage: S.affine_hull_projection(orthogonal=True,
-            ....:                          as_polyhedron=True, as_affine_map=True)
-            {'affine_map': (Vector space morphism represented by the matrix:
-              [   0    1]
-              [   1 -1/2]
+            sage: data = S.affine_hull_projection(orthogonal=True,
+            ....:                                 as_polyhedron=True,
+            ....:                                 as_affine_map=True); data
+            {'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+             'projection_map': (Vector space morphism represented by the matrix:
               [  -1 -1/2]
-              Domain: Vector space of dimension 3 over Rational Field
-              Codomain: Vector space of dimension 2 over Rational Field, (1, 1/2)),
-             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices}
-
-        Return additional data::
-
-            sage: S.affine_hull_projection(orthogonal=True, return_all_data=True)
-            {'affine_map': (Vector space morphism represented by the matrix:
-              [   0    1]
               [   1 -1/2]
-              [  -1 -1/2]
+              [   0    1]
               Domain: Vector space of dimension 3 over Rational Field
-              Codomain: Vector space of dimension 2 over Rational Field, (1, 1/2)),
-             'coordinate_images': (2/3*t1, 1/2*t0 - 1/3*t1, -1/2*t0 - 1/3*t1 + 1),
-             'parametric_form': ((0, 0, 1), ((0, 1, -1), (1, 0, -1))),
-             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices}
+              Codomain: Vector space of dimension 2 over Rational Field,
+              (1, 1/2))}
+
+        Return all data::
+
+            sage: data = S.affine_hull_projection(orthogonal=True, return_all_data=True); data
+            {'parametric_form': ((1, 0, 0), ((-1, 1, 0), (-1, 0, 1))),
+             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+             'projection_map': (Vector space morphism represented by the matrix:
+              [  -1 -1/2]
+              [   1 -1/2]
+              [   0    1]
+              Domain: Vector space of dimension 3 over Rational Field
+              Codomain: Vector space of dimension 2 over Rational Field,
+              (1, 1/2)),
+             'section_map': (Vector space morphism represented by the matrix:
+              [-1/2  1/2    0]
+              [-1/3 -1/3  2/3]
+              Domain: Vector space of dimension 2 over Rational Field
+              Codomain: Vector space of dimension 3 over Rational Field,
+              (1, 0, 0))}
+
+        The section map is a right inverse of the projection map::
+
+            sage: data['polyhedron'].linear_transformation(data['section_map'][0].matrix().transpose()) + data['section_map'][1] == S
+            True
 
         ::
 
@@ -10207,11 +10215,11 @@ class Polyhedron_base(Element):
             4
             sage: P.affine_hull_projection(orthogonal=True, as_affine_map=True)[0]
             Vector space morphism represented by the matrix:
-            [ -1/3  -1/3  -1/6  1/12]
-            [  1/2     0   1/6  1/12]
-            [ -1/3   2/3     0     0]
-            [  1/2     0  -1/6 -1/12]
-            [ -1/3  -1/3   1/6 -1/12]
+            [    0     0     0   1/3]
+            [ -2/3  -1/6     0 -1/12]
+            [  1/3  -1/6   1/2 -1/12]
+            [    0   1/2     0 -1/12]
+            [  1/3  -1/6  -1/2 -1/12]
             Domain: Vector space of dimension 5 over Rational Field
             Codomain: Vector space of dimension 4 over Rational Field
 
@@ -10289,11 +10297,12 @@ class Polyhedron_base(Element):
         if self.ambient_dim() == self.dim():
             result['polyhedron'] = self
             if as_affine_map or return_all_data:
-                result['affine_map'] = (linear_transformation(matrix(self.base_ring(),
-                                                                     self.dim(),
-                                                                     self.dim(),
-                                                                     self.base_ring().one())),
-                                        self.ambient_space().zero())
+                identity = linear_transformation(matrix(self.base_ring(),
+                                                        self.dim(),
+                                                        self.dim(),
+                                                        self.base_ring().one()))
+                result['projection_map'] = (identity, self.ambient_space().zero())
+                result['section_map'] = (identity, self.ambient_space().zero())
         elif orthogonal or orthonormal:
             # see TODO
             if not self.is_compact():
@@ -10322,33 +10331,19 @@ class Polyhedron_base(Element):
                     new_ring = number_field_elements_from_algebraics(A.list(), embedded=True, minimal=True)[0]
                     A = A.change_ring(new_ring)
             L = linear_transformation(A, side='right')
-            translate_vector = vector(A.base_ring(), affine_basis[0])
-            # Note the order. We compute ``A*self`` and then subtract the translation vector.
+            ambient_translation = -vector(A.base_ring(), affine_basis[0])
+            image_translation = A * ambient_translation
+            # Note the order. We compute ``A*self`` and then translate the image.
             # ``A*self`` uses the incidence matrix and we avoid recomputation.
             # Also, if the new base ring is ``AA``, we want to avoid computing the incidence matrix in that ring.
-
             # ``convert=True`` takes care of the case, where there might be no coercion (``AA`` and quadratic field).
             if as_polyhedron:
-                result['polyhedron'] = self.linear_transformation(A, new_base_ring=A.base_ring()) - A*translate_vector
+                result['polyhedron'] = self.linear_transformation(A, new_base_ring=A.base_ring()) + image_translation
             if as_affine_map:
-                result['affine_map'] = (L, - A*translate_vector)
+                result['projection_map'] = (L, image_translation)
             if return_all_data:
-                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-                # columns of W are equal to the vertices of affine_hull['polyhedron']
-                # in an order compatible with the vectors vi
-                def index_neq0(C):
-                    return next(i for i, c in enumerate(C) if c != 0)
-                independent_vi = tuple(vi[index_neq0(tuple(c))]
-                                       for c in G.columns())
-                W = matrix([list(L(v)) for v in independent_vi]).transpose()
-
-                # transform the coordinates
-                T = PolynomialRing(self.base_ring(), 't', len(independent_vi))
-                t = vector(T.gens())
-                beta = W.inverse() * t
-                coordinate_images = v0.change_ring(T) + sum(b * v  for b, v in zip(beta, independent_vi))
-                result['coordinate_images'] = tuple(coordinate_images)
-
+                L_dagger = linear_transformation(A.transpose() * (A * A.transpose()).inverse(), side='right')
+                result['section_map'] = (L_dagger, v0)
         else:
             # translate one vertex to the origin
             v0 = self.vertices()[0].vector()
@@ -10365,15 +10360,19 @@ class Polyhedron_base(Element):
 
             A = matrix([[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
             if as_affine_map:
-                result['affine_map'] = linear_transformation(A, side='right'), vector(self.base_ring(), self.dim())
+                image_translation = vector(self.base_ring(), self.dim())
+                L = linear_transformation(A, side='right')
+                result['projection_map'] = (L, image_translation)
             if as_polyhedron:
                 result['polyhedron'] = A*self
+            if return_all_data:
+                raise NotImplementedError
 
         # assemble result
         if return_all_data or (as_polyhedron and as_affine_map):
             return result
         elif as_affine_map:
-            return result['affine_map']
+            return result['projection_map']
         else:
             return result['polyhedron']
 

@@ -110,7 +110,7 @@ def krawtchouk(n, q, l, x, check=True):
     return kraw
 
 
-def eberlein(n, k, l, x, check=True, inef=False):
+def eberlein(n, w, k, u, check=True, inef=False):
     r"""
     Compute ``E^{n,l}_k(x)``, the Eberlein polynomial.
 
@@ -153,30 +153,31 @@ def eberlein(n, k, l, x, check=True, inef=False):
     # actually essential or we can have binomials==0
     # ADD CHECK x>=k
     """
-    if not (k>=0 and l-n-x>k and n-x>k) and not inef:
-        print("Wrong Arguments: n={}, k={}, l={}, x={}".format(n,k,l,x))
+    if not (k>=0 and n-w-u>k and w-u>k) and not inef:
+        print("Wrong Arguments: n={}, w={}, k={}, u={}".format(n,w,k,u))
         raise ValueError('In Eberlein polynomial')
     """
-    # print("eberlein, {} {} {} {}".format(n,k,l,x))
 
+    if 2*w>n:
+        return eberlein(n,n-w,k,u,inef=inef)
 
     if inef:
-        return sum([(-1)**j*binomial(x,j)*binomial(n-x,k-j)*binomial(l-n-x,k-j)
+        return sum([(-1)**j*binomial(u,j)*binomial(w-u,k-j)*binomial(n-w-u,k-j)
             for j in srange(0,k+1)])
 
     if check:
         from sage.rings.integer_ring import ZZ
-        l0 = ZZ(l)
-        if l0 != l or l0 < 0:
+        n0 = ZZ(n)
+        if n0 != n or n0 < 0:
             raise ValueError('l must be a nonnegative integer')
-        l = l0
-    eber = jth_term = binomial(n-x,k) * binomial(l-n-x,k)
-    print(jth_term)
+        n = n0
+    eber = jth_term = binomial(w-u,k) * binomial(n-w-u,k)
+
     if jth_term==0:jth_term=1
+
     for j in srange(1,k+1):
-        print("n={}, k={}, l={}, x={}, j={}".format(n,k,l,x,j))
-        jth_term *= (-1) * ((x-j+1)*(k-j+1)*(k-j+1)/(j*(n-x-k+j)*(l-n-x-k+j))) 
-        # print('j: '+str(j) + ' ' + str(jth_term))
+        print("n={}, w={}, k={}, u={}, j={}".format(n,w,k,u,j))
+        jth_term *= (-1) * ((u-j+1)*(k-j+1)*(k-j+1)/(j*(w-u-k+j)*(n-w-u-k+j))) 
         eber += jth_term
         if jth_term==0:
             jth_term = 1
@@ -266,12 +267,12 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
         # mu_i = ((n-2*i+1)/(n-i+1))*binomial(n,i)
         mu_i = 1
         v_i = binomial(w,i)*binomial(n-w,i)
-        return mu_i*eberlein(w,i,n,k,inef=True)/v_i
+        return mu_i*eberlein(n,w,i,k,inef=True)/v_i
 
     for k in range(1,w+1): # could be range(d/2,n+1)
         # could make more efficient calculation of the binomials in the future
         # by keeping track of the divisor
-        # p.add_constraint(sum([A[2*i] * eberlein(w, i, n, k) / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
+        # p.add_constraint(sum([A[2*i] * eberlein(n, w, i, k) / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
         p.add_constraint(sum([A[2*i]*_q(k,i) for i in range(d//2,w+1)]),min=-1)
     # p.show()
     return A, p

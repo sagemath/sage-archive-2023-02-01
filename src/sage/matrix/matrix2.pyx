@@ -14221,18 +14221,13 @@ cdef class Matrix(Matrix1):
         # Check each 1x1 block for a nonpositive (negative) entry. If
         # we don't find any, the matrix is positive-(semi)definite. The
         # presence of any 2x2 blocks also indicates indefiniteness.
-        for d_i in d:
-            if d_i.nrows() == 1:
-                if semi:
-                    if d_i < 0:
-                        return False
-                else:
-                    if d_i <= 0:
-                        return False
-            else:
-                # There's a 2x2 block
-                return False
-        return True
+        import operator
+        op = operator.gt
+        if semi:
+            op = operator.ge
+
+        return all(d_i.nrows() == 1 and op(d_i[0,0], 0) for d_i in d)
+
 
     def is_positive_semidefinite(self):
         r"""

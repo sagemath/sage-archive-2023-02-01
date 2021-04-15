@@ -981,7 +981,8 @@ class FusionRing(WeylCharacterRing):
     def total_q_order(self, base_coercion=True):
         r"""
         Return the positive square root of ``self.global_q_dimension()``
-        as an element of ``self.field()``.
+        as an element of ``self.field()``. Implemented as `D_{+}e^{-i\pi c/4}`
+        where `D_+` is ``self.D_plus()`` and `c` is ``self.virasoro_central_charge()``
 
         EXAMPLES::
 

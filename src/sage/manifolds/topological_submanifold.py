@@ -246,6 +246,8 @@ class TopologicalSubmanifold(TopologicalManifold):
              3-dimensional topological manifold M
 
         """
+        if self is not self._manifold:
+            return "Open subset {} of the {}".format(self._name, self._manifold)
         if self._ambient is self:
             return super(TopologicalManifold, self).__repr__()
         if self._embedded:

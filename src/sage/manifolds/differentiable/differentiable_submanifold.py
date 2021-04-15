@@ -208,6 +208,8 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
              3-dimensional differentiable manifold M
 
         """
+        if self is not self._manifold:
+            return "Open subset {} of the {}".format(self._name, self._manifold)
         if self._ambient is None:
             return super(DifferentiableManifold, self).__repr__()
         if self._embedded:

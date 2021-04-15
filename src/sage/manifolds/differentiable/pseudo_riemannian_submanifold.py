@@ -382,6 +382,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              3-dimensional Lorentzian manifold M
 
         """
+        if self is not self._manifold:
+            return "Open subset {} of the {}".format(self._name, self._manifold)
         if self._ambient is None:
             return super(PseudoRiemannianManifold, self).__repr__()
         if self._embedded:

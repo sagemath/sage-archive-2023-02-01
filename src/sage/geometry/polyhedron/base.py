@@ -10421,9 +10421,25 @@ class Polyhedron_base(Element):
 
             sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]);  triangle
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
-            sage: triangle.affine_hull_manifold()
+            sage: A = triangle.affine_hull_manifold(name='A'); A
+            2-dimensional differentiable submanifold A embedded in the Euclidean space E^3
+            sage: A.embedding().display()
+            A --> E^3
+               (x0, x1) |--> (x, y, z) = (x0, x1, -x0 - x1 + 1)
+            sage: A.embedding().inverse().display()
+            E^3 --> A
+               (x, y, z) |--> (x0, x1) = (x, y)
 
+        Orthogonal version::
 
+            sage: A = triangle.affine_hull_manifold(name='A', orthogonal=True); A
+            2-dimensional differentiable submanifold A embedded in the Euclidean space E^3
+            sage: A.embedding().display()
+            A --> E^3
+               (x0, x1) |--> (x, y, z) = (-1/2*x0 - 1/3*x1 + 1, 1/2*x0 - 1/3*x1, 2/3*x1)
+            sage: A.embedding().inverse().display()
+            E^3 --> A
+               (x, y, z) |--> (x0, x1) = (-x + y + 1, -1/2*x - 1/2*y + z + 1/2)
 
         """
         if ambient_space is None:
@@ -10440,12 +10456,17 @@ class Polyhedron_base(Element):
             names = tuple(f'x{i}' for i in range(self.dim()))
         CH = H.chart(names=names)
 
-        # The inverse
-        A, b = self.affine_hull_projection(as_affine_map=True, **kwds)
+        data = self.affine_hull_projection(return_all_data=True, **kwds)
+        projection_linear_map, projection_translation_vector = data['projection_map']
+        projection_matrix = projection_linear_map.matrix().transpose()
+        section_linear_map, section_translation_vector = data['section_map']
+        section_matrix = section_linear_map.matrix().transpose()
 
-
-        #phi = H.continuous_map(ambient_space, {(CH, CE): ....}
-        #H.set_embedding()
+        phi = H.continuous_map(ambient_space, {(CH, CE):
+                                               (section_matrix * vector(CH._xx) + section_translation_vector).list()})
+        phi_inv = ambient_space.continuous_map(H, {(CE, CH):
+                                                   (projection_matrix * vector(CE._xx) + projection_translation_vector).list()})
+        H.set_embedding(phi, inverse=phi_inv)
         return H
 
     def _polymake_init_(self):

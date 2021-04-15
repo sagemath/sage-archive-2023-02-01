@@ -256,22 +256,31 @@ class TopologicalSubmanifold(TopologicalManifold):
 
     def open_subset(self, name, latex_name=None, coord_def={}):
         r"""
-        Create a subset of the current subset.
+        Create an open subset of the manifold.
+
+        An open subset is a set that is (i) included in the manifold and (ii)
+        open with respect to the manifold's topology. It is a topological
+        manifold by itself.
+
+        As ``self`` is a submanifold of its ambient manifold,
+        the new open subset is also considered a submanifold of that.
+        Hence the returned object is an instance of
+        :class:`TopologicalSubmanifold`.
 
         INPUT:
 
-        - ``name`` -- name given to the subset
+        - ``name`` -- name given to the open subset
         - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote
           the subset; if none are provided, it is set to ``name``
-        - ``is_open`` -- (default: ``False``) if ``True``, the created subset
-          is assumed to be open with respect to the manifold's topology
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
 
         OUTPUT:
 
-        - the subset, as an instance of :class:`ManifoldSubset`, or
-          of the derived class
+        - the open subset, as an instance of
           :class:`~sage.manifolds.manifold.topological_submanifold.TopologicalSubmanifold`
-          if ``is_open`` is ``True``
 
         EXAMPLES::
 

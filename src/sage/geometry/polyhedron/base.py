@@ -10412,22 +10412,29 @@ class Polyhedron_base(Element):
         if tester is None:
             tester = self._tester(**options)
 
+        if self.n_vertices() == 0:
+            # Does not work for the empty polyhedron.
+            return
+
         if self.n_vertices() > 30 or self.n_facets() > 30 or self.dim() > 6:
             # Avoid very long doctests.
             return
 
         data_sets = [None]*4
         data_sets[0] = self.affine_hull_projection(return_all_data=True)
-        data_sets[1] = self.affine_hull_projection(return_all_data=True,
-                                                   orthogonal=True,
-                                                   extend=True)
-        data_sets[2] = self.affine_hull_projection(return_all_data=True,
-                                                   orthonormal=True,
-                                                   extend=True)
-        data_sets[3] = self.affine_hull_projection(return_all_data=True,
-                                                   orthonormal=True,
-                                                   extend=True,
-                                                   minimal=True)
+        if self.is_compact():
+            data_sets[1] = self.affine_hull_projection(return_all_data=True,
+                                                       orthogonal=True,
+                                                       extend=True)
+            data_sets[2] = self.affine_hull_projection(return_all_data=True,
+                                                       orthonormal=True,
+                                                       extend=True)
+            data_sets[3] = self.affine_hull_projection(return_all_data=True,
+                                                       orthonormal=True,
+                                                       extend=True,
+                                                       minimal=True)
+        else:
+            data_sets = data_sets[:1]
 
         for i, data in enumerate(data_sets):
             M = data['projection_map'][0].matrix().transpose()
@@ -10436,9 +10443,13 @@ class Polyhedron_base(Element):
                                data['polyhedron'])
 
             M = data['section_map'][0].matrix().transpose()
+            if M.base_ring() is AA:
+                self_extend = self.change_ring(AA)
+            else:
+                self_extend = self
             tester.assertEqual(data['polyhedron'].linear_transformation(M)
                                + data['section_map'][1],
-                               self)
+                               self_extend)
             if i == 0:
                 tester.assertEqual(data['polyhedron'].base_ring(), self.base_ring())
             else:

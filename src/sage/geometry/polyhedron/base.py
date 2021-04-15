@@ -10204,6 +10204,26 @@ class Polyhedron_base(Element):
             sage: data['polyhedron'].linear_transformation(data['section_map'][0].matrix().transpose()) + data['section_map'][1] == S
             True
 
+        Same without ``orthogonal=True``::
+
+            sage: data = S.affine_hull_projection(return_all_data=True); data
+            {'polyhedron': A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices,
+             'projection_map': (Vector space morphism represented by the matrix:
+              [1 0]
+              [0 1]
+              [0 0]
+              Domain: Vector space of dimension 3 over Rational Field
+              Codomain: Vector space of dimension 2 over Rational Field,
+              (0, 0)),
+             'section_map': (Vector space morphism represented by the matrix:
+              [ 1  0 -1]
+              [ 0  1 -1]
+              Domain: Vector space of dimension 2 over Rational Field
+              Codomain: Vector space of dimension 3 over Rational Field,
+              (0, 0, 1))}
+            sage: data['polyhedron'].linear_transformation(data['section_map'][0].matrix().transpose()) + data['section_map'][1] == S
+            True
+
         ::
 
             sage: P0 = Polyhedron(

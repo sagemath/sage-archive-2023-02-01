@@ -298,6 +298,7 @@ class FMatrix():
         self.ideal_basis = list()
         self._solved = set()
         self._ks = dict()
+        self._kp = dict()
         self._nnz = self._get_known_nonz()
         self._chkpt_status = -1
 

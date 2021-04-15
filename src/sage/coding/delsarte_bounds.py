@@ -409,7 +409,6 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
     """
     from sage.numerical.mip import MIPSolverException
     A, p = _delsarte_LP_building(n, d, 0, q, isinteger, solver)
-    p.show()
     try:
         bd=p.solve()
     except MIPSolverException as exc:

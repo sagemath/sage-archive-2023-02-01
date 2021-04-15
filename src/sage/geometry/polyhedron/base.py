@@ -10312,6 +10312,9 @@ class Polyhedron_base(Element):
 
         result = {}
 
+        if self.is_empty():
+            raise ValueError('affine hull projection of an empty polyhedron is undefined')
+
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
             result['polyhedron'] = self
@@ -10415,8 +10418,8 @@ class Polyhedron_base(Element):
         if tester is None:
             tester = self._tester(**options)
 
-        if self.n_vertices() == 0:
-            # Does not work for the empty polyhedron.
+        if self.is_empty():
+            # Undefined, nothing to test
             return
 
         if self.n_vertices() > 30 or self.n_facets() > 30 or self.dim() > 6:

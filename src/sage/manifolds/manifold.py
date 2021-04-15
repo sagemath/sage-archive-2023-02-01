@@ -872,6 +872,10 @@ class TopologicalManifold(ManifoldSubset):
                                    base_manifold=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
+        self._init_open_subset(resu, coord_def=coord_def)
+        return resu
+
+    def _init_open_subset(self, resu, coord_def):
         resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
@@ -888,7 +892,6 @@ class TopologicalManifold(ManifoldSubset):
             for chart2 in coord_def:
                 if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
                     self._coord_changes[(chart1, chart2)].restrict(resu)
-        return resu
 
     def get_chart(self, coordinates, domain=None):
         r"""

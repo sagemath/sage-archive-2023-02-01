@@ -181,6 +181,8 @@ class WordDatatype_morphic(WordDatatype_callable):
         vMk = vector([1]*len(self._alphabet))
         length_of_images = [vMk]
         while vMk[position] <= n:
+            if vMk == vMk*M:
+                raise ValueError('The morphism has a finite fixed point of length {}.'.format(vMk[position]))
             vMk = vMk*M
             length_of_images.append(vMk)
         length_of_images.pop()

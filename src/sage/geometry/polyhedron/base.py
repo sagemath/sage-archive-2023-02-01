@@ -10449,7 +10449,7 @@ class Polyhedron_base(Element):
             ....:     F.as_polyhedron().affine_hull_manifold(name=f'F{i}', orthogonal=True, ambient_space=E3)
             ....:     for i, F in enumerate(D.facets())]
             sage: sum(FM.plot({}, srange(-2, 2, 0.1), srange(-2, 2, 0.1), opacity=0.2)
-            ....:     for FM in submanifolds)  # not tested
+            ....:     for FM in submanifolds) + D.plot() # not tested
 
         """
         if ambient_space is None:

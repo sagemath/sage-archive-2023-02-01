@@ -10461,7 +10461,7 @@ class Polyhedron_base(Element):
         from sage.manifolds.manifold import Manifold
         if name is None:
             name = 'H'
-        H = Manifold(self.dim(), name, ambient=ambient_space,
+        H = Manifold(self.dim(), name, ambient=ambient_space, structure="Riemannian",
                      latex_name=latex_name, start_index=start_index)
         if names is None:
             names = tuple(f'x{i}' for i in range(self.dim()))
@@ -10473,10 +10473,10 @@ class Polyhedron_base(Element):
         section_linear_map, section_translation_vector = data['section_map']
         section_matrix = section_linear_map.matrix().transpose()
 
-        phi = H.continuous_map(ambient_space, {(CH, CE):
-                                               (section_matrix * vector(CH._xx) + section_translation_vector).list()})
-        phi_inv = ambient_space.continuous_map(H, {(CE, CH):
-                                                   (projection_matrix * vector(CE._xx) + projection_translation_vector).list()})
+        phi = H.diff_map(ambient_space, {(CH, CE):
+                                         (section_matrix * vector(CH._xx) + section_translation_vector).list()})
+        phi_inv = ambient_space.diff_map(H, {(CE, CH):
+                                             (projection_matrix * vector(CE._xx) + projection_translation_vector).list()})
         H.set_embedding(phi, inverse=phi_inv)
         return H
 

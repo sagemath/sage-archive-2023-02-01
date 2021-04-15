@@ -254,6 +254,80 @@ class TopologicalSubmanifold(TopologicalManifold):
         return "{}-dimensional {} submanifold {} immersed in the {}".format(
                 self._dim, self._structure.name, self._name, self._ambient)
 
+    def open_subset(self, name, latex_name=None, coord_def={}):
+        r"""
+        Create a subset of the current subset.
+
+        INPUT:
+
+        - ``name`` -- name given to the subset
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote
+          the subset; if none are provided, it is set to ``name``
+        - ``is_open`` -- (default: ``False``) if ``True``, the created subset
+          is assumed to be open with respect to the manifold's topology
+
+        OUTPUT:
+
+        - the subset, as an instance of :class:`ManifoldSubset`, or
+          of the derived class
+          :class:`~sage.manifolds.manifold.topological_submanifold.TopologicalSubmanifold`
+          if ``is_open`` is ``True``
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological"); N
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the 2-dimensional topological submanifold N immersed in the 3-dimensional topological manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            2-dimensional topological submanifold O immersed in the
+             3-dimensional topological manifold M
+
+            sage: phi = N.continuous_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional topological submanifold N embedded in the
+             3-dimensional topological manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the 2-dimensional topological submanifold N embedded in the
+             3-dimensional topological manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            2-dimensional topological submanifold O embedded in the
+             3-dimensional topological manifold M
+
+        """
+        resu = TopologicalSubmanifold(self._dim, name, self._field,
+                                      self._structure, self._ambient,
+                                      base_manifold=self._manifold,
+                                      latex_name=latex_name,
+                                      start_index=self._sindex)
+        ## Copy of TopologicalManifold.open_subset. Refactor?
+        resu._calculus_method = self._calculus_method
+        resu._supersets.update(self._supersets)
+        for sd in self._supersets:
+            sd._subsets.add(resu)
+        self._top_subsets.add(resu)
+        # Charts on the result from the coordinate definition:
+        for chart, restrictions in coord_def.items():
+            if chart not in self._atlas:
+                raise ValueError("the {} does not belong to ".format(chart) +
+                                 "the atlas of {}".format(self))
+            chart.restrict(resu, restrictions)
+        # Transition maps on the result inferred from those of self:
+        for chart1 in coord_def:
+            for chart2 in coord_def:
+                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
+                    self._coord_changes[(chart1, chart2)].restrict(resu)
+        ## Extras for Submanifold
+        if self._immersed:
+            resu.set_immersion(self._immersion.restrict(resu),
+                               var=self._var, t_inverse=self._t_inverse)
+        if self._embedded:
+            resu.declare_embedding()
+        return resu
+
     def set_immersion(self, phi, inverse=None, var=None,
                       t_inverse=None):
         r"""

@@ -245,6 +245,35 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
 
         - the open subset, as an instance of :class:`DifferentiableSubmanifold`
 
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure="differentiable")
+            sage: N = Manifold(2, 'N', ambient=M, structure="differentiable"); N
+            2-dimensional differentiable submanifold N immersed in the
+             3-dimensional differentiable manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional differentiable submanifold N immersed in the
+              3-dimensional differentiable manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional differentiable submanifold N immersed in the
+              3-dimensional differentiable manifold M
+
+            sage: phi = N.diff_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional differentiable submanifold N embedded in the
+             3-dimensional differentiable manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional differentiable submanifold N embedded in the
+              3-dimensional differentiable manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional differentiable submanifold N embedded in the
+              3-dimensional differentiable manifold M
+
         """
         resu = DifferentiableSubmanifold(self._dim, name, self._field,
                                          self._structure, ambient=self._ambient,

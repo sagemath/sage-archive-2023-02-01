@@ -421,6 +421,35 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         - instance of :class:`PseudoRiemannianSubmanifold` representing the
           created open subset
 
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian"); N
+            2-dimensional Riemannian submanifold N immersed in the
+             3-dimensional Riemannian manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional Riemannian submanifold N immersed in the
+              3-dimensional Riemannian manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional Riemannian submanifold N immersed in the
+              3-dimensional Riemannian manifold M
+
+            sage: phi = N.diff_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional Riemannian submanifold N embedded in the
+             3-dimensional Riemannian manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional Riemannian submanifold N embedded in the
+              3-dimensional Riemannian manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional Riemannian submanifold N embedded in the
+              3-dimensional Riemannian manifold M
+
         """
         resu = PseudoRiemannianSubmanifold(self._dim, name,
                                            ambient=self._ambient,

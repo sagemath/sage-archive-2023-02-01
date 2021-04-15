@@ -293,8 +293,9 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: S = N.subset('S'); S
             Subset S of the 2-dimensional topological submanifold N immersed in the 3-dimensional topological manifold M
             sage: O = N.subset('O', is_open=True); O  # indirect doctest
-            2-dimensional topological submanifold O immersed in the
-             3-dimensional topological manifold M
+            Open subset O of the
+             2-dimensional topological submanifold N immersed in the
+              3-dimensional topological manifold M
 
             sage: phi = N.continuous_map(M)
             sage: N.set_embedding(phi)
@@ -302,11 +303,13 @@ class TopologicalSubmanifold(TopologicalManifold):
             2-dimensional topological submanifold N embedded in the
              3-dimensional topological manifold M
             sage: S = N.subset('S'); S
-            Subset S of the 2-dimensional topological submanifold N embedded in the
-             3-dimensional topological manifold M
+            Subset S of the
+             2-dimensional topological submanifold N embedded in the
+              3-dimensional topological manifold M
             sage: O = N.subset('O', is_open=True); O  # indirect doctest
-            2-dimensional topological submanifold O embedded in the
-             3-dimensional topological manifold M
+            Open subset O of the
+             2-dimensional topological submanifold N embedded in the
+              3-dimensional topological manifold M
 
         """
         resu = TopologicalSubmanifold(self._dim, name, self._field,

@@ -390,6 +390,72 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         return "{}-dimensional {} submanifold {} immersed in the {}".format(
                 self._dim, self._structure.name, self._name, self._ambient)
 
+    def open_subset(self, name, latex_name=None, coord_def={}):
+        r"""
+        Create an open subset of ``self``.
+
+        An open subset is a set that is (i) included in the manifold and (ii)
+        open with respect to the manifold's topology. It is a differentiable
+        manifold by itself. Moreover, equipped with the restriction of the
+        manifold metric to itself, it is a pseudo-Riemannian manifold.
+
+        As ``self`` is a submanifold of its ambient manifold,
+        the new open subset is also considered a submanifold of that.
+        Hence the returned object is an instance of
+        :class:`PseudoRiemannianSubmanifold`.
+
+        INPUT:
+
+        - ``name`` -- name given to the open subset
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          subset; if none is provided, it is set to ``name``
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts in the manifold's atlas and values the symbolic expressions
+          formed by the coordinates to define the subset.
+
+        OUTPUT:
+
+        - instance of :class:`PseudoRiemannianSubmanifold` representing the
+          created open subset
+
+        """
+        resu = PseudoRiemannianSubmanifold(self._dim, name,
+                                           ambient=self._ambient,
+                                           metric_name=self._metric_name,
+                                           signature=self._metric_signature,
+                                           base_manifold=self._manifold,
+                                           diff_degree=self._diff_degree,
+                                           latex_name=latex_name,
+                                           metric_latex_name=self._metric_latex_name,
+                                           start_index=self._sindex)
+        ## Copy of PseudoRiemannianManifold.open_subset. Refactor?
+        resu._calculus_method = self._calculus_method
+        resu._supersets.update(self._supersets)
+        for sd in self._supersets:
+            sd._subsets.add(resu)
+        self._top_subsets.add(resu)
+        # Charts on the result from the coordinate definition:
+        for chart, restrictions in coord_def.items():
+            if chart not in self._atlas:
+                raise ValueError("the {} does not belong to ".format(chart) +
+                                 "the atlas of {}".format(self))
+            chart.restrict(resu, restrictions)
+        # Transition maps on the result inferred from those of self:
+        for chart1 in coord_def:
+            for chart2 in coord_def:
+                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
+                    self._coord_changes[(chart1, chart2)].restrict(resu)
+        #!# update non-coordinate vector frames and change of frames
+        #
+        ## Extras for Submanifold
+        if self._immersed:
+            resu.set_immersion(self._immersion.restrict(resu),
+                               var=self._var, t_inverse=self._t_inverse)
+        if self._embedded:
+            resu.declare_embedding()
+        return resu
+
     def ambient_metric(self):
         r"""
         Return the metric of the ambient manifold.

@@ -10392,7 +10392,7 @@ class Polyhedron_base(Element):
             if return_all_data:
                 E = M.echelon_form()
                 L_section = linear_transformation(matrix(len(pivots), self.ambient_dim(),
-                                                         [E[i] for i in pivots]).transpose(),
+                                                         [E[i] for i in range(len(pivots))]).transpose(),
                                                   side='right')
                 result['section_map'] = (L_section, v0 - L_section(L(v0) + image_translation))
 

@@ -1024,10 +1024,10 @@ class Polyhedron_base(Element):
             sage: fcube = polytopes.hypercube(4)
             sage: tfcube = fcube.face_truncation(fcube.faces(0)[0])
             sage: sp = tfcube.schlegel_projection()
-            sage: for face in tfcube.faces(2): 
-            ....:     vertices = face.ambient_Vrepresentation() 
-            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices] 
-            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices] 
+            sage: for face in tfcube.faces(2):
+            ....:     vertices = face.ambient_Vrepresentation()
+            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices]
+            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices]
             ....:     assert Polyhedron(projected_vertices).dim() == 2
         """
         def merge_options(*opts):
@@ -10300,7 +10300,6 @@ class Polyhedron_base(Element):
             sage: _ = P.affine_hull()
             doctest:...: DeprecationWarning: affine_hull is deprecated. Please use affine_hull_projection instead.
             See https://trac.sagemath.org/29326 for details.
-
         """
         if as_polyhedron is None:
             as_polyhedron = not as_affine_map
@@ -10363,7 +10362,7 @@ class Polyhedron_base(Element):
                 result['projection_map'] = (L, image_translation)
             if return_all_data:
                 L_dagger = linear_transformation(A.transpose() * (A * A.transpose()).inverse(), side='right')
-                result['section_map'] = (L_dagger, v0)
+                result['section_map'] = (L_dagger, v0.change_ring(A.base_ring()))
         else:
             # translate one vertex to the origin
             v0 = self.vertices()[0].vector()
@@ -10379,7 +10378,7 @@ class Polyhedron_base(Element):
             M = matrix(gens)
             pivots = M.pivots()
 
-            A = matrix([[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
+            A = matrix(self.base_ring(), [[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
             if as_affine_map:
                 image_translation = vector(self.base_ring(), self.dim())
                 L = linear_transformation(A, side='right')
@@ -10400,6 +10399,69 @@ class Polyhedron_base(Element):
             return result['polyhedron']
 
     affine_hull = deprecated_function_alias(29326, affine_hull_projection)
+
+    def _test_affine_hull_projection(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.affine_hull_projection`.
+
+        TESTS::
+
+            sage: D = polytopes.dodecahedron()
+            sage: D.facets()[0].as_polyhedron()._test_affine_hull_projection()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if self.n_vertices() == 0:
+            # Does not work for the empty polyhedron.
+            return
+
+        if self.n_vertices() > 30 or self.n_facets() > 30 or self.dim() > 6:
+            # Avoid very long doctests.
+            return
+
+        data_sets = [None]*4
+        data_sets[0] = self.affine_hull_projection(return_all_data=True)
+        if self.is_compact():
+            data_sets[1] = self.affine_hull_projection(return_all_data=True,
+                                                       orthogonal=True,
+                                                       extend=True)
+            data_sets[2] = self.affine_hull_projection(return_all_data=True,
+                                                       orthonormal=True,
+                                                       extend=True)
+            data_sets[3] = self.affine_hull_projection(return_all_data=True,
+                                                       orthonormal=True,
+                                                       extend=True,
+                                                       minimal=True)
+        else:
+            data_sets = data_sets[:1]
+
+        for i, data in enumerate(data_sets):
+            M = data['projection_map'][0].matrix().transpose()
+            tester.assertEqual(self.linear_transformation(M, new_base_ring=M.base_ring())
+                               + data['projection_map'][1],
+                               data['polyhedron'])
+
+            M = data['section_map'][0].matrix().transpose()
+            if M.base_ring() is AA:
+                self_extend = self.change_ring(AA)
+            else:
+                self_extend = self
+            tester.assertEqual(data['polyhedron'].linear_transformation(M)
+                               + data['section_map'][1],
+                               self_extend)
+            if i == 0:
+                tester.assertEqual(data['polyhedron'].base_ring(), self.base_ring())
+            else:
+                # Test whether the map is orthogonal.
+                M = data['projection_map'][0].matrix()
+                tester.assertTrue((M.transpose() * M).is_diagonal())
+                if i > 1:
+                    # Test whether the map is orthonormal.
+                    tester.assertTrue((M.transpose() * M).is_one())
+            if i == 3:
+                # Test that the extension is indeed minimal.
+                tester.assertFalse(data['polyhedron'].base_ring() is AA)
 
     def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                              names=None, **kwds):

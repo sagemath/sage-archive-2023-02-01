@@ -1294,8 +1294,8 @@ class FMatrix():
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1)]))
             11
             sage: from multiprocessing import Pool
-            sage: pool = Pool()
-            sage: mp_params = [(i,pool._processes) for i in range(pool._processes)]
+            sage: pool = None
+            sage: mp_params = [(0,1)]
             sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=pool,chunksize=1,mp_thresh=0))
             33
         """
@@ -1457,7 +1457,7 @@ class FMatrix():
             ....:     set_start_method('fork')
             ....: except:
             ....:     pass
-            sage: pool = Pool()
+            sage: pool = None
             sage: he = f.get_defining_equations('hexagons',pool)
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
             True
@@ -1477,7 +1477,7 @@ class FMatrix():
             ....:     set_start_method('fork')
             ....: except:
             ....:     pass
-            sage: pool = Pool()
+            sage: pool = None
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
             sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
@@ -1688,18 +1688,19 @@ class FMatrix():
             ....:     set_start_method('fork') # context can be set only once
             ....: except RuntimeError:
             ....:     pass
-            sage: pool = Pool()
+            sage: pool = None
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
             sage: gb = f._par_graph_gb(worker_pool=pool)
             Partitioned 10 equations into 2 components of size:
             [4, 1]
             sage: from sage.combinat.root_system.poly_tup_engine import _unflatten_coeffs
-            sage: [f._tup_to_fpoly(_unflatten_coeffs(f.field(), t)) for t in gb]
-            [fx0 - 1,
+            sage: ret = [f._tup_to_fpoly(_unflatten_coeffs(f.field(), t)) for t in gb]
+            sage: ret.sort(); ret
+            [fx4 + (-zeta80^24 + zeta80^16),
              fx2 - fx3,
-             fx3^2 + (zeta80^24 - zeta80^16),
-             fx4 + (-zeta80^24 + zeta80^16),
-             fx1 + (zeta80^24 - zeta80^16)]
+             fx1 + (zeta80^24 - zeta80^16),
+             fx0 - 1,
+             fx3^2 + (zeta80^24 - zeta80^16)]
         """
         if eqns is None: eqns = self.ideal_basis
         small_comps = list()
@@ -1940,7 +1941,7 @@ class FMatrix():
         self._FR._field = self.field()
         self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
 
-    def find_orthogonal_solution(self, checkpoint=False, save_results="", warm_start="", use_mp=True, verbose=True):
+    def find_orthogonal_solution(self, checkpoint=False, save_results="", warm_start="", use_mp=False, verbose=True):
         r"""
         Solve the the hexagon and pentagon relations, along with
         orthogonality constraints, to evaluate an orthogonal F-matrix.

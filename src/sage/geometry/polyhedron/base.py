@@ -10356,7 +10356,8 @@ class Polyhedron_base(Element):
                 gens.append(l.vector())
 
             # Pick subset of coordinates to coordinatize the affine span
-            pivots = matrix(gens).pivots()
+            M = matrix(gens)
+            pivots = M.pivots()
 
             A = matrix([[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
             if as_affine_map:
@@ -10366,7 +10367,9 @@ class Polyhedron_base(Element):
             if as_polyhedron:
                 result['polyhedron'] = A*self
             if return_all_data:
-                raise NotImplementedError
+                E = M.echelon_form()
+                L_section = linear_transformation(matrix([E[i] for i in pivots]).transpose(), side='right')
+                result['section_map'] = (L_section, v0 - L_section(L(v0) + image_translation))
 
         # assemble result
         if return_all_data or (as_polyhedron and as_affine_map):

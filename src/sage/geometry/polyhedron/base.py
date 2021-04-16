@@ -10312,6 +10312,9 @@ class Polyhedron_base(Element):
 
         result = {}
 
+        if self.is_empty():
+            raise ValueError('affine hull projection of an empty polyhedron is undefined')
+
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
             result['polyhedron'] = self
@@ -10378,7 +10381,8 @@ class Polyhedron_base(Element):
             M = matrix(gens)
             pivots = M.pivots()
 
-            A = matrix(self.base_ring(), [[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
+            A = matrix(self.base_ring(), len(pivots), self.ambient_dim(),
+                       [[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
             if as_affine_map:
                 image_translation = vector(self.base_ring(), self.dim())
                 L = linear_transformation(A, side='right')
@@ -10387,7 +10391,9 @@ class Polyhedron_base(Element):
                 result['polyhedron'] = A*self
             if return_all_data:
                 E = M.echelon_form()
-                L_section = linear_transformation(matrix([E[i] for i in pivots]).transpose(), side='right')
+                L_section = linear_transformation(matrix(len(pivots), self.ambient_dim(),
+                                                         [E[i] for i in range(len(pivots))]).transpose(),
+                                                  side='right')
                 result['section_map'] = (L_section, v0 - L_section(L(v0) + image_translation))
 
         # assemble result
@@ -10412,8 +10418,8 @@ class Polyhedron_base(Element):
         if tester is None:
             tester = self._tester(**options)
 
-        if self.n_vertices() == 0:
-            # Does not work for the empty polyhedron.
+        if self.is_empty():
+            # Undefined, nothing to test
             return
 
         if self.n_vertices() > 30 or self.n_facets() > 30 or self.dim() > 6:

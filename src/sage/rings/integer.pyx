@@ -3470,7 +3470,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Check that :trac:`29009` is fixed:
 
-            sage: divmod(1, sys.maxsize+1r)
+            sage: divmod(1, sys.maxsize+1r)  # should not raise OverflowError: Python int too large to convert to C long
             (0, 1)
             sage: import mpmath
             sage: mpmath.mp.prec = 1000

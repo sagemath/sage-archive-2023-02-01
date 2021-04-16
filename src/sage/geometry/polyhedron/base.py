@@ -10183,8 +10183,7 @@ class Polyhedron_base(Element):
         Return all data::
 
             sage: data = S.affine_hull_projection(orthogonal=True, return_all_data=True); data
-            {'parametric_form': ((1, 0, 0), ((-1, 1, 0), (-1, 0, 1))),
-             'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+            {'polyhedron': A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
              'projection_map': (Vector space morphism represented by the matrix:
               [  -1 -1/2]
               [   1 -1/2]
@@ -10333,8 +10332,6 @@ class Polyhedron_base(Element):
             v0 = affine_basis[0].vector()
             # We implicitly translate the first vertex of the affine basis to zero.
             vi = tuple(v.vector() - v0 for v in affine_basis[1:])
-            if return_all_data:
-                result['parametric_form'] = (v0, vi)
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), vi)
 
             # Switch base_ring to AA if necessary,

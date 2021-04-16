@@ -10403,7 +10403,7 @@ class Polyhedron_base(Element):
 
     affine_hull = deprecated_function_alias(29326, affine_hull_projection)
 
-    def _test_affine_hull_projection(self, tester=None, **options):
+    def _test_affine_hull_projection(self, tester=None, verbose=False, **options):
         """
         Run tests on the method :meth:`.affine_hull_projection`.
 
@@ -10440,6 +10440,8 @@ class Polyhedron_base(Element):
             data_sets = data_sets[:1]
 
         for i, data in enumerate(data_sets):
+            if verbose:
+                print("Running test number {}".format(i))
             M = data['projection_map'][0].matrix().transpose()
             tester.assertEqual(self.linear_transformation(M, new_base_ring=M.base_ring())
                                + data['projection_map'][1],
@@ -10464,7 +10466,8 @@ class Polyhedron_base(Element):
                     tester.assertTrue((M.transpose() * M).is_one())
             if i == 3:
                 # Test that the extension is indeed minimal.
-                tester.assertFalse(data['polyhedron'].base_ring() is AA)
+                if self.base_ring() is not AA:
+                    tester.assertFalse(data['polyhedron'].base_ring() is AA)
 
     def _polymake_init_(self):
         """

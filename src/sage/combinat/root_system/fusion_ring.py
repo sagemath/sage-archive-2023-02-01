@@ -1184,7 +1184,7 @@ class FusionRing(WeylCharacterRing):
             a single process. If ``worker_pool`` is provided, the function
             attempts to determine whether it should use multiprocessing
             based on the length of the input iterable. If it cannot determine
-            the length of the input iterable then it uses multiprocessing 
+            the length of the input iterable then it uses multiprocessing
             with the default chunksize of `1` if chunksize is not
             explicitly provided.
 
@@ -1227,7 +1227,7 @@ class FusionRing(WeylCharacterRing):
                             checkpoint=False,
                             save_results="",
                             warm_start="",
-                            use_mp=True,
+                            use_mp=False,
                             verbose=True):
         r"""
         Compute generators of the Artin braid group on ``n_strands`` strands.

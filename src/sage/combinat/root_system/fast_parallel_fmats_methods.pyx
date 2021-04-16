@@ -349,7 +349,7 @@ cpdef compute_gb(factory, tuple args):
         ....:     set_start_method('fork') # context can be set only once
         ....: except RuntimeError:
         ....:     pass
-        sage: f.get_defining_equations('hexagons',worker_pool=Pool(),output=False)  # long time
+        sage: f.get_defining_equations('hexagons',worker_pool=None,output=False)  # long time
         sage: partition = f._partition_eqns()  # long time
         Partitioned 261 equations into 57 components of size:
         [24, 12, 12, 12, 12, 12, 12, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
@@ -421,7 +421,7 @@ cpdef update_child_fmats(factory, tuple data_tup):
         ....:     set_start_method('fork') # context can be set only once
         ....: except RuntimeError:
         ....:     pass
-        sage: pool = Pool()
+        sage: pool = None
         sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
         sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
         sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey

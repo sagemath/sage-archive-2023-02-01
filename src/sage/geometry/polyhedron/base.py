@@ -10494,6 +10494,12 @@ class Polyhedron_base(Element):
             sage: A.embedding().inverse().display()
             E^3 --> A
                (x, y, z) |--> (x0, x1) = (x, y)
+            sage: A.adapted_chart()
+            [Chart (E^3, (x0_E3, x1_E3, t0_E3))]
+            sage: A.normal().display()
+            n = 1/3*sqrt(3) e_x + 1/3*sqrt(3) e_y + 1/3*sqrt(3) e_z
+            sage: A.volume_form()
+            2-form eps_gamma on the 2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
 
         Orthogonal version::
 
@@ -10538,11 +10544,26 @@ class Polyhedron_base(Element):
         section_linear_map, section_translation_vector = data['section_map']
         section_matrix = section_linear_map.matrix().transpose()
 
+        from sage.symbolic.ring import SR
+        # We use the slacks of the (linear independent) equations as the foliation parameters
+        foliation_parameters = vector(SR.var(f't{i}') for i in range(self.ambient_dim() - self.dim()))
+        normal_matrix = matrix(equation.A() for equation in self.equation_generator()).transpose()
+        slack_matrix = normal_matrix.pseudoinverse()
+
+        projection_linear_map.matrix().transpose().right_kernel_matrix().transpose()
+
         phi = H.diff_map(ambient_space, {(CH, CE):
-                                         (section_matrix * vector(CH._xx) + section_translation_vector).list()})
+                                         (section_matrix * vector(CH._xx) + section_translation_vector
+                                          + normal_matrix * foliation_parameters).list()})
         phi_inv = ambient_space.diff_map(H, {(CE, CH):
                                              (projection_matrix * vector(CE._xx) + projection_translation_vector).list()})
-        H.set_embedding(phi, inverse=phi_inv)
+
+        foliation_scalar_fields = {parameter:
+                                   ambient_space.scalar_field({CE: slack_matrix.row(i) * (vector(CE._xx) - section_translation_vector)})
+                                   for i, parameter in enumerate(foliation_parameters)}
+
+        H.set_embedding(phi, inverse=phi_inv,
+                        var=list(foliation_parameters), t_inverse=foliation_scalar_fields)
         return H
 
     def _polymake_init_(self):

@@ -876,6 +876,29 @@ class TopologicalManifold(ManifoldSubset):
         return resu
 
     def _init_open_subset(self, resu, coord_def):
+        r"""
+        Initialize ``resu`` as an open subset of ``self``.
+
+        INPUT:
+
+        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+          a subclass.
+
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: from sage.manifolds.manifold import TopologicalManifold
+            sage: U = TopologicalManifold(2, 'U', field=M._field, structure=M._structure, base_manifold=M)
+            sage: M._init_open_subset(U, coord_def={c_cart: x^2+y^2<1})
+            sage: U
+            Open subset U of the 2-dimensional topological manifold R^2
+        """
         resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:

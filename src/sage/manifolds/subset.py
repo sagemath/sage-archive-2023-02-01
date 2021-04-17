@@ -653,6 +653,39 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return sorted(self._subsets, key=lambda x: x._name)
 
+    def subset_digraph(self, loops=False):
+        r"""
+        Return the digraph whose arcs represent subset relations among the subsets of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: D = M.subset_digraph(); D
+            sage: D.plot(layout='acyclic')   # not tested
+            sage: VW = V.union(W)
+            sage: D = M.subset_digraph(); D
+            sage: D.plot(layout='acyclic')   # not tested
+
+
+        """
+        from sage.graphs.digraph import DiGraph
+        D = DiGraph(multiedges=False, loops=loops)
+        visited = set()
+        to_visit = [self]
+        while to_visit:
+            S = to_visit.pop()
+            if S not in visited:
+                visited.add(S)
+                subsets_without_self = [subset for subset in S._subsets
+                                        if subset is not S]
+                if loops:
+                    D.add_edges((subset, S) for subset in S._subsets)
+                else:
+                    D.add_edges((subset, S) for subset in subsets_without_self)
+                to_visit.extend(subsets_without_self)
+        return D
+
     def get_subset(self, name):
         r"""
         Get a subset by its name.

@@ -231,13 +231,13 @@ class SphericalHarmonic(BuiltinFunction):
 
         Check whether :trac:`25034` yields correct results compared to Maxima::
 
-            sage: spherical_harmonic(1,1,pi/3,pi/6).n()
+            sage: spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
             0.259120612103502 + 0.149603355150537*I
-            sage: maxima.spherical_harmonic(1,1,pi/3,pi/6).n()
+            sage: maxima.spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
             0.259120612103502 + 0.149603355150537*I
-            sage: spherical_harmonic(1,-1,pi/3,pi/6).n()
+            sage: spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
             -0.259120612103502 + 0.149603355150537*I
-            sage: maxima.spherical_harmonic(1,-1,pi/3,pi/6).n()
+            sage: maxima.spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
             -0.259120612103502 + 0.149603355150537*I
 
         """

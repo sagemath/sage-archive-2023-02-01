@@ -1498,7 +1498,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         -1/8*(x^2 - 1)*x
         sage: gen_legendre_P(1, -2, x)
         0
-        sage: gen_legendre_P(-5/3,3,1.+I)
+        sage: gen_legendre_P(-5/3,3,1.+I) # abs tol 1e-14
         0.238163715352606 + 0.0548443903534220*I
 
     TESTS:

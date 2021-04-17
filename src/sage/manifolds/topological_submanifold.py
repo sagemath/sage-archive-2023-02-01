@@ -291,7 +291,9 @@ class TopologicalSubmanifold(TopologicalManifold):
             2-dimensional topological submanifold N immersed in the
              3-dimensional topological manifold M
             sage: S = N.subset('S'); S
-            Subset S of the 2-dimensional topological submanifold N immersed in the 3-dimensional topological manifold M
+            Subset S of the
+             2-dimensional topological submanifold N immersed in the
+              3-dimensional topological manifold M
             sage: O = N.subset('O', is_open=True); O  # indirect doctest
             Open subset O of the
              2-dimensional topological submanifold N immersed in the
@@ -321,6 +323,42 @@ class TopologicalSubmanifold(TopologicalManifold):
         return resu
 
     def _init_open_subset(self, resu, coord_def):
+        r"""
+        Initialize ``resu`` as an open subset of ``self``.
+
+        INPUT:
+
+        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+          a subclass.
+
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+
+        EXAMPLES:
+
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
+            sage: phi = N.continuous_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional topological submanifold N embedded in the
+             3-dimensional topological manifold M
+            sage: from sage.manifolds.topological_submanifold import TopologicalSubmanifold
+            sage: O = TopologicalSubmanifold(3, 'O', field=M._field, structure=M._structure,
+            ....:                            ambient=M, base_manifold=N)
+            sage: N._init_open_subset(O, {})
+            sage: O
+            Open subset O of the
+             2-dimensional topological submanifold N embedded in the
+              3-dimensional topological manifold M
+            sage: O.embedding()
+            Continuous map
+             from the Open subset O of the 2-dimensional topological submanifold N
+              embedded in the 3-dimensional topological manifold M
+             to the 3-dimensional topological manifold M
+        """
         super()._init_open_subset(resu, coord_def=coord_def)
         ## Extras for Submanifold
         if self._immersed:

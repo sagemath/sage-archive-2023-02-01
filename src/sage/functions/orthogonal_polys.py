@@ -1617,12 +1617,12 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
         TESTS::
 
-        sage: gen_legendre_P._eval_int_ord_deg_(-2, 1, x)
-        -sqrt(-x^2 + 1)
-        sage: gen_legendre_P._eval_int_ord_deg_(2, -1, x)
-        1/2*sqrt(-x^2 + 1)*x
-        sage: gen_legendre_P._eval_int_ord_deg_(-2, -1, x)
-        1/2*sqrt(-x^2 + 1)
+            sage: gen_legendre_P._eval_int_ord_deg_(-2, 1, x)
+            -sqrt(-x^2 + 1)
+            sage: gen_legendre_P._eval_int_ord_deg_(2, -1, x)
+            1/2*sqrt(-x^2 + 1)*x
+            sage: gen_legendre_P._eval_int_ord_deg_(-2, -1, x)
+            1/2*sqrt(-x^2 + 1)
 
         """
         # use connection formulas to fall back on non-negative n and m:

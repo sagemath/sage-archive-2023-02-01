@@ -1,20 +1,42 @@
 r"""
 Images of Continuous Maps as Manifold Subsets
+
+:class:`ImageManifoldSubset` implements the image of a continuous map `\Phi`
+from a manifold `M` to some manifold `N` as a subset `\Phi(M)` of `N`.
+
 """
+
+# ****************************************************************************
+#       Copyright (C) 2021 Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.manifolds.subset import ManifoldSubset
 
 class ImageManifoldSubset(ManifoldSubset):
+    r"""
+    Subset of a topological manifold that is the image of a continuous map.
+
+    INPUT:
+
+    - ``map`` -- continuous map `\Phi`
+    - ``inverse`` -- (default: ``None``) continuous map from
+      ``map.codomain()`` to ``map.domain()``, which once restricted to the image
+      of `\Phi` is the inverse of `\Phi` onto its image if the latter
+      exists (NB: no check of this is performed)
+
+    """
 
     def __init__(self, map, inverse=None, name=None, latex_name=None):
-        """
-        INPUT:
+        r"""
+        Construct a manifold subset that is the image of a continuous map.
 
-        - ``map`` -- continuous map `\phi`
-        - ``inverse`` -- (default: ``None``) continuous map from
-          ``map.codomain()`` to ``map.domain()``, which once restricted to the image
-          of `\phi` is the inverse of `\phi` onto its image if the latter
-          exists (NB: no check of this is performed)
+        TESTS::
 
         """
         self._map = map
@@ -51,9 +73,9 @@ class ImageManifoldSubset(ManifoldSubset):
             sage: CM.<x,y> = M.chart()
             sage: CN.<u> = N.chart()
             sage: CN.add_restrictions([u > -1, u < 1])
-            sage: phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='phi')
-            sage: phi_N = phi.image()
-            sage: p = phi_N.an_element(); p   # indirect doctest
+            sage: Phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='Phi')
+            sage: Phi_N = Phi.image()
+            sage: p = Phi_N.an_element(); p   # indirect doctest
             Point on the 2-dimensional topological manifold M
             sage: p.coordinates()
             (0, 1)
@@ -71,12 +93,12 @@ class ImageManifoldSubset(ManifoldSubset):
             sage: CM.<x,y> = M.chart()
             sage: CN.<u> = N.chart()
             sage: CN.add_restrictions([u > -1, u < 1])
-            sage: phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='phi')
-            sage: phi_inv = M.continuous_map(N, {(CM, CN): [x]}, name='phi_inv')
-            sage: phi_N = phi.image(inverse=phi_inv)
-            sage: M((0, 0)) in phi_N
+            sage: Phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='Phi')
+            sage: Phi_inv = M.continuous_map(N, {(CM, CN): [x]}, name='Phi_inv')
+            sage: Phi_N = Phi.image(inverse=Phi_inv)
+            sage: M((0, 0)) in Phi_N
             False
-            sage: M((0, 1)) in phi_N
+            sage: M((0, 1)) in Phi_N
             True
 
         """

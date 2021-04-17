@@ -827,9 +827,9 @@ class ContinuousMap(Morphism):
             sage: CM.<x,y> = M.chart()
             sage: CN.<u> = N.chart()
             sage: CN.add_restrictions([u > -1, u < 1])
-            sage: phi = N.continuous_map(M, {(CN,CM): [u, u^2]}, name='phi')
-            sage: phi.image()
-            Image of the Continuous map phi
+            sage: Phi = N.continuous_map(M, {(CN,CM): [u, u^2]}, name='Phi')
+            sage: Phi.image()
+            Image of the Continuous map Phi
               from the 1-dimensional topological submanifold N
                 immersed in the 2-dimensional topological manifold M
               to the 2-dimensional topological manifold M

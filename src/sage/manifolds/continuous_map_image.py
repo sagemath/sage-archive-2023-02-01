@@ -1,8 +1,10 @@
 r"""
-Images of Continuous Maps as Manifold Subsets
+Images of Manifold Subsets under Continuous Maps as Subsets of the Codomain
 
 :class:`ImageManifoldSubset` implements the image of a continuous map `\Phi`
-from a manifold `M` to some manifold `N` as a subset `\Phi(M)` of `N`.
+from a manifold `M` to some manifold `N` as a subset `\Phi(M)` of `N`,
+or more generally, the image `\Phi(S)` of a subset `S \subseteq M` as a
+subset of `N`.
 
 """
 
@@ -20,7 +22,7 @@ from sage.manifolds.subset import ManifoldSubset
 
 class ImageManifoldSubset(ManifoldSubset):
     r"""
-    Subset of a topological manifold that is the image of a continuous map.
+    Subset of a topological manifold that is a continuous image of a manifold subset.
 
     INPUT:
 
@@ -29,10 +31,15 @@ class ImageManifoldSubset(ManifoldSubset):
       ``map.codomain()`` to ``map.domain()``, which once restricted to the image
       of `\Phi` is the inverse of `\Phi` onto its image if the latter
       exists (NB: no check of this is performed)
-
+    - ``name`` -- (default: computed from the names of the map and the subset)
+       string; name (symbol) given to the subset
+    - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
+      denote the subset; if none is provided, it is set to ``name``
+    - ``domain_subset`` -- (default: the domain of ``map``) a subset of the domain of
+      ``map``
     """
 
-    def __init__(self, map, inverse=None, name=None, latex_name=None):
+    def __init__(self, map, inverse=None, name=None, latex_name=None, domain_subset=None):
         r"""
         Construct a manifold subset that is the image of a continuous map.
 
@@ -41,16 +48,19 @@ class ImageManifoldSubset(ManifoldSubset):
         """
         self._map = map
         self._inverse = inverse
+        if domain_subset is None:
+            domain_subset = map.domain()
+        self._domain_subset = domain_subset
         base_manifold = map.codomain()
         map_name = map._name or 'f'
         map_latex_name = map._latex_name or map_name
         if latex_name is None:
             if name is None:
-                latex_name = map_latex_name + r'(' + map.domain()._latex_name + ')'
+                latex_name = map_latex_name + r'(' + domain_subset._latex_name + ')'
             else:
                 latex_name = name
         if name is None:
-            name = map_name + '_' + map.domain()._name
+            name = map_name + '_' + domain_subset._name
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)
 
     def _repr_(self):
@@ -60,7 +70,10 @@ class ImageManifoldSubset(ManifoldSubset):
         TESTS::
 
         """
-        return "Image of the {}".format(self._map)
+        if self._domain_subset is self._map.domain():
+            return f"Image of the {self._map}"
+        else:
+            return f"Image of the {self._domain_subset} under the {self._map}"
 
     def _an_element_(self):
         r"""
@@ -80,7 +93,7 @@ class ImageManifoldSubset(ManifoldSubset):
             sage: p.coordinates()
             (0, 1)
         """
-        return self._map(self._map.domain().an_element())
+        return self._map(self._domain_subset.an_element())
 
     def __contains__(self, point):
         r"""
@@ -108,7 +121,7 @@ class ImageManifoldSubset(ManifoldSubset):
             return False
         if self._inverse is not None:
             preimage = self._inverse(point)
-            if preimage not in self._map.domain():
-                False
+            if preimage not in self._domain_subset:
+                return False
             return self._map(preimage) == point
         raise NotImplementedError

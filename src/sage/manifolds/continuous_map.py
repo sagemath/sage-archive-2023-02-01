@@ -818,7 +818,16 @@ class ContinuousMap(Morphism):
 
     def image(self, subset=None, inverse=None):
         """
-        Return the image of ``self``.
+        Return the image of ``self`` or the image of ``subset`` under ``self``.
+
+        INPUT:
+
+        - ``inverse`` -- (default: ``None``) continuous map from
+          ``map.codomain()`` to ``map.domain()``, which once restricted to the image
+          of `\Phi` is the inverse of `\Phi` onto its image if the latter
+          exists (NB: no check of this is performed)
+        - ``subset`` -- (default: the domain of ``map``) a subset of the domain of
+          ``self``
 
         EXAMPLES::
 
@@ -833,6 +842,18 @@ class ContinuousMap(Morphism):
               from the 1-dimensional topological submanifold N
                 immersed in the 2-dimensional topological manifold M
               to the 2-dimensional topological manifold M
+
+            sage: S = N.subset('S')
+            sage: Phi_S = Phi.image(S); Phi_S
+            Image of the Subset S of the
+             1-dimensional topological submanifold N
+              immersed in the 2-dimensional topological manifold M
+             under the Continuous map Phi
+              from the 1-dimensional topological submanifold N
+               immersed in the 2-dimensional topological manifold M
+             to the 2-dimensional topological manifold M
+            sage: Phi_S.is_subset(M)
+            True
         """
         from .continuous_map_image import ImageManifoldSubset
         if self._is_identity:
@@ -840,10 +861,7 @@ class ContinuousMap(Morphism):
                 return self.domain()
             else:
                 return subset
-        if subset is None:
-            return ImageManifoldSubset(self, inverse=inverse)
-        else:
-            return ImageManifoldSubset(self.restrict(subset), inverse=inverse)
+        return ImageManifoldSubset(self, inverse=inverse, domain_subset=subset)
 
     #
     # Monoid methods

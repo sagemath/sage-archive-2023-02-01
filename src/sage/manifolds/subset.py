@@ -659,39 +659,59 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         INPUT:
 
+        - ``loops`` -- (default: ``False``) whether to include the trivial containment
+          of each subset in itself as loops of the digraph
         - ``lower_bound`` -- (default: ``None``) only include supersets of this
-        - ``open_covers`` -- (default: ``False``) include vertices for open covers
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
 
         EXAMPLES::
 
             sage: M = Manifold(3, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
             sage: D = M.subset_digraph(); D
-            sage: D.edges()
+            Digraph on 4 vertices
+            sage: D.edges(key=lambda e: (e[0]._name, e[1]._name))
+            [(Open subset U of the 3-dimensional differentiable manifold M,
+              3-dimensional differentiable manifold M,
+              None),
+             (Open subset V of the 3-dimensional differentiable manifold M,
+              3-dimensional differentiable manifold M,
+              None),
+             (Open subset W of the 3-dimensional differentiable manifold M,
+              3-dimensional differentiable manifold M,
+              None)]
             sage: D.plot(layout='acyclic')   # not tested
             sage: VW = V.union(W)
             sage: D = M.subset_digraph(); D
+            Digraph on 5 vertices
             sage: D.plot(layout='acyclic')   # not tested
         """
         from sage.graphs.digraph import DiGraph
         D = DiGraph(multiedges=False, loops=loops)
+        if lower_bound is not None:
+            if not lower_bound.is_subset(self):
+                return D
         visited = set()
         to_visit = [self]
         while to_visit:
             S = to_visit.pop()
             if S in visited:
                 continue
-            if lower_bound is not None:
-                if not lower_bound.is_subset(S):
-                    continue
             visited.add(S)
-            subsets_without_S = [subset for subset in S._subsets
+
+            if lower_bound is None:
+                subsets = S._subsets
+            else:
+                subsets = [subset for subset in S._subsets
+                           if lower_bound.is_subset(subset)]
+            subsets_without_S = [subset for subset in subsets
                                  if subset is not S]
             if loops:
-                D.add_edges((subset, S) for subset in S._subsets)
+                D.add_edges((subset, S) for subset in subsets)
             else:
                 D.add_edges((subset, S) for subset in subsets_without_S)
             to_visit.extend(subsets_without_S)
+
             if open_covers:
                 # Represent an open cover with a node that is a frozenset,
                 # rather than a list.
@@ -703,8 +723,13 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         return D
 
     def subset_poset(self, open_covers=False, lower_bound=None):
-        """
+        r"""
         Return the poset of the subsets of ``self``.
+
+        INPUT:
+
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
 
         EXAMPLES::
 
@@ -712,20 +737,64 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
             sage: VW = V.union(W)
             sage: P = M.subset_poset(); P
+            Finite poset containing 5 elements
+            sage: P.maximal_elements()
+            [3-dimensional differentiable manifold M]
+            sage: P.minimal_elements()
+            [Open subset U of the 3-dimensional differentiable manifold M,
+             Open subset W of the 3-dimensional differentiable manifold M,
+             Open subset V of the 3-dimensional differentiable manifold M]
+            sage: P.lower_covers(M)
+            [Open subset U of the 3-dimensional differentiable manifold M,
+             Open subset V_union_W of the 3-dimensional differentiable manifold M]
             sage: P.plot()                  # not tested
         """
         from sage.combinat.posets.posets import Poset
         return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))
 
     def superset_digraph(self, loops=False, open_covers=False, upper_bound=None):
+        """
+        Return the digraph whose arcs represent subset relations among the supersets of ``self``.
+
+        INPUT:
+
+        - ``loops`` -- (default: ``False``) whether to include the trivial containment
+          of each subset in itself as loops of the digraph
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: VW = V.union(W)
+            sage: P = V.superset_digraph(loops=False, upper_bound=VW); P
+            Digraph on 2 vertices
+        """
         if upper_bound is None:
             upper_bound = self._manifold
         return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, lower_bound=self)
 
     def superset_poset(self, open_covers=False, upper_bound=None):
+        r"""
+        Return the poset of the supersets of ``self``.
+
+        INPUT:
+
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: VW = V.union(W)
+            sage: P = V.superset_poset(); P
+            Finite poset containing 3 elements
+        """
         if upper_bound is None:
             upper_bound = self._manifold
-        return upper_bound.subset_poset(lower_bound=self)
+        return upper_bound.subset_poset(open_covers=open_covers, lower_bound=self)
 
     def get_subset(self, name):
         r"""

@@ -1010,7 +1010,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     @experimental(trac_number=21202)
     def __init__(self, coefficients, indices, category):
         r"""
-        See :class`RecognizableSeriesSpace` for details.
+        See :class:`RecognizableSeriesSpace` for details.
 
         INPUT:
 

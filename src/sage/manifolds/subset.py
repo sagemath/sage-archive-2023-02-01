@@ -686,6 +686,21 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 to_visit.extend(subsets_without_self)
         return D
 
+    def subset_poset(self):
+        """
+        Return the poset of the subsets of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: VW = V.union(W)
+            sage: P = M.subset_poset(); D
+            sage: P.plot()                  # not tested
+        """
+        from sage.combinat.posets import Poset
+        return Poset(self.subset_digraph())
+
     def get_subset(self, name):
         r"""
         Get a subset by its name.

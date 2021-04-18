@@ -2038,6 +2038,8 @@ class WordMorphism(SageObject):
         The language of the substitution is the DOL language which consist
         of factors of `s^n(u)`.
 
+        This method assumes this substitution is non-erasing.
+
         INPUT:
 
         - ``n`` -- non-negative integer - length of the words in the language

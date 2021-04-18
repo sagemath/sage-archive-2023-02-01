@@ -666,8 +666,6 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: VW = V.union(W)
             sage: D = M.subset_digraph(); D
             sage: D.plot(layout='acyclic')   # not tested
-
-
         """
         from sage.graphs.digraph import DiGraph
         D = DiGraph(multiedges=False, loops=loops)
@@ -695,10 +693,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: M = Manifold(3, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
             sage: VW = V.union(W)
-            sage: P = M.subset_poset(); D
+            sage: P = M.subset_poset(); P
             sage: P.plot()                  # not tested
         """
-        from sage.combinat.posets import Poset
+        from sage.combinat.posets.posets import Poset
         return Poset(self.subset_digraph())
 
     def get_subset(self, name):

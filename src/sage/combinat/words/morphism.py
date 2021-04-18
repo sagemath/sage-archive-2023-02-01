@@ -2059,9 +2059,17 @@ class WordMorphism(SageObject):
 
             sage: s._language_naive(3, W())
             set()
+            sage: W([1, 1]) in s._language_naive(3, W([1, 1]))
+            True
         """
-        L = set(u.parent()())
-        todo = [u]
+        L = set()
+        todo = []
+        for i in range(len(u)):
+            for j in range(i+1, min(len(u)+1, i+n)):
+                f = u[i:j]
+                if f not in L:
+                    todo.append(f)
+                    L.add(f)
         while todo:
             u = todo.pop()
             v = self(u)

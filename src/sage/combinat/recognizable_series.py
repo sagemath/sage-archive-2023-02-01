@@ -953,7 +953,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         Normalizes the input in order to ensure a unique
         representation.
 
-        For more information see :class:`ReconizableSeriesSpace`.
+        For more information see :class:`RecognizableSeriesSpace`.
 
         TESTS::
 

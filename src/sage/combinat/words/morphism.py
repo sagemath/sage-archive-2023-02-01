@@ -2073,13 +2073,24 @@ class WordMorphism(SageObject):
         while todo:
             u = todo.pop()
             v = self(u)
-            for i in range(len(v)):
-                for j in range(i+1, min(len(v)+1, i+n)):
-                    f = v[i:j]
-                    if f not in L:
-                        todo.append(f)
-                        L.add(f)
-
+            if u.length() == 1:
+                for i in range(len(v)):
+                    for j in range(i+1, min(len(v)+1, i+n)):
+                        f = v[i:j]
+                        if f not in L:
+                            todo.append(f)
+                            L.add(f)
+            else:
+                l = self.image(u[0]).length()
+                r = self.image(u[-1]).length()
+                m = v.length() - l - r
+                x = n - 1 - m
+                for i in range(l - min(x - 1, l), l):
+                    for j in range(l + m + 1, l + m + 1 + min(x - l + i, r)):
+                        f = v[i:j]
+                        if f not in L:
+                            todo.append(f)
+                            L.add(f)
         return L
 
     def language(self, n, u=None):

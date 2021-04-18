@@ -740,14 +740,24 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             Finite poset containing 5 elements
             sage: P.maximal_elements()
             [3-dimensional differentiable manifold M]
-            sage: P.minimal_elements()
+            sage: sorted(P.minimal_elements(), key=lambda v: v._name)
             [Open subset U of the 3-dimensional differentiable manifold M,
-             Open subset W of the 3-dimensional differentiable manifold M,
-             Open subset V of the 3-dimensional differentiable manifold M]
-            sage: P.lower_covers(M)
+             Open subset V of the 3-dimensional differentiable manifold M,
+             Open subset W of the 3-dimensional differentiable manifold M]
+            sage: sorted(P.lower_covers(M), key=str)
             [Open subset U of the 3-dimensional differentiable manifold M,
              Open subset V_union_W of the 3-dimensional differentiable manifold M]
             sage: P.plot()                  # not tested
+
+        If ``open_covers`` is ``True``, the poset includes a special vertex for
+        each nontrivial open cover of a subset.
+
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 6 elements
+            sage: P.upper_covers(VW)
+            [3-dimensional differentiable manifold M,
+             frozenset({Open subset V of the 3-dimensional differentiable manifold M,
+                        Open subset W of the 3-dimensional differentiable manifold M})]
         """
         from sage.combinat.posets.posets import Poset
         return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))

@@ -653,15 +653,21 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return sorted(self._subsets, key=lambda x: x._name)
 
-    def subset_digraph(self, loops=False):
+    def subset_digraph(self, loops=False, open_covers=False, lower_bound=None):
         r"""
         Return the digraph whose arcs represent subset relations among the subsets of ``self``.
+
+        INPUT:
+
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
+        - ``open_covers`` -- (default: ``False``) include vertices for open covers
 
         EXAMPLES::
 
             sage: M = Manifold(3, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
             sage: D = M.subset_digraph(); D
+            sage: D.edges()
             sage: D.plot(layout='acyclic')   # not tested
             sage: VW = V.union(W)
             sage: D = M.subset_digraph(); D
@@ -673,18 +679,30 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         to_visit = [self]
         while to_visit:
             S = to_visit.pop()
-            if S not in visited:
-                visited.add(S)
-                subsets_without_self = [subset for subset in S._subsets
-                                        if subset is not S]
-                if loops:
-                    D.add_edges((subset, S) for subset in S._subsets)
-                else:
-                    D.add_edges((subset, S) for subset in subsets_without_self)
-                to_visit.extend(subsets_without_self)
+            if S in visited:
+                continue
+            if lower_bound is not None:
+                if not lower_bound.is_subset(S):
+                    continue
+            visited.add(S)
+            subsets_without_S = [subset for subset in S._subsets
+                                 if subset is not S]
+            if loops:
+                D.add_edges((subset, S) for subset in S._subsets)
+            else:
+                D.add_edges((subset, S) for subset in subsets_without_S)
+            to_visit.extend(subsets_without_S)
+            if open_covers:
+                # Represent an open cover with a node that is a frozenset,
+                # rather than a list.
+                open_covers_without_S = [frozenset(open_cover)
+                                         for open_cover in S._open_covers
+                                         if open_cover != [S]]
+                D.add_edges((S, open_cover)
+                            for open_cover in open_covers_without_S)
         return D
 
-    def subset_poset(self):
+    def subset_poset(self, open_covers=False, lower_bound=None):
         """
         Return the poset of the subsets of ``self``.
 
@@ -697,7 +715,17 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P.plot()                  # not tested
         """
         from sage.combinat.posets.posets import Poset
-        return Poset(self.subset_digraph())
+        return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))
+
+    def superset_digraph(self, loops=False, open_covers=False, upper_bound=None):
+        if upper_bound is None:
+            upper_bound = self._manifold
+        return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, lower_bound=self)
+
+    def superset_poset(self, open_covers=False, upper_bound=None):
+        if upper_bound is None:
+            upper_bound = self._manifold
+        return upper_bound.subset_poset(lower_bound=self)
 
     def get_subset(self, name):
         r"""

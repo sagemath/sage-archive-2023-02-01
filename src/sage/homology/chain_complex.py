@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Chain complexes
+Bounded chain complexes
 
 This module implements bounded chain complexes of free `R`-modules,
 for any commutative ring `R` (although the interesting things, like

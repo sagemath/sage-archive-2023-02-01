@@ -45,6 +45,15 @@ class ImageManifoldSubset(ManifoldSubset):
 
         TESTS::
 
+            sage: M = Manifold(2, 'M', structure="topological")
+            sage: N = Manifold(1, 'N', ambient=M, structure="topological")
+            sage: CM.<x,y> = M.chart()
+            sage: CN.<u> = N.chart()
+            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: Phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='Phi')
+            sage: Phi_inv = M.continuous_map(N, {(CM, CN): [x]}, name='Phi_inv')
+            sage: Phi_N = Phi.image(inverse=Phi_inv)
+            sage: TestSuite(Phi_N).run()
         """
         self._map = map
         self._inverse = inverse
@@ -69,6 +78,27 @@ class ImageManifoldSubset(ManifoldSubset):
 
         TESTS::
 
+            sage: M = Manifold(2, 'M', structure="topological")
+            sage: N = Manifold(1, 'N', ambient=M, structure="topological")
+            sage: CM.<x,y> = M.chart()
+            sage: CN.<u> = N.chart()
+            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: Phi = N.continuous_map(M, {(CN,CM): [u, 1 + u^2]}, name='Phi')
+            sage: Phi.image()                                 # indirect doctest
+            Image of the Continuous map Phi
+             from the 1-dimensional topological submanifold N immersed in the
+              2-dimensional topological manifold M
+             to the 2-dimensional topological manifold M
+            sage: S = N.subset('S')
+            sage: Phi.image(S)                                # indirect doctest
+            Image of the
+             Subset S of the
+              1-dimensional topological submanifold N immersed in the
+               2-dimensional topological manifold M
+             under the Continuous map Phi
+             from the 1-dimensional topological submanifold N immersed in the
+              2-dimensional topological manifold M
+             to the 2-dimensional topological manifold M
         """
         if self._domain_subset is self._map.domain():
             return f"Image of the {self._map}"

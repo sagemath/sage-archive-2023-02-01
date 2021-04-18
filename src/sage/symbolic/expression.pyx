@@ -4876,12 +4876,12 @@ cdef class Expression(CommutativeRingElement):
             (-x)^(3/4)
             sage: forget()
 
-        Check that :trac:`31077` is fixed::
+        Check that :trac:`31077` is fixed (also see :trac:`31679`)::
 
             sage: a,b,c,d = var("a b c d")
-            sage: ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
-            d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36  # 64-bit
-            d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36  # 32-bit # known bug (#31585)
+            sage: f = ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
+            sage: sum(sign(s) * (abs(ZZ(s)) % ZZ(2^30)) * d^i for s,i in f.coefficients())
+            d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36
 
         Check that :trac:`31411` is fixed::
 

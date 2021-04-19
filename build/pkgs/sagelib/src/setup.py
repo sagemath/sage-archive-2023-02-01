@@ -18,6 +18,9 @@ if os.uname().sysname == 'Darwin':
 ### Set source directory
 #########################################################
 
+# PEP 517 builds do not have . in sys.path
+sys.path.insert(0, os.path.dirname(__file__))
+
 import sage.env
 sage.env.SAGE_SRC = os.getcwd()
 from sage.env import *

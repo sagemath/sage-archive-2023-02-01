@@ -23,6 +23,14 @@
 /src/environment.yml
 /src/environment-optional.yml
 
+/src/setup.cfg
+/src/requirements.txt
+/src/pyproject.toml
+/src/Pipfile
+/src/Pipfile.lock
+/Pipfile
+/Pipfile.lock
+
 # Various editors
 *~
 

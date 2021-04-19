@@ -2081,8 +2081,8 @@ class WordMorphism(SageObject):
                             todo.append(f)
                             L.add(f)
             else:
-                l = self.image(u[0]).length()
-                r = self.image(u[-1]).length()
+                l = self._morph[u[0]].length()
+                r = self._morph[u[-1]].length()
                 m = v.length() - l - r
                 x = n - 1 - m
                 for i in range(l - min(x - 1, l), l):

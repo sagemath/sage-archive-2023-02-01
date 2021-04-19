@@ -572,6 +572,25 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return list(self._open_covers)
 
+    def open_supersets(self):
+        r"""
+        Generate the open supersets of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = U.subset('V')
+            sage: W = V.subset('W')
+            sage: sorted(W.open_supersets(), key=lambda S: S._name)
+            [2-dimensional topological manifold M,
+             Open subset U of the 2-dimensional topological manifold M]
+
+        """
+        for superset in self._supersets:
+            if superset.is_open():
+                yield superset
+
     def subsets(self):
         r"""
         Return the set of subsets that have been defined on the

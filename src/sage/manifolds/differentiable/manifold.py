@@ -2754,7 +2754,7 @@ class DifferentiableManifold(TopologicalManifold):
         """
         if not self._orientation:
             # try to get an orientation from super domains:
-            for sdom in self._supersets:
+            for sdom in self.open_supersets():
                 sorient = sdom._orientation
                 if sorient:
                     rst_orient = [f.restrict(self) for f in sorient]
@@ -2962,11 +2962,11 @@ class DifferentiableManifold(TopologicalManifold):
                             "instance of AutomorphismFieldParal")
         fmodule.set_change_of_basis(frame1, frame2, change_of_frame,
                                     compute_inverse=compute_inverse)
-        for sdom in self._supersets:
+        for sdom in self.open_supersets():
             sdom._frame_changes[(frame1, frame2)] = change_of_frame
         if compute_inverse:
             if (frame2, frame1) not in self._frame_changes:
-                for sdom in self._supersets:
+                for sdom in self.open_supersets():
                     sdom._frame_changes[(frame2, frame1)] = change_of_frame.inverse()
 
     def vector_frame(self, *args, **kwargs):
@@ -3152,7 +3152,7 @@ class DifferentiableManifold(TopologicalManifold):
             # dictionary _frame_changes of self and its supersets:
             for frame_pair, chge in resu._fmodule._basis_changes.items():
                 if resu in frame_pair:
-                    for sdom in self._supersets:
+                    for sdom in self.open_supersets():
                         sdom._frame_changes[frame_pair] = chge
         return resu
 
@@ -3179,7 +3179,7 @@ class DifferentiableManifold(TopologicalManifold):
         self._covering_frames.append(frame)
         self._parallelizable_parts = set([self])
         # if self contained smaller parallelizable parts, they are forgotten
-        for sd in self._supersets:
+        for sd in self.open_supersets():
             if not sd.is_manifestly_parallelizable():
                 sd._parallelizable_parts.add(self)
 

@@ -1488,7 +1488,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
     where `|m| \leq n`.
 
-    Here are some specific values::
+    Here are some specific values with negative integers::
 
         sage: gen_legendre_P(-2, -1, x)
         1/2*sqrt(-x^2 + 1)
@@ -1498,8 +1498,16 @@ class Func_assoc_legendre_P(BuiltinFunction):
         -1/8*(x^2 - 1)*x
         sage: gen_legendre_P(1, -2, x)
         0
-        sage: gen_legendre_P(-5/3,3,1.+I) # abs tol 1e-14
-        0.238163715352606 + 0.0548443903534220*I
+
+    Here are some other random values with floating numbers::
+
+        sage: m = var('m'); assume(m, 'integer')
+        sage: gen_legendre_P(m, m, .2)
+        0.960000000000000^(1/2*m)*(-1)^m*factorial(2*m)/(2^m*factorial(m))
+        sage: gen_legendre_P(.2, m, 0)
+        sqrt(pi)*2^m/(gamma(-1/2*m + 1.10000000000000)*gamma(-1/2*m + 0.400000000000000))
+        sage: gen_legendre_P(.2, .2, .2)
+        0.757714892929573
 
     TESTS:
 
@@ -1562,16 +1570,14 @@ class Func_assoc_legendre_P(BuiltinFunction):
         """
         Special values known.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Case `|m| > |n|` for integers:
 
             sage: gen_legendre_P(2,3,4)
             0
-            sage: gen_legendre_P(2,0,4) == legendre_P(2,4)
-            True
-            sage: gen_legendre_P(2,2,x)
-            -3*x^2 + 3
 
-        ::
+        Case `x = 0`::
 
             sage: gen_legendre_P(13/2,2,0)
             4*sqrt(pi)/(gamma(13/4)*gamma(-15/4))
@@ -1583,14 +1589,23 @@ class Func_assoc_legendre_P(BuiltinFunction):
             sage: gen_legendre_P(3,m,0)
             sqrt(pi)*2^m/(gamma(-1/2*m + 5/2)*gamma(-1/2*m - 1))
 
-        ::
+        Case `m = n` for integers::
 
             sage: m = var('m')
             sage: assume(m, 'integer')
             sage: gen_legendre_P(m, m, x)
             (-1)^m*(-x^2 + 1)^(1/2*m)*factorial(2*m)/(2^m*factorial(m))
+            sage: gen_legendre_P(m, m, .2)
+            0.960000000000000^(1/2*m)*(-1)^m*factorial(2*m)/(2^m*factorial(m))
+            sage: gen_legendre_P(2, 2, x)
+            -3*x^2 + 3
+
+        Case `n = 0`::
+
             sage: gen_legendre_P(m, 0, x)
             legendre_P(m, x)
+            sage: gen_legendre_P(2,0,4) == legendre_P(2,4)
+            True
 
         """
         if m == 0:
@@ -1632,7 +1647,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         if m < 0:
             # https://dlmf.nist.gov/14.9#E3
             return (-1)**(-m)*factorial(n+m)/factorial(n-m) * self._eval_int_ord_deg_(n, -m, x)
-        # apply recursion formula:
+        # apply Rodrigues formula:
         return self.eval_gen_poly(n, m, x)
 
     def _evalf_(self, n, m, x, parent=None, **kwds):
@@ -1693,6 +1708,9 @@ class Func_assoc_legendre_P(BuiltinFunction):
         ex1 = (1-arg**2)**(QQ(m)/2)/2**n/factorial(ZZ(n))
         ex2 = sum(b * arg**a for a, b in enumerate(p))
         return (-1)**(m+n)*ex1*ex2
+
+    from sage.misc.superseded import deprecated_function_alias
+    eval_poly = deprecated_function_alias(25034, eval_gen_poly)
 
     def _derivative_(self, n, m, x, *args, **kwds):
         """

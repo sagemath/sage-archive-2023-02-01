@@ -10535,7 +10535,9 @@ class Polyhedron_base(Element):
             [Chart (E^3, (x0_E3, x1_E3, t0_E3))]
             sage: A.normal().display()
             n = 1/3*sqrt(3) e_x + 1/3*sqrt(3) e_y + 1/3*sqrt(3) e_z
-            sage: A.volume_form()        # known bug
+            sage: A.induced_metric()       # Need to call this before volume_form
+            Riemannian metric gamma on the 2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
+            sage: A.volume_form()
             2-form eps_gamma on the 2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
 
         Orthogonal version::

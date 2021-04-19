@@ -8374,15 +8374,17 @@ class Polyhedron_base(Element):
             if self.is_full_dimensional():
                 return self.integrate(function, measure='ambient', **kwds)
 
-            if isinstance(function, six.string_types):
+            if isinstance(function, str):
                 raise NotImplementedError(
                     'LattE description strings for polynomials not allowed '
                     'when using measure="induced"')
 
             # use an orthogonal transformation
-            affine_hull = self.affine_hull(orthogonal=True, return_all_data=True)
-            polyhedron = affine_hull['polyhedron']
-            coordinate_images = affine_hull['coordinate_images']
+            affine_hull_data = self.affine_hull_projection(orthogonal=True, return_all_data=True)
+            polyhedron = affine_hull_data.polyhedron
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(affine_hull_data.section_linear_map.base_ring(), 'x', self.dim())
+            coordinate_images = affine_hull_data.section_linear_map.matrix().transpose() * vector(R.gens()) + affine_hull_data.section_translation
 
             hom = function.parent().hom(coordinate_images)
             function_in_affine_hull = hom(function)
@@ -8392,7 +8394,7 @@ class Polyhedron_base(Element):
             if measure == 'induced_nonnormalized':
                 return I
             else:
-                A = affine_hull['affine_map'][0].matrix()
+                A = affine_hull_data.projection_linear_map.matrix()
                 Adet = (A.transpose() * A).det()
                 try:
                     Adet = AA.coerce(Adet)

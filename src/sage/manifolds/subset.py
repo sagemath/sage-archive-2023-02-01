@@ -750,7 +750,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P.plot()                  # not tested
 
         If ``open_covers`` is ``True``, the poset includes a special vertex for
-        each nontrivial open cover of a subset.
+        each nontrivial open cover of a subset::
 
             sage: P = M.subset_poset(open_covers=True); P
             Finite poset containing 6 elements

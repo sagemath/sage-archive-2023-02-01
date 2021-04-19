@@ -10198,8 +10198,8 @@ class Polyhedron_base(Element):
             sage: data = S.affine_hull_projection(orthogonal=True,
             ....:                                 as_polyhedron=True,
             ....:                                 as_affine_map=True); data
-            Polyhedron_base.AffineHullProjectionData(...
-                polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+            Polyhedron_base.AffineHullProjectionData(polyhedron=A 2-dimensional polyhedron in QQ^2
+                    defined as the convex hull of 3 vertices,
                 projection_linear_map=Vector space morphism represented by the matrix:
                     [  -1 -1/2]
                     [   1 -1/2]
@@ -10213,8 +10213,8 @@ class Polyhedron_base(Element):
         Return all data::
 
             sage: data = S.affine_hull_projection(orthogonal=True, return_all_data=True); data
-            Polyhedron_base.AffineHullProjectionData(...
-                polyhedron=A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+            Polyhedron_base.AffineHullProjectionData(polyhedron=A 2-dimensional polyhedron in QQ^2
+                    defined as the convex hull of 3 vertices,
                 projection_linear_map=Vector space morphism represented by the matrix:
                     [  -1 -1/2]
                     [   1 -1/2]
@@ -10236,8 +10236,8 @@ class Polyhedron_base(Element):
         Same without ``orthogonal=True``::
 
             sage: data = S.affine_hull_projection(return_all_data=True); data
-            Polyhedron_base.AffineHullProjectionData(...
-                polyhedron=A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices,
+            Polyhedron_base.AffineHullProjectionData(polyhedron=A 2-dimensional polyhedron in ZZ^2
+                    defined as the convex hull of 3 vertices,
                 projection_linear_map=Vector space morphism represented by the matrix:
                     [1 0]
                     [0 1]

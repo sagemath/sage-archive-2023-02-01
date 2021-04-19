@@ -10524,10 +10524,10 @@ class Polyhedron_base(Element):
             sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]);  triangle
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
             sage: A = triangle.affine_hull_manifold(name='A'); A
-            2-dimensional differentiable submanifold A embedded in the Euclidean space E^3
+            2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
             sage: A.embedding().display()
             A --> E^3
-               (x0, x1) |--> (x, y, z) = (x0, x1, -x0 - x1 + 1)
+               (x0, x1) |--> (x, y, z) = (t0 + x0, t0 + x1, t0 - x0 - x1 + 1)
             sage: A.embedding().inverse().display()
             E^3 --> A
                (x, y, z) |--> (x0, x1) = (x, y)
@@ -10535,16 +10535,16 @@ class Polyhedron_base(Element):
             [Chart (E^3, (x0_E3, x1_E3, t0_E3))]
             sage: A.normal().display()
             n = 1/3*sqrt(3) e_x + 1/3*sqrt(3) e_y + 1/3*sqrt(3) e_z
-            sage: A.volume_form()
+            sage: A.volume_form()        # known bug
             2-form eps_gamma on the 2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
 
         Orthogonal version::
 
             sage: A = triangle.affine_hull_manifold(name='A', orthogonal=True); A
-            2-dimensional differentiable submanifold A embedded in the Euclidean space E^3
+            2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
             sage: A.embedding().display()
             A --> E^3
-               (x0, x1) |--> (x, y, z) = (-1/2*x0 - 1/3*x1 + 1, 1/2*x0 - 1/3*x1, 2/3*x1)
+               (x0, x1) |--> (x, y, z) = (t0 - 1/2*x0 - 1/3*x1 + 1, t0 + 1/2*x0 - 1/3*x1, t0 + 2/3*x1)
             sage: A.embedding().inverse().display()
             E^3 --> A
                (x, y, z) |--> (x0, x1) = (-x + y + 1, -1/2*x - 1/2*y + z + 1/2)

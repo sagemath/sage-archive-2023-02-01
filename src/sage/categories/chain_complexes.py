@@ -87,6 +87,30 @@ class ChainComplexes(Category_module):
             """
             raise NotImplementedError
 
+        def differential(self, *args, **kwargs):
+            r"""
+            Return the differentials (or boundary maps) of the chain complex.
+
+            EXAMPLES::
+
+                sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+                sage: C.differential(0)
+                [3 0 0]
+                [0 0 0]
+
+            ::
+
+                sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(2, 2, 3))
+                sage: C = A.cdg_algebra({z: x*y})
+                sage: C.differential()
+                Differential of Commutative Differential Graded Algebra with generators ('x', 'y', 'z') in degrees (2, 2, 3) over Rational Field
+                  Defn: x --> 0
+                        y --> 0
+                        z --> x*y
+
+            """
+            raise NotImplementedError
+
     class MorphismMethods:
         def induced_homology_morphism(self, *args, **kwargs):
             r"""

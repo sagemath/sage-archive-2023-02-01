@@ -3,10 +3,25 @@ Base class for polyhedra
 """
 
 # ****************************************************************************
-#       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
-#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
-#       Copyright (C) 2015 Jean-Philippe Labbe <labbe at math.huji.ac.il>
-#       Copyright (C) 2020 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
+#       Copyright (C) 2008-2012 Marshall Hampton <hamptonio@gmail.com>
+#       Copyright (C) 2011-2015 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2012-2018 Frederic Chapoton
+#       Copyright (C) 2013      Andrey Novoseltsev
+#       Copyright (C) 2014-2017 Moritz Firsching
+#       Copyright (C) 2014-2019 Thierry Monteil
+#       Copyright (C) 2015      Nathann Cohen
+#       Copyright (C) 2015-2017 Jeroen Demeyer
+#       Copyright (C) 2015-2017 Vincent Delecroix
+#       Copyright (C) 2015-2018 Dima Pasechnik
+#       Copyright (C) 2015-2020 Jean-Philippe Labbe <labbe at math.huji.ac.il>
+#       Copyright (C) 2015-2021 Matthias Koeppe
+#       Copyright (C) 2016-2019 Daniel Krenn
+#       Copyright (C) 2017      Marcelo Forets
+#       Copyright (C) 2017-2018 Mark Bell
+#       Copyright (C) 2019      Julian Ritter
+#       Copyright (C) 2019-2020 Laith Rastanawi
+#       Copyright (C) 2019-2020 Sophia Elia
+#       Copyright (C) 2019-2021 Jonathan Kliem <jonathan.kliem@fu-berlin.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

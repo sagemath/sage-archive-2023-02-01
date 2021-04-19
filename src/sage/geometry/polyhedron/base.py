@@ -10576,18 +10576,16 @@ class Polyhedron_base(Element):
         CH = H.chart(names=names)
 
         data = self.affine_hull_projection(return_all_data=True, **kwds)
-        projection_linear_map, projection_translation_vector = data['projection_map']
-        projection_matrix = projection_linear_map.matrix().transpose()
-        section_linear_map, section_translation_vector = data['section_map']
-        section_matrix = section_linear_map.matrix().transpose()
+        projection_matrix = data.projection_linear_map.matrix().transpose()
+        projection_translation_vector = data.projection_translation
+        section_matrix = data.section_linear_map.matrix().transpose()
+        section_translation_vector = data.section_translation
 
         from sage.symbolic.ring import SR
         # We use the slacks of the (linear independent) equations as the foliation parameters
         foliation_parameters = vector(SR.var(f't{i}') for i in range(self.ambient_dim() - self.dim()))
         normal_matrix = matrix(equation.A() for equation in self.equation_generator()).transpose()
         slack_matrix = normal_matrix.pseudoinverse()
-
-        projection_linear_map.matrix().transpose().right_kernel_matrix().transpose()
 
         phi = H.diff_map(ambient_space, {(CH, CE):
                                          (section_matrix * vector(CH._xx) + section_translation_vector

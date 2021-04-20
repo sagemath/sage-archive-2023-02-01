@@ -616,6 +616,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             ::
 
+                sage: Seq2._parse_recursions_([f(42) == 0], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: Only initial values are given.
+
+            ::
+
                 sage: Seq2._parse_recursions_([f(2*n) == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
@@ -766,12 +773,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         coeffs.update({(r, d): coeff})
 
         remainders.sort()
-        if remainders != srange(k**M):
-            missing_equations = [function(k**M*var + r)
-                                 for r in srange(k**M)
-                                 if r not in remainders]
-            raise ValueError("Recursions for %s are missing."
-                             % missing_equations)
+        try:
+            if remainders != srange(k**M):
+                missing_equations = [function(k**M*var + r)
+                                     for r in srange(k**M)
+                                     if r not in remainders]
+                raise ValueError("Recursions for %s are missing."
+                                 % missing_equations)
+        except UnboundLocalError:
+            raise ValueError("Only initial values are given.")
 
         if not coeffs:
             m = M - 1

@@ -690,7 +690,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                  (left_side,))
             try:
                 polynomial_left = base_ring[var](left_side.operands()[0])
-            except Exception:
+            except TypeError:
                 raise ValueError("%s is not a polynomial "
                                  "in %s." % (left_side.operands()[0], var))
             if polynomial_left.degree()  > 1:

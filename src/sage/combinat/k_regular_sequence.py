@@ -1172,10 +1172,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
             sage: UB_rules = Seq2._parse_recursions_([
-            ....:     f(8*n) == 2*f(4*n), f(8*n + 1) == f(4*n + 1),
+            ....:     f(8*n) == 2*f(4*n),
+            ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
             ....:     f(8*n + 3) == -f(4*n + 1) + f(4*n + 2),
-            ....:     f(8*n + 4) == 2*f(4*n + 2), f(8*n + 5) == f(4*n + 3),
+            ....:     f(8*n + 4) == 2*f(4*n + 2),
+            ....:     f(8*n + 5) == f(4*n + 3),
             ....:     f(8*n + 6) == -f(4*n + 1) + f(4*n + 2) + f(4*n + 3),
             ....:     f(8*n + 7) == 2*f(4*n + 1) + f(4*n + 3),
             ....:     f(0) == 1, f(1) == 2, f(2) == 2, f(3) == 4, f(4) == 2,

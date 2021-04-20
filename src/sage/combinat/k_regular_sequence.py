@@ -898,11 +898,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``rem`` -- an integer between ``0`` and ``k - 1``
 
-        - ``function`` -- a function (callable) which represents the sequence
+        - ``function`` -- a function which represents the sequence
 
         - ``var`` -- a symbolic variable ``n``
 
-        - ``correct_offset`` -- (default: ``True``) a boolean
+        - ``correct_offset`` -- (default: ``True``) a boolean. If
+          ``True``, then the resulting linear representation has no
+          offset.  See _[HKL2021]_ for more information.
 
         OUTPUT:
 

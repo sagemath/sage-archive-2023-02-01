@@ -614,6 +614,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 ...
                 ValueError: Recursions for [f(4*n + 1), f(4*n + 2)] are missing.
 
+            ::
+
+                sage: Seq2._parse_recursions_([42], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 42 is not a symbolic expression.
+
             Finally, also for the zero-sequence the output is as expected::
 
                 sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
@@ -669,8 +676,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             raise ValueError("List of recursion equations is empty.")
 
         for eq in equations:
-            if eq.operator() != operator.eq:
-                raise ValueError("%s is not an equation with ==."  % eq)
+            try:
+                if eq.operator() != operator.eq:
+                    raise ValueError("%s is not an equation with ==."  % eq)
+            except AttributeError:
+                raise ValueError("%s is not a symbolic expression."  % eq)
             left_side, right_side = eq.operands()
             if left_side.operator() != function:
                 raise ValueError("%s is not an evaluation of %s."

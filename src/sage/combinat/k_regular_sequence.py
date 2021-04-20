@@ -391,15 +391,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
     def _parse_recursions_(self, equations, function, var, offset=0):
         r"""
-        Parse recursion equations as admissible in :meth:`recursions`.
+        Parse recursion equations as admissible in :meth:`from_recurrence`.
 
         INPUT:
 
-        - ``equations`` -- see :meth:`recursions`
+        - ``equations`` -- see :meth:`from_recurrence`
 
-        - ``function`` -- see :meth:`recursions`
+        - ``function`` -- see :meth:`from_recurrence`
 
-        - ``var`` -- see :meth:`recursions`
+        - ``var`` -- see :meth:`from_recurrence`
 
         OUTPUT:
 
@@ -435,7 +435,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         .. SEEALSO::
 
-            :meth:`recursions`
+            :meth:`from_recurrence`
 
         TESTS:
 
@@ -877,7 +877,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         .. SEEALSO::
 
-            :meth:`recursions`
+            :meth:`from_recurrence`
         """
         from sage.arith.srange import srange
 
@@ -1047,7 +1047,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         .. SEEALSO::
 
-            :meth:`recursions`
+            :meth:`from_recurrence`
         """
         from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
@@ -1150,7 +1150,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         .. SEEALSO::
 
-            :meth:`recursions`
+            :meth:`from_recurrence`
         """
         from sage.modules.free_module_element import vector
 
@@ -1211,7 +1211,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         .. SEEALSO::
 
-            :meth:`recursions`
+            :meth:`from_recurrence`
         """
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
@@ -1247,7 +1247,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return vector(right)
 
 
-    def recursions(self, equations, function, var, offset=0, minimize=False):
+    def from_recurrence(self, equations, function, var, offset=0, minimize=False):
         r"""
         Construct a `k`-regular sequence that fulfills the recurrence relations
         given in ``equations``.
@@ -1285,21 +1285,21 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             n
             sage: function('f')
             f
-            sage: Seq2.recursions([
+            sage: Seq2.from_recurrence([
             ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1, f(2) == 1], f, n)
             2-regular sequence 0, 1, 1, 2, 1, 3, 2, 3, 1, 4, ...
 
         Number of Odd Entries in Pascal's Triangle::
 
-            sage: Seq2.recursions([
+            sage: Seq2.from_recurrence([
             ....:     f(2*n) == 3*f(n), f(2*n + 1) == 2*f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1, f(2) == 3, f(3) == 5], f, n)
             2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: Seq2.recursions([
+            sage: Seq2.from_recurrence([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1320,7 +1320,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
 
             sage: Seq2 = kRegularSequenceSpace(2, QQ)
-            sage: Seq2.recursions([
+            sage: Seq2.from_recurrence([
             ....:     f(4*n) == 5/3*f(2*n) - 1/3*f(2*n + 1),
             ....:     f(4*n + 1) == 4/3*f(2*n) + 1/3*f(2*n + 1),
             ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),

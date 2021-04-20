@@ -1295,7 +1295,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
             2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
 
-        Number of Non-Zero Elements in the a Generalized Pascal's Triangle [TODO: reference]::
+        Number of Non-Zero Elements in the Generalized Pascal's Triangle [TODO: reference]::
 
             sage: Seq2 = kRegularSequenceSpace(2, QQ)
             sage: Seq2.recursions([

@@ -1105,8 +1105,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             J = Matrix(base_ring, 0, n1)
             for i in srange(n1):
-                J = J.stack(vector([int(i >= rem and i % k == rem and
-                                        j*k == i - rem) for j in srange(n1)]))
+                J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
 
             Mat = MatrixSpace(base_ring, dim, dim)
             return Mat(block_matrix([[mat, W],

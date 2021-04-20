@@ -22,7 +22,7 @@ EXAMPLES::
     sage: codes.DifferentialAGCode(pls, G)
     [8, 3] differential AG code over GF(4)
 
-As well known, the two kinds of AG codes are dual to each other. ::
+As is well known, the two kinds of AG codes are dual to each other. ::
 
     sage: E = codes.EvaluationAGCode(pls, G)
     sage: D = codes.DifferentialAGCode(pls, G)
@@ -69,8 +69,9 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.modules.all import vector
-from sage.matrix.all import matrix, MatrixSpace
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
 
 from .linear_code import (AbstractLinearCode,
                           LinearCodeGeneratorMatrixEncoder,
@@ -206,6 +207,9 @@ class EvaluationAGCode(AGCode):
             sage: codes.EvaluationAGCode(pls, 5*Q) == codes.EvaluationAGCode(pls, 6*Q)
             False
         """
+        if self is other:
+            return True
+
         if not isinstance(other, EvaluationAGCode):
             return False
 
@@ -434,6 +438,9 @@ class DifferentialAGCode(AGCode):
             sage: c1 == c2
             True
         """
+        if self is other:
+            return True
+
         if not isinstance(other, DifferentialAGCode):
             return False
 
@@ -637,50 +644,44 @@ class CartierCode(AGCode):
 
         subfield = K.subfield(r, name=name)
 
-        def cartier_fixed(E):
-            """
-            Compute a basis of the space of differentials in `Omega(E)` fixed
-            by the Cartier operator.
-            """
-            Grp = E.parent()  # group of divisors
+        # compute a basis R of the space of differentials in Omega(G - D)
+        # fixed by the Cartier operator
+        E = G - D
 
-            V, fr_V, to_V = E.differential_space()
+        Grp = E.parent()  # group of divisors
+        V, fr_V, to_V = E.differential_space()
 
-            EE = Grp(0)
-            dic = E.dict()
-            for place in dic:
-                mul = dic[place]
-                if mul > 0:
-                    mul = mul // p**r
-                EE += mul * place
+        EE = Grp(0)
+        dic = E.dict()
+        for place in dic:
+            mul = dic[place]
+            if mul > 0:
+                mul = mul // p**r
+            EE += mul * place
 
-            W, fr_W, to_W = EE.differential_space()
+        W, fr_W, to_W = EE.differential_space()
 
-            a = K.gen()
-            field_basis = [a**i for i in range(K.degree())] # over prime subfield
-            basis = E.basis_differential_space()
+        a = K.gen()
+        field_basis = [a**i for i in range(K.degree())] # over prime subfield
+        basis = E.basis_differential_space()
 
-            m = []
-            for w in basis:
-                for c in field_basis:
-                    cw = F(c) * w # c does not coerce...
-                    carcw = cw
-                    for i in range(r): # apply cartier r times
-                        carcw = carcw.cartier()
-                    m.append([f for e in to_W(carcw - cw) for f in vector(e)])
+        m = []
+        for w in basis:
+            for c in field_basis:
+                cw = F(c) * w # c does not coerce...
+                carcw = cw
+                for i in range(r): # apply cartier r times
+                    carcw = carcw.cartier()
+                m.append([f for e in to_W(carcw - cw) for f in vector(e)])
 
-            ker = matrix(m).kernel()
+        ker = matrix(m).kernel()
 
-            R = []
-            s = len(field_basis)
-            ncols = s * len(basis)
-            for row in ker.basis():
-                v = vector([K(row[d:d+s]) for d in range(0,ncols,s)])
-                R.append(fr_V(v))
-
-            return R
-
-        R = cartier_fixed(G - D)
+        R = []
+        s = len(field_basis)
+        ncols = s * len(basis)
+        for row in ker.basis():
+            v = vector([K(row[d:d+s]) for d in range(0,ncols,s)])
+            R.append(fr_V(v))
 
         # construct a generator matrix
         m = []
@@ -725,6 +726,9 @@ class CartierCode(AGCode):
             sage: c1 == c2
             False
         """
+        if self is other:
+            return True
+
         if not isinstance(other, CartierCode):
             return False
 

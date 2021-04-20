@@ -57,12 +57,14 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+cimport cython
+
 from sage.rings.all import PolynomialRing
 from sage.rings.infinity import infinity
 from sage.rings.function_field.all import FunctionField
 
-from sage.modules.all import vector
-from sage.matrix.all import matrix
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix
 
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
@@ -96,11 +98,11 @@ class EvaluationAGCodeEncoder(Encoder):
         Encoder for [8, 5] evaluation AG code over GF(4)
 
     Constructing a decoder for an AG code takes much time. So we save the
-    decoder (and the connected encoder) for later examples::
+    decoder (and the connected encoder) by::
 
-        sage: save(dec, DOT_SAGE + 'temp/dec')
+        sage: save(dec, SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')  # not tested
 
-    The saved object will be removed after the final example.
+    and load it for later examples.
     """
     def __init__(self, code, decoder=None):
         """
@@ -108,7 +110,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: TestSuite(enc).run(skip='_test_pickling')
         """
@@ -126,7 +128,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: {enc: 1}
             {Encoder for [8, 5] evaluation AG code over GF(4): 1}
@@ -156,6 +158,9 @@ class EvaluationAGCodeEncoder(Encoder):
             sage: enc1 == enc2
             True
         """
+        if self is other:
+            return True
+
         if not isinstance(other, EvaluationAGCodeEncoder):
             return False
 
@@ -167,7 +172,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: enc
             Encoder for [8, 5] evaluation AG code over GF(4)
@@ -180,7 +185,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: latex(enc)
             \text{Encoder for }[8, 5]\text{ evaluation AG code over }\Bold{F}_{2^{2}}
@@ -197,7 +202,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
@@ -216,16 +221,12 @@ class EvaluationAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
             sage: enc.unencode(codeword) in enc.message_space()  # indirect doctest
             True
-
-        TESTS::
-
-            sage: import os; os.remove(DOT_SAGE + 'temp/dec.sobj')
         """
         return self._unencode(codeword)
 
@@ -257,11 +258,11 @@ class DifferentialAGCodeEncoder(Encoder):
         Encoder for [8, 3] differential AG code over GF(4)
 
     Constructing a decoder for an AG code takes much time. So we save the
-    decoder (and the connected encoder) for later examples and tests::
+    decoder (and the connected encoder) by::
 
-        sage: save(dec, DOT_SAGE + 'temp/dec')
+        sage: save(dec, SAGE_SRC + '/sage/coding/tests/differential_ag_code')  # not tested
 
-    The saved object will be removed after final example.
+    and load it for later examples.
     """
     def __init__(self, code, decoder=None):
         """
@@ -269,7 +270,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: TestSuite(enc).run(skip='_test_pickling')
         """
@@ -287,7 +288,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: {enc: 1}
             {Encoder for [8, 3] differential AG code over GF(4): 1}
@@ -317,6 +318,9 @@ class DifferentialAGCodeEncoder(Encoder):
             sage: enc1 == enc2
             True
         """
+        if self is other:
+            return True
+
         if not isinstance(other, DifferentialAGCodeEncoder):
             return False
 
@@ -328,7 +332,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: enc
             Encoder for [8, 3] differential AG code over GF(4)
@@ -341,7 +345,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: latex(enc)
             \text{Encoder for }[8, 3]\text{ differential AG code over }\Bold{F}_{2^{2}}
@@ -358,7 +362,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
@@ -377,16 +381,12 @@ class DifferentialAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
             sage: enc.unencode(codeword) in enc.message_space()  # indirect doctest
             True
-
-        TESTS::
-
-            sage: import os; os.remove(DOT_SAGE + 'temp/dec.sobj')
         """
         return self._unencode(codeword)
 
@@ -443,12 +443,6 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
         True
 
     The default ``basis`` is given by ``code.basis_functions()``.
-
-    Saving the decoder for later examples and tests::
-
-        sage: save(dec, DOT_SAGE + 'temp/dec')
-
-    The saved object will be removed after the final example.
     """
     _decoder_type = {'always-succeed'}
 
@@ -458,7 +452,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: TestSuite(dec).run()
         """
         if not code.dimension() > 0:
@@ -515,7 +509,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: {dec: 1}
             {Unique decoder for [8, 5] evaluation AG code over GF(4): 1}
         """
@@ -540,8 +534,12 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
             sage: c1 == c2
             True
         """
+        if self is other:
+            return True
+
         if not isinstance(other, type(self)):
             return False
+
         return (self.code() == other.code() and self._Q == other._Q
                 and self._basis == other._basis)
 
@@ -551,7 +549,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: dec
             Unique decoder for [8, 5] evaluation AG code over GF(4)
         """
@@ -563,7 +561,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: latex(dec)
             \text{Unique decoder for }[8, 5]\text{ evaluation AG code over }\Bold{F}_{2^{2}}
         """
@@ -579,7 +577,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         TESTS:
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: dec._decode(dec._encode(msg)) == msg
@@ -605,7 +603,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         TESTS:
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: code = dec.code()
             sage: cw = code.random_element()
             sage: dec._encode(dec._decode(cw)) == cw
@@ -631,7 +629,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: dec.connected_encoder()
             Encoder for [8, 5] evaluation AG code over GF(4)
         """
@@ -643,7 +641,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: dec.decoding_radius()
             1
         """
@@ -662,7 +660,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 1)
@@ -687,17 +685,13 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 1)
             sage: rv = chan.transmit(code.random_element())
             sage: cw = dec.decode_to_code(rv)
             sage: (cw - rv).hamming_weight() == 1
             True
-
-        TESTS::
-
-            sage: import os; os.remove(DOT_SAGE + 'temp/dec.sobj')
         """
         return self._encode(self._decode(received_vector, **kwargs))
 
@@ -769,7 +763,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: TestSuite(dec).run()
         """
         if not code.dimension() > 0:
@@ -826,7 +820,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: {dec: 1}
             {Unique decoder for [8, 3] differential AG code over GF(4): 1}
         """
@@ -851,8 +845,12 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
             sage: c1 == c2
             True
         """
+        if self is other:
+            return True
+
         if not isinstance(other, type(self)):
             return False
+
         return (self.code() == other.code() and self._Q == other._Q
                 and self._basis == other._basis)
 
@@ -862,7 +860,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: dec
             Unique decoder for [8, 3] differential AG code over GF(4)
         """
@@ -874,7 +872,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: latex(dec)
             \text{Unique decoder for }[8, 3]\text{ differential AG code over }\Bold{F}_{2^{2}}
         """
@@ -888,9 +886,9 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         - ``message`` -- a vector to be encoded to a codeword
 
-        TESTS:
+        TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: dec._decode(dec._encode(msg)) == msg
@@ -914,9 +912,9 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         - ``vector`` -- a vector to be decoded to a message
 
-        TESTS:
+        TESTS::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: code = dec.code()
             sage: cw = code.random_element()
             sage: dec._encode(dec._decode(cw)) == cw
@@ -942,7 +940,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: dec.connected_encoder()
             Encoder for [8, 3] differential AG code over GF(4)
         """
@@ -954,7 +952,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: dec.decoding_radius()
             2
         """
@@ -973,7 +971,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 2)
@@ -998,7 +996,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(DOT_SAGE + 'temp/dec')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 2)
@@ -1006,18 +1004,23 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
             sage: cw = dec.decode_to_code(rv)
             sage: (cw - rv).hamming_weight() == 2
             True
-
-        TESTS::
-
-            sage: import os; os.remove(DOT_SAGE + 'temp/dec.sobj')
         """
         return self._encode(self._decode(received_vector, **kwargs))
 
 
-class _Decoder_K(object):
+cdef class _Decoder_K(object):
     """
     Common base class for both differential and evaluation AG code decoder K.
     """
+    cdef bint is_differential
+    cdef int code_length, designed_distance, gamma, s0, tau
+    cdef list code_basis, message_index, hvecs, eta_vecs
+    cdef list dR, dRbar
+    cdef object mul_mat, coeff_mat
+    cdef object W, x
+
+    cdef readonly dict info
+
     def encode(self, message):
         """
         Encode ``message`` to a codeword.
@@ -1067,7 +1070,7 @@ class _Decoder_K(object):
         else:
             return f.degree()
 
-    def exponents(self, s):
+    def exponents(self, int s):
         """
         Return the exponents of the monomial with weighted degree s.
 
@@ -1086,6 +1089,8 @@ class _Decoder_K(object):
             sage: circuit.exponents(11)
             (8, 1)
         """
+        cdef int i, d
+
         gamma = self.gamma
         dRbar = self.dRbar  # dWbar for differential AG code
 
@@ -1124,9 +1129,9 @@ class _Decoder_K(object):
         c = (w * x**k) * sum([a[j] * mul_mat[j][i] for j in range(gamma)])
         return vector(W, (c + b).list() + a.list())
 
-    def decode(self, received_vector, verbose=False,
-               detect_decoding_failure=True,
-               detect_Q_polynomial=True):
+    def decode(self, received_vector, bint verbose=False,
+               bint detect_decoding_failure=True,
+               bint detect_Q_polynomial=True):
         """
         Return the coefficients that maps to the corrected codeword from the received vector.
 
@@ -1163,6 +1168,10 @@ class _Decoder_K(object):
             sage: circuit.decode(rv)
             (1, 0, a + 1, a + 1, a)
         """
+        cdef int s, sk, si, i
+        cdef int k, ip, count, delta, wlt
+        cdef bint found_Q
+
         code_length = self.code_length
         designed_distance = self.designed_distance
 
@@ -1410,7 +1419,8 @@ class _Decoder_K(object):
         return vector(K, message)
 
 
-class _EvaluationAGCodeDecoder_K(_Decoder_K):
+@cython.auto_pickle(True)
+cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
     """
     Unique decoding algorithm K for evaluation AG codes.
 
@@ -1459,6 +1469,8 @@ class _EvaluationAGCodeDecoder_K(_Decoder_K):
             sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
             sage: TestSuite(circuit).run(skip='_test_pickling')
         """
+        cdef int i, s, n, r, d
+
         D = sum(pls)
         F = D.parent().function_field()
         K = F.constant_base_field()
@@ -1476,8 +1488,9 @@ class _EvaluationAGCodeDecoder_K(_Decoder_K):
             gamma += 1
 
         # compute xR
-        for xR in Q.divisor(gamma).basis_function_space():
-            if xR.valuation(Q) == -gamma:
+        for f in Q.divisor(gamma).basis_function_space():
+            if f.valuation(Q) == -gamma:
+                xR = f
                 break
 
         # apery R
@@ -1584,6 +1597,8 @@ class _EvaluationAGCodeDecoder_K(_Decoder_K):
 
         # compute a basis of J and h-functions via FGLM algorithm
         def get_eta_basis():
+            cdef int num, s
+
             basis = [None for i in range(gamma)]
             s = s0
             mat = matrix(ev_mon(s))
@@ -1627,7 +1642,7 @@ class _EvaluationAGCodeDecoder_K(_Decoder_K):
 
         # Lee-O'Sullivan bound
         def nu(s):
-            m = 0
+            cdef int m = 0
             for i in range(gamma):
                 e = exponents(s + dR[i])
                 m += max(0, degree(eta_vecs[e[1]][e[1]]) - e[0])
@@ -1696,7 +1711,8 @@ class _EvaluationAGCodeDecoder_K(_Decoder_K):
         self.info = info
 
 
-class _DifferentialAGCodeDecoder_K(_Decoder_K):
+@cython.auto_pickle(True)
+cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
     """
     Unique decoding algorithm K for differential AG codes.
 
@@ -1982,7 +1998,7 @@ class _DifferentialAGCodeDecoder_K(_Decoder_K):
         self.info = info
 
 
-class _Decoder_K_extension(object):
+cdef class _Decoder_K_extension(object):
     """
     Unique decoding algorithm K for AG codes via constant field extension.
 
@@ -2021,6 +2037,11 @@ class _Decoder_K_extension(object):
         Unique decoder for [5, 3] evaluation AG code over GF(4)
 
     """
+    cdef object _embedK, _K
+    cdef object decoder_ext
+    cdef type decoder_cls
+    cdef readonly dict info
+
     def __init__(self, pls, G, Q, verbose=False):
         """
         Initialize.
@@ -2192,7 +2213,8 @@ class _Decoder_K_extension(object):
         return self.decoder_ext.decode(received_vector, **kwargs)
 
 
-class _EvaluationAGCodeDecoder_K_extension(_Decoder_K_extension):
+@cython.auto_pickle(True)
+cdef class _EvaluationAGCodeDecoder_K_extension(_Decoder_K_extension):
     """
     Unique decoding algorithm K for AG codes via constant field extension.
 
@@ -2237,7 +2259,8 @@ class _EvaluationAGCodeDecoder_K_extension(_Decoder_K_extension):
         super().__init__(pls, G, Q, verbose=verbose)
 
 
-class _DifferentialAGCodeDecoder_K_extension(_Decoder_K_extension):
+@cython.auto_pickle(True)
+cdef class _DifferentialAGCodeDecoder_K_extension(_Decoder_K_extension):
     """
     Unique decoding algorithm K for AG codes via constant field extension.
 

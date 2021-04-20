@@ -849,7 +849,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 
     @cached_method
-    def _get_ind_(self, M, m, ll, uu):
+    def _get_ind_from_recursions_(self, M, m, ll, uu):
         r"""
         Determine the index operator corresponding to the recursive
         sequence given by ``recursion_rules``, as defined in [HKL2021]_.
@@ -866,7 +866,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2._get_ind_(3, 1, -3, 3)
+            sage: Seq2._get_ind_from_recursions_(3, 1, -3, 3)
             {1: (0, 0), 2: (1, -3), 3: (1, -2), 4: (1, -1), 5: (1, 0), 6: (1, 1),
             7: (1, 2), 8: (1, 3), 9: (2, -3), 10: (2, -2), 11: (2, -1),
             12: (2, 0), 13: (2, 1), 14: (2, 2), 15: (2, 3), 16: (2, 4),
@@ -1067,7 +1067,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         dim_without_corr = dim - n1
         coeffs = recursion_rules.coeffs
         initial_values = recursion_rules.initial_values
-        ind = self._get_ind_(M, m, ll, uu)
+        ind = self._get_ind_from_recursions_(M, m, ll, uu)
 
         mat = Matrix(base_ring, 0, dim_without_corr)
 

@@ -78,8 +78,20 @@ class MixedForm(AlgebraElement):
         Graded algebra Omega^*(M) of mixed differential forms on the
          2-dimensional differentiable manifold M
 
-    One convenient way to define the homogeneous components of a mixed form is
-    to define some differential forms first::
+    The most straightforward way to define the `i`-th homogeneous components
+    of a mixed form is via :meth:`set_comp` or ``A[i]``::
+
+        sage: A = M.mixed_form(name='A')
+        sage: A[0].set_expr(x) # scalar field
+        sage: A.set_comp(1)[0] = y*x
+        sage: A.set_comp(2)[0,1] = y^2*x
+        sage: A.display() # display names
+        A = A_0 + A_1 + A_2
+        sage: A.display_expansion() # display expansion in basis
+        A = [x] + [x*y dx] + [x*y^2 dx/\dy]
+
+    Another way to define the homogeneous components is using predefined
+    differential forms::
 
         sage: f = M.scalar_field(x, name='f'); f
         Scalar field f on the 2-dimensional differentiable manifold M
@@ -92,32 +104,34 @@ class MixedForm(AlgebraElement):
         sage: eta[e_xy,0,1] = y^2*x; eta.display()
         eta = x*y^2 dx/\dy
 
-    The components of the mixed form ``F`` can be set very easily::
+    The components of a mixed form ``B`` can then be set as follows::
 
-        sage: A[:] = [f, omega, eta]; A.display() # display names
-        A = f + omega + eta
-        sage: A.display_expansion() # display in coordinates
-        A = [x] + [x*y dx] + [x*y^2 dx/\dy]
-        sage: A[0]
+        sage: B = M.mixed_form(name='B')
+        sage: B[:] = [f, omega, eta]
+        sage: B.display()
+        B = f + omega + eta
+        sage: B.display_expansion()
+        B = [x] + [x*y dx] + [x*y^2 dx/\dy]
+        sage: B[0]
         Scalar field f on the 2-dimensional differentiable manifold M
-        sage: A[0] is f
-        True
-        sage: A[1]
+        sage: B[1]
         1-form omega on the 2-dimensional differentiable manifold M
-        sage: A[1] is omega
-        True
-        sage: A[2]
+        sage: B[2]
         2-form eta on the 2-dimensional differentiable manifold M
-        sage: A[2] is eta
-        True
+
+    As we can see, the names are applied. However, the differential
+    forms are different instances::
+
+        sage: f is B[0]
+        False
 
     Alternatively, the components can be determined from scratch::
 
         sage: B = M.mixed_form([f, omega, eta], name='B')
-        sage: A == B
-        True
+        sage: B.display()
+        B = f + omega + eta
 
-    Mixed forms are elements of an algebra, so they can be added, and multiplied
+    Mixed forms are elements of an algebra so they can be added, and multiplied
     via the wedge product::
 
         sage: C = x*A; C
@@ -149,7 +163,7 @@ class MixedForm(AlgebraElement):
     mixed form::
 
         sage: dA = A.exterior_derivative(); dA.display()
-        dA = zero + df + domega
+        dA = zero + dA_0 + dA_1
         sage: dA.display_expansion()
         dA = [0] + [dx] + [-x dx/\dy]
 
@@ -167,18 +181,15 @@ class MixedForm(AlgebraElement):
         sage: W = U.intersection(V)
         sage: e_xy = c_xy.frame(); e_uv = c_uv.frame() # define frames
         sage: A = M.mixed_form(name='A')
-        sage: A[0].set_name('f')
         sage: A[0].set_expr(x, c_xy)
         sage: A[0].display()
-        f: M --> R
+        A_0: M --> R
         on U: (x, y) |--> x
         on W: (u, v) |--> 1/2*u + 1/2*v
-        sage: A[1].set_name('omega')
         sage: A[1][0] = y*x; A[1].display(e_xy)
-        omega = x*y dx
-        sage: A[2].set_name('eta')
+        A_1 = x*y dx
         sage: A[2][e_uv,0,1] = u*v^2; A[2].display(e_uv)
-        eta = u*v^2 du/\dv
+        A_2 = u*v^2 du/\dv
         sage: A.add_comp_by_continuation(e_uv, W, c_uv)
         sage: A.display_expansion(e_uv)
         A = [1/2*u + 1/2*v] + [(1/8*u^2 - 1/8*v^2) du + (1/8*u^2 - 1/8*v^2) dv]
@@ -243,14 +254,41 @@ class MixedForm(AlgebraElement):
         self._max_deg = vmodule._ambient_domain.dim()
         self._is_zero = False # a priori, may be changed below or via
                               # method __bool__()
-        # Set components:
-        self._comp = [self._domain.diff_form(j) for j in self.irange()]
+        self._comp = None # initialized on demand; see _init_comp
         # Set names:
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
+
+    def _init_comp(self):
+        r"""
+        Initialize homogeneous components of ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: A = M.mixed_form(name='A')
+            sage: A._comp is None
+            True
+            sage: A._init_comp()
+            sage: A._comp
+            [Scalar field A_0 on the 2-dimensional differentiable manifold M,
+             1-form A_1 on the 2-dimensional differentiable manifold M,
+             2-form A_2 on the 2-dimensional differentiable manifold M]
+
+        """
+        self._comp = []
+        for i in self.irange():
+            comp_name, comp_latex_name = None, None
+            if self._name is not None:
+                comp_name = f"{self._name}_{i}"
+            if self._latex_name is not None:
+                comp_latex_name = '{' + self._latex_name + '}_{' + str(i) + '}'
+            diff_form = self._domain.diff_form
+            self._comp.append(diff_form(i, name=comp_name,
+                                           latex_name=comp_latex_name))
 
     def _repr_(self):
         r"""
@@ -465,9 +503,74 @@ class MixedForm(AlgebraElement):
 
     disp = display
 
-    def set_name(self, name=None, latex_name=None):
+    def set_name(self, name=None, latex_name=None, set_all=True):
         r"""
         Redefine the string and LaTeX representation of the object.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the mixed form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          mixed form; if none is provided, the LaTeX symbol is set to ``name``
+        - ``set_all`` -- (default: ``True``) if ``True`` all homogeneous
+          components will be renamed accordingly; if ``False`` only the mixed
+          form will be renamed
+
+        EXAMPLES:
+
+        Rename a mixed form::
+
+            sage: M = Manifold(4, 'M')
+            sage: F = M.mixed_form(name='dummy', latex_name=r'\ugly'); F
+            Mixed differential form dummy on the 4-dimensional differentiable
+             manifold M
+            sage: latex(F)
+            \ugly
+            sage: F.set_name(name='F', latex_name=r'\mathcal{F}'); F
+            Mixed differential form F on the 4-dimensional differentiable
+             manifold M
+            sage: latex(F)
+            \mathcal{F}
+
+        If not stated otherwise, all homogeneous components are renamed
+        accordingly:
+
+            sage: F.display()
+            F = F_0 + F_1 + F_2 + F_3 + F_4
+
+        Setting the argument ``set_all`` to ``False`` prevents the renaming
+        in the homogeneous components::
+
+            sage: F.set_name(name='eta', latex_name=r'\eta', set_all=False)
+            sage: F.display()
+            eta = F_0 + F_1 + F_2 + F_3 + F_4
+
+        .. SEEALSO::
+
+            To rename a homogeneous component individually, use
+            :meth:`set_name_comp`.
+
+        """
+        if name is not None:
+            self._name = name
+            if latex_name is None:
+                self._latex_name = self._name
+        if latex_name is not None:
+            self._latex_name = latex_name
+        if set_all:
+            for i in self.irange():
+                comp_name, comp_latex_name = None, None
+                if self._name is not None:
+                    comp_name = f"{self._name}_{i}"
+                if self._latex_name is not None:
+                    comp_latex_name = '{' + self._latex_name + '}_{' + str(i) + '}'
+                self.set_name_comp(i, name=comp_name,
+                                   latex_name=comp_latex_name)
+
+    def set_name_comp(self, i, name=None, latex_name=None):
+        r"""
+        Redefine the string and LaTeX representation of the `i`-th
+        homogeneous component of ``self``.
 
         INPUT:
 
@@ -477,25 +580,18 @@ class MixedForm(AlgebraElement):
 
         EXAMPLES::
 
-            sage: M = Manifold(4, 'M')
-            sage: F = M.mixed_form(name='dummy', latex_name=r'\ugly'); F
-            Mixed differential form dummy on the 4-dimensional differentiable
+            sage: M = Manifold(3, 'M')
+            sage: F = M.mixed_form(name='F', latex_name=r'\mathcal{F}'); F
+            Mixed differential form F on the 3-dimensional differentiable
              manifold M
-            sage: latex(F)
-            \ugly
-            sage: F.set_name(name='fancy', latex_name=r'\eta'); F
-            Mixed differential form fancy on the 4-dimensional differentiable
-             manifold M
-            sage: latex(F)
-            \eta
+            sage: F.display()
+            F = F_0 + F_1 + F_2 + F_3
+            sage: F.set_name_comp(0, name='g')
+            sage: F.display()
+            F = g + F_1 + F_2 + F_3
 
         """
-        if name is not None:
-            self._name = name
-            if latex_name is None:
-                self._latex_name = self._name
-        if latex_name is not None:
-            self._latex_name = latex_name
+        self[i].set_name(name=name, latex_name=latex_name)
 
     def __bool__(self):
         r"""
@@ -534,13 +630,11 @@ class MixedForm(AlgebraElement):
         """
         if self._is_zero:
             return False
-        if any(bool(form) for form in self._comp):
+        if any(bool(form) for form in self):
             self._is_zero = False
             return True
         self._is_zero = True
         return False
-
-    __nonzero__ = __bool__  # For Python2 compatibility
 
     def _richcmp_(self, other, op):
         r"""
@@ -665,7 +759,7 @@ class MixedForm(AlgebraElement):
             return self
         # Generic case:
         resu = self._new_instance()
-        resu[:] = [self[j] + other[j] for j in self.irange()]
+        resu._comp = [self[j] + other[j] for j in self.irange()]
         # Compose name:
         if self._name is not None and other._name is not None:
             resu._name = self._name + '+' + other._name
@@ -739,7 +833,7 @@ class MixedForm(AlgebraElement):
             return self
         # Generic case:
         resu = self._new_instance()
-        resu[:] = [self[j] - other[j] for j in self.irange()]
+        resu._comp = [self[j] - other[j] for j in self.irange()]
         # Compose name:
         from sage.tensor.modules.format_utilities import is_atomic
 
@@ -860,8 +954,8 @@ class MixedForm(AlgebraElement):
             return self
         # Generic case:
         resu = self._new_instance()
-        for j in self.irange():
-            resu[j] = sum(self[k].wedge(other[j - k]) for k in range(j + 1))
+        resu._comp = [sum(self[k].wedge(other[j-k]) for k in range(j+1))
+                      for j in self.irange()]
         # Compose name:
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
@@ -913,7 +1007,7 @@ class MixedForm(AlgebraElement):
             if other == 1:
                 return self
         resu = self._new_instance()
-        resu[:] = [other * form for form in self._comp]
+        resu._comp = [other * form for form in self]
         # Compose name:
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import (format_mul_txt,
@@ -1046,20 +1140,9 @@ class MixedForm(AlgebraElement):
             sage: A is B
             False
 
-        Notice, that changes in the differential forms usually cause changes in
-        the original instance. But for the copy of a mixed form, the components
-        are copied as well::
-
-            sage: omega[e_xy,0] = y; omega.display()
-            omega = y dx
-            sage: A.display_expansion(e_xy)
-            A = [x] + [y dx] + [0]
-            sage: B.display_expansion(e_xy)
-            [x] + [x dx] + [0]
-
         """
         resu = self._new_instance()
-        resu[:] = [form.copy() for form in self]
+        resu._comp = [form.copy() for form in self]
         resu.set_name(name=name, latex_name=latex_name)
         resu._is_zero = self._is_zero  # a priori
 
@@ -1092,13 +1175,11 @@ class MixedForm(AlgebraElement):
         """
         if self is self.parent().one() or self is self.parent().zero():
             raise ValueError("the components of the element "
-                             "{} cannot be changed".format(self._name))
+                             f"{self._name} cannot be changed")
         if isinstance(index, (int, Integer)):
-            start = index
-            stop = index + 1
-            step = 1
+            start, stop, step = index, index + 1, 1
         elif isinstance(index, slice):
-            start, stop, step = index.indices(len(self._comp))
+            start, stop, step = index.indices(self._max_deg + 1)
         else:
             raise TypeError("index must be int, Integer or slice")
         if isinstance(values, list):
@@ -1108,8 +1189,11 @@ class MixedForm(AlgebraElement):
         if len(form_list) != len(range(start, stop, step)):
             raise IndexError("either input or index out of range")
         for deg, j in zip(range(start, stop, step), range(len(form_list))):
-            self._comp[deg] = self._domain.diff_form_module(deg,
-                                            self._dest_map)(form_list[j])
+            dmodule = self._domain.diff_form_module(deg, self._dest_map)
+            form = dmodule(form_list[j])
+            self[deg].copy_from(form)
+            self[deg].set_name(name=form._name,
+                               latex_name=form._latex_name)
         self._is_zero = False  # a priori
 
     def __getitem__(self, deg):
@@ -1141,6 +1225,8 @@ class MixedForm(AlgebraElement):
              2-form b on the 2-dimensional differentiable manifold M]
 
         """
+        if self._comp is None:
+            self._init_comp()
         return self._comp[deg]
 
     def set_restriction(self, rst):
@@ -1199,7 +1285,7 @@ class MixedForm(AlgebraElement):
         if not isinstance(rst, MixedForm):
             raise TypeError("the argument must be a mixed form")
         if not rst._domain.is_subset(self._domain):
-            raise ValueError("the specified domain is not a subset of " +
+            raise ValueError("the specified domain is not a subset of "
                              "the domain of definition of the mixed form")
         for j in self.irange():
             self[j].set_restriction(rst[j])
@@ -1366,3 +1452,23 @@ class MixedForm(AlgebraElement):
 
         """
         return self.parent().irange(start=start)
+
+    def set_comp(self, i):
+        r"""
+        Return the `i`-th homogeneous component for assignment.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: A = M.mixed_form(name='A')
+            sage: A.set_comp(0).set_expr(x^2) # scalar field
+            sage: A.set_comp(1)[:] = [-y, x]
+            sage: A.set_comp(2)[0,1] = x-y
+            sage: A.display()
+            A = A_0 + A_1 + A_2
+            sage: A.display_expansion()
+            A = [x^2] + [-y dx + x dy] + [(x - y) dx/\dy]
+
+        """
+        return self[i]

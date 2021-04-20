@@ -168,10 +168,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         Large matrices fail gracefully::
 
-            sage: MatrixSpace(GF(2), 2^30)(1)  # optional - memlimit
-            Traceback (most recent call last):
-            ...
-            RuntimeError: matrix allocation failed
             sage: MatrixSpace(GF(2), 1, 2^40).zero()
             Traceback (most recent call last):
             ...
@@ -180,6 +176,26 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Traceback (most recent call last):
             ...
             OverflowError: ...
+
+        Allocation fails if a memory limit is set (Linux only) lower
+        than is needed to construct a matrix but still high enough
+        that it doesn't crash the rest of SageMath::
+
+            sage: from platform import system
+            sage: import resource
+            sage: orig_soft, orig_hard = resource.getrlimit(resource.RLIMIT_AS)
+            sage: if system() != "Linux":
+            ....:     raise RuntimeError("matrix allocation failed")
+            ....: else:
+            ....:     four_GiB = 4*1024^3
+            ....:     resource.setrlimit(resource.RLIMIT_AS, (four_GiB, orig_hard))
+            ....:     MatrixSpace(GF(2), 2^30)(1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: matrix allocation failed
+            sage: resource.setrlimit(resource.RLIMIT_AS, (orig_soft, orig_hard))
+            sage: (orig_soft, orig_hard) == resource.getrlimit(resource.RLIMIT_AS)
+            True
         """
         # m4ri assumes that nrows and ncols are of type rci_t:
         # check for overflow

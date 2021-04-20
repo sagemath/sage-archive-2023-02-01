@@ -7,12 +7,12 @@ from sage.all import *
 from sagenb.notebook.all import *
 from sage.calculus.predefined import x
 from sage.misc.python import python
-from sage.misc.html import html
+from sage.misc.html import html, pretty_print_default, MathJax
 from sagenb.misc.support import help, automatic_names
 
 sage_mode = 'notebook'
 
-from sage.misc.latex import Latex, pretty_print_default, MathJax
+from sage.misc.latex import Latex
 latex = Latex(density=130)
 latex_debug = Latex(debug=True, density=130)
 slide = Latex(slide=True, density=256)

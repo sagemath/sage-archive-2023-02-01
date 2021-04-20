@@ -25,7 +25,6 @@ AUTHORS:
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.mutability import Mutability
 from sage.structure.element import AlgebraElement, ModuleElementWithMutability
 from sage.rings.integer import Integer
 

@@ -81,7 +81,7 @@ Die ``eval`` Funktion dieser Klasse konvertiert ein Sage-Objekt in
 seine LaTeX-Darstellung und dann in HTML mit der CSS ``math`` Klasse,
 die dann MathJax verwendet. ::
 
-    sage: from sage.misc.latex import MathJax
+    sage: from sage.misc.html import MathJax
     sage: mj = MathJax()
     sage: var('z')
     z
@@ -129,9 +129,9 @@ Der interne ``pretty_print()`` Befehl zeigt die Konvertierung von Sage
 Objekten in HTML Code der MathJax nutzt im Notebook.  ::
 
     sage: pretty_print(x^12)
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
+    x^12
     sage: pretty_print(integrate(sin(x), x))
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
+    -cos(x)
 
 Das Notebook hat zwei weitere Möglichkeiten TeX zu nutzen. Die erste
 ist der "Typeset"-Knopf über der ersten Zelle eines Arbeitsblatts,
@@ -203,7 +203,7 @@ integriert ist. ::
 
     sage: latex(QQ)
     \Bold{Q}
-    sage: from sage.misc.latex import MathJax
+    sage: from sage.misc.html import MathJax
     sage: mj=MathJax()
     sage: mj(QQ)
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
@@ -225,7 +225,7 @@ MathJax als TeX-Schnipsel  interpretiert werden. ::
     (x, y)
     sage: latex(x+y)
     x + y
-    sage: from sage.misc.latex import MathJax
+    sage: from sage.misc.html import MathJax
     sage: mj=MathJax()
     sage: mj(x+y)
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y</script></html>
@@ -319,17 +319,17 @@ lässt. Diese Liste wird verwaltet durch die Befehle
 ``latex.add_to_mathjax_avoid_list`` und
 ``latex.mathjax_avoid_list``. ::
 
-    sage: latex.mathjax_avoid_list([])
-    sage: latex.mathjax_avoid_list()
+    sage: latex.mathjax_avoid_list([])  # not tested
+    sage: latex.mathjax_avoid_list()    # not tested
     []
-    sage: latex.mathjax_avoid_list(['foo', 'bar'])
-    sage: latex.mathjax_avoid_list()
+    sage: latex.mathjax_avoid_list(['foo', 'bar'])  # not tested
+    sage: latex.mathjax_avoid_list()                # not tested
     ['foo', 'bar']
-    sage: latex.add_to_mathjax_avoid_list('tikzpicture')
-    sage: latex.mathjax_avoid_list()
+    sage: latex.add_to_mathjax_avoid_list('tikzpicture')  # not tested
+    sage: latex.mathjax_avoid_list()                      # not tested
     ['foo', 'bar', 'tikzpicture']
-    sage: latex.mathjax_avoid_list([])
-    sage: latex.mathjax_avoid_list()
+    sage: latex.mathjax_avoid_list([])  # not tested
+    sage: latex.mathjax_avoid_list()    # not tested
     []
 
 Nehmen wir an ein LaTeX-Ausdruck wurde im Notebook durch ``view()``
@@ -389,11 +389,8 @@ eingestellt sind).
     <BLANKLINE>
     To use, try to view this object -- it won't work.  Now try
     'latex.add_to_preamble("\\usepackage[matrix,arrow,curve,cmtip]{xy}")',
-    and try viewing again -- it should work in the command line but not
-    from the notebook.  In the notebook, run
-    'latex.add_to_mathjax_avoid_list("xymatrix")' and try again -- you
-    should get a picture (a part of the diagram arising from a filtered
-    chain complex).
+    and try viewing again. You should get a picture (a part of the diagram arising
+    from a filtered chain complex).
 
 .. _sec-tkz-graph:
 
@@ -440,8 +437,8 @@ mittels LaTeX in einem Notebook darzustellen. ::
     sage: latex.extra_preamble() # random - depends on system's TeX installation
     '\\usepackage{tikz}\n\\usepackage{tkz-graph}\n\\usepackage{tkz-berge}\n'
     sage: latex.engine('pdflatex')
-    sage: latex.add_to_mathjax_avoid_list('tikzpicture')
-    sage: latex.mathjax_avoid_list()
+    sage: latex.add_to_mathjax_avoid_list('tikzpicture')  # not tested
+    sage: latex.mathjax_avoid_list()                      # not tested
     ['tikz', 'tikzpicture']
 
 Beachten Sie, dass es eine Vielzahl von Optionen gibt, die die

@@ -560,6 +560,20 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             ::
 
+                sage: Seq2._parse_recursions_([f(2*n) == 2*f(n, 5)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(n, 5) has more than one argument.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n) == 2*f()], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: f() has no argument.
+
+            ::
+
                 sage: Seq2._parse_recursions_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
                 Traceback (most recent call last):
                 ...
@@ -693,6 +707,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 coeff, op = 1, summand
             else:
                 raise ValueError('%s is not a valid summand.' % (summand,))
+            if len(op.operands()) > 1:
+                raise ValueError('%s has more than one argument.' % (op,))
+            elif len(op.operands()) == 0:
+                raise ValueError('%s has no argument.' % (op,))
             try:
                 poly = ZZ[var](op.operands()[0])
             except TypeError:

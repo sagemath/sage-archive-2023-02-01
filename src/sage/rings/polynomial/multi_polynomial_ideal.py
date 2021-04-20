@@ -2283,7 +2283,7 @@ class MPolynomialIdeal_singular_repr(
         return (R.ideal(ideal), ZZ(expo))
 
     @require_field
-    def variety(self, ring=None):
+    def variety(self, ring=None, *, algorithm="triangular_decomposition"):
         r"""
         Return the variety of this ideal.
 
@@ -2432,6 +2432,23 @@ class MPolynomialIdeal_singular_repr(
             sage: v["y"]
             -7.464101615137755?
 
+        ALGORITHM:
+
+        Uses triangular decomposition.
+        """
+        if algorithm == "triangular_decomposition":
+            return self._variety_triangular_decomposition(ring)
+        else:
+            raise ValueError(f"unknown algorithm {algorithm!r}")
+
+    def _variety_triangular_decomposition(self, ring):
+        r"""
+        Compute the variety of this ideal by triangular decomposition.
+
+        The triangular decomposition is computed using Singular when conversion
+        of the ideal to Singular is supported, falling back to a toy Python
+        implementation otherwise.
+
         TESTS::
 
             sage: K.<w> = GF(27)
@@ -2531,10 +2548,8 @@ class MPolynomialIdeal_singular_repr(
             sage: len(I.variety())
             4
 
-        ALGORITHM:
-
-        Uses triangular decomposition.
         """
+
         def _variety(T, V, v=None):
             """
             Return variety ``V`` for one triangular set of
@@ -2571,7 +2586,7 @@ class MPolynomialIdeal_singular_repr(
             return []
 
         if isinstance(self.base_ring(), sage.rings.abc.ComplexField):
-            verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
+            verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0, caller_name="variety")
         P = self.ring()
         if ring is not None:
             P = P.change_ring(ring)
@@ -2580,7 +2595,7 @@ class MPolynomialIdeal_singular_repr(
             T = [list(each.gens()) for each in TI]
         except TypeError:  # conversion to Singular not supported
             if self.ring().term_order().is_global():
-                verbose("Warning: falling back to very slow toy implementation.", level=0)
+                verbose("Warning: falling back to very slow toy implementation.", level=0, caller_name="variety")
                 T = toy_variety.triangular_factorization(self.groebner_basis())
             else:
                 raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")

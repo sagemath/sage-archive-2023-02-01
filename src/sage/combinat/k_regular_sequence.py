@@ -876,13 +876,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         pos = 1
         for j in srange(m):
             for d in srange(k**j):
-                ind.update({(j, d): pos})
-                ind.update({pos: (j, d)})
+                ind.update({(j, d): pos, pos: (j, d)})
                 pos += 1
         for j in srange(m, M):
             for d in srange(ll, k**j - k**m + uu + 1):
-                ind.update({(j, d): pos})
-                ind.update({pos: (j, d)})
+                ind.update({(j, d): pos, pos: (j, d)})
                 pos += 1
 
         return ind

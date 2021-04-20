@@ -1046,10 +1046,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         ll = recursion_rules.ll
         uu = recursion_rules.uu
         dim = recursion_rules.dim
+        n1 = recursion_rules.n1
         dim_without_corr = dim - n1
         coeffs = recursion_rules.coeffs
         initial_values = recursion_rules.initial_values
-        n1 = recursion_rules.n1
         ind = self._get_ind_(M, m, ll, uu)
 
         mat = Matrix(base_ring, 0, dim_without_corr)

@@ -72,6 +72,9 @@ REFERENCES:
    Cambridge University Press, 2003.
 .. [HKL2021] Clemens Heuberger, Daniel Krenn, Gabriel Lipnik, *Asymptotic
    Analysis of `q`-Recursive Sequences*, 2021, unpublished manuscript.
+.. [LRS2017] Julien Leroy, Michel Rigo, Manon Stipulanti, *Counting the
+   number of non-zero coefficients in rows of generalized Pascal triangles*,
+   Discrete Math. 340 (2017), no. 5, 862--881.
 
 AUTHORS:
 
@@ -1295,7 +1298,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
             2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
 
-        Number of Non-Zero Elements in the Generalized Pascal's Triangle [TODO: reference]::
+        Number of Non-Zero Elements in the Generalized Pascal's Triangle (see _[LRS2017]_)::
 
             sage: Seq2 = kRegularSequenceSpace(2, QQ)
             sage: Seq2.recursions([

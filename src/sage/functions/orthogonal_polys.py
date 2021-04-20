@@ -1572,7 +1572,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
         EXAMPLES:
 
-        Case `|m| > |n|` for integers:
+        Case `|m| > |n|` for integers::
 
             sage: gen_legendre_P(2,3,4)
             0
@@ -1627,8 +1627,8 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
     def _eval_int_ord_deg_(self, n, m, x):
         r"""
-        Evaluate the Ferrers function P(n, m, x) for m and n being concrete
-        integers.
+        Evaluate the Ferrers function `P(n, m, x)` for `m` and `n` being
+        concrete integers.
 
         TESTS::
 
@@ -1679,7 +1679,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         .. MATH::
 
             \mathtt{P}_n^m(x) = (-1)^{m+n} \frac{(1-x^2)^{m/2}}{2^n n!}
-                \frac{\mathrm{d}^{m+n}}{\mathrm{d}x^{m+n}} (1-x^2)^n
+                \frac{\mathrm{d}^{m+n}}{\mathrm{d}x^{m+n}} (1-x^2)^n.
 
         INPUT:
 

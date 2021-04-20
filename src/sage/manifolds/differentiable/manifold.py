@@ -1534,6 +1534,8 @@ class DifferentiableManifold(TopologicalManifold):
         vmodule = self.vector_field_module(dest_map=dest_map)
         return MixedFormAlgebra(vmodule)
 
+    de_rham_complex = mixed_form_algebra
+
     def multivector_module(self, degree, dest_map=None):
         r"""
         Return the set of multivector fields of a given degree defined

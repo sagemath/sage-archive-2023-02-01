@@ -6,7 +6,11 @@ differentiable map. The space of *mixed differential forms along* `\varphi`,
 denoted by `\Omega^*(M,\varphi)`, is given by the direct sum
 `\bigoplus^n_{j=0} \Omega^j(M,\varphi)` of differential form modules, where
 `n=\dim(N)`. With the wedge product, `\Omega^*(M,\varphi)` inherits the
-structure of a graded algebra.
+structure of a graded algebra. See :class:`MixedFormAlgebra` for details.
+
+This algebra is endowed with a natural chain complex structure induced by the
+exterior derivative. The corresponding homology is called *de Rham cohomology*.
+See :class:`DeRhamCohomologyRing` for details.
 
 AUTHORS:
 
@@ -15,7 +19,7 @@ AUTHORS:
 """
 
 #******************************************************************************
-#       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
+#       Copyright (C) 2019-2021 Michael Jung <m.jung@vu.nl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -26,14 +30,18 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.graded_algebras import GradedAlgebras
+from sage.structure.element import RingElement
+from sage.categories.rings import Rings
+from sage.categories.chain_complexes import ChainComplexes
+from sage.categories.morphism import SetMorphism
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
 from sage.manifolds.differentiable.mixed_form import MixedForm
 
 class MixedFormAlgebra(Parent, UniqueRepresentation):
     r"""
-    An instance of this class represents the graded algebra of mixed form. That
-    is, if `\varphi: M \to N` is a differentiable map between two
+    An instance of this class represents the graded algebra of mixed forms.
+    That is, if `\varphi: M \to N` is a differentiable map between two
     differentiable manifolds `M` and `N`, the *graded algebra of mixed forms*
     `\Omega^*(M,\varphi)` *along* `\varphi` is defined via the direct sum
     `\bigoplus^{n}_{j=0} \Omega^j(M,\varphi)` consisting of differential form
@@ -57,6 +65,20 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         \Omega^k(M,\varphi) \wedge \Omega^l(M,\varphi) \subset \Omega^{k+l}(M,\varphi).
 
+    Moreover, `\Omega^*(M,\varphi)` inherits the structure of a chain complex,
+    called *de Rham complex*, with the exterior derivative as boundary map,
+    that is
+
+    .. MATH::
+
+        0 \rightarrow \Omega^0(M,\varphi) \xrightarrow{\mathrm{d}_0}
+            \Omega^1(M,\varphi) \xrightarrow{\mathrm{d}_1} \dots
+            \xrightarrow{\mathrm{d}_{n-1}} \Omega^n(M,\varphi)
+            \xrightarrow{\mathrm{d}_{n}} 0.
+
+    The induced cohomology is called *de Rham cohomology*, see
+    :meth:`cohomology` or :class:`DeRhamCohomologyRing` respectively.
+
     INPUT:
 
     - ``vector_field_module`` -- module `\mathfrak{X}(M,\varphi)` of vector
@@ -72,7 +94,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         Graded algebra Omega^*(M) of mixed differential forms on the
          3-dimensional differentiable manifold M
         sage: Omega.category()
-        Category of graded algebras over Symbolic Ring
+        Join of Category of graded algebras over Symbolic Ring and Category of
+         chain complexes over Symbolic Ring
         sage: Omega.base_ring()
         Symbolic Ring
         sage: Omega.vector_field_module()
@@ -165,8 +188,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         base_field = domain.base_field()
         if domain.base_field_type() in ['real', 'complex']:
             base_field = SR
-        Parent.__init__(self, base=base_field,
-                        category=GradedAlgebras(base_field))
+        category = GradedAlgebras(base_field) & ChainComplexes(base_field)
+        Parent.__init__(self, base=base_field, category=category)
         # Define attributes:
         self._domain = domain
         self._ambient_domain = vector_field_module._ambient_domain
@@ -407,6 +430,83 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         """
         return self._latex_name
 
+    def differential(self, degree=None):
+        r"""
+        Return the differential of the de Rham complex ``self`` given by the
+        exterior derivative.
+
+        INPUT:
+
+            - ``degree`` -- (default: ``None``) degree of the differential
+              operator; if none is provided, the differential operator on
+              ``self`` is returned.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: d = C.differential(); d
+            Generic endomorphism of Graded algebra Omega^*(M) of mixed
+             differential forms on the 2-dimensional differentiable manifold M
+            sage: d0 = C.differential(0); d0
+            Generic morphism:
+              From: Algebra of differentiable scalar fields on the
+               2-dimensional differentiable manifold M
+              To:   Free module Omega^1(M) of 1-forms on the 2-dimensional
+               differentiable manifold M
+            sage: f = M.scalar_field(x, name='f'); f.display()
+            f: M --> R
+               (x, y) |--> x
+            sage: d0(f).display()
+            df = dx
+
+        """
+        if degree is None:
+            domain = codomain = self
+        else:
+            domain = self._domain.diff_form_module(degree)
+            codomain = self._domain.diff_form_module(degree + 1)
+        return SetMorphism(domain.Hom(codomain), lambda x: x.derivative())
+
+    def cohomology(self, *args, **kwargs):
+        r"""
+        Return the de Rham cohomology of the de Rham complex ``self``.
+
+        The `n`-th de Rham cohomology is given by
+
+        .. MATH::
+
+            H^k_{\mathrm{dR}}(M, \varphi) =
+                \left. \mathrm{ker}(\mathrm{d}_k) \middle/
+                \mathrm{im}(\mathrm{d}_{k-1}) \right. .
+
+        The corresponding ring is given by
+
+        .. MATH::
+
+            H^*_{\mathrm{dR}}(M, \varphi) = \bigoplus^n_{k=0} H^k_{\mathrm{dR}}(M, \varphi),
+
+        endowed with the cup product as multiplication induced by the wedge
+        product.
+
+        .. SEEALSO::
+
+            See :class:`DeRhamCohomologyRing` for details.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
+            sage: A = M.mixed_form_algebra()
+            sage: A.cohomology()
+            De Rham cohomology ring on the 3-dimensional differentiable
+             manifold M
+
+        """
+        return DeRhamCohomologyRing(self)
+
+    homology = cohomology
+
     def irange(self, start=None):
         r"""
         Single index generator.
@@ -442,3 +542,485 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         while i < imax:
             yield i
             i += 1
+
+    def lift_from_homology(self, x):
+        r"""
+        Lift a cohomology class to the algebra of mixed differential forms.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: alpha = M.diff_form(1, [1,1], name='alpha')
+            sage: alpha.display()
+            alpha = dx + dy
+            sage: a = H(alpha); a
+            [alpha]
+            sage: C.lift_from_homology(a)
+            Mixed differential form alpha on the 2-dimensional differentiable
+             manifold M
+
+        """
+        return x.lift()
+
+###############################################################################
+## De Rham Cohomology
+
+class DeRhamCohomologyClass(RingElement):
+    r"""
+    Define a cohomology class in the de Rham cohomology ring.
+
+    INPUT:
+
+    - ``parent`` -- de Rham cohomology ring represented by an instance of
+      :class:`DeRhamCohomologyRing`
+    - ``representative`` -- a closed (mixed) differential form representing the
+      cohomology class
+
+    .. NOTE::
+
+        The current implementation only provides basic features. Comparison via
+        exact forms are not supported at the time being.
+
+    EXAMPLES::
+
+        sage: M = Manifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: C = M.de_rham_complex()
+        sage: H = C.cohomology()
+        sage: omega = M.diff_form(1, [1,1], name='omega')
+        sage: u = H(omega); u
+        [omega]
+
+    Cohomology classes can be lifted to the algebra of mixed differential
+    forms::
+
+        sage: u.lift()
+        Mixed differential form omega on the 2-dimensional differentiable
+         manifold M
+
+    However, comparison of two cohomology classes is limited the time being::
+
+        sage: eta = M.diff_form(1, [1,1], name='eta')
+        sage: H(eta) == u
+        True
+        sage: H.one() == u
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: comparison via exact forms is currently not supported
+
+    """
+    def __init__(self, parent, representative):
+        r"""
+        Construct an element of the de Rham cohomology ring.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(1, [1,1], name='omega', latex_name=r'\omega')
+            sage: u = H(omega)
+            sage: TestSuite(u).run(skip=['_test_eq', '_test_nonzero_equal'])  # equality not fully supported yet
+
+        """
+        super().__init__(parent=parent)
+        self._representative = representative
+
+    def _repr_(self):
+        r"""
+        Return a string representation of the object.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: H.an_element()  # indirect doctest
+            [one]
+            sage: H.an_element()._repr_()
+            '[one]'
+
+        """
+        name = self._representative._name
+        if name is None:
+            name = 'unnamed form'
+        return f"[{name}]"
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of the object.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', latex_name=r'\mathcal{M}')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(1, [1,1], name='omega', latex_name=r'\omega')
+            sage: u = H(omega)
+            sage: latex(u)  # indirect doctest
+            \left[\omega\right]
+            sage: u._latex_()
+            '\\left[\\omega\\right]'
+
+        """
+        latex_name = self._representative._latex_name
+        if latex_name is None:
+            latex_name = r'\mathrm{unnamed form}'
+        return rf"\left[{latex_name}\right]"
+
+    def representative(self):
+        r"""
+        Return a representative of ``self`` in the associated de Rham
+        complex.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(2, name='omega')
+            sage: omega[0,1] = x
+            sage: omega.display()
+            omega = x dx/\dy
+            sage: u = H(omega); u
+            [omega]
+            sage: u.representative()
+            Mixed differential form omega on the 2-dimensional differentiable
+             manifold M
+
+        """
+        return self._representative
+
+    lift = representative
+
+    def _add_(self, other):
+        r"""
+        Addition of two cohomology classes.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(1, [1,1], name='omega')
+            sage: eta = M.diff_form(1, [1,-1], name='eta')
+            sage: H(omega) + H(eta)
+            [omega+eta]
+
+        """
+        return self.parent()(self._representative + other._representative)
+
+    def cup(self, other):
+        r"""
+        Cup product of two cohomology classes.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(1, [1,1], name='omega')
+            sage: eta = M.diff_form(1, [1,-1], name='eta')
+            sage: H(omega).cup(H(eta))
+            [omega/\eta]
+
+        """
+        return self.parent()(self._representative.wedge(other._representative))
+
+    _mul_ = cup
+
+    def _sub_(self, other):
+        r"""
+        Subtraction of two cohomology classes.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(1, [1,1], name='omega')
+            sage: eta = M.diff_form(1, [1,-1], name='eta')
+            sage: H(omega) - H(eta)
+            [omega-eta]
+
+        """
+        return self.parent()(self._representative - other._representative)
+
+    def __eq__(self, other):
+        r"""
+        Comparison (equality) operator.
+
+        .. WARNING::
+
+            At current stage, the equality operator only checks whether the
+            representatives are equal. No further checks are supported so far.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(1, [1,1], name='omega')
+            sage: eta = M.diff_form(1, [1,1], name='eta')
+            sage: H(omega) == H(eta)
+            True
+            sage: H(omega) == H.one()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison via exact forms is currently not supported
+
+        """
+        if self is other:
+            return True
+        if isinstance(other, type(self)):
+            if self.representative() == other.representative():
+                return True
+        raise NotImplementedError('comparison via exact forms is currently not supported')
+
+class DeRhamCohomologyRing(Parent, UniqueRepresentation):
+    r"""
+    Define the de Rham cohomology ring of a de Rham complex.
+
+    Let
+
+    .. MATH::
+
+        0 \rightarrow \Omega^0(M,\varphi) \xrightarrow{\mathrm{d}_0}
+            \Omega^1(M,\varphi) \xrightarrow{\mathrm{d}_1} \dots
+            \xrightarrow{\mathrm{d}_{n-1}} \Omega^n(M,\varphi)
+            \xrightarrow{\mathrm{d}_{n}} 0
+
+    be the de Rham complex on a differentiable manifold `M` along a
+    differentiable map `\varphi: M \to N`. Then the `k`-th de Rham cohomology
+    is given by
+
+    .. MATH::
+
+        H^k_{\mathrm{dR}}(M, \varphi) =
+            \left. \mathrm{ker}(\mathrm{d}_k) \middle/
+            \mathrm{im}(\mathrm{d}_{k-1}) \right. ,
+
+    and corresponding ring is obtained by
+
+    .. MATH::
+
+        H^*_{\mathrm{dR}}(M, \varphi) = \bigoplus^n_{k=0} H^k_{\mathrm{dR}}(M, \varphi).
+
+    This ring is naturally endowed with a multiplication induced by the wedge
+    product, called *cup product*, see :meth:`DeRhamCohomologyClass.cup`.
+
+    .. NOTE::
+
+        The current implementation only provides basic features. Comparison via
+        exact forms are not supported at the time being.
+
+    INPUT:
+
+    - ``de_rham_complex`` -- a de Rham complex, typically an instance of
+      :class:`MixedFormAlgebra`
+
+    EXAMPLES:
+
+    We define the de Rham cohomology ring on a parallelizable manifold `M`::
+
+        sage: M = Manifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: C = M.de_rham_complex()
+        sage: H = C.cohomology(); H
+        De Rham cohomology ring on the 2-dimensional differentiable manifold M
+
+    Its elements are induced by closed differential forms on `M`::
+
+        sage: beta = M.diff_form(1, [1,0], name='beta')
+        sage: beta.display()
+        beta = dx
+        sage: d1 = C.differential(1)
+        sage: d1(beta).display()
+        dbeta = 0
+        sage: b = H(beta); b
+        [beta]
+
+    Cohomology classes can be lifted to the algebra of mixed differential
+    forms::
+
+        sage: b.representative()
+        Mixed differential form beta on the 2-dimensional differentiable
+         manifold M
+
+    The ring admits a zero and unit element::
+
+        sage: H.zero()
+        [zero]
+        sage: H.one()
+        [one]
+
+    """
+    def __init__(self, de_rham_complex):
+        r"""
+        Construct the de Rham cohomology ring.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology(); H
+            De Rham cohomology ring on the 2-dimensional differentiable
+             manifold M
+            sage: TestSuite(H).run(skip=['_test_elements',
+            ....:                        '_test_elements_eq_symmetric',
+            ....:                       '_test_elements_eq_transitive',
+            ....:                       '_test_elements_neq'])  # equality not fully supported yet
+
+        """
+        Parent.__init__(self, category=Rings())
+        self._de_rham_complex = self._module = de_rham_complex
+        self._manifold = de_rham_complex._domain
+
+    Element = DeRhamCohomologyClass
+
+    def _element_constructor_(self, x):
+        r"""
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: H._element_constructor_(C.one())
+            [one]
+
+        Non-cycle element::
+
+            sage: omega = M.diff_form(1, name='omega')
+            sage: omega[0] = y
+            sage: omega.display()
+            omega = y dx
+            sage: H(omega)
+            Traceback (most recent call last):
+            ...
+            ValueError: Mixed differential form omega on the 2-dimensional
+             differentiable manifold M must be a closed form
+
+        """
+        if x not in self._module:
+            raise TypeError(f"{x} must be an element of {self._module}")
+        x = self._module(x)
+        if x.derivative() != 0:
+            raise ValueError(f"{x} must be a closed form")
+        return self.element_class(self, x)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of the object.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology(); H
+            De Rham cohomology ring on the 2-dimensional differentiable
+             manifold M
+
+        """
+        desc = "De Rham cohomology ring "
+        if self._module._dest_map is self._manifold.identity_map():
+            desc += "on the {}".format(self._manifold)
+        else:
+            desc += "along the {} mapped ".format(self._manifold)
+            desc += "into the {} ".format(self._module._ambient_domain)
+            if self._module._dest_map._name is None:
+                dm_name = "unnamed map"
+            else:
+                dm_name = self._module._dest_map._name
+            desc += "via " + dm_name
+        return desc
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of the object.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: H._latex_()
+            'H^*_{\\mathrm{dR}}\\left(\\mathcal{M}\\right)'
+            sage: latex(H)  # indirect doctest
+            H^*_{\mathrm{dR}}\left(\mathcal{M}\right)
+
+        """
+        latex_name = r"H^*_{\mathrm{dR}}\left(" + self._manifold._latex_name
+        if self._module._dest_map is not self._manifold.identity_map():
+            dm_latex_name = self._module._dest_map._latex_name
+            if dm_latex_name is None:
+                dm_latex_name = r"\mathrm{unnamed\; map}"
+            latex_name += "," + dm_latex_name
+        latex_name += r"\right)"
+        return latex_name
+
+    def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: H.an_element()
+            [one]
+
+        """
+        return self.one()
+
+    @cached_method
+    def zero(self):
+        r"""
+        Return the zero element of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: H.zero()
+            [zero]
+            sage: H.zero().representative()
+            Mixed differential form zero on the 2-dimensional differentiable
+             manifold M
+
+        """
+        return self.element_class(self, self._module.zero())
+
+    @cached_method
+    def one(self):
+        r"""
+        Return the one element of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: H.one()
+            [one]
+            sage: H.one().representative()
+            Mixed differential form one on the 2-dimensional differentiable
+             manifold M
+
+        """
+        return self.element_class(self, self._module.one())

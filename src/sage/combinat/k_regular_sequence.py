@@ -1084,6 +1084,40 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         A vector.
 
+        TESTS:
+
+        Stern--Brocot Sequence::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: SB_rules = Seq2._parse_recursions_([
+            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1, f(2) == 1], f, n)
+            sage: Seq2._get_right_from_recursions_(SB_rules, f)
+            (0, 1, 1)
+
+        Number of Unbordered Factors in the Thue--Morse Sequence::
+
+            sage: UB_rules = Seq2._parse_recursions_([
+            ....:     f(8*n) == 2*f(4*n), f(8*n + 1) == f(4*n + 1),
+            ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
+            ....:     f(8*n + 3) == -f(4*n + 1) + f(4*n + 2),
+            ....:     f(8*n + 4) == 2*f(4*n + 2), f(8*n + 5) == f(4*n + 3),
+            ....:     f(8*n + 6) == -f(4*n + 1) + f(4*n + 2) + f(4*n + 3),
+            ....:     f(8*n + 7) == 2*f(4*n + 1) + f(4*n + 3),
+            ....:     f(0) == 1, f(1) == 2, f(2) == 2, f(3) == 4, f(4) == 2,
+            ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
+            ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14)==4,
+            ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
+            ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
+            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
+            sage: Seq2._get_right_from_recursions_(UB_rules, f)
+            (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
+
         """
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector

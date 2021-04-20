@@ -448,6 +448,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             ::
 
+                sage: Seq2._parse_recursions_([42], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 42 is not a symbolic expression.
+
+            ::
+
                 sage: Seq2._parse_recursions_([f(2*n) + 1 == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
@@ -473,6 +480,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 Traceback (most recent call last):
                 ...
                 ValueError: 4*n^2 is not a polynomial of degree smaller 2.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(42) == 0, f(42) == 1], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: Initial value f(42) is given twice.
 
             ::
 
@@ -614,13 +628,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 ...
                 ValueError: Recursions for [f(4*n + 1), f(4*n + 2)] are missing.
 
-            ::
-
-                sage: Seq2._parse_recursions_([42], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 42 is not a symbolic expression.
-
             Finally, also for the zero-sequence the output is as expected::
 
                 sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
@@ -697,6 +704,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 raise ValueError("%s is not a polynomial of degree smaller 2."
                                  % (polynomial_left,))
             if polynomial_left in base_ring and right_side in base_ring:
+                if (polynomial_left in initial_values.keys() and
+                    initial_values[polynomial_left] != right_side):
+                    raise ValueError("Initial value %s is given twice."
+                                     % (function(polynomial_left)))
                 initial_values.update({polynomial_left: right_side})
             else:
                 [r, base_power_M] = list(polynomial_left)

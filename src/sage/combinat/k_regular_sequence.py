@@ -907,7 +907,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``correct_offset`` -- (default: ``True``) a boolean. If
           ``True``, then the resulting linear representation has no
-          offset.  See _[HKL2021]_ for more information.
+          offset.  See [HKL2021]_ for more information.
 
         OUTPUT:
 
@@ -1298,7 +1298,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
             2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
 
-        Number of Non-Zero Elements in the Generalized Pascal's Triangle (see _[LRS2017]_)::
+        Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
 
             sage: Seq2 = kRegularSequenceSpace(2, QQ)
             sage: Seq2.recursions([

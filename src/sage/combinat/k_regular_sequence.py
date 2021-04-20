@@ -720,7 +720,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
                 try:
-                    if M != log(base_power_M, base=k):
+                    if M != M_new:
                         raise ValueError("%s does not equal %s."
                                          % (base_power_M, k^M))
                 except NameError:

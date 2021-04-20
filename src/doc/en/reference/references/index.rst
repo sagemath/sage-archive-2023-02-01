@@ -1938,6 +1938,10 @@ REFERENCES:
                  Integrals*, in NIST Digital Library of Mathematical
                  Functions. https://dlmf.nist.gov/7
 
+.. [DLMF-Legendre] \T. M. Dunster: *Legendre and Related Functions*, in NIST
+                   Digital Library of Mathematical Functions.
+                   https://dlmf.nist.gov/14
+
 .. [DLMF-Struve] \R. B. Paris: *11. Struve and Related Functions*, in
                  NIST Digital Library of Mathematical
                  Functions. https://dlmf.nist.gov/11

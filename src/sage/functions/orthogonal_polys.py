@@ -1530,8 +1530,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
     REFERENCES:
 
-    - T. M. Dunster, Legendre and Related Functions, https://dlmf.nist.gov/14.2#ii
-    - T. M. Dunster, Legendre and Related Functions, https://dlmf.nist.gov/14.21#i.p1
+    - [DLMF-Legendre]_
 
     """
     def __init__(self):
@@ -1696,7 +1695,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
         REFERENCE:
 
-        - T. M. Dunster, Legendre and Related Functions, https://dlmf.nist.gov/14.7#E10
+        - [DLMF-Legendre]_, Section 14.7 eq. 10 (https://dlmf.nist.gov/14.7#E10)
         """
         if n < 0 or m < 0:
             return

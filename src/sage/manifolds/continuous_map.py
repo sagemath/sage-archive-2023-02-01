@@ -820,7 +820,7 @@ class ContinuousMap(Morphism):
         return homset(resu_funct)
 
     def image(self, subset=None, inverse=None):
-        """
+        r"""
         Return the image of ``self`` or the image of ``subset`` under ``self``.
 
         INPUT:

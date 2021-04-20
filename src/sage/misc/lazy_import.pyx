@@ -167,7 +167,8 @@ cdef class LazyImport(object):
             sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
             sage: type(lazy_ZZ)
             <class 'sage.misc.lazy_import.LazyImport'>
-            sage: assert lazy_ZZ._get_object() is ZZ
+            sage: lazy_ZZ._get_object() is ZZ
+            True
             sage: type(lazy_ZZ)
             <class 'sage.misc.lazy_import.LazyImport'>
         """
@@ -340,7 +341,8 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
-            sage: assert dir(lazy_ZZ) == dir(ZZ)
+            sage: dir(lazy_ZZ) == dir(ZZ)
+            True
         """
         return dir(self.get_object())
 
@@ -352,8 +354,10 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: my_isprime = LazyImport('sage.all', 'is_prime')
-            sage: assert is_prime(12) == my_isprime(12)
-            sage: assert is_prime(13) == my_isprime(13)
+            sage: is_prime(12) == my_isprime(12)
+            True
+            sage: is_prime(13) == my_isprime(13)
+            True
         """
         return self.get_object()(*args, **kwds)
 
@@ -363,7 +367,8 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
-            sage: assert repr(lazy_ZZ) == repr(ZZ)
+            sage: repr(lazy_ZZ) == repr(ZZ)
+            True
         """
         try:
             obj = self.get_object()
@@ -377,7 +382,8 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
-            sage: assert str(lazy_ZZ) == str(ZZ)
+            sage: str(lazy_ZZ) == str(ZZ)
+            True
         """
         return str(self.get_object())
 
@@ -387,7 +393,8 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
-            sage: assert str(lazy_ZZ) == str(ZZ)
+            sage: str(lazy_ZZ) == str(ZZ)
+            True
         """
         return unicode(self.get_object())
 
@@ -397,7 +404,8 @@ cdef class LazyImport(object):
 
             sage: from sage.misc.lazy_import import LazyImport
             sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
-            sage: assert bool(lazy_ZZ) == bool(ZZ)
+            sage: bool(lazy_ZZ) == bool(ZZ)
+            True
         """
         return bool(self.get_object())
 
@@ -867,7 +875,8 @@ cdef class LazyImport(object):
             False
             sage: a[0] is sage.all.foo[0]  # copy but not deep
             True
-            sage: assert type(lazy_foo) is LazyImport
+            sage: type(lazy_foo) is LazyImport
+            True
         """
         import copy
         return copy.copy(self.get_object())
@@ -886,7 +895,8 @@ cdef class LazyImport(object):
             False
             sage: a[0] is sage.all.foo[0]  # deep copy
             False
-            sage: assert type(lazy_foo) is LazyImport
+            sage: type(lazy_foo) is LazyImport
+            True
         """
         import copy
         return copy.deepcopy(self.get_object())

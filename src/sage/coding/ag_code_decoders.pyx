@@ -620,7 +620,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
     def connected_encoder(self, *args, **kwargs):
         r"""
-        Returns the connected encoder for this decoder.
+        Return the connected encoder for this decoder.
 
         INPUT:
 

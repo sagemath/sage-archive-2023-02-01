@@ -553,6 +553,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             ::
 
+                sage: Seq2._parse_recursions_([f(2*n) == 2*n*f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 2*n*f(n) is not a valid right hand side.
+
+            ::
+
                 sage: Seq2._parse_recursions_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
                 Traceback (most recent call last):
                 ...
@@ -664,8 +671,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         remainders = []
 
         def _parse_multiplication_(op):
-            if op.operator() != mul_vararg or len(op.operands()) != 2:
-                raise ValueError("")
             operands = op.operands()
             if operands[1].operator() == function:
                 return [operands[0], operands[1]]

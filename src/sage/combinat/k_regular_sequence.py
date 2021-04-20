@@ -1313,12 +1313,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.arith.srange import srange
 
         k = self.k
-        mu = []
-
         recursion_rules = self._parse_recursions_(equations, function, var, offset)
 
-        for rem in srange(k):
-            mu.append(self._get_matrix_from_recursions_(recursion_rules, rem, function, var))
+        mu = [self._get_matrix_from_recursions_(recursion_rules, rem, function, var)
+              for rem in srange(k)]
 
         seq = self(mu, self._get_left_from_recursions_(recursion_rules.dim),
                    self._get_right_from_recursions_(recursion_rules, function))

@@ -754,7 +754,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         summands = [right_side]
                     elif right_side.operator() == add_vararg:
                         summands = right_side.operands()
-                    else: # check this again
+                    else:
                         raise ValueError("%s is not a valid right hand side."
                                          % (right_side,))
                     for summand in summands:

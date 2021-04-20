@@ -689,7 +689,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 raise ValueError("%s does not have one argument." %
                                  (left_side,))
             try:
-                polynomial_left = base_ring[var](left_side.operands()[0])
+                polynomial_left = ZZ[var](left_side.operands()[0])
             except TypeError:
                 raise ValueError("%s is not a polynomial "
                                  "in %s." % (left_side.operands()[0], var))
@@ -699,8 +699,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             if polynomial_left in base_ring and right_side in base_ring:
                 initial_values.update({polynomial_left: right_side})
             else:
-                poly_left = ZZ[var](left_side.operands()[0])
-                [r, base_power_M] = list(poly_left)
+                [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
                 try:
                     if M != log(base_power_M, base=k):

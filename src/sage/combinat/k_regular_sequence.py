@@ -389,9 +389,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return W(n.digits(self.k))
 
 
-    def _parse_recursions_(self, equations, function, var, offset=0):
+    def _parse_recurrence_(self, equations, function, var, offset=0):
         r"""
-        Parse recursion equations as admissible in :meth:`from_recurrence`.
+        Parse recurrence relations as admissible in :meth:`from_recurrence`.
 
         INPUT:
 
@@ -413,7 +413,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             n
             sage: function('f')
             f
-            sage: Seq2._parse_recursions_([
+            sage: Seq2._parse_recurrence_([
             ....:     f(4*n) == f(2*n) + 2*f(2*n + 1) + 3*f(2*n - 2),
             ....:     f(4*n + 1) == 4*f(2*n) + 5*f(2*n + 1) + 6*f(2*n - 2),
             ....:     f(4*n + 2) == 7*f(2*n) + 8*f(2*n + 1) + 9*f(2*n - 2),
@@ -426,7 +426,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         Stern--Brocot Sequence::
 
-            sage: Seq2._parse_recursions_([f(2*n) == f(n),
+            sage: Seq2._parse_recurrence_([f(2*n) == f(n),
             ....:    f(2*n + 1) == f(n) + f(n + 1), f(0) == 0,
             ....:    f(1) == 1, f(2) == 1], f, n)
             recursion_rules(M=1, m=0, l=0, u=1, ll=0, uu=2, dim=3,
@@ -441,245 +441,245 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             The following tests check that the equations are well-formed::
 
-                sage: Seq2._parse_recursions_([], f, n)
+                sage: Seq2._parse_recurrence_([], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: List of recursion equations is empty.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(4*n + 1)], f, n)
+                sage: Seq2._parse_recurrence_([f(4*n + 1)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(4*n + 1) is not an equation with ==.
 
             ::
 
-                sage: Seq2._parse_recursions_([42], f, n)
+                sage: Seq2._parse_recurrence_([42], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 42 is not a symbolic expression.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) + 1 == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) + 1 == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(2*n) + 1 is not an evaluation of f.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n, 5) == 3], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n, 5) == 3], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(2*n, 5) does not have one argument.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(1/n + 1) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(1/n + 1) == f(n)], f, n)
                 Traceback (most recent call last):
                 ....:
                 ValueError: 1/n + 1 is not a polynomial in n with integer coefficients.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n + 1/2) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n + 1/2) == f(n)], f, n)
                 Traceback (most recent call last):
                 ....:
                 ValueError: 2*n + 1/2 is not a polynomial in n with integer coefficients.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(4*n^2) == f(2*n^2)], f, n)
+                sage: Seq2._parse_recurrence_([f(4*n^2) == f(2*n^2)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 4*n^2 is not a polynomial of degree smaller 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(42) == 0, f(42) == 1], f, n)
+                sage: Seq2._parse_recurrence_([f(42) == 0, f(42) == 1], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: Initial value f(42) is given twice.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(3*n + 1) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(3*n + 1) == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 3 is not a power of 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(n + 1) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(n + 1) == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1 is less than 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(n), f(2*n) == 0], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(n), f(2*n) == 0], f, n)
                 Traceback (most recent call last):
                 ...
-                ValueError: There are more than one recursions for f(2*n).
+                ValueError: There are more than one recurrence relation for f(2*n).
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n + 2) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n + 2) == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 2 is not smaller than 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n - 1) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n - 1) == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: -1 is smaller than 0.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 2*n], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 2*n], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 2*n does not contain f.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 1/2*f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 1/2*f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1/2 is not a valid coefficient.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 1/f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 1/f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1/f(n) is not a valid right hand side.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 2*n*f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 2*n*f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 2*n*f(n) is not a valid right hand side.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 2*f(n, 5)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 2*f(n, 5)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(n, 5) has more than one argument.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 2*f()], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 2*f()], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f() has no argument.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1/f(n) is not a valid summand.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 2*f(1/n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 2*f(1/n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1/n is not a polynomial with integer coefficients.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(n + 1/2)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(n + 1/2)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: n + 1/2 is not a polynomial with integer coefficients.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(1/2*n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(1/2*n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1/2*n is not a polynomial with integer coefficients.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(n^2 + 1)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(n^2 + 1)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: n^2 + 1 does not have degree 1.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(1)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(1)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1 does not have degree 1.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(4*n) == f(2*n) + f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(4*n) == f(2*n) + f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1 does not equal 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(4*n) == f(2*n), f(4*n + 1) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(4*n) == f(2*n), f(4*n + 1) == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1 does not equal 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(4*n) == f(3*n)], f, n)
+                sage: Seq2._parse_recurrence_([f(4*n) == f(3*n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 3 is not a power of 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(4*n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(4*n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 4 is not smaller than 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(2*n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(2*n)], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 2 is not smaller than 2.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(42) == 0], f, n)
+                sage: Seq2._parse_recurrence_([f(42) == 0], f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: Only initial values are given.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(2*n) == f(n)], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == f(n)], f, n)
                 Traceback (most recent call last):
                 ...
-                ValueError: Recursions for [f(2*n + 1)] are missing.
+                ValueError: Recurrence relations for [f(2*n + 1)] are missing.
 
             ::
 
-                sage: Seq2._parse_recursions_([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
+                sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
                 Traceback (most recent call last):
                 ...
-                ValueError: Recursions for [f(4*n + 1), f(4*n + 2)] are missing.
+                ValueError: Recurrence relations for [f(4*n + 1), f(4*n + 2)] are missing.
 
             Finally, also for the zero-sequence the output is as expected::
 
-                sage: Seq2._parse_recursions_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
+                sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
                 recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
                 coeffs={}, initial_values={}, offset=0, n1=0)
         """
@@ -777,7 +777,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         raise ValueError("%s is less than %s."
                                          % (base_power_M, k))
                 if r in remainders:
-                    raise ValueError("There are more than one recursions for %s."
+                    raise ValueError("There are more than one recurrence relation for %s."
                                      % (left_side,))
                 if r >= k**M:
                     raise ValueError("%s is not smaller than %s." % (r, k**M))
@@ -821,7 +821,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 missing_equations = [function(k**M*var + r)
                                      for r in srange(k**M)
                                      if r not in remainders]
-                raise ValueError("Recursions for %s are missing."
+                raise ValueError("Recurrence relations for %s are missing."
                                  % missing_equations)
         except UnboundLocalError:
             raise ValueError("Only initial values are given.")
@@ -849,7 +849,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 
     @cached_method
-    def _get_ind_from_recursions_(self, M, m, ll, uu):
+    def _get_ind_from_recurrence_(self, M, m, ll, uu):
         r"""
         Determine the index operator corresponding to the recursive
         sequence given by ``recursion_rules``, as defined in [HKL2021]_.
@@ -857,7 +857,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         INPUT:
 
         - ``recursion_rules`` -- A namedtuple generated by
-          :meth:`_parse_recursions_`.
+          :meth:`_parse_recurrence_`.
 
         OUTPUT:
 
@@ -866,7 +866,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2._get_ind_from_recursions_(3, 1, -3, 3)
+            sage: Seq2._get_ind_from_recurrence_(3, 1, -3, 3)
             {1: (0, 0), 2: (1, -3), 3: (1, -2), 4: (1, -1), 5: (1, 0), 6: (1, 1),
             7: (1, 2), 8: (1, 3), 9: (2, -3), 10: (2, -2), 11: (2, -1),
             12: (2, 0), 13: (2, 1), 14: (2, 2), 15: (2, 3), 16: (2, 4),
@@ -896,7 +896,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         return ind
 
-    def _get_matrix_from_recursions_(self, recursion_rules, rem, function,
+    def _get_matrix_from_recurrence_(self, recursion_rules, rem, function,
                                      var, correct_offset=True):
         r"""
         Construct the matrix for remainder ``rem`` of the linear
@@ -905,7 +905,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         INPUT:
 
         - ``recursion_rules`` -- a namedtuple generated by
-          :meth:`_parse_recursions_`
+          :meth:`_parse_recurrence_`
 
         - ``rem`` -- an integer between ``0`` and ``k - 1``
 
@@ -924,7 +924,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         EXAMPLES:
 
         The following example illustrates how the coefficients in the
-        right-hand sides of the recursions correspond to the entries of
+        right-hand sides of the recurrence relations correspond to the entries of
         the matrices. ::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
@@ -932,7 +932,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             n
             sage: function('f')
             f
-            sage: rules = Seq2._parse_recursions_([
+            sage: rules = Seq2._parse_recurrence_([
             ....:     f(8*n) == -1*f(2*n - 1) + 1*f(2*n + 1),
             ....:     f(8*n + 1) == -11*f(2*n - 1) + 10*f(2*n) + 11*f(2*n + 1),
             ....:     f(8*n + 2) == -21*f(2*n - 1) + 20*f(2*n) + 21*f(2*n + 1),
@@ -942,7 +942,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(8*n + 6) == -61*f(2*n - 1) + 60*f(2*n) + 61*f(2*n + 1),
             ....:     f(8*n + 7) == -71*f(2*n - 1) + 70*f(2*n) + 71*f(2*n + 1),],
             ....:     f, n)
-            sage: Seq2._get_matrix_from_recursions_(rules, 0, f, n, False)
+            sage: Seq2._get_matrix_from_recurrence_(rules, 0, f, n, False)
             [  0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0]
@@ -960,7 +960,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [  0   0   0 -31  30  31   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0 -41  40  41   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0 -51  50  51   0   0   0   0   0   0   0   0   0   0   0]
-            sage: Seq2._get_matrix_from_recursions_(rules, 1, f, n, False)
+            sage: Seq2._get_matrix_from_recurrence_(rules, 1, f, n, False)
             [  0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0]
@@ -981,20 +981,20 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         Stern--Brocot Sequence::
 
-            sage: SB_rules = Seq2._parse_recursions_([
+            sage: SB_rules = Seq2._parse_recurrence_([
             ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1)], f, n)
-            sage: Seq2._get_matrix_from_recursions_(SB_rules, 0, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(SB_rules, 0, f, n)
             [1 0 0]
             [1 1 0]
             [0 1 0]
-            sage: Seq2._get_matrix_from_recursions_(SB_rules, 1, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(SB_rules, 1, f, n)
             [1 1 0]
             [0 1 0]
             [0 1 1]
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: UB_rules = Seq2._parse_recursions_([
+            sage: UB_rules = Seq2._parse_recurrence_([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1010,7 +1010,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
             ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
             ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
-            sage: Seq2._get_matrix_from_recursions_(UB_rules, 0, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(UB_rules, 0, f, n)
             [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0]
@@ -1027,7 +1027,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0]
-            sage: Seq2._get_matrix_from_recursions_(UB_rules, 1, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(UB_rules, 1, f, n)
             [ 0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
@@ -1067,7 +1067,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         dim_without_corr = dim - n1
         coeffs = recursion_rules.coeffs
         initial_values = recursion_rules.initial_values
-        ind = self._get_ind_from_recursions_(M, m, ll, uu)
+        ind = self._get_ind_from_recurrence_(M, m, ll, uu)
 
         mat = Matrix(base_ring, 0, dim_without_corr)
 
@@ -1129,7 +1129,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                      [zero_matrix(n1, dim_without_corr), J]]))
 
 
-    def _get_left_from_recursions_(self, dim):
+    def _get_left_from_recurrence_(self, dim):
         r"""
         Construct the vector ``left`` of the linear representation of
         recursive sequences.
@@ -1145,7 +1145,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2._get_left_from_recursions_(5)
+            sage: Seq2._get_left_from_recurrence_(5)
             (1, 0, 0, 0, 0)
 
         .. SEEALSO::
@@ -1157,7 +1157,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return vector([1] + (dim - 1)*[0])
 
 
-    def _get_right_from_recursions_(self, recursion_rules, function):
+    def _get_right_from_recurrence_(self, recursion_rules, function):
         r"""
         Construct the vector ``right`` of the linear
         representation of the sequence induced by ``recursion_rules``.
@@ -1165,7 +1165,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         INPUT:
 
         - ``recursion_rules`` -- A namedtuple generated by
-          :meth:`_parse_recursions_`.
+          :meth:`_parse_recurrence_`.
 
         - ``function`` -- A function.
 
@@ -1182,15 +1182,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             n
             sage: function('f')
             f
-            sage: SB_rules = Seq2._parse_recursions_([
+            sage: SB_rules = Seq2._parse_recurrence_([
             ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1, f(2) == 1], f, n)
-            sage: Seq2._get_right_from_recursions_(SB_rules, f)
+            sage: Seq2._get_right_from_recurrence_(SB_rules, f)
             (0, 1, 1)
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: UB_rules = Seq2._parse_recursions_([
+            sage: UB_rules = Seq2._parse_recurrence_([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1206,7 +1206,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
             ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
             ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
-            sage: Seq2._get_right_from_recursions_(UB_rules, f)
+            sage: Seq2._get_right_from_recurrence_(UB_rules, f)
             (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
 
         .. SEEALSO::
@@ -1332,13 +1332,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.arith.srange import srange
 
         k = self.k
-        recursion_rules = self._parse_recursions_(equations, function, var, offset)
+        recursion_rules = self._parse_recurrence_(equations, function, var, offset)
 
-        mu = [self._get_matrix_from_recursions_(recursion_rules, rem, function, var)
+        mu = [self._get_matrix_from_recurrence_(recursion_rules, rem, function, var)
               for rem in srange(k)]
 
-        seq = self(mu, self._get_left_from_recursions_(recursion_rules.dim),
-                   self._get_right_from_recursions_(recursion_rules, function))
+        seq = self(mu, self._get_left_from_recurrence_(recursion_rules.dim),
+                   self._get_right_from_recurrence_(recursion_rules, function))
 
         if minimize:
             return seq.minimized()

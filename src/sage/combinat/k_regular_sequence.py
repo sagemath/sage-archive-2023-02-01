@@ -973,10 +973,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         M = recursion_rules.M
         m = recursion_rules.m
         l = recursion_rules.l
-        u = recursion_rules.u
         ll = recursion_rules.ll
         uu = recursion_rules.uu
-        offset = recursion_rules.offset
         n1 = recursion_rules.n1
         dim = recursion_rules.dim
         dim_without_corr = dim - n1

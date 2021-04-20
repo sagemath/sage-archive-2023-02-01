@@ -567,17 +567,24 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             ::
 
+                sage: Seq2._parse_recursions_([f(2*n) == 2*f(1/n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/n is not a polynomial with integer coefficients.
+
+            ::
+
                 sage: Seq2._parse_recursions_([f(2*n) == f(n + 1/2)], f, n)
                 Traceback (most recent call last):
                 ...
-                ValueError: n + 1/2 does not have integer coefficients.
+                ValueError: n + 1/2 is not a polynomial with integer coefficients.
 
             ::
 
                 sage: Seq2._parse_recursions_([f(2*n) == f(1/2*n)], f, n)
                 Traceback (most recent call last):
                 ...
-                ValueError: 1/2*n does not have integer coefficients.
+                ValueError: 1/2*n is not a polynomial with integer coefficients.
 
             ::
 
@@ -689,7 +696,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             try:
                 poly = ZZ[var](op.operands()[0])
             except TypeError:
-                raise ValueError('%s does not have integer coefficients.'
+                raise ValueError('%s is not a polynomial with integer coefficients.'
                                  % (op.operands()[0],))
             if poly.degree() != 1:
                 raise ValueError("%s does not have degree 1."

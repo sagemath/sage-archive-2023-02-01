@@ -472,7 +472,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 sage: Seq2._parse_recursions_([f(1/n + 1) == f(n)], f, n)
                 Traceback (most recent call last):
                 ....:
-                ValueError: 1/n + 1 is not a polynomial in n.
+                ValueError: 1/n + 1 is not a polynomial in n with integer coefficients.
+
+            ::
+
+                sage: Seq2._parse_recursions_([f(2*n + 1/2) == f(n)], f, n)
+                Traceback (most recent call last):
+                ....:
+                ValueError: 2*n + 1/2 is not a polynomial in n with integer coefficients.
 
             ::
 
@@ -705,8 +712,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             try:
                 polynomial_left = ZZ[var](left_side.operands()[0])
             except TypeError:
-                raise ValueError("%s is not a polynomial "
-                                 "in %s." % (left_side.operands()[0], var))
+                raise ValueError("%s is not a polynomial in %s with "
+                                 "integer coefficients."
+                                 % (left_side.operands()[0], var))
             if polynomial_left.degree()  > 1:
                 raise ValueError("%s is not a polynomial of degree smaller 2."
                                  % (polynomial_left,))
@@ -734,8 +742,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 if r in remainders:
                     raise ValueError("There are more than one recursions for %s."
                                      % (left_side,))
-                if r not in ZZ:
-                    raise ValueError("%s is not an integer." % (r,))
                 if r >= k**M:
                     raise ValueError("%s is not smaller than %s." % (r, k**M))
                 if r < 0:

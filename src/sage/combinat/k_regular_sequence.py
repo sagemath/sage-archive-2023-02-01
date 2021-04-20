@@ -1212,6 +1212,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         .. SEEALSO::
 
             :meth:`from_recurrence`
+
+        TESTS::
+
+            sage: rules = Seq2._parse_recurrence_([
+            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1)], f, n)
+            sage: Seq2._get_right_from_recurrence_(rules, f)
+            Traceback (most recent call last):
+            ....:
+            ValueError: Initial value f(0) is missing.
         """
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector

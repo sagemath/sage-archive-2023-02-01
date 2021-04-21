@@ -15,7 +15,7 @@ from itertools import product, zip_longest
 from multiprocessing import Pool, set_start_method
 from sage.combinat.q_analogues import q_int
 from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import (
-    collect_results, executor,
+    executor,
     _unflatten_entries
 )
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
@@ -1204,20 +1204,16 @@ class FusionRing(WeylCharacterRing):
         n_proc = worker_pool._processes if worker_pool is not None else 1
         input_iter = [(child_id, n_proc, input_args) for child_id in range(n_proc)]
         no_mp = worker_pool is None
-        #Map phase. Casting Async Object blocks execution... Each process holds results
-        #in its copy of fmats.temp_eqns
+        #Map phase
         input_iter = zip_longest([],input_iter,fillvalue=(mapper,id(self)))
+        results = list()
         if no_mp:
-            list(map(executor,input_iter))
+            mapped = map(executor,input_iter)
         else:
-            list(worker_pool.imap_unordered(executor,input_iter,chunksize=1))
+            mapped = worker_pool.imap_unordered(executor,input_iter,chunksize=1)
         #Reduce phase
-        if no_mp:
-            results = collect_results(0)
-        else:
-            results = []
-            for worker_results in worker_pool.imap_unordered(collect_results,range(worker_pool._processes),chunksize=1):
-                results.extend(worker_results)
+        for worker_results in mapped:
+            results.extend(worker_results)
         return results
 
     def get_braid_generators(self,
@@ -1227,7 +1223,7 @@ class FusionRing(WeylCharacterRing):
                             checkpoint=False,
                             save_results="",
                             warm_start="",
-                            use_mp=False,
+                            use_mp=True,
                             verbose=True):
         r"""
         Compute generators of the Artin braid group on ``n_strands`` strands.

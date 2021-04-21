@@ -16,9 +16,6 @@ from itertools import product
 from sage.misc.cachefunc import cached_function
 from sage.rings.qqbar import QQbar
 
-#Define a global temporary worker results repository
-worker_results = list()
-
 ###############
 ### Mappers ###
 ###############
@@ -109,7 +106,7 @@ cdef sig_2k(fusion_ring, tuple args):
     child_id, n_proc, fn_args = args
     k, a, b, n_strands = fn_args
     cdef int ctr = -1
-    global worker_results
+    cdef list worker_results = list()
     #Get computational basis
     cdef list comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
     cdef dict basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
@@ -168,6 +165,7 @@ cdef sig_2k(fusion_ring, tuple args):
                     entry = entry.list()
 
                 worker_results.append(((basis_dict[nnz_pos], i), entry))
+    return worker_results
 
 @cython.nonecheck(False)
 @cython.cdivision(True)
@@ -181,7 +179,7 @@ cdef odd_one_out(fusion_ring, tuple args):
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
-    global worker_results
+    cdef list worker_results = list()
     cdef int child_id, n_proc
     child_id, n_proc, fn_args = args
     a, b, n_strands = fn_args
@@ -238,36 +236,7 @@ cdef odd_one_out(fusion_ring, tuple args):
                     entry = entry.list()
 
                 worker_results.append(((basis_dict[nnz_pos],i), entry))
-
-################
-### Reducers ###
-################
-
-cpdef list collect_results(int proc):
-    """
-    Helper function for returning processed results back to parent process.
-
-    Trivial reducer: simply collects objects with the same key in the worker.
-    This method is only useful when called after :meth:`executor`, whose
-    function argument appends output to the ``worker_results`` list.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
-        sage: FR = FusionRing("A2",1)
-        sage: FR.fusion_labels("a",inject_variables=True)
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)
-        sage: params = (('sig_2k',id(FR)),(0,1,(2,a2,a0,9)))
-        sage: executor(params)
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results
-        sage: len(collect_results(0)) == 1
-        True
-    """
-    #Discard the zero polynomial
-    global worker_results
-    reduced = worker_results
-    worker_results = []
-    return reduced
+    return worker_results
 
 ##############################
 ### Parallel code executor ###
@@ -301,24 +270,21 @@ cpdef executor(tuple params):
         sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
         sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time
         sage: params = (('sig_2k',id(FR)),(0,1,(1,one,one,5)))    # long time
-        sage: executor(params)                                    # long time
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import collect_results
-        sage: len(collect_results(0)) == 13                       # long time
+        sage: len(executor(params)) == 13                         # long time
         True
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor, collect_results
+        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
         sage: FR = FusionRing("A1",2)
         sage: FR.fusion_labels("a",inject_variables=True)
         sage: FR.fmats.find_orthogonal_solution(verbose=False)
         sage: params = (('odd_one_out',id(FR)),(0,1,(a2,a2,5)))
-        sage: executor(params)
-        sage: len(collect_results(0)) == 1
+        sage: len(executor(params)) == 1
         True
     """
     (fn_name, fr_id), args = params
     #Construct a reference to global FMatrix object in this worker's memory
     fusion_ring_obj = ctypes.cast(fr_id, ctypes.py_object).value
     #Bind module method to FMatrix object in worker process, and call the method
-    mappers[fn_name](fusion_ring_obj,args)
+    return mappers[fn_name](fusion_ring_obj,args)
 
 ######################################
 ### Pickling circumvention helpers ###

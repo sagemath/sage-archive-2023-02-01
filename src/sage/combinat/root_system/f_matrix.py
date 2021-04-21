@@ -20,13 +20,13 @@ except:
 
 from copy import deepcopy
 from itertools import product, zip_longest
-from multiprocessing import cpu_count, Pool, set_start_method
+from multiprocessing import cpu_count, Pool, Queue, set_start_method
 import numpy as np
 import os
 
 from sage.combinat.root_system.fast_parallel_fmats_methods import (
     _backward_subs, _solve_for_linear_terms,
-    collect_eqns, executor
+    executor
 )
 from sage.combinat.root_system.poly_tup_engine import (
     apply_coeff_map, constant_coeff,
@@ -1294,8 +1294,8 @@ class FMatrix():
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1)]))
             11
             sage: from multiprocessing import Pool
-            sage: pool = None
-            sage: mp_params = [(0,1)]
+            sage: pool = Pool()
+            sage: mp_params = [(i,pool._processes) for i in range(pool._processes)]
             sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=pool,chunksize=1,mp_thresh=0))
             33
         """
@@ -1310,21 +1310,18 @@ class FMatrix():
             if chunksize is None:
                 chunksize = n // (worker_pool._processes**2) + 1
         no_mp = worker_pool is None or n < mp_thresh
-        #Map phase. Casting Async Object blocks execution... Each process holds results
-        #in its copy of fmats.temp_eqns
+        #Map phase
         input_iter = zip_longest([],input_iter,fillvalue=(mapper,id(self)))
         if no_mp:
-            list(map(executor,input_iter))
+            mapped = map(executor,input_iter)
         else:
-            list(worker_pool.imap_unordered(executor,input_iter,chunksize=chunksize))
+            mapped = worker_pool.imap_unordered(executor,input_iter,chunksize=chunksize)
         #Reduce phase
-        if no_mp:
-            results = collect_eqns(0)
-        else:
-            results = set()
-            for child_eqns in worker_pool.imap_unordered(collect_eqns,range(worker_pool._processes)):
+        results = set()
+        for child_eqns in mapped:
+            if child_eqns is not None:
                 results.update(child_eqns)
-            results = list(results)
+        results = list(results)
         return results
 
     ########################
@@ -1457,7 +1454,7 @@ class FMatrix():
             ....:     set_start_method('fork')
             ....: except:
             ....:     pass
-            sage: pool = None
+            sage: pool = Pool()
             sage: he = f.get_defining_equations('hexagons',pool)
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
             True
@@ -1477,7 +1474,7 @@ class FMatrix():
             ....:     set_start_method('fork')
             ....: except:
             ....:     pass
-            sage: pool = None
+            sage: pool = Pool()
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
             sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
@@ -1536,6 +1533,8 @@ class FMatrix():
 
             #Compute new reduction params, send to child processes if any, and update eqns
             self._update_reduction_params(eqns=eqns,worker_pool=worker_pool,children_need_update=len(eqns)>self.mp_thresh)
+            n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
+            eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
             eqns = self._map_triv_reduce('update_reduce',eqns,worker_pool=worker_pool)
             eqns.sort(key=poly_tup_sortkey)
             if verbose:
@@ -1688,7 +1687,7 @@ class FMatrix():
             ....:     set_start_method('fork') # context can be set only once
             ....: except RuntimeError:
             ....:     pass
-            sage: pool = None
+            sage: pool = Pool()
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
             sage: gb = f._par_graph_gb(worker_pool=pool)
             Partitioned 10 equations into 2 components of size:
@@ -1861,7 +1860,6 @@ class FMatrix():
             eqns = self.ideal_basis
         #Don't add square fixers when warm starting from a late-stage checkpoint
         if self._chkpt_status < 5:
-            # self._add_square_fixers()
             n = self._poly_ring.ngens()
             one = self._field.one()
             for fx, rhs in self._ks.items():
@@ -1894,7 +1892,6 @@ class FMatrix():
             #Otherwise, compute the component variety and select a point to obtain a numerical solution
             else:
                 sols = self._get_component_variety(comp,part)
-                # assert len(sols) > 1, "No real solution exists... component with variables {} has no real points".format(comp)
                 for fx, rhs in sols[0].items():
                     non_cyclotomic_roots.append((fx,rhs))
                 must_change_base_field = True
@@ -1941,7 +1938,7 @@ class FMatrix():
         self._FR._field = self.field()
         self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
 
-    def find_orthogonal_solution(self, checkpoint=False, save_results="", warm_start="", use_mp=False, verbose=True):
+    def find_orthogonal_solution(self, checkpoint=False, save_results="", warm_start="", use_mp=True, verbose=True):
         r"""
         Solve the the hexagon and pentagon relations, along with
         orthogonality constraints, to evaluate an orthogonal F-matrix.
@@ -2343,7 +2340,7 @@ class FMatrix():
         fvars_copy = deepcopy(self._fvars)
         self._fvars = {sextuple: float(rhs) for sextuple, rhs in self.get_fvars_in_alg_field().items()}
         if use_mp:
-            pool = Pool(processes=cpu_count())
+            pool = Pool()
         else:
             pool = None
         n_proc = pool._processes if pool is not None else 1

@@ -780,7 +780,6 @@ class NumberFieldIdeal(Ideal_generic):
             sage: P = EllipticCurve(L, '57a1').lift_x(z_x) * 3
             sage: ideal = L.fractional_ideal(P[0], P[1])
             sage: ideal.is_principal(proof=False)
-              ***   Warning: precision too low for generators, not given.
             True
             sage: len(ideal.gens_reduced(proof=False))
             1
@@ -789,7 +788,7 @@ class NumberFieldIdeal(Ideal_generic):
             self._is_principal = True
             self._reduced_generators = self.gens()
             return self._reduced_generators
-        self._cache_bnfisprincipal(proof=proof, gens_needed=True)
+        self._cache_bnfisprincipal(proof=proof, gens=True)
         return self._reduced_generators
 
     def gens_two(self):
@@ -1030,7 +1029,7 @@ class NumberFieldIdeal(Ideal_generic):
            raise ValueError("%s is not a prime ideal" % self)
         return self._pari_prime
 
-    def _cache_bnfisprincipal(self, proof=None, gens_needed=False):
+    def _cache_bnfisprincipal(self, proof=None, gens=False):
         r"""
         This function is essentially the implementation of
         :meth:`is_principal`, :meth:`gens_reduced` and
@@ -1042,9 +1041,8 @@ class NumberFieldIdeal(Ideal_generic):
 
         - ``proof`` -- proof flag.  If ``proof=False``, assume GRH.
 
-        - ``gens_needed`` -- (default: True) if True, insist on computing
-          the reduced generators of the ideal.  With ``gens=False``, they
-          may or may not be computed (depending on how big the ideal is).
+        - ``gens`` -- (default: False) if True, also computes the reduced
+          generators of the ideal.
 
         OUTPUT:
 
@@ -1052,6 +1050,15 @@ class NumberFieldIdeal(Ideal_generic):
         ``_ideal_class_log`` (see :meth:`ideal_class_log`),
         ``_is_principal`` (see :meth:`is_principal`) and
         ``_reduced_generators``.
+
+        TESTS:
+
+        Check that no warnings are triggered from PARI/GP (see :trac:`30801`)::
+
+            sage: K.<a> = NumberField(x^2 - x + 112941801)
+            sage: I = K.ideal((112941823, a + 49942513))
+            sage: I.is_principal()
+            False
         """
         # Since pari_bnf() is cached, this call to pari_bnf() should not
         # influence the run-time much.  Also, this simplifies the handling
@@ -1063,29 +1070,29 @@ class NumberFieldIdeal(Ideal_generic):
 
         # If we already have _reduced_generators, no need to compute them again
         if hasattr(self, "_reduced_generators"):
-            gens_needed = False
+            gens = False
 
         # Is there something to do?
-        if hasattr(self, "_ideal_class_log") and not gens_needed:
+        if hasattr(self, "_ideal_class_log") and not gens:
             self._is_principal = not any(self._ideal_class_log)
             return
 
-        # Call bnfisprincipal().
-        # If gens_needed, use flag=3 which will insist on computing
-        # the generator.  Otherwise, use flag=1, where the generator
-        # may or may not be computed.
-        v = bnf.bnfisprincipal(self.pari_hnf(), 3 if gens_needed else 1)
-        self._ideal_class_log = list(v[0])
-        self._is_principal = not any(self._ideal_class_log)
+        if not gens:
+            v = bnf.bnfisprincipal(self.pari_hnf(), 0)
+            self._ideal_class_log = list(v)
+            self._is_principal = not any(self._ideal_class_log)
+        else:
+            # TODO: with flag=3 the call to bnfisprincipal is likely to fail,
+            # consider using the factored form obtained with flag=4
+            v = bnf.bnfisprincipal(self.pari_hnf(), 3)
+            self._ideal_class_log = list(v[0])
+            self._is_principal = not any(self._ideal_class_log)
 
-        if self._is_principal:
-            # Cache reduced generator if it was computed
-            if v[1]:
+            if self._is_principal:
                 g = self.number_field()(v[1])
                 self._reduced_generators = (g,)
-        else:
-            # Non-principal ideal, compute two generators if asked for
-            if gens_needed:
+            elif gens:
+                # Non-principal ideal
                 self._reduced_generators = self.gens_two()
 
     def is_principal(self, proof=None):

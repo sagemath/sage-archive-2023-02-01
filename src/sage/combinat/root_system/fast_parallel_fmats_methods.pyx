@@ -362,11 +362,32 @@ cdef list compute_gb(factory, tuple args):
         res.append(t)
     return collect_eqns(res)
 
-cdef update_child_fmats(factory, tuple data_tup):
+cpdef update_child_fmats(factory, tuple data_tup):
     r"""
     One-to-all communication used to update FMatrix object after each triangular
     elim step. We must update the algorithm's state values. These are:
     ``_fvars``, ``_solved``, ``_ks``, ``_var_degs``, ``_nnz``, and ``_kp``.
+
+    TESTS::
+
+        sage: f = FMatrix(FusionRing("A1",3))
+        sage: f.get_orthogonality_constraints(output=False)
+        sage: from multiprocessing import Pool, set_start_method
+        sage: try:
+        ....:     set_start_method('fork') # context can be set only once
+        ....: except RuntimeError:
+        ....:     pass
+        sage: pool = Pool()
+        sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
+        sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+        sage: f.mp_thresh = 0
+        sage: f._triangular_elim(worker_pool=pool)          # indirect doctest
+        Elimination epoch completed... 10 eqns remain in ideal basis
+        Elimination epoch completed... 0 eqns remain in ideal basis
+        sage: f.ideal_basis
+        []
     """
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object

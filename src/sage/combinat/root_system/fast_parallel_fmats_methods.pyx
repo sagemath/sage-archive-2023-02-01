@@ -27,6 +27,8 @@ from itertools import product
 from sage.rings.ideal import Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+from time import sleep
+
 ##########################
 ### Fast class methods ###
 ##########################
@@ -394,6 +396,9 @@ cpdef update_child_fmats(factory, tuple data_tup):
     factory._fvars, factory._solved, factory._ks, factory._var_degs = data_tup
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
+
+    #Wait this process isn't used again
+    sleep(0.4)
 
 ################
 ### Reducers ###

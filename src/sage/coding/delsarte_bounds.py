@@ -557,7 +557,7 @@ def _delsarte_Q_LP_building(q,d,solver,isinteger):
         p.add_constraint(A[i]==0)
 
     for k in range(1,n):
-        p.add_constraint(sum([q[i][k]*A[i] for i in range(m)]),min=0)
+        p.add_constraint(sum([q[k][i]*A[i] for i in range(m)]),min=0)
 
     # p.show()
     return A, p

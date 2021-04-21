@@ -1230,12 +1230,12 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         return A
 
     cdef _stack_impl(self, bottom):
-        """
-        Stack ``self`` on top of ``other``.
+        r"""
+        Stack ``self`` on top of ``bottom``.
 
         INPUT:
 
-        - ``other`` - a matrix
+        - ``bottom`` -- a matrix with the same number of columns as ``self``
 
         EXAMPLES::
 
@@ -1294,9 +1294,6 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             [    a     0]
         """
         cdef Matrix_gf2e_dense other = <Matrix_gf2e_dense> bottom
-
-        if self._ncols != other._ncols:
-            raise TypeError("Both numbers of columns must match.")
 
         if self._nrows == 0:
             return other.__copy__()

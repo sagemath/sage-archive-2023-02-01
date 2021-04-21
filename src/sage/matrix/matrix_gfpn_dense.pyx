@@ -1169,8 +1169,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         return self._converter.fel_to_field(MatTrace(self.Data))
 
     cdef _stack_impl(self, bottom):
-        """
-        Stack two matrices of the same number of columns.
+        r"""
+        Stack ``self`` on top of ``bottom``.
+
+        INPUT:
+
+        - ``bottom`` -- a matrix with the same number of columns as ``self``
 
         EXAMPLES::
 
@@ -1192,8 +1196,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         cdef Matrix_gfpn_dense other = <Matrix_gfpn_dense> bottom
 
-        if self._ncols != other._ncols:
-            raise TypeError("Both numbers of columns must match.")
         if self._nrows == 0 or self.Data == NULL:
             return other.__copy__()
         if other._nrows == 0 or other.Data == NULL:

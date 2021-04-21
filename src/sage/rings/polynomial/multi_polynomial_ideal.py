@@ -232,6 +232,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+
 from sage.interfaces.singular import singular as singular_default
 from sage.interfaces.magma import magma as magma_default
 
@@ -2283,7 +2284,7 @@ class MPolynomialIdeal_singular_repr(
         return (R.ideal(ideal), ZZ(expo))
 
     @require_field
-    def variety(self, ring=None, *, algorithm="triangular_decomposition"):
+    def variety(self, ring=None, *, algorithm="triangular_decomposition", proof=True):
         r"""
         Return the variety of this ideal.
 
@@ -2317,6 +2318,8 @@ class MPolynomialIdeal_singular_repr(
 
         - ``ring`` - return roots in the ``ring`` instead of the base
           ring of this ideal (default: ``None``)
+        - ``algorithm`` - algorithm or implementation to use; see below for
+          supported values
         - ``proof`` - return a provably correct result (default: ``True``)
 
         EXAMPLES::
@@ -2370,7 +2373,9 @@ class MPolynomialIdeal_singular_repr(
             sage: I.variety(ring=AA)
             [{y: 1, x: 1},
              {y: 0.3611030805286474?, x: 2.769292354238632?}]
-
+            sage: I.variety(RBF, algorithm='msolve', proof=False) # optional - msolve
+            [{x: [2.76929235423863 +/- 2.08e-15], y: [0.361103080528647 +/- 4.53e-16]},
+             {x: 1.000000000000000, y: 1.000000000000000}]
 
         and a total of four intersections::
 
@@ -2434,10 +2439,21 @@ class MPolynomialIdeal_singular_repr(
 
         ALGORITHM:
 
-        Uses triangular decomposition.
+        - With ``algorithm`` = ``"triangular_decomposition"`` (default),
+          uses triangular decomposition, via Singular if possible, falling back
+          on a toy implementation otherwise.
+
+        - With ``algorithm`` = ``"msolve"``, calls the external program
+          `msolve <https://msolve.lip6.fr/>`_ (if available in the system
+          program search path). Note that msolve uses heuristics and therefore
+          requires setting the ``proof`` flag to ``False``. See
+          :mod:`~sage.rings.polynomial.msolve` for more information.
         """
         if algorithm == "triangular_decomposition":
             return self._variety_triangular_decomposition(ring)
+        elif algorithm == "msolve":
+            from . import msolve
+            return msolve._variety(self, ring, proof)
         else:
             raise ValueError(f"unknown algorithm {algorithm!r}")
 

@@ -140,6 +140,14 @@ class PolyhedronRepresentation(SageObject):
             sage: Q = (1/2)*polytopes.cube(backend='field')
             sage: for p in P.inequalities():
             ....:     assert p in Q.inequalities()
+
+        Check :trac:`31702`::
+
+            sage: H = Polyhedron(vertices=[(4,0)], rays=[(1,1)], lines=[(-1,1)])
+            sage: sorted([H.lines()[0], H.rays()[0], H.vertices()[0]])
+            [A vertex at (4, 0),
+             A ray in the direction (1, 0),
+             A line in the direction (1, -1)]
         """
         if not isinstance(other, PolyhedronRepresentation):
             return NotImplemented

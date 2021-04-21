@@ -1266,18 +1266,18 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``equations`` -- A list of equations where the elements have
           either the form
 
-          - `f(k^M n + r) = c_{r,\ell} f(k^m n + \ell) +
-             c_{r,\ell + 1} f(k^m n + \ell + 1) + ... +
-             c_{r,u - 1} f(k^m n + u - 1) + c_{r,u} f(k^m n + u)`
-            for some integers `0 \leq r < k^M`, `M > m \geq 0`
-            and `l \leq u`, and some coefficients `c_{r,k}` from the ring
-            ``coefficents`` of the correscponding :class:`kRegularSequenceSpace`,
-            valid for all integers ``n >= offset``, and there is an equation of
-            this form (with the same parameters ``M`` and ``m``) for all ``r``
+          - `f(k^M n + r) = c_{r,l} f(k^m n + l) +
+            c_{r,l + 1} f(k^m n + l + 1) + ... + c_{r,u} f(k^m n + u)`
+            for some integers `0 \leq r < k^M`, `M > m \geq 0` and `l \leq u`,
+            and some coefficients `c_{r,k}` from the (semi)ring ``coefficents``
+            of the corresponding :class:`kRegularSequenceSpace`, valid for all
+            integers ``n >= offset``, and there is an equation of this form
+            (with the same parameters `M` and `m`) for all `r`
 
           or the form
 
-          - ``f(k) == t`` for some integer ``k`` and some ``t``.
+          - ``f(k) == t`` for some integer ``k`` and some ``t`` from
+            ``coefficients``.
 
           The recurrence relations above uniquely determine a `k`-regular sequence;
           see [HKL2021]_ for further information.

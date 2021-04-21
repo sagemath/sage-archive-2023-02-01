@@ -1,6 +1,6 @@
 SAGE_SPKG_CONFIGURE([pari], [
   dnl See gp_version below on how the version is computed from MAJV.MINV.PATCHV
-  m4_pushdef([SAGE_PARI_MINVER],["133889"])
+  m4_pushdef([SAGE_PARI_MINVER],["134401"])
   SAGE_SPKG_DEPCHECK([gmp mpir readline], [
     AC_PATH_PROG([GP], [gp])
     if test x$GP = x; then dnl GP test
@@ -98,6 +98,16 @@ SAGE_SPKG_CONFIGURE([pari], [
            AC_MSG_NOTICE([Upgrade your system package and reconfigure.])
            AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
            sage_spkg_install_pari=yes
+        fi
+        AC_MSG_CHECKING([whether rnfdisc bug of pari 2.13.1 is fixed])
+        bug_check=`echo "K = nfinit(y^4-10*y^2+1); disc = rnfdisc(K,x^2-(y^3/2+y^2-5*y/2+1)); idealnorm(K,disc)" | $GP -qf 2 >> config.log`
+        expected="2304"
+        if test x"$bug_check" = x"$expected"; then
+          AC_MSG_RESULT([yes])
+        else
+           AC_MSG_RESULT([no; cannot use system pari/GP with known bug])
+           AC_MSG_NOTICE([Upgrade your system package and reconfigure.])
+           AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
         fi
     fi dnl end GP test
 

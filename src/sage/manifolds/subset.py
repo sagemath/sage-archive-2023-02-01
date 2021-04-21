@@ -681,10 +681,20 @@ class ManifoldSubset(UniqueRepresentation, Parent):
               3-dimensional differentiable manifold M,
               None)]
             sage: D.plot(layout='acyclic')   # not tested
+            sage: def label(element):
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')    # not tested
+
             sage: VW = V.union(W)
             sage: D = M.subset_digraph(); D
             Digraph on 5 vertices
-            sage: D.plot(layout='acyclic')   # not tested
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')    # not tested
+
+            sage: D = M.subset_digraph(open_covers=True)
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')    # not tested
         """
         from sage.graphs.digraph import DiGraph
         D = DiGraph(multiedges=False, loops=loops)
@@ -747,7 +757,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: sorted(P.lower_covers(M), key=str)
             [Open subset U of the 3-dimensional differentiable manifold M,
              Open subset V_union_W of the 3-dimensional differentiable manifold M]
-            sage: P.plot()                  # not tested
+            sage: P.plot(element_labels={element: element._name for element in P})   # not tested
 
         If ``open_covers`` is ``True``, the poset includes a special vertex for
         each nontrivial open cover of a subset::
@@ -758,6 +768,12 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             [3-dimensional differentiable manifold M,
              frozenset({Open subset V of the 3-dimensional differentiable manifold M,
                         Open subset W of the 3-dimensional differentiable manifold M})]
+            sage: def label(element):
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: P.plot(element_labels={element: label(element) for element in P})  # not tested
         """
         from sage.combinat.posets.posets import Poset
         return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))
@@ -780,6 +796,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: VW = V.union(W)
             sage: P = V.superset_digraph(loops=False, upper_bound=VW); P
             Digraph on 2 vertices
+
         """
         if upper_bound is None:
             upper_bound = self._manifold
@@ -801,6 +818,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: VW = V.union(W)
             sage: P = V.superset_poset(); P
             Finite poset containing 3 elements
+            sage: P.plot(element_labels={element: element._name for element in P})   # not tested
+
         """
         if upper_bound is None:
             upper_bound = self._manifold

@@ -873,8 +873,25 @@ cdef class FiniteField(Field):
 
             sage: GF(7^2,'a').factored_unit_order()
             (2^4 * 3,)
+
+        TESTS:
+
+        Check that :trac:`31686` is fixed::
+
+            sage: p = 1100585370631
+            sage: F = GF(p^24, 'a')
+            sage: F.factored_unit_order()
+            (2^6 * 3^2 * 5 * 7 * 11 * 13 * 17 * 53 * 97 * 229 * 337 * 421
+             * 3929 * 215417 * 249737 * 262519 * 397897 * 59825761 * 692192057
+             * 12506651939 * 37553789761 * 46950147799 * 172462808473 * 434045140817
+             * 81866093016401 * 617237859576697 * 659156729361017707
+             * 268083135725348991493995910983015600019336657
+             * 90433843562394341719266736354746485652016132372842876085423636587989263202299569913,)
         """
-        F = (self.order() - 1).factor()
+        from sage.structure.factorization import Factorization
+        from sage.rings.polynomial.cyclotomic import cyclotomic_value as cv
+        p, d = self.characteristic(), self.degree()
+        F = Factorization(f for n in d.divisors() for f in cv(n, p).factor())
         return (F,)
 
     def cardinality(self):

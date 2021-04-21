@@ -403,8 +403,19 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         OUTPUT:
 
-        A namedtuple ``recursion_rules`` containing all the
-        significant information obtained from ``equations``.
+        A namedtuple ``recursion_rules`` consisting of
+
+        - ``M``, ``m``, ``l``, ``u``  -- parameters of the recursive sequences,
+          see [HKL2021]_, Definition 3.1
+
+        - ``ll``, ``uu``, ``n1``, ``dim`` -- parameters and dimension of the
+          resulting linear representation, see [HKL2021]_, Theorem A
+
+        - ``coeffs`` -- a dictionary mapping ``(r, k)`` to the coefficients
+          `c_{r, k}` as given in [HKL2021]_, Equation (3.1)
+
+        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
+          ``n``th value of the sequence
 
         EXAMPLES::
 

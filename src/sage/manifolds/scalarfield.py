@@ -1192,8 +1192,6 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__   # For Python2 compatibility
-
     def is_trivial_zero(self):
         r"""
         Check if ``self`` is trivially equal to zero without any

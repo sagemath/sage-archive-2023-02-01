@@ -1266,10 +1266,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``equations`` -- A list of equations where the elements have
           either the form
 
-          - ``f(k^M*n + r) == sum(f(k^m * n + k) for k in srange(l, u + 1))``
-            for some integers `0 \leq r < k^M` and `M > m \geq 0`
-            and some `l \leq u`, valid for all integers ``n >= offset``,
-            and there is an equation of this form for all ``r``
+          - `f(k^M n + r) = c_{r,\ell} f(k^m n + \ell) +
+             c_{r,\ell + 1} f(k^m n + \ell + 1) + ... +
+             c_{r,u - 1} f(k^m n + u - 1) + c_{r,u} f(k^m n + u)`
+            for some integers `0 \leq r < k^M`, `M > m \geq 0`
+            and `l \leq u`, and some coefficients `c_{r,k}` from the ring
+            ``coefficents`` of the correscponding :class:`kRegularSequenceSpace`,
+            valid for all integers ``n >= offset``, and there is an equation of
+            this form (with the same parameters ``M`` and ``m``) for all ``r``
 
           or the form
 

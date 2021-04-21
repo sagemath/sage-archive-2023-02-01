@@ -214,9 +214,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E == loads(dumps(E))
             True
             sage: E.simon_two_descent()
-            (2, 2, [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)])
-            sage: E.simon_two_descent(lim1=3, lim3=20, limtriv=5, maxprob=7, limbigprime=10)
-            (2, 2, [(-1 : 0 : 1), (-1/8*a + 5/8 : -3/16*a - 9/16 : 1)])
+            (2, 2, [(0 : 0 : 1)])
+            sage: E.simon_two_descent(lim1=5, lim3=5, limtriv=10, maxprob=7, limbigprime=10)
+            (2, 2, [(-1 : 0 : 1), (-2 : -1/2*a - 1/2 : 1)])
 
         ::
 
@@ -238,35 +238,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             K = bnfinit(y^2 + 7);
             a = Mod(y,K.pol);
             bnfellrank(K, [0, 0, 0, 1, a], [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]);
-             elliptic curve: Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
-              A = Mod(0, y^2 + 7)
-              B = Mod(1, y^2 + 7)
-              C = Mod(y, y^2 + 7)
-            <BLANKLINE>
-              Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
-            <BLANKLINE>
-              Computing the Selmer group
-              #LS2gen = 2
-               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
-              Search for trivial points on the curve
-             Trivial points on the curve = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)], [1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
-              zc = Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              Hilbert symbol (Mod(1, y^2 + 7),Mod(-2*y + 2, y^2 + 7)) =
-              sol of quadratic equation = [1, 1, 0]~
-              zc*z1^2 = Mod(4*x + Mod(-2*y + 6, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              quartic: (-1)*Y^2 = x^4 + (3*y - 9)*x^2 + (-8*y + 16)*x + (9/2*y - 11/2)
-              reduced: Y^2 = -x^4 + (-3*y + 9)*x^2 + (-8*y + 16)*x + (-9/2*y + 11/2)
-              not ELS at [2, [0, 1]~, 1, 1, [1, -2; 1, 0]]
-              zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              comes from the trivial point [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]
-              m1 = 1
-              m2 = 1
-            #S(E/K)[2]    = 2
-            #E(K)/2E(K)   = 2
-            #III(E/K)[2]  = 1
-            rank(E/K)     = 1
-             listpoints = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]
+            ...
             v = [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             sage: v
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])

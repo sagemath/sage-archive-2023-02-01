@@ -69,6 +69,9 @@ from sage.matrix.constructor import matrix
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 
+from sage.structure.element cimport Vector
+from sage.matrix.matrix cimport Matrix
+
 
 class EvaluationAGCodeEncoder(Encoder):
     """
@@ -1013,10 +1016,11 @@ cdef class _Decoder_K(object):
     Common base class for both differential and evaluation AG code decoder K.
     """
     cdef bint is_differential
-    cdef int code_length, designed_distance, gamma, s0, tau
+    cdef Py_ssize_t code_length, designed_distance, gamma, s0, tau
     cdef list code_basis, message_index, hvecs, eta_vecs
     cdef list dR, dRbar
-    cdef object mul_mat, coeff_mat
+    cdef Matrix coeff_mat
+    cdef list mul_mat
     cdef object W, x
 
     cdef readonly dict info
@@ -1070,9 +1074,27 @@ cdef class _Decoder_K(object):
         else:
             return f.degree()
 
-    def exponents(self, int s):
+    cdef _exp(self, Py_ssize_t s, Py_ssize_t *sk, Py_ssize_t *si):
         """
-        Return the exponents of the monomial with weighted degree s.
+        Implementation of the exponents.
+
+        This sets the result in ``sk`` and ``si``.
+        """
+        cdef Py_ssize_t i, d, gamma
+        cdef list dRbar
+
+        gamma = self.gamma
+        dRbar = self.dRbar  # dWbar for differential AG code
+
+        i = pos_mod(s, gamma)
+        d = <Py_ssize_t> dRbar[i]
+        sk[0] = (s - d) // gamma
+        si[0] = i
+        #return (s - d) // gamma, i
+
+    def exponents(self, Py_ssize_t s):
+        """
+        Return the exponents of the monomial with weighted degree ``s``.
 
         TESTS::
 
@@ -1089,19 +1111,13 @@ cdef class _Decoder_K(object):
             sage: circuit.exponents(11)
             (8, 1)
         """
-        cdef int i, d
+        cdef Py_ssize_t sk, si
+        self._exp(s, &sk, &si)
+        return (sk, si)
 
-        gamma = self.gamma
-        dRbar = self.dRbar  # dWbar for differential AG code
-
-        i = s % gamma
-        d = dRbar[i]
-
-        return (s - d) // gamma, i
-
-    def substitution(self, vec, w, k, i):
-        """
-        Substitute z with (z + w*phi_s).
+    def substitution(self, vec, w, k, Py_ssize_t i):
+        r"""
+        Substitute ``z`` with ``(z + w*phi_s)``.
 
         TESTS::
 
@@ -1119,21 +1135,23 @@ cdef class _Decoder_K(object):
             sage: circuit.substitution(vector([0, a*x^2 + a*x, x + 1, 0]), a, 1, 1)
             (0, 0, x + 1, 0)
         """
-        gamma = self.gamma
-        mul_mat = self.mul_mat
+        cdef Py_ssize_t j
+        cdef Py_ssize_t gamma = self.gamma
+        cdef list mul_mat = self.mul_mat
         W = self.W
         x = self.x
 
-        a = vec[gamma:]
+        cdef list a = vec[gamma:].list()
         b = vec[:gamma]
-        c = (w * x**k) * sum([a[j] * mul_mat[j][i] for j in range(gamma)])
-        return vector(W, (c + b).list() + a.list())
+        c = (w * x**k) * sum(a[j] * (<list> mul_mat[j])[i] for j in range(gamma))
+        return vector(W, (c + b).list() + a)
 
     def decode(self, received_vector, bint verbose=False,
                bint detect_decoding_failure=True,
                bint detect_Q_polynomial=True):
         """
-        Return the coefficients that maps to the corrected codeword from the received vector.
+        Return the coefficients that maps to the corrected codeword from
+        the received vector.
 
         INPUT:
 
@@ -1168,34 +1186,35 @@ cdef class _Decoder_K(object):
             sage: circuit.decode(rv)
             (1, 0, a + 1, a + 1, a)
         """
-        cdef int s, sk, si, i
-        cdef int k, ip, count, delta, wlt
+        cdef Py_ssize_t s, sk, si, i, c, cbar
+        cdef Py_ssize_t k, ip, count, delta, dlt, wlt, pos
+        cdef list mat, nu, mu, i_k, i_prime, i_value, i_count, voting_value, voting_count
+        cdef Matrix coeff_mat, gbmat
         cdef bint found_Q
 
-        code_length = self.code_length
-        designed_distance = self.designed_distance
+        cdef Py_ssize_t code_length = self.code_length
+        cdef Py_ssize_t designed_distance = self.designed_distance
 
-        gamma = self.gamma
-        dR = self.dR
-        dRbar = self.dRbar  # dWbar for differential AG code
+        cdef Py_ssize_t gamma = self.gamma
+        cdef list dR = self.dR
+        cdef list dRbar = self.dRbar  # dWbar for differential AG code
 
-        hvecs = self.hvecs
-        eta_vecs = self.eta_vecs
-        mul_mat = self.mul_mat
+        cdef list hvecs = self.hvecs
+        cdef list eta_vecs = self.eta_vecs
+        cdef list mul_mat = self.mul_mat
         coeff_mat = self.coeff_mat
 
-        message_index = self.message_index
-        code_basis = self.code_basis
+        cdef list message_index = self.message_index
+        cdef list code_basis = self.code_basis
 
-        s0 = self.s0
-        tau = self.tau
+        cdef Py_ssize_t s0 = self.s0
+        cdef Py_ssize_t tau = self.tau
 
         W = self.W
         x = self.x
 
         # auxiliary functions
         degree = self.degree
-        exponents = self.exponents
         substitution = self.substitution
 
         K = W.base_ring()
@@ -1229,20 +1248,20 @@ cdef class _Decoder_K(object):
                         print(('{:>' + str(width) + '} ').format(s1 + s2), end='')
                     print(']')
 
-        message = []
+        cdef list message = []
 
         # construct the initial generators of the interpolation module
-        hvec = sum([received_vector[i] * hvecs[i] for i in range(code_length)])
+        cdef Vector hvec = sum(received_vector[i] * hvecs[i] for i in range(code_length))
 
         # weighted degree of hvec
-        wd_hvec = max([gamma * degree(hvec[i]) + dRbar[i] for i in range(gamma)])
+        cdef Py_ssize_t wd_hvec = max(gamma * degree(hvec[i]) + dRbar[i] for i in range(gamma))
 
         if wd_hvec <= 0:
             if verbose:
                 print("no error")
 
             for s in message_index:
-                sk, si = exponents(s)
+                self._exp(s, &sk, &si)
                 message.append(hvec[si][sk])
         else:
             mat = []
@@ -1277,7 +1296,7 @@ cdef class _Decoder_K(object):
                         print("G{} ".format(i), end='')
                         vprint_g(g, s)
 
-                sk, si = exponents(s)
+                self._exp(s, &sk, &si)
                 delta = 0
                 mu = []
                 i_k = []
@@ -1297,13 +1316,13 @@ cdef class _Decoder_K(object):
                         raise DecodingError("more errors than decoding radius")
 
                     # detect Q-polynomial
-                    wlt = gamma * dlt + dR[i]
+                    wlt = gamma * dlt + <Py_ssize_t> (dR[i])
                     if detect_Q_polynomial and wlt + s + tau < designed_distance:
                         found_Q = True
                         posQ = (s, i)
                         break
 
-                    k, ip = exponents(wlt + s)
+                    self._exp(wlt + s, &k, &ip)
                     count = degree(gbmat[ip, ip]) - k
                     i_k.append(k)
                     i_prime.append(ip)
@@ -1314,8 +1333,8 @@ cdef class _Decoder_K(object):
 
                 if s > 0 or sk < 0:  # not s in message_index
                     for i in range(gamma):
-                        k = i_k[i]
-                        ip = i_prime[i]
+                        k = <Py_ssize_t> i_k[i]
+                        ip = <Py_ssize_t> i_prime[i]
 
                         if k < 0:
                             value = K.zero()
@@ -1327,8 +1346,8 @@ cdef class _Decoder_K(object):
                     winner = 0
                 else:
                     for i in range(gamma):
-                        k = i_k[i]
-                        ip = i_prime[i]
+                        k = <Py_ssize_t> i_k[i]
+                        ip = <Py_ssize_t> i_prime[i]
 
                         mui = gbmat[gamma + i, gamma + i].lc() * coeff_mat[i, si]
                         value = -gbmat[gamma + i, ip][k] / mui
@@ -1347,8 +1366,8 @@ cdef class _Decoder_K(object):
                     # voting
                     c = -1
                     for i in range(len(voting_value)):
-                        if c < voting_count[i]:
-                            c = voting_count[i]
+                        if c < <Py_ssize_t> (voting_count[i]):
+                            c = <Py_ssize_t> (voting_count[i])
                             winner = voting_value[i]
 
                 if verbose:
@@ -1398,9 +1417,9 @@ cdef class _Decoder_K(object):
                         print("# s = {}".format(s))
                         print("F{} ".format(i), end='')
                         vprint_g(gbmat[gamma + i], s)
-                    sk, si = exponents(s)
+                    self._exp(s, &sk, &si)
                     if s <= 0 and sk >= 0:  # s in message_index
-                        k, ip = exponents(dlt + s)
+                        self._exp(dlt + s, &k, &ip)
                         mui = gbmat[gamma + i,gamma + i].lc() * coeff_mat[i, si]
                         value = -gbmat[gamma + i, ip][k] / mui
                         if not value.is_zero():
@@ -1469,7 +1488,11 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
             sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
             sage: TestSuite(circuit).run(skip='_test_pickling')
         """
-        cdef int i, s, n, r, d
+        cdef Py_ssize_t i, s, s0, sk, si, n, r, d, num
+        cdef Py_ssize_t code_length, genus, gamma
+        cdef list gaps, dR, yR
+        cdef set temp
+        cdef tuple e
 
         D = sum(pls)
         F = D.parent().function_field()
@@ -1504,7 +1527,7 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
                 if b.valuation(Q) == -s:
                     g = b
                     break
-            r = s % gamma
+            r = pos_mod(s, gamma)
             if g != 0 and not yR[r]:
                 dR[r] = s
                 yR[r] = g
@@ -1512,10 +1535,11 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
             s += 1
 
         # gaps of L
-        gaps = set()
+        temp = set()
         for d in dR:
-            gaps.update([d - gamma*(i+1) for i in range(d // gamma)])
-        gaps = list(gaps)
+            temp.update([d - gamma*(i+1) for i in range(d // gamma)])
+        gaps = list(temp)
+        del temp
 
         # genus of L
         genus = len(gaps)
@@ -1532,7 +1556,7 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
                 if b.valuation(Q) + G.multiplicity(Q) == -s:
                     g = b
                     break
-            r = s % gamma
+            r = pos_mod(s, gamma)
             if g != 0 and not yRbar[r]:
                 dRbar[r] = s
                 yRbar[r] = g
@@ -1551,7 +1575,7 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
 
         # ev map for the monomial whose weighted degree is s
         evxR = vector(K, [xR.evaluate(p) for p in pls])
-        evyRbar = [vector(K, [yRbar[i].evaluate(p) for p in pls]) for i in range(gamma)]
+        cdef list evyRbar = [vector(K, [yRbar[i].evaluate(p) for p in pls]) for i in range(gamma)]
 
         self.is_differential = False
         self.code_length = code_length
@@ -1563,75 +1587,32 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
         self.x = x
 
         degree = self.degree
-        exponents = self.exponents
 
-        def monomial(s):
-            sk, si = exponents(s)
-            return xR**sk * yRbar[si]
-
-        def ev_mon(s):
-            sk, si = exponents(s)
+        def ev_mon(Py_ssize_t sk, Py_ssize_t si):
             return vector([evxR[i]**sk * evyRbar[si][i] for i in range(code_length)])
 
-        def next(s):  # integer next to s in Rbar
-            while True:
-                s += 1
-                if exponents(s)[0] >= 0:
-                    return s
-
         # minimum of nongaps of Rbar
-        s0 = next(-G.degree() - 1)
+        s0 = _next(self, -G.degree() - 1)
 
         # basis of the code ev(L(G))
-        message_index = []
-        code_basis = []
+        cdef list message_index = []
+        cdef list code_basis = []
         s = s0
-        v = ev_mon(s)
+        self._exp(s, &sk, &si)
+        v = ev_mon(sk, si)
         V = v.parent()
         while s <= 0:
             if not V.are_linearly_dependent(code_basis + [v]):
                 message_index.append(s)
                 code_basis.append(v)
-            s = next(s)
-            v = ev_mon(s)
+            s = _next(self, s)
+            self._exp(s, &sk, &si)
+            v = ev_mon(sk, si)
 
         # compute a basis of J and h-functions via FGLM algorithm
-        def get_eta_basis():
-            cdef int num, s
-
-            basis = [None for i in range(gamma)]
-            s = s0
-            mat = matrix(ev_mon(s))
-            delta = [exponents(s)]
-            num = 0
-            while num < gamma:
-                s = next(s)
-                e = exponents(s)
-                if basis[e[1]] is None:
-                    v = ev_mon(s)
-                    try:
-                        sol = mat.solve_left(v)
-                        gen = [W.zero() for i in range(gamma)]
-                        for i in range(len(delta)):
-                            gen[delta[i][1]] += -sol[i] * x**delta[i][0]
-                        gen[e[1]] += x**e[0]
-                        basis[e[1]] = vector(gen)
-                        num += 1
-                    except ValueError:
-                        mat = matrix(list(mat) + [v])
-                        delta.append(e)
-
-            vecs = [None for i in range(code_length)]
-            matinv = mat.inverse()
-            for i in range(code_length):
-                h = [W.zero() for k in range(gamma)]
-                for j in range(code_length):
-                    h[delta[j][1]] += matinv[i,j]*x**delta[j][0]
-                vecs[i] = vector(h)
-
-            return basis, vecs
-
-        eta_vecs, hvecs = get_eta_basis()
+        eta_vecs = [None for i in range(gamma)]
+        hvecs = [None for i in range(code_length)]
+        get_eta_basis(self, eta_vecs, hvecs, s0, ev_mon)
 
         if verbose:
             print("message indices:", message_index)
@@ -1641,14 +1622,14 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
                 print("h{} = {}".format(i, hvecs[i]))
 
         # Lee-O'Sullivan bound
-        def nu(s):
-            cdef int m = 0
+        def nu(Py_ssize_t s):
+            cdef Py_ssize_t i, sk, si, m = 0
             for i in range(gamma):
-                e = exponents(s + dR[i])
-                m += max(0, degree(eta_vecs[e[1]][e[1]]) - e[0])
+                self._exp(s + (<Py_ssize_t> dR[i]), &sk, &si)
+                m += max(0, degree(eta_vecs[si][si]) - sk)
             return m
 
-        nus = [nu(s) for s in message_index]
+        cdef list nus = [nu(s) for s in message_index]
         dLO = min(nus)
         tau = (dLO - 1) // 2
 
@@ -1662,30 +1643,26 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
         # the vector form corresponding to f in Rbar
         def vec_form(f):
             r = f
-            l = [W.zero() for i in range(gamma)]
+            cdef list l = [W.zero() for i in range(gamma)]
             while r != 0:
                 s = -r.valuation(Q) - G.multiplicity(Q)
-                e = exponents(s)
-                mon = xR**e[0] * yRbar[e[1]]
+                self._exp(s, &sk, &si)
+                mon = xR**sk * yRbar[si]
                 c = (r / mon).evaluate(Q)
-                l[e[1]] += c*x**e[0]
+                l[si] += c * x**sk
                 r -= c*mon
             return vector(l)
 
         # the matrix of the leading coefficient of y_i*ybar_j and the product
-        def get_mul_mat():
-            cm = matrix.zero(K, gamma, gamma)
-            vm = [[None for j in range(gamma)] for i in range(gamma)]
-            for i in range(gamma):
-                for j in range(gamma):
-                    f = yR[i] * yRbar[j]
-                    v = vec_form(f)
-                    e = exponents(dR[i] + dRbar[j])
-                    cm[i,j] = v[e[1]][e[0]]
-                    vm[i][j] = v
-            return vm, cm
-
-        mul_mat, coeff_mat = get_mul_mat()
+        cdef Matrix coeff_mat = matrix.zero(K, gamma, gamma)
+        cdef list mul_mat = [[None for j in range(gamma)] for i in range(gamma)]
+        for i in range(gamma):
+            for j in range(gamma):
+                f = yR[i] * yRbar[j]
+                v = vec_form(f)
+                self._exp((<Py_ssize_t> dR[i]) + (<Py_ssize_t> dRbar[j]), &sk, &si)
+                coeff_mat[i,j] = v[si][sk]
+                (<list> mul_mat[i])[j] = v
 
         if verbose:
             print("multiplication table")
@@ -1704,7 +1681,7 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
         self.s0 = s0
         self.tau = tau
 
-        info = {}
+        cdef dict info = {}
         info['designed_distance'] = dLO
         info['decoding_radius'] = tau
 
@@ -1761,6 +1738,12 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
             sage: circuit = _DifferentialAGCodeDecoder_K(D, G, Q)
             sage: TestSuite(circuit).run(skip='_test_pickling')
         """
+        cdef Py_ssize_t gamma, code_length, genus
+        cdef Py_ssize_t d, i, j, n, r, s, sk, si, num
+        cdef list gaps, dR, yR, dWbar, wWbar
+        cdef set temp
+        cdef tuple e
+
         D = sum(pls)
         F = D.parent().function_field()
         K = F.constant_base_field()
@@ -1793,7 +1776,7 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
                 if b.valuation(Q) == -s:
                     g = b
                     break
-            r = s % gamma
+            r = pos_mod(s, gamma)
             if g != 0 and not yR[r]:
                 dR[r] = s
                 yR[r] = g
@@ -1801,10 +1784,11 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
             s += 1
 
         # gaps of L
-        gaps = set()
+        temp = set()
         for d in dR:
-            gaps.update([d - gamma*(i + 1) for i in range(d // gamma)])
-        gaps = list(gaps)
+            temp.update([d - gamma*(i + 1) for i in range(d // gamma)])
+        gaps = list(temp)
+        del temp
 
         # genus of L
         genus = len(gaps)
@@ -1821,7 +1805,7 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
                 if b.valuation(Q) == G.multiplicity(Q) - s:
                     g = b
                     break
-            r = s % gamma
+            r = pos_mod(s, gamma)
             if g != 0 and not wWbar[r]:
                 dWbar[r] = s
                 wWbar[r] = g
@@ -1839,8 +1823,8 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
                 print(" {}: {}, w{} = {}".format(i, dWbar[i], i, wWbar[i]))
 
         # res map for the monomial whose weighted degree is s
-        evxR = vector(K, [xR.evaluate(p) for p in pls])
-        reswWbar = [vector(K, [wWbar[i].residue(p) for p in pls]) for i in range(gamma)]
+        cdef Vector evxR = vector(K, [xR.evaluate(p) for p in pls])
+        cdef list reswWbar = [vector(K, [wWbar[i].residue(p) for p in pls]) for i in range(gamma)]
 
         self.is_differential = True
         self.code_length = code_length
@@ -1852,73 +1836,33 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
         self.x = x
 
         degree = self.degree
-        exponents = self.exponents
 
-        def monomial(s):
-            sk, si = exponents(s)
-            return xR**sk * wWbar[si]
-
-        def res_mon(s):
-            sk, si = exponents(s)
+        def res_mon(Py_ssize_t sk, Py_ssize_t si):
+            cdef Py_ssize_t i
             return vector([evxR[i]**sk * reswWbar[si][i] for i in range(code_length)])
 
-        def next(s):  # integer next to s in Wbar
-            while True:
-                s += 1
-                if exponents(s)[0] >= 0:
-                    return s
-
         # minimum of nongaps of Wbar
-        s0 = next(-code_length + G.degree() - 2*genus + 1)
+        s0 = _next(self, -code_length + G.degree() - 2*genus + 1)
 
         # basis of the code res(Omega(G))
-        message_index = []
-        code_basis = []
+        cdef list message_index = []
+        cdef list code_basis = []
         s = s0
-        v = res_mon(s)
+        self._exp(s, &sk, &si)
+        v = res_mon(sk, si)
         V = v.parent()
         while s <= 0:
             if not V.are_linearly_dependent(code_basis + [v]):
                 message_index.append(s)
                 code_basis.append(v)
-            s = next(s)
-            v = res_mon(s)
+            s = _next(self, s)
+            self._exp(s, &sk, &si)
+            v = res_mon(sk, si)
 
         # compute a basis of J and h-functions via FGLM algorithm
-        def get_eta_basis():
-            basis = [None for i in range(gamma)]
-            s = s0
-            mat = matrix(res_mon(s))
-            delta = [exponents(s)]
-            num = 0
-            while num < gamma:
-                s = next(s)
-                e = exponents(s)
-                if basis[e[1]] is None:
-                    v = res_mon(s)
-                    try:
-                        sol = mat.solve_left(v)
-                        gen = [W.zero() for i in range(gamma)]
-                        for i in range(len(delta)):
-                            gen[delta[i][1]] += -sol[i]*x**delta[i][0]
-                        gen[e[1]] += x**e[0]
-                        basis[e[1]] = vector(gen)
-                        num += 1
-                    except ValueError:
-                        mat = matrix(list(mat) + [v])
-                        delta.append(e)
-
-            vecs = [None for i in range(code_length)]
-            matinv = mat.inverse()
-            for i in range(code_length):
-                h = [W.zero() for k in range(gamma)]
-                for j in range(code_length):
-                    h[delta[j][1]] += matinv[i,j]*x**delta[j][0]
-                vecs[i] = vector(h)
-
-            return basis, vecs
-
-        eta_vecs, hvecs = get_eta_basis()
+        eta_vecs = [None for i in range(gamma)]
+        hvecs = [None for i in range(code_length)]
+        get_eta_basis(self, eta_vecs, hvecs, s0, res_mon)
 
         if verbose:
             print("message indices:", message_index)
@@ -1928,15 +1872,15 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
                 print("h{} = {}".format(i, hvecs[i]))
 
         # Lee-O'Sullivan bound
-        def nu(s):
-            m = 0
+        def nu(Py_ssize_t s):
+            cdef Py_ssize_t i, sk, si, m = 0
             for i in range(gamma):
-                e = exponents(s + dR[i])
-                m += max(0, degree(eta_vecs[e[1]][e[1]]) - e[0])
+                self._exp(s + (<Py_ssize_t> dR[i]), &sk, &si)
+                m += max(0, degree(eta_vecs[si][si]) - sk)
             return m
 
-        nus = [nu(s) for s in message_index]
-        dLO = min(nus)
+        cdef list nus = [nu(s) for s in message_index]
+        cdef Py_ssize_t dLO = <Py_ssize_t> min(nus)
         tau = (dLO - 1) // 2
 
         if verbose:
@@ -1949,30 +1893,26 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
         # the vector form corresponding to f in Wbar
         def vec_form(f):
             r = f
-            l = [W.zero() for i in range(gamma)]
+            cdef list l = [W.zero() for i in range(gamma)]
             while r != 0:
                 s = -r.valuation(Q) + G.valuation(Q)
-                e = exponents(s)
-                mon = xR**e[0] * wWbar[e[1]]
+                self._exp(s, &sk, &si)
+                mon = xR**sk * wWbar[si]
                 c = (r / mon).evaluate(Q)
-                l[e[1]] += c * x**e[0]
+                l[si] += c * x**sk
                 r -= c*mon
             return vector(l)
 
         # the matrix of the leading coefficient of y_i*w_j and the product
-        def get_mul_mat():
-            cm = matrix.zero(K, gamma, gamma)
-            vm = [[None for j in range(gamma)] for i in range(gamma)]
-            for i in range(gamma):
-                for j in range(gamma):
-                    f = yR[i] * wWbar[j]
-                    v = vec_form(f)
-                    e = exponents(dR[i] + dWbar[j])
-                    cm[i,j] = v[e[1]][e[0]]
-                    vm[i][j] = v
-            return vm, cm
-
-        mul_mat, coeff_mat = get_mul_mat()
+        cdef Matrix coeff_mat = <Matrix> matrix.zero(K, gamma, gamma)
+        cdef list mul_mat = [[None for j in range(gamma)] for i in range(gamma)]
+        for i in range(gamma):
+            for j in range(gamma):
+                f = yR[i] * wWbar[j]
+                v = vec_form(f)
+                self._exp((<Py_ssize_t> dR[i]) + (<Py_ssize_t> dWbar[j]), &sk, &si)
+                coeff_mat[i,j] = v[si][sk]
+                (<list> mul_mat[i])[j] = v
 
         if verbose:
             print("multiplication table")
@@ -1991,7 +1931,7 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
         self.s0 = s0
         self.tau = tau
 
-        info = {}
+        cdef dict info = {}
         info['designed_distance'] = dLO
         info['decoding_radius'] = tau
 
@@ -2038,11 +1978,11 @@ cdef class _Decoder_K_extension(object):
 
     """
     cdef object _embedK, _K
-    cdef object decoder_ext
+    cdef _Decoder_K decoder_ext
     cdef type decoder_cls
     cdef readonly dict info
 
-    def __init__(self, pls, G, Q, verbose=False):
+    def __init__(self, pls, G, Q, decoder_cls, verbose=False):
         """
         Initialize.
 
@@ -2121,7 +2061,7 @@ cdef class _Decoder_K_extension(object):
         G_ext = conorm(G)
         Q_ext = lift_place(Q)
 
-        self.decoder_ext = self.decoder_cls(pls_ext, G_ext, Q_ext, verbose=verbose)
+        self.decoder_ext = decoder_cls(pls_ext, G_ext, Q_ext, verbose=verbose)
         self.info = self.decoder_ext.info
 
     def lift(self, v):
@@ -2148,7 +2088,8 @@ cdef class _Decoder_K_extension(object):
 
     def pull_back(self, v):
         """
-        Pull back a vector over the extension field to a vector over the base field.
+        Pull back a vector over the extension field to a vector
+        over the base field.
 
         TESTS::
 
@@ -2254,9 +2195,7 @@ cdef class _EvaluationAGCodeDecoder_K_extension(_Decoder_K_extension):
             sage: decoder = code.decoder('K')
             sage: TestSuite(decoder).run(skip='_test_pickling')
         """
-        self.decoder_cls = _EvaluationAGCodeDecoder_K
-
-        super().__init__(pls, G, Q, verbose=verbose)
+        super().__init__(pls, G, Q, _EvaluationAGCodeDecoder_K, verbose=verbose)
 
 
 @cython.auto_pickle(True)
@@ -2300,6 +2239,87 @@ cdef class _DifferentialAGCodeDecoder_K_extension(_Decoder_K_extension):
             sage: decoder = code.decoder('K')
             sage: TestSuite(decoder).run(skip='_test_pickling')
         """
-        self.decoder_cls = _DifferentialAGCodeDecoder_K
+        super().__init__(pls, G, Q, _DifferentialAGCodeDecoder_K, verbose=verbose)
 
-        super().__init__(pls, G, Q, verbose=verbose)
+###############################################################################
+## Helper functions
+
+cdef inline Py_ssize_t pos_mod(Py_ssize_t a, Py_ssize_t b):
+    """
+    Return ``a % b`` such that the result is positive.
+
+    C modulus can be negative as ``a == (a / b * b) + (a % b)``.
+    """
+    cdef Py_ssize_t ret = a % b
+    if ret < 0:
+        ret += b
+    return ret
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+cdef inline Py_ssize_t _next(_Decoder_K decoder, Py_ssize_t s):
+    """
+    Helper to get the next value after ``s`` in dRbar.
+    """
+    cdef Py_ssize_t i, d, gamma
+    cdef list dRbar = decoder.dRbar
+    gamma = decoder.gamma
+    i = pos_mod(s, gamma)
+    while True:
+        # We unroll (decoder.self._exp(s)[0]) >= 0 for speed
+        # Note decoder.self._exp(s)[0] == (s - d) // gamma,
+        #    so we only need to compare s with d
+        s += 1
+        i = (i + 1) % gamma
+        d = <Py_ssize_t> dRbar[i]
+        if s >= d:
+            return s
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+cdef inline get_eta_basis(_Decoder_K decoder, list basis, list vecs, Py_ssize_t s0, mon_func):
+    """
+    Compute a basis of J and h-functions via FGLM algorithm.
+
+    This modifies ``basis`` and ``vecs``.
+    """
+    cdef Py_ssize_t s, sk, si, i, j, num
+    cdef Matrix mat, matinv
+    cdef list gen, delta, h
+    cdef tuple e, de
+
+    cdef Py_ssize_t gamma = decoder.gamma
+    cdef Py_ssize_t code_length = decoder.code_length
+    x = decoder.x
+    W = decoder.W
+    s = s0
+    decoder._exp(s, &sk, &si)
+    delta = [(sk, si)]
+    mat = <Matrix> matrix(mon_func(sk, si))
+    num = 0
+    while num < gamma:
+        s = _next(decoder, s)
+        decoder._exp(s, &sk, &si)
+        if basis[si] is None:
+            v = mon_func(sk, si)
+            try:
+                sol = mat.solve_left(v)
+                gen = [W.zero() for i in range(gamma)]
+                for i in range(len(delta)):
+                    de = <tuple> delta[i]
+                    gen[<Py_ssize_t> de[1]] += -sol[i] * x**(<Py_ssize_t> de[0])
+                gen[si] += x**sk
+                basis[si] = vector(gen)
+                num += 1
+            except ValueError:
+                mat = mat.stack(matrix(v))
+                delta.append((sk, si))
+
+    matinv = <Matrix> mat.inverse()
+    for i in range(code_length):
+        h = [W.zero() for k in range(gamma)]
+        for j in range(code_length):
+            de = <tuple> delta[j]
+            h[<Py_ssize_t> de[1]] += matinv[i,j] * x**(<Py_ssize_t> de[0])
+        vecs[i] = vector(h)
+

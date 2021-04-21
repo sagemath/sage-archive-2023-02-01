@@ -1088,7 +1088,7 @@ class NumberFieldIdeal(Ideal_generic):
         else:
             # TODO: this is a bit of a waste. We ask bnfisprincipal to compute the compact form and then
             # convert this compact form back into an expanded form.
-            # (though calling with 3 instead of 3 most likely triggers an error with memory allocation failure)
+            # (though calling with 3 instead of 5 most likely triggers an error with memory allocation failure)
             v = bnf.bnfisprincipal(self.pari_hnf(), 5)
             e = v[0]
             t = v[1]

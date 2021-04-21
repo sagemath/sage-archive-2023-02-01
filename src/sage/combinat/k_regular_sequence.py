@@ -872,7 +872,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         OUTPUT:
 
-        A dictionary.
+        A dictionary which maps both row numbers to subsequence parameters and
+        vice versa, i.e.,
+
+        - ``ind[i]`` -- a pair ``(j, d)`` representing the sequence `x(k^j + d)`
+          in the `i`th component (1-based) of the resulting linear representation
+
+        - ``ind[(j, d)]`` -- the (1-based) row number of the sequence
+          `x(k^j + d)` in the linear representation.
 
         EXAMPLES::
 

@@ -1168,7 +1168,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("self must be a square matrix")
         return self._converter.fel_to_field(MatTrace(self.Data))
 
-    def stack(self, Matrix_gfpn_dense other):
+    cdef _stack_impl(self, bottom):
         """
         Stack two matrices of the same number of columns.
 
@@ -1181,7 +1181,17 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [      0       1       2       x   x + 1   x + 2     2*x 2*x + 1 2*x + 2]
             [      0       1       2       x   x + 1   x + 2     2*x 2*x + 1 2*x + 2]
 
+        Check that we can stack a vector (:trac:`31708`)::
+
+            sage: R.<a> = GF(3^3)
+            sage: M = matrix(R, [[1,1],[0,a+1]])
+            sage: M.stack(vector(R, [a,0]))
+            [    1     1]
+            [    0 a + 1]
+            [    a     0]
         """
+        cdef Matrix_gfpn_dense other = <Matrix_gfpn_dense> bottom
+
         if self._ncols != other._ncols:
             raise TypeError("Both numbers of columns must match.")
         if self._nrows == 0 or self.Data == NULL:

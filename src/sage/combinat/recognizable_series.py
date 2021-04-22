@@ -181,7 +181,7 @@ class PrefixClosedSet(object):
 
     def iterate_possible_additions(self):
         r"""
-        Return an iterator over possible new elements.
+        Return an iterator over all elements including possible new elements.
 
         OUTPUT:
 
@@ -213,6 +213,20 @@ class PrefixClosedSet(object):
             0011?
             sage: P.elements
             [word: , word: 0, word: 00, word: 01, word: 001]
+
+        Calling the iterator once more, returns all elements::
+
+            sage: list(P.iterate_possible_additions())
+            [word: 0,
+             word: 1,
+             word: 00,
+             word: 01,
+             word: 000,
+             word: 001,
+             word: 010,
+             word: 011,
+             word: 0010,
+             word: 0011]
         """
         n = 0
         it = self.words.iterate_by_length(1)

@@ -508,6 +508,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             ::
 
+                sage: Seq2._parse_recurrence_([f(42) == 1/2], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/2 is not in Integer Ring.
+
+            ::
+
                 sage: Seq2._parse_recurrence_([f(42) == 0, f(42) == 1], f, n)
                 Traceback (most recent call last):
                 ...
@@ -766,12 +773,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             if polynomial_left.degree()  > 1:
                 raise ValueError("%s is not a polynomial of degree smaller 2."
                                  % (polynomial_left,))
-            if polynomial_left in base_ring and right_side in base_ring:
-                if (polynomial_left in initial_values.keys() and
-                    initial_values[polynomial_left] != right_side):
-                    raise ValueError("Initial value %s is given twice."
-                                     % (function(polynomial_left)))
-                initial_values.update({polynomial_left: right_side})
+            if polynomial_left in ZZ:
+                if right_side in base_ring:
+                    if (polynomial_left in initial_values.keys() and
+                        initial_values[polynomial_left] != right_side):
+                        raise ValueError("Initial value %s is given twice."
+                                         % (function(polynomial_left)))
+                    initial_values.update({polynomial_left: right_side})
+                else:
+                    raise ValueError("%s is not in %s." % (right_side, base_ring))
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)

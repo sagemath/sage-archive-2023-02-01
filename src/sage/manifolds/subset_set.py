@@ -24,7 +24,55 @@ from functools import total_ordering
 @total_ordering
 class ManifoldSubsetSet(frozenset):
 
+    r"""
+    Finite set of subsets of a topological manifold.
+
+    The class :class:`ManifoldSubsetSet` inherits from the built-in
+    ``frozenset`` class.  It provides specialized ``__repr__`` and
+    ``_latex_`` methods.
+
+    :class:`ManifoldSubsetSet` instances are totally ordered according
+    to their lexicographically ordered element (subset) names.
+
+    EXAMPLES::
+
+        sage: from sage.manifolds.subset import ManifoldSubsetSet
+        sage: M = Manifold(2, 'M', structure='topological')
+        sage: A = M.subset('A')
+        sage: B = M.subset('B')
+        sage: C = B.subset('C')
+        sage: ManifoldSubsetSet([A, B, C])
+        Set {A, B, C} of subsets of the 2-dimensional topological manifold M
+        sage: latex(_)
+        \{A, B, C\}
+
+    All subsets must have the same base manifold::
+
+        sage: N = Manifold(2, 'N', structure='topological')
+        sage: ManifoldSubsetSet([M, N])
+        Traceback (most recent call last):
+        ...
+        TypeError: all elements must be subsets of the same manifold
+
+    """
+
     def __new__(cls, *args):
+        r"""
+        Construct a new instance of ``ManifoldSubsetSet``.
+
+        TESTS:
+
+        Like ``frozenset``, it can be created from any iterable::
+
+            sage: from sage.manifolds.subset import ManifoldSubsetSet
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: I = M.subset('I')
+            sage: gen = (subset for subset in (M, I, M, I, M, I)); gen
+            <generator object ...>
+            sage: ManifoldSubsetSet(gen)
+            Set {I, M} of subsets of the 2-dimensional topological manifold M
+
+        """
         self = super().__new__(cls, *args)
         names_and_latex_names = sorted((subset._name, subset._latex_name)
                                        for subset in self)

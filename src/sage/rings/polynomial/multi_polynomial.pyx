@@ -44,28 +44,28 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: RR(ZZ['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to a real number
+            TypeError: unable to convert non-constant polynomial x to Real Field with 53 bits of precision
 
             sage: CC(RR['x,y'](0)) # indirect doctest
             0.000000000000000
             sage: CC(ZZ['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to a complex number
+            TypeError: unable to convert non-constant polynomial x to Complex Field with 53 bits of precision
 
             sage: CDF(RR['x,y'](0)) # indirect doctest
             0.0
             sage: CDF(ZZ['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to a complex number
+            TypeError: unable to convert non-constant polynomial x to Complex Double Field
 
             sage: RDF(RR['x,y'](0))
             0.0
             sage: RDF(ZZ['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to a real number
+            TypeError: unable to convert non-constant polynomial x to Real Double Field
 
             sage: x = polygen(QQ)
             sage: A.<u> = NumberField(x^3 - 2)
@@ -104,7 +104,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: int(ZZ['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to an integer
+            TypeError: unable to convert non-constant polynomial x to <class 'int'>
 
             sage: ZZ(RR['x,y'](0)) # indirect doctest
             0
@@ -115,7 +115,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: ZZ(RR['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to an integer
+            TypeError: unable to convert non-constant polynomial x to Integer Ring
         """
         return self._scalar_conversion(int)
 
@@ -128,7 +128,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: float(ZZ['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to a float
+            TypeError: unable to convert non-constant polynomial x to <class 'float'>
         """
         return self._scalar_conversion(float)
 
@@ -141,7 +141,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: QQ(RR['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to a rational
+            TypeError: unable to convert non-constant polynomial x to Rational Field
         """
         from sage.rings.rational_field import QQ
         return self._scalar_conversion(QQ)
@@ -1952,7 +1952,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: p.weighted_degree(x,1,1)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to an integer
+            TypeError: unable to convert non-constant polynomial x to Integer Ring
             sage: p.weighted_degree(2/1,1,1)
             6
 

@@ -81,10 +81,10 @@ class PrefixClosedSet(object):
         INPUT:
 
         - ``alphabet`` -- finite words over this ``alphabet``
-          will be created.
+          will be created
 
         - ``words`` -- specify the finite words directly
-          (instead of via ``alphabet``).
+          (instead of via ``alphabet``)
 
         EXAMPLES::
 
@@ -114,7 +114,7 @@ class PrefixClosedSet(object):
 
         OUTPUT:
 
-        A string.
+        A string
 
         EXAMPLES::
 
@@ -132,9 +132,9 @@ class PrefixClosedSet(object):
 
         INPUT:
 
-        - ``w`` -- a word.
+        - ``w`` -- a word
 
-        - ``check`` -- (default: ``True``) if set, then it is verified
+        - ``check`` -- boolean (default: ``True``). If set, then it is verified
           whether all proper prefixes of ``w`` are already in this
           prefix-closed set.
 
@@ -172,7 +172,7 @@ class PrefixClosedSet(object):
 
         OUTPUT:
 
-        An iterator.
+        An iterator
 
         EXAMPLES::
 
@@ -219,7 +219,7 @@ class PrefixClosedSet(object):
 
         OUTPUT:
 
-        A list.
+        A list
 
         EXAMPLES::
 
@@ -247,7 +247,7 @@ class RecognizableSeries(Element):
         r"""
         A recognizable series.
 
-        - ``parent`` -- an instance of :class:`RecognizableSeriesSpace`.
+        - ``parent`` -- an instance of :class:`RecognizableSeriesSpace`
 
         - ``mu`` -- a family of square matrices, all of which have the
           same dimension. The indices of this family are the alphabet.
@@ -368,7 +368,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A string.
+        A string
 
         EXAMPLES::
 
@@ -410,7 +410,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A string.
+        A string
 
         TESTS::
 
@@ -432,12 +432,12 @@ class RecognizableSeries(Element):
         INPUT:
 
         - ``w`` -- a word over the parent's
-          :meth:`~RecognizableSeriesSpace.alphabet`.
+          :meth:`~RecognizableSeriesSpace.alphabet`
 
         OUTPUT:
 
         An element in the parent's
-        :meth:`~RecognizableSeriesSpace.coefficients`.
+        :meth:`~RecognizableSeriesSpace.coefficients`
 
         EXAMPLES::
 
@@ -458,7 +458,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A matrix.
+        A matrix
 
         TESTS::
 
@@ -493,11 +493,11 @@ class RecognizableSeries(Element):
         INPUT:
 
         - ``w`` -- a word over the parent's
-          :meth:`~RecognizableSeriesSpace.alphabet`.
+          :meth:`~RecognizableSeriesSpace.alphabet`
 
         OUTPUT:
 
-        A matrix.
+        A matrix
 
         TESTS::
 
@@ -658,7 +658,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         Each of the matrices in :meth:`mu <mu>` is transposed. Additionally
         the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
@@ -699,7 +699,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         ALOGRITHM:
 
@@ -750,7 +750,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         See :meth:`minimized` for details.
 
@@ -773,7 +773,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         See :meth:`minimized` for details.
 
@@ -872,7 +872,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``coefficients`` -- a (semi-)ring.
+    - ``coefficients`` -- a (semi-)ring
 
     - ``alphabet`` -- a tuple, list or
       :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`.
@@ -886,7 +886,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
       at the same time.
 
     - ``category`` -- (default: ``None``) the category of this
-      space.
+      space
 
     EXAMPLES:
 
@@ -1008,12 +1008,12 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``coefficients`` -- a (semi-)ring.
+        - ``coefficients`` -- a (semi-)ring
 
-        - ``indices`` -- a SageMath-parent of finite words over an alphabet.
+        - ``indices`` -- a SageMath-parent of finite words over an alphabet
 
         - ``category`` -- (default: ``None``) the category of this
-          space.
+          space
 
         TESTS::
 
@@ -1031,7 +1031,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A totally ordered set.
+        A totally ordered set
 
         EXAMPLES::
 
@@ -1052,7 +1052,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        The set of finite words over the alphabet.
+        The set of finite words over the alphabet
 
         EXAMPLES::
 
@@ -1068,7 +1068,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A (semi-)ring.
+        A (semi-)ring
 
         EXAMPLES::
 
@@ -1085,7 +1085,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A string.
+        A string
 
         TESTS::
 

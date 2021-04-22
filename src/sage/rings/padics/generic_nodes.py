@@ -699,9 +699,9 @@ class pAdicLatticeGeneric(pAdicGeneric):
         # We return the created elements
         return ans
 
-class pAdicLazyGeneric(pAdicGeneric):
+class pAdicRelaxedGeneric(pAdicGeneric):
     r"""
-    Generic class for lazy `p`-adics.
+    Generic class for relaxed `p`-adics.
 
     INPUT:
 
@@ -711,9 +711,9 @@ class pAdicLazyGeneric(pAdicGeneric):
 
     TESTS::
 
-        sage: R = ZpL(17)   # indirect doctest
+        sage: R = ZpER(17)   # indirect doctest
         sage: R._prec_type()
-        'lazy'
+        'relaxed'
     """
     def _get_element_class(self, name=None):
         r"""
@@ -726,20 +726,20 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: R._get_element_class()
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement'>
 
             sage: R._get_element_class("add")
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_add'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_add'>
 
             sage: R._get_element_class("unknown")
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_unknown'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_unknown'>
 
             sage: R._get_element_class("foobar")
             Traceback (most recent call last):
             ...
-            AttributeError: module 'sage.rings.padics.padic_lazy_element' has no attribute 'pAdicLazyElement_foobar'
+            AttributeError: module 'sage.rings.padics.padic_relaxed_element' has no attribute 'pAdicRelaxedElement_foobar'
         """
         if name is None:
             return self.Element
@@ -753,36 +753,36 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: ZpL(5)._prec_type()
-            'lazy'
+            sage: ZpER(5)._prec_type()
+            'relaxed'
         """
-        return 'lazy'
+        return 'relaxed'
 
-    def is_lazy(self):
+    def is_relaxed(self):
         r"""
-        Return whether this `p`-adic ring is lazy.
+        Return whether this `p`-adic ring is relaxed.
 
         EXAMPLES::
 
             sage: R = Zp(5)
-            sage: R.is_lazy()
+            sage: R.is_relaxed()
             False
-            sage: S = ZpL(5)
-            sage: S.is_lazy()
+            sage: S = ZpER(5)
+            sage: S.is_relaxed()
             True
         """
         return True
 
     def is_secure(self):
         r"""
-        Return ``False`` if this `p`-adic lazy ring is not secure
+        Return ``False`` if this `p`-adic relaxed ring is not secure
         (i.e. if indistinguishable elements at the working precision
         are considered as equal); ``True`` otherwise (in which case,
         an error is raised when equality cannot be decided).
 
         EXAMPLES::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: R.is_secure()
             False
             sage: x = R(20/21)
@@ -790,7 +790,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: x == y
             True
 
-            sage: S = ZpL(5, secure=True)
+            sage: S = ZpER(5, secure=True)
             sage: S.is_secure()
             True
             sage: x = S(20/21)
@@ -804,7 +804,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
     def default_prec(self):
         r"""
-        Return the default precision of this lazy `p`-adic ring.
+        Return the default precision of this relaxed `p`-adic ring.
 
         The default precision is mostly used for printing: it is the
         number of digits which are printed for unbounded elements
@@ -812,13 +812,13 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, print_mode="digits")
+            sage: R = ZpER(5, print_mode="digits")
             sage: R.default_prec()
             20
             sage: R(1/17)
             ...34024323104201213403
 
-            sage: S = ZpL(5, prec=10, print_mode="digits")
+            sage: S = ZpER(5, prec=10, print_mode="digits")
             sage: S.default_prec()
             10
             sage: S(1/17)
@@ -828,7 +828,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
     def halting_prec(self):
         r"""
-        Return the default halting precision of this lazy `p`-adic ring.
+        Return the default halting precision of this relaxed `p`-adic ring.
 
         The halting precision is the precision at which elements of this
         parent are compared (unless more digits have been previously
@@ -837,7 +837,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, print_mode="digits")
+            sage: R = ZpER(5, print_mode="digits")
             sage: R.halting_prec()
             40
         """
@@ -846,11 +846,11 @@ class pAdicLazyGeneric(pAdicGeneric):
     def precision_cap(self):
         r"""
         Return the precision cap of this `p`-adic ring, which is infinite
-        in the case of lazy rings.
+        in the case of relaxed rings.
 
         EXAMPLES::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: R.precision_cap()
             +Infinity
         """
@@ -862,14 +862,14 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: K = R.fraction_field()
             sage: K.has_coerce_map_from(R)   # indirect doctest
             True
             sage: R.has_coerce_map_from(K)   # indirect doctest
             False
         """
-        if isinstance(R, pAdicLazyGeneric) and self is R.fraction_field():
+        if isinstance(R, pAdicRelaxedGeneric) and self is R.fraction_field():
             return True
 
     def _element_constructor_(self, x, prec=None):
@@ -885,7 +885,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, prec=5)
+            sage: R = ZpER(7, prec=5)
 
             sage: a = R(17/71)
             sage: a
@@ -918,7 +918,7 @@ class pAdicLazyGeneric(pAdicGeneric):
         parent = x.parent()
         if parent is self and prec is None:
             return x
-        elif isinstance(parent, pAdicLazyGeneric):
+        elif isinstance(parent, pAdicRelaxedGeneric):
             if parent.Element is self.Element:
                 if not self.is_field() and x.valuation() < 0:
                     raise ValueError("negative valuation")
@@ -954,7 +954,7 @@ class pAdicLazyGeneric(pAdicGeneric):
                 num = self._get_element_class('value')(self, num)
                 denom = self._get_element_class('value')(self, denom)
                 return self._get_element_class('div')(self, num, denom, precbound=prec)
-        raise TypeError("unable to convert '%s' to a lazy %s-adic integer" % (x, self.prime()))
+        raise TypeError("unable to convert '%s' to a relaxed %s-adic integer" % (x, self.prime()))
 
     def an_element(self, unbounded=False):
         r"""
@@ -962,7 +962,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, prec=5)
+            sage: R = ZpER(7, prec=5)
             sage: R.an_element()
             7 + O(7^5)
             sage: R.an_element(unbounded=True)
@@ -981,7 +981,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, prec=5)
+            sage: R = ZpER(7, prec=5)
             sage: R.some_elements()
             [O(7^5),
              1 + O(7^5),
@@ -1026,12 +1026,12 @@ class pAdicLazyGeneric(pAdicGeneric):
         of the previous ones. This method is used to declare a self-referent
         number (and optionally, to set its first digits).
         The definition of the number itself will be given afterwords using
-        to method meth:`sage.rings.padics.lazy_template.LazyElement_unknown.set`
+        to method meth:`sage.rings.padics.relaxed_template.RelaxedElement_unknown.set`
         of the element.
 
         EXAMPLES:
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
 
         We declare a self-referent number::
 
@@ -1043,7 +1043,7 @@ class pAdicLazyGeneric(pAdicGeneric):
             sage: a
             O(5^0)
 
-        We can now use the method meth:`sage.rings.padics.lazy_template.LazyElement_unknown.set`
+        We can now use the method meth:`sage.rings.padics.relaxed_template.RelaxedElement_unknown.set`
         to define `a`. Below, for example, we say that the digits of `a` have to
         agree with the digits of `1 + 5 a`. Note that the factor `5` shifts the
         digits; the `n`-th digit of `a` is then defined by the previous ones::
@@ -1120,7 +1120,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
 
         By default, this method returns a unbounded element::
 
@@ -1149,7 +1149,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, print_mode="digits")
+            sage: R = ZpER(5, print_mode="digits")
             sage: R.teichmuller(2)
             ...40423140223032431212
         """
@@ -1165,7 +1165,7 @@ class pAdicLazyGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, print_mode="digits")
+            sage: R = ZpER(7, print_mode="digits")
             sage: R.teichmuller_system()
             [...00000000000000000001,
              ...16412125443426203642,
@@ -1416,7 +1416,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
         extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
         if hasattr(self, '_label'):
             extras['label'] = self._label
-        if self._prec_type() == "lazy":
+        if self._prec_type() == "relaxed":
             prec = (self._default_prec, self._halting_prec)
         else:
             prec = self._precision_cap()
@@ -1589,7 +1589,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
             extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
             if hasattr(self, '_label'):
                 extras['label'] = self._label
-            if self._prec_type() == "lazy":
+            if self._prec_type() == "relaxed":
                 prec = (self._default_prec, self._halting_prec)
             else:
                 prec = self._precision_cap()

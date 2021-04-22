@@ -129,7 +129,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
         # We don't want to multiply by e again.
         return k
     elif isinstance(x, pAdicGenericElement):
-        if x.parent().is_lazy():
+        if x.parent().is_relaxed():
             return x.valuation()
         k = (<pAdicGenericElement>x).valuation_c()
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
@@ -409,7 +409,7 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
         x = Integer(x)
     elif isinstance(x, pari_gen):
         x = x.sage()
-    if isinstance(x, pAdicGenericElement) and x.parent().is_lazy():
+    if isinstance(x, pAdicGenericElement) and x.parent().is_relaxed():
         x = x.lift(valshift + prec)
     elif isinstance(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
         x = x.lift()

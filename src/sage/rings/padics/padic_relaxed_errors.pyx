@@ -37,7 +37,7 @@ def raise_error(error, permissive=False):
 
     TESTS::
 
-        sage: from sage.rings.padics.padic_lazy_errors import *
+        sage: from sage.rings.padics.padic_relaxed_errors import *
         sage: raise_error(0)
         sage: raise_error(64)
         Traceback (most recent call last):

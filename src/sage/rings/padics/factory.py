@@ -42,11 +42,11 @@ from .padic_base_leaves import (pAdicRingCappedRelative,
                                 pAdicRingFixedMod,
                                 pAdicRingFloatingPoint,
                                 pAdicRingLattice,
-                                pAdicRingLazy,
+                                pAdicRingRelaxed,
                                 pAdicFieldCappedRelative,
                                 pAdicFieldFloatingPoint,
                                 pAdicFieldLattice,
-                                pAdicFieldLazy)
+                                pAdicFieldRelaxed)
 from . import padic_printing
 
 ######################################################
@@ -216,7 +216,7 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
             elif absolute_cap is None:
                 absolute_cap = 2 * relative_cap
             prec = (relative_cap, absolute_cap)
-        elif type == 'lazy':
+        elif type == 'relaxed':
             default_prec = halting_prec = None
             secure = False
             if isinstance(prec, (list, tuple)):
@@ -341,7 +341,7 @@ class Qp_class(UniqueFactory):
       In the lattice capped case, ``prec`` can either be a
       pair (``relative_cap``, ``absolute_cap``) or an integer
       (understood at relative cap).
-      In the lazy case, ``prec`` can be either a
+      In the relaxed case, ``prec`` can be either a
       pair (``default_prec``, ``halting_prec``) or an integer
       (understood at default precision).
       Except in the floating point case, individual elements keep track of
@@ -416,7 +416,7 @@ class Qp_class(UniqueFactory):
 
     - lattice precision fields (``type='lattice-cap'`` or ``type='lattice-float'``)
 
-    - lazy fields (``type='lazy'``)
+    - exact fields with relaxed arithmetics (``type='relaxed'``)
 
     In the capped relative case, the relative precision of an element
     is restricted to be at most a certain value, specified at the
@@ -443,10 +443,10 @@ class Qp_class(UniqueFactory):
     We refer to the documentation of the function :func:`ZpLC` for a
     small demonstration of the capabilities of this precision model.
 
-    Finally, the model for lazy `p`-adics is quite different from any of
+    Finally, the model for relaxed `p`-adics is quite different from any of
     the other types. In addition to storing a finite approximation, one
     also stores a method for increasing the precision.
-    A quite interesting feature with lazy `p`-adics is the possibility to
+    A quite interesting feature with relaxed `p`-adics is the possibility to
     create (in some cases) self-referent numbers, that are numbers whose
     `n`-th digit is defined by the previous ones.
     We refer to the documentation of the function :func:`ZpL` for a
@@ -745,7 +745,7 @@ class Qp_class(UniqueFactory):
             check = True
         if label is not None and type not in ['lattice-cap','lattice-float']:
             raise ValueError("label keyword only supported for lattice precision")
-        return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point', 'lattice-cap', 'lattice-float', 'lazy'], label)
+        return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point', 'lattice-cap', 'lattice-float', 'relaxed'], label)
 
     def create_object(self, version, key):
         r"""
@@ -795,12 +795,12 @@ class Qp_class(UniqueFactory):
             else:
                 return pAdicFieldFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                          'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
-        elif type == 'lazy':
+        elif type == 'relaxed':
             if print_mode == 'terse':
-                return pAdicFieldLazy(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                return pAdicFieldRelaxed(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                 'ram_name': name, 'max_terse_terms': print_max_terms, 'show_prec': show_prec}, name)
             else:
-                return pAdicFieldLazy(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+                return pAdicFieldRelaxed(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                 'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
         elif type[:8] == 'lattice-':
             subtype = type[8:]
@@ -1450,19 +1450,19 @@ def QpLF(p, prec = None, *args, **kwds):
     """
     return Qp(p, prec, 'lattice-float', *args, **kwds)
 
-def QpL(p, prec=None, halt=None, secure=False, *args, **kwds):
+def QpER(p, prec=None, halt=None, secure=False, *args, **kwds):
     r"""
-    A shortcut function to create lazy `p`-adic fields.
+    A shortcut function to create relaxed `p`-adic fields.
 
-    See :func:`ZpL` for more information about this model of precision.
+    See :func:`ZpER` for more information about this model of precision.
 
     EXAMPLES::
 
-        sage: R = QpL(2)
+        sage: R = QpER(2)
         sage: R
-        2-adic Field with lazy precision
+        2-adic Field handled with relaxed arithmetics
     """
-    return Qp(p, (prec, halt, secure), 'lazy', *args, **kwds)
+    return Qp(p, (prec, halt, secure), 'relaxed', *args, **kwds)
 
 #######################################################################################################
 #
@@ -1485,7 +1485,7 @@ class Zp_class(UniqueFactory):
       ring.  In the lattice capped case, ``prec`` can either be a
       pair (``relative_cap``, ``absolute_cap``) or an integer
       (understood at relative cap).
-      In the lazy case, ``prec`` can be either a
+      In the relaxed case, ``prec`` can be either a
       pair (``default_prec``, ``halting_prec``) or an integer
       (understood at default precision).
       Except for the fixed modulus and floating point cases, individual elements
@@ -1494,7 +1494,7 @@ class Zp_class(UniqueFactory):
 
     - ``type`` -- string (default: ``'capped-rel'``) Valid types are
       ``'capped-rel'``, ``'capped-abs'``, ``'fixed-mod'``,
-      ``'floating-point'``, ``'lattice-cap'``, ``'lattice-float'``, ``'lazy'``
+      ``'floating-point'``, ``'lattice-cap'``, ``'lattice-float'``, ``'relaxed'``
       See TYPES and PRECISION below
 
     - ``print_mode`` -- string (default: ``None``).  Valid modes are
@@ -1561,7 +1561,7 @@ class Zp_class(UniqueFactory):
 
     - lattice precision rings (``type='lattice-cap'`` or ``type='lattice-float'``)
 
-    - lazy rings (``type='lazy'``)
+    - exact fields with relaxed arithmetics (``type='relaxed'``)
 
     In the capped relative case, the relative precision of an element
     is restricted to be at most a certain value, specified at the
@@ -1614,10 +1614,10 @@ class Zp_class(UniqueFactory):
     We refer to the documentation of the function :func:`ZpLC` for a
     small demonstration of the capabilities of this precision model.
 
-    Finally, the model for lazy `p`-adics is quite different from any of
+    Finally, the model for relaxed `p`-adics is quite different from any of
     the other types. In addition to storing a finite approximation, one
     also stores a method for increasing the precision.
-    A quite interesting feature with lazy `p`-adics is the possibility to
+    A quite interesting feature with relaxed `p`-adics is the possibility to
     create (in some cases) self-referent numbers, that are numbers whose
     `n`-th digit is defined by the previous ones.
     We refer to the documentation of the function :func:`ZpL` for a
@@ -1946,7 +1946,7 @@ class Zp_class(UniqueFactory):
             raise ValueError("label keyword only supported for lattice precision")
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet,
                             print_max_terms, show_prec, check,
-                            ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice-cap', 'lattice-float', 'lazy'],
+                            ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point', 'lattice-cap', 'lattice-float', 'relaxed'],
                             label=label)
 
     def create_object(self, version, key):
@@ -1975,7 +1975,7 @@ class Zp_class(UniqueFactory):
             # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series'
             # that are identical except for different 'print_alphabet' now return the same object.
             key = get_key_base(p, prec, type, print_mode, name, None, print_pos, print_sep, print_alphabet,
-                               print_max_terms, None, False, ['capped-rel', 'fixed-mod', 'capped-abs', 'lattice-cap', 'lattice-float', 'lazy'])
+                               print_max_terms, None, False, ['capped-rel', 'fixed-mod', 'capped-abs', 'lattice-cap', 'lattice-float', 'relaxed'])
             try:
                 obj = self._cache[version, key]()
                 if obj is not None:
@@ -1995,8 +1995,8 @@ class Zp_class(UniqueFactory):
         elif type == 'floating-point':
             return pAdicRingFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                      'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
-        elif type == 'lazy':
-            return pAdicRingLazy(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
+        elif type == 'relaxed':
+            return pAdicRingRelaxed(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                            'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
         elif type[:8] == 'lattice-':
             subtype = type[8:]
@@ -2966,9 +2966,9 @@ def ZpLF(p, prec=None, *args, **kwds):
     """
     return Zp(p, prec, 'lattice-float', *args, **kwds)
 
-def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
+def ZpER(p, prec=None, halt=None, secure=False, *args, **kwds):
     r"""
-    A shortcut function to create lazy `p`-adic rings.
+    A shortcut function to create relaxed `p`-adic rings.
 
     INPUT:
 
@@ -2985,18 +2985,18 @@ def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
     See documentation for :func:`Zp` for a description of the other
     input parameters.
 
-    A SHORT INTRODUCTION TO LAZY `p`-ADICS:
+    A SHORT INTRODUCTION TO RELAXED `p`-ADICS:
 
-    The model for lazy elements is quite different from any of the
+    The model for relaxed `p`-adics is quite different from any of the
     other types of `p`-adics. In addition to storing a finite
     approximation, one also stores a method for increasing the
     precision.
 
-    Lazy `p`-adic rings are created by the constructor :func:`ZpL`::
+    Relaxed `p`-adic rings are created by the constructor :func:`ZpER`::
 
-        sage: R = ZpL(5, print_mode="digits")
+        sage: R = ZpER(5, print_mode="digits")
         sage: R
-        5-adic Ring with lazy precision
+        5-adic Ring handled with relaxed arithmetics
 
     The precision is not capped in `R`::
 
@@ -3019,7 +3019,7 @@ def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
     However, both the default precision and the halting precision can be
     customized at the creation of the parent as follows:
 
-        sage: S = ZpL(5, prec=10, halt=100)
+        sage: S = ZpER(5, prec=10, halt=100)
         sage: S.default_prec()
         10
         sage: S.halting_prec()
@@ -3076,7 +3076,7 @@ def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
 
     .. RUBRIC:: Equality tests
 
-    Checking equalities between lazy `p`-adics is a bit subtle and can
+    Checking equalities between relaxed `p`-adics is a bit subtle and can
     sometimes be puzzling at first glance.
 
     When the parent is created with ``secure=False`` (which is the
@@ -3114,7 +3114,7 @@ def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
     Indeed, in this case, if the equality cannot be decided, an error
     is raised::
 
-        sage: S = ZpL(5, secure=True)
+        sage: S = ZpER(5, secure=True)
         sage: u = S.random_element()
         sage: uu = u + 5^50
         sage: u == uu
@@ -3127,7 +3127,7 @@ def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
 
     .. RUBRIC:: Self-referent numbers
 
-    A quite interesting feature with lazy `p`-adics is the possibility to
+    A quite interesting feature with relaxed `p`-adics is the possibility to
     create (in some cases) self-referent numbers. Here is an example.
     We first declare a new variable as follows::
 
@@ -3183,7 +3183,7 @@ def ZpL(p, prec=None, halt=None, secure=False, *args, **kwds):
         sage: w
         ...30212422041102444403
     """
-    return Zp(p, (prec, halt, secure), 'lazy', *args, **kwds)
+    return Zp(p, (prec, halt, secure), 'relaxed', *args, **kwds)
 
 
 #######################################################################################################

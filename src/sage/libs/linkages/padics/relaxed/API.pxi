@@ -1,8 +1,8 @@
 r"""
-This file defines the common API for lazy `p`-adic numbers.
+This file defines the common API for relaxed `p`-adic numbers.
 
 Let `K` be a given `p`-adic ring/field with uniformizer `\pi`.
-In the lazy model, we represent elements of `K` as (Laurent) polynomials over an
+In the relaxed model, we represent elements of `K` as (Laurent) polynomials over an
 explicit exact subring of `K` (whose evaluation at `\pi` are good approximations
 of the element we want to represent).
 

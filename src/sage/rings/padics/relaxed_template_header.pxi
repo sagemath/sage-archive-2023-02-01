@@ -1,10 +1,10 @@
 """
-This file provides the declaration for the LazyElement class,
-which collects common functionality for the different lazy p-adic
+This file provides the declaration for the RelaxedElement class,
+which collects common functionality for the different relaxed p-adic
 template classes.
 
-It is included in padic_lazy_element.pxd and should be included
-in any pxd file implementing lazy `p`-adics.
+It is included in padic_relaxed_element.pxd and should be included
+in any pxd file implementing relaxed `p`-adics.
 
 AUTHORS:
 
@@ -28,7 +28,7 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 cdef enum expansion_mode:
     simple_mode, smallest_mode, teichmuller_mode
 
-cdef class LazyElement(pAdicGenericElement):
+cdef class RelaxedElement(pAdicGenericElement):
     cdef long _valuation
     cdef long _precrel
     cdef long _precbound
@@ -44,33 +44,33 @@ cdef class LazyElement(pAdicGenericElement):
     cdef int _next_c(self)
 
     cdef long valuation_c(self, long halt=*)
-    cdef bint _is_equal(self, LazyElement right, long prec, bint permissive) except -1
+    cdef bint _is_equal(self, RelaxedElement right, long prec, bint permissive) except -1
 
-cdef class LazyElement_abandon(LazyElement):
+cdef class RelaxedElement_abandon(RelaxedElement):
     pass
-cdef lazyelement_abandon
+cdef relaxedelement_abandon
 
-cdef class LazyElementWithDigits(LazyElement):
+cdef class RelaxedElementWithDigits(RelaxedElement):
     cdef celement _digits
 
 
 # Assignment
 
-cdef class LazyElement_zero(LazyElement):
+cdef class RelaxedElement_zero(RelaxedElement):
     pass
 
-cdef class LazyElement_one(LazyElementWithDigits):
+cdef class RelaxedElement_one(RelaxedElementWithDigits):
     pass
 
-cdef class LazyElement_bound(LazyElement):
-    cdef LazyElement _x
+cdef class RelaxedElement_bound(RelaxedElement):
+    cdef RelaxedElement _x
 
-cdef class LazyElement_value(LazyElementWithDigits):
+cdef class RelaxedElement_value(RelaxedElementWithDigits):
     cdef long _valuebound
     cdef long _shift
     cdef _value
 
-cdef class LazyElement_random(LazyElementWithDigits):
+cdef class RelaxedElement_random(RelaxedElementWithDigits):
     cdef randgen _generator
     # for pickling
     cdef long _initialvaluation
@@ -79,70 +79,70 @@ cdef class LazyElement_random(LazyElementWithDigits):
 
 # Operations
 
-cdef class LazyElement_slice(LazyElement):
-    cdef LazyElement _x
+cdef class RelaxedElement_slice(RelaxedElement):
+    cdef RelaxedElement _x
     cdef long _start
     cdef long _stop
     cdef long _shift
 
-cdef class LazyElement_add(LazyElementWithDigits):
-    cdef LazyElement _x
-    cdef LazyElement _y
+cdef class RelaxedElement_add(RelaxedElementWithDigits):
+    cdef RelaxedElement _x
+    cdef RelaxedElement _y
 
-cdef class LazyElement_sub(LazyElementWithDigits):
-    cdef LazyElement _x
-    cdef LazyElement _y
+cdef class RelaxedElement_sub(RelaxedElementWithDigits):
+    cdef RelaxedElement _x
+    cdef RelaxedElement _y
 
-cdef class LazyElement_mul(LazyElementWithDigits):
-    cdef LazyElement _x
+cdef class RelaxedElement_mul(RelaxedElementWithDigits):
+    cdef RelaxedElement _x
     cdef cdigit _lastdigit_x
-    cdef LazyElement _y
+    cdef RelaxedElement _y
     cdef cdigit _lastdigit_y
     cdef int _update_last_digit(self)
 
-cdef class LazyElement_muldigit(LazyElementWithDigits):
+cdef class RelaxedElement_muldigit(RelaxedElementWithDigits):
     cdef cdigit_ptr _x
-    cdef LazyElement _y
+    cdef RelaxedElement _y
 
-cdef class LazyElement_div(LazyElementWithDigits):
+cdef class RelaxedElement_div(RelaxedElementWithDigits):
     cdef long _maxprec
     cdef cdigit _inverse
-    cdef LazyElement _num
-    cdef LazyElement _denom
-    cdef LazyElement _definition
+    cdef RelaxedElement _num
+    cdef RelaxedElement _denom
+    cdef RelaxedElement _definition
     cdef int _bootstrap_c(self)
     cdef bint _bootstraping
 
-cdef class LazyElement_sqrt(LazyElementWithDigits):
-    cdef LazyElement _x
-    cdef LazyElement _definition
+cdef class RelaxedElement_sqrt(RelaxedElementWithDigits):
+    cdef RelaxedElement _x
+    cdef RelaxedElement _definition
     cdef int _bootstrap_c(self)
 
-cdef class LazyElement_teichmuller(LazyElementWithDigits):
+cdef class RelaxedElement_teichmuller(RelaxedElementWithDigits):
     cdef bint _ready
     cdef bint _trivial
     cdef list _xns
-    cdef LazyElement _xbar
-    cdef LazyElement _xp
+    cdef RelaxedElement _xbar
+    cdef RelaxedElement _xp
 
 # Self-referent numbers
 
-cdef class LazyElement_unknown(LazyElementWithDigits):
-    cdef LazyElement _definition
+cdef class RelaxedElement_unknown(RelaxedElementWithDigits):
+    cdef RelaxedElement _definition
     cdef long _next
-    cpdef set(self, LazyElement definition)
+    cpdef set(self, RelaxedElement definition)
     # for pickling
     cdef long _initialvaluation
     cdef long _initialprecrel
 
 # Expansion
 
-cdef class LazyElement_zeroone(LazyElementWithDigits):
+cdef class RelaxedElement_zeroone(RelaxedElementWithDigits):
     cdef void _setdigit_to_zero(self)
     cdef void _setdigit_to_one(self)
 
 cdef class ExpansionIter(object):
-    cdef LazyElement elt
+    cdef RelaxedElement elt
     cdef expansion_mode mode
     cdef long start
     cdef long stop
@@ -154,6 +154,6 @@ cdef class ExpansionIter(object):
     cdef cdigit carry
     cdef _next_smallest(self)
     # teichmuller mode
-    cdef LazyElement tail
+    cdef RelaxedElement tail
     cdef dict coefficients
     cdef _next_teichmuller(self)

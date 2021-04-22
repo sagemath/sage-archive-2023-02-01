@@ -40,7 +40,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(5) #indirect doctest
         """
-        if self.is_lazy():
+        if self.is_relaxed():
             from sage.rings.padics.pow_computer_flint import PowComputer_flint
             self.prime_pow = PowComputer_flint(p, 1, 1, 1, self.is_field())
         else:
@@ -56,7 +56,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             elif self.is_lattice_prec():
                 coerce_list = [QQ]
                 convert_list = []
-            elif self.is_lazy():
+            elif self.is_relaxed():
                 coerce_list = [QQ]
                 convert_list = []
             else:
@@ -76,7 +76,7 @@ class pAdicBaseGeneric(pAdicGeneric):
         elif self.is_lattice_prec():
             coerce_list = [ZZ]
             convert_list = [QQ]
-        elif self.is_lazy():
+        elif self.is_relaxed():
             coerce_list = [ZZ]
             convert_list = [QQ]
         else:

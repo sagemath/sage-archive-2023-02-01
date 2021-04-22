@@ -1,12 +1,12 @@
 r"""
-Lazy template for `p`-adic rings and fields.
+Template for relaxed `p`-adic rings and fields.
 
 In order to use this template you need to write a linkage file and
 gluing file.
 
 The linkage file implements a common API that is then used in the
 class FMElement defined here.
-See sage/libs/linkages/padics/lazy/API.pxi for the functions needed.
+See sage/libs/linkages/padics/relaxed/API.pxi for the functions needed.
 
 The gluing file does the following:
 - ctypedef's ``cdigit``, ``cdigit_ptr``, ``celement`` and ``randgen``
@@ -15,7 +15,7 @@ The gluing file does the following:
 - includes this template
 - defines classes inheriting for classes defined in this file,
   and implements any desired extra methods
-See padic_lazy_element.pxd and padic_lazy_element.pyx for an example.
+See padic_relaxed_element.pxd and padic_relaxed_element.pyx for an example.
 
 AUTHOR:
 
@@ -50,8 +50,8 @@ from sage.rings.infinity import Infinity
 from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.padics.precision_error import PrecisionError
-from sage.rings.padics.padic_lazy_errors cimport *
-from sage.rings.padics.padic_lazy_errors import raise_error
+from sage.rings.padics.padic_relaxed_errors cimport *
+from sage.rings.padics.padic_relaxed_errors import raise_error
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -62,16 +62,16 @@ digit_init(tmp_digit)
 element_init(tmp_poly)
 
 
-cdef class LazyElement(pAdicGenericElement):
+cdef class RelaxedElement(pAdicGenericElement):
     r"""
-    Template class for lazy `p`-adic elements.
+    Template class for relaxed `p`-adic elements.
 
     EXAMPLES:
 
-        sage: from sage.rings.padics.padic_lazy_element import LazyElement
-        sage: R = ZpL(5)
+        sage: from sage.rings.padics.padic_relaxed_element import RelaxedElement
+        sage: R = ZpER(5)
         sage: a = R(1)
-        sage: isinstance(a, LazyElement)
+        sage: isinstance(a, RelaxedElement)
         True
     """
     def __init__(self, parent):
@@ -80,7 +80,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: a = R(1/2)  # indirect doctest
             sage: TestSuite(a).run()
         """
@@ -97,7 +97,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: a = R(0)
             sage: loads(dumps(a)) == a
             True
@@ -115,7 +115,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: a = ZpL(5)(3)
+            sage: a = ZpER(5)(3)
             sage: a._is_base_elt(5)
             True
             sage: a._is_base_elt(17)
@@ -279,7 +279,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
             sage: a = R(20/21)
             sage: a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
@@ -350,7 +350,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, print_mode="digits")
+            sage: R = ZpER(7, print_mode="digits")
             sage: a = R(1/2021); a
             ...23615224635636163463
 
@@ -437,8 +437,8 @@ cdef class LazyElement(pAdicGenericElement):
 
     def __getitem__(self, n):
         r"""
-        Return the `n`-th digit of this lazy `p`-adic number if `n` is an integer
-        or return a bounded lazy `p`-adic corresponding to the given slice if `n` is a slice.
+        Return the `n`-th digit of this relaxed `p`-adic number if `n` is an integer
+        or return a bounded relaxed `p`-adic corresponding to the given slice if `n` is a slice.
 
         INPUT:
 
@@ -446,7 +446,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: a = R(1/2021); a
             3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
 
@@ -500,7 +500,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: K = QpL(7, prec=10)
+            sage: K = QpER(7, prec=10)
             sage: a = K(1/2021); a
             3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
 
@@ -561,7 +561,7 @@ cdef class LazyElement(pAdicGenericElement):
             stop = maxordp
         elif stop >= maxordp:
             raise OverflowError("beyond maximum precision (which is %s)" % maxordp)
-        cdef LazyElement x = element_class_slice(self._parent, self, start, stop, 0)
+        cdef RelaxedElement x = element_class_slice(self._parent, self, start, stop, 0)
         if bound and x._precbound > stop:
             x = element_class_bound(self._parent, x, stop)
         return x
@@ -575,12 +575,12 @@ cdef class LazyElement(pAdicGenericElement):
         For unbounded elements, the number of printed terms is given by
         the default precision of the ring::
 
-            sage: R = ZpL(5, 10)
+            sage: R = ZpER(5, 10)
             sage: a = R(1/2021)
             sage: a   # indirect doctest
             1 + 5 + 3*5^3 + 3*5^4 + 5^5 + 4*5^6 + 4*5^7 + 2*5^8 + 3*5^9 + ...
 
-            sage: S = ZpL(5, 5)
+            sage: S = ZpER(5, 5)
             sage: b = S(1/2021)
             sage: b   # indirect doctest
             1 + 5 + 3*5^3 + 3*5^4 + ...
@@ -625,7 +625,7 @@ cdef class LazyElement(pAdicGenericElement):
             s = "0 + ..."
         return s
 
-    cdef bint _is_equal(self, LazyElement right, long prec, bint permissive) except -1:
+    cdef bint _is_equal(self, RelaxedElement right, long prec, bint permissive) except -1:
         r"""
         C function for checking equality at a given precision.
 
@@ -667,13 +667,13 @@ cdef class LazyElement(pAdicGenericElement):
 
         INPUT:
 
-        - ``right`` -- a lazy `p`-adic number
+        - ``right`` -- a relaxed `p`-adic number
 
         - ``prec`` -- an integer
 
         EXAMPLES::
 
-            sage: R = ZpL(7, prec=10)
+            sage: R = ZpER(7, prec=10)
             sage: a = R(1/2); a
             4 + 3*7 + 3*7^2 + 3*7^3 + 3*7^4 + 3*7^5 + 3*7^6 + 3*7^7 + 3*7^8 + 3*7^9 + ...
             sage: b = R(99/2); b
@@ -689,13 +689,13 @@ cdef class LazyElement(pAdicGenericElement):
         return self._is_equal(right, min(prec, maxordp), False)
 
     @coerce_binop
-    def is_equal_to(self, LazyElement right, prec=None, secure=None):
+    def is_equal_to(self, RelaxedElement right, prec=None, secure=None):
         r"""
         Compare this element with ``right``.
 
         INPUT:
 
-        - ``right`` -- a lazy `p`-adic number
+        - ``right`` -- a relaxed `p`-adic number
 
         - ``prec`` -- an integer or ``None`` (default: ``None``); if
           given, compare the two elements at this precision; otherwise
@@ -708,7 +708,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: a = R(1/2)
             sage: b = R(1/3)
             sage: c = R(1/6)
@@ -767,7 +767,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(1/2)
             sage: y = R(1/3)
             sage: z = R(1/6)
@@ -783,7 +783,7 @@ cdef class LazyElement(pAdicGenericElement):
             sage: x == s
             True
 
-            sage: S = ZpL(5, secure=True)
+            sage: S = ZpER(5, secure=True)
             sage: S(x) == S(s)
             Traceback (most recent call last):
             ...
@@ -815,7 +815,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(1)
             sage: bool(x)
             True
@@ -846,7 +846,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: a = R(0); a
             0
             sage: a._is_exact_zero()
@@ -868,7 +868,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, print_mode="digits")
+            sage: R = ZpER(5, print_mode="digits")
             sage: a = R(20/21)
 
         Computations have not started yet; hence we are not able
@@ -894,7 +894,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
             sage: a = R(20/21)
             sage: a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
@@ -918,7 +918,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
             sage: a = R(20/21)
             sage: a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
@@ -957,7 +957,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
             sage: a = R(20/21)
             sage: a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
@@ -998,12 +998,12 @@ cdef class LazyElement(pAdicGenericElement):
 
     def precision_current(self):
         r"""
-        Return the internal absolute precision we know this lazy `p`-adic
+        Return the internal absolute precision we know this relaxed `p`-adic
         number at the current stage of the computation.
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
             sage: x = R(20/21)
             sage: y = R(21/22)
             sage: z = x + y
@@ -1061,7 +1061,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, prec=10)
+            sage: R = ZpER(7, prec=10)
             sage: a = R(1/2021); a
             3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
             sage: a.at_precision_absolute(5)
@@ -1113,7 +1113,7 @@ cdef class LazyElement(pAdicGenericElement):
         if permissive is None:
             permissive = False
         raise_error(error, permissive)
-        return element_class_bound((<LazyElement>self)._parent, self, prec)
+        return element_class_bound((<RelaxedElement>self)._parent, self, prec)
 
     def add_bigoh(self, absprec):
         r"""
@@ -1125,7 +1125,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, prec=10)
+            sage: R = ZpER(7, prec=10)
             sage: a = R(1/2021); a
             3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
             sage: a.add_bigoh(5)
@@ -1138,7 +1138,7 @@ cdef class LazyElement(pAdicGenericElement):
             sage: b
             O(7^-1)
             sage: b.parent()
-            7-adic Field with lazy precision
+            7-adic Field handled with relaxed arithmetics
 
         .. SEEALSO::
 
@@ -1169,7 +1169,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10, halt=10)
+            sage: R = ZpER(5, prec=10, halt=10)
             sage: a = R(20/21); a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
             sage: a.at_precision_relative(5)
@@ -1243,7 +1243,7 @@ cdef class LazyElement(pAdicGenericElement):
         if permissive is None:
             permissive = False
         raise_error(error, permissive)
-        return element_class_bound((<LazyElement>self)._parent, self, self._valuation + prec)
+        return element_class_bound((<RelaxedElement>self)._parent, self, self._valuation + prec)
 
     def lift_to_precision(self, absprec=None):
         """
@@ -1258,7 +1258,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10)
+            sage: R = ZpER(5, prec=10)
             sage: a = R(20/21, 5); a
             4*5 + 4*5^2 + 5^4 + O(5^5)
 
@@ -1311,7 +1311,7 @@ cdef class LazyElement(pAdicGenericElement):
             prec = absprec
         if prec <= self._precbound:
             return self
-        cdef LazyElement ans = element_class_slice(self._parent, self, -maxordp, self._precbound, 0)
+        cdef RelaxedElement ans = element_class_slice(self._parent, self, -maxordp, self._precbound, 0)
         ans._precbound = prec
         ans._init_jump()
         return ans
@@ -1351,7 +1351,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10, halt=10)
+            sage: R = ZpER(5, prec=10, halt=10)
             sage: a = R(2001); a
             1 + 5^3 + 3*5^4 + ...
             sage: a.valuation()
@@ -1450,7 +1450,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, prec=10, halt=10)
+            sage: R = ZpER(5, prec=10, halt=10)
             sage: a = R(20/21); a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
             sage: a.unit_part()
@@ -1495,7 +1495,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, 10)
+            sage: R = ZpER(5, 10)
             sage: a = R(20/21); a
             4*5 + 4*5^2 + 5^4 + 4*5^6 + 3*5^7 + 4*5^8 + ...
             sage: a.val_unit()
@@ -1544,7 +1544,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: a = R(1/2021); a
             3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + 7^5 + 6*7^6 + 3*7^7 + 6*7^8 + 5*7^9 + ...
             sage: a.residue()
@@ -1593,7 +1593,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: a = R(1/2021, 5); a
             3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5)
             sage: a.lift()
@@ -1645,7 +1645,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(997)
+            sage: R = ZpER(997)
             sage: K = R.fraction_field()
             sage: a = R(123456878908); a
             964*997 + 572*997^2 + 124*997^3 + ...
@@ -1669,11 +1669,11 @@ cdef class LazyElement(pAdicGenericElement):
         cdef long start
         cdef long shift = long(s)
         if shift:
-            if (<LazyElement>self)._parent.is_field():
+            if (<RelaxedElement>self)._parent.is_field():
                 start = -maxordp
             else:
                 start = shift
-            return element_class_slice((<pAdicLazyElement>self)._parent, self, start, maxordp, shift)
+            return element_class_slice((<pAdicRelaxedElement>self)._parent, self, start, maxordp, shift)
         else:
             return self
 
@@ -1686,7 +1686,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(997)
+            sage: R = ZpER(997)
             sage: K = R.fraction_field()
             sage: a = R(123456878908); a
             964*997 + 572*997^2 + 124*997^3 + ...
@@ -1714,18 +1714,18 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: R(1/3) + R(1/6)
             4 + 3*7 + 3*7^2 + 3*7^3 + 3*7^4 + 3*7^5 + 3*7^6 + 3*7^7 + 3*7^8 + 3*7^9 + ...
 
             sage: R(1/3, 5) + R(1/6, 10)
             4 + 3*7 + 3*7^2 + 3*7^3 + 3*7^4 + O(7^5)
         """
-        if isinstance(self, LazyElement_zero):
+        if isinstance(self, RelaxedElement_zero):
             return other
-        if isinstance(other, LazyElement_zero):
+        if isinstance(other, RelaxedElement_zero):
             return self
-        return element_class_add(self._parent, self, <LazyElement>other)
+        return element_class_add(self._parent, self, <RelaxedElement>other)
 
     cpdef _sub_(self, other):
         r"""
@@ -1733,7 +1733,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: R(1/3) - R(1/6)
             6 + 5*7 + 5*7^2 + 5*7^3 + 5*7^4 + 5*7^5 + 5*7^6 + 5*7^7 + 5*7^8 + 5*7^9 + ...
 
@@ -1745,9 +1745,9 @@ cdef class LazyElement(pAdicGenericElement):
             if self._precbound < maxordp:
                 ans = element_class_bound(self._parent, ans, self._precbound)
             return ans
-        if isinstance(other, LazyElement_zero):
+        if isinstance(other, RelaxedElement_zero):
             return self
-        return element_class_sub(self._parent, self, <LazyElement>other)
+        return element_class_sub(self._parent, self, <RelaxedElement>other)
 
     cpdef _neg_(self):
         r"""
@@ -1755,14 +1755,14 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: -R(1)
             6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + 6*7^5 + 6*7^6 + 6*7^7 + 6*7^8 + 6*7^9 + ...
 
             sage: -R(1,5)
             6 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)
         """
-        if isinstance(self, LazyElement_zero):
+        if isinstance(self, RelaxedElement_zero):
             return self
         return element_class_sub(self._parent, self._parent.zero(), self)
 
@@ -1772,7 +1772,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: R(1/2) * R(2/3)
             5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + 4*7^6 + 4*7^7 + 4*7^8 + 4*7^9 + ...
 
@@ -1782,11 +1782,11 @@ cdef class LazyElement(pAdicGenericElement):
             sage: R(49, 5) * R(14, 4)
             2*7^3 + O(7^6)
         """
-        if isinstance(self, LazyElement_zero) or isinstance(other, LazyElement_one):
+        if isinstance(self, RelaxedElement_zero) or isinstance(other, RelaxedElement_one):
             return self
-        if isinstance(self, LazyElement_one) or isinstance(other, LazyElement_zero):
+        if isinstance(self, RelaxedElement_one) or isinstance(other, RelaxedElement_zero):
             return other
-        return element_class_mul(self._parent, self, <LazyElement>other)
+        return element_class_mul(self._parent, self, <RelaxedElement>other)
 
     cpdef _div_(self, other):
         r"""
@@ -1799,12 +1799,12 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: x = R(2) / R(3)
             sage: x
             3 + 2*7 + 2*7^2 + 2*7^3 + 2*7^4 + 2*7^5 + 2*7^6 + 2*7^7 + 2*7^8 + 2*7^9 + ...
             sage: x.parent()
-            7-adic Field with lazy precision
+            7-adic Field handled with relaxed arithmetics
 
         TESTS::
 
@@ -1822,12 +1822,12 @@ cdef class LazyElement(pAdicGenericElement):
             sage: x / y
             O(7^-Infinity)
         """
-        if isinstance(other, LazyElement_one):
+        if isinstance(other, RelaxedElement_one):
             if self.prime_pow.in_field:
                 return self
             else:
                 return element_class_bound(self._parent.fraction_field(), self)
-        return element_class_div(self._parent.fraction_field(), self, <LazyElement>other, -maxordp)
+        return element_class_div(self._parent.fraction_field(), self, <RelaxedElement>other, -maxordp)
 
     def __invert__(self):
         r"""
@@ -1840,12 +1840,12 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: x = ~R(3)
             sage: x
             5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + 4*7^6 + 4*7^7 + 4*7^8 + 4*7^9 + ...
             sage: x.parent()
-            7-adic Field with lazy precision
+            7-adic Field handled with relaxed arithmetics
 
         TESTS::
 
@@ -1863,7 +1863,7 @@ cdef class LazyElement(pAdicGenericElement):
             sage: ~y
             O(7^-Infinity)
         """
-        if isinstance(self, LazyElement_one):
+        if isinstance(self, RelaxedElement_one):
             return self
         return element_class_div(self._parent.fraction_field(), self._parent.one(), self, -maxordp)
 
@@ -1874,7 +1874,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(3, 5)
+            sage: R = ZpER(3, 5)
             sage: a = R(2)
             sage: b = a.inverse_of_unit()
             sage: b
@@ -1895,14 +1895,14 @@ cdef class LazyElement(pAdicGenericElement):
             sage: c = ~a; c
             2 + 3 + 3^2 + 3^3 + 3^4 + ...
             sage: a.parent()
-            3-adic Ring with lazy precision
+            3-adic Ring handled with relaxed arithmetics
             sage: b.parent()
-            3-adic Ring with lazy precision
+            3-adic Ring handled with relaxed arithmetics
             sage: c.parent()
-            3-adic Field with lazy precision
+            3-adic Field handled with relaxed arithmetics
 
         This method also works for self-referent numbers
-        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.unknown`)::
+        (see :meth:`sage.rings.padics.generic_nodes.pAdicRelaxedGeneric.unknown`)::
 
             sage: x = R.unknown(); x
             O(3^0)
@@ -1922,7 +1922,7 @@ cdef class LazyElement(pAdicGenericElement):
             ...
             RecursionError: definition looks circular
         """
-        if isinstance(self, LazyElement_one):
+        if isinstance(self, RelaxedElement_one):
             return self
         if self.prime_pow.in_field:
             return element_class_div(self._parent, self._parent.one(), self, -maxordp)
@@ -1935,7 +1935,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 10)
+            sage: R = ZpER(7, 10)
             sage: x = R(8)
             sage: x.sqrt()
             1 + 4*7 + 2*7^2 + 7^3 + 3*7^4 + 2*7^5 + 4*7^6 + 2*7^7 + 5*7^8 + ...
@@ -1957,13 +1957,13 @@ cdef class LazyElement(pAdicGenericElement):
 
         Note that, when `p = 2`, a digit of precision is lost::
 
-            sage: S = ZpL(2)
+            sage: S = ZpER(2)
             sage: x = S(17, 5)
             sage: x.sqrt()
             1 + 2^3 + O(2^4)
 
         This method also work for self-referent numbers
-        (see :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.unknown`)::
+        (see :meth:`sage.rings.padics.generic_nodes.pAdicRelaxedGeneric.unknown`)::
 
             sage: x = R.unknown(); x
             O(7^0)
@@ -1977,7 +1977,7 @@ cdef class LazyElement(pAdicGenericElement):
         TESTS::
 
             sage: for p in [ 7, 11, 1009 ]:
-            ....:     R = ZpL(p)
+            ....:     R = ZpER(p)
             ....:     x = 1 + p * R.random_element()
             ....:     y = x.sqrt()
             ....:     assert(x == y^2)
@@ -1990,7 +1990,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: x = R.random_element()
             sage: x._test_pickling()
 
@@ -2013,7 +2013,7 @@ cdef class LazyElement(pAdicGenericElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: #R(0)._test_nonzero_equal()
             sage: #R(5^30)._test_nonzero_equal()
             sage: #R.unknown()._test_nonzero_equal()
@@ -2026,9 +2026,9 @@ cdef class LazyElement(pAdicGenericElement):
             pass
 
 
-cdef class LazyElement_abandon(LazyElement):
+cdef class RelaxedElement_abandon(RelaxedElement):
     r"""
-    A special class for lazy p-adic with all digits unknown.
+    A special class for relaxed p-adic with all digits unknown.
 
     This class is used for setting temporary definition of
     some self-referent numbers.
@@ -2039,8 +2039,8 @@ cdef class LazyElement_abandon(LazyElement):
 
         TESTS::
 
-            sage: from sage.rings.padics.padic_lazy_element import LazyElement_abandon
-            sage: x = LazyElement_abandon()
+            sage: from sage.rings.padics.padic_relaxed_element import RelaxedElement_abandon
+            sage: x = RelaxedElement_abandon()
             sage: x.valuation()
             Traceback (most recent call last):
             ...
@@ -2061,12 +2061,12 @@ cdef class LazyElement_abandon(LazyElement):
         """
         return ERROR_ABANDON
 
-cdef lazyelement_abandon = LazyElement_abandon()
+cdef relaxedelement_abandon = RelaxedElement_abandon()
 
 
-cdef class LazyElementWithDigits(LazyElement):
+cdef class RelaxedElementWithDigits(RelaxedElement):
     r"""
-    A generic class for lazy p-adic elements that stores
+    A generic class for relaxed p-adic elements that stores
     the sequence of its digits.
     """
     def __cinit__(self):
@@ -2121,14 +2121,14 @@ cdef class LazyElementWithDigits(LazyElement):
 
 # Zero
 
-cdef class LazyElement_zero(LazyElement):
+cdef class RelaxedElement_zero(RelaxedElement):
     r"""
-    A class for representation a lazy p-adic number which is
+    A class for representation a relaxed p-adic number which is
     exactly zero.
 
     TESTS::
 
-        sage: R = ZpL(7)
+        sage: R = ZpER(7)
         sage: a = R.zero()
         sage: TestSuite(a).run()
 
@@ -2143,15 +2143,15 @@ cdef class LazyElement_zero(LazyElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(0)  # indirect doctest
             sage: x
             0
 
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_zero'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_zero'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._valuation = maxordp
 
     def __reduce__(self):
@@ -2161,9 +2161,9 @@ cdef class LazyElement_zero(LazyElement):
 
         TESTS::
 
-            sage: a = ZpL(5)(0)
+            sage: a = ZpER(5)(0)
             sage: type(a)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_zero'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_zero'>
             sage: loads(dumps(a)) == a   # indirect doctest
             True
         """
@@ -2207,7 +2207,7 @@ cdef class LazyElement_zero(LazyElement):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         return 0
 
@@ -2217,21 +2217,21 @@ cdef class LazyElement_zero(LazyElement):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         return 0
 
 
 # One
 
-cdef class LazyElement_one(LazyElementWithDigits):
+cdef class RelaxedElement_one(RelaxedElementWithDigits):
     r"""
-    A class for representation a lazy p-adic number which is
+    A class for representation a relaxed p-adic number which is
     exactly one.
 
     TESTS::
 
-        sage: R = ZpL(7)
+        sage: R = ZpER(7)
         sage: a = R.one()
         sage: TestSuite(a).run()
 
@@ -2246,15 +2246,15 @@ cdef class LazyElement_one(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(1)  # indirect doctest
             sage: x
             1 + ...
 
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_one'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_one'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         element_set_digit_ui(self._digits, 1, 0)
         self._precrel = 1
 
@@ -2265,9 +2265,9 @@ cdef class LazyElement_one(LazyElementWithDigits):
 
         TESTS::
 
-            sage: a = ZpL(5)(1)
+            sage: a = ZpER(5)(1)
             sage: type(a)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_one'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_one'>
             sage: a[:20] == loads(dumps(a))   # indirect doctest
             True
         """
@@ -2283,7 +2283,7 @@ cdef class LazyElement_one(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         if prec > self._precrel:
             self._precrel = prec
@@ -2295,7 +2295,7 @@ cdef class LazyElement_one(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         self._precrel += 1
         return 0
@@ -2303,19 +2303,19 @@ cdef class LazyElement_one(LazyElementWithDigits):
 
 # Bound
 
-cdef class LazyElement_bound(LazyElement):
+cdef class RelaxedElement_bound(RelaxedElement):
     r"""
-    A class for p-adic lazy elements which are defined by bounding the
-    precision of another p-adic lazy element.
+    A class for p-adic relaxed elements which are defined by bounding the
+    precision of another p-adic relaxed element.
 
     TESTS::
 
-        sage: R = ZpL(5)
+        sage: R = ZpER(5)
         sage: x = R.random_element()
         sage: y = x[:20]
         sage: TestSuite(y).run()
     """
-    def __init__(self, parent, LazyElement x, precbound=None):
+    def __init__(self, parent, RelaxedElement x, precbound=None):
         r"""
         Initialize this element.
 
@@ -2323,7 +2323,7 @@ cdef class LazyElement_bound(LazyElement):
 
         - ``parent`` -- the parent of this element
 
-        - ``x`` -- a lazy `p`-adics, the element to bound
+        - ``x`` -- a relaxed `p`-adics, the element to bound
 
         - ``precbound`` -- an integer or ``None`` (default: ``None``),
           the bound on the precision
@@ -2334,13 +2334,13 @@ cdef class LazyElement_bound(LazyElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(20/21)
             sage: y = x.add_bigoh(20)
             sage: type(y)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_bound'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_bound'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._x = x
         if precbound is None:
             self._precbound = x._precbound
@@ -2357,9 +2357,9 @@ cdef class LazyElement_bound(LazyElement):
 
         TESTS::
 
-            sage: a = ZpL(5)(1).add_bigoh(20)
+            sage: a = ZpER(5)(1).add_bigoh(20)
             sage: type(a)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_bound'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_bound'>
             sage: a == loads(dumps(a))   # indirect doctest
             True
         """
@@ -2410,9 +2410,9 @@ cdef class LazyElement_bound(LazyElement):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
-        cdef LazyElement x = self._x
+        cdef RelaxedElement x = self._x
         cdef int error
         if prec > self._precbound:
             error = ERROR_PRECISION | x._jump_c(self._precbound)
@@ -2429,9 +2429,9 @@ cdef class LazyElement_bound(LazyElement):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
-        cdef LazyElement x = self._x
+        cdef RelaxedElement x = self._x
         if self._valuation + self._precrel >= self._precbound:
             return ERROR_PRECISION
         cdef int error = x._next_c()
@@ -2443,14 +2443,14 @@ cdef class LazyElement_bound(LazyElement):
 
 # Value
 
-cdef class LazyElement_value(LazyElementWithDigits):
+cdef class RelaxedElement_value(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adics defined by the datum of a value in
+    A class for relaxed `p`-adics defined by the datum of a value in
     the exact subring.
 
     TESTS::
 
-        sage: R = ZpL(5)
+        sage: R = ZpER(5)
         sage: x = R(2)
         sage: TestSuite(x).run()
     """
@@ -2472,16 +2472,16 @@ cdef class LazyElement_value(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(2)
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_value'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_value'>
 
             sage: y = R(2, 10)
             sage: type(y)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_value'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_value'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         element_set_digit_sage(self._digits, value, 0)
         self._value = value
         self._shift = shift
@@ -2498,9 +2498,9 @@ cdef class LazyElement_value(LazyElementWithDigits):
 
         TESTS::
 
-            sage: a = ZpL(5)(2, 20)
+            sage: a = ZpER(5)(2, 20)
             sage: type(a)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_value'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_value'>
             sage: a == loads(dumps(a))   # indirect doctest
             True
         """
@@ -2516,10 +2516,10 @@ cdef class LazyElement_value(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         if self._valuebound >= maxordp:
-            return LazyElement._jump_c(self, prec)
+            return RelaxedElement._jump_c(self, prec)
         if (self._precbound is not None) and (prec > self._precbound):
             self._precrel = self._precbound - self._valuation
             return ERROR_PRECISION
@@ -2536,7 +2536,7 @@ cdef class LazyElement_value(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
 
         .. NOTE::
 
@@ -2562,13 +2562,13 @@ cdef class LazyElement_value(LazyElementWithDigits):
 
 # Random
 
-cdef class LazyElement_random(LazyElementWithDigits):
+cdef class RelaxedElement_random(RelaxedElementWithDigits):
     r"""
-    A class for random lazy `p`-adic numbers.
+    A class for random relaxed `p`-adic numbers.
 
     TESTS::
 
-        sage: R = ZpL(5)
+        sage: R = ZpER(5)
         sage: x = R.random_element()
         sage: TestSuite(x).run()
     """
@@ -2599,12 +2599,12 @@ cdef class LazyElement_random(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: x = R.random_element()
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_random'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_random'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         if seed is None:
             self._seed = randint(0, 2*maxordp)
         else:
@@ -2626,7 +2626,7 @@ cdef class LazyElement_random(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5, print_mode="digits")
+            sage: R = ZpER(5, print_mode="digits")
             sage: a = R.random_element()
             sage: a   # random
             ...32220241412003314311
@@ -2653,7 +2653,7 @@ cdef class LazyElement_random(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         cdef cdigit r
         digit_init(r)
@@ -2672,18 +2672,18 @@ cdef class LazyElement_random(LazyElementWithDigits):
 
 # Slice and shift
 
-cdef class LazyElement_slice(LazyElement):
+cdef class RelaxedElement_slice(RelaxedElement):
     r"""
-    A class for lazy `p`-adic numbers defined as slices.
+    A class for relaxed `p`-adic numbers defined as slices.
 
     TESTS::
 
-        sage: R = ZpL(5)
+        sage: R = ZpER(5)
         sage: x = R(20/21)
         sage: y = x.slice(3, 6)
         sage: TestSuite(y).run()
     """
-    def __init__(self, parent, LazyElement x, long start, long stop, long shift):
+    def __init__(self, parent, RelaxedElement x, long start, long stop, long shift):
         r"""
         Initialize this element.
 
@@ -2691,7 +2691,7 @@ cdef class LazyElement_slice(LazyElement):
 
         - ``parent`` -- the parent of this element
 
-        - ``x`` -- a lazy `p`-adic element, the element from which the
+        - ``x`` -- a relaxed `p`-adic element, the element from which the
           slice is extracted
 
         - ``start`` -- an integer, the position of the first digit of `x`
@@ -2708,13 +2708,13 @@ cdef class LazyElement_slice(LazyElement):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(20/21)
             sage: y = x.slice(3, 6)
             sage: type(y)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_slice'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_slice'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._x = x
         self._start = start
         self._shift = shift
@@ -2737,7 +2737,7 @@ cdef class LazyElement_slice(LazyElement):
 
         TESTS::
 
-            sage: R = ZpL(5, print_mode="digits")
+            sage: R = ZpER(5, print_mode="digits")
             sage: x = R(20/21)
             sage: y = x.slice(3, 6)
             sage: y == loads(dumps(y))  # indirect doctest
@@ -2781,7 +2781,7 @@ cdef class LazyElement_slice(LazyElement):
             (the slice is not copied). Hence any future modification
             of the slice will modify this element as well.
         """
-        cdef LazyElement x = self._x
+        cdef RelaxedElement x = self._x
         cdef long s = start + self._valuation + self._shift
         cdef long start_absolute = max(self._start, s)
         cdef long stop_absolute = min(self._stop, s + length)
@@ -2797,9 +2797,9 @@ cdef class LazyElement_slice(LazyElement):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
-        cdef LazyElement x = self._x
+        cdef RelaxedElement x = self._x
         cdef int error = 0
         cdef long pr
         if prec <= self._valuation + self._precrel:
@@ -2825,7 +2825,7 @@ cdef class LazyElement_slice(LazyElement):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         cdef int error
         cdef long n = self._precrel + self._valuation
@@ -2843,17 +2843,17 @@ cdef class LazyElement_slice(LazyElement):
 
 # Addition
 
-cdef class LazyElement_add(LazyElementWithDigits):
+cdef class RelaxedElement_add(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adic numbers defined as sums.
+    A class for relaxed `p`-adic numbers defined as sums.
 
     TESTS::
 
-        sage: R = ZpL(11)
+        sage: R = ZpER(11)
         sage: x = R.random_element() + R.random_element()
         sage: TestSuite(x).run()
     """
-    def __init__(self, parent, LazyElement x, LazyElement y):
+    def __init__(self, parent, RelaxedElement x, RelaxedElement y):
         r"""
         Initialize this element.
 
@@ -2861,18 +2861,18 @@ cdef class LazyElement_add(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``x`` -- a lazy `p`-adic element, the first summand
+        - ``x`` -- a relaxed `p`-adic element, the first summand
 
-        - ``y`` -- a lazy `p`-adic element, the second summand
+        - ``y`` -- a relaxed `p`-adic element, the second summand
 
         TESTS::
 
-            sage: R = ZpL(11)
+            sage: R = ZpER(11)
             sage: x = R.random_element() + R.random_element()
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_add'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_add'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._x = x
         self._y = y
         cdef halt = self._parent.default_prec()
@@ -2887,7 +2887,7 @@ cdef class LazyElement_add(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R.random_element() + R.random_element()
             sage: x == loads(dumps(x))  # indirect doctest
             True
@@ -2904,12 +2904,12 @@ cdef class LazyElement_add(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         # We reimplement _jump_c for better performance
         cdef long n = self._valuation + self._precrel
-        cdef LazyElement x = self._x
-        cdef LazyElement y = self._y
+        cdef RelaxedElement x = self._x
+        cdef RelaxedElement y = self._y
         cdef int error = x._jump_c(prec) | y._jump_c(prec)
         prec = min(prec, x._valuation + x._precrel, y._valuation + y._precrel)
         while n < prec:
@@ -2930,11 +2930,11 @@ cdef class LazyElement_add(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         cdef long n = self._valuation + self._precrel
-        cdef LazyElement x = self._x
-        cdef LazyElement y = self._y
+        cdef RelaxedElement x = self._x
+        cdef RelaxedElement y = self._y
         cdef int error = x._jump_c(n+1) | y._jump_c(n+1)
         if error:
             return error
@@ -2951,17 +2951,17 @@ cdef class LazyElement_add(LazyElementWithDigits):
 
 # Subtraction
 
-cdef class LazyElement_sub(LazyElementWithDigits):
+cdef class RelaxedElement_sub(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adic numbers defined as differences.
+    A class for relaxed `p`-adic numbers defined as differences.
 
     TESTS::
 
-        sage: R = ZpL(11)
+        sage: R = ZpER(11)
         sage: x = R.random_element() - R.random_element()
         sage: TestSuite(x).run()
     """
-    def __init__(self, parent, LazyElement x, LazyElement y):
+    def __init__(self, parent, RelaxedElement x, RelaxedElement y):
         r"""
         Initialize this element.
 
@@ -2969,18 +2969,18 @@ cdef class LazyElement_sub(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``x`` -- a lazy `p`-adic element, the minuend
+        - ``x`` -- a relaxed `p`-adic element, the minuend
 
-        - ``y`` -- a lazy `p`-adic element, the subtrahend
+        - ``y`` -- a relaxed `p`-adic element, the subtrahend
 
         TESTS::
 
-            sage: R = ZpL(11)
+            sage: R = ZpER(11)
             sage: x = R.random_element() - R.random_element()
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_sub'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_sub'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._x = x
         self._y = y
         self._valuation = min(x.valuation_c(0), y.valuation_c(0))
@@ -2994,7 +2994,7 @@ cdef class LazyElement_sub(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R.random_element() - R.random_element()
             sage: x == loads(dumps(x))  # indirect doctest
             True
@@ -3011,12 +3011,12 @@ cdef class LazyElement_sub(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         # We reimplement _jump_c for better performances
         cdef long n = self._valuation + self._precrel
-        cdef LazyElement x = self._x
-        cdef LazyElement y = self._y
+        cdef RelaxedElement x = self._x
+        cdef RelaxedElement y = self._y
         cdef int error = x._jump_c(prec) | y._jump_c(prec)
         prec = min(prec, x._valuation + x._precrel, y._valuation + y._precrel)
         while n < prec:
@@ -3037,11 +3037,11 @@ cdef class LazyElement_sub(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         cdef long n = self._valuation + self._precrel
-        cdef LazyElement x = self._x
-        cdef LazyElement y = self._y
+        cdef RelaxedElement x = self._x
+        cdef RelaxedElement y = self._y
         cdef int error = x._jump_c(n+1) | y._jump_c(n+1)
         if error:
             return error
@@ -3059,9 +3059,9 @@ cdef class LazyElement_sub(LazyElementWithDigits):
 
 # Multiplication
 
-cdef class LazyElement_mul(LazyElementWithDigits):
+cdef class RelaxedElement_mul(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adic numbers defined as products.
+    A class for relaxed `p`-adic numbers defined as products.
 
     ALGORITHM:
 
@@ -3073,7 +3073,7 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 
     TESTS::
 
-        sage: R = ZpL(11)
+        sage: R = ZpER(11)
         sage: x = R.random_element() * R.random_element()
         sage: TestSuite(x).run()
     """
@@ -3091,7 +3091,7 @@ cdef class LazyElement_mul(LazyElementWithDigits):
         digit_clear(self._lastdigit_x)
         digit_clear(self._lastdigit_y)
 
-    def __init__(self, parent, LazyElement x, LazyElement y):
+    def __init__(self, parent, RelaxedElement x, RelaxedElement y):
         r"""
         Initialize this element.
 
@@ -3099,18 +3099,18 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``x`` -- a lazy `p`-adic element, the first factor
+        - ``x`` -- a relaxed `p`-adic element, the first factor
 
-        - ``y`` -- a lazy `p`-adic element, the second factor
+        - ``y`` -- a relaxed `p`-adic element, the second factor
 
         TESTS::
 
-            sage: R = ZpL(11)
+            sage: R = ZpER(11)
             sage: x = R.random_element() * R.random_element()
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_mul'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_mul'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._x = x
         self._y = y
         cdef halt = self._parent.default_prec()
@@ -3130,7 +3130,7 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R.random_element() * R.random_element()
             sage: x == loads(dumps(x))  # indirect doctest
             True
@@ -3143,11 +3143,11 @@ cdef class LazyElement_mul(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         global tmp_digit, tmp_poly
-        cdef LazyElement x = self._x
-        cdef LazyElement y = self._y
+        cdef RelaxedElement x = self._x
+        cdef RelaxedElement y = self._y
         cdef long n = self._valuation + self._precrel
 
         cdef int errorx = x._jump_c(n - y._valuation + 1)
@@ -3200,8 +3200,8 @@ cdef class LazyElement_mul(LazyElementWithDigits):
         """
         if self._precrel == 0:
             return ERROR_UNEXPECTED
-        cdef LazyElement x = self._x
-        cdef LazyElement y = self._y
+        cdef RelaxedElement x = self._x
+        cdef RelaxedElement y = self._y
         cdef long n = self._precrel - 1
         cdef long m = n + 2
         cdef long len = 2
@@ -3231,15 +3231,15 @@ cdef class LazyElement_mul(LazyElementWithDigits):
         return 0
 
 
-cdef class LazyElement_muldigit(LazyElementWithDigits):
+cdef class RelaxedElement_muldigit(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adic numbers defined as products
-    of a lazy `p`-adic number by a digit.
+    A class for relaxed `p`-adic numbers defined as products
+    of a relaxed `p`-adic number by a digit.
 
     This class is not exposed to the user; it is only used
     internally for division.
     """
-    def __init__(self, parent, LazyElement_div x, LazyElement y):
+    def __init__(self, parent, RelaxedElement_div x, RelaxedElement y):
         r"""
         Initialize this element.
 
@@ -3247,13 +3247,13 @@ cdef class LazyElement_muldigit(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``x`` -- a lazy `p`-adic element, whose first significant
+        - ``x`` -- a relaxed `p`-adic element, whose first significant
           digit is the first factor
 
-        - ``y`` -- a lazy `p`-adic element, the second factor
+        - ``y`` -- a relaxed `p`-adic element, the second factor
 
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._x = <cdigit_ptr>x._inverse
         self._y = y
         self._valuation = y._valuation
@@ -3265,7 +3265,7 @@ cdef class LazyElement_muldigit(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         cdef long n = self._valuation + self._precrel
         cdef int error = self._y._jump_c(n+1)
@@ -3280,9 +3280,9 @@ cdef class LazyElement_muldigit(LazyElementWithDigits):
 
 # Division
 
-cdef class LazyElement_div(LazyElementWithDigits):
+cdef class RelaxedElement_div(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adic numbers defined as quotients.
+    A class for relaxed `p`-adic numbers defined as quotients.
 
     ALGORITHM:
 
@@ -3296,7 +3296,7 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
     TESTS::
 
-        sage: R = ZpL(5)
+        sage: R = ZpER(5)
         sage: x = R(20) / R(21)
         sage: TestSuite(x).run()
     """
@@ -3312,7 +3312,7 @@ cdef class LazyElement_div(LazyElementWithDigits):
         """
         digit_clear(self._inverse)
 
-    def __init__(self, parent, LazyElement num, LazyElement denom, long minval=-maxordp, precbound=None):
+    def __init__(self, parent, RelaxedElement num, RelaxedElement denom, long minval=-maxordp, precbound=None):
         r"""
         Initialize this element.
 
@@ -3320,9 +3320,9 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``num`` -- a lazy `p`-adic element, the dividend
+        - ``num`` -- a relaxed `p`-adic element, the dividend
 
-        - ``denom`` -- a lazy `p`-adic element, the divisor
+        - ``denom`` -- a relaxed `p`-adic element, the divisor
 
         - ``minval`` -- an integer, the minimal valuation allowed for this element
 
@@ -3331,10 +3331,10 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(20) / R(21)
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_div'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_div'>
 
             sage: y = R.unknown()
             sage: 1/y
@@ -3342,7 +3342,7 @@ cdef class LazyElement_div(LazyElementWithDigits):
             sage: y.inverse_of_unit()
             O(5^0)
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         if denom._valuation >= maxordp:
             raise ZeroDivisionError("cannot divide by zero")
         if denom._precbound < maxordp and denom._precrel == 0:
@@ -3372,7 +3372,7 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(20) / R(21)
             sage: x == loads(dumps(x))  # indirect doctest
             True
@@ -3389,11 +3389,11 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         cdef int error
-        cdef LazyElement num = self._num
-        cdef LazyElement denom = self._denom
+        cdef RelaxedElement num = self._num
+        cdef RelaxedElement denom = self._denom
 
         while denom._valuation < self._maxprec and denom._precrel == 0:
             error = denom._next_c()
@@ -3416,12 +3416,12 @@ cdef class LazyElement_div(LazyElementWithDigits):
                 return ERROR_DIVISION
         self._valuation = valuation
         digit_inv(self._inverse, denom._getdigit_relative(0), self.prime_pow)
-        self._definition = lazyelement_abandon
+        self._definition = relaxedelement_abandon
         cdef parent = self._parent
-        cdef LazyElement a = element_class_muldigit(parent, self, num)
-        cdef LazyElement b = element_class_muldigit(parent, self, denom)
-        cdef LazyElement c = element_class_slice(parent, b, denom._valuation + 1, maxordp, 0)
-        cdef LazyElement d = element_class_mul(parent, c, self)
+        cdef RelaxedElement a = element_class_muldigit(parent, self, num)
+        cdef RelaxedElement b = element_class_muldigit(parent, self, denom)
+        cdef RelaxedElement c = element_class_slice(parent, b, denom._valuation + 1, maxordp, 0)
+        cdef RelaxedElement d = element_class_mul(parent, c, self)
         self._definition = element_class_sub(parent, a, d)
         return 0
 
@@ -3431,9 +3431,9 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
-        cdef LazyElement definition = self._definition
+        cdef RelaxedElement definition = self._definition
         if definition is None:
             return self._bootstrap_c()
         cdef long val = self._valuation + self._denom._valuation
@@ -3453,9 +3453,9 @@ cdef class LazyElement_div(LazyElementWithDigits):
 
 # Square root
 
-cdef class LazyElement_sqrt(LazyElementWithDigits):
+cdef class RelaxedElement_sqrt(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adic numbers defined as square roots.
+    A class for relaxed `p`-adic numbers defined as square roots.
 
     ALGORITHM:
 
@@ -3472,11 +3472,11 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
     TESTS::
 
-        sage: R = ZpL(5)
+        sage: R = ZpER(5)
         sage: x = R(6).sqrt()
         sage: TestSuite(x).run()
     """
-    def __init__(self, parent, LazyElement x):
+    def __init__(self, parent, RelaxedElement x):
         r"""
         Initialize this element.
 
@@ -3484,16 +3484,16 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
         - ``parent`` -- the parent of this element
 
-        - ``x`` -- a lazy `p`-adic element
+        - ``x`` -- a relaxed `p`-adic element
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(6).sqrt()
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_sqrt'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_sqrt'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._x = x
         if x._valuation <= -maxordp:
             self._valuation = -maxordp
@@ -3517,7 +3517,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(5)
+            sage: R = ZpER(5)
             sage: x = R(6).sqrt()
             sage: x == loads(dumps(x))  # indirect doctest
             True
@@ -3534,14 +3534,14 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
 
         .. NOTE::
 
             This code does not work for nontrivial extensions of `\QQ_2`.
 
         """
-        cdef LazyElement x = self._x
+        cdef RelaxedElement x = self._x
         cdef long maxprec
         if x._valuation <= -maxordp:
             return ERROR_ABANDON
@@ -3566,7 +3566,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
         cdef long val = self._valuation
         cdef cdigit digit
         cdef Integer zd, p = self.prime_pow.prime
-        cdef LazyElement u, y, c, d
+        cdef RelaxedElement u, y, c, d
 
         if p == 2:
             element_set_digit_ui(self._digits, 1, 0)
@@ -3584,7 +3584,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
             if not digit_equal_ui(x._getdigit_relative(2), 0):
                 return ERROR_NOTSQUARE
             zd = Integer(1)
-            self._definition = lazyelement_abandon
+            self._definition = relaxedelement_abandon
             u = element_class_slice(parent, self, val + 2, maxordp, val)
             y = element_class_slice(parent, x, -maxordp, maxordp, val + 1)
             c = element_class_value(parent, zd, shift=-val+1)
@@ -3598,7 +3598,7 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
             element_set_digit(self._digits, digit, 0)
             self._precrel = 1
             zd = digit_get_sage(digit)
-            self._definition = lazyelement_abandon
+            self._definition = relaxedelement_abandon
             u = element_class_slice(parent, self, val + 1, maxordp, val)
             y = element_class_slice(parent, x, -maxordp, maxordp, 2*val)
             c = element_class_value(parent, zd*zd)
@@ -3612,9 +3612,9 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
-        cdef LazyElement definition = self._definition
+        cdef RelaxedElement definition = self._definition
         if definition is None:
             return self._bootstrap_c()
         cdef long n = self._valuation + self._precrel
@@ -3628,9 +3628,9 @@ cdef class LazyElement_sqrt(LazyElementWithDigits):
 
 # Teichmüller lifts
 
-cdef class LazyElement_teichmuller(LazyElementWithDigits):
+cdef class RelaxedElement_teichmuller(RelaxedElementWithDigits):
     r"""
-    A class for lazy `p`-adic numbers defined as teichmüller representatives.
+    A class for relaxed `p`-adic numbers defined as teichmüller representatives.
 
     ALGORITHM:
 
@@ -3640,7 +3640,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
     TESTS::
 
-        sage: R = ZpL(7)
+        sage: R = ZpER(7)
         sage: x = R.teichmuller(2)
         sage: TestSuite(x).run()
     """
@@ -3657,12 +3657,12 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: x = R.teichmuller(2)
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_teichmuller'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_teichmuller'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         cdef cdigit digit
         digit_init(digit)
         digit_set_sage(digit, xbar)
@@ -3676,7 +3676,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
             self._trivial = digit_equal_ui(digit, 1)
         self._precrel += 1
 
-        cdef LazyElement xn
+        cdef RelaxedElement xn
         cdef Integer p
         cdef int size, i
         if not self._trivial:
@@ -3702,7 +3702,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: x = R.teichmuller(2)
             sage: x == loads(dumps(x))  # indirect doctest
             True
@@ -3720,7 +3720,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         if not self._ready:
             return ERROR_ABANDON
@@ -3728,7 +3728,7 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
             if self._valuation == 0 and self._precrel < prec:
                 self._precrel = prec
             return 0
-        return LazyElement._jump_c(<LazyElement>self, prec)
+        return RelaxedElement._jump_c(<RelaxedElement>self, prec)
 
     cdef int _next_c(self):
         r"""
@@ -3736,15 +3736,15 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         if self._trivial:
             if self._valuation:
                 self._precrel += 1
             return 0
         cdef int error
-        cdef LazyElement xp = self._xp
-        cdef LazyElement_mul xn
+        cdef RelaxedElement xp = self._xp
+        cdef RelaxedElement_mul xn
         self._precrel += 1
         xp._jump_c(self._precrel)
         element_set_digit(self._digits, xp._getdigit_relative(self._precrel - 1), self._precrel - 1)
@@ -3758,13 +3758,13 @@ cdef class LazyElement_teichmuller(LazyElementWithDigits):
 # Self-referent definitions
 ###########################
 
-cdef class LazyElement_unknown(LazyElementWithDigits):
+cdef class RelaxedElement_unknown(RelaxedElementWithDigits):
     r"""
-    A class for self-referent lazy `p`-adic numbers.
+    A class for self-referent relaxed `p`-adic numbers.
 
     TESTS::
 
-        sage: R = ZpL(7)
+        sage: R = ZpER(7)
         sage: x = R.unknown()
         sage: TestSuite(x).run()
 
@@ -3788,12 +3788,12 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: x = R.unknown()
             sage: type(x)
-            <class 'sage.rings.padics.padic_lazy_element.pAdicLazyElement_unknown'>
+            <class 'sage.rings.padics.padic_relaxed_element.pAdicRelaxedElement_unknown'>
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         if valuation >= maxordp:
             raise OverflowError("valuation is too large (maximum is %s)" % maxordp)
         self._valuation = valuation
@@ -3821,7 +3821,7 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
 
         TESTS::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: x = R.unknown()
             sage: x.set(1 + 7*x^2)
             True
@@ -3837,13 +3837,13 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
             definition = self._definition
         return unpickle_unknown, (id(self), self.__class__, self._parent, self._initialvaluation, digits, definition)
 
-    cpdef set(self, LazyElement definition):
+    cpdef set(self, RelaxedElement definition):
         r"""
         Set the recursive definition of this self-referent number.
 
         INPUT:
 
-        - ``definition`` -- a lazy `p`-adic number, to which this
+        - ``definition`` -- a relaxed `p`-adic number, to which this
           number is equal
 
         OUTPUT:
@@ -3853,7 +3853,7 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
 
         EXAMPLES::
 
-            sage: R = ZpL(5, 10)
+            sage: R = ZpER(5, 10)
             sage: x = R.unknown()
             sage: x.set(1 + 5*x)
             True
@@ -3891,7 +3891,7 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
 
         .. SEEALSO::
 
-            :meth:`sage.rings.padics.generic_nodes.pAdicLazyGeneric.unknown`
+            :meth:`sage.rings.padics.generic_nodes.pAdicRelaxedGeneric.unknown`
         """
         if self._definition is not None:
             raise ValueError("this self-referent number is already defined")
@@ -3907,9 +3907,9 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
-        cdef LazyElement definition = self._definition
+        cdef RelaxedElement definition = self._definition
         cdef cdigit_ptr digit
         cdef long n = self._valuation + self._precrel
         cdef long diffval
@@ -3935,14 +3935,14 @@ cdef class LazyElement_unknown(LazyElementWithDigits):
 
 def unpickle_unknown(uid, cls, parent, valuation, digits, definition):
     r"""
-    Unpickle a self-referent lazy `p`-adic number.
+    Unpickle a self-referent relaxed `p`-adic number.
 
     TESTS:
 
     Cross definitions involving several self-referent numbers are
     handled correctly::
 
-        sage: R = ZpL(7)
+        sage: R = ZpER(7)
         sage: x = R.unknown()
         sage: y = R.unknown()
         sage: x.set(1 + 2*y + 7*x*y)
@@ -3968,9 +3968,9 @@ def unpickle_unknown(uid, cls, parent, valuation, digits, definition):
 # Expansion
 ###########
 
-cdef class LazyElement_zeroone(LazyElementWithDigits):
+cdef class RelaxedElement_zeroone(RelaxedElementWithDigits):
     r"""
-    A special class for `p`-adic lazy elements with only
+    A special class for `p`-adic relaxed elements with only
     `0` and `1` as digits.
 
     This class is used for computing expansion in Teichmuller mode.
@@ -3987,7 +3987,7 @@ cdef class LazyElement_zeroone(LazyElementWithDigits):
         - ``valuation`` -- the valuation of this number
 
         """
-        LazyElement.__init__(self, parent)
+        RelaxedElement.__init__(self, parent)
         self._valuation = valuation
 
     cdef void _setdigit_to_zero(self):
@@ -4013,7 +4013,7 @@ cdef class LazyElement_zeroone(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         if prec > self._valuation + self._precrel:
             return ERROR_NOTDEFINED
@@ -4025,7 +4025,7 @@ cdef class LazyElement_zeroone(LazyElementWithDigits):
 
         OUTPUT:
 
-        An error code (see :meth:`LazyElement._next_c` for details).
+        An error code (see :meth:`RelaxedElement._next_c` for details).
         """
         return ERROR_NOTDEFINED
 
@@ -4035,7 +4035,7 @@ cdef class ExpansionIter(object):
     An iterator over a `p`-adic expansion.
 
     This class should not be instantiated directly, but instead using
-    :meth:`LazyElement.expansion`.
+    :meth:`RelaxedElement.expansion`.
     """
     def __cinit__(self):
         r"""
@@ -4049,13 +4049,13 @@ cdef class ExpansionIter(object):
         """
         digit_clear(self.carry)
 
-    def __init__(self, LazyElement elt, expansion_mode mode, long start, long stop):
+    def __init__(self, RelaxedElement elt, expansion_mode mode, long start, long stop):
         r"""
         Initialize this iterator.
 
         INPUT:
 
-        - ``elt`` -- a lazy `p`-adic number
+        - ``elt`` -- a relaxed `p`-adic number
 
         - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
 
@@ -4065,10 +4065,10 @@ cdef class ExpansionIter(object):
 
         TESTS::
 
-            sage: E = ZpL(5,4)(373).expansion()
+            sage: E = ZpER(5,4)(373).expansion()
             sage: I = iter(E)   # indirect doctest
             sage: type(I)
-            <class 'sage.rings.padics.padic_lazy_element.ExpansionIter'>
+            <class 'sage.rings.padics.padic_relaxed_element.ExpansionIter'>
         """
         self.elt = elt
         self.mode = mode
@@ -4094,7 +4094,7 @@ cdef class ExpansionIter(object):
 
         EXAMPLES::
 
-            sage: R = ZpL(7, 5)
+            sage: R = ZpER(7, 5)
             sage: x = R(1/2021)
             sage: x.expansion()   # indirect doctest
             7-adic expansion of 3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + ...
@@ -4118,7 +4118,7 @@ cdef class ExpansionIter(object):
 
         EXAMPLES::
 
-            sage: R = ZpL(7)
+            sage: R = ZpER(7)
             sage: x = R(1/2021, 5)
             sage: x
             3 + 6*7 + 4*7^2 + 3*7^3 + 6*7^4 + O(7^5)
@@ -4146,7 +4146,7 @@ cdef class ExpansionIter(object):
 
         TESTS::
 
-            sage: E = ZpL(5)(373).expansion()
+            sage: E = ZpER(5)(373).expansion()
             sage: I = iter(E)
             sage: I is iter(I)
             True
@@ -4157,7 +4157,7 @@ cdef class ExpansionIter(object):
         r"""
         Return the next digit of this expansion (simple mode).
         """
-        cdef LazyElement elt = self.elt
+        cdef RelaxedElement elt = self.elt
         elt._jump_c(self.current + 1)
         digit_set(self.digit, elt._getdigit_absolute(self.current))
         self.current += 1
@@ -4167,7 +4167,7 @@ cdef class ExpansionIter(object):
         r"""
         Return the next digit of this expansion (smallest mode).
         """
-        cdef LazyElement elt = self.elt
+        cdef RelaxedElement elt = self.elt
         elt._jump_c(self.current + 1)
         digit_add(self.digit, elt._getdigit_absolute(self.current), self.carry)
         digit_smallest(self.digit, self.carry, self.digit, elt.prime_pow)
@@ -4178,15 +4178,15 @@ cdef class ExpansionIter(object):
         r"""
         Return the next digit of this expansion (Teichmüller mode).
         """
-        cdef LazyElement teichmuller, tail = self.tail
-        cdef LazyElement_zeroone coeff
+        cdef RelaxedElement teichmuller, tail = self.tail
+        cdef RelaxedElement_zeroone coeff
         cdef digit
         tail._jump_c(self.current + 1)
         digit_set(self.digit, tail._getdigit_absolute(self.current))
         digit = digit_get_sage(self.digit)
         if digit != 0 and digit != 1 and digit not in self.coefficients:
             parent = tail._parent
-            self.coefficients[digit] = coeff = LazyElement_zeroone(parent, self.current)
+            self.coefficients[digit] = coeff = RelaxedElement_zeroone(parent, self.current)
             teichmuller = element_class_teichmuller(parent, digit)
             self.tail = tail - coeff * element_class_slice(parent, teichmuller, 1, maxordp, 0)
         for d, coeff in self.coefficients.items():
@@ -4203,7 +4203,7 @@ cdef class ExpansionIter(object):
 
         EXAMPLES::
 
-            sage: R = ZpL(11, 10)
+            sage: R = ZpER(11, 10)
             sage: x = R(20/21); x
             2 + 2*11 + 4*11^2 + 8*11^3 + 5*11^4 + 11^6 + 2*11^7 + 4*11^8 + 8*11^9 + ...
             sage: E = x.expansion()
@@ -4227,7 +4227,7 @@ cdef class ExpansionIter(object):
             ....:     assert(x == y)
 
             sage: for p in primes(100):
-            ....:     x = ZpL(p).random_element()[:20]
+            ....:     x = ZpER(p).random_element()[:20]
             ....:     for mode in [ 'simple', 'smallest', 'teichmuller' ]:
             ....:         check_expansion(x, mode)
         """

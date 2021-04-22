@@ -13,7 +13,6 @@ cimport cython
 from sage.combinat.root_system.fast_parallel_fmats_methods cimport _fmat
 
 from itertools import product
-from sage.misc.cachefunc import cached_function
 from sage.rings.qqbar import QQbar
 
 ###############

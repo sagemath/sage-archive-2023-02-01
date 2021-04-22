@@ -134,14 +134,18 @@ cpdef _backward_subs(factory):
         1
     """
     one = factory._field.one()
-    for var in reversed(factory._poly_ring.gens()):
+    _ks = {k : factory._FR.field()(list(v)) for k, v in factory._ks.items()}
+    vars = factory._poly_ring.gens()
+    n = len(vars)
+    for var in reversed(vars):
         sextuple = factory._var_to_sextuple[var]
         rhs = factory._fvars[sextuple]
         d = {var_idx: factory._fvars[factory._idx_to_sextuple[var_idx]]
              for var_idx in variables(rhs) if var_idx in factory._solved}
         if d:
-            kp = compute_known_powers(get_variables_degrees([rhs]), d, one)
-            factory._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp,one), factory._ks).items())
+            degs = ETuple(get_variables_degrees([rhs]),n)
+            kp = compute_known_powers(degs, d, one)
+            factory._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp,one), _ks).items())
 
 cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):
       """
@@ -229,9 +233,11 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     r_matrix = factory._FR.r_matrix
     _Nk_ij = factory._FR.Nk_ij
     id_anyon = factory._FR.one()
-    cdef NumberFieldElement_absolute one = factory._field.one()
+    _field = factory._field
+    cdef NumberFieldElement_absolute one = _field.one()
     cdef ETuple _nnz = factory._nnz
-    cdef dict _ks = factory._ks
+    # cdef dict _ks = factory._ks
+    _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
 
     #Computation loop
     for i, sextuple in enumerate(product(basis, repeat=6)):
@@ -281,9 +287,11 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     cdef dict fvars = factory._fvars
     _Nk_ij = factory._FR.Nk_ij
     id_anyon = factory._FR.one()
-    cdef NumberFieldElement_absolute one = factory._field.one()
+    _field = factory._field
+    cdef NumberFieldElement_absolute one = _field.one()
     cdef ETuple _nnz = factory._nnz
-    cdef dict _ks = factory._ks
+    # cdef dict _ks = factory._ks
+    _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
     cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
 
     #Computation loop
@@ -306,17 +314,23 @@ cdef list update_reduce(factory, list eqns):
     Substitute known values, known squares, and reduce.
     """
     cdef list res = list()
-    cdef NumberFieldElement_absolute one = factory._field.one()
     cdef tuple eq_tup, red, unflat
     cdef dict eq_dict
+
+    #Pre-compute common parameters for speed
+    _field = factory._field
+    one = _field.one()
+    _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
+    cdef dict _kp = factory._kp
+    cdef ETuple _nnz = factory._nnz
 
     for i in range(len(eqns)):
         eq_tup = eqns[i]
         #Construct cyclotomic field elts from list repn
-        unflat = _unflatten_coeffs(factory._field, eq_tup)
+        unflat = _unflatten_coeffs(_field, eq_tup)
 
-        eq_dict = subs(unflat,factory._kp,one)
-        red = reduce_poly_dict(eq_dict,factory._nnz,factory._ks,one)
+        eq_dict = subs(unflat,_kp,one)
+        red = reduce_poly_dict(eq_dict,_nnz,_ks,one)
 
         #Avoid pickling cyclotomic coefficients
         red = _flatten_coeffs(red)
@@ -394,11 +408,12 @@ cpdef update_child_fmats(factory, tuple data_tup):
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
     factory._fvars, factory._solved, factory._ks, factory._var_degs = data_tup
+    # factory._fvars, factory._solved, factory._var_degs = data_tup
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
 
     #Wait this process isn't used again
-    sleep(0.4)
+    sleep(0.25)
 
 ################
 ### Reducers ###
@@ -419,6 +434,10 @@ cdef inline list collect_eqns(list eqns):
 ##############################
 ### Parallel code executor ###
 ##############################
+
+def init(fmats_id, ks_proxy):
+    fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
+    fmats_obj._ks = ks_proxy
 
 #Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {

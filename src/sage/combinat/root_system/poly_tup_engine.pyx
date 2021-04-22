@@ -80,7 +80,7 @@ cdef inline tuple _flatten_coeffs(tuple eq_tup):
     coefficients.
 
     This is used to avoid pickling cyclotomic coefficient objects, which fails
-    with new PARI settings introduced in trac ticket #30537
+    with new PARI settings introduced in :trac:`30537`.
     """
     cdef list flat = []
     cdef NumberFieldElement_absolute cyc_coeff
@@ -232,7 +232,7 @@ cdef inline ETuple degrees(tuple poly_tup):
         max_degs = max_degs.emax(<ETuple> (<tuple> poly_tup[i])[0])
     return max_degs
 
-cpdef ETuple get_variables_degrees(list eqns):
+cpdef dict get_variables_degrees(list eqns):
     r"""
     Find maximum degrees for each variable in equations.
 
@@ -243,16 +243,18 @@ cpdef ETuple get_variables_degrees(list eqns):
         sage: polys = [x**2 + 1, x*y*z**2 - 4*x*y, x*z**3 - 4/3*y + 1]
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
         sage: get_variables_degrees([poly_to_tup(p) for p in polys])
-        (2, 1, 3)
+        {0: 2, 1: 1, 2: 3}
     """
     if not eqns:
-        return ETuple([])
+        # return ETuple([])
+        return dict()
     cdef ETuple max_deg
     cdef int i
     max_deg = degrees(eqns[0])
     for i in range(1, len(eqns)):
         max_deg = max_deg.emax(degrees( <tuple>(eqns[i]) ))
-    return max_deg
+    # return max_deg
+    return { max_deg._data[2*i] : max_deg._data[2*i+1] for i in range(max_deg._nonzero)}
 
 cpdef list variables(tuple eq_tup):
     """
@@ -356,7 +358,8 @@ cpdef inline bint tup_fixes_sq(tuple eq_tup):
 ### Simplification ###
 ######################
 
-cdef dict subs_squares(dict eq_dict, dict known_sq):
+# cdef dict subs_squares(dict eq_dict, dict known_sq):
+cdef dict subs_squares(dict eq_dict, known_sq):
     r"""
     Substitute for known squares into a given polynomial.
 
@@ -437,7 +440,7 @@ cdef tuple to_monic(dict eq_dict, one):
         ret.append((ord_monoms[n-2-i], inv_lc * eq_dict[ord_monoms[n-2-i]]))
     return tuple(ret)
 
-cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, dict known_sq, NumberFieldElement_absolute one):
+cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, known_sq, NumberFieldElement_absolute one):
     """
     Return a tuple describing a monic polynomial with no known nonzero
     gcf and no known squares.
@@ -475,6 +478,8 @@ cpdef dict compute_known_powers(ETuple max_deg, dict val_dict, one):
         sage: known_val = { 0 : poly_to_tup(R(-1)), 2 : poly_to_tup(y**2) }
         sage: from sage.combinat.root_system.poly_tup_engine import get_variables_degrees
         sage: max_deg = get_variables_degrees([poly_to_tup(p) for p in polys])
+        sage: from sage.rings.polynomial.polydict import ETuple
+        sage: max_deg = ETuple(max_deg,R.ngens())
         sage: compute_known_powers(max_deg, known_val, R.base_ring().one())
         {0: [(((0, 0, 0), 1),),
         (((0, 0, 0), -1),),
@@ -485,9 +490,9 @@ cpdef dict compute_known_powers(ETuple max_deg, dict val_dict, one):
         (((0, 4, 0), 1),),
         (((0, 6, 0), 1),)]}
     """
-    if not max_deg:
-        return {}
-    assert max(max_deg.nonzero_values(sort=False)) <= 100, "NotImplementedError: Cannot substitute for degree larger than 100"
+    # if not max_deg:
+    #     return {}
+    assert max_deg._nonzero and max(max_deg.nonzero_values(sort=False)) <= 100 or True, "NotImplementedError: Cannot substitute for degree larger than 100"
     max_deg = max_deg.emin(ETuple({idx: 100 for idx in val_dict}, len(max_deg)))
     cdef dict known_powers
     #Get polynomial unit as tuple to initialize list elements
@@ -606,4 +611,3 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
            key.append(-exp._data[2*i])
            key.append(exp._data[2*i+1])
     return tuple(key)
-

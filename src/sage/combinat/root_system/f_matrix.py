@@ -20,7 +20,7 @@ except:
 
 from copy import deepcopy
 from itertools import product, zip_longest
-from multiprocessing import cpu_count, Pool, Queue, set_start_method
+from multiprocessing import cpu_count, Pool, set_start_method
 import numpy as np
 import os
 
@@ -941,7 +941,7 @@ class FMatrix():
         F = self._field
         for eq_tup in eqns:
             if tup_fixes_sq(eq_tup):
-                ks[variables(eq_tup)[0]] = -F(list(eq_tup[-1][1]))
+                ks[variables(eq_tup)[0]] = tuple(-v for v in eq_tup[-1][1])
         return ks
 
     def _get_known_nonz(self):
@@ -1486,9 +1486,10 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        self._ks, self._var_degs = self._get_known_sq(eqns), get_variables_degrees(eqns)
+        self._ks = self._get_known_sq(eqns)
+        self._var_degs = ETuple(get_variables_degrees(eqns),self._poly_ring.ngens())
         self._nnz = self._get_known_nonz()
-        self._kp = compute_known_powers(self._var_degs,self._get_known_vals(), self._field.one())
+        self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
         if worker_pool is not None and children_need_update:
             #self._nnz and self._kp are computed in child processes to reduce IPC overhead
             n_proc = worker_pool._processes
@@ -1865,7 +1866,7 @@ class FMatrix():
             for fx, rhs in self._ks.items():
                 if fx not in self._solved:
                     lt = (ETuple({fx : 2},n), one)
-                    eqns.append((lt, (ETuple({},n), -rhs)))
+                    eqns.append((lt, (ETuple({},n), -self._field(list(rhs)))))
         eqns_partition = self._partition_eqns(verbose=verbose)
 
         F = self._field

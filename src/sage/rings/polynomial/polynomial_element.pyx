@@ -1347,6 +1347,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: cannot convert nonconstant polynomial
+
+            sage: x = polygen(QQ)
+            sage: A.<u> = NumberField(x^3 - 2)
+            sage: A(A['x'](u))
+            u
         """
         if self.degree() > 0:
             raise TypeError("cannot convert nonconstant polynomial")

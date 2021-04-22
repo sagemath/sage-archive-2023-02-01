@@ -1036,8 +1036,8 @@ def solve(f, *args, **kwds):
             f = f[0]
         else:
             raise TypeError("The first argument to solve() should be a "
-                    "symbolic expression or a list of symbolic expressions, "
-                    "cannot handle %s"%repr(type(f)))
+                            "symbolic expression or a list of symbolic "
+                            "expressions.")
 
     if is_Expression(f): # f is a single expression
         return _solve_expression(f, x, explicit_solutions, multiplicities, to_poly_solve, solution_dict, algorithm, domain)

@@ -148,8 +148,7 @@ cpdef _backward_subs(factory):
              # for var_idx in variables(rhs) if var_idx in factory._solved}
              for var_idx in variables(rhs) if factory._solved[var_idx]}
         if d:
-            degs = ETuple(get_variables_degrees([rhs]),n)
-            kp = compute_known_powers(degs, d, one)
+            kp = compute_known_powers(get_variables_degrees([rhs]), d, one)
             factory._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp,one), _ks).items())
 
 cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):

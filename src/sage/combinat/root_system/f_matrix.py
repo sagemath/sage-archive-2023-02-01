@@ -1489,8 +1489,7 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        self._ks = self._get_known_sq(eqns)
-        self._var_degs = ETuple(get_variables_degrees(eqns),self._poly_ring.ngens())
+        self._ks, self._var_degs = self._get_known_sq(eqns), get_variables_degrees(eqns)
         self._nnz = self._get_known_nonz()
         self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
         if worker_pool is not None and children_need_update:

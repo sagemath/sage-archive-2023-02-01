@@ -296,7 +296,7 @@ class FMatrix():
 
         #Useful solver state attributes
         self.ideal_basis = list()
-        self._solved = set()
+        self._solved = list(False for fx in self._fvars)
         self._ks = dict()
         self._kp = dict()
         self._nnz = self._get_known_nonz()
@@ -353,7 +353,8 @@ class FMatrix():
             fx0
         """
         self._fvars = {self._var_to_sextuple[key] : key for key in self._var_to_sextuple}
-        self._solved = set()
+        # self._solved = set()
+        self._solved = list(False for fx in self._fvars)
 
     def _reset_solver_state(self):
         r"""
@@ -376,7 +377,7 @@ class FMatrix():
             True
             sage: f._poly_ring.base_ring() == K
             True
-            sage: len(f._solved) == 0
+            sage: sum(f._solved) == 0
             True
             sage: len(f.ideal_basis) == 0
             True
@@ -904,7 +905,8 @@ class FMatrix():
             sage: len(f._get_known_vals()) == f._poly_ring.ngens()
             True
         """
-        return {var_idx: self._fvars[self._idx_to_sextuple[var_idx]] for var_idx in self._solved}
+        # return {var_idx: self._fvars[self._idx_to_sextuple[var_idx]] for var_idx in self._solved}
+        return {var_idx: self._fvars[self._idx_to_sextuple[var_idx]] for var_idx, v in enumerate(self._solved) if v}
 
     def _get_known_sq(self,eqns=None):
         r"""
@@ -1117,7 +1119,8 @@ class FMatrix():
             self._fvars, self._non_cyc_roots, self._coerce_map_from_cyc_field, self._qqbar_embedding = pickle.load(f)
         #Update state attributes
         self._chkpt_status = 7
-        self._solved = set(range(self._poly_ring.ngens()))
+        # self._solved = set(range(self._poly_ring.ngens()))
+        self._solved = list(True for v in self._fvars)
         self._field = self._qqbar_embedding.domain()
 
     def get_fr_str(self):
@@ -1166,7 +1169,7 @@ class FMatrix():
             Computing appropriate NumberField...
             sage: f._chkpt_status == 7
             True
-            sage: len(f._solved) == f._poly_ring.ngens()
+            sage: sum(f._solved) == f._poly_ring.ngens()
             True
             sage: os.remove("fmatrix_solver_checkpoint_A13.pickle")
             sage: f = FMatrix(FusionRing("A1",2))
@@ -1193,7 +1196,7 @@ class FMatrix():
             [1, 1]
             sage: f._chkpt_status == 7
             True
-            sage: len(f._solved) == f._poly_ring.ngens()
+            sage: sum(f._solved) == f._poly_ring.ngens()
             True
             sage: os.remove("fmatrix_solver_checkpoint_A12.pickle")
         """
@@ -1864,7 +1867,8 @@ class FMatrix():
             n = self._poly_ring.ngens()
             one = self._field.one()
             for fx, rhs in self._ks.items():
-                if fx not in self._solved:
+                # if fx not in self._solved:
+                if not self._solved[fx]:
                     lt = (ETuple({fx : 2},n), one)
                     eqns.append((lt, (ETuple({},n), -self._field(list(rhs)))))
         eqns_partition = self._partition_eqns(verbose=verbose)
@@ -1924,9 +1928,11 @@ class FMatrix():
             self._update_poly_ring_base_field(self._field)
 
         #Ensure all F-symbols are known
-        self._solved.update(numeric_fvars)
+        # self._solved.update(numeric_fvars)
+        for fx in numeric_fvars:
+            self._solved[fx] = True
         nvars = self._poly_ring.ngens()
-        assert len(self._solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in set(range(nvars)).difference(self._solved)])
+        assert sum(self._solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in range(nvars) if not self._solved[fx]])
 
         #Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
         self._fvars = {sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items()}
@@ -2074,7 +2080,8 @@ class FMatrix():
 
             #Report progress
             if verbose:
-                print("Hex elim step solved for {} / {} variables".format(len(self._solved), len(self._poly_ring.gens())))
+                # print("Hex elim step solved for {} / {} variables".format(len(self._solved), len(self._poly_ring.gens())))
+                print("Hex elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
 
         self._checkpoint(checkpoint,2,verbose=verbose)
 
@@ -2095,7 +2102,8 @@ class FMatrix():
 
             #Report progress
             if verbose:
-                print("Pent elim step solved for {} / {} variables".format(len(self._solved), len(self._poly_ring.gens())))
+                # print("Pent elim step solved for {} / {} variables".format(len(self._solved), len(self._poly_ring.gens())))
+                print("Pent elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
 
         self._checkpoint(checkpoint,4,verbose=verbose)
 
@@ -2149,11 +2157,14 @@ class FMatrix():
             adding equation... fx18 - 1
             adding equation... fx21 - 1
         """
-        while len(self._solved) < len(self._poly_ring.gens()):
+        # while len(self._solved) < len(self._poly_ring.gens()):
+        while sum(1 for v in self._solved if not v) > 0:
             #Get a variable that has not been fixed
             #In ascending index order, for consistent results
-            for var in self._poly_ring.gens():
-                if var not in self._solved:
+            # for var in self._poly_ring.gens():
+                # if var not in self._solved:
+            for i, var in enumerate(self._poly_ring.gens()):
+                if not self._solved[i]:
                     break
 
             #Fix var = 1, substitute, and solve equations
@@ -2187,16 +2198,20 @@ class FMatrix():
         new_knowns = set()
         useless = set()
         for eq in eqns:
-            if eq.degree() == 1 and sum(eq.degrees()) <= 2 and eq.lm() not in self._solved:
+            # if eq.degree() == 1 and sum(eq.degrees()) <= 2 and eq.lm() not in self._solved:
+            if eq.degree() == 1 and sum(eq.degrees()) <= 2 and not self._solved[self._var_to_idx[eq.lm()]]:
                 self._fvars[self._var_to_sextuple[eq.lm()]] = -sum(c * m for c, m in zip(eq.coefficients()[1:], eq.monomials()[1:])) / eq.lc()
                 #Add variable to set of known values and remove this equation
                 new_knowns.add(eq.lm())
                 useless.add(eq)
 
         #Update fvars depending on other variables
-        self._solved.update(new_knowns)
+        # self._solved.update(new_knowns)
+        for fx in new_knowns:
+            self._solved[self._var_to_idx[fx]] = fx
         for sextuple, rhs in self._fvars.items():
-            d = {var : self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if var in self._solved}
+            # d = {var : self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if var in self._solved}
+            d = {var: self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if self._solved[self._var_to_idx[var]]}
             if d:
                 self._fvars[sextuple] = rhs.subs(d)
         return new_knowns, useless
@@ -2216,7 +2231,8 @@ class FMatrix():
             sage: f.ideal_basis
             {fx3}
         """
-        special_values = {known : self._fvars[self._var_to_sextuple[known]] for known in self._solved}
+        # special_values = {known : self._fvars[self._var_to_sextuple[known]] for known in self._solved}
+        special_values = {known : self._fvars[self._var_to_sextuple[known]] for known in self._solved if known}
         self.ideal_basis = set(eq.subs(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)
 

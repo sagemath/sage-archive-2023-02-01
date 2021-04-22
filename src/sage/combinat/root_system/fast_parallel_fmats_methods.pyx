@@ -74,20 +74,24 @@ cpdef _solve_for_linear_terms(factory, eqns=None):
 
         if len(eq_tup) == 1:
             vars = variables(eq_tup)
-            if len(vars) == 1 and vars[0] not in factory._solved:
+            # if len(vars) == 1 and vars[0] not in factory._solved:
+            if len(vars) == 1 and not factory._solved[vars[0]]:
                 factory._fvars[factory._idx_to_sextuple[vars[0]]] = tuple()
-                factory._solved.add(vars[0])
+                # factory._solved.add(vars[0])
+                factory._solved[vars[0]] = True
                 linear_terms_exist = True
         if len(eq_tup) == 2:
             idx = has_appropriate_linear_term(eq_tup)
             if idx < 0: continue
             #The chosen term is guaranteed to be univariate in the largest variable
             max_var = eq_tup[idx][0].nonzero_positions()[0]
-            if max_var not in factory._solved:
+            # if max_var not in factory._solved:
+            if not factory._solved[max_var]:
                 rhs_exp = eq_tup[(idx+1) % 2][0]
                 rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]
                 factory._fvars[factory._idx_to_sextuple[max_var]] = ((rhs_exp,rhs_coeff),)
-                factory._solved.add(max_var)
+                # factory._solved.add(max_var)
+                factory._solved[max_var] = True
                 linear_terms_exist = True
     return linear_terms_exist
 
@@ -141,7 +145,8 @@ cpdef _backward_subs(factory):
         sextuple = factory._var_to_sextuple[var]
         rhs = factory._fvars[sextuple]
         d = {var_idx: factory._fvars[factory._idx_to_sextuple[var_idx]]
-             for var_idx in variables(rhs) if var_idx in factory._solved}
+             # for var_idx in variables(rhs) if var_idx in factory._solved}
+             for var_idx in variables(rhs) if factory._solved[var_idx]}
         if d:
             degs = ETuple(get_variables_degrees([rhs]),n)
             kp = compute_known_powers(degs, d, one)

@@ -92,7 +92,7 @@ class PrefixClosedSet(object):
             sage: P = PrefixClosedSet.create_by_alphabet([0, 1]); P
             [word: ]
 
-        See :meth:`populate_interactive` for further examples.
+        See :meth:`iterate_possible_additions` for further examples.
         """
         self.words = words
         self.elements = [self.words([])]
@@ -179,7 +179,7 @@ class PrefixClosedSet(object):
         self.elements.append(w)
 
 
-    def populate_interactive(self):
+    def iterate_possible_additions(self):
         r"""
         Return an iterator over possible new elements.
 
@@ -192,7 +192,7 @@ class PrefixClosedSet(object):
             sage: from sage.combinat.recognizable_series import PrefixClosedSet
             sage: P = PrefixClosedSet.create_by_alphabet([0, 1]); P
             [word: ]
-            sage: for n, p in enumerate(P.populate_interactive()):
+            sage: for n, p in enumerate(P.iterate_possible_additions()):
             ....:     print('{}?'.format(p))
             ....:     if n in (0, 2, 3, 5):
             ....:         P.add(p)
@@ -239,7 +239,7 @@ class PrefixClosedSet(object):
             sage: from sage.combinat.recognizable_series import PrefixClosedSet
             sage: P = PrefixClosedSet.create_by_alphabet([0, 1]); P
             [word: ]
-            sage: for n, p in enumerate(P.populate_interactive()):
+            sage: for n, p in enumerate(P.iterate_possible_additions()):
             ....:     if n in (0, 1, 2, 4, 6):
             ....:         P.add(p)
             sage: P
@@ -839,7 +839,7 @@ class RecognizableSeries(Element):
         if left.is_zero():
             return self.parent().zero()
         Left = [left]
-        for p in pcs.populate_interactive():
+        for p in pcs.iterate_possible_additions():
             left = self.left * self._mu_of_word_(p)
             try:
                 Matrix(Left).solve_left(left)

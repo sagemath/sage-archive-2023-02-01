@@ -3209,9 +3209,9 @@ class WordMorphism(SageObject):
                     tails.add(tail)
                     todo.append(tail)
 
-        images = self.images()
-        if any(not x for x in images):
+        if self.is_erasing():
             return False
+        images = self.images()
         tails = set()
         todo = []
 

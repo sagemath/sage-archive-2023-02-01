@@ -76,6 +76,7 @@ Lists of subsets after the above operations::
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
+from sage.manifolds.subset_set import ManifoldSubsetSet
 from sage.manifolds.point import ManifoldPoint
 
 class ManifoldSubset(UniqueRepresentation, Parent):
@@ -664,6 +665,14 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         - ``lower_bound`` -- (default: ``None``) only include supersets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
 
+        OUTPUT:
+
+        A digraph. Each vertex of the digraph is either:
+
+        - a :class:`ManifoldSubsetSet` containing one instance of :class:`ManifoldSubset`.
+        - (if ``open_covers`` is ``True``) a tuple of :class:`ManifoldSubsetSet` instances,
+          representing an open cover.
+
         EXAMPLES::
 
             sage: M = Manifold(3, 'M')
@@ -671,16 +680,16 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: D = M.subset_digraph(); D
             Digraph on 4 vertices
             sage: D.edges(key=lambda e: (e[0]._name, e[1]._name))
-            [(Open subset U of the 3-dimensional differentiable manifold M,
-              3-dimensional differentiable manifold M,
+            [(Set {U} of subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of subsets of the 3-dimensional differentiable manifold M,
               None),
-             (Open subset V of the 3-dimensional differentiable manifold M,
-              3-dimensional differentiable manifold M,
+             (Set {V} of subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of subsets of the 3-dimensional differentiable manifold M,
               None),
-             (Open subset W of the 3-dimensional differentiable manifold M,
-              3-dimensional differentiable manifold M,
+             (Set {W} of subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of subsets of the 3-dimensional differentiable manifold M,
               None)]
-            sage: D.plot(layout='acyclic')   # not tested
+            sage: D.plot(layout='acyclic')                                  # not tested
             sage: def label(element):
             ....:     try:
             ....:         return element._name
@@ -698,6 +707,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         from sage.graphs.digraph import DiGraph
         D = DiGraph(multiedges=False, loops=loops)
+
+        def vertex(subset):
+            return ManifoldSubsetSet([subset])
+
         if lower_bound is not None:
             if not lower_bound.is_subset(self):
                 return D
@@ -717,19 +730,22 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             subsets_without_S = [subset for subset in subsets
                                  if subset is not S]
             if loops:
-                D.add_edges((subset, S) for subset in subsets)
+                D.add_edges((vertex(subset), vertex(S)) for subset in subsets)
             else:
-                D.add_edges((subset, S) for subset in subsets_without_S)
+                D.add_edges((vertex(subset), vertex(S)) for subset in subsets_without_S)
+
             to_visit.extend(subsets_without_S)
 
-            if open_covers:
-                # Represent an open cover with a node that is a frozenset,
-                # rather than a list.
-                open_covers_without_S = [frozenset(open_cover)
-                                         for open_cover in S._open_covers
-                                         if open_cover != [S]]
-                D.add_edges((S, open_cover)
-                            for open_cover in open_covers_without_S)
+        if open_covers:
+
+            def open_cover_vertex(open_cover):
+                return tuple(sorted(ManifoldSubsetSet([subset]) for subset in open_cover))
+
+            for S in visited:
+                D.add_edges((vertex(S), open_cover_vertex(open_cover))
+                            for open_cover in S._open_covers
+                            if open_cover != [S])
+
         return D
 
     def subset_poset(self, open_covers=False, lower_bound=None):
@@ -749,14 +765,15 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P = M.subset_poset(); P
             Finite poset containing 5 elements
             sage: P.maximal_elements()
-            [3-dimensional differentiable manifold M]
+            [Set {M} of subsets of the 3-dimensional differentiable manifold M]
             sage: sorted(P.minimal_elements(), key=lambda v: v._name)
-            [Open subset U of the 3-dimensional differentiable manifold M,
-             Open subset V of the 3-dimensional differentiable manifold M,
-             Open subset W of the 3-dimensional differentiable manifold M]
-            sage: sorted(P.lower_covers(M), key=str)
-            [Open subset U of the 3-dimensional differentiable manifold M,
-             Open subset V_union_W of the 3-dimensional differentiable manifold M]
+            [Set {U} of subsets of the 3-dimensional differentiable manifold M,
+             Set {V} of subsets of the 3-dimensional differentiable manifold M,
+             Set {W} of subsets of the 3-dimensional differentiable manifold M]
+            sage: from sage.manifolds.subset import ManifoldSubsetSet
+            sage: sorted(P.lower_covers(ManifoldSubsetSet([M])), key=str)
+            [Set {U} of subsets of the 3-dimensional differentiable manifold M,
+             Set {V_union_W} of subsets of the 3-dimensional differentiable manifold M]
             sage: P.plot(element_labels={element: element._name for element in P})   # not tested
 
         If ``open_covers`` is ``True``, the poset includes a special vertex for
@@ -764,10 +781,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             sage: P = M.subset_poset(open_covers=True); P
             Finite poset containing 6 elements
-            sage: P.upper_covers(VW)
-            [3-dimensional differentiable manifold M,
-             frozenset({Open subset V of the 3-dimensional differentiable manifold M,
-                        Open subset W of the 3-dimensional differentiable manifold M})]
+            sage: from sage.manifolds.subset import ManifoldSubsetSet
+            sage: P.upper_covers(ManifoldSubsetSet([VW]))
+            [Set {M} of subsets of the 3-dimensional differentiable manifold M]
             sage: def label(element):
             ....:     try:
             ....:         return element._name

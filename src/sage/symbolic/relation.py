@@ -1035,7 +1035,7 @@ def solve(f, *args, **kwds):
         if is_Expression(f[0]):
             f = f[0]
         else:
-            raise TypeError("The first argument to solve() should be a"
+            raise TypeError("The first argument to solve() should be a "
                     "symbolic expression or a list of symbolic expressions, "
                     "cannot handle %s"%repr(type(f)))
 

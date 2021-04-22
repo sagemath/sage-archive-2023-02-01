@@ -3209,18 +3209,18 @@ class WordMorphism(SageObject):
                     tails.add(tail)
                     todo.append(tail)
 
-        images = self._morph.values()
+        images = self.images()
         if any(not x for x in images):
             return False
         tails = set()
         todo = []
 
-        for i, u in enumerate(images):
-            for j, v in enumerate(images):
-                if i == j:
-                    continue
-                check(u, v)
-
+        for i in range(len(images)):
+            for j in range(i + 1, len(images)):
+                if images[i] == images[j]:
+                    return False
+                check(images[i], images[j])
+                check(images[j], images[i])
         while todo:
             u = todo.pop()
             for v in images:

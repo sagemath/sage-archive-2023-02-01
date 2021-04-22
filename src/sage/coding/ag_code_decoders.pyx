@@ -103,7 +103,7 @@ class EvaluationAGCodeEncoder(Encoder):
     Constructing a decoder for an AG code takes much time. So we save the
     decoder (and the connected encoder) by::
 
-        sage: save(dec, SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')  # not tested
+        sage: save(dec, SAGE_SRC + '/sage/coding/tests/eval_decoder')  # not tested
 
     and load it for later examples.
     """
@@ -113,7 +113,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: TestSuite(enc).run(skip='_test_pickling')
         """
@@ -122,6 +122,7 @@ class EvaluationAGCodeEncoder(Encoder):
         if decoder is None:
             decoder = code.decoder('K')
 
+        self._decoder = decoder
         self._encode = decoder._encode
         self._unencode = decoder._decode
 
@@ -131,7 +132,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: {enc: 1}
             {Encoder for [8, 5] evaluation AG code over GF(4): 1}
@@ -144,19 +145,9 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: F = C.function_field()
-            sage: pls = F.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: code = codes.EvaluationAGCode(D, G)
-            sage: dec1 = code.decoder('K', Q)
+            sage: dec1 = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc1 = dec1.connected_encoder()
-            sage: dec2 = code.decoder('K', Q)
+            sage: dec2 = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc2 = dec2.connected_encoder()
             sage: enc1 == enc2
             True
@@ -167,7 +158,7 @@ class EvaluationAGCodeEncoder(Encoder):
         if not isinstance(other, EvaluationAGCodeEncoder):
             return False
 
-        return self.code() == other.code() and self._encode == other._encode
+        return self.code() == other.code() and self._decoder == other._decoder
 
     def _repr_(self):
         r"""
@@ -175,12 +166,12 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: enc
             Encoder for [8, 5] evaluation AG code over GF(4)
         """
-        return "Encoder for {}" .format(self.code())
+        return "Encoder for {}".format(self.code())
 
     def _latex_(self):
         r"""
@@ -188,7 +179,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: latex(enc)
             \text{Encoder for }[8, 5]\text{ evaluation AG code over }\Bold{F}_{2^{2}}
@@ -205,7 +196,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
@@ -224,7 +215,7 @@ class EvaluationAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
@@ -263,7 +254,7 @@ class DifferentialAGCodeEncoder(Encoder):
     Constructing a decoder for an AG code takes much time. So we save the
     decoder (and the connected encoder) by::
 
-        sage: save(dec, SAGE_SRC + '/sage/coding/tests/differential_ag_code')  # not tested
+        sage: save(dec, SAGE_SRC + '/sage/coding/tests/diff_decoder')  # not tested
 
     and load it for later examples.
     """
@@ -273,7 +264,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: TestSuite(enc).run(skip='_test_pickling')
         """
@@ -282,6 +273,7 @@ class DifferentialAGCodeEncoder(Encoder):
         if decoder is None:
             decoder = code.decoder('K')
 
+        self._decoder = decoder
         self._encode = decoder._encode
         self._unencode = decoder._decode
 
@@ -291,7 +283,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: {enc: 1}
             {Encoder for [8, 3] differential AG code over GF(4): 1}
@@ -304,19 +296,9 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: F = C.function_field()
-            sage: pls = F.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: code = codes.DifferentialAGCode(D, G)
-            sage: dec1 = code.decoder('K', Q)
+            sage: dec1 = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc1 = dec1.connected_encoder()
-            sage: dec2 = code.decoder('K', Q)
+            sage: dec2 = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc2 = dec2.connected_encoder()
             sage: enc1 == enc2
             True
@@ -327,7 +309,7 @@ class DifferentialAGCodeEncoder(Encoder):
         if not isinstance(other, DifferentialAGCodeEncoder):
             return False
 
-        return self.code() == other.code() and self._encode == other._encode
+        return self.code() == other.code() and self._decoder == other._decoder
 
     def _repr_(self):
         r"""
@@ -335,7 +317,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: enc
             Encoder for [8, 3] differential AG code over GF(4)
@@ -348,7 +330,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: latex(enc)
             \text{Encoder for }[8, 3]\text{ differential AG code over }\Bold{F}_{2^{2}}
@@ -365,7 +347,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
@@ -384,7 +366,7 @@ class DifferentialAGCodeEncoder(Encoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: codeword = enc.encode(msg)
@@ -455,7 +437,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: TestSuite(dec).run()
         """
         if not code.dimension() > 0:
@@ -484,10 +466,10 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
         super().__init__(code, code.ambient_space(), connected_encoder_name='evaluation')
 
         if Q.degree() > 1:
-            circuit = _EvaluationAGCodeDecoder_K_extension(code._pls, code._G, Q,
+            circuit = EvaluationAGCodeDecoder_K_extension(code._pls, code._G, Q,
                                                            verbose=verbose)
         else:
-            circuit = _EvaluationAGCodeDecoder_K(code._pls, code._G, Q,
+            circuit = EvaluationAGCodeDecoder_K(code._pls, code._G, Q,
                                                  verbose=verbose)
 
         if basis is None:
@@ -512,7 +494,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: {dec: 1}
             {Unique decoder for [8, 5] evaluation AG code over GF(4): 1}
         """
@@ -524,17 +506,9 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: F = C.function_field()
-            sage: pls = F.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: c1 = codes.EvaluationAGCode(D, 5*Q)
-            sage: c2 = codes.EvaluationAGCode(D, 5*Q)
-            sage: c1 == c2
+            sage: dec1 = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
+            sage: dec2 = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
+            sage: dec1 == dec2
             True
         """
         if self is other:
@@ -552,7 +526,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: dec
             Unique decoder for [8, 5] evaluation AG code over GF(4)
         """
@@ -564,7 +538,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: latex(dec)
             \text{Unique decoder for }[8, 5]\text{ evaluation AG code over }\Bold{F}_{2^{2}}
         """
@@ -580,7 +554,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         TESTS:
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: dec._decode(dec._encode(msg)) == msg
@@ -591,8 +565,8 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
         circuit = self._circuit
 
         if self._extension:
-            internal_message = circuit.lift(vector(K, message)) * C
-            return circuit.pull_back(circuit.encode(internal_message))
+            internal_message = circuit._lift(vector(K, message)) * C
+            return circuit._pull_back(circuit.encode(internal_message))
         else:
             return circuit.encode(vector(K, message) * C)
 
@@ -606,7 +580,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         TESTS:
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: code = dec.code()
             sage: cw = code.random_element()
             sage: dec._encode(dec._decode(cw)) == cw
@@ -616,8 +590,8 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
         circuit = self._circuit
 
         if self._extension:
-            internal_message = circuit.decode(circuit.lift(vector), **kwargs) * Cinv
-            return circuit.pull_back(internal_message)
+            internal_message = circuit.decode(circuit._lift(vector), **kwargs) * Cinv
+            return circuit._pull_back(internal_message)
         else:
             return circuit.decode(vector, **kwargs) * Cinv
 
@@ -632,7 +606,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: dec.connected_encoder()
             Encoder for [8, 5] evaluation AG code over GF(4)
         """
@@ -644,7 +618,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: dec.decoding_radius()
             1
         """
@@ -663,7 +637,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 1)
@@ -688,7 +662,7 @@ class EvaluationAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/evaluation_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/eval_decoder')
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 1)
             sage: rv = chan.transmit(code.random_element())
@@ -751,12 +725,6 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
         True
 
     The default ``basis`` is given by ``code.basis_differentials()``.
-
-    Saving the decoder for later examples and tests::
-
-        sage: save(dec, DOT_SAGE + 'temp/dec')
-
-    The saved object will be removed after the final example.
     """
     _decoder_type = {'always-succeed'}
 
@@ -766,7 +734,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: TestSuite(dec).run()
         """
         if not code.dimension() > 0:
@@ -795,10 +763,10 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
         super().__init__(code, code.ambient_space(), connected_encoder_name='residue')
 
         if Q.degree() > 1:
-            circuit = _DifferentialAGCodeDecoder_K_extension(code._pls, code._G, Q,
+            circuit = DifferentialAGCodeDecoder_K_extension(code._pls, code._G, Q,
                                                              verbose=verbose)
         else:
-            circuit = _DifferentialAGCodeDecoder_K(code._pls, code._G, Q,
+            circuit = DifferentialAGCodeDecoder_K(code._pls, code._G, Q,
                                                    verbose=verbose)
 
         if basis is None:
@@ -823,7 +791,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: {dec: 1}
             {Unique decoder for [8, 3] differential AG code over GF(4): 1}
         """
@@ -835,17 +803,9 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: F = C.function_field()
-            sage: pls = F.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: c1 = codes.DifferentialAGCode(D, 5*Q)
-            sage: c2 = codes.DifferentialAGCode(D, 5*Q)
-            sage: c1 == c2
+            sage: dec1 = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
+            sage: dec2 = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
+            sage: dec1 == dec2
             True
         """
         if self is other:
@@ -863,7 +823,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: dec
             Unique decoder for [8, 3] differential AG code over GF(4)
         """
@@ -875,7 +835,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: latex(dec)
             \text{Unique decoder for }[8, 3]\text{ differential AG code over }\Bold{F}_{2^{2}}
         """
@@ -891,7 +851,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: msg = enc.message_space().random_element()
             sage: dec._decode(dec._encode(msg)) == msg
@@ -902,8 +862,8 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
         circuit = self._circuit
 
         if self._extension:
-            internal_message = circuit.lift(vector(K, message)) * C
-            return circuit.pull_back(circuit.encode(internal_message))
+            internal_message = circuit._lift(vector(K, message)) * C
+            return circuit._pull_back(circuit.encode(internal_message))
         else:
             return circuit.encode(vector(K, message) * C)
 
@@ -917,7 +877,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         TESTS::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: code = dec.code()
             sage: cw = code.random_element()
             sage: dec._encode(dec._decode(cw)) == cw
@@ -927,8 +887,8 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
         circuit = self._circuit
 
         if self._extension:
-            internal_message = circuit.decode(circuit.lift(vector), **kwargs) * Cinv
-            return circuit.pull_back(internal_message)
+            internal_message = circuit.decode(circuit._lift(vector), **kwargs) * Cinv
+            return circuit._pull_back(internal_message)
         else:
             return circuit.decode(vector, **kwargs) * Cinv
 
@@ -943,7 +903,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: dec.connected_encoder()
             Encoder for [8, 3] differential AG code over GF(4)
         """
@@ -955,7 +915,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: dec.decoding_radius()
             2
         """
@@ -974,7 +934,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 2)
@@ -999,7 +959,7 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: dec = load(SAGE_SRC + '/sage/coding/tests/differential_ag_code')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 2)
@@ -1011,16 +971,46 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
         return self._encode(self._decode(received_vector, **kwargs))
 
 
-cdef class _Decoder_K(object):
+cdef inline int pos_mod(int a, int b):
     """
-    Common base class for both differential and evaluation AG code decoder K.
+    Return ``a % b`` such that the result is positive.
+
+    C modulus can be negative as ``a == (a / b) * b + (a % b)``.
+    """
+    cdef int m = a % b
+    if m < 0:
+        m += b
+    return m
+
+
+cdef class Decoder_K(object):
+    """
+    Common base class for the implementation of decoding algorithm K for AG codes.
+
+    EXAMPLES::
+
+        sage: F.<a> = GF(4)
+        sage: P.<x,y> = AffineSpace(F, 2);
+        sage: C = Curve(y^2 + y - x^3)
+        sage: pls = C.places()
+        sage: p = C([0,0])
+        sage: Q, = p.places()
+        sage: D = [pl for pl in pls if pl != Q]
+        sage: G = 5*Q
+        sage: from sage.coding.ag_code_decoders import EvaluationAGCodeDecoder_K
+        sage: circuit = EvaluationAGCodeDecoder_K(D, G, Q)
+
+    We save the decoder for later tests::
+
+        sage: save(circuit, SAGE_SRC + '/sage/coding/tests/decoder_K')  # not tested
+
     """
     cdef bint is_differential
-    cdef Py_ssize_t code_length, designed_distance, gamma, s0, tau
+    cdef int code_length, designed_distance, gamma, s0, tau
     cdef list code_basis, message_index, hvecs, eta_vecs
     cdef list dR, dRbar
-    cdef Matrix coeff_mat
     cdef list mul_mat
+    cdef Matrix coeff_mat
     cdef object W, x
 
     cdef readonly dict info
@@ -1031,16 +1021,8 @@ cdef class _Decoder_K(object):
 
         TESTS::
 
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/decoder_K')
             sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: from sage.coding.ag_code_decoders import _EvaluationAGCodeDecoder_K
-            sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
             sage: rv = vector([0, 0, 0, a, 0, a, a + 1, 0])
             sage: msg = circuit.decode(rv)
             sage: circuit.decode(circuit.encode(msg)) == msg
@@ -1050,23 +1032,14 @@ cdef class _Decoder_K(object):
         message_index = self.message_index
         return vector(sum([message[i]*code_basis[i] for i in range(len(message_index))]))
 
-    def degree(self, f):
+    def _degree(self, f):
         """
         Return the degree of polynomial ``f``
 
         TESTS::
 
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: from sage.coding.ag_code_decoders import _EvaluationAGCodeDecoder_K
-            sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
-            sage: circuit.degree(0)
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/decoder_K')
+            sage: circuit._degree(0)
             -Infinity
         """
         if f.is_zero():
@@ -1074,74 +1047,44 @@ cdef class _Decoder_K(object):
         else:
             return f.degree()
 
-    cdef _exp(self, Py_ssize_t s, Py_ssize_t *sk, Py_ssize_t *si):
+    cdef void _exponents(self, int s, int *sk, int *si):
         """
-        Implementation of the exponents.
+        Compute the exponents of the monomial with weighted degree ``s``.
 
         This sets the result in ``sk`` and ``si``.
         """
-        cdef Py_ssize_t i, d, gamma
+        cdef int i, d, gamma
         cdef list dRbar
 
         gamma = self.gamma
         dRbar = self.dRbar  # dWbar for differential AG code
 
         i = pos_mod(s, gamma)
-        d = <Py_ssize_t> dRbar[i]
+        d = dRbar[i]
         sk[0] = (s - d) // gamma
         si[0] = i
-        #return (s - d) // gamma, i
 
-    def exponents(self, Py_ssize_t s):
-        """
-        Return the exponents of the monomial with weighted degree ``s``.
-
-        TESTS::
-
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: from sage.coding.ag_code_decoders import _EvaluationAGCodeDecoder_K
-            sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
-            sage: circuit.exponents(11)
-            (8, 1)
-        """
-        cdef Py_ssize_t sk, si
-        self._exp(s, &sk, &si)
-        return (sk, si)
-
-    def substitution(self, vec, w, k, Py_ssize_t i):
+    def _substitution(self, vec, w, k, int i):
         r"""
         Substitute ``z`` with ``(z + w*phi_s)``.
 
         TESTS::
 
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/decoder_K')
             sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: p = C([0,0])
-            sage: Q = p.place()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: from sage.coding.ag_code_decoders import _EvaluationAGCodeDecoder_K
-            sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
             sage: W.<x> = F[]
-            sage: circuit.substitution(vector([0, a*x^2 + a*x, x + 1, 0]), a, 1, 1)
+            sage: circuit._substitution(vector([0, a*x^2 + a*x, x + 1, 0]), a, 1, 1)
             (0, 0, x + 1, 0)
         """
-        cdef Py_ssize_t j
-        cdef Py_ssize_t gamma = self.gamma
+        cdef int j
+        cdef int gamma = self.gamma
+        cdef list a
         cdef list mul_mat = self.mul_mat
+
         W = self.W
         x = self.x
 
-        cdef list a = vec[gamma:].list()
+        a = vec[gamma:].list()
         b = vec[:gamma]
         c = (w * x**k) * sum(a[j] * (<list> mul_mat[j])[i] for j in range(gamma))
         return vector(W, (c + b).list() + a)
@@ -1150,8 +1093,8 @@ cdef class _Decoder_K(object):
                bint detect_decoding_failure=True,
                bint detect_Q_polynomial=True):
         """
-        Return the coefficients that maps to the corrected codeword from
-        the received vector.
+        Return the message vector that corresponds to the corrected codeword
+        from the received vector.
 
         INPUT:
 
@@ -1172,30 +1115,24 @@ cdef class _Decoder_K(object):
 
         TESTS::
 
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/decoder_K')
             sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: from sage.coding.ag_code_decoders import _EvaluationAGCodeDecoder_K
-            sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
             sage: rv = vector(F, [1, a, 1, a + 1, a + 1, a + 1, 1, a + 1])
             sage: circuit.decode(rv)
             (1, 0, a + 1, a + 1, a)
         """
-        cdef Py_ssize_t s, sk, si, i, c, cbar
-        cdef Py_ssize_t k, ip, count, delta, dlt, wlt, pos
-        cdef list mat, nu, mu, i_k, i_prime, i_value, i_count, voting_value, voting_count
+        cdef int s, sk, si, i, c, cbar
+        cdef int k, ip, count, delta, dlt, wlt, pos, wd_hvec
+        cdef list mat, nu, mu, message
+        cdef list i_k, i_prime, i_value, i_count, voting_value, voting_count
+        cdef Vector hvec
         cdef Matrix coeff_mat, gbmat
         cdef bint found_Q
 
-        cdef Py_ssize_t code_length = self.code_length
-        cdef Py_ssize_t designed_distance = self.designed_distance
+        cdef int code_length = self.code_length
+        cdef int designed_distance = self.designed_distance
 
-        cdef Py_ssize_t gamma = self.gamma
+        cdef int gamma = self.gamma
         cdef list dR = self.dR
         cdef list dRbar = self.dRbar  # dWbar for differential AG code
 
@@ -1207,15 +1144,15 @@ cdef class _Decoder_K(object):
         cdef list message_index = self.message_index
         cdef list code_basis = self.code_basis
 
-        cdef Py_ssize_t s0 = self.s0
-        cdef Py_ssize_t tau = self.tau
+        cdef int s0 = self.s0
+        cdef int tau = self.tau
 
         W = self.W
         x = self.x
 
         # auxiliary functions
-        degree = self.degree
-        substitution = self.substitution
+        degree = self._degree
+        substitution = self._substitution
 
         K = W.base_ring()
 
@@ -1248,20 +1185,20 @@ cdef class _Decoder_K(object):
                         print(('{:>' + str(width) + '} ').format(s1 + s2), end='')
                     print(']')
 
-        cdef list message = []
+        message = []
 
         # construct the initial generators of the interpolation module
-        cdef Vector hvec = sum(received_vector[i] * hvecs[i] for i in range(code_length))
+        hvec = sum(received_vector[i] * hvecs[i] for i in range(code_length))
 
         # weighted degree of hvec
-        cdef Py_ssize_t wd_hvec = max(gamma * degree(hvec[i]) + dRbar[i] for i in range(gamma))
+        wd_hvec = max(gamma * degree(hvec[i]) + dRbar[i] for i in range(gamma))
 
         if wd_hvec <= 0:
             if verbose:
                 print("no error")
 
             for s in message_index:
-                self._exp(s, &sk, &si)
+                self._exponents(s, &sk, &si)
                 message.append(hvec[si][sk])
         else:
             mat = []
@@ -1296,7 +1233,7 @@ cdef class _Decoder_K(object):
                         print("G{} ".format(i), end='')
                         vprint_g(g, s)
 
-                self._exp(s, &sk, &si)
+                self._exponents(s, &sk, &si)
                 delta = 0
                 mu = []
                 i_k = []
@@ -1316,13 +1253,13 @@ cdef class _Decoder_K(object):
                         raise DecodingError("more errors than decoding radius")
 
                     # detect Q-polynomial
-                    wlt = gamma * dlt + <Py_ssize_t> (dR[i])
+                    wlt = gamma * dlt + dR[i]
                     if detect_Q_polynomial and wlt + s + tau < designed_distance:
                         found_Q = True
                         posQ = (s, i)
                         break
 
-                    self._exp(wlt + s, &k, &ip)
+                    self._exponents(wlt + s, &k, &ip)
                     count = degree(gbmat[ip, ip]) - k
                     i_k.append(k)
                     i_prime.append(ip)
@@ -1333,8 +1270,8 @@ cdef class _Decoder_K(object):
 
                 if s > 0 or sk < 0:  # not s in message_index
                     for i in range(gamma):
-                        k = <Py_ssize_t> i_k[i]
-                        ip = <Py_ssize_t> i_prime[i]
+                        k = i_k[i]
+                        ip = i_prime[i]
 
                         if k < 0:
                             value = K.zero()
@@ -1346,8 +1283,8 @@ cdef class _Decoder_K(object):
                     winner = 0
                 else:
                     for i in range(gamma):
-                        k = <Py_ssize_t> i_k[i]
-                        ip = <Py_ssize_t> i_prime[i]
+                        k = i_k[i]
+                        ip = i_prime[i]
 
                         mui = gbmat[gamma + i, gamma + i].lc() * coeff_mat[i, si]
                         value = -gbmat[gamma + i, ip][k] / mui
@@ -1366,8 +1303,8 @@ cdef class _Decoder_K(object):
                     # voting
                     c = -1
                     for i in range(len(voting_value)):
-                        if c < <Py_ssize_t> (voting_count[i]):
-                            c = <Py_ssize_t> (voting_count[i])
+                        if c < voting_count[i]:
+                            c = voting_count[i]
                             winner = voting_value[i]
 
                 if verbose:
@@ -1417,9 +1354,9 @@ cdef class _Decoder_K(object):
                         print("# s = {}".format(s))
                         print("F{} ".format(i), end='')
                         vprint_g(gbmat[gamma + i], s)
-                    self._exp(s, &sk, &si)
+                    self._exponents(s, &sk, &si)
                     if s <= 0 and sk >= 0:  # s in message_index
-                        self._exp(dlt + s, &k, &ip)
+                        self._exponents(dlt + s, &k, &ip)
                         mui = gbmat[gamma + i,gamma + i].lc() * coeff_mat[i, si]
                         value = -gbmat[gamma + i, ip][k] / mui
                         if not value.is_zero():
@@ -1437,11 +1374,72 @@ cdef class _Decoder_K(object):
 
         return vector(K, message)
 
+    cdef int _next(self, int s):
+        """
+        Return the next value after ``s`` in dRbar(dWbar).
+        """
+        cdef int i, d, gamma
+        cdef list dRbar = self.dRbar
+        gamma = self.gamma
+        i = pos_mod(s, gamma)
+        while True:
+            s += 1
+            i = (i + 1) % gamma  # equals s % gamma
+            d = dRbar[i]
+            if s >= d:
+                return s
+
+    cdef void _get_eta_basis(self, list basis, list vecs, int s0, mon_func):
+        """
+        Compute a basis of J and h-functions via FGLM algorithm.
+
+        This sets ``basis`` with the basis of J and ``vecs`` with the h-functions.
+        """
+        cdef int s, sk, si, i, j, num
+        cdef Matrix mat, matinv
+        cdef list gen, delta, h
+        cdef tuple t
+
+        cdef int gamma = self.gamma
+        cdef int code_length = self.code_length
+        x = self.x
+        W = self.W
+        s = s0
+        self._exponents(s, &sk, &si)
+        delta = [(sk, si)]
+        mat = matrix(mon_func(sk, si))
+        num = 0
+        while num < gamma:
+            s = self._next(s)
+            self._exponents(s, &sk, &si)
+            if basis[si] is None:
+                v = mon_func(sk, si)
+                try:
+                    sol = mat.solve_left(v)
+                    gen = [W.zero() for i in range(gamma)]
+                    for i in range(len(delta)):
+                        t = delta[i]
+                        gen[<Py_ssize_t> t[1]] += -sol[i] * x**(<int> t[0])
+                    gen[si] += x**sk
+                    basis[si] = vector(gen)
+                    num += 1
+                except ValueError:
+                    mat = mat.stack(matrix(v))
+                    delta.append((sk, si))
+
+        matinv = mat.inverse()
+        for i in range(code_length):
+            h = [W.zero() for k in range(gamma)]
+            for j in range(code_length):
+                t = delta[j]
+                h[<Py_ssize_t> t[1]] += matinv[i,j] * x**(<int> t[0])
+            vecs[i] = vector(h)
+
 
 @cython.auto_pickle(True)
-cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
+cdef class EvaluationAGCodeDecoder_K(Decoder_K):
     """
-    Unique decoding algorithm K for evaluation AG codes.
+    This class implements the decoding algorithm K for evaluation AG codes.
 
     INPUT:
 
@@ -1453,7 +1451,7 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
 
     - ``verbose`` -- if ``True``, verbose information is printed.
 
-    TESTS::
+    EXAMPLES::
 
         sage: F.<a> = GF(4)
         sage: P.<x,y> = AffineSpace(F, 2);
@@ -1463,12 +1461,21 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
         sage: Q, = p.places()
         sage: D = [pl for pl in pls if pl != Q]
         sage: G = 5*Q
-        sage: from sage.coding.ag_code_decoders import _EvaluationAGCodeDecoder_K
-        sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
+        sage: from sage.coding.ag_code_decoders import EvaluationAGCodeDecoder_K
+        sage: circuit = EvaluationAGCodeDecoder_K(D, G, Q)
         sage: rv = vector([a, 0, 0, a, 1, 1, a + 1, 0])
         sage: cw = circuit.encode(circuit.decode(rv))
         sage: rv - cw
         (a + 1, 0, 0, 0, 0, 0, 0, 0)
+        sage: circuit.info['designed_distance']
+        3
+        sage: circuit.info['decoding_radius']
+        1
+
+    We save the decoder for later tests::
+
+        sage: save(circuit, SAGE_SRC + '/sage/coding/tests/eval_decoder_K')  # not tested
+
     """
     def __init__(self, pls, G, Q, verbose=False):
         """
@@ -1476,23 +1483,15 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
 
         TESTS::
 
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: from sage.coding.ag_code_decoders import _EvaluationAGCodeDecoder_K
-            sage: circuit = _EvaluationAGCodeDecoder_K(D, G, Q)
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/eval_decoder_K')
             sage: TestSuite(circuit).run(skip='_test_pickling')
         """
-        cdef Py_ssize_t i, s, s0, sk, si, n, r, d, num
-        cdef Py_ssize_t code_length, genus, gamma
-        cdef list gaps, dR, yR
+        cdef int i, j, s, s0, sk, si, n, r, d, num
+        cdef int code_length, genus, gamma, dLO, tau
+        cdef list gaps, dR, yR, dRbar, yRbar, evyRbar, nus, mul_mat
+        cdef list message_index, code_basis
+        cdef Vector evxR
         cdef set temp
-        cdef tuple e
 
         D = sum(pls)
         F = D.parent().function_field()
@@ -1575,7 +1574,7 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
 
         # ev map for the monomial whose weighted degree is s
         evxR = vector(K, [xR.evaluate(p) for p in pls])
-        cdef list evyRbar = [vector(K, [yRbar[i].evaluate(p) for p in pls]) for i in range(gamma)]
+        evyRbar = [vector(K, [yRbar[i].evaluate(p) for p in pls]) for i in range(gamma)]
 
         self.is_differential = False
         self.code_length = code_length
@@ -1586,33 +1585,35 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
         self.W = W
         self.x = x
 
-        degree = self.degree
+        degree = self._degree
 
-        def ev_mon(Py_ssize_t sk, Py_ssize_t si):
+        def ev_mon(int sk, int si):
+            cdef int i
             return vector([evxR[i]**sk * evyRbar[si][i] for i in range(code_length)])
 
         # minimum of nongaps of Rbar
-        s0 = _next(self, -G.degree() - 1)
+        s0 = self._next(-G.degree() - 1)
 
         # basis of the code ev(L(G))
-        cdef list message_index = []
-        cdef list code_basis = []
+        message_index = []
+        code_basis = []
         s = s0
-        self._exp(s, &sk, &si)
+        self._exponents(s, &sk, &si)
         v = ev_mon(sk, si)
         V = v.parent()
         while s <= 0:
             if not V.are_linearly_dependent(code_basis + [v]):
                 message_index.append(s)
                 code_basis.append(v)
-            s = _next(self, s)
-            self._exp(s, &sk, &si)
+            s = self._next(s)
+            self._exponents(s, &sk, &si)
             v = ev_mon(sk, si)
 
         # compute a basis of J and h-functions via FGLM algorithm
         eta_vecs = [None for i in range(gamma)]
         hvecs = [None for i in range(code_length)]
-        get_eta_basis(self, eta_vecs, hvecs, s0, ev_mon)
+
+        self._get_eta_basis(eta_vecs, hvecs, s0, ev_mon)
 
         if verbose:
             print("message indices:", message_index)
@@ -1622,14 +1623,14 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
                 print("h{} = {}".format(i, hvecs[i]))
 
         # Lee-O'Sullivan bound
-        def nu(Py_ssize_t s):
-            cdef Py_ssize_t i, sk, si, m = 0
+        def nu(int s):
+            cdef int i, sk, si, m = 0
             for i in range(gamma):
-                self._exp(s + (<Py_ssize_t> dR[i]), &sk, &si)
+                self._exponents(s + dR[i], &sk, &si)
                 m += max(0, degree(eta_vecs[si][si]) - sk)
             return m
 
-        cdef list nus = [nu(s) for s in message_index]
+        nus = [nu(s) for s in message_index]
         dLO = min(nus)
         tau = (dLO - 1) // 2
 
@@ -1646,7 +1647,7 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
             cdef list l = [W.zero() for i in range(gamma)]
             while r != 0:
                 s = -r.valuation(Q) - G.multiplicity(Q)
-                self._exp(s, &sk, &si)
+                self._exponents(s, &sk, &si)
                 mon = xR**sk * yRbar[si]
                 c = (r / mon).evaluate(Q)
                 l[si] += c * x**sk
@@ -1654,13 +1655,13 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
             return vector(l)
 
         # the matrix of the leading coefficient of y_i*ybar_j and the product
-        cdef Matrix coeff_mat = matrix.zero(K, gamma, gamma)
-        cdef list mul_mat = [[None for j in range(gamma)] for i in range(gamma)]
+        coeff_mat = matrix.zero(K, gamma, gamma)
+        mul_mat = [[None for j in range(gamma)] for i in range(gamma)]
         for i in range(gamma):
             for j in range(gamma):
                 f = yR[i] * yRbar[j]
                 v = vec_form(f)
-                self._exp((<Py_ssize_t> dR[i]) + (<Py_ssize_t> dRbar[j]), &sk, &si)
+                self._exponents((<int> dR[i]) + (<int> dRbar[j]), &sk, &si)
                 coeff_mat[i,j] = v[si][sk]
                 (<list> mul_mat[i])[j] = v
 
@@ -1689,9 +1690,9 @@ cdef class _EvaluationAGCodeDecoder_K(_Decoder_K):
 
 
 @cython.auto_pickle(True)
-cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
+cdef class DifferentialAGCodeDecoder_K(Decoder_K):
     """
-    Unique decoding algorithm K for differential AG codes.
+    This class implements the decoding algorithm K for differential AG codes.
 
     INPUT:
 
@@ -1703,7 +1704,7 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
 
     - ``verbose`` -- if ``True``, verbose information is printed
 
-    TESTS::
+    EXAMPLES::
 
         sage: F.<a> = GF(4)
         sage: P.<x,y> = AffineSpace(F, 2);
@@ -1713,12 +1714,21 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
         sage: Q, = p.places()
         sage: D = [pl for pl in pls if pl != Q]
         sage: G = 5*Q
-        sage: from sage.coding.ag_code_decoders import _DifferentialAGCodeDecoder_K
-        sage: circuit = _DifferentialAGCodeDecoder_K(D, G, Q)
+        sage: from sage.coding.ag_code_decoders import DifferentialAGCodeDecoder_K
+        sage: circuit = DifferentialAGCodeDecoder_K(D, G, Q)
         sage: rv = vector([1, a, 1, a, 1, a, a, a + 1])
         sage: cw = circuit.encode(circuit.decode(rv))
         sage: rv - cw
         (0, 0, 0, a + 1, 1, 0, 0, 0)
+        sage: circuit.info['designed_distance']
+        5
+        sage: circuit.info['decoding_radius']
+        2
+
+    We save the decoder for later tests::
+
+        sage: save(circuit, SAGE_SRC + '/sage/coding/tests/diff_decoder_K')  # not tested
+
     """
     def __init__(self, pls, G, Q, verbose=False):
         """
@@ -1726,23 +1736,15 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
 
         TESTS::
 
-            sage: F.<a> = GF(4)
-            sage: P.<x,y> = AffineSpace(F, 2);
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: p = C([0,0])
-            sage: Q, = p.places()
-            sage: D = [pl for pl in pls if pl != Q]
-            sage: G = 5*Q
-            sage: from sage.coding.ag_code_decoders import _DifferentialAGCodeDecoder_K
-            sage: circuit = _DifferentialAGCodeDecoder_K(D, G, Q)
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/diff_decoder_K')
             sage: TestSuite(circuit).run(skip='_test_pickling')
         """
-        cdef Py_ssize_t gamma, code_length, genus
-        cdef Py_ssize_t d, i, j, n, r, s, sk, si, num
-        cdef list gaps, dR, yR, dWbar, wWbar
+        cdef int i, j, s, s0, sk, si, n, r, d, num
+        cdef int code_length, genus, gamma, dLO, tau
+        cdef list gaps, dR, yR, dWbar, wWbar, reswWbar, nus, mul_mat
+        cdef list message_index, code_basis
+        cdef Vector evxR
         cdef set temp
-        cdef tuple e
 
         D = sum(pls)
         F = D.parent().function_field()
@@ -1823,8 +1825,8 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
                 print(" {}: {}, w{} = {}".format(i, dWbar[i], i, wWbar[i]))
 
         # res map for the monomial whose weighted degree is s
-        cdef Vector evxR = vector(K, [xR.evaluate(p) for p in pls])
-        cdef list reswWbar = [vector(K, [wWbar[i].residue(p) for p in pls]) for i in range(gamma)]
+        evxR = vector(K, [xR.evaluate(p) for p in pls])
+        reswWbar = [vector(K, [wWbar[i].residue(p) for p in pls]) for i in range(gamma)]
 
         self.is_differential = True
         self.code_length = code_length
@@ -1835,34 +1837,35 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
         self.W = W
         self.x = x
 
-        degree = self.degree
+        degree = self._degree
 
-        def res_mon(Py_ssize_t sk, Py_ssize_t si):
-            cdef Py_ssize_t i
+        def res_mon(int sk, int si):
+            cdef int i
             return vector([evxR[i]**sk * reswWbar[si][i] for i in range(code_length)])
 
         # minimum of nongaps of Wbar
-        s0 = _next(self, -code_length + G.degree() - 2*genus + 1)
+        s0 = self._next(-code_length + G.degree() - 2*genus + 1)
 
         # basis of the code res(Omega(G))
-        cdef list message_index = []
-        cdef list code_basis = []
+        message_index = []
+        code_basis = []
         s = s0
-        self._exp(s, &sk, &si)
+        self._exponents(s, &sk, &si)
         v = res_mon(sk, si)
         V = v.parent()
         while s <= 0:
             if not V.are_linearly_dependent(code_basis + [v]):
                 message_index.append(s)
                 code_basis.append(v)
-            s = _next(self, s)
-            self._exp(s, &sk, &si)
+            s = self._next(s)
+            self._exponents(s, &sk, &si)
             v = res_mon(sk, si)
 
         # compute a basis of J and h-functions via FGLM algorithm
         eta_vecs = [None for i in range(gamma)]
         hvecs = [None for i in range(code_length)]
-        get_eta_basis(self, eta_vecs, hvecs, s0, res_mon)
+
+        self._get_eta_basis(eta_vecs, hvecs, s0, res_mon)
 
         if verbose:
             print("message indices:", message_index)
@@ -1872,15 +1875,16 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
                 print("h{} = {}".format(i, hvecs[i]))
 
         # Lee-O'Sullivan bound
-        def nu(Py_ssize_t s):
-            cdef Py_ssize_t i, sk, si, m = 0
+        def nu(int s):
+            cdef int i, sk, si, m
+            m = 0
             for i in range(gamma):
-                self._exp(s + (<Py_ssize_t> dR[i]), &sk, &si)
+                self._exponents(s + dR[i], &sk, &si)
                 m += max(0, degree(eta_vecs[si][si]) - sk)
             return m
 
-        cdef list nus = [nu(s) for s in message_index]
-        cdef Py_ssize_t dLO = <Py_ssize_t> min(nus)
+        nus = [nu(s) for s in message_index]
+        dLO = <int> min(nus)
         tau = (dLO - 1) // 2
 
         if verbose:
@@ -1896,7 +1900,7 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
             cdef list l = [W.zero() for i in range(gamma)]
             while r != 0:
                 s = -r.valuation(Q) + G.valuation(Q)
-                self._exp(s, &sk, &si)
+                self._exponents(s, &sk, &si)
                 mon = xR**sk * wWbar[si]
                 c = (r / mon).evaluate(Q)
                 l[si] += c * x**sk
@@ -1904,13 +1908,13 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
             return vector(l)
 
         # the matrix of the leading coefficient of y_i*w_j and the product
-        cdef Matrix coeff_mat = <Matrix> matrix.zero(K, gamma, gamma)
-        cdef list mul_mat = [[None for j in range(gamma)] for i in range(gamma)]
+        coeff_mat = matrix.zero(K, gamma, gamma)
+        mul_mat = [[None for j in range(gamma)] for i in range(gamma)]
         for i in range(gamma):
             for j in range(gamma):
                 f = yR[i] * wWbar[j]
                 v = vec_form(f)
-                self._exp((<Py_ssize_t> dR[i]) + (<Py_ssize_t> dWbar[j]), &sk, &si)
+                self._exponents((<int> dR[i]) + (<int> dWbar[j]), &sk, &si)
                 coeff_mat[i,j] = v[si][sk]
                 (<list> mul_mat[i])[j] = v
 
@@ -1938,9 +1942,9 @@ cdef class _DifferentialAGCodeDecoder_K(_Decoder_K):
         self.info = info
 
 
-cdef class _Decoder_K_extension(object):
+cdef class Decoder_K_extension(object):
     """
-    Unique decoding algorithm K for AG codes via constant field extension.
+    Common base class for decoding algorithm K for AG codes via constant field extension.
 
     INPUT:
 
@@ -1948,11 +1952,11 @@ cdef class _Decoder_K_extension(object):
 
     - ``G`` -- a divisor of the function field
 
-    - ``Q`` -- a nonrational place
+    - ``Q`` -- a non-rational place
 
     - ``verbose`` -- if ``True``, verbose information is printed
 
-    TESTS::
+    EXAMPLES::
 
         sage: A.<x,y> = AffineSpace(GF(4), 2)
         sage: C = Curve(y^2 + y - x^3)
@@ -1960,7 +1964,7 @@ cdef class _Decoder_K_extension(object):
         sage: F = C.function_field()
         sage: G = 1*F.get_place(4)
         sage: code = codes.EvaluationAGCode(pls, G)
-        sage: code.decoder('K')
+        sage: dec = code.decoder('K'); dec
         Unique decoder for [9, 4] evaluation AG code over GF(4)
 
     ::
@@ -1976,10 +1980,14 @@ cdef class _Decoder_K_extension(object):
         sage: code.decoder('K')
         Unique decoder for [5, 3] evaluation AG code over GF(4)
 
+    We save the decoder for later tests::
+
+        sage: save(dec, SAGE_SRC + '/sage/coding/tests/decoder_K_extension')  # not tested
+
     """
     cdef object _embedK, _K
-    cdef _Decoder_K decoder_ext
-    cdef type decoder_cls
+    cdef Decoder_K decoder_ext
+
     cdef readonly dict info
 
     def __init__(self, pls, G, Q, decoder_cls, verbose=False):
@@ -1988,14 +1996,8 @@ cdef class _Decoder_K_extension(object):
 
         TESTS::
 
-            sage: A.<x,y> = AffineSpace(GF(4), 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: F = C.function_field()
-            sage: G = 1*F.get_place(4)
-            sage: code = codes.EvaluationAGCode(pls, G)
-            sage: decoder = code.decoder('K')
-            sage: TestSuite(decoder).run(skip='_test_pickling')
+            sage: dec = load(SAGE_SRC + '/sage/coding/tests/decoder_K_extension')
+            sage: TestSuite(dec).run(skip='_test_pickling')
         """
         F = G.parent().function_field()
         K = F.constant_base_field()
@@ -2064,21 +2066,16 @@ cdef class _Decoder_K_extension(object):
         self.decoder_ext = decoder_cls(pls_ext, G_ext, Q_ext, verbose=verbose)
         self.info = self.decoder_ext.info
 
-    def lift(self, v):
+    def _lift(self, v):
         """
         Lift a vector over the base field to a vector over the extension field.
 
         TESTS::
 
-            sage: A.<x,y> = AffineSpace(GF(4), 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: F = C.function_field()
-            sage: G = 1*F.get_place(4)
-            sage: code = codes.EvaluationAGCode(pls, G)
-            sage: decoder = code.decoder('K')
-            sage: lift = decoder._circuit.lift
-            sage: pull_back = decoder._circuit.pull_back
+            sage: decoder = load(SAGE_SRC + '/sage/coding/tests/decoder_K_extension')
+            sage: code = decoder.code()
+            sage: lift = decoder._circuit._lift
+            sage: pull_back = decoder._circuit._pull_back
             sage: v = code.random_element()
             sage: pull_back(lift(v)) == v
             True
@@ -2086,22 +2083,17 @@ cdef class _Decoder_K_extension(object):
         embedK = self._embedK
         return vector(embedK(e) for e in v)
 
-    def pull_back(self, v):
+    def _pull_back(self, v):
         """
-        Pull back a vector over the extension field to a vector
-        over the base field.
+        Pull back a vector over the extension field to a vector over the base
+        field.
 
         TESTS::
 
-            sage: A.<x,y> = AffineSpace(GF(4), 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: F = C.function_field()
-            sage: G = 1*F.get_place(4)
-            sage: code = codes.DifferentialAGCode(pls, G)
-            sage: decoder = code.decoder('K')
-            sage: lift = decoder._circuit.lift
-            sage: pull_back = decoder._circuit.pull_back
+            sage: decoder = load(SAGE_SRC + '/sage/coding/tests/decoder_K_extension')
+            sage: code = decoder.code()
+            sage: lift = decoder._circuit._lift
+            sage: pull_back = decoder._circuit._pull_back
             sage: v = code.random_element()
             sage: pull_back(lift(v)) == v
             True
@@ -2115,13 +2107,8 @@ cdef class _Decoder_K_extension(object):
 
         TESTS::
 
-            sage: A.<x,y> = AffineSpace(GF(4), 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: F = C.function_field()
-            sage: G = 1*F.get_place(4)
-            sage: code = codes.EvaluationAGCode(pls, G)
-            sage: decoder = code.decoder('K')
+            sage: decoder = load(SAGE_SRC + '/sage/coding/tests/decoder_K_extension')
+            sage: code = decoder.code()
             sage: cw = code.random_element()
             sage: circuit = decoder._circuit
             sage: circuit.encode(circuit.decode(cw)) == cw
@@ -2131,21 +2118,16 @@ cdef class _Decoder_K_extension(object):
 
     def decode(self, received_vector, **kwargs):
         """
-        Decode received vector to a message.
+        Decode the received vector to a message.
 
         INPUT:
 
         - ``received_vector`` -- a vector in the ambient space of the code
 
-        EXAMPLES::
+        TESTS::
 
-            sage: A.<x,y> = AffineSpace(GF(4), 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: F = C.function_field()
-            sage: G = 1*F.get_place(4)
-            sage: code = codes.DifferentialAGCode(pls, G)
-            sage: decoder = code.decoder('K')
+            sage: decoder = load(SAGE_SRC + '/sage/coding/tests/decoder_K_extension')
+            sage: code = decoder.code()
             sage: cw = code.random_element()
             sage: circuit = decoder._circuit
             sage: circuit.encode(circuit.decode(cw)) == cw
@@ -2155,9 +2137,10 @@ cdef class _Decoder_K_extension(object):
 
 
 @cython.auto_pickle(True)
-cdef class _EvaluationAGCodeDecoder_K_extension(_Decoder_K_extension):
+cdef class EvaluationAGCodeDecoder_K_extension(Decoder_K_extension):
     """
-    Unique decoding algorithm K for AG codes via constant field extension.
+    This class implements the decoding algorithm K for evaluation AG codes via
+    constant field extension.
 
     INPUT:
 
@@ -2165,20 +2148,31 @@ cdef class _EvaluationAGCodeDecoder_K_extension(_Decoder_K_extension):
 
     - ``G`` -- a divisor of the function field
 
-    - ``Q`` -- a nonrational place
+    - ``Q`` -- a non-rational place
 
     - ``verbose`` -- if ``True``, verbose information is printed
 
     EXAMPLES::
 
-        sage: A.<x,y> = AffineSpace(GF(4), 2)
+        sage: F.<a> = GF(4)
+        sage: A.<x,y> = AffineSpace(F, 2)
         sage: C = Curve(y^2 + y - x^3)
         sage: pls = C.places()
         sage: F = C.function_field()
         sage: G = 1*F.get_place(4)
         sage: code = codes.EvaluationAGCode(pls, G)
-        sage: code.decoder('K')
-        Unique decoder for [9, 4] evaluation AG code over GF(4)
+        sage: Q = F.get_place(3)
+        sage: from sage.coding.ag_code_decoders import EvaluationAGCodeDecoder_K_extension
+        sage: circuit = EvaluationAGCodeDecoder_K_extension(pls, G, Q)
+        sage: cw = code.random_element()
+        sage: rv = cw + vector([0,1,1,0,0,0,0,0,0])
+        sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)
+        True
+
+    We save the decoder for later tests::
+
+        sage: save(circuit, SAGE_SRC + '/sage/coding/tests/eval_decoder_K_extension')  # not tested
+
     """
     def __init__(self, pls, G, Q, verbose=False):
         """
@@ -2186,22 +2180,17 @@ cdef class _EvaluationAGCodeDecoder_K_extension(_Decoder_K_extension):
 
         TESTS::
 
-            sage: A.<x,y> = AffineSpace(GF(4), 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: F = C.function_field()
-            sage: G = 1*F.get_place(3)
-            sage: code = codes.EvaluationAGCode(pls, G)
-            sage: decoder = code.decoder('K')
-            sage: TestSuite(decoder).run(skip='_test_pickling')
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/eval_decoder_K_extension')
+            sage: TestSuite(circuit).run(skip='_test_pickling')
         """
-        super().__init__(pls, G, Q, _EvaluationAGCodeDecoder_K, verbose=verbose)
+        super().__init__(pls, G, Q, EvaluationAGCodeDecoder_K, verbose=verbose)
 
 
 @cython.auto_pickle(True)
-cdef class _DifferentialAGCodeDecoder_K_extension(_Decoder_K_extension):
+cdef class DifferentialAGCodeDecoder_K_extension(Decoder_K_extension):
     """
-    Unique decoding algorithm K for AG codes via constant field extension.
+    This class implements the decoding algorithm K for differential AG codes via
+    constant field extension.
 
     INPUT:
 
@@ -2209,20 +2198,33 @@ cdef class _DifferentialAGCodeDecoder_K_extension(_Decoder_K_extension):
 
     - ``G`` -- a divisor of the function field
 
-    - ``Q`` -- a nonrational place
+    - ``Q`` -- a non-rational place
 
     - ``verbose`` -- if ``True``, verbose information is printed
 
     EXAMPLES::
 
-        sage: A.<x,y> = AffineSpace(GF(4), 2)
+        sage: F.<a> = GF(4)
+        sage: A.<x,y> = AffineSpace(F, 2)
         sage: C = Curve(y^2 + y - x^3)
         sage: pls = C.places()
         sage: F = C.function_field()
         sage: G = 1*F.get_place(4)
         sage: code = codes.DifferentialAGCode(pls, G)
-        sage: code.decoder('K')
-        Unique decoder for [9, 5] differential AG code over GF(4)
+        sage: Q = F.get_place(3)
+        sage: from sage.coding.ag_code_decoders import DifferentialAGCodeDecoder_K_extension
+        sage: circuit = DifferentialAGCodeDecoder_K_extension(pls, G, Q)
+        sage: cw = code.random_element()
+        sage: rv = cw + vector([0,0,a,0,0,0,0,0,0])
+        sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)
+        True
+
+    TESTS::
+
+    We save the decoder for later tests::
+
+        sage: save(circuit, SAGE_SRC + '/sage/coding/tests/diff_decoder_K_extension')  # not tested
+
     """
     def __init__(self, pls, G, Q, verbose=False):
         """
@@ -2230,96 +2232,8 @@ cdef class _DifferentialAGCodeDecoder_K_extension(_Decoder_K_extension):
 
         TESTS::
 
-            sage: A.<x,y> = AffineSpace(GF(4), 2)
-            sage: C = Curve(y^2 + y - x^3)
-            sage: pls = C.places()
-            sage: F = C.function_field()
-            sage: G = 1*F.get_place(3)
-            sage: code = codes.DifferentialAGCode(pls, G)
-            sage: decoder = code.decoder('K')
-            sage: TestSuite(decoder).run(skip='_test_pickling')
+            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/diff_decoder_K_extension')
+            sage: TestSuite(circuit).run(skip='_test_pickling')
         """
-        super().__init__(pls, G, Q, _DifferentialAGCodeDecoder_K, verbose=verbose)
-
-###############################################################################
-## Helper functions
-
-cdef inline Py_ssize_t pos_mod(Py_ssize_t a, Py_ssize_t b):
-    """
-    Return ``a % b`` such that the result is positive.
-
-    C modulus can be negative as ``a == (a / b * b) + (a % b)``.
-    """
-    cdef Py_ssize_t ret = a % b
-    if ret < 0:
-        ret += b
-    return ret
-
-@cython.wraparound(False)
-@cython.boundscheck(False)
-cdef inline Py_ssize_t _next(_Decoder_K decoder, Py_ssize_t s):
-    """
-    Helper to get the next value after ``s`` in dRbar.
-    """
-    cdef Py_ssize_t i, d, gamma
-    cdef list dRbar = decoder.dRbar
-    gamma = decoder.gamma
-    i = pos_mod(s, gamma)
-    while True:
-        # We unroll (decoder.self._exp(s)[0]) >= 0 for speed
-        # Note decoder.self._exp(s)[0] == (s - d) // gamma,
-        #    so we only need to compare s with d
-        s += 1
-        i = (i + 1) % gamma
-        d = <Py_ssize_t> dRbar[i]
-        if s >= d:
-            return s
-
-@cython.wraparound(False)
-@cython.boundscheck(False)
-cdef inline get_eta_basis(_Decoder_K decoder, list basis, list vecs, Py_ssize_t s0, mon_func):
-    """
-    Compute a basis of J and h-functions via FGLM algorithm.
-
-    This modifies ``basis`` and ``vecs``.
-    """
-    cdef Py_ssize_t s, sk, si, i, j, num
-    cdef Matrix mat, matinv
-    cdef list gen, delta, h
-    cdef tuple e, de
-
-    cdef Py_ssize_t gamma = decoder.gamma
-    cdef Py_ssize_t code_length = decoder.code_length
-    x = decoder.x
-    W = decoder.W
-    s = s0
-    decoder._exp(s, &sk, &si)
-    delta = [(sk, si)]
-    mat = <Matrix> matrix(mon_func(sk, si))
-    num = 0
-    while num < gamma:
-        s = _next(decoder, s)
-        decoder._exp(s, &sk, &si)
-        if basis[si] is None:
-            v = mon_func(sk, si)
-            try:
-                sol = mat.solve_left(v)
-                gen = [W.zero() for i in range(gamma)]
-                for i in range(len(delta)):
-                    de = <tuple> delta[i]
-                    gen[<Py_ssize_t> de[1]] += -sol[i] * x**(<Py_ssize_t> de[0])
-                gen[si] += x**sk
-                basis[si] = vector(gen)
-                num += 1
-            except ValueError:
-                mat = mat.stack(matrix(v))
-                delta.append((sk, si))
-
-    matinv = <Matrix> mat.inverse()
-    for i in range(code_length):
-        h = [W.zero() for k in range(gamma)]
-        for j in range(code_length):
-            de = <tuple> delta[j]
-            h[<Py_ssize_t> de[1]] += matinv[i,j] * x**(<Py_ssize_t> de[0])
-        vecs[i] = vector(h)
+        super().__init__(pls, G, Q, DifferentialAGCodeDecoder_K, verbose=verbose)
 

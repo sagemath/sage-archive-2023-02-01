@@ -38,12 +38,6 @@ such that the coefficient corresponding to a word `w\in A^*` equals
 Various
 =======
 
-REFERENCES:
-
-.. [BR2010] Jean Berstel, Christophe Reutenauer,
-   *Noncommutative Rational Series With Applications*,
-   Cambridge, 2010.
-
 AUTHORS:
 
 - Daniel Krenn (2016)
@@ -710,7 +704,7 @@ class RecognizableSeries(Element):
         ALOGRITHM:
 
         This method implements the minimization algorithm presented in
-        Chapter 2 of [BR2010]_.
+        Chapter 2 of [BR2010a]_.
 
         EXAMPLES::
 

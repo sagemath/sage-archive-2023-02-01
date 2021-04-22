@@ -3561,25 +3561,22 @@ class WordMorphism(SageObject):
 
     def simplify(self, Z=None):
         r"""
-        Return morphisms `h` and `k` such that this morphism is simplifiable
-        with respect to `h` and `k`.
+        If this morphism is simplifiable, return morphisms `h` and `k` such that
+        this morphism is simplifiable with respect to `h` and `k`, otherwise
+        raise  ``ValueError``.
 
-        If this morphism is non-injective, this function always succeeds, but
-        can fail (raise ``ValueError``) if it is injective, even it if is
-        simplifiable.
+        This method is quite fast if this morphism is non-injective, but very
+        slow if it is injective.
 
         Let `f: X^* \rightarrow Y^*` be a morphism. Then `f` is simplifiable
         with respect to morphisms `h: X^* \rightarrow Z^*` and
         `k: Z^* \rightarrow Y^*`, if `f = k \circ h` and `|Z| < |X|`. If also
-        `Y \subseteq X`, then morphism `g: Z^* \rightarrow Z^* = h \circ k` is
-        a simplification of `f` (with respect to `h` and `k`).
+        `Y \subseteq X`, then the morphism `g: Z^* \rightarrow Z^* = h \circ k`
+        is a simplification of `f` (with respect to `h` and `k`).
 
-        Therefore a morphism is simplifiable if it contains "more letters than
-        is needed". Simplification preserves some properties of the original
-        morphism (e.g. repetitiveness).
-
-        Time complexity is on average quadratic with regards to the size of the
-        morphism.
+        Loosely speaking a morphism is simplifiable if it contains "more letters
+        than is needed". Non-injectivity implies simplifiability. Simplification
+        preserves some properties of the original morphism (e.g. repetitiveness).
 
         For more information see Section 3 in [KO2000]_.
 
@@ -3590,42 +3587,32 @@ class WordMorphism(SageObject):
 
         EXAMPLES:
 
-        Example of a simplifiable morphism::
+        Example of a simplifiable (non-injective) morphism::
 
-            sage: f = WordMorphism('a->bca,b->bcaa,c->bcaaa')
-            sage: h, k = f.simplify('xy')
-            sage: h
-            WordMorphism: a->xy, b->xyy, c->xyyy
-            sage: k
-            WordMorphism: x->bc, y->a
+            sage: f = WordMorphism('a->aca,b->badc,c->acab,d->adc')
+            sage: h, k = f.simplify('xyz'); h, k
+            (WordMorphism: a->x, b->zy, c->xz, d->y, WordMorphism: x->aca, y->adc, z->b)
             sage: k * h == f
             True
             sage: g = h * k; g
-            WordMorphism: x->xyyxyyy, y->xy
+            WordMorphism: x->xxzx, y->xyxz, z->zy
+
+        Example of a simplifiable (injective) morphism::
+
+            sage: f = WordMorphism('a->abcc,b->abcd,c->abdc,d->abdd')
+            sage: h, k = f.simplify('xyz'); h, k
+            (WordMorphism: a->xyy, b->xyz, c->xzy, d->xzz, WordMorphism: x->ab, y->c, z->d)
+            sage: k * h == f
+            True
+            sage: g = h * k; g
+            WordMorphism: x->xyyxyz, y->xzy, z->xzz
 
         Example of a non-simplifiable morphism::
 
             sage: WordMorphism('a->aa').simplify()
             Traceback (most recent call last):
             ...
-            ValueError: failed to simplify a->aa
-
-        Example of a simplifiable morphism that the function fails on::
-
-            sage: f = WordMorphism('a->abcc,b->abcd,c->abdc,d->abdd')
-            sage: f.simplify('xyz')
-            Traceback (most recent call last):
-            ...
-            ValueError: failed to simplify a->abcc, b->abcd, c->abdc, d->abdd
-
-        Proof that the above morphism is simplifiable::
-
-            sage: k = WordMorphism('x->ab,y->c,z->d')
-            sage: h = WordMorphism('a->xyy,b->xyz,c->xzy,d->xzz')
-            sage: k * h == f
-            True
-            sage: g = h * k; g
-            WordMorphism: x->xyyxyz, y->xzy, z->xzz
+            ValueError: self (a->aa) is not simplifiable
 
         Example of an erasing morphism::
 
@@ -3637,16 +3624,31 @@ class WordMorphism(SageObject):
             sage: g = h * k; g
             WordMorphism: a->ab, b->
 
-        Example of a non-endomorphism::
+        Example of a morphism, that is not an endomorphism::
 
             sage: f = WordMorphism('a->xx,b->xy,c->yx,d->yy')
-            sage: h, k = f.simplify(ZZ); h, k
+            sage: h, k = f.simplify(NN); h, k
             (WordMorphism: a->00, b->01, c->10, d->11, WordMorphism: 0->x, 1->y)
             sage: k * h == f
             True
             sage: len(k.domain().alphabet()) < len(f.domain().alphabet())
             True
         """
+        def try_create_h(f, k):
+            h = {}
+            for letter1, image1 in f.items():
+                image3 = []
+                while image1:
+                    for letter2, image2 in k.items():
+                        if image2.is_prefix(image1):
+                            image1 = image1[image2.length():]
+                            image3.append(letter2)
+                            break
+                    else:  # nobreak
+                        return None
+                h[letter1] = image3
+            return h
+
         X = self.domain().alphabet()
         Y = self.codomain().alphabet()
         f = self._morph
@@ -3658,11 +3660,11 @@ class WordMorphism(SageObject):
             k = {x: [y] for x, y in zip(X, Y)}
             k_inverse = {y: x for y, x in zip(Y, X)}
             h = {x: [k_inverse[y] for y in image] for x, image in f.items()}
-        else:  # Non-trivial case.
+        elif not self.is_injective():  # Non-trivial but a fast case.
             k = dict(f)
             to_do = set(k)
-            to_remove = []
             while to_do:
+                to_remove = []
                 # min() and remove() instead of pop() to have deterministic output.
                 letter1 = min(to_do)
                 to_do.remove(letter1)
@@ -3676,37 +3678,32 @@ class WordMorphism(SageObject):
                     elif image1.is_prefix(image2):
                         k[letter2] = image2[image1.length():]
                         to_do.add(letter2)
-                    elif image1.is_suffix(image2):
-                        k[letter2] = image2[:-image1.length()]
-                        to_do.add(letter2)
                     elif image2.is_prefix(image1):
                         k[letter1] = image1[image2.length():]
                         to_do.add(letter1)
                         break
-                    elif image2.is_suffix(image1):
-                        k[letter1] = image1[:-image2.length()]
-                        to_do.add(letter1)
-                        break
                 for letter in to_remove:
                     del k[letter]
-                to_remove = []
+            h = try_create_h(f, k)
+        else:  # Non-trivial and a slow case.
+            factors = set()
+            for image in f.values():
+                factors.update(x.primitive() for x in image.factor_iterator())
+            factors.remove(self.codomain()())
+            factors = sorted(factors)  # For deterministic output.
+            from itertools import combinations
+            for comb in combinations(factors, len(X) - 1):
+                if any(x.is_proper_prefix(y) for x in comb for y in comb):
+                    continue
+                k = {x: image for x, image in zip(X, comb)}
+                h = try_create_h(f, k)
+                if h:
+                    break
+            else:  # nobreak
+                raise ValueError(f'self ({self}) is not simplifiable')
 
-            if len(k) == len(f):
-                raise ValueError(f'failed to simplify {self}')
-
-            h = {}
-            for letter1, image1 in f.items():
-                image3 = []
-                while image1:
-                    for letter2, image2 in k.items():
-                        if image2.is_prefix(image1):
-                            image1 = image1[image2.length():]
-                            image3.append(letter2)
-                            break
-                h[letter1] = image3
-
-        k = type(self)(k, codomain=self.codomain())
-        h = type(self)(h, domain=self.domain(), codomain=k.domain())
+        k = WordMorphism(k, codomain=self.codomain())
+        h = WordMorphism(h, domain=self.domain(), codomain=k.domain())
 
         if Z is not None:  # Custom alphabet.
             old_Z_star = k.domain()
@@ -3717,8 +3714,8 @@ class WordMorphism(SageObject):
             Z_star = FiniteWords(Z)
             h_new = {old: [new] for old, new in zip(old_Z, Z)}
             k_new = {new: [old] for new, old in zip(Z, old_Z)}
-            h_new = type(self)(h_new, domain=old_Z_star, codomain=Z_star)
-            k_new = type(self)(k_new, domain=Z_star, codomain=old_Z_star)
+            h_new = WordMorphism(h_new, domain=old_Z_star, codomain=Z_star)
+            k_new = WordMorphism(k_new, domain=Z_star, codomain=old_Z_star)
             h = h_new * h
             k = k * k_new
 
@@ -3731,17 +3728,16 @@ class WordMorphism(SageObject):
 
         Requires this morphism to be an endomorphism.
 
-        Basically calls :meth:`simplify` until it throws an exception, which
-        means the input was injective. If already the first call raises an
-        exception, instead of reraising it a quadruplet `(g, h, k, i)` is still
-        returned, where `g` and `h` are equal to this morphism, `k` is the
-        identity morphism and `i` is 0.
+        This methods basically calls :meth:`simplify` until the returned
+        simplification is injective. If this morphism is already injective, a
+        quadruplet `(g, h, k, i)` is still returned, where `g` is this morphism,
+        `h` and `k` are the identity morphisms and `i` is 0.
 
         Let `f: X^* \rightarrow Y^*` be a morphism and `Y \subseteq X`. Then
         `g: Z^* \rightarrow Z^*` is an injective simplification of `f` with
         respect to morphisms `h: X^* \rightarrow Z^*` and
         `k: Z^* \rightarrow Y^*` and a positive integer `i`, if `g` is
-        injective and `|Z| < |X|` and `g^i = h \circ k` and `f^i = k \circ h`.
+        injective, `|Z| < |X|`, `g^i = h \circ k` and `f^i = k \circ h`.
 
         For more information see Section 4 in [KO2000]_.
 
@@ -3760,16 +3756,11 @@ class WordMorphism(SageObject):
         if not self.is_endomorphism():
             raise TypeError(f'self ({self}) is not an endomorphism')
 
-        try:
-            h, k = self.simplify()
-        except ValueError:
-            return self, self, self.domain().identity_morphism(), 0
-        g = h * k
-
-        from itertools import count
-        for i in count(start=1):
-            try:
-                h_new, k_new = g.simplify()
-                g, h, k = h_new * k_new, h_new * h, k * k_new
-            except ValueError:
-                return g, h, k, i
+        g = self
+        h = self.domain().identity_morphism()
+        k = self.codomain().identity_morphism()
+        i = 0
+        while not g.is_injective():
+            h_new, k_new = g.simplify()
+            g, h, k, i = h_new * k_new, h_new * h, k * k_new, i + 1
+        return g, h, k, i

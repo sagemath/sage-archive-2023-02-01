@@ -241,8 +241,10 @@ class PrefixClosedSet(object):
 
     def prefix_set(self):
         r"""
-        Return the prefix set corresponding to this prefix
-        closed set.
+        Return the set of minimal (with respect to prefix ordering) elements
+        of the complement of this prefix closed set.
+
+        See also Proposition 2.3.1 of [BR2010a]_.
 
         OUTPUT:
 

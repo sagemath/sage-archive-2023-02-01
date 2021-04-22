@@ -71,41 +71,54 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 class PrefixClosedSet(object):
 
-    def __init__(self, alphabet=None, words=None):
+    def __init__(self, words):
         r"""
         A prefix-closed set.
 
-        Creation of this prefix-closed sets is interactive
+        Creation of this prefix-closed set is interactive
         iteratively.
 
         INPUT:
 
-        - ``alphabet`` -- finite words over this ``alphabet``
-          will be created
-
-        - ``words`` -- specify the finite words directly
-          (instead of via ``alphabet``)
+        - ``words`` -- a class of words
+          (instance of :class:`~sage.combinat.words.words.Words`)
 
         EXAMPLES::
 
             sage: from sage.combinat.recognizable_series import PrefixClosedSet
-            sage: P = PrefixClosedSet(alphabet=[0, 1]); P
+            sage: P = PrefixClosedSet(Words([0, 1], infinite=False)); P
+            [word: ]
+
+            sage: P = PrefixClosedSet.create_by_alphabet([0, 1]); P
             [word: ]
 
         See :meth:`populate_interactive` for further examples.
+        """
+        self.words = words
+        self.elements = [self.words([])]
 
-        TESTS::
 
-            sage: P = PrefixClosedSet(
-            ....:         words=Words([0, 1], infinite=False)); P
+    @classmethod
+    def create_by_alphabet(cls, alphabet):
+        r"""
+        A prefix-closed set
+
+        This is a convenience method for the
+        creation of prefix-closed sets by specifying an alphabeth.
+
+        INPUT:
+
+        - ``alphabet`` -- finite words over this ``alphabet``
+          will used
+
+        EXAMPLES::
+
+            sage: from sage.combinat.recognizable_series import PrefixClosedSet
+            sage: P = PrefixClosedSet.create_by_alphabet([0, 1]); P
             [word: ]
         """
-        if alphabet is not None:
-            from sage.combinat.words.words import Words
-            self.words = Words(alphabet, infinite=False)
-        else:
-            self.words = words
-        self.elements = [self.words([])]
+        from sage.combinat.words.words import Words
+        return cls(Words(alphabet, infinite=False))
 
 
     def __repr__(self):
@@ -119,7 +132,7 @@ class PrefixClosedSet(object):
         EXAMPLES::
 
             sage: from sage.combinat.recognizable_series import PrefixClosedSet
-            sage: P = PrefixClosedSet(alphabet=[0, 1])
+            sage: P = PrefixClosedSet.create_by_alphabet([0, 1])
             sage: repr(P)  # indirect doctest
             '[word: ]'
         """
@@ -147,7 +160,7 @@ class PrefixClosedSet(object):
         EXAMPLES::
 
             sage: from sage.combinat.recognizable_series import PrefixClosedSet
-            sage: P = PrefixClosedSet(alphabet=[0, 1])
+            sage: P = PrefixClosedSet.create_by_alphabet([0, 1])
             sage: W = P.words
             sage: P.add(W([0])); P
             [word: , word: 0]
@@ -177,7 +190,7 @@ class PrefixClosedSet(object):
         EXAMPLES::
 
             sage: from sage.combinat.recognizable_series import PrefixClosedSet
-            sage: P = PrefixClosedSet(alphabet=[0, 1]); P
+            sage: P = PrefixClosedSet.create_by_alphabet([0, 1]); P
             [word: ]
             sage: for n, p in enumerate(P.populate_interactive()):
             ....:     print('{}?'.format(p))
@@ -224,7 +237,7 @@ class PrefixClosedSet(object):
         EXAMPLES::
 
             sage: from sage.combinat.recognizable_series import PrefixClosedSet
-            sage: P = PrefixClosedSet(alphabet=[0, 1]); P
+            sage: P = PrefixClosedSet.create_by_alphabet([0, 1]); P
             [word: ]
             sage: for n, p in enumerate(P.populate_interactive()):
             ....:     if n in (0, 1, 2, 4, 6):

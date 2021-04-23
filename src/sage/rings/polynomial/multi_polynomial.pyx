@@ -174,12 +174,6 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.rings.rational_field import QQ
         return self._scalar_conversion(QQ)
 
-    def _integer_(self, ZZ=None):
-        if self.degree() <= 0:
-            from sage.rings.integer import Integer
-            return Integer(self.constant_coefficient())
-        raise TypeError(f"unable to convert non-constant polynomial {self} to an integer")
-
     def _symbolic_(self, R):
         """
         EXAMPLES::

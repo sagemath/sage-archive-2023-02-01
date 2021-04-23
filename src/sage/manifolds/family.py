@@ -1,10 +1,9 @@
 r"""
 Families of Manifold Objects
 
-The class :class:`ManifoldObjectFiniteFamily` is a subclass of :class`FiniteFamily`
+The class :class:`ManifoldObjectFiniteFamily` is a subclass of :class:`FiniteFamily`
 that provides an associative container of manifold objects, indexed by their
-``_name`` attributes.  It provides specialized ``__repr__`` and
-``_latex_`` methods.
+``_name`` attributes.
 
 :class:`ManifoldObjectFiniteFamily` instances are totally ordered according
 to their lexicographically ordered element names.
@@ -33,7 +32,7 @@ class ManifoldObjectFiniteFamily(FiniteFamily):
     Finite family of manifold objects, indexed by their names.
 
     The class :class:`ManifoldObjectFiniteFamily` inherits from
-    `:class:`FiniteFamily`.  Therefore it is an associative container.
+    :class:`FiniteFamily`.  Therefore it is an associative container.
 
     It provides specialized ``__repr__`` and ``_latex_`` methods.
 

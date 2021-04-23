@@ -1,15 +1,15 @@
 r"""
 Families of Manifold Objects
 
-The class :class:`FiniteManifoldObjectFamily` is a subclass of :class`FiniteFamily`
+The class :class:`ManifoldObjectFiniteFamily` is a subclass of :class`FiniteFamily`
 that provides an associative container of manifold objects, indexed by their
 ``_name`` attributes.  It provides specialized ``__repr__`` and
 ``_latex_`` methods.
 
-:class:`FiniteManifoldObjectFamily` instances are totally ordered according
+:class:`ManifoldObjectFiniteFamily` instances are totally ordered according
 to their lexicographically ordered element names.
 
-The subclass :class:`FiniteManifoldSubsetFamily` customizes the print
+The subclass :class:`ManifoldSubsetFiniteFamily` customizes the print
 representation further.
 
 """
@@ -27,27 +27,27 @@ from functools import total_ordering
 from sage.sets.family import FiniteFamily
 
 @total_ordering
-class FiniteManifoldObjectFamily(FiniteFamily):
+class ManifoldObjectFiniteFamily(FiniteFamily):
 
     r"""
     Finite family of manifold objects, indexed by their names.
 
-    The class :class:`FiniteManifoldObjectFamily` inherits from
+    The class :class:`ManifoldObjectFiniteFamily` inherits from
     `:class:`FiniteFamily`.  Therefore it is an associative container.
 
     It provides specialized ``__repr__`` and ``_latex_`` methods.
 
-    :class:`FiniteManifoldObjectFamily` instances are totally ordered
+    :class:`ManifoldObjectFiniteFamily` instances are totally ordered
     according to their lexicographically ordered element names.
 
     EXAMPLES::
 
-        sage: from sage.manifolds.family import FiniteManifoldObjectFamily
+        sage: from sage.manifolds.family import ManifoldObjectFiniteFamily
         sage: M = Manifold(2, 'M', structure='topological')
         sage: A = M.subset('A')
         sage: B = M.subset('B')
         sage: C = B.subset('C')
-        sage: F = FiniteManifoldObjectFamily([A, B, C]); F
+        sage: F = ManifoldObjectFiniteFamily([A, B, C]); F
         Set {A, B, C} of objects of the 2-dimensional topological manifold M
         sage: latex(F)
         \{A, B, C\}
@@ -57,7 +57,7 @@ class FiniteManifoldObjectFamily(FiniteFamily):
     All objects must have the same base manifold::
 
         sage: N = Manifold(2, 'N', structure='topological')
-        sage: FiniteManifoldObjectFamily([M, N])
+        sage: ManifoldObjectFiniteFamily([M, N])
         Traceback (most recent call last):
         ...
         TypeError: all objects must have the same manifold
@@ -65,27 +65,27 @@ class FiniteManifoldObjectFamily(FiniteFamily):
     """
     def __init__(self, objects=(), keys=None):
         r"""
-        Initialize a new instance of :class:`FiniteManifoldObjectFamily`.
+        Initialize a new instance of :class:`ManifoldObjectFiniteFamily`.
 
         TESTS:
 
-            sage: from sage.manifolds.family import FiniteManifoldObjectFamily
+            sage: from sage.manifolds.family import ManifoldObjectFiniteFamily
             sage: M = Manifold(2, 'M', structure='topological')
             sage: A = M.subset('A')
             sage: B = M.subset('B')
             sage: C = B.subset('C')
-            sage: F = FiniteManifoldObjectFamily([A, B, C]); F
+            sage: F = ManifoldObjectFiniteFamily([A, B, C]); F
             Set {A, B, C} of objects of the 2-dimensional topological manifold M
             sage: TestSuite(F).run(skip='_test_elements')
 
         Like ``frozenset``, it can be created from any iterable::
 
-            sage: from sage.manifolds.family import FiniteManifoldSubsetFamily
+            sage: from sage.manifolds.family import ManifoldSubsetFiniteFamily
             sage: M = Manifold(2, 'M', structure='topological')
             sage: I = M.subset('I')
             sage: gen = (subset for subset in (M, I, M, I, M, I)); gen
             <generator object ...>
-            sage: FiniteManifoldSubsetFamily(gen)
+            sage: ManifoldSubsetFiniteFamily(gen)
             Set {I, M} of subsets of the 2-dimensional topological manifold M
 
         """
@@ -116,11 +116,11 @@ class FiniteManifoldObjectFamily(FiniteFamily):
 
         TESTS::
 
-            sage: from sage.manifolds.family import FiniteManifoldObjectFamily
+            sage: from sage.manifolds.family import ManifoldObjectFiniteFamily
             sage: M = Manifold(2, 'M', structure='topological')
             sage: A = M.subset('A')
             sage: B = M.subset('B')
-            sage: FiniteManifoldObjectFamily([A, B]).__repr__()           # indirect doctest
+            sage: ManifoldObjectFiniteFamily([A, B]).__repr__()           # indirect doctest
             'Set {A, B} of objects of the 2-dimensional topological manifold M'
 
         """
@@ -128,22 +128,22 @@ class FiniteManifoldObjectFamily(FiniteFamily):
 
     def __lt__(self, other):
         r"""
-        Implement the total order on instances of :class:`FiniteManifoldObjectFamily`.
+        Implement the total order on instances of :class:`ManifoldObjectFiniteFamily`.
 
         TESTS::
 
-            sage: from sage.manifolds.family import FiniteManifoldSubsetFamily
+            sage: from sage.manifolds.family import ManifoldSubsetFiniteFamily
             sage: M = Manifold(2, 'M', structure='topological')
             sage: A = M.subset('A')
             sage: B = M.subset('B')
-            sage: sorted([FiniteManifoldSubsetFamily([A, B]), FiniteManifoldSubsetFamily([]),
-            ....:         FiniteManifoldSubsetFamily([B]), FiniteManifoldSubsetFamily([A])])
+            sage: sorted([ManifoldSubsetFiniteFamily([A, B]), ManifoldSubsetFiniteFamily([]),
+            ....:         ManifoldSubsetFiniteFamily([B]), ManifoldSubsetFiniteFamily([A])])
             [{},
              Set {A} of subsets of the 2-dimensional topological manifold M,
              Set {A, B} of subsets of the 2-dimensional topological manifold M,
              Set {B} of subsets of the 2-dimensional topological manifold M]
         """
-        if not isinstance(other, FiniteManifoldSubsetFamily):
+        if not isinstance(other, ManifoldSubsetFiniteFamily):
             return NotImplemented
         return self.keys() < other.keys()
 
@@ -153,13 +153,13 @@ class FiniteManifoldObjectFamily(FiniteFamily):
 
         TESTS::
 
-            sage: from sage.manifolds.family import FiniteManifoldObjectFamily
-            sage: FiniteManifoldObjectFamily().__repr__()
+            sage: from sage.manifolds.family import ManifoldObjectFiniteFamily
+            sage: ManifoldObjectFiniteFamily().__repr__()
             '{}'
             sage: M = Manifold(2, 'M', structure='topological')
             sage: A = M.subset('A')
             sage: B = M.subset('B')
-            sage: FiniteManifoldObjectFamily([A, B]).__repr__()
+            sage: ManifoldObjectFiniteFamily([A, B]).__repr__()
             'Set {A, B} of objects of the 2-dimensional topological manifold M'
 
         """
@@ -174,35 +174,35 @@ class FiniteManifoldObjectFamily(FiniteFamily):
 
         TESTS::
 
-            sage: from sage.manifolds.family import FiniteManifoldSubsetFamily
+            sage: from sage.manifolds.family import ManifoldSubsetFiniteFamily
             sage: M = Manifold(2, 'M', structure='topological')
             sage: A = M.subset('A')
             sage: B = M.subset('B')
-            sage: FiniteManifoldSubsetFamily([B, A])._latex_()
+            sage: ManifoldSubsetFiniteFamily([B, A])._latex_()
             '\\{A, B\\}'
         """
         return self._latex_name
 
-class FiniteManifoldSubsetFamily(FiniteManifoldObjectFamily):
+class ManifoldSubsetFiniteFamily(ManifoldObjectFiniteFamily):
 
     r"""
     Finite family of subsets of a topological manifold, indexed by their names.
 
-    The class :class:`FiniteManifoldSubsetFamily` inherits from
-    :class:`FiniteManifoldObjectFamily`.  It provides an associative
+    The class :class:`ManifoldSubsetFiniteFamily` inherits from
+    :class:`ManifoldObjectFiniteFamily`.  It provides an associative
     container with specialized ``__repr__`` and ``_latex_`` methods.
 
-    :class:`FiniteManifoldSubsetFamily` instances are totally ordered according
+    :class:`ManifoldSubsetFiniteFamily` instances are totally ordered according
     to their lexicographically ordered element (subset) names.
 
     EXAMPLES::
 
-        sage: from sage.manifolds.family import FiniteManifoldSubsetFamily
+        sage: from sage.manifolds.family import ManifoldSubsetFiniteFamily
         sage: M = Manifold(2, 'M', structure='topological')
         sage: A = M.subset('A')
         sage: B = M.subset('B')
         sage: C = B.subset('C')
-        sage: FiniteManifoldSubsetFamily([A, B, C])
+        sage: ManifoldSubsetFiniteFamily([A, B, C])
         Set {A, B, C} of subsets of the 2-dimensional topological manifold M
         sage: latex(_)
         \{A, B, C\}
@@ -210,7 +210,7 @@ class FiniteManifoldSubsetFamily(FiniteManifoldObjectFamily):
     All subsets must have the same base manifold::
 
         sage: N = Manifold(2, 'N', structure='topological')
-        sage: FiniteManifoldSubsetFamily([M, N])
+        sage: ManifoldSubsetFiniteFamily([M, N])
         Traceback (most recent call last):
         ...
         TypeError: all subsets must have the same manifold
@@ -223,11 +223,11 @@ class FiniteManifoldSubsetFamily(FiniteManifoldObjectFamily):
 
         TESTS::
 
-            sage: from sage.manifolds.family import FiniteManifoldSubsetFamily
+            sage: from sage.manifolds.family import ManifoldSubsetFiniteFamily
             sage: M = Manifold(2, 'M', structure='topological')
             sage: A = M.subset('A')
             sage: B = M.subset('B')
-            sage: FiniteManifoldSubsetFamily([A, B]).__repr__()           # indirect doctest
+            sage: ManifoldSubsetFiniteFamily([A, B]).__repr__()           # indirect doctest
             'Set {A, B} of subsets of the 2-dimensional topological manifold M'
 
         """

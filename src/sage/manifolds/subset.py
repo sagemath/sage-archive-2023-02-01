@@ -76,7 +76,7 @@ Lists of subsets after the above operations::
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
-from sage.manifolds.family import FiniteManifoldSubsetFamily
+from sage.manifolds.family import ManifoldSubsetFiniteFamily
 from sage.manifolds.point import ManifoldPoint
 
 class ManifoldSubset(UniqueRepresentation, Parent):
@@ -669,8 +669,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         A digraph. Each vertex of the digraph is either:
 
-        - a :class:`FiniteManifoldSubsetFamily` containing one instance of :class:`ManifoldSubset`.
-        - (if ``open_covers`` is ``True``) a tuple of :class:`FiniteManifoldSubsetFamily` instances,
+        - a :class:`ManifoldSubsetFiniteFamily` containing one instance of :class:`ManifoldSubset`.
+        - (if ``open_covers`` is ``True``) a tuple of :class:`ManifoldSubsetFiniteFamily` instances,
           representing an open cover.
 
         EXAMPLES::
@@ -709,7 +709,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         D = DiGraph(multiedges=False, loops=loops)
 
         def vertex(subset):
-            return FiniteManifoldSubsetFamily([subset])
+            return ManifoldSubsetFiniteFamily([subset])
 
         if lower_bound is not None:
             if not lower_bound.is_subset(self):
@@ -739,7 +739,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if open_covers:
 
             def open_cover_vertex(open_cover):
-                return tuple(sorted(FiniteManifoldSubsetFamily([subset]) for subset in open_cover))
+                return tuple(sorted(ManifoldSubsetFiniteFamily([subset]) for subset in open_cover))
 
             for S in visited:
                 D.add_edges((vertex(S), open_cover_vertex(open_cover))
@@ -770,8 +770,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              [Set {U} of subsets of the 3-dimensional differentiable manifold M,
               Set {V} of subsets of the 3-dimensional differentiable manifold M,
               Set {W} of subsets of the 3-dimensional differentiable manifold M]
-            sage: from sage.manifolds.subset import FiniteManifoldSubsetFamily
-            sage: sorted(P.lower_covers(FiniteManifoldSubsetFamily([M])), key=str)
+            sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
+            sage: sorted(P.lower_covers(ManifoldSubsetFiniteFamily([M])), key=str)
              [Set {U} of subsets of the 3-dimensional differentiable manifold M,
               Set {V_union_W} of subsets of the 3-dimensional differentiable manifold M]
             sage: P.plot(element_labels={element: element._name for element in P})   # not tested
@@ -781,8 +781,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             sage: P = M.subset_poset(open_covers=True); P
             Finite poset containing 6 elements
-            sage: from sage.manifolds.subset import FiniteManifoldSubsetFamily
-            sage: P.upper_covers(FiniteManifoldSubsetFamily([VW]))
+            sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
+            sage: P.upper_covers(ManifoldSubsetFiniteFamily([VW]))
             [(Set {V} of subsets of the 3-dimensional differentiable manifold M,
               Set {W} of subsets of the 3-dimensional differentiable manifold M),
              Set {M} of subsets of the 3-dimensional differentiable manifold M]

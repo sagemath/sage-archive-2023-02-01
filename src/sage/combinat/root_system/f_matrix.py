@@ -47,6 +47,7 @@ from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 
 from multiprocessing import shared_memory
+from sage.combinat.root_system.shm_managers import KSHandler
 
 class FMatrix():
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -300,7 +301,8 @@ class FMatrix():
         self.ideal_basis = list()
         self._solved = list(False for fx in self._fvars)
         self._var_degs = [0]*len(self._fvars)
-        self._ks = dict()
+        # self._ks = dict()
+        self._ks = KSHandler(self)
         self._kp = dict()
         self._nnz = self._get_known_nonz()
         self._chkpt_status = -1
@@ -401,7 +403,8 @@ class FMatrix():
         self._chkpt_status = -1
         self.clear_vars()
         self.clear_equations()
-        self._ks = dict()
+        # self._ks = dict()
+        self._ks.reset()
         self._nnz = self._get_known_nonz()
 
         #Clear relevant caches
@@ -942,12 +945,13 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        ks = deepcopy(self._ks)
+        # ks = deepcopy(self._ks)
         F = self._field
         for eq_tup in eqns:
             if tup_fixes_sq(eq_tup):
-                ks[variables(eq_tup)[0]] = tuple(-v for v in eq_tup[-1][1])
-        return ks
+                # ks[variables(eq_tup)[0]] = tuple(-v for v in eq_tup[-1][1])
+                self._ks[variables(eq_tup)[0]] = -self._field(list(eq_tup[-1][1]))
+        # return ks
 
     def _get_known_nonz(self):
         r"""
@@ -966,7 +970,8 @@ class FMatrix():
              100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100)
         """
         nonz = {self._var_to_idx[var] : 100 for var in self._singles}
-        for idx in self._ks:
+        # for idx in self._ks:
+        for idx, v in self._ks.items():
             nonz[idx] = 100
         return ETuple(nonz, self._poly_ring.ngens())
 
@@ -1499,7 +1504,8 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        self._ks = self._get_known_sq(eqns)
+        # self._ks = self._get_known_sq(eqns)
+        self._get_known_sq(eqns)
         # print("res",get_variables_degrees(eqns))
         degs = get_variables_degrees(eqns)
         if degs:
@@ -1517,7 +1523,8 @@ class FMatrix():
             #self._nnz and self._kp are computed in child processes to reduce IPC overhead
             n_proc = worker_pool._processes
             # new_data = [(self._fvars,self._solved,self._ks,self._var_degs)]*n_proc
-            new_data = [(self._fvars,self._ks)]*n_proc
+            # new_data = [(self._fvars,self._ks)]*n_proc
+            new_data = [(self._fvars,)]*n_proc
             self._map_triv_reduce('update_child_fmats',new_data,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
 
     def _triangular_elim(self,eqns=None,worker_pool=None,verbose=True):
@@ -2079,11 +2086,12 @@ class FMatrix():
         if use_mp:
             n = max(cpu_count()-1,1)
             self._solved = shared_memory.ShareableList(self._solved)
-            print(self._solved)
+            # print(self._solved)
             s_name = self._solved.shm.name
             self._var_degs = shared_memory.ShareableList(self._var_degs)
             vd_name = self._var_degs.shm.name
-            args = (id(self), s_name, vd_name)
+            ks_names = self._ks.get_names()
+            args = (id(self), s_name, vd_name, ks_names)
             pool = Pool(processes=n,initializer=init,initargs=args)
         else:
             pool = None
@@ -2147,6 +2155,7 @@ class FMatrix():
             #Destroy shared resources
             self._solved.shm.unlink()
             self._var_degs.shm.unlink()
+            self._ks.unlink()
 
         #Set up new equations graph and compute variety for each component
         if self._chkpt_status < 5:

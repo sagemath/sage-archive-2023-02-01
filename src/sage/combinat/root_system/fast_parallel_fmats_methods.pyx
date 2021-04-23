@@ -30,6 +30,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from time import sleep
 
 from multiprocessing import shared_memory
+from sage.combinat.root_system.shm_managers import KSHandler
 
 ##########################
 ### Fast class methods ###
@@ -140,7 +141,8 @@ cpdef _backward_subs(factory):
         1
     """
     one = factory._field.one()
-    _ks = {k : factory._FR.field()(list(v)) for k, v in factory._ks.items()}
+    # _ks = {k : factory._FR.field()(list(v)) for k, v in factory._ks.items()}
+    _ks = factory._ks
     vars = factory._poly_ring.gens()
     n = len(vars)
     for var in reversed(vars):
@@ -243,7 +245,8 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     cdef NumberFieldElement_absolute one = _field.one()
     cdef ETuple _nnz = factory._nnz
     # cdef dict _ks = factory._ks
-    _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
+    # _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
+    _ks = factory._ks
 
     #Computation loop
     for i, sextuple in enumerate(product(basis, repeat=6)):
@@ -297,7 +300,8 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     cdef NumberFieldElement_absolute one = _field.one()
     cdef ETuple _nnz = factory._nnz
     # cdef dict _ks = factory._ks
-    _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
+    # _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
+    _ks = factory._ks
     cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
 
     #Computation loop
@@ -326,7 +330,8 @@ cdef list update_reduce(factory, list eqns):
     #Pre-compute common parameters for speed
     _field = factory._field
     one = _field.one()
-    _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
+    # _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
+    _ks = factory._ks
     cdef dict _kp = factory._kp
     cdef ETuple _nnz = factory._nnz
 
@@ -421,7 +426,8 @@ cpdef update_child_fmats(factory, tuple data_tup):
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
     # factory._fvars, factory._solved, factory._ks, factory._var_degs = data_tup
-    factory._fvars, factory._ks = data_tup
+    # factory._fvars, factory._ks = data_tup
+    factory._fvars = data_tup[0]
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
 
@@ -448,10 +454,11 @@ cdef inline list collect_eqns(list eqns):
 ### Parallel code executor ###
 ##############################
 
-def init(fmats_id, solved_name, vd_name):
+def init(fmats_id, solved_name, vd_name, ks_names):
     fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
     fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
     fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
+    fmats_obj._ks = KSHandler(fmats_obj,ks_names)
 
 #Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {

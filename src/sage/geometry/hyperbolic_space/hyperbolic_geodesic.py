@@ -1426,7 +1426,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         S = self.complete()._to_std_geod(start)
         d = self._model._dist_points(start, end) / 2
         T1 = matrix([[exp(d/2), 0], [0, exp(-d/2)]])
-        s2 = sqrt(0.5)
+        s2 = sqrt(2) / 2
         T2 = matrix([[s2, -s2], [s2, s2]])
         isom_mtrx = S.inverse() * (T1 * T2) * S
         # We need to clean this matrix up.
@@ -1434,7 +1434,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             # Imaginary part is small.
             isom_mtrx = (isom_mtrx + isom_mtrx.conjugate()) / 2
             # Set it to its real part.
-        H = self._model.get_isometry(isom_mtrx)
+        H = self._model._Isometry(self._model, isom_mtrx, check=False)
         return self._model.get_geodesic(H(self._start), H(self._end))
 
     def midpoint(self):  # UHP
@@ -1466,11 +1466,11 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g=HyperbolicPlane().UHP().get_geodesic(-1+I,1+I)
             sage: point = g.midpoint(); point
             Point in UHP -1/2*(sqrt(2)*...
-            sage: QQbar(point.coordinates()).radical_expression()
+            sage: QQbar(point.coordinates()).radical_expression()  # long time
             I*sqrt(2)
 
         Check that floating points remain floating points
-        in :meth:`midpoint` ::
+        in :meth:`midpoint`::
 
             sage: UHP = HyperbolicPlane().UHP()
             sage: g = UHP.get_geodesic(CC(0,1), CC(2,2))
@@ -1478,9 +1478,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             Point in UHP 0.666666666666667 + 1.69967317119760*I
             sage: parent(g.midpoint().coordinates())
             Complex Field with 53 bits of precision
-
         """
-
         from sage.matrix.matrix_symbolic_dense import Matrix_symbolic_dense
         if self.length() == infinity:
             raise ValueError("the length must be finite")

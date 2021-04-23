@@ -1305,7 +1305,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
           or the form
 
-          - ``f(k) == t`` for some integer ``k`` and some ``t`` from
+          - ``f(k) == t`` for some integer ``k`` and some ``t`` from the (semi)ring
             ``coefficients``.
 
           The recurrence relations above uniquely determine a `k`-regular sequence;

@@ -745,8 +745,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             for S in visited:
                 D.add_edges((vertex(S), open_cover_vertex(open_cover))
-                            for open_cover in S._open_covers
-                            if open_cover != [S])
+                            for open_cover in S.open_covers(trivial=False))
 
         return D
 

@@ -856,6 +856,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             l = min(indices_right)
             u = max(indices_right)
 
+        if offset < max(-l/k**m, 0):
+            raise ValueError("Offset %s is smaller than max(%s, %s)."
+                             % (offset, -l/k**m, 0))
+
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
         n1 = offset - floor(ll/k**M)

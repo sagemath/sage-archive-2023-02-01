@@ -505,7 +505,7 @@ class Sphere(PseudoRiemannianSubmanifold):
             [[2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3],
              [Open subset S^2-{NP} of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3,
               Open subset S^2-{SP} of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3]]
-            sage: S2.subsets()  # random
+            sage: frozenset(S2.subsets())  # random
             frozenset({Euclidean 2-sphere S^2 of radius 1,
              Open subset A of the Euclidean 2-sphere S^2 of radius 1,
              Open subset S^2-{NP,SP} of the Euclidean 2-sphere S^2 of radius 1,

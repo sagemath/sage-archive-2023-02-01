@@ -574,17 +574,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     def subsets(self):
         r"""
-        Return the set of subsets that have been defined on the
-        current subset.
-
-        OUTPUT:
-
-        - a Python set containing all the subsets that have been defined on
-          the current subset
+        Generate the subsets that have been defined on the current subset.
 
         .. NOTE::
 
-            To get the subsets as a list, used the method
+            To get the subsets as a list, use the method
             :meth:`list_of_subsets` instead.
 
         EXAMPLES:
@@ -594,17 +588,15 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: U = M.open_subset('U')
             sage: V = M.subset('V')
-            sage: M.subsets()  # random (set output)
+            sage: frozenset(M.subsets())  # random (set output)
             {Subset V of the 2-dimensional topological manifold M,
              2-dimensional topological manifold M,
              Open subset U of the 2-dimensional topological manifold M}
-            sage: type(M.subsets())
-            <... 'frozenset'>
             sage: U in M.subsets()
             True
 
         The method :meth:`list_of_subsets` returns a list (sorted
-        alphabetically by the subset names) instead of a set::
+        alphabetically by the subset names)::
 
             sage: M.list_of_subsets()
             [2-dimensional topological manifold M,
@@ -612,7 +604,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              Subset V of the 2-dimensional topological manifold M]
 
         """
-        return frozenset(self._subsets)
+        yield from self._subsets
 
     def list_of_subsets(self):
         r"""
@@ -628,7 +620,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            To get the subsets as a Python set, used the method
+            To get the subsets as a Python set, use the method
             :meth:`subsets` instead.
 
         EXAMPLES:
@@ -643,9 +635,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              Open subset U of the 2-dimensional topological manifold M,
              Subset V of the 2-dimensional topological manifold M]
 
-        The method :meth:`subsets` returns a set instead of a list::
+        The method :meth:`subsets` generates the subsets.  To create
+        a set::
 
-            sage: M.subsets()  # random (set output)
+            sage: frozenset(M.subsets())  # random (set output)
             {Subset V of the 2-dimensional topological manifold M,
              2-dimensional topological manifold M,
              Open subset U of the 2-dimensional topological manifold M}

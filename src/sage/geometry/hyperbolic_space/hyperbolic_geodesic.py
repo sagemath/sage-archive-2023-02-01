@@ -1408,8 +1408,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ....:     p = g.perpendicular_bisector()
             ....:     q = h.perpendicular_bisector()
             ....:     c = lambda x: x.coordinates()
-            ....:     assert bool(c(g.intersection(p)[0]) - c(g.midpoint()) < 1e-9)
-            ....:     assert bool(c(h.intersection(q)[0]) - c(g.midpoint()) < 1e-9)
+            ....:     error_ab = norm(c(g.intersection(p)[0]) - c(g.midpoint()))
+            ....:     error_ba = norm(c(h.intersection(q)[0]) - c(h.midpoint()))
+            ....:     assert(bool(error_ab < 1e-9) and bool(error_ba < 1e-9))
             sage: works_both_ways(1 + I, 2 + 0.5*I)
             sage: works_both_ways(2 + I, 2 + 0.5*I)
         """

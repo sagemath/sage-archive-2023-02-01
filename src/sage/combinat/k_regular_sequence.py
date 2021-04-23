@@ -695,6 +695,22 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 ...
                 ValueError: Recurrence relations for [f(4*n + 1), f(4*n + 2)] are missing.
 
+            ::
+
+                sage: Seq2._parse_recurrence_([f(2*n) == f(n - 42),
+                ....:                          f(2*n + 1) == f(n + 42)], f, n, 41)
+                Traceback (most recent call last):
+                ...
+                ValueError: Offset 41 is smaller than max(42, 0).
+
+            Correct version of the previous test::
+
+                sage: Seq2._parse_recurrence_([f(2*n) == f(n - 42),
+                ....:                          f(2*n + 1) == f(n + 42)], f, n, 42)
+                recursion_rules(M=1, m=0, l=-42, u=42, ll=-84, uu=84, dim=253,
+                coeffs={(1, 42): 1, (0, -42): 1}, initial_values={}, offset=42,
+                n1=84)
+
             Finally, also for the zero-sequence the output is as expected::
 
                 sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)

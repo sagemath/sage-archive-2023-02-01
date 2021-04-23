@@ -992,6 +992,42 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             return _mul_(self, switch_sides=True)
         return _mul_(x)
 
+    def __pow__(self, x, mod):
+        """
+        TESTS::
+
+            sage: ZZ^3
+            Ambient free module of rank 3 over the principal ideal domain
+             Integer Ring
+            sage: QQ^3
+            Vector space of dimension 3 over Rational Field
+            sage: QQ[x]^3
+            Ambient free module of rank 3 over the principal ideal domain
+             Univariate Polynomial Ring in x over Rational Field
+            sage: IntegerModRing(6)^3
+            Ambient free module of rank 3 over Ring of integers modulo 6
+
+            sage: 3^ZZ
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: 'Integer Ring' and '<class 'sage.rings.integer_ring.IntegerRing_class'>'
+            sage: Partitions(3)^3
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'Partitions_n_with_category' and 'int'
+        """
+        if mod is not None or not isinstance(self, Parent):
+            return NotImplemented
+        try:
+            meth = super(Parent, (<Parent> self)).__pow__
+        except AttributeError:
+            # needed when self is a Cython object
+            try:
+                meth = (<Parent> self).getattr_from_category('__pow__')
+            except AttributeError:
+                return NotImplemented
+        return meth(x)
+
     #############################################################################
     # Containment testing
     #############################################################################

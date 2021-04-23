@@ -990,7 +990,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(8*n + 5) == -51*f(2*n - 1) + 50*f(2*n) + 51*f(2*n + 1),
             ....:     f(8*n + 6) == -61*f(2*n - 1) + 60*f(2*n) + 61*f(2*n + 1),
             ....:     f(8*n + 7) == -71*f(2*n - 1) + 70*f(2*n) + 71*f(2*n + 1),],
-            ....:     f, n)
+            ....:     f, n, 1)
             sage: Seq2._get_matrix_from_recurrence_(rules, 0, f, n, False)
             [  0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0]

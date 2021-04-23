@@ -718,6 +718,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         def _parse_multiplication_(op):
             operands = op.operands()
+            assert op.operator() == mul_vararg and len(operands) == 2
             if operands[1].operator() == function:
                 return [operands[0], operands[1]]
             elif operands[0].operator() == function:

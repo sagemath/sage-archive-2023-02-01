@@ -680,14 +680,14 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: D = M.subset_digraph(); D
             Digraph on 4 vertices
             sage: D.edges(key=lambda e: (e[0]._name, e[1]._name))
-            [(Set {U} of subsets of the 3-dimensional differentiable manifold M,
-              Set {M} of subsets of the 3-dimensional differentiable manifold M,
+            [(Set {U} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of open subsets of the 3-dimensional differentiable manifold M,
               None),
-             (Set {V} of subsets of the 3-dimensional differentiable manifold M,
-              Set {M} of subsets of the 3-dimensional differentiable manifold M,
+             (Set {V} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of open subsets of the 3-dimensional differentiable manifold M,
               None),
-             (Set {W} of subsets of the 3-dimensional differentiable manifold M,
-              Set {M} of subsets of the 3-dimensional differentiable manifold M,
+             (Set {W} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of open subsets of the 3-dimensional differentiable manifold M,
               None)]
             sage: D.plot(layout='acyclic')                                  # not tested
             sage: def label(element):
@@ -765,15 +765,15 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P = M.subset_poset(); P
             Finite poset containing 5 elements
             sage: P.maximal_elements()
-            [Set {M} of subsets of the 3-dimensional differentiable manifold M]
+            [Set {M} of open subsets of the 3-dimensional differentiable manifold M]
             sage: sorted(P.minimal_elements(), key=lambda v: v._name)
-             [Set {U} of subsets of the 3-dimensional differentiable manifold M,
-              Set {V} of subsets of the 3-dimensional differentiable manifold M,
-              Set {W} of subsets of the 3-dimensional differentiable manifold M]
+             [Set {U} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {V} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {W} of open subsets of the 3-dimensional differentiable manifold M]
             sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
             sage: sorted(P.lower_covers(ManifoldSubsetFiniteFamily([M])), key=str)
-             [Set {U} of subsets of the 3-dimensional differentiable manifold M,
-              Set {V_union_W} of subsets of the 3-dimensional differentiable manifold M]
+             [Set {U} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {V_union_W} of open subsets of the 3-dimensional differentiable manifold M]
             sage: P.plot(element_labels={element: element._name for element in P})   # not tested
 
         If ``open_covers`` is ``True``, the poset includes a special vertex for
@@ -783,9 +783,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             Finite poset containing 6 elements
             sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
             sage: P.upper_covers(ManifoldSubsetFiniteFamily([VW]))
-            [(Set {V} of subsets of the 3-dimensional differentiable manifold M,
-              Set {W} of subsets of the 3-dimensional differentiable manifold M),
-             Set {M} of subsets of the 3-dimensional differentiable manifold M]
+            [(Set {V} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {W} of open subsets of the 3-dimensional differentiable manifold M),
+             Set {M} of open subsets of the 3-dimensional differentiable manifold M]
             sage: def label(element):
             ....:     try:
             ....:         return element._name

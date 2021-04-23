@@ -230,4 +230,7 @@ class ManifoldSubsetFiniteFamily(ManifoldObjectFiniteFamily):
             'Set {A, B} of subsets of the 2-dimensional topological manifold M'
 
         """
-        return "subsets"
+        if all(subset.is_open() for subset in self):
+            return "open subsets"
+        else:
+            return "subsets"

@@ -50,7 +50,7 @@ EXAMPLES::
     sage: Z, = C([0,0,1]).places()
     sage: pls.remove(Z)
     sage: G = 3*Z
-    sage: codes.CartierCode(pls, G)
+    sage: codes.CartierCode(pls, G)  # long time
     [9, 4] Cartier code over GF(3)
 
 AUTHORS:
@@ -605,8 +605,8 @@ class CartierCode(AGCode):
         sage: Z, = C(0,0,1).places()
         sage: pls.remove(Z)
         sage: G = 3*Z
-        sage: code = codes.CartierCode(pls, G)
-        sage: code.minimum_distance()
+        sage: code = codes.CartierCode(pls, G)  # long time
+        sage: code.minimum_distance()           # long time
         2
     """
     def __init__(self, pls, G, r=1, name=None):
@@ -623,8 +623,8 @@ class CartierCode(AGCode):
             sage: Z, = C(0,0,1).places()
             sage: pls.remove(Z)
             sage: G = 3*Z
-            sage: code = codes.CartierCode(pls, G)
-            sage: TestSuite(code).run()
+            sage: code = codes.CartierCode(pls, G)  # long time
+            sage: TestSuite(code).run()             # long time
         """
         F = G.parent().function_field()
         K = F.constant_base_field()
@@ -721,9 +721,9 @@ class CartierCode(AGCode):
             sage: pls = F.places()
             sage: Z, = C(0,0,1).places()
             sage: pls.remove(Z)
-            sage: c1 = codes.CartierCode(pls, 3*Z)
-            sage: c2 = codes.CartierCode(pls, 1*Z)
-            sage: c1 == c2
+            sage: c1 = codes.CartierCode(pls, 3*Z)  # long time
+            sage: c2 = codes.CartierCode(pls, 1*Z)  # long time
+            sage: c1 == c2                          # long time
             False
         """
         if self is other:
@@ -748,8 +748,8 @@ class CartierCode(AGCode):
             sage: Z, = C(0,0,1).places()
             sage: pls.remove(Z)
             sage: G = 3*Z
-            sage: code = codes.CartierCode(pls, G)
-            sage: {code: 1}
+            sage: code = codes.CartierCode(pls, G)  # long time
+            sage: {code: 1}                         # long time
             {[9, 4] Cartier code over GF(3): 1}
         """
         return hash((self._pls, self._G, self._r))
@@ -768,7 +768,7 @@ class CartierCode(AGCode):
             sage: Z, = C(0,0,1).places()
             sage: pls.remove(Z)
             sage: G = 3*Z
-            sage: codes.CartierCode(pls, G)
+            sage: codes.CartierCode(pls, G)  # long time
             [9, 4] Cartier code over GF(3)
         """
         return "[{}, {}] Cartier code over GF({})".format(
@@ -788,8 +788,8 @@ class CartierCode(AGCode):
             sage: Z, = C(0,0,1).places()
             sage: pls.remove(Z)
             sage: G = 3*Z
-            sage: code = codes.CartierCode(pls, G)
-            sage: latex(code)
+            sage: code = codes.CartierCode(pls, G)  # long time
+            sage: latex(code)                       # long time
             [9, 4]\text{ Cartier code over }\Bold{F}_{3}
         """
         return r"[{}, {}]\text{{ Cartier code over }}{}".format(
@@ -809,8 +809,8 @@ class CartierCode(AGCode):
             sage: Z, = C(0,0,1).places()
             sage: pls.remove(Z)
             sage: G = 3*Z
-            sage: code = codes.CartierCode(pls, G)
-            sage: code.generator_matrix()
+            sage: code = codes.CartierCode(pls, G)  # long time
+            sage: code.generator_matrix()           # long time
             [1 0 0 2 2 0 2 2 0]
             [0 1 0 2 2 0 2 2 0]
             [0 0 1 0 0 0 0 0 2]
@@ -835,8 +835,8 @@ class CartierCode(AGCode):
             sage: Z, = C(0,0,1).places()
             sage: pls.remove(Z)
             sage: G = 3*Z
-            sage: code = codes.CartierCode(pls, G)
-            sage: code.designed_distance()
+            sage: code = codes.CartierCode(pls, G)  # long time
+            sage: code.designed_distance()          # long time
             1
         """
         if self.dimension() == 0:

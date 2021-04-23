@@ -17,28 +17,28 @@ EXAMPLES::
     sage: pls.remove(Q)
     sage: pls.remove(O)
     sage: G = -O + 18*Q
-    sage: code = codes.EvaluationAGCode(pls, G)
-    sage: code
+    sage: code = codes.EvaluationAGCode(pls, G)  # long time
+    sage: code                                   # long time
     [26, 15] evaluation AG code over GF(9)
-    sage: decoder = code.decoder('K')
-    sage: tau = decoder.decoding_radius()
-    sage: tau
+    sage: decoder = code.decoder('K')            # long time
+    sage: tau = decoder.decoding_radius()        # long time
+    sage: tau                                    # long time
     4
 
 The ``decoder`` is now ready for correcting vectors received from a noisy
 channel::
 
-    sage: channel = channels.StaticErrorRateChannel(code.ambient_space(), tau)
-    sage: message_space = decoder.message_space()
-    sage: message = message_space.random_element()
-    sage: encoder = decoder.connected_encoder()
-    sage: sent_codeword = encoder.encode(message)
-    sage: received_vector = channel(sent_codeword)
-    sage: (received_vector - sent_codeword).hamming_weight()
+    sage: channel = channels.StaticErrorRateChannel(code.ambient_space(), tau)  # long time
+    sage: message_space = decoder.message_space()                               # long time
+    sage: message = message_space.random_element()                              # long time
+    sage: encoder = decoder.connected_encoder()                                 # long time
+    sage: sent_codeword = encoder.encode(message)                               # long time
+    sage: received_vector = channel(sent_codeword)                              # long time
+    sage: (received_vector - sent_codeword).hamming_weight()                    # long time
     4
-    sage: decoder.decode_to_code(received_vector) == sent_codeword
+    sage: decoder.decode_to_code(received_vector) == sent_codeword              # long time
     True
-    sage: decoder.decode_to_message(received_vector) == message
+    sage: decoder.decode_to_message(received_vector) == message                 # long time
     True
 
 AUTHORS:
@@ -247,8 +247,8 @@ class DifferentialAGCodeEncoder(Encoder):
         sage: D = [pl for pl in pls if pl != Q]
         sage: G = 5*Q
         sage: code = codes.DifferentialAGCode(D, G)
-        sage: dec = code.decoder('K', Q)
-        sage: enc = dec.connected_encoder(); enc
+        sage: dec = code.decoder('K', Q)          # long time
+        sage: enc = dec.connected_encoder(); enc  # long time
         Encoder for [8, 3] differential AG code over GF(4)
 
     Constructing a decoder for an AG code takes much time. So we save the
@@ -699,29 +699,29 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
         sage: D = [pl for pl in pls if pl != Q]
         sage: G = 5*Q
         sage: code = codes.DifferentialAGCode(D, G)
-        sage: dec = code.decoder('K', Q)
-        sage: enc = dec.connected_encoder()
         sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 2)
-        sage: rv = chan.transmit(code.random_element())
-        sage: enc.encode(dec.decode_to_message(rv)) in code
+        sage: rv = chan.transmit(code.random_element())      # long time
+        sage: dec = code.decoder('K', Q)                     # long time
+        sage: enc = dec.connected_encoder()                  # long time
+        sage: enc.encode(dec.decode_to_message(rv)) in code  # long time
         True
 
     If ``basis`` is given, that defines the associated residue encoding map::
 
         sage: basis = tuple((G - sum(D)).basis_differential_space())
-        sage: dec2 = code.decoder('K', Q, basis)
-        sage: enc2 = dec2.connected_encoder()
         sage: w = basis[0]
         sage: cw = vector(w.residue(p) for p in D)
-        sage: enc2.unencode(cw)
+        sage: dec2 = code.decoder('K', Q, basis)    # long time
+        sage: enc2 = dec2.connected_encoder()       # long time
+        sage: enc2.unencode(cw)                     # long time
         (1, 0, 0)
-        sage: enc2.encode(_) == cw
+        sage: enc2.encode(_) == cw                  # long time
         True
         sage: w = basis[1]
         sage: cw = vector(w.residue(p) for p in D)
-        sage: enc2.unencode(cw)
+        sage: enc2.unencode(cw)                     # long time
         (0, 1, 0)
-        sage: enc2.encode(_) == cw
+        sage: enc2.encode(_) == cw                  # long time
         True
 
     The default ``basis`` is given by ``code.basis_differentials()``.
@@ -879,8 +879,8 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
 
             sage: dec = load(SAGE_SRC + '/sage/coding/tests/diff_decoder')
             sage: code = dec.code()
-            sage: cw = code.random_element()
-            sage: dec._encode(dec._decode(cw)) == cw
+            sage: cw = code.random_element()           # long time
+            sage: dec._encode(dec._decode(cw)) == cw   # long time
             True
         """
         Cinv = self._Cinv
@@ -938,10 +938,10 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 2)
-            sage: rv = chan.transmit(code.random_element())
-            sage: msg = dec.decode_to_message(rv)
-            sage: cw = enc.encode(msg)
-            sage: (cw - rv).hamming_weight() == 2
+            sage: rv = chan.transmit(code.random_element())  # long time
+            sage: msg = dec.decode_to_message(rv)            # long time
+            sage: cw = enc.encode(msg)                       # long time
+            sage: (cw - rv).hamming_weight() == 2            # long time
             True
         """
         return self._decode(received_vector, **kwargs)
@@ -963,9 +963,9 @@ class DifferentialAGCodeUniqueDecoder(Decoder):
             sage: enc = dec.connected_encoder()
             sage: code = dec.code()
             sage: chan = channels.StaticErrorRateChannel(code.ambient_space(), 2)
-            sage: rv = chan.transmit(code.random_element())
-            sage: cw = dec.decode_to_code(rv)
-            sage: (cw - rv).hamming_weight() == 2
+            sage: rv = chan.transmit(code.random_element())  # long time
+            sage: cw = dec.decode_to_code(rv)                # long time
+            sage: (cw - rv).hamming_weight() == 2            # long time
             True
         """
         return self._encode(self._decode(received_vector, **kwargs))
@@ -1715,14 +1715,14 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
         sage: D = [pl for pl in pls if pl != Q]
         sage: G = 5*Q
         sage: from sage.coding.ag_code_decoders import DifferentialAGCodeDecoder_K
-        sage: circuit = DifferentialAGCodeDecoder_K(D, G, Q)
-        sage: rv = vector([1, a, 1, a, 1, a, a, a + 1])
-        sage: cw = circuit.encode(circuit.decode(rv))
-        sage: rv - cw
+        sage: circuit = DifferentialAGCodeDecoder_K(D, G, Q)  # long time
+        sage: rv = vector([1, a, 1, a, 1, a, a, a + 1])       # long time
+        sage: cw = circuit.encode(circuit.decode(rv))         # long time
+        sage: rv - cw                                         # long time
         (0, 0, 0, a + 1, 1, 0, 0, 0)
-        sage: circuit.info['designed_distance']
+        sage: circuit.info['designed_distance']               # long time
         5
-        sage: circuit.info['decoding_radius']
+        sage: circuit.info['decoding_radius']                 # long time
         2
 
     We save the decoder for later tests::
@@ -1964,7 +1964,7 @@ cdef class Decoder_K_extension(object):
         sage: F = C.function_field()
         sage: G = 1*F.get_place(4)
         sage: code = codes.EvaluationAGCode(pls, G)
-        sage: dec = code.decoder('K'); dec
+        sage: dec = code.decoder('K'); dec                        # long time
         Unique decoder for [9, 4] evaluation AG code over GF(4)
 
     ::
@@ -1976,8 +1976,8 @@ cdef class Decoder_K_extension(object):
         5
         sage: F = C.function_field()
         sage: G = F.get_place(2).divisor()
-        sage: code = codes.EvaluationAGCode(pls, G)
-        sage: code.decoder('K')
+        sage: code = codes.EvaluationAGCode(pls, G)  # long time
+        sage: code.decoder('K')                      # long time
         Unique decoder for [5, 3] evaluation AG code over GF(4)
 
     We save the decoder for later tests::
@@ -2076,8 +2076,8 @@ cdef class Decoder_K_extension(object):
             sage: code = decoder.code()
             sage: lift = decoder._circuit._lift
             sage: pull_back = decoder._circuit._pull_back
-            sage: v = code.random_element()
-            sage: pull_back(lift(v)) == v
+            sage: v = code.random_element()  # long time
+            sage: pull_back(lift(v)) == v    # long time
             True
         """
         embedK = self._embedK
@@ -2094,8 +2094,8 @@ cdef class Decoder_K_extension(object):
             sage: code = decoder.code()
             sage: lift = decoder._circuit._lift
             sage: pull_back = decoder._circuit._pull_back
-            sage: v = code.random_element()
-            sage: pull_back(lift(v)) == v
+            sage: v = code.random_element()  # long time
+            sage: pull_back(lift(v)) == v    # long time
             True
         """
         K = self._K
@@ -2109,9 +2109,9 @@ cdef class Decoder_K_extension(object):
 
             sage: decoder = load(SAGE_SRC + '/sage/coding/tests/decoder_K_extension')
             sage: code = decoder.code()
-            sage: cw = code.random_element()
-            sage: circuit = decoder._circuit
-            sage: circuit.encode(circuit.decode(cw)) == cw
+            sage: cw = code.random_element()                 # long time
+            sage: circuit = decoder._circuit                 # long time
+            sage: circuit.encode(circuit.decode(cw)) == cw   # long time
             True
         """
         return self.decoder_ext.encode(message, **kwargs)
@@ -2128,9 +2128,9 @@ cdef class Decoder_K_extension(object):
 
             sage: decoder = load(SAGE_SRC + '/sage/coding/tests/decoder_K_extension')
             sage: code = decoder.code()
-            sage: cw = code.random_element()
-            sage: circuit = decoder._circuit
-            sage: circuit.encode(circuit.decode(cw)) == cw
+            sage: cw = code.random_element()                # long time
+            sage: circuit = decoder._circuit                # long time
+            sage: circuit.encode(circuit.decode(cw)) == cw  # long time
             True
         """
         return self.decoder_ext.decode(received_vector, **kwargs)
@@ -2164,9 +2164,9 @@ cdef class EvaluationAGCodeDecoder_K_extension(Decoder_K_extension):
         sage: Q = F.get_place(3)
         sage: from sage.coding.ag_code_decoders import EvaluationAGCodeDecoder_K_extension
         sage: circuit = EvaluationAGCodeDecoder_K_extension(pls, G, Q)
-        sage: cw = code.random_element()
-        sage: rv = cw + vector([0,1,1,0,0,0,0,0,0])
-        sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)
+        sage: cw = code.random_element()   # long time
+        sage: rv = cw + vector([0,1,1,0,0,0,0,0,0])  # long time
+        sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)  # long time
         True
 
     We save the decoder for later tests::
@@ -2210,13 +2210,13 @@ cdef class DifferentialAGCodeDecoder_K_extension(Decoder_K_extension):
         sage: pls = C.places()
         sage: F = C.function_field()
         sage: G = 1*F.get_place(4)
-        sage: code = codes.DifferentialAGCode(pls, G)
+        sage: code = codes.DifferentialAGCode(pls, G)  # long time
         sage: Q = F.get_place(3)
         sage: from sage.coding.ag_code_decoders import DifferentialAGCodeDecoder_K_extension
-        sage: circuit = DifferentialAGCodeDecoder_K_extension(pls, G, Q)
-        sage: cw = code.random_element()
-        sage: rv = cw + vector([0,0,a,0,0,0,0,0,0])
-        sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)
+        sage: circuit = DifferentialAGCodeDecoder_K_extension(pls, G, Q)  # long time
+        sage: cw = code.random_element()                                  # long time
+        sage: rv = cw + vector([0,0,a,0,0,0,0,0,0])                       # long time
+        sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)  # long time
         True
 
     TESTS::

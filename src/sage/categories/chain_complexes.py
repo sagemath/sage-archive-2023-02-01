@@ -16,7 +16,6 @@ Category of chain complexes
 from .category_types import Category_module
 from .modules import Modules
 from .functor import Functor
-from .morphism import SetMorphism
 from sage.misc.abstract_method import abstract_method
 
 #############################################################
@@ -181,7 +180,23 @@ class HomologyFunctor(Functor):
 
     Applying to a chain map::
 
-        ...
+        sage: S = simplicial_complexes.Sphere(1); S
+        Minimal triangulation of the 1-sphere
+        sage: C = S.chain_complex()
+        sage: C.differential()
+        {0: [], 1: [-1 -1  0]
+         [ 1  0 -1]
+         [ 0  1  1], 2: []}
+        sage: f = {0:zero_matrix(ZZ,3,3),1:zero_matrix(ZZ,3,3)}
+        sage: G = Hom(C,C)
+        sage: x = G(f)
+        sage: H = HomologyFunctor(ChainComplexes(ZZ), 1)
+        sage: H(C)
+        Z
+        sage: H(x)
+        Generic morphism:
+          From: Z
+          To:   Z
 
     """
     def __init__(self, domain, n=None):
@@ -224,9 +239,16 @@ class HomologyFunctor(Functor):
         ...
 
         """
-        lift = self.domain.lift_from_homology
-        reduce = self.codomain.reduce_to_homology
+        from .morphism import SetMorphism
+        from .homset import Hom
+        from .commutative_additive_groups import CommutativeAdditiveGroups
+
+        domain = f.domain()
+        codomain = f.codomain()
+        lift = domain.lift_from_homology
+        reduce = codomain.reduce_to_homology
         apply_f_star = lambda x: reduce(f(lift(x)), self.__n)
-        return SetMorphism(self.domain.homology(self.__n),
-                           self.codomain.homology(self.__n),
+        return SetMorphism(Hom(domain.homology(self.__n),
+                               codomain.homology(self.__n),
+                               CommutativeAdditiveGroups()),
                            apply_f_star)

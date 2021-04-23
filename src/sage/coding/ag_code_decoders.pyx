@@ -17,28 +17,28 @@ EXAMPLES::
     sage: pls.remove(Q)
     sage: pls.remove(O)
     sage: G = -O + 18*Q
-    sage: code = codes.EvaluationAGCode(pls, G)  # long time
-    sage: code                                   # long time
+    sage: code = codes.EvaluationAGCode(pls, G)
+    sage: code
     [26, 15] evaluation AG code over GF(9)
-    sage: decoder = code.decoder('K')            # long time
-    sage: tau = decoder.decoding_radius()        # long time
-    sage: tau                                    # long time
+    sage: decoder = code.decoder('K')
+    sage: tau = decoder.decoding_radius()
+    sage: tau
     4
 
 The ``decoder`` is now ready for correcting vectors received from a noisy
 channel::
 
-    sage: channel = channels.StaticErrorRateChannel(code.ambient_space(), tau)  # long time
-    sage: message_space = decoder.message_space()                               # long time
-    sage: message = message_space.random_element()                              # long time
-    sage: encoder = decoder.connected_encoder()                                 # long time
-    sage: sent_codeword = encoder.encode(message)                               # long time
-    sage: received_vector = channel(sent_codeword)                              # long time
-    sage: (received_vector - sent_codeword).hamming_weight()                    # long time
+    sage: channel = channels.StaticErrorRateChannel(code.ambient_space(), tau)
+    sage: message_space = decoder.message_space()
+    sage: message = message_space.random_element()
+    sage: encoder = decoder.connected_encoder()
+    sage: sent_codeword = encoder.encode(message)
+    sage: received_vector = channel(sent_codeword)
+    sage: (received_vector - sent_codeword).hamming_weight()
     4
-    sage: decoder.decode_to_code(received_vector) == sent_codeword              # long time
+    sage: decoder.decode_to_code(received_vector) == sent_codeword
     True
-    sage: decoder.decode_to_message(received_vector) == message                 # long time
+    sage: decoder.decode_to_message(received_vector) == message
     True
 
 AUTHORS:
@@ -60,7 +60,6 @@ AUTHORS:
 cimport cython
 
 from sage.rings.all import PolynomialRing
-from sage.rings.infinity import infinity
 from sage.rings.function_field.all import FunctionField
 
 from sage.modules.free_module_element import vector
@@ -71,6 +70,7 @@ from .decoder import Decoder, DecodingError
 
 from sage.structure.element cimport Vector
 from sage.matrix.matrix cimport Matrix
+from sage.rings.polynomial.polynomial_element cimport Polynomial
 
 
 class EvaluationAGCodeEncoder(Encoder):
@@ -1032,18 +1032,14 @@ cdef class Decoder_K(object):
         message_index = self.message_index
         return vector(sum([message[i]*code_basis[i] for i in range(len(message_index))]))
 
-    def _degree(self, f):
+    cdef inline int _degree(self, Polynomial f):
         """
         Return the degree of polynomial ``f``
 
-        TESTS::
-
-            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/decoder_K')
-            sage: circuit._degree(0)
-            -Infinity
+        For zero polynomial, return a negative integer to effect as -infinity.
         """
         if f.is_zero():
-            return -infinity
+            return -0b1000000000000000000000000  # -16777216
         else:
             return f.degree()
 
@@ -1064,17 +1060,11 @@ cdef class Decoder_K(object):
         sk[0] = (s - d) // gamma
         si[0] = i
 
-    def _substitution(self, vec, w, k, int i):
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    cdef Vector _substitution(self, Vector vec, w, int k, int i):
         r"""
         Substitute ``z`` with ``(z + w*phi_s)``.
-
-        TESTS::
-
-            sage: circuit = load(SAGE_SRC + '/sage/coding/tests/decoder_K')
-            sage: F.<a> = GF(4)
-            sage: W.<x> = F[]
-            sage: circuit._substitution(vector([0, a*x^2 + a*x, x + 1, 0]), a, 1, 1)
-            (0, 0, x + 1, 0)
         """
         cdef int j
         cdef int gamma = self.gamma
@@ -1125,8 +1115,10 @@ cdef class Decoder_K(object):
         cdef int k, ip, count, delta, dlt, wlt, pos, wd_hvec
         cdef list mat, nu, mu, message
         cdef list i_k, i_prime, i_value, i_count, voting_value, voting_count
-        cdef Vector hvec
+        cdef list std
+        cdef Vector row, hvec
         cdef Matrix coeff_mat, gbmat
+        cdef Polynomial t
         cdef bint found_Q
 
         cdef int code_length = self.code_length
@@ -1150,10 +1142,6 @@ cdef class Decoder_K(object):
         W = self.W
         x = self.x
 
-        # auxiliary functions
-        degree = self._degree
-        substitution = self._substitution
-
         K = W.base_ring()
 
         if verbose:
@@ -1166,7 +1154,7 @@ cdef class Decoder_K(object):
                     print('[', end='')
                     for i in reversed(range(gamma)):
                         t = g[gamma + i]
-                        wd = gamma * degree(t) + dR[i] + s
+                        wd = gamma * self._degree(t) + <int> dR[i] + s
                         s1 = '{} y{}z'.format(0 if t == 0 else t.lt(), i)
                         if t != 0:
                             s2 = '{:<4}'.format('({})'.format(wd))
@@ -1175,7 +1163,7 @@ cdef class Decoder_K(object):
                         print(('{:>' + str(width) + '} ').format(s1 + s2), end='')
                     for i in reversed(range(gamma)):
                         t = g[i]
-                        wd = gamma * degree(t) + dRbar[i]
+                        wd = gamma * self._degree(t) + <int> dRbar[i]
                         s1 = '{} w{}' if self.is_differential else '{} Y{}'
                         s1 = s1.format(0 if t == 0 else t.lt(), i)
                         if t != 0:
@@ -1191,7 +1179,7 @@ cdef class Decoder_K(object):
         hvec = sum(received_vector[i] * hvecs[i] for i in range(code_length))
 
         # weighted degree of hvec
-        wd_hvec = max(gamma * degree(hvec[i]) + dRbar[i] for i in range(gamma))
+        wd_hvec = max(gamma * self._degree(hvec[i]) + <int> dRbar[i] for i in range(gamma))
 
         if wd_hvec <= 0:
             if verbose:
@@ -1244,7 +1232,7 @@ cdef class Decoder_K(object):
                 voting_count = []
                 for i in range(gamma):
                     # detect decoding failure
-                    dlt = degree(gbmat[gamma + i, gamma + i])
+                    dlt = self._degree(gbmat[gamma + i, gamma + i])
                     delta += dlt
                     if detect_decoding_failure and delta > tau:
                         # more errors than tau; declare failure
@@ -1253,14 +1241,14 @@ cdef class Decoder_K(object):
                         raise DecodingError("more errors than decoding radius")
 
                     # detect Q-polynomial
-                    wlt = gamma * dlt + dR[i]
+                    wlt = gamma * dlt + <int> dR[i]
                     if detect_Q_polynomial and wlt + s + tau < designed_distance:
                         found_Q = True
                         posQ = (s, i)
                         break
 
                     self._exponents(wlt + s, &k, &ip)
-                    count = degree(gbmat[ip, ip]) - k
+                    count = self._degree(gbmat[ip, ip]) - k
                     i_k.append(k)
                     i_prime.append(ip)
                     i_count.append(count)
@@ -1319,8 +1307,8 @@ cdef class Decoder_K(object):
                     row_i = gbmat[gamma + i]
                     row_ip = gbmat[i_prime[i]]
                     if winner != 0:
-                        row_i = substitution(row_i, winner, sk, si)
-                        row_ip = substitution(row_ip, winner, sk, si)
+                        row_i = self._substitution(row_i, winner, sk, si)
+                        row_ip = self._substitution(row_ip, winner, sk, si)
                     if i_value[i] == winner:
                         nrow_ip = row_ip
                         nrow_i = row_i
@@ -1347,7 +1335,7 @@ cdef class Decoder_K(object):
                 s, i = posQ
                 if verbose:
                     print("found a Q-polynomial at s = {}, F{}".format(s, i))
-                dlt = gamma * degree(gbmat[gamma + i,gamma + i]) + dR[i]
+                dlt = gamma * self._degree(gbmat[gamma + i,gamma + i]) + <int> dR[i]
 
                 while s >= s0:
                     if verbose:
@@ -1360,7 +1348,7 @@ cdef class Decoder_K(object):
                         mui = gbmat[gamma + i,gamma + i].lc() * coeff_mat[i, si]
                         value = -gbmat[gamma + i, ip][k] / mui
                         if not value.is_zero():
-                            gbmat[gamma + i] = substitution(gbmat[gamma + i], value, sk, si)
+                            gbmat[gamma + i] = self._substitution(gbmat[gamma + i], value, sk, si)
                         if verbose:
                             print("message symbol:", value)
                         message.insert(0, value)
@@ -1374,7 +1362,9 @@ cdef class Decoder_K(object):
 
         return vector(K, message)
 
-    cdef int _next(self, int s):
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    cdef inline int _next(self, int s):
         """
         Return the next value after ``s`` in dRbar(dWbar).
         """
@@ -1389,7 +1379,9 @@ cdef class Decoder_K(object):
             if s >= d:
                 return s
 
-    cdef void _get_eta_basis(self, list basis, list vecs, int s0, mon_func):
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    cdef inline void _get_eta_basis(self, list basis, list vecs, int s0, mon_func):
         """
         Compute a basis of J and h-functions via FGLM algorithm.
 
@@ -1585,8 +1577,6 @@ cdef class EvaluationAGCodeDecoder_K(Decoder_K):
         self.W = W
         self.x = x
 
-        degree = self._degree
-
         def ev_mon(int sk, int si):
             cdef int i
             return vector([evxR[i]**sk * evyRbar[si][i] for i in range(code_length)])
@@ -1626,8 +1616,8 @@ cdef class EvaluationAGCodeDecoder_K(Decoder_K):
         def nu(int s):
             cdef int i, sk, si, m = 0
             for i in range(gamma):
-                self._exponents(s + dR[i], &sk, &si)
-                m += max(0, degree(eta_vecs[si][si]) - sk)
+                self._exponents(s + <int> dR[i], &sk, &si)
+                m += max(0, self._degree(eta_vecs[si][si]) - sk)
             return m
 
         nus = [nu(s) for s in message_index]
@@ -1837,8 +1827,6 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
         self.W = W
         self.x = x
 
-        degree = self._degree
-
         def res_mon(int sk, int si):
             cdef int i
             return vector([evxR[i]**sk * reswWbar[si][i] for i in range(code_length)])
@@ -1880,7 +1868,7 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
             m = 0
             for i in range(gamma):
                 self._exponents(s + dR[i], &sk, &si)
-                m += max(0, degree(eta_vecs[si][si]) - sk)
+                m += max(0, self._degree(eta_vecs[si][si]) - sk)
             return m
 
         nus = [nu(s) for s in message_index]
@@ -2163,9 +2151,9 @@ cdef class EvaluationAGCodeDecoder_K_extension(Decoder_K_extension):
         sage: code = codes.EvaluationAGCode(pls, G)
         sage: Q = F.get_place(3)
         sage: from sage.coding.ag_code_decoders import EvaluationAGCodeDecoder_K_extension
-        sage: circuit = EvaluationAGCodeDecoder_K_extension(pls, G, Q)
-        sage: cw = code.random_element()   # long time
-        sage: rv = cw + vector([0,1,1,0,0,0,0,0,0])  # long time
+        sage: circuit = EvaluationAGCodeDecoder_K_extension(pls, G, Q)  # long time
+        sage: cw = code.random_element()                                # long time
+        sage: rv = cw + vector([0,1,1,0,0,0,0,0,0])                     # long time
         sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)  # long time
         True
 

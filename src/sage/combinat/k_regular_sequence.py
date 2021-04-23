@@ -1315,13 +1315,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``equations`` -- A list of equations where the elements have
           either the form
 
-          - `f(k^M n + r) = c_{r,l} f(k^m n + l) +
-            c_{r,l + 1} f(k^m n + l + 1) + ... + c_{r,u} f(k^m n + u)`
-            for some integers `0 \leq r < k^M`, `M > m \geq 0` and `l \leq u`,
-            and some coefficients `c_{r,k}` from the (semi)ring ``coefficents``
-            of the corresponding :class:`kRegularSequenceSpace`, valid for all
-            integers ``n >= offset``, and there is an equation of this form
-            (with the same parameters `M` and `m`) for all `r`
+          - `f(k^M n + r) = c_{r,l} f(k^m n + l) + c_{r,l + 1} f(k^m n
+            + l + 1) + ... + c_{r,u} f(k^m n + u)` for some integers
+            `0 \leq r < k^M`, `M > m \geq 0` and `l \leq u`, and some
+            coefficients `c_{r,k}` from the (semi)ring ``coefficents``
+            of the corresponding :class:`kRegularSequenceSpace`, valid
+            for all integers `n \geq \text{offset}` for some integer
+            `\text{offset} \geq \max(-l/k^m, 0)` (default: ``0``), and
+            there is an equation of this form (with the same
+            parameters `M` and `m`) for all `r`
 
           or the form
 

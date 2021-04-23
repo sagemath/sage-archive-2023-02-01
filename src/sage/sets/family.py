@@ -1165,6 +1165,22 @@ class TrivialFamily(AbstractFamily):
         Parent.__init__(self, category = FiniteEnumeratedSets())
         self._enumeration = tuple(enumeration)
 
+    def __bool__(self):
+        r"""
+        Return if ``self`` is empty or not.
+
+        EXAMPLES::
+
+            sage: from sage.sets.family import TrivialFamily
+            sage: f = TrivialFamily((3,4,7))
+            sage: bool(f)
+            True
+            sage: g = Family([])
+            sage: bool(g)
+            False
+        """
+        return bool(self._enumeration)
+
     def __eq__(self, other):
         """
         TESTS::

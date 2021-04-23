@@ -53,7 +53,7 @@ class ChainComplexes(Category_module):
         return [Modules(base_ring)]
 
     class ParentMethods:
-        @abstract_method(optional=True)
+        @abstract_method
         def homology(self, n=None):
             r"""
             Return the homology of the chain complex.
@@ -114,6 +114,7 @@ class ChainComplexes(Category_module):
 
             """
 
+        @abstract_method(optional=True)
         def lift_from_homology(self, x):
             r"""
             Lift the homology element ``x`` to the corresponding module.
@@ -123,12 +124,6 @@ class ChainComplexes(Category_module):
                 ...
 
             """
-            try:
-                # is homology already a quotient?
-                x.lift()
-            except AttributeError:
-                # if not, this methods needs to be overwritten by parent
-                raise NotImplementedError
 
         def reduce_to_homology(self, x, n=None):
             r"""

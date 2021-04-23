@@ -1001,6 +1001,15 @@ def solve(f, *args, **kwds):
 
         sage: solve([x-4], [x])
         [x == 4]
+
+    Test for a list of non-symbolic expressions as first argument
+    (:trac:`31714`)::
+
+        sage: solve([1], x)
+        Traceback (most recent call last):
+        ...
+        TypeError: The first argument to solve() should be a symbolic expression
+        or a list of symbolic expressions.
     """
     from sage.symbolic.ring import is_SymbolicVariable
     from sage.symbolic.expression import Expression, is_Expression

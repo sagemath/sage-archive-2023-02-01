@@ -39,6 +39,17 @@ cdef class MPolynomial(CommutativeRingElement):
         r"""
         TESTS::
 
+            sage: ZZ(RR['x,y'](0)) # indirect doctest
+            0
+            sage: ZZ(RR['x,y'](0.5))
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to coerce non-integral RealNumber to Integer
+            sage: ZZ(RR['x,y'].gen(0))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert non-constant polynomial x to Integer Ring
+
             sage: RR(RR['x,y'](0)) # indirect doctest
             0.000000000000000
             sage: RR(ZZ['x,y'].gen(0))
@@ -53,6 +64,13 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             TypeError: unable to convert non-constant polynomial x to Complex Field with 53 bits of precision
 
+            sage: RDF(RR['x,y'](0))
+            0.0
+            sage: RDF(ZZ['x,y'].gen(0))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert non-constant polynomial x to Real Double Field
+
             sage: CDF(RR['x,y'](0)) # indirect doctest
             0.0
             sage: CDF(ZZ['x,y'].gen(0))
@@ -60,12 +78,22 @@ cdef class MPolynomial(CommutativeRingElement):
             ...
             TypeError: unable to convert non-constant polynomial x to Complex Double Field
 
-            sage: RDF(RR['x,y'](0))
-            0.0
-            sage: RDF(ZZ['x,y'].gen(0))
+            sage: a = RR['x,y'](1)
+            sage: RBF(a)
+            1.000000000000000
+            sage: RIF(a)
+            1
+            sage: CBF(a)
+            1.000000000000000
+            sage: CIF(a)
+            1
+
+            sage: CBF(RR['x,y'](1)) # indirect doctest
+            1.000000000000000
+            sage: CBF(ZZ['x,y'].gen(0))
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to Real Double Field
+            TypeError: unable to convert non-constant polynomial x to Complex ball field with 53 bits of precision
 
             sage: x = polygen(QQ)
             sage: A.<u> = NumberField(x^3 - 2)

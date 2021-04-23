@@ -29,6 +29,8 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from time import sleep
 
+from multiprocessing import shared_memory
+
 ##########################
 ### Fast class methods ###
 ##########################
@@ -392,12 +394,19 @@ cpdef update_child_fmats(factory, tuple data_tup):
 
         sage: f = FMatrix(FusionRing("A1",3))
         sage: f.get_orthogonality_constraints(output=False)
-        sage: from multiprocessing import Pool, set_start_method
+        sage: from multiprocessing import cpu_count, Pool, set_start_method, shared_memory
         sage: try:
         ....:     set_start_method('fork') # context can be set only once
         ....: except RuntimeError:
         ....:     pass
-        sage: pool = Pool()
+        sage: n = max(cpu_count()-1,1)
+        sage: f._solved = shared_memory.ShareableList(f._solved)
+        sage: s_name = f._solved.shm.name
+        sage: f._var_degs = shared_memory.ShareableList(f._var_degs)
+        sage: vd_name = f._var_degs.shm.name
+        sage: args = (id(f), s_name, vd_name)
+        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import init
+        sage: pool = Pool(processes=n,initializer=init,initargs=args)
         sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
         sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
         sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
@@ -411,8 +420,8 @@ cpdef update_child_fmats(factory, tuple data_tup):
     """
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
-    factory._fvars, factory._solved, factory._ks, factory._var_degs = data_tup
-    # factory._fvars, factory._solved, factory._var_degs = data_tup
+    # factory._fvars, factory._solved, factory._ks, factory._var_degs = data_tup
+    factory._fvars, factory._ks = data_tup
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
 
@@ -439,9 +448,10 @@ cdef inline list collect_eqns(list eqns):
 ### Parallel code executor ###
 ##############################
 
-def init(fmats_id, ks_proxy):
+def init(fmats_id, solved_name, vd_name):
     fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
-    fmats_obj._ks = ks_proxy
+    fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
+    fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
 
 #Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {

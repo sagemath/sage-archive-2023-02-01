@@ -459,7 +459,7 @@ cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, known_sq, NumberFieldElem
 ### Substitution ###
 ####################
 
-cpdef dict compute_known_powers(list max_degs, dict val_dict, one):
+cpdef dict compute_known_powers(max_degs, dict val_dict, one):
     """
     Pre-compute powers of known values for efficiency when preparing to
     substitute into a list of polynomials.
@@ -496,7 +496,7 @@ cpdef dict compute_known_powers(list max_degs, dict val_dict, one):
     #     return {}
     # assert max_deg._nonzero and max(max_deg.nonzero_values(sort=False)) <= 100 or True, "NotImplementedError: Cannot substitute for degree larger than 100"
     assert (max_degs and max(max_degs) <= 100) or True, "Cannot substitute for degree larger than 100"
-    cdef ETuple max_deg = ETuple(max_degs)
+    cdef ETuple max_deg = ETuple(list(max_degs))
     max_deg = max_deg.emin(ETuple({idx: 100 for idx in val_dict}, len(max_deg)))
     cdef dict known_powers
     #Get polynomial unit as tuple to initialize list elements

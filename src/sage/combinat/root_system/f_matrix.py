@@ -26,7 +26,7 @@ import os
 
 from sage.combinat.root_system.fast_parallel_fmats_methods import (
     _backward_subs, _solve_for_linear_terms,
-    executor
+    executor, init
 )
 from sage.combinat.root_system.poly_tup_engine import (
     apply_coeff_map, constant_coeff,
@@ -45,6 +45,8 @@ from sage.rings.ideal import Ideal
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
+
+from multiprocessing import shared_memory
 
 class FMatrix():
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -297,6 +299,7 @@ class FMatrix():
         #Useful solver state attributes
         self.ideal_basis = list()
         self._solved = list(False for fx in self._fvars)
+        self._var_degs = [0]*len(self._fvars)
         self._ks = dict()
         self._kp = dict()
         self._nnz = self._get_known_nonz()
@@ -1204,7 +1207,7 @@ class FMatrix():
             return
         filename = "fmatrix_solver_checkpoint_" + self.get_fr_str() + ".pickle"
         with open(filename, 'wb') as f:
-            pickle.dump([self._fvars, self._solved, self._ks, self.ideal_basis, status], f)
+            pickle.dump([self._fvars, list(self._solved), self._ks, self.ideal_basis, status], f)
         if verbose:
             print(f"Checkpoint {status} reached!")
 
@@ -1472,12 +1475,19 @@ class FMatrix():
 
             sage: f = FMatrix(FusionRing("A1",3))
             sage: f.get_orthogonality_constraints(output=False)
-            sage: from multiprocessing import Pool, set_start_method
+            sage: from multiprocessing import cpu_count, Pool, set_start_method, shared_memory
             sage: try:
             ....:     set_start_method('fork')
             ....: except:
             ....:     pass
-            sage: pool = Pool()
+            sage: n = max(cpu_count()-1,1)
+            sage: f._solved = shared_memory.ShareableList(f._solved)
+            sage: s_name = f._solved.shm.name
+            sage: f._var_degs = shared_memory.ShareableList(f._var_degs)
+            sage: vd_name = f._var_degs.shm.name
+            sage: args = (id(f), s_name, vd_name)
+            sage: from sage.combinat.root_system.fast_parallel_fmats_methods import init
+            sage: pool = Pool(processes=n,initializer=init,initargs=args)
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
             sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
@@ -1489,13 +1499,25 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        self._ks, self._var_degs = self._get_known_sq(eqns), get_variables_degrees(eqns)
+        self._ks = self._get_known_sq(eqns)
+        # print("res",get_variables_degrees(eqns))
+        degs = get_variables_degrees(eqns)
+        if degs:
+            for i, d in enumerate(degs):
+                # print(i, d)
+                self._var_degs[i] = d
+        else:
+            for i in range(len(self._fvars)):
+                self._var_degs[i] = 0
+        # print("vd, var_degs")
+        # self._var_degs = get_variables_degrees(eqns)
         self._nnz = self._get_known_nonz()
         self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
         if worker_pool is not None and children_need_update:
             #self._nnz and self._kp are computed in child processes to reduce IPC overhead
             n_proc = worker_pool._processes
-            new_data = [(self._fvars,self._solved,self._ks,self._var_degs)]*n_proc
+            # new_data = [(self._fvars,self._solved,self._ks,self._var_degs)]*n_proc
+            new_data = [(self._fvars,self._ks)]*n_proc
             self._map_triv_reduce('update_child_fmats',new_data,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
 
     def _triangular_elim(self,eqns=None,worker_pool=None,verbose=True):
@@ -2053,7 +2075,18 @@ class FMatrix():
             set_start_method('fork')
         except RuntimeError:
             pass
-        pool = Pool(processes=max(cpu_count()-1,1)) if use_mp else None
+        # pool = Pool(processes=max(cpu_count()-1,1)) if use_mp else None
+        if use_mp:
+            n = max(cpu_count()-1,1)
+            self._solved = shared_memory.ShareableList(self._solved)
+            print(self._solved)
+            s_name = self._solved.shm.name
+            self._var_degs = shared_memory.ShareableList(self._var_degs)
+            vd_name = self._var_degs.shm.name
+            args = (id(self), s_name, vd_name)
+            pool = Pool(processes=n,initializer=init,initargs=args)
+        else:
+            pool = None
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, len(self._fvars)))
 
@@ -2111,6 +2144,9 @@ class FMatrix():
         #Close worker pool to free resources
         if pool is not None:
             pool.close()
+            #Destroy shared resources
+            self._solved.shm.unlink()
+            self._var_degs.shm.unlink()
 
         #Set up new equations graph and compute variety for each component
         if self._chkpt_status < 5:
@@ -2130,6 +2166,7 @@ class FMatrix():
             os.remove("fmatrix_solver_checkpoint_"+self.get_fr_str()+".pickle")
         if save_results:
             self.save_fvars(save_results)
+
 
     #########################
     ### Cyclotomic method ###

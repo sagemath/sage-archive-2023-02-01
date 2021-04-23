@@ -526,52 +526,61 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return False
 
-    def open_covers(self):
+    def open_covers(self, trivial=True):
         r"""
-        Return the list of open covers of the current subset.
+        Generate the open covers of the current subset.
 
         If the current subset, `A` say, is a subset of the manifold `M`, an
-        *open cover* of `A` is list (indexed set) `(U_i)_{i\in I}` of
-        open subsets of `M` such that
+        *open cover* of `A` is a :class:`ManifoldSubsetFiniteFamily` `F`
+        of open subsets `U \in F` of `M` such that
 
         .. MATH::
 
-            A \subset \bigcup_{i \in I} U_i.
+            A \subset \bigcup_{U \in F} U.
 
         If `A` is open, we ask that the above inclusion is actually an
         identity:
 
         .. MATH::
 
-            A = \bigcup_{i \in I} U_i.
+            A = \bigcup_{U \in F} U.
+
+        INPUT:
+
+        - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
+          open cover of ``self`` by itself
 
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: M.open_covers()
-            [[2-dimensional topological manifold M]]
+            <generator ...>
+            sage: list(M.open_covers())
+            [Set {M} of open subsets of the 2-dimensional topological manifold M]
             sage: U = M.open_subset('U')
-            sage: U.open_covers()
-            [[Open subset U of the 2-dimensional topological manifold M]]
+            sage: list(U.open_covers())
+            [Set {U} of open subsets of the 2-dimensional topological manifold M]
             sage: A = U.open_subset('A')
             sage: B = U.open_subset('B')
             sage: U.declare_union(A,B)
-            sage: U.open_covers()
-            [[Open subset U of the 2-dimensional topological manifold M],
-             [Open subset A of the 2-dimensional topological manifold M,
-              Open subset B of the 2-dimensional topological manifold M]]
+            sage: list(U.open_covers())
+            [Set {U} of open subsets of the 2-dimensional topological manifold M,
+             Set {A, B} of open subsets of the 2-dimensional topological manifold M]
+            sage: list(U.open_covers(trivial=False))
+            [Set {A, B} of open subsets of the 2-dimensional topological manifold M]
             sage: V = M.open_subset('V')
             sage: M.declare_union(U,V)
-            sage: M.open_covers()
-            [[2-dimensional topological manifold M],
-             [Open subset U of the 2-dimensional topological manifold M,
-              Open subset V of the 2-dimensional topological manifold M],
-             [Open subset A of the 2-dimensional topological manifold M,
-              Open subset B of the 2-dimensional topological manifold M,
-              Open subset V of the 2-dimensional topological manifold M]]
+            sage: list(M.open_covers())
+            [Set {M} of open subsets of the 2-dimensional topological manifold M,
+             Set {U, V} of open subsets of the 2-dimensional topological manifold M,
+             Set {A, B, V} of open subsets of the 2-dimensional topological manifold M]
 
         """
-        return list(self._open_covers)
+        for oc in self._open_covers:
+            if not trivial:
+                if len(oc) == 1 and next(iter(oc)) is self:
+                    continue
+            yield ManifoldSubsetFiniteFamily(oc)
 
     def subsets(self):
         r"""

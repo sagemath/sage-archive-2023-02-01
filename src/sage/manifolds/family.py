@@ -110,22 +110,6 @@ class FiniteManifoldObjectFamily(FiniteFamily):
             if not all(object._manifold == self._manifold for object in object_iter):
                 raise TypeError(f'all {self._repr_object_type()} must have the same manifold')
 
-    def __bool__(self):
-        r"""
-        True if nonempty.
-
-        TESTS::
-
-            sage: from sage.manifolds.family import FiniteManifoldObjectFamily
-            sage: bool(FiniteManifoldObjectFamily())
-            False
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: bool(FiniteManifoldObjectFamily([M]))
-            True
-        """
-        # Arguably, FiniteFamily should have this behavior already, but as of Sage 9.3 it does not - #31717
-        return bool(self._dictionary)
-
     def _repr_object_type(self):
         r"""
         String that describes the type of the elements (plural).

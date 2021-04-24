@@ -1294,12 +1294,92 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return self in other._subsets
 
-    def declare_union(self, dom1, dom2):
+    def declare_union(self, *subsets_or_families, disjoint=False):
         r"""
         Declare that the current subset is the union of two subsets.
 
         Suppose `U` is the current subset, then this method declares
-        that `U`
+        that `U = \bigcup_{S\in F} S`.
+
+        INPUT:
+
+        - ``subsets_or_families`` -- finitely many subsets or iterables of subsets
+        - ``disjoint`` -- (default: ``False``) whether to declare the subsets
+          pairwise disjoint
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: AB = M.subset('AB')
+            sage: A = AB.subset('A')
+            sage: B = AB.subset('B')
+            sage: def label(element):
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 4 elements
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 8 graphics primitives
+
+            sage: AB.declare_union(A, B)
+            sage: A.union(B)
+            Subset AB of the 2-dimensional topological manifold M
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 4 elements
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 8 graphics primitives
+
+            sage: B1 = B.subset('B1', is_open=True)
+            sage: B2 = B.subset('B2', is_open=True)
+            sage: B.declare_union(B1, B2, disjoint=True)
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 9 elements
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 19 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(2, 'M', structure='topological')
+            AB = M.subset('AB')
+            A = AB.subset('A')
+            B = AB.subset('B')
+            P = M.subset_poset(open_covers=True); P
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+            AB.declare_union(A, B)
+            A.union(B)
+            P = M.subset_poset(open_covers=True); P
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+            B1 = B.subset('B1', is_open=True)
+            B2 = B.subset('B2', is_open=True)
+            B.declare_union(B1, B2, disjoint=True)
+            P = M.subset_poset(open_covers=True); P
+            g3 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1, g2, g3]), figsize=(8, 3))
+
+        """
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(*subsets_or_families)
+        if disjoint:
+            for U, V in itertools.combinations(subsets, 2):
+                U.intersection(V).declare_empty()
+        if not subsets:
+            self.declare_empty()
+        elif len(subsets) == 2:
+            self._declare_union_2_subsets(*subsets)
+        else:
+            raise NotImplementedError
+
+    def _declare_union_2_subsets(self, dom1, dom2):
+        r"""
+        Declare that the current subset is the union of two of its subsets.
+
+        Suppose `U` is the current subset, then this method declares that
 
         .. MATH::
 

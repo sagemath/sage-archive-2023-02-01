@@ -103,8 +103,14 @@ class PolyhedronRepresentation(SageObject):
         """
         Compare two representation objects
 
-        They are equal if and only if they define the same
-        vertex/ray/line or inequality/equation in the ambient space,
+        This method defines a linear order on the H/V-representation objects.
+        The order is first determined by the types of the objects,
+        such that inequality < equation < vertex < ray < line.
+        Then, representation objects with the same type are ordered
+        lexicographically according to their canonical vectors.
+
+        Thus, two representation objects are equal if and only if they define
+        the same vertex/ray/line or inequality/equation in the ambient space,
         regardless of the polyhedron that they belong to.
 
         INPUT:

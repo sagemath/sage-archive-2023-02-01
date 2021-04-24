@@ -1121,7 +1121,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             sage: B = M.subset('B')
             sage: b = B.point(name='b'); b
-            Point on the 2-dimensional topological manifold M
+            Point b on the 2-dimensional topological manifold M
             sage: B.declare_empty()
             Traceback (most recent call last):
             ...
@@ -1137,7 +1137,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             ....:         return element._name
             ....:     except AttributeError:
             ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
-            sage: P.plot(element_labels={element: label(element) for element in P})  # not tested
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 14 graphics primitives
+
         """
         if self.has_defined_points():
             raise TypeError('cannot be empty because it has defined points')

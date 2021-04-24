@@ -529,7 +529,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return False
 
-    def open_covers(self, trivial=True):
+    def open_covers(self, trivial=True, supersets=False):
         r"""
         Generate the open covers of the current subset.
 
@@ -558,6 +558,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
           open cover of ``self`` by itself
+        - ``supersets`` -- (default: ``False``) if ``True``, include open covers of
+          all the supersets; it can also be an iterable of supersets to include
 
         EXAMPLES::
 
@@ -585,11 +587,16 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              Set {A, B, V} of open subsets of the 2-dimensional topological manifold M]
 
         """
-        for oc in self._open_covers:
-            if not trivial:
-                if len(oc) == 1 and next(iter(oc)) is self:
-                    continue
-            yield ManifoldSubsetFiniteFamily(oc)
+        if supersets is False:
+            supersets = [self]
+        elif supersets is True:
+            supersets = self._supersets
+        for superset in supersets:
+            for oc in superset._open_covers:
+                if not trivial:
+                    if any(x in supersets for x in oc):
+                        continue
+                yield ManifoldSubsetFiniteFamily(oc)
 
     def open_cover_family(self, trivial=True):
         r"""
@@ -1139,7 +1146,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if self._has_defined_points:
             return False
         return any(not cover
-                   for cover in self.open_covers(trivial=False))
+                   for cover in self.open_covers(trivial=False, supersets=True))
 
     def declare_nonempty(self):
         if not self.has_defined_points():

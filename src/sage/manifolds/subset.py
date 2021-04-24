@@ -1140,6 +1140,26 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P.plot(element_labels={element: label(element) for element in P})
             Graphics object consisting of 14 graphics primitives
 
+        .. PLOT::
+
+            def label(element):
+                if isinstance(element, str):
+                    return element
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(2, 'M', structure='topological')
+            A = M.subset('A', is_open=True)
+            AA = A.subset('AA')
+            A.declare_empty()
+            AD = A.subset('AD')
+            B = M.subset('B')
+            b = B.point(name='b')
+            P = M.subset_poset(open_covers=True, points=[b])
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1]), figsize=(8, 3))
+
         """
         if self.has_defined_points():
             raise TypeError('cannot be empty because it has defined points')

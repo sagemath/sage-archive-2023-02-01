@@ -1401,18 +1401,17 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         Check the result is independent of the order (:trac:`29936`)::
 
-            sage: def works_both_ways(a, b):
+            sage: def bisector_gets_midpoint(a, b):
             ....:     UHP = HyperbolicPlane().UHP()
             ....:     g = UHP.get_geodesic(a, b)
-            ....:     h = UHP.get_geodesic(b, a)
             ....:     p = g.perpendicular_bisector()
-            ....:     q = h.perpendicular_bisector()
-            ....:     c = lambda x: x.coordinates()
-            ....:     error_ab = norm(c(g.intersection(p)[0]) - c(g.midpoint()))
-            ....:     error_ba = norm(c(h.intersection(q)[0]) - c(h.midpoint()))
-            ....:     assert(bool(error_ab < 1e-9) and bool(error_ba < 1e-9)), (error_ab, error_ba)
-            sage: works_both_ways(1 + I, 2 + 0.5*I)
-            sage: works_both_ways(2 + I, 2 + 0.5*I)
+            ....:     x = g.intersection(p)[0]
+            ....:     m = g.midpoint()
+            ....:     return bool(x.dist(m) < 1e-9)
+            sage: a, b, c = 1.0 + I, 2.0 + I, 2.0 + 0.5*I
+            sage: pairs = [(a, b), (b, a), (a, c), (c, a), (b, c), (c, b)]
+            sage: all(bisector_gets_midpoint(x, y) for x, y in pairs)
+            True
         """
         if self.length() == infinity:
             raise ValueError("the length must be finite")

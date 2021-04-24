@@ -212,7 +212,7 @@ class ManifoldSubsetFiniteFamily(ManifoldObjectFiniteFamily):
         sage: ManifoldSubsetFiniteFamily([M, N])
         Traceback (most recent call last):
         ...
-        TypeError: all... subsets must have the same manifold
+        TypeError: all open subsets must have the same manifold
 
     """
 

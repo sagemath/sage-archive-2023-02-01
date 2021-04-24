@@ -1410,7 +1410,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ....:     c = lambda x: x.coordinates()
             ....:     error_ab = norm(c(g.intersection(p)[0]) - c(g.midpoint()))
             ....:     error_ba = norm(c(h.intersection(q)[0]) - c(h.midpoint()))
-            ....:     assert(bool(error_ab < 1e-9) and bool(error_ba < 1e-9))
+            ....:     assert(bool(error_ab < 1e-9) and bool(error_ba < 1e-9)), (error_ab, error_ba)
             sage: works_both_ways(1 + I, 2 + 0.5*I)
             sage: works_both_ways(2 + I, 2 + 0.5*I)
         """
@@ -1479,6 +1479,18 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             Point in UHP 0.666666666666667 + 1.69967317119760*I
             sage: parent(g.midpoint().coordinates())
             Complex Field with 53 bits of precision
+
+        Check that the midpoint is independent of the order (:trac:`29936`)::
+
+            sage: g = UHP.get_geodesic(1+I, 2+0.5*I)
+            sage: h = UHP.get_geodesic(2+0.5*I, 1+I)
+            sage: abs(g.midpoint().coordinates() - h.midpoint().coordinates()) < 1e-9
+            True
+
+            sage: g = UHP.get_geodesic(2+I, 2+0.5*I)
+            sage: h = UHP.get_geodesic(2+0.5*I, 2+I)
+            sage: abs(g.midpoint().coordinates() - h.midpoint().coordinates()) < 1e-9
+            True
         """
         from sage.matrix.matrix_symbolic_dense import Matrix_symbolic_dense
         if self.length() == infinity:
@@ -1487,6 +1499,12 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         start = self._start.coordinates()
         end = self._end.coordinates()
         d = self._model._dist_points(start, end) / 2
+        # The complete geodesic p1 -> p2 always returns p1 < p2,
+        #   so we might need to swap start and end
+        if ((real(start - end) > EPSILON) or
+            (abs(real(start - end)) < EPSILON and
+                imag(start - end) > 0)):
+            start, end = end, start
         S = self.complete()._to_std_geod(start)
 
         # If the matrix is symbolic then needs to be simplified in order to
@@ -1496,13 +1514,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         S_1 = S.inverse()
         T = matrix([[exp(d), 0], [0, 1]])
         M = S_1 * T * S
-        if ((real(start - end) < EPSILON) or
-            (abs(real(start - end)) < EPSILON and
-                imag(start - end) < EPSILON)):
-            end_p = start
-        else:
-            end_p = end
-        P_3 = moebius_transform(M, end_p)
+        P_3 = moebius_transform(M, start)
         return self._model.get_point(P_3)
 
     def angle(self, other):  # UHP

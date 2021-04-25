@@ -4283,7 +4283,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.combinat.posets.hasse_diagram import LatticeError
         try:
-            self._hasse_diagram._meet
+            self._hasse_diagram.meet_matrix()
         except LatticeError as error:
             if not certificate:
                 return False
@@ -4354,7 +4354,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.combinat.posets.hasse_diagram import LatticeError
         try:
-            self._hasse_diagram._join
+            self._hasse_diagram.join_matrix()
         except LatticeError as error:
             if not certificate:
                 return False

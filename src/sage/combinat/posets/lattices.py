@@ -3243,6 +3243,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: P = JoinSemilattice({0: [1]})
             sage: E.is_sublattice(P)
             True
+            sage: P = Poset({0: [1]})
+            sage: E.is_sublattice(P)
+            True
         """
         try:
             o_meet = other.meet

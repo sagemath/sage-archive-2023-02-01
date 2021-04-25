@@ -2066,7 +2066,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         r"""
         Return the intersection of the current subset with other subsets.
 
-        This methods may return a previously constructed intersection instead
+        This method may return a previously constructed intersection instead
         of creating a new subset.  In this case, ``name`` and ``latex_name``
         are not used.
 
@@ -2240,13 +2240,17 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 S._top_subsets.add(res)
         return res
 
-    def union(self, other, name=None, latex_name=None):
+    def union(self, *others, name=None, latex_name=None):
         r"""
-        Return the union of the current subset with another subset.
+        Return the union of the current subset with other subsets.
+
+        This method may return a previously constructed union instead
+        of creating a new subset.  In this case, ``name`` and ``latex_name``
+        are not used.
 
         INPUT:
 
-        - ``other`` -- another subset of the same manifold
+        - ``others`` -- other subsets of the same manifold
         - ``name`` -- (default: ``None``) name given to the union in the
           case the latter has to be created; the default is
           ``self._name`` union ``other._name``
@@ -2257,7 +2261,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of :class:`ManifoldSubset` representing the
-          subset that is the union of the current subset with ``other``
+          subset that is the union of the current subset with ``others``
 
         EXAMPLES:
 
@@ -2275,7 +2279,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: c.superset_family()
             Set {A_union_B, M} of subsets of the 2-dimensional topological manifold M
 
-        Some checks::
+        TESTS::
 
             sage: a.is_subset(a.union(b))
             True
@@ -2292,8 +2296,6 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: M.union(a) is M
             True
 
-        TESTS:
-
         Check that :trac:`30401` is fixed::
 
             sage: d = a.subset('D')
@@ -2302,25 +2304,57 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             True
 
         """
-        if other._manifold != self._manifold:
-            raise ValueError("the two subsets do not belong to the same manifold")
-        # Particular cases:
-        if (self is self._manifold) or (other is self._manifold):
-            return self._manifold
-        if self in other._subsets:
-            return other
-        if other in self._subsets:
-            return self
-        # Generic case:
-        if other._name in self._unions:
-            # the union has already been created:
-            return self._unions[other._name]
-        else:
-            # the union must be created:
-            res = self._union_subset(other, name=name, latex_name=latex_name)
-            self._unions[other._name] = res
-            other._unions[self._name] = res
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
+        subsets = self._reduce_union_members(subsets)
+        assert subsets
+        subset_iter = iter(subsets)
+        res = next(subset_iter)
+        others = list(subset_iter)
+        if not others:
             return res
+        for other in others[:-1]:
+            old, res = res, res._union_subset(other)
+            old._unions[other._name] = other._unions[old._name] = res
+        # The last one gets the name
+        other = others[-1]
+        old, res = res, res._union_subset(other, name=name, latex_name=latex_name)
+        old._unions[other._name] = other._unions[old._name] = res
+        return res
+
+    @staticmethod
+    def _reduce_union_members(subsets):
+        r"""
+        Return a reduced set of subsets with the same union as the given subsets.
+
+        It is reduced with respect to two operations:
+
+        - replacing an inclusion chain by its maximal element
+
+        - replacing a pair of subsets with a declared union by the union
+        """
+        subsets = set(subsets)
+        def reduce():
+            # Greedily replace inclusion chains by their maximal element
+            # and pairs with declared unions by their union
+            for U, V in itertools.combinations(subsets, 2):
+                if U.is_subset(V):
+                    subsets.remove(U)
+                    return True
+                if V.is_subset(U):
+                    subsets.remove(V)
+                    return True
+                try:
+                    UV = U._unions[V._name]
+                except KeyError:
+                    pass
+                else:
+                    subsets.difference_update([U, V])
+                    subsets.add(UV)
+                    return True
+            return False
+        while reduce():
+            pass
+        return ManifoldSubsetFiniteFamily(subsets)
 
     def _union_subset(self, other, name=None, latex_name=None):
         r"""

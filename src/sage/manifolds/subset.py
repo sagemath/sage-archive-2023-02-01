@@ -2137,7 +2137,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             from sage.typeset.unicode_art import unicode_subscript
             S = [T.subset(f'S{unicode_subscript(i)}') for i in range(6)]
             [S[i].intersection(S[i+3]) for i in range(3)]
-            T.intersection(*S, name=f'⋂ᵢSᵢ')
+            T.intersection(*S, name='⋂ᵢSᵢ')
             P = T.subset_poset(open_covers=True)
             g2 = P.plot(element_labels={element: label(element) for element in P})
 
@@ -2278,6 +2278,48 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             Set {A_union_B, B, M} of subsets of the 2-dimensional topological manifold M
             sage: c.superset_family()
             Set {A_union_B, M} of subsets of the 2-dimensional topological manifold M
+
+        Union of six subsets::
+
+            sage: T = Manifold(2, 'T', structure='topological')
+            sage: S = [T.subset(f'S{i}') for i in range(6)]
+            sage: [S[i].union(S[i+3]) for i in range(3)]
+            [Subset S0_union_S3 of the 2-dimensional topological manifold T,
+             Subset S1_union_S4 of the 2-dimensional topological manifold T,
+             Subset S2_union_S5 of the 2-dimensional topological manifold T]
+            sage: union_S_i = S[0].union(S[1:], name='union_S_i'); union_S_i
+            Subset union_S_i of the 2-dimensional topological manifold T
+            sage: T.subset_family()
+            Set {S0, S0_union_S3, S0_union_S3_union_S1_union_S4, S1,
+                 S1_union_S4, S2, S2_union_S5, S3, S4, S5, T, union_S_i}
+             of subsets of the 2-dimensional topological manifold T
+
+        .. PLOT::
+
+            def label(element):
+                if isinstance(element, str):
+                    return element
+                try:
+                    return element._name.replace('_union_', '∪')
+                except AttributeError:
+                    return '[' + ', '.join(sorted(label(x) for x in element)) + ']'
+
+            M = Manifold(2, 'M', structure='topological')
+            a = M.subset('A')
+            b = M.subset('B')
+            c = a.union(b); c
+            P = M.subset_poset(open_covers=True)
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+
+            T = Manifold(2, 'T', structure='topological')
+            from sage.typeset.unicode_art import unicode_subscript
+            S = [T.subset(f'S{unicode_subscript(i)}') for i in range(6)]
+            [S[i].union(S[i+3]) for i in range(3)]
+            union_S_i = S[0].union(S[1:], name='⋃ᵢSᵢ'); union_S_i
+            P = T.subset_poset(open_covers=True)
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+
+            sphinx_plot(graphics_array([g1, g2]), figsize=(8, 3))
 
         TESTS::
 

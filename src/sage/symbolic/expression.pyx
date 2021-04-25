@@ -3150,13 +3150,6 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(f(x) - f(x) == 0)
             True
 
-        Check that we catch exceptions from Pynac (:trac:`19904`)::
-
-            sage: bool(SR(QQbar(I)) == I)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s)...
-
         Check that :trac:`24658` is fixed::
 
             sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)

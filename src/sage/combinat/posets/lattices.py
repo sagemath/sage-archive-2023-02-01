@@ -3239,14 +3239,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: P = MeetSemilattice({0: [1]})
             sage: E.is_sublattice(P)
-            Traceback (most recent call last):
-            ...
-            TypeError: other is not a lattice
+            True
             sage: P = JoinSemilattice({0: [1]})
             sage: E.is_sublattice(P)
-            Traceback (most recent call last):
-            ...
-            TypeError: other is not a lattice
+            True
         """
         try:
             o_meet = other.meet

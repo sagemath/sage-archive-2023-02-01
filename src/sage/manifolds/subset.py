@@ -2066,6 +2066,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         r"""
         Return the intersection of the current subset with other subsets.
 
+        This methods may return a previously constructed intersection instead
+        of creating a new subset.  In this case, ``name`` and ``latex_name``
+        are not used.
+
         INPUT:
 
         - ``others`` -- other subsets of the same manifold
@@ -2097,7 +2101,49 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: c.superset_family()
             Set {A, A_inter_B, B, M} of subsets of the 2-dimensional topological manifold M
 
-        Some checks::
+        Intersection of six subsets::
+
+            sage: T = Manifold(2, 'T', structure='topological')
+            sage: S = [T.subset(f'S{i}') for i in range(6)]
+            sage: [S[i].intersection(S[i+3]) for i in range(3)]
+            [Subset S0_inter_S3 of the 2-dimensional topological manifold T,
+             Subset S1_inter_S4 of the 2-dimensional topological manifold T,
+             Subset S2_inter_S5 of the 2-dimensional topological manifold T]
+            sage: inter_S_i = T.intersection(*S, name='inter_S_i'); inter_S_i
+            Subset inter_S_i of the 2-dimensional topological manifold T
+            sage: inter_S_i.superset_family()
+            Set {S0_inter_S3, S1, S1_inter_S4, S1_inter_S4_inter_S2_inter_S5,
+                 S2_inter_S5, S4, T, inter_S_i}
+             of subsets of the 2-dimensional topological manifold T
+
+        .. PLOT::
+
+            def label(element):
+                if isinstance(element, str):
+                    return element
+                try:
+                    return element._name.replace('_inter_', '∩')
+                except AttributeError:
+                    return '[' + ', '.join(sorted(label(x) for x in element)) + ']'
+
+            M = Manifold(2, 'M', structure='topological')
+            a = M.subset('A')
+            b = M.subset('B')
+            c = a.intersection(b); c
+            P = M.subset_poset(open_covers=True)
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+
+            T = Manifold(2, 'T', structure='topological')
+            from sage.typeset.unicode_art import unicode_subscript
+            S = [T.subset(f'S{unicode_subscript(i)}') for i in range(6)]
+            [S[i].intersection(S[i+3]) for i in range(3)]
+            T.intersection(*S, name=f'⋂ᵢSᵢ')
+            P = T.subset_poset(open_covers=True)
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+
+            sphinx_plot(graphics_array([g1, g2]), figsize=(8, 3))
+
+        TESTS::
 
             sage: (a.intersection(b)).is_subset(a)
             True
@@ -2116,18 +2162,25 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         """
         subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
-        subset_iter = iter(self._reduce_intersections_members(subsets))
+        subset_iter = iter(self._reduce_intersection_members(subsets))
         # _intersection_subset is able to build the intersection of several
         # subsets directly; but because we cache only pairwise intersections,
         # we build the intersection by a sequence of pairwise intersections.
         res = next(subset_iter)
-        for other in subset_iter:
-            old, res = res, res._intersection_subset(other, name=name, latex_name=latex_name)
+        others = list(subset_iter)
+        if not others:
+            return res
+        for other in others[:-1]:
+            old, res = res, res._intersection_subset(other)
             old._intersections[other._name] = other._intersections[old._name] = res
+        # The last one gets the name
+        other = others[-1]
+        old, res = res, res._intersection_subset(other, name=name, latex_name=latex_name)
+        old._intersections[other._name] = other._intersections[old._name] = res
         return res
 
     @staticmethod
-    def _reduce_intersections_members(subsets):
+    def _reduce_intersection_members(subsets):
         r"""
         Return a reduced set of subsets with the same intersection as the given subsets.
 
@@ -2165,6 +2218,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
     def _intersection_subset(self, *others, name=None, latex_name=None):
         r"""
         Return a subset that is the intersection of the given subsets.
+
+        This method does not cache the result.
         """
         subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
         if latex_name is None:

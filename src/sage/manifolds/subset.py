@@ -1368,14 +1368,16 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if disjoint:
             for U, V in itertools.combinations(subsets, 2):
                 U.intersection(V).declare_empty()
+        subsets = self._reduce_union_members(subsets)
         if not subsets:
             self.declare_empty()
         elif len(subsets) == 1:
             self.declare_equal(*subsets)
-        elif len(subsets) == 2:
-            self._declare_union_2_subsets(*subsets)
         else:
-            raise NotImplementedError
+            subset_iter = iter(subsets)
+            first = next(subset_iter)
+            second = next(subset_iter)
+            self._declare_union_2_subsets(first, second.union(subset_iter))
 
     def _declare_union_2_subsets(self, dom1, dom2):
         r"""

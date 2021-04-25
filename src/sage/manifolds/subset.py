@@ -813,7 +813,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return ManifoldSubsetFiniteFamily(self.subsets())
 
-    def subset_digraph(self, loops=False, open_covers=False, points=False, lower_bound=None):
+    def subset_digraph(self, loops=False, quotient=False, open_covers=False, points=False, lower_bound=None):
         r"""
         Return the digraph whose arcs represent subset relations among the subsets of ``self``.
 
@@ -821,6 +821,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``loops`` -- (default: ``False``) whether to include the trivial containment
           of each subset in itself as loops of the digraph
+        - ``quotient`` -- (default: ``False``) whether to contract directed cycles in the graph,
+           replacing equivalence classes of equal subsets by a single vertex.
+           In this case, each vertex of the digraph is a set of :class:`ManifoldSubset`
+           instances.
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
         - ``points`` -- (default: ``False``) whether to include vertices for declared points;
           this can also be an iterable for the points to include
@@ -869,8 +873,27 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         from sage.graphs.digraph import DiGraph
         D = DiGraph(multiedges=False, loops=loops)
 
-        def vertex(subset):
-            return ManifoldSubsetFiniteFamily([subset])
+        if loops:
+            add_edges = D.add_edges
+        else:
+            def add_edges(edges):
+                for u, v in edges:
+                    if u != v:
+                        D.add_edge((u, v))
+
+        if quotient:
+            subset_to_vertex = {}
+            def vertex(subset):
+                try:
+                    return subset_to_vertex[subset]
+                except KeyError:
+                    new_equivalence_class = ManifoldSubsetFiniteFamily(subset.equal_subsets())
+                    for S in new_equivalence_class:
+                        subset_to_vertex[S] = new_equivalence_class
+                    return new_equivalence_class
+        else:
+            def vertex(subset):
+                return ManifoldSubsetFiniteFamily([subset])
 
         if lower_bound is not None:
             if not lower_bound.is_subset(self):
@@ -888,13 +911,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             else:
                 subsets = [subset for subset in S._subsets
                            if lower_bound.is_subset(subset)]
+
+            add_edges((vertex(subset), vertex(S)) for subset in subsets)
+
             subsets_without_S = [subset for subset in subsets
                                  if subset is not S]
-            if loops:
-                D.add_edges((vertex(subset), vertex(S)) for subset in subsets)
-            else:
-                D.add_edges((vertex(subset), vertex(S)) for subset in subsets_without_S)
-
             to_visit.extend(subsets_without_S)
 
         if open_covers:
@@ -903,8 +924,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 return tuple(sorted(ManifoldSubsetFiniteFamily([subset]) for subset in open_cover))
 
             for S in visited:
-                D.add_edges((vertex(S), open_cover_vertex(open_cover))
-                            for open_cover in S.open_covers(trivial=False))
+                add_edges((vertex(S), open_cover_vertex(open_cover))
+                          for open_cover in S.open_covers(trivial=False))
 
         if points is not False:
             subset_to_points = defaultdict(list)
@@ -924,16 +945,19 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             def anonymous_point_vertex(S):
                 return f"p{S._name}"
 
-            D.add_edges((anonymous_point_vertex(S), vertex(S))
-                        for S in visited
-                        if S.has_defined_points(subsets=False)
-                        and S not in subset_to_points)
+            add_edges((anonymous_point_vertex(S), vertex(S))
+                      for S in visited
+                      if S.has_defined_points(subsets=False)
+                      and S not in subset_to_points)
 
         return D
 
     def subset_poset(self, open_covers=False, points=False, lower_bound=None):
         r"""
-        Return the poset of the subsets of ``self``.
+        Return the poset of equivalence classes of the subsets of ``self``.
+
+        Each element of the poset is a set of :class:`ManifoldSubset` instances,
+        which are known to be equal.
 
         INPUT:
 
@@ -980,7 +1004,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         from sage.combinat.posets.posets import Poset
         return Poset(self.subset_digraph(open_covers=open_covers, points=points,
-                                         lower_bound=lower_bound))
+                                         quotient=True, lower_bound=lower_bound))
 
     def equal_subsets(self):
         r"""
@@ -1081,7 +1105,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return ManifoldSubsetFiniteFamily(self.supersets())
 
-    def superset_digraph(self, loops=False, open_covers=False, points=False, upper_bound=None):
+    def superset_digraph(self, loops=False, quotient=False, open_covers=False, points=False, upper_bound=None):
         """
         Return the digraph whose arcs represent subset relations among the supersets of ``self``.
 
@@ -1089,6 +1113,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``loops`` -- (default: ``False``) whether to include the trivial containment
           of each subset in itself as loops of the digraph
+        - ``quotient`` -- (default: ``False``) whether to contract directed cycles in the graph,
+           replacing equivalence classes of equal subsets by a single vertex.
+           In this case, each vertex of the digraph is a set of :class:`ManifoldSubset`
+           instances.
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
         - ``points`` -- (default: ``False``) whether to include vertices for declared points;
           this can also be an iterable for the points to include
@@ -1106,7 +1134,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if upper_bound is None:
             upper_bound = self._manifold
         return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, points=points,
-                                          lower_bound=self)
+                                          quotient=quotient, lower_bound=self)
 
     def superset_poset(self, open_covers=False, points=False, upper_bound=None):
         r"""

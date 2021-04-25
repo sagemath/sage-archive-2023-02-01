@@ -1370,6 +1370,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 U.intersection(V).declare_empty()
         if not subsets:
             self.declare_empty()
+        elif len(subsets) == 1:
+            self.declare_equal(*subsets)
         elif len(subsets) == 2:
             self._declare_union_2_subsets(*subsets)
         else:

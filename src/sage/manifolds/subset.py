@@ -2062,13 +2062,13 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res._def_chart = self._def_chart
         return res
 
-    def intersection(self, other, name=None, latex_name=None):
+    def intersection(self, *others, name=None, latex_name=None):
         r"""
-        Return the intersection of the current subset with another subset.
+        Return the intersection of the current subset with other subsets.
 
         INPUT:
 
-        - ``other`` -- another subset of the same manifold
+        - ``others`` -- other subsets of the same manifold
         - ``name`` -- (default: ``None``) name given to the intersection
           in the case the latter has to be created; the default is
           ``self._name`` inter ``other._name``
@@ -2079,7 +2079,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of :class:`ManifoldSubset` representing the
-          subset that is the intersection of the current subset with ``other``
+          subset that is the intersection of the current subset with ``others``
 
         EXAMPLES:
 
@@ -2115,41 +2115,64 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             True
 
         """
-        if other._manifold != self._manifold:
-            raise ValueError("the two subsets do not belong to the same manifold")
-        # Particular cases:
-        if self is self._manifold:
-            return other
-        if other is self._manifold:
-            return self
-        if self in other._subsets:
-            return self
-        if other in self._subsets:
-            return other
-        # Generic case:
-        if other._name in self._intersections:
-            # the intersection has already been created:
-            return self._intersections[other._name]
-        else:
-            # the intersection must be created:
+        subsets = set(ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others))
+
+        # Greedily replace inclusion chains by their minimal element
+        # and pairs with declared intersections by their intersection
+        def reduce():
+            for U, V in itertools.combinations(subsets, 2):
+                if U.is_subset(V):
+                    subsets.remove(V)
+                    return True
+                if V.is_subset(U):
+                    subsets.remove(U)
+                    return True
+                try:
+                    UV = U._intersections[V._name]
+                except KeyError:
+                    pass
+                else:
+                    subsets.difference_update([U, V])
+                    subsets.add(UV)
+                    return True
+            return False
+
+        while reduce():
+            pass
+        assert subsets   # there must be a survivor
+
+        def intersection_subset(*subsets_or_families, name=None, latex_name=None):
+            subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(*subsets_or_families)
+            assert len(subsets) >= 2
+
             if latex_name is None:
                 if name is None:
-                    latex_name = self._latex_name + r'\cap ' + other._latex_name
+                    latex_name = r'\cap '.join(S._latex_name for S in subsets)
                 else:
                     latex_name = name
             if name is None:
-                name = self._name + "_inter_" + other._name
-            if self._is_open and other._is_open:
-                res = self.open_subset(name, latex_name=latex_name)
+                name = "_inter_".join(S._name for S in subsets)
+            if all(S.is_open() for S in subsets):
+                res = self.open_subset(name, latex_name=latex_name, supersets=subsets)
             else:
                 res = self.subset(name, latex_name=latex_name)
-            res._supersets.update(other._supersets)
-            for sd in other._supersets:
-                sd._subsets.add(res)
-            other._top_subsets.add(res)
-            self._intersections[other._name] = res
-            other._intersections[self._name] = res
+                res._supersets.update(subsets)
+                for S in subsets:
+                    for sd in S.supersets():
+                        sd._subsets.add(res)
+                    S._top_subsets.add(res)
             return res
+
+        # intersection_subset is able to build the intersection of several
+        # subsets directly; but because we cache only pairwise intersections,
+        # we build the intersection by a sequence of pairwise intersections.
+        subset_iter = iter(subsets)
+        res = next(subset_iter)
+        for other in subset_iter:
+            old, res = res, intersection_subset(res, other, name=name, latex_name=latex_name)
+            old._intersections[other._name] = other._intersections[old._name] = res
+
+        return res
 
     def union(self, other, name=None, latex_name=None):
         r"""

@@ -76,7 +76,7 @@ Lists of subsets after the above operations::
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
-from sage.manifolds.family import ManifoldSubsetFiniteFamily
+from sage.manifolds.family import ManifoldObjectFiniteFamily, ManifoldSubsetFiniteFamily
 from sage.manifolds.point import ManifoldPoint
 
 class ManifoldSubset(UniqueRepresentation, Parent):
@@ -545,6 +545,12 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             A = \bigcup_{U \in F} U.
 
+        .. NOTE::
+
+            To get the open covers as a family, sorted lexicographically by the
+            names of the subsets forming the open covers, use the method
+            :meth:`open_cover_family` instead.
+
         INPUT:
 
         - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
@@ -581,6 +587,62 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 if len(oc) == 1 and next(iter(oc)) is self:
                     continue
             yield ManifoldSubsetFiniteFamily(oc)
+
+    def open_cover_family(self, trivial=True):
+        r"""
+        Return the family of open covers of the current subset.
+
+        If the current subset, `A` say, is a subset of the manifold `M`, an
+        *open cover* of `A` is a :class:`ManifoldSubsetFiniteFamily` `F`
+        of open subsets `U \in F` of `M` such that
+
+        .. MATH::
+
+            A \subset \bigcup_{U \in F} U.
+
+        If `A` is open, we ask that the above inclusion is actually an
+        identity:
+
+        .. MATH::
+
+            A = \bigcup_{U \in F} U.
+
+        The family is sorted lexicographically by the names of the subsets
+        forming the open covers.
+
+        .. NOTE::
+
+            If you only need to iterate over the open covers in arbitrary
+            order, you can use the generator method :meth:`open_covers`
+            instead.
+
+        INPUT:
+
+        - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
+          open cover of ``self`` by itself
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: M.open_cover_family()
+            Set {{M}} of objects of the 2-dimensional topological manifold M
+            sage: U = M.open_subset('U')
+            sage: U.open_cover_family()
+            Set {{U}} of objects of the 2-dimensional topological manifold M
+            sage: A = U.open_subset('A')
+            sage: B = U.open_subset('B')
+            sage: U.declare_union(A,B)
+            sage: U.open_cover_family()
+            Set {{A, B}, {U}} of objects of the 2-dimensional topological manifold M
+            sage: U.open_cover_family(trivial=False)
+            Set {{A, B}} of objects of the 2-dimensional topological manifold M
+            sage: V = M.open_subset('V')
+            sage: M.declare_union(U,V)
+            sage: M.open_cover_family()
+            Set {{A, B, V}, {M}, {U, V}} of objects of the 2-dimensional topological manifold M
+
+        """
+        return ManifoldObjectFiniteFamily(self.open_covers(trivial=trivial))
 
     def subsets(self):
         r"""

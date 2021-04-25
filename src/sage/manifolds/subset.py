@@ -575,6 +575,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         r"""
         Generate the open supersets of ``self``.
 
+        .. NOTE::
+
+            To get the open supersets as a family, sorted by name, use the method
+            :meth:`open_superset_family` instead.
+
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
@@ -589,6 +594,35 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         for superset in self._supersets:
             if superset.is_open():
                 yield superset
+
+    def open_superset_family(self):
+        r"""
+        Return the family of open supersets of ``self``.
+
+        The family is sorted by the alphabetical names of the subsets.
+
+        OUTPUT:
+
+        - a :class:`ManifoldSubsetFiniteFamily` instance containing all the
+          open supersets that have been defined on the current subset
+
+        .. NOTE::
+
+            If you only need to iterate over the open supersets in arbitrary
+            order, you can use the generator method :meth:`open_supersets`
+            instead.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = U.subset('V')
+            sage: W = V.subset('W')
+            sage: W.open_superset_family()
+            Set {M, U} of open subsets of the 2-dimensional topological manifold M
+
+        """
+        return ManifoldSubsetFiniteFamily(self.open_supersets())
 
     def subsets(self):
         r"""

@@ -2112,8 +2112,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: inter_S_i = T.intersection(*S, name='inter_S_i'); inter_S_i
             Subset inter_S_i of the 2-dimensional topological manifold T
             sage: inter_S_i.superset_family()
-            Set {S0_inter_S3, S1, S1_inter_S4, S1_inter_S4_inter_S2_inter_S5,
-                 S2_inter_S5, S4, T, inter_S_i}
+            Set {S0, S0_inter_S3, S0_inter_S3_inter_S1_inter_S4, S1_inter_S4,
+                 S2_inter_S5, S3, T, inter_S_i}
              of subsets of the 2-dimensional topological manifold T
 
         .. PLOT::
@@ -2213,7 +2213,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         while reduce():
             pass
         assert subsets   # there must be a survivor
-        return subsets
+        return ManifoldSubsetFiniteFamily(subsets)
 
     def _intersection_subset(self, *others, name=None, latex_name=None):
         r"""

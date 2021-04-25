@@ -2317,43 +2317,53 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             return self._unions[other._name]
         else:
             # the union must be created:
-            if latex_name is None:
-                if name is None:
-                    latex_name = self._latex_name + r'\cup ' + other._latex_name
-                else:
-                    latex_name = name
-            if name is None:
-                name = self._name + "_union_" + other._name
-            res_open = self._is_open and other._is_open
-            res = self.superset(name, latex_name, is_open=res_open)
-            res._subsets.update(other._subsets)
-            res._top_subsets.add(self)
-            res._top_subsets.add(other)
-            for sd in other._subsets:
-                sd._supersets.add(res)
-            for sp in self._supersets:
-                if sp in other._supersets:
-                    sp._subsets.add(res)
-                    res._supersets.add(sp)
-            if res._is_open:
-                for chart in other._atlas:
-                    if chart not in res._atlas:
-                        res._atlas.append(chart)
-                for chart in other._top_charts:
-                    if chart not in res._top_charts:
-                        res._top_charts.append(chart)
-                res._coord_changes.update(other._coord_changes)
+            res = self._union_subset(other, name=name, latex_name=latex_name)
             self._unions[other._name] = res
             other._unions[self._name] = res
-            # Open covers of the union:
-            for oc1 in self._open_covers:
-                for oc2 in other._open_covers:
-                    oc = oc1[:]
-                    for s in oc2:
-                        if s not in oc:
-                            oc.append(s)
-                res._open_covers.append(oc)
             return res
+
+    def _union_subset(self, other, name=None, latex_name=None):
+        r"""
+        Return a subset of the manifold that is the union of the given subsets.
+
+        This method does not cache the result.
+        """
+        if latex_name is None:
+            if name is None:
+                latex_name = r'\cup '.join(S._latex_name for S in (self, other))
+            else:
+                latex_name = name
+        if name is None:
+            name = "_union_".join(S._name for S in (self, other))
+        res_open = all(S.is_open() for S in (self, other))
+        res = self.superset(name, latex_name, is_open=res_open)
+        res._subsets.update(other._subsets)
+        res._top_subsets.add(self)
+        res._top_subsets.add(other)
+        for sd in other._subsets:
+            sd._supersets.add(res)
+        for sp in self._supersets:
+            if sp in other._supersets:
+                sp._subsets.add(res)
+                res._supersets.add(sp)
+        if res._is_open:
+            for chart in other._atlas:
+                if chart not in res._atlas:
+                    res._atlas.append(chart)
+            for chart in other._top_charts:
+                if chart not in res._top_charts:
+                    res._top_charts.append(chart)
+            res._coord_changes.update(other._coord_changes)
+        # Open covers of the union:
+        for oc1 in self._open_covers:
+            for oc2 in other._open_covers:
+                oc = oc1[:]
+                for s in oc2:
+                    if s not in oc:
+                        oc.append(s)
+            res._open_covers.append(oc)
+        return res
+
 
     #### End of construction of new sets from self
 

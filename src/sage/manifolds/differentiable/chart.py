@@ -357,12 +357,9 @@ class DiffChart(Chart):
         The subset `W`, intersection of `U` and `V`, has been created by
         ``transition_map()``::
 
-            sage: M.list_of_subsets()
-            [1-dimensional differentiable manifold S^1,
-             Open subset U of the 1-dimensional differentiable manifold S^1,
-             Open subset V of the 1-dimensional differentiable manifold S^1,
-             Open subset W of the 1-dimensional differentiable manifold S^1]
-            sage: W = M.list_of_subsets()[3]
+            sage: F = M.subset_family(); F
+            Set {S^1, U, V, W} of open subsets of the 1-dimensional differentiable manifold S^1
+            sage: W = F['W']
             sage: W is U.intersection(V)
             True
             sage: M.atlas()
@@ -385,9 +382,8 @@ class DiffChart(Chart):
 
         In this case, no new subset has been created since `U\cap M = U`::
 
-            sage: M.list_of_subsets()
-            [2-dimensional differentiable manifold R^2,
-             Open subset U of the 2-dimensional differentiable manifold R^2]
+            sage: M.subset_family()
+            Set {R^2, U} of open subsets of the 2-dimensional differentiable manifold R^2
 
         but a new chart has been created: `(U, (x, y))`::
 

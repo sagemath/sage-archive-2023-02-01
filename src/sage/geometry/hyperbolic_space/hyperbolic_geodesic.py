@@ -1408,9 +1408,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             ....:     x = g.intersection(p)[0]
             ....:     m = g.midpoint()
             ....:     return bool(x.dist(m) < 1e-9)
-            sage: a, b, c = 1.0 + I, 2.0 + I, 2.0 + 0.5*I
-            sage: pairs = [(a, b), (b, a), (a, c), (c, a), (b, c), (c, b)]
-            sage: all(bisector_gets_midpoint(x, y) for x, y in pairs)
+            sage: c, d, e = CC(1, 1), CC(2, 1), CC(2, 0.5)
+            sage: pairs = [(c, d), (d, c), (c, e), (e, c), (d, e), (e, d)]
+            sage: all(bisector_gets_midpoint(a, b) for a, b in pairs)
             True
         """
         if self.length() == infinity:

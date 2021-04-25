@@ -52,6 +52,8 @@ List of Poset methods
     :meth:`~FinitePoset.cover_relations_iterator` | Return an iterator over cover relations of the poset.
     :meth:`~FinitePoset.common_upper_covers` | Return the list of all common upper covers of the given elements.
     :meth:`~FinitePoset.common_lower_covers` | Return the list of all common lower covers of the given elements.
+    :meth:`~FinitePoset.meet` | Return the meet of given elements if it exists; ``None`` otherwise.
+    :meth:`~FinitePoset.join` | Return the join of given elements if it exists; ``None`` otherwise.
 
 **Properties of the poset**
 

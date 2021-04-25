@@ -50,6 +50,8 @@ List of Poset methods
     :meth:`~FinitePoset.lower_covers_iterator` | Return an iterator over elements covered by given element.
     :meth:`~FinitePoset.upper_covers_iterator` | Return an iterator over elements covering given element.
     :meth:`~FinitePoset.cover_relations_iterator` | Return an iterator over cover relations of the poset.
+    :meth:`~FinitePoset.common_upper_covers` | Return the list of all common upper covers of the given elements.
+    :meth:`~FinitePoset.common_lower_covers` | Return the list of all common lower covers of the given elements.
 
 **Properties of the poset**
 
@@ -2293,6 +2295,19 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         vertices = list(map(self._element_to_vertex, elmts))
         return list(map(self._vertex_to_element, self._hasse_diagram.common_upper_covers(vertices)))
+
+    def common_lower_covers(self, elmts):
+        r"""
+        Return all of the common lower covers of the elements ``elmts``.
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: P.common_lower_covers([1, 2])
+            [0]
+        """
+        vertices = list(map(self._element_to_vertex, elmts))
+        return list(map(self._vertex_to_element, self._hasse_diagram.common_lower_covers(vertices)))
 
     def is_d_complete(self) -> bool:
         r"""

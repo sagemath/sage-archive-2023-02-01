@@ -2360,6 +2360,27 @@ class HasseDiagram(DiGraph):
             covers = covers.intersection(self.neighbors_out(v))
         return list(covers)
 
+    def common_lower_covers(self, vertices):
+        r"""
+        Return the list of all common lower covers of ``vertices``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: H.common_lower_covers([1, 2])
+            [0]
+
+            sage: from sage.combinat.posets.poset_examples import Posets
+            sage: H = Posets.YoungDiagramPoset(Partition([3, 2, 2]))._hasse_diagram
+            sage: H.common_lower_covers([4, 5])
+            [3]
+        """
+        covers = set(self.neighbors_in(vertices.pop()))
+        for v in vertices:
+            covers = covers.intersection(self.neighbors_in(v))
+        return list(covers)
+
     def _trivial_nonregular_congruence(self):
         """
         Return a pair of elements giving "trivial" non-regular congruence.

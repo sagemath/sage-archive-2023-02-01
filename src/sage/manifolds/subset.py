@@ -2115,11 +2115,32 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             True
 
         """
-        subsets = set(ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others))
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
+        subset_iter = iter(self._reduce_intersections_members(subsets))
+        # _intersection_subset is able to build the intersection of several
+        # subsets directly; but because we cache only pairwise intersections,
+        # we build the intersection by a sequence of pairwise intersections.
+        res = next(subset_iter)
+        for other in subset_iter:
+            old, res = res, res._intersection_subset(other, name=name, latex_name=latex_name)
+            old._intersections[other._name] = other._intersections[old._name] = res
+        return res
 
-        # Greedily replace inclusion chains by their minimal element
-        # and pairs with declared intersections by their intersection
+    @staticmethod
+    def _reduce_intersections_members(subsets):
+        r"""
+        Return a reduced set of subsets with the same intersection as the given subsets.
+
+        It is reduced with respect to two operations:
+
+        - replacing an inclusion chain by its minimal element
+
+        - replacing a pair of subsets with a declared intersection by the intersection
+        """
+        subsets = set(subsets)
         def reduce():
+            # Greedily replace inclusion chains by their minimal element
+            # and pairs with declared intersections by their intersection
             for U, V in itertools.combinations(subsets, 2):
                 if U.is_subset(V):
                     subsets.remove(V)
@@ -2136,42 +2157,32 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                     subsets.add(UV)
                     return True
             return False
-
         while reduce():
             pass
         assert subsets   # there must be a survivor
+        return subsets
 
-        def intersection_subset(*subsets_or_families, name=None, latex_name=None):
-            subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(*subsets_or_families)
-            assert len(subsets) >= 2
-
-            if latex_name is None:
-                if name is None:
-                    latex_name = r'\cap '.join(S._latex_name for S in subsets)
-                else:
-                    latex_name = name
+    def _intersection_subset(self, *others, name=None, latex_name=None):
+        r"""
+        Return a subset that is the intersection of the given subsets.
+        """
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
+        if latex_name is None:
             if name is None:
-                name = "_inter_".join(S._name for S in subsets)
-            if all(S.is_open() for S in subsets):
-                res = self.open_subset(name, latex_name=latex_name, supersets=subsets)
+                latex_name = r'\cap '.join(S._latex_name for S in subsets)
             else:
-                res = self.subset(name, latex_name=latex_name)
-                res._supersets.update(subsets)
-                for S in subsets:
-                    for sd in S.supersets():
-                        sd._subsets.add(res)
-                    S._top_subsets.add(res)
-            return res
-
-        # intersection_subset is able to build the intersection of several
-        # subsets directly; but because we cache only pairwise intersections,
-        # we build the intersection by a sequence of pairwise intersections.
-        subset_iter = iter(subsets)
-        res = next(subset_iter)
-        for other in subset_iter:
-            old, res = res, intersection_subset(res, other, name=name, latex_name=latex_name)
-            old._intersections[other._name] = other._intersections[old._name] = res
-
+                latex_name = name
+        if name is None:
+            name = "_inter_".join(S._name for S in subsets)
+        if all(S.is_open() for S in subsets):
+            res = self.open_subset(name, latex_name=latex_name, supersets=subsets)
+        else:
+            res = self.subset(name, latex_name=latex_name)
+            res._supersets.update(subsets)
+            for S in subsets:
+                for sd in S.supersets():
+                    sd._subsets.add(res)
+                S._top_subsets.add(res)
         return res
 
     def union(self, other, name=None, latex_name=None):

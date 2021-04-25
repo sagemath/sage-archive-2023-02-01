@@ -155,6 +155,17 @@ class Polyhedron_base(Element):
 
         sage: P = polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]])
         sage: TestSuite(P).run()
+
+    ::
+
+        sage: M = random_matrix(ZZ, 5, 5, distribution='uniform')
+        sage: while True:
+        ....:     M = random_matrix(ZZ, 5, 5, distribution='uniform')
+        ....:     if M.rank() != 5:
+        ....:         break
+        ....:
+        sage: P = Polyhedron(M)
+        sage: TestSuite(P).run()
     """
 
     def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, **kwds):

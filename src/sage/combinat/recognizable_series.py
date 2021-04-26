@@ -281,17 +281,17 @@ class RecognizableSeries(Element):
         - ``mu`` -- a family of square matrices, all of which have the
           same dimension. The indices of this family are the alphabet.
           ``mu`` may be a list or tuple of the same cardinality as the
-          alphabet as well. See :meth:`mu <mu>` for more details.
+          alphabet as well. See also :meth:`mu <mu>`.
 
         - ``left`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the left to the
           matrix obtained from :meth:`mu <mu>` applying on a word.
-          See :meth:`left <left>` for more details.
+          See also :meth:`left <left>`.
 
         - ``right`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the right to the
           matrix obtained from :meth:`mu <mu>` applying on a word.
-          See :meth:`right <right>` for more details.
+          See also :meth:`right <right>`.
 
         When created via the parent :class:`RecognizableSeriesSpace`, then
         the following option is available.

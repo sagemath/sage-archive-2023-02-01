@@ -854,7 +854,45 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             raise ValueError("No recurrence relations are given.")
 
 
-    def _get_parameters_from_recurrence_(self, coeffs, M, m, initial_values, offset):
+    def _get_parameters_from_recurrence_(self, coeffs, M, m, initial_values,
+                                         offset, correct_offset):
+        r"""
+        Determine parameters from recurrence relations as admissible in
+        :meth:`from_recurrence`.
+
+        INPUT:
+
+        - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
+          coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
+          If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
+          then it is assumed to be zero.
+
+        - ``M``, ``m`` and ``offset`` -- parameters of the recursive sequences,
+          see [HKL2021]_, Definition 3.1 (see :meth:`from_recurrence`)
+
+        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
+          ``n``th value of the sequence
+
+        OUTPUT:
+
+        A namedtuple ``recursion_rules`` consisting of
+
+        - ``M``, ``m``, ``l``, ``u``  -- parameters of the recursive sequences,
+          see [HKL2021]_, Definition 3.1
+
+        - ``ll``, ``uu``, ``n1``, ``dim`` -- parameters and dimension of the
+          resulting linear representation, see [HKL2021]_, Theorem A
+
+        - ``coeffs`` -- a dictionary mapping ``(r, k)`` to the coefficients
+          `c_{r, k}` as given in [HKL2021]_, Equation (3.1)
+
+        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
+          ``n``th value of the sequence
+        """
+        k = self.k
+
+        if offset < max(0, -l/k**m):
+            raise ValueError("Offset %s is too small." % (offset,))
 
         keys = coeffs.keys()
         remainders = Set([key[0] for key in keys])
@@ -881,8 +919,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         n1 = offset - floor(ll/k**M)
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
 
+        last_value_needed = max(
+            k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
+            k**m*offset + u,
+            ceil(k**M*u/(k**M - k**m)),
+            max(keys_initial))
         initial_values = self._get_values_from_recurrence(
-            coeffs, M, m, l, u, ll, uu, initial_values, offset, n1)
+            coeffs, M, m, l, u, initial_values, last_value_needed, offset, n1)
 
         recurrence_rules = namedtuple('recursion_rules',
                                       ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
@@ -893,9 +936,37 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                 offset=offset, n1=n1)
 
 
-    def _get_values_from_recurrence_(self, coeffs, M, m, l, u, ll, uu,
-                                     initial_values, offset, n1):
+    def _get_values_from_recurrence_(self, coeffs, M, m, l, u, initial_values,
+                                     last_value_needed, offset, n1):
+        r"""
+        Determine enough values of the corresponding recursive sequence by
+        applying the recurrence relations given in :meth:`from_recurrence`
+        to the values given in ``initial_values``.
 
+        INPUT:
+
+        - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
+          coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
+          If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
+          then it is assumed to be zero.
+
+        - ``M``, ``m``, ``l``, ``u`` and ``offset`` -- parameters of the
+          recursive sequences, see [HKL2021]_, Definition 3.1
+
+        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
+          ``n``th value of the sequence
+
+        - ``last_value_needed`` -- last initial value which is needed to
+          determine the linear representation
+
+        OUTPUT:
+
+        A dictionary mapping integers ``n`` to the ``n``th value of the
+        sequence.
+
+        EXAMPLES:
+
+        """
         from sage.arith.srange import srange
         from sage.functions.other import ceil
         from sage.rings.integer_ring import ZZ
@@ -903,11 +974,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         k = self.k
         base_ring = self.base_ring()
         keys_initial = initial_values.keys()
-        last_value_needed = max(
-            k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1),
-            k**m*offset + u,
-            ceil(k**M*u/(k**M - k**m)),
-            max(keys_initial))
+
         values = {n: None if n not in keys_initial else initial_values[n]
                   for n in srange(last_value_needed + 1)}
         missing_values = []
@@ -1464,8 +1531,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         k = self.k
         recursion_rules = self._parse_recurrence_(equations, function, var, offset)
-
-
 
         mu = [self._get_matrix_from_recurrence_(recursion_rules, rem, function, var)
               for rem in srange(k)]

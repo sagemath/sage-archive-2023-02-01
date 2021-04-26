@@ -208,6 +208,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         self._open_covers = []  # list of open covers of self
         self._is_open = False   # a priori (may be redefined by subclasses)
         self._manifold = manifold  # the ambient manifold
+        self._has_defined_points = False
 
     def _repr_(self):
         r"""
@@ -1030,6 +1031,89 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                     if s not in oc:
                         oc.append(s)
             self._open_covers.append(oc)
+
+    def declare_empty(self):
+        r"""
+        Declare that ``self`` is the empty set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: A
+            Open subset A of the 2-dimensional topological manifold M
+            sage: A.declare_empty()
+            sage: A.is_empty()
+            True
+
+        Empty sets do not allow to define points on them::
+
+            sage: A.point()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot define a point on the
+              Open subset A of the 2-dimensional topological manifold M
+              because it has been declared empty
+
+        Emptiness transfers to subsets::
+
+            sage: AA.is_empty()
+            True
+            sage: AA.point()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot define a point on the
+              Subset AA of the 2-dimensional topological manifold M
+              because it has been declared empty
+            sage: AD = A.subset('AD')
+            sage: AD.is_empty()
+            True
+
+        If points have already been defined on ``self`` (or its subsets),
+        it is an error to declare it to be empty::
+
+            sage: B = M.subset('B')
+            sage: b = B.point(name='b'); b
+            Point on the 2-dimensional topological manifold M
+            sage: B.declare_empty()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot be empty because it has defined points
+
+        Emptiness is recorded as empty open covers::
+
+            sage: P = M.subset_poset(open_covers=True)
+            sage: def label(element):
+            ....:     if isinstance(element, str):
+            ....:         return element
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: P.plot(element_labels={element: label(element) for element in P})  # not tested
+        """
+        if self.has_defined_points():
+            raise TypeError('cannot be empty because it has defined points')
+        for subset in self.subsets():
+            if not subset.is_empty():
+                subset._open_covers.append([])
+
+    def is_empty(self):
+        if self._has_defined_points:
+            return False
+        return any(not cover
+                   for cover in self.open_covers(trivial=False))
+
+    def declare_nonempty(self):
+        if not self.has_defined_points():
+            self._has_defined_points = True
+
+    def has_defined_points(self, subsets=True):
+        if subsets:
+            return any(subset._has_defined_points for subset in self.subsets())
+        else:
+            return self._has_defined_points
 
     def point(self, coords=None, chart=None, name=None, latex_name=None):
         r"""

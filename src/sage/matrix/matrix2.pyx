@@ -12227,17 +12227,16 @@ cdef class Matrix(Matrix1):
 
     def cholesky(self):
         r"""
-        Returns the Cholesky decomposition of a symmetric or Hermitian matrix.
+        Returns the Cholesky decomposition of a Hermitian matrix.
 
         INPUT:
 
-        A square matrix that is real, symmetric and positive definite.
-        Or a square matrix that is complex, Hermitian and positive
-        definite.  Generally, the base ring for the entries of the
-        matrix needs to be a subfield of the algebraic numbers
-        (``QQbar``).  Examples include the rational numbers (``QQ``),
-        some number fields, and real algebraic numbers and the
-        algebraic numbers themselves.
+        A positive-definite matrix. Generally, the base ring for the
+        entries of the matrix needs to be a subfield of the algebraic
+        numbers (``QQbar``). Examples include the rational numbers
+        (``QQ``), some number fields, and real algebraic numbers and
+        the algebraic numbers themselves. Symbolic matrices can also
+        occasionally be factored.
 
         OUTPUT:
 
@@ -12248,10 +12247,9 @@ cdef class Matrix(Matrix1):
 
             A = LL^\ast
 
-        where `L^\ast` is the conjugate-transpose in the complex case,
-        and just the transpose in the real case. If the matrix
-        fails to be positive definite (perhaps because it is not
-        symmetric or Hermitian), then a ``ValueError`` results.
+        where `L^\ast` is the conjugate-transpose. If the matrix is
+        not positive-definite (for example, if it is not Hermitian)
+        then a ``ValueError`` results.
 
         If possible, the output matrix will be over the fraction field
         of the base ring of the input matrix. If that fraction field
@@ -12262,23 +12260,24 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
-        Whether or not the matrix is positive definite is checked
-        first in every case.  This is accomplished with an
-        indefinite factorization (see :meth:`indefinite_factorization`)
-        which caches its result.  This algorithm is of an order `n^3/3`.
-        If the matrix is positive definite, this computation always
-        succeeds, using just field operations.  The transition to a
-        Cholesky decomposition "only" requires computing square roots
-        of the positive (real) entries of the diagonal matrix produced in
-        the indefinite factorization.  Hence, there is no real penalty
-        in the positive definite check (here, or prior to calling this
-        routine), but a field extension with square roots may not be
-        implemented in all reasonable cases.
+        First we ensure that the matrix `A`
+        :meth:`~.Matrix.is_hermitian`. Afterwards, we attempt to
+        compute a classical :meth:`block_ldlt` factorization, `A =
+        LDL^{*}`, of the matrix. If that fails, then the matrix was
+        not positive-definite and an error is raised. Otherwise we
+        take the entrywise square-root `\sqrt{D}` of the diagonal
+        matrix `D` (whose entries are the positive eigenvalues of the
+        original matrix) to obtain the Cholesky factorization `A =
+        \left(L\sqrt{D}\right)\left(L\sqrt{D}\right)^{*}`. If the
+        necessary square roots cannot be taken in the fraction field
+        of original base ring, then we move to either its algebraic
+        closure or the algebraic reals, depending on whether or not
+        imaginary numbers are required.
 
         EXAMPLES:
 
         This simple example has a result with entries that remain
-        in the field of rational numbers.  ::
+        in the field of rational numbers::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
             ....:                 [-2, 10, -2, -7],
@@ -12300,7 +12299,7 @@ cdef class Matrix(Matrix1):
         This seemingly simple example requires first moving to
         the rational numbers for field operations, and then square
         roots necessitate that the result has entries in the field
-        of algebraic numbers.  ::
+        of algebraic numbers::
 
             sage: A = matrix(ZZ, [[ 78, -30, -37,  -2],
             ....:                 [-30, 102, 179, -18],
@@ -12321,7 +12320,7 @@ cdef class Matrix(Matrix1):
 
         Some subfields of the complex numbers, such as this number
         field of complex numbers with rational real and imaginary parts,
-        allow for this computation.  ::
+        allow for this computation::
 
             sage: C.<I> = QuadraticField(-1)
             sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
@@ -12342,7 +12341,7 @@ cdef class Matrix(Matrix1):
             True
 
         The field of algebraic numbers is an ideal setting for this
-        computation.  ::
+        computation::
 
             sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
             ....:                    [ -2*I + 4,        11, 10 - 12*I],
@@ -12359,9 +12358,8 @@ cdef class Matrix(Matrix1):
             sage: L*L.conjugate_transpose() == A
             True
 
-
         Results are cached, hence immutable.  Use the ``copy`` function
-        if you need to make a change.  ::
+        if you need to make a change::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
             ....:                 [-2, 10, -2, -7],
@@ -12380,7 +12378,8 @@ cdef class Matrix(Matrix1):
             [   1   -2    1    1]
 
         The base ring need not be exact, although you should expect
-        the result to be inexact (correct in the norm) as well::
+        the result to be inexact (correct only in the norm) as well
+        in that case::
 
             sage: F = RealField(100)
             sage: A = A = matrix(F, [[1.0, 2.0], [2.0, 6.0]])
@@ -12401,7 +12400,7 @@ cdef class Matrix(Matrix1):
         computation of a Cholesky decomposition.
 
         The base ring may not be able to be viewed as a subset of the
-        complex numbers, implying that "Hermitian" is meaningless:
+        complex numbers, implying that "Hermitian" is meaningless::
 
             sage: A = matrix(Integers(6), [[2, 0], [0, 4]])
             sage: A.cholesky()
@@ -12447,7 +12446,7 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        This verifies that :trac:`11274` is resolved.  ::
+        This verifies that :trac:`11274` is resolved::
 
             sage: E = matrix(QQ, [[2, 1], [1, 1]])
             sage: E.is_symmetric()
@@ -12482,7 +12481,6 @@ cdef class Matrix(Matrix1):
             sage: A.cholesky()
             [   1.0    0.0]
             [-1.0*I    1.0]
-
         """
         cdef Matrix C # output matrix
         C = self.fetch('cholesky')

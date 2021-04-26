@@ -142,7 +142,7 @@ def Hstar_function(polytope, acting_group=None, output=None):
         Permutation Group with generators [(2,3), (1,2), (0,1)]
         sage: len(G)                                                         # optional - pynormaliz
         24
-        sage: phi = Hstar_function(S,G); phi                                 # optional - pynormaliz
+        sage: Hstar = Hstar_function(S,G); Hstar                             # optional - pynormaliz
         chi_4
         sage: G.character_table()                                            # optional - pynormaliz
         [ 1 -1  1  1 -1]
@@ -260,7 +260,7 @@ def Hstar_function(polytope, acting_group=None, output=None):
     Char = char_initial.change_ring(FF)
     new_result = Char.solve_left(initial_result)
 
-    new_new_result = _express_phi_as_polynomial_in_t(new_result)
+    new_new_result = _express_Hstar_as_polynomial_in_t(new_result)
     if output is None:
         return(new_new_result)
     elif output is 'e_series_list':
@@ -435,7 +435,7 @@ def fixed_subpolytopes(polytope, conj_class_reps):
     return fixed_subpolytopes
 
 
-def _express_phi_as_polynomial_in_t(initial_phi):
+def _express_Hstar_as_polynomial_in_t(initial_phi):
     r"""
     Rewrite the vector representing `H^*(t)` given as a linear combination of
     the irreducible representations as a rational function in `t`.
@@ -460,7 +460,7 @@ def _express_phi_as_polynomial_in_t(initial_phi):
     is computed as follows::
 
         sage: simplex = Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0],[0,0,1]],backend='normaliz') # optional - pynormaliz
-        sage: phi = Hstar_function(simplex); phi # optional - pynormaliz
+        sage: Hstar = Hstar_function(simplex); Hstar # optional - pynormaliz
         chi_4
 
     The polynomial is `\chi_4 \cdot t^0`. We can see which irreducible
@@ -480,7 +480,7 @@ def _express_phi_as_polynomial_in_t(initial_phi):
     As another example, we can look at `H^*(t)` for the `\pm 1` square::
 
         sage: square = Polyhedron(vertices = [[1,1],[-1,1],[-1,-1],[1,-1]], backend ='normaliz') # optional - pynormaliz
-        sage: phi = Hstar_function(square) ; phi       # optional - pynormaliz
+        sage: Hstar = Hstar_function(square) ; Hstar       # optional - pynormaliz
         chi_0*t^2 + (2*chi_0 + chi_2 + chi_3 + chi_4)*t + chi_0
 
     Plugging in the values from the first column of the character table below

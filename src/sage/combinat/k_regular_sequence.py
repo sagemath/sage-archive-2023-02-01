@@ -389,7 +389,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return W(n.digits(self.k))
 
 
-    def _parse_recurrence_(self, equations, function, var, offset=0):
+    def _parse_recurrence_(self, equations, function, var):
         r"""
         Parse recurrence relations as admissible in :meth:`from_recurrence`.
 
@@ -727,10 +727,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         k = self.k
         base_ring = self.base()
-        indices_right = []
         coeffs = {}
         initial_values = {}
-        remainders = []
 
         def _parse_multiplication_(op):
             operands = op.operands()
@@ -819,9 +817,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                      % (left_side,))
                 if r >= k**M:
                     raise ValueError("%s is not smaller than %s." % (r, k**M))
-                if r < 0:
+                elif r < 0:
                     raise ValueError("%s is smaller than 0." % (r,))
-                remainders.append(r)
 
                 if right_side != 0:
                     if (len(right_side.operands()) == 1 and right_side.operator() == function
@@ -849,46 +846,113 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                             if M <= m:
                                 raise ValueError("%s is not smaller than %s."
                                                  % (k**m, k**M))
-
-                        indices_right.append(d)
                         coeffs.update({(r, d): coeff})
 
-        remainders.sort()
         try:
-            if remainders != srange(k**M):
-                missing_equations = [function(k**M*var + r)
-                                     for r in srange(k**M)
-                                     if r not in remainders]
-                raise ValueError("Recurrence relations for %s are missing."
-                                 % missing_equations)
-        except UnboundLocalError:
-            raise ValueError("Only initial values are given.")
+            return (coeffs, M, m, initial_values)
+        except NameError: # M is not defined
+            raise ValueError("No recurrence relations are given.")
 
-        if not coeffs:
+
+    def _get_parameters_from_recurrence_(self, coeffs, M, m, initial_values, offset):
+
+        keys = coeffs.keys()
+        remainders = Set([key[0] for key in keys])
+
+        remainders.sort()
+        if remainders != srange(k**M):
+            missing_equations = [function(k**M*var + r)
+                                 for r in srange(k**M)
+                                 if r not in remainders]
+            raise ValueError("Recurrence relations for %s are missing."
+                             % missing_equations)
+
+        if not coeffs: # the sequence is the zero sequence
             m = M - 1
             l = 0
             u = 0
         else:
+            indices_right = [key[1] for key in keys]
             l = min(indices_right)
             u = max(indices_right)
-
-        if offset < max(-l/k**m, 0):
-            raise ValueError("Offset %s is smaller than max(%s, %s)."
-                             % (offset, -l/k**m, 0))
 
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
         n1 = offset - floor(ll/k**M)
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
 
-        recursion_rules = namedtuple('recursion_rules',
-                                     ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
-                                      'coeffs', 'initial_values', 'offset', 'n1'])
+        initial_values = self._get_values_from_recurrence(
+            coeffs, M, m, l, u, ll, uu, initial_values, offset, n1)
 
-        return recursion_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
-                               coeffs=coeffs, initial_values=initial_values,
-                               offset=offset, n1=n1)
+        recurrence_rules = namedtuple('recursion_rules',
+                                      ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
+                                       'coeffs', 'initial_values', 'offset', 'n1'])
 
+        return recurrence_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
+                                coeffs=coeffs, initial_values=initial_values,
+                                offset=offset, n1=n1)
+
+
+    def _get_values_from_recurrence_(self, coeffs, M, m, l, u, ll, uu,
+                                     initial_values, offset, n1):
+
+        from sage.arith.srange import srange
+        from sage.functions.other import ceil
+        from sage.rings.integer_ring import ZZ
+
+        k = self.k
+        base_ring = self.base_ring()
+        keys_initial = initial_values.keys()
+        last_value_needed = max(
+            k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1),
+            k**m*offset + u,
+            ceil(k**M*u/(k**M - k**m)),
+            max(keys_initial))
+        values = {n: None if n not in keys_initial else initial_values[n]
+                  for n in srange(last_value_needed + 1)}
+        missing_values = []
+
+        @cached_function
+        def _coeff_(r, k):
+            try:
+                return coeffs[(r, k)]
+            except KeyError:
+                return 0
+
+        def _f_n_(n):
+            f_n = values[n]
+            if f_n is not None and f_n != "pending":
+                if f_n not in base_ring:
+                    raise ValueError("Initial value for n = %s is not in %s."
+                                     % (n, base_ring))
+                return f_n
+            elif f_n == "pending":
+                missing_values.append(n)
+                return 0
+            else:
+                values.update({n: "pending"})
+                q, r = ZZ(n).quo_rem(k**M)
+                if q < offset:
+                    raise ValueError("Intial value for n = %s is missing." % (n,))
+                return sum([_coeff_(r, j)*_f_n_(k**m*q + j)
+                            for j in srange(l, u + 1)
+                            if _coeff_(r, j) != 0])
+
+        for n in srange(last_value_needed + 1):
+            values.update({n: _f_n_(n)})
+
+        if missing_values:
+            raise ValueError("Initial values for n in %s are missing."
+                             % (missing_values,))
+
+        for n in keys_initial:
+            q, r = ZZ(n).quo_rem(k**M)
+            if (q >= offset and
+                values[n] != sum([_coeff_(r, j)*values[k**m*q + j]
+                                  for j in srange(l, u + 1)])):
+                raise ValueError("Initial value for n = %s does not match with "
+                                 "the given recurrence relations." % (n,))
+        return values
 
     @cached_method
     def _get_ind_from_recurrence_(self, M, m, ll, uu):
@@ -1400,6 +1464,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         k = self.k
         recursion_rules = self._parse_recurrence_(equations, function, var, offset)
+
+
 
         mu = [self._get_matrix_from_recurrence_(recursion_rules, rem, function, var)
               for rem in srange(k)]

@@ -289,6 +289,11 @@ def fixed_subpolytope(polytope, vertex_permutation):
 
     A subpolytope of ``polytope``.
 
+    TODO:
+
+    Backend normaliz is not implemented for polytopes with basering RDF,
+    otherwise this method would work for those polytopes.
+
     .. NOTE::
 
         The vertex_permutation is obtained as a permutation of the vertices

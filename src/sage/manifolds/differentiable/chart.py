@@ -559,7 +559,7 @@ class DiffChart(Chart):
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
             # (including self._domain):
-            for dom in self._domain._supersets:
+            for dom in self._domain.open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -1042,7 +1042,7 @@ class RealDiffChart(DiffChart, RealChart):
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
             # (including self._domain):
-            for dom in self._domain._supersets:
+            for dom in self._domain.open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -1134,7 +1134,7 @@ class DiffCoordChange(CoordChange):
             ch_basis.add_comp(frame1)[:, chart1] = self._jacobian
             ch_basis.add_comp(frame2)[:, chart1] = self._jacobian
             vf_module._basis_changes[(frame2, frame1)] = ch_basis
-            for sdom in domain._supersets:
+            for sdom in domain.open_supersets():
                 sdom._frame_changes[(frame2, frame1)] = ch_basis
             # The inverse is computed only if it does not exist already
             # (because if it exists it may have a simpler expression than that
@@ -1142,7 +1142,7 @@ class DiffCoordChange(CoordChange):
             if (frame1, frame2) not in vf_module._basis_changes:
                 ch_basis_inv = ch_basis.inverse()
                 vf_module._basis_changes[(frame1, frame2)] = ch_basis_inv
-                for sdom in domain._supersets:
+                for sdom in domain.open_supersets():
                     sdom._frame_changes[(frame1, frame2)] = ch_basis_inv
 
     def jacobian(self):

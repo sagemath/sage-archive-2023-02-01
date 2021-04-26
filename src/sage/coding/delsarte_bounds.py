@@ -546,18 +546,23 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
 def _delsarte_Q_LP_building(q,d,solver,isinteger):
     from sage.numerical.mip import MixedIntegerLinearProgram
 
-    n, m = q.dimensions() # q is an nxm matrix
+    n, _ = q.dimensions() # Q is a square matrix
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
     A = p.new_variable(integer=isinteger, nonnegative=True)
-    p.set_objective(sum([A[i] for i in range(m)]))
+    p.set_objective(sum([A[i] for i in range(n)]))
 
     p.add_constraint(A[0]==1)
-    for i in range(1,d):
-        p.add_constraint(A[i]==0)
+
+    try:
+        for i in range(1,d):
+            p.add_constraint(A[i]==0)
+    except:
+        for i in d:
+            p.add_constraint(A[i]==0)
 
     for k in range(1,n):
-        p.add_constraint(sum([q[k][i]*A[i] for i in range(m)]),min=0)
+        p.add_constraint(sum([q[k][i]*A[i] for i in range(n)]),min=0)
 
     # p.show()
     return A, p

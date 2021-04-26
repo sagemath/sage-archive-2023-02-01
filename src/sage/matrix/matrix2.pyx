@@ -14360,49 +14360,49 @@ cdef class Matrix(Matrix1):
 
     def is_positive_definite(self):
         r"""
-        Determines if a real or symmetric matrix is positive definite.
+        Determine if a matrix is positive-definite.
 
-        A square matrix `A` is positive definite if it is
-        symmetric with real entries or Hermitian with complex entries,
-        and for every non-zero vector `\vec{x}`
+        A matrix `A` is positive definite if it
+        :meth:`~.Matrix.is_hermitian` and if, for every non-zero
+        vector `x`,
 
         .. MATH::
 
-            \vec{x}^\ast A\vec{x} > 0.
-
-        Here `\vec{x}^\ast` is the conjugate-transpose, which can be
-        simplified to just the transpose in the real case.
+            \left\langle Ax, x \right\rangle > 0.
 
         ALGORITHM:
 
-        A matrix is positive definite if and only if the diagonal
-        blocks in its :meth:`block_ldlt` factorization are all 1-by-1
-        and have positive entries. This algorithm is of order
-        ``n^3/3`` and may be applied to matrices with elements of any
-        ring that has a fraction field contained within the reals or
-        complex numbers.
+        A Hermitian matrix is positive-definite if and only if the
+        diagonal blocks in its :meth:`block_ldlt` factorization are
+        all 1-by-1 and have positive entries. We first check that the
+        matrix :meth:`~.Matrix.is_hermitian`, and then compute this
+        factorization.
 
         INPUT:
 
-        Any square matrix.
+        A matrix.
 
         OUTPUT:
 
-        This routine will return ``True`` if the matrix is square,
-        symmetric or Hermitian, and meets the condition above
-        for the quadratic form.
+        This routine will return ``True`` if the matrix is Hermitian
+        and meets the condition above for the quadratic form.
 
-        The base ring for the elements of the matrix needs to have a
-        fraction field implemented and the computations that result
-        from the factorization must be convertible to real numbers
-        that are comparable to zero.
+        The base ring for the elements of the matrix must
+
+        1. Have a fraction field implemented; and
+        2. Be a subring of the real numbers, complex numbers,
+           or symbolic ring.
+
+        .. SEEALSO::
+
+            :meth:`block_ldlt`, :meth:`~.Matrix.is_hermitian`,
+            :meth:`is_positive_semidefinite`
 
         EXAMPLES:
 
-        A real symmetric matrix that is positive definite,
-        as evidenced by the positive entries for the diagonal
-        matrix of the indefinite factorization and the positive
-        determinants of the leading principal submatrices. ::
+        A real symmetric matrix that is positive-definite, as
+        evidenced by the positive determinants of its leading
+        principal submatrices::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
             ....:                 [-2, 10, -2, -7],
@@ -14410,14 +14410,12 @@ cdef class Matrix(Matrix1):
             ....:                 [ 2, -7,  4,  7]])
             sage: A.is_positive_definite()
             True
-            sage: _, d = A.indefinite_factorization(algorithm='symmetric')
-            sage: d
-            (4, 9, 4, 1)
             sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
             [4, 36, 144, 144]
 
-        A real symmetric matrix which is not positive definite, along
-        with a vector that makes the quadratic form negative. ::
+        A real symmetric matrix that is not positive-definite and a
+        vector ``u`` that makes the corresponding quadratic form
+        negative::
 
             sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
             ....:                 [-6,  11, -16, -11,  17],
@@ -14426,18 +14424,13 @@ cdef class Matrix(Matrix1):
             ....:                 [-9,  17, -40, -19,  68]])
             sage: A.is_positive_definite()
             False
-            sage: _, d = A.indefinite_factorization(algorithm='symmetric')
-            sage: d
-            (3, -1, 5, -2, -1)
-            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
-            [3, -3, -15, 30, -30]
             sage: u = vector(QQ, [2, 2, 0, 1, 0])
-            sage: u.row()*A*u
-            (-3)
+            sage: (A*u).inner_product(u)
+            -3
 
-        A real symmetric matrix with a singular leading
-        principal submatrix, that is therefore not positive definite.
-        The vector ``u`` makes the quadratic form zero.  ::
+        Another real symmetric matrix that is not positive-definite
+        and a vector ``u`` that makes the corresponding quadratic form
+        zero::
 
             sage: A = matrix(QQ, [[21, 15, 12, -2],
             ....:                 [15, 12,  9,  6],
@@ -14445,13 +14438,13 @@ cdef class Matrix(Matrix1):
             ....:                 [-2,  6,  3,  8]])
             sage: A.is_positive_definite()
             False
-            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
-            [21, 27, 0, -75]
             sage: u = vector(QQ, [1,1,-3,0])
-            sage: u.row()*A*u
-            (0)
+            sage: (A*u).inner_product(u)
+            0
 
-        An Hermitian matrix that is positive definite.  ::
+        A complex Hermitian matrix that is positive-definite,
+        confirmed by the positive determinants of its leading
+        principal submatrices::
 
             sage: C.<I> = NumberField(x^2 + 1, embedding=CC(0,1))
             sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
@@ -14460,14 +14453,11 @@ cdef class Matrix(Matrix1):
             ....:                [     -21*I, -7*I + 15,  -24*I + 6,       28]])
             sage: A.is_positive_definite()
             True
-            sage: _, d = A.indefinite_factorization(algorithm='hermitian')
-            sage: d
-            (23, 576/23, 89885/144, 142130/17977)
             sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
             [23, 576, 359540, 2842600]
 
-        An Hermitian matrix that is not positive definite.
-        The vector ``u`` makes the quadratic form negative.  ::
+        An Hermitian matrix that is not positive-definite and a vector
+        ``u`` that makes the corresponding quadratic form negative::
 
             sage: C.<I> = QuadraticField(-1)
             sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
@@ -14475,16 +14465,13 @@ cdef class Matrix(Matrix1):
             ....:                [2 - 2*I,   -10*I,      -3]])
             sage: B.is_positive_definite()
             False
-            sage: _, d = B.indefinite_factorization(algorithm='hermitian')
-            sage: d
-            (2, -2, 3)
-            sage: [B[:i,:i].determinant() for i in range(1,B.nrows()+1)]
-            [2, -4, -12]
             sage: u = vector(C, [-5 + 10*I, 4 - 3*I, 0])
-            sage: u.row().conjugate()*B*u
-            (-50)
+            sage: (B*u).hermitian_inner_product(u)
+            -50
 
-        A positive definite matrix over an algebraically closed field.  ::
+        A positive-definite matrix over an algebraically-closed field,
+        confirmed by the positive determinants of its leading
+        principal submatrices::
 
             sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
             ....:                    [ -2*I + 4,        11, 10 - 12*I],
@@ -14496,11 +14483,9 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        If the base ring lacks a ``conjugate`` method, it
-        will be assumed to not be Hermitian and thus symmetric.
-        If the base ring does not make sense as a subfield of
-        the reals, then this routine will fail since comparison
-        to zero is meaningless.  ::
+        If the base ring does not make sense as a subfield of the real
+        numbers, complex numbers, or symbolic ring, then this routine
+        will fail since comparison to zero is meaningless::
 
             sage: F.<a> = FiniteField(5^3)
             sage: a.conjugate()
@@ -14518,7 +14503,7 @@ cdef class Matrix(Matrix1):
             ValueError: Could not see Finite Field in a of size 5^3 as a subring
             of the real or complex numbers
 
-        The 0x0 matrix is trivially positive definite::
+        The 0x0 matrix is trivially positive-definite::
 
             sage: Matrix(0).is_positive_definite()
             True
@@ -14532,7 +14517,6 @@ cdef class Matrix(Matrix1):
             True
             sage: matrix.identity(SR,4).is_positive_definite()
             True
-
         """
         return self._is_positive_definite_or_semidefinite(False)
 

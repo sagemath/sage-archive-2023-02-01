@@ -1284,6 +1284,67 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                         oc.append(s)
             self._open_covers.append(oc)
 
+    def declare_equal(self, *others):
+        r"""
+        Declare that ``self`` and ``others`` are the same sets.
+
+        INPUT:
+
+        - ``others`` -- finitely many subsets or iterables of subsets of the same
+          manifold as ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U')
+            sage: V = M.open_subset('V')
+            sage: Vs = [M.open_subset(f'V{i}') for i in range(2)]
+            sage: UV = U.intersection(V)
+            sage: W = UV.open_subset('W')
+            sage: P = M.subset_poset()
+            sage: def label(element):
+            ....:     return element._name
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 15 graphics primitives
+            sage: V.declare_equal(Vs)
+            sage: P = M.subset_poset()
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 11 graphics primitives
+            sage: W.declare_equal(U)
+            sage: P = M.subset_poset()
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 6 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                return element._name
+            M = Manifold(2, 'M')
+            U = M.open_subset('U')
+            V = M.open_subset('V')
+            Vs = [M.open_subset(f'V{i}') for i in range(2)]
+            UV = U.intersection(V)
+            W = UV.open_subset('W')
+            P = M.subset_poset()
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+            V.declare_equal(Vs)
+            P = M.subset_poset()
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+            W.declare_equal(U)
+            P = M.subset_poset()
+            g3 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1, g2, g3]), figsize=(8, 3))
+
+        """
+        F = ManifoldSubsetFiniteFamily.from_subsets_or_families
+        equal_sets = F(self, *others)
+        all_supersets = F(*[S.supersets() for S in equal_sets])
+        all_subsets = F(*[S.subsets() for S in equal_sets])
+        for superset in all_supersets:
+            superset._subsets.update(all_subsets)
+        for subset in all_subsets:
+            subset._supersets.update(all_supersets)
+
     def declare_empty(self):
         r"""
         Declare that ``self`` is the empty set.
@@ -1344,7 +1405,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             ....:     except AttributeError:
             ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
             sage: P.plot(element_labels={element: label(element) for element in P})
-            Graphics object consisting of 14 graphics primitives
+            Graphics object consisting of 10 graphics primitives
 
         .. PLOT::
 
@@ -1362,16 +1423,19 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             AD = A.subset('AD')
             B = M.subset('B')
             b = B.point(name='b')
+
+            D = M.subset_digraph(open_covers=True, points=[b])
+            g1 = D.relabel(label, inplace=False).plot(layout='spring')
             P = M.subset_poset(open_covers=True, points=[b])
-            g1 = P.plot(element_labels={element: label(element) for element in P})
-            sphinx_plot(graphics_array([g1]), figsize=(8, 3))
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1, g2]), figsize=(8, 5))
 
         """
         if self.has_defined_points():
             raise TypeError('cannot be empty because it has defined points')
-        for subset in self.subsets():
-            if not subset.is_empty():
-                subset._open_covers.append([])
+        if not self.is_empty():
+            self._open_covers.append([])
+            self.declare_equal(self.subsets())
 
     def is_empty(self):
         if self._has_defined_points:
@@ -1482,9 +1546,12 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if is_open:
             return self.open_subset(name, latex_name=latex_name)
         res = ManifoldSubset(self._manifold, name, latex_name=latex_name)
-        res._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(res)
+        if self.is_empty():
+            self.declare_equal(res)
+        else:
+            res._supersets.update(self._supersets)
+            for sd in self._supersets:
+                sd._subsets.add(res)
         self._top_subsets.add(res)
         return res
 

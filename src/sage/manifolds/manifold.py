@@ -899,9 +899,12 @@ class TopologicalManifold(ManifoldSubset):
             Open subset U of the 2-dimensional topological manifold R^2
         """
         resu._calculus_method = self._calculus_method
-        resu._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(resu)
+        if self.is_empty():
+            self.declare_equal(resu)
+        else:
+            resu._supersets.update(self._supersets)
+            for sd in self._supersets:
+                sd._subsets.add(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.items():

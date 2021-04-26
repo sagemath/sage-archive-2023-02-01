@@ -1462,6 +1462,7 @@ class HasseDiagram(DiGraph):
             sage: P.meet(2,3)
             4
         """
+        self._meet_semilattice_failure = ()
         n = self.cardinality()
         if n == 0:
             return matrix(0)
@@ -1482,7 +1483,8 @@ class HasseDiagram(DiGraph):
                             break
                 meet[x][y] = q
                 meet[y][x] = q
-
+                if q == -1:
+                    self._meet_semilattice_failure += ((x, y),)
         return matrix(ZZ, meet)
 
     def meet_matrix(self):
@@ -1543,12 +1545,12 @@ class HasseDiagram(DiGraph):
         n = self.cardinality()
         if (n != 0) and (not self.has_bottom()):
             raise ValueError("not a meet-semilattice: no bottom element")
-        n = self.cardinality()
-        for x in range(n):
-            for y in range(x):
-                if self._meet[x, y] == -1:
-                    raise LatticeError('meet', x, y)
-        return self._meet
+        # call the attribute to build the matrix and _meet_semilattice_failure
+        mt = self._meet
+        if self._meet_semilattice_failure:
+            x, y = self._meet_semilattice_failure[0]
+            raise LatticeError('meet', x, y)
+        return mt
 
     def is_meet_semilattice(self):
         r"""
@@ -1624,6 +1626,7 @@ class HasseDiagram(DiGraph):
             sage: P.join(2,3)
             0
         """
+        self._join_semilattice_failure = ()
         n = self.cardinality()
         if n == 0:
             return matrix(0)
@@ -1644,6 +1647,8 @@ class HasseDiagram(DiGraph):
                             break
                 join[x][y] = q
                 join[y][x] = q
+                if q == -1:
+                    self._join_semilattice_failure += ((x, y),)
 
         return matrix(ZZ, join)
 
@@ -1697,11 +1702,12 @@ class HasseDiagram(DiGraph):
         n = self.cardinality()
         if (n != 0) and (not self.has_top()):
             raise ValueError("not a join-semilattice: no top element")
-        for x in range(n - 1, -1, -1):
-            for y in range(n - 1, x, -1):
-                if self._join[x, y] == -1:
-                    raise LatticeError('join', x, y)
-        return self._join
+        # call the attribute to build the matrix and _join_semilattice_failure
+        jn = self._join
+        if self._join_semilattice_failure:
+            x, y = self._join_semilattice_failure[0]
+            raise LatticeError('join', x, y)
+        return jn
 
     def is_join_semilattice(self):
         r"""

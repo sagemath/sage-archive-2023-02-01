@@ -145,6 +145,7 @@ class Polyhedron_base(Element):
 
         sage: TestSuite(Polyhedron([[]])).run()
         sage: TestSuite(Polyhedron([[0]])).run()
+        sage: TestSuite(Polyhedron([[1]])).run()
 
     ::
 
@@ -154,6 +155,17 @@ class Polyhedron_base(Element):
     ::
 
         sage: P = polytopes.permutahedron(3)*Polyhedron(rays=[[0,0,1],[0,1,1]], lines=[[1,0,0]])
+        sage: TestSuite(P).run()
+
+    ::
+
+        sage: M = random_matrix(ZZ, 5, 5, distribution='uniform')
+        sage: while True:
+        ....:     M = random_matrix(ZZ, 5, 5, distribution='uniform')
+        ....:     if M.rank() != 5:
+        ....:         break
+        ....:
+        sage: P = Polyhedron(M)
         sage: TestSuite(P).run()
     """
 
@@ -10420,10 +10432,11 @@ class Polyhedron_base(Element):
             if as_polyhedron:
                 result.polyhedron = A*self
             if return_all_data:
-                E = M.echelon_form()
-                L_section = linear_transformation(matrix(len(pivots), self.ambient_dim(),
-                                                         [E[i] for i in range(len(pivots))]).transpose(),
-                                                  side='right')
+                if self.dim():
+                    B = M.transpose()/(A*M.transpose())
+                else:
+                    B = matrix(self.ambient_dim(), 0)
+                L_section = linear_transformation(B, side='right')
                 result.section_linear_map = L_section
                 result.section_translation = v0 - L_section(L(v0) + image_translation)
 

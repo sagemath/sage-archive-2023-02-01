@@ -14356,7 +14356,7 @@ cdef class Matrix(Matrix1):
         """
         return self._is_positive_definite_or_semidefinite(True)
 
-    def is_positive_definite(self):
+    def is_positive_definite(self, certificate=False):
         r"""
         Determine if a matrix is positive-definite.
 
@@ -14378,7 +14378,10 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
-        A matrix.
+        - ``self`` -- a matrix
+        - ``certificate`` -- (default: ``False``) return the
+          lower-triangular and diagonal parts of the :meth:`block_ldlt`
+          factorization when the matrix is positive-definite. Deprecated.
 
         OUTPUT:
 
@@ -14390,6 +14393,14 @@ cdef class Matrix(Matrix1):
         1. Have a fraction field implemented; and
         2. Be a subring of the real numbers, complex numbers,
            or symbolic ring.
+
+        If ``certificate`` is ``True``, a triplet ``(b, L, d)`` will
+        be returned instead, with ``b`` containing the result (true or
+        false). If the matrix is positive-definite, then ``L`` and
+        ``d`` will contain the lower-triangular and diagonal parts of
+        the :meth:`block_ldlt` factorization, respectively. Or if the
+        matrix is not positive-definite (that is, if ``b`` is
+        ``False``), then both ``L`` and ``d`` will be ``None``.
 
         .. SEEALSO::
 
@@ -14516,7 +14527,22 @@ cdef class Matrix(Matrix1):
             sage: matrix.identity(SR,4).is_positive_definite()
             True
         """
-        return self._is_positive_definite_or_semidefinite(False)
+        result = self._is_positive_definite_or_semidefinite(False)
+        if certificate:
+            from sage.misc.superseded import deprecation
+            msg  = "the 'certificate' argument is deprecated; if you "
+            msg += "need the corresponding factorization, you can "
+            msg += "simply compute it yourself (the results are cached)"
+            deprecation(31619, msg)
+            L = None
+            d = None
+            if result:
+                from sage.modules.free_module_element import vector
+                _,L,D = self.block_ldlt()
+                d = vector(D.base_ring(), D.diagonal())
+            return (result, L, d)
+        else:
+            return result
 
 
     def principal_square_root(self, check_positivity=True):

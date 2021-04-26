@@ -598,7 +598,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                         continue
                 yield ManifoldSubsetFiniteFamily(oc)
 
-    def open_cover_family(self, trivial=True):
+    def open_cover_family(self, trivial=True, supersets=False):
         r"""
         Return the family of open covers of the current subset.
 
@@ -630,6 +630,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
           open cover of ``self`` by itself
+        - ``supersets`` -- (default: ``False``) if ``True``, include open covers of
+          all the supersets; it can also be an iterable of supersets to include
 
         EXAMPLES::
 
@@ -652,7 +654,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             Set {{A, B, V}, {M}, {U, V}} of objects of the 2-dimensional topological manifold M
 
         """
-        return ManifoldObjectFiniteFamily(self.open_covers(trivial=trivial))
+        return ManifoldObjectFiniteFamily(self.open_covers(
+            trivial=trivial, supersets=supersets))
 
     def subsets(self):
         r"""

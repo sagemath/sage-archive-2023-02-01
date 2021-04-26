@@ -74,7 +74,6 @@ Lists of subsets after the above operations::
 #*****************************************************************************
 
 from collections import defaultdict
-import itertools
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
@@ -885,7 +884,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P = M.subset_poset(open_covers=True); P
             Finite poset containing 6 elements
             sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
-            sage: P.upper_covers(ManifoldSubsetFiniteFamily([VW]))
+            sage: sorted(P.upper_covers(ManifoldSubsetFiniteFamily([VW])), key=str)
             [(Set {V} of open subsets of the 3-dimensional differentiable manifold M,
               Set {W} of open subsets of the 3-dimensional differentiable manifold M),
              Set {M} of open subsets of the 3-dimensional differentiable manifold M]

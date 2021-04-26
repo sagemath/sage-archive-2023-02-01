@@ -125,11 +125,8 @@ The inverse of the transition map is computed by the method ``inverse()``::
 
 At this stage, we have four open subsets on `S^2`::
 
-    sage: M.list_of_subsets()
-    [2-dimensional differentiable manifold S^2,
-     Open subset U of the 2-dimensional differentiable manifold S^2,
-     Open subset V of the 2-dimensional differentiable manifold S^2,
-     Open subset W of the 2-dimensional differentiable manifold S^2]
+    sage: M.subset_family()
+    Set {S^2, U, V, W} of open subsets of the 2-dimensional differentiable manifold S^2
 
 `W` is the open subset that is the complement of the two poles::
 
@@ -350,11 +347,8 @@ and we have::
 
 The following subsets and charts have been defined::
 
-    sage: M.list_of_subsets()
-    [Open subset A of the 1-dimensional complex manifold C*,
-     1-dimensional complex manifold C*,
-     Open subset U of the 1-dimensional complex manifold C*,
-     Open subset V of the 1-dimensional complex manifold C*]
+    sage: M.subset_family()
+    Set {A, C*, U, V} of open subsets of the 1-dimensional complex manifold C*
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
@@ -723,7 +717,7 @@ class DifferentiableManifold(TopologicalManifold):
         """
         return self._diff_degree
 
-    def open_subset(self, name, latex_name=None, coord_def={}):
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
         r"""
         Create an open subset of the manifold.
 
@@ -741,6 +735,8 @@ class DifferentiableManifold(TopologicalManifold):
           terms of coordinates; ``coord_def`` must a be dictionary with keys
           charts in the manifold's atlas and values the symbolic expressions
           formed by the coordinates to define the subset.
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
 
         OUTPUT:
 
@@ -773,9 +769,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         We have then::
 
-            sage: A.list_of_subsets()
-            [Open subset A of the 2-dimensional differentiable manifold M,
-             Open subset B of the 2-dimensional differentiable manifold M]
+            sage: A.subset_family()
+            Set {A, B} of open subsets of the 2-dimensional differentiable manifold M
             sage: B.is_subset(A)
             True
             sage: B.is_subset(M)
@@ -826,24 +821,38 @@ class DifferentiableManifold(TopologicalManifold):
                                       diff_degree=self._diff_degree,
                                       latex_name=latex_name,
                                       start_index=self._sindex)
-        resu._calculus_method = self._calculus_method
-        resu._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(resu)
-        self._top_subsets.add(resu)
-        # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.items():
-            if chart not in self._atlas:
-                raise ValueError("the {} does not belong to ".format(chart) +
-                                 "the atlas of {}".format(self))
-            chart.restrict(resu, restrictions)
-        # Transition maps on the result inferred from those of self:
-        for chart1 in coord_def:
-            for chart2 in coord_def:
-                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
-                    self._coord_changes[(chart1, chart2)].restrict(resu)
-        #!# update vector frames and change of frames
+        if supersets is None:
+            supersets = [self]
+        for superset in supersets:
+            superset._init_open_subset(resu, coord_def=coord_def)
         return resu
+
+    def _init_open_subset(self, resu, coord_def):
+        r"""
+        Initialize ``resu`` as an open subset of ``self``.
+
+        INPUT:
+
+        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+          a subclass.
+
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='differentiable')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: from sage.manifolds.differentiable.manifold import DifferentiableManifold
+            sage: U = DifferentiableManifold(2, 'U', field=M._field, structure=M._structure, base_manifold=M)
+            sage: M._init_open_subset(U, coord_def={c_cart: x^2+y^2<1})
+            sage: U
+            Open subset U of the 2-dimensional differentiable manifold R^2
+        """
+        super()._init_open_subset(resu, coord_def=coord_def)
+        #!# update vector frames and change of frames
 
     def diff_map(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
@@ -2743,7 +2752,7 @@ class DifferentiableManifold(TopologicalManifold):
         """
         if not self._orientation:
             # try to get an orientation from super domains:
-            for sdom in self._supersets:
+            for sdom in self.open_supersets():
                 sorient = sdom._orientation
                 if sorient:
                     rst_orient = [f.restrict(self) for f in sorient]
@@ -2951,11 +2960,11 @@ class DifferentiableManifold(TopologicalManifold):
                             "instance of AutomorphismFieldParal")
         fmodule.set_change_of_basis(frame1, frame2, change_of_frame,
                                     compute_inverse=compute_inverse)
-        for sdom in self._supersets:
+        for sdom in self.open_supersets():
             sdom._frame_changes[(frame1, frame2)] = change_of_frame
         if compute_inverse:
             if (frame2, frame1) not in self._frame_changes:
-                for sdom in self._supersets:
+                for sdom in self.open_supersets():
                     sdom._frame_changes[(frame2, frame1)] = change_of_frame.inverse()
 
     def vector_frame(self, *args, **kwargs):
@@ -3141,7 +3150,7 @@ class DifferentiableManifold(TopologicalManifold):
             # dictionary _frame_changes of self and its supersets:
             for frame_pair, chge in resu._fmodule._basis_changes.items():
                 if resu in frame_pair:
-                    for sdom in self._supersets:
+                    for sdom in self.open_supersets():
                         sdom._frame_changes[frame_pair] = chge
         return resu
 
@@ -3168,7 +3177,7 @@ class DifferentiableManifold(TopologicalManifold):
         self._covering_frames.append(frame)
         self._parallelizable_parts = set([self])
         # if self contained smaller parallelizable parts, they are forgotten
-        for sd in self._supersets:
+        for sd in self.open_supersets():
             if not sd.is_manifestly_parallelizable():
                 sd._parallelizable_parts.add(self)
 

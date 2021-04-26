@@ -2276,9 +2276,7 @@ class TensorField(ModuleElementWithMutability):
             if other._tensor_type != self._tensor_type:
                 return False
             # Non-trivial open covers of the domain:
-            open_covers = self._domain.open_covers()[1:]  # the open cover 0
-                                                          # is trivial
-            for oc in open_covers:
+            for oc in self._domain.open_covers(trivial=False):
                 resu = True
                 for dom in oc:
                     try:

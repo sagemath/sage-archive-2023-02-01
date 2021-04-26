@@ -667,7 +667,6 @@ class RecognizableSeries(Element):
             ....:         left=vector([0, 1]), right=vector([1, 0]))
             sage: bool(S)
             False
-            sage: S  # not tested
         """
         if self.is_trivial_zero():
             return False

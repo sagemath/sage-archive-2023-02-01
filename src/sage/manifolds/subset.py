@@ -73,6 +73,8 @@ Lists of subsets after the above operations::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from collections import defaultdict
+import itertools
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
@@ -719,7 +721,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return sorted(self._subsets, key=lambda x: x._name)
 
-    def subset_digraph(self, loops=False, open_covers=False, lower_bound=None):
+    def subset_digraph(self, loops=False, open_covers=False, points=False, lower_bound=None):
         r"""
         Return the digraph whose arcs represent subset relations among the subsets of ``self``.
 
@@ -727,8 +729,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``loops`` -- (default: ``False``) whether to include the trivial containment
           of each subset in itself as loops of the digraph
-        - ``lower_bound`` -- (default: ``None``) only include supersets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
 
         OUTPUT:
 
@@ -810,16 +814,41 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 D.add_edges((vertex(S), open_cover_vertex(open_cover))
                             for open_cover in S.open_covers(trivial=False))
 
+        if points is not False:
+            subset_to_points = defaultdict(list)
+            if points is not True:
+                # Manifolds do not keep track of the points defined on them.
+                # Use the provided iterator.
+                def point_vertex(point):
+                    return point
+
+                for point in points:
+                    S = point.parent()
+                    subset_to_points[S].append(point)
+                    D.add_edge((point_vertex(point), vertex(S)))
+
+            # Add a placeholder vertex under each subset that has a defined
+            # point that we do not know about.
+            def anonymous_point_vertex(S):
+                return f"p{S._name}"
+
+            D.add_edges((anonymous_point_vertex(S), vertex(S))
+                        for S in visited
+                        if S.has_defined_points(subsets=False)
+                        and S not in subset_to_points)
+
         return D
 
-    def subset_poset(self, open_covers=False, lower_bound=None):
+    def subset_poset(self, open_covers=False, points=False, lower_bound=None):
         r"""
         Return the poset of the subsets of ``self``.
 
         INPUT:
 
-        - ``lower_bound`` -- (default: ``None``) only include supersets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
 
         EXAMPLES::
 
@@ -858,9 +887,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P.plot(element_labels={element: label(element) for element in P})  # not tested
         """
         from sage.combinat.posets.posets import Poset
-        return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))
+        return Poset(self.subset_digraph(open_covers=open_covers, points=points,
+                                         lower_bound=lower_bound))
 
-    def superset_digraph(self, loops=False, open_covers=False, upper_bound=None):
+    def superset_digraph(self, loops=False, open_covers=False, points=False, upper_bound=None):
         """
         Return the digraph whose arcs represent subset relations among the supersets of ``self``.
 
@@ -868,8 +898,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``loops`` -- (default: ``False``) whether to include the trivial containment
           of each subset in itself as loops of the digraph
-        - ``upper_bound`` -- (default: ``None``) only include subsets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
 
         EXAMPLES::
 
@@ -882,16 +914,19 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         if upper_bound is None:
             upper_bound = self._manifold
-        return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, lower_bound=self)
+        return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, points=points,
+                                          lower_bound=self)
 
-    def superset_poset(self, open_covers=False, upper_bound=None):
+    def superset_poset(self, open_covers=False, points=False, upper_bound=None):
         r"""
         Return the poset of the supersets of ``self``.
 
         INPUT:
 
-        - ``upper_bound`` -- (default: ``None``) only include subsets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
 
         EXAMPLES::
 
@@ -905,7 +940,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         if upper_bound is None:
             upper_bound = self._manifold
-        return upper_bound.subset_poset(open_covers=open_covers, lower_bound=self)
+        return upper_bound.subset_poset(open_covers=open_covers, points=points,
+                                        lower_bound=self)
 
     def get_subset(self, name):
         r"""
@@ -1083,7 +1119,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         Emptiness is recorded as empty open covers::
 
-            sage: P = M.subset_poset(open_covers=True)
+            sage: P = M.subset_poset(open_covers=True, points=[b])
             sage: def label(element):
             ....:     if isinstance(element, str):
             ....:         return element

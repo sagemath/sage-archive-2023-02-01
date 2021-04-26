@@ -560,6 +560,9 @@ class RecognizableSeries(Element):
         r"""
         Return an iterator over pairs ``(index, coefficient)``.
 
+        The ``index`` is never the empty word and
+        each ``efficient`` is non-zero.
+
         EXAMPLES::
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])

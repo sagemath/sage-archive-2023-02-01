@@ -578,6 +578,20 @@ class RecognizableSeries(Element):
              (word: 101, 2),
              (word: 110, 2)]
 
+            sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
+            ....:         left=vector([1, 0]), right=vector([1, 0]))
+            sage: list(islice(S, 10))
+            [(word: , 1),
+             (word: 0, 1),
+             (word: 00, 1),
+             (word: 11, -1),
+             (word: 000, 1),
+             (word: 011, -1),
+             (word: 101, -1),
+             (word: 110, -1),
+             (word: 111, -2),
+             (word: 0000, 1)]
+
         TESTS::
 
             sage: it = iter(S)

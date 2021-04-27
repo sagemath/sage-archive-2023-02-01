@@ -222,6 +222,26 @@ class PrefixClosedSet(object):
              word: 011,
              word: 0010,
              word: 0011]
+
+        The method :meth:`iterate_possible_additions` is roughly equivalent to
+        ::
+
+            sage: list(p + a
+            ....:      for p in P.elements
+            ....:      for a in P.words.iterate_by_length(1))
+            [word: 0,
+             word: 1,
+             word: 00,
+             word: 01,
+             word: 000,
+             word: 001,
+             word: 010,
+             word: 011,
+             word: 0010,
+             word: 0011]
+
+        However, the above does not allow to add elements during iteration,
+        whereas :meth:`iterate_possible_additions` does.
         """
         n = 0
         it = self.words.iterate_by_length(1)

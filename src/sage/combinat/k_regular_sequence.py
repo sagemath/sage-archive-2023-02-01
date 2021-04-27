@@ -1301,9 +1301,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
-            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
-            ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
-            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n)
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n)
             sage: UB_rules = Seq2._get_parameters_from_recurrence_(
             ....:     M, m, coeffs, initial_values, 3)
             sage: Seq2._get_matrix_from_recurrence_(UB_rules, 0, f, n)

@@ -1883,7 +1883,6 @@ class FMatrix():
             n = self._poly_ring.ngens()
             one = self._field.one()
             for fx, rhs in self._ks.items():
-                # if fx not in self._solved:
                 if not self._solved[fx]:
                     lt = (ETuple({fx : 2},n), one)
                     eqns.append((lt, (ETuple({},n), -self._field(list(rhs)))))
@@ -2069,7 +2068,6 @@ class FMatrix():
             set_start_method('fork')
         except RuntimeError:
             pass
-        # pool = Pool(processes=max(cpu_count()-1,1)) if use_mp else None
         if use_mp:
             n = max(cpu_count()-1,1)
             self._solved = shared_memory.ShareableList(self._solved)
@@ -2110,7 +2108,6 @@ class FMatrix():
 
             #Report progress
             if verbose:
-                # print("Hex elim step solved for {} / {} variables".format(len(self._solved), len(self._poly_ring.gens())))
                 print("Hex elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
 
         self._checkpoint(checkpoint,2,verbose=verbose)
@@ -2132,7 +2129,6 @@ class FMatrix():
 
             #Report progress
             if verbose:
-                # print("Pent elim step solved for {} / {} variables".format(len(self._solved), len(self._poly_ring.gens())))
                 print("Pent elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
 
         self._checkpoint(checkpoint,4,verbose=verbose)
@@ -2158,10 +2154,9 @@ class FMatrix():
         if save_results:
             self.save_fvars(save_results)
 
-        #Close worker pool to free resources
+        #Close worker pool and destroy shared resources
         if pool is not None:
             pool.close()
-            #Destroy shared resources
             self._solved.shm.unlink()
             # self._solved_shm.unlink()
             self._var_degs.shm.unlink()

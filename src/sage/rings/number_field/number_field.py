@@ -5782,7 +5782,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(x^24 + 11^2*(90*x^12 - 640*x^8 + 2280*x^6 - 512*x^4 +2432/11*x^2 - 11))
             sage: K.discriminant().factor()
             -1 * 11^43
-            sage: K.decomosition_type(11)
+            sage: K.decomposition_type(11)
             [(1, 1, 2), (22, 1, 1)]
 
         Computing the decomposition type is feasible even in large degree::
@@ -5812,7 +5812,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: M.decomposition_type(13)
             [(1, 1, 10)]
             sage: P13 = K.primes_above(13)[0]
-            sage: len(M.primes_above(P13)
+            sage: len(M.primes_above(P13))
             10
 
         There are two primes above `2`, each of which ramifies in `M`::

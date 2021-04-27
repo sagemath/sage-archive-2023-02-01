@@ -1019,9 +1019,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if mod is not None or not isinstance(self, Parent):
             return NotImplemented
         try:
+            # get __pow__ from category in case the parent is a Python class
             meth = super(Parent, (<Parent> self)).__pow__
         except AttributeError:
-            # needed when self is a Cython object
+            # get __pow__ from category in case the parent is a Cython class
             try:
                 meth = (<Parent> self).getattr_from_category('__pow__')
             except AttributeError:

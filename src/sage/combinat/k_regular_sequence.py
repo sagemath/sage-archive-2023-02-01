@@ -885,7 +885,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             (1, -2): 6, (0, 1): 2, (3, 1): 11, (3, -2): 12, (2, 0): 7,
             (0, -2): 3, (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1, 3: 4,
             4: 12, 5: 30, 6: 48, 7: 66, 8: 75, 9: 204, 10: 333, 11: 462, 12:
-            216, 13: 594}, offset=1, n1=3)
+            216, 13: 594, -1: 0, -6: 0, -5: 0, -4: 0, -3: 0, -2: 0},
+            offset=1, n1=3)
 
         .. SEEALSO::
 
@@ -952,7 +953,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ceil(k**M*u/(k**M - k**m)),
             max(initial_values.keys()))
         initial_values = self._get_values_from_recurrence_(
-            M, m, l, u, coeffs, initial_values, last_value_needed, offset)
+            M, m, l, u, ll, coeffs, initial_values, last_value_needed, offset)
 
         recurrence_rules = namedtuple('recursion_rules',
                                       ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
@@ -963,7 +964,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                 offset=offset, n1=n1)
 
 
-    def _get_values_from_recurrence_(self, M, m, l, u, coeffs, initial_values,
+    def _get_values_from_recurrence_(self, M, m, l, u, ll, coeffs, initial_values,
                                      last_value_needed, offset):
         r"""
         Determine enough values of the corresponding recursive sequence by
@@ -974,6 +975,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``M``, ``m``, ``l``, ``u`` and ``offset`` -- parameters of the
           recursive sequences, see [HKL2021]_, Definition 3.1
+
+        - ``ll`` -- parameter of the resulting linear representation,
+          see [HKL2021]_, Theorem A
 
         - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
           coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
@@ -996,7 +1000,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Stern--Brocot Sequence::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1, 2: 1},
             ....: 20, 0)
             {0: 0, 1: 1, 2: 1, 3: 2, 4: 1, 5: 3, 6: 2, 7: 3, 8: 1, 9: 4, 10: 3,
@@ -1010,7 +1014,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         For the equations `f(2n) = f(n)` and `f(2n + 1) = f(n) + f(n + 1)`::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2}, 20, 0)
             {0: 0, 1: 2, 2: 2, 3: 4, 4: 2, 5: 6, 6: 4, 7: 6, 8: 2, 9: 8, 10: 6,
             11: 10, 12: 4, 13: 10, 14: 6, 15: 8, 16: 2, 17: 10, 18: 8, 19: 14,
@@ -1018,7 +1022,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2*i}, 20, 0)
             Traceback (most recent call last):
             ...
@@ -1026,7 +1030,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {}, 20, 0)
             Traceback (most recent call last):
             ...
@@ -1034,7 +1038,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0}, 20, 0)
             Traceback (most recent call last):
             ...
@@ -1042,7 +1046,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 2: 1}, 20, 0)
             Traceback (most recent call last):
             ...
@@ -1050,7 +1054,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2, 2:0}, 20, 0)
             Traceback (most recent call last):
             ...
@@ -1059,21 +1063,21 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, -2, 2,
+            sage: Seq2._get_values_from_recurrence_(1, 0, -2, 2, -2,
             ....: {(0, -2): 1, (0, 2): 1, (1, -2): 1, (1, 2): 1},
             ....: {0: 0, 1: 2, 2: 4, 3: 3, 4: 2}, 20, 2)
-            {0: 0, 1: 2, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4, 7: 4, 8: 8, 9: 8, 10: 7,
-            11: 7, 12: 10, 13: 10, 14: 10, 15: 10, 16: 11, 17: 11, 18: 11,
-            19: 11, 20: 18}
+            {-2: 0, -1: 0, 0: 0, 1: 2, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4, 7: 4,
+            8: 8, 9: 8, 10: 7, 11: 7, 12: 10, 13: 10, 14: 10, 15: 10, 16: 11,
+            17: 11, 18: 11, 19: 11, 20: 18}
 
         Finally, also for the zero-sequence the output is as expected::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0, {}, {}, 10, 0)
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0, 0, {}, {}, 10, 0)
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0,
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0, 0,
             ....: {(0, 0): 0, (1, 1): 0}, {}, 10, 0)
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
         """
@@ -1129,6 +1133,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                   for j in srange(l, u + 1)])):
                 raise ValueError("Initial value for n = %s does not match with "
                                  "the given recurrence relations." % (n,))
+
+        values.update({n: 0 for n in srange(ll, 0)})
+
         return values
 
     @cached_method

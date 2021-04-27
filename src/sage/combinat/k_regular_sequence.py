@@ -435,8 +435,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             sage: Seq2._parse_recurrence_([
             ....:    f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
-            ....:    f(0) == 0, f(1) == 1, f(2) == 1], f, n)
-            (1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1, 2: 1})
+            ....:    f(0) == 0, f(1) == 1], f, n)
+            (1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1})
 
         .. SEEALSO::
 
@@ -1497,9 +1497,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
-            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
-            ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
-            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n)
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n)
             sage: UB_rules = Seq2._get_parameters_from_recurrence_(
             ....:     M, m, coeffs, initial_values, 3)
             sage: Seq2._get_right_from_recurrence_(UB_rules, f)
@@ -1592,14 +1590,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             f
             sage: Seq2.from_recurrence([
             ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
-            ....:     f(0) == 0, f(1) == 1, f(2) == 1], f, n)
+            ....:     f(0) == 0, f(1) == 1], f, n)
             2-regular sequence 0, 1, 1, 2, 1, 3, 2, 3, 1, 4, ...
 
         Number of Odd Entries in Pascal's Triangle::
 
             sage: Seq2.from_recurrence([
             ....:     f(2*n) == 3*f(n), f(2*n + 1) == 2*f(n) + f(n + 1),
-            ....:     f(0) == 0, f(1) == 1, f(2) == 3, f(3) == 5], f, n)
+            ....:     f(0) == 0, f(1) == 1], f, n)
             2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
@@ -1617,9 +1615,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
-            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
-            ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
-            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, 3)
             2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
 
         Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
@@ -1630,9 +1626,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(4*n + 1) == 4/3*f(2*n) + 1/3*f(2*n + 1),
             ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),
             ....:     f(4*n + 3) == -1/3*f(2*n) + 5/3*f(2*n + 1),
-            ....:     f(0) == 1, f(1) == 2, f(2) == 3, f(3) == 3], f, n)
+            ....:     f(0) == 1, f(1) == 2], f, n)
             2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
-
         """
         from sage.arith.srange import srange
 

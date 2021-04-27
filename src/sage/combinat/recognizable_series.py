@@ -884,21 +884,12 @@ class RecognizableSeries(Element):
         def alpha(c):
             return ML.solve_left(self.left * self._mu_of_word_(c))
 
-        def mu_prime_entry(a, p, q, iq):
-            c = p + a
-            if c == q:
-                return ZZ(1)
-            elif c in C:
-                return alpha(c)[iq]
-            else:
-                return ZZ(0)
-
         mu_prime = []
         for a in self.parent().alphabet():
             a = self.parent().indices()([a])
-            M = [[mu_prime_entry(a, p, q, iq) for iq, q in enumerate(P)]
-                 for p in P]
-            mu_prime.append(Matrix(M))
+            M = Matrix([alpha(c) if c in C else tuple(ZZ(c==q) for q in P)
+                        for c in (p + a for p in P)])
+            mu_prime.append(M)
 
         left_prime = vector([ZZ(1)] + (len(P)-1)*[ZZ(0)])
         right_prime = vector(self[p] for p in P)

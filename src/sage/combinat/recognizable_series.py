@@ -70,7 +70,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 
 class PrefixClosedSet(object):
-
     def __init__(self, words):
         r"""
         A prefix-closed set.
@@ -97,7 +96,6 @@ class PrefixClosedSet(object):
         self.words = words
         self.elements = [self.words([])]
 
-
     @classmethod
     def create_by_alphabet(cls, alphabet):
         r"""
@@ -120,7 +118,6 @@ class PrefixClosedSet(object):
         from sage.combinat.words.words import Words
         return cls(Words(alphabet, infinite=False))
 
-
     def __repr__(self):
         r"""
         A representation string of this prefix-closed set
@@ -137,7 +134,6 @@ class PrefixClosedSet(object):
             '[word: ]'
         """
         return repr(self.elements)
-
 
     def add(self, w, check=True):
         r"""
@@ -177,7 +173,6 @@ class PrefixClosedSet(object):
             raise ValueError('Cannot add as not all prefixes of '
                              '{} are included yet.'.format(w))
         self.elements.append(w)
-
 
     def iterate_possible_additions(self):
         r"""
@@ -238,7 +233,6 @@ class PrefixClosedSet(object):
                 n += 1
                 it = self.words.iterate_by_length(1)
 
-
     def prefix_set(self):
         r"""
         Return the set of minimal (with respect to prefix ordering) elements
@@ -271,7 +265,6 @@ class PrefixClosedSet(object):
 
 
 class RecognizableSeries(Element):
-
     def __init__(self, parent, mu, left, right):
         r"""
         A recognizable series.
@@ -333,7 +326,6 @@ class RecognizableSeries(Element):
         self._mu_ = mu
         self._right_ = vector(right)
 
-
     @property
     def mu(self):
         r"""
@@ -353,7 +345,6 @@ class RecognizableSeries(Element):
         """
         return self._mu_
 
-
     @property
     def left(self):
         r"""
@@ -370,7 +361,6 @@ class RecognizableSeries(Element):
         """
         return self._left_
 
-
     @property
     def right(self):
         r"""
@@ -386,7 +376,6 @@ class RecognizableSeries(Element):
             (0, 1)
         """
         return self._right_
-
 
     def _repr_(self, latex=False):
         r"""
@@ -434,7 +423,6 @@ class RecognizableSeries(Element):
         s = s.replace('+ -', '- ')
         return s + ' + ...'
 
-
     def _latex_(self):
         r"""
         A LaTeX-representation string for this recognizable series.
@@ -453,7 +441,6 @@ class RecognizableSeries(Element):
                 + 15 [011] + [100] + 11 [101] + 5 [110] + ...
         """
         return self._repr_(latex=True)
-
 
     @cached_method
     def __getitem__(self, w):
@@ -480,7 +467,6 @@ class RecognizableSeries(Element):
             3
         """
         return self.left * self._mu_of_word_(w) * self.right
-
 
     @cached_method
     def _mu_of_empty_word_(self):
@@ -514,7 +500,6 @@ class RecognizableSeries(Element):
             return self.mu[eps]
         except KeyError:
             return next(iter(self.mu)).parent().one()
-
 
     @cached_method
     def _mu_of_word_(self, w):
@@ -556,7 +541,6 @@ class RecognizableSeries(Element):
             raise ValueError('Index {} is not in {}.'.format(w, W))
         from sage.misc.misc_c import prod
         return prod(tuple(self.mu[a] for a in w), z=self._mu_of_empty_word_())
-
 
     def __iter__(self):
         r"""
@@ -607,7 +591,6 @@ class RecognizableSeries(Element):
         return iter((w, self[w])
                     for w in self.parent().indices() if self[w] != 0)
 
-
     def is_trivial_zero(self):
         r"""
         Return whether this recognizable series is trivially equal to
@@ -653,7 +636,6 @@ class RecognizableSeries(Element):
             (all(not self.mu[a] for a in self.parent().alphabet()) and
              not self[self.parent().indices()()])
 
-
     def __bool__(self):
         r"""
         Return whether this recognizable series is nonzero.
@@ -692,9 +674,7 @@ class RecognizableSeries(Element):
                 return False
         return True
 
-
     __nonzero__ = __bool__
-
 
     def transposed(self):
         r"""
@@ -733,7 +713,6 @@ class RecognizableSeries(Element):
         return self.parent()(self.mu.map(lambda M: M.transpose()),
                              left=self.right,
                              right=self.left)
-
 
     @cached_method
     def minimized(self):
@@ -785,7 +764,6 @@ class RecognizableSeries(Element):
         """
         return self._minimized_right_()._minimized_left_()
 
-
     def _minimized_right_(self):
         r"""
         Return a recognizable series equivalent to this series, but
@@ -807,7 +785,6 @@ class RecognizableSeries(Element):
             ([0], [0], (2), (1))
         """
         return self.transposed()._minimized_left_().transposed()
-
 
     def _minimized_left_(self):
         r"""
@@ -950,9 +927,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         :doc:`recognizable series <recognizable_series>`,
         :class:`RecognizableSeries`.
     """
-
     Element = RecognizableSeries
-
 
     @staticmethod
     def __classcall__(cls, *args, **kwds):
@@ -979,7 +954,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         return super(RecognizableSeriesSpace, cls).__classcall__(
             cls, *cls.__normalize__(*args, **kwds))
-
 
     @classmethod
     def __normalize__(cls,
@@ -1043,7 +1017,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         return (coefficients, indices, category)
 
-
     @experimental(trac_number=21202)
     def __init__(self, coefficients, indices, category):
         r"""
@@ -1067,7 +1040,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         super(RecognizableSeriesSpace, self).__init__(
             category=category, base=coefficients)
 
-
     def alphabet(self):
         r"""
         Return the alphabet of this recognizable series space.
@@ -1088,7 +1060,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         return self.indices().alphabet()
 
-
     def indices(self):
         r"""
         Return the indices of the recognizable series.
@@ -1104,7 +1075,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         return self._indices_
 
-
     def coefficients(self):
         r"""
         Return the coefficients of this recognizable series space.
@@ -1119,7 +1089,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             Integer Ring
         """
         return self.base()
-
 
     def _repr_(self):
         r"""
@@ -1139,7 +1108,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                'with coefficients in {}'.format(self.alphabet(),
                                                 self.coefficients())
 
-
     def zero(self):
         """
         Return the zero of this recognizable series space.
@@ -1154,7 +1122,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             0
         """
         return self(0)
-
 
     def _element_constructor_(self, data,
                               left=None, right=None):

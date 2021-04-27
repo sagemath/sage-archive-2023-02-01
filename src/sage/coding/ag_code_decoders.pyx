@@ -1062,22 +1062,30 @@ cdef class Decoder_K(object):
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    cdef Vector _substitution(self, Vector vec, w, int k, int i):
+    cdef Vector _substitution(self, Vector vec, w, int k, Py_ssize_t i):
         r"""
         Substitute ``z`` with ``(z + w*phi_s)``.
         """
-        cdef int j
+        cdef Py_ssize_t j
+        cdef list a, d
+        cdef Vector b, s
+        cdef Polynomial c
+
         cdef int gamma = self.gamma
-        cdef list a
         cdef list mul_mat = self.mul_mat
 
         W = self.W
         x = self.x
 
+        # optimizing this part is crucial for the speed of the decoder
         a = vec[gamma:].list()
         b = vec[:gamma]
-        c = (w * x**k) * sum(a[j] * (<list> mul_mat[j])[i] for j in range(gamma))
-        return vector(W, (c + b).list() + a)
+        c = w * x**k
+        s = <Polynomial> a[0] * <Vector> (<list> mul_mat[0])[i]
+        for j in range(1, gamma):
+            s += <Polynomial> a[j] * <Vector> (<list> mul_mat[j])[i]
+        d = [c * <Polynomial> s[j] + <Polynomial> b[j] for j in range(gamma)]
+        return vector(W, d + a)
 
     def decode(self, received_vector, bint verbose=False,
                bint detect_decoding_failure=True,

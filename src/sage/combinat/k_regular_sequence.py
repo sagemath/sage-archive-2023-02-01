@@ -444,255 +444,255 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         TESTS:
 
-            The following tests check that the equations are well-formed::
+        The following tests check that the equations are well-formed::
 
-                sage: Seq2._parse_recurrence_([], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: List of recursion equations is empty.
+            sage: Seq2._parse_recurrence_([], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: List of recursion equations is empty.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(4*n + 1)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: f(4*n + 1) is not an equation with ==.
+            sage: Seq2._parse_recurrence_([f(4*n + 1)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: f(4*n + 1) is not an equation with ==.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([42], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 42 is not a symbolic expression.
+            sage: Seq2._parse_recurrence_([42], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 42 is not a symbolic expression.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) + 1 == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: f(2*n) + 1 is not an evaluation of f.
+            sage: Seq2._parse_recurrence_([f(2*n) + 1 == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: f(2*n) + 1 is not an evaluation of f.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n, 5) == 3], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: f(2*n, 5) does not have one argument.
+            sage: Seq2._parse_recurrence_([f(2*n, 5) == 3], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: f(2*n, 5) does not have one argument.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(1/n + 1) == f(n)], f, n)
-                Traceback (most recent call last):
-                ....:
-                ValueError: 1/n + 1 is not a polynomial in n with integer coefficients.
+            sage: Seq2._parse_recurrence_([f(1/n + 1) == f(n)], f, n)
+            Traceback (most recent call last):
+            ....:
+            ValueError: 1/n + 1 is not a polynomial in n with integer coefficients.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n + 1/2) == f(n)], f, n)
-                Traceback (most recent call last):
-                ....:
-                ValueError: 2*n + 1/2 is not a polynomial in n with integer coefficients.
+            sage: Seq2._parse_recurrence_([f(2*n + 1/2) == f(n)], f, n)
+            Traceback (most recent call last):
+            ....:
+            ValueError: 2*n + 1/2 is not a polynomial in n with integer coefficients.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(4*n^2) == f(2*n^2)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 4*n^2 is not a polynomial of degree smaller 2.
+            sage: Seq2._parse_recurrence_([f(4*n^2) == f(2*n^2)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 4*n^2 is not a polynomial of degree smaller 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(42) == 1/2], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1/2 is not in Integer Ring.
+            sage: Seq2._parse_recurrence_([f(42) == 1/2], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not in Integer Ring.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(42) == 0, f(42) == 1], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: Initial value f(42) is given twice.
+            sage: Seq2._parse_recurrence_([f(42) == 0, f(42) == 1], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial value f(42) is given twice.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(42) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: f(n) is not in Integer Ring.
+            sage: Seq2._parse_recurrence_([f(42) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: f(n) is not in Integer Ring.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(2*n) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 2 does not equal 4.
+            sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(2*n) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 does not equal 4.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(3*n + 1) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 3 is not a power of 2.
+            sage: Seq2._parse_recurrence_([f(3*n + 1) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a power of 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(n + 1) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1 is less than 2.
+            sage: Seq2._parse_recurrence_([f(n + 1) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is less than 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == f(n), f(2*n) == 0], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: There are more than one recurrence relation for f(2*n).
+            sage: Seq2._parse_recurrence_([f(2*n) == f(n), f(2*n) == 0], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: There are more than one recurrence relation for f(2*n).
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n + 2) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 2 is not smaller than 2.
+            sage: Seq2._parse_recurrence_([f(2*n + 2) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 is not smaller than 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n - 1) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: -1 is smaller than 0.
+            sage: Seq2._parse_recurrence_([f(2*n - 1) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: -1 is smaller than 0.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 2*n], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 2*n does not contain f.
+            sage: Seq2._parse_recurrence_([f(2*n) == 2*n], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2*n does not contain f.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 1/2*f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1/2 is not a valid coefficient.
+            sage: Seq2._parse_recurrence_([f(2*n) == 1/2*f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not a valid coefficient.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 1/f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1/f(n) is not a valid right hand side.
+            sage: Seq2._parse_recurrence_([f(2*n) == 1/f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/f(n) is not a valid right hand side.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 2*n*f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 2*n*f(n) is not a valid right hand side.
+            sage: Seq2._parse_recurrence_([f(2*n) == 2*n*f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2*n*f(n) is not a valid right hand side.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 2*f(n, 5)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: f(n, 5) has more than one argument.
+            sage: Seq2._parse_recurrence_([f(2*n) == 2*f(n, 5)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: f(n, 5) has more than one argument.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 2*f()], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: f() has no argument.
+            sage: Seq2._parse_recurrence_([f(2*n) == 2*f()], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: f() has no argument.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1/f(n) is not a valid summand.
+            sage: Seq2._parse_recurrence_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/f(n) is not a valid summand.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 2*f(1/n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1/n is not a polynomial with integer coefficients.
+            sage: Seq2._parse_recurrence_([f(2*n) == 2*f(1/n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/n is not a polynomial with integer coefficients.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == f(n + 1/2)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: n + 1/2 is not a polynomial with integer coefficients.
+            sage: Seq2._parse_recurrence_([f(2*n) == f(n + 1/2)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: n + 1/2 is not a polynomial with integer coefficients.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == f(1/2*n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1/2*n is not a polynomial with integer coefficients.
+            sage: Seq2._parse_recurrence_([f(2*n) == f(1/2*n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2*n is not a polynomial with integer coefficients.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == f(n^2 + 1)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: n^2 + 1 does not have degree 1.
+            sage: Seq2._parse_recurrence_([f(2*n) == f(n^2 + 1)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: n^2 + 1 does not have degree 1.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == f(1)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1 does not have degree 1.
+            sage: Seq2._parse_recurrence_([f(2*n) == f(1)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 does not have degree 1.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(4*n) == f(2*n) + f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1 does not equal 2.
+            sage: Seq2._parse_recurrence_([f(4*n) == f(2*n) + f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 does not equal 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(4*n) == f(2*n), f(4*n + 1) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 1 does not equal 2.
+            sage: Seq2._parse_recurrence_([f(4*n) == f(2*n), f(4*n + 1) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 does not equal 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(4*n) == f(3*n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 3 is not a power of 2.
+            sage: Seq2._parse_recurrence_([f(4*n) == f(3*n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a power of 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == f(4*n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 4 is not smaller than 2.
+            sage: Seq2._parse_recurrence_([f(2*n) == f(4*n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 4 is not smaller than 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == f(2*n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 2 is not smaller than 2.
+            sage: Seq2._parse_recurrence_([f(2*n) == f(2*n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 is not smaller than 2.
 
-            ::
+        ::
 
-                sage: Seq2._parse_recurrence_([f(42) == 0], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: No recurrence relations are given.
+            sage: Seq2._parse_recurrence_([f(42) == 0], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: No recurrence relations are given.
 
-            Finally, also for the zero-sequence the output is as expected::
+        Finally, also for the zero-sequence the output is as expected::
 
-                sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
-                (1, 0, {}, {})
+            sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
+            (1, 0, {}, {})
         """
         from sage.arith.srange import srange
         from sage.functions.log import log
@@ -894,31 +894,31 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         TESTS::
 
-                sage: Seq2._get_parameters_from_recurrence_(1, 0, {(0, 0): 1}, {}, 0)
-                Traceback (most recent call last):
-                ...
-                ValueError: No initial values are given.
+            sage: Seq2._get_parameters_from_recurrence_(1, 0, {(0, 0): 1}, {}, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: No initial values are given.
 
-            ::
+        ::
 
-                sage: Seq2._get_parameters_from_recurrence_(1, 0, {(0, 0): 1},
-                ....: {0: 1, 1: 0}, 0)
-                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={(0, 0): 1}, initial_values={0: 1, 1: 0}, offset=0, n1=0)
+            sage: Seq2._get_parameters_from_recurrence_(1, 0, {(0, 0): 1},
+            ....: {0: 1, 1: 0}, 0)
+            recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
+            coeffs={(0, 0): 1}, initial_values={0: 1, 1: 0}, offset=0, n1=0)
 
-            Finally, also for the zero-sequence the output is as expected::
+        Finally, also for the zero-sequence the output is as expected::
 
-                sage: Seq2._get_parameters_from_recurrence_(1, 0, {}, {0: 0}, 0)
-                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={}, initial_values={0: 0}, offset=0, n1=0)
+            sage: Seq2._get_parameters_from_recurrence_(1, 0, {}, {0: 0}, 0)
+            recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
+            coeffs={}, initial_values={0: 0}, offset=0, n1=0)
 
-            ::
+        ::
 
-                sage: Seq2._get_parameters_from_recurrence_(1, 0,
-                ....: {(0, 0): 0, (1, 1): 0}, {0: 0}, 0)
-                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={(0, 0): 0, (1, 1): 0}, initial_values={0: 0},
-                offset=0, n1=0)
+            sage: Seq2._get_parameters_from_recurrence_(1, 0,
+            ....: {(0, 0): 0, (1, 1): 0}, {0: 0}, 0)
+            recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
+            coeffs={(0, 0): 0, (1, 1): 0}, initial_values={0: 0},
+            offset=0, n1=0)
         """
         from collections import namedtuple
 

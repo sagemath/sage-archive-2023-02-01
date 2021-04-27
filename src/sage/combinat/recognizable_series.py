@@ -297,17 +297,11 @@ class RecognizableSeries(Element):
         When created via the parent :class:`RecognizableSeriesSpace`, then
         the following option is available.
 
-        - ``transpose`` -- (default: ``False``) a boolean. If set, then
-          each of the matrices in :meth:`mu <mu>` is transposed. Additionally
-          the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
-          (This is done by calling :meth:`transposed`.)
-
         EXAMPLES::
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:     vector([0, 1]), vector([1, 0]),
-            ....:     transpose=True)
+            ....:     vector([0, 1]), vector([1, 0])).transposed()
             [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...
 
         .. SEEALSO::
@@ -371,8 +365,7 @@ class RecognizableSeries(Element):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:     vector([0, 1]), vector([1, 0]),
-            ....:     transpose=True).left
+            ....:     vector([0, 1]), vector([1, 0])).transposed().left
             (1, 0)
         """
         return self._left_
@@ -389,8 +382,7 @@ class RecognizableSeries(Element):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:     vector([0, 1]), vector([1, 0]),
-            ....:     transpose=True).right
+            ....:     vector([0, 1]), vector([1, 0])).transposed().right
             (0, 1)
         """
         return self._right_
@@ -413,7 +405,7 @@ class RecognizableSeries(Element):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:         vector([0, 1]), vector([1, 0]), transpose=True)
+            ....:         vector([0, 1]), vector([1, 0])).transposed()
             sage: repr(S)  # indirect doctest
             '[1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...'
         """
@@ -455,7 +447,7 @@ class RecognizableSeries(Element):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:         vector([0, 1]), vector([1, 0]), transpose=True)
+            ....:         vector([0, 1]), vector([1, 0])).transposed()
             sage: latex(S)  # indirect doctest
             [1] + 3 [01] + [10] + 5 [11] + 9 [001] + 3 [010]
                 + 15 [011] + [100] + 11 [101] + 5 [110] + ...
@@ -719,7 +711,7 @@ class RecognizableSeries(Element):
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:         vector([0, 1]), vector([1, 0]), transpose=True)
+            ....:         vector([0, 1]), vector([1, 0])).transposed()
             sage: S
             [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010]
                 + 15*[011] + [100] + 11*[101] + 5*[110] + ...
@@ -765,8 +757,7 @@ class RecognizableSeries(Element):
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
 
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:         vector([0, 1]), vector([1, 0]),
-            ....:         transpose=True)
+            ....:         vector([0, 1]), vector([1, 0])).transposed()
             sage: S
             [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010]
                 + 15*[011] + [100] + 11*[101] + 5*[110] + ...
@@ -1166,8 +1157,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
 
     def _element_constructor_(self, data,
-                              left=None, right=None,
-                              transpose=False):
+                              left=None, right=None):
         r"""
         Return a recognizable series.
 
@@ -1229,8 +1219,4 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
             element = self.element_class(self, mu, left, right)
 
-        if transpose:
-            return element.transposed()
-        else:
-            return element
-
+        return element

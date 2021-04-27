@@ -1167,16 +1167,90 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 subset._open_covers.append([])
 
     def is_empty(self):
-        if self._has_defined_points:
+        r"""
+        Return whether the current subset is empty.
+
+        By default, manifold subsets are considered nonempty: The method :meth:`point` can be
+        used to define points on it, either with or without coordinates some chart.
+
+        However, using :meth:`declare_empty`, a subset can be declared empty, and emptiness
+        transfers to all of its subsets.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: A.is_empty()
+            False
+            sage: A.declare_empty()
+            sage: A.is_empty()
+            True
+            sage: AA.is_empty()
+            True
+
+        """
+        if self.has_defined_points(subsets=False):
+            # Fast path, do not check subsets
             return False
         return any(not cover
                    for cover in self.open_covers(trivial=False, supersets=True))
 
     def declare_nonempty(self):
-        if not self.has_defined_points():
-            self._has_defined_points = True
+        r"""
+        Declare that ``self`` is nonempty.
+
+        Once declared nonempty, ``self`` (or any of its supersets) cannot be declared empty.
+
+        This is equivalent to defining a point on ``self`` using :meth:`point`
+        but is cheaper than actually creating a :class:`~sage.manifolds.point.ManifoldPoint`
+        instance.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: AA.declare_nonempty()
+            sage: A.has_defined_points()
+            True
+            sage: A.declare_empty()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot be empty because it has defined points
+
+        """
+        if self.has_defined_points(subsets=False):
+            # Fast path, do not check subsets
+            return
+        if self.is_empty():
+            raise TypeError('cannot be nonempty because it has already been declared empty')
+        self._has_defined_points = True
 
     def has_defined_points(self, subsets=True):
+        r"""
+        Return whether any points have been defined on ``self`` or any of its subsets.
+
+        INPUT:
+
+        - ``subsets`` -- (default: ``True``) if ``False``, only consider points that have
+          been defined directly on ``self``; if ``True``, also consider points on all subsets.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: AA.point()
+            Point on the 2-dimensional topological manifold M
+            sage: AA.has_defined_points()
+            True
+            sage: A.has_defined_points(subsets=False)
+            False
+            sage: A.has_defined_points()
+            True
+
+        """
         if subsets:
             return any(subset._has_defined_points for subset in self.subsets())
         else:

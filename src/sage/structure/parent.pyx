@@ -1015,11 +1015,21 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand type(s) for ** or pow(): 'Partitions_n_with_category' and 'int'
+
+        Check multiple inheritance::
+
+            sage: class A:
+            ....:    def __pow__(self, n):
+            ....:        return 'Apow'
+            sage: class MyParent(A, Parent):
+            ....:    pass
+            sage: MyParent()^2
+            'Apow'
         """
         if mod is not None or not isinstance(self, Parent):
             return NotImplemented
         try:
-            # get __pow__ from category in case the parent is a Python class
+            # get __pow__ from super class
             meth = super(Parent, (<Parent> self)).__pow__
         except AttributeError:
             # get __pow__ from category in case the parent is a Cython class

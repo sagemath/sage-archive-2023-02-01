@@ -77,10 +77,8 @@ cpdef _solve_for_linear_terms(factory, eqns=None):
 
         if len(eq_tup) == 1:
             vars = variables(eq_tup)
-            # if len(vars) == 1 and vars[0] not in factory._solved:
             if len(vars) == 1 and not factory._solved[vars[0]]:
                 factory._fvars[factory._idx_to_sextuple[vars[0]]] = tuple()
-                # factory._solved.add(vars[0])
                 factory._solved[vars[0]] = True
                 linear_terms_exist = True
         if len(eq_tup) == 2:
@@ -88,12 +86,10 @@ cpdef _solve_for_linear_terms(factory, eqns=None):
             if idx < 0: continue
             #The chosen term is guaranteed to be univariate in the largest variable
             max_var = eq_tup[idx][0].nonzero_positions()[0]
-            # if max_var not in factory._solved:
             if not factory._solved[max_var]:
                 rhs_exp = eq_tup[(idx+1) % 2][0]
                 rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]
                 factory._fvars[factory._idx_to_sextuple[max_var]] = ((rhs_exp,rhs_coeff),)
-                # factory._solved.add(max_var)
                 factory._solved[max_var] = True
                 linear_terms_exist = True
     return linear_terms_exist
@@ -141,7 +137,6 @@ cpdef _backward_subs(factory):
         1
     """
     one = factory._field.one()
-    # _ks = {k : factory._FR.field()(list(v)) for k, v in factory._ks.items()}
     _ks = factory._ks
     vars = factory._poly_ring.gens()
     n = len(vars)
@@ -149,7 +144,6 @@ cpdef _backward_subs(factory):
         sextuple = factory._var_to_sextuple[var]
         rhs = factory._fvars[sextuple]
         d = {var_idx: factory._fvars[factory._idx_to_sextuple[var_idx]]
-             # for var_idx in variables(rhs) if var_idx in factory._solved}
              for var_idx in variables(rhs) if factory._solved[var_idx]}
         if d:
             kp = compute_known_powers(get_variables_degrees([rhs]), d, one)
@@ -244,8 +238,6 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     _field = factory._field
     cdef NumberFieldElement_absolute one = _field.one()
     cdef ETuple _nnz = factory._nnz
-    # cdef dict _ks = factory._ks
-    # _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
     _ks = factory._ks
 
     #Computation loop
@@ -299,8 +291,6 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     _field = factory._field
     cdef NumberFieldElement_absolute one = _field.one()
     cdef ETuple _nnz = factory._nnz
-    # cdef dict _ks = factory._ks
-    # _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
     _ks = factory._ks
     cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
 
@@ -330,7 +320,6 @@ cdef list update_reduce(factory, list eqns):
     #Pre-compute common parameters for speed
     _field = factory._field
     one = _field.one()
-    # _ks = {k : _field(list(v)) for k, v in factory._ks.items()}
     _ks = factory._ks
     cdef dict _kp = factory._kp
     cdef ETuple _nnz = factory._nnz
@@ -409,7 +398,9 @@ cpdef update_child_fmats(factory, tuple data_tup):
         sage: s_name = f._solved.shm.name
         sage: f._var_degs = shared_memory.ShareableList(f._var_degs)
         sage: vd_name = f._var_degs.shm.name
-        sage: args = (id(f), s_name, vd_name)
+        sage: from sage.combinat.root_system.shm_managers import KSHandler
+        sage: f._ks = KSHandler(f)
+        sage: args = (id(f), s_name, vd_name, f._ks.get_names())
         sage: from sage.combinat.root_system.fast_parallel_fmats_methods import init
         sage: pool = Pool(processes=n,initializer=init,initargs=args)
         sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
@@ -425,8 +416,6 @@ cpdef update_child_fmats(factory, tuple data_tup):
     """
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
-    # factory._fvars, factory._solved, factory._ks, factory._var_degs = data_tup
-    # factory._fvars, factory._ks = data_tup
     factory._fvars = data_tup[0]
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())

@@ -1,30 +1,42 @@
 from multiprocessing import shared_memory
+import numpy as np
+from sage.misc.cachefunc import cached_method
 
 class KSHandler():
     def __init__(self, factory, names=None):
-        n = len(factory._fvars)
         self.field = factory._field
         self.index = 0
+        n = len(factory._fvars)
+        d = self.field.degree()
+        coeff_dtype = np.dtype([('nums','i4',(d,)), ('denoms','u4',(d,))])
         if names is None:
-            self.ks = shared_memory.ShareableList([False]*n)
-            self.nums = [shared_memory.ShareableList([int(0)]*self.field.degree()) for i in range(n)]
-            self.denoms = shared_memory.ShareableList([int(0)]*n)
+            self.ks_shm = shared_memory.SharedMemory(create=True,size=n)
+            self.ks = np.ndarray((n,),dtype='bool',buffer=self.ks_shm.buf)
+            self.ks[:] = np.zeros((n,),dtype='bool')
+            self.coeff_shm = shared_memory.SharedMemory(create=True,size=2*n*d*4)
+            self.coeffs = np.ndarray((n,),dtype=coeff_dtype,buffer=self.coeff_shm.buf)
+            self.coeffs['nums'][:] = np.zeros((n,d),dtype='i4')
+            self.coeffs['denoms'][:] = np.ones((n,d),dtype='u4')
         else:
-            self.ks = shared_memory.ShareableList(name=names[0])
-            self.nums = [shared_memory.ShareableList(name=names[1][i]) for i in range(n)]
-            self.denoms = shared_memory.ShareableList(name=names[2])
+            self.ks_shm = shared_memory.SharedMemory(name=names[0])
+            self.ks = np.ndarray((n,),dtype='bool',buffer=self.ks_shm.buf)
+            self.coeff_shm = shared_memory.SharedMemory(name=names[1])
+            self.coeffs = np.ndarray((n,),dtype=coeff_dtype,buffer=self.coeff_shm.buf)
 
-    def __getitem__(self,idx):
+    @cached_method
+    def __getitem__(self, idx):
         if not self.ks[idx]:
             raise KeyError('Index {} does not correspond to a known square'.format(idx))
-        denom = self.denoms[idx]
-        return self.field([num / denom for num in self.nums[idx]])
+        rat = list()
+        for i in range(self.field.degree()):
+            rat.append(self.coeffs['nums'][idx][i] / self.coeffs['denoms'][idx][i])
+        return self.field(rat)
 
-    def __setitem__(self,idx,rhs):
+    def __setitem__(self, idx, rhs):
         self.ks[idx] = True
-        self.denoms[idx] = int(rhs.denominator())
-        for i, c in enumerate(rhs._coefficients()):
-            self.nums[idx][i] = int(c * self.denoms[idx])
+        for i, c in enumerate(rhs):
+            self.coeffs['nums'][idx][i] = -c.numerator()
+            self.coeffs['denoms'][idx][i] = c.denominator()
 
     def __iter__(self):
         self.index = 0
@@ -40,16 +52,17 @@ class KSHandler():
             if self.index == len(self.ks):
                 raise StopIteration
 
-        denom = self.denoms[self.index]
-        ret = self.field([num / denom for num in self.nums[self.index]])
         self.index += 1
-        return ret
+        return self[self.index-1]
 
-    def __contains__(self,idx):
+    def __contains__(self, idx):
         return self.ks[idx]
 
     def __len__(self):
         return sum(self.ks)
+
+    def __eq__(self, other):
+        return np.all(self.ks == other.ks) and np.all(self.coeffs == other.coeffs)
 
     def items(self):
         for v in self:
@@ -57,20 +70,15 @@ class KSHandler():
 
     def reset(self):
         n = len(self.ks)
-        for i in range(n):
-            self.ks[i] = False
-            self.denoms[i] = 0
-            for j in range(len(self.nums[i])):
-                self.nums[i][j] = 0
+        d = self.field.degree()
+        self.ks[:] = np.zeros((n,),dtype='bool')
+        self.__getitem__.clear_cache()
+        self.coeffs['nums'][:] = np.zeros((n,d),dtype='i4')
+        self.coeffs['denoms'][:] = np.ones((n,d),dtype='u4')
 
     def unlink(self):
-        self.ks.shm.unlink()
-        for num_list in self.nums:
-            num_list.shm.unlink()
-        self.denoms.shm.unlink()
+        self.ks_shm.unlink()
+        self.coeff_shm.unlink()
 
     def get_names(self):
-        ks_name = self.ks.shm.name
-        nums_names = [num_list.shm.name for num_list in self.nums]
-        denom_name = self.denoms.shm.name
-        return (ks_name,nums_names,denom_name)
+        return (self.ks_shm.name,self.coeff_shm.name)

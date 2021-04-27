@@ -300,8 +300,8 @@ class FMatrix():
         #Useful solver state attributes
         self.ideal_basis = list()
         self._solved = list(False for fx in self._fvars)
+        # self._solved = np.zeros((len(self._fvars),), dtype='bool')
         self._var_degs = [0]*len(self._fvars)
-        # self._ks = dict()
         self._ks = KSHandler(self)
         self._kp = dict()
         self._nnz = self._get_known_nonz()
@@ -358,8 +358,8 @@ class FMatrix():
             fx0
         """
         self._fvars = {self._var_to_sextuple[key] : key for key in self._var_to_sextuple}
-        # self._solved = set()
         self._solved = list(False for fx in self._fvars)
+        # self._solved[:] = np.zeros((len(self._fvars),), dtype='bool')
 
     def _reset_solver_state(self):
         r"""
@@ -403,7 +403,6 @@ class FMatrix():
         self._chkpt_status = -1
         self.clear_vars()
         self.clear_equations()
-        # self._ks = dict()
         self._ks.reset()
         self._nnz = self._get_known_nonz()
 
@@ -911,7 +910,6 @@ class FMatrix():
             sage: len(f._get_known_vals()) == f._poly_ring.ngens()
             True
         """
-        # return {var_idx: self._fvars[self._idx_to_sextuple[var_idx]] for var_idx in self._solved}
         return {var_idx: self._fvars[self._idx_to_sextuple[var_idx]] for var_idx, v in enumerate(self._solved) if v}
 
     def _get_known_sq(self,eqns=None):
@@ -940,18 +938,16 @@ class FMatrix():
              fx10*fx11 + fx12*fx13,
              fx11^2 + fx13^2 - 1]
              sage: f.get_orthogonality_constraints(output=False)
-             sage: len(f._get_known_sq()) == 10
+             sage: f._get_known_sq()
+             sage: len(f._ks) == 10
              True
         """
         if eqns is None:
             eqns = self.ideal_basis
-        # ks = deepcopy(self._ks)
         F = self._field
         for eq_tup in eqns:
             if tup_fixes_sq(eq_tup):
-                # ks[variables(eq_tup)[0]] = tuple(-v for v in eq_tup[-1][1])
-                self._ks[variables(eq_tup)[0]] = -self._field(list(eq_tup[-1][1]))
-        # return ks
+                self._ks[variables(eq_tup)[0]] = eq_tup[-1][1]
 
     def _get_known_nonz(self):
         r"""
@@ -970,7 +966,6 @@ class FMatrix():
              100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100)
         """
         nonz = {self._var_to_idx[var] : 100 for var in self._singles}
-        # for idx in self._ks:
         for idx, v in self._ks.items():
             nonz[idx] = 100
         return ETuple(nonz, self._poly_ring.ngens())
@@ -1127,8 +1122,8 @@ class FMatrix():
             self._fvars, self._non_cyc_roots, self._coerce_map_from_cyc_field, self._qqbar_embedding = pickle.load(f)
         #Update state attributes
         self._chkpt_status = 7
-        # self._solved = set(range(self._poly_ring.ngens()))
         self._solved = list(True for v in self._fvars)
+        # self._solved = np.zeros((len(self._fvars),), dtype='bool')
         self._field = self._qqbar_embedding.domain()
 
     def get_fr_str(self):
@@ -1212,7 +1207,7 @@ class FMatrix():
             return
         filename = "fmatrix_solver_checkpoint_" + self.get_fr_str() + ".pickle"
         with open(filename, 'wb') as f:
-            pickle.dump([self._fvars, list(self._solved), self._ks, self.ideal_basis, status], f)
+            pickle.dump([self._fvars, self._solved, self._ks, self.ideal_basis, status], f)
         if verbose:
             print(f"Checkpoint {status} reached!")
 
@@ -1490,7 +1485,7 @@ class FMatrix():
             sage: s_name = f._solved.shm.name
             sage: f._var_degs = shared_memory.ShareableList(f._var_degs)
             sage: vd_name = f._var_degs.shm.name
-            sage: args = (id(f), s_name, vd_name)
+            sage: args = (id(f), s_name, vd_name, f._ks.get_names())
             sage: from sage.combinat.root_system.fast_parallel_fmats_methods import init
             sage: pool = Pool(processes=n,initializer=init,initargs=args)
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
@@ -1504,26 +1499,19 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        # self._ks = self._get_known_sq(eqns)
         self._get_known_sq(eqns)
-        # print("res",get_variables_degrees(eqns))
         degs = get_variables_degrees(eqns)
         if degs:
             for i, d in enumerate(degs):
-                # print(i, d)
                 self._var_degs[i] = d
         else:
             for i in range(len(self._fvars)):
                 self._var_degs[i] = 0
-        # print("vd, var_degs")
-        # self._var_degs = get_variables_degrees(eqns)
         self._nnz = self._get_known_nonz()
         self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
         if worker_pool is not None and children_need_update:
             #self._nnz and self._kp are computed in child processes to reduce IPC overhead
             n_proc = worker_pool._processes
-            # new_data = [(self._fvars,self._solved,self._ks,self._var_degs)]*n_proc
-            # new_data = [(self._fvars,self._ks)]*n_proc
             new_data = [(self._fvars,)]*n_proc
             self._map_triv_reduce('update_child_fmats',new_data,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
 
@@ -1956,7 +1944,6 @@ class FMatrix():
             self._update_poly_ring_base_field(self._field)
 
         #Ensure all F-symbols are known
-        # self._solved.update(numeric_fvars)
         for fx in numeric_fvars:
             self._solved[fx] = True
         nvars = self._poly_ring.ngens()
@@ -2086,8 +2073,11 @@ class FMatrix():
         if use_mp:
             n = max(cpu_count()-1,1)
             self._solved = shared_memory.ShareableList(self._solved)
-            # print(self._solved)
+            # self._solved_shm = shared_memory.SharedMemory(create=True,size=len(self._fvars))
+            # self._solved = np.ndarray((len(self._fvars),), dtype='bool', buffer=self._solved_shm.buf)
+            # self._solved[:] = np.zeros((len(self._fvars),), dtype='bool')
             s_name = self._solved.shm.name
+            # s_name = self._solved_shm.name
             self._var_degs = shared_memory.ShareableList(self._var_degs)
             vd_name = self._var_degs.shm.name
             ks_names = self._ks.get_names()
@@ -2149,14 +2139,6 @@ class FMatrix():
 
         #Try adding degrevlex gb -> elim loop until len(ideal_basis) does not change
 
-        #Close worker pool to free resources
-        if pool is not None:
-            pool.close()
-            #Destroy shared resources
-            self._solved.shm.unlink()
-            self._var_degs.shm.unlink()
-            self._ks.unlink()
-
         #Set up new equations graph and compute variety for each component
         if self._chkpt_status < 5:
             self.ideal_basis = self._par_graph_gb(term_order="lex",verbose=verbose)
@@ -2176,6 +2158,14 @@ class FMatrix():
         if save_results:
             self.save_fvars(save_results)
 
+        #Close worker pool to free resources
+        if pool is not None:
+            pool.close()
+            #Destroy shared resources
+            self._solved.shm.unlink()
+            # self._solved_shm.unlink()
+            self._var_degs.shm.unlink()
+            self._ks.unlink()
 
     #########################
     ### Cyclotomic method ###
@@ -2204,10 +2194,9 @@ class FMatrix():
         """
         # while len(self._solved) < len(self._poly_ring.gens()):
         while sum(1 for v in self._solved if not v) > 0:
+        # while self._solved.sum() < self._solved.size:
             #Get a variable that has not been fixed
             #In ascending index order, for consistent results
-            # for var in self._poly_ring.gens():
-                # if var not in self._solved:
             for i, var in enumerate(self._poly_ring.gens()):
                 if not self._solved[i]:
                     break
@@ -2243,7 +2232,6 @@ class FMatrix():
         new_knowns = set()
         useless = set()
         for eq in eqns:
-            # if eq.degree() == 1 and sum(eq.degrees()) <= 2 and eq.lm() not in self._solved:
             if eq.degree() == 1 and sum(eq.degrees()) <= 2 and not self._solved[self._var_to_idx[eq.lm()]]:
                 self._fvars[self._var_to_sextuple[eq.lm()]] = -sum(c * m for c, m in zip(eq.coefficients()[1:], eq.monomials()[1:])) / eq.lc()
                 #Add variable to set of known values and remove this equation
@@ -2251,11 +2239,9 @@ class FMatrix():
                 useless.add(eq)
 
         #Update fvars depending on other variables
-        # self._solved.update(new_knowns)
         for fx in new_knowns:
             self._solved[self._var_to_idx[fx]] = fx
         for sextuple, rhs in self._fvars.items():
-            # d = {var : self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if var in self._solved}
             d = {var: self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if self._solved[self._var_to_idx[var]]}
             if d:
                 self._fvars[sextuple] = rhs.subs(d)
@@ -2276,7 +2262,6 @@ class FMatrix():
             sage: f.ideal_basis
             {fx3}
         """
-        # special_values = {known : self._fvars[self._var_to_sextuple[known]] for known in self._solved}
         special_values = {known : self._fvars[self._var_to_sextuple[known]] for known in self._solved if known}
         self.ideal_basis = set(eq.subs(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)

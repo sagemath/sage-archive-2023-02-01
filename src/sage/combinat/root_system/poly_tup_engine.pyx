@@ -246,15 +246,12 @@ cpdef list get_variables_degrees(list eqns):
         [2, 1, 3]
     """
     if not eqns:
-        # return ETuple([])
         return list()
     cdef ETuple max_deg
     cdef int i
     max_deg = degrees(eqns[0])
     for i in range(1, len(eqns)):
         max_deg = max_deg.emax(degrees( <tuple>(eqns[i]) ))
-    # return max_deg
-    # return { max_deg._data[2*i] : max_deg._data[2*i+1] for i in range(max_deg._nonzero)}
     cdef list dense = [0]*len(max_deg)
     for i in range(max_deg._nonzero):
         dense[max_deg._data[2*i]] = max_deg._data[2*i+1]
@@ -492,9 +489,6 @@ cpdef dict compute_known_powers(max_degs, dict val_dict, one):
         (((0, 4, 0), 1),),
         (((0, 6, 0), 1),)]}
     """
-    # if not max_deg:
-    #     return {}
-    # assert max_deg._nonzero and max(max_deg.nonzero_values(sort=False)) <= 100 or True, "NotImplementedError: Cannot substitute for degree larger than 100"
     assert (max_degs and max(max_degs) <= 100) or True, "Cannot substitute for degree larger than 100"
     cdef ETuple max_deg = ETuple(list(max_degs))
     max_deg = max_deg.emin(ETuple({idx: 100 for idx in val_dict}, len(max_deg)))

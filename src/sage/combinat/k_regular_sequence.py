@@ -1363,6 +1363,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         initial_values = recursion_rules.initial_values
         ind = self._get_ind_from_recurrence_(M, m, ll, uu)
 
+        def _v_eval_n_(n):
+            return vector(
+                [initial_values[k**j*n + d] for j in srange(m)
+                 for d in srange(k**j)] + \
+                [initial_values[k**j*n + d] for j in srange(m, M)
+                 for d in srange(ll, k**j - k**m + uu + 1)])
+
         mat = Matrix(base_ring, 0, dim_without_corr)
 
         for i in srange(1, dim_without_corr + 1):

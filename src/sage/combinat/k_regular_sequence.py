@@ -1407,6 +1407,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         mat = Matrix(base_ring, 0, dim_without_corr)
 
+        @cached_function
+        def _coeff_(r, k):
+            try:
+                return coeffs[(r, k)]
+            except KeyError:
+                return 0
+
         for i in srange(1, dim_without_corr + 1):
             j, d = ind[i]
             if j < M - 1:
@@ -1418,21 +1425,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 dd = d // k**M
                 if rem_d < k**M:
                     lambd = l - ind[(m, (k**m)*dd + l)]
-                    row = []
-                    for kk in srange(1, dim_without_corr + 1):
-                        try:
-                            row.append(coeffs[(rem_d, kk + lambd)])
-                        except KeyError:
-                            row.append(0)
+                    row = [_coeff_(rem_d, kk + lambd)
+                           for kk in srange(1, dim_without_corr + 1)]
                     mat = mat.stack(vector(row))
                 else:
                     lambd = l - ind[(m, k**m*dd + k**m + l)]
-                    row = []
-                    for kk in srange(1, dim_without_corr + 1):
-                        try:
-                            row.append(coeffs[(rem_d - k**M, kk + lambd)])
-                        except KeyError:
-                            row.append(0)
+                    row = [_coeff_(rem_d - k**M, kk + lambd)
+                           for kk in srange(1, dim_without_corr + 1)]
                     mat = mat.stack(vector(row))
 
         if n1 == 0 or not correct_offset:

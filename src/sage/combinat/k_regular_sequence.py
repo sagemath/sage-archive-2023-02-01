@@ -1230,8 +1230,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [initial_values[k**j*n + d] for j in srange(m, M)
              for d in srange(ll, k**j - k**m + uu + 1)])
 
-    def _get_matrix_from_recurrence_(self, recursion_rules, rem, function,
-                                     var, correct_offset=True):
+    def _get_matrix_from_recurrence_(self, recursion_rules, rem,
+                                     correct_offset=True):
         r"""
         Construct the matrix for remainder ``rem`` of the linear
         representation of the sequence represented by ``recursion_rules``.
@@ -1279,7 +1279,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(5) == 5, f(6) == 6, f(7) == 7], f, n)
             sage: rules = Seq2._get_parameters_from_recurrence_(
             ....:     M, m, coeffs, initial_values, 0)
-            sage: Seq2._get_matrix_from_recurrence_(rules, 0, f, n, False)
+            sage: Seq2._get_matrix_from_recurrence_(rules, 0, False)
             [  0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0]
@@ -1297,7 +1297,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [  0   0   0 -31  30  31   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0 -41  40  41   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0 -51  50  51   0   0   0   0   0   0   0   0   0   0   0]
-            sage: Seq2._get_matrix_from_recurrence_(rules, 1, f, n, False)
+            sage: Seq2._get_matrix_from_recurrence_(rules, 1, False)
             [  0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0]
@@ -1321,11 +1321,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: SB_rules = Seq2._get_parameters_from_recurrence_(
             ....:     1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     {0: 0, 1: 1, 2: 1}, 0)
-            sage: Seq2._get_matrix_from_recurrence_(SB_rules, 0, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(SB_rules, 0)
             [1 0 0]
             [1 1 0]
             [0 1 0]
-            sage: Seq2._get_matrix_from_recurrence_(SB_rules, 1, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(SB_rules, 1)
             [1 1 0]
             [0 1 0]
             [0 1 1]
@@ -1348,7 +1348,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n)
             sage: UB_rules = Seq2._get_parameters_from_recurrence_(
             ....:     M, m, coeffs, initial_values, 3)
-            sage: Seq2._get_matrix_from_recurrence_(UB_rules, 0, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(UB_rules, 0)
             [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0]
@@ -1365,7 +1365,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0]
-            sage: Seq2._get_matrix_from_recurrence_(UB_rules, 1, f, n)
+            sage: Seq2._get_matrix_from_recurrence_(UB_rules, 1)
             [ 0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
@@ -1699,7 +1699,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         recursion_rules = self._get_parameters_from_recurrence_(
             M, m, coeffs, initial_values, offset)
 
-        mu = [self._get_matrix_from_recurrence_(recursion_rules, rem, function, var)
+        mu = [self._get_matrix_from_recurrence_(recursion_rules, rem)
               for rem in srange(k)]
 
         seq = self(mu, self._get_left_from_recurrence_(recursion_rules.dim),

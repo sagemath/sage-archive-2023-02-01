@@ -313,9 +313,18 @@ class RecognizableSeries(Element):
 
             :doc:`recognizable series <recognizable_series>`,
             :class:`RecognizableSeriesSpace`.
+
+        TESTS::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, (0,1))
+            sage: M0 = Matrix([[1, 0], [0, 1]])
+            sage: M1 = Matrix([[0, -1], [1, 2]])
+            sage: Rec((M0, M1), (0, 1), (1, 1))
+            [] + [0] + 3*[1] + [00] + 3*[01] + 3*[10] + 5*[11] + [000] + 3*[001] + 3*[010] + ...
         """
         super(RecognizableSeries, self).__init__(parent=parent)
 
+        from sage.modules.free_module_element import vector
         from sage.sets.family import Family
 
         A = self.parent().alphabet()
@@ -325,9 +334,9 @@ class RecognizableSeries(Element):
         if not mu.is_finite():
             raise NotImplementedError('mu is not a finite family of matrices.')
 
-        self._left_ = left
+        self._left_ = vector(left)
         self._mu_ = mu
-        self._right_ = right
+        self._right_ = vector(right)
 
 
     @property

@@ -826,7 +826,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         if not M:
             raise ValueError("No recurrence relations are given.")
-        elif M and not m:
+        elif M and not m: # for the zero sequence
             m = M - 1
 
         return (M, m, coeffs, initial_values)
@@ -950,7 +950,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         last_value_needed = max(
             k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
             k**m*offset + u,
-            ceil(k**M*u/(k**M - k**m)),
             max(initial_values.keys()))
         initial_values = self._get_values_from_recurrence_(
             M, m, l, u, ll, coeffs, initial_values, last_value_needed, offset)
@@ -1114,7 +1113,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 values.update({n: "pending"})
                 q, r = ZZ(n).quo_rem(k**M)
                 if q < offset:
-                    raise ValueError("Intial value for n = %s is missing." % (n,))
+                    missing_values.append(n)
                 return sum([_coeff_(r, j)*_f_n_(k**m*q + j)
                             for j in srange(l, u + 1)
                             if _coeff_(r, j) != 0])

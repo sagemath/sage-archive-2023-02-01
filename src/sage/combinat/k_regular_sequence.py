@@ -403,13 +403,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         OUTPUT:
 
-        A namedtuple ``recursion_rules`` consisting of
+        A vector consisting of
 
-        - ``M``, ``m``, ``l``, ``u``  -- parameters of the recursive sequences,
+        - ``M``, ``m`` -- parameters of the recursive sequences,
           see [HKL2021]_, Definition 3.1
-
-        - ``ll``, ``uu``, ``n1``, ``dim`` -- parameters and dimension of the
-          resulting linear representation, see [HKL2021]_, Theorem A
 
         - ``coeffs`` -- a dictionary mapping ``(r, k)`` to the coefficients
           `c_{r, k}` as given in [HKL2021]_, Equation (3.1)
@@ -429,20 +426,17 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(4*n + 1) == 4*f(2*n) + 5*f(2*n + 1) + 6*f(2*n - 2),
             ....:     f(4*n + 2) == 7*f(2*n) + 8*f(2*n + 1) + 9*f(2*n - 2),
             ....:     f(4*n + 3) == 10*f(2*n) + 11*f(2*n + 1) + 12*f(2*n - 2),
-            ....:     f(0) == 1, f(1) == 2, f(2) == 1], f, n, 42)
-            recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=55,
-            coeffs={(0, 1): 2, (0, 0): 1, (3, 1): 11, (3, 0): 10, (2, -2): 9,
-            (2, 1): 8, (2, 0): 7, (3, -2): 12, (0, -2): 3, (1, 0): 4, (1, -2): 6,
-            (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1}, offset=42, n1=44)
+            ....:     f(0) == 1, f(1) == 2, f(2) == 1], f, n)
+            (2, 1, {(0, -2): 3, (0, 0): 1, (0, 1): 2, (1, -2): 6, (1, 0): 4,
+            (1, 1): 5, (2, -2): 9, (2, 0): 7, (2, 1): 8, (3, -2): 12, (3, 0): 10,
+            (3, 1): 11}, {0: 1, 1: 2, 2: 1})
 
         Stern--Brocot Sequence::
 
-            sage: Seq2._parse_recurrence_([f(2*n) == f(n),
-            ....:    f(2*n + 1) == f(n) + f(n + 1), f(0) == 0,
-            ....:    f(1) == 1, f(2) == 1], f, n)
-            recursion_rules(M=1, m=0, l=0, u=1, ll=0, uu=2, dim=3,
-            coeffs={(1, 0): 1, (0, 0): 1, (1, 1): 1},
-            initial_values={0: 0, 1: 1, 2: 1}, offset=0, n1=0)
+            sage: Seq2._parse_recurrence_([
+            ....:    f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
+            ....:    f(0) == 0, f(1) == 1, f(2) == 1], f, n)
+            (1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1, 2: 1})
 
         .. SEEALSO::
 
@@ -519,6 +513,20 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 Traceback (most recent call last):
                 ...
                 ValueError: Initial value f(42) is given twice.
+
+            ::
+
+                sage: Seq2._parse_recurrence_([f(42) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(n) is not in Integer Ring.
+
+            ::
+
+                sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(2*n) == f(n)], f, n)
+                Traceback (most recent call last):
+                ...
+                ValueError: 2 does not equal 4.
 
             ::
 
@@ -679,56 +687,25 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 sage: Seq2._parse_recurrence_([f(42) == 0], f, n)
                 Traceback (most recent call last):
                 ...
-                ValueError: Only initial values are given.
-
-            ::
-
-                sage: Seq2._parse_recurrence_([f(2*n) == f(n)], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: Recurrence relations for [f(2*n + 1)] are missing.
-
-            ::
-
-                sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: Recurrence relations for [f(4*n + 1), f(4*n + 2)] are missing.
-
-            ::
-
-                sage: Seq2._parse_recurrence_([f(2*n) == f(n - 42),
-                ....:                          f(2*n + 1) == f(n + 42)], f, n, 41)
-                Traceback (most recent call last):
-                ...
-                ValueError: Offset 41 is smaller than max(42, 0).
-
-            Correct version of the previous test::
-
-                sage: Seq2._parse_recurrence_([f(2*n) == f(n - 42),
-                ....:                          f(2*n + 1) == f(n + 42)], f, n, 42)
-                recursion_rules(M=1, m=0, l=-42, u=42, ll=-84, uu=84, dim=253,
-                coeffs={(1, 42): 1, (0, -42): 1}, initial_values={}, offset=42,
-                n1=84)
+                ValueError: No recurrence relations are given.
 
             Finally, also for the zero-sequence the output is as expected::
 
                 sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
-                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-                coeffs={}, initial_values={}, offset=0, n1=0)
+                (1, 0, {}, {})
         """
-        from collections import namedtuple
-
         from sage.arith.srange import srange
         from sage.functions.log import log
-        from sage.functions.other import ceil, floor
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.operators import add_vararg, mul_vararg, operator
 
         k = self.k
         base_ring = self.base()
+        M = None
+        m = None
         coeffs = {}
         initial_values = {}
+        remainders = []
 
         def _parse_multiplication_(op):
             operands = op.operands()
@@ -800,11 +777,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
-                try:
-                    if M != M_new:
-                        raise ValueError("%s does not equal %s."
-                                         % (base_power_M, k^M))
-                except NameError:
+                if M and M != M_new:
+                    raise ValueError("%s does not equal %s."
+                                     % (base_power_M, k**M))
+                elif not M:
                     M = M_new
                     if M not in ZZ:
                         raise ValueError("%s is not a power of %s."
@@ -819,7 +795,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                     raise ValueError("%s is not smaller than %s." % (r, k**M))
                 elif r < 0:
                     raise ValueError("%s is smaller than 0." % (r,))
-
+                else:
+                    remainders.append(r)
                 if right_side != 0:
                     if (len(right_side.operands()) == 1 and right_side.operator() == function
                         or right_side.operator() == mul_vararg and len(right_side.operands()) == 2):
@@ -834,11 +811,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         if coeff not in base_ring:
                             raise ValueError("%s is not a valid coefficient."
                                              % (coeff,))
-                        try:
-                            if m != new_m:
-                                raise ValueError("%s does not equal %s."
-                                                 % (k**new_m, k**m))
-                        except NameError:
+                        if m and m != new_m:
+                            raise ValueError("%s does not equal %s."
+                                             % (k**new_m, k**m))
+                        elif not m:
                             m = new_m
                             if m not in ZZ:
                                 raise ValueError("%s is not a power of %s."
@@ -848,30 +824,36 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                                  % (k**m, k**M))
                         coeffs.update({(r, d): coeff})
 
-        try:
-            return (coeffs, M, m, initial_values)
-        except NameError: # M is not defined
+        if not M:
             raise ValueError("No recurrence relations are given.")
+        elif M and not m:
+            m = M - 1
+
+        return (M, m, coeffs, initial_values)
 
 
-    def _get_parameters_from_recurrence_(self, coeffs, M, m, initial_values,
-                                         offset, correct_offset):
+    def _get_parameters_from_recurrence_(self, M, m, coeffs, initial_values,
+                                         offset, correct_offset=True):
         r"""
         Determine parameters from recurrence relations as admissible in
         :meth:`from_recurrence`.
 
         INPUT:
 
+        - ``M``, ``m``, ``offset`` -- parameters of the recursive sequences,
+          see [HKL2021]_, Definition 3.1 (see :meth:`from_recurrence`)
+
         - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
           coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
           If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
           then it is assumed to be zero.
 
-        - ``M``, ``m`` and ``offset`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1 (see :meth:`from_recurrence`)
-
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
           ``n``th value of the sequence
+
+        - ``correct_offset`` -- (default: ``True``) a boolean. If
+          ``True``, then the resulting linear representation has no
+          offset.  See [HKL2021]_ for more information.
 
         OUTPUT:
 
@@ -884,48 +866,93 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           resulting linear representation, see [HKL2021]_, Theorem A
 
         - ``coeffs`` -- a dictionary mapping ``(r, k)`` to the coefficients
-          `c_{r, k}` as given in [HKL2021]_, Equation (3.1)
+          `c_{r, k}` as given in [HKL2021]_, Equation (3.1).
+          If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
+          then it is assumed to be zero.
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
           ``n``th value of the sequence
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: Seq2._get_parameters_from_recurrence_(2, 1,
+            ....: {(0, -2): 3, (0, 0): 1, (0, 1): 2, (1, -2): 6, (1, 0): 4,
+            ....: (1, 1): 5, (2, -2): 9, (2, 0): 7, (2, 1): 8, (3, -2): 12,
+            ....: (3, 0): 10, (3, 1): 11}, {0: 1, 1: 2, 2: 1, 3: 4}, 0)
+            recursion_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=14,
+            coeffs={(0, 0): 1, (3, 0): 10, (2, -2): 9, (2, 1): 8, (1, 0): 4,
+            (1, -2): 6, (0, 1): 2, (3, 1): 11, (3, -2): 12, (2, 0): 7,
+            (0, -2): 3, (1, 1): 5}, initial_values={0: 1, 1: 2, 2: 1, 3: 4,
+            4: 12, 5: 30, 6: 48, 7: 66, 8: 75, 9: 204, 10: 333, 11: 462, 12:
+            216, 13: 594}, offset=1, n1=3)
+
+        .. SEEALSO::
+
+            :meth:`from_recurrence`
+
+        TESTS::
+
+                sage: Seq2._get_parameters_from_recurrence_(1, 0, {(0, 0): 1}, {}, 0)
+                Traceback (most recent call last):
+                ...
+                ValueError: No initial values are given.
+
+            ::
+
+                sage: Seq2._get_parameters_from_recurrence_(1, 0, {(0, 0): 1},
+                ....: {0: 1, 1: 0}, 0)
+                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
+                coeffs={(0, 0): 1}, initial_values={0: 1, 1: 0}, offset=0, n1=0)
+
+            Finally, also for the zero-sequence the output is as expected::
+
+                sage: Seq2._get_parameters_from_recurrence_(1, 0, {}, {0: 0}, 0)
+                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
+                coeffs={}, initial_values={0: 0}, offset=0, n1=0)
+
+            ::
+
+                sage: Seq2._get_parameters_from_recurrence_(1, 0,
+                ....: {(0, 0): 0, (1, 1): 0}, {0: 0}, 0)
+                recursion_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
+                coeffs={(0, 0): 0, (1, 1): 0}, initial_values={0: 0},
+                offset=0, n1=0)
         """
+        from collections import namedtuple
+
+        from sage.arith.srange import srange
+        from sage.functions.other import ceil, floor
+
         k = self.k
-
-        if offset < max(0, -l/k**m):
-            raise ValueError("Offset %s is too small." % (offset,))
-
         keys = coeffs.keys()
-        remainders = Set([key[0] for key in keys])
+        indices_right = [key[1] for key in keys if coeffs[key]]
 
-        remainders.sort()
-        if remainders != srange(k**M):
-            missing_equations = [function(k**M*var + r)
-                                 for r in srange(k**M)
-                                 if r not in remainders]
-            raise ValueError("Recurrence relations for %s are missing."
-                             % missing_equations)
-
-        if not coeffs: # the sequence is the zero sequence
-            m = M - 1
+        if not indices_right: # the sequence is the zero sequence
             l = 0
             u = 0
         else:
-            indices_right = [key[1] for key in keys]
             l = min(indices_right)
             u = max(indices_right)
+
+        if offset < max(0, -l/k**m):
+            offset = max(0, -l/k**m)
 
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
         n1 = offset - floor(ll/k**M)
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
 
+        if not initial_values:
+            raise ValueError("No initial values are given.")
+
         last_value_needed = max(
             k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
             k**m*offset + u,
             ceil(k**M*u/(k**M - k**m)),
-            max(keys_initial))
-        initial_values = self._get_values_from_recurrence(
-            coeffs, M, m, l, u, initial_values, last_value_needed, offset, n1)
+            max(initial_values.keys()))
+        initial_values = self._get_values_from_recurrence_(
+            M, m, l, u, coeffs, initial_values, last_value_needed, offset)
 
         recurrence_rules = namedtuple('recursion_rules',
                                       ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
@@ -936,8 +963,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                 offset=offset, n1=n1)
 
 
-    def _get_values_from_recurrence_(self, coeffs, M, m, l, u, initial_values,
-                                     last_value_needed, offset, n1):
+    def _get_values_from_recurrence_(self, M, m, l, u, coeffs, initial_values,
+                                     last_value_needed, offset):
         r"""
         Determine enough values of the corresponding recursive sequence by
         applying the recurrence relations given in :meth:`from_recurrence`
@@ -945,13 +972,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         INPUT:
 
+        - ``M``, ``m``, ``l``, ``u`` and ``offset`` -- parameters of the
+          recursive sequences, see [HKL2021]_, Definition 3.1
+
         - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
           coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
           If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
           then it is assumed to be zero.
-
-        - ``M``, ``m``, ``l``, ``u`` and ``offset`` -- parameters of the
-          recursive sequences, see [HKL2021]_, Definition 3.1
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
           ``n``th value of the sequence
@@ -966,6 +993,89 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         EXAMPLES:
 
+        Stern--Brocot Sequence::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1, 2: 1},
+            ....: 20, 0)
+            {0: 0, 1: 1, 2: 1, 3: 2, 4: 1, 5: 3, 6: 2, 7: 3, 8: 1, 9: 4, 10: 3,
+            11: 5, 12: 2, 13: 5, 14: 3, 15: 4, 16: 1, 17: 5, 18: 4, 19: 7, 20: 3}
+
+        .. SEEALSO::
+
+            :meth:`from_recurrence`
+
+        TESTS:
+
+        For the equations `f(2n) = f(n)` and `f(2n + 1) = f(n) + f(n + 1)`::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2}, 20, 0)
+            {0: 0, 1: 2, 2: 2, 3: 4, 4: 2, 5: 6, 6: 4, 7: 6, 8: 2, 9: 8, 10: 6,
+            11: 10, 12: 4, 13: 10, 14: 6, 15: 8, 16: 2, 17: 10, 18: 8, 19: 14,
+            20: 6}
+
+        ::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2*i}, 20, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial value for n = 1 is not in Integer Ring.
+
+        ::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {}, 20, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial values for n in [0, 1] are missing.
+
+        ::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0}, 20, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial values for n in [1] are missing.
+
+        ::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 2: 1}, 20, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial values for n in [1] are missing.
+
+        ::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2, 2:0}, 20, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial value for n = 2 does not match with the given
+            recurrence relations.
+
+        ::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, -2, 2,
+            ....: {(0, -2): 1, (0, 2): 1, (1, -2): 1, (1, 2): 1},
+            ....: {0: 0, 1: 2, 2: 4, 3: 3, 4: 2}, 20, 2)
+            {0: 0, 1: 2, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4, 7: 4, 8: 8, 9: 8, 10: 7,
+            11: 7, 12: 10, 13: 10, 14: 10, 15: 10, 16: 11, 17: 11, 18: 11,
+            19: 11, 20: 18}
+
+        Finally, also for the zero-sequence the output is as expected::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0, {}, {}, 10, 0)
+            {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
+
+        ::
+
+            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0,
+            ....: {(0, 0): 0, (1, 1): 0}, {}, 10, 0)
+            {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
         """
         from sage.arith.srange import srange
         from sage.functions.other import ceil
@@ -1112,7 +1222,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             n
             sage: function('f')
             f
-            sage: rules = Seq2._parse_recurrence_([
+            sage: M, m, coeffs, initial_values = Seq2._parse_recurrence_([
             ....:     f(8*n) == -1*f(2*n - 1) + 1*f(2*n + 1),
             ....:     f(8*n + 1) == -11*f(2*n - 1) + 10*f(2*n) + 11*f(2*n + 1),
             ....:     f(8*n + 2) == -21*f(2*n - 1) + 20*f(2*n) + 21*f(2*n + 1),
@@ -1120,8 +1230,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(8*n + 4) == -41*f(2*n - 1) + 40*f(2*n) + 41*f(2*n + 1),
             ....:     f(8*n + 5) == -51*f(2*n - 1) + 50*f(2*n) + 51*f(2*n + 1),
             ....:     f(8*n + 6) == -61*f(2*n - 1) + 60*f(2*n) + 61*f(2*n + 1),
-            ....:     f(8*n + 7) == -71*f(2*n - 1) + 70*f(2*n) + 71*f(2*n + 1),],
-            ....:     f, n, 1)
+            ....:     f(8*n + 7) == -71*f(2*n - 1) + 70*f(2*n) + 71*f(2*n + 1),
+            ....:     f(0) == 0, f(1) == 1, f(2) == 2, f(3) == 3, f(4) == 4,
+            ....:     f(5) == 5, f(6) == 6, f(7) == 7], f, n)
+            sage: rules = Seq2._get_parameters_from_recurrence_(
+            ....:     M, m, coeffs, initial_values, 0)
             sage: Seq2._get_matrix_from_recurrence_(rules, 0, f, n, False)
             [  0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0]
@@ -1161,8 +1274,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         Stern--Brocot Sequence::
 
-            sage: SB_rules = Seq2._parse_recurrence_([
-            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1)], f, n)
+            sage: SB_rules = Seq2._get_parameters_from_recurrence_(
+            ....:     1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     {0: 0, 1: 1, 2: 1}, 0)
             sage: Seq2._get_matrix_from_recurrence_(SB_rules, 0, f, n)
             [1 0 0]
             [1 1 0]
@@ -1174,7 +1288,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: UB_rules = Seq2._parse_recurrence_([
+            sage: M, m, coeffs, initial_values = Seq2._parse_recurrence_([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1189,7 +1303,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
             ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
-            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
+            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n)
+            sage: UB_rules = Seq2._get_parameters_from_recurrence_(
+            ....:     M, m, coeffs, initial_values, 3)
             sage: Seq2._get_matrix_from_recurrence_(UB_rules, 0, f, n)
             [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0]
@@ -1362,15 +1478,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             n
             sage: function('f')
             f
-            sage: SB_rules = Seq2._parse_recurrence_([
-            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
-            ....:     f(0) == 0, f(1) == 1, f(2) == 1], f, n)
+            sage: SB_rules = Seq2._get_parameters_from_recurrence_(
+            ....:     1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     {0: 0, 1: 1, 2: 1}, 0)
             sage: Seq2._get_right_from_recurrence_(SB_rules, f)
             (0, 1, 1)
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: UB_rules = Seq2._parse_recurrence_([
+            sage: M, m, coeffs, initial_values = Seq2._parse_recurrence_([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1385,22 +1501,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8, f(24) == 24,
             ....:     f(25) == 0, f(26) == 4, f(27) == 4, f(28) == 8, f(29) == 4,
-            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n, 3)
+            ....:     f(30) == 8, f(31) == 4, f(32) == 16, f(33) == 4], f, n)
+            sage: UB_rules = Seq2._get_parameters_from_recurrence_(
+            ....:     M, m, coeffs, initial_values, 3)
             sage: Seq2._get_right_from_recurrence_(UB_rules, f)
             (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
 
         .. SEEALSO::
 
             :meth:`from_recurrence`
-
-        TESTS::
-
-            sage: rules = Seq2._parse_recurrence_([
-            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1)], f, n)
-            sage: Seq2._get_right_from_recurrence_(rules, f)
-            Traceback (most recent call last):
-            ....:
-            ValueError: Initial value f(0) is missing.
         """
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
@@ -1530,7 +1639,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.arith.srange import srange
 
         k = self.k
-        recursion_rules = self._parse_recurrence_(equations, function, var, offset)
+        M, m, coeffs, initial_values = self._parse_recurrence_(equations, function, var)
+        recursion_rules = self._get_parameters_from_recurrence_(
+            M, m, coeffs, initial_values, offset)
 
         mu = [self._get_matrix_from_recurrence_(recursion_rules, rem, function, var)
               for rem in srange(k)]

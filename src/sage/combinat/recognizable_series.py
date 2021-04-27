@@ -279,7 +279,8 @@ class RecognizableSeries(Element):
         - ``parent`` -- an instance of :class:`RecognizableSeriesSpace`
 
         - ``mu`` -- a family of square matrices, all of which have the
-          same dimension. The indices of this family are the alphabet.
+          same dimension.
+          The indices of this family are the elements of the alphabet.
           ``mu`` may be a list or tuple of the same cardinality as the
           alphabet as well. See also :meth:`mu <mu>`.
 

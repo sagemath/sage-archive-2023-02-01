@@ -923,16 +923,25 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
+    We create a recognizable series that counts the number of ones in each word::
+
+        sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+        sage: Rec
+        Space of recognizable series on {0, 1} with coefficients in Integer Ring
+        sage: Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 1], [0, 1]])),
+        ....:     vector([1, 0]), vector([0, 1]))
+        [1] + [01] + [10] + 2*[11] + [001] + [010] + 2*[011] + [100] + 2*[101] + 2*[110] + ...
+
     All of the following examples create the same space::
 
-        sage: S1 = RecognizableSeriesSpace(ZZ, [0, 1])
-        sage: S1
+        sage: Rec1 = RecognizableSeriesSpace(ZZ, [0, 1])
+        sage: Rec1
         Space of recognizable series on {0, 1} with coefficients in Integer Ring
-        sage: S2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
-        sage: S2
+        sage: Rec2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
+        sage: Rec2
         Space of recognizable series on {0, 1} with coefficients in Integer Ring
-        sage: S3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
-        sage: S3
+        sage: Rec3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
+        sage: Rec3
         Space of recognizable series on {0, 1} with coefficients in Integer Ring
 
     .. SEEALSO::
@@ -955,16 +964,16 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: S1 = RecognizableSeriesSpace(ZZ, [0, 1])
-            sage: S1
+            sage: Rec1 = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec1
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
-            sage: S2
+            sage: Rec2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
+            sage: Rec2
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
-            sage: S3
+            sage: Rec3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
+            sage: Rec3
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: S1 is S2 is S3
+            sage: Rec1 is Rec2 is Rec3
             True
         """
         return super(RecognizableSeriesSpace, cls).__classcall__(

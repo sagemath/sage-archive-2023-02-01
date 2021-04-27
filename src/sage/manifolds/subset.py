@@ -982,6 +982,57 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         return Poset(self.subset_digraph(open_covers=open_covers, points=points,
                                          lower_bound=lower_bound))
 
+    def equal_subsets(self):
+        r"""
+        Generate the declared manifold subsets that are equal to ``self``.
+
+        .. NOTE::
+
+            To get the equal subsets as a family, sorted by name, use the method
+            :meth:`equal_subset_family` instead.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = U.subset('V')
+            sage: V.declare_equal(M)
+            sage: sorted(V.equal_subsets(), key=lambda v: v._name)
+            [2-dimensional topological manifold M,
+             Open subset U of the 2-dimensional topological manifold M,
+             Subset V of the 2-dimensional topological manifold M]
+
+        """
+        for S in self.supersets():
+            if S in self._subsets:
+                yield S
+
+    def equal_subset_family(self):
+        r"""
+        Generate the declared manifold subsets that are equal to ``self``.
+
+        .. NOTE::
+
+            To get the equal subsets as a family, sorted by name, use the method
+            :meth:`equal_subset_family` instead.
+
+        .. NOTE::
+
+            If you only need to iterate over the equal sets in arbitrary order,
+            you can use the generator method :meth:`equal_subsets` instead.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = U.subset('V')
+            sage: V.declare_equal(M)
+            sage: V.equal_subset_family()
+            Set {M, U, V} of subsets of the 2-dimensional topological manifold M
+
+        """
+        return ManifoldSubsetFiniteFamily(self.supersets())
+
     def supersets(self):
         r"""
         Generate the declared supersets of the current subset.

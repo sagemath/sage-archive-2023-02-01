@@ -540,7 +540,7 @@ class RecognizableSeries(Element):
         if w not in W:
             raise ValueError('Index {} is not in {}.'.format(w, W))
         from sage.misc.misc_c import prod
-        return prod(tuple(self.mu[a] for a in w), z=self._mu_of_empty_word_())
+        return prod((self.mu[a] for a in w), z=self._mu_of_empty_word_())
 
     def __iter__(self):
         r"""

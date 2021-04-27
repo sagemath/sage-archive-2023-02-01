@@ -397,6 +397,31 @@ class RecognizableSeries(Element):
         """
         return self._right_
 
+    def linear_representation(self):
+        r"""
+        Return the linear representation of this series.
+
+        OUTPUT:
+
+        A triple ``(left, mu, right)`` containing
+        the vectors :meth:`left <left>` and :meth:`right <right>`,
+        and the family of matrices :meth:`mu <mu>`.
+
+        EXAMPLES::
+
+            sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
+            sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:     vector([0, 1]), vector([1, 0])
+            ....:    ).transposed().linear_representation()
+            ((1, 0),
+             Finite family {0: [3 0]
+                               [6 1],
+                            1: [ 0  1]
+                               [-6  5]},
+             (0, 1))
+        """
+        return (self.left, self.mu, self.right)
+
     def _repr_(self, latex=False):
         r"""
         A representation string for this recognizable series.

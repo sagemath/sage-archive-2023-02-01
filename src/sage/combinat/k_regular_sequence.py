@@ -833,7 +833,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 
     def _get_parameters_from_recurrence_(self, M, m, coeffs, initial_values,
-                                         offset, correct_offset=True):
+                                         offset):
         r"""
         Determine parameters from recurrence relations as admissible in
         :meth:`from_recurrence`.
@@ -841,7 +841,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         INPUT:
 
         - ``M``, ``m``, ``offset`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1 (see :meth:`from_recurrence`)
+          see [HKL2021]_, Definition 3.1 (see also :meth:`from_recurrence`)
 
         - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
           coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
@@ -850,10 +850,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
           ``n``th value of the sequence
-
-        - ``correct_offset`` -- (default: ``True``) a boolean. If
-          ``True``, then the resulting linear representation has no
-          offset.  See [HKL2021]_ for more information.
 
         OUTPUT:
 
@@ -992,7 +988,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         OUTPUT:
 
         A dictionary mapping integers ``n`` to the ``n``th value of the
-        sequence.
+        sequence for all ``n`` up to ``last_value_needed``.
 
         EXAMPLES:
 
@@ -1586,9 +1582,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           The recurrence relations above uniquely determine a `k`-regular sequence;
           see [HKL2021]_ for further information.
 
-        - ``function`` -- symbolic function ``f`` occuring in the equations.
+        - ``function`` -- symbolic function ``f`` occuring in the equations
 
-        - ``var`` -- symbolic variable ``n`` occuring in the equations.
+        - ``var`` -- symbolic variable ``n`` occuring in the equations
 
         - ``minimize`` -- a boolean (default: ``False``). If ``True``, then
           :meth:`~sage.combinat.recognizable_series.RecognizableSeries.minimized`

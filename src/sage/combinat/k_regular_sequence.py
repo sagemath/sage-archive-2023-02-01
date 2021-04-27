@@ -408,8 +408,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``M``, ``m`` -- parameters of the recursive sequences,
           see [HKL2021]_, Definition 3.1
 
-        - ``coeffs`` -- a dictionary mapping ``(r, k)`` to the coefficients
-          `c_{r, k}` as given in [HKL2021]_, Equation (3.1)
+        - ``coeffs`` -- a dictionary mapping ``(r, j)`` to the coefficients
+          `c_{r, j}` as given in [HKL2021]_, Equation (3.1)
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
           ``n``th value of the sequence
@@ -865,8 +865,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``ll``, ``uu``, ``n1``, ``dim`` -- parameters and dimension of the
           resulting linear representation, see [HKL2021]_, Theorem A
 
-        - ``coeffs`` -- a dictionary mapping ``(r, k)`` to the coefficients
-          `c_{r, k}` as given in [HKL2021]_, Equation (3.1).
+        - ``coeffs`` -- a dictionary mapping ``(r, j)`` to the coefficients
+          `c_{r, j}` as given in [HKL2021]_, Equation (3.1).
           If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
           then it is assumed to be zero.
 
@@ -1571,7 +1571,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           - `f(k^M n + r) = c_{r,l} f(k^m n + l) + c_{r,l + 1} f(k^m n
             + l + 1) + ... + c_{r,u} f(k^m n + u)` for some integers
             `0 \leq r < k^M`, `M > m \geq 0` and `l \leq u`, and some
-            coefficients `c_{r,k}` from the (semi)ring ``coefficents``
+            coefficients `c_{r,j}` from the (semi)ring ``coefficents``
             of the corresponding :class:`kRegularSequenceSpace`, valid
             for all integers `n \geq \text{offset}` for some integer
             `\text{offset} \geq \max(-l/k^m, 0)` (default: ``0``), and

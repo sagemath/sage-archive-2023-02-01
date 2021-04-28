@@ -24,7 +24,7 @@ from sage.structure.sage_object     import SageObject
 from sage.rings.all                 import ZZ, QQbar, PolynomialRing, polygen
 from sage.misc.abstract_method      import abstract_method
 from sage.misc.cachefunc            import cached_method
-from sage.misc.misc                 import verbose
+from sage.misc.verbose              import verbose
 from sage.modular.modform.element   import Newform
 from sage.structure.sequence        import Sequence
 

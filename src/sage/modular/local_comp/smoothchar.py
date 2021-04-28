@@ -48,7 +48,7 @@ from sage.functions.other       import ceil
 from sage.misc.abstract_method  import abstract_method
 from sage.misc.cachefunc        import cached_method
 from sage.misc.misc_c           import prod
-from sage.misc.misc             import verbose
+from sage.misc.verbose          import verbose
 from sage.misc.mrange           import xmrange
 from sage.modular.dirichlet     import DirichletGroup
 from sage.rings.all             import QQ, ZZ, Zmod, NumberField

@@ -171,6 +171,9 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         Compute the eigenvalues by solving the characteristic
         polynomial in maxima.
 
+        The argument ``extend`` is ignored but kept for compatibility with
+        other matrix classes.
+
         EXAMPLES::
 
             sage: a=matrix(SR,[[1,2],[3,4]])

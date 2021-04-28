@@ -11,6 +11,8 @@ from .delta_complex import DeltaComplex, delta_complexes
 
 from .cubical_complex import CubicalComplex, cubical_complexes
 
+from .polyhedral_complex import PolyhedralComplex
+
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.homology.koszul_complex', 'KoszulComplex')
 lazy_import('sage.homology', 'simplicial_complexes_catalog', 'simplicial_complexes')

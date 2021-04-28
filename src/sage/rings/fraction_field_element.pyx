@@ -977,13 +977,17 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__numerator == self.__denominator
 
-    def is_polynomial(self):
+    def is_element_of_base_ring(self):
         r"""
-        Return ``True`` if this element is a polynomial.
+        Return ``True`` if this element is an element of the base ring.
 
         The base ring may be seen as a subset of the fraction field, they are
         elements whose equivalence classes have representatives (a,1) for
         a in the base ring. This function tests membership in this subset.
+
+        WARNING:
+
+        This method only works if the base ring is an exact ring.
 
         INPUT:
 
@@ -1002,6 +1006,8 @@ cdef class FractionFieldElement(FieldElement):
             sage: (2*x+3*y).is_polynomial()
             True
         """
+        # catch if the ring is inexact - see reduce method       
+        self.reduce()
         return self.denominator() == 1:
 
     def _symbolic_(self, ring):

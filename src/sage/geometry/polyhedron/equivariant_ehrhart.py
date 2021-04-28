@@ -12,7 +12,7 @@ function
 `\sum_{m \geq 0} \chi_{mP}t^m = \frac{H^*(t)} {(1-t)det(Id-\rho(t)}.`
 For details, see [Stap2011]_.
 There are also functions to test whether the `H^*` series is polynomial,
-:func:`is_polynomial`, and effective, :func:`is_effective`.
+:func:`is_element_of_base_ring`, and effective, :func:`is_effective`.
 
 One can also use this module to compute fixed subpolytopes of a polytope under
 the action of a group with the functions :func:`fixed_subpolytopes` and
@@ -63,7 +63,7 @@ group action, it is not. The following computation agrees with the
     [ 1  1  1]
     [ 1 -1  1]
     [ 2  0 -1]
-    sage: is_polynomial(Hstar)       # optional - pynormaliz
+    sage: is_element_of_base_ring(Hstar)       # optional - pynormaliz
     True
     sage: is_effective(Hstar,Hlin)   # optional - pynormaliz
     True
@@ -77,7 +77,7 @@ Example of a simplex under symmetric group action::
     24
     sage: Hstar_simplex = Hstar_function(S,G); Hstar_simplex # optional - pynormaliz
     chi_4
-    sage: is_polynomial(Hstar_simplex) # optional - pynormaliz
+    sage: is_element_of_base_ring(Hstar_simplex) # optional - pynormaliz
     True
 
 The following is example 7.6 in Stapledon::
@@ -88,7 +88,7 @@ The following is example 7.6 in Stapledon::
     sage: H = G.subgroup(gens = [G[6]])                               # optional - pynormaliz
     sage: Hstar = Hstar_function(P,H); Hstar                          # optional - pynormaliz
     (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
-    sage: is_polynomial(Hstar)                  # optional - pynormaliz
+    sage: is_element_of_base_ring(Hstar)                  # optional - pynormaliz
     False
 
 AUTHORS:
@@ -575,7 +575,7 @@ def is_effective(Hstar, Hstar_as_lin_comb):
         ...
         ValueError: The Hstar vector must be polynomial
     """
-    if not is_polynomial(Hstar):
+    if not is_element_of_base_ring(Hstar):
         raise ValueError("The Hstar vector must be polynomial")
     flag = True
     for irrep in range(len(Hstar_as_lin_comb)):

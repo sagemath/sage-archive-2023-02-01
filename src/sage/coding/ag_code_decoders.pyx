@@ -1339,7 +1339,7 @@ cdef class Decoder_K(object):
                 if s <= 0 and sk >= 0:  # s in message_index
                     if verbose:
                         print("message symbol:", winner)
-                    message.insert(0, winner)
+                    message.append(winner)
 
                 s -= 1
 
@@ -1364,7 +1364,7 @@ cdef class Decoder_K(object):
                             self._substitution(<FreeModuleElement> mat[gamma+i], value, sk, si)
                         if verbose:
                             print("message symbol:", value)
-                        message.insert(0, value)
+                        message.append(value)
                     s -= 1
 
                 for j in range(gamma):
@@ -1372,6 +1372,8 @@ cdef class Decoder_K(object):
                         if verbose:
                             print("detected decoding failure at division")
                         raise DecodingError("decoding failed")
+
+            message.reverse()
 
         return vector(K, message)
 

@@ -790,3 +790,164 @@ class Polyhedron_QQ(Polyhedron_base):
         from sage.interfaces.latte import count
         ine = self.cdd_Hrepresentation()
         return count(ine, cdd=True, ehrhart_polynomial=True, verbose=verbose, **kwds)
+
+    def fixed_subpolytope(polytope, vertex_permutation):
+        r"""
+        Return the fixed subpolytope of ``polytope`` by the cyclic action of
+        ``vertex_permutation``.
+    
+        INPUT:
+    
+        - ``polytope`` -- polyhedron object; a compact lattice polytope.
+    
+        - ``vertex_permutation`` -- permutation; a permutation of the vertices of
+          ``polytope``.
+    
+        OUTPUT:
+    
+        A subpolytope of ``polytope``.
+    
+        TODO:
+    
+        Backend normaliz is not implemented for polytopes with basering RDF,
+        otherwise this method would work for those polytopes.
+    
+        .. NOTE::
+    
+            The vertex_permutation is obtained as a permutation of the vertices
+            represented as a permutation. For example, vertex_permutation =
+            polytope.restricted_automorphism_group(output='permutation').
+    
+            Requiring a lattice polytope as opposed to a rational polytope as
+            input is purely conventional.
+    
+        EXAMPLES:
+    
+        The fixed subpolytopes of the cube can be obtained as follows::
+    
+            sage: Cube = polytopes.cube(backend = 'normaliz')                   # optional - pynormaliz
+            sage: AG = Cube.restricted_automorphism_group(output='permutation') # optional - pynormaliz
+            sage: reprs = AG.conjugacy_classes_representatives()                # optional - pynormaliz
+    
+        The fixed subpolytope of the identity element of the group is the entire
+        cube::
+            sage: reprs[0]                                                      # optional - pynormaliz
+            ()
+            sage: fixed_subpolytope(Cube,reprs[0])                              # optional - pynormaliz
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8
+            vertices
+            sage: _.vertices()                                                  # optional - pynormaliz
+            (A vertex at (-1, -1, -1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, 1, -1),
+             A vertex at (-1, 1, 1),
+             A vertex at (1, -1, -1),
+             A vertex at (1, -1, 1),
+             A vertex at (1, 1, -1),
+             A vertex at (1, 1, 1))
+    
+        You can obtain non-trivial examples::
+    
+            sage: fsp1 = fixed_subpolytope(Cube,reprs[8]);fsp1 # optional - pynormaliz
+            A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
+            sage: fsp1.vertices()                              # optional - pynormaliz
+            (A vertex at (0, 0, 0),)
+            sage: fsp2 = fixed_subpolytope(Cube,reprs[3]);fsp2 # optional - pynormaliz
+            A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: fsp2.vertices()                              # optional - pynormaliz
+            (A vertex at (-1, -1, 0),
+            A vertex at (-1, 1, 0),
+            A vertex at (1, -1, 0),
+            A vertex at (1, 1, 0))
+    
+        The next example shows that fixed_subpolytope still works for rational polytopes::
+    
+           sage: P = Polyhedron(vertices = [[0,0],[3/2,0],[3/2,3/2],[0,3/2]], backend ='normaliz') # optional - pynormaliz
+           sage: P.vertices() # optional - pynormaliz
+           (A vertex at (0, 0),
+            A vertex at (0, 3/2),
+            A vertex at (3/2, 0),
+            A vertex at (3/2, 3/2))
+           sage: G = P.restricted_automorphism_group(output = 'permutation');G  # optional - pynormaliz
+           Permutation Group with generators [(1,2), (0,1)(2,3), (0,3)]
+           sage: len(G) # optional - pynormaliz
+           8
+           sage: G[2] # optional - pynormaliz
+           (0,1)(2,3)
+           sage: fixed_set = fixed_subpolytope(P,G[2]); fixed_set # optional - pynormaliz
+           A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
+           sage: fixed_set.vertices() # optional - pynormaliz
+           (A vertex at (0, 3/4), A vertex at (3/2, 3/4))
+        """
+        orbits = Set([Set(i) for i in vertex_permutation.cycle_tuples(singletons=True)])
+    
+        # If its the identity, returns the polytope
+        if not orbits:
+            return polytope
+    
+        # Make an index shift flag
+        shift = True
+        if 0 in vertex_permutation.domain():
+            shift = False
+    
+        vertices = []
+        for orbit in orbits:
+            size = len(orbit)
+            if shift:
+                # in this case, the indices in the orbit are 1 more than the index in the V
+                s = sum([(polytope.Vrepresentation()[i-1]).vector() for i in orbit])
+            else:
+                s = sum([(polytope.Vrepresentation()[i]).vector() for i in orbit])
+            orbit_barycenter = (1/QQ(size)) * s
+            vertices += [orbit_barycenter]
+    
+        return Polyhedron(vertices=vertices, backend='normaliz')
+    
+    
+    def fixed_subpolytopes(polytope, conj_class_reps):
+        r"""
+        Return the fixed subpolytope of an element in each conjugacy class of a
+        given subgroup of the automorphism group of ``polytope``.
+    
+        INPUT:
+    
+        - ``polytope`` -- polyhedron object. a lattice polytope.
+    
+        - ``conj_class_reps`` -- a list of representatives of the conjugacy classes
+          of the subgroup of the ``restricted_automorphism_group`` of the polytope.
+          Each element is written as a permutation of the vertices of the polytope.
+    
+        OUTPUT:
+    
+        A dictionary with conj_class_reps as keys and the fixed subpolytopes
+        as values.
+    
+        NOTE:
+    
+        Two elements in the same conjugacy class fix lattice-isomorphic
+        subpolytopes.
+    
+        EXAMPLES:
+    
+        Here is an example for the square::
+    
+            sage: p = polytopes.hypercube(2, backend = 'normaliz'); p               # optional - pynormaliz
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+            sage: aut_p = p.restricted_automorphism_group(output = 'permutation')   # optional - pynormaliz
+            sage: aut_p.order()                                                     # optional - pynormaliz
+            8
+            sage: conj_list = aut_p.conjugacy_classes_representatives(); conj_list  # optional - pynormaliz
+            [(), (1,2), (0,1)(2,3), (0,1,3,2), (0,3)(1,2)]
+            sage: fixed_subpolytopes(p,conj_list)                                   # optional - pynormaliz
+            {(): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices,
+            (1,2): A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices,
+            (0,1)(2,3): A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices,
+            (0,1,3,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex,
+            (0,3)(1,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex}
+        """
+        fixed_subpolytopes = {}
+    
+        for element in conj_class_reps:
+            fixed_subpoly = fixed_subpolytope(polytope, element)
+            fixed_subpolytopes[element] = fixed_subpoly
+        return fixed_subpolytopes

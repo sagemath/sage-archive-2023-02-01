@@ -1086,7 +1086,7 @@ cdef class Decoder_K(object):
         c = w * x**k
         s = [W.zero()] * gamma
         for j in range(gamma):
-            temp = (<list> mul_mat[j])[i]
+            temp = <FreeModuleElement> (<list> mul_mat[j])[i]
             for m in range(gamma):
                 s[m] += a[j] * temp.get_unsafe(m)
         for j in range(gamma):
@@ -1316,8 +1316,8 @@ cdef class Decoder_K(object):
                         print("voting:", list(zip(voting_value, voting_count)))
 
                 for i in range(gamma):
-                    row_i = mat[gamma + i]
-                    row_ip = mat[i_prime[i]]
+                    row_i = <FreeModuleElement> mat[gamma + i]
+                    row_ip = <FreeModuleElement> mat[i_prime[i]]
                     if winner != 0:
                         self._substitution(row_i, winner, sk, si)
                         self._substitution(row_ip, winner, sk, si)
@@ -1909,7 +1909,7 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
             return vector(l)
 
         # the matrix of the leading coefficient of y_i*w_j and the product
-        coeff_mat = matrix.zero(K, gamma, gamma)
+        coeff_mat = <Matrix> matrix.zero(K, gamma, gamma)
         mul_mat = [[None for j in range(gamma)] for i in range(gamma)]
         for i in range(gamma):
             for j in range(gamma):

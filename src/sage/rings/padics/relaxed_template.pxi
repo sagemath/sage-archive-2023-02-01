@@ -949,7 +949,7 @@ cdef class RelaxedElement(pAdicGenericElement):
 
     def precision_relative(self):
         """
-        Returns the relative precision of this element.
+        Return the relative precision of this element.
 
         This is the power of `p` modulo which the unit part of this
         element is known.

@@ -1,11 +1,23 @@
 """
 Base class for finite field elements
 
-AUTHORS::
+AUTHORS:
 
-- David Roe (2010-1-14) -- factored out of sage.structure.element
-- Sebastian Oehms (2018-7-19) -- add :meth:`conjugate` (see :trac:`26761`)
+- David Roe (2010-1-14): factored out of sage.structure.element
+
+- Sebastian Oehms (2018-7-19): added :meth:`conjugate` (see :trac:`26761`)
+
 """
+
+# ****************************************************************************
+#       Copyright (C) 2010 David Roe <roed@math.harvard.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
@@ -30,6 +42,26 @@ def is_FiniteFieldElement(x):
 
 
 cdef class FiniteRingElement(CommutativeRingElement):
+    def _lmul_(self, other):
+        """
+        Return the scalar multiplication of ``self`` by ``other``.
+
+        INPUT:
+
+        - ``other`` -- element of the base ring
+
+        TESTS::
+
+            sage: R = Zmod(17)
+            sage: R.base_ring()
+            Ring of integers modulo 17
+            sage: a = R(13)
+            sage: a._lmul_(a + a)
+            15
+        """
+        return self * other
+
+
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
         This function exists to reduce code duplication between finite field

@@ -421,7 +421,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: Frob = k.frobenius_endomorphism()
             sage: embed = Frob.fixed_field()[1]
             sage: hash(embed)  # random
-            -2441354824160407762 
+            -2441354824160407762
         """
         return Morphism.__hash__(self)
 
@@ -865,7 +865,7 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
             sage: phi = copy(Frob)
             sage: phi
             Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
-            sage: Frob == phi 
+            sage: Frob == phi
             True
         """
         FrobeniusEndomorphism_generic._update_slots(self, slots)

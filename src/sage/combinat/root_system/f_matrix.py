@@ -297,14 +297,7 @@ class FMatrix():
         self._qqbar_embedding = self._field.hom([r], QQbar)
         self._non_cyc_roots = list()
 
-        #Useful solver state attributes
-        self.ideal_basis = list()
-        self._solved = list(False for fx in self._fvars)
-        # self._solved = np.zeros((len(self._fvars),), dtype='bool')
-        self._var_degs = [0]*len(self._fvars)
-        self._ks = KSHandler(self)
-        self._kp = dict()
-        self._nnz = self._get_known_nonz()
+        #Warm starting
         self._chkpt_status = -1
 
         #Multiprocessing attributes
@@ -369,6 +362,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",1))
+            sage: f._reset_solver_state()
             sage: K = f.field()
             sage: len(f._nnz.nonzero_positions())
             1
@@ -403,7 +397,9 @@ class FMatrix():
         self._chkpt_status = -1
         self.clear_vars()
         self.clear_equations()
-        self._ks.reset()
+        self._var_degs = [0]*len(self._fvars)
+        self._kp = dict()
+        self._ks = KSHandler(self)
         self._nnz = self._get_known_nonz()
 
         #Clear relevant caches
@@ -904,6 +900,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("D4",1))
+            sage: f._reset_solver_state()
             sage: len(f._get_known_vals()) == 0
             True
             sage: f.find_orthogonal_solution(verbose=False)
@@ -920,6 +917,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("B5",1))
+            sage: f._reset_solver_state()
             sage: len(f._ks) == 0
             True
             sage: f.get_orthogonality_constraints()
@@ -961,6 +959,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("D5",1)) # indirect doctest
+            sage: f._reset_solver_state()
             sage: f._nnz
             (100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
              100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100)
@@ -1020,20 +1019,24 @@ class FMatrix():
              (f4, f4, f4, f4, f4, f0),
              (f4, f4, f4, f4, f4, f4)}
         """
-        fvars_copy = deepcopy(self._fvars)
-        solved_copy = deepcopy(self._solved)
-        self.clear_vars()
         var_set = set()
-        for quadruple in product(self._FR.basis(),repeat=4):
-            F = self.fmatrix(*quadruple)
-            #Discard trivial 1x1 F-matrix, if applicable
-            if F.nrows() == n and F.coefficients() != [1]:
-                var_set.update(F.coefficients())
-        self._fvars = fvars_copy
-        self._solved = solved_copy
+        one = self._FR.one()
+        for a,b,c,d in product(self._FR.basis(),repeat=4):
+            X = self.f_from(a,b,c,d)
+            Y = self.f_to(a,b,c,d)
+            if len(X) == n and len(Y) == n:
+                for x in X:
+                    for y in Y:
+                        #Discard trivial 1x1 F-matrix
+                        trivial = a == one and x == b and y == d
+                        trivial |= b == one and x == a and y == c
+                        trivial |= c == one and x == d and y == b
+                        if not trivial:
+                            var_set.add((a,b,c,d,x,y))
         if indices:
-            return {self._var_to_idx[fx] for fx in var_set}
-        return {self._var_to_sextuple[fx] for fx in var_set}
+            sext_to_idx = {v: k for k, v in self._idx_to_sextuple.items()}
+            return {sext_to_idx[fx] for fx in var_set}
+        return var_set
 
     ############################
     ### Checkpoint utilities ###
@@ -1150,8 +1153,9 @@ class FMatrix():
             sage: f.get_orthogonality_constraints(output=False)
             sage: f.get_defining_equations('hexagons',output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params(children_need_update=False)
             sage: f._checkpoint(do_chkpt=True,status=2)
@@ -1182,6 +1186,7 @@ class FMatrix():
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params(children_need_update=False)
             sage: f.get_defining_equations('pentagons',output=False)
@@ -1223,8 +1228,9 @@ class FMatrix():
             sage: f.get_orthogonality_constraints(output=False)
             sage: f.get_defining_equations('hexagons',output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
+            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params(children_need_update=False)
             sage: fvars = f._fvars
@@ -1236,6 +1242,7 @@ class FMatrix():
             Checkpoint 2 reached!
             sage: del f
             sage: f = FMatrix(FusionRing("A1",2))
+            sage: f._reset_solver_state()
             sage: f._restore_state("fmatrix_solver_checkpoint_A12.pickle")
             sage: fvars == f._fvars
             True
@@ -1274,6 +1281,50 @@ class FMatrix():
     ### MapReduce ###
     #################
 
+    def get_worker_pool(self,processes=None):
+        """
+        Get a worker pool for parallel processing, which may be used e.g.
+        to set up defining equations using :meth:`get_defining_equations`.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("G2",1))
+            sage: pool = f.get_worker_pool()
+            sage: he = f.get_defining_equations('hexagons',worker_pool=pool)
+            sage: sorted(he)
+            [fx0 - 1,
+             fx2*fx3 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx4^2 + (zeta60^6)*fx4,
+             fx1*fx3 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx3*fx4 + (zeta60^14 - zeta60^4)*fx3,
+             fx1*fx2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx4 + (zeta60^14 - zeta60^4)*fx2,
+             fx1^2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx3 + (-zeta60^12)*fx1]
+
+        .. WARNING::
+
+        This method is needed to initialize the worker pool using the
+        necessary shared memory resources. Simply using the
+        ``multiprocessing.Pool`` constructor will not work with our class
+         methods.
+        """
+        try:
+            set_start_method('fork')
+        except RuntimeError:
+            pass
+        if not hasattr(self, '_nnz'):
+            self._reset_solver_state()
+        self._solved = shared_memory.ShareableList(self._solved)
+        # self._solved_shm = shared_memory.SharedMemory(create=True,size=len(self._fvars))
+        # self._solved = np.ndarray((len(self._fvars),), dtype='bool', buffer=self._solved_shm.buf)
+        # self._solved[:] = np.zeros((len(self._fvars),), dtype='bool')
+        s_name = self._solved.shm.name
+        # s_name = self._solved_shm.name
+        self._var_degs = shared_memory.ShareableList(self._var_degs)
+        vd_name = self._var_degs.shm.name
+        ks_names = self._ks.get_names()
+        args = (id(self), s_name, vd_name, ks_names)
+        n = cpu_count() if processes is None else processes
+        pool = Pool(processes=n,initializer=init,initargs=args)
+        return pool
+
     def _map_triv_reduce(self,mapper,input_iter,worker_pool=None,chunksize=None,mp_thresh=None):
         r"""
         Apply the given mapper to each element of the given input iterable and
@@ -1297,6 +1348,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("A1",2))
+            sage: f._reset_solver_state()
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1)]))
             11
             sage: from multiprocessing import Pool
@@ -1424,6 +1476,8 @@ class FMatrix():
             sage: len(pe)
             33
         """
+        if not hasattr(self, '_nnz'):
+            self._reset_solver_state()
         n_proc = worker_pool._processes if worker_pool is not None else 1
         params = [(child_id, n_proc) for child_id in range(n_proc)]
         eqns = self._map_triv_reduce('get_reduced_'+option,params,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
@@ -1455,12 +1509,7 @@ class FMatrix():
 
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: f = FMatrix(FusionRing("C3",1))
-            sage: from multiprocessing import Pool, set_start_method
-            sage: try:
-            ....:     set_start_method('fork')
-            ....: except:
-            ....:     pass
-            sage: pool = Pool()
+            sage: pool = f.get_worker_pool()
             sage: he = f.get_defining_equations('hexagons',pool)
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
             True
@@ -1474,25 +1523,15 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("A1",3))
+            sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: from multiprocessing import cpu_count, Pool, set_start_method, shared_memory
-            sage: try:
-            ....:     set_start_method('fork')
-            ....: except:
-            ....:     pass
-            sage: n = max(cpu_count()-1,1)
-            sage: f._solved = shared_memory.ShareableList(f._solved)
-            sage: s_name = f._solved.shm.name
-            sage: f._var_degs = shared_memory.ShareableList(f._var_degs)
-            sage: vd_name = f._var_degs.shm.name
-            sage: args = (id(f), s_name, vd_name, f._ks.get_names())
-            sage: from sage.combinat.root_system.fast_parallel_fmats_methods import init
-            sage: pool = Pool(processes=n,initializer=init,initargs=args)
+            sage: pool = f.get_worker_pool()
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
             sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f.mp_thresh = 0
+            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim(worker_pool=pool,verbose=False)  # indirect doctest
             sage: f.ideal_basis
             []
@@ -1531,8 +1570,9 @@ class FMatrix():
             sage: f.get_defining_equations('hexagons',output=False)
             sage: f.get_orthogonality_constraints(output=False)
             sage: gb = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis = sorted(gb, key=poly_tup_sortkey)
+            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim()
             Elimination epoch completed... 0 eqns remain in ideal basis
             sage: f.ideal_basis
@@ -1543,7 +1583,7 @@ class FMatrix():
             eqns = self.ideal_basis
             ret = False
         #Unzip polynomials
-        self._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items()}
+        # self._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items()}
 
         while True:
             linear_terms_exist = _solve_for_linear_terms(self,eqns)
@@ -1561,7 +1601,7 @@ class FMatrix():
                 print("Elimination epoch completed... {} eqns remain in ideal basis".format(len(eqns)))
 
         #Zip up _fvars before exiting
-        self._fvars = {sextuple : self._tup_to_fpoly(rhs_tup) for sextuple, rhs_tup in self._fvars.items()}
+        # self._fvars = {sextuple : self._tup_to_fpoly(rhs_tup) for sextuple, rhs_tup in self._fvars.items()}
         if ret:
             return eqns
         self.ideal_basis = eqns
@@ -1701,13 +1741,9 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("F4",1))
+            sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: from multiprocessing import Pool, set_start_method
-            sage: try:
-            ....:     set_start_method('fork') # context can be set only once
-            ....: except RuntimeError:
-            ....:     pass
-            sage: pool = Pool()
+            sage: pool = f.get_worker_pool()
             sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
             sage: gb = f._par_graph_gb(worker_pool=pool)
             Partitioned 10 equations into 2 components of size:
@@ -1762,12 +1798,8 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",2))
-            sage: from multiprocessing import Pool, set_start_method
-            sage: try:
-            ....:     set_start_method('fork') # context can be set only once
-            ....: except RuntimeError:
-            ....:     pass
-            sage: f.get_defining_equations('hexagons',worker_pool=Pool(),output=False)   # long time
+            sage: pool = f.get_worker_pool()
+            sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)   # long time
             sage: partition = f._partition_eqns()                                        # long time
             Partitioned 327 equations into 35 components of size:
             [27, 27, 27, 24, 24, 16, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
@@ -1949,7 +1981,8 @@ class FMatrix():
         assert sum(self._solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in range(nvars) if not self._solved[fx]])
 
         #Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
-        self._fvars = {sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items()}
+        # self._fvars = {sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items()}
+        self._fvars = {sextuple : apply_coeff_map(rhs,phi) for sextuple, rhs in self._fvars.items()}
         for fx, rhs in numeric_fvars.items():
             self._fvars[self._idx_to_sextuple[fx]] = ((ETuple({},nvars),rhs),)
         _backward_subs(self)
@@ -2063,26 +2096,7 @@ class FMatrix():
             if self._chkpt_status > 5:
                 return
 
-        #Set multiprocessing parameters. Context can only be set once, so we try to set it
-        try:
-            set_start_method('fork')
-        except RuntimeError:
-            pass
-        if use_mp:
-            n = max(cpu_count()-1,1)
-            self._solved = shared_memory.ShareableList(self._solved)
-            # self._solved_shm = shared_memory.SharedMemory(create=True,size=len(self._fvars))
-            # self._solved = np.ndarray((len(self._fvars),), dtype='bool', buffer=self._solved_shm.buf)
-            # self._solved[:] = np.zeros((len(self._fvars),), dtype='bool')
-            s_name = self._solved.shm.name
-            # s_name = self._solved_shm.name
-            self._var_degs = shared_memory.ShareableList(self._var_degs)
-            vd_name = self._var_degs.shm.name
-            ks_names = self._ks.get_names()
-            args = (id(self), s_name, vd_name, ks_names)
-            pool = Pool(processes=n,initializer=init,initargs=args)
-        else:
-            pool = None
+        pool = self.get_worker_pool(max(cpu_count()-1,1)) if use_mp else None
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, len(self._fvars)))
 
@@ -2090,6 +2104,8 @@ class FMatrix():
             #Set up hexagon equations and orthogonality constraints
             self.get_orthogonality_constraints(output=False)
             self.get_defining_equations('hexagons',worker_pool=pool,output=False)
+            #Unzip fvars
+            self._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items()}
 
             #Report progress
             if verbose:
@@ -2214,6 +2230,7 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, ..., fx26
+            sage: f._reset_solver_state()
             sage: f.ideal_basis = [fx0 - 8, fx4**2 - 3, fx4 + fx10 + 3, fx4 + fx9]
             sage: _, _ = f._substitute_degree_one()
             sage: f._fvars[f._var_to_sextuple[fx0]]
@@ -2251,6 +2268,7 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, ..., fx26
+            sage: f._reset_solver_state()
             sage: f.ideal_basis = [fx0 - 8, fx4 + fx9, fx4**2 + fx3 - fx9**2]
             sage: _, _ = f._substitute_degree_one()
             sage: f._update_equations()
@@ -2336,6 +2354,7 @@ class FMatrix():
             print("Done!")
         if output:
             return self._fvars
+        self._ks.unlink()
 
     #####################
     ### Verifications ###

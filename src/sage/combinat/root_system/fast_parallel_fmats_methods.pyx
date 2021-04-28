@@ -46,6 +46,7 @@ cpdef _solve_for_linear_terms(factory, eqns=None):
         sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
         creating variables fx1..fx27
         Defining fx0, ..., fx26
+        sage: f._reset_solver_state()
         sage: f.ideal_basis = [fx0**3, fx0 + fx3**4, fx2**2 - fx3, fx2 - fx3**2, fx4 - fx2]
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
         sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
@@ -104,6 +105,7 @@ cpdef _backward_subs(factory):
         sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
         creating variables fx1..fx27
         Defining fx0, ..., fx26
+        sage: f._reset_solver_state()
         sage: f.ideal_basis = [fx0**3, fx0 + fx3**4, fx2**2 - fx3, fx2 - fx3**2, fx4 - fx2]
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
         sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
@@ -285,7 +287,17 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
 
     #Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
-    cdef dict fvars = factory._fvars
+    # cdef dict fvars = factory._fvars
+    #Handle both cyclotomic and orthogonal solution method
+    cdef bint must_zip_up
+    for k in factory._fvars:
+        must_zip_up = isinstance(factory._fvars[k], tuple)
+        break
+    cdef dict fvars
+    if must_zip_up:
+        fvars = {k: _tup_to_poly(v,parent=factory._poly_ring) for k, v in factory._fvars.items()}
+    else:
+        fvars = factory._fvars
     _Nk_ij = factory._FR.Nk_ij
     id_anyon = factory._FR.one()
     _field = factory._field
@@ -387,27 +399,16 @@ cpdef update_child_fmats(factory, tuple data_tup):
     TESTS::
 
         sage: f = FMatrix(FusionRing("A1",3))
+        sage: f._reset_solver_state()
         sage: f.get_orthogonality_constraints(output=False)
         sage: from multiprocessing import cpu_count, Pool, set_start_method, shared_memory
-        sage: try:
-        ....:     set_start_method('fork') # context can be set only once
-        ....: except RuntimeError:
-        ....:     pass
-        sage: n = max(cpu_count()-1,1)
-        sage: f._solved = shared_memory.ShareableList(f._solved)
-        sage: s_name = f._solved.shm.name
-        sage: f._var_degs = shared_memory.ShareableList(f._var_degs)
-        sage: vd_name = f._var_degs.shm.name
-        sage: from sage.combinat.root_system.shm_managers import KSHandler
-        sage: f._ks = KSHandler(f)
-        sage: args = (id(f), s_name, vd_name, f._ks.get_names())
-        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import init
-        sage: pool = Pool(processes=n,initializer=init,initargs=args)
+        sage: pool = f.get_worker_pool()
         sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
         sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
         sage: f.ideal_basis.sort(key=poly_tup_sortkey)
         sage: f.mp_thresh = 0
+        sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
         sage: f._triangular_elim(worker_pool=pool)          # indirect doctest
         Elimination epoch completed... 10 eqns remain in ideal basis
         Elimination epoch completed... 0 eqns remain in ideal basis
@@ -486,10 +487,12 @@ cpdef executor(tuple params):
 
         sage: from sage.combinat.root_system.fast_parallel_fmats_methods import executor
         sage: fmats = FMatrix(FusionRing("A1",3))
+        sage: fmats._reset_solver_state()
         sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
         sage: len(executor(params)) == 63
         True
         sage: fmats = FMatrix(FusionRing("E6",1))
+        sage: fmats._reset_solver_state()
         sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
         sage: len(executor(params)) == 6
         True

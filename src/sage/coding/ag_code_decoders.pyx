@@ -68,7 +68,7 @@ from sage.matrix.constructor import matrix
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 
-from sage.structure.element cimport Vector
+from sage.modules.free_module_element cimport FreeModuleElement
 from sage.matrix.matrix cimport Matrix
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 
@@ -1062,13 +1062,17 @@ cdef class Decoder_K(object):
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    cdef Vector _substitution(self, Vector vec, w, int k, Py_ssize_t i):
+    cdef FreeModuleElement _substitution(self, FreeModuleElement vec, w, int k, Py_ssize_t i):
         r"""
         Substitute ``z`` with ``(z + w*phi_s)``.
+
+        .. WARNING::
+
+            This modified the ``vec`` input.
         """
-        cdef Py_ssize_t j
-        cdef list a, d
-        cdef Vector b, s
+        cdef Py_ssize_t j, m
+        cdef list a, d, s
+        cdef FreeModuleElement temp
         cdef Polynomial c
 
         cdef int gamma = self.gamma
@@ -1078,14 +1082,15 @@ cdef class Decoder_K(object):
         x = self.x
 
         # optimizing this part is crucial for the speed of the decoder
-        a = vec[gamma:].list()
-        b = vec[:gamma]
+        a = [vec.get_unsafe(j) for j in range(gamma, len(vec))]
         c = w * x**k
-        s = <Polynomial> a[0] * <Vector> (<list> mul_mat[0])[i]
-        for j in range(1, gamma):
-            s += <Polynomial> a[j] * <Vector> (<list> mul_mat[j])[i]
-        d = [c * <Polynomial> s[j] + <Polynomial> b[j] for j in range(gamma)]
-        return vector(W, d + a)
+        s = [W.zero()] * gamma
+        for j in range(gamma):
+            temp = <FreeModuleElement> (<list> mul_mat[j])[i]
+            for m in range(gamma):
+                s[m] += a[j] * temp.get_unsafe(m)
+        for j in range(gamma):
+            vec.set_unsafe(j, c * s[j] + vec.get_unsafe(j))
 
     def decode(self, received_vector, bint verbose=False,
                bint detect_decoding_failure=True,
@@ -1119,13 +1124,13 @@ cdef class Decoder_K(object):
             sage: circuit.decode(rv)
             (1, 0, a + 1, a + 1, a)
         """
-        cdef int s, sk, si, i, c, cbar
+        cdef int s, sk, si, i, j, c, cbar, posQs, posQi
         cdef int k, ip, count, delta, dlt, wlt, pos, wd_hvec
         cdef list mat, nu, mu, message
         cdef list i_k, i_prime, i_value, i_count, voting_value, voting_count
         cdef list std
-        cdef Vector row, hvec
-        cdef Matrix coeff_mat, gbmat
+        cdef FreeModuleElement row, hvec, row_i, row_ip, nrow_i, nrow_ip
+        cdef Matrix coeff_mat
         cdef Polynomial t
         cdef bint found_Q
 
@@ -1199,19 +1204,17 @@ cdef class Decoder_K(object):
         else:
             mat = []
             for i in range(gamma):
-                row = vector(eta_vecs[i].list() + [W.zero() for j in range(gamma)])
+                row = vector(eta_vecs[i].list(copy=False) + [W.zero() for j in range(gamma)])
                 mat.append(row)
             for i in range(gamma):
                 std = [W.zero() for j in range(gamma)]
                 std[i] = W.one()
-                row = vector(sum([-hvec[j] * mul_mat[i][j] for j in range(gamma)]).list() + std)
+                row = vector(sum(-hvec[j] * mul_mat[i][j] for j in range(gamma)).list(copy=False) + std)
                 mat.append(row)
-
-            gbmat = matrix(mat)
 
             nu = []
             for i in range(gamma):
-                nu.append(gbmat[i, i].lc())
+                nu.append((<FreeModuleElement> mat[i]).get_unsafe(i).lc())
 
             found_Q = False
             s = wd_hvec
@@ -1221,11 +1224,11 @@ cdef class Decoder_K(object):
                     print("# s = {}".format(s))
                     print("generators (leading terms):")
                     for i in reversed(range(gamma)):
-                        g = gbmat[gamma + i]
+                        g = mat[gamma + i]
                         print("F{} ".format(i), end='')
                         vprint_g(g, s)
                     for i in reversed(range(gamma)):
-                        g = gbmat[i]
+                        g = mat[i]
                         print("G{} ".format(i), end='')
                         vprint_g(g, s)
 
@@ -1240,7 +1243,7 @@ cdef class Decoder_K(object):
                 voting_count = []
                 for i in range(gamma):
                     # detect decoding failure
-                    dlt = self._degree(gbmat[gamma + i, gamma + i])
+                    dlt = self._degree((<FreeModuleElement> mat[gamma + i]).get_unsafe(gamma + i))
                     delta += dlt
                     if detect_decoding_failure and delta > tau:
                         # more errors than tau; declare failure
@@ -1252,11 +1255,12 @@ cdef class Decoder_K(object):
                     wlt = gamma * dlt + <int> dR[i]
                     if detect_Q_polynomial and wlt + s + tau < designed_distance:
                         found_Q = True
-                        posQ = (s, i)
+                        posQs = s
+                        posQi = i
                         break
 
                     self._exponents(wlt + s, &k, &ip)
-                    count = self._degree(gbmat[ip, ip]) - k
+                    count = self._degree((<FreeModuleElement> mat[ip]).get_unsafe(ip)) - k
                     i_k.append(k)
                     i_prime.append(ip)
                     i_count.append(count)
@@ -1272,7 +1276,7 @@ cdef class Decoder_K(object):
                         if k < 0:
                             value = K.zero()
                         else:
-                            value = -gbmat[gamma + i, ip][k]
+                            value = -(<FreeModuleElement> mat[gamma + i]).get_unsafe(ip)[k]
 
                         mu.append(1)
                         i_value.append(value)
@@ -1282,8 +1286,8 @@ cdef class Decoder_K(object):
                         k = i_k[i]
                         ip = i_prime[i]
 
-                        mui = gbmat[gamma + i, gamma + i].lc() * coeff_mat[i, si]
-                        value = -gbmat[gamma + i, ip][k] / mui
+                        mui = (<FreeModuleElement> mat[gamma + i]).get_unsafe(gamma + i).lc() * coeff_mat[i, si]
+                        value = -(<FreeModuleElement> mat[gamma + i]).get_unsafe(ip)[k] / mui
 
                         mu.append(mui)
                         i_value.append(value)
@@ -1312,11 +1316,11 @@ cdef class Decoder_K(object):
                         print("voting:", list(zip(voting_value, voting_count)))
 
                 for i in range(gamma):
-                    row_i = gbmat[gamma + i]
-                    row_ip = gbmat[i_prime[i]]
+                    row_i = <FreeModuleElement> mat[gamma + i]
+                    row_ip = <FreeModuleElement> mat[i_prime[i]]
                     if winner != 0:
-                        row_i = self._substitution(row_i, winner, sk, si)
-                        row_ip = self._substitution(row_ip, winner, sk, si)
+                        self._substitution(row_i, winner, sk, si)
+                        self._substitution(row_ip, winner, sk, si)
                     if i_value[i] == winner:
                         nrow_ip = row_ip
                         nrow_i = row_i
@@ -1329,8 +1333,8 @@ cdef class Decoder_K(object):
                         else:
                             nrow_ip = row_ip
                             nrow_i = row_i - nnu / nu[i_prime[i]] * x**(-i_count[i]) * row_ip
-                    gbmat[i_prime[i]] = nrow_ip
-                    gbmat[gamma + i] = nrow_i
+                    mat[i_prime[i]] = nrow_ip
+                    mat[gamma + i] = nrow_i
 
                 if s <= 0 and sk >= 0:  # s in message_index
                     if verbose:
@@ -1340,30 +1344,31 @@ cdef class Decoder_K(object):
                 s -= 1
 
             if found_Q:
-                s, i = posQ
+                s = posQs
+                i = posQi
                 if verbose:
                     print("found a Q-polynomial at s = {}, F{}".format(s, i))
-                dlt = gamma * self._degree(gbmat[gamma + i,gamma + i]) + <int> dR[i]
+                dlt = gamma * self._degree((<FreeModuleElement> mat[gamma + i]).get_unsafe(gamma + i)) + <int> dR[i]
 
                 while s >= s0:
                     if verbose:
                         print("# s = {}".format(s))
                         print("F{} ".format(i), end='')
-                        vprint_g(gbmat[gamma + i], s)
+                        vprint_g(mat[gamma + i], s)
                     self._exponents(s, &sk, &si)
                     if s <= 0 and sk >= 0:  # s in message_index
                         self._exponents(dlt + s, &k, &ip)
-                        mui = gbmat[gamma + i,gamma + i].lc() * coeff_mat[i, si]
-                        value = -gbmat[gamma + i, ip][k] / mui
+                        mui = (<FreeModuleElement> mat[gamma + i]).get_unsafe(gamma + i).lc() * coeff_mat[i, si]
+                        value = -(<FreeModuleElement> mat[gamma + i]).get_unsafe(ip)[k] / mui
                         if not value.is_zero():
-                            gbmat[gamma + i] = self._substitution(gbmat[gamma + i], value, sk, si)
+                            self._substitution(<FreeModuleElement> mat[gamma+i], value, sk, si)
                         if verbose:
                             print("message symbol:", value)
                         message.insert(0, value)
                     s -= 1
 
                 for j in range(gamma):
-                    if not gbmat[gamma + i, j].is_zero():
+                    if not (<FreeModuleElement> mat[gamma + i]).get_unsafe(j).is_zero():
                         if verbose:
                             print("detected decoding failure at division")
                         raise DecodingError("decoding failed")
@@ -1490,7 +1495,7 @@ cdef class EvaluationAGCodeDecoder_K(Decoder_K):
         cdef int code_length, genus, gamma, dLO, tau
         cdef list gaps, dR, yR, dRbar, yRbar, evyRbar, nus, mul_mat
         cdef list message_index, code_basis
-        cdef Vector evxR
+        cdef FreeModuleElement evxR
         cdef set temp
 
         D = sum(pls)
@@ -1587,7 +1592,7 @@ cdef class EvaluationAGCodeDecoder_K(Decoder_K):
 
         def ev_mon(int sk, int si):
             cdef int i
-            return vector([evxR[i]**sk * evyRbar[si][i] for i in range(code_length)])
+            return vector([evxR.get_unsafe(i)**sk * evyRbar[si][i] for i in range(code_length)])
 
         # minimum of nongaps of Rbar
         s0 = self._next(-G.degree() - 1)
@@ -1741,7 +1746,7 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
         cdef int code_length, genus, gamma, dLO, tau
         cdef list gaps, dR, yR, dWbar, wWbar, reswWbar, nus, mul_mat
         cdef list message_index, code_basis
-        cdef Vector evxR
+        cdef FreeModuleElement evxR
         cdef set temp
 
         D = sum(pls)
@@ -1837,7 +1842,7 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
 
         def res_mon(int sk, int si):
             cdef int i
-            return vector([evxR[i]**sk * reswWbar[si][i] for i in range(code_length)])
+            return vector([evxR.get_unsafe(i)**sk * reswWbar[si][i] for i in range(code_length)])
 
         # minimum of nongaps of Wbar
         s0 = self._next(-code_length + G.degree() - 2*genus + 1)

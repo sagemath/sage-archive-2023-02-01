@@ -1062,7 +1062,7 @@ cdef class Decoder_K(object):
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    cdef FreeModuleElement _substitution(self, FreeModuleElement vec, w, int k, Py_ssize_t i):
+    cdef void _substitution(self, FreeModuleElement vec, w, int k, Py_ssize_t i):
         r"""
         Substitute ``z`` with ``(z + w*phi_s)``.
 
@@ -1082,11 +1082,11 @@ cdef class Decoder_K(object):
         x = self.x
 
         # optimizing this part is crucial for the speed of the decoder
-        a = [vec.get_unsafe(j) for j in range(gamma, len(vec))]
+        a = [vec.get_unsafe(j) for j in range(gamma, 2*gamma)]
         c = w * x**k
         s = [W.zero()] * gamma
         for j in range(gamma):
-            temp = <FreeModuleElement> (<list> mul_mat[j])[i]
+            temp = (<list> mul_mat[j])[i]
             for m in range(gamma):
                 s[m] += a[j] * temp.get_unsafe(m)
         for j in range(gamma):
@@ -1316,8 +1316,8 @@ cdef class Decoder_K(object):
                         print("voting:", list(zip(voting_value, voting_count)))
 
                 for i in range(gamma):
-                    row_i = <FreeModuleElement> mat[gamma + i]
-                    row_ip = <FreeModuleElement> mat[i_prime[i]]
+                    row_i = mat[gamma + i]
+                    row_ip = mat[i_prime[i]]
                     if winner != 0:
                         self._substitution(row_i, winner, sk, si)
                         self._substitution(row_ip, winner, sk, si)

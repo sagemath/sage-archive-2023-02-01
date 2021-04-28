@@ -1691,6 +1691,22 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:      S[4*i + 2] == S[2*i] and
             ....:      S[4*i + 3] == S[2*i - 16] for i in srange(8, 100)])
             True
+
+        Zero-sequence with non-zero initial values::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 0, f(2*n + 1) == 0,
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial value for n = 0 does not match with the given recurrence relations.
+
+        ::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 0, f(2*n + 1) == 0,
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, 2)
+            2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
         """
         from sage.arith.srange import srange
 

@@ -68,6 +68,29 @@ group action, it is not. The following computation agrees with the
     sage: is_effective(Hstar,Hlin)   # optional - pynormaliz
     True
 
+Example of a simplex under symmetric group action::
+
+    sage: S = polytopes.simplex(3); S
+    A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+    sage: G = S.restricted_automorphism_group(output = 'permutation');
+    sage: len(G)
+    24
+    sage: Hstar_simplex = Hstar_function(S,G); Hstar_simplex # optional - pynormaliz
+    chi_4
+    sage: is_polynomial(Hstar_simplex) # optional - pynormaliz
+    True
+
+The following is example 7.6 in Stapledon::
+
+    sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],
+    ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')           # optional - pynormaliz
+    sage: G = P.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
+    sage: H = G.subgroup(gens = [G[6]])                               # optional - pynormaliz
+    sage: Hstar = Hstar_function(P,H); Hstar                          # optional - pynormaliz
+    (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
+    sage: is_polynomial(Hstar)                  # optional - pynormaliz
+    False
+
 AUTHORS:
 
 - Sophia Elia (2021): Initial version
@@ -503,50 +526,6 @@ def _match_perm(permutation, V, Vplus, W):
     return A + W
 
 
-def is_polynomial(Hstar):
-    r"""
-    Checks if the equivariant `H^*`-series is a polynomial.
-
-    INPUT:
-
-    - ``Hstar`` -- a rational function in `t` with coefficients in the ring of
-                    class functions.
-
-    OUTPUT:
-
-    Boolean. Whether the `H^*` series is a polynomial.
-
-    EXAMPLES:
-
-    Example of a simplex under symmetric group action::
-
-        sage: S = polytopes.simplex(3); S
-        A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
-        sage: G = S.restricted_automorphism_group(output = 'permutation');
-        sage: len(G)
-        24
-        sage: Hstar_simplex = Hstar_function(S,G); Hstar_simplex # optional - pynormaliz
-        chi_4
-        sage: is_polynomial(Hstar_simplex) # optional - pynormaliz
-        True
-
-    The following is example 7.6 in Stapledon::
-
-        sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],
-        ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')           # optional - pynormaliz
-        sage: G = P.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
-        sage: H = G.subgroup(gens = [G[6]])                               # optional - pynormaliz
-        sage: Hstar = Hstar_function(P,H); Hstar                          # optional - pynormaliz
-        (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
-        sage: is_polynomial(Hstar)                  # optional - pynormaliz
-        False
-    """
-    flag = True
-    if Hstar.denominator() == 1:
-        pass
-    else:
-        flag = False
-    return flag
 
 
 def is_effective(Hstar, Hstar_as_lin_comb):

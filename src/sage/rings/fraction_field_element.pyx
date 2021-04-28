@@ -977,6 +977,29 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__numerator == self.__denominator
 
+    def is_polynomial(self):
+        r"""
+        Return ``True`` if this element is a polynomial.
+
+        INPUT:
+
+        - ``self`` -- a fraction field element.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is a polynomial.
+
+        EXAMPLES:
+
+            sage: F = ZZ['x,y'].fraction_field()
+            sage: x,y = F.gens()
+            sage: (x/(x+1)).is_polynomial()
+            False
+            sage: (2*x+3*y).is_polynomial()
+            True
+        """
+        return self.denominator() == 1:
+
     def _symbolic_(self, ring):
         """
         Return ``self`` as a fraction in the ring ``ring``. Used for

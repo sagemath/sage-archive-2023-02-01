@@ -1546,9 +1546,6 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         if invs0!=[]:
             Gfgens = [x for x in ambient.variable_names() if
                         ambient_invs[Ggens.index(x)] != 0]
-            Ggens0 = [x for x in ambient.variable_names() if
-                        ambient_invs[Ggens.index(x)] == 0]
-            ##     ^^ only look at "finite" names
             Gf = AbelianGroup(invsf, names=Gfgens)
             s1 = "G:= %s; gens := GeneratorsOfGroup(G)"%Gf._gap_init_()
             gap.eval(s1)

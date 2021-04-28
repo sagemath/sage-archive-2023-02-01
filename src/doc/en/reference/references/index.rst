@@ -5270,6 +5270,11 @@ REFERENCES:
              isogenies of prime degree. Journal de Théorie des Nombres de Bordeaux,
              2012.
 
+.. [Suth2008] Andrew V. Sutherland, *Structure computation and discrete
+              logarithms in finite abelian p-groups*.
+              Mathematics of Computation **80** (2011), pp. 477-500.
+              :arxiv:`0809.3413v3`.
+
 .. [SV1970] \H. Schneider and M. Vidyasagar. Cross-positive matrices. SIAM
             Journal on Numerical Analysis, 7:508-519, 1970.
 

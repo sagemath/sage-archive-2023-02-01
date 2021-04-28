@@ -233,7 +233,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
     def _discrete_log_pgroup(self, p, aa, b):
         r"""
         Attempt to express an element of p-power order in terms of
-        generators of a p-subgroup of self.
+        generators of a p-subgroup of this group.
 
         Used as a subroutine in the _discrete_log() method.
 
@@ -278,15 +278,15 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             tab = {}
             for x in iproduct(*(r for r, _ in rs)):
                 key = dotprod(x, aajk)
-                if hasattr(key, 'set_immutable'): key.set_immutable()
+                if hasattr(key, 'set_immutable'):
+                    key.set_immutable()
                 tab[key] = vector(x)
             for y in iproduct(*(r for _, r in rs)):
                 key = c - dotprod(y, aajk)
-                if hasattr(key, 'set_immutable'): key.set_immutable()
-                try:
+                if hasattr(key, 'set_immutable'):
+                    key.set_immutable()
+                if key in tab:
                     return tab[key] + vector(y)
-                except KeyError:
-                    pass
 
             raise TypeError('Not in group')
 
@@ -318,7 +318,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
     def _discrete_log(self, x, gens=None):
         r"""
         Given an element of the ambient group, attempt to express it in terms
-        of the generators of self or the given generators of a subgroup.
+        of the generators of this group or the given generators of a subgroup.
 
         EXAMPLES::
 

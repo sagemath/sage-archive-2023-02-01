@@ -981,6 +981,10 @@ cdef class FractionFieldElement(FieldElement):
         r"""
         Return ``True`` if this element is a polynomial.
 
+        The base ring may be seen as a subset of the fraction field, they are
+        elements whose equivalence classes have representatives (a,1) for
+        a in the base ring. This function tests membership in this subset.
+
         INPUT:
 
         - ``self`` -- a fraction field element.

@@ -636,7 +636,7 @@ cdef class RelaxedElement(pAdicGenericElement):
         - ``prec`` -- an integer, the precision at which the equality is checked
 
         - ``permissive`` -- a boolean; if ``True``, be silent if the precision
-          on one input are less than ``prec``; otherwise, raise an error
+          on one input is less than ``prec``; otherwise, raise an error
 
         """
         cdef int error
@@ -998,8 +998,8 @@ cdef class RelaxedElement(pAdicGenericElement):
 
     def precision_current(self):
         r"""
-        Return the internal absolute precision we know this relaxed `p`-adic
-        number at the current stage of the computation.
+        Return the internal absolute precision at which this relaxed `p`-adic
+        number is known at the current stage of the computation.
 
         EXAMPLES::
 

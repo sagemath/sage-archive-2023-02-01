@@ -82,6 +82,9 @@ List of PolyhedralComplex methods
     :meth:`~PolyhedralComplex.n_skeleton` | Return the `n`-skeleton of this polyhedral complex.
     :meth:`~PolyhedralComplex.stratify` | Return the (pure) subcomplex formed by the maximal cells of dim `n` in this complex.
     :meth:`~PolyhedralComplex.boundary_subcomplex` | Return the boundary subcomplex of this polyhedral complex.
+    :meth:`~PolyhedralComplex.product` | Return the (Cartesian) product of this polyhedral complex with another one.
+    :meth:`~PolyhedralComplex.disjoint_union` | Return the disjoint union of this polyhedral complex with another one.
+    :meth:`~PolyhedralComplex.join` | Return the join of this polyhedral complex with another one.
 
 **Miscellaneous**
 
@@ -1498,20 +1501,80 @@ class PolyhedralComplex(GenericCellComplex):
             raise ValueError("The polyhedral complex is not convex.")
         return self._polyhedron
 
+    def product(self, right):
+        """
+        The (Cartesian) product of this polyhedral complex with another one.
+
+        :param right: the other polyhedral complex (the right-hand
+           factor)
+
+        :return: the product ``self x right``
+
+        EXAMPLES::
+
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc_square = pc.product(pc)
+            sage: pc_square
+            Cell complex with 4 vertices and 9 cells
+            sage: next(pc_square.maximal_cell_iterator()).vertices()
+            (A vertex at (0, 0),
+             A vertex at (0, 1),
+             A vertex at (1, 0),
+             A vertex at (1, 1))
+        """
+        maximal_cells = [f.product(g) for f in self.maximal_cell_iterator()
+                         for g in right.maximal_cell_iterator()]
+        return PolyhedralComplex(maximal_cells, maximality_check=False)
+
+    def disjoint_union(self, right):
+        """
+        The disjoint union of this polyhedral complex with another one.
+
+        :param right: the other polyhedral complex (the right-hand factor)
+
+        EXAMPLES::
+
+            sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
+            sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
+            sage: p3 = Polyhedron(vertices=[(0, 0), (1, 1), (2, 0)])
+            sage: pc1 = PolyhedralComplex([p1, p3])
+            sage: pc2 = PolyhedralComplex([p2])
+            sage: pc = pc1.disjoint_union(pc2)
+            sage: set(pc.maximal_cell_iterator()) == set([p1, p2, p3])
+            True
+        """
+        maximal_cells = list(self.maximal_cell_iterator()) + list(
+                        right.maximal_cell_iterator())
+        return PolyhedralComplex(maximal_cells, maximality_check=True,
+                                 face_to_face_check=True)
+
+    def join(self, right):
+        """
+        The join of this polyhedral complex with another one.
+
+        :param right: the other polyhedral complex (the right-hand factor)
+
+        EXAMPLES::
+
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc_join = pc.join(pc)
+            sage: pc_join
+            Cell complex with 4 vertices and 15 cells
+            sage: next(pc_join.maximal_cell_iterator()).vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (0, 0, 1),
+             A vertex at (0, 1, 1),
+             A vertex at (1, 0, 0))
+        """
+        maximal_cells = [f.join(g) for f in self.maximal_cell_iterator()
+                         for g in right.maximal_cell_iterator()]
+        return PolyhedralComplex(maximal_cells, maximality_check=False)
+
     ############################################################
     # abstract methods not implemented in generic cell complexe
     ############################################################
 
-    def product(self, right, rename_vertices=True):
-        raise NotImplementedError
-
-    def disjoint_union(self, right):
-        raise NotImplementedError
-
     def wedge(self, right):
-        raise NotImplementedError
-
-    def join(self, right):
         raise NotImplementedError
 
     ############################################################

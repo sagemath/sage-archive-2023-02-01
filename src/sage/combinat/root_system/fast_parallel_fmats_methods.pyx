@@ -31,6 +31,7 @@ from time import sleep
 
 from multiprocessing import shared_memory
 from sage.combinat.root_system.shm_managers import KSHandler
+from sage.combinat.root_system.fvars_handler import FvarsHandler
 
 ##########################
 ### Fast class methods ###
@@ -233,7 +234,8 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
 
     #Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
-    cdef dict fvars = factory._fvars
+    # cdef dict fvars = factory._fvars
+    cdef dict fvars = {v: k for k, v in factory._var_to_sextuple.items()}
     r_matrix = factory._FR.r_matrix
     _Nk_ij = factory._FR.Nk_ij
     id_anyon = factory._FR.one()
@@ -290,8 +292,8 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     # cdef dict fvars = factory._fvars
     #Handle both cyclotomic and orthogonal solution method
     cdef bint must_zip_up
-    for k in factory._fvars:
-        must_zip_up = isinstance(factory._fvars[k], tuple)
+    for k, v in factory._fvars.items():
+        must_zip_up = isinstance(v, tuple)
         break
     cdef dict fvars
     if must_zip_up:
@@ -417,12 +419,12 @@ cpdef update_child_fmats(factory, tuple data_tup):
     """
     #factory object is assumed global before forking used to create the Pool object,
     #so each child has a global fmats variable. So it's enough to update that object
-    factory._fvars = data_tup[0]
+    # factory._fvars = data_tup[0]
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
 
     #Wait this process isn't used again
-    sleep(0.25)
+    sleep(0.5)
 
 ################
 ### Reducers ###
@@ -444,11 +446,12 @@ cdef inline list collect_eqns(list eqns):
 ### Parallel code executor ###
 ##############################
 
-def init(fmats_id, solved_name, vd_name, ks_names):
+def init(fmats_id, solved_name, vd_name, ks_names, fvar_names):
     fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
     fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
     fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
     fmats_obj._ks = KSHandler(fmats_obj,ks_names)
+    fmats_obj._fvars = FvarsHandler(fmats_obj,name=fvar_names)
 
 #Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {

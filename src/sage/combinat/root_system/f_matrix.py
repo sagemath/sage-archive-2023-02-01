@@ -48,6 +48,7 @@ from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 
 from multiprocessing import shared_memory
 from sage.combinat.root_system.shm_managers import KSHandler
+from sage.combinat.root_system.fvars_handler import FvarsHandler
 
 class FMatrix():
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -1320,7 +1321,9 @@ class FMatrix():
         self._var_degs = shared_memory.ShareableList(self._var_degs)
         vd_name = self._var_degs.shm.name
         ks_names = self._ks.get_names()
-        args = (id(self), s_name, vd_name, ks_names)
+        self._shared_fvars = FvarsHandler(self)
+        fvar_names = self._shared_fvars.get_names()
+        args = (id(self), s_name, vd_name, ks_names, fvar_names)
         n = cpu_count() if processes is None else processes
         pool = Pool(processes=n,initializer=init,initargs=args)
         return pool
@@ -1551,7 +1554,8 @@ class FMatrix():
         if worker_pool is not None and children_need_update:
             #self._nnz and self._kp are computed in child processes to reduce IPC overhead
             n_proc = worker_pool._processes
-            new_data = [(self._fvars,)]*n_proc
+            # new_data = [(self._fvars,)]*n_proc
+            new_data = [(1,)]*n_proc
             self._map_triv_reduce('update_child_fmats',new_data,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
 
     def _triangular_elim(self,eqns=None,worker_pool=None,verbose=True):
@@ -2107,6 +2111,11 @@ class FMatrix():
             #Unzip fvars
             self._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items()}
 
+            #Initialize shared fvars handler
+            for sextuple, fvar in self._fvars.items():
+                self._shared_fvars[sextuple] = fvar
+            self._fvars = self._shared_fvars
+
             #Report progress
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
@@ -2177,6 +2186,7 @@ class FMatrix():
             # self._solved_shm.unlink()
             self._var_degs.shm.unlink()
             self._ks.unlink()
+            self._shared_fvars.unlink()
 
     #########################
     ### Cyclotomic method ###

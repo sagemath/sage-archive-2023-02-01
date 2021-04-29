@@ -30,8 +30,8 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from time import sleep
 
 from multiprocessing import shared_memory
-from sage.combinat.root_system.shm_managers import KSHandler
-from sage.combinat.root_system.fvars_handler import FvarsHandler
+from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
+# from sage.combinat.root_system.fvars_handler import FvarsHandler
 
 ##########################
 ### Fast class methods ###
@@ -229,13 +229,25 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     cdef list worker_results = list()
     cdef int child_id, n_proc
     cdef unsigned long i
-    child_id, n_proc = mp_params
+    child_id, n_proc, output = mp_params
     cdef tuple sextuple, red
 
     #Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
     # cdef dict fvars = factory._fvars
-    cdef dict fvars = {v: k for k, v in factory._var_to_sextuple.items()}
+    cdef dict fvars
+    cdef bint must_zip_up
+    if not output:
+        fvars = {v: k for k, v in factory._var_to_sextuple.items()}
+    else:
+      #Handle both cyclotomic and orthogonal solution method
+      for k, v in factory._fvars.items():
+          must_zip_up = isinstance(v, tuple)
+          break
+      if must_zip_up:
+          fvars = {k: _tup_to_poly(v,parent=factory._poly_ring) for k, v in factory._fvars.items()}
+      else:
+          fvars = factory._fvars
     r_matrix = factory._FR.r_matrix
     _Nk_ij = factory._FR.Nk_ij
     id_anyon = factory._FR.one()
@@ -282,7 +294,7 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     #Set up multiprocessing parameters
     cdef list worker_results = list()
     cdef int child_id, n_proc
-    child_id, n_proc = mp_params
+    child_id, n_proc, output = mp_params
     cdef unsigned long i
     cdef tuple nonuple, red
     cdef MPolynomial_libsingular pe
@@ -445,13 +457,6 @@ cdef inline list collect_eqns(list eqns):
 ##############################
 ### Parallel code executor ###
 ##############################
-
-def init(fmats_id, solved_name, vd_name, ks_names, fvar_names):
-    fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
-    fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
-    fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
-    fmats_obj._ks = KSHandler(fmats_obj,ks_names)
-    fmats_obj._fvars = FvarsHandler(fmats_obj,name=fvar_names)
 
 #Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {

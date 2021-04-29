@@ -19,6 +19,7 @@ except:
     import pickle
 
 from copy import deepcopy
+from ctypes import cast, py_object
 from itertools import product, zip_longest
 from multiprocessing import cpu_count, Pool, set_start_method
 import numpy as np
@@ -26,7 +27,7 @@ import os
 
 from sage.combinat.root_system.fast_parallel_fmats_methods import (
     _backward_subs, _solve_for_linear_terms,
-    executor, init
+    executor
 )
 from sage.combinat.root_system.poly_tup_engine import (
     apply_coeff_map, constant_coeff,
@@ -47,8 +48,8 @@ from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 
 from multiprocessing import shared_memory
-from sage.combinat.root_system.shm_managers import KSHandler
-from sage.combinat.root_system.fvars_handler import FvarsHandler
+from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
+# from sage.combinat.root_system.fvars_handler import FvarsHandler
 
 class FMatrix():
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -353,7 +354,6 @@ class FMatrix():
         """
         self._fvars = {self._var_to_sextuple[key] : key for key in self._var_to_sextuple}
         self._solved = list(False for fx in self._fvars)
-        # self._solved[:] = np.zeros((len(self._fvars),), dtype='bool')
 
     def _reset_solver_state(self):
         r"""
@@ -400,7 +400,8 @@ class FMatrix():
         self.clear_equations()
         self._var_degs = [0]*len(self._fvars)
         self._kp = dict()
-        self._ks = KSHandler(self)
+        # self._ks = KSHandler(self)
+        self._ks = dict()
         self._nnz = self._get_known_nonz()
 
         #Clear relevant caches
@@ -1127,7 +1128,6 @@ class FMatrix():
         #Update state attributes
         self._chkpt_status = 7
         self._solved = list(True for v in self._fvars)
-        # self._solved = np.zeros((len(self._fvars),), dtype='bool')
         self._field = self._qqbar_embedding.domain()
 
     def get_fr_str(self):
@@ -1213,7 +1213,7 @@ class FMatrix():
             return
         filename = "fmatrix_solver_checkpoint_" + self.get_fr_str() + ".pickle"
         with open(filename, 'wb') as f:
-            pickle.dump([self._fvars, self._solved, self._ks, self.ideal_basis, status], f)
+            pickle.dump([self._fvars, list(self._solved), self._ks, self.ideal_basis, status], f)
         if verbose:
             print(f"Checkpoint {status} reached!")
 
@@ -1284,8 +1284,15 @@ class FMatrix():
 
     def get_worker_pool(self,processes=None):
         """
-        Get a worker pool for parallel processing, which may be used e.g.
-        to set up defining equations using :meth:`get_defining_equations`.
+        Get an initialized worker pool for parallel processing,
+        which may be used e.g. to set up defining equations using
+        :meth:`get_defining_equations`.
+
+        More than one task may be submitted to the same worker pool.
+
+        When you are done using the worker pool, use
+        :meth:`shutdown_worker_pool` to close the pool and properly dispose
+        of shared memory resources.
 
         EXAMPLES::
 
@@ -1298,6 +1305,8 @@ class FMatrix():
              fx1*fx3 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx3*fx4 + (zeta60^14 - zeta60^4)*fx3,
              fx1*fx2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx4 + (zeta60^14 - zeta60^4)*fx2,
              fx1^2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx3 + (-zeta60^12)*fx1]
+            sage: pe = f.get_defining_equations('pentaongs',worker_pool=pool)
+            sage: f.shutdown_worker_pool(pool)
 
         .. WARNING::
 
@@ -1305,6 +1314,12 @@ class FMatrix():
         necessary shared memory resources. Simply using the
         ``multiprocessing.Pool`` constructor will not work with our class
          methods.
+
+        .. WARNING::
+
+        Failure to call :meth:`shutdown_worker_pool` may result in a memory
+        leak, since shared memory resources outlive the process that created
+        them.
         """
         try:
             set_start_method('fork')
@@ -1312,21 +1327,64 @@ class FMatrix():
             pass
         if not hasattr(self, '_nnz'):
             self._reset_solver_state()
+        #Set up shared memory resource handlers
         self._solved = shared_memory.ShareableList(self._solved)
-        # self._solved_shm = shared_memory.SharedMemory(create=True,size=len(self._fvars))
-        # self._solved = np.ndarray((len(self._fvars),), dtype='bool', buffer=self._solved_shm.buf)
-        # self._solved[:] = np.zeros((len(self._fvars),), dtype='bool')
         s_name = self._solved.shm.name
-        # s_name = self._solved_shm.name
         self._var_degs = shared_memory.ShareableList(self._var_degs)
         vd_name = self._var_degs.shm.name
-        ks_names = self._ks.get_names()
+        ks = KSHandler(self)
+        for idx, val in self._ks.items():
+            ks[idx] = val
+        self._ks = ks
+        ks_names = self._ks.shm.name
         self._shared_fvars = FvarsHandler(self)
-        fvar_names = self._shared_fvars.get_names()
+        for sextuple, fvar in self._fvars.items():
+            if self._chkpt_status < 0:
+                self._shared_fvars[sextuple] = poly_to_tup(fvar)
+            else:
+                self._shared_fvars[sextuple] = fvar
+        fvar_names = self._shared_fvars.shm.name
+        #Initialize worker pool processes
         args = (id(self), s_name, vd_name, ks_names, fvar_names)
         n = cpu_count() if processes is None else processes
+        def init(fmats_id, solved_name, vd_name, ks_names, fvar_names):
+            """
+            Connect worker process to shared memory resources
+            """
+            fmats_obj = cast(fmats_id, py_object).value
+            fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
+            fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
+            fmats_obj._ks = KSHandler(fmats_obj,name=ks_names)
+            fmats_obj._fvars = FvarsHandler(fmats_obj,name=fvar_names)
+
         pool = Pool(processes=n,initializer=init,initargs=args)
         return pool
+
+    def shutdown_worker_pool(self,pool):
+        """
+        Shutdown the given worker pool and dispose of shared memory resources
+        created when the pool was set up using :meth:`get_worker_pool`.
+
+        .. WARNING::
+
+        Failure to call this method after using :meth:`get_worker_pool`
+        to create a process pool may result in a memory
+        leak, since shared memory resources outlive the process that created
+        them.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("A1",3))
+            sage: pool = f.get_worker_pool()
+            sage: he = f.get_defining_equations('hexagons', worker_pool=pool)
+            sage: f.shutdown_worker_pool(pool)
+        """
+        pool.close()
+        self._solved.shm.unlink()
+        self._var_degs.shm.unlink()
+        self._ks.shm.unlink()
+        self._shared_fvars.shm.unlink()
+        del self.__dict__['_shared_fvars']
 
     def _map_triv_reduce(self,mapper,input_iter,worker_pool=None,chunksize=None,mp_thresh=None):
         r"""
@@ -1457,8 +1515,9 @@ class FMatrix():
 
           Otherwise, the constraints are appended to ``self.ideal_basis``.
           They are stored in the internal tuple representation. The
-          ``output=False`` option is meant mostly for internal use by the
-          F-matrix solver.
+          ``output=False`` option is meant only for internal use by the
+          F-matrix solver. When computing the hexagon equations with the
+          ``output=False`` option, the initial state of the F-symbols is used.
 
         EXAMPLES::
 
@@ -1482,7 +1541,7 @@ class FMatrix():
         if not hasattr(self, '_nnz'):
             self._reset_solver_state()
         n_proc = worker_pool._processes if worker_pool is not None else 1
-        params = [(child_id, n_proc) for child_id in range(n_proc)]
+        params = [(child_id, n_proc, output) for child_id in range(n_proc)]
         eqns = self._map_triv_reduce('get_reduced_'+option,params,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
         if output:
             F = self._field
@@ -1586,9 +1645,6 @@ class FMatrix():
         if eqns is None:
             eqns = self.ideal_basis
             ret = False
-        #Unzip polynomials
-        # self._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items()}
-
         while True:
             linear_terms_exist = _solve_for_linear_terms(self,eqns)
             if not linear_terms_exist:
@@ -1603,9 +1659,6 @@ class FMatrix():
             eqns.sort(key=poly_tup_sortkey)
             if verbose:
                 print("Elimination epoch completed... {} eqns remain in ideal basis".format(len(eqns)))
-
-        #Zip up _fvars before exiting
-        # self._fvars = {sextuple : self._tup_to_fpoly(rhs_tup) for sextuple, rhs_tup in self._fvars.items()}
         if ret:
             return eqns
         self.ideal_basis = eqns
@@ -1985,7 +2038,6 @@ class FMatrix():
         assert sum(self._solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in range(nvars) if not self._solved[fx]])
 
         #Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
-        # self._fvars = {sextuple : apply_coeff_map(poly_to_tup(rhs),phi) for sextuple, rhs in self._fvars.items()}
         self._fvars = {sextuple : apply_coeff_map(rhs,phi) for sextuple, rhs in self._fvars.items()}
         for fx, rhs in numeric_fvars.items():
             self._fvars[self._idx_to_sextuple[fx]] = ((ETuple({},nvars),rhs),)
@@ -2108,12 +2160,6 @@ class FMatrix():
             #Set up hexagon equations and orthogonality constraints
             self.get_orthogonality_constraints(output=False)
             self.get_defining_equations('hexagons',worker_pool=pool,output=False)
-            #Unzip fvars
-            self._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in self._fvars.items()}
-
-            #Initialize shared fvars handler
-            for sextuple, fvar in self._fvars.items():
-                self._shared_fvars[sextuple] = fvar
             self._fvars = self._shared_fvars
 
             #Report progress
@@ -2168,6 +2214,10 @@ class FMatrix():
 
         self._checkpoint(checkpoint,5,verbose=verbose)
 
+        #Close worker pool and destroy shared resources
+        if use_mp:
+            self.shutdown_worker_pool(pool)
+
         #Find numeric values for each F-symbol
         self._get_explicit_solution(verbose=verbose)
 
@@ -2178,15 +2228,6 @@ class FMatrix():
             os.remove("fmatrix_solver_checkpoint_"+self.get_fr_str()+".pickle")
         if save_results:
             self.save_fvars(save_results)
-
-        #Close worker pool and destroy shared resources
-        if pool is not None:
-            pool.close()
-            self._solved.shm.unlink()
-            # self._solved_shm.unlink()
-            self._var_degs.shm.unlink()
-            self._ks.unlink()
-            self._shared_fvars.unlink()
 
     #########################
     ### Cyclotomic method ###
@@ -2364,7 +2405,6 @@ class FMatrix():
             print("Done!")
         if output:
             return self._fvars
-        self._ks.unlink()
 
     #####################
     ### Verifications ###

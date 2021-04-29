@@ -907,7 +907,7 @@ class FMatrix():
             sage: len(f._get_known_vals()) == f._poly_ring.ngens()
             True
         """
-        return {var_idx: self._fvars[self._idx_to_sextuple[var_idx]] for var_idx, v in enumerate(self._solved) if v}
+        return {i: self._fvars[s] for i, s in self._idx_to_sextuple.items() if self._solved[i]}
 
     def _get_known_sq(self,eqns=None):
         r"""

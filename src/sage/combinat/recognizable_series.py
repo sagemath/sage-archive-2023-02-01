@@ -13,7 +13,7 @@ and there exist
 
 - a morphism of monoids `\mu` from `A^*` to `n\times n` matrices over `K`
 
-such that the coefficient corresponing to a word `w\in A^*` equals
+such that the coefficient corresponding to a word `w\in A^*` equals
 
 .. MATH::
 
@@ -269,7 +269,7 @@ class RecognizableSeries(Element):
         - ``left`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the left to the
           matrix obtained from :meth:`mu <mu>` applying on a word.
-          See :meth`left <left>` for more details.
+          See :meth:`left <left>` for more details.
 
         - ``right`` -- a vector. When evaluating a
           coefficient, this vector is multiplied from the right to the
@@ -280,9 +280,9 @@ class RecognizableSeries(Element):
         the following option is available.
 
         - ``transpose`` -- (default: ``False``) a boolean. If set, then
-            each of the matrices in :meth:`mu <mu>` is transposed. Additionally
-            the vectors :meth`left <left>` and :meth:`right <right>` are switched.
-            (This is done by calling :meth:`transposed`.)
+          each of the matrices in :meth:`mu <mu>` is transposed. Additionally
+          the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
+          (This is done by calling :meth:`transposed`.)
 
         EXAMPLES::
 
@@ -700,7 +700,7 @@ class RecognizableSeries(Element):
         A :class:`RecognizableSeries`.
 
         Each of the matrices in :meth:`mu <mu>` is transposed. Additionally
-        the vectors :meth`left <left>` and :meth:`right <right>` are switched.
+        the vectors :meth:`left <left>` and :meth:`right <right>` are switched.
 
         EXAMPLES::
 
@@ -986,7 +986,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         Normalizes the input in order to ensure a unique
         representation.
 
-        For more information see :class:`ReconizableSeriesSpace`.
+        For more information see :class:`RecognizableSeriesSpace`.
 
         TESTS::
 
@@ -1043,7 +1043,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     @experimental(trac_number=21202)
     def __init__(self, coefficients, indices, category):
         r"""
-        See :class`RecognizableSeriesSpace` for details.
+        See :class:`RecognizableSeriesSpace` for details.
 
         INPUT:
 

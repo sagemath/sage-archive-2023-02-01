@@ -66,7 +66,7 @@ class BezierPath(GraphicPrimitive_xydata):
             vertices += curve
             codes += (len(curve)) * [len(curve)+1]
         self.codes = codes
-        self.vertices = np.array(vertices, np.float)
+        self.vertices = np.array(vertices, float)
         GraphicPrimitive_xydata.__init__(self, options)
 
     def _allowed_options(self):
@@ -318,7 +318,7 @@ def bezier_path(path, **options):
     - ``linestyle`` -- default: ``'solid'``, The style of the line, which is one
        of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
        ``':'``, ``'-'``, ``'-.'``, respectively.
-    - ``rbgcolor`` -- default: (0,0,0)
+    - ``rgbcolor`` -- default: (0,0,0)
     - ``zorder`` -- the layer in which to draw
 
     EXAMPLES::

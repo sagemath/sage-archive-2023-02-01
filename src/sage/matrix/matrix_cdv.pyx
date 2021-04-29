@@ -53,7 +53,7 @@ cpdef hessenbergize_cdvf(Matrix_generic_dense H):
         sage: M.charpoly()[0] == M.determinant()
         True
 
-    We check that trac:`31753` is resolved::
+    We check that :trac:`31753` is resolved::
 
         sage: R.<t> = GF(5)[[]]
         sage: M = matrix(3, 3, [ 1, t + O(t^3), t^2, 1 + t + O(t^3), 2 + t^2, 3 + 2*t + O(t^3), t - t^2, 2*t, 1 + t ])

@@ -61,8 +61,7 @@ cpdef hessenbergize_cdvf(Matrix_generic_dense H):
         x^3 + (1 + 4*t + 4*t^2 + O(t^3))*x^2 + (t + 2*t^2 + O(t^3))*x + 3 + 2*t^2 + O(t^3)
     """
     cdef Py_ssize_t n, i, j, k
-    cdef Matrix_generic_dense c
-    cdef RingElement pivot, inv, scalar
+    cdef RingElement entry, pivot, inv, scalar
 
     n = H.nrows()
     for j in range(n-1):

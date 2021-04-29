@@ -43,7 +43,14 @@ class _GMixin:
     r"""
     This class provides some methods for Galois groups to be used for both permutation groups
     and abelian groups, subgroups and full Galois groups.
+
+    It is just intended to provide common functionality between various different Galois group classes.
     """
+    # This class uses the following attributes, which should be defined in any subclass
+    # * _default_algorithm -- a string, the default algorithm used to compute the Galois group
+    # * _gcdata -- a pair, the Galois closure and an embedding of the top field into it
+
+
     def _get_algorithm(self, algorithm):
         r"""
         Allows overriding the default algorithm specified at object creation.
@@ -112,6 +119,8 @@ class _GaloisMixin(_GMixin):
     This class provides methods for Galois groups, allowing concrete instances
     to inherit from both permutation group and abelian group classes.
     """
+    # In addition to the attributes from _Gmixin, this class uses the following attributes, which should be defined in any subclass
+    # * _field -- the top field
     def _repr_(self):
         """
         String representation of this Galois group
@@ -205,6 +214,9 @@ class _SubGaloisMixin(_GMixin):
     This class provides methods for subgroups of Galois groups, allowing concrete instances
     to inherit from both permutation group and abelian group classes.
     """
+    # In addition to the attributes from _Gmixin, this class uses the following attributes, which should be defined in any subclass
+    # * _ambient_group -- the ambient Galois group of which this is a subgroup
+
     @lazy_attribute
     def _gcdata(self):
         """

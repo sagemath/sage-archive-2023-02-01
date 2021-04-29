@@ -994,6 +994,17 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
     def __pow__(self, x, mod):
         """
+        Power function.
+
+        The default implementation of ``__pow__`` on parent redirects to the
+        super class (in case of multiple inheritance) or to the category. This
+        redirection is necessary when the parent is a Cython class (aka
+        extension class) because in that case the parent class does not inherit
+        from the ``ParentMethods`` of the category.
+
+        Concrete implementations of parents can freely overwrite this default
+        method.
+
         TESTS::
 
             sage: ZZ^3

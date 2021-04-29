@@ -9780,6 +9780,10 @@ class Polyhedron_base(Element):
              [ 0 -1  0]
              [ 0  0  1]}
         """
+        if self.is_empty():
+            raise NotImplementedError('Empty polyhedra are not supported')
+        if not self.is_compact():
+            raise NotImplementedError('Unbounded polyhedra are not supported')
         V = [v.homogeneous_vector() for v in polytope.Vrepresentation()]
         Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()
         Vplus = list(matrix(V) * Qplus)

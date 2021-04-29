@@ -833,7 +833,7 @@ class Polyhedron_QQ(Polyhedron_base):
         cube::
             sage: reprs[0]                                                      # optional - pynormaliz
             ()
-            sage: fixed_subpolytope(Cube,reprs[0])                              # optional - pynormaliz
+            sage: Cube.fixed_subpolytope(reprs[0])                              # optional - pynormaliz
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8
             vertices
             sage: _.vertices()                                                  # optional - pynormaliz
@@ -848,11 +848,11 @@ class Polyhedron_QQ(Polyhedron_base):
 
         You can obtain non-trivial examples::
 
-            sage: fsp1 = fixed_subpolytope(Cube,reprs[8]);fsp1 # optional - pynormaliz
+            sage: fsp1 = Cube.fixed_subpolytope(reprs[8]);fsp1 # optional - pynormaliz
             A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
             sage: fsp1.vertices()                              # optional - pynormaliz
             (A vertex at (0, 0, 0),)
-            sage: fsp2 = fixed_subpolytope(Cube,reprs[3]);fsp2 # optional - pynormaliz
+            sage: fsp2 = Cube.fixed_subpolytope(reprs[3]);fsp2 # optional - pynormaliz
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
             sage: fsp2.vertices()                              # optional - pynormaliz
             (A vertex at (-1, -1, 0),
@@ -874,11 +874,15 @@ class Polyhedron_QQ(Polyhedron_base):
            8
            sage: G[2] # optional - pynormaliz
            (0,1)(2,3)
-           sage: fixed_set = fixed_subpolytope(P,G[2]); fixed_set # optional - pynormaliz
+           sage: fixed_set = P.fixed_subpolytope(G[2]); fixed_set # optional - pynormaliz
            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
            sage: fixed_set.vertices() # optional - pynormaliz
            (A vertex at (0, 3/4), A vertex at (3/2, 3/4))
         """
+        if self.is_empty():
+            raise NotImplementedError('Empty polyhedra are not supported')
+        if not self.is_compact():
+            raise NotImplementedError('Unbounded polyhedra are not supported')
         orbits = Set([Set(i) for i in vertex_permutation.cycle_tuples(singletons=True)])
 
         # If its the identity, returns the polytope
@@ -944,6 +948,10 @@ class Polyhedron_QQ(Polyhedron_base):
             (0,1,3,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex,
             (0,3)(1,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex}
         """
+        if self.is_empty():
+            raise NotImplementedError('Empty polyhedra are not supported')
+        if not self.is_compact():
+            raise NotImplementedError('Unbounded polyhedra are not supported')
         fixed_subpolytopes = {}
 
         for element in conj_class_reps:
@@ -1057,6 +1065,10 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: lin = _Hstar_function_normaliz(P,G,output = 'Hstar_as_lin_comb'); lin  # optional - pynormaliz
             ((t^4 + 3*t^3 + 8*t^2 + 3*t + 1)/(t + 1), (3*t^3 + 2*t^2 + 3*t)/(t + 1))
         """
+        if self.is_empty():
+            raise NotImplementedError('Empty polyhedra are not supported')
+        if not self.is_compact():
+            raise NotImplementedError('Unbounded polyhedra are not supported')
         if self.backend() == 'normaliz':
             return self._Hstar_function_normaliz(acting_group=None, output=None)
         else:
@@ -1064,6 +1076,17 @@ class Polyhedron_QQ(Polyhedron_base):
 
     def _Hstar_function_normaliz(self, acting_group=None, output=None):
         r"""
+        Return `H^*` as a rational function in `t` with coefficients in
+        the ring of class functions of the ``acting_group`'
+        of ``self``.
+
+        TESTS::
+
+            sage: p = Polyhedron(vertices = [[0],[1/2]])
+            sage: p._Hstar_function_normaliz()
+            Traceback (most recent call last):
+            ...
+            TypeError: The backend of the polyhedron should be 'normaliz'
         """
         raise TypeError("The backend of the polyhedron should be 'normaliz'")
 

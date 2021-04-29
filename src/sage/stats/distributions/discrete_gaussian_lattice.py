@@ -207,7 +207,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             sage: v = vector(ZZ, n, (0, 0, 0))
             sage: ZZ(round(m*f(v)/c))
             64
-            sage: l.count(v)  # abs tol 20
+            sage: l.count(v)  # abs tol 30
             64
 
         """

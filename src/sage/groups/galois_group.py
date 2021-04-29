@@ -10,7 +10,7 @@ AUTHORS:
 - David Roe (2019): initial version
 """
 
-from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
 from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_attribute import lazy_attribute
@@ -96,6 +96,28 @@ class _GaloisMixin:
         """
         return self._field
 
+    @lazy_attribute
+    def _field_degree(self):
+        """
+        Degree of the top field over its base.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: L.<b> = K.extension(x^2 + 3*a^2 + 8)
+            sage: GK = K.galois_group()
+            sage: GL = L.galois_group()
+            sage: GK._field_degree
+            3
+            sage: GL._field_degree
+            2
+        """
+        try:
+            return self._field.degree()
+        except NotImplementedError: # relative number fields don't support degree
+            return self._field.relative_degree()
+
     def transitive_label(self):
         r"""
         Return the transitive label for the action of this Galois group on the roots of
@@ -109,10 +131,7 @@ class _GaloisMixin:
             sage: G.transitive_label()
             '8T44'
         """
-        try:
-            return "%sT%s" % (self._field.degree(), self.transitive_number())
-        except NotImplementedError: # relative number fields don't support degree
-            return "%sT%s" % (self._field.relative_degree(), self.transitive_number())
+        return "%sT%s" % (self._field_degree, self.transitive_number())
 
     def is_galois(self):
         r"""
@@ -127,7 +146,7 @@ class _GaloisMixin:
             sage: GaloisGroup_perm.is_galois(G)
             False
         """
-        return self.order() == self._field.degree()
+        return self.order() == self._field_degree
 
     @lazy_attribute
     def _galois_closure(self):
@@ -175,8 +194,6 @@ class _GaloisMixin:
               Defn: a |--> 1/36*b^4 + 5/18*b^2 - 1/2*b + 4/9
         """
         return self._gcdata[1]
-
-
 
 class GaloisGroup_perm(_GaloisMixin, PermutationGroup_generic):
     r"""
@@ -360,6 +377,20 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
         k = self._field
         return k, k.Hom(k).identity()
 
+    @cached_method
+    def permutation_group(self):
+        r"""
+        Return a permutation group giving the action on the roots of a defining polynomial.
+
+        This is the regular representation for the abelian group, which is not necessarily the smallest degree permutation representation.
+
+        EXAMPLES::
+
+            sage: GF(3^10).galois_group().permutation_group()
+            Permutation Group with generators [(1,2,3,4,5,6,7,8,9,10)]
+        """
+        return PermutationGroup(gap_group=self._gap_().RegularActionHomomorphism().Image())
+
     @cached_method(key=_alg_key)
     def transitive_number(self, algorithm=None, recompute=False):
         r"""
@@ -375,7 +406,7 @@ class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
             sage: Gtest.transitive_number()
             2
         """
-        return ZZ(self._gap_().RegularActionHomomorphism().Image().TransitiveIdentification())
+        return ZZ(self.permutation_group()._gap_().TransitiveIdentification())
 
 class GaloisGroup_cyc(GaloisGroup_ab):
     r"""

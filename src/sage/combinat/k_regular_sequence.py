@@ -105,7 +105,7 @@ from __future__ import absolute_import
 
 from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_function, cached_method
 
 
 class kRegularSequence(RecognizableSeries):

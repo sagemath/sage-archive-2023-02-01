@@ -41,12 +41,18 @@ away is very unlikely and compute::
 With this normalisation factor, we can now test if our samples follow the
 expected distribution::
 
-    sage: x=0; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
-    (13355, 13298)
-    sage: x=4; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
-    (5479, 5467)
-    sage: x=-10; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
-    (53, 51)
+    sage: x=0; ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
+    13298
+    sage: l.count(x)  # rel tol 5e-2
+    13298
+    sage: x=4; ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
+    5467
+    sage: l.count(x)  # rel tol 5e-2
+    5467
+    sage: x=-10; ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
+    51
+    sage: l.count(x)  # rel tol 5e-1
+    51
 
 We construct an instance with a larger width::
 
@@ -60,19 +66,19 @@ ask for 100000 samples::
 
 and check if the proportions fit::
 
-    sage: x=0;   y=1; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n() # long time
-    (1.0, 1.00...)
-    sage: x=0; y=-100; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n() # long time
-    (1.32..., 1.36...)
+    sage: x=0;   y=1; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()  # long time  # abs tol 2e-1
+    (1.0, 1.0)
+    sage: x=0; y=-100; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()  # long time  # abs tol 2e-1
+    (1.36, 1.36)
 
 We construct a sampler with `c\%1 != 0`::
 
     sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
     sage: sigma = 3
     sage: D = DiscreteGaussianDistributionIntegerSampler(sigma=sigma, c=1/2)
-    sage: n=100000; l = [D() for _ in range(n)] # long time
-    sage: mean(l).n() # long time
-    0.486650000000000
+    sage: n=100000; l = [D() for _ in range(n)]  # long time
+    sage: mean(l).n()  # long time  # abs tol 5e-2
+    0.5
 
 REFERENCES:
 
@@ -242,8 +248,10 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=2.5, tau=6)
             sage: l = [D() for _ in range(2^18)]
-            sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
-            (-2, 7, True)
+            sage: min(l), max(l)  # abs tol 1
+            (-2, 7)
+            sage: abs(mean(l)-2.5) < 0.01
+            True
 
         We are testing correctness for double precision::
 
@@ -411,9 +419,9 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
-            sage: DiscreteGaussianDistributionIntegerSampler(3.0, algorithm="uniform+online")()
+            sage: DiscreteGaussianDistributionIntegerSampler(3.0, algorithm="uniform+online")()  # random
             -3
-            sage: DiscreteGaussianDistributionIntegerSampler(3.0, algorithm="uniform+table")()
+            sage: DiscreteGaussianDistributionIntegerSampler(3.0, algorithm="uniform+table")()  # random
             3
 
         TESTS::

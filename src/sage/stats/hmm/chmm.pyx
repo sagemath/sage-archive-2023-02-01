@@ -107,6 +107,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
     logarithm of the probability of obtaining his sequence, given the
     model::
 
+        sage: set_random_seed(0)
         sage: obs = m.sample(10); obs
         [-1.6835, 0.0635, -2.1688, 0.3043, -0.3188, -0.7835, 1.0398, -1.3558, 1.0882, 0.4050]
         sage: m.log_likelihood(obs)
@@ -115,12 +116,14 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
     We compute the Viterbi path, and probability that the given path
     of states produced obs::
 
+        sage: set_random_seed(0)
         sage: m.viterbi(obs)
         ([1, 0, 1, 0, 1, 1, 0, 1, 0, 1], -16.67738270170788)
 
     We use the Baum-Welch iterative algorithm to find another model
     for which our observation sequence is more likely::
 
+        sage: set_random_seed(0)
         sage: m.baum_welch(obs)
         (-10.6103334957397..., 14)
         sage: m.log_likelihood(obs)
@@ -128,6 +131,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
     Notice that running Baum-Welch changed our model::
 
+        sage: set_random_seed(0)
         sage: m  # rel tol 3e-14
         Gaussian Hidden Markov Model with 2 States
         Transition matrix:
@@ -339,6 +343,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
             sage: m.generate_sequence(5)
             ([-3.0505, 0.5317, -4.5065, 0.6521, 1.0435], [1, 0, 1, 0, 1])
@@ -879,6 +884,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
         We watch the log likelihoods of the model converge, step by step::
 
+            sage: set_random_seed(0)
             sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
             sage: v = m.sample(10)
             sage: stats.TimeSeries([m.baum_welch(v,max_iter=1)[0] for _ in range(len(v))])

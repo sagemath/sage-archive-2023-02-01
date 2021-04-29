@@ -396,6 +396,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: P = hmm.GaussianMixtureDistribution([(.2,-10,.5),(.6,1,1),(.2,20,.5)])
             sage: P.sample()
             19.65824361087513

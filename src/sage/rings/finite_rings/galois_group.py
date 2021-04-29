@@ -97,6 +97,8 @@ class GaloisGroup_GF(GaloisGroup_cyc):
 
           - an automorphism of the finite field.
 
+        - ``check`` -- check that automorphisms have the correct domain and codomain
+
         EXAMPLES::
 
             sage: k = GF(3^3)

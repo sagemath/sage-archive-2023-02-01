@@ -986,6 +986,9 @@ class Polyhedron_QQ(Polyhedron_base):
               of the irreducible representations in the expression of `H^*`.
             * ``'prod_det_es'``: string. Returns a vector of the product of
               determinants and the Ehrhart series.
+            * ``'verbose'``: string. Returns a list with Hstar,
+              Hstar_as_lin_comb, character table of the acting group, and
+              whether Hstar is effective.
 
         OUTPUT:
 
@@ -1059,8 +1062,8 @@ class Polyhedron_QQ(Polyhedron_base):
         else:
             raise TypeError("The backend of the polyhedron should be 'normaliz'")
 
-
     def _Hstar_function_normaliz(self, acting_group=None, output=None):
         r"""
         """
         raise TypeError("The backend of the polyhedron should be 'normaliz'")
+

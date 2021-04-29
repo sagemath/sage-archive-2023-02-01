@@ -1024,10 +1024,10 @@ class Polyhedron_base(Element):
             sage: fcube = polytopes.hypercube(4)
             sage: tfcube = fcube.face_truncation(fcube.faces(0)[0])
             sage: sp = tfcube.schlegel_projection()
-            sage: for face in tfcube.faces(2): 
-            ....:     vertices = face.ambient_Vrepresentation() 
-            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices] 
-            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices] 
+            sage: for face in tfcube.faces(2):
+            ....:     vertices = face.ambient_Vrepresentation()
+            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices]
+            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices]
             ....:     assert Polyhedron(projected_vertices).dim() == 2
         """
         def merge_options(*opts):
@@ -9684,6 +9684,168 @@ class Polyhedron_base(Element):
         else:
             return MatrixGroup(matrices)
 
+    def match_permutations_to_matrices(polytope, conj_class_reps, acting_group=None, additional_elts=None):
+        r"""
+        An element of ``polytope``'s ``restricted_autormorphism_group`` may
+        be represented either as a permutation of the vertices of ``polytope``
+        or as a matrix. This function returns a dictionary with permutations
+        as keys and matrices as values.
+
+        When ``additional_elts`` is ``None``, the dictionary is returned for the
+        generators and conjugacy classes representatives in conj_class_reps of the
+        ``restricted_automorphism_group`` or the ``acting_group``.
+        When ``additional_elts`` is not ``None``, each element in
+        ``additional_elts`` also becomes a key.
+
+        INPUT:
+
+        - ``polytope`` -- polyhedron object. a lattice polytope.
+
+        - ``conj_class_reps`` -- list. A list of representatives of the conjugacy
+          classes of the ``restricted_automorphism_group``.
+
+        - ``acting_group`` -- a subgroup of the ``polytope``'s
+          ``restricted_automorphism_group``.
+
+        - ``additional_elts`` -- list (default=None). a subset of the
+          ``restricted_automorphism_group`` of ``polytope`` expressed as
+          permutations.
+
+        OUTPUT:
+
+        A dictionary between elements of ``the restricted_automorphism_group``
+        or ``acting_group`` expressed as permutations (keys) and matrices (values).
+
+        EXAMPLES:
+
+        This example shows the dictionary between permutations and matrices
+        for the generators of the ``restricted_automorphism_group`` of the
+        `\pm 1` 2-dimensional square::
+
+            sage: square = Polyhedron(vertices=[[1,1],[-1,1],[-1,-1],[1,-1]], backend='normaliz') # optional - pynormaliz
+            sage: aut_square = square.restricted_automorphism_group(output = 'permutation')       # optional - pynormaliz
+            sage: conj_reps = aut_square.conjugacy_classes_representatives()                      # optional - pynormaliz
+            sage: gens_dict = match_permutations_to_matrices(square,conj_reps); gens_dict                    # optional - pynormaliz
+            {(): [1 0 0]
+             [0 1 0]
+             [0 0 1],
+             (1,2): [0 1 0]
+             [1 0 0]
+             [0 0 1],
+             (0,1)(2,3): [ 1  0  0]
+             [ 0 -1  0]
+             [ 0  0  1],
+             (0,1,3,2): [ 0  1  0]
+             [-1  0  0]
+             [ 0  0  1],
+             (0,3): [ 0 -1  0]
+             [-1  0  0]
+             [ 0  0  1],
+             (0,3)(1,2): [-1  0  0]
+             [ 0 -1  0]
+             [ 0  0  1]}
+            sage: square.vertices() # optional - pynormaliz
+            (A vertex at (-1, -1),
+            A vertex at (-1, 1),
+            A vertex at (1, -1),
+            A vertex at (1, 1))
+
+        This example tests the functionality for extra elements::
+
+            sage: C = polytopes.cross_polytope(2)
+            sage: G = C.restricted_automorphism_group(output = 'permutation')
+            sage: conj_reps = G.conjugacy_classes_representatives()
+            sage: add_elt = [G[6]]; add_elt
+            [(0,2,3,1)]
+            sage: match_permutations_to_matrices(C,conj_reps,additional_elts = add_elt)
+            {(): [1 0 0]
+             [0 1 0]
+             [0 0 1],
+             (1,2): [ 1  0  0]
+             [ 0 -1  0]
+             [ 0  0  1],
+             (0,1)(2,3): [0 1 0]
+             [1 0 0]
+             [0 0 1],
+             (0,1,3,2): [ 0 -1  0]
+             [ 1  0  0]
+             [ 0  0  1],
+             (0,2,3,1): [ 0  1  0]
+             [-1  0  0]
+             [ 0  0  1],
+             (0,3): [-1  0  0]
+             [ 0  1  0]
+             [ 0  0  1],
+             (0,3)(1,2): [-1  0  0]
+             [ 0 -1  0]
+             [ 0  0  1]}
+        """
+        V = [v.homogeneous_vector() for v in polytope.Vrepresentation()]
+        Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()
+        Vplus = list(matrix(V) * Qplus)
+        W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V)))
+
+        G = polytope.restricted_automorphism_group(output='permutation')
+        if acting_group is not None:
+            G = acting_group
+
+        group_dict = {}
+
+        for perm in G.gens():
+            group_dict[perm] = _match_permutation_to_matrix(perm, V, Vplus, W)
+
+        for perm in conj_class_reps:
+            group_dict[perm] = _match_permutation_to_matrix(perm, V, Vplus, W)
+
+        if additional_elts is not None:
+            for perm in additional_elts:
+                group_dict[perm] = _match_permutation_to_matrix(perm, V, Vplus, W)
+        return group_dict
+
+    def _match_permutation_to_matrix(permutation, V, Vplus, W):
+        r"""
+        Return the matrix representation of a permutation in the
+        ``restricted_autormorphism_group`` of ``polytope``.
+
+        INPUT:
+ 
+        - ``polytope`` -- polyhedron object. A lattice polytope.
+
+        - ``V`` -- list. a list of vectors from the ``match_permutations_to_matrices`` function.
+
+        - ``Vplus`` -- list. from the ``match_permutations_to_matrices`` function.
+
+        - ``W`` -- matrix. from the ``match_permutations_to_matrices`` function.
+
+        OUTPUT:
+
+        A matrix that acts in the same way on the polytope as the ``permutation``.
+
+        EXAMPLES:
+
+        This example shows a reflection across the x-axis::
+
+            sage: cross = polytopes.cross_polytope(2, backend = 'normaliz') # optional - pynormaliz
+            sage: cross.vertices() # optional - pynormaliz
+            (A vertex at (-1, 0),
+             A vertex at (0, -1),
+             A vertex at (0, 1),
+             A vertex at (1, 0))
+            sage: G = cross.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
+            sage: flip = G.gens()[0]; flip   # optional - pynormaliz
+            (1,2)
+            sage: V = [v.homogeneous_vector() for v in cross.Vrepresentation()]   # optional - pynormaliz
+            sage: Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()    # optional - pynormaliz
+            sage: Vplus = list(matrix(V) * Qplus)   # optional - pynormaliz
+            sage: W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V))) # optional - pynormaliz
+            sage: _match_permutation_to_matrix(flip, V, Vplus, W)   # optional - pynormaliz
+            [ 1  0  0]
+            [ 0 -1  0]
+            [ 0  0  1]
+        """
+        A = sum(V[permutation(i)].column() * Vplus[i].row() for i in range(len(V)))
+        return A + W
+
     def is_full_dimensional(self):
         """
         Return whether the polyhedron is full dimensional.
@@ -10185,10 +10347,10 @@ class Polyhedron_base(Element):
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
-            if as_affine_map: 
-                return linear_transformation(matrix(self.base_ring(), 
-                                                    self.dim(), 
-                                                    self.dim(), 
+            if as_affine_map:
+                return linear_transformation(matrix(self.base_ring(),
+                                                    self.dim(),
+                                                    self.dim(),
                                                     self.base_ring().one())), self.ambient_space().zero()
             return self
 

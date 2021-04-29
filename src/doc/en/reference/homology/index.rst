@@ -19,6 +19,7 @@ cell complexes.
    sage/homology/simplicial_complex
    sage/homology/simplicial_complex_morphism
    sage/homology/simplicial_complex_homset
+   sage/homology/polyhedral_complex
    sage/homology/examples
    sage/homology/delta_complex
    sage/homology/cubical_complex

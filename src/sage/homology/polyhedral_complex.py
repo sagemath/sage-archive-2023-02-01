@@ -4,11 +4,98 @@ Finite polyhedral complexes
 
 This module implements the basic structure of finite polyhedral complexes.
 
-Description to be completed.
+A polyhedral complex `PC` is a collection of polyhedra in a certain ambient
+space `\RR^n` such that
+
+- If a poyhedron `P` is in `PC`, then all the faces of `P` are in `PC`.
+
+- If polyhedra `P` and `Q` are in `PC`, then `P \cap Q` is either empty or a face of both `P` and `Q`.
+
+In this context, a "polyhedron" means the geometric realization
+of a polyhedron. This is in contrast to :mod:`simplicial complex
+<sage.homology.simplicial_complex>`, whose cells are abstract simplices.
+The concept of a polyhedral complex generalizes that of a **geometric**
+simplicial complex.
+
+.. note::
+
+   This class derives from
+   :class:`~sage.homology.cell_complex.GenericCellComplex`, and so
+   inherits its methods.  Some of those methods are not listed here;
+   see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
+   page instead.
 
 AUTHORS:
 
 - Yuan Zhou (2021-04): initial implementation
+
+List of PolyhedralComplex methods
+---------------------------------
+
+**Maximal cells and cells**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~PolyhedralComplex.maximal_cells` | Return the dictionary of the maximal cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.maximal_cell_iterator` | Return an iterator over maximal cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.maximal_cells_list` | Return the sorted list of all maximal cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.n_maximal_cells` | List the maximal cells of dimension `n` in this polyhedral complex.
+    :meth:`~PolyhedralComplex._n_maximal_cells_sorted` | Return the sorted list of maximal cells of dim `n` in this complex.
+    :meth:`~PolyhedralComplex.has_maximal_cell` | Return ``True`` if the given cell is a maximal cell in this complex.
+    :meth:`~PolyhedralComplex.cells` | Return the dictionary of the cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.cell_iterator` | Return an iterator over cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.cells_list` | Return the sorted list of all cells in this polyhedral complex.
+    :meth:`~sage.homology.cell_complex.GenericCellComplex.n_cells` | List the cells of dimension `n` in this polyhedral complex.
+    :meth:`~PolyhedralComplex._n_cells_sorted` | Return the sorted list of `n`-cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.has_cell` | Return ``True`` if the given cell is in this polyhedral complex.
+    :meth:`~PolyhedralComplex.face_poset` | Return the poset of nonempty cells in the polyhedral complex.
+    :meth:`~PolyhedralComplex.relative_boundary_cells` | List the maximal cells on the boundary of the polyhedral complex.
+
+**Properties of the polyhedral complex**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~PolyhedralComplex.dimension` | Return the dimension of the polyhedral complex.
+    :meth:`~PolyhedralComplex.ambient_dimension` | Return the ambient dimension of the polyhedral complex.
+    :meth:`~PolyhedralComplex.is_pure` | Return ``True`` if the polyhedral complex is pure.
+    :meth:`~PolyhedralComplex.is_full_dimensional` | Return ``True`` if the polyhedral complex is full dimensional.
+    :meth:`~PolyhedralComplex.is_compact` | Return ``True`` if the polyhedral complex is bounded.
+    :meth:`~PolyhedralComplex.is_connected` | Return ``True`` if the polyhedral complex is connected.
+    :meth:`~PolyhedralComplex.is_subcomplex` | Return ``True`` if this complex is a subcomplex of the other.
+    :meth:`~PolyhedralComplex.is_convex` | Return ``True`` if the polyhedral complex is convex.
+
+**New polyhedral complexes from old ones**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~PolyhedralComplex.connected_component` | Return the connected component containing a cell as a subcomplex.
+    :meth:`~PolyhedralComplex.connected_components` | Return the connected components of this polyhedral complex.
+    :meth:`~PolyhedralComplex.n_skeleton` | Return the `n`-skeleton of this polyhedral complex.
+    :meth:`~PolyhedralComplex.stratify` | Return the (pure) subcomplex formed by the maximal cells of dim `n` in this complex.
+    :meth:`~PolyhedralComplex.boundary_subcomplex` | Return the boundary subcomplex of this polyhedral complex.
+
+**Miscellaneous**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~PolyhedralComplex.plot` | Return a Graphic object showing the plot of polyhedral complex.
+    :meth:`~PolyhedralComplex.graph` | Return a directed graph corresponding to the 1-skeleton of this polyhedral complex, given that it is bounded.
+    :meth:`~PolyhedralComplex.union_as_polyhedron` | Return a ``Polyhedron`` which is the union of cells in this polyhedral complex, given that it is convex.
+
+Classes and functions
+---------------------
 """
 
 # ****************************************************************************
@@ -60,6 +147,8 @@ class PolyhedralComplex(GenericCellComplex):
         True
         sage: pc.is_compact()
         True
+        sage: pc.boundary_subcomplex()
+        Cell complex with 4 vertices and 8 cells
         sage: pc.is_convex()
         True
         sage: pc.union_as_polyhedron().Hrepresentation()
@@ -1445,3 +1534,4 @@ class PolyhedralComplex(GenericCellComplex):
 # TODO: graph of maximal cells by wall-crossing # use poset.meet instead
 # TODO: SimplicialComplex to PolyhedralComplex: geometric realization
 # TODO: learn about the boundary stuff of chain complex
+# TODO: Polyhedral Arrangement to PolyhedralComplex using #25122

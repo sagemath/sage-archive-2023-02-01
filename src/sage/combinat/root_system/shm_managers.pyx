@@ -1,3 +1,13 @@
+"""
+Shared memory managers for F-symbol attributes
+"""
+# ****************************************************************************
+#  Copyright (C) 2021 Guillermo Aboumrad <gh_willieab>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
 from sage.rings.polynomial.polydict cimport ETuple
@@ -227,15 +237,15 @@ cdef class FvarsHandler():
 
             sage: from sage.combinat.root_system.shm_managers import FvarsHandler
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-            sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
-            creating variables fx1..fx27
-            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
+            sage: f = FMatrix(FusionRing("B7", 1), inject_variables=True)
+            creating variables fx1..fx14
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: fvars = FvarsHandler(f)
-            sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
-            sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
-            sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
-            sage: s, t, r = (f3, f2, f1, f2, f1, f3), (f3, f2, f3, f0, f1, f1), (f3, f3, f3, f1, f2, f2)
-            sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10
+            sage: fvars[(f1, f2, f1, f2, f2, f2)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10)
+            sage: fvars[f2, f2, f2, f2, f0, f0] = poly_to_tup(f._poly_ring.zero())
+            sage: fvars[f2, f1, f2, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
+            sage: s, t, r = (f1, f2, f1, f2, f2, f2), (f2, f2, f2, f2, f0, f0), (f2, f1, f2, f1, f2, f2)
+            sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10
             True
             sage: f._tup_to_fpoly(fvars[t]) == 0
             True

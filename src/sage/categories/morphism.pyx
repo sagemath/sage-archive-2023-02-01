@@ -393,7 +393,7 @@ cdef class Morphism(Map):
             # multiplying it with the gens of the scalar ring.
             if e is not None and isinstance(e, ModuleElement):
                 B = (<ModuleElement>e)._parent._base
-                gens = [e._lmul_(B.coerce(x)) for x in gens]
+                gens = [(<ModuleElement>e)._lmul_(B.coerce(x)) for x in gens]
             for e in gens:
                 x = self(e)
                 y = other(e)

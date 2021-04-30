@@ -42,7 +42,7 @@ def is_FiniteFieldElement(x):
 
 
 cdef class FiniteRingElement(CommutativeRingElement):
-    def _lmul_(self, other):
+    cpdef _lmul_(self, Element other):
         """
         Return the scalar multiplication of ``self`` by ``other``.
 
@@ -59,7 +59,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a._lmul_(a + a)
             15
         """
-        return self * other
+        return self._mul_(self._parent.coerce(other))
 
 
     def _nth_root_common(self, n, all, algorithm, cunningham):

@@ -1310,16 +1310,16 @@ class FMatrix():
 
         .. WARNING::
 
-        This method is needed to initialize the worker pool using the
-        necessary shared memory resources. Simply using the
-        ``multiprocessing.Pool`` constructor will not work with our class
-         methods.
+            This method is needed to initialize the worker pool using the
+            necessary shared memory resources. Simply using the
+            ``multiprocessing.Pool`` constructor will not work with our class
+             methods.
 
         .. WARNING::
 
-        Failure to call :meth:`shutdown_worker_pool` may result in a memory
-        leak, since shared memory resources outlive the process that created
-        them.
+            Failure to call :meth:`shutdown_worker_pool` may result in a memory
+            leak, since shared memory resources outlive the process that created
+            them.
         """
         try:
             set_start_method('fork')

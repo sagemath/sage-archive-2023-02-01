@@ -216,8 +216,10 @@ class FusionRing(WeylCharacterRing):
         sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
         sage: b = I.basis().list(); b
         [i0, p, s]
-        sage: [[x*y for x in b] for y in b]
-        [[i0, p, s], [p, i0, s], [s, s, i0 + p]]
+        sage: Matrix([[x*y for x in b] for y in b]) # long time (.93s)
+        [    i0      p      s]
+        [     p     i0      s]
+        [     s      s i0 + p]
         sage: [x.twist() for x in b]
         [0, 1, 1/8]
         sage: [x.ribbon() for x in b]

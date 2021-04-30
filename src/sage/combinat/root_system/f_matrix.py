@@ -748,13 +748,13 @@ class FMatrix():
             True
             sage: f.get_non_cyclotomic_roots()
             []
-            sage: f = FMatrix(FusionRing("F4",1))
+            sage: f = FMatrix(FusionRing("G2",1))
             sage: f.find_orthogonal_solution(verbose=False)
             sage: f.field() == f.FR().field()
             False
             sage: phi = f.get_qqbar_embedding()
             sage: [phi(r).n() for r in f.get_non_cyclotomic_roots()]
-            [-0.786151377757423 + 1.73579267033929e-59*I]
+            [-0.786151377757423 - 8.92806368517581e-31*I]
 
         When ``self.field()`` is a ``NumberField``, one may use
         :meth:`get_qqbar_embedding` to embed the resulting values into
@@ -774,11 +774,11 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("F4",1), fusion_label="f", inject_variables=True)
+            sage: f = FMatrix(FusionRing("G2",1), fusion_label="g", inject_variables=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
             sage: f.find_orthogonal_solution()
-            Computing F-symbols for The Fusion Ring of Type F4 and level 1 with Integer Ring coefficients with 5 variables...
+            Computing F-symbols for The Fusion Ring of Type G2 and level 1 with Integer Ring coefficients with 5 variables...
             Set up 10 hex and orthogonality constraints...
             Partitioned 10 equations into 2 components of size:
             [4, 1]
@@ -792,8 +792,8 @@ class FMatrix():
             [1]
             Computing appropriate NumberField...
             sage: phi = f.get_qqbar_embedding()
-            sage: phi(f.fmat(f1,f1,f1,f1,f1,f1)).n()
-            -0.618033988749895 + 3.63089268571980e-21*I
+            sage: phi(f.fmat(g1,g1,g1,g1,g1,g1)).n()
+            -0.618033988749895 + 1.46674215951686e-29*I
         """
         return self._qqbar_embedding
 

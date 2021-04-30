@@ -101,6 +101,11 @@ AC_ARG_ENABLE([debug],
 
 AC_ARG_VAR(SAGE_DEBUG, controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes"))
 
+AC_ARG_ENABLE([editable],
+              [AS_HELP_STRING([--enable-editable],
+                              [use an editable install of the Sage library])],
+              [AC_SUBST([SAGE_EDITABLE], [yes])])
+
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
 AC_CANONICAL_HOST()
@@ -415,6 +420,22 @@ AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
   AS_VAR_APPEND([SAGE_SPKG_OPTIONS], [" -o"])
 ])
 AC_SUBST([SAGE_SPKG_OPTIONS])
+
+AC_ARG_ENABLE([notebook],
+  AS_HELP_STRING([--disable-notebook],
+                 [disable build of the Jupyter notebook and related packages]), [
+    for pkg in notebook nbconvert sagenb_export nbformat terminado send2trash prometheus_client mistune pandocfilters bleach defusedxml jsonschema jupyter_jsmol; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
+AC_ARG_ENABLE([r],
+  AS_HELP_STRING([--disable-r],
+                 [disable build of the R package and related packages]), [
+    for pkg in r rpy2 r_jupyter; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
 
 SAGE_SPKG_COLLECT()
 

@@ -642,7 +642,7 @@ class table(SageObject):
 
             sage: T = table([[r'$\sin(x)$', '$x$', 'text'], [1,34342,3], [identity_matrix(2),5,6]])
             sage: T._html_()
-            <div.../div>
+            '<div.../div>'
             sage: print(T._html_())
             <div class="notruncate">
             <table  class="table_form">
@@ -741,8 +741,7 @@ class table(SageObject):
                 self._html_table_row(s, row, header=False)
                 s.write('</tr>\n')
             s.write('</tbody>\n</table>\n</div>')
-        from sage.misc.html import HtmlFragment
-        return HtmlFragment(s.getvalue())
+        return s.getvalue()
 
     def _html_table_row(self, file, row, header=False):
         r"""

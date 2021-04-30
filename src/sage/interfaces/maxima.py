@@ -447,6 +447,19 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
     Traceback (most recent call last):
     ...
     TypeError: ...incorrect syntax: = is not a prefix operator...
+
+Test that conversion of symbolic functions with latex names works (:trac:`31047`)::
+
+    sage: var('phi')
+    phi
+    sage: function('Cp', latex_name='C_+')
+    Cp
+    sage: test = Cp(phi)._maxima_()._sage_()
+    sage: test.operator() == Cp
+    True
+    sage: test.operator()._latex_() == 'C_+'
+    True
+
 """
 
 #*****************************************************************************

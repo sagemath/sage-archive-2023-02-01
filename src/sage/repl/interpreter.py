@@ -80,7 +80,7 @@ Check that Cython source code appears in tracebacks::
     ZeroDivisionError...Traceback (most recent call last)
     <ipython-input-...> in <module>...
     ----> 1 Integer(1)/Integer(0)
-    .../sage/rings/integer.pyx in sage.rings.integer.Integer...div... (.../cythonized/sage/rings/integer.c:...)()
+    .../sage/rings/integer.pyx in sage.rings.integer.Integer...div...
     ...
     -> ...                  raise ZeroDivisionError("rational division by zero")
        ....:            x = <Rational> Rational.__new__(Rational)
@@ -239,9 +239,9 @@ class SageShellOverride(object):
             sage: shell.system_raw('true')
             sage: shell.user_ns['_exit_code']
             0
-            sage: shell.system_raw('R --version')
+            sage: shell.system_raw('R --version')   # optional - r
             R version ...
-            sage: shell.user_ns['_exit_code']
+            sage: shell.user_ns['_exit_code']       # optional - r
             0
             sage: shell.quit()
         """

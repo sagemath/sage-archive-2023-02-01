@@ -27,7 +27,7 @@ export SAGE_FAT_BINARY="@SAGE_FAT_BINARY@"
 
 # Export SAGE_DEBUG if this was enabled during configure,
 # but be respectful of the current settings.
-if [ "x$SAGE_DEBUG" == "x" ]; then
+if [ "x$SAGE_DEBUG" = "x" ]; then
     export SAGE_DEBUG="@SAGE_DEBUG@"
 fi
 
@@ -106,3 +106,5 @@ export SAGE_FREETYPE_PREFIX="@SAGE_FREETYPE_PREFIX@"
 export SAGE_SUITESPARSE_PREFIX="@SAGE_SUITESPARSE_PREFIX@"
 
 export SAGE_CONFIGURE_FFLAS_FFPACK="@SAGE_CONFIGURE_FFLAS_FFPACK@"
+
+export SAGE_EDITABLE="@SAGE_EDITABLE@"

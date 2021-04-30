@@ -292,15 +292,16 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: (out, err, ret) = test_executable(["sage", fullname], pydebug_ignore_warnings=True)
         sage: print(out)
         499500
-        sage: err
-        'Compiling ...spyx...'
+        sage: import re
+        sage: bool(re.match('Compiling.*spyx.*', err))
+        True
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir, pydebug_ignore_warnings=True)
         sage: print(out)
         499500
-        sage: err
-        'Compiling ...spyx...'
+        sage: bool(re.match('Compiling.*spyx.*', err))
+        True
         sage: ret
         0
 
@@ -574,12 +575,12 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])
-        sage: out.find("R version ") >= 0
+        sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])  # optional - r
+        sage: out.find("R version ") >= 0                                      # optional - r
         True
-        sage: err
+        sage: err                                                              # optional - r
         ''
-        sage: ret
+        sage: ret                                                              # optional - r
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--sqlite3", "--version"])

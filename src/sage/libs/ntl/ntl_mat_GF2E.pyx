@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp m
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 
 #*****************************************************************************
@@ -476,8 +480,13 @@ cdef class ntl_mat_GF2E(object):
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in range(2*2)])
             sage: ntl.GF2XHexOutput(0)
-            sage: m.list()
+            sage: l = m.list(); l  # random
             [[1 1 0 0 1 0 1 1], [1 1 1 0 1 1 1], [0 1 1 1 1 0 0 1], [0 1 0 1 1 1]]
+            sage: len(l) == 4
+            True
+            sage: all(a.modulus_context() is ctx for a in l)
+            True
+
         """
         return [self[i,j] for i in range(self.NumRows()) for j in range(self.x.NumCols())]
 
@@ -671,7 +680,7 @@ cdef class ntl_mat_GF2E(object):
             sage: ntl.GF2XHexOutput(1)
             sage: A = ntl.mat_GF2E(ctx, 100,100)
             sage: A.randomize()
-            sage: len([e for e in A.list() if e!=0])
+            sage: len([e for e in A.list() if e!=0])  # rel tol 1e-1
             9346
 
             sage: A = ntl.mat_GF2E(ctx, 100,100)
@@ -681,8 +690,8 @@ cdef class ntl_mat_GF2E(object):
 
             sage: A = ntl.mat_GF2E(ctx, 100,100)
             sage: A.randomize(nonzero=True, density=0.1)
-            sage: len([e for e in A.list() if e!=0])
-            994
+            sage: len([e for e in A.list() if e!=0])  # rel tol 2e-1
+            1000
 
         """
         cdef long i,j

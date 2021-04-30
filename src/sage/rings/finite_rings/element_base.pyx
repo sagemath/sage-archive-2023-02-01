@@ -61,7 +61,6 @@ cdef class FiniteRingElement(CommutativeRingElement):
         """
         return self._mul_(self._parent.coerce(other))
 
-
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
         This function exists to reduce code duplication between finite field

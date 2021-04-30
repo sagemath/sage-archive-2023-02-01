@@ -41,17 +41,19 @@ away is very unlikely and compute::
 With this normalisation factor, we can now test if our samples follow the
 expected distribution::
 
-    sage: x=0; ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
+    sage: expected = lambda x : ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
+    sage: observed = lambda x : l.count(x)
+    sage: expected(0)
     13298
-    sage: l.count(x)  # rel tol 5e-2
+    sage: observed(0)  # rel tol 5e-2
     13298
-    sage: x=4; ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
+    sage: expected(4)
     5467
-    sage: l.count(x)  # rel tol 5e-2
+    sage: observed(4)  # rel tol 5e-2
     5467
-    sage: x=-10; ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
+    sage: expected(-10)
     51
-    sage: l.count(x)  # rel tol 5e-1
+    sage: observed(-10)  # rel tol 5e-1
     51
 
 We construct an instance with a larger width::
@@ -66,9 +68,12 @@ ask for 100000 samples::
 
 and check if the proportions fit::
 
-    sage: x=0;   y=1; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()  # long time  # abs tol 2e-1
+    sage: expected = lambda x, y: (
+    ....:     exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n())
+    sage: observed = lambda x, y: float(l.count(x))/l.count(y)
+    sage: expected(0, 1), observed(0, 1)  # long time  # abs tol 2e-1
     (1.0, 1.0)
-    sage: x=0; y=-100; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()  # long time  # abs tol 2e-1
+    sage: expected(0, -100), observed(0, -100)  # long time  # abs tol 2e-1
     (1.36, 1.36)
 
 We construct a sampler with `c\%1 != 0`::

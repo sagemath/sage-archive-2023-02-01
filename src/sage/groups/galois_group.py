@@ -108,15 +108,29 @@ class _GaloisMixin:
             sage: L.<b> = K.extension(x^2 + 3*a^2 + 8)
             sage: GK = K.galois_group()
             sage: GL = L.galois_group()
+            doctest:warning
+            ...
+            DeprecationWarning: Use .absolute_field().galois_group() if you want the Galois group of the absolute field
+            See https://trac.sagemath.org/28782 for details.
             sage: GK._field_degree
             3
+
+        Despite the fact that `L` is a relative number field, the Galois group
+        is computed for the corresponding absolute extension of the rationals.
+
+        This behavior may change in the future::
+
             sage: GL._field_degree
-            2
+            6
+            sage: GL.transitive_label()
+            '6T2'
+            sage: GL
+            Galois group 6T2 ([3]2) with order 6 of x^2 + 3*a^2 + 8
         """
         try:
             return self._field.degree()
         except NotImplementedError: # relative number fields don't support degree
-            return self._field.relative_degree()
+            return self._field.absolute_degree()
 
     def transitive_label(self):
         r"""

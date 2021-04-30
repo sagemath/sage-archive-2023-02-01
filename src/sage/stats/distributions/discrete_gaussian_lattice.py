@@ -16,11 +16,13 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: set_random_seed(0)
     sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
     sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^10, 3.0)
-    sage: D(), D(), D()
+    sage: D(), D(), D()  # random
     ((3, 0, -5, 0, -1, -3, 3, 3, -7, 2), (4, 0, 1, -2, -4, -4, 4, 0, 1, -4), (-3, 0, 4, 5, 0, 1, 3, 2, 0, -1))
+    sage: a = D()
+    sage: a.parent()
+    Ambient free module of rank 10 over the principal ideal domain Integer Ring
 """
 #******************************************************************************
 #
@@ -326,18 +328,16 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
             sage: L = [D() for _ in range(2^12)]
-            sage: abs(mean(L).n() - D.c)
-            0.08303258...
+            sage: abs(mean(L).n() - D.c) < 0.25
+            True
 
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1/2,0,0))
-            sage: L = [D() for _ in range(2^12)] # long time
-            sage: mean(L).n() - D.c # long time
-            (0.0607910156250000, -0.128417968750000, 0.0239257812500000)
-
+            sage: L = [D() for _ in range(2^12)]  # long time
+            sage: abs(mean(L).n() - D.c) < 0.25   # long time
+            True
         """
         if self._c_in_lattice:
             v = self._call_in_lattice()
@@ -406,12 +406,11 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
             sage: L = [D._call_in_lattice() for _ in range(2^12)]
-            sage: abs(mean(L).n() - D.c)
-            0.08303258...
+            sage: abs(mean(L).n() - D.c) < 0.25
+            True
 
         .. note::
 
@@ -426,12 +425,11 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
 
         EXAMPLES::
 
-            sage: set_random_seed(0)
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^3, 3.0, c=(1/2,0,0))
-            sage: L = [D._call() for _ in range(2^12)] # long time
-            sage: mean(L).n() - D.c # long time
-            (-0.049..., -0.034..., -0.026...)
+            sage: L = [D._call() for _ in range(2^12)]  # long time
+            sage: abs(mean(L).n() - D.c) < 0.25         # long time
+            True
 
         .. note::
 

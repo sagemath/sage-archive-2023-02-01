@@ -703,8 +703,8 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
 
             sage: Newforms(DirichletGroup(64, QQ).1, 2, names='a')[0].local_component(2).characters() # long time
             [
-            Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> -1/4*a0, 4*s + 1 |--> -1, -1 |--> 1, 2 |--> 1,
-            Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> -1/4*a0, 4*s + 1 |--> 1, -1 |--> 1, 2 |--> 1
+            Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> 1/2*a0, 4*s + 1 |--> 1, -1 |--> 1, 2 |--> 1,
+            Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> 1/2*a0, 4*s + 1 |--> -1, -1 |--> 1, 2 |--> 1
             ]
             sage: Newform('243a',names='a').local_component(3).characters() # long time
             [

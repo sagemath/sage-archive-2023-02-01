@@ -22,16 +22,12 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement_abs
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
 
-import ctypes
+from ctypes import cast, py_object
 from itertools import product
-from sage.rings.ideal import Ideal
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
-from time import sleep
-
 from multiprocessing import shared_memory
+from sage.rings.ideal import Ideal
 from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
-# from sage.combinat.root_system.fvars_handler import FvarsHandler
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 ##########################
 ### Fast class methods ###
@@ -316,6 +312,7 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     id_anyon = factory._FR.one()
     _field = factory._field
     cdef NumberFieldElement_absolute one = _field.one()
+    factory._nnz = factory._get_known_nonz()
     cdef ETuple _nnz = factory._nnz
     _ks = factory._ks
     cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
@@ -347,6 +344,9 @@ cdef list update_reduce(factory, list eqns):
     _field = factory._field
     one = _field.one()
     _ks = factory._ks
+    #Update reduction params
+    factory._nnz = factory._get_known_nonz()
+    factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
     cdef dict _kp = factory._kp
     cdef ETuple _nnz = factory._nnz
 
@@ -404,40 +404,6 @@ cdef list compute_gb(factory, tuple args):
         res.append(t)
     return collect_eqns(res)
 
-cpdef update_child_fmats(factory, tuple data_tup):
-    r"""
-    One-to-all communication used to update FMatrix object after each triangular
-    elim step. We must update the algorithm's state values. These are:
-    ``_fvars``, ``_solved``, ``_ks``, ``_var_degs``, ``_nnz``, and ``_kp``.
-
-    TESTS::
-
-        sage: f = FMatrix(FusionRing("A1",3))
-        sage: f._reset_solver_state()
-        sage: f.get_orthogonality_constraints(output=False)
-        sage: from multiprocessing import cpu_count, Pool, set_start_method, shared_memory
-        sage: pool = f.get_worker_pool()
-        sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
-        sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
-        sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-        sage: f.mp_thresh = 0
-        sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
-        sage: f._triangular_elim(worker_pool=pool)          # indirect doctest
-        Elimination epoch completed... 10 eqns remain in ideal basis
-        Elimination epoch completed... 0 eqns remain in ideal basis
-        sage: f.ideal_basis
-        []
-    """
-    #factory object is assumed global before forking used to create the Pool object,
-    #so each child has a global fmats variable. So it's enough to update that object
-    # factory._fvars = data_tup[0]
-    factory._nnz = factory._get_known_nonz()
-    factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())
-
-    #Wait this process isn't used again
-    sleep(0.5)
-
 ################
 ### Reducers ###
 ################
@@ -464,7 +430,6 @@ cdef dict mappers = {
     "get_reduced_pentagons": get_reduced_pentagons,
     "update_reduce": update_reduce,
     "compute_gb": compute_gb,
-    "update_child_fmats": update_child_fmats,
     "pent_verify": pent_verify
     }
 
@@ -496,18 +461,18 @@ cpdef executor(tuple params):
         sage: from sage.combinat.root_system.fast_parallel_fmats_methods import executor
         sage: fmats = FMatrix(FusionRing("A1",3))
         sage: fmats._reset_solver_state()
-        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
+        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1,True))
         sage: len(executor(params)) == 63
         True
         sage: fmats = FMatrix(FusionRing("E6",1))
         sage: fmats._reset_solver_state()
-        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1))
+        sage: params = (('get_reduced_hexagons', id(fmats)), (0,1,False))
         sage: len(executor(params)) == 6
         True
     """
     (fn_name, fmats_id), args = params
     #Construct a reference to global FMatrix object in this worker's memory
-    fmats_obj = ctypes.cast(fmats_id, ctypes.py_object).value
+    fmats_obj = cast(fmats_id, py_object).value
     #Bind module method to FMatrix object in worker process, and call the method
     return mappers[fn_name](fmats_obj,args)
 

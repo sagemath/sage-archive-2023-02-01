@@ -1,25 +1,32 @@
 from cysignals.memory cimport sig_malloc
+cimport numpy as np
 from sage.rings.polynomial.polydict cimport ETuple
+from sage.rings.number_field.number_field_base cimport NumberField
 
 from multiprocessing import shared_memory
-import numpy as np
 from sage.misc.cachefunc import cached_method
+import numpy as np
 
 class KSHandler():
+    # cdef field
+    # cdef np.ndarray ks_dat
+    # cdef public shm
+
     def __init__(self, factory, name=None):
         self.field = factory._field
-        self.index = 0
-        n = len(factory._fvars)
+        n = factory._poly_ring.ngens()
         d = self.field.degree()
         ks_t = np.dtype([
             ('known', 'bool', (1,)),
-            ('nums','i4',(d,)),
-            ('denoms','u4',(d,))
+            ('nums','i8',(d,)),
+            ('denoms','u8',(d,))
         ])
         if name is None:
             self.shm = shared_memory.SharedMemory(create=True,size=n*ks_t.itemsize)
             self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
-            self.reset()
+            self.ks_dat['known'] = np.zeros((n,1),dtype='bool')
+            self.ks_dat['nums'] = np.zeros((n,d),dtype='i4')
+            self.ks_dat['denoms'] = np.ones((n,d),dtype='u4')
         else:
             self.shm = shared_memory.SharedMemory(name=name)
             self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
@@ -28,62 +35,116 @@ class KSHandler():
     def __getitem__(self, idx):
         if not self.ks_dat['known'][idx]:
             raise KeyError('Index {} does not correspond to a known square'.format(idx))
+        cdef unsigned int i, d
         cdef list rat = list()
-        for i in range(self.field.degree()):
+        d = self.field.degree()
+        for i in range(d):
             rat.append(self.ks_dat['nums'][idx][i] / self.ks_dat['denoms'][idx][i])
         return self.field(rat)
 
     def __setitem__(self, idx, rhs):
         self.ks_dat['known'][idx] = True
-        cdef int i
+        cdef unsigned int i
         for i in range(len(rhs)):
-            self.ks_dat['nums'][idx][i] = -rhs[i].numerator()
+            self.ks_dat['nums'][idx][i] = rhs[i].numerator()
             self.ks_dat['denoms'][idx][i] = rhs[i].denominator()
-
-    def __iter__(self):
-        self.index = 0
-        return self
-
-    def __next__(self):
-        if self.index == self.ks_dat.size:
-            raise StopIteration
-
-        #Skip indices that are not known
-        while not self.ks_dat['known'][self.index]:
-            self.index += 1
-            if self.index == self.ks_dat.size:
-                raise StopIteration
-
-        self.index += 1
-        return self[self.index-1]
 
     def __contains__(self, idx):
         return self.ks_dat['known'][idx]
 
     def __len__(self):
-        return sum(self.ks_dat['known'])
+        """
+        Compute the number of known squares.
+
+        """
+        return self.ks_dat['known'].sum()
 
     def __eq__(self, other):
+        """
+        Test for equality.
+        """
         return np.all(self.ks_dat == other.ks_dat)
 
     def items(self):
-        for v in self:
-            yield self.index-1, v
+        cdef unsigned int i
+        for i in range(self.ks_dat.size):
+            if self.ks_dat['known'][i]:
+                yield i, self[i]
 
-    def reset(self):
-        n = self.ks_dat.size
-        d = self.field.degree()
-        self.__getitem__.clear_cache()
-        self.ks_dat['known'] = np.zeros((n,1),dtype='bool')
-        self.ks_dat['nums'] = np.zeros((n,d),dtype='i4')
-        self.ks_dat['denoms'] = np.ones((n,d),dtype='u4')
-
-class FvarsHandler():
-    # cdef dict sext_to_idx
-    # cdef int ngens
-    # cdef field, fvars, fvars_t, shm
+cdef class FvarsHandler():
+    cdef dict sext_to_idx, obj_cache
+    cdef unsigned int ngens
+    cdef fvars_t
+    cdef NumberField field
+    cdef public np.ndarray fvars
+    cdef public shm
 
     def __init__(self, factory, name=None, max_terms=20):
+        """
+        Return a shared memory backed dict-like structure to manage the
+        ``_fvars`` attribute of an F-matrix factory object.
+
+        This structure implements a representation of the F-symbols dictionary
+        using a structured NumPy array backed by a contiguous shared memory
+        object.
+
+        The monomial data is stored in the ``exp_data`` structure. Monomial
+        exponent data is stored contiguously and ``ticks`` are used to
+        indicate different monomials.
+
+        Coefficient data is stored in the ``coeff_nums`` and ``coeff_denom``
+        arrays. The ``coeff_denom`` array stores the value
+        ``d = coeff.denominator()`` for each cyclotomic coefficient. The
+        ``coeff_nums`` array stores the values
+        ``c.numerator() * d for c in coeff._coefficients()``, the abridged
+        list representation of the cyclotomic coefficient ``coeff``.
+
+        Each entry also has a boolean ``modified`` attribute, indicating
+        whether it has been modified by the parent process. Entry retrieval
+        is cached in each process, so each process must check whether
+        entries have been modified before attempting retrieval.
+
+        The parent process should construct this object without a
+        ``name`` attribute. Children processes use the ``name`` attribute,
+        accessed via ``self.shm.name`` to attach to the shared memory block.
+
+        INPUT:
+
+        - ``factory`` -- an F-matrix factory object.
+        - ``name`` -- the name of a shared memory object
+          (used by child processes for attaching).
+        - ``max_terms`` -- maximum number of terms in each entry. Since
+          we use contiguous C-style memory blocks, the size of the block
+          must be known in advance.
+
+        .. NOTE::
+
+            To properly dispose of shared memory resources,
+            ``self.shm.unlink()`` must be called before exiting.
+
+        .. WARNING::
+
+            The current data structure supports up to 2**16-1 entries,
+            each with each monomial in each entry having at most 254
+            nonzero terms. On average, each of the ``max_terms`` monomials
+            can have at most 50 terms.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: #Create shared data structure
+            sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
+            creating variables fx1..fx8
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
+            sage: fvars = FvarsHandler(f)
+            sage: #In the same shell or in a different shell, attach to fvars
+            sage: fvars2 = FvarsHandler(f, name=fvars.shm.name)
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: fvars[f2, f1, f2, f2, f0, f0] = poly_to_tup(fx5**5)
+            sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
+            fx5^5
+            sage: fvars.shm.unlink()
+        """
         n = len(factory._fvars)
         d = factory._field.degree()
         self.obj_cache = dict()
@@ -104,11 +165,32 @@ class FvarsHandler():
             self.shm = shared_memory.SharedMemory(name=name)
             self.fvars = np.ndarray((n,),dtype=self.fvars_t,buffer=self.shm.buf)
 
-    #Given a tuple of labels and a tuple of (ETuple, cyc_coeff) pairs, insert into
-    #shared dictionary
-    #WARNING: current data structure supports up to 2**16-1 entries,
-    #each with each monomial in each entry having at most 254 nonzero terms.
     def __setitem__(self, sextuple, fvar):
+        """
+        Given a sextuple of labels and a tuple of ``(ETuple, cyc_coeff)`` pairs,
+        create or overwrite an entry in the shared data structure
+        corresponding to the given sextuple.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
+            creating variables fx1..fx27
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
+            sage: fvars = FvarsHandler(f)
+            sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
+            sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
+            sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
+            sage: s, t, r = (f3, f2, f1, f2, f1, f3), (f3, f2, f3, f0, f1, f1), (f3, f3, f3, f1, f2, f2)
+            sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10
+            True
+            sage: f._tup_to_fpoly(fvars[t]) == 0
+            True
+            sage: f._tup_to_fpoly(fvars[r]) == -1/19
+            True
+            sage: fvars.shm.unlink()
+        """
         cdef int cum, denom, i, j, k, idx
         cdef ETuple exp
         idx = self.sext_to_idx[sextuple]
@@ -132,10 +214,42 @@ class FvarsHandler():
             i += 1
         self.fvars['modified'][idx] = True
 
-    #Retrieve a record by unflattening and constructing relevant Python objects
-    #Only the parent is allowed to modify the shared _fvars object, so to implement caching
-    #we must tag modified objects and delete cache if present before retrieval
     def __getitem__(self, sextuple):
+        """
+        Retrieve a record from the shared memory data structure by
+        unflattening its representation and constructing relevant Python
+        objects.
+
+        This method returns a tuple of ``(ETuple, coeff)`` pairs,
+        where ``coeff`` is an element of ``self.field``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
+            creating variables fx1..fx27
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
+            sage: fvars = FvarsHandler(f)
+            sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
+            sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
+            sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
+            sage: s, t, r = (f3, f2, f1, f2, f1, f3), (f3, f2, f3, f0, f1, f1), (f3, f3, f3, f1, f2, f2)
+            sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10
+            True
+            sage: f._tup_to_fpoly(fvars[t]) == 0
+            True
+            sage: f._tup_to_fpoly(fvars[r]) == -1/19
+            True
+            sage: fvars.shm.unlink()
+
+        .. NOTE::
+
+            This method implements caching. Only the parent process is allowed
+            to modify the shared fvars structure. Each process builds its own
+            cache, so each process must update its cache before retrieving a
+            modified entry, tagged via its ``modified`` property.
+        """
         if not sextuple in self.sext_to_idx:
             raise KeyError('Invalid sextuple {}'.format(sextuple))
         cdef int idx = self.sext_to_idx[sextuple]
@@ -145,8 +259,9 @@ class FvarsHandler():
             else:
                 return self.obj_cache[idx]
         cdef ETuple e = ETuple({}, self.ngens)
-        cdef int cum, d, i, j
+        cdef unsigned int cum, d, i, j, nnz
         cdef list poly_tup = list()
+        cdef tuple ret
         cum = 0
         for i in range(np.count_nonzero(self.fvars['ticks'][idx])):
             #Construct new ETuple for each monomial
@@ -164,16 +279,30 @@ class FvarsHandler():
             cyc_coeff = self.field([num / d for num in self.fvars['coeff_nums'][idx][i]])
 
             poly_tup.append((exp, cyc_coeff))
-        cdef tuple ret = tuple(poly_tup)
+        ret = tuple(poly_tup)
         self.obj_cache[idx] = ret
         return ret
 
-    def __len__(self):
-        return self.fvars.size
-
-    def __repr__(self):
-        return str({sextuple: self[sextuple] for sextuple in self.sext_to_idx})
-
     def items(self):
+        """
+        Iterates through key-value pairs in the data structure as if it
+        were a Python dict.
+
+        As in a Python dict, the key-value pairs are yielded in no particular
+        order.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("G2", 1), inject_variables=True)
+            creating variables fx1..fx5
+            Defining fx0, fx1, fx2, fx3, fx4
+            sage: p = f.get_worker_pool()
+            sage: for sextuple, fvar in f._shared_fvars.items():
+            ....:     if sextuple == (f1, f1, f1, f1, f1, f1):
+            ....:         f._tup_to_fpoly(fvar)
+            ....:
+            fx4
+            sage: f.shutdown_worker_pool(p)
+        """
         for sextuple in self.sext_to_idx:
             yield sextuple, self[sextuple]

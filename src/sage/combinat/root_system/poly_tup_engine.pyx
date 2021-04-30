@@ -359,7 +359,6 @@ cpdef inline bint tup_fixes_sq(tuple eq_tup):
 ### Simplification ###
 ######################
 
-# cdef dict subs_squares(dict eq_dict, dict known_sq):
 cdef dict subs_squares(dict eq_dict, known_sq):
     r"""
     Substitute for known squares into a given polynomial.

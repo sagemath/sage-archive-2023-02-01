@@ -17,13 +17,12 @@ try:
     import cPickle as pickle
 except:
     import pickle
-
 from copy import deepcopy
 from ctypes import cast, py_object
 from itertools import product, zip_longest
-from multiprocessing import cpu_count, Pool, set_start_method
+from multiprocessing import cpu_count, Pool, set_start_method, shared_memory
 import numpy as np
-import os
+from os import remove
 
 from sage.combinat.root_system.fast_parallel_fmats_methods import (
     _backward_subs, _solve_for_linear_terms,
@@ -39,6 +38,7 @@ from sage.combinat.root_system.poly_tup_engine import (
     tup_fixes_sq,
     resize,
 )
+from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
 from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 from sage.misc.misc import get_main_globals
@@ -46,10 +46,6 @@ from sage.rings.ideal import Ideal
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
-
-from multiprocessing import shared_memory
-from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
-# from sage.combinat.root_system.fvars_handler import FvarsHandler
 
 class FMatrix():
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
@@ -398,9 +394,8 @@ class FMatrix():
         self._chkpt_status = -1
         self.clear_vars()
         self.clear_equations()
-        self._var_degs = [0]*len(self._fvars)
+        self._var_degs = [0]*self._poly_ring.ngens()
         self._kp = dict()
-        # self._ks = KSHandler(self)
         self._ks = dict()
         self._nnz = self._get_known_nonz()
 
@@ -944,10 +939,15 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        F = self._field
         for eq_tup in eqns:
             if tup_fixes_sq(eq_tup):
-                self._ks[variables(eq_tup)[0]] = eq_tup[-1][1]
+                #Handle mp and single process cases
+                if isinstance(self._ks, dict):
+                    rhs = -self._field(list(eq_tup[-1][1]))
+                else:
+                    rhs = [-v for v in eq_tup[-1][1]]
+                self._ks[variables(eq_tup)[0]] = rhs
+
 
     def _get_known_nonz(self):
         r"""
@@ -1288,7 +1288,7 @@ class FMatrix():
         which may be used e.g. to set up defining equations using
         :meth:`get_defining_equations`.
 
-        More than one task may be submitted to the same worker pool.
+        This pool may be reused time and again.
 
         When you are done using the worker pool, use
         :meth:`shutdown_worker_pool` to close the pool and properly dispose
@@ -1305,7 +1305,7 @@ class FMatrix():
              fx1*fx3 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx3*fx4 + (zeta60^14 - zeta60^4)*fx3,
              fx1*fx2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx4 + (zeta60^14 - zeta60^4)*fx2,
              fx1^2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx3 + (-zeta60^12)*fx1]
-            sage: pe = f.get_defining_equations('pentaongs',worker_pool=pool)
+            sage: pe = f.get_defining_equations('pentagons',worker_pool=pool)
             sage: f.shutdown_worker_pool(pool)
 
         .. WARNING::
@@ -1334,6 +1334,8 @@ class FMatrix():
         vd_name = self._var_degs.shm.name
         ks = KSHandler(self)
         for idx, val in self._ks.items():
+            if not isinstance(val, tuple):
+                val = val._coefficients()
             ks[idx] = val
         self._ks = ks
         ks_names = self._ks.shm.name
@@ -1410,13 +1412,13 @@ class FMatrix():
 
             sage: f = FMatrix(FusionRing("A1",2))
             sage: f._reset_solver_state()
-            sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1)]))
+            sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1,False)]))
             11
-            sage: from multiprocessing import Pool
-            sage: pool = Pool()
-            sage: mp_params = [(i,pool._processes) for i in range(pool._processes)]
+            sage: pool = f.get_worker_pool()
+            sage: mp_params = [(i,pool._processes,True) for i in range(pool._processes)]
             sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=pool,chunksize=1,mp_thresh=0))
             33
+            sage: f.shutdown_worker_pool(pool)
         """
         if mp_thresh is None:
           mp_thresh = self.mp_thresh
@@ -1593,10 +1595,11 @@ class FMatrix():
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f.mp_thresh = 0
-            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+            sage: f._fvars = f._shared_fvars
             sage: f._triangular_elim(worker_pool=pool,verbose=False)  # indirect doctest
             sage: f.ideal_basis
             []
+            sage: f.shutdown_worker_pool(pool)
         """
         if eqns is None:
             eqns = self.ideal_basis
@@ -1606,16 +1609,10 @@ class FMatrix():
             for i, d in enumerate(degs):
                 self._var_degs[i] = d
         else:
-            for i in range(len(self._fvars)):
+            for i in range(self._poly_ring.ngens()):
                 self._var_degs[i] = 0
         self._nnz = self._get_known_nonz()
         self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
-        if worker_pool is not None and children_need_update:
-            #self._nnz and self._kp are computed in child processes to reduce IPC overhead
-            n_proc = worker_pool._processes
-            # new_data = [(self._fvars,)]*n_proc
-            new_data = [(1,)]*n_proc
-            self._map_triv_reduce('update_child_fmats',new_data,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
 
     def _triangular_elim(self,eqns=None,worker_pool=None,verbose=True):
         r"""
@@ -1646,6 +1643,9 @@ class FMatrix():
             eqns = self.ideal_basis
             ret = False
         while True:
+            #Reset modification cache
+            if worker_pool is not None:
+                self._fvars.fvars['modified'][:] = False
             linear_terms_exist = _solve_for_linear_terms(self,eqns)
             if not linear_terms_exist:
                 break
@@ -1653,8 +1653,16 @@ class FMatrix():
 
             #Compute new reduction params, send to child processes if any, and update eqns
             self._update_reduction_params(eqns=eqns,worker_pool=worker_pool,children_need_update=len(eqns)>self.mp_thresh)
-            n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
-            eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
+            # n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
+            # eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
+            if worker_pool is not None and len(eqns) > self.mp_thresh:
+                n = worker_pool._processes
+                chunks = [[] for i in range(n)]
+                for i, eq_tup in enumerate(eqns):
+                    chunks[i%n].append(eq_tup)
+                eqns = chunks
+            else:
+                eqns = [eqns]
             eqns = self._map_triv_reduce('update_reduce',eqns,worker_pool=worker_pool)
             eqns.sort(key=poly_tup_sortkey)
             if verbose:
@@ -2151,21 +2159,22 @@ class FMatrix():
             #Loading from a pickle with solved F-symbols
             if self._chkpt_status > 5:
                 return
-
-        pool = self.get_worker_pool(max(cpu_count()-1,1)) if use_mp else None
+        #max(cpu_count()-1,1)
+        pool = self.get_worker_pool() if use_mp else None
         if verbose:
-            print("Computing F-symbols for {} with {} variables...".format(self._FR, len(self._fvars)))
+            print("Computing F-symbols for {} with {} variables...".format(self._FR, self._poly_ring.ngens()))
 
         if self._chkpt_status < 1:
             #Set up hexagon equations and orthogonality constraints
             self.get_orthogonality_constraints(output=False)
             self.get_defining_equations('hexagons',worker_pool=pool,output=False)
-            self._fvars = self._shared_fvars
-
             #Report progress
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
-
+            #Unzip _fvars and link to shared_memory structure if using multiprocessing
+            self._fvars = {sextuple: poly_to_tup(fvar) for sextuple, fvar in self._fvars.items()}
+        if use_mp:
+            self._fvars = self._shared_fvars
         self._checkpoint(checkpoint,1,verbose=verbose)
 
         if self._chkpt_status < 2:
@@ -2173,10 +2182,6 @@ class FMatrix():
             self.ideal_basis = self._par_graph_gb(worker_pool=pool,verbose=verbose)
             self.ideal_basis.sort(key=poly_tup_sortkey)
             self._triangular_elim(worker_pool=pool,verbose=verbose)
-
-            #Update reduction parameters, also in children if any
-            self._update_reduction_params(worker_pool=pool,children_need_update=True)
-
             #Report progress
             if verbose:
                 print("Hex elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
@@ -2187,7 +2192,6 @@ class FMatrix():
             #Set up pentagon equations in parallel
             self.get_defining_equations('pentagons',worker_pool=pool,output=False)
             self.ideal_basis.sort(key=poly_tup_sortkey)
-
             #Report progress
             if verbose:
                 print("Set up {} reduced pentagons...".format(len(self.ideal_basis)))
@@ -2197,7 +2201,6 @@ class FMatrix():
         #Simplify and eliminate variables
         if self._chkpt_status < 4:
             self._triangular_elim(worker_pool=pool,verbose=verbose)
-
             #Report progress
             if verbose:
                 print("Pent elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
@@ -2214,18 +2217,17 @@ class FMatrix():
 
         self._checkpoint(checkpoint,5,verbose=verbose)
 
-        #Close worker pool and destroy shared resources
-        if use_mp:
-            self.shutdown_worker_pool(pool)
-
         #Find numeric values for each F-symbol
         self._get_explicit_solution(verbose=verbose)
 
         #The calculation was successful, so we may delete checkpoints
         self._chkpt_status = 7
         self.clear_equations()
+        #Close worker pool and destroy shared resources
+        if use_mp:
+            self.shutdown_worker_pool(pool)
         if checkpoint:
-            os.remove("fmatrix_solver_checkpoint_"+self.get_fr_str()+".pickle")
+            remove("fmatrix_solver_checkpoint_"+self.get_fr_str()+".pickle")
         if save_results:
             self.save_fvars(save_results)
 

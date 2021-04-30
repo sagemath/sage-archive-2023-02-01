@@ -59,7 +59,11 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a._lmul_(a + a)
             15
         """
-        return self._mul_(self._parent.coerce(other))
+        try:
+            e = self._parent.coerce(other)
+        except TypeError:
+            return None
+        return self._mul_(e)
 
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """

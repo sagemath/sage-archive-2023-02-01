@@ -68,7 +68,7 @@ from .sage_unittest import TestSuite
 # Otherwise, it builds the element, adds the entry { id: element } to
 # `already_unpickled` and finally returns the element.
 #
-# For a working example, see sage.rings.padics.lazy_template.LazyElement_selfref.
+# For a working example, see sage.rings.padics.lazy_template.LazyElement_unknown
 already_pickled = { }
 already_unpickled = { }
 

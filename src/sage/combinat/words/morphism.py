@@ -1949,10 +1949,11 @@ class WordMorphism(SageObject):
             TypeError: self must be prolongable on a
         """
         if not self.is_growing(letter):
-            w = self(letter)
-            w2 = self(w)
-            while w2 != w:
-                w,w2 = w2, self(w2)
+            w = self.domain()(letter)
+            prev = set()
+            while w not in prev:
+                prev.add(w)
+                w = self(w)
             return w
 
         elif self.is_erasing():

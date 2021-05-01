@@ -1158,7 +1158,7 @@ class FMatrix():
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim(verbose=False)
-            sage: f._update_reduction_params(children_need_update=False)
+            sage: f._update_reduction_params()
             sage: f._checkpoint(do_chkpt=True,status=2)
             Checkpoint 2 reached!
             sage: del f
@@ -1189,7 +1189,7 @@ class FMatrix():
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim(verbose=False)
-            sage: f._update_reduction_params(children_need_update=False)
+            sage: f._update_reduction_params()
             sage: f.get_defining_equations('pentagons',output=False)
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f._triangular_elim(verbose=False)
@@ -1233,7 +1233,7 @@ class FMatrix():
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
             sage: f._triangular_elim(verbose=False)
-            sage: f._update_reduction_params(children_need_update=False)
+            sage: f._update_reduction_params()
             sage: fvars = f._fvars
             sage: ib = f.ideal_basis
             sage: solved = f._solved
@@ -1580,7 +1580,7 @@ class FMatrix():
         """
         return _tup_to_poly(eq_tup,parent=self._poly_ring)
 
-    def _update_reduction_params(self,eqns=None,worker_pool=None,children_need_update=False):
+    def _update_reduction_params(self,eqns=None):
         r"""
         Update reduction parameters that are solver state attributes.
 
@@ -1652,7 +1652,7 @@ class FMatrix():
             _backward_subs(self)
 
             #Compute new reduction params, send to child processes if any, and update eqns
-            self._update_reduction_params(eqns=eqns,worker_pool=worker_pool,children_need_update=len(eqns)>self.mp_thresh)
+            self._update_reduction_params(eqns=eqns)
             # n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
             # eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
             if worker_pool is not None and len(eqns) > self.mp_thresh:

@@ -77,6 +77,9 @@ cdef odd_one_out_ij_cache = dict()
 cdef mid_sig_ij_cache = dict()
 
 cdef cached_mid_sig_ij(fusion_ring,row,col,a,b):
+    """
+    Cached version of :meth:`mid_sig_ij`.
+    """
     if (row,col,a,b) in mid_sig_ij_cache:
         return mid_sig_ij_cache[row,col,a,b]
     entry = mid_sig_ij(fusion_ring,row,col,a,b)
@@ -84,6 +87,9 @@ cdef cached_mid_sig_ij(fusion_ring,row,col,a,b):
     return entry
 
 cdef cached_odd_one_out_ij(fusion_ring,xi,xj,a,b):
+    """
+    Cached version of :meth:`odd_one_out_ij`.
+    """
     if (xi,xj,a,b) in odd_one_out_ij_cache:
         return odd_one_out_ij_cache[xi,xj,a,b]
     entry = odd_one_out_ij(fusion_ring,xi,xj,a,b)

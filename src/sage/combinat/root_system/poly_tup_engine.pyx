@@ -383,7 +383,8 @@ cdef dict subs_squares(dict eq_dict, known_sq):
         new_e = dict()
         for idx, power in exp.sparse_iter():
             if idx in known_sq:
-                coeff *= known_sq[idx] ** (power // 2)
+                # coeff *= known_sq[idx] ** (power // 2)
+                coeff *= pow(known_sq[idx], power // 2)
                 #New power is 1 if power is odd
                 if power & True:
                   new_e[idx] = 1

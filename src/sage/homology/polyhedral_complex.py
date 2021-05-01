@@ -41,13 +41,13 @@ List of PolyhedralComplex methods
 
     :meth:`~PolyhedralComplex.maximal_cells` | Return the dictionary of the maximal cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.maximal_cell_iterator` | Return an iterator over maximal cells in this polyhedral complex.
-    :meth:`~PolyhedralComplex.maximal_cells_list` | Return the sorted list of all maximal cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.maximal_cells_sorted` | Return the sorted list of all maximal cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.n_maximal_cells` | List the maximal cells of dimension `n` in this polyhedral complex.
     :meth:`~PolyhedralComplex._n_maximal_cells_sorted` | Return the sorted list of maximal cells of dim `n` in this complex.
     :meth:`~PolyhedralComplex.has_maximal_cell` | Return ``True`` if the given cell is a maximal cell in this complex.
     :meth:`~PolyhedralComplex.cells` | Return the dictionary of the cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.cell_iterator` | Return an iterator over cells in this polyhedral complex.
-    :meth:`~PolyhedralComplex.cells_list` | Return the sorted list of all cells in this polyhedral complex.
+    :meth:`~PolyhedralComplex.cells_sorted` | Return the sorted list of all cells in this polyhedral complex.
     :meth:`~sage.homology.cell_complex.GenericCellComplex.n_cells` | List the cells of dimension `n` in this polyhedral complex.
     :meth:`~PolyhedralComplex._n_cells_sorted` | Return the sorted list of `n`-cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.has_cell` | Return ``True`` if the given cell is in this polyhedral complex.
@@ -155,7 +155,7 @@ class PolyhedralComplex(GenericCellComplex):
         sage: pc = PolyhedralComplex([
         ....: Polyhedron(vertices=[(1/3, 1/3), (0, 0), (1/7, 2/7)]),
         ....: Polyhedron(vertices=[(1/7, 2/7), (0, 0), (0, 1/4)])])
-        sage: [p.Vrepresentation() for p in pc.cells_list()]
+        sage: [p.Vrepresentation() for p in pc.cells_sorted()]
         [(A vertex at (0, 0), A vertex at (0, 1/4), A vertex at (1/7, 2/7)),
          (A vertex at (0, 0), A vertex at (1/3, 1/3), A vertex at (1/7, 2/7)),
          (A vertex at (0, 0), A vertex at (0, 1/4)),
@@ -263,7 +263,7 @@ class PolyhedralComplex(GenericCellComplex):
         # initialize the attributes
         self._is_convex = None
         self._polyhedron = None
-        self._maximal_cells_list = None    # needed for hash
+        self._maximal_cells_sorted = None    # needed for hash
         self._cells = None
         self._face_poset = None
 
@@ -398,7 +398,7 @@ class PolyhedralComplex(GenericCellComplex):
         return sorted(n_cells,
                       key=lambda p: (p.vertices(), p.rays(), p.lines()))
 
-    def cells_list(self, subcomplex=None):
+    def cells_sorted(self, subcomplex=None):
         """
         The sorted list of the cells of this polyhedral complex
         in non-increasing dimensions.
@@ -414,9 +414,9 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc = PolyhedralComplex([
             ....: Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
             ....: Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])])
-            sage: len(pc.cells_list())
+            sage: len(pc.cells_sorted())
             11
-            sage: pc.cells_list()[0].Vrepresentation()
+            sage: pc.cells_sorted()[0].Vrepresentation()
             (A vertex at (0, 0), A vertex at (0, 2), A vertex at (1, 2))
         """
         cells = []
@@ -564,25 +564,25 @@ class PolyhedralComplex(GenericCellComplex):
         return sorted(n_maximal_cells,
                       key=lambda p: (p.vertices(), p.rays(), p.lines()))
 
-    def maximal_cells_list(self):
+    def maximal_cells_sorted(self):
         """
-        The sorted list of the maximal cells of this polyhedral complex
-        in non-increasing dimensions.
+        Return the sorted list of the maximal cells of this polyhedral complex
+        by non-increasing dimensions.
 
         EXAMPLES::
 
             sage: pc = PolyhedralComplex([
             ....: Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
             ....: Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])])
-            sage: [p.vertices_list() for p in pc.maximal_cells_list()]
+            sage: [p.vertices_list() for p in pc.maximal_cells_sorted()]
             [[[0, 0], [0, 2], [1, 2]], [[0, 0], [1, 1], [1, 2]]]
         """
-        if self._maximal_cells_list is None:
+        if self._maximal_cells_sorted is None:
             maximal_cells = []
             for n in range(self._dim, -1, -1):
                 maximal_cells += self._n_maximal_cells_sorted(n)
-            self._maximal_cells_list = maximal_cells
-        return self._maximal_cells_list
+            self._maximal_cells_sorted = maximal_cells
+        return self._maximal_cells_sorted
 
     def has_maximal_cell(self, c):
         """
@@ -732,7 +732,7 @@ class PolyhedralComplex(GenericCellComplex):
 
     def __hash__(self):
         """
-        Compute the hash value of ``self`` using its ``maximal_cells_list``.
+        Compute the hash value of ``self`` using its ``maximal_cells_sorted``.
 
         EXAMPLES::
 
@@ -748,7 +748,7 @@ class PolyhedralComplex(GenericCellComplex):
         if not self._is_immutable:
             raise ValueError("This polyhedral complex must be immutable" +
                              "Call set_immutable().")
-        return hash(tuple(self.maximal_cells_list()))
+        return hash(tuple(self.maximal_cells_sorted()))
 
     def __eq__(self, right):
         """
@@ -766,7 +766,7 @@ class PolyhedralComplex(GenericCellComplex):
             True
         """
         return isinstance(right, PolyhedralComplex) and (
-               self.maximal_cells_list() == right.maximal_cells_list())
+               self.maximal_cells_sorted() == right.maximal_cells_sorted())
 
     def __ne__(self, right):
         """

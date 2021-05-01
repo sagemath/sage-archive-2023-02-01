@@ -985,10 +985,6 @@ cdef class FractionFieldElement(FieldElement):
         elements whose equivalence classes have representatives (a,1) for
         a in the base ring. This function tests membership in this subset.
 
-        WARNING:
-
-        This method only works if the base ring is an exact ring.
-
         INPUT:
 
         - ``self`` -- a fraction field element.
@@ -1006,9 +1002,22 @@ cdef class FractionFieldElement(FieldElement):
             sage: (2*x+3*y).is_polynomial()
             True
         """
-        # catch if the ring is inexact - see reduce method       
-        self.reduce()
-        return self.denominator() == 1:
+        codom = self.codomain()
+        if self.domain()._R is codom:
+            num = self.numerator()
+            den = self.denominator()
+        else:
+            # codomain may different from the fraction fields base ring
+            # for example for localizations
+            num = codom(self.numerator())
+            den = codom(self.denominator())
+
+        if codom.is_exact() and den.is_one():
+            return True
+        if den.is_unit():
+            return True
+        else:
+            raise TypeError("fraction must have unit denominator")
 
     def _symbolic_(self, ring):
         """

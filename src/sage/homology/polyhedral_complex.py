@@ -126,6 +126,30 @@ class PolyhedralComplex(GenericCellComplex):
     r"""
     Define a PolyhedralComplex.
 
+    INPUT:
+
+    - ``maximal_cells`` -- a list, a tuple, or a dictionary (indexed by
+      dimension) of cells of the Complex. Each cell is of class
+      :class:`Polyhedron` of the same ambient dimension. To set up a
+      :class:PolyhedralComplex, it is sufficient to provide the maximal
+      faces. Use keyword argument partial=``True`` to set up a partial
+      polyhedral complex, which is a subset of the faces (viewed as
+      relatively open) of a polyhedral complex that is not necessarily
+      closed under taking intersection.
+
+    - ``maximality_check`` -- boolean; default ``True``;
+      if it is ``True``, then the constructor checks that each given
+      maximal cell is indeed maximal, and ignores those that are not.
+
+
+    - ``face_to_face_check`` -- boolean; default ``False``;
+      if it is ``True``, then the constructor checks whether the cells
+      are face-to-face, and it raises a ValueError if they are not.
+
+    - ``is_mutable`` and ``is_immutable`` -- boolean; default ``True`` and
+      ``False``, respectively; Set ``is_mutable=False`` or ``is_immutable=True``
+      to make this polyhedral complex immutable.
+
     EXAMPLES::
 
         sage: pc = PolyhedralComplex([
@@ -151,7 +175,7 @@ class PolyhedralComplex(GenericCellComplex):
         sage: pc.is_compact()
         True
         sage: pc.boundary_subcomplex()
-        Cell complex with 4 vertices and 8 cells
+        Polyhedral complex with 4 maximal cells
         sage: pc.is_convex()
         True
         sage: pc.union_as_polyhedron().Hrepresentation()
@@ -164,58 +188,47 @@ class PolyhedralComplex(GenericCellComplex):
         True
         sage: pc.connected_component() == pc
         True
+
+    TESTS:
+
+    Check that non-maximal cells are ignored if ``maximality_check=True``::
+
+        sage: pc = PolyhedralComplex([
+        ....:        Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
+        ....:        Polyhedron(vertices=[(1, 2), (0, 0)]) ])
+        sage: pc.maximal_cells()
+        {2: {A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices}}
+
+    Check that non face-to-face can be detected::
+
+        sage: PolyhedralComplex([
+        ....:        Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
+        ....:        Polyhedron(vertices=[(2, 2), (0, 0)]) ],
+        ....:        face_to_face_check=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: The given cells are not face-to-face
+
+    Check that all the cells must have the same ambient dimension::
+
+        sage: PolyhedralComplex([
+        ....:        Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
+        ....:        Polyhedron(vertices=[[2], [0]]) ])
+        Traceback (most recent call last):
+        ...
+        ValueError: The given cells are not polyhedrain the same ambient space.
     """
     def __init__(self, maximal_cells=None, maximality_check=True,
-                 face_to_face_check=False):
+                 face_to_face_check=False, is_mutable=True, is_immutable=False):
         r"""
-        INPUT:
+        Define a PolyhedralComplex.
 
-        - ``maximal_cells`` -- a list, a tuple, or a dictionary (indexed by
-          dimension) of cells of the Complex. Each cell is of class
-          :class:`Polyhedron` of the same ambient dimension. To set up a
-          :class:PolyhedralComplex, it is sufficient to provide the maximal
-          faces. Use keyword argument partial=``True`` to set up a partial
-          polyhedral complex, which is a subset of the faces (viewed as
-          relatively open) of a polyhedral complex that is not necessarily
-          closed under taking intersection.
+        See ``PolyhedralComplex`` for more information.
 
-        - ``maximality_check`` -- boolean; default ``True``;
-          if it is ``True``, then the constructor checks that each given
-          maximal cell is indeed maximal, and ignores those that are not.
+        EXAMPLES::
 
-
-        - ``face_to_face_check`` -- boolean; default ``False``;
-          if it is ``True``, then the constructor checks whether the cells
-          are face-to-face, and it raises a ValueError if they are not.
-
-        TESTS:
-
-        Check that non-maximal cells are ignored if ``maximality_check=True``::
-
-            sage: pc = PolyhedralComplex([
-            ....:        Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
-            ....:        Polyhedron(vertices=[(1, 2), (0, 0)]) ])
-            sage: pc.maximal_cells()
-            {2: {A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices}}
-
-        Check that non face-to-face can be detected::
-
-            sage: PolyhedralComplex([
-            ....:        Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
-            ....:        Polyhedron(vertices=[(2, 2), (0, 0)]) ],
-            ....:        face_to_face_check=True)
-            Traceback (most recent call last):
-            ...
-            ValueError: The given cells are not face-to-face
-
-        Check that all the cells must have the same ambient dimension::
-
-            sage: PolyhedralComplex([
-            ....:        Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
-            ....:        Polyhedron(vertices=[[2], [0]]) ])
-            Traceback (most recent call last):
-            ...
-            ValueError: The given cells are not polyhedrain the same ambient space.
+            sage: PolyhedralComplex([Polyhedron(vertices=[(1, 1), (0, 0)])])
+            Polyhedral complex with 1 maximal cells
         """
         def cells_list_to_cells_dict(cells_list):
             cells_dict = {}
@@ -1173,11 +1186,11 @@ class PolyhedralComplex(GenericCellComplex):
             ....: Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]),
             ....: Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])])
             sage: pc.n_skeleton(2)
-            Cell complex with 4 vertices and 11 cells
+            Polyhedral complex with 2 maximal cells
             sage: pc.n_skeleton(1)
-            Cell complex with 4 vertices and 9 cells
+            Polyhedral complex with 5 maximal cells
             sage: pc.n_skeleton(0)
-            Cell complex with 4 vertices and 4 cells
+            Polyhedral complex with 4 maximal cells
         """
         if n >= self.dimension():
             return copy(self)
@@ -1208,14 +1221,14 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.stratify(2) == pc
             True
             sage: pc.stratify(1)
-            Cell complex with 0 vertices and 0 cells
+            Polyhedral complex with 0 maximal cells
 
         Wrong answer due to ``maximality_check=False``::
 
             sage: pc_invalid = PolyhedralComplex([p1, p2, p3],
             ....:              maximality_check=False)
             sage: pc_invalid.stratify(1)
-            Cell complex with 2 vertices and 3 cells
+            Polyhedral complex with 1 maximal cells
         """
         n_faces = self.n_maximal_cells(n)
         return PolyhedralComplex(n_faces, maximality_check=False)
@@ -1515,7 +1528,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
             sage: pc_square = pc.product(pc)
             sage: pc_square
-            Cell complex with 4 vertices and 9 cells
+            Polyhedral complex with 1 maximal cells
             sage: next(pc_square.maximal_cell_iterator()).vertices()
             (A vertex at (0, 0),
              A vertex at (0, 1),
@@ -1559,7 +1572,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
             sage: pc_join = pc.join(pc)
             sage: pc_join
-            Cell complex with 4 vertices and 15 cells
+            Polyhedral complex with 1 maximal cells
             sage: next(pc_join.maximal_cell_iterator()).vertices()
             (A vertex at (0, 0, 0),
              A vertex at (0, 0, 1),

@@ -1363,7 +1363,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             yield prod((p**e for p,e in zip(KSgens, ev)), one)
 
     def selmer_space(self, S, p, proof=None):
-        r"""Compute the group `\QQ(S,p)` as a vector space with maps to and from `\QQ^*`.
+        r"""
+        Compute the group `\QQ(S,p)` as a vector space with maps to and from `\QQ^*`.
 
         INPUT:
 
@@ -1408,8 +1409,9 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: all(QQ.selmer_space([], p)[0].dimension() == 0 for p in primes(3,10))
             True
 
-            In general there is one generator for each `p\inS`, and an
-            additional generator of `-1` when `p=2`::
+        In general there is one generator for each `p\in S`, and an
+        additional generator of `-1` when `p=2`::
+
             sage: QS2, QS2gens, fromQS2, toQS2 = QQ.selmer_space([5,7], 2)
             sage: QS2
             Vector space of dimension 3 over Finite Field of size 2

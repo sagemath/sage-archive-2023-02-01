@@ -4831,7 +4831,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         return Q[:c, :a]
 
     def selmer_generators(self, S, m, proof=True, orders=False):
-        r"""Compute generators of the group `K(S,m)`.
+        r"""
+        Compute generators of the group `K(S,m)`.
 
         INPUT:
 
@@ -5057,7 +5058,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             yield prod([p ** e for p, e in zip(KSgens, ev)], one)
 
     def selmer_space(self, S, p, proof=None):
-        r"""Compute the group `K(S,p)` as a vector space with maps to and from `K^*`.
+        r"""
+        Compute the group `K(S,p)` as a vector space with maps to and from `K^*`.
 
         INPUT:
 

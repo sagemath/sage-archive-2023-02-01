@@ -36,25 +36,15 @@ AUTHORS:
 
 """
 
-#######################################################################
+# ****************************************************************************
+#       Copyright (C) 2021 John Cremona <john.cremona@gmail.com>
 #
-# Copyright 2018-2021 John Cremona
-#
-# This is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation; either version 2 of the License, or (at your
-# option) any later version.
-#
-# This code is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-# for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this file; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
-#
-#######################################################################
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.rational_field import QQ
@@ -63,7 +53,7 @@ from sage.misc.misc_c import prod
 # A utility function to allow the same code to be used over QQ and
 # over number fields:
 
-def ideal_generator(I):
+def _ideal_generator(I):
     r"""
     Return the generator of a principal ideal.
 
@@ -78,21 +68,21 @@ def ideal_generator(I):
 
     EXAMPLES::
 
-        sage: from sage.rings.number_field.selmer_group import ideal_generator
-        sage: ideal_generator(5)
+        sage: from sage.rings.number_field.selmer_group import _ideal_generator
+        sage: _ideal_generator(5)
         5
 
         sage: K.<a> = QuadraticField(-11)
-        sage: [ideal_generator(K.prime_above(p)) for p in primes(25)]
+        sage: [_ideal_generator(K.prime_above(p)) for p in primes(25)]
         [2, 1/2*a - 1/2, -1/2*a - 3/2, 7, -a, 13, 17, 19, 1/2*a + 9/2]
 
     """
     try:
         return I.gens_reduced()[0]
     except AttributeError:
-        return I
+        return I.abs()
 
-def coords_in_C_p(I, C, p):
+def _coords_in_C_p(I, C, p):
     r"""
     Return coordinates of the ideal ``I`` with respect to a basis of
     the ``p``-torsion of the ideal class group ``C``.
@@ -121,7 +111,7 @@ def coords_in_C_p(I, C, p):
 
     EXAMPLES::
 
-        sage: from sage.rings.number_field.selmer_group import coords_in_C_p
+        sage: from sage.rings.number_field.selmer_group import _coords_in_C_p
         sage: K.<a> = QuadraticField(-5)
         sage: C = K.class_group()
         sage: C.order()
@@ -129,9 +119,9 @@ def coords_in_C_p(I, C, p):
         sage: P = K.prime_above(2)
         sage: C(P).order()
         2
-        sage: coords_in_C_p(P,C,2)
+        sage: _coords_in_C_p(P,C,2)
         [1]
-        sage: coords_in_C_p(P,C,3)
+        sage: _coords_in_C_p(P,C,3)
         Traceback (most recent call last):
         ...
         ValueError: The 3rd power of Fractional ideal (2, a + 1) is not principal
@@ -142,11 +132,11 @@ def coords_in_C_p(I, C, p):
     p_indices     = [(i, n // p) for i,n in enumerate(cyclic_orders) if p.divides(n)]
 
     coords = C(I).exponents()
-    if all(coords[i] == 0 for i in non_p_indices):
+    if all(coords[i] == 0 for i in non_p_indices) and all(coords[i] % n == 0 for i, n in p_indices):
         return [(coords[i] // n) % p for i, n in p_indices]
     raise ValueError("The {} power of {} is not principal".format(p.ordinal_str(),I))
 
-def coords_in_C_mod_p(I,C,p):
+def _coords_in_C_mod_p(I,C,p):
     r"""
     Return coordinates of the ideal ``I`` with respect to a basis of
     the ``p``-cotorsion of the ideal class group ``C``.
@@ -172,23 +162,23 @@ def coords_in_C_mod_p(I,C,p):
 
     EXAMPLES::
 
-        sage: from sage.rings.number_field.selmer_group import coords_in_C_mod_p
+        sage: from sage.rings.number_field.selmer_group import _coords_in_C_mod_p
         sage: K.<a> = QuadraticField(-5)
         sage: C = K.class_group()
-        sage: [coords_in_C_mod_p(K.prime_above(p), C, 2) for p in primes(25)]
+        sage: [_coords_in_C_mod_p(K.prime_above(p), C, 2) for p in primes(25)]
         [[1], [1], [0], [1], [0], [0], [0], [0], [1]]
 
     An example where the class group has two primary components, one
     of which is not cyclic::
 
-        sage: from sage.rings.number_field.selmer_group import coords_in_C_mod_p
+        sage: from sage.rings.number_field.selmer_group import _coords_in_C_mod_p
         sage: K.<a> = NumberField(x^2 - x + 58)
         sage: C = K.class_group()
         sage: C.gens_orders()
         (6, 2)
-        sage: [coords_in_C_mod_p(K.prime_above(p), C, 2) for p in primes(25)]
+        sage: [_coords_in_C_mod_p(K.prime_above(p), C, 2) for p in primes(25)]
         [[1, 0], [1, 1], [1, 1], [0, 1], [1, 0], [0, 1], [0, 0], [0, 1], [0, 0]]
-        sage: [coords_in_C_mod_p(K.prime_above(p), C, 3) for p in primes(25)]
+        sage: [_coords_in_C_mod_p(K.prime_above(p), C, 3) for p in primes(25)]
         [[2], [0], [1], [0], [0], [1], [0], [2], [0]]
 
     """
@@ -197,8 +187,9 @@ def coords_in_C_mod_p(I,C,p):
     coords = C(I).exponents()
     return [coords[i] % p for i in p_indices]
 
-def root_ideal(I, C, p):
-    r"""Return a ``p``'th root of an ideal with respect to the class group.
+def _root_ideal(I, C, p):
+    r"""
+    Return a ``p``'th root of an ideal with respect to the class group.
 
     INPUT:
 
@@ -215,7 +206,7 @@ def root_ideal(I, C, p):
 
     EXAMPLES::
 
-        sage: from sage.rings.number_field.selmer_group import root_ideal
+        sage: from sage.rings.number_field.selmer_group import _root_ideal
         sage: K.<a> = NumberField(x^2 - x + 58)
         sage: C = K.class_group()
         sage: cyclic_gens   = C.gens_ideals()
@@ -224,11 +215,11 @@ def root_ideal(I, C, p):
         sage: C.gens_orders()
         (6, 2)
         sage: I = cyclic_gens[0]^2
-        sage: J = root_ideal(I, C, 2)
+        sage: J = _root_ideal(I, C, 2)
         sage: C(J^2) == C(I)
         True
         sage: I = cyclic_gens[0]^3
-        sage: J = root_ideal(I, C, 3)
+        sage: J = _root_ideal(I, C, 3)
         sage: C(J^3) == C(I)
         True
 
@@ -239,6 +230,9 @@ def root_ideal(I, C, p):
 
     # In the next line, e=(ci/p)%n should satisfy p*e=ci (mod n): we
     # are dividing the coordinate vector by p in the appropriate sense
+
+    if not all(p.divides(ci) for ci, n in zip(coords, cyclic_orders) if p.divides(n)):
+        raise ValueError("The ideal class of {} is not a {} power".format(I,p.ordinal_str()))
 
     w = [ci // p if p.divides(n) else (ci / p) % n for ci, n in zip(coords, cyclic_orders)]
 
@@ -348,7 +342,7 @@ def basis_for_p_cokernel(S, C, p):
 
     """
     from sage.matrix.constructor import Matrix
-    M = Matrix(GF(p), [coords_in_C_mod_p(P, C, p) for P in S])
+    M = Matrix(GF(p), [_coords_in_C_mod_p(P, C, p) for P in S])
     k = M.left_kernel()
     bas = [prod([P ** bj.lift() for P, bj in zip(S, b.list())],
                 C.number_field().ideal(1)) for b in k.basis()]
@@ -405,12 +399,12 @@ def pSelmerGroup(K, S, p, proof=None, debug=False):
       of the group of roots of unity if its order is divisible by `p`.
       These have valuation `0` at all primes.
 
-    - ``betalist`` is a list of the generators of th `p`'th powers of
+    - ``betalist`` is a list of the generators of the `p`'th powers of
       ideals which generate the `p`-torsion in the class group (so is
       empty if the class number is prime to `p`).  These have
       valuation divisible by `p` at all primes.
 
-    - ``alphalist`` is al ist of generators for each ideal `A` in a
+    - ``alphalist`` is a list of generators for each ideal `A` in a
       basis of those ideals supported on `S` (modulo `p`'th powers of
       ideals) which are `p`'th powers in the class group.  We find `B`
       such that `A/B^p` is principal and take a generator of it, for
@@ -571,7 +565,7 @@ def pSelmerGroup(K, S, p, proof=None, debug=False):
     # These have valuation divisible by p everywhere.
 
     if hKp:
-        betalist = [ideal_generator(c ** n)
+        betalist = [_ideal_generator(c ** n)
                     for c, n in zip(C.gens_ideals(), C.gens_orders())
                     if n % p == 0]
     else:
@@ -591,10 +585,10 @@ def pSelmerGroup(K, S, p, proof=None, debug=False):
 
     if hK > 1:
         T, f = basis_for_p_cokernel(S, C, p)
-        alphalist = [ideal_generator(I / root_ideal(I, C, p) ** p) for I in T]
+        alphalist = [_ideal_generator(I / _root_ideal(I, C, p) ** p) for I in T]
     else:
         f = lambda x:x
-        alphalist = [ideal_generator(P) for P in S]
+        alphalist = [_ideal_generator(P) for P in S]
 
     if debug:
         print("{} generators in alphalist = {}".format(len(alphalist), alphalist))
@@ -628,7 +622,7 @@ def pSelmerGroup(K, S, p, proof=None, debug=False):
             raise ValueError("argument {} should be in {}".format(a, K))
 
         if not all(P in S or a.valuation(P) % p == 0 for P in a.support()):
-            raise ValueError("argument {} should have valuations divisible by {} for at all prime in {}".format(a, p, S))
+            raise ValueError("argument {} should have valuations divisible by {} at all primes in {}".format(a, p, S))
 
         # 1. (a) is a p'th power mod ideals in S, say (a)=AB^p, where
         # A is supported on S and is a linear combination of the
@@ -661,7 +655,7 @@ def pSelmerGroup(K, S, p, proof=None, debug=False):
             print("a={}".format(a))
 
         if hKp:
-            bvec = coords_in_C_p(B, C, p)
+            bvec = _coords_in_C_p(B, C, p)
             a2 = prod((beta ** e for beta, e in zip(betalist, bvec)), K(1))
             a /= a2
             supp = a.support()
@@ -686,7 +680,7 @@ def pSelmerGroup(K, S, p, proof=None, debug=False):
 
         if debug:
             print("B={}".format(B))
-        a3 = B if K==QQ else ideal_generator(B)
+        a3 = B if K==QQ else _ideal_generator(B)
         if debug:
             print("a3={}".format(a3))
         a /= a3 ** p

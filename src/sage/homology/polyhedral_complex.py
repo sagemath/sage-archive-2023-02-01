@@ -69,6 +69,8 @@ List of PolyhedralComplex methods
     :meth:`~PolyhedralComplex.is_connected` | Return ``True`` if the polyhedral complex is connected.
     :meth:`~PolyhedralComplex.is_subcomplex` | Return ``True`` if this complex is a subcomplex of the other.
     :meth:`~PolyhedralComplex.is_convex` | Return ``True`` if the polyhedral complex is convex.
+    :meth:`~PolyhedralComplex.is_mutable` | Return ``True`` if the polyhedral complex is mutable.
+    :meth:`~PolyhedralComplex.is_immutable` | Return ``True`` if the polyhedral complex is not mutable.
 
 **New polyhedral complexes from old ones**
 
@@ -85,6 +87,15 @@ List of PolyhedralComplex methods
     :meth:`~PolyhedralComplex.product` | Return the (Cartesian) product of this polyhedral complex with another one.
     :meth:`~PolyhedralComplex.disjoint_union` | Return the disjoint union of this polyhedral complex with another one.
     :meth:`~PolyhedralComplex.join` | Return the join of this polyhedral complex with another one.
+
+**Update polyhedral complexe**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~PolyhedralComplex.set_immutable` | Make this polyhedral complex immutable.
 
 **Miscellaneous**
 
@@ -282,9 +293,9 @@ class PolyhedralComplex(GenericCellComplex):
                     if not (r.is_empty() or (r in poset) and
                             poset.is_gequal(p, r) and poset.is_gequal(q, r)):
                         raise ValueError("The given cells are not face-to-face")
-        # For now, a polyhedral complex is immutable
-        # TODO: is_mutable and is_immutable parameters and set_immutable method.
-        self._is_immutable = True
+        self._is_immutable = False
+        if not is_mutable or is_immutable:
+            self.set_immutable()
 
     def cells(self, subcomplex=None):
         """
@@ -738,12 +749,17 @@ class PolyhedralComplex(GenericCellComplex):
 
             sage: p1 = Polyhedron(vertices=[(1/3, 1/3), (0, 0), (1, 2)])
             sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 1/2)])
-            sage: pc1 = PolyhedralComplex([p1, p2])
+            sage: pc1 = PolyhedralComplex([p1, p2], is_mutable=False)
             sage: hash(pc1) == hash(pc1)
             True
-            sage: pc2 = PolyhedralComplex([p2, p1])
+            sage: pc2 = PolyhedralComplex([p2, p1], is_mutable=False)
             sage: hash(pc1) == hash(pc2)
             True
+            sage: pc3 = PolyhedralComplex([p1, p2])
+            sage: hash(pc3)
+            Traceback (most recent call last):
+            ...
+            ValueError: This polyhedral complex must be immutableCall set_immutable().
         """
         if not self._is_immutable:
             raise ValueError("This polyhedral complex must be immutable" +
@@ -785,13 +801,13 @@ class PolyhedralComplex(GenericCellComplex):
 
     def __copy__(self):
         """
-        Return a copy of ``self``.
+        Return a mutable copy of ``self``.
 
         EXAMPLES::
 
-            sage: p1 = Polyhedron(vertices=[(1/3, 1/3), (0, 0), (1, 2)])
-            sage: p2 = copy(p1)
-            sage: p1 == p2
+            sage: pc1 = PolyhedralComplex([Polyhedron(vertices=[(0, 0)])])
+            sage: pc2 = copy(pc1)
+            sage: pc1 == pc2
             True
         """
         return PolyhedralComplex(self._maximal_cells, maximality_check=False)
@@ -1110,7 +1126,8 @@ class PolyhedralComplex(GenericCellComplex):
             faces = g.connected_component_containing_vertex(cell)
             facets = [f for f in self.maximal_cell_iterator()
                       if f in faces]
-        return PolyhedralComplex(facets, maximality_check=False)
+        return PolyhedralComplex(facets, maximality_check=False,
+                                 is_immutable=self._is_immutable)
 
     def connected_components(self):
         """
@@ -1163,7 +1180,8 @@ class PolyhedralComplex(GenericCellComplex):
             lists_of_facets = [
                 [f for f in self.maximal_cell_iterator() if f in faces]
                 for faces in lists_of_faces]
-        results = [PolyhedralComplex(facets, maximality_check=False)
+        results = [PolyhedralComplex(facets, maximality_check=False,
+                                     is_immutable=self._is_immutable)
                    for facets in lists_of_facets]
         return results
 
@@ -1196,7 +1214,8 @@ class PolyhedralComplex(GenericCellComplex):
             return copy(self)
         facets = [f for f in self.maximal_cell_iterator() if f.dimension() < n]
         facets.extend(self.n_cells(n))
-        return PolyhedralComplex(facets, maximality_check=False)
+        return PolyhedralComplex(facets, maximality_check=False,
+                                 is_immutable=self._is_immutable)
 
     def stratify(self, n):
         """
@@ -1231,7 +1250,8 @@ class PolyhedralComplex(GenericCellComplex):
             Polyhedral complex with 1 maximal cells
         """
         n_faces = self.n_maximal_cells(n)
-        return PolyhedralComplex(n_faces, maximality_check=False)
+        return PolyhedralComplex(n_faces, maximality_check=False,
+                                 is_immutable=self._is_immutable)
 
     def boundary_subcomplex(self):
         """
@@ -1288,9 +1308,13 @@ class PolyhedralComplex(GenericCellComplex):
             False
         """
         if self.is_full_dimensional():
-            return PolyhedralComplex(self.relative_boundary_cells())
+            return PolyhedralComplex(self.relative_boundary_cells(),
+                                     is_immutable=self._is_immutable)
         else:
-            return copy(self)
+            ans = copy(self)
+            if self._is_immutable:
+                ans.set_immutable()
+            return ans
 
     def relative_boundary_cells(self):
         r"""
@@ -1537,7 +1561,9 @@ class PolyhedralComplex(GenericCellComplex):
         """
         maximal_cells = [f.product(g) for f in self.maximal_cell_iterator()
                          for g in right.maximal_cell_iterator()]
-        return PolyhedralComplex(maximal_cells, maximality_check=False)
+        return PolyhedralComplex(maximal_cells, maximality_check=False,
+                                 is_immutable=(self._is_immutable and
+                                               right._is_immutable))
 
     def disjoint_union(self, right):
         """
@@ -1559,7 +1585,9 @@ class PolyhedralComplex(GenericCellComplex):
         maximal_cells = list(self.maximal_cell_iterator()) + list(
                         right.maximal_cell_iterator())
         return PolyhedralComplex(maximal_cells, maximality_check=True,
-                                 face_to_face_check=True)
+                                 face_to_face_check=True,
+                                 is_immutable=(self._is_immutable and
+                                               right._is_immutable))
 
     def join(self, right):
         """
@@ -1581,7 +1609,9 @@ class PolyhedralComplex(GenericCellComplex):
         """
         maximal_cells = [f.join(g) for f in self.maximal_cell_iterator()
                          for g in right.maximal_cell_iterator()]
-        return PolyhedralComplex(maximal_cells, maximality_check=False)
+        return PolyhedralComplex(maximal_cells, maximality_check=False,
+                                 is_immutable=(self._is_immutable and
+                                               right._is_immutable))
 
     ############################################################
     # abstract methods not implemented in generic cell complexe
@@ -1604,6 +1634,93 @@ class PolyhedralComplex(GenericCellComplex):
     ############################################################
     # end of chain complexes, homology
     ############################################################
+
+    # this function overrides the standard one for GenericCellComplex,
+    # this one counts the number of maximal cells, not all cells, to
+    # avoid calling and computing self.cells()
+    def _repr_(self):
+        """
+        Print representation.
+
+        .. WARNING::
+
+            This may give the wrong answer if the polyhedral complex
+            was constructed with ``maximality_check`` set to ``False``.
+
+        EXAMPLES::
+
+            sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
+            sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
+            sage: p3 = Polyhedron(vertices=[(1, 2), (0, 2)])
+            sage: PolyhedralComplex([p1, p2, p3])
+            Polyhedral complex with 2 maximal cells
+
+        Wrong answer due to ``maximality_check=False``::
+
+            sage: PolyhedralComplex([p1, p2, p3], maximality_check=False)
+            Polyhedral complex with 3 maximal cells
+        """
+        num = len(list(self.maximal_cell_iterator()))
+        return "Polyhedral complex with %s maximal cells" % num
+
+    def set_immutable(self):
+        """
+        Make this polyhedral complex immutable.
+
+        EXAMPLES::
+
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc.is_mutable()
+            True
+            sage: pc.set_immutable()
+            sage: pc.is_mutable()
+            False
+        """
+        self._is_immutable = True
+
+    def is_mutable(self):
+        """
+        Return ``True`` if mutable.
+
+        EXAMPLES::
+
+            sage: pc1 = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc1.is_mutable()
+            True
+            sage: pc2 = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])],
+            ....:                        is_mutable=False)
+            sage: pc2.is_mutable()
+            False
+            sage: pc1 == pc2
+            True
+            sage: pc3 = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])],
+            ....:                        is_immutable=True)
+            sage: pc3.is_mutable()
+            False
+            sage: pc2 == pc3
+            True
+        """
+        return not self._is_immutable
+
+    def is_immutable(self):
+        """
+        Return ``True`` if immutable.
+
+        EXAMPLES::
+
+            sage: pc1 = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc1.is_immutable()
+            False
+            sage: pc2 = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])],
+            ....:                        is_mutable=False)
+            sage: pc2.is_immutable()
+            True
+            sage: pc3 = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])],
+            ....:                        is_immutable=True)
+            sage: pc3.is_immutable()
+            True
+        """
+        return self._is_immutable
 
 # TODO: mutable complex: add and update stuff incrementally
 # TODO: replace one cell by its triangulation and adapt other cells

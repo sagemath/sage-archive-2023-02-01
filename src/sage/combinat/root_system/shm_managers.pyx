@@ -11,7 +11,7 @@ Shared memory managers for F-symbol attributes
 cimport cython
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
-from sage.combinat.root_system.poly_tup_engine cimport tup_fixes_sq
+from sage.combinat.root_system.poly_tup_engine cimport poly_to_tup, tup_fixes_sq
 from sage.rings.polynomial.polydict cimport ETuple
 
 from multiprocessing import shared_memory
@@ -302,7 +302,7 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self, factory, name=None, max_terms=20):
+    def __init__(self,n_slots,field,idx_to_sextuple,init_data={},name=None,max_terms=20):
         """
         Return a shared memory backed dict-like structure to manage the
         ``_fvars`` attribute of an F-matrix factory object.
@@ -359,16 +359,17 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
-            sage: fvars = FvarsHandler(f)
+            sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: fvars2 = FvarsHandler(f, name=fvars.shm.name)
+            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: fvars[f2, f1, f2, f2, f0, f0] = poly_to_tup(fx5**5)
             sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
             fx5^5
             sage: fvars.shm.unlink()
         """
-        cdef int d = factory._field.degree()
+        self.field = field
+        cdef int d = self.field.degree()
         self.obj_cache = dict()
         self.fvars_t = np.dtype([
             ('modified','bool',(1,)),
@@ -377,15 +378,19 @@ cdef class FvarsHandler:
             ('coeff_nums','i4',(max_terms,d)),
             ('coeff_denom','u4',(max_terms,))
         ])
-        self.sext_to_idx = {s: i for i, s in factory._idx_to_sextuple.items()}
-        self.ngens = factory._poly_ring.ngens()
-        self.field = factory._field
+        self.sext_to_idx = {s: i for i, s in idx_to_sextuple.items()}
+        self.ngens = n_slots
         if name is None:
             self.shm = shared_memory.SharedMemory(create=True,size=self.ngens*self.fvars_t.itemsize)
             self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
         else:
             self.shm = shared_memory.SharedMemory(name=name)
             self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
+        #Populate with initialziation data
+        for sextuple, fvar in init_data.items():
+            if not isinstance(fvar, tuple):
+                fvar = poly_to_tup(fvar)
+            self[sextuple] = fvar
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
@@ -402,7 +407,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
-            sage: fvars = FvarsHandler(f)
+            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple)
             sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
             sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
             sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
@@ -460,7 +465,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("B7", 1), inject_variables=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
-            sage: fvars = FvarsHandler(f)
+            sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple)
             sage: fvars[(f1, f2, f1, f2, f2, f2)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10)
             sage: fvars[f2, f2, f2, f2, f0, f0] = poly_to_tup(f._poly_ring.zero())
             sage: fvars[f2, f1, f2, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
@@ -514,6 +519,26 @@ cdef class FvarsHandler:
         self.obj_cache[idx] = ret
         return ret
 
+    def __reduce__(self):
+        """
+        Provide pickling / unpickling support for ``self.``
+
+        TESTS::
+
+            sage: f = FMatrix(FusionRing("F4",1))
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: n = f._poly_ring.ngens()
+            sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
+            sage: for s, fvar in loads(dumps(fvars)).items():
+            ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
+            ....:
+            sage: fvars.shm.unlink()
+        """
+        n = self.fvars.size
+        idx_map = {i: s for s, i in self.sext_to_idx.items()}
+        d = {s: fvar for s, fvar in self.items()}
+        return make_FvarsHandler, (n,self.field,idx_map,d)
+
     def items(self):
         """
         Iterates through key-value pairs in the data structure as if it
@@ -537,3 +562,20 @@ cdef class FvarsHandler:
         """
         for sextuple in self.sext_to_idx:
             yield sextuple, self[sextuple]
+
+def make_FvarsHandler(n,field,idx_map,init_data):
+    """
+    Provide pickling / unpickling support for :class:`FvarsHandler`.
+
+    TESTS::
+
+        sage: f = FMatrix(FusionRing("G2",1))
+        sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+        sage: n = f._poly_ring.ngens()
+        sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
+        sage: for s, fvar in loads(dumps(fvars)).items():
+        ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
+        ....:
+        sage: fvars.shm.unlink()
+    """
+    return FvarsHandler(n,field,idx_map,init_data=init_data)

@@ -1293,12 +1293,12 @@ class FMatrix():
         n = self._poly_ring.ngens()
         self._ks = KSHandler(n,self._field,use_mp=True,init_data=self._ks)
         ks_names = self._ks.shm.name
-        self._shared_fvars = FvarsHandler(self)
-        for sextuple, fvar in self._fvars.items():
-            if self._chkpt_status < 0:
-                self._shared_fvars[sextuple] = poly_to_tup(fvar)
-            else:
-                self._shared_fvars[sextuple] = fvar
+        self._shared_fvars = FvarsHandler(n,self._field,self._idx_to_sextuple,init_data=self._fvars)
+        # for sextuple, fvar in self._fvars.items():
+        #     if self._chkpt_status < 0:
+        #         self._shared_fvars[sextuple] = poly_to_tup(fvar)
+        #     else:
+        #         self._shared_fvars[sextuple] = fvar
         fvar_names = self._shared_fvars.shm.name
         #Initialize worker pool processes
         args = (id(self), s_name, vd_name, ks_names, fvar_names)
@@ -1310,8 +1310,8 @@ class FMatrix():
             fmats_obj = cast(fmats_id, py_object).value
             fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
             fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
-            fmats_obj._fvars = FvarsHandler(fmats_obj,name=fvar_names)
             n = fmats_obj._poly_ring.ngens()
+            fmats_obj._fvars = FvarsHandler(n,fmats_obj._field,fmats_obj._idx_to_sextuple,name=fvar_names)
             fmats_obj._ks = KSHandler(n,fmats_obj._field,name=ks_names)
 
         pool = Pool(processes=n,initializer=init,initargs=args)

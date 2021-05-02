@@ -306,15 +306,13 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         """
         resu = self.element_class(self)
-        # Non-trivial open covers of the domain:
-        open_covers = self._domain.open_covers()[1:]  # the open cover 0
-                                                      # is trivial
-        if open_covers != []:
-            oc = open_covers[0]  # the first non-trivial open cover is selected
+        for oc in self._domain.open_covers(trivial=False):
+            # the first non-trivial open cover is selected
             for dom in oc:
                 vmodule_dom = dom.vector_field_module(
                                          dest_map=self._dest_map.restrict(dom))
                 resu.set_restriction(vmodule_dom._an_element_())
+            return resu
         return resu
 
     def _coerce_map_from_(self, other):
@@ -1436,7 +1434,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
                     # basis is added to the restrictions of bases on a larger
                     # domain
-                    for dom in domain._supersets:
+                    for dom in domain.open_supersets():
                         if dom is not domain:
                             for supbase in dom._frames:
                                 if (supbase.domain() is dom and

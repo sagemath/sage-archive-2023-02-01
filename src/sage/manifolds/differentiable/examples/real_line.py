@@ -229,11 +229,11 @@ class OpenInterval(DifferentiableManifold):
 
     We have::
 
-        sage: I.list_of_subsets()
+        sage: list(I.subset_family())
         [Real interval (0, 1), Real interval (0, pi), Real interval (1/2, 1)]
-        sage: J.list_of_subsets()
+        sage: list(J.subset_family())
         [Real interval (0, 1), Real interval (1/2, 1)]
-        sage: K.list_of_subsets()
+        sage: list(K.subset_family())
         [Real interval (1/2, 1)]
 
     As any open subset of a manifold, open subintervals are created in a
@@ -684,7 +684,7 @@ class OpenInterval(DifferentiableManifold):
             Real interval (0, pi)
             sage: J.is_subset(I)
             True
-            sage: I.list_of_subsets()
+            sage: list(I.subset_family())
             [Real interval (-4, 4), Real interval (0, pi)]
 
         ``J`` is considered as an open submanifold of ``I``::
@@ -863,7 +863,7 @@ class RealLine(OpenInterval):
         Real interval (0, 1)
         sage: I.manifold()
         Real number line R
-        sage: R.list_of_subsets()
+        sage: list(R.subset_family())
         [Real interval (0, 1), Real number line R]
 
     """

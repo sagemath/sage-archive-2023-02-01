@@ -66,6 +66,7 @@ Families of subsets after the above operations::
 #*****************************************************************************
 
 from collections import defaultdict
+import itertools
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.superseded import deprecation

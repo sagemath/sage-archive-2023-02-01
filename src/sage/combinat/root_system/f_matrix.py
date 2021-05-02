@@ -376,8 +376,9 @@ class FMatrix():
             True
             sage: len(f.ideal_basis) == 0
             True
-            sage: len(f._ks) == 0
-            True
+            sage: for k, v in f._ks.items():
+            ....:     k
+            ....:
             sage: len(f._nnz.nonzero_positions()) == 1
             True
             sage: all(len(x.q_dimension.cache) == 0 for x in f.FR().basis())
@@ -1323,10 +1324,10 @@ class FMatrix():
 
         .. WARNING::
 
-        Failure to call this method after using :meth:`get_worker_pool`
-        to create a process pool may result in a memory
-        leak, since shared memory resources outlive the process that created
-        them.
+            Failure to call this method after using :meth:`get_worker_pool`
+            to create a process pool may result in a memory
+            leak, since shared memory resources outlive the process that created
+            them.
 
         EXAMPLES::
 

@@ -11,14 +11,76 @@ Shared memory managers for F-symbol attributes
 cimport cython
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
-from sage.combinat.root_system.poly_tup_engine cimport tup_fixes_sq, variables
+from sage.combinat.root_system.poly_tup_engine cimport tup_fixes_sq
 from sage.rings.polynomial.polydict cimport ETuple
-# from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
 
 from multiprocessing import shared_memory
 import numpy as np
 
 cdef class KSHandler:
+    """
+    Return a shared memory backed dict-like structure to manage the
+    ``_ks`` attribute of an F-matrix factory object.
+
+    This structure implements a representation of the known squares dictionary
+    using a structured NumPy array backed by a contiguous shared memory
+    object.
+
+    The structure mimics a dictionary of ``(idx, known_sq)`` pairs. Each
+    integer index corresponds to a variable and each ``known_sq`` is an
+    element of the F-matrix factory's base cyclotomic field.
+
+    Each cyclotomic coefficient is stored as a list of numerators and a
+    list of denominators representing the rational coefficients. The
+    structured array also maintains ``known`` attribute that indicates
+    whether the structure contains an entry corresponding to the given index.
+
+    The parent process should construct this object without a
+    ``name`` attribute. Children processes use the ``name`` attribute,
+    accessed via ``self.shm.name`` to attach to the shared memory block.
+
+    INPUT:
+
+    - ``n_slots`` -- The total number of F-symbols.
+    - ``field`` -- F-matrix factory's base cyclotomic field.
+    - ``use_mp`` -- a boolean indicating whether to construct a shared
+      memory block to back ``self``.
+    - ``name`` -- the name of a shared memory object
+      (used by child processes for attaching).
+    - ``init_data`` -- a dictionary or :class:`KSHandler` object containing
+      known squares for initialization, e.g. from a solver checkpoint.
+
+    .. NOTE::
+
+        To properly dispose of shared memory resources,
+        ``self.shm.unlink()`` must be called before exiting.
+
+    .. WARNING::
+
+        This structure does *not* cannot modify an entry that
+        has already been set.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.shm_managers import KSHandler
+        sage: #Create shared data structure
+        sage: f = FMatrix(FusionRing("A1",2), inject_variables=True)
+        creating variables fx1..fx14
+        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+        sage: n = f._poly_ring.ngens()
+        sage: ks = KSHandler(n,f._field,use_mp=True)
+        sage: #In the same shell or in a different shell, attach to fvars
+        sage: ks2 = KSHandler(n,f._field,name=ks.shm.name)
+        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
+        sage: ks.update([poly_to_tup(p) for p in eqns])
+        sage: for idx, sq in ks.items():
+        ....:     print("Index: {}, square: {}".format(idx, sq))
+        ....:
+        Index: 1, square: 4
+        Index: 3, square: -zeta32^4 + 1/19*zeta32^2
+        sage: ks.shm.unlink()
+    """
     def __init__(self, n_slots, field, use_mp=False, init_data={}, name=None):
         cdef int n, d
         self.field = field
@@ -48,13 +110,18 @@ cdef class KSHandler:
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
-    cdef get(self, int idx):
+    cdef NumberFieldElement_absolute get(self, int idx):
+        """
+        Retrieve the known square corresponding to the given index,
+        if it exists.
+        """
         if not self.ks_dat['known'][idx]:
             raise KeyError('Index {} does not correspond to a known square'.format(idx))
         if self.obj_cache[idx] is not None:
             return self.obj_cache[idx]
         cdef unsigned int i, d
         cdef list rat = list()
+        cdef NumberFieldElement_absolute cyc_coeff
         d = self.field.degree()
         for i in range(d):
             rat.append(self.ks_dat['nums'][idx,i] / self.ks_dat['denoms'][idx,i])
@@ -72,8 +139,9 @@ cdef class KSHandler:
 
             sage: f = FMatrix(FusionRing("B5",1))
             sage: f._reset_solver_state()
-            sage: len(f._ks) == 0
-            True
+            sage: for idx, sq in f._ks.items():
+            ....:     k
+            ....:
             sage: f.get_orthogonality_constraints()
             [fx0^2 - 1,
              fx1^2 - 1,
@@ -91,8 +159,23 @@ cdef class KSHandler:
              fx11^2 + fx13^2 - 1]
              sage: f.get_orthogonality_constraints(output=False)
              sage: f._ks.update(f.ideal_basis)
-             sage: len(f._ks) == 10
-             True
+             sage: for idx, sq in f._ks.items():
+             ....:     print(idx, "-->", sq)
+             ....:
+             0 --> 1
+             1 --> 1
+             2 --> 1
+             3 --> 1
+             4 --> 1
+             5 --> 1
+             6 --> 1
+             7 --> 1
+             8 --> 1
+             9 --> 1
+
+        .. WARNING::
+
+            This method assumes every polynomial in ``eqns`` is *monic*.
         """
         cdef unsigned int i, idx
         cdef ETuple lm
@@ -110,6 +193,12 @@ cdef class KSHandler:
     @cython.nonecheck(False)
     @cython.wraparound(False)
     cdef setitem(self, int idx, rhs):
+        """
+        Create an entry corresponding to the given index.
+
+        The ``rhs`` parameter may be a cyclotomic coefficient or its
+        list/tuple representation.
+        """
         cdef unsigned int i
         cdef long long num
         cdef unsigned long long denom
@@ -123,18 +212,29 @@ cdef class KSHandler:
             self.ks_dat['denoms'][idx,i] = denom
 
     cdef bint contains(self, int idx):
+        """
+        Determine whether ``self`` contains entry corresponding to given
+        ``idx``.
+        """
         return self.ks_dat[idx]['known']
-
-    def __len__(self):
-        """
-        Compute the number of known squares.
-
-        """
-        return self.ks_dat['known'].sum()
 
     def __eq__(self, KSHandler other):
         """
         Test for equality.
+
+        TESTS::
+
+            sage: f = FMatrix(FusionRing("C2",2))
+            sage: f._reset_solver_state()
+            sage: f.get_orthogonality_constraints(output=False)
+            sage: from sage.combinat.root_system.shm_managers import KSHandler
+            sage: n = f._poly_ring.ngens()
+            sage: ks = KSHandler(n,f._field,use_mp=True,init_data=f._ks)
+            sage: #In the same shell or in a different one, attach to shared memory handler
+            sage: k2 = KSHandler(n,f._field,name=ks.shm.name)
+            sage: ks == k2
+            True
+            sage: ks.shm.unlink()
         """
         ret = True
         for idx, sq in self.items():
@@ -159,6 +259,27 @@ cdef class KSHandler:
         return make_KSHandler, (self.ks_dat.size,self.field,d)
 
     def items(self):
+        """
+        Iterate through existing entries using Python dict-style syntax.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("A3",1))
+            sage: f._reset_solver_state()
+            sage: f.get_orthogonality_constraints(output=False)
+            sage: f._ks.update(f.ideal_basis)
+            sage: for idx, sq in f._ks.items():
+            ....:     print("Index: {}, sq: {}".format(idx,sq))
+            ....:
+            Index: 0, sq: 1
+            Index: 1, sq: 1
+            Index: 2, sq: 1
+            Index: 3, sq: 1
+            Index: 4, sq: 1
+            ...
+            Index: 25, sq: 1
+            Index: 26, sq: 1
+        """
         cdef unsigned int i
         for i in range(self.ks_dat.size):
             if self.ks_dat['known'][i]:
@@ -172,10 +293,10 @@ def make_KSHandler(n_slots,field,init_data):
 
         sage: f = FMatrix(FusionRing("B4",1))
         sage: f._reset_solver_state()
-        sage: loads(dumps(f._ks)) == f._ks
+        sage: loads(dumps(f._ks)) == f._ks                 #indirect doctest
         True
         sage: f.find_orthogonal_solution(verbose=False)    #long time
-        sage: loads(dumps(f._ks)) == f._ks
+        sage: loads(dumps(f._ks)) == f._ks                 #indirect doctest
         True
     """
     return KSHandler(n_slots,field,init_data=init_data)
@@ -298,6 +419,7 @@ cdef class FvarsHandler:
         cdef unsigned long denom
         cdef long c
         cdef ETuple exp
+        cdef NumberFieldElement_absolute coeff
         idx = self.sext_to_idx[sextuple]
         #Clear entry before inserting
         self.fvars[idx] = np.zeros((1,), dtype=self.fvars_t)

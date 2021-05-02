@@ -376,9 +376,7 @@ class OpenInterval(DifferentiableManifold):
             if upper > ambient_interval.upper_bound():
                 raise ValueError("the upper bound is larger than that of "
                                  + "the containing interval")
-            self._supersets.update(ambient_interval._supersets)
-            for sd in ambient_interval._supersets:
-                sd._subsets.add(self)
+            self.declare_subset(ambient_interval)
             ambient_interval._top_subsets.add(self)
             t = ambient_interval.canonical_coordinate()
         if lower != minus_infinity:

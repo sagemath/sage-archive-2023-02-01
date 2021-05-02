@@ -394,9 +394,11 @@ class FMatrix():
         self._chkpt_status = -1
         self.clear_vars()
         self.clear_equations()
-        self._var_degs = [0]*self._poly_ring.ngens()
+        n = self._poly_ring.ngens()
+        self._var_degs = [0]*n
         self._kp = dict()
-        self._ks = dict()
+        # self._ks = dict()
+        self._ks = KSHandler(n,self._field)
         self._nnz = self._get_known_nonz()
 
         #Clear relevant caches
@@ -1332,12 +1334,13 @@ class FMatrix():
         s_name = self._solved.shm.name
         self._var_degs = shared_memory.ShareableList(self._var_degs)
         vd_name = self._var_degs.shm.name
-        ks = KSHandler(self)
-        for idx, val in self._ks.items():
-            if not isinstance(val, tuple):
-                val = val._coefficients()
-            ks[idx] = val
-        self._ks = ks
+        n = self._poly_ring.ngens()
+        self._ks = KSHandler(n,self._field,use_mp=True,init_data=self._ks)
+        # for idx, val in self._ks.items():
+        #     if not isinstance(val, tuple):
+        #         val = val._coefficients()
+        #     ks[idx] = val
+        # self._ks = ks
         ks_names = self._ks.shm.name
         self._shared_fvars = FvarsHandler(self)
         for sextuple, fvar in self._fvars.items():
@@ -1356,8 +1359,9 @@ class FMatrix():
             fmats_obj = cast(fmats_id, py_object).value
             fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
             fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
-            fmats_obj._ks = KSHandler(fmats_obj,name=ks_names)
             fmats_obj._fvars = FvarsHandler(fmats_obj,name=fvar_names)
+            n = fmats_obj._poly_ring.ngens()
+            fmats_obj._ks = KSHandler(n,fmats_obj._field,name=ks_names)
 
         pool = Pool(processes=n,initializer=init,initargs=args)
         return pool

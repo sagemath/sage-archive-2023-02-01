@@ -25,10 +25,10 @@ cdef class KSHandler():
     cdef NumberField field
     cdef public shm
 
-    def __init__(self, factory, name=None):
+    def __init__(self, n_slots, field, use_mp=False, init_data={}, name=None):
         cdef int n, d
-        self.field = factory._field
-        n = factory._poly_ring.ngens()
+        self.field = field
+        n = n_slots
         d = self.field.degree()
         ks_t = np.dtype([
             ('known', 'bool', (1,)),
@@ -37,14 +37,20 @@ cdef class KSHandler():
         ])
         self.obj_cache = [None]*n
         if name is None:
-            self.shm = shared_memory.SharedMemory(create=True,size=n*ks_t.itemsize)
-            self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
+            if use_mp:
+                self.shm = shared_memory.SharedMemory(create=True,size=n*ks_t.itemsize)
+                self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
+            else:
+                self.ks_dat = np.ndarray((n,),dtype=ks_t)
             self.ks_dat['known'] = np.zeros((n,1),dtype='bool')
             self.ks_dat['nums'] = np.zeros((n,d),dtype='i8')
             self.ks_dat['denoms'] = np.ones((n,d),dtype='u8')
         else:
             self.shm = shared_memory.SharedMemory(name=name)
             self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
+        #Populate initializer data
+        for idx, sq in init_data.items():
+            self[idx] = sq
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
@@ -69,6 +75,8 @@ cdef class KSHandler():
         cdef unsigned int i
         cdef long long num
         cdef unsigned long long denom
+        if not isinstance(rhs, list):
+            rhs = rhs._coefficients()
         for i in range(len(rhs)):
             num = <long long>(rhs[i].numerator())
             denom = <unsigned long long>(rhs[i].denominator())
@@ -89,13 +97,50 @@ cdef class KSHandler():
         """
         Test for equality.
         """
-        return np.all(self.ks_dat == other.ks_dat)
+        ret = True
+        for idx, sq in self.items():
+            ret &= other[idx] == sq
+        # return np.all(self.ks_dat == other.ks_dat)
+        return ret
+
+    def __reduce__(self):
+        """
+        Provide pickling / unpickling support for ``self.``
+
+        TESTS::
+
+            sage: f = FMatrix(FusionRing("A3",1))
+            sage: f._reset_solver_state()
+            sage: loads(dumps(f._ks)) == f._ks
+            True
+            sage: f.find_orthogonal_solution(verbose=False)    #long time
+            sage: loads(dumps(f._ks)) == f._ks
+            True
+        """
+        d = {i: sq for i, sq in self.items()}
+        return make_KSHandler, (self.ks_dat.size,self.field,d)
 
     def items(self):
         cdef unsigned int i
         for i in range(self.ks_dat.size):
             if self.ks_dat['known'][i]:
                 yield i, self[i]
+
+def make_KSHandler(n_slots,field,init_data):
+    """
+    Provide pickling / unpickling support for ``self.``
+
+    TESTS::
+
+        sage: f = FMatrix(FusionRing("B4",1))
+        sage: f._reset_solver_state()
+        sage: loads(dumps(f._ks)) == f._ks
+        True
+        sage: f.find_orthogonal_solution(verbose=False)    #long time
+        sage: loads(dumps(f._ks)) == f._ks
+        True
+    """
+    return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler():
     cdef dict sext_to_idx, obj_cache

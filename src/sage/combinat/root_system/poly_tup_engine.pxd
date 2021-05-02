@@ -2,6 +2,8 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement_abs
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
 
+# from sage.combinat.root_system.shm_managers cimport KSHandler
+
 cpdef tuple poly_to_tup(MPolynomial_libsingular poly)
 cpdef MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent)
 cpdef tuple resize(tuple eq_tup, dict idx_map, int nvars)

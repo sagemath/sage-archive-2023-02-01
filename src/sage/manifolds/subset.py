@@ -884,18 +884,20 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                         D.add_edge((u, v))
 
         if quotient:
-            subset_to_vertex = {}
-            def vertex(subset):
-                try:
-                    return subset_to_vertex[subset]
-                except KeyError:
-                    new_equivalence_class = ManifoldSubsetFiniteFamily(subset.equal_subsets())
-                    for S in new_equivalence_class:
-                        subset_to_vertex[S] = new_equivalence_class
-                    return new_equivalence_class
+            def vertex_family(subset):
+                return ManifoldSubsetFiniteFamily(subset.equal_subsets())
         else:
-            def vertex(subset):
+            def vertex_family(subset):
                 return ManifoldSubsetFiniteFamily([subset])
+        subset_to_vertex = {}
+        def vertex(subset):
+            try:
+                return subset_to_vertex[subset]
+            except KeyError:
+                family = vertex_family(subset)
+                for S in family:
+                    subset_to_vertex[S] = family
+                return family
 
         if lower_bound is not None:
             if not lower_bound.is_subset(self):
@@ -919,6 +921,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             subsets_without_S = [subset for subset in subsets
                                  if subset is not S]
             to_visit.extend(subsets_without_S)
+
+        # Make sure to include isolated vertices in the graph
+        D.add_vertices(subset_to_vertex.values())
 
         if open_covers:
 

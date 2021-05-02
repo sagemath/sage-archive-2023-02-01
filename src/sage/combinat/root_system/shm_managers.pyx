@@ -11,20 +11,14 @@ Shared memory managers for F-symbol attributes
 cimport cython
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
+from sage.combinat.root_system.poly_tup_engine cimport tup_fixes_sq, variables
 from sage.rings.polynomial.polydict cimport ETuple
-from sage.rings.number_field.number_field_base cimport NumberField
 # from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
 
 from multiprocessing import shared_memory
-from sage.misc.cachefunc import cached_method
 import numpy as np
 
-cdef class KSHandler():
-    cdef list obj_cache
-    cdef np.ndarray ks_dat
-    cdef NumberField field
-    cdef public shm
-
+cdef class KSHandler:
     def __init__(self, n_slots, field, use_mp=False, init_data={}, name=None):
         cdef int n, d
         self.field = field
@@ -50,11 +44,11 @@ cdef class KSHandler():
             self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
         #Populate initializer data
         for idx, sq in init_data.items():
-            self[idx] = sq
+            self.setitem(idx,sq)
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
-    def __getitem__(self, idx):
+    cdef get(self, int idx):
         if not self.ks_dat['known'][idx]:
             raise KeyError('Index {} does not correspond to a known square'.format(idx))
         if self.obj_cache[idx] is not None:
@@ -68,13 +62,58 @@ cdef class KSHandler():
         self.obj_cache[idx] = cyc_coeff
         return cyc_coeff
 
+    cpdef update(self, list eqns):
+        r"""
+        Update ```self``'s ``shared_memory``-backed dictionary of known
+        squares. Keys are variable indices and corresponding values
+        are the squares.
+
+        EXAMPLES::
+
+            sage: f = FMatrix(FusionRing("B5",1))
+            sage: f._reset_solver_state()
+            sage: len(f._ks) == 0
+            True
+            sage: f.get_orthogonality_constraints()
+            [fx0^2 - 1,
+             fx1^2 - 1,
+             fx2^2 - 1,
+             fx3^2 - 1,
+             fx4^2 - 1,
+             fx5^2 - 1,
+             fx6^2 - 1,
+             fx7^2 - 1,
+             fx8^2 - 1,
+             fx9^2 - 1,
+             fx10^2 + fx12^2 - 1,
+             fx10*fx11 + fx12*fx13,
+             fx10*fx11 + fx12*fx13,
+             fx11^2 + fx13^2 - 1]
+             sage: f.get_orthogonality_constraints(output=False)
+             sage: f._ks.update(f.ideal_basis)
+             sage: len(f._ks) == 10
+             True
+        """
+        cdef unsigned int i, idx
+        cdef ETuple lm
+        cdef list rhs
+        cdef tuple eq_tup
+        for i in range(len(eqns)):
+            eq_tup = eqns[i]
+            if tup_fixes_sq(eq_tup):
+                rhs = [-v for v in eq_tup[-1][1]]
+                #eq_tup is guaranteed univariate, so we extract variable idx from lm
+                lm = eq_tup[0][0]
+                idx = lm._data[0]
+                self.setitem(idx, rhs)
+
     @cython.nonecheck(False)
     @cython.wraparound(False)
-    def __setitem__(self, idx, rhs):
-        self.ks_dat['known'][idx] = True
+    cdef setitem(self, int idx, rhs):
         cdef unsigned int i
         cdef long long num
         cdef unsigned long long denom
+        self.ks_dat['known'][idx] = True
         if not isinstance(rhs, list):
             rhs = rhs._coefficients()
         for i in range(len(rhs)):
@@ -83,8 +122,8 @@ cdef class KSHandler():
             self.ks_dat['nums'][idx,i] = num
             self.ks_dat['denoms'][idx,i] = denom
 
-    def __contains__(self, idx):
-        return self.ks_dat['known'][idx]
+    cdef bint contains(self, int idx):
+        return self.ks_dat[idx]['known']
 
     def __len__(self):
         """
@@ -93,14 +132,13 @@ cdef class KSHandler():
         """
         return self.ks_dat['known'].sum()
 
-    def __eq__(self, other):
+    def __eq__(self, KSHandler other):
         """
         Test for equality.
         """
         ret = True
         for idx, sq in self.items():
-            ret &= other[idx] == sq
-        # return np.all(self.ks_dat == other.ks_dat)
+            ret &= other.get(idx) == sq
         return ret
 
     def __reduce__(self):
@@ -124,11 +162,11 @@ cdef class KSHandler():
         cdef unsigned int i
         for i in range(self.ks_dat.size):
             if self.ks_dat['known'][i]:
-                yield i, self[i]
+                yield i, self.get(i)
 
 def make_KSHandler(n_slots,field,init_data):
     """
-    Provide pickling / unpickling support for ``self.``
+    Provide pickling / unpickling support for :class:`KSHandler`.
 
     TESTS::
 
@@ -142,14 +180,7 @@ def make_KSHandler(n_slots,field,init_data):
     """
     return KSHandler(n_slots,field,init_data=init_data)
 
-cdef class FvarsHandler():
-    cdef dict sext_to_idx, obj_cache
-    cdef unsigned int ngens
-    cdef fvars_t
-    cdef NumberField field
-    cdef public np.ndarray fvars
-    cdef public shm
-
+cdef class FvarsHandler:
     def __init__(self, factory, name=None, max_terms=20):
         """
         Return a shared memory backed dict-like structure to manage the

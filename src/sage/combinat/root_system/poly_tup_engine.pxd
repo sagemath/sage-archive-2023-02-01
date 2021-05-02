@@ -1,8 +1,7 @@
+from sage.combinat.root_system.shm_managers cimport KSHandler
 from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
-
-# from sage.combinat.root_system.shm_managers cimport KSHandler
 
 cpdef tuple poly_to_tup(MPolynomial_libsingular poly)
 cpdef MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent)
@@ -11,8 +10,10 @@ cpdef list get_variables_degrees(list eqns)
 cpdef list variables(tuple eq_tup)
 cpdef constant_coeff(tuple eq_tup)
 cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map)
-cpdef bint tup_fixes_sq(tuple eq_tup)
-cdef dict subs_squares(dict eq_dict, known_sq)
+# cpdef bint tup_fixes_sq(tuple eq_tup)
+cdef bint tup_fixes_sq(tuple eq_tup)
+# cdef dict subs_squares(dict eq_dict, known_sq)
+cdef dict subs_squares(dict eq_dict, KSHandler known_sq)
 cpdef dict compute_known_powers(max_degs, dict val_dict, one)
 cdef dict subs(tuple poly_tup, dict known_powers, one)
 cpdef tup_to_univ_poly(tuple eq_tup, univ_poly_ring)

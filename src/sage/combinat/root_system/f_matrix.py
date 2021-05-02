@@ -35,7 +35,6 @@ from sage.combinat.root_system.poly_tup_engine import (
     poly_to_tup, _tup_to_poly, tup_to_univ_poly,
     _unflatten_coeffs,
     poly_tup_sortkey,
-    tup_fixes_sq,
     resize,
 )
 from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
@@ -397,7 +396,6 @@ class FMatrix():
         n = self._poly_ring.ngens()
         self._var_degs = [0]*n
         self._kp = dict()
-        # self._ks = dict()
         self._ks = KSHandler(n,self._field)
         self._nnz = self._get_known_nonz()
 
@@ -908,49 +906,6 @@ class FMatrix():
         """
         return {i: self._fvars[s] for i, s in self._idx_to_sextuple.items() if self._solved[i]}
 
-    def _get_known_sq(self,eqns=None):
-        r"""
-        Update ```self``'s dictionary of known squares. Keys are variable
-        indices and corresponding values are the squares.
-
-        EXAMPLES::
-
-            sage: f = FMatrix(FusionRing("B5",1))
-            sage: f._reset_solver_state()
-            sage: len(f._ks) == 0
-            True
-            sage: f.get_orthogonality_constraints()
-            [fx0^2 - 1,
-             fx1^2 - 1,
-             fx2^2 - 1,
-             fx3^2 - 1,
-             fx4^2 - 1,
-             fx5^2 - 1,
-             fx6^2 - 1,
-             fx7^2 - 1,
-             fx8^2 - 1,
-             fx9^2 - 1,
-             fx10^2 + fx12^2 - 1,
-             fx10*fx11 + fx12*fx13,
-             fx10*fx11 + fx12*fx13,
-             fx11^2 + fx13^2 - 1]
-             sage: f.get_orthogonality_constraints(output=False)
-             sage: f._get_known_sq()
-             sage: len(f._ks) == 10
-             True
-        """
-        if eqns is None:
-            eqns = self.ideal_basis
-        for eq_tup in eqns:
-            if tup_fixes_sq(eq_tup):
-                #Handle mp and single process cases
-                if isinstance(self._ks, dict):
-                    rhs = -self._field(list(eq_tup[-1][1]))
-                else:
-                    rhs = [-v for v in eq_tup[-1][1]]
-                self._ks[variables(eq_tup)[0]] = rhs
-
-
     def _get_known_nonz(self):
         r"""
         Construct an ETuple indicating positions of known nonzero variables.
@@ -1336,11 +1291,6 @@ class FMatrix():
         vd_name = self._var_degs.shm.name
         n = self._poly_ring.ngens()
         self._ks = KSHandler(n,self._field,use_mp=True,init_data=self._ks)
-        # for idx, val in self._ks.items():
-        #     if not isinstance(val, tuple):
-        #         val = val._coefficients()
-        #     ks[idx] = val
-        # self._ks = ks
         ks_names = self._ks.shm.name
         self._shared_fvars = FvarsHandler(self)
         for sextuple, fvar in self._fvars.items():
@@ -1607,7 +1557,7 @@ class FMatrix():
         """
         if eqns is None:
             eqns = self.ideal_basis
-        self._get_known_sq(eqns)
+        self._ks.update(eqns)
         degs = get_variables_degrees(eqns)
         if degs:
             for i, d in enumerate(degs):

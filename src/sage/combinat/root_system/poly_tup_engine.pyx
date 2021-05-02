@@ -319,34 +319,16 @@ cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
       new_tup.append((exp, coeff_map(coeff)))
     return tuple(new_tup)
 
-cpdef inline bint tup_fixes_sq(tuple eq_tup):
+cdef inline bint tup_fixes_sq(tuple eq_tup):
     r"""
     Determine if given equation fixes the square of a variable.
 
     An equation fixes the sq of a variable if it is of the form `a*x^2 + c`
     for *nonzero* constants `a`, `c`.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.poly_tup_engine import tup_fixes_sq
-        sage: R.<x,y,z> = PolynomialRing(QQ)
-        sage: sq_fixer = 3*z**2 - 1/8
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-        sage: tup_fixes_sq(poly_to_tup(sq_fixer))
-        True
-        sage: tup_fixes_sq(poly_to_tup(y**3 + 2))
-        False
-        sage: tup_fixes_sq(poly_to_tup(x*y + 2))
-        False
-        sage: tup_fixes_sq(poly_to_tup(x**2 + y**2 + 2))
-        False
     """
-    #Make this faster by combining two conditions into one... don't create temp variables
-    # return len(eq_tup) == 2 and len(variables(eq_tup)) == 1 and eq_tup[0][0].nonzero_values() == [2]
-    # return len(eq_tup) == 2 and eq_tup[0][0].emax(eq_tup[1][0]).nonzero_values() == [2]
     if len(eq_tup) != 2:
         return False
-    #In order to access _attributes, we must cdef ETuple
+    #To access _attributes, we must cdef ETuple
     cdef ETuple lm = eq_tup[0][0]
     if lm._nonzero != 1 or lm._data[1] != 2:
         return False
@@ -359,7 +341,8 @@ cpdef inline bint tup_fixes_sq(tuple eq_tup):
 ### Simplification ###
 ######################
 
-cdef dict subs_squares(dict eq_dict, known_sq):
+# cdef dict subs_squares(dict eq_dict, known_sq):
+cdef dict subs_squares(dict eq_dict, KSHandler known_sq):
     r"""
     Substitute for known squares into a given polynomial.
 
@@ -382,9 +365,11 @@ cdef dict subs_squares(dict eq_dict, known_sq):
     for exp, coeff in eq_dict.items():
         new_e = dict()
         for idx, power in exp.sparse_iter():
-            if idx in known_sq:
+            # if idx in known_sq:
+            if known_sq.contains(idx):
                 # coeff *= known_sq[idx] ** (power // 2)
-                coeff *= pow(known_sq[idx], power // 2)
+                # coeff *= pow(known_sq[idx], power // 2)
+                coeff *= pow(known_sq.get(idx), power // 2)
                 #New power is 1 if power is odd
                 if power & True:
                   new_e[idx] = 1

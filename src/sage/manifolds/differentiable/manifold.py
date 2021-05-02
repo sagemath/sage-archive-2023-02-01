@@ -411,6 +411,7 @@ AUTHORS:
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
 - Michael Jung (2020): tensor bundles and orientability
+- Matthias Koeppe (2021): refactoring of subsets code
 
 REFERENCES:
 
@@ -424,9 +425,13 @@ REFERENCES:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2019 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015      Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015-2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2017      Karim Van Aelst
+#       Copyright (C) 2019      Hans Fotsing Tetsing
+#       Copyright (C) 2019-2020 Michael Jung
+#       Copyright (C) 2021      Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

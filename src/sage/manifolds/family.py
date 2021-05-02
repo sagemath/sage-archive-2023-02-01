@@ -11,6 +11,10 @@ to their lexicographically ordered element names.
 The subclass :class:`ManifoldSubsetFiniteFamily` customizes the print
 representation further.
 
+AUTHORS:
+
+- Matthias Koeppe (2021): initial version
+
 """
 #*****************************************************************************
 #       Copyright (C) 2021 Matthias Koeppe <mkoeppe@math.ucdavis.edu>

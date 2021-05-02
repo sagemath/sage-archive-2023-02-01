@@ -11,6 +11,7 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
 - Travis Scrimshaw (2015): review tweaks; removal of facade parents
+- Matthias Koeppe (2021): Families and posets of subsets
 
 REFERENCES:
 
@@ -52,9 +53,10 @@ Families of subsets after the above operations::
 
 """
 #*****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015      Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015-2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2021      Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

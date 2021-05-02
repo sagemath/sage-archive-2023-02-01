@@ -310,8 +310,13 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2016      Andrew Mathas
+#       Copyright (C) 2018      Florentin Jaffredo
+#       Copyright (C) 2019      Hans Fotsing Tetsing
+#       Copyright (C) 2019-2020 Michael Jung
+#       Copyright (C) 2021      Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

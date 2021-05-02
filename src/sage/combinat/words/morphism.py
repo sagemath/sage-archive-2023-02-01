@@ -3123,9 +3123,8 @@ class WordMorphism(SageObject):
                 for x, y in new_morph.items() if x not in loops}
 
         # Remove letters of type e->abcd.
-        self._morph, new_morph = new_morph, self._morph
-        result = self.immortal_letters()
-        self._morph = new_morph
+        new_morph = WordMorphism(new_morph, domain=self.domain(), codomain=self.codomain())
+        result = new_morph.immortal_letters()
 
         return sorted(result, key=self.domain().alphabet().rank)
 

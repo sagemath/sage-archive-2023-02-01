@@ -1055,7 +1055,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             Set {M, U, V} of subsets of the 2-dimensional topological manifold M
 
         """
-        return ManifoldSubsetFiniteFamily(self.supersets())
+        return ManifoldSubsetFiniteFamily(self.equal_subsets())
 
     def supersets(self):
         r"""

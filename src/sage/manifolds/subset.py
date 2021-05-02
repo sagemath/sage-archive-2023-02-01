@@ -2115,9 +2115,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: inter_S_i = T.intersection(*S, name='inter_S_i'); inter_S_i
             Subset inter_S_i of the 2-dimensional topological manifold T
             sage: inter_S_i.superset_family()
-            Set {S0, S0_inter_S3, S0_inter_S3_inter_S1_inter_S4, S1_inter_S4,
-                 S2_inter_S5, S3, T, inter_S_i}
-             of subsets of the 2-dimensional topological manifold T
+            Set {S0, S0_inter_S3, S0_inter_S3_inter_S1_inter_S4, S1, S1_inter_S4,
+                 S2, S2_inter_S5, S3, S4, S5, T, inter_S_i} of
+             subsets of the 2-dimensional topological manifold T
 
         .. PLOT::
 
@@ -2236,10 +2236,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res = self.open_subset(name, latex_name=latex_name, supersets=subsets)
         else:
             res = self.subset(name, latex_name=latex_name)
-            res._supersets.update(subsets)
+            res.declare_subset(subsets)
             for S in subsets:
-                for sd in S.supersets():
-                    sd._subsets.add(res)
                 S._top_subsets.add(res)
         return res
 
@@ -2416,11 +2414,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             name = "_union_".join(S._name for S in (self, other))
         res_open = all(S.is_open() for S in (self, other))
         res = self.superset(name, latex_name, is_open=res_open)
-        res._subsets.update(other._subsets)
+        res.declare_superset(other)
         res._top_subsets.add(self)
         res._top_subsets.add(other)
-        for sd in other._subsets:
-            sd._supersets.add(res)
         for sp in self._supersets:
             if sp in other._supersets:
                 sp._subsets.add(res)

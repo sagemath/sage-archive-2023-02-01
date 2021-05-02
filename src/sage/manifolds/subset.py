@@ -856,21 +856,47 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              (Set {W} of open subsets of the 3-dimensional differentiable manifold M,
               Set {M} of open subsets of the 3-dimensional differentiable manifold M,
               None)]
-            sage: D.plot(layout='acyclic')                                  # not tested
+            sage: D.plot(layout='acyclic')
+            Graphics object consisting of 8 graphics primitives
             sage: def label(element):
             ....:     try:
             ....:         return element._name
             ....:     except AttributeError:
             ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
-            sage: D.relabel(label, inplace=False).plot(layout='acyclic')    # not tested
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')
+            Graphics object consisting of 8 graphics primitives
 
             sage: VW = V.union(W)
             sage: D = M.subset_digraph(); D
             Digraph on 5 vertices
-            sage: D.relabel(label, inplace=False).plot(layout='acyclic')    # not tested
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')
+            Graphics object consisting of 12 graphics primitives
+
+        If ``open_covers`` is ``True``, the digraph includes a special vertex for
+        each nontrivial open cover of a subset::
 
             sage: D = M.subset_digraph(open_covers=True)
-            sage: D.relabel(label, inplace=False).plot(layout='acyclic')    # not tested
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')
+            Graphics object consisting of 14 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(3, 'M')
+            U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            D = M.subset_digraph()
+            g1 = D.relabel(label, inplace=False).plot(layout='acyclic')
+            VW = V.union(W)
+            D = M.subset_digraph()
+            g2 = D.relabel(label, inplace=False).plot(layout='acyclic')
+            D = M.subset_digraph(open_covers=True)
+            g3 = D.relabel(label, inplace=False).plot(layout='acyclic')
+            sphinx_plot(graphics_array([g1, g2, g3]), figsize=(8, 3))
+
         """
         from sage.graphs.digraph import DiGraph
         D = DiGraph(multiedges=False, loops=loops)
@@ -977,6 +1003,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             sage: M = Manifold(3, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: P = M.subset_poset(); P
+            Finite poset containing 4 elements
+            sage: P.plot(element_labels={element: element._name for element in P})
+            Graphics object consisting of 8 graphics primitives
             sage: VW = V.union(W)
             sage: P = M.subset_poset(); P
             Finite poset containing 5 elements
@@ -990,7 +1020,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: sorted(P.lower_covers(ManifoldSubsetFiniteFamily([M])), key=str)
              [Set {U} of open subsets of the 3-dimensional differentiable manifold M,
               Set {V_union_W} of open subsets of the 3-dimensional differentiable manifold M]
-            sage: P.plot(element_labels={element: element._name for element in P})   # not tested
+            sage: P.plot(element_labels={element: element._name for element in P})
+            Graphics object consisting of 10 graphics primitives
 
         If ``open_covers`` is ``True``, the poset includes a special vertex for
         each nontrivial open cover of a subset::
@@ -1007,7 +1038,27 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             ....:         return element._name
             ....:     except AttributeError:
             ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
-            sage: P.plot(element_labels={element: label(element) for element in P})  # not tested
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 12 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(3, 'M')
+            U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            P = M.subset_poset()
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+            VW = V.union(W)
+            P = M.subset_poset()
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+            P = M.subset_poset(open_covers=True)
+            g3 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1, g2, g3]), figsize=(8, 3))
+
         """
         from sage.combinat.posets.posets import Poset
         return Poset(self.subset_digraph(open_covers=open_covers, points=points,
@@ -1161,7 +1212,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: VW = V.union(W)
             sage: P = V.superset_poset(); P
             Finite poset containing 3 elements
-            sage: P.plot(element_labels={element: element._name for element in P})   # not tested
+            sage: P.plot(element_labels={element: element._name for element in P})
+            Graphics object consisting of 6 graphics primitives
 
         """
         if upper_bound is None:

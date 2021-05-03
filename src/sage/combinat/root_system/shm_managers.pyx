@@ -395,61 +395,6 @@ cdef class FvarsHandler:
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
-    def __setitem__(self, sextuple, fvar):
-        """
-        Given a sextuple of labels and a tuple of ``(ETuple, cyc_coeff)`` pairs,
-        create or overwrite an entry in the shared data structure
-        corresponding to the given sextuple.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-            sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
-            creating variables fx1..fx27
-            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
-            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple)
-            sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
-            sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
-            sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
-            sage: s, t, r = (f3, f2, f1, f2, f1, f3), (f3, f2, f3, f0, f1, f1), (f3, f3, f3, f1, f2, f2)
-            sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10
-            True
-            sage: f._tup_to_fpoly(fvars[t]) == 0
-            True
-            sage: f._tup_to_fpoly(fvars[r]) == -1/19
-            True
-            sage: fvars.shm.unlink()
-        """
-        cdef unsigned int cum, i, j, k, idx
-        cdef unsigned long denom
-        cdef long c
-        cdef ETuple exp
-        cdef NumberFieldElement_absolute coeff
-        idx = self.sext_to_idx[sextuple]
-        #Clear entry before inserting
-        self.fvars[idx] = np.zeros((1,), dtype=self.fvars_t)
-        cum = 0
-        i = 0
-        for exp, coeff in fvar:
-            #Handle constant coefficient
-            if exp._nonzero > 0:
-                self.fvars['ticks'][idx,i] = exp._nonzero
-            else:
-                self.fvars['ticks'][idx,i] = -1
-            for j in range(2*exp._nonzero):
-                self.fvars['exp_data'][idx,cum] = exp._data[j]
-                cum += 1
-            denom = coeff.denominator()
-            self.fvars['coeff_denom'][idx,i] = denom
-            for k, r in enumerate(coeff._coefficients()):
-                c = r * denom
-                self.fvars['coeff_nums'][idx,i,k] = c
-            i += 1
-        self.fvars['modified'][idx] = True
-
-    @cython.nonecheck(False)
-    @cython.wraparound(False)
     def __getitem__(self, sextuple):
         """
         Retrieve a record from the shared memory data structure by
@@ -519,6 +464,61 @@ cdef class FvarsHandler:
         ret = tuple(poly_tup)
         self.obj_cache[idx] = ret
         return ret
+
+    @cython.nonecheck(False)
+    @cython.wraparound(False)
+    def __setitem__(self, sextuple, fvar):
+        """
+        Given a sextuple of labels and a tuple of ``(ETuple, cyc_coeff)`` pairs,
+        create or overwrite an entry in the shared data structure
+        corresponding to the given sextuple.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
+            creating variables fx1..fx27
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
+            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple)
+            sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
+            sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
+            sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
+            sage: s, t, r = (f3, f2, f1, f2, f1, f3), (f3, f2, f3, f0, f1, f1), (f3, f3, f3, f1, f2, f2)
+            sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10
+            True
+            sage: f._tup_to_fpoly(fvars[t]) == 0
+            True
+            sage: f._tup_to_fpoly(fvars[r]) == -1/19
+            True
+            sage: fvars.shm.unlink()
+        """
+        cdef unsigned int cum, i, j, k, idx
+        cdef unsigned long denom
+        cdef long c
+        cdef ETuple exp
+        cdef NumberFieldElement_absolute coeff
+        idx = self.sext_to_idx[sextuple]
+        #Clear entry before inserting
+        self.fvars[idx] = np.zeros((1,), dtype=self.fvars_t)
+        cum = 0
+        i = 0
+        for exp, coeff in fvar:
+            #Handle constant coefficient
+            if exp._nonzero > 0:
+                self.fvars['ticks'][idx,i] = exp._nonzero
+            else:
+                self.fvars['ticks'][idx,i] = -1
+            for j in range(2*exp._nonzero):
+                self.fvars['exp_data'][idx,cum] = exp._data[j]
+                cum += 1
+            denom = coeff.denominator()
+            self.fvars['coeff_denom'][idx,i] = denom
+            for k, r in enumerate(coeff._coefficients()):
+                c = r * denom
+                self.fvars['coeff_nums'][idx,i,k] = c
+            i += 1
+        self.fvars['modified'][idx] = True
 
     def __reduce__(self):
         """

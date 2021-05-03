@@ -1341,6 +1341,7 @@ class FMatrix():
             self._ks.shm.unlink()
             self._shared_fvars.shm.unlink()
             del self.__dict__['_shared_fvars']
+            self.pool = None
 
     def _map_triv_reduce(self,mapper,input_iter,worker_pool=None,chunksize=None,mp_thresh=None):
         r"""

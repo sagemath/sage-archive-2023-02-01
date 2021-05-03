@@ -449,8 +449,13 @@ class RecognizableSeries(Element):
             ....:         vector([1]), vector([1]))
             sage: repr(S)  # indirect doctest
             '[] + ...'
+
+            sage: S = Rec((Matrix([[0, 1], [0, 0]]), Matrix([[0, 0], [0, 0]])),
+            ....:         vector([0, 1]), vector([1, 0]))
+            sage: repr(S)  # indirect doctest
+            '0 + ...'
         """
-        if not self:
+        if self.is_trivial_zero():
             return '0'
 
         from itertools import islice
@@ -487,6 +492,8 @@ class RecognizableSeries(Element):
         s = ' + '.join(summand(w, c)
                        for w, c in coefficients)
         s = s.replace('+ -', '- ')
+        if not s:
+            s = '0'
         return s + ' + ...'
 
     def _latex_(self):

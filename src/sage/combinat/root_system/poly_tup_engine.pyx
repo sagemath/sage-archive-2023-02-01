@@ -426,7 +426,7 @@ cdef tuple to_monic(dict eq_dict, one):
         ret.append((ord_monoms[n-2-i], inv_lc * eq_dict[ord_monoms[n-2-i]]))
     return tuple(ret)
 
-cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, known_sq, NumberFieldElement_absolute one):
+cdef tuple reduce_poly_dict(dict eq_dict, ETuple nonz, KSHandler known_sq, NumberFieldElement_absolute one):
     """
     Return a tuple describing a monic polynomial with no known nonzero
     gcf and no known squares.

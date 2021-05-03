@@ -352,7 +352,7 @@ cdef list update_reduce(factory, list eqns):
     #Pre-compute common parameters for speed
     _field = factory._field
     one = _field.one()
-    _ks = factory._ks
+    cdef KSHandler _ks = factory._ks
     #Update reduction params
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs,factory._get_known_vals(),factory._field.one())

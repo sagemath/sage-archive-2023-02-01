@@ -442,6 +442,13 @@ class RecognizableSeries(Element):
             ....:         vector([0, 1]), vector([1, 0])).transposed()
             sage: repr(S)  # indirect doctest
             '[1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...'
+
+        TESTS::
+
+            sage: S = Rec((Matrix([[0]]), Matrix([[0]])),
+            ....:         vector([1]), vector([1]))
+            sage: repr(S)  # indirect doctest
+            '[] + ...'
         """
         if not self:
             return '0'
@@ -463,8 +470,22 @@ class RecognizableSeries(Element):
                 return '[{w}]'.format(w=fs(w))
             return '{c}{times}[{w}]'.format(c=fr(c), times=times, w=fs(w))
 
+        def all_coefficients():
+            number_of_nonzeros = 0
+            for w in self.parent().indices():
+                c = self[w]
+                if c != 0:
+                    number_of_nonzeros = 0
+                    yield (w, self[w])
+                else:
+                    number_of_nonzeros += 1
+                if number_of_nonzeros >= 100:
+                    return
+
+        coefficients = islice(all_coefficients(), 10)
+
         s = ' + '.join(summand(w, c)
-                       for w, c in islice(self, 10))
+                       for w, c in coefficients)
         s = s.replace('+ -', '- ')
         return s + ' + ...'
 
@@ -598,6 +619,17 @@ class RecognizableSeries(Element):
             ....:         left=vector([0, 1]), right=vector([1, 0]))
             sage: from itertools import islice
             sage: list(islice(S, 10))
+            [(word: , 0),
+             (word: 0, 0),
+             (word: 1, 1),
+             (word: 00, 0),
+             (word: 01, 1),
+             (word: 10, 1),
+             (word: 11, 2),
+             (word: 000, 0),
+             (word: 001, 1),
+             (word: 010, 1)]
+            sage: list(islice((s for s in S if s[1] != 0), 10))
             [(word: 1, 1),
              (word: 01, 1),
              (word: 10, 1),
@@ -611,7 +643,7 @@ class RecognizableSeries(Element):
 
             sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
             ....:         left=vector([1, 0]), right=vector([1, 0]))
-            sage: list(islice(S, 10))
+            sage: list(islice((s for s in S if s[1] != 0), 10))
             [(word: , 1),
              (word: 0, 1),
              (word: 00, 1),
@@ -631,10 +663,7 @@ class RecognizableSeries(Element):
             sage: iter(S) is not it
             True
         """
-        if not self:
-            return iter([])
-        return iter((w, self[w])
-                    for w in self.parent().indices() if self[w] != 0)
+        return iter((w, self[w]) for w in self.parent().indices())
 
     def is_trivial_zero(self):
         r"""

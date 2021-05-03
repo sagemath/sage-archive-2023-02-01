@@ -2185,11 +2185,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             return res
         for other in others[:-1]:
             old, res = res, res._intersection_subset(other)
-            old._intersections[other._name] = other._intersections[old._name] = res
         # The last one gets the name
         other = others[-1]
         old, res = res, res._intersection_subset(other, name=name, latex_name=latex_name)
-        old._intersections[other._name] = other._intersections[old._name] = res
         return res
 
     @staticmethod
@@ -2256,9 +2254,32 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     def _intersection_subset(self, *others, name=None, latex_name=None):
         r"""
-        Return a subset that is the intersection of the given subsets.
+        Return a subset that is the intersection of ``self`` and ``others``.
 
-        This method does not cache the result.
+        The result is always a new subset of the manifold.  If the intersection
+        involves two subsets only, the result is stored in the dictionaries
+        of known intersections for later reuse by other methods.
+
+        INPUT:
+
+        - ``others`` -- an iterable of :class:`ManifoldSubset` instances
+          of the same manifold.
+        - ``name`` -- (default: ``None``) name given to the intersection; the
+          default is ``self._name`` inter [...] inter ``last_other._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          intersection; the default is built upon the symbol `\cap`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: B1 = M.subset('B1')
+            sage: B2 = M.subset('B2')
+            sage: B3 = M.subset('B3')
+            sage: B1._intersection_subset(B2)
+            Subset B1_inter_B2 of the 2-dimensional topological manifold M
+            sage: B1._intersection_subset(B2, B3)
+            Subset B1_inter_B2_inter_B3 of the 2-dimensional topological manifold M
+
         """
         subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
         if latex_name is None:
@@ -2275,6 +2296,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res.declare_subset(subsets)
             for S in subsets:
                 S._top_subsets.add(res)
+        if len(subsets) == 2:
+            S1, S2 = subsets
+            S1._intersections[S2._name] = S2._intersections[S1._name] = res
         return res
 
     def union(self, *others, name=None, latex_name=None):
@@ -2393,11 +2417,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             return res
         for other in others[:-1]:
             old, res = res, res._union_subset(other)
-            old._unions[other._name] = other._unions[old._name] = res
         # The last one gets the name
         other = others[-1]
         old, res = res, res._union_subset(other, name=name, latex_name=latex_name)
-        old._unions[other._name] = other._unions[old._name] = res
         return res
 
     @staticmethod
@@ -2457,9 +2479,27 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     def _union_subset(self, other, name=None, latex_name=None):
         r"""
-        Return a subset of the manifold that is the union of the given subsets.
+        Return a subset of the manifold that is the union of ``self`` and ``other``.
 
-        This method does not cache the result.
+        The result is always a new subset of the manifold and is also
+        stored in ``self`` and ``other``'s dictionaries of known unions.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ManifoldSubset`
+        - ``name`` -- (default: ``None``) name given to the union; the default is
+          ``self._name`` union ``other._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          union; the default is built upon the symbol `\cup`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: B1 = M.subset('B1')
+            sage: B2 = M.subset('B2')
+            sage: B1._union_subset(B2)
+            Subset B1_union_B2 of the 2-dimensional topological manifold M
+
         """
         if latex_name is None:
             if name is None:
@@ -2473,6 +2513,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         res.declare_superset(other)
         res._top_subsets.add(self)
         res._top_subsets.add(other)
+        self._unions[other._name] = other._unions[self._name] = res
         for sp in self._supersets:
             if sp in other._supersets:
                 sp._subsets.add(res)

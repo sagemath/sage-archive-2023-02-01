@@ -321,10 +321,10 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     id_anyon = factory._FR.one()
     _field = factory._field
     cdef NumberFieldElement_absolute one = _field.one()
+    cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
+    cdef KSHandler _ks = factory._ks
     factory._nnz = factory._get_known_nonz()
     cdef ETuple _nnz = factory._nnz
-    _ks = factory._ks
-    cdef MPolynomial_libsingular zero = factory._poly_ring.zero()
 
     #Computation loop
     it = product(basis,repeat=9)

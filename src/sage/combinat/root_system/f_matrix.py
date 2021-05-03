@@ -35,7 +35,7 @@ from sage.combinat.root_system.poly_tup_engine import (
     poly_to_tup, _tup_to_poly, tup_to_univ_poly,
     _unflatten_coeffs,
     poly_tup_sortkey,
-    resize,
+    resize
 )
 from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
 from sage.graphs.graph import Graph
@@ -1479,6 +1479,12 @@ class FMatrix():
           F-matrix solver. When computing the hexagon equations with the
           ``output=False`` option, the initial state of the F-symbols is used.
 
+        .. NOTE::
+
+            To set up the defining equations using parallel processing,
+            use :meth:`start_worker_pool` to initialize multiple processes
+            *before* calling this method.
+
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("B2",1))
@@ -1497,12 +1503,6 @@ class FMatrix():
             sage: pe = f.get_defining_equations('pentagons')
             sage: len(pe)
             33
-
-        .. NOTE::
-
-            To set up the defining equations using parallel processing,
-            use :meth:`start_worker_pool` to initialize multiple processes
-            *before* calling this method.
         """
         if not hasattr(self, '_nnz'):
             self._reset_solver_state()

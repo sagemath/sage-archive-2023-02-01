@@ -18,6 +18,7 @@ from sage.combinat.root_system.poly_tup_engine cimport (
     has_appropriate_linear_term,
     resize
 )
+from sage.combinat.root_system.shm_managers cimport KSHandler, FvarsHandler
 from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
@@ -26,14 +27,13 @@ from ctypes import cast, py_object
 from itertools import product
 from multiprocessing import shared_memory
 from sage.rings.ideal import Ideal
-from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 ##########################
 ### Fast class methods ###
 ##########################
 
-cpdef _solve_for_linear_terms(factory, eqns=None):
+cpdef _solve_for_linear_terms(factory, list eqns=None):
     r"""
     Solve for a linear term occurring in a two-term equation, and for
     variables appearing in univariate single-term equations.
@@ -66,6 +66,8 @@ cpdef _solve_for_linear_terms(factory, eqns=None):
         eqns = factory.ideal_basis
 
     cdef bint linear_terms_exist = False
+    cdef ETuple exp, rhs_exp
+    cdef int max_var
     cdef tuple eq_tup
     for eq_tup in eqns:
         # Only unflatten relevant polynomials
@@ -83,7 +85,8 @@ cpdef _solve_for_linear_terms(factory, eqns=None):
             idx = has_appropriate_linear_term(eq_tup)
             if idx < 0: continue
             #The chosen term is guaranteed to be univariate in the largest variable
-            max_var = eq_tup[idx][0].nonzero_positions()[0]
+            exp = eq_tup[idx][0]
+            max_var = exp._data[0]
             if not factory._solved[max_var]:
                 rhs_exp = eq_tup[(idx+1) % 2][0]
                 rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]

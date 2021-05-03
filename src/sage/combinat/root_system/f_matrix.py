@@ -299,6 +299,7 @@ class FMatrix():
 
         #Multiprocessing attributes
         self.mp_thresh = 10000
+        self.pool = None
 
     #######################
     ### Class utilities ###
@@ -424,6 +425,7 @@ class FMatrix():
         new_poly_ring = self._poly_ring.change_ring(field)
         nvars = self._poly_ring.ngens()
         #Do some appropriate conversions
+        self._singles = [new_poly_ring.gen(self._var_to_idx[fx]) for fx in self._singles]
         self._var_to_idx = {new_poly_ring.gen(i): i for i in range(nvars)}
         self._var_to_sextuple = {new_poly_ring.gen(i): self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(nvars)}
         self._poly_ring = new_poly_ring
@@ -1240,13 +1242,15 @@ class FMatrix():
     ### MapReduce ###
     #################
 
-    def get_worker_pool(self,processes=None):
+    def start_worker_pool(self,processes=None):
         """
-        Get an initialized worker pool for parallel processing,
+        Initialize a ``multiprocessing`` worker pool for parallel processing,
         which may be used e.g. to set up defining equations using
         :meth:`get_defining_equations`.
 
-        This pool may be reused time and again.
+        This method creates the attribute ``self.pool``, and the worker
+        pool may be used time and again. Upon initialization, each process
+        in the pool is attached to the necessary shared memory resources.
 
         When you are done using the worker pool, use
         :meth:`shutdown_worker_pool` to close the pool and properly dispose
@@ -1255,23 +1259,23 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",1))
-            sage: pool = f.get_worker_pool()
-            sage: he = f.get_defining_equations('hexagons',worker_pool=pool)
+            sage: f.start_worker_pool()
+            sage: he = f.get_defining_equations('hexagons')
             sage: sorted(he)
             [fx0 - 1,
              fx2*fx3 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx4^2 + (zeta60^6)*fx4,
              fx1*fx3 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx3*fx4 + (zeta60^14 - zeta60^4)*fx3,
              fx1*fx2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx4 + (zeta60^14 - zeta60^4)*fx2,
              fx1^2 + (zeta60^14 + zeta60^12 - zeta60^6 - zeta60^4 + 1)*fx2*fx3 + (-zeta60^12)*fx1]
-            sage: pe = f.get_defining_equations('pentagons',worker_pool=pool)
-            sage: f.shutdown_worker_pool(pool)
+            sage: pe = f.get_defining_equations('pentagons')
+            sage: f.shutdown_worker_pool()
 
         .. WARNING::
 
             This method is needed to initialize the worker pool using the
             necessary shared memory resources. Simply using the
-            ``multiprocessing.Pool`` constructor will not work with our class
-             methods.
+            ``multiprocessing.Pool`` constructor will not work with our
+            class methods.
 
         .. WARNING::
 
@@ -1294,11 +1298,6 @@ class FMatrix():
         self._ks = KSHandler(n,self._field,use_mp=True,init_data=self._ks)
         ks_names = self._ks.shm.name
         self._shared_fvars = FvarsHandler(n,self._field,self._idx_to_sextuple,init_data=self._fvars)
-        # for sextuple, fvar in self._fvars.items():
-        #     if self._chkpt_status < 0:
-        #         self._shared_fvars[sextuple] = poly_to_tup(fvar)
-        #     else:
-        #         self._shared_fvars[sextuple] = fvar
         fvar_names = self._shared_fvars.shm.name
         #Initialize worker pool processes
         args = (id(self), s_name, vd_name, ks_names, fvar_names)
@@ -1314,17 +1313,16 @@ class FMatrix():
             fmats_obj._fvars = FvarsHandler(n,fmats_obj._field,fmats_obj._idx_to_sextuple,name=fvar_names)
             fmats_obj._ks = KSHandler(n,fmats_obj._field,name=ks_names)
 
-        pool = Pool(processes=n,initializer=init,initargs=args)
-        return pool
+        self.pool = Pool(processes=n,initializer=init,initargs=args)
 
-    def shutdown_worker_pool(self,pool):
+    def shutdown_worker_pool(self):
         """
         Shutdown the given worker pool and dispose of shared memory resources
-        created when the pool was set up using :meth:`get_worker_pool`.
+        created when the pool was set up using :meth:`start_worker_pool`.
 
         .. WARNING::
 
-            Failure to call this method after using :meth:`get_worker_pool`
+            Failure to call this method after using :meth:`start_worker_pool`
             to create a process pool may result in a memory
             leak, since shared memory resources outlive the process that created
             them.
@@ -1332,16 +1330,17 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("A1",3))
-            sage: pool = f.get_worker_pool()
-            sage: he = f.get_defining_equations('hexagons', worker_pool=pool)
-            sage: f.shutdown_worker_pool(pool)
+            sage: f.start_worker_pool()
+            sage: he = f.get_defining_equations('hexagons')
+            sage: f.shutdown_worker_pool()
         """
-        pool.close()
-        self._solved.shm.unlink()
-        self._var_degs.shm.unlink()
-        self._ks.shm.unlink()
-        self._shared_fvars.shm.unlink()
-        del self.__dict__['_shared_fvars']
+        if self.pool is not None:
+            self.pool.close()
+            self._solved.shm.unlink()
+            self._var_degs.shm.unlink()
+            self._ks.shm.unlink()
+            self._shared_fvars.shm.unlink()
+            del self.__dict__['_shared_fvars']
 
     def _map_triv_reduce(self,mapper,input_iter,worker_pool=None,chunksize=None,mp_thresh=None):
         r"""
@@ -1369,11 +1368,11 @@ class FMatrix():
             sage: f._reset_solver_state()
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1,False)]))
             11
-            sage: pool = f.get_worker_pool()
-            sage: mp_params = [(i,pool._processes,True) for i in range(pool._processes)]
-            sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=pool,chunksize=1,mp_thresh=0))
+            sage: f.start_worker_pool()
+            sage: mp_params = [(i,f.pool._processes,True) for i in range(f.pool._processes)]
+            sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=f.pool,chunksize=1,mp_thresh=0))
             33
-            sage: f.shutdown_worker_pool(pool)
+            sage: f.shutdown_worker_pool()
         """
         if mp_thresh is None:
           mp_thresh = self.mp_thresh
@@ -1449,7 +1448,7 @@ class FMatrix():
             return eqns
         self.ideal_basis.extend([poly_to_tup(eq) for eq in eqns])
 
-    def get_defining_equations(self,option,worker_pool=None,output=True):
+    def get_defining_equations(self,option,output=True):
         r"""
         Get the equations defining the ideal generated by the hexagon or
         pentagon relations.
@@ -1464,14 +1463,10 @@ class FMatrix():
           * ``'pentagons'`` - get equations imposed on the F-matrix by
             the pentagon relations in the definition of a monoidal category
 
-        - ``worker_pool`` -- (default: ``None``) a ``Pool`` object of the
-          Python ``multiprocessing`` module
-
         - ``output`` -- (default: ``True``) a boolean indicating whether
           results should be returned, where the equations will be polynomials.
-
           Otherwise, the constraints are appended to ``self.ideal_basis``.
-          They are stored in the internal tuple representation. The
+          Constraints are stored in the internal tuple representation. The
           ``output=False`` option is meant only for internal use by the
           F-matrix solver. When computing the hexagon equations with the
           ``output=False`` option, the initial state of the F-symbols is used.
@@ -1494,12 +1489,18 @@ class FMatrix():
             sage: pe = f.get_defining_equations('pentagons')
             sage: len(pe)
             33
+
+        .. NOTE::
+
+            To set up the defining equations using parallel processing,
+            use :meth:`start_worker_pool` to initialize multiple processes
+            *before* calling this method.
         """
         if not hasattr(self, '_nnz'):
             self._reset_solver_state()
-        n_proc = worker_pool._processes if worker_pool is not None else 1
+        n_proc = self.pool._processes if self.pool is not None else 1
         params = [(child_id, n_proc, output) for child_id in range(n_proc)]
-        eqns = self._map_triv_reduce('get_reduced_'+option,params,worker_pool=worker_pool,chunksize=1,mp_thresh=0)
+        eqns = self._map_triv_reduce('get_reduced_'+option,params,worker_pool=self.pool,chunksize=1,mp_thresh=0)
         if output:
             F = self._field
             for i, eq_tup in enumerate(eqns):
@@ -1528,10 +1529,11 @@ class FMatrix():
 
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: f = FMatrix(FusionRing("C3",1))
-            sage: pool = f.get_worker_pool()
-            sage: he = f.get_defining_equations('hexagons',pool)
+            sage: f.start_worker_pool()
+            sage: he = f.get_defining_equations('hexagons')
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
             True
+            sage: f.shutdown_worker_pool()
         """
         return _tup_to_poly(eq_tup,parent=self._poly_ring)
 
@@ -1544,17 +1546,17 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("A1",3))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: pool = f.get_worker_pool()
-            sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
-            sage: f.ideal_basis = f._par_graph_gb(worker_pool=pool,verbose=False)
+            sage: f.start_worker_pool()
+            sage: f.get_defining_equations('hexagons',output=False)
+            sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f.mp_thresh = 0
             sage: f._fvars = f._shared_fvars
-            sage: f._triangular_elim(worker_pool=pool,verbose=False)  # indirect doctest
+            sage: f._triangular_elim(verbose=False)  # indirect doctest
             sage: f.ideal_basis
             []
-            sage: f.shutdown_worker_pool(pool)
+            sage: f.shutdown_worker_pool()
         """
         if eqns is None:
             eqns = self.ideal_basis
@@ -1569,7 +1571,7 @@ class FMatrix():
         self._nnz = self._get_known_nonz()
         self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
 
-    def _triangular_elim(self,eqns=None,worker_pool=None,verbose=True):
+    def _triangular_elim(self,eqns=None,verbose=True):
         r"""
         Perform triangular elimination of linear terms in two-term equations
         until no such terms exist.
@@ -1599,7 +1601,7 @@ class FMatrix():
             ret = False
         while True:
             #Reset modification cache
-            if worker_pool is not None:
+            if self.pool is not None:
                 self._fvars.fvars['modified'][:] = False
             linear_terms_exist = _solve_for_linear_terms(self,eqns)
             if not linear_terms_exist:
@@ -1610,15 +1612,15 @@ class FMatrix():
             self._update_reduction_params(eqns=eqns)
             # n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
             # eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
-            if worker_pool is not None and len(eqns) > self.mp_thresh:
-                n = worker_pool._processes
+            if self.pool is not None and len(eqns) > self.mp_thresh:
+                n = self.pool._processes
                 chunks = [[] for i in range(n)]
                 for i, eq_tup in enumerate(eqns):
                     chunks[i%n].append(eq_tup)
                 eqns = chunks
             else:
                 eqns = [eqns]
-            eqns = self._map_triv_reduce('update_reduce',eqns,worker_pool=worker_pool)
+            eqns = self._map_triv_reduce('update_reduce',eqns,worker_pool=self.pool)
             eqns.sort(key=poly_tup_sortkey)
             if verbose:
                 print("Elimination epoch completed... {} eqns remain in ideal basis".format(len(eqns)))
@@ -1683,13 +1685,13 @@ class FMatrix():
         if not eqns: return G
 
         #Eqns could be a list of poly objects or poly tuples stored in internal repn
-        if type(eqns[0]) == tuple:
+        if isinstance(eqns[0], tuple):
             G.add_vertices([x for eq_tup in eqns for x in variables(eq_tup)])
         else:
             G.add_vertices([x for eq in eqns for x in eq.variables()])
         for eq in eqns:
             #Eqns could be a list of poly objects or poly tuples stored in internal repn
-            if type(eq) == tuple:
+            if isinstance(eq, tuple):
                 s = [v for v in variables(eq)]
             else:
                 s = [v for v in eq.variables()]
@@ -1744,7 +1746,7 @@ class FMatrix():
             print(graph.connected_components_sizes())
         return partition
 
-    def _par_graph_gb(self,worker_pool=None,eqns=None,term_order="degrevlex",verbose=True):
+    def _par_graph_gb(self,eqns=None,term_order="degrevlex",verbose=True):
         r"""
         Compute a Groebner basis for a list of equations partitioned
         according to their corresponding graph.
@@ -1763,9 +1765,9 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("F4",1))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: pool = f.get_worker_pool()
-            sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)
-            sage: gb = f._par_graph_gb(worker_pool=pool)
+            sage: f.start_worker_pool()
+            sage: f.get_defining_equations('hexagons',output=False)
+            sage: gb = f._par_graph_gb()
             Partitioned 10 equations into 2 components of size:
             [4, 1]
             sage: from sage.combinat.root_system.poly_tup_engine import _unflatten_coeffs
@@ -1776,6 +1778,7 @@ class FMatrix():
              fx1 + (zeta80^24 - zeta80^16),
              fx0 - 1,
              fx3^2 + (zeta80^24 - zeta80^16)]
+            sage: f.shutdown_worker_pool()
         """
         if eqns is None: eqns = self.ideal_basis
         small_comps = list()
@@ -1787,7 +1790,7 @@ class FMatrix():
         # for i in range(nmax+1):
         #     vars_by_size.append(self.get_fvars_by_size(i))
 
-        for comp, comp_eqns in self._partition_eqns(verbose=verbose).items():#self._partition_eqns(graph,verbose=verbose).items():
+        for comp, comp_eqns in self._partition_eqns(verbose=verbose).items():
             #Check if component is too large to process
             if len(comp) > 60:
                 # fmat_size = 0
@@ -1800,7 +1803,7 @@ class FMatrix():
             else:
                 small_comps.append(comp_eqns)
         input_iter = zip_longest(small_comps,[],fillvalue=term_order)
-        small_comp_gb = self._map_triv_reduce('compute_gb',input_iter,worker_pool=worker_pool,chunksize=1,mp_thresh=50)
+        small_comp_gb = self._map_triv_reduce('compute_gb',input_iter,worker_pool=self.pool,chunksize=1,mp_thresh=50)
         ret = small_comp_gb + temp_eqns
         return ret
 
@@ -1818,8 +1821,8 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",2))
-            sage: pool = f.get_worker_pool()
-            sage: f.get_defining_equations('hexagons',worker_pool=pool,output=False)   # long time
+            sage: f.start_worker_pool()
+            sage: f.get_defining_equations('hexagons',output=False)                      # long time
             sage: partition = f._partition_eqns()                                        # long time
             Partitioned 327 equations into 35 components of size:
             [27, 27, 27, 24, 24, 16, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
@@ -1829,6 +1832,7 @@ class FMatrix():
             sage: eqns = partition[c] + [poly_to_tup(f._poly_ring.gen(216)-1)]           # long time
             sage: f._get_component_variety(c,eqns)                                       # long time
             [{216: -1, 292: -1, 319: 1}]
+            sage: f.shutdown_worker_pool()
         """
         #Define smaller poly ring in component vars
         R = PolynomialRing(self._FR.field(), len(var), 'a', order='lex')
@@ -1937,7 +1941,8 @@ class FMatrix():
             for fx, rhs in self._ks.items():
                 if not self._solved[fx]:
                     lt = (ETuple({fx : 2},n), one)
-                    eqns.append((lt, (ETuple({},n), -self._field(list(rhs)))))
+                    # eqns.append((lt, (ETuple({},n), -self._field(list(rhs)))))
+                    eqns.append(((lt, (ETuple({},n), -rhs))))
         eqns_partition = self._partition_eqns(verbose=verbose)
 
         F = self._field
@@ -2115,14 +2120,14 @@ class FMatrix():
             if self._chkpt_status > 5:
                 return
         #max(cpu_count()-1,1)
-        pool = self.get_worker_pool() if use_mp else None
+        if use_mp: self.start_worker_pool()
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, self._poly_ring.ngens()))
 
         if self._chkpt_status < 1:
             #Set up hexagon equations and orthogonality constraints
             self.get_orthogonality_constraints(output=False)
-            self.get_defining_equations('hexagons',worker_pool=pool,output=False)
+            self.get_defining_equations('hexagons',output=False)
             #Report progress
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
@@ -2134,9 +2139,9 @@ class FMatrix():
 
         if self._chkpt_status < 2:
             #Set up equations graph. Find GB for each component in parallel. Eliminate variables
-            self.ideal_basis = self._par_graph_gb(worker_pool=pool,verbose=verbose)
+            self.ideal_basis = self._par_graph_gb(verbose=verbose)
             self.ideal_basis.sort(key=poly_tup_sortkey)
-            self._triangular_elim(worker_pool=pool,verbose=verbose)
+            self._triangular_elim(verbose=verbose)
             #Report progress
             if verbose:
                 print("Hex elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
@@ -2145,7 +2150,7 @@ class FMatrix():
 
         if self._chkpt_status < 3:
             #Set up pentagon equations in parallel
-            self.get_defining_equations('pentagons',worker_pool=pool,output=False)
+            self.get_defining_equations('pentagons',output=False)
             self.ideal_basis.sort(key=poly_tup_sortkey)
             #Report progress
             if verbose:
@@ -2155,7 +2160,7 @@ class FMatrix():
 
         #Simplify and eliminate variables
         if self._chkpt_status < 4:
-            self._triangular_elim(worker_pool=pool,verbose=verbose)
+            self._triangular_elim(verbose=verbose)
             #Report progress
             if verbose:
                 print("Pent elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
@@ -2179,8 +2184,7 @@ class FMatrix():
         self._chkpt_status = 7
         self.clear_equations()
         #Close worker pool and destroy shared resources
-        if use_mp:
-            self.shutdown_worker_pool(pool)
+        self.shutdown_worker_pool()
         if checkpoint:
             remove("fmatrix_solver_checkpoint_"+self.get_fr_str()+".pickle")
         if save_results:
@@ -2211,9 +2215,7 @@ class FMatrix():
             adding equation... fx18 - 1
             adding equation... fx21 - 1
         """
-        # while len(self._solved) < len(self._poly_ring.gens()):
         while sum(1 for v in self._solved if not v) > 0:
-        # while self._solved.sum() < self._solved.size:
             #Get a variable that has not been fixed
             #In ascending index order, for consistent results
             for i, var in enumerate(self._poly_ring.gens()):

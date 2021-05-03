@@ -8,7 +8,7 @@ Fast FusionRing methods for computing braid group representations
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import ctypes
+from ctypes import cast, py_object
 cimport cython
 from sage.combinat.root_system.fast_parallel_fmats_methods cimport _fmat
 
@@ -287,7 +287,7 @@ cpdef executor(tuple params):
     """
     (fn_name, fr_id), args = params
     #Construct a reference to global FMatrix object in this worker's memory
-    fusion_ring_obj = ctypes.cast(fr_id, ctypes.py_object).value
+    fusion_ring_obj = cast(fr_id, py_object).value
     #Bind module method to FMatrix object in worker process, and call the method
     return mappers[fn_name](fusion_ring_obj,args)
 

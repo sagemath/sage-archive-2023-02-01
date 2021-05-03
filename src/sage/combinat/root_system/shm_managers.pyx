@@ -18,70 +18,70 @@ from multiprocessing import shared_memory
 import numpy as np
 
 cdef class KSHandler:
-    """
-    Return a shared memory backed dict-like structure to manage the
-    ``_ks`` attribute of an F-matrix factory object.
-
-    This structure implements a representation of the known squares dictionary
-    using a structured NumPy array backed by a contiguous shared memory
-    object.
-
-    The structure mimics a dictionary of ``(idx, known_sq)`` pairs. Each
-    integer index corresponds to a variable and each ``known_sq`` is an
-    element of the F-matrix factory's base cyclotomic field.
-
-    Each cyclotomic coefficient is stored as a list of numerators and a
-    list of denominators representing the rational coefficients. The
-    structured array also maintains ``known`` attribute that indicates
-    whether the structure contains an entry corresponding to the given index.
-
-    The parent process should construct this object without a
-    ``name`` attribute. Children processes use the ``name`` attribute,
-    accessed via ``self.shm.name`` to attach to the shared memory block.
-
-    INPUT:
-
-    - ``n_slots`` -- The total number of F-symbols.
-    - ``field`` -- F-matrix factory's base cyclotomic field.
-    - ``use_mp`` -- a boolean indicating whether to construct a shared
-      memory block to back ``self``.
-    - ``name`` -- the name of a shared memory object
-      (used by child processes for attaching).
-    - ``init_data`` -- a dictionary or :class:`KSHandler` object containing
-      known squares for initialization, e.g. from a solver checkpoint.
-
-    .. NOTE::
-
-        To properly dispose of shared memory resources,
-        ``self.shm.unlink()`` must be called before exiting.
-
-    .. WARNING::
-
-        This structure does *not* cannot modify an entry that
-        has already been set.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.shm_managers import KSHandler
-        sage: #Create shared data structure
-        sage: f = FMatrix(FusionRing("A1",2), inject_variables=True)
-        creating variables fx1..fx14
-        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
-        sage: n = f._poly_ring.ngens()
-        sage: ks = KSHandler(n,f._field,use_mp=True)
-        sage: #In the same shell or in a different shell, attach to fvars
-        sage: ks2 = KSHandler(n,f._field,name=ks.shm.name)
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-        sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
-        sage: ks.update([poly_to_tup(p) for p in eqns])
-        sage: for idx, sq in ks.items():
-        ....:     print("Index: {}, square: {}".format(idx, sq))
-        ....:
-        Index: 1, square: 4
-        Index: 3, square: -zeta32^4 + 1/19*zeta32^2
-        sage: ks.shm.unlink()
-    """
     def __init__(self, n_slots, field, use_mp=False, init_data={}, name=None):
+        """
+        Return a shared memory backed dict-like structure to manage the
+        ``_ks`` attribute of an F-matrix factory object.
+
+        This structure implements a representation of the known squares dictionary
+        using a structured NumPy array backed by a contiguous shared memory
+        object.
+
+        The structure mimics a dictionary of ``(idx, known_sq)`` pairs. Each
+        integer index corresponds to a variable and each ``known_sq`` is an
+        element of the F-matrix factory's base cyclotomic field.
+
+        Each cyclotomic coefficient is stored as a list of numerators and a
+        list of denominators representing the rational coefficients. The
+        structured array also maintains ``known`` attribute that indicates
+        whether the structure contains an entry corresponding to the given index.
+
+        The parent process should construct this object without a
+        ``name`` attribute. Children processes use the ``name`` attribute,
+        accessed via ``self.shm.name`` to attach to the shared memory block.
+
+        INPUT:
+
+        - ``n_slots`` -- The total number of F-symbols.
+        - ``field`` -- F-matrix factory's base cyclotomic field.
+        - ``use_mp`` -- a boolean indicating whether to construct a shared
+          memory block to back ``self``.
+        - ``name`` -- the name of a shared memory object
+          (used by child processes for attaching).
+        - ``init_data`` -- a dictionary or :class:`KSHandler` object containing
+          known squares for initialization, e.g. from a solver checkpoint.
+
+        .. NOTE::
+
+            To properly dispose of shared memory resources,
+            ``self.shm.unlink()`` must be called before exiting.
+
+        .. WARNING::
+
+            This structure does *not* cannot modify an entry that
+            has already been set.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.shm_managers import KSHandler
+            sage: #Create shared data structure
+            sage: f = FMatrix(FusionRing("A1",2), inject_variables=True)
+            creating variables fx1..fx14
+            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+            sage: n = f._poly_ring.ngens()
+            sage: ks = KSHandler(n,f._field,use_mp=True)
+            sage: #In the same shell or in a different shell, attach to fvars
+            sage: ks2 = KSHandler(n,f._field,name=ks.shm.name)
+            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
+            sage: ks.update([poly_to_tup(p) for p in eqns])
+            sage: for idx, sq in ks.items():
+            ....:     print("Index: {}, square: {}".format(idx, sq))
+            ....:
+            Index: 1, square: 4
+            Index: 3, square: -zeta32^4 + 1/19*zeta32^2
+            sage: ks.shm.unlink()
+        """
         cdef int n, d
         self.field = field
         n = n_slots
@@ -192,6 +192,7 @@ cdef class KSHandler:
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
+    @cython.infer_types(False)
     cdef setitem(self, int idx, rhs):
         """
         Create an entry corresponding to the given index.
@@ -552,13 +553,13 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("G2", 1), inject_variables=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
-            sage: p = f.get_worker_pool()
+            sage: f.start_worker_pool()
             sage: for sextuple, fvar in f._shared_fvars.items():
             ....:     if sextuple == (f1, f1, f1, f1, f1, f1):
             ....:         f._tup_to_fpoly(fvar)
             ....:
             fx4
-            sage: f.shutdown_worker_pool(p)
+            sage: f.shutdown_worker_pool()
         """
         for sextuple in self.sext_to_idx:
             yield sextuple, self[sextuple]
@@ -573,7 +574,7 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: from sage.combinat.root_system.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
         sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
-        sage: for s, fvar in loads(dumps(fvars)).items():
+        sage: for s, fvar in loads(dumps(fvars)).items():        # indirect doctest
         ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
         ....:
         sage: fvars.shm.unlink()

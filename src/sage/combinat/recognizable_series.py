@@ -801,6 +801,10 @@ class RecognizableSeries(Element):
         Return a recognizable series equivalent to this series, but
         with a minimized linear representation.
 
+        The coefficients of the involved matrices need be in a field.
+        If this is not the case, then the coefficients are
+        automatically coerced to their fraction field.
+
         OUTPUT:
 
         A :class:`RecognizableSeries`

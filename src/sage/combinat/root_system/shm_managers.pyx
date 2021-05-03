@@ -12,6 +12,7 @@ cimport cython
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
 from sage.combinat.root_system.poly_tup_engine cimport poly_to_tup, tup_fixes_sq
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
 
 from multiprocessing import shared_memory
@@ -303,7 +304,7 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self,n_slots,field,idx_to_sextuple,init_data={},name=None,max_terms=20):
+    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=False,name=None,init_data={},max_terms=20):
         """
         Return a shared memory backed dict-like structure to manage the
         ``_fvars`` attribute of an F-matrix factory object.
@@ -360,7 +361,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
-            sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple)
+            sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=True)
             sage: #In the same shell or in a different shell, attach to fvars
             sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
@@ -382,16 +383,27 @@ cdef class FvarsHandler:
         self.sext_to_idx = {s: i for i, s in idx_to_sextuple.items()}
         self.ngens = n_slots
         if name is None:
-            self.shm = shared_memory.SharedMemory(create=True,size=self.ngens*self.fvars_t.itemsize)
-            self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
+            if use_mp:
+                self.shm = shared_memory.SharedMemory(create=True,size=self.ngens*self.fvars_t.itemsize)
+                self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
+            else:
+                self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t)
         else:
             self.shm = shared_memory.SharedMemory(name=name)
             self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
         #Populate with initialziation data
         for sextuple, fvar in init_data.items():
-            if not isinstance(fvar, tuple):
+            if isinstance(fvar, MPolynomial_libsingular):
                 fvar = poly_to_tup(fvar)
+            if isinstance(fvar, NumberFieldElement_absolute):
+                fvar = ((ETuple({},self.ngens), fvar),)
             self[sextuple] = fvar
+
+    cdef clear_modified(self):
+        """
+        Reset tagged entries modified by parent process.
+        """
+        self.fvars['modified'][:] = False
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
@@ -411,7 +423,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("B7", 1), inject_variables=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
-            sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple)
+            sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple,use_mp=True)
             sage: fvars[(f1, f2, f1, f2, f2, f2)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10)
             sage: fvars[f2, f2, f2, f2, f0, f0] = poly_to_tup(f._poly_ring.zero())
             sage: fvars[f2, f1, f2, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
@@ -480,7 +492,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
-            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple)
+            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple,use_mp=True)
             sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
             sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
             sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
@@ -529,7 +541,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("F4",1))
             sage: from sage.combinat.root_system.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
-            sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
+            sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=True)
             sage: for s, fvar in loads(dumps(fvars)).items():
             ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
             ....:
@@ -573,7 +585,7 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: f = FMatrix(FusionRing("G2",1))
         sage: from sage.combinat.root_system.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
-        sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
+        sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=True)
         sage: for s, fvar in loads(dumps(fvars)).items():        # indirect doctest
         ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
         ....:

@@ -1116,7 +1116,9 @@ class FMatrix():
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: n = f._poly_ring.ngens()
+            sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params()
             sage: f._checkpoint(do_chkpt=True,status=2)
@@ -1147,7 +1149,9 @@ class FMatrix():
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: n = f._poly_ring.ngens()
+            sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params()
             sage: f.get_defining_equations('pentagons',output=False)
@@ -1191,7 +1195,9 @@ class FMatrix():
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: n = f._poly_ring.ngens()
+            sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params()
             sage: fvars = f._fvars
@@ -1205,8 +1211,9 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("A1",2))
             sage: f._reset_solver_state()
             sage: f._restore_state("fmatrix_solver_checkpoint_A12.pickle")
-            sage: fvars == f._fvars
-            True
+            sage: for sextuple, fvar in fvars.items():
+            ....:     assert fvar == f._fvars[sextuple]
+            ....:
             sage: ib == f.ideal_basis
             True
             sage: ks == f._ks
@@ -1297,7 +1304,7 @@ class FMatrix():
         n = self._poly_ring.ngens()
         self._ks = KSHandler(n,self._field,use_mp=True,init_data=self._ks)
         ks_names = self._ks.shm.name
-        self._shared_fvars = FvarsHandler(n,self._field,self._idx_to_sextuple,init_data=self._fvars)
+        self._shared_fvars = FvarsHandler(n,self._field,self._idx_to_sextuple,use_mp=True,init_data=self._fvars)
         fvar_names = self._shared_fvars.shm.name
         #Initialize worker pool processes
         args = (id(self), s_name, vd_name, ks_names, fvar_names)
@@ -1336,12 +1343,12 @@ class FMatrix():
         """
         if self.pool is not None:
             self.pool.close()
+            self.pool = None
             self._solved.shm.unlink()
             self._var_degs.shm.unlink()
             self._ks.shm.unlink()
             self._shared_fvars.shm.unlink()
             del self.__dict__['_shared_fvars']
-            self.pool = None
 
     def _map_triv_reduce(self,mapper,input_iter,worker_pool=None,chunksize=None,mp_thresh=None):
         r"""
@@ -1590,7 +1597,9 @@ class FMatrix():
             sage: gb = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis = sorted(gb, key=poly_tup_sortkey)
-            sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: n = f._poly_ring.ngens()
+            sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: f._triangular_elim()
             Elimination epoch completed... 0 eqns remain in ideal basis
             sage: f.ideal_basis
@@ -1600,10 +1609,8 @@ class FMatrix():
         if eqns is None:
             eqns = self.ideal_basis
             ret = False
+        using_mp = self.pool is not None
         while True:
-            #Reset modification cache
-            if self.pool is not None:
-                self._fvars.fvars['modified'][:] = False
             linear_terms_exist = _solve_for_linear_terms(self,eqns)
             if not linear_terms_exist:
                 break
@@ -1613,7 +1620,7 @@ class FMatrix():
             self._update_reduction_params(eqns=eqns)
             # n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
             # eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
-            if self.pool is not None and len(eqns) > self.mp_thresh:
+            if using_mp and len(eqns) > self.mp_thresh:
                 n = self.pool._processes
                 chunks = [[] for i in range(n)]
                 for i, eq_tup in enumerate(eqns):
@@ -1824,6 +1831,7 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("G2",2))
             sage: f.start_worker_pool()
             sage: f.get_defining_equations('hexagons',output=False)                      # long time
+            sage: f.shutdown_worker_pool()
             sage: partition = f._partition_eqns()                                        # long time
             Partitioned 327 equations into 35 components of size:
             [27, 27, 27, 24, 24, 16, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
@@ -1833,7 +1841,6 @@ class FMatrix():
             sage: eqns = partition[c] + [poly_to_tup(f._poly_ring.gen(216)-1)]           # long time
             sage: f._get_component_variety(c,eqns)                                       # long time
             [{216: -1, 292: -1, 319: 1}]
-            sage: f.shutdown_worker_pool()
         """
         #Define smaller poly ring in component vars
         R = PolynomialRing(self._FR.field(), len(var), 'a', order='lex')
@@ -2120,7 +2127,6 @@ class FMatrix():
             #Loading from a pickle with solved F-symbols
             if self._chkpt_status > 5:
                 return
-        #max(cpu_count()-1,1)
         if use_mp: self.start_worker_pool()
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, self._poly_ring.ngens()))
@@ -2132,10 +2138,12 @@ class FMatrix():
             #Report progress
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
-            #Unzip _fvars and link to shared_memory structure if using multiprocessing
-            self._fvars = {sextuple: poly_to_tup(fvar) for sextuple, fvar in self._fvars.items()}
+        #Unzip _fvars and link to shared_memory structure if using multiprocessing
         if use_mp:
             self._fvars = self._shared_fvars
+        else:
+            n = self._poly_ring.ngens()
+            self._fvars = FvarsHandler(n,self._field,self._idx_to_sextuple,init_data=self._fvars)
         self._checkpoint(checkpoint,1,verbose=verbose)
 
         if self._chkpt_status < 2:

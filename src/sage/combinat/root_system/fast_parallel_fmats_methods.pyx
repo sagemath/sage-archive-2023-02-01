@@ -49,7 +49,9 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
         sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
         sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
         sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-        sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+        sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+        sage: n = f._poly_ring.ngens()
+        sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
         sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _solve_for_linear_terms
         sage: _solve_for_linear_terms(f)
         True
@@ -69,6 +71,8 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
     cdef ETuple exp, rhs_exp
     cdef int max_var
     cdef tuple eq_tup
+    cdef FvarsHandler fvars = factory._fvars
+    fvars.clear_modified()
     for eq_tup in eqns:
         # Only unflatten relevant polynomials
         if len(eq_tup) > 2:
@@ -78,7 +82,7 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
         if len(eq_tup) == 1:
             vars = variables(eq_tup)
             if len(vars) == 1 and not factory._solved[vars[0]]:
-                factory._fvars[factory._idx_to_sextuple[vars[0]]] = tuple()
+                fvars[factory._idx_to_sextuple[vars[0]]] = tuple()
                 factory._solved[vars[0]] = True
                 linear_terms_exist = True
         if len(eq_tup) == 2:
@@ -90,7 +94,7 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
             if not factory._solved[max_var]:
                 rhs_exp = eq_tup[(idx+1) % 2][0]
                 rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]
-                factory._fvars[factory._idx_to_sextuple[max_var]] = ((rhs_exp,rhs_coeff),)
+                fvars[factory._idx_to_sextuple[max_var]] = ((rhs_exp,rhs_coeff),)
                 factory._solved[max_var] = True
                 linear_terms_exist = True
     return linear_terms_exist
@@ -111,7 +115,9 @@ cpdef _backward_subs(factory):
         sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
         sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
         sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-        sage: f._fvars = {sextuple : poly_to_tup(rhs) for sextuple, rhs in f._fvars.items()}
+        sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+        sage: n = f._poly_ring.ngens()
+        sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
         sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _solve_for_linear_terms
         sage: _solve_for_linear_terms(f)
         True

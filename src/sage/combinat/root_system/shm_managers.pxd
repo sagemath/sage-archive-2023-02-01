@@ -19,5 +19,7 @@ cdef class FvarsHandler:
     cdef unsigned int ngens
     cdef fvars_t
     cdef NumberField field
-    cdef public np.ndarray fvars
+    cdef np.ndarray fvars
     cdef public shm
+
+    cdef clear_modified(self)

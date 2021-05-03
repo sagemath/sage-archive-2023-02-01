@@ -1438,7 +1438,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: toQS2(210)
             Traceback (most recent call last):
             ...
-            ValueError: argument 210 should have valuations divisible by 2 for at all prime in [5, 7]
+            ValueError: argument 210 should have valuations divisible by 2 at all primes in [5, 7]
 
         """
         from sage.rings.number_field.selmer_group import pSelmerGroup

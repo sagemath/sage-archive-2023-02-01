@@ -4607,8 +4607,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
             [-0.0221204634374361? - 1.090991904211621?*I,
              -0.0221204634374361? + 1.090991904211621?*I,
              -0.8088604911480535?*I,
-             0.?e-79 - 0.7598602580415435?*I,
-             0.?e-79 + 0.7598602580415435?*I,
+             0.?e-215 - 0.7598602580415435?*I,
+             0.?e-229 + 0.7598602580415435?*I,
              0.8088604911480535?*I,
              0.0221204634374361? - 1.090991904211621?*I,
              0.0221204634374361? + 1.090991904211621?*I]
@@ -4699,6 +4699,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: a > r
             True
         """
+        if self is other:
+            return rich_to_bool(op, 0)
+
         # note: we can assume that self is not other here
         sd = self._descr
         od = other._descr
@@ -5068,7 +5071,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             -1/3
             sage: QQbar(3+4*I).rational_argument() is None
             True
-            sage: (QQbar(2)**(1/5) * QQbar.zeta(7)**2).rational_argument()
+            sage: (QQbar(2)**(1/5) * QQbar.zeta(7)**2).rational_argument()  # long time
             2/7
             sage: (QQbar.zeta(73)**5).rational_argument()
             5/73
@@ -5218,7 +5221,31 @@ class AlgebraicReal(AlgebraicNumber_base):
             True
             sage: AA(7) >= AA(50/7)
             False
+
+        Check for trivial equality with identical elements::
+
+            sage: x1 = AA(2^(1/100))
+            sage: x2 = AA(2^(1/100))
+            sage: y = x1 - x2
+            sage: y == y
+            True
+            sage: y >= y
+            True
+            sage: y < y
+            False
+
+            sage: z = x1 - x2
+            sage: z == 0
+            True
+
+            sage: a = x1 - x2
+            sage: b = x1 - x2
+            sage: a == b
+            True
         """
+        if self is other:
+            return rich_to_bool(op, 0)
+
         # note: we can assume that self is not other here
         sd = self._descr
         od = other._descr
@@ -5238,8 +5265,14 @@ class AlgebraicReal(AlgebraicNumber_base):
                   type(od) is ANExtensionElement and
                   sd._generator is od._generator):
                 return sd._value == od._value if op == op_EQ else sd._value != od._value
-            elif self.minpoly() != other.minpoly():
-                return op == op_NE
+            else:
+                # Only compare the minimal polynomials if they have been computed
+                #   as otherwise it calls exactify().
+                try:
+                    if self._minimal_polynomial != other._minimal_polynomial:
+                        return op == op_NE
+                except AttributeError:
+                    pass
 
         # case 0: real parts are clearly distinct
         if not self._value.overlaps(other._value):
@@ -5256,10 +5289,15 @@ class AlgebraicReal(AlgebraicNumber_base):
 
         # case 2: possibly equal values
         # (this case happen a lot when sorting the roots of a real polynomial)
-        if self.minpoly() == other.minpoly():
-            c = cmp_elements_with_same_minpoly(self, other, self.minpoly())
-            if c is not None:
-                return rich_to_bool(op, c)
+        # Only compare the minimal polynomials if they have been computed
+        #   as otherwise it calls exactify().
+        try:
+            if self._minimal_polynomial != other._minimal_polynomial:
+                c = cmp_elements_with_same_minpoly(self, other, self.minpoly())
+                if c is not None:
+                    return rich_to_bool(op, c)
+        except AttributeError:
+            pass
 
         if self._value.prec() < 128:
             self._more_precision()
@@ -5547,6 +5585,12 @@ class AlgebraicReal(AlgebraicNumber_base):
             1
             sage: (a*b - b*a).sign()
             0
+
+            sage: x1 = AA(2^(1/100))
+            sage: x2 = AA(2^(1/100))
+            sage: y = x1 - x2
+            sage: y.sign()
+            0
         """
         if not self._value.contains_zero():
             return self._value.unique_sign()
@@ -5566,7 +5610,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             ls = sd._left.sign()
             rs = sd._right.sign()
             if sd._op is operator.mul or sd._op is operator.truediv:
-                return sd._left.sign() * sd._right.sign()
+                return ls * rs
             elif sd._op is operator.add:
                 if ls == rs:
                     return ls
@@ -5579,6 +5623,9 @@ class AlgebraicReal(AlgebraicNumber_base):
                 elif not rs:
                     self._set_descr(sd._left._descr)
                     return ls
+                elif sd._left is sd._right:
+                    self._set_descr(ANRational(QQ.zero()))
+                    return 0
         elif type(sd) is ANUnaryExpr:
             if sd._op == 'abs':
                 c = 1 if bool(sd._arg) else 0
@@ -5595,6 +5642,36 @@ class AlgebraicReal(AlgebraicNumber_base):
             self._more_precision()
             if not self._value.contains_zero():
                 return self._value.unique_sign()
+
+        if type(sd) is ANBinaryExpr:
+            # We will now exactify both sides and do another sign comparison.
+            # We try to avoid making ourself exact if possible.
+            # It will only reach this block if the operation is addition or subtraction.
+            sd._left.exactify()
+            sd._right.exactify()
+
+            # Rationals
+            if type(sd._left._descr) is ANRational and type(sd._right._descr) is ANRational:
+                ret = sd._op(sd._left._descr._value, sd._right._descr._value)
+                if ret == 0:
+                    self._set_descr(ANRational(QQ.zero()))
+                    return 0
+                return ret.sign()
+
+            if sd._left.minpoly() == sd._right.minpoly():
+                c = cmp_elements_with_same_minpoly(sd._left, sd._right, sd._left.minpoly())
+                if c == 0:
+                    self._set_descr(ANRational(QQ.zero()))
+                    return 0
+                elif c is not None:
+                    return c
+
+            ret = sd._op(sd._left._value, sd._right._value)
+            if not ret.contains_zero():
+                return ret.unique_sign()
+            if not ret:  # Known to be exactly 0
+                self._set_descr(ANRational(QQ.zero()))
+                return 0
 
         # Sigh...
         self.exactify()

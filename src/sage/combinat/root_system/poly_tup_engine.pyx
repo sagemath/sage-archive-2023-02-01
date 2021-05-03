@@ -277,7 +277,7 @@ cpdef list variables(tuple eq_tup):
     """
     return degrees(eq_tup).nonzero_positions()
 
-cpdef constant_coeff(tuple eq_tup):
+cpdef constant_coeff(tuple eq_tup, field):
     r"""
     Return the constant coefficient of the polynomial represented by
     given tuple.
@@ -287,18 +287,18 @@ cpdef constant_coeff(tuple eq_tup):
         sage: from sage.combinat.root_system.poly_tup_engine import constant_coeff
         sage: from sage.rings.polynomial.polydict import ETuple
         sage: poly_tup = ((ETuple([0,3,0]),2), (ETuple([0,1,0]),-1), (ETuple([0,0,0]),-2/3))
-        sage: constant_coeff(poly_tup)
+        sage: constant_coeff(poly_tup,QQ)
         -2/3
         sage: R.<x,y,z> = PolynomialRing(QQ)
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-        sage: constant_coeff(poly_to_tup(x**5 + x*y*z - 9))
+        sage: constant_coeff(poly_to_tup(x**5 + x*y*z - 9),QQ)
         -9
     """
     cdef ETuple exp
     for exp, coeff in eq_tup:
         if exp.is_constant():
             return coeff
-    return 0
+    return field.zero()
 
 cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
     """

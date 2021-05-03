@@ -1,5 +1,11 @@
 """
-Shared memory managers for F-symbol attributes
+Shared memory managers for F-symbol attributes.
+
+This module provides an implementation for shared dictionary like
+state attributes required by the orthogonal F-matrix solver.
+
+Currently, the attributes only work when the base field of the FMatrix
+factory is a cyclotomic field.
 """
 # ****************************************************************************
 #  Copyright (C) 2021 Guillermo Aboumrad <gh_willieab>
@@ -12,6 +18,8 @@ cimport cython
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
 from sage.combinat.root_system.poly_tup_engine cimport poly_to_tup, tup_fixes_sq
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
 
@@ -121,11 +129,16 @@ cdef class KSHandler:
         if self.obj_cache[idx] is not None:
             return self.obj_cache[idx]
         cdef unsigned int i, d
+        cdef Integer num, denom
+        cdef Rational quo
         cdef list rat = list()
         cdef NumberFieldElement_absolute cyc_coeff
         d = self.field.degree()
         for i in range(d):
-            rat.append(self.ks_dat['nums'][idx,i] / self.ks_dat['denoms'][idx,i])
+            num = Integer(self.ks_dat['nums'][idx,i])
+            denom = Integer(self.ks_dat['denoms'][idx,i])
+            quo = num / denom
+            rat.append(quo)
         cyc_coeff = self.field(rat)
         self.obj_cache[idx] = cyc_coeff
         return cyc_coeff
@@ -452,10 +465,12 @@ cdef class FvarsHandler:
             else:
                 return self.obj_cache[idx]
         cdef ETuple e = ETuple({}, self.ngens)
-        cdef unsigned int cum, i, j, nnz
-        cdef unsigned long d
-        cdef list poly_tup = list()
+        cdef unsigned int cum, i, j, k, nnz
+        cdef Integer d, num
+        cdef list poly_tup, rats
+        cdef Rational quo
         cdef tuple ret
+        poly_tup = list()
         cum = 0
         for i in range(np.count_nonzero(self.fvars['ticks'][idx])):
             #Construct new ETuple for each monomial
@@ -469,8 +484,13 @@ cdef class FvarsHandler:
                 cum += 1
 
             #Construct cyclotomic field coefficient
-            d = self.fvars['coeff_denom'][idx,i]
-            cyc_coeff = self.field([num / d for num in self.fvars['coeff_nums'][idx,i]])
+            d = Integer(self.fvars['coeff_denom'][idx,i])
+            rats = list()
+            for k in range(self.field.degree()):
+                num = Integer(self.fvars['coeff_nums'][idx,i,k])
+                quo = num / d
+                rats.append(quo)
+            cyc_coeff = self.field(rats)
 
             poly_tup.append((exp, cyc_coeff))
         ret = tuple(poly_tup)

@@ -1522,7 +1522,7 @@ cdef class EvaluationAGCodeDecoder_K(Decoder_K):
                 xR = f
                 break
 
-        # apery R
+        # Apéry R
         dR = [0 for i in range(gamma)]
         yR = [None for i in range(gamma)]
         s = 0
@@ -1550,7 +1550,7 @@ cdef class EvaluationAGCodeDecoder_K(Decoder_K):
         # genus of L
         genus = len(gaps)
 
-        # apery Rbar
+        # Apéry Rbar
         dRbar = [0 for i in range(gamma)]
         yRbar = [None for i in range(gamma)]
         s = -G.degree()
@@ -1572,10 +1572,10 @@ cdef class EvaluationAGCodeDecoder_K(Decoder_K):
         if verbose:
             print("gamma:", gamma)
             print("x = {}".format(xR))
-            print("Apery system of R")
+            print("Apéry system of R")
             for i in range(gamma):
                 print(" {}: {}, y{} = {}".format(i, dR[i], i, yR[i]))
-            print("Apery system of Rbar")
+            print("Apéry system of Rbar")
             for i in range(gamma):
                 print(" {}: {}, Y{} = {}".format(i, dRbar[i], i, yRbar[i]))
 
@@ -1772,7 +1772,7 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
             if xR.valuation(Q) == -gamma:
                 break
 
-        # apery R
+        # Apéry R
         dR = [0 for i in range(gamma)]
         yR = [None for i in range(gamma)]
         s = 0
@@ -1800,7 +1800,7 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
         # genus of L
         genus = len(gaps)
 
-        # apery Wbar
+        # Apéry Wbar
         dWbar = [0 for i in range(gamma)]
         wWbar = [None for i in range(gamma)]
         s = -code_length + G.degree() - 2 * genus + 2
@@ -1822,10 +1822,10 @@ cdef class DifferentialAGCodeDecoder_K(Decoder_K):
         if verbose:
             print("gamma:", gamma)
             print("x = {}".format(xR))
-            print("Apery system of R")
+            print("Apéry system of R")
             for i in range(gamma):
                 print(" {}: {}, y{} = {}".format(i, dR[i], i, yR[i]))
-            print("Apery system of Wbar")
+            print("Apéry system of Wbar")
             for i in range(gamma):
                 print(" {}: {}, w{} = {}".format(i, dWbar[i], i, wWbar[i]))
 
@@ -2222,7 +2222,7 @@ cdef class DifferentialAGCodeDecoder_K_extension(Decoder_K_extension):
         sage: circuit.encode(circuit.decode(circuit._lift(rv))) == circuit._lift(cw)  # long time
         True
 
-    TESTS::
+    TESTS:
 
     We save the decoder for later tests::
 

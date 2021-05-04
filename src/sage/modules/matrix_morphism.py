@@ -72,7 +72,7 @@ def is_MatrixMorphism(x):
     return isinstance(x, MatrixMorphism_abstract)
 
 class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
-    def __init__(self, parent, side = 'left'):
+    def __init__(self, parent, side='left'):
         """
         INPUT:
 
@@ -1282,7 +1282,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
        the matrix ``A`` if it is mutable; if ``False``, then this makes
        ``A`` immutable
     """
-    def __init__(self, parent, A, side = 'left', copy_matrix=True):
+    def __init__(self, parent, A, copy_matrix=True, side='left',):
         """
         Initialize ``self``.
 
@@ -1312,7 +1312,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
         self._matrix = A
         MatrixMorphism_abstract.__init__(self, parent, side)
 
-    def matrix(self, side= None):
+    def matrix(self, side=None):
         r"""
         Return a matrix that defines this morphism.
 
@@ -1360,9 +1360,9 @@ class MatrixMorphism(MatrixMorphism_abstract):
             ValueError: side must be 'left' or 'right', not junk
         """
 
-        #if not side in ['left', 'right']:
-        #    raise ValueError("side must be 'left' or 'right', not {0}".format(side))
-        if side == self.side() or side == None:
+        if not side in ['left', 'right']:
+            raise ValueError("side must be 'left' or 'right', not {0}".format(side))
+        if side == self.side() or side is None:
             return self._matrix
         else:
             return self._matrix.transpose()
@@ -1461,5 +1461,5 @@ class MatrixMorphism(MatrixMorphism_abstract):
         """
         rep == "Morphism defined by the matrix\n{0}".format(self.matrix())
         if self._side == 'right':
-            rep=+ " acting by multiplication on the left"
+            rep += " acting by multiplication on the left"
         return rep

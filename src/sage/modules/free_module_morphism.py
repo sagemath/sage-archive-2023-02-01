@@ -159,10 +159,13 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             Codomain: Vector space of dimension 40 over Rational Field
         """
         if self.side() == "right":
-            r = "Free module morphism defined by action on the left of the matrix\n{!r}\nDomain: {}\nCodomain: {}"
+            r = "Free module morphism defined {}by the matrix\n{!r}\nDomain: {}\nCodomain: {}"
         else:
             r = "Free module morphism defined by the matrix\n{!r}\nDomain: {}\nCodomain: {}"
-        return r.format(self.matrix(), self.domain(), self.codomain())
+        act = ""
+        if self.side() == "right":
+            act = "as left-multiplication "
+        return r.format(act, self.matrix(), self.domain(), self.codomain())
 
     def change_ring(self, R):
         """

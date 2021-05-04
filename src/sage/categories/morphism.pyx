@@ -394,11 +394,13 @@ cdef class Morphism(Map):
             if e is not None and isinstance(e, ModuleElement):
                 B = (<ModuleElement>e)._parent._base
                 gens = [(<ModuleElement>e)._lmul_(B.coerce(x)) for x in gens]
-            for e in gens:
-                x = self(e)
-                y = other(e)
+            for g in gens:
+                x = self(g)
+                y = other(g)
                 if x != y:
                     return richcmp_not_equal(x, y, op)
+                if e is None and g:
+                    e = g
             # Check base
             base = domain._base
             if base is None or base is domain:

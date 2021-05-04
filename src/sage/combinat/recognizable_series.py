@@ -102,7 +102,7 @@ class PrefixClosedSet(object):
         A prefix-closed set
 
         This is a convenience method for the
-        creation of prefix-closed sets by specifying an alphabeth.
+        creation of prefix-closed sets by specifying an alphabet.
 
         INPUT:
 

@@ -190,7 +190,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                 # Let us hope that FreeModuleMorphism knows to handle
                 # that case
                 pass
-        return free_module_morphism.FreeModuleMorphism(self, A, side)
+        return free_module_morphism.FreeModuleMorphism(self, A, side=side)
 
     @cached_method
     def zero(self):

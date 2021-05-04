@@ -94,8 +94,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         if not sage.categories.homset.is_Homset(parent):
             raise TypeError("parent must be a Hom space")
-        sage.categories.morphism.Morphism.__init__(self, parent)
         self._side = side
+        sage.categories.morphism.Morphism.__init__(self, parent)
 
     def _richcmp_(self, other, op):
         """
@@ -1360,7 +1360,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
             ValueError: side must be 'left' or 'right', not junk
         """
 
-        if not side in ['left', 'right']:
+        if not side in ['left', 'right', None]:
             raise ValueError("side must be 'left' or 'right', not {0}".format(side))
         if side == self.side() or side is None:
             return self._matrix

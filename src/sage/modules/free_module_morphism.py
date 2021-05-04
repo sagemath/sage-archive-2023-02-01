@@ -62,7 +62,7 @@ def is_FreeModuleMorphism(x):
     return isinstance(x, FreeModuleMorphism)
 
 class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
-    def __init__(self, parent, A):
+    def __init__(self, parent, A, side):
         """
         INPUT:
 
@@ -82,7 +82,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         A = parent._matrix_space()(A)
-        matrix_morphism.MatrixMorphism.__init__(self, parent, A)
+        matrix_morphism.MatrixMorphism.__init__(self, parent, A, side)
 
     def pushforward(self, x):
         """
@@ -158,7 +158,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             Domain: Vector space of dimension 40 over Rational Field
             Codomain: Vector space of dimension 40 over Rational Field
         """
-        r = "Free module morphism defined by the matrix\n{!r}\nDomain: {}\nCodomain: {}"
+        if self.side() == "right":
+            r = "Free module morphism defined by action on the left of the matrix\n{!r}\nDomain: {}\nCodomain: {}"
+        else:
+            r = "Free module morphism defined by the matrix\n{!r}\nDomain: {}\nCodomain: {}"
         return r.format(self.matrix(), self.domain(), self.codomain())
 
     def change_ring(self, R):

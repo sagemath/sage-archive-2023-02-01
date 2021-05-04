@@ -123,7 +123,7 @@ def is_FreeModuleHomspace(x):
     return isinstance(x, FreeModuleHomspace)
 
 class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
-    def __call__(self, A, check=True):
+    def __call__(self, A, **kwds):
         r"""
         INPUT:
 
@@ -173,6 +173,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
 
         """
         from . import free_module_morphism
+        side = kwds.get("side")
         if not is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
@@ -183,11 +184,13 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                 else:
                     v = [C(a) for a in A]
                 A = matrix([C.coordinates(a) for a in v], ncols=C.rank())
+                if side == 'right':
+                    A = A.transpose()
             except TypeError:
                 # Let us hope that FreeModuleMorphism knows to handle
                 # that case
                 pass
-        return free_module_morphism.FreeModuleMorphism(self, A)
+        return free_module_morphism.FreeModuleMorphism(self, A, side)
 
     @cached_method
     def zero(self):

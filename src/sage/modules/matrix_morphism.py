@@ -72,7 +72,7 @@ def is_MatrixMorphism(x):
     return isinstance(x, MatrixMorphism_abstract)
 
 class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
-    def __init__(self, parent):
+    def __init__(self, parent, side = 'left'):
         """
         INPUT:
 
@@ -95,6 +95,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         if not sage.categories.homset.is_Homset(parent):
             raise TypeError("parent must be a Hom space")
         sage.categories.morphism.Morphism.__init__(self, parent)
+        self._side = side
 
     def _richcmp_(self, other, op):
         """
@@ -262,6 +263,9 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             return self.parent().reversed()(B)
         except TypeError:
             raise ZeroDivisionError("matrix morphism not invertible")
+
+    def side(self):
+        return self._side
 
     def inverse(self):
         r"""
@@ -758,13 +762,16 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi.image() == V
             True
         """
-        V = self.matrix().image()
-        D = self.codomain()
-        if not D.is_ambient():
+        if self.side() == 'left':
+            V = self.matrix().row_space()
+        else:
+            V = self.matrix().column_space()
+        C = self.codomain()
+        if not C.is_ambient():
             # Transform V to ambient space
             # This is a matrix multiply:  we take the linear combinations of the basis for
             # D given by the elements of the basis for V.
-            B = V.basis_matrix() * D.basis_matrix()
+            B = V.basis_matrix() * C.basis_matrix()
             V = B.row_module(self.domain().base_ring())
         return self.codomain().submodule(V, check=False)
 
@@ -1275,7 +1282,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
        the matrix ``A`` if it is mutable; if ``False``, then this makes
        ``A`` immutable
     """
-    def __init__(self, parent, A, copy_matrix=True):
+    def __init__(self, parent, A, side = 'left', copy_matrix=True):
         """
         Initialize ``self``.
 
@@ -1303,15 +1310,15 @@ class MatrixMorphism(MatrixMorphism_abstract):
                 A = copy(A)
             A.set_immutable()
         self._matrix = A
-        MatrixMorphism_abstract.__init__(self, parent)
+        MatrixMorphism_abstract.__init__(self, parent, side)
 
-    def matrix(self, side='left'):
+    def matrix(self, side= None):
         r"""
         Return a matrix that defines this morphism.
 
         INPUT:
 
-        - ``side`` -- (default: ``'left'``) the side of the matrix
+        - ``side`` -- (default: ``'None'``) the side of the matrix
           where a vector is placed to effect the morphism (function)
 
         OUTPUT:
@@ -1352,9 +1359,10 @@ class MatrixMorphism(MatrixMorphism_abstract):
             ...
             ValueError: side must be 'left' or 'right', not junk
         """
-        if not side in ['left', 'right']:
-            raise ValueError("side must be 'left' or 'right', not {0}".format(side))
-        if side == 'left':
+
+        #if not side in ['left', 'right']:
+        #    raise ValueError("side must be 'left' or 'right', not {0}".format(side))
+        if side == self.side() or side == None:
             return self._matrix
         else:
             return self._matrix.transpose()
@@ -1378,7 +1386,11 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
         -- Simon King (2010-05)
         """
-        return self._matrix.kernel().dimension() == 0
+        if self.side() == 'left':
+            ker = self._matrix.left_kernel()
+        else:
+            ker = self._matrix.right_kernel()
+        return ker.dimension() == 0
 
     def is_surjective(self):
         r"""
@@ -1447,4 +1459,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
             sage: phi._repr_()
             'Free module morphism defined by the matrix\n[3 0]\n[0 2]\nDomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring\nCodomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring'
         """
-        return "Morphism defined by the matrix\n{0}".format(self.matrix())
+        rep == "Morphism defined by the matrix\n{0}".format(self.matrix())
+        if self._side == 'right':
+            rep=+ " acting by multiplication on the left"
+        return rep

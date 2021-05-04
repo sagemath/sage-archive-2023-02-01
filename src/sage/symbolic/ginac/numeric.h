@@ -51,6 +51,7 @@
 #include "ex.h"
 
 #include <gmp.h>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 #include <iostream>

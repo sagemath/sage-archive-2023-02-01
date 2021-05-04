@@ -131,6 +131,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.graphs.graph import Graph
+from sage.combinat.posets.posets import Poset
 
 
 class PolyhedralComplex(GenericCellComplex):
@@ -227,7 +228,7 @@ class PolyhedralComplex(GenericCellComplex):
         ....:        Polyhedron(vertices=[[2], [0]]) ])
         Traceback (most recent call last):
         ...
-        ValueError: The given cells are not polyhedrain the same ambient space.
+        ValueError: The given cells are not polyhedra in the same ambient space.
     """
     def __init__(self, maximal_cells=None, maximality_check=True,
                  face_to_face_check=False, is_mutable=True, is_immutable=False):
@@ -239,18 +240,8 @@ class PolyhedralComplex(GenericCellComplex):
         EXAMPLES::
 
             sage: PolyhedralComplex([Polyhedron(vertices=[(1, 1), (0, 0)])])
-            Polyhedral complex with 1 maximal cells
+            Polyhedral complex with 1 maximal cell
         """
-        def cells_list_to_cells_dict(cells_list):
-            cells_dict = {}
-            for cell in cells_list:
-                d = cell.dimension()
-                if d in cells_dict:
-                    cells_dict[d].add(cell)
-                else:
-                    cells_dict[d] = set([cell])
-            return cells_dict
-
         if maximal_cells is None:
             cells_dict = {}
         elif isinstance(maximal_cells, (list, tuple)):
@@ -269,7 +260,7 @@ class PolyhedralComplex(GenericCellComplex):
         if not all((is_Polyhedron(cell) and
                    cell.ambient_dim() == self._ambient_dim)
                    for cell in self.maximal_cell_iterator()):
-            raise ValueError("The given cells are not polyhedra" +
+            raise ValueError("The given cells are not polyhedra " +
                              "in the same ambient space.")
         # initialize the attributes
         self._is_convex = None
@@ -341,7 +332,6 @@ class PolyhedralComplex(GenericCellComplex):
                         if (k-1) not in cells:
                             cells[k-1] = set([])
                         cells[k-1].add(p)
-        from sage.combinat.posets.posets import Poset
         self._face_poset = Poset(covers)
         self._cells = cells
         return self._cells
@@ -623,7 +613,8 @@ class PolyhedralComplex(GenericCellComplex):
             True
         """
         d = c.dimension()
-        return (c in self.n_maximal_cells(d))
+        # return (c in self.n_maximal_cells(d)) # use set instead of list
+        return (d in self.maximal_cells()) and (c in self.maximal_cells()[d])
 
     def has_cell(self, c):
         """
@@ -641,7 +632,7 @@ class PolyhedralComplex(GenericCellComplex):
             True
         """
         d = c.dimension()
-        return (c in self.n_cells(d))
+        return (d in self.cells()) and (c in self.cells()[d])
 
     def dimension(self):
         """
@@ -1240,14 +1231,14 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.stratify(2) == pc
             True
             sage: pc.stratify(1)
-            Polyhedral complex with 0 maximal cells
+            Polyhedral complex with 0 maximal cell
 
         Wrong answer due to ``maximality_check=False``::
 
             sage: pc_invalid = PolyhedralComplex([p1, p2, p3],
             ....:              maximality_check=False)
             sage: pc_invalid.stratify(1)
-            Polyhedral complex with 1 maximal cells
+            Polyhedral complex with 1 maximal cell
         """
         n_faces = self.n_maximal_cells(n)
         return PolyhedralComplex(n_faces, maximality_check=False,
@@ -1552,7 +1543,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
             sage: pc_square = pc.product(pc)
             sage: pc_square
-            Polyhedral complex with 1 maximal cells
+            Polyhedral complex with 1 maximal cell
             sage: next(pc_square.maximal_cell_iterator()).vertices()
             (A vertex at (0, 0),
              A vertex at (0, 1),
@@ -1600,7 +1591,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
             sage: pc_join = pc.join(pc)
             sage: pc_join
-            Polyhedral complex with 1 maximal cells
+            Polyhedral complex with 1 maximal cell
             sage: next(pc_join.maximal_cell_iterator()).vertices()
             (A vertex at (0, 0, 0),
              A vertex at (0, 0, 1),
@@ -1661,7 +1652,10 @@ class PolyhedralComplex(GenericCellComplex):
             Polyhedral complex with 3 maximal cells
         """
         num = len(list(self.maximal_cell_iterator()))
-        return "Polyhedral complex with %s maximal cells" % num
+        if num <= 1:
+            return "Polyhedral complex with %s maximal cell" % num
+        else:
+            return "Polyhedral complex with %s maximal cells" % num
 
     def set_immutable(self):
         """
@@ -1721,6 +1715,38 @@ class PolyhedralComplex(GenericCellComplex):
             True
         """
         return self._is_immutable
+
+############################################################
+# Helper functions
+############################################################
+
+
+def cells_list_to_cells_dict(cells_list):
+    r"""
+    Helper function that returns the dictionary whose keys are the dimensions,
+    and the value associated to an integer `d` is the set of `d`-dimensional
+    polyhedra in the given list.
+
+    EXAMPLES::
+
+        sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
+        sage: p2 = Polyhedron(vertices=[(1, 1), (0, 0)])
+        sage: p3 = Polyhedron(vertices=[(0, 0)])
+        sage: p4 = Polyhedron(vertices=[(1, 1)])
+        sage: sage.homology.polyhedral_complex.cells_list_to_cells_dict([p1, p2, p3, p4])
+        {0: {A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
+          A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex},
+         1: {A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices},
+         2: {A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices}}
+    """
+    cells_dict = {}
+    for cell in cells_list:
+        d = cell.dimension()
+        if d in cells_dict:
+            cells_dict[d].add(cell)
+        else:
+            cells_dict[d] = set([cell])
+    return cells_dict
 
 # TODO: mutable complex: add and update stuff incrementally
 # TODO: replace one cell by its triangulation and adapt other cells

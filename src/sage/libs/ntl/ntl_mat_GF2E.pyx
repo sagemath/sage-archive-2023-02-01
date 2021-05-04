@@ -679,20 +679,20 @@ cdef class ntl_mat_GF2E(object):
             sage: ctx = ntl.GF2EContext(k)
             sage: ntl.GF2XHexOutput(1)
             sage: A = ntl.mat_GF2E(ctx, 100,100)
-            sage: A.randomize()
-            sage: len([e for e in A.list() if e!=0])  # rel tol 1e-1
-            9346
+            sage: expected_non_zeros = 100 * 100 * (1 - 1.0/2^4)
+            sage: observed = lambda : len([e for e in A.list() if e!=0])
+            sage: while abs(observed() - expected_non_zeros) > 10:
+            ....:     A.randomize()
 
             sage: A = ntl.mat_GF2E(ctx, 100,100)
             sage: A.randomize(nonzero=True)
             sage: len([e for e in A.list() if e!=0])
             10000
 
-            sage: A = ntl.mat_GF2E(ctx, 100,100)
-            sage: A.randomize(nonzero=True, density=0.1)
-            sage: len([e for e in A.list() if e!=0])  # rel tol 2e-1
-            1000
-
+            sage: expected_non_zeros = 1000
+            sage: while abs(observed() - expected_non_zeros) > 10:
+            ....:     A = ntl.mat_GF2E(ctx, 100,100)
+            ....:     A.randomize(nonzero=True, density=0.1)
         """
         cdef long i,j
         cdef GF2E_c tmp

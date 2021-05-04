@@ -42,29 +42,6 @@ def is_FiniteFieldElement(x):
 
 
 cdef class FiniteRingElement(CommutativeRingElement):
-    cpdef _lmul_(self, Element other):
-        """
-        Return the scalar multiplication of ``self`` by ``other``.
-
-        INPUT:
-
-        - ``other`` -- element of the base ring
-
-        TESTS::
-
-            sage: R = Zmod(17)
-            sage: R.base_ring()
-            Ring of integers modulo 17
-            sage: a = R(13)
-            sage: a._lmul_(a + a)
-            15
-        """
-        try:
-            e = self._parent.coerce(other)
-        except TypeError:
-            return None
-        return self._mul_(e)
-
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
         This function exists to reduce code duplication between finite field

@@ -5254,10 +5254,15 @@ class AlgebraicReal(AlgebraicNumber_base):
         if type(sd) is ANRational and type(od) is ANRational:
             return richcmp(sd._value, od._value, op)
 
+        # case 1: real parts are clearly distinct
+        if not self._value.overlaps(other._value):
+            # NOTE: do not call richcmp here as self._value and other._value
+            # might have different precisions. See
+            # https://trac.sagemath.org/ticket/29220
+            return self._value._richcmp_(other._value, op)
+
         if op == op_EQ or op == op_NE:
             # some cheap and quite common tests where we can decide equality or difference
-            if not self._value.real().overlaps(other._value.real()):
-                return op == op_NE
             if type(sd) is ANRational and not sd._value:
                 return bool(other) == (op == op_NE)
             elif type(od) is ANRational and not od._value:
@@ -5274,13 +5279,6 @@ class AlgebraicReal(AlgebraicNumber_base):
                         return op == op_NE
                 except AttributeError:
                     pass
-
-        # case 1: real parts are clearly distinct
-        if not self._value.overlaps(other._value):
-            # NOTE: do not call richcmp here as self._value and other._value
-            # might have different precisions. See
-            # https://trac.sagemath.org/ticket/29220
-            return self._value._richcmp_(other._value, op)
 
         # case 2: possibly equal values
         # (this case happen a lot when sorting the roots of a real polynomial)

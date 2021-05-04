@@ -199,19 +199,32 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
-            sage: n = 3; sigma = 1.0; m = 1000
+            sage: n = 3; sigma = 1.0
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^n, sigma)
             sage: f = D.f
             sage: c = D._normalisation_factor_zz(); c
             15.528...
 
-            sage: l = [D() for _ in range(m)]
-            sage: v = vector(ZZ, n, (0, 0, 0))
-            sage: ZZ(round(m*f(v)/c))
-            64
-            sage: l.count(v)  # abs tol 30
-            64
+            sage: from collections import defaultdict
+            sage: counter = defaultdict(Integer)
+            sage: m = 0
+            sage: def add_samples(i):
+            ....:     global counter, m
+            ....:     for _ in range(i):
+            ....:         counter[D()] += 1
+            ....:         m += 1
 
+            sage: v = vector(ZZ, n, (0, 0, 0))
+            sage: v.set_immutable()
+            sage: while v not in counter: add_samples(1000)
+
+            sage: while abs(m*f(v)*1.0/c/counter[v] - 1.0) >= 0.1: add_samples(1000)
+
+            sage: v = vector(ZZ, n, (-1, 2, 3))
+            sage: v.set_immutable()
+            sage: while v not in counter: add_samples(1000)
+
+            sage: while abs(m*f(v)*1.0/c/counter[v] - 1.0) >= 0.2: add_samples(1000)  # long time
         """
         if self.B != identity_matrix(ZZ, self.B.nrows()):
             raise NotImplementedError("This function is only implemented when B is an identity matrix.")
@@ -242,24 +255,30 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
         EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
-            sage: n = 2; sigma = 3.0; m = 5000
+            sage: n = 2; sigma = 3.0
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^n, sigma)
             sage: f = D.f
             sage: c = D._normalisation_factor_zz(); c
             56.2162803067524
 
-            sage: l = [D() for _ in range(m)]
-            sage: v = vector(ZZ, n, (-3,-3))
-            sage: ZZ(round(m*f(v)/c))
-            33
-            sage: l.count(v)  # abs tol 30
-            33
+            sage: from collections import defaultdict
+            sage: counter = defaultdict(Integer)
+            sage: m = 0
+            sage: def add_samples(i):
+            ....:     global counter, m
+            ....:     for _ in range(i):
+            ....:         counter[D()] += 1
+            ....:         m += 1
 
-            sage: target = vector(ZZ, n, (0,0))
-            sage: ZZ(round(m*f(target)/c))
-            89
-            sage: l.count(target)  # abs tol 30
-            89
+            sage: v = vector(ZZ, n, (-3, -3))
+            sage: v.set_immutable()
+            sage: while v not in counter: add_samples(1000)
+            sage: while abs(m*f(v)*1.0/c/counter[v] - 1.0) >= 0.1: add_samples(1000)
+
+            sage: v = vector(ZZ, n, (0, 0))
+            sage: v.set_immutable()
+            sage: while v not in counter: add_samples(1000)
+            sage: while abs(m*f(v)*1.0/c/counter[v] - 1.0) >= 0.1: add_samples(1000)
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
             sage: qf = QuadraticForm(matrix(3, [2, 1, 1,  1, 2, 1,  1, 1, 2]))

@@ -104,23 +104,31 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         [0.5000, 0.5000]
 
     We obtain a sample sequence with 10 entries in it, and compute the
-    logarithm of the probability of obtaining his sequence, given the
+    logarithm of the probability of obtaining this sequence, given the
     model::
 
-        sage: obs = m.sample(10); obs  # random
-        [-1.6835, 0.0635, -2.1688, 0.3043, -0.3188, -0.7835, 1.0398, -1.3558, 1.0882, 0.4050]
+        sage: obs = m.sample(5); obs  # random
+        [-1.6835, 0.0635, -2.1688, 0.3043, -0.3188]
         sage: log_likelihood = m.log_likelihood(obs)
-        sage: -40 < log_likelihood < -10
-        True
+        sage: counter = 0
+        sage: n = 0
+        sage: def add_samples(i):
+        ....:     global counter, n
+        ....:     for _ in range(i):
+        ....:         n += 1
+        ....:         obs2 = m.sample(5)
+        ....:         if all(abs(obs2[i] - obs[i]) < 0.25 for i in range(5)):
+        ....:             counter += 1
+
+        sage: add_samples(10000)
+        sage: while abs(log_likelihood - log(counter*1.0/n/0.5^5)) < 0.1:
+        ....:     add_samples(10000)
 
     We compute the Viterbi path, and probability that the given path
     of states produced obs::
 
-        sage: l, p = m.viterbi(obs)
-        sage: -40 < p < -10
-        True
-        sage: all(x in [0, 1] for x in l)
-        True
+        sage: m.viterbi(obs)  # random
+        ([1, 0, 1, 0, 1], -8.714092684611794)
 
     We use the Baum-Welch iterative algorithm to find another model
     for which our observation sequence is more likely::
@@ -357,9 +365,17 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
         Verify numerically that the starting state is 0 with probability about 0.1::
 
-            sage: v = [m.generate_sequence(1)[1][0] for i in range(10^5)]
-            sage: 1.0 * v.count(int(0)) / len(v)  # abs tol 1e-2
-            0.1
+            sage: counter = 0
+            sage: n = 0
+            sage: def add_samples(i):
+            ....:     global counter, n
+            ....:     for i in range(i):
+            ....:         n += 1
+            ....:         if m.generate_sequence(1)[1][0] == 0:
+            ....:             counter += 1
+
+            sage: add_samples(10^5)
+            sage: while abs(counter*1.0 / n - 0.1) > 0.01: add_samples(10^5)
 
         Example in which the starting state is 0 (see :trac:`11452`)::
 

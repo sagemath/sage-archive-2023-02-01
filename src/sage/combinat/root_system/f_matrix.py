@@ -1628,7 +1628,7 @@ class FMatrix():
                 eqns = chunks
             else:
                 eqns = [eqns]
-            eqns = self._map_triv_reduce('update_reduce',eqns,worker_pool=self.pool)
+            eqns = self._map_triv_reduce('update_reduce',eqns,worker_pool=self.pool,mp_thresh=0)
             eqns.sort(key=poly_tup_sortkey)
             if verbose:
                 print("Elimination epoch completed... {} eqns remain in ideal basis".format(len(eqns)))

@@ -459,11 +459,11 @@ cdef class FvarsHandler:
         if not sextuple in self.sext_to_idx:
             raise KeyError('Invalid sextuple {}'.format(sextuple))
         cdef int idx = self.sext_to_idx[sextuple]
-        if idx in self.obj_cache:
-            if self.fvars['modified'][idx]:
-                del self.obj_cache[idx]
-            else:
-                return self.obj_cache[idx]
+        # if idx in self.obj_cache:
+        #     if self.fvars['modified'][idx]:
+        #         del self.obj_cache[idx]
+        #     else:
+        #         return self.obj_cache[idx]
         cdef ETuple e = ETuple({}, self.ngens)
         cdef unsigned int cum, i, j, k, nnz
         cdef Integer d, num
@@ -494,7 +494,7 @@ cdef class FvarsHandler:
 
             poly_tup.append((exp, cyc_coeff))
         ret = tuple(poly_tup)
-        self.obj_cache[idx] = ret
+        # self.obj_cache[idx] = ret
         return ret
 
     @cython.nonecheck(False)

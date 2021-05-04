@@ -96,6 +96,8 @@ List of PolyhedralComplex methods
     :delim: |
 
     :meth:`~PolyhedralComplex.set_immutable` | Make this polyhedral complex immutable.
+    :meth:`~PolyhedralComplex.add_cell` | Add a cell to this polyhedral complex.
+    :meth:`~PolyhedralComplex.remove_cell` | Remove a cell from this polyhedral complex.
 
 **Miscellaneous**
 
@@ -1715,6 +1717,143 @@ class PolyhedralComplex(GenericCellComplex):
             True
         """
         return self._is_immutable
+
+    def add_cell(self, cell):
+        """
+        Add a cell to this polyhedral complex.
+
+        :param cell: a polyhedron
+
+        This *changes* the polyhedral complex, by adding a new cell and all
+        of its subfaces.
+
+        EXAMPLES:
+
+        If you add a cell which is already present, there is no effect::
+
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[(1, 2), (0, 2)])])
+            sage: pc
+            Polyhedral complex with 1 maximal cell
+            sage: pc.add_cell(Polyhedron(vertices=[(1, 2)]))
+            sage: pc
+            Polyhedral complex with 1 maximal cell
+            sage: pc.dimension()
+            1
+
+        Add a cell and check that dimension is correctly updated::
+
+            sage: pc.add_cell(Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)]))
+            sage: pc.dimension()
+            2
+            sage: pc.maximal_cells()
+            {2: {A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices}}
+            sage: pc.is_convex()
+            True
+
+        Add another cell and check that the properties are correctly updated::
+
+            sage: pc.add_cell(Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)]))
+            sage: pc
+            Polyhedral complex with 2 maximal cells
+            sage: len(pc._cells[1])
+            5
+            sage: pc._face_poset
+            Finite poset containing 11 elements
+            sage: pc._is_convex
+            True
+            sage: pc._polyhedron.vertices_list()
+            [[0, 0], [0, 2], [1, 1], [1, 2]]
+
+        Add a ray which makes the complex non convex::
+
+            sage: pc.add_cell(Polyhedron(rays=[(1, 0)]))
+            sage: pc
+            Polyhedral complex with 3 maximal cells
+            sage: len(pc._cells[1])
+            6
+            sage: (pc._is_convex is False) and (pc._polyhedron is None)
+            True
+
+        TESTS::
+
+            sage: pc.add_cell(Polyhedron(vertices=[[0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The given cell is not a polyhedron in the same ambient space.
+            sage: pc.add_cell(Polyhedron(vertices=[(1, 1), (0, 0), (2, 0)]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The cell is not face-to-face with complex
+            sage: pc.set_immutable()
+            sage: pc.add_cell(Polyhedron(vertices=[(-1, -1)]))
+            Traceback (most recent call last):
+            ...
+            ValueError: This polyhedral complex is not mutable
+        """
+        if self._is_immutable:
+            raise ValueError("This polyhedral complex is not mutable")
+        if not is_Polyhedron(cell) or cell.ambient_dim() != self._ambient_dim:
+            raise ValueError("The given cell is not a polyhedron " +
+                             "in the same ambient space.")
+        # if cell is already in self, do nothing.
+        if self.has_cell(cell):
+            return
+        # update cells and face poset
+        cells = self.cells()
+        covers = {p: self.face_poset().upper_covers(p)
+                  for p in self.cell_iterator()}
+        d = cell.dimension()
+        d_cells = [cell]
+        if d not in cells:
+            cells[d] = set(d_cells)
+        else:
+            cells[d].add(cell)
+        covers[cell] = []
+        while d > 0:
+            d = d - 1
+            new_facets = []
+            for c in d_cells:
+                for facet in c.facets():
+                    p = facet.as_polyhedron()
+                    if d not in cells:
+                        cells[d] = set([])
+                    if p not in cells[d]:
+                        cells[d].add(p)
+                        covers[p] = [c]
+                        new_facets.append(p)
+                    else:
+                        covers[p].append(c)
+            d_cells = new_facets
+        self._face_poset = poset = Poset(covers)
+        self._cells = cells
+        # check face-to-face between cell and previous maximal cells
+        for p in self.maximal_cell_iterator():
+            r = p.intersection(cell)
+            if not (r.is_empty() or (r in poset) and
+                    poset.is_gequal(p, r) and poset.is_gequal(cell, r)):
+                raise ValueError("The cell is not face-to-face with complex")
+        # update dim and maximal cells
+        d = cell.dimension()
+        if d > self._dim:
+            self._dim = d
+        maximal_cells = poset.maximal_elements()    # a list
+        self._maximal_cells = cells_list_to_cells_dict(maximal_cells)
+        # update convexity if self was known to be convex, reset otherwise.
+        if self._is_convex:
+            try:
+                new_complex = PolyhedralComplex([self._polyhedron, cell],
+                                                face_to_face_check=True)
+            except ValueError:
+                self._is_convex = False
+                self._polyhedron = None
+            else:
+                self._is_convex = new_complex.is_convex()
+                self._polyhedron = new_complex._polyhedron
+        else:
+            self._is_convex = None
+            self._polyhedron = None
+        # reset cached attribute
+        self._maximal_cells_sorted = None    # needed for hash
 
 ############################################################
 # Helper functions

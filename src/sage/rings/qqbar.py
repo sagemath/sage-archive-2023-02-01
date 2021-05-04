@@ -4702,18 +4702,25 @@ class AlgebraicNumber(AlgebraicNumber_base):
         if self is other:
             return rich_to_bool(op, 0)
 
-        # note: we can assume that self is not other here
+        # case 0: rationals
         sd = self._descr
         od = other._descr
-
         if isinstance(sd, ANRational) and isinstance(od, ANRational):
             return richcmp(sd._value, od._value, op)
+
+        # case 1: real parts are clearly distinct
+        ri1 = self._value.real()
+        ri2 = other._value.real()
+        if not ri1.overlaps(ri2):
+            # NOTE: do not call richcmp here as self._value and other._value
+            # might have different precisions. See
+            # https://trac.sagemath.org/ticket/29220
+            return ri1._richcmp_(ri2, op)
 
         if op == op_EQ or op == op_NE:
             # some cheap and quite common tests where we can decide
             # equality or difference
-            if not (self._value.real().overlaps(other._value.real()) and
-                    self._value.imag().overlaps(other._value.imag())):
+            if not self._value.imag().overlaps(other._value.imag()):
                 return op == op_NE
             if isinstance(sd, ANRational) and not sd._value:
                 return bool(other) == (op == op_NE)
@@ -4723,21 +4730,6 @@ class AlgebraicNumber(AlgebraicNumber_base):
                   isinstance(od, ANExtensionElement) and
                   sd._generator is od._generator):
                 return sd._value == od._value if op == op_EQ else sd._value != od._value
-
-        # case 0: real parts are clearly distinct
-        ri1 = self._value.real()
-        ri2 = other._value.real()
-        if not ri1.overlaps(ri2):
-            # NOTE: do not call richcmp here as self._value and other._value
-            # might have different precisions. See
-            # https://trac.sagemath.org/ticket/29220
-            return ri1._richcmp_(ri2, op)
-
-        # case 1: rationals
-        sd = self._descr
-        od = other._descr
-        if isinstance(sd, ANRational) and isinstance(od, ANRational):
-            return richcmp(sd._value, od._value, op)
 
         # case 2: possibly equal or conjugate values
         # (this case happen a lot when sorting the roots of a real polynomial)

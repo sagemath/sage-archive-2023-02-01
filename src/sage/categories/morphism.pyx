@@ -43,6 +43,7 @@ from cpython.object cimport *
 
 from sage.misc.constant_function import ConstantFunction
 
+from sage.structure.coerce cimport coercion_model
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.structure.parent cimport Parent
@@ -393,7 +394,7 @@ cdef class Morphism(Map):
             # multiplying it with the gens of the scalar ring.
             if e is not None and isinstance(e, ModuleElement):
                 B = (<ModuleElement>e)._parent._base
-                gens = [(<ModuleElement>e)._lmul_(B.coerce(x)) for x in gens]
+                gens = [coercion_model.bin_op(e, B.coerce(x), operator.mul) for x in gens]
             for g in gens:
                 x = self(g)
                 y = other(g)

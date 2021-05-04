@@ -5224,8 +5224,8 @@ class AlgebraicReal(AlgebraicNumber_base):
 
         Check for trivial equality with identical elements::
 
-            sage: x1 = AA(2^(1/100))
-            sage: x2 = AA(2^(1/100))
+            sage: x1 = AA(2^(1/50))
+            sage: x2 = AA(2^(1/50))
             sage: y = x1 - x2
             sage: y == y
             True
@@ -5250,6 +5250,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         sd = self._descr
         od = other._descr
 
+        # case 0: rationals
         if type(sd) is ANRational and type(od) is ANRational:
             return richcmp(sd._value, od._value, op)
 
@@ -5274,18 +5275,12 @@ class AlgebraicReal(AlgebraicNumber_base):
                 except AttributeError:
                     pass
 
-        # case 0: real parts are clearly distinct
+        # case 1: real parts are clearly distinct
         if not self._value.overlaps(other._value):
             # NOTE: do not call richcmp here as self._value and other._value
             # might have different precisions. See
             # https://trac.sagemath.org/ticket/29220
             return self._value._richcmp_(other._value, op)
-
-        # case 1: rationals
-        sd = self._descr
-        od = other._descr
-        if type(sd) is ANRational and type(od) is ANRational:
-            return richcmp(sd._value, od._value, op)
 
         # case 2: possibly equal values
         # (this case happen a lot when sorting the roots of a real polynomial)
@@ -5586,10 +5581,28 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: (a*b - b*a).sign()
             0
 
-            sage: x1 = AA(2^(1/100))
-            sage: x2 = AA(2^(1/100))
+            sage: a = AA(sqrt(1/2))
+            sage: b = AA(-sqrt(1/2))
+            sage: (a + b).sign()
+            0
+
+        TESTS:
+
+        We avoid calling :meth:`exactify()` for trivial differences. The
+        following example will take a long time (more than 5 seconds)
+        when calling ``y.exactify()``::
+
+            sage: x1 = AA(2^(1/50))
+            sage: x2 = AA(2^(1/50))
             sage: y = x1 - x2
             sage: y.sign()
+            0
+
+        Simplify to rationals for binary operations when computing the sign::
+
+            sage: a = AA(2^(1/60))
+            sage: b = a - (a + 1)
+            sage: (b + 1).sign()
             0
         """
         if not self._value.contains_zero():
@@ -5659,7 +5672,9 @@ class AlgebraicReal(AlgebraicNumber_base):
                 return ret.sign()
 
             if sd._left.minpoly() == sd._right.minpoly():
-                c = cmp_elements_with_same_minpoly(sd._left, sd._right, sd._left.minpoly())
+                # Negating the element does not change the minpoly
+                right = sd._right if sd._op is operator.sub else -sd._right
+                c = cmp_elements_with_same_minpoly(sd._left, right, sd._left.minpoly())
                 if c == 0:
                     self._set_descr(ANRational(QQ.zero()))
                     return 0

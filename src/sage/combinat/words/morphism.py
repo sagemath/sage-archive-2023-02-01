@@ -3416,6 +3416,9 @@ class WordMorphism(SageObject):
             sage: m = WordMorphism('a->Cab,b->1c1,c->E2bd5,d->BbaA,5->6,6->7,7->8,8->9,9->5,1->2,2->1,A->B,B->C,C->D,D->E,E->')
             sage: sorted(m.infinite_repetitions_bounded())
             [word: 1, word: 1519181716, word: 2, word: 2529282726]
+
+            sage: WordMorphism('a->b,b->b', codomain=FiniteWords('ab')).infinite_repetitions()
+            set()
         """
         def impl():
             U = {}
@@ -3444,7 +3447,9 @@ class WordMorphism(SageObject):
         if w is None:
             w = self._morph
         f = self.restrict_domain(self.reach(w))
+        f._codomain = f._domain
         g, _, k, _ = f.simplify_injective()
+        g._codomain = g._domain
         unbounded = set(g.growing_letters())
         gb = g.restrict_domain(set(g._morph) - unbounded)
 
@@ -3498,7 +3503,9 @@ class WordMorphism(SageObject):
         if w is None:
             w = self._morph
         f = self.restrict_domain(self.reach(w))
+        f._codomain = f._domain
         g, _, k, _ = f.simplify_injective()
+        g._codomain = g._domain
         unbounded = set(g.growing_letters())
 
         result = set()

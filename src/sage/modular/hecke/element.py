@@ -136,7 +136,8 @@ class HeckeModuleElement(ModuleElement):
             sage: type(vector(v, GF(2)))
             <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         """
-        if R is None: return self.__element
+        if R is None:
+            return self.__element
         return self.__element.change_ring(R)
 
     def _richcmp_(self, other, op):

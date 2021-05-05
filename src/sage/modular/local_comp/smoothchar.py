@@ -46,7 +46,6 @@ from sage.structure.parent_base import ParentWithBase
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.rings.all import QQ, ZZ, Zmod, NumberField
-from sage.rings.ring import is_Ring
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.misc_c import prod

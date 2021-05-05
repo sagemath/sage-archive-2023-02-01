@@ -2279,7 +2279,8 @@ class Newform(ModularForm_abstract):
                 l = ZZ(1)
                 while len(chis) > t:
                     l = l.next_prime()
-                    if l == p: continue
+                    if l == p:
+                        continue
                     chis = [chi for chi in chis if g[l] == chi(l) * self[l] ]
                     if l > 10000 or len(chis) == 0:
                         raise RuntimeError("bug finding minimal twist")

@@ -695,7 +695,8 @@ class TypeSpace(SageObject):
             i = 0
             while (d * a**i) % f != 1:
                 i += 1
-                if i > f: raise ArithmeticError
+                if i > f:
+                    raise ArithmeticError
             return self._rho_s([a**i*g[0], g[1], a**i*g[2], g[3]]) * self._amat**(-i)
 
         # det(g) is not a unit

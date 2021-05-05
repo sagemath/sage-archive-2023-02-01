@@ -95,7 +95,7 @@ REFERENCES:
              graphs and isoperimetric inequalities*, The Annals of Probability
              32 (2004), no.  3A, 1727-1745.
 
-.. [ASV2020] Federico Ardila, Mariel Supina, and Andr\ ́{e}s R. Vindas-Mel\ ́{e}ndez, 
+.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez, 
          *The Equivariant Ehrhart Theory of the Permutahedron*,
          Proc. Amer. Math. Soc. Volume 148, Number 12, 2020, pp. 5091--5107.
 

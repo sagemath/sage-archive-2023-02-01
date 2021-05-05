@@ -1143,7 +1143,8 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             [1, 2, 0]
         """
         x = self.number_field().coerce(x)
-        if x == 0: raise ValueError( "cannot evaluate at zero" )
+        if x == 0:
+            raise ValueError( "cannot evaluate at zero" )
         if gens is None:
             n1 = x.valuation(self.ideal(1))
             x1 = x / self.unit_gens(0)[-1] ** n1
@@ -1155,7 +1156,7 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
             P = self.ideal(1)
             I = self.ideal(level)
             gens = [self.number_field().coerce(g) for g in gens]
-            i = min([i for i in range(len(gens)) if gens[i].valuation(P) == 1]) # lazy!
+            i = min(i for i in range(len(gens)) if gens[i].valuation(P) == 1) # lazy!
             pi = gens[i]
             genvals = []
             genunits = []
@@ -1231,24 +1232,25 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
         A = ZZ**d
         R = [A.gen(i)*es[i] for i in range(d)]
         r = I.smallest_integer()
-        S = []
-        for s in Zmod(r).unit_gens() + (p,):
-            S.append( self.discrete_log(n, ZZ(s)) )
+        S = [self.discrete_log(n, ZZ(s)) for s in Zmod(r).unit_gens() + (p,)]
         Q = A / A.span(R + S)
+        t = None
         qgs = []
         for v in Q.gens():
             # choose a "nice" representative
             vv = v.lift()
-            if vv[-1] < 0: vv *= -1
+            if vv[-1] < 0:
+                vv *= -1
             while vv[-1] not in [0, 1]:
-                t = self.discrete_log(n, p)
+                if t is None:
+                    t = self.discrete_log(n, p)
                 vv = [vv[i] - t[i] for i in range(d)]
             assert (Q(A(vv)) == v or Q(A(vv)) == -v)
-            qgs.append( I.reduce(prod([gs[i] ** (vv[i] % es[i]) for i in range(d-1)])) * gs[-1]**vv[-1] )
+            qgs.append( I.reduce(prod(gs[i] ** (vv[i] % es[i]) for i in range(d-1))) * gs[-1]**vv[-1] )
 
         if len(qgs) == 2:
-            x,y = qgs
-            return [x*y, y]
+            x, y = qgs
+            return [x * y, y]
         else:
             return qgs
 
@@ -1273,7 +1275,7 @@ class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
         """
         p = self.prime()
         r = ZZ(x.norm().valuation(p) / 2)
-        y = x / p ** r
+        y = x / p**r
         if p==2 and y.trace().valuation(2) < 1:
             raise ValueError("%s not congruent mod %s to an elt of Qp" % (x, self.ideal(level)))
         Y = (y.trace() / 2) % self.ideal(level).smallest_integer()
@@ -1643,7 +1645,8 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupQuadratic):
             sage: TestSuite(G3).run()
         """
         prime = ZZ(prime)
-        if prime == 2: raise NotImplementedError( "Wildly ramified extensions not supported" )
+        if prime == 2:
+            raise NotImplementedError( "Wildly ramified extensions not supported" )
         SmoothCharacterGroupGeneric.__init__(self, prime, base_ring)
         self._name = names
         if flag not in [0, 1]:
@@ -1651,14 +1654,15 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupQuadratic):
         self._flag = flag
 
         # Find an integer a such that sqrt(a*p) generates the right field and ZZ(sqrt(a*p)) is integrally closed
-        for a in range(4*prime):
-            if (not a%prime) or (not ZZ(a).is_squarefree()) or ( (a*prime) % 4 == 1):
+        for a in range(4 * prime):
+            if (not a % prime) or (not ZZ(a).is_squarefree()) or ((a * prime) % 4 == 1):
                 continue
             if (flag == 0 and Zmod(prime)(a).is_square()) or \
                 (flag == 1 and not Zmod(prime)(a).is_square()):
-                self._unif_sqr = a*prime
+                self._unif_sqr = a * prime
                 break
-        else: raise ValueError("Can't get here")
+        else:
+            raise ValueError("Can't get here")
 
     def change_ring(self, ring):
         r"""

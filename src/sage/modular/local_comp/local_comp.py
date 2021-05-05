@@ -486,7 +486,7 @@ class PrimitivePrincipalSeries(PrincipalSeries):
             ]
         """
         G = SmoothCharacterGroupQp(self.prime(), self.coefficient_field())
-        t = ZZ( (self.newform().weight() - 2 - self.twist_factor()) / 2 )
+        t = ZZ((self.newform().weight() - 2 - self.twist_factor()) / 2)
         chi1 = G.character(0, [self.newform()[self.prime()]]) * G.norm_character()**t
         chi2 = G.character(0, [self.prime()]) * self.central_character() / chi1
         return Sequence([chi1, chi2], cr=True, universe=G)
@@ -795,8 +795,10 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                             else:
                                 verbose("  Trace identity check works for both", level=1)
 
-                if B_fail and not A_fail: chi1, chi2 = chisA
-                elif A_fail and not B_fail: chi1, chi2 = chisB
+                if B_fail and not A_fail:
+                    chi1, chi2 = chisA
+                elif A_fail and not B_fail:
+                    chi1, chi2 = chisB
                 else:
                     raise ValueError("Something went wrong: can't identify the characters")
 
@@ -817,20 +819,20 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
             G0 = SmoothCharacterGroupRamifiedQuadratic(p, 0, self.coefficient_field())
             G1 = SmoothCharacterGroupRamifiedQuadratic(p, 1, self.coefficient_field())
             q0 = G0.quotient_gens(n)
-            assert all([x.valuation(G0.ideal(1)) == 1 for x in q0])
+            assert all(x.valuation(G0.ideal(1)) == 1 for x in q0)
             q1 = G1.quotient_gens(n)
-            assert all([x.valuation(G1.ideal(1)) == 1 for x in q1])
+            assert all(x.valuation(G1.ideal(1)) == 1 for x in q1)
 
             t0 = [(~T.rho(q.matrix().list())).trace() for q in q0]
             t1 = [(~T.rho(q.matrix().list())).trace() for q in q1]
 
-            if all([x == 0 for x in t0 + t1]):
+            if all(x == 0 for x in t0 + t1):
                 # Can't happen?
                 raise NotImplementedError( "Can't identify ramified quadratic extension -- all traces zero" )
-            elif all([x ==0 for x in t1]):
-                G,qs,ts = G0, q0, t0
-            elif all([x==0 for x in t0]):
-                G,qs,ts = G1, q1, t1
+            elif all(x == 0 for x in t1):
+                G, qs, ts = G0, q0, t0
+            elif all(x == 0 for x in t0):
+                G, qs, ts = G1, q1, t1
             else:
                 # At least one of the traces is *always* 0, since the type
                 # space has to be isomorphic to its twist by the (ramified
@@ -890,7 +892,8 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                     B_fail = 1
 
                 for u in G.ideal(n).invertible_residues():
-                    if A_fail or B_fail: break
+                    if A_fail or B_fail:
+                        break
                     x = q*u
                     verbose("testing x = %s" % x, level=1)
                     ti = (~T.rho(x.matrix().list())).trace() * p**ZZ((k-2+self.twist_factor())/2)
@@ -900,8 +903,10 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                     if chisB[0](x) + chisB[1](x) != ti:
                         B_fail = 1
 
-                if B_fail and not A_fail: chi1, chi2 = chisA
-                elif A_fail and not B_fail: chi1, chi2 = chisB
+                if B_fail and not A_fail:
+                    chi1, chi2 = chisA
+                elif A_fail and not B_fail:
+                    chi1, chi2 = chisB
                 else:
                     raise ValueError("Something went wrong: can't identify the characters")
 

@@ -317,7 +317,7 @@ class TypeSpace(SageObject):
         n = self.tame_level()
         chi = self.form().character()
         tame_H = [i for i in chi.kernel() if (i % p**r) == 1]
-        wild_H = [crt(x, 1, p**r, n) for x in range(p**r) if x% (p**d) == 1]
+        wild_H = [crt(x, 1, p**r, n) for x in range(p**r) if x % (p**d) == 1]
         return GammaH(n * p**r, tame_H + wild_H)
 
     ###############################################################################
@@ -688,7 +688,9 @@ class TypeSpace(SageObject):
                 a = self._a
 
             if not (f % 8):
-                if d % 4 == 3: return self.rho([-g[0], g[1], -g[2], g[3]]) * self.t_space.star_involution().matrix().transpose()
+                if d % 4 == 3:
+                    return (self.rho([-g[0], g[1], -g[2], g[3]]) *
+                            self.t_space.star_involution().matrix().transpose())
 
             i = 0
             while (d * a**i) % f != 1:
@@ -727,6 +729,7 @@ class TypeSpace(SageObject):
         """
         p = self.prime()
         k = self.form().weight()
-        return self.t_space.atkin_lehner_operator(p).matrix().transpose()  \
-            * p ** ( -(k-2)*self.u() ) \
-            * self.t_space.diamond_bracket_matrix( crt(1, p**self.u(), p**self.u(), self.tame_level()) ).transpose()
+        return (self.t_space.atkin_lehner_operator(p).matrix().transpose()
+                * p ** ( -(k-2)*self.u() )
+                * self.t_space.diamond_bracket_matrix(
+                    crt(1, p**self.u(), p**self.u(), self.tame_level())).transpose())

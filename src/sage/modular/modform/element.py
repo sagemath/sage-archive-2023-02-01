@@ -2083,7 +2083,7 @@ class Newform(ModularForm_abstract):
         - ``level`` -- (optional) the level `N` of the twisted form. If `N` is
           not given, the algorithm tries to compute `N` using [AL1978]_,
           Theorem 3.1; if this is not possible, it returns an error. If `N` is
-          given but incorrect, i.e.~the twisted form does not have level `N`,
+          given but incorrect, i.e. the twisted form does not have level `N`,
           then this function will attempt to detect this and return an error,
           but it may sometimes return an incorrect answer (a newform of level
           `N` whose first few coefficients agree with those of `f \otimes
@@ -2229,7 +2229,7 @@ class Newform(ModularForm_abstract):
         if not (p.is_prime() and p.divides(N)):
             raise ValueError("p should be prime factor of N")
 
-        if (r==c) or (r==1 and c==0):
+        if (r == c) or (r == 1 and c == 0):
             # easy cases
             return (self, DirichletGroup(1, self.base_ring())(1))
         elif r < 2*c:
@@ -2238,7 +2238,8 @@ class Newform(ModularForm_abstract):
             # twist is minimal.
             candidates = []
             for chi in DirichletGroup(p**(r-c), self.base_ring()):
-                if not chi.is_primitive(): continue
+                if not chi.is_primitive():
+                    continue
                 try:
                     g = self.twist(chi, level=N//p**(r-c))
                     candidates.append( (g, chi) )
@@ -2248,7 +2249,8 @@ class Newform(ModularForm_abstract):
             l = ZZ(1)
             while len(candidates) > 1:
                 l = l.next_prime()
-                if l==p: continue
+                if l == p:
+                    continue
                 candidates = [(h, chi) for (h, chi) in candidates if h[l] == chi(l)*self[l] ]
                 if l > 10000 or len(candidates) == 0:
                     raise RuntimeError("bug finding minimal twist")

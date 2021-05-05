@@ -1207,7 +1207,15 @@ class ParallelogramPolyomino(ClonableList,
             sage: ascii_art(pp.reflect())
             ***
               *
+
+        TESTS::
+
+           sage: pp = ParallelogramPolyomino([[1], [1]])
+           sage: pp.reflect()
+           [[1], [1]]
         """
+        if self.size() == 1:
+            return self
         a, b = self
         return ParallelogramPolyomino([[1-v for v in b], [1-v for v in a]])
 

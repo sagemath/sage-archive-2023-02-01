@@ -63,7 +63,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.structure.sequence import Sequence
 import sage.rings.number_field.number_field_base as number_field_base
 from sage.misc.fast_methods import Singleton
-
+from sage.misc.superseded import deprecated_function_alias
 
 class RationalField(Singleton, number_field_base.NumberField):
     r"""
@@ -1100,7 +1100,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         return Infinity
 
     def polynomial(self):
-        r"""Return a defining polynomial of `\QQ`, as for other number fields.
+        r"""
+        Return a defining polynomial of `\QQ`, as for other number fields.
 
         This is is also aliased to :meth:`self.defining_polynomial()`
         and :meth:`self.absolute_polynomial()`.
@@ -1325,7 +1326,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             return gens
 
     # For backwards compatibility:
-    selmer_group = selmer_generators
+    selmer_group = deprecated_function_alias(31345, selmer_generators)
 
     def selmer_group_iterator(self, S, m, proof=True):
         r"""

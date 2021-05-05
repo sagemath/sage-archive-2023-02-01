@@ -125,6 +125,7 @@ from sage.rings.finite_rings.integer_mod import mod
 
 from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.misc.misc_c import prod
 from sage.rings.all import Infinity
@@ -5009,7 +5010,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             return gens
 
     # For backwards compatibility:
-    selmer_group = selmer_generators
+    selmer_group = deprecated_function_alias(31345, selmer_generators)
 
     def selmer_group_iterator(self, S, m, proof=True):
         r"""
@@ -11776,7 +11777,8 @@ class NumberField_quadratic(NumberField_absolute):
         return True
 
     def class_number(self, proof=None):
-        r"""Return the size of the class group of self.
+        r"""
+        Return the size of the class group of self.
 
         INPUT:
 

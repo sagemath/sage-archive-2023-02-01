@@ -392,9 +392,13 @@ cdef class Morphism(Map):
             # If so, we see the base as a ring of scalars and create new
             # gens by picking an element of the initial domain (e) and
             # multiplying it with the gens of the scalar ring.
+            #
+            # Note that this way of comparing morphisms tacitly assumes
+            # cancellation property of the scalar multiplication of the domain
+            # of the morphisms. See Trac #28617.
             if e is not None and isinstance(e, ModuleElement):
                 B = (<ModuleElement>e)._parent._base
-                gens = [coercion_model.bin_op(e, B.coerce(x), operator.mul) for x in gens]
+                gens = [e * B.coerce(x) for x in gens]
             for g in gens:
                 x = self(g)
                 y = other(g)

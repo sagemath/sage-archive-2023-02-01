@@ -714,7 +714,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             elif operands[0].operator() == function:
                 return [operands[1], operands[0]]
             else:
-                raise ValueError('%s does not contain %s.' % (op, function))
+                raise ValueError('%s does not contain %s.'
+                                 % (op, function)) from None
 
         def _parse_one_summand_(summand):
             if summand.operator() == mul_vararg:
@@ -722,78 +723,84 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             elif summand.operator() == function:
                 coeff, op = 1, summand
             else:
-                raise ValueError('%s is not a valid summand.' % (summand,))
+                raise ValueError('%s is not a valid summand.'
+                                 % (summand,)) from None
             if len(op.operands()) > 1:
-                raise ValueError('%s has more than one argument.' % (op,))
+                raise ValueError('%s has more than one argument.'
+                                 % (op,)) from None
             elif len(op.operands()) == 0:
-                raise ValueError('%s has no argument.' % (op,))
+                raise ValueError('%s has no argument.' % (op,)) from None
             try:
                 poly = ZZ[var](op.operands()[0])
             except TypeError:
                 raise ValueError('%s is not a polynomial with integer coefficients.'
-                                 % (op.operands()[0],))
+                                 % (op.operands()[0],)) from None
             if poly.degree() != 1:
                 raise ValueError("%s does not have degree 1."
-                                 % (poly,))
+                                 % (poly,)) from None
             d, base_power_m = list(poly)
             m = log(base_power_m, base=k)
             return [coeff, m, d]
 
         if not equations:
-            raise ValueError("List of recurrence equations is empty.")
+            raise ValueError("List of recurrence equations is empty.") from None
 
         for eq in equations:
             try:
                 if eq.operator() != operator.eq:
-                    raise ValueError("%s is not an equation with ==."  % eq)
+                    raise ValueError("%s is not an equation with ==."
+                                     % eq) from None
             except AttributeError:
-                raise ValueError("%s is not a symbolic expression."  % eq)
+                raise ValueError("%s is not a symbolic expression."
+                                 % eq) from None
             left_side, right_side = eq.operands()
             if left_side.operator() != function:
                 raise ValueError("%s is not an evaluation of %s."
-                                 % (left_side, function))
+                                 % (left_side, function)) from None
             if  len(left_side.operands()) != 1:
                 raise ValueError("%s does not have one argument." %
-                                 (left_side,))
+                                 (left_side,)) from None
             try:
                 polynomial_left = ZZ[var](left_side.operands()[0])
             except TypeError:
                 raise ValueError("%s is not a polynomial in %s with "
                                  "integer coefficients."
-                                 % (left_side.operands()[0], var))
+                                 % (left_side.operands()[0], var)) from None
             if polynomial_left.degree()  > 1:
                 raise ValueError("%s is not a polynomial of degree smaller 2."
-                                 % (polynomial_left,))
+                                 % (polynomial_left,)) from None
             if polynomial_left in ZZ:
                 if right_side in base_ring:
                     if (polynomial_left in initial_values.keys() and
                         initial_values[polynomial_left] != right_side):
                         raise ValueError("Initial value %s is given twice."
-                                         % (function(polynomial_left)))
+                                         % (function(polynomial_left))) from None
                     initial_values.update({polynomial_left: right_side})
                 else:
-                    raise ValueError("%s is not in %s." % (right_side, base_ring))
+                    raise ValueError("%s is not in %s."
+                                     % (right_side, base_ring)) from None
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
                 if M and M != M_new:
                     raise ValueError("%s does not equal %s."
-                                     % (base_power_M, k**M))
+                                     % (base_power_M, k**M)) from None
                 elif not M:
                     M = M_new
                     if M not in ZZ:
                         raise ValueError("%s is not a power of %s."
-                                         % (base_power_M, k))
+                                         % (base_power_M, k)) from None
                     if M < 1:
                         raise ValueError("%s is less than %s."
-                                         % (base_power_M, k))
+                                         % (base_power_M, k)) from None
                 if r in remainders:
                     raise ValueError("There are more than one recurrence relation for %s."
-                                     % (left_side,))
+                                     % (left_side,)) from None
                 if r >= k**M:
-                    raise ValueError("%s is not smaller than %s." % (r, k**M))
+                    raise ValueError("%s is not smaller than %s."
+                                     % (r, k**M)) from None
                 elif r < 0:
-                    raise ValueError("%s is smaller than 0." % (r,))
+                    raise ValueError("%s is smaller than 0." % (r,)) from None
                 else:
                     remainders.append(r)
                 if right_side != 0:
@@ -804,27 +811,27 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         summands = right_side.operands()
                     else:
                         raise ValueError("%s is not a valid right hand side."
-                                         % (right_side,))
+                                         % (right_side,)) from None
                     for summand in summands:
                         coeff, new_m, d = _parse_one_summand_(summand)
                         if coeff not in base_ring:
                             raise ValueError("%s is not a valid coefficient."
-                                             % (coeff,))
+                                             % (coeff,)) from None
                         if m and m != new_m:
                             raise ValueError("%s does not equal %s."
-                                             % (k**new_m, k**m))
+                                             % (k**new_m, k**m)) from None
                         elif not m:
                             m = new_m
                             if m not in ZZ:
                                 raise ValueError("%s is not a power of %s."
-                                                 % (k**m, k))
+                                                 % (k**m, k)) from None
                             if M <= m:
                                 raise ValueError("%s is not smaller than %s."
-                                                 % (k**m, k**M))
+                                                 % (k**m, k**M)) from None
                         coeffs.update({(r, d): coeff})
 
         if not M:
-            raise ValueError("No recurrence relations are given.")
+            raise ValueError("No recurrence relations are given.") from None
         elif M and not m: # for the zero sequence
             m = M - 1
 
@@ -939,7 +946,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
 
         if not initial_values:
-            raise ValueError("No initial values are given.")
+            raise ValueError("No initial values are given.") from None
 
         last_value_needed = max(
             k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
@@ -1097,7 +1104,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             if f_n is not None and f_n != "pending":
                 if f_n not in base_ring:
                     raise ValueError("Initial value for n = %s is not in %s."
-                                     % (n, base_ring))
+                                     % (n, base_ring)) from None
                 return f_n
             elif f_n == "pending":
                 missing_values.append(n)
@@ -1116,7 +1123,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         if missing_values:
             raise ValueError("Initial values for n in %s are missing."
-                             % (missing_values,))
+                             % (list(set(missing_values)),)) from None
 
         for n in keys_initial:
             q, r = ZZ(n).quo_rem(k**M)
@@ -1124,7 +1131,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 values[n] != sum([_coeff_(r, j)*values[k**m*q + j]
                                   for j in srange(l, u + 1)])):
                 raise ValueError("Initial value for n = %s does not match with "
-                                 "the given recurrence relations." % (n,))
+                                 "the given recurrence relations."
+                                 % (n,)) from None
 
         values.update({n: 0 for n in srange(ll, 0)})
 

@@ -3132,7 +3132,7 @@ class WordMorphism(SageObject):
 
     def immortal_letters(self):
         r"""
-        Return the set of immortal letters.
+        Return the list of immortal letters.
 
         A letter `a` is *immortal* for the morphism `s` if the length of the
         iterates of `| s^n(a) |` is larger than zero as `n` goes to infinity.

@@ -3080,27 +3080,14 @@ class WordMorphism(SageObject):
             Combinatorics, automata and number theory, 163--247, Encyclopedia
             Math. Appl., 135, Cambridge Univ. Press, Cambridge, 2010.
         """
-        if self.is_primitive() and len(self._morph) > 1:
-            return True
-        if letter is None:
-            I = range(self.domain().alphabet().cardinality())
+        if not letter:
+            return self.domain().alphabet().cardinality() == len(self.growing_letters())
         else:
-            if letter not in self.domain().alphabet():
-                raise TypeError("letter (=%s) is not in the domain of self" % letter)
-            I = [self.domain().alphabet().rank(letter)]
-
-        last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
-        while coefs[last_coef] == 0:
-            last_coef += 1
-        V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
-        basis = V.ambient_vector_space().basis()
-
-        return not any(basis[i] in V for i in I)
+            return letter in self.growing_letters()
 
     def growing_letters(self):
         r"""
-        Returns the list of growing letters.
+        Return the list of growing letters.
 
         See :meth:`.is_growing` for more information.
 
@@ -3120,17 +3107,66 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->a').growing_letters()
             []
         """
-        if self.is_primitive() and len(self._morph) > 1:
-            return self.domain().alphabet().list()
-        last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
-        while coefs[last_coef] == 0:
-            last_coef += 1
-        V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
-        basis = V.ambient_vector_space().basis()
-        A = self.domain().alphabet()
+        # Remove letters of type b->a, a->.
+        immortal = self.immortal_letters()
+        new_morph = {x : [z for z in y if z in immortal]
+                for x, y in self._morph.items() if x in immortal}
 
-        return list(A.unrank(i) for i in range(A.cardinality()) if basis[i] not in V)
+        # Remove letters of type c->bd, d->ca.
+        graph_first = {x : y[0] for x, y in new_morph.items()}
+        loops = set()
+        for cycle in get_cycles(graph_first.__getitem__, graph_first):
+            if any(len(new_morph[letter]) > 1 for letter in cycle):
+                continue
+            loops.update(cycle)
+        new_morph = {x : [z for z in y if z not in loops]
+                for x, y in new_morph.items() if x not in loops}
+
+        # Remove letters of type e->abcd.
+        new_morph = WordMorphism(new_morph, domain=self.domain(), codomain=self.codomain())
+        result = new_morph.immortal_letters()
+
+        return sorted(result, key=self.domain().alphabet().rank)
+
+    def immortal_letters(self):
+        r"""
+        Return the set of immortal letters.
+
+        A letter `a` is *immortal* for the morphism `s` if the length of the
+        iterates of `| s^n(a) |` is larger than zero as `n` goes to infinity.
+
+        Requires this morphism to be an endomorphism.
+
+        EXAMPLES::
+
+            sage: WordMorphism('a->abcd,b->cd,c->dd,d->').immortal_letters()
+            {'a'}
+        """
+        if not self.is_endomorphism():
+            raise TypeError(f'self ({self}) is not an endomorphism')
+
+        forward, backward = {}, {}
+        for letter in self._morph:
+            forward[letter], backward[letter] = set(), set()
+
+        stack = []
+        for preimage, image in self._morph.items():
+            if not image:
+                stack.append(preimage)
+            for occurrence in image:
+                forward[preimage].add(occurrence)
+                backward[occurrence].add(preimage)
+
+        while stack:
+            letter = stack.pop()
+            for preimage in backward[letter]:
+                forward[preimage].remove(letter)
+                if not forward[preimage]:
+                    stack.append(preimage)
+            del forward[letter]
+            del backward[letter]
+
+        return set(forward)
 
     def abelian_rotation_subspace(self):
         r"""

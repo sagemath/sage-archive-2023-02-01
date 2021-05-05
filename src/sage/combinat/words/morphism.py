@@ -3111,8 +3111,8 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->a').growing_letters()
             []
         """
-        # Remove letters that vanishes, ie sigma^n(letter) is ultimately empty
-        immortal = self.immortal_letters()
+        # Remove letters that vanish, ie sigma^n(letter) is ultimately empty
+        immortal = set(self.immortal_letters())
         new_morph = {x: [z for z in self._morph[x] if z in immortal] for x in immortal}
 
         # Remove cycles of letters

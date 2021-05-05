@@ -1074,7 +1074,7 @@ class Polyhedron_QQ(Polyhedron_base):
         if not self.is_compact():
             raise NotImplementedError('Unbounded polyhedra are not supported')
         if self.backend() == 'normaliz':
-            return self._Hstar_function_normaliz(acting_group=None, output=None)
+            return self._Hstar_function_normaliz(acting_group, output)
         else:
             raise TypeError("The backend of the polyhedron should be 'normaliz'")
 

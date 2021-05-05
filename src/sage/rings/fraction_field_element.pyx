@@ -92,7 +92,7 @@ cdef class FractionFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.fraction_field_element import FractionFieldElement
+            sage: from sage.rings import fraction_field_element
             sage: K.<x> = Frac(ZZ['x'])
             sage: FractionFieldElement(K, x, 4)
             x/4
@@ -1002,15 +1002,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: (2*x+3*y).is_element_of_base_ring()
             True
         """
-        frac_field = self.parent()
-        Ring = frac_field._R
-        num = self.numerator()
-        den = self.denominator()
-
-        if Ring.is_exact():
-            return den.is_one()
-        else:
-            return den.is_unit()
+        return self.denominator().is_unit()
 
     def _symbolic_(self, ring):
         """

@@ -2518,8 +2518,8 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             ...
             ValueError: The Hstar vector must be polynomial
         """
-        from sage.rings.fraction_field_element is_element_of_base_ring
-        if not is_element_of_base_ring(Hstar):
+        from sage.rings import fraction_field_element
+        if not Hstar.is_element_of_base_ring():
             raise ValueError("The Hstar vector must be polynomial")
         flag = True
         for irrep in range(len(Hstar_as_lin_comb)):

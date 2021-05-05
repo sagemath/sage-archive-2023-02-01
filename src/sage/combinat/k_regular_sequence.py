@@ -694,7 +694,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
             (1, 0, {}, {})
         """
-        from sage.arith.srange import srange
         from sage.functions.log import log
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.operators import add_vararg, mul_vararg, operator
@@ -918,7 +917,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         """
         from collections import namedtuple
 
-        from sage.arith.srange import srange
         from sage.functions.other import ceil, floor
 
         k = self.k
@@ -1403,7 +1401,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         n1 = recurrence_rules.n1
         dim_without_corr = dim - n1
         coeffs = recurrence_rules.coeffs
-        initial_values = recurrence_rules.initial_values
         ind = self._get_ind_from_recurrence_(M, m, ll, uu)
 
         mat = Matrix(base_ring, 0, dim_without_corr)
@@ -1535,15 +1532,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             :meth:`from_recurrence`
         """
-        from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
 
-        k = self.k
-        M = recurrence_rules.M
-        m = recurrence_rules.m
-        ll = recurrence_rules.ll
-        uu = recurrence_rules.uu
-        initial_values = recurrence_rules.initial_values
         n1 = recurrence_rules.n1
         right = self._v_eval_n_from_recurrence_(recurrence_rules, 0)
 

@@ -3109,8 +3109,8 @@ class WordMorphism(SageObject):
         """
         # Remove letters of type b->a, a->.
         immortal = self.immortal_letters()
-        new_morph = {x : [z for z in y if z in immortal]
-                for x, y in self._morph.items() if x in immortal}
+        new_morph = {x: [z for z in y if z in immortal]
+                     for x, y in self._morph.items() if x in immortal}
 
         # Remove letters of type c->bd, d->ca.
         graph_first = {x : y[0] for x, y in new_morph.items()}
@@ -3119,8 +3119,8 @@ class WordMorphism(SageObject):
             if any(len(new_morph[letter]) > 1 for letter in cycle):
                 continue
             loops.update(cycle)
-        new_morph = {x : [z for z in y if z not in loops]
-                for x, y in new_morph.items() if x not in loops}
+        new_morph = {x: [z for z in y if z not in loops]
+                     for x, y in new_morph.items() if x not in loops}
 
         # Remove letters of type e->abcd.
         new_morph = WordMorphism(new_morph, domain=self.domain(), codomain=self.codomain())
@@ -3145,9 +3145,8 @@ class WordMorphism(SageObject):
         if not self.is_endomorphism():
             raise TypeError(f'self ({self}) is not an endomorphism')
 
-        forward, backward = {}, {}
-        for letter in self._morph:
-            forward[letter], backward[letter] = set(), set()
+        forward = {letter: set() for letter in self._morph}
+        backward = {letter: set() for letter in self._morph}
 
         stack = []
         for preimage, image in self._morph.items():

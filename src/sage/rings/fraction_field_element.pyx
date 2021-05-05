@@ -997,27 +997,20 @@ cdef class FractionFieldElement(FieldElement):
 
             sage: F = ZZ['x,y'].fraction_field()
             sage: x,y = F.gens()
-            sage: (x/(x+1)).is_polynomial()
+            sage: (x/(x+1)).is_element_of_base_ring()
             False
-            sage: (2*x+3*y).is_polynomial()
+            sage: (2*x+3*y).is_element_of_base_ring()
             True
         """
-        codom = self.codomain()
-        if self.domain()._R is codom:
-            num = self.numerator()
-            den = self.denominator()
-        else:
-            # codomain may different from the fraction fields base ring
-            # for example for localizations
-            num = codom(self.numerator())
-            den = codom(self.denominator())
+        frac_field = self.parent()
+        Ring = frac_field._R
+        num = self.numerator()
+        den = self.denominator()
 
-        if codom.is_exact() and den.is_one():
-            return True
-        if den.is_unit():
-            return True
+        if Ring.is_exact():
+            return den.is_one()
         else:
-            raise TypeError("fraction must have unit denominator")
+            return den.is_unit()
 
     def _symbolic_(self, ring):
         """

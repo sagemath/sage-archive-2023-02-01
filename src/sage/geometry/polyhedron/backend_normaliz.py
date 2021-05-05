@@ -36,6 +36,7 @@ from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import vector
 from sage.calculus.all import var
+from sage.rings.fraction_field import FractionField
 
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
@@ -2259,7 +2260,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             Permutation Group with generators [(2,3), (1,2), (0,1)]
             sage: len(G)                                                         # optional - pynormaliz
             24
-            sage: Hstar = _Hstar_function_normaliz(S,G); Hstar                             # optional - pynormaliz
+            sage: Hstar = S._Hstar_function_normaliz(G); Hstar                             # optional - pynormaliz
             chi_4
             sage: G.character_table()                                            # optional - pynormaliz
             [ 1 -1  1  1 -1]
@@ -2295,14 +2296,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         Then we calculate the rational function `H^*(t)`::
 
-            sage: Hst = _Hstar_function_normaliz(P,G); Hst     # optional - pynormaliz
+            sage: Hst = P._Hstar_function_normaliz(G); Hst     # optional - pynormaliz
             (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
 
         To see the exact as written in [Stap2011]_, we can format it as
         ``'Hstar_as_lin_comb'``. The first coordinate is the coefficient of the
         trivial character; the second is the coefficient of the sign character::
 
-            sage: lin = _Hstar_function_normaliz(P,G,output = 'Hstar_as_lin_comb'); lin  # optional - pynormaliz
+            sage: lin = P._Hstar_function_normaliz(G,output = 'Hstar_as_lin_comb'); lin  # optional - pynormaliz
             ((t^4 + 3*t^3 + 8*t^2 + 3*t + 1)/(t + 1), (3*t^3 + 2*t^2 + 3*t)/(t + 1))
         """
         # Setting the group
@@ -2398,7 +2399,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             results_dictionary['Hstar_is_effective'] = _Hstar_is_effective(new_new_result, new_result)
             return(results_dictionary)
 
-    def _express_Hstar_as_polynomial_in_t(self, initial_phi):
+    def _express_Hstar_as_polynomial_in_t(self, initial_Hstar):
         r"""
         Rewrite the vector representing `H^*(t)` given as a linear combination of
         the irreducible representations as a rational function in `t`.
@@ -2412,7 +2413,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         - ``self``
 
-        - ``result`` -- a vector of rational functions in `t`.
+        - ``initial_Hstar`` -- a vector of rational functions in `t`.
 
         OUTPUT:
 
@@ -2425,7 +2426,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         is computed as follows::
 
             sage: simplex = Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0],[0,0,1]],backend='normaliz') # optional - pynormaliz
-            sage: Hstar = Hstar_function(simplex); Hstar # optional - pynormaliz
+            sage: Hstar = simplex.Hstar_function(); Hstar # optional - pynormaliz
             chi_4
 
         The polynomial is `\chi_4 \cdot t^0`. We can see which irreducible
@@ -2445,7 +2446,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         As another example, we can look at `H^*(t)` for the `\pm 1` square::
 
             sage: square = Polyhedron(vertices = [[1,1],[-1,1],[-1,-1],[1,-1]], backend ='normaliz') # optional - pynormaliz
-            sage: Hstar = Hstar_function(square) ; Hstar       # optional - pynormaliz
+            sage: Hstar = square.Hstar_function() ; Hstar       # optional - pynormaliz
             chi_0*t^2 + (2*chi_0 + chi_2 + chi_3 + chi_4)*t + chi_0
 
         Plugging in the values from the first column of the character table below
@@ -2459,14 +2460,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             [ 1  1 -1 -1  1]
             [ 2  0  0  0 -2]
         """
-        chi_vars = var(','.join('chi_{}'.format(i) for i in range(len(initial_phi))))
+        chi_vars = var(','.join('chi_{}'.format(i) for i in range(len(initial_Hstar))))
         Chi_ring = PolynomialRing(QQbar, chi_vars)
-        virtual_ring = PolynomialRing(Chi_ring, initial_phi.base_ring().gens())
+        virtual_ring = PolynomialRing(Chi_ring, initial_Hstar.base_ring().gens())
         fraction_virtual_ring = virtual_ring.fraction_field()
-        new_result = initial_phi.change_ring(fraction_virtual_ring)*vector(fraction_virtual_ring, chi_vars)
+        new_result = initial_Hstar.change_ring(fraction_virtual_ring)*vector(fraction_virtual_ring, chi_vars)
         return new_result
 
-    def _Hstar_is_effective(Hstar, Hstar_as_lin_comb):
+    def _Hstar_is_effective(self, Hstar, Hstar_as_lin_comb):
         r"""
         Check if the `H^*` series is effective.
 
@@ -2477,8 +2478,12 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         INPUT:
 
+        - ``self`` -- polyhedron object. a polytope with backend ``'normaliz'``
+
         - ``Hstar`` -- a rational function in `t` with coefficients in the ring of
                        class functions.
+
+        - ``Hstar_as_lin_comb`` -- vector.
 
         OUTPUT:
 
@@ -2494,8 +2499,8 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             sage: H = G.subgroup(gens=[G.gens()[1],G.gens()[2]])             # optional - pynormaliz
             sage: H.order()                                                  # optional - pynormaliz
             6
-            sage: [Hstar, Hlin] = [Hstar_function(p2,H), Hstar_function(p2,H, output = 'Hstar_as_lin_comb')] # optional - pynormaliz
-            sage: _Hstar_is_effective(Hstar,Hlin)   # optional - pynormaliz
+            sage: [Hstar, Hlin] = [p2.Hstar_function(H), p2.Hstar_function(H, output = 'Hstar_as_lin_comb')] # optional - pynormaliz
+            sage: p2._Hstar_is_effective(Hstar,Hlin)   # optional - pynormaliz
             True
 
         The `H^*` series must be a polynomial in order to be effective. If it is
@@ -2505,14 +2510,15 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')           # optional - pynormaliz
             sage: G = P.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
             sage: H = G.subgroup(gens = [G[6]])                               # optional - pynormaliz
-            sage: Hstar = Hstar_function(P,H); Hstar                          # optional - pynormaliz
+            sage: Hstar = P.Hstar_function(H); Hstar                          # optional - pynormaliz
             (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
-            sage: Hstar_lin = Hstar_function(P,H, output = 'Hstar_as_lin_comb') # optional - pynormaliz
-            sage: _Hstar_is_effective(Hstar, Hstar_lin)  # optional - pynormaliz
+            sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb') # optional - pynormaliz
+            sage: P._Hstar_is_effective(Hstar, Hstar_lin)  # optional - pynormaliz
             Traceback (most recent call last):
             ...
             ValueError: The Hstar vector must be polynomial
         """
+        from sage.rings.fraction_field_element is_element_of_base_ring
         if not is_element_of_base_ring(Hstar):
             raise ValueError("The Hstar vector must be polynomial")
         flag = True

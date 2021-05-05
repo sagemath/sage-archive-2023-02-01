@@ -7039,7 +7039,7 @@ class Polyhedron_base(Element):
              (3,): 8,
              4: 1}
 
-        If the arguments are not stricly increasing or out of range, a key error is raised::
+        If the arguments are not strictly increasing or out of range, a key error is raised::
 
             sage: P.flag_f_vector(-1,0,3,6)
             Traceback (most recent call last):
@@ -9725,7 +9725,7 @@ class Polyhedron_base(Element):
             sage: square = Polyhedron(vertices=[[1,1],[-1,1],[-1,-1],[1,-1]], backend='normaliz') # optional - pynormaliz
             sage: aut_square = square.restricted_automorphism_group(output = 'permutation')       # optional - pynormaliz
             sage: conj_reps = aut_square.conjugacy_classes_representatives()                      # optional - pynormaliz
-            sage: gens_dict = match_permutations_to_matrices(square,conj_reps); gens_dict                    # optional - pynormaliz
+            sage: gens_dict = square.match_permutations_to_matrices(conj_reps); gens_dict                    # optional - pynormaliz
             {(): [1 0 0]
              [0 1 0]
              [0 0 1],
@@ -9757,7 +9757,7 @@ class Polyhedron_base(Element):
             sage: conj_reps = G.conjugacy_classes_representatives()
             sage: add_elt = [G[6]]; add_elt
             [(0,2,3,1)]
-            sage: match_permutations_to_matrices(C,conj_reps,additional_elts = add_elt)
+            sage: C.match_permutations_to_matrices(conj_reps,additional_elts = add_elt)
             {(): [1 0 0]
              [0 1 0]
              [0 0 1],
@@ -9812,7 +9812,7 @@ class Polyhedron_base(Element):
         ``restricted_autormorphism_group`` of ``polytope``.
 
         INPUT:
- 
+
         - ``polytope`` -- polyhedron object. A lattice polytope.
 
         - ``V`` -- list. a list of vectors from the ``match_permutations_to_matrices`` function.
@@ -9842,7 +9842,7 @@ class Polyhedron_base(Element):
             sage: Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()    # optional - pynormaliz
             sage: Vplus = list(matrix(V) * Qplus)   # optional - pynormaliz
             sage: W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V))) # optional - pynormaliz
-            sage: _match_permutation_to_matrix(flip, V, Vplus, W)   # optional - pynormaliz
+            sage: cross._match_permutation_to_matrix(flip, V, Vplus, W)   # optional - pynormaliz
             [ 1  0  0]
             [ 0 -1  0]
             [ 0  0  1]

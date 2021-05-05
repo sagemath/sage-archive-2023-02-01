@@ -9780,9 +9780,9 @@ class Polyhedron_base(Element):
              [ 0 -1  0]
              [ 0  0  1]}
         """
-        if self.is_empty():
+        if polytope.is_empty():
             raise NotImplementedError('Empty polyhedra are not supported')
-        if not self.is_compact():
+        if not polytope.is_compact():
             raise NotImplementedError('Unbounded polyhedra are not supported')
         V = [v.homogeneous_vector() for v in polytope.Vrepresentation()]
         Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()
@@ -9796,17 +9796,17 @@ class Polyhedron_base(Element):
         group_dict = {}
 
         for perm in G.gens():
-            group_dict[perm] = _match_permutation_to_matrix(perm, V, Vplus, W)
+            group_dict[perm] = polytope._match_permutation_to_matrix(perm, V, Vplus, W)
 
         for perm in conj_class_reps:
-            group_dict[perm] = _match_permutation_to_matrix(perm, V, Vplus, W)
+            group_dict[perm] = polytope._match_permutation_to_matrix(perm, V, Vplus, W)
 
         if additional_elts is not None:
             for perm in additional_elts:
-                group_dict[perm] = _match_permutation_to_matrix(perm, V, Vplus, W)
+                group_dict[perm] = polytope._match_permutation_to_matrix(perm, V, Vplus, W)
         return group_dict
 
-    def _match_permutation_to_matrix(permutation, V, Vplus, W):
+    def _match_permutation_to_matrix(polytope, permutation, V, Vplus, W):
         r"""
         Return the matrix representation of a permutation in the
         ``restricted_autormorphism_group`` of ``polytope``.

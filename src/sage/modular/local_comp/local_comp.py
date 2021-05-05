@@ -701,7 +701,7 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
         Examples where `K^\times / \QQ_p^\times` is not topologically cyclic
         (which complicates the computations greatly)::
 
-            sage: Newforms(DirichletGroup(64, QQ).1, 2, names='a')[0].local_component(2).characters() # long time
+            sage: Newforms(DirichletGroup(64, QQ).1, 2, names='a')[0].local_component(2).characters() # long time, random
             [
             Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> 1/2*a0, 4*s + 1 |--> 1, -1 |--> 1, 2 |--> 1,
             Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> 1/2*a0, 4*s + 1 |--> -1, -1 |--> 1, 2 |--> 1

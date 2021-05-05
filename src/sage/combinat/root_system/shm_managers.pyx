@@ -119,6 +119,7 @@ cdef class KSHandler:
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
+    @cython.boundscheck(False)
     cdef NumberFieldElement_absolute get(self, int idx):
         """
         Retrieve the known square corresponding to the given index,
@@ -128,16 +129,23 @@ cdef class KSHandler:
             raise KeyError('Index {} does not correspond to a known square'.format(idx))
         if self.obj_cache[idx] is not None:
             return self.obj_cache[idx]
-        cdef unsigned int i, d
-        cdef Integer num, denom
-        cdef Rational quo
-        cdef list rat = list()
+        cdef int d
+        cdef list rat
+        cdef Py_ssize_t i
+        cdef np.ndarray[np.int64_t,ndim=1] nums = self.ks_dat['nums'][idx]
+        # cdef np.int64_t[::1] num_view = nums
+        cdef np.ndarray[np.uint64_t,ndim=1] denoms = self.ks_dat['denoms'][idx]
+        # cdef np.uint64_t[::1] denom_view = denoms
+        cdef np.int64_t num
+        cdef np.uint64_t denom
         cdef NumberFieldElement_absolute cyc_coeff
+        cdef Rational quo
         d = self.field.degree()
+        rat = list()
         for i in range(d):
-            num = Integer(self.ks_dat['nums'][idx,i])
-            denom = Integer(self.ks_dat['denoms'][idx,i])
-            quo = num / denom
+            num = nums[i]
+            denom = denoms[i]
+            quo = Integer(num) / Integer(denom)
             rat.append(quo)
         cyc_coeff = self.field(rat)
         self.obj_cache[idx] = cyc_coeff
@@ -191,9 +199,9 @@ cdef class KSHandler:
 
             This method assumes every polynomial in ``eqns`` is *monic*.
         """
-        cdef unsigned int i, idx
         cdef ETuple lm
         cdef list rhs
+        cdef Py_ssize_t i, idx
         cdef tuple eq_tup
         for i in range(len(eqns)):
             eq_tup = eqns[i]
@@ -202,7 +210,10 @@ cdef class KSHandler:
                 #eq_tup is guaranteed univariate, so we extract variable idx from lm
                 lm = eq_tup[0][0]
                 idx = lm._data[0]
-                self.setitem(idx, rhs)
+                try:
+                    self.setitem(idx, rhs)
+                except OverflowError:
+                    print("KS overflowed on index {} with value {}".format(idx,self.field(rhs)))
 
     @cython.nonecheck(False)
     @cython.wraparound(False)
@@ -214,17 +225,21 @@ cdef class KSHandler:
         The ``rhs`` parameter may be a cyclotomic coefficient or its
         list/tuple representation.
         """
-        cdef unsigned int i
-        cdef long long num
-        cdef unsigned long long denom
+        cdef Py_ssize_t i
+        cdef np.ndarray[np.int64_t,ndim=1] nums = self.ks_dat['nums'][idx]
+        cdef np.ndarray[np.uint64_t,ndim=1] denoms = self.ks_dat['denoms'][idx]
+        cdef np.int64_t num
+        cdef np.uint64_t denom
+        cdef Rational quo
         self.ks_dat['known'][idx] = True
         if not isinstance(rhs, list):
             rhs = rhs._coefficients()
         for i in range(len(rhs)):
-            num = <long long>(rhs[i].numerator())
-            denom = <unsigned long long>(rhs[i].denominator())
-            self.ks_dat['nums'][idx,i] = num
-            self.ks_dat['denoms'][idx,i] = denom
+            quo = rhs[i]
+            num = quo.numerator()
+            denom = quo.denominator()
+            nums[i] = num
+            denoms[i] = denom
 
     cdef bint contains(self, int idx):
         """
@@ -362,8 +377,8 @@ cdef class FvarsHandler:
 
         .. WARNING::
 
-            The current data structure supports up to 2**16-1 entries,
-            each with each monomial in each entry having at most 254
+            The current data structure supports up to 2**16 entries,
+            with each monomial in each entry having at most 254
             nonzero terms. On average, each of the ``max_terms`` monomials
             can have at most 50 terms.
 
@@ -389,9 +404,9 @@ cdef class FvarsHandler:
         self.fvars_t = np.dtype([
             ('modified','bool',(1,)),
             ('ticks', 'u1', (max_terms,)),
-            ('exp_data', 'u2', (max_terms*50,)),
-            ('coeff_nums','i4',(max_terms,d)),
-            ('coeff_denom','u4',(max_terms,))
+            ('exp_data', 'u2', (max_terms*30,)),
+            ('coeff_nums',np.int64,(max_terms,d)),
+            ('coeff_denom',np.uint64,(max_terms,))
         ])
         self.sext_to_idx = {s: i for i, s in idx_to_sextuple.items()}
         self.ngens = n_slots
@@ -458,40 +473,48 @@ cdef class FvarsHandler:
         """
         if not sextuple in self.sext_to_idx:
             raise KeyError('Invalid sextuple {}'.format(sextuple))
-        cdef int idx = self.sext_to_idx[sextuple]
+        cdef Py_ssize_t idx = self.sext_to_idx[sextuple]
         # if idx in self.obj_cache:
         #     if self.fvars['modified'][idx]:
         #         del self.obj_cache[idx]
         #     else:
         #         return self.obj_cache[idx]
-        cdef ETuple e = ETuple({}, self.ngens)
-        cdef unsigned int cum, i, j, k, nnz
+        cdef ETuple e, exp
+        cdef int nnz
         cdef Integer d, num
         cdef list poly_tup, rats
+        cdef NumberFieldElement_absolute cyc_coeff
+        cdef Py_ssize_t cum, i, j, k
         cdef Rational quo
         cdef tuple ret
+        #Define memory views to reduce Python overhead and ensure correct typing
+        cdef np.ndarray[np.uint8_t,ndim=1] ticks = self.fvars['ticks'][idx]
+        cdef np.ndarray[np.uint16_t,ndim=1] exp_data = self.fvars['exp_data'][idx]
+        cdef np.ndarray[np.int64_t,ndim=2] nums = self.fvars['coeff_nums'][idx]
+        cdef np.ndarray[np.uint64_t,ndim=1] denoms = self.fvars['coeff_denom'][idx]
+        e = ETuple({}, self.ngens)
         poly_tup = list()
         cum = 0
-        for i in range(np.count_nonzero(self.fvars['ticks'][idx])):
+        for i in range(np.count_nonzero(ticks)):
             #Construct new ETuple for each monomial
             exp = e._new()
             #Handle constant coeff
-            nnz = self.fvars['ticks'][idx,i] if self.fvars['ticks'][idx,i] < 255 else 0
+            nnz = ticks[i] if ticks[i] < 255 else 0
             exp._nonzero = nnz
+            # if nnz:
             exp._data = <int*>sig_malloc(sizeof(int)*nnz*2)
             for j in range(2*nnz):
-                exp._data[j] = self.fvars['exp_data'][idx,cum]
+                exp._data[j] = <int>exp_data[cum]
                 cum += 1
 
             #Construct cyclotomic field coefficient
-            d = Integer(self.fvars['coeff_denom'][idx,i])
+            d = Integer(denoms[i])
             rats = list()
             for k in range(self.field.degree()):
-                num = Integer(self.fvars['coeff_nums'][idx,i,k])
+                num = Integer(nums[i,k])
                 quo = num / d
                 rats.append(quo)
             cyc_coeff = self.field(rats)
-
             poly_tup.append((exp, cyc_coeff))
         ret = tuple(poly_tup)
         # self.obj_cache[idx] = ret
@@ -525,30 +548,38 @@ cdef class FvarsHandler:
             True
             sage: fvars.shm.unlink()
         """
-        cdef unsigned int cum, i, j, k, idx
-        cdef unsigned long denom
-        cdef long c
         cdef ETuple exp
+        cdef np.int64_t c
+        cdef np.uint64_t denom
         cdef NumberFieldElement_absolute coeff
+        cdef Py_ssize_t cum, i, idx, j, k
         idx = self.sext_to_idx[sextuple]
         #Clear entry before inserting
         self.fvars[idx] = np.zeros((1,), dtype=self.fvars_t)
+        #Define memory views to reduce Python overhead and ensure correct typing
+        cdef np.ndarray[np.uint8_t,ndim=1] ticks = self.fvars['ticks'][idx]
+        cdef np.ndarray[np.uint16_t,ndim=1] exp_data = self.fvars['exp_data'][idx]
+        cdef np.ndarray[np.int64_t,ndim=2] nums = self.fvars['coeff_nums'][idx]
+        cdef np.ndarray[np.uint64_t,ndim=1] denoms = self.fvars['coeff_denom'][idx]
         cum = 0
         i = 0
         for exp, coeff in fvar:
             #Handle constant coefficient
             if exp._nonzero > 0:
-                self.fvars['ticks'][idx,i] = exp._nonzero
+                ticks[i] = exp._nonzero
             else:
-                self.fvars['ticks'][idx,i] = -1
+                ticks[i] = -1
             for j in range(2*exp._nonzero):
-                self.fvars['exp_data'][idx,cum] = exp._data[j]
+                exp_data[cum] = exp._data[j]
                 cum += 1
             denom = coeff.denominator()
-            self.fvars['coeff_denom'][idx,i] = denom
-            for k, r in enumerate(coeff._coefficients()):
-                c = r * denom
-                self.fvars['coeff_nums'][idx,i,k] = c
+            denoms[i] = denom
+            k = 0
+            for r in coeff._coefficients():
+                assert Integer(r * denom).nbits() < 63, "OverflowError in FvarsHandler.setitem: c {}, r {}, denom {}".format(c, r, denom)
+                c = <Integer>(r * denom)
+                nums[i,k] = c
+                k += 1
             i += 1
         self.fvars['modified'][idx] = True
 

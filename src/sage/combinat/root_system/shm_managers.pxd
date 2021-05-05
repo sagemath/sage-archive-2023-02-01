@@ -7,7 +7,7 @@ cdef class KSHandler:
     cdef list obj_cache
     cdef np.ndarray ks_dat
     cdef NumberField field
-    cdef public shm
+    cdef public object shm
 
     cdef bint contains(self, int idx)
     cdef NumberFieldElement_absolute get(self, int idx)
@@ -16,10 +16,12 @@ cdef class KSHandler:
 
 cdef class FvarsHandler:
     cdef dict sext_to_idx, obj_cache
+    cdef list modified_cache
     cdef unsigned int ngens
-    cdef fvars_t
-    cdef NumberField field
+    cdef object fvars_t
     cdef np.ndarray fvars
-    cdef public shm
+    cdef NumberField field
+    cdef public object shm
 
     cdef clear_modified(self)
+    # cdef update_cache(self)

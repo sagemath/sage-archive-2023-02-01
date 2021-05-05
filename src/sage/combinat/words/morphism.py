@@ -3123,8 +3123,11 @@ class WordMorphism(SageObject):
         new_morph = {x: [z for z in new_morph[x] if z in no_loops] for x in no_loops}
 
         # Remove letters ending in a cycle
-        W = FiniteWords(sorted(new_morph, key=self.domain().alphabet().rank))
-        new_morph = WordMorphism(new_morph, domain=W, codomain=W)
+        # NOTE: here we should actually be using the domain made of the
+        # remaining letters in new_morph. However, building the corresponding
+        # alphabet and finite words cost much more time than using the same
+        # domain.
+        new_morph = WordMorphism(new_morph, domain=self.domain(), codomain=self.codomain())
         return new_morph.immortal_letters()
 
     def immortal_letters(self):

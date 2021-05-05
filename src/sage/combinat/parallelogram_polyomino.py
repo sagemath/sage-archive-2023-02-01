@@ -1455,6 +1455,7 @@ class ParallelogramPolyomino(ClonableList,
             sage: ParallelogramPolyomino.from_dyck_word(dyck, bijection='Delest-Viennot')
             [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
             sage: ParallelogramPolyomino.from_dyck_word(dyck, bijection='Delest-Viennot-beta')
+            [[0, 0, 1, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
         """
         if bijection is None or bijection == 'Delest-Viennot':
             return ParallelogramPolyomino._from_dyck_word_delest_viennot(dyck)

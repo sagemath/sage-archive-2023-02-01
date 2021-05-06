@@ -43,7 +43,6 @@ from cpython.object cimport *
 
 from sage.misc.constant_function import ConstantFunction
 
-from sage.structure.coerce cimport coercion_model
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.structure.parent cimport Parent

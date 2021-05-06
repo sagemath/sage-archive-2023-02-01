@@ -1496,6 +1496,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         A vector.
 
+        .. SEEALSO::
+
+            :meth:`from_recurrence`
+
         TESTS:
 
         Stern--Brocot Sequence::
@@ -1531,10 +1535,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     M, m, coeffs, initial_values, 3)
             sage: Seq2._get_right_from_recurrence_(UB_rules)
             (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
-
-        .. SEEALSO::
-
-            :meth:`from_recurrence`
         """
         from sage.modules.free_module_element import vector
 

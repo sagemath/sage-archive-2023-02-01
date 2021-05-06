@@ -127,9 +127,22 @@ class kRegularSequence(RecognizableSeries):
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:      vector([0, 1]), vector([1, 0])).transposed()
+            sage: S = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:          vector([0, 1]), vector([1, 0])).transposed(); S
             2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
+
+        We can access the coefficients of a sequence by
+        ::
+
+            sage: S[5]
+            11
+
+        or iterating over the first, say `10`, by
+        ::
+
+            sage: from itertools import islice
+            sage: list(islice(S, 10))
+            [0, 1, 3, 5, 9, 11, 15, 19, 27, 29]
 
         .. SEEALSO::
 

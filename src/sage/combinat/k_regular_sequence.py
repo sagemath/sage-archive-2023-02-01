@@ -1116,7 +1116,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                     missing_values.append(n)
                 return sum([_coeff_(r, j)*_f_n_(k**m*q + j)
                             for j in srange(l, u + 1)
-                            if _coeff_(r, j) != 0])
+                            if _coeff_(r, j)])
 
         for n in srange(last_value_needed + 1):
             values.update({n: _f_n_(n)})

@@ -210,7 +210,7 @@ class HomologyFunctor(Functor):
 
             sage: H = HomologyFunctor(ChainComplexes(QQ), 1); H
             Functor from Category of chain complexes over Rational Field to
-             Category of vector spaces over Rational Field
+             Category of commutative additive groups
 
         """
         if not isinstance(domain, ChainComplexes):
@@ -246,7 +246,7 @@ class HomologyFunctor(Functor):
             sage: id_star = H(id); id_star
             Generic endomorphism of De Rham cohomology ring on the
              Euclidean space E^3
-            sage: one = C.one()
+            sage: one = H(C).one()
             sage: id_star(one)
             [one]
 

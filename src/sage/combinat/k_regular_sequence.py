@@ -1250,7 +1250,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``function`` -- a function which represents the sequence
 
-        - ``var`` -- a symbolic variable ``n``
+        - ``var`` -- a symbolic variable
 
         - ``correct_offset`` -- (default: ``True``) a boolean. If
           ``True``, then the resulting linear representation has no
@@ -1577,7 +1577,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``function`` -- symbolic function ``f`` occuring in the equations
 
-        - ``var`` -- symbolic variable ``n`` occuring in the equations
+        - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
 
         - ``minimize`` -- a boolean (default: ``False``). If ``True``, then
           :meth:`~sage.combinat.recognizable_series.RecognizableSeries.minimized`

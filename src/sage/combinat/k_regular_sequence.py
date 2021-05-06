@@ -1026,7 +1026,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2*i}, 20, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Initial value for n = 1 is not in Integer Ring.
+            ValueError: Initial value for argument 1 is not in Integer Ring.
 
         ::
 
@@ -1034,7 +1034,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {}, 20, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Initial values for n in [0, 1] are missing.
+            ValueError: Initial values for arguments in [0, 1] are missing.
 
         ::
 
@@ -1042,7 +1042,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0}, 20, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Initial values for n in [1] are missing.
+            ValueError: Initial values for arguments in [1] are missing.
 
         ::
 
@@ -1050,7 +1050,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 2: 1}, 20, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Initial values for n in [1] are missing.
+            ValueError: Initial values for arguments in [1] are missing.
 
         ::
 
@@ -1058,7 +1058,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2, 2:0}, 20, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Initial value for n = 2 does not match with the given
+            ValueError: Initial value for argument 2 does not match with the given
             recurrence relations.
 
         ::
@@ -1103,7 +1103,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             f_n = values[n]
             if f_n is not None and f_n != "pending":
                 if f_n not in base_ring:
-                    raise ValueError("Initial value for n = %s is not in %s."
+                    raise ValueError("Initial value for argument %s is not in %s."
                                      % (n, base_ring)) from None
                 return f_n
             elif f_n == "pending":
@@ -1122,7 +1122,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             values.update({n: _f_n_(n)})
 
         if missing_values:
-            raise ValueError("Initial values for n in %s are missing."
+            raise ValueError("Initial values for arguments in %s are missing."
                              % (list(set(missing_values)),)) from None
 
         for n in keys_initial:
@@ -1130,7 +1130,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             if (q >= offset and
                 values[n] != sum([_coeff_(r, j)*values[k**m*q + j]
                                   for j in srange(l, u + 1)])):
-                raise ValueError("Initial value for n = %s does not match with "
+                raise ValueError("Initial value for argument %s does not match with "
                                  "the given recurrence relations."
                                  % (n,)) from None
 
@@ -1645,7 +1645,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(0) == 1, f(1) == 1], f, n, 2)
             Traceback (most recent call last):
             ...
-            ValueError: Initial values for n in [2, ..., 2044] are missing.
+            ValueError: Initial values for arguments in [2, ..., 2044] are missing.
 
         ::
 
@@ -1692,7 +1692,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: Initial value for n = 0 does not match with the given recurrence relations.
+            ValueError: Initial value for argument 0 does not match with the given recurrence relations.
 
         ::
 

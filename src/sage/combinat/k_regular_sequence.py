@@ -903,6 +903,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
+            sage: Seq2._get_parameters_from_recurrence_(1, 0,
+            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 1/2, 1: 2*i}, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial values for arguments in [0, 1] are not in Integer Ring.
+
+        ::
+
             sage: Seq2._get_parameters_from_recurrence_(1, 0, {(0, 0): 1},
             ....: {0: 1, 1: 0}, 0)
             recurrence_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
@@ -926,9 +934,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         from sage.functions.other import ceil, floor
 
+        base_ring = self.base_ring()
         k = self.k
-        keys = coeffs.keys()
-        indices_right = [key[1] for key in keys if coeffs[key]]
+        keys_coeffs = coeffs.keys()
+        indices_right = [key[1] for key in keys_coeffs if coeffs[key]]
 
         if not indices_right: # the sequence is the zero sequence
             l = 0
@@ -947,11 +956,17 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         if not initial_values:
             raise ValueError("No initial values are given.") from None
+        keys_initial = initial_values.keys()
+        values_not_in_ring = [n for n in keys_initial
+                              if initial_values[n] not in base_ring]
+        if values_not_in_ring:
+            raise ValueError("Initial values for arguments in %s are not in %s."
+                             % (values_not_in_ring, base_ring)) from None
 
         last_value_needed = max(
             k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
             k**m*offset + u,
-            max(initial_values.keys()))
+            max(keys_initial))
         initial_values = self._get_values_from_recurrence_(
             M, m, l, u, ll, coeffs, initial_values, last_value_needed, offset)
 
@@ -1019,14 +1034,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             {0: 0, 1: 2, 2: 2, 3: 4, 4: 2, 5: 6, 6: 4, 7: 6, 8: 2, 9: 8, 10: 6,
             11: 10, 12: 4, 13: 10, 14: 6, 15: 8, 16: 2, 17: 10, 18: 8, 19: 14,
             20: 6}
-
-        ::
-
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
-            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2*i}, 20, 0)
-            Traceback (most recent call last):
-            ...
-            ValueError: Initial value for argument 1 is not in Integer Ring.
 
         ::
 
@@ -1102,9 +1109,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         def _f_n_(n):
             f_n = values[n]
             if f_n is not None and f_n != "pending":
-                if f_n not in base_ring:
-                    raise ValueError("Initial value for argument %s is not in %s."
-                                     % (n, base_ring)) from None
                 return f_n
             elif f_n == "pending":
                 missing_values.append(n)

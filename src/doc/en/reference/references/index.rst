@@ -1132,6 +1132,9 @@ REFERENCES:
              *The Whirlpool hashing function*; in
              First Open NESSIE Workshop, (2000).
 
+.. [BR2010]  Valérie Berthé and Michel Rigo, editors. Combinatorics, automata,
+             and number theory, volume 135. Cambridge: Cambridge University Press, 2010.
+
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 

@@ -22,9 +22,7 @@ Creation of the fixed point of a morphism::
 
 Computing the n-th letter of a fixed point is fast as it is using the
 abstract numeration system associated to the morphism and the starting
-letter, see chapter 3 of the book [Valérie Berthé and Michel Rigo, editors.
-Combinatorics, automata, and number theory, volume 135. Cambridge:
-Cambridge University Press, 2010]::
+letter, see chapter 3 of the book [BR2010]_::
 
     sage: w[10000000]
     'b'

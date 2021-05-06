@@ -528,7 +528,7 @@ class RecognizableSeries(Element):
         OUTPUT:
 
         An element in the parent's
-        :meth:`~RecognizableSeriesSpace.coefficients`
+        :meth:`~RecognizableSeriesSpace.coefficient_ring`
 
         EXAMPLES::
 
@@ -968,7 +968,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``coefficients`` -- a (semi-)ring
+    - ``coefficient_ring`` -- a (semi-)ring
 
     - ``alphabet`` -- a tuple, list or
       :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`.
@@ -1000,7 +1000,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         sage: Rec1 = RecognizableSeriesSpace(ZZ, [0, 1])
         sage: Rec1
         Space of recognizable series on {0, 1} with coefficients in Integer Ring
-        sage: Rec2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
+        sage: Rec2 = RecognizableSeriesSpace(coefficient_ring=ZZ, alphabet=[0, 1])
         sage: Rec2
         Space of recognizable series on {0, 1} with coefficients in Integer Ring
         sage: Rec3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
@@ -1028,7 +1028,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: Rec1 = RecognizableSeriesSpace(ZZ, [0, 1])
             sage: Rec1
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
-            sage: Rec2 = RecognizableSeriesSpace(coefficients=ZZ, alphabet=[0, 1])
+            sage: Rec2 = RecognizableSeriesSpace(coefficient_ring=ZZ, alphabet=[0, 1])
             sage: Rec2
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
             sage: Rec3 = RecognizableSeriesSpace(ZZ, indices=Words([0, 1], infinite=False))
@@ -1042,7 +1042,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     @classmethod
     def __normalize__(cls,
-                      coefficients=None,
+                      coefficient_ring=None,
                       alphabet=None, indices=None,
                       category=None):
         r"""
@@ -1059,7 +1059,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: RecognizableSeriesSpace([0, 1], [0, 1])
             Traceback (most recent call last):
             ...
-            ValueError: Coefficients [0, 1] are not a semiring.
+            ValueError: Coefficient ring [0, 1] is not a semiring.
 
         ::
 
@@ -1075,7 +1075,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: RecognizableSeriesSpace(alphabet=[0, 1])
             Traceback (most recent call last):
             ...
-            ValueError: No coefficients speficied.
+            ValueError: No coefficient ring specified.
             sage: RecognizableSeriesSpace(ZZ, indices=Words(ZZ))
             Traceback (most recent call last):
             ...
@@ -1090,20 +1090,20 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         if not indices.alphabet().is_finite():
             raise NotImplementedError('Alphabet is not finite.')
 
-        if coefficients is None:
-            raise ValueError('No coefficients speficied.')
+        if coefficient_ring is None:
+            raise ValueError('No coefficient ring specified.')
         from sage.categories.semirings import Semirings
-        if coefficients not in Semirings:
+        if coefficient_ring not in Semirings:
             raise ValueError(
-                'Coefficients {} are not a semiring.'.format(coefficients))
+                'Coefficient ring {} is not a semiring.'.format(coefficient_ring))
 
         from sage.categories.sets_cat import Sets
         category = category or Sets()
 
-        return (coefficients, indices, category)
+        return (coefficient_ring, indices, category)
 
     @experimental(trac_number=21202)
-    def __init__(self, coefficients, indices, category):
+    def __init__(self, coefficient_ring, indices, category):
         r"""
         See :class:`RecognizableSeriesSpace` for details.
 
@@ -1123,7 +1123,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         self._indices_ = indices
         super(RecognizableSeriesSpace, self).__init__(
-            category=category, base=coefficients)
+            category=category, base=coefficient_ring)
 
     def alphabet(self):
         r"""
@@ -1160,7 +1160,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         return self._indices_
 
-    def coefficients(self):
+    def coefficient_ring(self):
         r"""
         Return the coefficients of this recognizable series space.
 
@@ -1170,7 +1170,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: RecognizableSeriesSpace(ZZ, [0, 1]).coefficients()
+            sage: RecognizableSeriesSpace(ZZ, [0, 1]).coefficient_ring()
             Integer Ring
         """
         return self.base()
@@ -1191,7 +1191,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         return 'Space of recognizable series on {} ' \
                'with coefficients in {}'.format(self.alphabet(),
-                                                self.coefficients())
+                                                self.coefficient_ring())
 
     def zero(self):
         """

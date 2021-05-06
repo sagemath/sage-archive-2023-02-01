@@ -68,7 +68,8 @@ Various
 
 AUTHORS:
 
-- Daniel Krenn (2016)
+- Daniel Krenn (2016, 2021)
+
 
 ACKNOWLEDGEMENT:
 

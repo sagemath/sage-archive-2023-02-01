@@ -1579,6 +1579,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
 
+        - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
+
         - ``minimize`` -- a boolean (default: ``False``). If ``True``, then
           :meth:`~sage.combinat.recognizable_series.RecognizableSeries.minimized`
           is called after the construction.

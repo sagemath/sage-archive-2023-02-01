@@ -19,6 +19,12 @@ such that the coefficient corresponding to a word `w\in A^*` equals
 
     \mathit{left} \, \mu(w) \, \mathit{right}.
 
+.. NOTE::
+
+    Whenever a minimization (:meth:`~RecognizableSeries.minimized`) of
+    a series needs to be computed, it is required that `K` is a field.
+    In particular, minimization is called before checking if a series is
+    nonzero.
 
 .. WARNING::
 

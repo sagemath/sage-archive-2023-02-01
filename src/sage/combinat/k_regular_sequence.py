@@ -65,11 +65,6 @@ Various
     :mod:`sage.rings.cfinite_sequence`,
     :mod:`sage.combinat.binary_recurrence_sequences`.
 
-REFERENCES:
-
-.. [AS2003] Jean-Paul Allouche, Jeffrey Shallit,
-   *Automatic Sequences: Theory, Applications, Generalizations*,
-   Cambridge University Press, 2003.
 
 AUTHORS:
 

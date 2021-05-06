@@ -304,6 +304,10 @@ REFERENCES:
             of crystals for the quantum queer superalgebra*.
             Preprint (2018). :arxiv:`1803.06317`
 
+.. [AS2003] Jean-Paul Allouche, Jeffrey Shallit,
+            *Automatic Sequences: Theory, Applications, Generalizations*,
+            Cambridge University Press, 2003.
+
 .. [As2008b] Sami Assaf. *Dual equivalence graphs and a
              combinatorial proof of LLT and Macdonald positivity*.
              (2008). :arxiv:`1005.3759v5`.

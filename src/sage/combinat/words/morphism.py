@@ -136,10 +136,12 @@ def get_cycles(f, domain=None):
             raise ValueError("you should specify the domain of the function f")
     cycles = []
     not_seen = set(domain)
-    while not_seen:
-        a = not_seen.pop()
+    for a in domain:
+        if a not in not_seen:
+            continue
         cycle = [a]
         b = f(a)
+        not_seen.remove(a)
         while b in not_seen:
             not_seen.remove(b)
             cycle.append(b)

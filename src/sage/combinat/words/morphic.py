@@ -11,9 +11,23 @@ AUTHORS:
 
 EXAMPLES:
 
-Creation of a morphism::
+Creation of the fixed point of a morphism::
 
     sage: m = WordMorphism('a->abc,b->baba,c->ca')
+    sage: w = m.fixed_point('a')
+    sage: w
+    word: abcbabacababaabcbabaabccaabcbabaabcbabaa...
+    sage: w.length()
+    +Infinity
+
+Computing the n-th letter of a fixed point is fast as it is using the
+abstract numeration system associated to the morphism and the starting
+letter, see chapter 3 of the book [Valérie Berthé and Michel Rigo, editors.
+Combinatorics, automata, and number theory, volume 135. Cambridge:
+Cambridge University Press, 2010]::
+
+    sage: w[10000000]
+    'b'
 
 """
 
@@ -23,7 +37,8 @@ from sage.modules.free_module_element import vector
 
 class WordDatatype_morphic(WordDatatype_callable):
     r"""
-    Datatype for a word defined by a callable.
+    Datatype for a morphic word defined by a morphism, a starting letter
+    and a coding.
     """
     def __init__(self, parent, morphism, letter, coding=None, length=Infinity):
         r"""
@@ -72,6 +87,29 @@ class WordDatatype_morphic(WordDatatype_callable):
             sage: w.length()
             2
 
+        Using the coding argument::
+
+            sage: m = WordMorphism('a->ab,b->a')
+            sage: W = m.domain()
+            sage: from sage.combinat.words.morphic import WordDatatype_morphic
+            sage: coding = {'a':'x', 'b':'y'}
+            sage: w = WordDatatype_morphic(W, m, 'a', coding=coding)
+            sage: [w[i] for i in range(10)]
+            ['x', 'y', 'x', 'x', 'y', 'x', 'y', 'x', 'x', 'y']
+
+        TESTS::
+
+            sage: m = WordMorphism('a->abcd,b->bbc,c->cddd,d->cba')
+            sage: w = m.fixed_point('a')
+            sage: it = iter(w)
+            sage: for _ in range(10000): _ = next(it)
+            sage: L = [next(it) for _ in range(10)]; L
+            ['d', 'd', 'd', 'c', 'd', 'd', 'd', 'c', 'b', 'a']
+            sage: w[10000:10010]
+            word: dddcdddcba
+            sage: list(w[10000:10010]) == L
+            True
+
         """
         self._parent = parent
         # self._func = callable
@@ -107,20 +145,10 @@ class WordDatatype_morphic(WordDatatype_callable):
               {'a': 'a', 'b': 'b'},
               +Infinity))
 
-        Below is the behavior for words of finite length. When the word is
-        finite and reaches its end, it then learns its length::
+        Below is the behavior for words of finite length:: 
 
             sage: m = WordMorphism("a->ab,b->")
             sage: w = m.fixed_point("a")
-            sage: w.__reduce__()
-            (<class 'sage.combinat.words.word.FiniteWord_morphic'>,
-             (Finite words over {'a', 'b'},
-              WordMorphism: a->ab, b->,
-              'a',
-              {'a': 'a', 'b': 'b'},
-              None))
-            sage: w.length()
-            2
             sage: w.__reduce__()
             (<class 'sage.combinat.words.word.FiniteWord_morphic'>,
              (Finite words over {'a', 'b'},
@@ -166,8 +194,6 @@ class WordDatatype_morphic(WordDatatype_callable):
             ...
             IndexError: Index (=2) out of range, the fixed point is finite and has length 2.
 
-
-
         TESTS:
 
         Accessing this method from an instance of the current class (no using
@@ -186,14 +212,13 @@ class WordDatatype_morphic(WordDatatype_callable):
         position = letters_to_int[self._letter]
         M = self._morphism.incidence_matrix()
         vMk = vector([1]*len(self._alphabet))
-        length_of_images = [vMk]
+        length_of_images = []
         while vMk[position] <= n:
+            length_of_images.append(vMk)
             vMk_next = vMk*M
             if vMk[position] == vMk_next[position]:
                 raise IndexError('Index (={}) out of range, the fixed point is finite and has length {}.'.format(n,vMk[position]))
             vMk = vMk_next
-            length_of_images.append(vMk)
-        length_of_images.pop()
         k = len(length_of_images)  
         letter_k = self._letter
         n_k = n

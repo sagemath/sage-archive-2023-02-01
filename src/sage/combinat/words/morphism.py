@@ -1822,8 +1822,13 @@ class WordMorphism(SageObject):
                                         coding=None, length=Infinity)
         else:
             from sage.combinat.words.word import FiniteWord_morphic
-            return FiniteWord_morphic(parent, self, letter,
-                                      coding=None, length='finite')
+            w = FiniteWord_morphic(parent, self, letter,
+                                   coding=None, length='finite')
+            # since FiniteWord_morphic uses the method __getitem__
+            # from FiniteWord_callable, the length must be precomputed
+            # for __getitem__ to work properly
+            w.length() 
+            return w
 
     def fixed_points(self):
         r"""

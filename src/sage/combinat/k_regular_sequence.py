@@ -984,7 +984,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             u = max(indices_right)
 
         if offset < max(0, -l/k**m):
-            offset = max(0, -l/k**m)
+            offset = max(0, ceil(-l/k**m))
 
         ll = (floor((l*k**(M-m) - k**M + 1)/(k**(M-m) - 1)) + 1)*(l < 0)
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])

@@ -27,10 +27,11 @@ Examples
 Binary sum of digits
 --------------------
 
-::
+The binary sum of digits `S(n)` of a nonnegative integer `n` satisfies
+`S(2n) = S(n)` and `S(2n+1) = S(n) + 1`. We model this by the following::
 
     sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-    sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
+    sage: S = Seq2((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [1, 1]])),
     ....:          left=vector([0, 1]), right=vector([1, 0]))
     sage: S
     2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...

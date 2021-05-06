@@ -252,8 +252,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
     - ``k`` -- an integer at least `2` specifying the base
 
-    - ``coefficients`` -- a (semi-)ring. If not specified (``None``),
-      then the integer ring is used.
+    - ``coefficient_ring`` -- a (semi-)ring.
 
     - ``category`` -- (default: ``None``) the category of this
       space
@@ -273,7 +272,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
     Element = kRegularSequence
 
     @classmethod
-    def __normalize__(cls, k, coefficients=None, **kwds):
+    def __normalize__(cls, k, coefficient_ring, **kwds):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -285,18 +284,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2.category()
             Category of sets
-
-        ::
-
-            sage: Seq2 is kRegularSequenceSpace(2)
-            True
+            sage: Seq2.alphabet()
+            {0, 1}
         """
         from sage.arith.srange import srange
-        from sage.rings.integer_ring import ZZ
-        if coefficients is None:
-            coefficients = ZZ
         nargs = super(kRegularSequenceSpace, cls).__normalize__(
-            coefficients, alphabet=srange(k), **kwds)
+            coefficient_ring, alphabet=srange(k), **kwds)
         return (k,) + nargs
 
     def __init__(self, k, *args, **kwds):

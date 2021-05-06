@@ -1521,7 +1521,7 @@ class DifferentiableManifold(TopologicalManifold):
             Graded algebra Omega^*(M) of mixed differential forms on the
              2-dimensional differentiable manifold M
             sage: M.mixed_form_algebra().category()
-            Category of graded algebras over Symbolic Ring
+            Join of Category of graded algebras over Symbolic Ring and Category of chain complexes over Symbolic Ring
             sage: M.mixed_form_algebra().base_ring()
             Symbolic Ring
 
@@ -1533,6 +1533,8 @@ class DifferentiableManifold(TopologicalManifold):
         """
         vmodule = self.vector_field_module(dest_map=dest_map)
         return MixedFormAlgebra(vmodule)
+
+    de_rham_complex = mixed_form_algebra
 
     def multivector_module(self, degree, dest_map=None):
         r"""

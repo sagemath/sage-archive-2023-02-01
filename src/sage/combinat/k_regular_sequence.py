@@ -714,6 +714,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_(
             ....:     [f(8*n) == f(n)] +
             ....:     [f(8*n + r) == f(2*n) for r in srange(1,8)], f, n)
+            Traceback (most recent call last):
+            ...
             ValueError: 2 does not equal 1.
 
         Finally, also for the zero-sequence the output is as expected::

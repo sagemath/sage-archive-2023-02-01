@@ -1855,6 +1855,135 @@ class PolyhedralComplex(GenericCellComplex):
         # reset cached attribute
         self._maximal_cells_sorted = None    # needed for hash
 
+    def remove_cell(self, cell, check=False):
+        """
+        Remove the given cell from this polyhedral complex. In addition,
+        it removes all the cells that contain the given cell as a subface.
+
+        :param cell: a cell of the polyhedral complex
+
+        :param check: boolean; optional, default ``False``. If
+            ``True``, raise an error if ``cell`` is not a
+            cell of this polyhedral complex
+
+        This does not return anything; instead, it *changes* the
+        polyhedral complex.
+
+        EXAMPLES:
+
+        If you add a cell which is already present, there is no effect::
+
+            sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
+            sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
+            sage: r = Polyhedron(rays=[(1, 0)])
+            sage: pc = PolyhedralComplex([p1, p2, r])
+            sage: pc.dimension()
+            2
+            sage: pc.remove_cell(Polyhedron(vertices=[(0, 0), (1, 2)]))
+            sage: pc.dimension()
+            1
+            sage: pc
+            Polyhedral complex with 5 maximal cells
+            sage: pc.remove_cell(Polyhedron(vertices=[(1, 2)]))
+            sage: pc.dimension()
+            1
+            sage: pc
+            Polyhedral complex with 3 maximal cells
+            sage: pc.remove_cell(Polyhedron(vertices=[(0, 0)]))
+            sage: pc.dimension()
+            0
+
+        TESTS:
+
+        Check that ValueError and empty complex are treated properly::
+
+            sage: p = Polyhedron(vertices=[[1]])
+            sage: pc = PolyhedralComplex([p])
+            sage: pc.remove_cell(Polyhedron(vertices=[[0]]), check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Trying to remove a cell which is not in the polyhedral complex
+            sage: pc.remove_cell(Polyhedron(vertices=[(1, 1)]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The given cell is not a polyhedron in the same ambient space.
+            sage: pc.remove_cell(p)
+            sage: pc.dimension()
+            -1
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0]])], is_mutable=False)
+            sage: pc.remove_cell(Polyhedron(vertices=[[0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: This polyhedral complex is not mutable
+
+        Check that this function is coherent with
+        :meth:`~sage.homology.simplicial_complex.SimplicialComplex.remove_face`::
+
+            sage: v1 = (1, 0, 0, 0); v2 = (0, 1, 0, 0); v3 = (0, 0, 1, 0); v4 = (0, 0, 0, 1)
+            sage: Z = PolyhedralComplex([Polyhedron(vertices=[v1, v2, v3, v4])]); Z
+            Polyhedral complex with 1 maximal cell
+            sage: Z.remove_cell(Polyhedron(vertices=[v1, v2]))
+            sage: Z
+            Polyhedral complex with 2 maximal cells
+            sage: [c.vertices_list() for c in Z.maximal_cells_sorted()]
+            [[[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]],
+             [[0, 0, 0, 1], [0, 0, 1, 0], [1, 0, 0, 0]]]
+
+            sage: v0 = (0, 0, 0, 0)
+            sage: S = PolyhedralComplex([Polyhedron(vertices=[v0, v1, v2]), Polyhedron(vertices=[v2, v3])])
+            sage: S.maximal_cells()
+            {1: {A 1-dimensional polyhedron in ZZ^4 defined as the convex hull of 2 vertices},
+             2: {A 2-dimensional polyhedron in ZZ^4 defined as the convex hull of 3 vertices}}
+            sage: S.remove_cell(Polyhedron(vertices=[v0, v1, v2]))
+            sage: S
+            Polyhedral complex with 4 maximal cells
+            sage: [c.vertices_list() for c in S.maximal_cells_sorted()]
+            [[[0, 0, 0, 0], [0, 1, 0, 0]],
+             [[0, 0, 0, 0], [1, 0, 0, 0]],
+             [[0, 0, 1, 0], [0, 1, 0, 0]],
+             [[0, 1, 0, 0], [1, 0, 0, 0]]]
+
+            sage: T = PolyhedralComplex([Polyhedron(vertices=[[1], [2]]), Polyhedron(vertices=[[1], [-3]])])
+            sage: T.remove_cell(Polyhedron(vertices=[[-3], [1]]))
+            sage: [c.vertices_list() for c in T.maximal_cells_sorted()]
+            [[[1], [2]], [[-3]]]
+            sage: [c.vertices_list() for c in T.cells_sorted()]
+            [[[1], [2]], [[-3]], [[1]], [[2]]]
+        """
+        if self._is_immutable:
+            raise ValueError("This polyhedral complex is not mutable")
+        if not is_Polyhedron(cell) or cell.ambient_dim() != self._ambient_dim:
+            raise ValueError("The given cell is not a polyhedron " +
+                             "in the same ambient space.")
+        # if cell is not in self, delete nothing.
+        if not self.has_cell(cell):   # self.cells() is called
+            if check:
+                raise ValueError("Trying to remove a cell which is not " +
+                                 "in the polyhedral complex")
+            return
+        # update cells and face poset
+        poset = self._face_poset
+        deleting = poset.order_filter([cell])
+        for c in deleting:
+            d = c.dimension()
+            self._cells[d].remove(c)
+            if not self._cells[d]:
+                del self._cells[d]
+        covers = {p: [q for q in poset.upper_covers(p) if q not in deleting]
+                  for p in self.cell_iterator()}
+        self._face_poset = Poset(covers)
+        # update dim and maximal cells
+        maximal_cells = self._face_poset.maximal_elements()    # a list
+        self._maximal_cells = cells_list_to_cells_dict(maximal_cells)
+        if not maximal_cells:
+            self._dim = -1
+        else:
+            self._dim = max(self._maximal_cells.keys())
+        # reset cached attributes
+        self._maximal_cells_sorted = None    # needed for hash
+        self._is_convex = None
+        self._polyhedron = None
+
 ############################################################
 # Helper functions
 ############################################################
@@ -1886,10 +2015,3 @@ def cells_list_to_cells_dict(cells_list):
         else:
             cells_dict[d] = set([cell])
     return cells_dict
-
-# TODO: mutable complex: add and update stuff incrementally
-# TODO: replace one cell by its triangulation and adapt other cells
-# TODO: graph of maximal cells by wall-crossing # use poset.meet instead
-# TODO: SimplicialComplex to PolyhedralComplex: geometric realization
-# TODO: learn about the boundary stuff of chain complex
-# TODO: Polyhedral Arrangement to PolyhedralComplex using #25122

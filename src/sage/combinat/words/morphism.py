@@ -106,34 +106,31 @@ from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import FiniteWords, FiniteOrInfiniteWords
 
 
-def get_cycles(f, domain=None):
+def get_cycles(f, domain):
     r"""
-    Return the cycle of the function ``f`` on the finite set domain.
+    Return the list of cycles of the function ``f`` contained in ``domain``.
 
     INPUT:
 
     - ``f`` - function.
 
-    - ``domain`` - set (default: None) - the domain of ``f``. If none, then
-      tries to use ``f.domain()``.
+    - ``domain`` - iterable, a subdomain of the domain of definition of ``f``.
 
     EXAMPLES::
 
         sage: from sage.combinat.words.morphism import get_cycles
-        sage: get_cycles(lambda i: (i+1)%3, domain=[0,1,2])
+        sage: get_cycles(lambda i: (i+1)%3, [0,1,2])
         [(0, 1, 2)]
-        sage: get_cycles(lambda i: [0,0,0][i], domain=[0,1,2])
+        sage: get_cycles(lambda i: [0,0,0][i], [0,1,2])
         [(0,)]
-        sage: get_cycles(lambda i: [1,1,1][i], domain=[0,1,2])
+        sage: get_cycles(lambda i: [1,1,1][i], [0,1,2])
         [(1,)]
-        sage: get_cycles(lambda i: [2,3,0][i], domain=[0,1,2])
+        sage: get_cycles(lambda i: [2,3,0][i], [0,1,2])
         [(0, 2)]
+        sage: d = {'a': 'a', 'b': 'b'}
+        sage: get_cycles(d.__getitem__, 'ba')
+        [('b',), ('a',)]
     """
-    if domain is None:
-        try:
-            domain = f.domain()
-        except AttributeError:
-            raise ValueError("you should specify the domain of the function f")
     cycles = []
     not_seen = set(domain)
     for a in domain:
@@ -2026,7 +2023,7 @@ class WordMorphism(SageObject):
 
         res = []
         parent = self.codomain().shift()
-        for cycle in get_cycles(CallableDict(d),A):
+        for cycle in get_cycles(CallableDict(d), A):
             if cycle[0] in G:
                 P = PeriodicPointIterator(self, cycle)
                 res.append([parent(P._cache[i]) for i in range(len(cycle))])

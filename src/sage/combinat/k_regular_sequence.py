@@ -88,7 +88,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace

@@ -703,6 +703,19 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ...
             ValueError: No recurrence relations are given.
 
+        ::
+
+            sage: Seq2._parse_recurrence_(
+            ....:     [f(4*n + r) == f(n) for r in srange(4)], f, n)
+            (2, 0, {(0, 0): 1, (1, 0): 1, (2, 0): 1, (3, 0): 1}, {})
+
+        ::
+
+            sage: Seq2._parse_recurrence_(
+            ....:     [f(8*n) == f(n)] +
+            ....:     [f(8*n + r) == f(2*n) for r in srange(1,8)], f, n)
+            ValueError: 2 does not equal 1.
+
         Finally, also for the zero-sequence the output is as expected::
 
             sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
@@ -832,10 +845,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         if coeff not in base_ring:
                             raise ValueError("%s is not a valid coefficient."
                                              % (coeff,)) from None
-                        if m and m != new_m:
+                        if m is not None and m != new_m:
                             raise ValueError("%s does not equal %s."
                                              % (k**new_m, k**m)) from None
-                        elif not m:
+                        elif m is None:
                             m = new_m
                             if m not in ZZ:
                                 raise ValueError("%s is not a power of %s."
@@ -847,7 +860,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         if not M:
             raise ValueError("No recurrence relations are given.") from None
-        elif M and not m: # for the zero sequence
+        elif M and m is None: # for the zero sequence
             m = M - 1
 
         missing_remainders = [rem for rem in srange(k**M)

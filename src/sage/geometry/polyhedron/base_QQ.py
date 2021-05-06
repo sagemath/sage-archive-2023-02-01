@@ -1094,3 +1094,76 @@ class Polyhedron_QQ(Polyhedron_base):
         """
         raise TypeError("The backend of the polyhedron should be 'normaliz'")
 
+    def Hstar_is_effective(self, Hstar, Hstar_as_lin_comb):
+        r"""
+        Check if the `H^*` series is effective.
+
+        The `H^*` series is effective if it is a polynomial and the coefficients
+        of each `t^i` are effective representations. The coefficients of each
+        irreducible representation must be non-negative integers. The `H^*` series
+        must be polynomial in order for it to be effective.
+
+        INPUT:
+
+        - ``self`` -- polyhedron object. a polytope with backend ``'normaliz'``
+
+        - ``Hstar`` -- a rational function in `t` with coefficients in the ring of
+                       class functions.
+
+        - ``Hstar_as_lin_comb`` -- vector.
+
+        OUTPUT:
+
+        Boolean. Whether the `H^*` series is effective.
+
+        EXAMPLES:
+
+        The `H^*` series of the two-dimensional permutahedron under the action
+        of the symmetric group is effective::
+
+            sage: p2 = polytopes.permutahedron(3, backend = 'normaliz')      # optional - pynormaliz
+            sage: G = p2.restricted_automorphism_group(output='permutation') # optional - pynormaliz
+            sage: H = G.subgroup(gens=[G.gens()[1],G.gens()[2]])             # optional - pynormaliz
+            sage: H.order()                                                  # optional - pynormaliz
+            6
+            sage: [Hstar, Hlin] = [p2.Hstar_function(H), p2.Hstar_function(H, output = 'Hstar_as_lin_comb')] # optional - pynormaliz
+            sage: p2.Hstar_is_effective(Hstar,Hlin)   # optional - pynormaliz
+            True
+
+        The `H^*` series must be a polynomial in order to be effective. If it is
+        not polynomial, a value error is returned::
+
+            sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],
+            ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')           # optional - pynormaliz
+            sage: G = P.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
+            sage: H = G.subgroup(gens = [G[6]])                               # optional - pynormaliz
+            sage: Hstar = P.Hstar_function(H); Hstar                          # optional - pynormaliz
+            (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
+            sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb') # optional - pynormaliz
+            sage: P.Hstar_is_effective(Hstar, Hstar_lin)  # optional - pynormaliz
+            Traceback (most recent call last):
+            ...
+            ValueError: The Hstar vector must be polynomial
+        """
+        if self.is_empty():
+            raise NotImplementedError('Empty polyhedra are not supported')
+        if not self.is_compact():
+            raise NotImplementedError('Unbounded polyhedra are not supported')
+        if self.backend() == 'normaliz':
+            return self._Hstar_is_effective_normaliz(Hstar,Hstar_as_lin_comb)
+        else:
+            raise TypeError("The backend of the polyhedron should be 'normaliz'")
+
+    def _Hstar_is_effective_normaliz(self, Hstar, Hstar_as_lin_comb):
+        r"""
+        TESTS::
+
+            sage: p1 = Polyhedron(vertices = [[0],[1/2]]);
+            sage: p2 = Polyhedron(vertices = [[0],[1/2]], backend='normaliz')
+            sage: [Hstar,Hstarlin] = [p2.Hstar_function(),p2.Hstar_function(output='Hstar_as_lin_comb')]
+            sage: p1._Hstar_is_effective_normaliz(Hstar,Hstarlin)
+            Traceback (most recent call last):
+            ...
+            TypeError: The backend of the polyhedron should be 'normaliz'
+        """
+        raise TypeError("The backend of the polyhedron should be 'normaliz'")

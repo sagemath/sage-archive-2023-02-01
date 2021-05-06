@@ -2426,7 +2426,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         is computed as follows::
 
             sage: simplex = Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0],[0,0,1]],backend='normaliz') # optional - pynormaliz
-            sage: Hstar = simplex.Hstar_function(); Hstar # optional - pynormaliz
+            sage: Hstar = simplex.Hstar_function(); Hstar # optional - pynormaliz # indirect doctest
             chi_4
 
         The polynomial is `\chi_4 \cdot t^0`. We can see which irreducible
@@ -2467,7 +2467,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         new_result = initial_Hstar.change_ring(fraction_virtual_ring)*vector(fraction_virtual_ring, chi_vars)
         return new_result
 
-    def _Hstar_is_effective(self, Hstar, Hstar_as_lin_comb):
+    def _Hstar_is_effective_normaliz(self, Hstar, Hstar_as_lin_comb):
         r"""
         Check if the `H^*` series is effective.
 
@@ -2500,7 +2500,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             sage: H.order()                                                  # optional - pynormaliz
             6
             sage: [Hstar, Hlin] = [p2.Hstar_function(H), p2.Hstar_function(H, output = 'Hstar_as_lin_comb')] # optional - pynormaliz
-            sage: p2._Hstar_is_effective(Hstar,Hlin)   # optional - pynormaliz
+            sage: p2._Hstar_is_effective_normaliz(Hstar,Hlin)   # optional - pynormaliz
             True
 
         The `H^*` series must be a polynomial in order to be effective. If it is
@@ -2513,7 +2513,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             sage: Hstar = P.Hstar_function(H); Hstar                          # optional - pynormaliz
             (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
             sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb') # optional - pynormaliz
-            sage: P._Hstar_is_effective(Hstar, Hstar_lin)  # optional - pynormaliz
+            sage: P._Hstar_is_effective_normaliz(Hstar, Hstar_lin)  # optional - pynormaliz
             Traceback (most recent call last):
             ...
             ValueError: The Hstar vector must be polynomial
@@ -2525,7 +2525,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         for irrep in range(len(Hstar_as_lin_comb)):
             coeffs = Hstar_as_lin_comb[irrep].numerator().coefficients()
             for i in coeffs:
-                if not i.is_integral() or i < 0:
+                if not i.is_integer() or i < 0:
                     flag = False
         return flag
 

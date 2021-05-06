@@ -313,9 +313,16 @@ class RecognizableSeries(Element):
         EXAMPLES::
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
-            sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:     vector([0, 1]), vector([1, 0])).transposed()
+            sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:         vector([0, 1]), vector([1, 0])).transposed(); S
             [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...
+
+        We can access coefficients by
+        ::
+
+            sage: W = Rec.indices()
+            sage: S[W([0, 0, 1])]
+            9
 
         .. SEEALSO::
 

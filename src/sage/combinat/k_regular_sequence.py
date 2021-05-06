@@ -1420,25 +1420,21 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             except KeyError:
                 return 0
 
-        for i in srange(1, dim_without_corr + 1):
-            j, d = ind[i]
+        def entry(i, kk):
+            j, d = ind[i + 1]
             if j < M - 1:
-                row = dim_without_corr*[0]
-                row[ind[(j + 1, k**j*rem + d)] - 1] = 1
-                mat = mat.stack(vector(row))
+                return int(kk == ind[(j + 1, k**j*rem + d)] - 1)
             else:
                 rem_d = k**(M-1)*rem + (d%k**M)
                 dd = d // k**M
                 if rem_d < k**M:
-                    lambd = l - ind[(m, (k**m)*dd + l)]
-                    row = [_coeff_(rem_d, kk + lambd)
-                           for kk in srange(1, dim_without_corr + 1)]
-                    mat = mat.stack(vector(row))
+                    lambd = l - ind[(m, (k**m)*dd + l)] + 1
+                    return _coeff_(rem_d, kk + lambd)
                 else:
-                    lambd = l - ind[(m, k**m*dd + k**m + l)]
-                    row = [_coeff_(rem_d - k**M, kk + lambd)
-                           for kk in srange(1, dim_without_corr + 1)]
-                    mat = mat.stack(vector(row))
+                    lambd = l - ind[(m, k**m*dd + k**m + l)] + 1
+                    return _coeff_(rem_d - k**M, kk + lambd)
+
+        mat = Matrix(base_ring, dim_without_corr, dim_without_corr, entry)
 
         if n1 == 0 or not correct_offset:
             return mat

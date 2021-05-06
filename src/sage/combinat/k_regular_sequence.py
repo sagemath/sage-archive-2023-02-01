@@ -161,7 +161,7 @@ class kRegularSequence(RecognizableSeries):
     @cached_method
     def __getitem__(self, n, **kwds):
         r"""
-        Return the `n`th entry of this sequence.
+        Return the `n`-th entry of this sequence.
 
         INPUT:
 

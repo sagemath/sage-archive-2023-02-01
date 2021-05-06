@@ -14,7 +14,7 @@ Category of chain complexes
 #*****************************************************************************
 
 from .category_types import Category_module
-from .modules import Modules
+from .commutative_additive_groups import CommutativeAdditiveGroups
 from .functor import Functor
 from sage.misc.abstract_method import abstract_method
 
@@ -121,7 +121,11 @@ class ChainComplexes(Category_module):
 
             EXAMPLES::
 
-                ...
+                sage: E3 = EuclideanSpace(3)
+                sage: C = E3.de_rham_complex()
+                sage: one = C.homology().one()
+                sage: C.lift_from_homology(one)
+                Mixed differential form one on the Euclidean space E^3
 
             """
 
@@ -138,12 +142,16 @@ class ChainComplexes(Category_module):
 
             EXAMPLES::
 
-                ...
+                sage: E3 = EuclideanSpace(3)
+                sage: C = E3.de_rham_complex()
+                sage: one = C.one()
+                sage: C.reduce_to_homology(one)
+                [one]
 
             """
             try:
                 # try coercion
-                self.homology(n)(x)
+                return self.homology(n)(x)
             except TypeError:
                 # if not, this methods needs to be overwritten by parent
                 raise NotImplementedError
@@ -207,7 +215,7 @@ class HomologyFunctor(Functor):
         """
         if not isinstance(domain, ChainComplexes):
             raise TypeError(f'{domain} must be a category of chain complexes')
-        codomain = Modules(domain.base_ring())
+        codomain = CommutativeAdditiveGroups()
         super().__init__(domain, codomain)
         self.__n = n
 
@@ -231,12 +239,20 @@ class HomologyFunctor(Functor):
 
         TESTS:
 
-        ...
+            sage: E3 = EuclideanSpace(3)
+            sage: C = E3.de_rham_complex()
+            sage: id = Hom(C, C).identity()
+            sage: H = HomologyFunctor(ChainComplexes(SR))
+            sage: id_star = H(id); id_star
+            Generic endomorphism of De Rham cohomology ring on the
+             Euclidean space E^3
+            sage: one = C.one()
+            sage: id_star(one)
+            [one]
 
         """
         from .morphism import SetMorphism
         from .homset import Hom
-        from .commutative_additive_groups import CommutativeAdditiveGroups
 
         domain = f.domain()
         codomain = f.codomain()

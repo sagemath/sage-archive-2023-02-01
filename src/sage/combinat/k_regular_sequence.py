@@ -684,6 +684,20 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
+            sage: Seq2._parse_recurrence_([f(2*n) == f(n)], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: Recurrence relations for [f(2*n + 1)] are missing.
+
+        ::
+
+            sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: Recurrence relations for [f(4*n + 1), f(4*n + 2)] are missing.
+
+        ::
+
             sage: Seq2._parse_recurrence_([f(42) == 0], f, n)
             Traceback (most recent call last):
             ...
@@ -694,6 +708,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
             (1, 0, {}, {})
         """
+        from sage.arith.srange import srange
         from sage.functions.log import log
         from sage.rings.integer_ring import ZZ
         from sage.symbolic.operators import add_vararg, mul_vararg, operator
@@ -834,6 +849,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             raise ValueError("No recurrence relations are given.") from None
         elif M and not m: # for the zero sequence
             m = M - 1
+
+        missing_remainders = [rem for rem in srange(k**M)
+                              if rem not in remainders]
+        if missing_remainders:
+            raise ValueError("Recurrence relations for %s are missing."
+                             % ([function(k**M*var + rem)
+                                 for rem in missing_remainders],)) from None
 
         return (M, m, coeffs, initial_values)
 

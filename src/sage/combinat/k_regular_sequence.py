@@ -41,7 +41,8 @@ The binary sum of digits `S(n)` of a nonnegative integer `n` satisfies
 Number of odd entries in Pascal's triangle
 ------------------------------------------
 
-::
+Let us consider the number of odd entries in the first `n` rows
+of Pascals's triangle::
 
     sage: @cached_function
     ....: def u(n):
@@ -51,7 +52,9 @@ Number of odd entries in Pascal's triangle
     sage: tuple(u(n) for n in srange(10))
     (0, 1, 3, 5, 9, 11, 15, 19, 27, 29)
 
-    sage: U = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+There is a `2`-recursive sequence describing the numbers above as well::
+
+    sage: U = Seq2((Matrix([[3, 2], [0, 1]]), Matrix([[2, 0], [1, 3]])),
     ....:          left=vector([0, 1]), right=vector([1, 0])).transposed()
     sage: all(U[n] == u(n) for n in srange(30))
     True

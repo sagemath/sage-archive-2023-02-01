@@ -476,15 +476,15 @@ class RecognizableSeries(Element):
             return '{c}{times}[{w}]'.format(c=fr(c), times=times, w=fs(w))
 
         def all_coefficients():
-            number_of_nonzeros = 0
+            number_of_zeros = 0
             for w in self.parent().indices():
                 c = self[w]
                 if c != 0:
-                    number_of_nonzeros = 0
+                    number_of_zeros = 0
                     yield (w, self[w])
                 else:
-                    number_of_nonzeros += 1
-                if number_of_nonzeros >= 100:
+                    number_of_zeros += 1
+                if number_of_zeros >= 100:
                     return
 
         coefficients = islice(all_coefficients(), 10)

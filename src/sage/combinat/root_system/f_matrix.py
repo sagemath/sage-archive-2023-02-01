@@ -35,7 +35,8 @@ from sage.combinat.root_system.poly_tup_engine import (
     poly_to_tup, _tup_to_poly, tup_to_univ_poly,
     _unflatten_coeffs,
     poly_tup_sortkey,
-    resize
+    resize,
+    tup_fixes_sq
 )
 from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
 from sage.graphs.graph import Graph
@@ -275,8 +276,8 @@ class FMatrix():
         self._FR = fusion_ring
         if inject_variables and (self._FR._fusion_labels is None):
             self._FR.fusion_labels(fusion_label, inject_variables=True)
-        if not self._FR.is_multiplicity_free():
-            raise ValueError("FMatrix is only available for multiplicity free FusionRings")
+        # if not self._FR.is_multiplicity_free():
+        #     raise ValueError("FMatrix is only available for multiplicity free FusionRings")
         #Set up F-symbols entry by entry
         n_vars = self.findcases()
         self._poly_ring = PolynomialRing(self._FR.field(),n_vars,var_prefix)
@@ -300,6 +301,10 @@ class FMatrix():
         #Multiprocessing attributes
         self.mp_thresh = 10000
         self.pool = None
+
+        #TESTS
+        self.test_fvars = dict()
+        self.test_ks = dict()
 
     #######################
     ### Class utilities ###
@@ -1569,6 +1574,16 @@ class FMatrix():
         if eqns is None:
             eqns = self.ideal_basis
         self._ks.update(eqns)
+
+        #TESTS:
+        for i in range(len(eqns)):
+            eq_tup = eqns[i]
+            if tup_fixes_sq(eq_tup):
+                rhs = [-v for v in eq_tup[-1][1]]
+                self.test_ks[variables(eq_tup)[0]] = rhs
+        for i, sq in self._ks.items():
+            assert sq == self._field(self.test_ks[i]), "{}: OG sq {}, shared sq {}".format(i, sq, self.test_ks[i])
+
         degs = get_variables_degrees(eqns)
         if degs:
             for i, d in enumerate(degs):
@@ -2139,6 +2154,7 @@ class FMatrix():
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
         #Unzip _fvars and link to shared_memory structure if using multiprocessing
+        self.test_fvars = {k: poly_to_tup(p) for k, p in self._fvars.items()}
         if use_mp:
             self._fvars = self._shared_fvars
         else:

@@ -319,7 +319,7 @@ cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
       new_tup.append((exp, coeff_map(coeff)))
     return tuple(new_tup)
 
-cdef inline bint tup_fixes_sq(tuple eq_tup):
+cpdef inline bint tup_fixes_sq(tuple eq_tup):
     r"""
     Determine if given equation fixes the square of a variable.
 

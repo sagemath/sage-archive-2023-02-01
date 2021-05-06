@@ -238,6 +238,10 @@ cdef class KSHandler:
             quo = rhs[i]
             num = quo.numerator()
             denom = quo.denominator()
+            if num > 2**32:
+                print("Large num encountered in KS",num)
+            if denom > 2**32:
+                print("Large denom encountered in KS",denom)
             nums[i] = num
             denoms[i] = denom
 
@@ -332,7 +336,7 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=False,name=None,init_data={},max_terms=20):
+    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=False,name=None,init_data={},max_terms=20,n_bytes=16):
         """
         Return a shared memory backed dict-like structure to manage the
         ``_fvars`` attribute of an F-matrix factory object.
@@ -576,8 +580,12 @@ cdef class FvarsHandler:
             denoms[i] = denom
             k = 0
             for r in coeff._coefficients():
-                assert Integer(r * denom).nbits() < 63, "OverflowError in FvarsHandler.setitem: c {}, r {}, denom {}".format(c, r, denom)
+                assert Integer(r * denom).nbits() <= 63, "OverflowError in FvarsHandler.setitem: c {}, r {}, denom {}".format(c, r, denom)
                 c = <Integer>(r * denom)
+                if c > 2**32:
+                    print("Large num encountered",c)
+                if denom > 2**32:
+                    print("Large denom encountered",denom)
                 nums[i,k] = c
                 k += 1
             i += 1

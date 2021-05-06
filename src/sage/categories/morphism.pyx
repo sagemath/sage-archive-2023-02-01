@@ -392,9 +392,8 @@ cdef class Morphism(Map):
             # gens by picking an element of the initial domain (e) and
             # multiplying it with the gens of the scalar ring.
             #
-            # Note that this way of comparing morphisms tacitly assumes
-            # cancellation property of the scalar multiplication of the domain
-            # of the morphisms. See Trac #28617 and #31783.
+            # It is known that this way of comparing morphisms may give
+            # a mathematically wrong answer. See Trac #28617 and #31783.
             if e is not None and isinstance(e, ModuleElement):
                 B = (<ModuleElement>e)._parent._base
                 gens = [e * B.coerce(x) for x in gens]

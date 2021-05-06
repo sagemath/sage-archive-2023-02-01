@@ -403,7 +403,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         OUTPUT:
 
-        A vector consisting of
+        A tuple consisting of
 
         - ``M``, ``m`` -- parameters of the recursive sequences,
           see [HKL2021]_, Definition 3.1

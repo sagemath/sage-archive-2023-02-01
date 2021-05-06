@@ -51,7 +51,7 @@ Number of odd entries in Pascal's triangle
     (0, 1, 3, 5, 9, 11, 15, 19, 27, 29)
 
     sage: U = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-    ....:          left=vector([0, 1]), right=vector([1, 0]), transpose=True)
+    ....:          left=vector([0, 1]), right=vector([1, 0])).transposed()
     sage: all(U[n] == u(n) for n in srange(30))
     True
 
@@ -144,8 +144,7 @@ class kRegularSequence(RecognizableSeries):
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:      vector([0, 1]), vector([1, 0]),
-            ....:      transpose=True)
+            ....:      vector([0, 1]), vector([1, 0])).transposed()
             2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
 
         .. SEEALSO::
@@ -169,7 +168,7 @@ class kRegularSequence(RecognizableSeries):
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: s = Seq2((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:           vector([0, 1]), vector([1, 0]), transpose=True)
+            ....:           vector([0, 1]), vector([1, 0])).transposed()
             sage: repr(s)  # indirect doctest
             '2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...'
         """

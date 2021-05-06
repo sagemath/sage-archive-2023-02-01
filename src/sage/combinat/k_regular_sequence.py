@@ -184,7 +184,7 @@ class kRegularSequence(RecognizableSeries):
             sage: S[-1]
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned char
+            ValueError: value -1 of index is negative
 
         ::
 
@@ -344,9 +344,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._n_to_index_(-1)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to unsigned char
+            ValueError: value -1 of index is negative
         """
         from sage.rings.integer_ring import ZZ
         n = ZZ(n)
         W = self.indices()
-        return W(n.digits(self.k))
+        try:
+            return W(n.digits(self.k))
+        except OverflowError:
+            raise ValueError('value {} of index is negative'.format(n))

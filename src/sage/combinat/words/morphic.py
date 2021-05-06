@@ -67,6 +67,8 @@ class WordDatatype_morphic(WordDatatype_callable):
             sage: w = m.fixed_point("a")
             sage: w
             word: ab
+            sage: w[0]
+            'a'
             sage: w.length()
             2
 
@@ -153,13 +155,18 @@ class WordDatatype_morphic(WordDatatype_callable):
 
         When the morphic word is finite::
 
-            sage: m = WordMorphism("a->ab,b->")
+            sage: m = WordMorphism("a->ab,b->,c->cdab,d->dcab")
             sage: w = m.fixed_point("a")
             sage: w.representation(0)
             []
             sage: w.representation(1)
             [1]
-            sage: w.representation(2)  # not tested: infinite loop
+            sage: w.representation(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: Index (=2) out of range, the fixed point is finite and has length 2.
+
+
 
         TESTS:
 
@@ -181,9 +188,10 @@ class WordDatatype_morphic(WordDatatype_callable):
         vMk = vector([1]*len(self._alphabet))
         length_of_images = [vMk]
         while vMk[position] <= n:
-            if vMk == vMk*M:
-                raise ValueError('The morphism has a finite fixed point of length {}.'.format(vMk[position]))
-            vMk = vMk*M
+            vMk_next = vMk*M
+            if vMk[position] == vMk_next[position]:
+                raise IndexError('Index (={}) out of range, the fixed point is finite and has length {}.'.format(n,vMk[position]))
+            vMk = vMk_next
             length_of_images.append(vMk)
         length_of_images.pop()
         k = len(length_of_images)  

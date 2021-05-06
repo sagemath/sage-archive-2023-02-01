@@ -1005,7 +1005,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             k**m*offset + u,
             max(keys_initial))
         initial_values = self._get_values_from_recurrence_(
-            M, m, l, u, ll, coeffs, initial_values, last_value_needed, offset)
+            M=M, m=m, l=l, u=u, ll=ll, coeffs=coeffs,
+            initial_values=initial_values, last_value_needed=last_value_needed,
+            offset=offset)
 
         recurrence_rules = namedtuple('recurrence_rules',
                                       ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
@@ -1016,8 +1018,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                 offset=offset, n1=n1)
 
 
-    def _get_values_from_recurrence_(self, M, m, l, u, ll, coeffs, initial_values,
-                                     last_value_needed, offset):
+    def _get_values_from_recurrence_(self, *, M, m, l, u, ll, coeffs,
+                                     initial_values, last_value_needed, offset):
         r"""
         Determine enough values of the corresponding recursive sequence by
         applying the recurrence relations given in :meth:`from_recurrence`
@@ -1052,9 +1054,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Stern--Brocot Sequence::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
-            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1, 2: 1},
-            ....: 20, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     initial_values={0: 0, 1: 1, 2: 1}, last_value_needed=20,
+            ....:     offset=0)
             {0: 0, 1: 1, 2: 1, 3: 2, 4: 1, 5: 3, 6: 2, 7: 3, 8: 1, 9: 4, 10: 3,
             11: 5, 12: 2, 13: 5, 14: 3, 15: 4, 16: 1, 17: 5, 18: 4, 19: 7, 20: 3}
 
@@ -1066,40 +1069,48 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         For the equations `f(2n) = f(n)` and `f(2n + 1) = f(n) + f(n + 1)`::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
-            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2}, 20, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     initial_values={0: 0, 1: 2}, last_value_needed=20,
+            ....:     offset=0)
             {0: 0, 1: 2, 2: 2, 3: 4, 4: 2, 5: 6, 6: 4, 7: 6, 8: 2, 9: 8, 10: 6,
             11: 10, 12: 4, 13: 10, 14: 6, 15: 8, 16: 2, 17: 10, 18: 8, 19: 14,
             20: 6}
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
-            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {}, 20, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     initial_values={}, last_value_needed=20, offset=0)
             Traceback (most recent call last):
             ...
             ValueError: Initial values for arguments in [0, 1] are missing.
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
-            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0}, 20, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     initial_values={0: 0}, last_value_needed=20, offset=0)
             Traceback (most recent call last):
             ...
             ValueError: Initial values for arguments in [1] are missing.
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
-            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 2: 1}, 20, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     initial_values={0: 0, 2: 1}, last_value_needed=20,
+            ....:     offset=0)
             Traceback (most recent call last):
             ...
             ValueError: Initial values for arguments in [1] are missing.
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 1, 0,
-            ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 2, 2:0}, 20, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     initial_values={0: 0, 1: 2, 2:0}, last_value_needed=20,
+            ....:     offset=0)
             Traceback (most recent call last):
             ...
             ValueError: Initial value for argument 2 does not match with the given
@@ -1107,22 +1118,26 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, -2, 2, -2,
-            ....: {(0, -2): 1, (0, 2): 1, (1, -2): 1, (1, 2): 1},
-            ....: {0: 0, 1: 2, 2: 4, 3: 3, 4: 2}, 20, 2)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=-2, u=2, ll=-2,
+            ....:     coeffs={(0, -2): 1, (0, 2): 1, (1, -2): 1, (1, 2): 1},
+            ....:     initial_values={0: 0, 1: 2, 2: 4, 3: 3, 4: 2},
+            ....:     last_value_needed=20, offset=2)
             {-2: 0, -1: 0, 0: 0, 1: 2, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4, 7: 4,
             8: 8, 9: 8, 10: 7, 11: 7, 12: 10, 13: 10, 14: 10, 15: 10, 16: 11,
             17: 11, 18: 11, 19: 11, 20: 18}
 
         Finally, also for the zero-sequence the output is as expected::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0, 0, {}, {}, 10, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=0, ll=0,
+            ....:     coeffs={}, initial_values={}, last_value_needed=10,
+            ....:     offset=0)
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
 
         ::
 
-            sage: Seq2._get_values_from_recurrence_(1, 0, 0, 0, 0,
-            ....: {(0, 0): 0, (1, 1): 0}, {}, 10, 0)
+            sage: Seq2._get_values_from_recurrence_(M=1, m=0, l=0, u=0, ll=0,
+            ....:     coeffs={(0, 0): 0, (1, 1): 0}, initial_values={},
+            ....:     last_value_needed=10, offset=0)
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
         """
         from sage.arith.srange import srange

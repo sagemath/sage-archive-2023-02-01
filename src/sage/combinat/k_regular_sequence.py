@@ -78,7 +78,7 @@ ACKNOWLEDGEMENT:
 
 - Daniel Krenn is supported by the
   Austrian Science Fund (FWF): P 24644-N26.
-- Gabriel Lipnik is supported by the
+- Gabriel F. Lipnik is supported by the
   Austrian Science Fund (FWF): W 1230.
 
 

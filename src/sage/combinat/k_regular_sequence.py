@@ -1194,7 +1194,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.rings.integer_ring import ZZ
 
         k = self.k
-        base_ring = self.base_ring()
         keys_initial = initial_values.keys()
 
         values = {n: None if n not in keys_initial else initial_values[n]

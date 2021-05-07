@@ -1278,18 +1278,16 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
 
-        k = self.k
         M = recurrence_rules.M
         m = recurrence_rules.m
         ll = recurrence_rules.ll
         uu = recurrence_rules.uu
+        dim = recurrence_rules.dim - recurrence_rules.n1
         initial_values = recurrence_rules.initial_values
+        ind = self._get_ind_from_recurrence_(M, m, ll, uu)
 
         return vector(
-            [initial_values[k**j*n + d] for j in srange(m)
-             for d in srange(k**j)] + \
-            [initial_values[k**j*n + d] for j in srange(m, M)
-             for d in srange(ll, k**j - k**m + uu + 1)])
+            [initial_values[k**ind[i+1][0]*n + ind[i+1][1]] for i in srange(dim)])
 
     def _get_matrix_from_recurrence_(self, recurrence_rules, rem,
                                      correct_offset=True):

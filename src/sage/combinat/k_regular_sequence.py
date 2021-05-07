@@ -412,7 +412,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           `c_{r, j}` as given in [HKL2021]_, Equation (3.1)
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``th value of the sequence
+          ``n``-th value of the sequence
 
         EXAMPLES::
 
@@ -892,7 +892,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           then it is assumed to be zero.
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``th value of the sequence
+          ``n``-th value of the sequence
 
         OUTPUT:
 
@@ -910,7 +910,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           then it is assumed to be zero.
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``th value of the sequence
+          ``n``-th value of the sequence
 
         EXAMPLES::
 
@@ -1039,14 +1039,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           then it is assumed to be zero.
 
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``th value of the sequence
+          ``n``-th value of the sequence
 
         - ``last_value_needed`` -- last initial value which is needed to
           determine the linear representation
 
         OUTPUT:
 
-        A dictionary mapping integers ``n`` to the ``n``th value of the
+        A dictionary mapping integers ``n`` to the ``n``-th value of the
         sequence for all ``n`` up to ``last_value_needed``.
 
         EXAMPLES:
@@ -1214,7 +1214,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         vice versa, i.e.,
 
         - ``ind[i]`` -- a pair ``(j, d)`` representing the sequence `x(k^j + d)`
-          in the `i`th component (1-based) of the resulting linear representation
+          in the `i`-th component (1-based) of the resulting linear representation
 
         - ``ind[(j, d)]`` -- the (1-based) row number of the sequence
           `x(k^j + d)` in the linear representation.

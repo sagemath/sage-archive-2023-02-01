@@ -1205,7 +1205,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``M``, ``m`` -- parameters of the recursive sequences,
           see [HKL2021]_, Definition 3.1
 
-        - ``ll``, ``u`` -- parameters of the resulting linear representation,
+        - ``ll``, ``uu`` -- parameters of the resulting linear representation,
           see [HKL2021]_, Theorem A
 
         OUTPUT:

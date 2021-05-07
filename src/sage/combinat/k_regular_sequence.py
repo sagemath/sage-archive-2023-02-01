@@ -1599,7 +1599,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         if n1 >= 1:
             right = vector(list(right) + [1] + (n1 - 1)*[0])
 
-        return vector(right)
+        return right
 
 
     def from_recurrence(self, equations, function, var, offset=0, minimize=False):

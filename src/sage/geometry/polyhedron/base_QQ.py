@@ -1,4 +1,4 @@
-r"""
+"""
 Base class for polyhedra over `\QQ`
 """
 
@@ -834,6 +834,7 @@ class Polyhedron_QQ(Polyhedron_base):
 
         The fixed subpolytope of the identity element of the group is the entire
         cube::
+
             sage: reprs[0]                                                      # optional - pynormaliz
             ()
             sage: Cube.fixed_subpolytope(vertex_permutation = reprs[0])                              # optional - pynormaliz
@@ -841,13 +842,13 @@ class Polyhedron_QQ(Polyhedron_base):
             vertices
             sage: _.vertices()                                                  # optional - pynormaliz
             (A vertex at (-1, -1, -1),
-             A vertex at (-1, -1, 1),
-             A vertex at (-1, 1, -1),
-             A vertex at (-1, 1, 1),
-             A vertex at (1, -1, -1),
-             A vertex at (1, -1, 1),
-             A vertex at (1, 1, -1),
-             A vertex at (1, 1, 1))
+            A vertex at (-1, -1, 1),
+            A vertex at (-1, 1, -1),
+            A vertex at (-1, 1, 1),
+            A vertex at (1, -1, -1),
+            A vertex at (1, -1, 1),
+            A vertex at (1, 1, -1),
+            A vertex at (1, 1, 1))
 
         You can obtain non-trivial examples::
 
@@ -963,7 +964,6 @@ class Polyhedron_QQ(Polyhedron_base):
             fixed_subpolytopes[element] = fixed_subpoly
         return fixed_subpolytopes
 
-
     def Hstar_function(self, acting_group=None, output=None):
         r"""
         Return `H^*` as a rational function in `t` with coefficients in
@@ -982,8 +982,8 @@ class Polyhedron_QQ(Polyhedron_base):
 
         - ``acting_group`` -- (default=None) a permgroup object. A subgroup of
           `self`'s `restricted_automorphism_group` output as a permutation.
-           If ``None``, it is set to the full `restricted_automorphism_group`
-           of `self`. The acting group should always use output='permutation'.
+          If ``None``, it is set to the full `restricted_automorphism_group`
+          of `self`. The acting group should always use output='permutation'.
 
         - ``output`` -- string. an output option. The allowed values are:
 
@@ -1150,7 +1150,7 @@ class Polyhedron_QQ(Polyhedron_base):
         if not self.is_compact():
             raise NotImplementedError('Unbounded polyhedra are not supported')
         if self.backend() == 'normaliz':
-            return self._Hstar_is_effective_normaliz(Hstar,Hstar_as_lin_comb)
+            return self._Hstar_is_effective_normaliz(Hstar, Hstar_as_lin_comb)
         else:
             raise TypeError("The backend of the polyhedron should be 'normaliz'")
 

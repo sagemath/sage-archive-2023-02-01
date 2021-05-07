@@ -4737,7 +4737,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
         - ``gens`` - the generators of the subgroup
 
-        - ``gap_group`` - a gap permutation group contained in the ambient group;
+        - ``gap_group`` - a GAP permutation group contained in the ambient group;
                           constructed from ``gens`` if not given.
 
         - ``check`` - ``True``: checks if ``gens`` are indeed elements of the

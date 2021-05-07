@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Galois Groups of Number Fields
 
@@ -1048,6 +1047,8 @@ class GaloisGroup_subgroup(GaloisSubgroup_perm):
         closure of the number field associated to the ambient Galois group).
 
         INPUT:
+
+        - ``name`` -- a variable name for the new field.
 
         - ``polred`` -- whether to optimize the generator of the newly created field
             for a simpler polynomial, using pari's polredbest.

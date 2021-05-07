@@ -107,7 +107,9 @@ Check that :trac:`23459` is fixed::
 
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import (deprecation,
+                                  deprecated_function_alias)
+
 
 import sage.libs.ntl.all as ntl
 import sage.interfaces.gap
@@ -125,7 +127,6 @@ from sage.rings.finite_rings.integer_mod import mod
 
 from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.misc.misc_c import prod
 from sage.rings.all import Infinity
@@ -4869,14 +4870,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         outside of `S`, but may contain it properly when not all
         primes dividing `m` are in `S`.
 
-        .. NOTE::
+        .. SEEALSO::
 
-            When `m=p` is prime, see also the method
-            :meth:`NumberField_generic.selmer_space` which gives
-            additional output: as well as generators, it gives an
-            abstract vector space over `GF(p)` isomorphic to `K(S,p)`
-            and maps implementing the isomorphism between this space
-            and `K(S,p)` as a subgroup of `K^*/(K^*)^p`.
+            :meth:`NumberField_generic.selmer_space`, which gives
+        additional output when `m=p` is prime: as well as generators,
+        it gives an abstract vector space over `GF(p)` isomorphic to
+        `K(S,p)` and maps implementing the isomorphism between this
+        space and `K(S,p)` as a subgroup of `K^*/(K^*)^p`.
 
         EXAMPLES::
 

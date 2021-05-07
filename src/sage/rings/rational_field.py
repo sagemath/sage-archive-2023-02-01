@@ -1295,6 +1295,14 @@ class RationalField(Singleton, number_field_base.NumberField):
         all primes of `\QQ` outside of `S`, but may contain it
         properly when not all primes dividing `m` are in `S`.
 
+        .. SEEALSO::
+
+            :meth:`RationalField.selmer_space`, which gives additional
+        output when `m=p` is prime: as well as generators, it gives an
+        abstract vector space over `GF(p)` isomorphic to `\QQ(S,p)`
+        and maps implementing the isomorphism between this space and
+        `\QQ(S,p)` as a subgroup of `\QQ^*/(\QQ^*)^p`.
+
         EXAMPLES::
 
             sage: QQ.selmer_generators((), 2)
@@ -1314,6 +1322,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             ([-1, 2, 3, 5, 7], [2, 2, 2, 2, 2])
             sage: QQ.selmer_generators((2,3,5,7,), 3, orders=True)
             ([2, 3, 5, 7], [3, 3, 3, 3])
+
         """
         gens = list(S)
         ords = [ZZ(m)] * len(S)

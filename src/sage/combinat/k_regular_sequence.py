@@ -884,7 +884,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         INPUT:
 
         - ``M``, ``m``, ``offset`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1 (see also :meth:`from_recurrence`)
+          see [HKL2021]_, Definition 3.1, as well as :meth:`from_recurrence`
 
         - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
           coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
@@ -1027,7 +1027,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         INPUT:
 
-        - ``M``, ``m``, ``l``, ``u`` and ``offset`` -- parameters of the
+        - ``M``, ``m``, ``l``, ``u``, ``offset`` -- parameters of the
           recursive sequences, see [HKL2021]_, Definition 3.1
 
         - ``ll`` -- parameter of the resulting linear representation,
@@ -1198,7 +1198,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
     def _get_ind_from_recurrence_(self, M, m, ll, uu):
         r"""
         Determine the index operator corresponding to the recursive
-        sequence given by ``recurrence_rules``, as defined in [HKL2021]_.
+        sequence as defined in [HKL2021]_.
 
         INPUT:
 
@@ -1213,11 +1213,11 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         A dictionary which maps both row numbers to subsequence parameters and
         vice versa, i.e.,
 
-        - ``ind[i]`` -- a pair ``(j, d)`` representing the sequence `x(k^j + d)`
-          in the `i`-th component (1-based) of the resulting linear representation
+        - ``ind[i]`` -- a pair ``(j, d)`` representing the sequence `x(k^j n + d)`
+          in the `i`-th component (1-based) of the resulting linear representation,
 
         - ``ind[(j, d)]`` -- the (1-based) row number of the sequence
-          `x(k^j + d)` in the linear representation.
+          `x(k^j n + d)` in the linear representation.
 
         EXAMPLES::
 
@@ -1519,7 +1519,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         INPUT:
 
-        - ``dim`` -- A positive integer.
+        - ``dim`` -- a positive integer
 
         OUTPUT:
 

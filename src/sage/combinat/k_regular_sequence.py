@@ -898,8 +898,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         A namedtuple ``recurrence_rules`` consisting of
 
-        - ``M``, ``m``, ``l``, ``u``  -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1
+        - ``M``, ``m``, ``l``, ``u``, ``offset`` -- parameters of the recursive
+          sequences, see [HKL2021]_, Definition 3.1
 
         - ``ll``, ``uu``, ``n1``, ``dim`` -- parameters and dimension of the
           resulting linear representation, see [HKL2021]_, Theorem A

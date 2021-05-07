@@ -870,7 +870,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         if missing_remainders:
             raise ValueError("Recurrence relations for %s are missing."
                              % ([function(k**M*var + rem)
-                                 for rem in missing_remainders],)) from None
+                                 for rem in missing_remainders],))
 
         return (M, m, coeffs, initial_values)
 

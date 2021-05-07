@@ -1605,7 +1605,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return right
 
 
-    def from_recurrence(self, equations, function, var, offset=0, minimize=False):
+    def from_recurrence(self, equations, function, var, offset=0):
         r"""
         Construct a `k`-regular sequence that fulfills the recurrence relations
         given in ``equations``.
@@ -1638,10 +1638,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
 
         - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
-
-        - ``minimize`` -- a boolean (default: ``False``). If ``True``, then
-          :meth:`~sage.combinat.recognizable_series.RecognizableSeries.minimized`
-          is called after the construction.
 
         OUTPUT: A :class:`kRegularSequence`.
 
@@ -1774,7 +1770,4 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         seq = self(mu, self._get_left_from_recurrence_(recurrence_rules.dim),
                    self._get_right_from_recurrence_(recurrence_rules))
 
-        if minimize:
-            return seq.minimized()
-        else:
-            return seq
+        return seq

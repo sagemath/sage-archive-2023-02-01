@@ -470,42 +470,56 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_([f(2*n) + 1 == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: f(2*n) + 1 is not an evaluation of f.
+            ValueError: Term f(2*n) + 1 in the equation f(2*n) + 1 == f(n) is
+            not an evaluation of f.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n, 5) == 3], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: f(2*n, 5) does not have one argument.
+            ValueError: Term f(2*n, 5) in the equation f(2*n, 5) == 3 does not
+            have one argument.
+
+        ::
+
+            sage: Seq2._parse_recurrence_([f() == 3], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: Term f() in the equation f() == 3 does not have one
+            argument.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(1/n + 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1/n + 1 is not a polynomial in n with integer coefficients.
+            ValueError: Term f(1/n + 1) in the equation f(1/n + 1) == f(n):
+            1/n + 1 is not a polynomial in n with integer coefficients.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n + 1/2) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 2*n + 1/2 is not a polynomial in n with integer coefficients.
+            ValueError: Term f(2*n + 1/2) in the equation f(2*n + 1/2) == f(n):
+            2*n + 1/2 is not a polynomial in n with integer coefficients.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(4*n^2) == f(2*n^2)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 4*n^2 is not a polynomial of degree smaller 2.
+            ValueError: Term f(4*n^2) in the equation f(4*n^2) == f(2*n^2):
+            4*n^2 is not a polynomial in n of degree smaller than 2.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(42) == 1/2], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1/2 is not in Integer Ring.
+            ValueError: Initial value 1/2 given by the equation f(42) == (1/2)
+            is not in Integer Ring.
 
         ::
 
@@ -519,28 +533,33 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_([f(42) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: f(n) is not in Integer Ring.
+            ValueError: Initial value f(n) given by the equation f(42) == f(n)
+            is not in Integer Ring.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(2*n) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 2 does not equal 4.
+            ValueError: Term f(2*n) in the equation f(2*n) == f(n): 2 does not
+            equal 4. Expected subsequence modulo 4 as in another equation, got
+            subsequence modulo 2.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(3*n + 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 3 is not a power of 2.
+            ValueError: Term f(3*n + 1) in the equation f(3*n + 1) == f(n):
+            3 is not a power of 2.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(n + 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1 is less than 2.
+            ValueError: Term f(n + 1) in the equation f(n + 1) == f(n):
+            1 is less than 2. Modulus must be at least 2.
 
         ::
 
@@ -554,28 +573,32 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_([f(2*n + 2) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 2 is not smaller than 2.
+            ValueError: Term f(2*n + 2) in the equation f(2*n + 2) == f(n):
+            remainder 2 is not smaller than modulus 2.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n - 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: -1 is smaller than 0.
+            ValueError: Term f(2*n - 1) in the equation f(2*n - 1) == f(n):
+            remainder -1 is smaller than 0.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == 2*n], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 2*n does not contain f.
+            ValueError: Term 2*n in the equation f(2*n) == 2*n does not
+            contain f.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == 1/2*f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1/2 is not a valid coefficient.
+            ValueError: Term 1/2*f(n) in the equation f(2*n) == 1/2*f(n):
+            1/2 is not a valid coefficient since it is not in Integer Ring.
 
         ::
 
@@ -596,91 +619,106 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_([f(2*n) == 2*f(n, 5)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: f(n, 5) has more than one argument.
+            ValueError: Term f(n, 5) in the equation f(2*n) == 2*f(n, 5)
+            has more than one argument.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == 2*f()], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: f() has no argument.
+            ValueError: Term f() in the equation f(2*n) == 2*f() has no argument.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1/f(n) is not a valid summand.
+            ValueError: Term 1/f(n) in the equation f(2*n) == 1/f(n) + 2*f(n)
+            is not a valid summand.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == 2*f(1/n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1/n is not a polynomial with integer coefficients.
+            ValueError: Term f(1/n) in the equation f(2*n) == 2*f(1/n):
+            1/n is not a polynomial in n with integer coefficients.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == f(n + 1/2)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: n + 1/2 is not a polynomial with integer coefficients.
+            ValueError: Term f(n + 1/2) in the equation f(2*n) == f(n + 1/2):
+            n + 1/2 is not a polynomial in n with integer coefficients.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == f(1/2*n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1/2*n is not a polynomial with integer coefficients.
+            ValueError: Term f(1/2*n) in the equation f(2*n) == f(1/2*n):
+            1/2*n is not a polynomial in n with integer coefficients.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == f(n^2 + 1)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: n^2 + 1 does not have degree 1.
+            ValueError: Term f(n^2 + 1) in the equation f(2*n) == f(n^2 + 1):
+            polynomial n^2 + 1 does not have degree 1.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == f(1)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1 does not have degree 1.
+            ValueError: Term f(1) in the equation f(2*n) == f(1):
+            polynomial 1 does not have degree 1.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(4*n) == f(2*n) + f(n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1 does not equal 2.
+            ValueError: Term f(n) in the equation f(4*n) == f(2*n) + f(n):
+            1 does not equal 2. Expected subsequence modulo 2 as in another
+            summand or equation, got subsequence modulo 1.
 
         ::
 
-            sage: Seq2._parse_recurrence_([f(4*n) == f(2*n), f(4*n + 1) == f(n)], f, n)
+            sage: Seq2._parse_recurrence_([f(4*n) == f(2*n), f(4*n + 1) == f(n)],
+            ....:     f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 1 does not equal 2.
+            ValueError: Term f(n) in the equation f(4*n + 1) == f(n): 1 does not
+            equal 2. Expected subsequence modulo 2 as in another summand or
+            equation, got subsequence modulo 1.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(4*n) == f(3*n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 3 is not a power of 2.
+            ValueError: Term f(3*n) in the equation f(4*n) == f(3*n): 3 is not
+            a power of 2.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == f(4*n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 4 is not smaller than 2.
+            ValueError: Term f(4*n) in the equation f(2*n) == f(4*n):
+            4 is not smaller than 2.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n) == f(2*n)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 2 is not smaller than 2.
+            ValueError: Term f(2*n) in the equation f(2*n) == f(2*n):
+            2 is not smaller than 2.
 
         ::
 
@@ -694,7 +732,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: Seq2._parse_recurrence_([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: Recurrence relations for [f(4*n + 1), f(4*n + 2)] are missing.
+            ValueError: Recurrence relations for [f(4*n + 1), f(4*n + 2)]
+            are missing.
 
         ::
 
@@ -716,7 +755,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     [f(8*n + r) == f(2*n) for r in srange(1,8)], f, n)
             Traceback (most recent call last):
             ...
-            ValueError: 2 does not equal 1.
+            ValueError: Term f(2*n) in the equation f(8*n + 1) == f(2*n):
+            2 does not equal 1. Expected subsequence modulo 1 as in another
+            summand or equation, got subsequence modulo 2.
 
         Finally, also for the zero-sequence the output is as expected::
 
@@ -736,7 +777,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         initial_values = {}
         remainders = set()
 
-        def _parse_multiplication_(op):
+        def _parse_multiplication_(op, eq):
             operands = op.operands()
             assert op.operator() == mul_vararg and len(operands) == 2
             if operands[1].operator() == function:
@@ -744,30 +785,34 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             elif operands[0].operator() == function:
                 return [operands[1], operands[0]]
             else:
-                raise ValueError('%s does not contain %s.'
-                                 % (op, function)) from None
+                raise ValueError('Term %s in the equation %s '
+                                 'does not contain %s.'
+                                 % (op, eq, function)) from None
 
-        def _parse_one_summand_(summand):
+        def _parse_one_summand_(summand, eq):
             if summand.operator() == mul_vararg:
-                coeff, op = _parse_multiplication_(summand)
+                coeff, op = _parse_multiplication_(summand, eq)
             elif summand.operator() == function:
                 coeff, op = 1, summand
             else:
-                raise ValueError('%s is not a valid summand.'
-                                 % (summand,)) from None
+                raise ValueError('Term %s in the equation %s is not a valid summand.'
+                                 % (summand, eq)) from None
             if len(op.operands()) > 1:
-                raise ValueError('%s has more than one argument.'
-                                 % (op,)) from None
+                raise ValueError('Term %s in the equation %s has more than one argument.'
+                                 % (op, eq)) from None
             elif len(op.operands()) == 0:
-                raise ValueError('%s has no argument.' % (op,)) from None
+                raise ValueError('Term %s in the equation %s has no argument.'
+                                 % (op, eq)) from None
             try:
                 poly = ZZ[var](op.operands()[0])
             except TypeError:
-                raise ValueError('%s is not a polynomial with integer coefficients.'
-                                 % (op.operands()[0],)) from None
+                raise ValueError('Term %s in the equation %s: '
+                                 '%s is not a polynomial in %s with integer coefficients.'
+                                 % (op, eq, op.operands()[0], var)) from None
             if poly.degree() != 1:
-                raise ValueError("%s does not have degree 1."
-                                 % (poly,)) from None
+                raise ValueError("Term %s in the equation %s: "
+                                 "polynomial %s does not have degree 1."
+                                 % (op, eq, poly)) from None
             d, base_power_m = list(poly)
             m = log(base_power_m, base=k)
             return [coeff, m, d]
@@ -785,20 +830,24 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                  % eq) from None
             left_side, right_side = eq.operands()
             if left_side.operator() != function:
-                raise ValueError("%s is not an evaluation of %s."
-                                 % (left_side, function)) from None
+                raise ValueError("Term %s in the equation %s is not an evaluation of %s."
+                                 % (left_side, eq, function)) from None
             if  len(left_side.operands()) != 1:
-                raise ValueError("%s does not have one argument." %
-                                 (left_side,)) from None
+                raise ValueError("Term %s in the equation %s does not have "
+                                 "one argument."
+                                 % (left_side, eq)) from None
             try:
                 polynomial_left = ZZ[var](left_side.operands()[0])
             except TypeError:
-                raise ValueError("%s is not a polynomial in %s with "
+                raise ValueError("Term %s in the equation %s: "
+                                 "%s is not a polynomial in %s with "
                                  "integer coefficients."
-                                 % (left_side.operands()[0], var)) from None
+                                 % (left_side, eq,
+                                    left_side.operands()[0], var)) from None
             if polynomial_left.degree()  > 1:
-                raise ValueError("%s is not a polynomial of degree smaller 2."
-                                 % (polynomial_left,)) from None
+                raise ValueError("Term %s in the equation %s: "
+                                 "%s is not a polynomial in %s of degree smaller than 2."
+                                 % (left_side, eq, polynomial_left, var)) from None
             if polynomial_left in ZZ:
                 if right_side in base_ring:
                     if (polynomial_left in initial_values.keys() and
@@ -807,30 +856,43 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                                          % (function(polynomial_left))) from None
                     initial_values.update({polynomial_left: right_side})
                 else:
-                    raise ValueError("%s is not in %s."
-                                     % (right_side, base_ring)) from None
+                    raise ValueError("Initial value %s given by the equation %s "
+                                     "is not in %s."
+                                     % (right_side, eq, base_ring)) from None
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
                 if M and M != M_new:
-                    raise ValueError("%s does not equal %s."
-                                     % (base_power_M, k**M)) from None
+                    raise ValueError(("Term {0} in the equation {1}: "
+                                      "{2} does not equal {3}. Expected "
+                                      "subsequence modulo {3} as in another "
+                                      "equation, got subsequence modulo {2}.").format(
+                                          left_side, eq,
+                                          base_power_M, k**M)) from None
                 elif not M:
                     M = M_new
                     if M not in ZZ:
-                        raise ValueError("%s is not a power of %s."
-                                         % (base_power_M, k)) from None
+                        raise ValueError("Term %s in the equation %s: "
+                                         "%s is not a power of %s."
+                                         % (left_side, eq,
+                                            base_power_M, k)) from None
                     if M < 1:
-                        raise ValueError("%s is less than %s."
-                                         % (base_power_M, k)) from None
+                        raise ValueError(("Term {0} in the equation {1}: "
+                                          "{2} is less than {3}. Modulus must "
+                                          "be at least {3}.").format(
+                                              left_side, eq,
+                                              base_power_M, k)) from None
                 if r in remainders:
                     raise ValueError("There are more than one recurrence relation for %s."
                                      % (left_side,)) from None
                 if r >= k**M:
-                    raise ValueError("%s is not smaller than %s."
-                                     % (r, k**M)) from None
+                    raise ValueError("Term %s in the equation %s: "
+                                     "remainder %s is not smaller than modulus %s."
+                                     % (left_side, eq, r, k**M)) from None
                 elif r < 0:
-                    raise ValueError("%s is smaller than 0." % (r,)) from None
+                    raise ValueError("Term %s in the equation %s: "
+                                     "remainder %s is smaller than 0."
+                                     % (left_side, eq, r)) from None
                 else:
                     remainders.add(r)
                 if right_side != 0:
@@ -843,21 +905,32 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                         raise ValueError("%s is not a valid right hand side."
                                          % (right_side,)) from None
                     for summand in summands:
-                        coeff, new_m, d = _parse_one_summand_(summand)
+                        coeff, new_m, d = _parse_one_summand_(summand, eq)
                         if coeff not in base_ring:
-                            raise ValueError("%s is not a valid coefficient."
-                                             % (coeff,)) from None
+                            raise ValueError("Term %s in the equation %s: "
+                                             "%s is not a valid coefficient "
+                                             "since it is not in %s."
+                                             % (summand, eq, coeff, base_ring)) from None
                         if m is not None and m != new_m:
-                            raise ValueError("%s does not equal %s."
-                                             % (k**new_m, k**m)) from None
+                            raise ValueError(("Term {0} in the equation {1}: "
+                                              "{2} does not equal {3}. Expected "
+                                              "subsequence modulo {3} as in another "
+                                              "summand or equation, got subsequence "
+                                              "modulo {2}.").format(
+                                                  summand, eq,
+                                                  k**new_m, k**m)) from None
                         elif m is None:
                             m = new_m
                             if m not in ZZ:
-                                raise ValueError("%s is not a power of %s."
-                                                 % (k**m, k)) from None
+                                raise ValueError("Term %s in the equation %s: "
+                                                 "%s is not a power of %s."
+                                                 % (summand, eq,
+                                                    k**m, k)) from None
                             if M <= m:
-                                raise ValueError("%s is not smaller than %s."
-                                                 % (k**m, k**M)) from None
+                                raise ValueError("Term %s in the equation %s: "
+                                                 "%s is not smaller than %s."
+                                                 % (summand, eq,
+                                                    k**m, k**M)) from None
                         coeffs.update({(r, d): coeff})
 
         if not M:

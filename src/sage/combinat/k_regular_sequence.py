@@ -483,14 +483,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             sage: Seq2._parse_recurrence_([f(1/n + 1) == f(n)], f, n)
             Traceback (most recent call last):
-            ....:
+            ....
             ValueError: 1/n + 1 is not a polynomial in n with integer coefficients.
 
         ::
 
             sage: Seq2._parse_recurrence_([f(2*n + 1/2) == f(n)], f, n)
             Traceback (most recent call last):
-            ....:
+            ....
             ValueError: 2*n + 1/2 is not a polynomial in n with integer coefficients.
 
         ::

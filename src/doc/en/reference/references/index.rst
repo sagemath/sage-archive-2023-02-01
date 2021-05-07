@@ -304,6 +304,10 @@ REFERENCES:
             of crystals for the quantum queer superalgebra*.
             Preprint (2018). :arxiv:`1803.06317`
 
+.. [AS2003] Jean-Paul Allouche, Jeffrey Shallit,
+            *Automatic Sequences: Theory, Applications, Generalizations*,
+            Cambridge University Press, 2003.
+
 .. [As2008b] Sami Assaf. *Dual equivalence graphs and a
              combinatorial proof of LLT and Macdonald positivity*.
              (2008). :arxiv:`1005.3759v5`.
@@ -1061,6 +1065,10 @@ REFERENCES:
 .. [BR2010] Matthew Baker and Robert Rumely. Potential theory and dynamics on the
             Berkovich projective line. Mathematical Surveys and Monographs,
             Volumne 159. 2010.
+
+.. [BR2010a] Jean Berstel and Christophe Reutenauer,
+             *Noncommutative Rational Series With Applications*.
+             Cambridge, 2010.
 
 .. [Brandes01] Ulrik Brandes,
                A faster algorithm for betweenness centrality,

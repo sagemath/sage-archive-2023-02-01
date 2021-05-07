@@ -1298,10 +1298,10 @@ class RationalField(Singleton, number_field_base.NumberField):
         .. SEEALSO::
 
             :meth:`RationalField.selmer_space`, which gives additional
-        output when `m=p` is prime: as well as generators, it gives an
-        abstract vector space over `GF(p)` isomorphic to `\QQ(S,p)`
-        and maps implementing the isomorphism between this space and
-        `\QQ(S,p)` as a subgroup of `\QQ^*/(\QQ^*)^p`.
+            output when `m=p` is prime: as well as generators, it gives an
+            abstract vector space over `GF(p)` isomorphic to `\QQ(S,p)`
+            and maps implementing the isomorphism between this space and
+            `\QQ(S,p)` as a subgroup of `\QQ^*/(\QQ^*)^p`.
 
         EXAMPLES::
 

@@ -4873,10 +4873,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         .. SEEALSO::
 
             :meth:`NumberField_generic.selmer_space`, which gives
-        additional output when `m=p` is prime: as well as generators,
-        it gives an abstract vector space over `GF(p)` isomorphic to
-        `K(S,p)` and maps implementing the isomorphism between this
-        space and `K(S,p)` as a subgroup of `K^*/(K^*)^p`.
+            additional output when `m=p` is prime: as well as generators,
+            it gives an abstract vector space over `GF(p)` isomorphic to
+            `K(S,p)` and maps implementing the isomorphism between this
+            space and `K(S,p)` as a subgroup of `K^*/(K^*)^p`.
 
         EXAMPLES::
 

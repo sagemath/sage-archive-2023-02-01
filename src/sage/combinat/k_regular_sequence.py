@@ -1278,6 +1278,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
 
+        k = self.k
         M = recurrence_rules.M
         m = recurrence_rules.m
         ll = recurrence_rules.ll

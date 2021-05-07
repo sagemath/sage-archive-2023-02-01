@@ -360,7 +360,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.rings.integer_ring import ZZ
         n = ZZ(n)
         W = self.indices()
-            try:
+        try:
             return W(n.digits(self.k))
         except OverflowError:
             raise ValueError('value {} of index is negative'.format(n))

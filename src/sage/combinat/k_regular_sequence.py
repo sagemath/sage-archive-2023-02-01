@@ -1214,22 +1214,22 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         vice versa, i.e.,
 
         - ``ind[i]`` -- a pair ``(j, d)`` representing the sequence `x(k^j n + d)`
-          in the `i`-th component (1-based) of the resulting linear representation,
+          in the `i`-th component (0-based) of the resulting linear representation,
 
-        - ``ind[(j, d)]`` -- the (1-based) row number of the sequence
+        - ``ind[(j, d)]`` -- the (0-based) row number of the sequence
           `x(k^j n + d)` in the linear representation.
 
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: Seq2._get_ind_from_recurrence_(3, 1, -3, 3)
-            {(0, 0): 1, (1, -1): 4, (1, -2): 3, (1, -3): 2,
-            (1, 0): 5, (1, 1): 6, (1, 2): 7, (1, 3): 8, (2, -1): 11,
-            (2, -2): 10, (2, -3): 9, (2, 0): 12, (2, 1): 13, (2, 2): 14,
-            (2, 3): 15, (2, 4): 16, (2, 5): 17, 1: (0, 0), 10: (2, -2),
-            11: (2, -1), 12: (2, 0), 13: (2, 1), 14: (2, 2), 15: (2, 3),
-            16: (2, 4), 17: (2, 5), 2: (1, -3), 3: (1, -2), 4: (1, -1),
-            5: (1, 0), 6: (1, 1), 7: (1, 2), 8: (1, 3), 9: (2, -3)}
+            {(0, 0): 0, (1, -1): 3, (1, -2): 2, (1, -3): 1,
+            (1, 0): 4, (1, 1): 5, (1, 2): 6, (1, 3): 7, (2, -1): 10,
+            (2, -2): 9, (2, -3): 8, (2, 0): 11, (2, 1): 12, (2, 2): 13,
+            (2, 3): 14, (2, 4): 15, (2, 5): 16, 0: (0, 0), 1: (1, -3),
+            10: (2, -1), 11: (2, 0), 12: (2, 1), 13: (2, 2), 14: (2, 3),
+            15: (2, 4), 16: (2, 5), 2: (1, -2), 3: (1, -1), 4: (1, 0),
+            5: (1, 1), 6: (1, 2), 7: (1, 3), 8: (2, -3), 9: (2, -2)}
 
         .. SEEALSO::
 
@@ -1240,7 +1240,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         k = self.k
         ind = {}
 
-        pos = 1
+        pos = 0
         for j in srange(m):
             for d in srange(k**j):
                 ind.update({(j, d): pos, pos: (j, d)})
@@ -1295,7 +1295,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         ind = self._get_ind_from_recurrence_(M, m, ll, uu)
 
         return vector(
-            [initial_values[k**ind[i+1][0]*n + ind[i+1][1]] for i in srange(dim)])
+            [initial_values[k**ind[i][0]*n + ind[i][1]] for i in srange(dim)])
 
     def _get_matrix_from_recurrence_(self, recurrence_rules, rem,
                                      correct_offset=True):
@@ -1479,17 +1479,17 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 return 0
 
         def entry(i, kk):
-            j, d = ind[i + 1]
+            j, d = ind[i]
             if j < M - 1:
-                return int(kk == ind[(j + 1, k**j*rem + d)] - 1)
+                return int(kk == ind[(j + 1, k**j*rem + d)])
             else:
                 rem_d = k**(M-1)*rem + (d%k**M)
                 dd = d // k**M
                 if rem_d < k**M:
-                    lambd = l - ind[(m, (k**m)*dd + l)] + 1
+                    lambd = l - ind[(m, (k**m)*dd + l)]
                     return _coeff_(rem_d, kk + lambd)
                 else:
-                    lambd = l - ind[(m, k**m*dd + k**m + l)] + 1
+                    lambd = l - ind[(m, k**m*dd + k**m + l)]
                     return _coeff_(rem_d - k**M, kk + lambd)
 
         mat = Matrix(base_ring, dim_without_corr, dim_without_corr, entry)

@@ -69,17 +69,6 @@ Various
     :mod:`sage.rings.cfinite_sequence`,
     :mod:`sage.combinat.binary_recurrence_sequences`.
 
-REFERENCES:
-
-.. [AS2003] Jean-Paul Allouche, Jeffrey Shallit,
-   *Automatic Sequences: Theory, Applications, Generalizations*,
-   Cambridge University Press, 2003.
-.. [HKL2021] Clemens Heuberger, Daniel Krenn, Gabriel Lipnik, *Asymptotic
-   Analysis of `q`-Recursive Sequences*, 2021, unpublished manuscript.
-.. [LRS2017] Julien Leroy, Michel Rigo, Manon Stipulanti, *Counting the
-   number of non-zero coefficients in rows of generalized Pascal triangles*,
-   Discrete Math. 340 (2017), no. 5, 862--881.
-
 AUTHORS:
 
 - Daniel Krenn (2016, 2021)

@@ -307,7 +307,7 @@ class _SubGaloisMixin(_GMixin):
 
         EXAMPLES::
 
-            sage: sage: k.<a> = GF(3^12)
+            sage: k.<a> = GF(3^12)
             sage: g = k.galois_group()([8])
             sage: k0, embed = g.fixed_field()
             sage: k0.cardinality()

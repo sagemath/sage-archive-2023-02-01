@@ -17,7 +17,7 @@ factory is a cyclotomic field.
 cimport cython
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
-from sage.combinat.root_system.poly_tup_engine cimport poly_to_tup, tup_fixes_sq
+from sage.combinat.root_system.poly_tup_engine cimport poly_to_tup, tup_fixes_sq, _flatten_coeffs
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
@@ -336,7 +336,7 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=False,name=None,init_data={},max_terms=20,n_bytes=16):
+    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=False,name=None,init_data={},max_terms=20,n_bytes=32):
         """
         Return a shared memory backed dict-like structure to manage the
         ``_fvars`` attribute of an F-matrix factory object.
@@ -403,14 +403,16 @@ cdef class FvarsHandler:
             sage: fvars.shm.unlink()
         """
         self.field = field
-        cdef int d = self.field.degree()
         self.obj_cache = dict()
+        cdef int d = self.field.degree()
+        self.bytes = n_bytes
+        cdef int slots = self.bytes // 8
         self.fvars_t = np.dtype([
             ('modified','bool',(1,)),
             ('ticks', 'u1', (max_terms,)),
             ('exp_data', 'u2', (max_terms*30,)),
-            ('coeff_nums',np.int64,(max_terms,d)),
-            ('coeff_denom',np.uint64,(max_terms,))
+            ('coeff_nums',np.int64,(max_terms,d,slots)),
+            ('coeff_denom',np.uint64,(max_terms,d,slots))
         ])
         self.sext_to_idx = {s: i for i, s in idx_to_sextuple.items()}
         self.ngens = n_slots
@@ -426,9 +428,9 @@ cdef class FvarsHandler:
         #Populate with initialziation data
         for sextuple, fvar in init_data.items():
             if isinstance(fvar, MPolynomial_libsingular):
-                fvar = poly_to_tup(fvar)
+                fvar = _flatten_coeffs(poly_to_tup(fvar))
             if isinstance(fvar, NumberFieldElement_absolute):
-                fvar = ((ETuple({},self.ngens), fvar),)
+                fvar = ((ETuple({},self.ngens), tuple(fvar._coefficients())),)
             self[sextuple] = fvar
 
     cdef clear_modified(self):
@@ -494,8 +496,8 @@ cdef class FvarsHandler:
         #Define memory views to reduce Python overhead and ensure correct typing
         cdef np.ndarray[np.uint8_t,ndim=1] ticks = self.fvars['ticks'][idx]
         cdef np.ndarray[np.uint16_t,ndim=1] exp_data = self.fvars['exp_data'][idx]
-        cdef np.ndarray[np.int64_t,ndim=2] nums = self.fvars['coeff_nums'][idx]
-        cdef np.ndarray[np.uint64_t,ndim=1] denoms = self.fvars['coeff_denom'][idx]
+        cdef np.ndarray[np.int64_t,ndim=3] nums = self.fvars['coeff_nums'][idx]
+        cdef np.ndarray[np.uint64_t,ndim=3] denoms = self.fvars['coeff_denom'][idx]
         e = ETuple({}, self.ngens)
         poly_tup = list()
         cum = 0
@@ -512,11 +514,12 @@ cdef class FvarsHandler:
                 cum += 1
 
             #Construct cyclotomic field coefficient
-            d = Integer(denoms[i])
+            # d = Integer(denoms[i])
             rats = list()
             for k in range(self.field.degree()):
-                num = Integer(nums[i,k])
-                quo = num / d
+                num = Integer(list(nums[i,k]),2**63)
+                denom = Integer(list(denoms[i,k]),2**64)
+                quo = num / denom
                 rats.append(quo)
             cyc_coeff = self.field(rats)
             poly_tup.append((exp, cyc_coeff))
@@ -553,21 +556,24 @@ cdef class FvarsHandler:
             sage: fvars.shm.unlink()
         """
         cdef ETuple exp
-        cdef np.int64_t c
-        cdef np.uint64_t denom
-        cdef NumberFieldElement_absolute coeff
-        cdef Py_ssize_t cum, i, idx, j, k
+        cdef Integer num, denom
+        cdef tuple coeff_tup
+        cdef Py_ssize_t cum, i, idx, j, k, t
+        cdef Rational r
         idx = self.sext_to_idx[sextuple]
         #Clear entry before inserting
         self.fvars[idx] = np.zeros((1,), dtype=self.fvars_t)
         #Define memory views to reduce Python overhead and ensure correct typing
         cdef np.ndarray[np.uint8_t,ndim=1] ticks = self.fvars['ticks'][idx]
         cdef np.ndarray[np.uint16_t,ndim=1] exp_data = self.fvars['exp_data'][idx]
-        cdef np.ndarray[np.int64_t,ndim=2] nums = self.fvars['coeff_nums'][idx]
-        cdef np.ndarray[np.uint64_t,ndim=1] denoms = self.fvars['coeff_denom'][idx]
+        cdef np.ndarray[np.int64_t,ndim=3] nums = self.fvars['coeff_nums'][idx]
+        cdef np.ndarray[np.uint64_t,ndim=3] denoms = self.fvars['coeff_denom'][idx]
+        cdef list digits
+        #Initialize denominators to 1
+        denoms[:,:,0] = 1
         cum = 0
         i = 0
-        for exp, coeff in fvar:
+        for exp, coeff_tup in fvar:
             #Handle constant coefficient
             if exp._nonzero > 0:
                 ticks[i] = exp._nonzero
@@ -576,17 +582,26 @@ cdef class FvarsHandler:
             for j in range(2*exp._nonzero):
                 exp_data[cum] = exp._data[j]
                 cum += 1
-            denom = coeff.denominator()
-            denoms[i] = denom
             k = 0
-            for r in coeff._coefficients():
-                assert Integer(r * denom).nbits() <= 63, "OverflowError in FvarsHandler.setitem: c {}, r {}, denom {}".format(c, r, denom)
-                c = <Integer>(r * denom)
-                if c > 2**32:
-                    print("Large num encountered",c)
-                if denom > 2**32:
-                    print("Large denom encountered",denom)
-                nums[i,k] = c
+            for r in coeff_tup:
+                num, denom = r.as_integer_ratio()
+                assert denom != 0, "zero denominator error"
+                if abs(num) > 2**63 or denom > 2**63:
+                    print("Large integers encountered in FvarsHandler", num, denom)
+                if abs(num) < 2**63:
+                    nums[i,k,0] = num
+                else:
+                    digits = num.digits(2**63)
+                    assert len(digits) <= self.bytes // 8, "Numerator {} is too large for shared FvarsHandler. Use at least {} bytes...".format(num,num.nbits()//8+1)
+                    for t in range(len(digits)):
+                        nums[i,k,t] = <np.int64_t>digits[t]
+                if denom < 2**64:
+                    denoms[i,k,0] = denom
+                else:
+                    digits = denom.digits(2**64)
+                    assert len(digits) <= self.bytes // 8, "Denominator {} is too large for shared FvarsHandler. Use at least {} bytes...".format(denom,denom.nbits()//8+1)
+                    for t in range(len(digits)):
+                        denoms[i,k,t] = <np.uint64_t>digits[t]
                 k += 1
             i += 1
         self.fvars['modified'][idx] = True

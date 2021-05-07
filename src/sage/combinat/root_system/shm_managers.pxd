@@ -17,7 +17,7 @@ cdef class KSHandler:
 cdef class FvarsHandler:
     cdef dict sext_to_idx, obj_cache
     cdef list modified_cache
-    cdef unsigned int ngens
+    cdef unsigned int ngens, bytes
     cdef object fvars_t
     cdef np.ndarray fvars
     cdef NumberField field

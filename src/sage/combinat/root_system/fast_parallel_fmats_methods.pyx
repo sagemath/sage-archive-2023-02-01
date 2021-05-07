@@ -72,12 +72,14 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
     cdef int max_var
     cdef tuple eq_tup
     cdef FvarsHandler fvars = factory._fvars
+    cdef NumberFieldElement_absolute coeff, other
+    cdef tuple rhs_coeff
     fvars.clear_modified()
     for eq_tup in eqns:
         # Only unflatten relevant polynomials
-        if len(eq_tup) > 2:
-            continue
-        eq_tup = _unflatten_coeffs(factory._field, eq_tup)
+        # if len(eq_tup) > 2:
+        #     continue
+        # eq_tup = _unflatten_coeffs(factory._field, eq_tup)
 
         if len(eq_tup) == 1:
             vars = variables(eq_tup)
@@ -98,7 +100,10 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
             max_var = exp._data[0]
             if not factory._solved[max_var]:
                 rhs_exp = eq_tup[(idx+1) % 2][0]
-                rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]
+                # rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]
+                coeff = factory._field(list(eq_tup[(idx+1) % 2][1]))
+                other = factory._field(list(eq_tup[idx][1]))
+                rhs_coeff = tuple((-coeff / other)._coefficients())
                 fvars[factory._idx_to_sextuple[max_var]] = ((rhs_exp,rhs_coeff),)
                 factory._solved[max_var] = True
                 linear_terms_exist = True
@@ -106,10 +111,10 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
                 #TEST:
                 s = factory._idx_to_sextuple[max_var]
                 factory.test_fvars[s] = ((rhs_exp,rhs_coeff),)
-                assert factory.test_fvars[s] == fvars[s], "OG value {}, Shared: {}".format(fvars[s],factory.test_fvars[s])
+                assert _unflatten_coeffs(factory._field,factory.test_fvars[s]) == fvars[s], "OG value {}, Shared: {}".format(factory.test_fvars[s],fvars[s])
     return linear_terms_exist
 
-cpdef _backward_subs(factory):
+cpdef _backward_subs(factory, bint flatten=True):
     r"""
     Perform backward substitution on ``self.ideal_basis``, traversing
     variables in reverse lexicographical order.
@@ -165,7 +170,11 @@ cpdef _backward_subs(factory):
              for var_idx in variables(rhs) if factory._solved[var_idx]}
         if d:
             kp = compute_known_powers(get_variables_degrees([rhs]), d, one)
-            factory._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp,one), _ks).items())
+            # factory._fvars[sextuple] = tuple(subs_squares(subs(rhs,kp,one), _ks).items())
+            res = tuple(subs_squares(subs(rhs,kp,one), _ks).items())
+            if flatten:
+                res = _flatten_coeffs(res)
+            factory._fvars[sextuple] = res
 
 cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):
       """
@@ -272,7 +281,10 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     _ks = factory._ks
 
     #Computation loop
-    for i, sextuple in enumerate(product(basis, repeat=6)):
+    # for i, sextuple in enumerate(product(basis, repeat=6)):
+    it = product(basis, repeat=6)
+    for i in range(len(basis)**6):
+        sextuple = next(it)
         if i % n_proc == child_id:
             he = req_cy(basis,r_matrix,fvars,_Nk_ij,id_anyon,sextuple)
             if he:

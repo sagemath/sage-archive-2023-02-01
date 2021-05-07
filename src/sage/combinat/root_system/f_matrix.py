@@ -2032,7 +2032,7 @@ class FMatrix():
         self._fvars = {sextuple : apply_coeff_map(rhs,phi) for sextuple, rhs in self._fvars.items()}
         for fx, rhs in numeric_fvars.items():
             self._fvars[self._idx_to_sextuple[fx]] = ((ETuple({},nvars),rhs),)
-        _backward_subs(self)
+        _backward_subs(self,flatten=False)
         self._fvars = {sextuple : constant_coeff(rhs,self._field) for sextuple, rhs in self._fvars.items()}
 
         #Update base field attributes

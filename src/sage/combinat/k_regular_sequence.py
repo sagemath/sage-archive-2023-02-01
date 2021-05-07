@@ -1263,6 +1263,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``n`` -- an integer
 
+        OUTPUT:
+
+        A vector.
+
         EXAMPLES:
 
         Stern--Brocot Sequence::

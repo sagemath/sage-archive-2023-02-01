@@ -734,7 +734,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         m = None
         coeffs = {}
         initial_values = {}
-        remainders = []
+        remainders = set()
 
         def _parse_multiplication_(op):
             operands = op.operands()
@@ -832,7 +832,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
                 elif r < 0:
                     raise ValueError("%s is smaller than 0." % (r,)) from None
                 else:
-                    remainders.append(r)
+                    remainders.add(r)
                 if right_side != 0:
                     if (len(right_side.operands()) == 1 and right_side.operator() == function
                         or right_side.operator() == mul_vararg and len(right_side.operands()) == 2):

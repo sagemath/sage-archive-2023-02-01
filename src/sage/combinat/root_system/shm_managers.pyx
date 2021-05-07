@@ -397,7 +397,8 @@ cdef class FvarsHandler:
             sage: #In the same shell or in a different shell, attach to fvars
             sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-            sage: fvars[f2, f1, f2, f2, f0, f0] = poly_to_tup(fx5**5)
+            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(fx5**5))
+            sage: fvars[f2, f1, f2, f2, f0, f0] = rhs
             sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
             fx5^5
             sage: fvars.shm.unlink()
@@ -431,6 +432,13 @@ cdef class FvarsHandler:
                 fvar = _flatten_coeffs(poly_to_tup(fvar))
             if isinstance(fvar, NumberFieldElement_absolute):
                 fvar = ((ETuple({},self.ngens), tuple(fvar._coefficients())),)
+            if isinstance(fvar, tuple):
+                transformed = list()
+                for exp, c in fvar:
+                    if isinstance(c, NumberFieldElement_absolute):
+                        transformed.append((exp,tuple(c._coefficients())))
+                if transformed:
+                    fvar = tuple(transformed)
             self[sextuple] = fvar
 
     cdef clear_modified(self):
@@ -458,9 +466,12 @@ cdef class FvarsHandler:
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple,use_mp=True)
-            sage: fvars[(f1, f2, f1, f2, f2, f2)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10)
-            sage: fvars[f2, f2, f2, f2, f0, f0] = poly_to_tup(f._poly_ring.zero())
-            sage: fvars[f2, f1, f2, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
+            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10))
+            sage: fvars[(f1, f2, f1, f2, f2, f2)] = rhs
+            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
+            sage: fvars[f2, f2, f2, f2, f0, f0] = rhs
+            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(-1/19*f._poly_ring.one()))
+            sage: fvars[f2, f1, f2, f1, f2, f2] = rhs
             sage: s, t, r = (f1, f2, f1, f2, f2, f2), (f2, f2, f2, f2, f0, f0), (f2, f1, f2, f1, f2, f2)
             sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10
             True
@@ -543,9 +554,12 @@ cdef class FvarsHandler:
             creating variables fx1..fx27
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
             sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple,use_mp=True)
-            sage: fvars[(f3, f2, f1, f2, f1, f3)] = poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10)
-            sage: fvars[f3, f2, f3, f0, f1, f1] = poly_to_tup(f._poly_ring.zero())
-            sage: fvars[f3, f3, f3, f1, f2, f2] = poly_to_tup(-1/19*f._poly_ring.one())
+            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10))
+            sage: fvars[(f3, f2, f1, f2, f1, f3)] = rhs
+            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
+            sage: fvars[f3, f2, f3, f0, f1, f1] = rhs
+            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(-1/19*f._poly_ring.one()))
+            sage: fvars[f3, f3, f3, f1, f2, f2] = rhs
             sage: s, t, r = (f3, f2, f1, f2, f1, f3), (f3, f2, f3, f0, f1, f1), (f3, f3, f3, f1, f2, f2)
             sage: f._tup_to_fpoly(fvars[s]) == 1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10
             True

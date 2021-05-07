@@ -276,8 +276,8 @@ class FMatrix():
         self._FR = fusion_ring
         if inject_variables and (self._FR._fusion_labels is None):
             self._FR.fusion_labels(fusion_label, inject_variables=True)
-        # if not self._FR.is_multiplicity_free():
-        #     raise ValueError("FMatrix is only available for multiplicity free FusionRings")
+        if not self._FR.is_multiplicity_free():
+            raise ValueError("FMatrix is only available for multiplicity free FusionRings")
         #Set up F-symbols entry by entry
         n_vars = self.findcases()
         self._poly_ring = PolynomialRing(self._FR.field(),n_vars,var_prefix)
@@ -1248,6 +1248,8 @@ class FMatrix():
             self._chkpt_status = 7
             return
         self._fvars, self._solved, self._ks, self.ideal_basis, self._chkpt_status = state
+        #TESTS:
+        self.test_ks = {i: sq for i, sq in self._ks.items()}
         self._update_reduction_params()
 
     #################
@@ -2154,7 +2156,13 @@ class FMatrix():
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
         #Unzip _fvars and link to shared_memory structure if using multiprocessing
-        self.test_fvars = {k: poly_to_tup(p) for k, p in self._fvars.items()}
+        #TESTS:
+        for k, v in self._fvars.items():
+            if isinstance(v, tuple):
+                self.test_fvars[k] = v
+            else:
+                self.test_fvars[k] = poly_to_tup(v)
+        # self.test_fvars = {k: poly_to_tup(p) for k, p in self._fvars.items()}
         if use_mp:
             self._fvars = self._shared_fvars
         else:

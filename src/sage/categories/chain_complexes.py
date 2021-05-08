@@ -217,7 +217,7 @@ class HomologyFunctor(Functor):
             raise TypeError(f'{domain} must be a category of chain complexes')
         codomain = CommutativeAdditiveGroups()
         super().__init__(domain, codomain)
-        self.__n = n
+        self._n = n
 
     def _apply_functor(self, x):
         r"""
@@ -231,7 +231,7 @@ class HomologyFunctor(Functor):
             Z x C3
 
         """
-        return x.homology(self.__n)
+        return x.homology(self._n)
 
     def _apply_functor_to_morphism(self, f):
         r"""
@@ -258,8 +258,8 @@ class HomologyFunctor(Functor):
         codomain = f.codomain()
         lift = domain.lift_from_homology
         reduce = codomain.reduce_to_homology
-        apply_f_star = lambda x: reduce(f(lift(x)), self.__n)
-        return SetMorphism(Hom(domain.homology(self.__n),
-                               codomain.homology(self.__n),
+        apply_f_star = lambda x: reduce(f(lift(x)), self._n)
+        return SetMorphism(Hom(domain.homology(self._n),
+                               codomain.homology(self._n),
                                CommutativeAdditiveGroups()),
                            apply_f_star)

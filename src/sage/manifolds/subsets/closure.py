@@ -67,6 +67,9 @@ class ManifoldSubsetClosure(ManifoldSubset):
             name = 'cl_' + subset._name
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)
         self.declare_superset(subset)
+        self.declare_subset(superset
+                            for superset in subset.supersets()
+                            if superset.is_closed())
 
     def _repr_(self):
         r"""
@@ -82,3 +85,24 @@ class ManifoldSubsetClosure(ManifoldSubset):
              Open subset D of the 2-dimensional topological manifold R^2
         """
         return "Topological closure {} of the {}".format(self._name, self._subset)
+
+    def is_closed(self):
+        """
+        Return if ``self`` is a closed set.
+
+        This implementation of the method always returns ``True``.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.closure import ManifoldSubsetClosure
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: D = M.open_subset('D', coord_def={c_cart: x^2+y^2<1}); D
+            Open subset D of the 2-dimensional topological manifold R^2
+            sage: cl_D = D.closure(); cl_D  # indirect doctest
+            Topological closure cl_D of the Open subset D of the 2-dimensional topological manifold R^2
+            sage: cl_D.is_closed()
+            True
+
+        """
+        return True

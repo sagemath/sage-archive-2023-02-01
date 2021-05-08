@@ -518,14 +518,13 @@ cdef class FvarsHandler:
             #Handle constant coeff
             nnz = ticks[i] if ticks[i] < 255 else 0
             exp._nonzero = nnz
-            # if nnz:
-            exp._data = <int*>sig_malloc(sizeof(int)*nnz*2)
-            for j in range(2*nnz):
-                exp._data[j] = <int>exp_data[cum]
-                cum += 1
+            if nnz:
+                exp._data = <int*>sig_malloc(sizeof(int)*nnz*2)
+                for j in range(2*nnz):
+                    exp._data[j] = <int>exp_data[cum]
+                    cum += 1
 
             #Construct cyclotomic field coefficient
-            # d = Integer(denoms[i])
             rats = list()
             for k in range(self.field.degree()):
                 num = Integer(list(nums[i,k]),2**63)

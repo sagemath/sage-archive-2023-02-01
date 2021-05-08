@@ -123,7 +123,7 @@ cdef inline int has_appropriate_linear_term(tuple eq_tup):
     Determine whether the given tuple of pairs (of length 2) contains
     an *appropriate* linear term.
 
-    In this context, a linear term is said to be *appropriate* if the
+    In this context, a linear term is said to be *appropriate* if 
     it is in the largest variable in the given polynomial (w.r.t.
     the degrevlex ordering), the monomial in which the linear term
     appears is univariate, and the linear term is not a common factor in

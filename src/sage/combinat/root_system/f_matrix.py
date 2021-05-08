@@ -608,16 +608,21 @@ class FMatrix():
         if output:
             idx_map = dict()
             ret = dict()
-        for (a,b,c,d) in list(product(self._FR.basis(), repeat=4)):
+        # for (a,b,c,d) in list(product(self._FR.basis(), repeat=4)):
+        id_anyon = self._FR.one()
+        for (a,b,c,d) in product(self._FR.basis(), repeat=4):
+            if a == id_anyon or b == id_anyon or c == id_anyon:
+                continue
             for x in self.f_from(a, b, c, d):
                 for y in self.f_to(a, b, c, d):
-                    fm = self.fmat(a, b, c, d, x, y, data=False)
-                    if fm is not None and fm not in [0,1]:
-                        if output:
-                            v = self._poly_ring.gens()[i]
-                            ret[(a,b,c,d,x,y)] = v
-                            idx_map[v] = (a, b, c, d, x, y)
-                        i += 1
+                # fm = self.fmat(a, b, c, d, x, y, data=False)
+                # if fm is not None and fm not in [0,1]:
+                    if output:
+                        # v = self._poly_ring.gens()[i]
+                        v = self._poly_ring.gen(i)
+                        ret[(a,b,c,d,x,y)] = v
+                        idx_map[v] = (a, b, c, d, x, y)
+                    i += 1
         if output:
             return idx_map, ret
         else:
@@ -640,7 +645,8 @@ class FMatrix():
             (ff,ft) = (self.f_from(a,b,c,d), self.f_to(a,b,c,d))
             if len(ff) == 1 and len(ft) == 1:
                 v = self._fvars.get((a,b,c,d,ff[0],ft[0]), None)
-                if v in self._poly_ring.gens():
+                # if v in self._poly_ring.gens():
+                if v in self._var_to_idx:
                     ret.append(v)
         return ret
 
@@ -2162,7 +2168,6 @@ class FMatrix():
                 self.test_fvars[k] = v
             else:
                 self.test_fvars[k] = poly_to_tup(v)
-        # self.test_fvars = {k: poly_to_tup(p) for k, p in self._fvars.items()}
         if use_mp:
             self._fvars = self._shared_fvars
         else:

@@ -23,7 +23,6 @@
     Hint: # TESTS and EXAMPLES should be plural, NOTE singular
     Hint: # no :: after INPUT, OUTPUT, REFERENCE blocks
     Hint: # no " :" at the end of lines
-    Hint: # no "Returns" at the start of lines
   pattern: '(\.\.SEE|SEE ALSO|SEEALSO:($|[^:])|^\s*TEST:|^\s*EXAMPLE:|^\s*NOTES:|^\s*[A-Z]*PUT::|^\s*REFERENCES?::$)'
 
 - name: 'trac_links: bad trac link'
@@ -32,7 +31,7 @@
   pattern: '[^:]trac:`[0-9]'
 
 - name: 'triple_colon: triple colon (::: or : ::)'
-  pattern: ':[ 	]*::'
+  pattern: ':[ 	]*::$'
 
 # From various typo tickets
 

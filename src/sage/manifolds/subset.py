@@ -1426,7 +1426,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 for s in oc2:
                     if s not in oc:
                         oc.append(s)
-            self._open_covers.append(oc)
+                self._open_covers.append(oc)
 
     def declare_equal(self, *others):
         r"""

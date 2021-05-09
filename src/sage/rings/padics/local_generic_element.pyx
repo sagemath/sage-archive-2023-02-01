@@ -849,7 +849,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         r"""
         Returns the valuation of this local ring element.
 
-        This function only differs from valuation for lazy elements.
+        This function only differs from valuation for relaxed elements.
 
         INPUT:
 
@@ -997,7 +997,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             if self.valuation() is not infinity:
                 shift = shift << v
 
-        if self.parent().is_lattice_prec():
+        if self.parent().is_lattice_prec() or self.parent().is_relaxed():
             modes = ['simple']
         else:
             modes = ['simple', 'smallest', 'teichmuller']

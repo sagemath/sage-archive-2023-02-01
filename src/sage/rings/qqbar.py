@@ -2537,6 +2537,8 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
           To:   Algebraic Real Field
           Defn: a |--> 1.259921049894873?
 
+    ::
+
         sage: nf,nums,hom = number_field_elements_from_algebraics([2^(1/3),3^(1/5)],embedded=True)
         sage: nf
         Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
@@ -2547,6 +2549,16 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
           From: Number Field in a with defining polynomial y^15 - 9*y^10 + 21*y^5 - 3 with a = 0.6866813218928813?
           To:   Algebraic Real Field
           Defn: a |--> 0.6866813218928813?
+
+    Complex embeddings are possible as well::
+
+        sage: elems = [sqrt(5), 2^(1/3)+sqrt(3)*I, 3/4]
+        sage: nf, nums, hom = number_field_elements_from_algebraics(elems, embedded=True)
+        sage: nf
+        Number Field in a with defining polynomial y^24 - 6*y^23 ...- 9*y^2 + 1
+          with a = 0.2598678911433438? + 0.0572892247058457?*I
+        sage: list(map(QQbar, nums)) == elems == list(map(hom, nums))
+        True
 
     TESTS::
 
@@ -2640,8 +2652,6 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         real_case = True
     except:
         real_case = False
-        if embedded:
-            raise NotImplementedError
     # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
 
@@ -2668,12 +2678,11 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
     fld = gen._field
     nums = [gen(v._exact_value()) for v in numbers]
 
-    hom = fld.hom([gen.root_as_algebraic()])
+    exact_generator = gen.root_as_algebraic()
+    hom = fld.hom([exact_generator])
 
     if fld is not QQ and embedded:
         # creates the embedded field
-        assert real_case
-        exact_generator = hom(fld.gen(0))
         embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=exact_generator)
 
         # embeds the numbers
@@ -2681,14 +2690,14 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         nums = [inter_hom(n) for n in nums]
 
         # get the field and homomorphism
-        hom = embedded_field.hom([gen.root_as_algebraic()])
+        hom = embedded_field.hom([exact_generator])
         fld = embedded_field
 
     if single_number:
         nums = nums[0]
 
     if same_field:
-        hom = fld.hom([gen.root_as_algebraic()], codomain=algebraic_field)
+        hom = fld.hom([exact_generator], codomain=algebraic_field)
 
     return (fld, nums, hom)
 
@@ -4207,6 +4216,17 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             -2.804642726932742?
             sage: RR(elt)
             -2.80464272693274
+
+        A complex algebraic number as an element of an embedded number field::
+
+            sage: num = QQbar(sqrt(2) + 3^(1/3)*I)
+            sage: nf, elt, hom = num.as_number_field_element(embedded=True)
+            sage: hom(elt).parent() is QQbar
+            True
+            sage: nf.coerce_embedding() is not None
+            True
+            sage: QQbar(elt) == num == hom(elt)
+            True
 
         We see an example where we do not get the minimal number field unless
         we specify ``minimal=True``::

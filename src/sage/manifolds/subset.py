@@ -1416,11 +1416,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     def declare_superset(self, *subsets):
         r"""
-        Declare ``self`` to be a subset of each of the given supersets.
+        Declare ``self`` to be a superset of each of the given subsets.
 
         INPUT:
 
-        - ``supersets`` -- other subsets of the same manifold
+        - ``subsets`` -- other subsets of the same manifold
 
         EXAMPLES::
 

@@ -834,6 +834,10 @@ REFERENCES:
             and root vectors for the* `q`-*Onsager algebra*.
             Preprint, (2017) :arxiv:`1706.08747`.
 
+.. [BK2005] \P. Baseilhac and K. Koizumi. *A new (in)finite dimensional algebra
+            for quantum integrable models*. Nuclear Phys. B **720** (2005),
+            pp. 325-347.
+
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
               J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
@@ -1169,6 +1173,10 @@ REFERENCES:
             codes over `F_5`, Designs, Codes and Cryptography 30,
             no. 1 (2003): 97-111,
             http://www.moi.math.bas.bg/moiuser/~iliya/pdf_site/gf5srev.pdf.
+
+.. [BS2010] \P. Baseilhac and K. Shigechi. *A new current algebra and the
+            reflection equation*. Lett. Math. Phys. **92** (2010),
+            pp. 47-65. :arxiv:`0906.1482`.
 
 .. [BS2011] \E. Byrne and A. Sneyd, On the Parameters of Codes with
             Two Homogeneous Weights. WCC 2011-Workshop on coding and
@@ -5513,6 +5521,9 @@ REFERENCES:
 
 .. [Terwilliger2011] Paul Terwilliger. *The universal Askey-Wilson algebra*.
                      SIGMA **7** (2011), 069, 24 pages. :arxiv:`1104.2813`.
+
+.. [Ter2021] Paul Terwilliger. *The alternating central extension of the*
+             `q`*-Onsager algebra*. Preprint, :arxiv:`2103.03028` (2021).
 
 .. [TP1994] \J. Thas, S. Payne, *Spreads and ovoids in finite generalized
             quadrangles*. Geometriae Dedicata, Vol. 52, pp. 227-253, 1994.

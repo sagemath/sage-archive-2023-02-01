@@ -280,7 +280,7 @@ all-toolchain: base-toolchain
 # All packages needed as a prerequisite to install other Python packages with
 # pip or which are otherwise used by the Python build tools; these should be
 # given as a prerequisite to any pip-installed packages
-PYTHON_TOOLCHAIN = setuptools pip setuptools_scm
+PYTHON_TOOLCHAIN = setuptools pip setuptools_scm wheel setuptools_wheel
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.

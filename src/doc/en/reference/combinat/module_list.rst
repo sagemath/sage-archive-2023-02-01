@@ -207,6 +207,7 @@ Comprehensive Module list
     sage/combinat/q_bernoulli
     sage/combinat/quickref
     sage/combinat/ranker
+    sage/combinat/recognizable_series
     sage/combinat/restricted_growth
     sage/combinat/ribbon
     sage/combinat/ribbon_shaped_tableau

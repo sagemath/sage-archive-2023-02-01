@@ -1062,6 +1062,10 @@ REFERENCES:
             Berkovich projective line. Mathematical Surveys and Monographs,
             Volumne 159. 2010.
 
+.. [BR2010a] Jean Berstel and Christophe Reutenauer,
+             *Noncommutative Rational Series With Applications*.
+             Cambridge, 2010.
+
 .. [Brandes01] Ulrik Brandes,
                A faster algorithm for betweenness centrality,
                Journal of Mathematical Sociology 25.2 (2001): 163-177,

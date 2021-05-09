@@ -1106,6 +1106,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
     cardinality = order
 
+    @cached_method
     def permutation_group(self):
         r"""
         Return the permutation group isomorphic to this abelian group.

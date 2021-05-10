@@ -754,7 +754,7 @@ cdef class CombinatorialFace(SageObject):
 
     n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 
-    def as_polyhedron(self, quotient=False):
+    def as_combinatorial_polyhedron(self, quotient=False):
         r"""
         Return ``self`` as combinatorial polyhedron.
 
@@ -772,7 +772,7 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter(4)
             sage: f = next(it); f
             A 4-dimensional face of a 7-dimensional combinatorial polyhedron
-            sage: C1 = f.as_polyhedron(); C1
+            sage: C1 = f.as_combinatorial_polyhedron(); C1
             A 4-dimensional combinatorial polyhedron with 5 facets
             sage: C1.f_vector()
             (1, 5, 10, 10, 5, 1)
@@ -782,7 +782,7 @@ cdef class CombinatorialFace(SageObject):
 
         Obtaining the quotient::
 
-            sage: C2 = f.as_polyhedron(quotient=True); C2
+            sage: C2 = f.as_combinatorial_polyhedron(quotient=True); C2
             A 2-dimensional combinatorial polyhedron with 6 facets
             sage: C2
             A 2-dimensional combinatorial polyhedron with 6 facets
@@ -795,7 +795,7 @@ cdef class CombinatorialFace(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(2)
             sage: f = next(it)
-            sage: f.as_polyhedron()
+            sage: f.as_combinatorial_polyhedron()
             Traceback (most recent call last):
             ...
             NotImplementedError: only implemented for bounded polyhedra
@@ -807,7 +807,7 @@ cdef class CombinatorialFace(SageObject):
         .. NOTE::
 
             This method is tested in
-            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base._test_combinatorial_face_as_polyhedron`.
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base._test_combinatorial_face_as_combinatorial_polyhedron`.
         """
         if not self._ambient_bounded:
             raise NotImplementedError("only implemented for bounded polyhedra")

@@ -1024,10 +1024,10 @@ class Polyhedron_base(Element):
             sage: fcube = polytopes.hypercube(4)
             sage: tfcube = fcube.face_truncation(fcube.faces(0)[0])
             sage: sp = tfcube.schlegel_projection()
-            sage: for face in tfcube.faces(2): 
-            ....:     vertices = face.ambient_Vrepresentation() 
-            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices] 
-            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices] 
+            sage: for face in tfcube.faces(2):
+            ....:     vertices = face.ambient_Vrepresentation()
+            ....:     indices = [sp.coord_index_of(vector(x)) for x in vertices]
+            ....:     projected_vertices = [sp.transformed_coords[i] for i in indices]
             ....:     assert Polyhedron(projected_vertices).dim() == 2
         """
         def merge_options(*opts):
@@ -6891,13 +6891,13 @@ class Polyhedron_base(Element):
             return ()
         return self.faces(self.dimension()-1)
 
-    def _test_combinatorial_face_as_polyhedron(self, tester=None, **options):
+    def _test_combinatorial_face_as_combinatorial_polyhedron(self, tester=None, **options):
         """
         Run tests on obtaining the combinatorial face as combinatorial polyhedron.
 
         TESTS::
 
-            sage: polytopes.cross_polytope(3)._test_combinatorial_face_as_polyhedron()
+            sage: polytopes.cross_polytope(3)._test_combinatorial_face_as_combinatorial_polyhedron()
         """
         if not self.is_compact():
             return
@@ -6928,8 +6928,8 @@ class Polyhedron_base(Element):
                 continue
 
             P = f.as_polyhedron()
-            D1 = f1.as_polyhedron()
-            D2 = f2.as_polyhedron(face_figure=True).dual()
+            D1 = f1.as_combinatorial_polyhedron()
+            D2 = f2.as_combinatorial_polyhedron(quotient=True).dual()
             D1._test_bitsets(tester, **options)
             D2._test_bitsets(tester, **options)
             tester.assertTrue(P.combinatorial_polyhedron().vertex_facet_graph().is_isomorphic(D1.vertex_facet_graph()))
@@ -10229,10 +10229,10 @@ class Polyhedron_base(Element):
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
-            if as_affine_map: 
-                return linear_transformation(matrix(self.base_ring(), 
-                                                    self.dim(), 
-                                                    self.dim(), 
+            if as_affine_map:
+                return linear_transformation(matrix(self.base_ring(),
+                                                    self.dim(),
+                                                    self.dim(),
                                                     self.base_ring().one())), self.ambient_space().zero()
             return self
 

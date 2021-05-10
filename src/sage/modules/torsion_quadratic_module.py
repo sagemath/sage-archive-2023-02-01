@@ -867,26 +867,24 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
         from sage.groups.fqf_orthogonal import FqfOrthogonalGroup,_isom_fqf
         from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
 
+        ambient = AbelianGroupGap(self.invariants()).aut()
         # slow brute force implementation
-        flag = False
         if gens is None:
             try:
-                return self._orthogonal_group
+                gens = self._orthogonal_group_gens
             except AttributeError:
-                flag = True
                 gens = _isom_fqf(self)
+                gens = tuple(ambient(g) for g in gens)
+                self._orthogonal_group_gens = gens
         else:
             # see if there is an action
             try:
                 gens = [matrix(x*g for x in self.smith_form_gens()) for g in gens]
             except TypeError:
-                pass
-        ambient = AbelianGroupGap(self.invariants()).aut()
-        # the ambient knows what to do with the generators
-        gens = tuple(ambient(g) for g in gens)
+                pass 
+            # the ambient knows what to do with the generators
+            gens = tuple(ambient(g) for g in gens)
         Oq =  FqfOrthogonalGroup(ambient, gens, self, check=check)
-        if flag:
-            self._orthogonal_group = Oq
         return Oq
 
     def orthogonal_submodule_to(self, S):

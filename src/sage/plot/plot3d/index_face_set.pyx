@@ -1357,10 +1357,11 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)], color='red', opacity=0.5,
             ....:             render_order=2, threejs_flat_shading=True,
-            ....:             single_side=True, mesh=True, thickness=10)
+            ....:             single_side=True, mesh=True, thickness=10, depth_write=True)
             sage: G.threejs_repr(G.default_render_params())
             [('surface',
               {'color': '#ff0000',
+               'depthWrite': True,
                'faces': [[0, 1, 2]],
                'linewidth': 10.0,
                'opacity': 0.5,
@@ -1454,6 +1455,9 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         if self._extra_kwds.get('thickness'):
             surface['linewidth'] = float(self._extra_kwds['thickness'])
+
+        if 'depth_write' in self._extra_kwds:
+            surface['depthWrite'] = bool(self._extra_kwds['depth_write'])
 
         return [('surface', surface)]
 

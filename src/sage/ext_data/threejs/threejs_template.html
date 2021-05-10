@@ -176,7 +176,7 @@ SAGE_SCRIPTS
         var texture = new THREE.Texture( canvas );
         texture.needsUpdate = true;
 
-        var materialOptions = { map: texture, sizeAttenuation: false };
+        var materialOptions = { map: texture, sizeAttenuation: false, depthWrite: false };
         if ( opacity < 1 ) {
             // Setting opacity=1 would cause the texture's alpha component to be
             // discarded, giving the text a black background instead of the
@@ -395,13 +395,15 @@ SAGE_SCRIPTS
 
         var side = json.singleSide ? THREE.FrontSide : THREE.DoubleSide;
         var transparent = json.opacity < 1 ? true : false;
+        var depthWrite = 'depthWrite' in json ? json.depthWrite : !transparent;
         var flatShading = json.useFlatShading ? json.useFlatShading : false;
 
         var material = new THREE.MeshPhongMaterial( { side: side,
                                      color: useFaceColors ? 'white' : json.color,
                                      vertexColors: useFaceColors ? THREE.FaceColors : THREE.NoColors,
                                      transparent: transparent, opacity: json.opacity,
-                                     shininess: 20, flatShading: flatShading } );
+                                     shininess: 20, flatShading: flatShading,
+                                     depthWrite: depthWrite } );
 
         var c = new THREE.Vector3();
         geometry.computeBoundingBox();

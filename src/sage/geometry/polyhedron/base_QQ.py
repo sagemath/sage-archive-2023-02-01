@@ -1,4 +1,4 @@
-"""
+r"""
 Base class for polyhedra over `\QQ`
 """
 
@@ -7,8 +7,8 @@ from sage.misc.all import cached_method, prod
 from .base import Polyhedron_base
 from sage.sets.all import Set
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
-# from sage.geometry.polyhedron.all import lazy_import
 from .constructor import Polyhedron
+
 
 class Polyhedron_QQ(Polyhedron_base):
     r"""

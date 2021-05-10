@@ -818,8 +818,7 @@ cdef class CombinatorialFace(SageObject):
         if not quotient:
             return CombinatorialPolyhedron(face_as_combinatorial_polyhedron(facets, Vrep, self.face, self._dual))
         else:
-            # We run ``face_as_combinatorial_polyhedron`` with interchanged arguments to obtain
-            # the face as polyhedron in the dual setting.
+            # We run ``face_as_combinatorial_polyhedron`` for the dual setting.
 
             # We then interchange the output of it, to obtain the quotient.
             new_Vrep, new_facets = face_as_combinatorial_polyhedron(Vrep, facets, self.face, not self._dual)

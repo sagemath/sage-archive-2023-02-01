@@ -3150,13 +3150,6 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(f(x) - f(x) == 0)
             True
 
-        Check that we catch exceptions from Pynac (:trac:`19904`)::
-
-            sage: bool(SR(QQbar(I)) == I)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s)...
-
         Check that :trac:`24658` is fixed::
 
             sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
@@ -4564,6 +4557,11 @@ cdef class Expression(CommutativeRingElement):
             sage: (1/(1-2*x)).series(x)
             1 + 2*x + 4*x^2 + Order(x^3)
             sage: set_series_precision(20)
+
+        Check that :trac:`31645` is fixed::
+
+            sage: (x^(-1) + 1).series(x,1)
+            1*x^(-1) + 1 + Order(x)
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
@@ -4875,6 +4873,22 @@ cdef class Expression(CommutativeRingElement):
             sage: ((-x)^(3/4)).expand()
             (-x)^(3/4)
             sage: forget()
+
+        Check that :trac:`31077` is fixed (also see :trac:`31679`)::
+
+            sage: a,b,c,d = var("a b c d")
+            sage: f = ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
+            sage: sum(sign(s) * (abs(ZZ(s)) % ZZ(2^30)) * d^i for s,i in f.coefficients())
+            d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36
+
+        Check that :trac:`31411` is fixed::
+
+            sage: q, j = var("q, j")
+            sage: A = q^(2/3) + q^(2/5)
+            sage: B = product(1 - q^j, j, 1, 31) * q^(1/24)
+            sage: bool((A * B).expand() == (A * B.expand()).expand())
+            True  # 64-bit
+            True  # 32-bit # known bug (#31585)
         """
         if side is not None:
             if not is_a_relational(self._gobj):

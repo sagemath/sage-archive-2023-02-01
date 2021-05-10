@@ -2789,6 +2789,10 @@ cdef class NumberFieldElement(FieldElement):
             sage: E = C.algebraic_closure()
             sage: E(a)
             -4.949886207424724? - 0.2195628712241434?*I
+
+            sage: NF.<sqrt2> = QuadraticField(2)
+            sage: AA(sqrt2)
+            1.414213562373095?
         """
         if self.is_rational():
             return parent(self._rational_())

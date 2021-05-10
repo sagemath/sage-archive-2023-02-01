@@ -16,6 +16,7 @@ cdef class PolyhedronFaceLattice:
 
     # some copies from CombinatorialPolyhedron
     cdef tuple _Vrep, _facet_names, _equalities
+    cdef bint _bounded
 
     # Atoms and coatoms are the Vrep/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms Vrepresentatives and vice versa.

@@ -2410,17 +2410,29 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
             Traceback (most recent call last):
             ...
             ValueError: unable to convert i to an element of Algebraic Real Field
+
+        TESTS:
+
+        Check that :trac:`31808` is fixed::
+
+            sage: C.<I> = QuadraticField(-1)
+            sage: AA(C.one())
+            1
+            sage: AA(C.zero())
+            0
         """
         import sage.rings.qqbar as qqbar
+        cdef tuple coeffs
         if parent is qqbar.QQbar:
             # AlgebraicNumber.__init__ does a better job than
             # NumberFieldElement._algebraic_ in this case, but
             # QQbar._element_constructor_ calls the latter first.
             return qqbar.AlgebraicNumber(self)
-        elif parent is qqbar.AA and self[1].is_zero():
-            return qqbar.AlgebraicReal(self)
-        else:
-            raise ValueError(f"unable to convert {self!r} to an element of {parent!r}")
+        if parent is qqbar.AA:
+            coeffs = self.parts()
+            if coeffs[1].is_zero():
+                return qqbar.AlgebraicReal(coeffs[0])
+        raise ValueError(f"unable to convert {self!r} to an element of {parent!r}")
 
     cpdef real_part(self):
         r"""

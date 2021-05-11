@@ -364,8 +364,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         try:
             return W(n.digits(self.k))
         except OverflowError:
-            raise ValueError('value {} of index is negative'.format(n))
-
+            raise ValueError('value {} of index is negative'.format(n)) from None
 
     def _parse_recurrence_(self, equations, function, var):
         r"""
@@ -925,7 +924,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         return (M, m, coeffs, initial_values)
 
-
     def _get_parameters_from_recurrence_(self, M, m, coeffs, initial_values,
                                          offset):
         r"""
@@ -1067,7 +1065,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         return recurrence_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
                                 coeffs=coeffs, initial_values=initial_values,
                                 offset=offset, n1=n1)
-
 
     def _get_values_from_recurrence_(self, *, M, m, l, u, ll, coeffs,
                                      initial_values, last_value_needed, offset):
@@ -1561,7 +1558,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             return Mat(block_matrix([[mat, W],
                                      [zero_matrix(n1, dim_without_corr), J]]))
 
-
     def _get_left_from_recurrence_(self, dim):
         r"""
         Construct the vector ``left`` of the linear representation of
@@ -1588,7 +1584,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.modules.free_module_element import vector
 
         return vector([1] + (dim - 1)*[0])
-
 
     def _get_right_from_recurrence_(self, recurrence_rules):
         r"""
@@ -1653,7 +1648,6 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             right = vector(list(right) + [1] + (n1 - 1)*[0])
 
         return right
-
 
     def from_recurrence(self, equations, function, var, offset=0):
         r"""

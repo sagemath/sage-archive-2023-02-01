@@ -115,10 +115,6 @@ We can convert from symbolic expressions::
     3.146264369941973?
     sage: QQbar(I)
     I
-    sage: AA(I)
-    Traceback (most recent call last):
-    ...
-    ValueError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
     sage: QQbar(I * golden_ratio)
     1.618033988749895?*I
     sage: AA(golden_ratio)^2 - AA(golden_ratio)
@@ -150,24 +146,30 @@ roots if they exist, but for ``QQbar`` we take the principal root::
     sage: QQbar(-1)^(1/3)
     0.500000000000000? + 0.866025403784439?*I
 
-We can explicitly coerce from `\QQ[I]`. (Technically, this is not quite
-kosher, since `\QQ[I]` does not come with an embedding; we do not know
-whether the field generator is supposed to map to `+I` or `-I`. We assume
-that for any quadratic field with polynomial `x^2+1`, the generator maps
-to `+I`.)::
+However, implicit coercion from `\QQ[I]` is only allowed when it is equipped
+with a complex embedding::
 
-    sage: K.<im> = QQ[I]
+    sage: i.parent()
+    Number Field in I with defining polynomial x^2 + 1 with I = 1*I
+    sage: QQbar(1) + i
+    I + 1
+
+    sage: K.<im> = QuadraticField(-1, embedding=None)
+    sage: QQbar(1) + im
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and
+    'Number Field in im with defining polynomial x^2 + 1'
+
+However, we can explicitly coerce from the abstract number field `\QQ[I]`.
+(Technically, this is not quite kosher, since we do not know whether the field
+generator is supposed to map to `+I` or `-I`. We assume that for any quadratic
+field with polynomial `x^2+1`, the generator maps to `+I`.)::
+
     sage: pythag = QQbar(3/5 + 4*im/5); pythag
     4/5*I + 3/5
     sage: pythag.abs() == 1
     True
-
-However, implicit coercion from `\QQ[I]` is not allowed::
-
-    sage: QQbar(1) + im
-    Traceback (most recent call last):
-    ...
-    TypeError: unsupported operand parent(s) for +: 'Algebraic Field' and 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I'
 
 We can implicitly coerce from algebraic reals to algebraic numbers::
 
@@ -553,8 +555,10 @@ import itertools
 import operator
 
 import sage.rings.ring
+import sage.rings.number_field.number_field_base
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
+from sage.structure.coerce import parent_is_numerical, parent_is_real_numerical
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import (richcmp, richcmp_method,
                                     rich_to_bool, richcmp_not_equal,
@@ -569,7 +573,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField, GaussianField, CyclotomicField
-from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic, NumberFieldElement_gaussian
 from sage.arith.all import factor
 from . import infinity
 from sage.categories.action import Action
@@ -1063,9 +1067,17 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
             sage: QQbar.category() # indirect doctest
             Category of infinite fields
+
+        Coercions::
+
+            sage: AA.has_coerce_map_from(ZZ)
+            True
+            sage: AA.has_coerce_map_from(int)
+            True
         """
         from sage.categories.fields import Fields
         AlgebraicField_common.__init__(self, self, ('x',), normalize=False, category=Fields().Infinite())
+        self._populate_coercion_lists_([ZZ, QQ])
 
     def _element_constructor_(self, x):
         r"""
@@ -1157,8 +1169,6 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         TESTS::
 
-            sage: AA.has_coerce_map_from(ZZ) # indirect doctest
-            True
             sage: K.<a> = QuadraticField(7, embedding=AA(7).sqrt()); AA.has_coerce_map_from(K)
             True
             sage: a in AA
@@ -1167,9 +1177,23 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             5.645751311064590?
             sage: AA.has_coerce_map_from(SR)
             False
+
+            sage: K = NumberField(x^3 - 2, 'a', embedding=2.**(1/3))
+            sage: AA.has_coerce_map_from(K)
+            True
+            sage: K.<s> = QuadraticField(3, embedding=-2.)
+            sage: s + AA(1)
+            -0.732050807568878?
+            sage: K.<s> = QuadraticField(3, embedding=2.)
+            sage: s + AA(1)
+            2.732050807568878?
+            sage: K.<s> = QuadraticField(-5)
+            sage: AA.has_coerce_map_from(K)
+            False
         """
-        return (from_par is ZZ or from_par is QQ
-                or from_par is AA)
+        if isinstance(from_par, sage.rings.number_field.number_field_base.NumberField):
+            emb = from_par.coerce_embedding()
+            return emb is not None and parent_is_real_numerical(emb.codomain())
 
     def completion(self, p, prec, extras={}):
         r"""
@@ -1497,9 +1521,15 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
             sage: QQbar._repr_option('element_is_atomic')
             False
+
+            sage: QQbar.has_coerce_map_from(ZZ)
+            True
+            sage: QQbar.has_coerce_map_from(int)
+            True
         """
         from sage.categories.fields import Fields
         AlgebraicField_common.__init__(self, AA, ('I',), normalize=False, category=Fields().Infinite())
+        self._populate_coercion_lists_([ZZ, QQ])
 
     def _element_constructor_(self, x):
         """
@@ -1565,17 +1595,28 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         TESTS::
 
-            sage: QQbar.has_coerce_map_from(ZZ) # indirect doctest
-            True
             sage: QQbar.has_coerce_map_from(AA)
             True
             sage: QQbar.has_coerce_map_from(CC)
             False
             sage: QQbar.has_coerce_map_from(SR)
             False
+
+            sage: i + QQbar(2)
+            I + 2
+            sage: K.<ii> = QuadraticField(-1, embedding=ComplexField(13)(0,-1))
+            sage: ii + QQbar(2)
+            -I + 2
+
+            sage: L.<a> = QuadraticField(-1, embedding=Zp(5).teichmuller(2))
+            sage: QQbar.has_coerce_map_from(L)
+            False
         """
-        return (from_par is ZZ or from_par is QQ
-                or from_par is AA or from_par is QQbar)
+        if from_par is AA:
+            return True
+        if isinstance(from_par, sage.rings.number_field.number_field_base.NumberField):
+            emb = from_par.coerce_embedding()
+            return emb is not None and parent_is_numerical(emb.codomain())
 
     def completion(self, p, prec, extras={}):
         r"""
@@ -3453,10 +3494,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             self._descr = ANRational(x)
         elif isinstance(x, ANDescr):
             self._descr = x
-        elif parent is QQbar and \
-                 isinstance(x, NumberFieldElement_quadratic) and \
-                 list(x.parent().polynomial()) == [1, 0, 1]:
-            self._descr = ANExtensionElement(QQbar_I_generator, QQbar_I_nf(x.list()))
+        elif parent is QQbar and isinstance(x, NumberFieldElement_gaussian):
+            if x.parent()._standard_embedding:
+                self._descr = ANExtensionElement(QQbar_I_generator, QQbar_I_nf(x.list()))
+            else:
+                self._descr = ANExtensionElement(QQbar_I_generator, QQbar_I_nf([x[0], -x[1]]))
         else:
             raise TypeError("Illegal initializer for algebraic number")
 

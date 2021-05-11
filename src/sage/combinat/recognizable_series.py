@@ -19,6 +19,12 @@ such that the coefficient corresponding to a word `w\in A^*` equals
 
     \mathit{left} \, \mu(w) \, \mathit{right}.
 
+.. NOTE::
+
+    Whenever a minimization (:meth:`~RecognizableSeries.minimized`) of
+    a series needs to be computed, it is required that `K` is a field.
+    In particular, minimization is called before checking if a series is
+    nonzero.
 
 .. WARNING::
 
@@ -320,9 +326,16 @@ class RecognizableSeries(Element):
         EXAMPLES::
 
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
-            sage: Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
-            ....:     vector([0, 1]), vector([1, 0])).transposed()
+            sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
+            ....:         vector([0, 1]), vector([1, 0])).transposed(); S
             [1] + 3*[01] + [10] + 5*[11] + 9*[001] + 3*[010] + ...
+
+        We can access coefficients by
+        ::
+
+            sage: W = Rec.indices()
+            sage: S[W([0, 0, 1])]
+            9
 
         .. SEEALSO::
 
@@ -483,15 +496,15 @@ class RecognizableSeries(Element):
             return '{c}{times}[{w}]'.format(c=fr(c), times=times, w=fs(w))
 
         def all_coefficients():
-            number_of_nonzeros = 0
+            number_of_zeros = 0
             for w in self.parent().indices():
                 c = self[w]
                 if c != 0:
-                    number_of_nonzeros = 0
+                    number_of_zeros = 0
                     yield (w, self[w])
                 else:
-                    number_of_nonzeros += 1
-                if number_of_nonzeros >= 100:
+                    number_of_zeros += 1
+                if number_of_zeros >= 100:
                     return
 
         coefficients = islice(all_coefficients(), 10)

@@ -2410,6 +2410,26 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         - replacing an inclusion chain by its maximal element
 
         - replacing a pair of subsets with a declared union by the union
+
+        INPUT:
+
+        - ``subsets`` -- an iterable of :class:`ManifoldSubset` instances
+          of the same manifold.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: B1 = A.subset('B1')
+            sage: B2 = A.subset('B2')
+            sage: B = B1.union(B2)
+            sage: M._reduce_union_members([])
+            {}
+            sage: M._reduce_union_members([B1, B])
+            Set {B1_union_B2} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_union_members([A, B1, B2])
+            Set {A} of subsets of the 2-dimensional topological manifold M
+
         """
         subsets = set(subsets)
         def reduce():

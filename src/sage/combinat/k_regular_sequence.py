@@ -87,6 +87,7 @@ Classes and Methods
 """
 #*****************************************************************************
 #       Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
+#                     2021 Gabriel F. Lipnik <dev@gabriellipnik.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

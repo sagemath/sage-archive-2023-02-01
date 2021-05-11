@@ -23,8 +23,8 @@ from sage.misc.latex import LatexExpr
 from sage.structure.sequence import Sequence
 
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", ["Graphics", "point2d", "line2d", "arrow", "polygon2d"])
-lazy_import("sage.plot.plot3d.all", ["point3d", "line3d", "arrow3d", "polygons3d"])
+lazy_import("sage.plot.all", ["Graphics", "point2d", "line2d", "arrow", "polygon2d", "Color", "rainbow"])
+lazy_import("sage.plot.plot3d.all", ["point3d", "line3d", "arrow3d", "polygons3d", "polygon3d"])
 lazy_import("sage.plot.plot3d.transform", "rotate_arbitrary")
 
 
@@ -1013,8 +1013,19 @@ class Projection(SageObject):
             <class 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
         """
         polys = self.polygons
+        n = len(polys)
         N = max([-1] + [i for p in polys for i in p]) + 1
-        return polygons3d(polys, self.coordinates_of(range(N)), **kwds)
+        coords = self.coordinates_of(range(N))
+        if ('color' not in kwds) or (kwds['color'] != 'rainbow') or (n <= 1):
+            return polygons3d(polys, coords, **kwds)
+        else:
+            for i in range(n):
+                kwds['color'] = Color(rainbow(n, "rgbtuple")[i])
+                if i == 0:
+                    g = polygon3d(list(coords[j] for j in polys[i]), **kwds)
+                else:
+                    g += polygon3d(list(coords[j] for j in polys[i]), **kwds)
+            return g
 
     def render_0d(self, point_opts=None, line_opts=None, polygon_opts=None):
         """
@@ -1159,6 +1170,11 @@ class Projection(SageObject):
             sage: p = P.plot()                                                                            # optional - sage.plot
             sage: p.bounding_box()                                                                        # optional - sage.plot
             ((100.0, 100.0, 100.0), (101.0, 101.0, 101.0))
+
+        Plot 3d polytope with rainbow colors::
+
+            sage: polytopes.hypercube(3).plot(polygon='rainbow', alpha=0.4)
+            Graphics3d Object
         """
         pplt = None
         lplt = None

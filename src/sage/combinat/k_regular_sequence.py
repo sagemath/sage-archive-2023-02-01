@@ -97,7 +97,6 @@ Classes and Methods
 from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
-from six import iteritems
 
 
 def pad_right(T, length, zero=0):
@@ -409,7 +408,7 @@ class kRegularSequence(RecognizableSeries):
 
         if a == 0:
             return sum(c_j * self[b_j] * self.parent().one_hadamard()
-                       for b_j, c_j in iteritems(b))
+                       for b_j, c_j in b.items())
         elif a == 1 and len(b) == 1 and zero in b:
             return b[zero] * self
         elif a < 0:
@@ -457,7 +456,7 @@ class kRegularSequence(RecognizableSeries):
                  for r in A),
             sum(c_j * vector(
                     pad_right(pad(tuple(self.left), b_j), ndim, zero=zero))
-                for b_j, c_j in iteritems(b)),
+                for b_j, c_j in b.items()),
             vector(sum((tuple(self.__getitem__(c, multiply_left=False))
                         if c >= 0 else dim*(zero,)
                         for c in kernel), tuple())))
@@ -640,7 +639,7 @@ def _pickle_kRegularSequenceSpace(k, coefficients, category):
         sage: Seq2 = kRegularSequenceSpace(2, ZZ)
         sage: from sage.combinat.k_regular_sequence import _pickle_kRegularSequenceSpace
         sage: _pickle_kRegularSequenceSpace(
-        ....:     Seq2.k, Seq2.coefficients(), Seq2.category())
+        ....:     Seq2.k, Seq2.coefficient_ring(), Seq2.category())
         Space of 2-regular sequences over Integer Ring
     """
     return kRegularSequenceSpace(k, coefficients, category=category)
@@ -723,6 +722,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             running ._test_an_element() . . . pass
             running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
+            running ._test_construction() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
@@ -762,7 +762,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             Space of 2-regular sequences over Integer Ring
         """
         return _pickle_kRegularSequenceSpace, \
-            (self.k, self.coefficients(), self.category())
+            (self.k, self.coefficient_ring(), self.category())
 
     def _repr_(self):
         r"""

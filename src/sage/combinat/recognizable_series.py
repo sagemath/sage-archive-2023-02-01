@@ -385,7 +385,7 @@ class RecognizableSeries(Element):
             return m
 
         if isinstance(mu, dict):
-            mu = dict((a, immutable(M)) for a, M in iteritems(mu))
+            mu = dict((a, immutable(M)) for a, M in mu.items())
         mu = Family(mu)
 
         if not mu.is_finite():
@@ -875,7 +875,7 @@ class RecognizableSeries(Element):
             sage: Z1 = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [0, 1]])),
             ....:          left=vector([0, 1]), right=vector([1, 0]))
             sage: Z1
-            0
+            0 + ...
             sage: Z2 = Rec((Matrix([[0, 0], [0, 0]]), Matrix([[0, 0], [0, 0]])),
             ....:          left=vector([0, 1]), right=vector([1, 0]))
             sage: Z2
@@ -1411,7 +1411,7 @@ def _pickle_RecognizableSeriesSpace(coefficients, indices, category):
         sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
         sage: from sage.combinat.recognizable_series import _pickle_RecognizableSeriesSpace
         sage: _pickle_RecognizableSeriesSpace(
-        ....:     Rec.coefficients(), Rec.indices(), Rec.category())
+        ....:     Rec.coefficient_ring(), Rec.indices(), Rec.category())
         Space of recognizable series on {0, 1} with coefficients in Integer Ring
     """
     return RecognizableSeriesSpace(coefficients, indices=indices, category=category)
@@ -1588,6 +1588,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             running ._test_an_element() . . . pass
             running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
+            running ._test_construction() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
@@ -1623,7 +1624,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
         """
         return _pickle_RecognizableSeriesSpace, \
-            (self.coefficients(), self.indices(), self.category())
+            (self.coefficient_ring(), self.indices(), self.category())
 
 
     def alphabet(self):
@@ -1710,9 +1711,9 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         """
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
-        z = self.coefficients().zero()
-        o = self.coefficients().one()
-        e = self.coefficients().an_element()
+        z = self.coefficient_ring().zero()
+        o = self.coefficient_ring().one()
+        e = self.coefficient_ring().an_element()
         return self(list(Matrix([[o, z], [i*o, o]])
                          for i, _ in enumerate(self.alphabet())),
                     vector([z, e]), right=vector([e, z]))
@@ -1733,25 +1734,24 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             sage: tuple(RecognizableSeriesSpace(ZZ, [0, 1]).some_elements())
             ([1] + [01] + [10] + 2*[11] + [001] + [010]
                  + 2*[011] + [100] + 2*[101] + 2*[110] + ...,
-             [] + [0] + [1] + [00] + [01] + [10]
-                + [11] + [000] + [001] + [010] + ...,
-             0,
-             -2*[] + 2*[0] - 4*[1] - 2*[00] + 4*[01] + 4*[10]
-                   - 8*[11] + 2*[000] - 4*[001] - 4*[010] + ...,
-             [] + [0] + 2*[1] + [00] + 2*[01] + [10]
-                + 4*[11] + [000] + 2*[001] + [010] + ...,
-             2*[] + 5*[0] + 11*[1] + 8*[00] + 14*[01] + 14*[10]
-                  + 20*[11] + 11*[000] + 17*[001] + 17*[010] + ...,
+             [] + [1] + [11] + [111] + [1111] + [11111] + [111111] + ...,
+             [] + [0] + [1] + [00] + [10] + [11]
+                + [000] - 1*[001] + [100] + [110] + ...,
+             2*[] - 1*[1] + 2*[10] - 1*[101]
+                  + 2*[1010] - 1*[10101] + 2*[101010] + ...,
+             [] + [1] + 6*[00] + [11] - 39*[000] + 5*[001] + 6*[100] + [111]
+                + 288*[0000] - 33*[0001] + ...,
+             -5*[] + ...,
              ...
-             [] + [0] + 10*[1] + [00] + 10*[01] + [10]
-                + 100*[11] + [000] + 10*[001] + [010] + ...)
+             210*[] + ...,
+             2210*[] - 170*[0] + 170*[1] + ...)
         """
         from itertools import count, islice
         from sage.matrix.matrix_space import MatrixSpace
         from sage.modules.free_module import FreeModule
         yield self.an_element()
 
-        C = self.coefficients()
+        C = self.coefficient_ring()
         some_elements_base = iter(C.some_elements())
         k = len(self.alphabet())
         for dim in range(1, 11):

@@ -1518,8 +1518,13 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P = M.subset_poset()
             sage: P.plot(element_labels={element: label(element) for element in P})
             Graphics object consisting of 9 graphics primitives
+
+        Subsets in a directed cycle of inclusions are equal::
+
             sage: M.declare_subset(V)
             sage: M.superset_family()
+            Set {M, U1, U2, V} of open subsets of the 2-dimensional differentiable manifold M
+            sage: M.equal_subset_family()
             Set {M, U1, U2, V} of open subsets of the 2-dimensional differentiable manifold M
             sage: P = M.subset_poset()
             sage: P.plot(element_labels={element: label(element) for element in P})
@@ -1553,11 +1558,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     def declare_superset(self, *subsets):
         r"""
-        Declare ``self`` to be a subset of each of the given supersets.
+        Declare ``self`` to be a superset of each of the given subsets.
 
         INPUT:
 
-        - ``supersets`` -- other subsets of the same manifold
+        - ``subsets`` -- other subsets of the same manifold
 
         EXAMPLES::
 
@@ -1579,8 +1584,13 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P = M.subset_poset()
             sage: P.plot(element_labels={element: label(element) for element in P})
             Graphics object consisting of 11 graphics primitives
+
+        Subsets in a directed cycle of inclusions are equal::
+
             sage: W.declare_superset(U)
             sage: W.subset_family()
+            Set {U, V1, V1_inter_V2, V2} of open subsets of the 2-dimensional differentiable manifold M
+            sage: W.equal_subset_family()
             Set {U, V1, V1_inter_V2, V2} of open subsets of the 2-dimensional differentiable manifold M
             sage: P = M.subset_poset()
             sage: P.plot(element_labels={element: label(element) for element in P})

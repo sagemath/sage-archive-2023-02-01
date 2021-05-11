@@ -193,7 +193,10 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         else:
             x = self.domain().coordinate_vector(x)
         C = self.codomain()
-        v = x.change_ring(C.base_ring()) * self.matrix()
+        if self.side() == "left":
+            v = x.change_ring(C.base_ring()) * self.matrix()
+        else:
+            v = self.matrix() * x.change_ring(C.base_ring())
         if not C.is_ambient():
             v = C.linear_combination_of_basis(v)
         # The call method of parents uses (coercion) morphisms.
@@ -1300,10 +1303,16 @@ class MatrixMorphism(MatrixMorphism_abstract):
             raise ValueError("no parent given when creating this matrix morphism")
         if isinstance(A, MatrixMorphism_abstract):
             A = A.matrix()
-        if A.nrows() != parent.domain().rank():
-            raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
-        if A.ncols() != parent.codomain().rank():
-                raise ArithmeticError("number of columns of matrix (={}) must equal rank of codomain (={})".format(A.ncols(), parent.codomain().rank()))
+        if side == "left":
+            if A.nrows() != parent.domain().rank():
+                raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
+            if A.ncols() != parent.codomain().rank():
+                    raise ArithmeticError("number of columns of matrix (={}) must equal rank of codomain (={})".format(A.ncols(), parent.codomain().rank()))
+        if side == "right":
+            if A.nrows() != parent.codomain().rank():
+                raise ArithmeticError("number of rows of matrix (={}) must equal rank of codomain (={})".format(A.nrows(), parent.domain().rank()))
+            if A.ncols() != parent.domain().rank():
+                raise ArithmeticError("number of columns of matrix (={}) must equal rank of domain (={})".format(A.ncols(), parent.codomain().rank()))
         if A.is_mutable():
             if copy_matrix:
                 from copy import copy

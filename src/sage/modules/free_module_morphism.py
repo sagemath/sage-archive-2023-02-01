@@ -81,7 +81,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             raise TypeError("parent (=%s) must be a free module hom space"%parent)
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
-        A = parent._matrix_space()(A)
+        A = parent._matrix_space(side)(A)
         matrix_morphism.MatrixMorphism.__init__(self, parent, A, side=side)
 
     def pushforward(self, x):
@@ -209,7 +209,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         D = self.domain().change_ring(R)
         C = self.codomain().change_ring(R)
         A = self.matrix().change_ring(R)
-        return D.hom(A, C)
+        return D.hom(A, C, side=self.side())
 
     def inverse_image(self, V):
         """
@@ -288,7 +288,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             return self.domain()
 
         R = self.base_ring()
-        A = self.matrix()
+        if self.side()=="left":
+            A = self.matrix()
+        else:
+            A = self.matrix().transpose()
 
         # Replace the module V that we are going to pullback by a
         # submodule that is contained in the image of self, since our
@@ -396,7 +399,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         """
         from .free_module_element import vector
         x = self.codomain()(x)
-        A = self.matrix()
+        if self.side()=="right":
+            A = self.matrix().transpose()
+        else:
+            A = self.matrix()
         R = self.base_ring()
         if R.is_field():
             try:
@@ -501,7 +507,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         """
         if self.base_ring().is_field():
             if self.is_endomorphism():
-                seigenvec=self.matrix().eigenvectors_left(extend=extend)
+                if self.side()=="right":
+                    seigenvec=self.matrix().eigenvectors_right(extend=extend)
+                else:
+                    seigenvec=self.matrix().eigenvectors_left(extend=extend)
                 resu=[]
                 for i in seigenvec:
                     V=self.domain().base_extend(i[0].parent())

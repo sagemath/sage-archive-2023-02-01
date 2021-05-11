@@ -243,7 +243,7 @@ def is_VectorSpaceHomspace(x):
 
 class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
 
-    def __call__(self, A, check=True):
+    def __call__(self, A, check=True, **kwds):
         r"""
         INPUT:
 

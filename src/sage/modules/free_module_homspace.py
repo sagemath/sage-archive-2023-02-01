@@ -131,6 +131,9 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
           or a function returning elements of the codomain for elements
           of the domain.
         - check -- bool (default: True)
+        - the keywords ``side`` can be assigned the values ``left`` or
+          right. It corresponds to the side of vectors relative to the
+          matrix.
 
         If A is a matrix, then it is the matrix of this linear
         transformation, with respect to the basis for the domain and
@@ -173,7 +176,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
 
         """
         from . import free_module_morphism
-        side = kwds.get("side")
+        side = kwds.get("side", "left")
         if not is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
@@ -181,11 +184,15 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             try:
                 if isfunction(A):
                     v = [C(A(g)) for g in self.domain().gens()]
+                    A = matrix([C.coordinates(a) for a in v], ncols=C.rank())
+                    if side == "right":
+                        A = A.transpose()
                 else:
                     v = [C(a) for a in A]
-                A = matrix([C.coordinates(a) for a in v], ncols=C.rank())
-                if side == 'right':
-                    A = A.transpose()
+                    if side == "right":
+                        A = matrix([C.coordinates(a) for a in v], nrows=C.rank())
+                    else:
+                        A = matrix([C.coordinates(a) for a in v], ncols=C.rank())
             except TypeError:
                 # Let us hope that FreeModuleMorphism knows to handle
                 # that case
@@ -193,8 +200,12 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         return free_module_morphism.FreeModuleMorphism(self, A, side=side)
 
     @cached_method
-    def zero(self):
+    def zero(self, sd="left"):
         """
+        INPUT:
+
+        - sd -- side of the vectors acted on by the matrix  (default: ``left``)
+
         EXAMPLES::
 
             sage: E = ZZ^2
@@ -211,6 +222,14 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             (0, 0, 0)
             sage: f(E.an_element()) == F.zero()
             True
+            sage: H.zero("right")                                                           
+            Free module morphism defined as left-multiplication by the matrix
+            [0 0]
+            [0 0]
+            [0 0]
+            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Codomain: Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
 
         TESTS:
 
@@ -223,10 +242,14 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
             Codomain: Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        return self(lambda x: self.codomain().zero())
+        return self(lambda x: self.codomain().zero(), side=sd)
 
-    def _matrix_space(self):
+    def _matrix_space(self, sd=None):
         """
+        INPUT:
+
+        - sd -- side of the vectors acted on by the matrix  (default: ``left``)
+
         Return underlying matrix space that contains the matrices that define
         the homomorphisms in this free module homspace.
 
@@ -240,17 +263,27 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: H._matrix_space()
             Full MatrixSpace of 3 by 2 dense matrices over Rational Field
         """
-        try:
-            return self.__matrix_space
-        except AttributeError:
+        if sd is None:
+            try:
+                return self.__matrix_space
+            except AttributeError:
+                return self._matrix_space("left")
+        else:
             R = self.codomain().base_ring()
-            M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            if sd == "left":
+                M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            elif sd == "right":
+                M = MatrixSpace(R, self.codomain().rank(), self.domain().rank())
             self.__matrix_space = M
             return M
 
-    def basis(self):
+    def basis(self, sd=None):
         """
         Return a basis for this space of free module homomorphisms.
+        
+        INPUT:
+
+        - sd -- side of the vectors acted on by the matrix  (default: ``left``)
 
         OUTPUT:
 
@@ -264,23 +297,40 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             [1]
             [0]
             Domain: Ambient free module of rank 2 over the principal ideal domain ...
-            Codomain: Ambient free module of rank 1 over the principal ideal domain ..., Free module morphism defined by the matrix
+            Codomain: Ambient free module of rank 1 over the principal ideal domain ..., 
+            Free module morphism defined by the matrix
             [0]
             [1]
             Domain: Ambient free module of rank 2 over the principal ideal domain ...
             Codomain: Ambient free module of rank 1 over the principal ideal domain ...)
-        """
-        try:
-            return self.__basis
-        except AttributeError:
-            M = self._matrix_space()
-            B = M.basis()
-            self.__basis = tuple([self(x) for x in B])
-            return self.__basis
+            sage: H.basis("right")                                                          
+            (Free module morphism defined as left-multiplication by the matrix
+             [1 0]
+             Domain: Ambient free module of rank 2 over the principal ideal domain ...
+             Codomain: Ambient free module of rank 1 over the principal ideal domain ...,
+             Free module morphism defined as left-multiplication by the matrix
+             [0 1]
+             Domain: Ambient free module of rank 2 over the principal ideal domain ...
+             Codomain: Ambient free module of rank 1 over the principal ideal domain ...)
 
-    def identity(self):
+        """
+        if sd is None:
+            try:
+                return self.__basis
+            except AttributeError:
+                return self.basis("left")
+        M = self._matrix_space(sd)
+        B = M.basis()
+        self.__basis = tuple([self(x, side=sd) for x in B])
+        return self.__basis
+
+    def identity(self, sd="left"):
         r"""
         Return identity morphism in an endomorphism ring.
+
+        INPUT:
+
+        - sd -- side of the vectors acted on by the matrix  (default: ``left``)
 
         EXAMPLES::
 
@@ -297,7 +347,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Codomain: Ambient free module of rank 5 over the principal ideal domain ...
         """
         if self.is_endomorphism_set():
-            return self(identity_matrix(self.base_ring(),self.domain().rank()))
+            return self(identity_matrix(self.base_ring(),self.domain().rank()), side=sd)
         else:
             raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 

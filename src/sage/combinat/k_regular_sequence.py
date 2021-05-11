@@ -1790,6 +1790,28 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:      S[4*i + 3] == S[2*i - 16] for i in srange(8, 100)])
             True
 
+        Same test with different variable and function names::
+
+            sage: var('m')
+            m
+            sage: function('g')
+            g
+            sage: T = Seq2.from_recurrence([
+            ....:     g(4*m) == g(2*m),
+            ....:     g(4*m + 1) == g(2*m),
+            ....:     g(4*m + 2) == g(2*m),
+            ....:     g(4*m + 3) == g(2*m - 16),
+            ....:     g(0) == 1, g(1) == 1, g(2) == 2, g(3) == 3, g(4) == 4,
+            ....:     g(5) == 5, g(6) == 6, g(7) == 7, g(8) == 8, g(9) == 9,
+            ....:     g(10) == 10, g(11) == 11, g(12) == 12, g(13) == 13,
+            ....:     g(14) == 14, g(15) == 15, g(16) == 16, g(17) == 17,
+            ....:     g(18) == 18, g(19) == 19, g(20) == 20, g(21) == 21,
+            ....:     g(22) == 22, g(23) == 23, g(24) == 24, g(25) == 25,
+            ....:     g(26) == 26, g(27) == 27, g(28) == 28, g(29) == 29,
+            ....:     g(30) == 30, g(31) == 31], g, m, 8)
+            sage: all([S[i] == T[i] for i in srange(1000)])
+            True
+
         Zero-sequence with non-zero initial values::
 
             sage: Seq2.from_recurrence([

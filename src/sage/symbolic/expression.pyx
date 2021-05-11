@@ -3150,13 +3150,6 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(f(x) - f(x) == 0)
             True
 
-        Check that we catch exceptions from Pynac (:trac:`19904`)::
-
-            sage: bool(SR(QQbar(I)) == I)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s)...
-
         Check that :trac:`24658` is fixed::
 
             sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
@@ -4564,6 +4557,11 @@ cdef class Expression(CommutativeRingElement):
             sage: (1/(1-2*x)).series(x)
             1 + 2*x + 4*x^2 + Order(x^3)
             sage: set_series_precision(20)
+
+        Check that :trac:`31645` is fixed::
+
+            sage: (x^(-1) + 1).series(x,1)
+            1*x^(-1) + 1 + Order(x)
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
@@ -4875,6 +4873,22 @@ cdef class Expression(CommutativeRingElement):
             sage: ((-x)^(3/4)).expand()
             (-x)^(3/4)
             sage: forget()
+
+        Check that :trac:`31077` is fixed (also see :trac:`31679`)::
+
+            sage: a,b,c,d = var("a b c d")
+            sage: f = ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
+            sage: sum(sign(s) * (abs(ZZ(s)) % ZZ(2^30)) * d^i for s,i in f.coefficients())
+            d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36
+
+        Check that :trac:`31411` is fixed::
+
+            sage: q, j = var("q, j")
+            sage: A = q^(2/3) + q^(2/5)
+            sage: B = product(1 - q^j, j, 1, 31) * q^(1/24)
+            sage: bool((A * B).expand() == (A * B.expand()).expand())
+            True  # 64-bit
+            True  # 32-bit # known bug (#31585)
         """
         if side is not None:
             if not is_a_relational(self._gobj):
@@ -5489,6 +5503,20 @@ cdef class Expression(CommutativeRingElement):
             sage: f = function("f")
             sage: integrate(f(x), x, 0, a).subs(a=cos(a))
             integrate(f(x), x, 0, cos(a))
+
+        Check that :trac:`31554` is fixed::
+
+            sage: a,b,c,d,x,y = var("a b c d x y")
+            sage: with hold:
+            ....:     print((2*x^0*a + b*y^1).subs({x:c, y:c*d}))
+            b*c*d + 2*a
+
+        Check that :trac:`31530` is fixed::
+
+            sage: a, b = var("a b")
+            sage: (a + b*x).series(x, 2).subs(a=a, b=b)
+            (a) + (b)*x + Order(x^2)
+
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -5509,28 +5537,6 @@ cdef class Expression(CommutativeRingElement):
             # Check for duplicate
             _dict_update_check_duplicate(sdict, varkwds)
 
-        # To work around the pynac bug in :trac:`30378`, we use two steps to do a
-        # substitution that only involves plugging expressions into variables, but
-        # where some of the expressions include variables that are in self.
-        if all(self.parent(k).is_symbol() for k in sdict.keys()):
-            dict_vars = tuple(v for k in sdict.keys()
-                for v in self.parent(sdict[k]).variables())
-            if not set(self.variables()).isdisjoint(dict_vars):
-                # Step 1: replace each variable with a new temporary variable
-                temp_vars = {v : self.parent().symbol() for v in self.variables()}
-                with hold:
-                    first_step = self.substitute(temp_vars)
-                # Step 2: make the original substitutions into the new variables
-                result = first_step.substitute({
-                    temp_vars[v] :
-                    sdict[v] if v in sdict.keys() else v
-                    for v in self.variables()})
-                if not set(result.variables()).issubset(self.variables() + dict_vars):
-                    raise RuntimeError("substitution failed")
-                return result
-
-        # We are not in the basic case of only substituting expressions into
-        # variables, so we ask Ginac to do the work.
         cdef GExMap smap
         for k, v in sdict.iteritems():
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
@@ -12190,7 +12196,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: (x^2 + 1).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{2} + 1</script></html>
+            x^2 + 1
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)

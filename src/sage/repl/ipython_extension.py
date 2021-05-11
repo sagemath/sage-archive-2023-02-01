@@ -260,7 +260,7 @@ class SageMagics(Magics):
 
             sage: shell.run_cell('%display text latex')
             sage: shell.run_cell('1/2')
-            \newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}
+            1/2
 
         Switch back::
 

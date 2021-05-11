@@ -1403,7 +1403,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                 'Coefficient ring {} is not a semiring.'.format(coefficient_ring))
 
         from sage.categories.modules import Modules
-        category = category or Modules(coefficients)
+        category = category or Modules(coefficient_ring)
 
         return (coefficient_ring, indices, category)
 

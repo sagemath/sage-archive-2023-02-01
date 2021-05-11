@@ -696,19 +696,40 @@ class Projection(SageObject):
             sage: p = Polyhedron(ieqs = [[1, 0, 0, 1],[1,1,0,0]])
             sage: pp = p.projection()
             sage: pp.arrows
-            [[0, 1], [0, 2]]
+            [[0, 1], [0, 2], [0, 3], [0, 4]]
             sage: del pp.arrows
             sage: pp.arrows = Sequence([])
             sage: pp._init_lines_arrows(p)
             sage: pp.arrows
-            [[0, 1], [0, 2]]
+            [[0, 1], [0, 2], [0, 3], [0, 4]]
+
+        We check that :trac:`31802` is fixed::
+
+            sage: x = Polyhedron(lines=[(1, 0, 0),(0, 1, 0)], rays=[(0, 0, 1)])
+            sage: y = x.projection()
+            sage: del y.arrows
+            sage: y.arrows = Sequence([])
+            sage: y._init_lines_arrows(x)
+            sage: y.arrows
+            [[0, 1], [0, 2], [0, 3], [0, 4], [0, 5]]
         """
         obj = polyhedron.Vrepresentation()
+        adj_matrix = polyhedron.vertex_adjacency_matrix()
         for i in range(len(obj)):
             if not obj[i].is_vertex():
-                continue
+                if any(adj_matrix[i, j] != 0
+                       for j in range(len(obj))):
+                    continue
+                # obj[i] is ray or line
+                v = polyhedron.vertices()[0].vector()
+                r = obj[i].vector()
+                self.arrows.append( [ self.coord_index_of(v),
+                                      self.coord_index_of(v + r) ] )
+                if obj[i].is_line():
+                    self.arrows.append( [ self.coord_index_of(v),
+                                          self.coord_index_of(v - r) ] )
             for j in range(len(obj)):
-                if polyhedron.vertex_adjacency_matrix()[i, j] == 0:
+                if adj_matrix[i, j] == 0:
                     continue
                 if i < j and obj[j].is_vertex():
                     l = [obj[i].vector(), obj[j].vector()]
@@ -1107,7 +1128,7 @@ class Projection(SageObject):
             sage: p4 = Polyhedron(vertices=[[2,0]], rays=[[1,-1]], lines=[[1,1]])
             sage: q4 = p4.projection()
             sage: q1.plot() + q2.plot() + q3.plot() + q4.plot()  # optional - sage.plot
-            Graphics object consisting of 17 graphics primitives
+            Graphics object consisting of 18 graphics primitives
          """
         plt = Graphics()
         if point_opts is None:
@@ -1186,15 +1207,17 @@ class Projection(SageObject):
         if polygon_opts is None:
             polygon_opts = {}
         if isinstance(point_opts, dict):
-            point_opts.setdefault('width', 3)
+            point_opts.setdefault('size', 10)
             pplt = self.render_vertices_3d(**point_opts)
         if isinstance(line_opts, dict):
-            line_opts.setdefault('width', 3)
+            line_opts.setdefault('width', 1)
+            # no way to control thickness of line3d
             lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
             if 'threejs_flat_shading' not in polygon_opts:
                 polygon_opts['threejs_flat_shading'] = True
             pgplt = self.render_solid_3d(**polygon_opts)
+        # zorder is not available
         return sum(_ for _ in [pplt, lplt, pgplt] if _ is not None)
 
     def tikz(self, view=[0, 0, 1], angle=0, scale=1,

@@ -2811,7 +2811,7 @@ REFERENCES:
              :doi:`10.1103/PhysRevE.65.026107`.
 
 .. [HKL2021] Clemens Heuberger, Daniel Krenn, Gabriel F. Lipnik, *Asymptotic
-             Analysis of `q`-Recursive Sequences*, 2021, unpublished manuscript.
+             Analysis of `q`-Recursive Sequences*, :arxiv:`2105.04334`, 2021.
 
 .. [HKOTY1999] \G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada,
                *Remarks on fermionic formula*. Contemp. Math., **248** (1999).

@@ -2182,6 +2182,18 @@ done from the right side.""")
         """
         return False
 
+    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None, **kwds):
+        """
+        Override the hom method to handle the case of morphisms given by left-multiplication
+        of a matrix and the codomain is not given.
+        """
+        from sage.structure.element import is_Matrix
+        side = kwds.get("side", "left")
+        if codomain == None and is_Matrix(im_gens) and side == "right":
+            return super().hom(im_gens, im_gens.base_ring()**im_gens.nrows(), **kwds) 
+        else:
+            return super().hom(im_gens, codomain, **kwds)
+
     def inner_product_matrix(self):
         """
         Return the default identity inner product matrix associated to this

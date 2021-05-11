@@ -131,8 +131,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
           or a function returning elements of the codomain for elements
           of the domain.
         - check -- bool (default: True)
-        - the keywords ``side`` can be assigned the values ``left`` or
-          right. It corresponds to the side of vectors relative to the
+        - the keyword ``side`` can be assigned the values ``"left"`` or
+          ``"right"``. It corresponds to the side of vectors relative to the
           matrix.
 
         If A is a matrix, then it is the matrix of this linear
@@ -190,7 +190,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                 else:
                     v = [C(a) for a in A]
                     if side == "right":
-                        A = matrix([C.coordinates(a) for a in v], nrows=C.rank())
+                        A = matrix([C.coordinates(a) for a in v], ncols=C.rank()).transpose()
                     else:
                         A = matrix([C.coordinates(a) for a in v], ncols=C.rank())
             except TypeError:
@@ -244,7 +244,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         """
         return self(lambda x: self.codomain().zero(), side=side)
 
-    def _matrix_space(self, side=None):
+    @cached_method
+    def _matrix_space(self, side="left"):
         """
         INPUT:
 
@@ -263,21 +264,16 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: H._matrix_space()
             Full MatrixSpace of 3 by 2 dense matrices over Rational Field
         """
-        if side is None:
-            try:
-                return self.__matrix_space
-            except AttributeError:
-                return self._matrix_space("left")
-        else:
-            R = self.codomain().base_ring()
-            if side == "left":
-                M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
-            elif side == "right":
-                M = MatrixSpace(R, self.codomain().rank(), self.domain().rank())
-            self.__matrix_space = M
-            return M
 
-    def basis(self, side=None):
+        R = self.codomain().base_ring()
+        if side == "left":
+            M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+        elif side == "right":
+            M = MatrixSpace(R, self.codomain().rank(), self.domain().rank())
+        return M
+
+    @cached_method
+    def basis(self, side="left"):
         """
         Return a basis for this space of free module homomorphisms.
         
@@ -314,15 +310,10 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
              Codomain: Ambient free module of rank 1 over the principal ideal domain ...)
 
         """
-        if side is None:
-            try:
-                return self.__basis
-            except AttributeError:
-                return self.basis("left")
+
         M = self._matrix_space(side)
         B = M.basis()
-        self.__basis = tuple([self(x, side=side) for x in B])
-        return self.__basis
+        return tuple([self(x, side=side) for x in B])
 
     def identity(self, side="left"):
         r"""

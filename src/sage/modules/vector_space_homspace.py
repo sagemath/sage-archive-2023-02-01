@@ -257,8 +257,8 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         - ``check`` (default: True) - ``True`` or ``False``, required for
           compatibility with calls from
           :meth:`sage.structure.parent_gens.ParentWithGens.hom`.
-        - the keywords ``side`` can be assigned the values ``left`` or
-          right. It corresponds to the side of vectors relative to the
+        - the keyword ``side`` can be assigned the values ``"left"`` or
+          ``"right"``. It corresponds to the side of vectors relative to the
           matrix.
 
         EXAMPLES::

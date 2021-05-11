@@ -602,7 +602,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def _real_mpfi_(self, R):
         r"""
-        Conversion to a real interval field
+        Conversion to a real interval field.
 
         TESTS::
 
@@ -661,7 +661,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def _complex_mpfi_(self, R):
         r"""
-        Conversion to a complex interval field
+        Conversion to a complex interval field.
 
         TESTS::
 
@@ -867,8 +867,44 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         self.arb_set_imag(acb_imagref(res.value), R._prec)
         return res
 
-    def parts(self):
+    def __getitem__(self, n):
         """
+        Return the ``n``-th coefficient of this number field element,
+        written as a polynomial in the generator.
+
+        Note that ``n`` must be either ``0`` or ``1``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2-13)
+            sage: elt = a/4 + 1/3
+            sage: elt[0]
+            1/3
+            sage: elt[1]
+            1/4
+
+            sage: K.zero()[0]
+            0
+            sage: K.zero()[1]
+            0
+
+            sage: K.one()[0]
+            1
+            sage: K.one()[1]
+            0
+
+            sage: elt[2]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be either 0 or 1
+        """
+        try:
+            return self.parts()[n]
+        except IndexError:  # So we have a better error message
+            raise IndexError("index must be either 0 or 1")
+
+    cpdef tuple parts(self):
+        r"""
         This function returns a pair of rationals `a` and `b` such that self `=
         a+b\sqrt{D}`.
 
@@ -912,7 +948,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_set(mpq_denref(bd.value), self.denom)
             mpq_canonicalize(bd.value)
 
-        return ad, bd
+        return (ad, bd)
 
     cdef bint is_sqrt_disc(self):
         r"""
@@ -1726,9 +1762,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K.gen().is_one()
             False
         """
-        return mpz_cmp_ui(self.a, 1) == 0 and \
-               mpz_cmp_ui(self.b, 0) == 0 and \
-               mpz_cmp_ui(self.denom, 1) == 0
+        return (mpz_cmp_ui(self.a, 1) == 0 and
+                mpz_cmp_ui(self.b, 0) == 0 and
+                mpz_cmp_ui(self.denom, 1) == 0)
 
     cpdef bint is_rational(self):
         r"""
@@ -1782,8 +1818,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def real(self):
         r"""
-        Returns the real part of self, which is either self (if self lives
-        it a totally real field) or a rational number.
+        Return the real part of ``self``, which is either ``self`` (if
+        ``self`` lives it a totally real field) or a rational number.
 
         EXAMPLES::
 
@@ -1816,7 +1852,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def imag(self):
         r"""
-        Returns the imaginary part of self.
+        Return the imaginary part of ``self``.
 
         EXAMPLES::
 
@@ -2445,7 +2481,14 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
             sage: (1 + 2*I).real().parent()
             Rational Field
         """
-        return self[0]
+        cdef Rational ad = <Rational> Rational.__new__(Rational)
+        if mpz_cmp_ui(self.a, 0) == 0:
+            mpq_set_ui(ad.value, 0, 1)
+        else:
+            mpz_set(mpq_numref(ad.value), self.a)
+            mpz_set(mpq_denref(ad.value), self.denom)
+            mpq_canonicalize(ad.value)
+        return ad
 
     real = real_part
 
@@ -2464,10 +2507,18 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
             sage: (1 - mi).imag()
             1
         """
-        if self.standard_embedding:
-            return self[1]
-        else:
-            return -self[1]
+        cdef Rational bd = <Rational> Rational.__new__(Rational)
+        if mpz_cmp_ui(self.b, 0) == 0:
+            # It is 0, so all we need to do is initialize the result
+            mpq_set_ui(bd.value, 0, 1)
+            return bd
+
+        mpz_set(mpq_numref(bd.value), self.b)
+        mpz_set(mpq_denref(bd.value), self.denom)
+        mpq_canonicalize(bd.value)
+        if not self.standard_embedding:
+            mpq_neg(bd.value, bd.value)
+        return bd
 
     imag = imag_part
 

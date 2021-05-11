@@ -18,5 +18,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     cdef int arb_set_real(self, arb_t x, long prec) except -1
     cdef void arb_set_imag(self, arb_t x, long prec)
 
+    cpdef tuple parts(self)
+
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     pass

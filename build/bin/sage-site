@@ -153,8 +153,10 @@ if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     # proper UTF-8 operation in Python 3.6 or older.
     LC_ALL=$(locale -a | grep -E -i '^(c|en_us)[-.]utf-?8$' | head -n 1)
     LANG=$LC_ALL
+    LANGUAGE=$LC_ALL
     export LC_ALL
     export LANG
+    export LANGUAGE
 
     # See #30351: bugs in macOS implementations of openblas/libgopm can cause
     # docbuild to hang if multiple OpenMP threads are allowed.

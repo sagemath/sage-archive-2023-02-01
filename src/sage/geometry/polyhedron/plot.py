@@ -816,6 +816,15 @@ class Projection(SageObject):
             sage: proj._init_solid_3d(p)
             sage: proj.polygons
             [[1, 0, 2], [3, 0, 1], [2, 0, 3], [3, 1, 2]]
+
+            sage: x = Polyhedron(rays = [(-1, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)])
+            sage: y = x.projection()
+            sage: y.polygons
+            [[5, 2, 1, 6], [2, 7, 8, 1]]
+
+            sage: cylinder = Polyhedron(vertices = [(0, 0, 0), (1, 0, 0), (0, 1, 0)], lines=[(0, 0, 1)])
+            sage: len(cylinder.projection().polygons)
+            3
         """
         assert polyhedron.ambient_dim() == 3, "Requires polyhedron in 3d"
 
@@ -871,11 +880,11 @@ class Projection(SageObject):
         if polyhedron.n_lines() == 1:
             assert faces, "no vertices?"
             a_line = next(polyhedron.line_generator())
-            for shift in [a_line(), -a_line()]:
-                for coords in faces:
-                    assert len(coords) == 2, "There must be two points."
-                    polygons.append([coords[0], coords[1],
-                                     coords[1] + shift, coords[0] + shift])
+            shift = a_line()
+            for coords in faces:
+                assert len(coords) == 2, "There must be two points."
+                polygons.append([coords[0] - shift, coords[1] - shift,
+                                 coords[1] + shift, coords[0] + shift])
 
         if polyhedron.n_lines() == 2:
             [line1, line2] = [l for l in polyhedron.line_generator()]

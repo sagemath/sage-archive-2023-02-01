@@ -2202,8 +2202,34 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         - replacing an inclusion chain by its minimal element
 
         - replacing a pair of subsets with a declared intersection by the intersection
+
+        INPUT:
+
+        - ``subsets`` -- a non-empty iterable of :class:`ManifoldSubset` instances
+          of the same manifold.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: B1 = A.subset('B1')
+            sage: B2 = A.subset('B2')
+            sage: C = B1.intersection(B2)
+            sage: M._reduce_intersection_members([A, M, A])
+            Set {A} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_intersection_members([A, B1])
+            Set {B1} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_intersection_members([B1, B2])
+            Set {B1_inter_B2} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_intersection_members([])
+            Traceback (most recent call last):
+            ...
+            TypeError: input set must be nonempty
+
         """
         subsets = set(subsets)
+        if not subsets:
+            raise TypeError('input set must be nonempty')
         def reduce():
             # Greedily replace inclusion chains by their minimal element
             # and pairs with declared intersections by their intersection

@@ -758,12 +758,16 @@ cdef class CombinatorialFace(SageObject):
         r"""
         Return ``self`` as combinatorial polyhedron.
 
-        If ``quotient`` is ``True`` return the quotient of the polyhedron by ``F``.
+        If ``quotient`` is ``True``, return the quotient of the
+        polyhedron by ``self``.
+        Let ``G`` be the face corresponding to ``self`` in the dual/polar polytope.
+        The ``quotient`` is the dual/polar of ``G``.
 
         Let `[\hat{0], \hat{1}]` be the face lattice of the ambient polyhedron
         and `F` be ``self`` as element of the face lattice.
-        `F` as polyhedron corresponds to `[\hat{0}, F]` and
-        the quotient by `F` corresponds to `[F, \hat{1}]`.
+        The face lattice of ``self`` as polyhedron corresponds to
+        `[\hat{0}, F]` and the face lattice of the quotient by ``self``
+        corresponds to `[F, \hat{1}]`.
 
         EXAMPLES::
 
@@ -788,6 +792,81 @@ cdef class CombinatorialFace(SageObject):
             A 2-dimensional combinatorial polyhedron with 6 facets
             sage: C2.f_vector()
             (1, 6, 6, 1)
+
+        The Vrepresentation of the face as polyhedron is given by the
+        ambient Vrepresentation of the face in that order::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(2)
+            sage: f = next(it)
+            sage: C1 = f.as_combinatorial_polyhedron()
+            sage: C.Vrepresentation()
+            (A vertex at (1, -1, -1),
+            A vertex at (1, 1, -1),
+            A vertex at (1, 1, 1),
+            A vertex at (1, -1, 1),
+            A vertex at (-1, -1, 1),
+            A vertex at (-1, -1, -1),
+            A vertex at (-1, 1, -1),
+            A vertex at (-1, 1, 1))
+            sage: f.ambient_Vrepresentation()
+            (A vertex at (1, -1, -1),
+            A vertex at (1, -1, 1),
+            A vertex at (-1, -1, 1),
+            A vertex at (-1, -1, -1))
+            sage: C1.Vrepresentation()
+            (0, 1, 2, 3)
+
+        To obtain the facets of the face as polyhedron,
+        we compute the meet of each facet with the face.
+        The first representative of each element strictly
+        contained in the face is kept::
+
+            sage: C.facets(names=False)
+            ((0, 1, 2, 3),
+             (1, 2, 6, 7),
+             (2, 3, 4, 7),
+             (4, 5, 6, 7),
+             (0, 1, 5, 6),
+             (0, 3, 4, 5))
+            sage: C1.facets(names=False)
+            ((0, 1), (1, 2), (2, 3), (0, 3))
+
+        The Hrepresentation of the quotient by the face is given by the
+        ambient Hrepresentation of the face in that order::
+
+            sage: it = C.face_iter(1)
+            sage: f = next(it)
+            sage: C1 = f.as_combinatorial_polyhedron(quotient=True)
+            sage: C.Hrepresentation()
+            (An inequality (-1, 0, 0) x + 1 >= 0,
+            An inequality (0, -1, 0) x + 1 >= 0,
+            An inequality (0, 0, -1) x + 1 >= 0,
+            An inequality (1, 0, 0) x + 1 >= 0,
+            An inequality (0, 0, 1) x + 1 >= 0,
+            An inequality (0, 1, 0) x + 1 >= 0)
+            sage: f.ambient_Hrepresentation()
+            (An inequality (0, 0, 1) x + 1 >= 0, An inequality (0, 1, 0) x + 1 >= 0)
+            sage: C1.Hrepresentation()
+            (0, 1)
+
+        To obtain the vertices of the face as polyhedron,
+        we compute the join of each vertex with the face.
+        The first representative of each element strictly
+        containing the face is kept::
+
+            sage: [g.ambient_H_indices() for g in C.face_iter(0)]
+            [(3, 4, 5),
+            (0, 4, 5),
+            (2, 3, 5),
+            (0, 2, 5),
+            (1, 3, 4),
+            (0, 1, 4),
+            (1, 2, 3),
+            (0, 1, 2)]
+            sage: [g.ambient_H_indices() for g in C1.face_iter(0)]
+            [(1,), (0,)]
 
         The method is not implemented for unbounded polyhedra::
 

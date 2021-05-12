@@ -10229,10 +10229,10 @@ class Polyhedron_base(Element):
         """
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
-            if as_affine_map:
-                return linear_transformation(matrix(self.base_ring(),
-                                                    self.dim(),
-                                                    self.dim(),
+            if as_affine_map: 
+                return linear_transformation(matrix(self.base_ring(), 
+                                                    self.dim(), 
+                                                    self.dim(), 
                                                     self.base_ring().one())), self.ambient_space().zero()
             return self
 

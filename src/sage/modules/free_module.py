@@ -2186,11 +2186,29 @@ done from the right side.""")
         """
         Override the hom method to handle the case of morphisms given by left-multiplication
         of a matrix and the codomain is not given.
+
+        EXAMPLES::
+
+            sage: W = ZZ^2; W.hom(matrix(1, [1, 2]), side="right")                          
+            Free module morphism defined as left-multiplication by the matrix
+            [1 2]
+            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Codomain: Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            sage: V = QQ^2; V.hom(identity_matrix(2), side="right")                         
+            Vector space morphism represented as left-multiplication by the matrix:
+            [1 0]
+            [0 1]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
         """
         from sage.structure.element import is_Matrix
         side = kwds.get("side", "left")
-        if codomain == None and is_Matrix(im_gens) and side == "right":
-            return super().hom(im_gens, im_gens.base_ring()**im_gens.nrows(), **kwds) 
+        if codomain is None and is_Matrix(im_gens) and side == "right":
+            C = self.base_ring()**im_gens.nrows()
+            if not self.base_ring() == im_gens.base_ring():
+                from sage.categories.pushout import pushout
+                C = pushout(self, C)
+            return super().hom(im_gens, C, **kwds) 
         else:
             return super().hom(im_gens, codomain, **kwds)
 

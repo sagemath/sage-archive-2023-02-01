@@ -264,13 +264,13 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: H._matrix_space()
             Full MatrixSpace of 3 by 2 dense matrices over Rational Field
         """
-
+        if side not in ["left", "right"]:
+            raise ValueError("the side must be either 'left' or 'right'")
         R = self.codomain().base_ring()
         if side == "left":
-            M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            return MatrixSpace(R, self.domain().rank(), self.codomain().rank())
         elif side == "right":
-            M = MatrixSpace(R, self.codomain().rank(), self.domain().rank())
-        return M
+            return MatrixSpace(R, self.codomain().rank(), self.domain().rank())
 
     @cached_method
     def basis(self, side="left"):

@@ -1339,8 +1339,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             return self.Hom(im_gens).natural_map()
         from sage.structure.sequence import Sequence_generic, Sequence
         if codomain is None:
+            from sage.categories.pushout import pushout
             im_gens = Sequence(im_gens)
-            codomain = im_gens.universe()
+            codomain = pushout(self, im_gens.universe())
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
         # Not all homsets accept category/check/base_map as arguments

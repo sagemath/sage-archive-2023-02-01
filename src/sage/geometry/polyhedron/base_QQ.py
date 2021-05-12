@@ -6,7 +6,6 @@ from sage.rings.all import QQ
 from sage.misc.all import cached_method, prod
 from .base import Polyhedron_base
 from sage.sets.all import Set
-from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from .constructor import Polyhedron
 
 

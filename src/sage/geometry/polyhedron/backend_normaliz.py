@@ -36,14 +36,12 @@ from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import vector
 from sage.calculus.all import var
-from sage.rings.fraction_field import FractionField
 
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
 from sage.geometry.polyhedron.all import lazy_import
 
-from sage.sets.all import Set
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 
 
@@ -2383,20 +2381,20 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         new_new_result = self._express_Hstar_as_polynomial_in_t(new_result)
         if output is None:
             return(new_new_result)
-        elif output is 'e_series_list':
+        elif output == 'e_series_list':
             return(list_es)
-        elif output is 'determinant_vec':
+        elif output == 'determinant_vec':
             return(det_vector)
-        elif output is 'Hstar_as_lin_comb':
+        elif output == 'Hstar_as_lin_comb':
             return(new_result)
-        elif output is 'prod_det_es':
+        elif output == 'prod_det_es':
             return(initial_result)
-        elif output is 'verbose':
+        elif output == 'verbose':
             results_dictionary = {}
             results_dictionary['Hstar'] = new_new_result
             results_dictionary['Hstar_as_lin_comb'] = new_result
             results_dictionary['character_table'] = Char
-            results_dictionary['Hstar_is_effective'] = _Hstar_is_effective(new_new_result, new_result)
+            results_dictionary['Hstar_is_effective'] = self._Hstar_is_effective_normaliz(new_new_result, new_result)
             return(results_dictionary)
 
     def _express_Hstar_as_polynomial_in_t(self, initial_Hstar):
@@ -2518,7 +2516,6 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             ...
             ValueError: The Hstar vector must be polynomial
         """
-        from sage.rings import fraction_field_element
         if not Hstar.is_element_of_base_ring():
             raise ValueError("The Hstar vector must be polynomial")
         flag = True

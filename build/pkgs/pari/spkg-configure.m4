@@ -108,6 +108,7 @@ SAGE_SPKG_CONFIGURE([pari], [
            AC_MSG_RESULT([no; cannot use system pari/GP with known bug])
            AC_MSG_NOTICE([Upgrade your system package and reconfigure.])
            AC_MSG_NOTICE([Otherwise Sage will build its own pari/GP.])
+           sage_spkg_install_pari=yes
         fi
     fi dnl end GP test
 

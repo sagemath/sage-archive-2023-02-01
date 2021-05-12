@@ -3537,6 +3537,22 @@ class Polyhedron_base(Element):
         from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
         return CombinatorialPolyhedron(self)
 
+    def _test_combinatorial_polyhedron(self, tester=None, **options):
+        """
+        Run test suite of combinatorial polyhedron.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_combinatorial_polyhedron()
+        """
+        from sage.misc.sage_unittest import TestSuite
+
+        tester = self._tester(tester=tester, **options)
+        tester.info("\n  Running the test suite of self.combinatorial_polyhedron()")
+        TestSuite(self.combinatorial_polyhedron()).run(verbose=tester._verbose,
+                                                       prefix=tester._prefix+"  ")
+        tester.info(tester._prefix+" ", newline = False)
+
     def simplicity(self):
         r"""
         Return the largest integer `k` such that the polytope is `k`-simple.

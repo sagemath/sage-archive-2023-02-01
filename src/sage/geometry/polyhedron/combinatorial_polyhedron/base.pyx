@@ -2757,6 +2757,66 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: chain = C.a_maximal_chain()
             sage: [face.ambient_V_indices() for face in chain]
             [(0, 1, 2)]
+
+        Specify an index for the vertex of the chain::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: [face.ambient_V_indices() for face in C.a_maximal_chain()]
+            [(5,), (0, 5), (0, 3, 4, 5)]
+            sage: [face.ambient_V_indices() for face in C.a_maximal_chain(Vindex=2)]
+            [(2,), (2, 7), (2, 3, 4, 7)]
+
+        Specify an index for the facet of the chain::
+
+            sage: [face.ambient_H_indices() for face in C.a_maximal_chain()]
+            [(3, 4, 5), (4, 5), (5,)]
+            sage: [face.ambient_H_indices() for face in C.a_maximal_chain(Hindex=3)]
+            [(3, 4, 5), (3, 4), (3,)]
+            sage: [face.ambient_H_indices() for face in C.a_maximal_chain(Hindex=2)]
+            [(2, 3, 5), (2, 3), (2,)]
+
+        If the specified vertex is not contained in the specified facet an error is raised::
+
+            sage: C.a_maximal_chain(Vindex=0, Hindex=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex is not compatible with the given Hindex
+
+        An error is raised, if the specified index does not correspond to a facet::
+
+            sage: C.a_maximal_chain(Hindex=40)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Hindex does not correspond to a facet
+
+        An error is raised, if the specified index does not correspond to a vertex::
+
+            sage: C.a_maximal_chain(Vindex=40)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex does not correspond to a vertex
+
+        ::
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,0,1]], lines=[[0,1,0]])
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.a_maximal_chain(Vindex=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex does not correspond to a vertex
+
+        ::
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,0,1]])
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.a_maximal_chain(Vindex=0)
+            [A 0-dimensional face of a 2-dimensional combinatorial polyhedron,
+            A 1-dimensional face of a 2-dimensional combinatorial polyhedron]
+            sage: C.a_maximal_chain(Vindex=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex does not correspond to a vertex
         """
         if self.n_facets() == 0 or self.dimension() == 0:
             return []
@@ -2769,13 +2829,36 @@ cdef class CombinatorialPolyhedron(SageObject):
         dual = it.dual
         final_dim = 0 if not dual else self.dimension()-1
 
+        cdef bint found_Vindex = Vindex is None
+        cdef bint found_Hindex = Hindex is None
+
         # For each dimension we save the first face we see.
         # This is the face whose sub-/supfaces we visit in the next step.
         current_dim = self.dimension()
         for face in it:
+            if not found_Hindex:
+                if Hindex not in face.ambient_H_indices():
+                    continue
+                if face.dimension() == current_dim - 1:
+                    found_Hindex = True
+                    if not found_Vindex and Vindex not in face.ambient_V_indices():
+                        raise ValueError("the given Vindex is not compatible with the given Hindex")
+            if not found_Vindex:
+                if Vindex not in face.ambient_V_indices():
+                    continue
+                if face.dimension() == 0:
+                    found_Vindex = True
+                    if not found_Hindex and Hindex not in face.ambient_H_indices():
+                        raise ValueError("the given Vindex is not compatible with the given Hindex")
+
             it.only_subsets()
             current_dim = face.dimension()
             chain[current_dim] = face
+
+        if found_Vindex is False:
+            raise ValueError("the given Vindex does not correspond to a vertex")
+        if found_Hindex is False:
+            raise ValueError("the given Hindex does not correspond to a facet")
 
         if current_dim != final_dim:
             # The polyhedron contains lines.

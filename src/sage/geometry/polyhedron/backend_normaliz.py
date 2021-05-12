@@ -1342,6 +1342,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone, normaliz_field=P1._normaliz_field)  # optional - pynormaliz
             sage: P == P2                                         # optional - pynormaliz
             True
+
+        Test that :trac:`31820` is fixed::
+
+            sage: P = polytopes.cube(backend='normaliz')  # optional - pynormaliz
+            sage: v = P.Vrepresentation()[0]              # optional - pynormaliz
+            sage: v1 = loads(v.dumps())                   # optional - pynormaliz
         """
         if "_pickle_vertices" in state[1]:
             vertices = state[1].pop("_pickle_vertices")

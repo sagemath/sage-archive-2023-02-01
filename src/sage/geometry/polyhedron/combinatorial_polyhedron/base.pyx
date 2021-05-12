@@ -2839,7 +2839,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if not found_Hindex:
                 if Hindex not in face.ambient_H_indices():
                     continue
-                if face.dimension() == current_dim - 1:
+                if face.dimension() == self.dimension() - 1:
                     found_Hindex = True
                     if not found_Vindex and Vindex not in face.ambient_V_indices():
                         raise ValueError("the given Vindex is not compatible with the given Hindex")

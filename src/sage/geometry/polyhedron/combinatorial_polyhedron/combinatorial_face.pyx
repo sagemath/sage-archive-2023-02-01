@@ -72,7 +72,7 @@ from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
-from .face_data_structure       cimport face_len_atoms, face_init, face_copy
+from .face_data_structure       cimport face_len_atoms, face_init, face_copy, face_issubset
 from .face_list_data_structure  cimport bit_rep_to_coatom_rep
 
 cdef extern from "Python.h":
@@ -346,6 +346,46 @@ cdef class CombinatorialFace(SageObject):
                     self.atoms is other_face.atoms):
                 # They are faces of the same polyhedron obtained in the same way.
                 return hash(self) < hash(other)
+
+    def is_subface(self, other):
+        r"""
+        Return whether ``self`` is contained in ``other``.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: face2 = next(it)
+            sage: face2.ambient_V_indices()
+            (0, 1, 5, 6)
+            sage: face.is_subface(face2)
+            False
+            sage: face2.is_subface(face)
+            False
+            sage: it.only_subfaces()
+            sage: face3 = next(it)
+            sage: face3.ambient_V_indices()
+            (0, 5)
+            sage: face3.is_subface(face2)
+            True
+            sage: face3.is_subface(face)
+            True
+        """
+        cdef CombinatorialFace other_face
+        if isinstance(other, CombinatorialFace):
+            other_face = other
+            if not self._dual:
+                return face_issubset(self.face, other_face.face)
+            else:
+                return face_issubset(other_face.face, self.face)
+        else:
+            raise ValueError("other must be a face")
 
     def dimension(self):
         r"""

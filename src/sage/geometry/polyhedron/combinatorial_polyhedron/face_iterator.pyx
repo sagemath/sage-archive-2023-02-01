@@ -1136,7 +1136,7 @@ cdef class FaceIterator_base(SageObject):
         :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.
         """
         self.next_dimension()
-        if unlikely(self.structure.current_dimension == self.structure.highest_dimension + 1):
+        if unlikely(self.structure.current_dimension > self.structure.highest_dimension):
             return None
         return CombinatorialFace(self)
 
@@ -1534,7 +1534,7 @@ cdef class FaceIterator(FaceIterator_base):
              A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
         """
         cdef CombinatorialFace face = self.next_face()
-        if unlikely(self.structure.current_dimension == self.structure.highest_dimension + 1):
+        if unlikely(self.structure.current_dimension > self.structure.highest_dimension):
             raise StopIteration
 
         return face
@@ -1827,7 +1827,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
                 return PolyhedronFace(self.P, [], range(self.P.n_Hrepresentation()))
 
         self.next_dimension()
-        if unlikely(self.structure.current_dimension == self.structure.highest_dimension + 1):
+        if unlikely(self.structure.current_dimension > self.structure.highest_dimension):
             raise StopIteration
         return self.current()
 

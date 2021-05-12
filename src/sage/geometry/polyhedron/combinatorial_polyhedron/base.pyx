@@ -2867,6 +2867,48 @@ cdef class CombinatorialPolyhedron(SageObject):
             return chain[current_dim:]
         return chain
 
+    def _test_a_maximal_chain(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.a_maximal_chain`
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3).combinatorial_polyhedron()._test_a_maximal_chain()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        def test_a_chain(b):
+            for i in range(len(b) - 1):
+                tester.assertTrue(b[i].is_subface(b[i+1]))
+
+        if self.is_bounded():
+            b = self.a_maximal_chain()
+            test_a_chain(b)
+            if not self.n_vertices():
+                return
+
+            from sage.misc.prandom import randrange
+
+            if self.n_vertices():
+                i = randrange(self.n_vertices())
+                b = self.a_maximal_chain(Vindex=i)
+                test_a_chain(b)
+                tester.assertTrue(all(i in f.ambient_V_indices() for f in b))
+
+            if self.n_facets():
+                i = randrange(self.n_facets())
+                b = self.a_maximal_chain(Hindex=i)
+                test_a_chain(b)
+                tester.assertTrue(all(i in f.ambient_H_indices() for f in b))
+
+                facet = self.facets(names=False)[i]
+                j = facet[randrange(len(facet))]
+                b = self.a_maximal_chain(Vindex=j, Hindex=i)
+                test_a_chain(b)
+                tester.assertTrue(all(j in f.ambient_V_indices() for f in b))
+                tester.assertTrue(all(i in f.ambient_H_indices() for f in b))
+
     cdef tuple Vrep(self):
         r"""
         Return the names of the Vrepresentation, if they exist. Else return ``None``.

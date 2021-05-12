@@ -1,6 +1,7 @@
 from sage.libs.gmp.types cimport mpz_t
 from sage.libs.arb.types cimport arb_t
 from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 from .number_field_element cimport NumberFieldElement, NumberFieldElement_absolute
 
 
@@ -10,7 +11,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
     cdef Integer D
     cdef bint standard_embedding
     cpdef NumberFieldElement galois_conjugate(self)
-    cdef bint is_sqrt_disc(self)
 
     cpdef list _coefficients(self)
 
@@ -20,5 +20,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     cpdef tuple parts(self)
 
+cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
+    cpdef real_part(self)
+    cpdef imag_part(self)
+
+cdef class NumberFieldElement_quadratic_nonsqrt(NumberFieldElement_quadratic):
+    pass
+
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     pass
+
+cpdef bint is_sqrt_disc(Rational ad, Rational bd)
+

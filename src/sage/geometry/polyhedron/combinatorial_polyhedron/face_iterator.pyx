@@ -339,6 +339,25 @@ cdef class FaceIterator_base(SageObject):
             sage: it.reset()
             sage: next(it).ambient_V_indices()
             (0, 3, 4, 5)
+
+        TESTS:
+
+        Resetting will fix the order of the coatoms after ``only_subsets``::
+
+            sage: P = polytopes.Birkhoff_polytope(3)
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter(dual=False)
+            sage: face = next(it)
+            sage: face.ambient_H_indices()
+            (8,)
+            sage: face = next(it)
+            sage: face.ambient_H_indices()
+            (7,)
+            sage: it.only_subfaces()
+            sage: it.reset()
+            sage: face = next(it)
+            sage: face.ambient_H_indices()
+            (8,)
         """
         if self.structure.dimension == 0 or self.coatoms.n_faces() == 0:
             # As we will only yield proper faces,
@@ -359,6 +378,9 @@ cdef class FaceIterator_base(SageObject):
 
         self.structure.yet_to_visit = self.coatoms.n_faces()
         self.structure._index = 0
+
+        # ``only_subsets`` might have messed up the coatoms.
+        face_list_shallow_copy(self.structure.new_faces[self.structure.dimension-1], self.coatoms.data)
 
     def __next__(self):
         r"""

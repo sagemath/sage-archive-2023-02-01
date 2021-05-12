@@ -2696,10 +2696,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Let ``_all_faces`` determine Vrepresentation.
         return self._all_faces.get_face(dim, newindex)
 
-    def a_maximal_chain(self):
+    def a_maximal_chain(self, Vindex=None, Hindex=None):
         r"""
         Return a maximal chain of the face lattice in increasing order
         without empty face and whole polyhedron/maximal face.
+
+        INPUT:
+
+        - ``Vindex`` -- integer (default: ``None``); prescribe the index of the vertex in the chain
+        - ``Hindex`` -- integer (default: ``None``); prescribe the index of the facet in the chain
 
         Each face is given as
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.
@@ -2759,7 +2764,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         # We take a face iterator and do one depth-search.
         # Depending on whether it is dual or not,
         # the search will be from the top or bottom.
-        it = self.face_iter()
+        cdef FaceIterator it = self.face_iter()
         chain = [None]*(self.dimension())
         dual = it.dual
         final_dim = 0 if not dual else self.dimension()-1
@@ -2768,20 +2773,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         # This is the face whose sub-/supfaces we visit in the next step.
         current_dim = self.dimension()
         for face in it:
-            if face.dimension() == current_dim:
-                continue
+            it.only_subsets()
             current_dim = face.dimension()
-            if chain[current_dim] is None:
-                chain[current_dim] = face
-            else:
-                # The polyhedron contains lines and has
-                # no zero-dimensional faces.
-                current_dim -= 1
-                break
+            chain[current_dim] = face
 
-            if current_dim == final_dim:
-                # The chain is complete.
-                break
         if current_dim != final_dim:
             # The polyhedron contains lines.
             # Note that the iterator was always not dual

@@ -1057,7 +1057,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it.only_subfaces()
             Traceback (most recent call last):
             ...
-            ValueError: cannot visit subsets after ignoring a face
+            ValueError: cannot only visit subsets after ignoring a face
         """
         if unlikely(self.dual):
             raise ValueError("only possible when not in dual mode")

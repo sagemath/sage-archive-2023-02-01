@@ -16,6 +16,7 @@ cdef struct iter_s:
     int dimension              # dimension of the polyhedron
     int output_dimension       # only faces of this (dual?) dimension are considered
     int lowest_dimension       # don't consider faces below this (dual?) dimension
+    int highest_dimension      # don't consider faces above this (dual?) dimension
     size_t _index              # this counts the number of seen faces, useful for hasing the faces
 
     # ``visited_all`` points to faces, of which we have visited all faces already.
@@ -71,6 +72,7 @@ cdef class FaceIterator_base(SageObject):
     cdef size_t set_coatom_rep(self) except -1
     cdef size_t set_atom_rep(self) except -1
     cdef int ignore_subsets(self) except -1
+    cdef int only_subsets(self) except -1
     cdef int find_face(self, face_t face) except -1
 
 @cython.final

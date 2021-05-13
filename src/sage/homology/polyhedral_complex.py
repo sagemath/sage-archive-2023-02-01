@@ -1276,7 +1276,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.stratify(2) == pc
             True
             sage: pc.stratify(1)
-            Polyhedral complex with 0 maximal cell
+            Polyhedral complex with 0 maximal cells
 
         Wrong answer due to ``maximality_check=False``::
 
@@ -1703,7 +1703,7 @@ class PolyhedralComplex(GenericCellComplex):
             Polyhedral complex with 3 maximal cells
         """
         num = len(list(self.maximal_cell_iterator()))
-        if num <= 1:
+        if num == 1:
             return "Polyhedral complex with %s maximal cell" % num
         else:
             return "Polyhedral complex with %s maximal cells" % num

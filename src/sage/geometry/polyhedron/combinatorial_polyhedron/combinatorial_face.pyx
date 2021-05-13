@@ -776,21 +776,21 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter(4)
             sage: f = next(it); f
             A 4-dimensional face of a 7-dimensional combinatorial polyhedron
-            sage: C1 = f.as_combinatorial_polyhedron(); C1
+            sage: F = f.as_combinatorial_polyhedron(); F
             A 4-dimensional combinatorial polyhedron with 5 facets
-            sage: C1.f_vector()
+            sage: F.f_vector()
             (1, 5, 10, 10, 5, 1)
-            sage: C1_alt = polytopes.cyclic_polytope(4,5).combinatorial_polyhedron()
-            sage: C1_alt.vertex_facet_graph().is_isomorphic(C1.vertex_facet_graph())
+            sage: F_alt = polytopes.cyclic_polytope(4,5).combinatorial_polyhedron()
+            sage: F_alt.vertex_facet_graph().is_isomorphic(F.vertex_facet_graph())
             True
 
         Obtaining the quotient::
 
-            sage: C2 = f.as_combinatorial_polyhedron(quotient=True); C2
+            sage: Q = f.as_combinatorial_polyhedron(quotient=True); Q
             A 2-dimensional combinatorial polyhedron with 6 facets
-            sage: C2
+            sage: Q
             A 2-dimensional combinatorial polyhedron with 6 facets
-            sage: C2.f_vector()
+            sage: Q.f_vector()
             (1, 6, 6, 1)
 
         The Vrepresentation of the face as polyhedron is given by the
@@ -800,7 +800,7 @@ cdef class CombinatorialFace(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(2)
             sage: f = next(it)
-            sage: C1 = f.as_combinatorial_polyhedron()
+            sage: F = f.as_combinatorial_polyhedron()
             sage: C.Vrepresentation()
             (A vertex at (1, -1, -1),
             A vertex at (1, 1, -1),
@@ -815,7 +815,7 @@ cdef class CombinatorialFace(SageObject):
             A vertex at (1, -1, 1),
             A vertex at (-1, -1, 1),
             A vertex at (-1, -1, -1))
-            sage: C1.Vrepresentation()
+            sage: F.Vrepresentation()
             (0, 1, 2, 3)
 
         To obtain the facets of the face as polyhedron,
@@ -830,7 +830,7 @@ cdef class CombinatorialFace(SageObject):
              (4, 5, 6, 7),
              (0, 1, 5, 6),
              (0, 3, 4, 5))
-            sage: C1.facets(names=False)
+            sage: F.facets(names=False)
             ((0, 1), (1, 2), (2, 3), (0, 3))
 
         The Hrepresentation of the quotient by the face is given by the
@@ -838,7 +838,7 @@ cdef class CombinatorialFace(SageObject):
 
             sage: it = C.face_iter(1)
             sage: f = next(it)
-            sage: C1 = f.as_combinatorial_polyhedron(quotient=True)
+            sage: Q = f.as_combinatorial_polyhedron(quotient=True)
             sage: C.Hrepresentation()
             (An inequality (-1, 0, 0) x + 1 >= 0,
             An inequality (0, -1, 0) x + 1 >= 0,
@@ -848,7 +848,7 @@ cdef class CombinatorialFace(SageObject):
             An inequality (0, 1, 0) x + 1 >= 0)
             sage: f.ambient_Hrepresentation()
             (An inequality (0, 0, 1) x + 1 >= 0, An inequality (0, 1, 0) x + 1 >= 0)
-            sage: C1.Hrepresentation()
+            sage: Q.Hrepresentation()
             (0, 1)
 
         To obtain the vertices of the face as polyhedron,
@@ -865,7 +865,7 @@ cdef class CombinatorialFace(SageObject):
             (0, 1, 4),
             (1, 2, 3),
             (0, 1, 2)]
-            sage: [g.ambient_H_indices() for g in C1.face_iter(0)]
+            sage: [g.ambient_H_indices() for g in Q.face_iter(0)]
             [(1,), (0,)]
 
         The method is not implemented for unbounded polyhedra::

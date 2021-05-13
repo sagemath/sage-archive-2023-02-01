@@ -376,14 +376,73 @@ cdef class CombinatorialFace(SageObject):
             True
             sage: face3.is_subface(face)
             True
+
+        Works for faces of the same combinatorial polyhedron;
+        also from different iterators::
+
+            sage: it = C.face_iter(dual=True)
+            sage: v7 = next(it); v7.ambient_V_indices()
+            (7,)
+            sage: v6 = next(it); v6.ambient_V_indices()
+            (6,)
+            sage: v5 = next(it); v5.ambient_V_indices()
+            (5,)
+            sage: face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: face.is_subface(v7)
+            False
+            sage: v7.is_subface(face)
+            False
+            sage: v6.is_subface(face)
+            False
+            sage: v5.is_subface(face)
+            True
+            sage: face2.ambient_V_indices()
+            (0, 1, 5, 6)
+            sage: face2.is_subface(v7)
+            False
+            sage: v7.is_subface(face2)
+            False
+            sage: v6.is_subface(face2)
+            True
+            sage: v5.is_subface(face2)
+            True
+
+        Only implemented for faces of the same combintatorial polyhedron::
+
+            sage: P1 = polytopes.cube()
+            sage: C1 = P1.combinatorial_polyhedron()
+            sage: it = C1.face_iter()
+            sage: other_face = next(it)
+            sage: other_face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: C is C1
+            False
+            sage: face.is_subface(other_face)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_subface only implemented for faces of the same polyhedron
         """
         cdef CombinatorialFace other_face
         if isinstance(other, CombinatorialFace):
             other_face = other
-            if not self._dual:
-                return face_issubset(self.face, other_face.face)
+            if self._dual == other_face._dual:
+                if self.atoms is other_face.atoms:
+                    if not self._dual:
+                        return face_issubset(self.face, other_face.face)
+                    else:
+                        return face_issubset(other_face.face, self.face)
+                else:
+                    raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
             else:
-                return face_issubset(other_face.face, self.face)
+                if self.atoms is other_face.coatoms:
+                    self_indices = self.ambient_V_indices()
+                    other_indices = other.ambient_V_indices()
+                    return all(i in other_indices for i in self_indices)
+                else:
+                    raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
         else:
             raise ValueError("other must be a face")
 

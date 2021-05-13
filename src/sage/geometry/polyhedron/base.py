@@ -6966,6 +6966,13 @@ class Polyhedron_base(Element):
             sage: P.join_of_Vrep(2, P.vertices()[3], P.Vrepresentation(4))
             A 2-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 6 vertices
 
+        ::
+
+            sage: P = polytopes.cube()
+            sage: a, b = P.faces(0)[:2]
+            sage: P.join_of_Vrep(a, b)
+            A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+
         In case of an unbounded polyhedron, the join may not be well-defined::
 
             sage: P = Polyhedron(vertices=[[1,0], [0,1]], rays=[[1,1]])
@@ -6987,7 +6994,7 @@ class Polyhedron_base(Element):
 
         new_indices = [0]*len(Vrepresentatives)
         for i, v in enumerate(Vrepresentatives):
-            if isinstance(v, PolyhedronFace) and facet.dim() == 0:
+            if isinstance(v, PolyhedronFace) and v.dim() == 0:
                 v = v.ambient_V_indices()[0]
 
             if v in ZZ:

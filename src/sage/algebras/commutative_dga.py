@@ -1033,8 +1033,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: TestSuite(A).run()
         """
         self._degrees = tuple(degrees)
-        if category is None:
-            category = Algebras(R.base_ring()).Graded()
+        category = Algebras(R.base_ring()).Graded().or_subcategory(category)
         QuotientRing_nc.__init__(self, R, I, names, category=category)
 
     def _repr_(self):

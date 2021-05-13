@@ -6949,7 +6949,7 @@ class Polyhedron_base(Element):
 
         .. NOTE::
 
-            In case of unbounded polyhedra, the join of rays etc. may not be well-defined.
+            In the case of unbounded polyhedra, the join of rays etc. may not be well-defined.
 
         EXAMPLES::
 
@@ -6973,7 +6973,7 @@ class Polyhedron_base(Element):
             sage: P.join_of_Vrep(a, b)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
 
-        In case of an unbounded polyhedron, the join may not be well-defined::
+        In the case of an unbounded polyhedron, the join may not be well-defined::
 
             sage: P = Polyhedron(vertices=[[1,0], [0,1]], rays=[[1,1]])
             sage: P.join_of_Vrep(0)

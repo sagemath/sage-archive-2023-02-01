@@ -560,7 +560,7 @@ cdef class FaceIterator_base(SageObject):
         .. NOTE::
 
             In the case of unbounded polyhedra, the smallest face containing given Vrepresentatives
-            may not te well defined.
+            may not be well defined.
 
         EXAMPLES::
 

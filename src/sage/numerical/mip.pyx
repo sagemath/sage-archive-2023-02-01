@@ -132,7 +132,7 @@ or by the following special syntax::
 
     sage: mip.<a,b> = MixedIntegerLinearProgram(solver='GLPK')
     sage: a
-    MIPVariable a with 0 real component
+    MIPVariable a with 0 real components
     sage: 5 + a[1] + 2*b[3]
     5 + x_0 + 2*x_1
 
@@ -744,7 +744,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x = p.new_variable(); x
-            MIPVariable with 0 real component
+            MIPVariable with 0 real components
             sage: x0 = x[0]; x0
             x_0
 
@@ -835,7 +835,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.default_variable()
-            MIPVariable with 0 real component
+            MIPVariable with 0 real components
         """
         if self._default_mipvariable is None:
             self._default_mipvariable = self.new_variable()
@@ -2869,7 +2869,7 @@ cdef class MIPVariable(SageObject):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.new_variable(nonnegative=True)
-            MIPVariable with 0 real component, >= 0
+            MIPVariable with 0 real components, >= 0
         """
         self._dict = {}
         self._p = mip
@@ -2979,7 +2979,7 @@ cdef class MIPVariable(SageObject):
             sage: x[0]
             Traceback (most recent call last):
             ...
-            IndexError: 0 does not index a component of MIPVariable with 0 real component
+            IndexError: 0 does not index a component of MIPVariable with 0 real components
 
         """
         cdef int j
@@ -3134,7 +3134,7 @@ cdef class MIPVariable(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable()
             sage: v
-            MIPVariable with 0 real component
+            MIPVariable with 0 real components
             sage: x = p.new_variable(integer=True, nonnegative=True, name="x")
             sage: x[0]
             x_0
@@ -3157,7 +3157,7 @@ cdef class MIPVariable(SageObject):
             " " + self._name if self._name else "",
             len(self._dict),
             {0:"binary", -1:"real", 1:"integer"}[self._vtype],
-            "s" if len(self._dict) > 1 else "")
+            "s" if len(self._dict) != 1 else "")
         if (self._vtype != 0) and (self._lower_bound is not None):
             s += ', >= {0}'.format(self._lower_bound)
         if (self._vtype != 0) and (self._upper_bound is not None):

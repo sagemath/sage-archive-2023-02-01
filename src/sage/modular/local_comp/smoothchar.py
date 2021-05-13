@@ -1097,7 +1097,7 @@ class SmoothCharacterGroupQp(SmoothCharacterGroupGeneric):
 
 class SmoothCharacterGroupQuadratic(SmoothCharacterGroupGeneric):
     r"""
-    The group of smooth characters of `E^\times`, where `E` is a quadratic extension of `\Qp`.
+    The group of smooth characters of `E^\times`, where `E` is a quadratic extension of `\QQ_p`.
     """
 
     def discrete_log(self, level, x, gens=None):

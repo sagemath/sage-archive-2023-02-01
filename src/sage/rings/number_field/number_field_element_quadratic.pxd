@@ -20,12 +20,12 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     cpdef tuple parts(self)
 
-cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
+cdef class NumberFieldElement_quadratic_sqrt(NumberFieldElement_quadratic):
+    pass
+
+cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic_sqrt):
     cpdef real_part(self)
     cpdef imag_part(self)
-
-cdef class NumberFieldElement_quadratic_nonsqrt(NumberFieldElement_quadratic):
-    pass
 
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     pass

@@ -357,7 +357,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: cf4(one)
             1
             sage: type(cf4(1))
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
             sage: cf33 = CyclotomicField(33) ; z33 = cf33.0
             sage: cf66 = CyclotomicField(66) ; z66 = cf66.0
             sage: z33._lift_cyclotomic_element(cf66)

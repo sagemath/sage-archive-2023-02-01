@@ -10177,7 +10177,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         ::
 
             sage: type(CyclotomicField(4).zero())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
             sage: type(CyclotomicField(6).one())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
             sage: type(CyclotomicField(6).an_element())
@@ -10216,12 +10216,12 @@ class NumberField_cyclotomic(NumberField_absolute):
             self._cache_an_element = None
 
             if n == 4:
-                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+                self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
                 self._D = ZZ(-1)
                 self._NumberField_generic__gen = self._element_class(self, (QQ(0), QQ(1)))
             else:
                 ## n is 3 or 6
-                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic_nonsqrt
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
                 self._D = ZZ(-3)
                 one_half = ZZ(1)/ZZ(2)
                 if n == 3:
@@ -11491,9 +11491,9 @@ class NumberField_quadratic(NumberField_absolute):
 
             sage: k.<a> = QuadraticField(7)
             sage: type(k.zero())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
             sage: type(k.one())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
 
             sage: TestSuite(k).run()
 
@@ -11520,9 +11520,9 @@ class NumberField_quadratic(NumberField_absolute):
             self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
         else:
             if number_field_element_quadratic.is_sqrt_disc(parts[0], parts[1]):
-                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic_sqrt
             else:
-                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic_nonsqrt
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
 
         self._NumberField_generic__gen = self._element_class(self, parts)
 

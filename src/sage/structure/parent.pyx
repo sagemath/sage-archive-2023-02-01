@@ -1342,6 +1342,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             from sage.categories.pushout import pushout
             im_gens = Sequence(im_gens)
             codomain = pushout(self, im_gens.universe())
+            #the pushout should fix t/31818 and ensure that the ring over which the codomain is defined
+            #contains the ring over which the domain is defined
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
         # Not all homsets accept category/check/base_map as arguments

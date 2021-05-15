@@ -4,7 +4,7 @@ Testing for databases at runtime
 """
 
 
-from . import StaticFile
+from . import StaticFile, PythonModule
 from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
 
 CREMONA_DATA_DIRS = set([CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR])
@@ -65,7 +65,7 @@ class DatabaseJones(StaticFile):
                             spkg="database_jones_numfield")
 
 
-class DatabaseKnotInfo(StaticFile):
+class DatabaseKnotInfo(PythonModule):
     r"""
     A :class:`Feature` which describes the presence of the databases at the
     web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
@@ -77,7 +77,7 @@ class DatabaseKnotInfo(StaticFile):
 
         sage: from sage.features.databases import DatabaseKnotInfo
         sage: DatabaseKnotInfo().is_present()  # optional: database_knotinfo
-        FeatureTestResult('KnotInfo and LinkInfo databases', True)
+        FeatureTestResult('sage.knots.knotinfo', True)
     """
     def __init__(self):
         r"""
@@ -87,11 +87,7 @@ class DatabaseKnotInfo(StaticFile):
             sage: isinstance(DatabaseKnotInfo(), DatabaseKnotInfo)
             True
         """
-        from sage.env import SAGE_SHARE
+        PythonModule.__init__(self, 'sage.knots.knotinfo', spkg='database_knotinfo',)
         import os
-        StaticFile.__init__(self, "KnotInfo and LinkInfo databases",
-                            filename='num_knots.sobj',
-                            spkg='database_knotinfo',
-                            search_path = [os.path.join(SAGE_SHARE, 'knotinfo')],
-                            url='https://knotinfo.math.indiana.edu/'
-                            )
+        from sage.env import SAGE_SHARE
+        self._sobj_path = os.path.join(SAGE_SHARE, 'knotinfo')

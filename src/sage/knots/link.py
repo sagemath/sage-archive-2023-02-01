@@ -3730,14 +3730,6 @@ class Link(SageObject):
 
             sage: import snappy                    # optional - snappy
             Plink failed to import tkinter.
-            doctest:warning
-            ...
-            DeprecationWarning: the complex_field module is deprecated, please use sage.rings.complex_mpfr
-            See http://trac.sagemath.org/24483 for details.
-            doctest:warning
-            ...
-            DeprecationWarning: the complex_number module is deprecated, please use sage.rings.complex_mpfr
-            See http://trac.sagemath.org/24483 for details.
 
             sage: from sage.knots.knotinfo import KnotInfoSeries
             sage: KnotInfoSeries(10, True, True)   # optional - database_knotinfo
@@ -3748,17 +3740,17 @@ class Link(SageObject):
             ....:     K = K10(i)
             ....:     k = K.link(K.items.name, snappy=True)
             ....:     print(k, '--->', k.sage_link().get_knotinfo())
-            <Link 10_160: 1 comp; 10 cross> ---> (<KnotInfo.K10_160: '10_160'>, True)
-            <Link 10_161: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: '10_161'>, False)
-            <Link 10_162: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: '10_161'>, True)
-            <Link 10_163: 1 comp; 10 cross> ---> (<KnotInfo.K10_162: '10_162'>, True)
-            <Link 10_164: 1 comp; 10 cross> ---> (<KnotInfo.K10_163: '10_163'>, True)
-            <Link 10_165: 1 comp; 10 cross> ---> (<KnotInfo.K10_164: '10_164'>, True)
+            <Link 10_160: 1 comp; 10 cross> ---> (<KnotInfo.K10_160: '10_160'>, False)
+            <Link 10_161: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: '10_161'>, True)
+            <Link 10_162: 1 comp; 10 cross> ---> (<KnotInfo.K10_161: '10_161'>, False)
+            <Link 10_163: 1 comp; 10 cross> ---> (<KnotInfo.K10_162: '10_162'>, False)
+            <Link 10_164: 1 comp; 10 cross> ---> (<KnotInfo.K10_163: '10_163'>, False)
+            <Link 10_165: 1 comp; 10 cross> ---> (<KnotInfo.K10_164: '10_164'>, False)
 
             sage: snappy.Link('10_166')            # optional - snappy
             <Link 10_166: 1 comp; 10 cross>
             sage: _.sage_link().get_knotinfo()     # optional - database_knotinfo snappy
-             (<KnotInfo.K10_165: '10_165'>, False)
+            (<KnotInfo.K10_165: '10_165'>, True)
 
         Another pair of confusion (see the corresponding `Warning
         <http://katlas.math.toronto.edu/wiki/10_86>`__)::
@@ -3766,9 +3758,9 @@ class Link(SageObject):
            sage: Ks10_86 = snappy.Link('10_86')     # optional - snappy
            sage: Ks10_83 = snappy.Link('10_83')     # optional - snappy
            sage: Ks10_86.sage_link().get_knotinfo() # optional - snappy
-           (<KnotInfo.K10_83: '10_83'>, False)
+           (<KnotInfo.K10_83: '10_83'>, True)
            sage: Ks10_83.sage_link().get_knotinfo() # optional - snappy
-           (<KnotInfo.K10_86: '10_86'>, True)
+           (<KnotInfo.K10_86: '10_86'>, False)
 
         TESTS:
 
@@ -3951,27 +3943,34 @@ class Link(SageObject):
             sage: l.is_isotopic(L7a7(3).link())     # optional - database_knotinfo
             False
         """
+        from sage.misc.verbose import verbose
         if not isinstance(other, Link):
+            verbose('other is not a link')
             return False
 
         if self == other:
             # surely isotopic
+            verbose('identified by representation')
             return True
 
         if self.homfly_polynomial() != other.homfly_polynomial():
             # surely non isotopic
+            verbose('different Homfly-PT polynomials')
             return False
 
         if self._markov_move_cmp(other.braid()):
             # surely isotopic
+            verbose('identified via Markov moves')
             return True
 
         try:
             ki, m = self.get_knotinfo()
+            verbose('KnotInfo self: %s mirrored %s' %(ki, m))
             try:
                 if ki.is_unique():
                     try:
                         kio = other.get_knotinfo()
+                        verbose('KnotInfo other: %s mirrored %s' %kio)
                         return  (ki, m) == kio
                     except NotImplementedError:
                         pass

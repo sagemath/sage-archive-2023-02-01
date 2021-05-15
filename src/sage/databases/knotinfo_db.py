@@ -26,7 +26,6 @@ AUTHORS:
 
 
 import os
-import csv
 from enum import Enum
 
 from sage.structure.sage_object import SageObject
@@ -227,6 +226,20 @@ class KnotInfoFilename(Enum):
         """
         return '%s.csv' %(self.value[1])
 
+    def num_knots(self):
+        r"""
+        Return the file name under which the number of knots is stored
+        in an sobj-file.
+
+        Examples::
+
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.filename.knots.num_knots()
+            'num_knots.sobj'
+        """
+        return 'num_knots.sobj'
+
     def sobj_row(self):
         r"""
         Return the file name under which the row-data of the csv-File
@@ -347,10 +360,9 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
                                       'linkinfo_data_complete']>
         """
         # some constants
-        self._delimiter    = '|'
-        self._names_column = 'name'
+        self._names_column      = 'name'
         self._components_column = 'components'
-        self._knot_prefix  = 'K'
+        self._knot_prefix       = 'K'
 
         self._knot_list = None
         self._link_list = None
@@ -359,16 +371,34 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
         from sage.features.databases import DatabaseKnotInfo
         self._feature   = DatabaseKnotInfo()
-        self._sobj_path = self._feature.search_path[0]
+        self._sobj_path = self._feature._sobj_path
 
-        if install:
-            knot_list = self.knot_list()
-            num_knots = len(knot_list) - 1
-            print('Setting the number of Knots: %s!' %num_knots)
-            save(num_knots, '%s/%s' %(self._sobj_path, self._feature.filename))
-            self._feature._cache_is_present = None # must be reset for package installation
-            self._create_col_dict_sobj()
-            self._create_data_sobj()
+    def reset_filecache(self):
+        r"""
+        Reset the internal files containing the database.
+
+        EXAMPLES::
+
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.reset_filecache()    # optional - database_knotinfo
+        """
+        if not self._feature.is_present():
+            return
+        sobj_path = self._sobj_path
+        os.system('rm -rf %s' %sobj_path)
+        from sage.misc.misc import sage_makedirs
+        sage_makedirs(sobj_path)
+
+        num_knots_file = os.path.join(sobj_path, self.filename.knots.num_knots())
+        knot_list = self.knot_list()
+        num_knots = len(knot_list) - 1
+        save(num_knots, num_knots_file)
+        self._num_knots = num_knots
+        self._create_col_dict_sobj()
+        self._create_data_sobj()
+        return
+
 
     def demo_version(self):
         r"""
@@ -382,9 +412,14 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
             sage: ki_db.demo_version()       # optional - database_knotinfo
             False
         """
-        if not self._demo:
+        if self._demo is None:
             if self._feature.is_present():
-                self._num_knots =  load(self._feature.absolute_path())
+                num_knots_file = os.path.join(self._sobj_path, self.filename.knots.num_knots())
+                from builtins import FileNotFoundError
+                try:
+                    self._num_knots =  load(num_knots_file)
+                except FileNotFoundError:
+                    self.reset_filecache()
                 self._demo = False
             else:
                 self._demo = True
@@ -404,12 +439,8 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         if self._knot_list:
             return self._knot_list
 
-        print('Importing KnotInfo database from SPKG!')
-        os.system('pwd')
-        knot_csv = open('src/%s' %self.filename.knots.csv())
-        knot_dict = csv.DictReader(knot_csv, delimiter=self._delimiter)
-        self._knot_list = list(knot_dict)
-        knot_csv.close()
+        from database_knotinfo import link_list
+        self._knot_list = link_list()
         return self._knot_list
 
 
@@ -426,11 +457,8 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         if self._link_list:
             return self._link_list
 
-        print('Importing LinkInfo database from SPKG!')
-        link_csv = open('src/%s' %self.filename.links.csv())
-        link_dict = csv.DictReader(link_csv, delimiter=self._delimiter)
-        self._link_list = list(link_dict)
-        link_csv.close()
+        from database_knotinfo import link_list
+        self._link_list = link_list(proper_links=True)
         return self._link_list
 
     def _create_col_dict_sobj(self):
@@ -785,6 +813,7 @@ row_demo_sample = {
 
 db = KnotInfoDataBase()
 dc = db.columns()
+
 
 data_demo_sample = {
     dc.name: ['0_1', '3_1', '4_1', '5_1', '5_2', '6_1', '6_2', '6_3', '7_1', '7_2',

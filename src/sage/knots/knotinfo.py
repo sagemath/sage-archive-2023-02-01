@@ -97,19 +97,11 @@ too::
     sage: L6 = KnotInfo.L6a1_0
     sage: l6s = L6.link(snappy=True); l6s      # optional - snappy
     Plink failed to import tkinter.
-    doctest:warning
-    ...
-    DeprecationWarning: the complex_field module is deprecated, please use sage.rings.complex_mpfr
-    See http://trac.sagemath.org/24483 for details.
-    doctest:warning
-    ...
-    DeprecationWarning: the complex_number module is deprecated, please use sage.rings.complex_mpfr
-    See http://trac.sagemath.org/24483 for details.
     <Link: 2 comp; 6 cross>
 
     sage: type(l6s)                            # optional - snappy
     <class 'spherogram.links.invariants.Link'>
-    sage: l6  = L6.link()
+    sage: l6  = L6.link().mirror_image()
     sage: l6 == l6s.sage_link()                # optional - snappy
     True
     sage: L6.link(L6.items.name, snappy=True)  # optional - snappy
@@ -220,7 +212,7 @@ AUTHORS:
 
 - Sebastian Oehms August 2020: initial version
 
-Thanks to Chuck Livingston and Allison Moore for their support.
+Thanks to Chuck Livingston and Allison Moore for their support. For further acknowledgments see the correspondig hompages.
 """
 
 

@@ -868,42 +868,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         self.arb_set_imag(acb_imagref(res.value), R._prec)
         return res
 
-    def __getitem__(self, n):
-        """
-        Return the ``n``-th coefficient of this number field element,
-        written as a polynomial in the generator.
-
-        Note that ``n`` must be either ``0`` or ``1``.
-
-        EXAMPLES::
-
-            sage: K.<a> = NumberField(x^2-13)
-            sage: elt = a/4 + 1/3
-            sage: elt[0]
-            1/3
-            sage: elt[1]
-            1/4
-
-            sage: K.zero()[0]
-            0
-            sage: K.zero()[1]
-            0
-
-            sage: K.one()[0]
-            1
-            sage: K.one()[1]
-            0
-
-            sage: elt[2]
-            Traceback (most recent call last):
-            ...
-            IndexError: index must be either 0 or 1
-        """
-        try:
-            return self.parts()[n]
-        except IndexError:  # So we have a better error message
-            raise IndexError("index must be either 0 or 1")
-
     cpdef tuple parts(self):
         r"""
         This function returns a pair of rationals `a` and `b` such that self `=
@@ -2413,10 +2377,50 @@ cdef class NumberFieldElement_quadratic_sqrt(NumberFieldElement_quadratic):
         cdef Rational lin = <Rational>Rational.__new__(Rational)
         if not self:
             return []
-        ad, bd = self.parts()
-        if not bd:
-            return [ad]
-        return [ad,bd]
+        cdef tuple parts = self.parts()
+        if not <Rational> (parts[1]):
+            return [parts[0]]
+        return list(parts)
+
+    def __getitem__(self, n):
+        """
+        Return the ``n``-th coefficient of this number field element,
+        written as a polynomial in the generator.
+
+        Note that ``n`` must be either ``0`` or ``1``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2-13)
+            sage: elt = a/4 + 1/3
+            sage: elt[0]
+            1/3
+            sage: elt[1]
+            1/4
+
+            sage: K.zero()[0]
+            0
+            sage: K.zero()[1]
+            0
+
+            sage: K.one()[0]
+            1
+            sage: K.one()[1]
+            0
+
+            sage: elt[2]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be either 0 or 1
+
+            sage: C.<z3> = CyclotomicField(3)
+            sage: list(z3)
+            [0, 1]
+        """
+        try:
+            return self.parts()[n]
+        except IndexError:  # So we have a better error message
+            raise IndexError("index must be either 0 or 1")
 
 cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic_sqrt):
     r"""

@@ -10517,7 +10517,7 @@ class Polyhedron_base(Element):
                     tester.assertFalse(data.polyhedron.base_ring() is AA)
 
     def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
-                             names=None, **kwds):
+                             ambient_chart=None, names=None, **kwds):
         r"""
         Return the affine hull of ``self`` as a manifold.
 
@@ -10527,8 +10527,12 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``ambient_space`` -- a :class:`~sage.manifolds.differentiable.examples.euclidean.EuclideanSpace`
-          of the ambient dimension (default: a new instance of ``EuclideanSpace``)
-          the ambient space.
+          of the ambient dimension (default: the manifold of ``ambient_chart``, if provided;
+          otherwise, a new instance of ``EuclideanSpace``).
+
+        - ``ambient_chart`` -- a chart on ``ambient_space``.
+
+        - ``names`` -- names for the coordinates on the affine hull.
 
         - optional arguments accepted by :meth:`~sage.geometry.polyhedron.base.affine_hull_projection`.
 
@@ -10587,13 +10591,20 @@ class Polyhedron_base(Element):
 
         """
         if ambient_space is None:
-            from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
-            ambient_space = EuclideanSpace(self.ambient_dim(), start_index=start_index)
+            if ambient_chart is not None:
+                ambient_space = ambient_chart.manifold()
+            else:
+                from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
+                ambient_space = EuclideanSpace(self.ambient_dim(), start_index=start_index)
+        if ambient_space.dimension() != self.ambient_dim():
+            raise ValueError('ambient_space and ambient_chart must match the ambient dimension')
 
         if self.is_full_dimensional():
             return ambient_space
 
-        CE = ambient_space.default_chart()
+        if ambient_chart is None:
+            ambient_chart = ambient_space.default_chart()
+        CE = ambient_chart
 
         from sage.manifolds.manifold import Manifold
         if name is None:

@@ -844,17 +844,11 @@ cdef class MPolynomial(CommutativeRingElement):
              sage: (a^6 + b^3 + b*c + a^2*c + c + a + 1).homogeneous_components()
              {0: 1, 1: a, 3: c, 5: a^2*c + b*c, 6: a^6 + b^3}
         """
-        parts = {}
-        for c, m in zip(self.coefficients(), self.monomials()):
-            d = m.degree()
-            D = parts.get(d)
-            if D is None:
-                D = {}
-                parts[d] = D
-            e, = m.exponents()
-            D[e] = c
-        r = self.parent()
-        return {d: r(D) for d, D in parts.items()}
+        from collections import defaultdict
+        d = defaultdict(self.parent())
+        for c,m in self:
+            d[m.degree()] += c*m
+        return dict(d)
 
     cpdef _mod_(self, other):
         """

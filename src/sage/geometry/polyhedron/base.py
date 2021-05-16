@@ -10631,6 +10631,18 @@ class Polyhedron_base(Element):
         return H
 
     def _affine_hull_name_latex_name(self, name=None, latex_name=None):
+        """
+        Return the default name of the affine hull.
+
+        EXAMPLES::
+
+            sage: polytopes.cube()._affine_hull_name_latex_name('C', r'\square')
+            ('aff_C', '\\mathop{\\mathrm{aff}}(\\square)')
+
+            sage: Polyhedron(vertices=[[0, 1], [1, 0]])._affine_hull_name_latex_name()
+            ('aff_P', '\\mathop{\\mathrm{aff}}(P)')
+        """
+
         if name is None:
             name = 'P'
         if latex_name is None:

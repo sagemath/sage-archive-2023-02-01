@@ -10518,7 +10518,7 @@ class Polyhedron_base(Element):
 
     def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                              names=None, **kwds):
-        """
+        r"""
         Return the affine hull of ``self`` as a manifold.
 
         If ``self`` is full-dimensional, it is just the ambient Euclidean space.
@@ -10631,7 +10631,7 @@ class Polyhedron_base(Element):
         return H
 
     def _affine_hull_name_latex_name(self, name=None, latex_name=None):
-        """
+        r"""
         Return the default name of the affine hull.
 
         EXAMPLES::

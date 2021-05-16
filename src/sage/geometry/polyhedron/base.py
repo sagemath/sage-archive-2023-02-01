@@ -10519,7 +10519,10 @@ class Polyhedron_base(Element):
     def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                              names=None, **kwds):
         """
-        Return the affine hull of ``self`` as a submanifold of the ambient Euclidean space.
+        Return the affine hull of ``self`` as a manifold.
+
+        If ``self`` is full-dimensional, it is just the ambient Euclidean space.
+        Otherwise, it is a Riemannian submanifold of the ambient Euclidean space.
 
         INPUT:
 
@@ -10575,15 +10578,26 @@ class Polyhedron_base(Element):
             ....:     for FM in submanifolds) + D.plot()
             Graphics3d Object
 
+        Full-dimensional case::
+
+            sage: cube = polytopes.cube(); cube
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: cube.affine_hull_manifold()
+            Euclidean space E^3
+
         """
         if ambient_space is None:
             from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
             ambient_space = EuclideanSpace(self.ambient_dim(), start_index=start_index)
+
+        if self.is_full_dimensional():
+            return ambient_space
+
         CE = ambient_space.default_chart()
 
         from sage.manifolds.manifold import Manifold
         if name is None:
-            name = 'H'
+            name, latex_name = self._affine_hull_name_latex_name()
         H = Manifold(self.dim(), name, ambient=ambient_space, structure="Riemannian",
                      latex_name=latex_name, start_index=start_index)
         if names is None:
@@ -10616,7 +10630,17 @@ class Polyhedron_base(Element):
                         var=list(foliation_parameters), t_inverse=foliation_scalar_fields)
         return H
 
-    def _polymake_init_(self):
+    def _affine_hull_name_latex_name(self, name=None, latex_name=None):
+        if name is None:
+            name = 'P'
+        if latex_name is None:
+            latex_name = name
+        operator = 'aff'
+        aff_name = f'{operator}_{name}'
+        aff_latex_name = r'\mathop{\mathrm{' + operator + '}}(' + latex_name + ')'
+        return aff_name, aff_latex_name
+
+o    def _polymake_init_(self):
         """
         Return a polymake "Polytope" object corresponding to ``self``.
 

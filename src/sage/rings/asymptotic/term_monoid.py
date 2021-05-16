@@ -1700,7 +1700,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
                     self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
                 return True
 
-    def _element_constructor_(self, data, coefficient=None):
+    def _element_constructor_(self, data, coefficient=None, valid_from=None):
         r"""
         Convert the given object to this term monoid.
 
@@ -1818,7 +1818,10 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             except (ValueError, TypeError) as e:
                 raise combine_exceptions(
                     ValueError('Growth %s is not in %s.' % (data, self)), e)
-            return self._create_element_(data, coefficient)
+            if valid_from is not None:
+                return self._create_element_(data, coefficient, valid_from)
+            else:
+                return self._create_element_(data, coefficient)
 
         try:
             growth, coefficient = self._split_growth_and_coefficient_(data)
@@ -3973,6 +3976,103 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
                (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
+class BTerm(TermWithCoefficient):
+    r"""
+    This class implements the base structure for parents of BTerms
+
+    INPUT:
+
+    - ``parent`` -- the parent of the asymptotic term.
+
+    - ``growth`` -- an asymptotic growth element of
+      the parent's growth group.
+
+    - ``coefficient`` -- an element of the parent's coefficient ring.
+
+    - ``valid_from`` -- list of indices from which the term is valid.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+        sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+        sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+        sage: G = MonomialGrowthGroup(ZZ, 'x');
+        sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
+        sage: BT_QQ(x, 3, {'x': 20})
+        Term with coefficient 3, growth x and valid_from 20
+    """
+    def __init__(self, parent, growth, coefficient, valid_from):
+        r"""
+        """
+        try:
+            coefficient = parent.coefficient_ring(coefficient)
+        except (ValueError, TypeError):
+            raise ValueError('%s is not a coefficient in %s.' %
+                             (coefficient, parent))
+
+        if coefficient == 0:
+            raise ZeroCoefficientError(
+                'Zero coefficient %s is not allowed in %s.' %
+                (coefficient, parent))
+
+        self.coefficient = coefficient
+        self.valid_from = valid_from
+        
+        super(BTerm, self).__init__(parent=parent, growth=growth, coefficient=coefficient)
+
+    def _repr_(self):
+        return 'Term with coefficient %s and growth %s valid from %s' % \
+               (self.coefficient, self.growth, self.valid_from)
+    
+    def can_absorb(self, other):
+        raise NotImplementedError
+
+    def absorb(self, other):
+        if self.valid_from[str(self.growth)] > other.valid_from[str(other.growth)]:
+            coeff_new = other.coefficient/self.valid_from[str(self.growth)]
+            return self.parent()(self.growth, coeff_new, self.valid_from[str(self.growth)])
+        else:
+           return None
+
+class BTermMonoid(TermWithCoefficientMonoid):
+    r"""
+    Parent for asymptotic big `B`-terms.
+
+    INPUT:
+
+    - ``growth_group`` -- a growth group.
+
+    - ``category`` -- The category of the parent can be specified
+      in order to broaden the base structure. It has to be a subcategory
+      of ``Join of Category of monoids and Category of posets``. This
+      is also the default category if ``None`` is specified.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+        sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+        sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+        sage: G = MonomialGrowthGroup(ZZ, 'x')
+        sage: BT = BTermMonoid(TermMonoid, G, QQ)
+        sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
+        sage: t1.absorb(t2)                                                                                                                                                                                                         
+        Term with coefficient 1/20 and growth x valid from 20
+    """
+
+    # enable the category framework for elements
+    Element = BTerm
+
+    def _create_element_(self, growth, coefficient, valid_from):
+        r"""
+        Helper method which creates an element by using the ``element_class``.
+        """
+
+        return self.element_class(self, growth, coefficient, valid_from)
+
 class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     r"""
     Factory for asymptotic term monoids. It can generate the following
@@ -4096,7 +4196,8 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
     def __init__(self, name,
                  exact_term_monoid_class=None,
-                 O_term_monoid_class=None):
+                 O_term_monoid_class=None,
+                 B_term_monoid_class=None):
         r"""
         See :class:`TermMonoidFactory` for more information.
 
@@ -4130,6 +4231,10 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         if O_term_monoid_class is None:
             O_term_monoid_class = OTermMonoid
         self.OTermMonoid = O_term_monoid_class
+
+        if B_term_monoid_class is None:
+            B_term_monoid_class = BTermMonoid
+        self.BTermMonoid = B_term_monoid_class
 
     def create_key_and_extra_args(self, term_monoid,
                                   growth_group=None, coefficient_ring=None,
@@ -4175,8 +4280,10 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
             term_class = self.OTermMonoid
         elif term_monoid == 'exact':
             term_class = self.ExactTermMonoid
+        elif term_monoid == 'B':
+            term_class = self.BTermMonoid
         else:
-            raise ValueError("Term specification '%s' has to be either 'exact' or 'O' "
+            raise ValueError("Term specification '%s' has to be either 'exact', 'O' or 'B' "
                              "or an instance of an existing term." % term_monoid)
 
         if asymptotic_ring is not None and \

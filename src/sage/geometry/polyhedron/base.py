@@ -10663,7 +10663,7 @@ class Polyhedron_base(Element):
         aff_latex_name = r'\mathop{\mathrm{' + operator + '}}(' + latex_name + ')'
         return aff_name, aff_latex_name
 
-o    def _polymake_init_(self):
+    def _polymake_init_(self):
         """
         Return a polymake "Polytope" object corresponding to ``self``.
 

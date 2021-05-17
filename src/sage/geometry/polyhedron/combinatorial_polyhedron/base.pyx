@@ -2287,7 +2287,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def meet_of_facets(self, *indices):
         r"""
-        Return the largest face contained all facets indicated by the indices.
+        Return the largest face contained in all facets indicated by the indices.
 
         .. SEEALSO::
 

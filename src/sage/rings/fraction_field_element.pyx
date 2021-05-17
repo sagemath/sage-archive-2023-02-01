@@ -92,7 +92,7 @@ cdef class FractionFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: from sage.rings import fraction_field_element
+            sage: from sage.rings.fraction_field_element import FractionFieldElement
             sage: K.<x> = Frac(ZZ['x'])
             sage: FractionFieldElement(K, x, 4)
             x/4

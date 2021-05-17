@@ -6943,7 +6943,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``Vrepresentatives`` -- vertices/rays/lines or indices of such
+        - ``Vrepresentatives`` -- vertices/rays/lines of ``self`` or indices of such
 
         OUTPUT: a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`
 
@@ -6988,6 +6988,25 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: the join is not well-defined
+
+        The ``Vrepresentatives`` must be of ``self``::
+
+            sage: P = polytopes.cube(backend='ppl')
+            sage: Q = polytopes.cube(backend='field')
+            sage: v = P.vertices()[0]
+            sage: P.join_of_Vrep(v)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: Q.join_of_Vrep(v)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a Vrepresentative of ``self``
+            sage: f = P.faces(0)[0]
+            sage: P.join_of_Vrep(v)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: Q.join_of_Vrep(v)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a Vrepresentative of ``self``
         """
         from sage.geometry.polyhedron.representation import Vrepresentation
         from sage.geometry.polyhedron.face import PolyhedronFace
@@ -6995,11 +7014,14 @@ class Polyhedron_base(Element):
         new_indices = [0]*len(Vrepresentatives)
         for i, v in enumerate(Vrepresentatives):
             if isinstance(v, PolyhedronFace) and v.dim() == 0:
-                v = v.ambient_V_indices()[0]
-
-            if v in ZZ:
+                if v.polyhedron() is not self:
+                    raise ValueError("not a Vrepresentative of ``self``")
+                new_indices[i] = v.ambient_V_indices()[0]
+            elif v in ZZ:
                 new_indices[i] = v
             elif isinstance(v, Vrepresentation):
+                if v.polyhedron() is not self:
+                    raise ValueError("not a Vrepresentative of ``self``")
                 new_indices[i] = v.index()
             else:
                 raise ValueError("{} is not a Vrepresentative".format(v))
@@ -7012,7 +7034,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``facets`` -- facets or indices of facets;
+        - ``facets`` -- facets or indices of facets of ``self``;
           the indices are assumed to be the indices of the Hrepresentation
 
         OUTPUT: a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`
@@ -7031,17 +7053,37 @@ class Polyhedron_base(Element):
             sage: P.meet_of_facets(1,3,7).ambient_H_indices()
             (0, 1, 3, 7)
 
-        The indices are the indices of the Hrepresentation::
+        The indices are the indices of the Hrepresentation.
+        ``0`` corresponds to an equation and is not permitted as input::
 
             sage: P.meet_of_facets(0)
             Traceback (most recent call last):
             ...
-            ValueError: 0 is not a facet
+            ValueError: 0 is the index of an equation and not of an inequality
 
         The input is flexible::
 
             sage: P.meet_of_facets(P.facets()[-1], P.inequalities()[2], 7)
             A 1-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 2 vertices
+
+        The facets must be facets of ``self``::
+
+            sage: P = polytopes.cube(backend='ppl')
+            sage: Q = polytopes.cube(backend='field')
+            sage: f = P.facets()[0]
+            sage: P.meet_of_facets(f)
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: Q.meet_of_facets(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a facet of ``self``
+            sage: f = P.inequalities()[0]
+            sage: P.meet_of_facets(f)
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: Q.meet_of_facets(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a facet of ``self``
 
         TESTS:
 
@@ -7083,15 +7125,19 @@ class Polyhedron_base(Element):
         new_indices = [0]*len(facets)
         for i, facet in enumerate(facets):
             if isinstance(facet, PolyhedronFace) and facet.dim() + 1 == self.dim():
+                if facet.polyhedron() is not self:
+                    raise ValueError("not a facet of ``self``")
                 H_indices = facet.ambient_H_indices()
                 facet = H_indices[0] if H_indices[0] >= offset else H_indices[-1]
 
             if facet in ZZ and facet >= offset:
                 new_indices[i] = facet - offset
             elif isinstance(facet, Inequality):
+                if facet.polyhedron() is not self:
+                    raise ValueError("not a facet of ``self``")
                 new_indices[i] = facet.index() - offset
             else:
-                raise ValueError("{} is not a facet".format(facet))
+                raise ValueError("{} is the index of an equation and not of an inequality".format(facet))
 
         return self.face_generator().meet_of_facets(*new_indices)
 

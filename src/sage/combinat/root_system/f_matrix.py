@@ -20,7 +20,7 @@ except:
 from copy import deepcopy
 from ctypes import cast, py_object
 from itertools import product, zip_longest
-from multiprocessing import cpu_count, Pool, set_start_method, shared_memory
+from multiprocessing import cpu_count, Pool, set_start_method
 import numpy as np
 from os import remove
 
@@ -1279,7 +1279,8 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",1))
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: he = f.get_defining_equations('hexagons')
             sage: sorted(he)
             [fx0 - 1,
@@ -1302,7 +1303,17 @@ class FMatrix():
             Failure to call :meth:`shutdown_worker_pool` may result in a memory
             leak, since shared memory resources outlive the process that created
             them.
+
+        .. WARNING::
+
+            Python 3.8+ is required. This method will raise an ``ImportError``
+            if your system does not meet the version requirement.
         """
+        #Try to import module requiring Python 3.8+ locally
+        try:
+            from multiprocessing import shared_memory
+        except ImportError:
+            raise ImportError("Failed to import shared_memory module. Requires Python 3.8+")
         try:
             set_start_method('fork')
         except RuntimeError:
@@ -1330,8 +1341,8 @@ class FMatrix():
             fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
             fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
             n = fmats_obj._poly_ring.ngens()
-            fmats_obj._fvars = FvarsHandler(n,fmats_obj._field,fmats_obj._idx_to_sextuple,name=fvar_names)
-            fmats_obj._ks = KSHandler(n,fmats_obj._field,name=ks_names)
+            fmats_obj._fvars = FvarsHandler(n,fmats_obj._field,fmats_obj._idx_to_sextuple,name=fvar_names,use_mp=True)
+            fmats_obj._ks = KSHandler(n,fmats_obj._field,name=ks_names,use_mp=True)
 
         self.pool = Pool(processes=n,initializer=init,initargs=args)
 
@@ -1350,7 +1361,8 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("A1",3))
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: he = f.get_defining_equations('hexagons')
             sage: f.shutdown_worker_pool()
         """
@@ -1389,7 +1401,8 @@ class FMatrix():
             sage: f._reset_solver_state()
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1,False)]))
             11
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: mp_params = [(i,f.pool._processes,True) for i in range(f.pool._processes)]
             sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=f.pool,chunksize=1,mp_thresh=0))
             33
@@ -1550,7 +1563,8 @@ class FMatrix():
 
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: f = FMatrix(FusionRing("C3",1))
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: he = f.get_defining_equations('hexagons')
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
             True
@@ -1567,7 +1581,8 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("A1",3))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: f.get_defining_equations('hexagons',output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
@@ -1796,7 +1811,8 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("F4",1))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: f.get_defining_equations('hexagons',output=False)
             sage: gb = f._par_graph_gb()
             Partitioned 10 equations into 2 components of size:
@@ -1852,7 +1868,8 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",2))
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: f.get_defining_equations('hexagons',output=False)                      # long time
             sage: f.shutdown_worker_pool()
             sage: partition = f._partition_eqns()                                        # long time
@@ -2087,7 +2104,9 @@ class FMatrix():
         - ``use_mp`` -- (default: ``True``) a boolean indicating whether to use
           multiprocessing to speed up calculation. The default value
           ``True`` is highly recommended, since parallel processing yields
-          results much more quickly.
+          results much more quickly. Python 3.8+ is required. This method will
+          raise an error if it cannot import the necessary components
+          (``shared_memory`` sub-module of ``multiprocessing``).
 
         - ``verbose`` -- (default: ``True``) a boolean indicating whether the
           solver should print out intermediate progress reports.

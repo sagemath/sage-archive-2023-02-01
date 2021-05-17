@@ -23,7 +23,6 @@ from sage.rings.rational cimport Rational
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
 
-from multiprocessing import shared_memory
 import numpy as np
 
 cdef class KSHandler:
@@ -67,7 +66,7 @@ cdef class KSHandler:
 
         .. WARNING::
 
-            This structure does *not* cannot modify an entry that
+            This structure *cannot* modify an entry that
             has already been set.
 
         EXAMPLES::
@@ -80,7 +79,7 @@ cdef class KSHandler:
             sage: n = f._poly_ring.ngens()
             sage: ks = KSHandler(n,f._field,use_mp=True)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: ks2 = KSHandler(n,f._field,name=ks.shm.name)
+            sage: ks2 = KSHandler(n,f._field,name=ks.shm.name,use_mp=True)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
             sage: ks.update([poly_to_tup(p) for p in eqns])
@@ -101,18 +100,23 @@ cdef class KSHandler:
             ('denoms','u8',(d,))
         ])
         self.obj_cache = [None]*n
-        if name is None:
-            if use_mp:
+        if use_mp:
+            #Try to import module requiring Python 3.8+ locally
+            try:
+                from multiprocessing import shared_memory
+            except ImportError:
+                raise ImportError("Failed to import shared_memory module. Requires Python 3.8+")
+            if name is None:
                 self.shm = shared_memory.SharedMemory(create=True,size=n*ks_t.itemsize)
-                self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
             else:
-                self.ks_dat = np.ndarray((n,),dtype=ks_t)
+                self.shm = shared_memory.SharedMemory(name=name)
+            self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
+        else:
+            self.ks_dat = np.ndarray((n,),dtype=ks_t)
+        if name is None:
             self.ks_dat['known'] = np.zeros((n,1),dtype='bool')
             self.ks_dat['nums'] = np.zeros((n,d),dtype='i8')
             self.ks_dat['denoms'] = np.ones((n,d),dtype='u8')
-        else:
-            self.shm = shared_memory.SharedMemory(name=name)
-            self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
         #Populate initializer data
         for idx, sq in init_data.items():
             self.setitem(idx,sq)
@@ -395,7 +399,7 @@ cdef class FvarsHandler:
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
             sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=True)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name)
+            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name,use_mp=True)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(fx5**5))
             sage: fvars[f2, f1, f2, f2, f0, f0] = rhs
@@ -417,15 +421,19 @@ cdef class FvarsHandler:
         ])
         self.sext_to_idx = {s: i for i, s in idx_to_sextuple.items()}
         self.ngens = n_slots
-        if name is None:
-            if use_mp:
+        if use_mp:
+            #Try to import module requiring Python 3.8+ locally
+            try:
+                from multiprocessing import shared_memory
+            except ImportError:
+                raise ImportError("Failed to import shared_memory module. Requires Python 3.8+")
+            if name is None:
                 self.shm = shared_memory.SharedMemory(create=True,size=self.ngens*self.fvars_t.itemsize)
-                self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
             else:
-                self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t)
-        else:
-            self.shm = shared_memory.SharedMemory(name=name)
+                self.shm = shared_memory.SharedMemory(name=name)
             self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
+        else:
+            self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t)
         #Populate with initialziation data
         for sextuple, fvar in init_data.items():
             if isinstance(fvar, MPolynomial_libsingular):
@@ -652,7 +660,8 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("G2", 1), inject_variables=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
-            sage: f.start_worker_pool()
+            sage: if sys.version_info.minor >= 8:
+            ....:     f.start_worker_pool()      # Python 3.8+ is required
             sage: for sextuple, fvar in f._shared_fvars.items():
             ....:     if sextuple == (f1, f1, f1, f1, f1, f1):
             ....:         f._tup_to_fpoly(fvar)

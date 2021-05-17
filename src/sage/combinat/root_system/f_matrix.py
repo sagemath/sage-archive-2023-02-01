@@ -353,7 +353,7 @@ class FMatrix():
             sage: f.get_fvars()[some_key]
             fx0
         """
-        self._fvars = {self._var_to_sextuple[key] : key for key in self._var_to_sextuple}
+        self._fvars = {t : fx for fx, t in self._var_to_sextuple.items()}
         self._solved = list(False for fx in self._fvars)
 
     def _reset_solver_state(self):
@@ -430,7 +430,7 @@ class FMatrix():
         new_poly_ring = self._poly_ring.change_ring(field)
         nvars = self._poly_ring.ngens()
         #Do some appropriate conversions
-        self._singles = [new_poly_ring.gen(self._var_to_idx[fx]) for fx in self._singles]
+        self._singles = [new_poly_ring(fx) for fx in self._singles]
         self._var_to_idx = {new_poly_ring.gen(i): i for i in range(nvars)}
         self._var_to_sextuple = {new_poly_ring.gen(i): self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(nvars)}
         self._poly_ring = new_poly_ring
@@ -641,12 +641,12 @@ class FMatrix():
             True
         """
         ret = []
+        gens = set(self._poly_ring.gens())
         for (a, b, c, d) in product(self._FR.basis(), repeat=4):
             (ff,ft) = (self.f_from(a,b,c,d), self.f_to(a,b,c,d))
             if len(ff) == 1 and len(ft) == 1:
                 v = self._fvars.get((a,b,c,d,ff[0],ft[0]), None)
-                # if v in self._poly_ring.gens():
-                if v in self._var_to_idx:
+                if v in gens:
                     ret.append(v)
         return ret
 

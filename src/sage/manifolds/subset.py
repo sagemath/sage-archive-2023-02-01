@@ -2185,10 +2185,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if not others:
             return res
         for other in others[:-1]:
-            old, res = res, res._intersection_subset(other)
+            res = res._intersection_subset(other)
         # The last one gets the name
-        other = others[-1]
-        return res._intersection_subset(other, name=name, latex_name=latex_name)
+        return res._intersection_subset(others[-1], name=name, latex_name=latex_name)
 
     @staticmethod
     def _reduce_intersection_members(subsets):
@@ -2416,10 +2415,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if not others:
             return res
         for other in others[:-1]:
-            old, res = res, res._union_subset(other)
+            res = res._union_subset(other)
         # The last one gets the name
-        other = others[-1]
-        return res._union_subset(other, name=name, latex_name=latex_name)
+        return res._union_subset(others[-1], name=name, latex_name=latex_name)
 
     @staticmethod
     def _reduce_union_members(subsets):

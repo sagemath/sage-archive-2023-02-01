@@ -222,7 +222,10 @@ class Parser():
         equilibria = []
         from sage.misc.sage_eval import sage_eval
         from itertools import groupby
-        for collection in [list(x[1]) for x in groupby(self.raw_string[7:], lambda x: x == '\n')]:
+        lines = iter(self.raw_string)
+        while not next(lines).startswith("*****"):
+            pass
+        for collection in [list(x[1]) for x in groupby(lines, lambda x: x == '\n')]:
             if collection[0].startswith('2'):
                 s1 = tuple([sage_eval(k) for k in collection[-1].split()][1:-1])
                 for s2 in collection[:-1]:

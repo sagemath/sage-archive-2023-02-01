@@ -802,17 +802,17 @@ class Polyhedron_QQ(Polyhedron_base):
 
         - ``self`` -- polyhedron object; a compact lattice polytope.
 
-        - ``vertex_permutation`` -- permutation; a permutation of the vertices of
-          ``self``.
+        - ``vertex_permutation`` -- permutation; a permutation of the vertices
+          of ``self``.
 
         OUTPUT:
 
         A subpolytope of ``self``.
 
-        TODO:
+        .. TODO::
 
-        Backend normaliz is not implemented for polytopes with basering RDF,
-        otherwise this method would work for those polytopes.
+            Backend normaliz is not implemented for polytopes with basering RDF,
+            otherwise this method would work for those polytopes.
 
         .. NOTE::
 
@@ -836,7 +836,7 @@ class Polyhedron_QQ(Polyhedron_base):
 
             sage: reprs[0]                                                      # optional - pynormaliz
             ()
-            sage: Cube.fixed_subpolytope(vertex_permutation = reprs[0])                              # optional - pynormaliz
+            sage: Cube.fixed_subpolytope(vertex_permutation = reprs[0])         # optional - pynormaliz
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8
             vertices
             sage: _.vertices()                                                  # optional - pynormaliz
@@ -851,13 +851,13 @@ class Polyhedron_QQ(Polyhedron_base):
 
         You can obtain non-trivial examples::
 
-            sage: fsp1 = Cube.fixed_subpolytope(reprs[8]);fsp1 # optional - pynormaliz
+            sage: fsp1 = Cube.fixed_subpolytope(reprs[8]);fsp1                  # optional - pynormaliz
             A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
-            sage: fsp1.vertices()                              # optional - pynormaliz
+            sage: fsp1.vertices()                                               # optional - pynormaliz
             (A vertex at (0, 0, 0),)
-            sage: fsp2 = Cube.fixed_subpolytope(reprs[3]);fsp2 # optional - pynormaliz
+            sage: fsp2 = Cube.fixed_subpolytope(reprs[3]);fsp2                  # optional - pynormaliz
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
-            sage: fsp2.vertices()                              # optional - pynormaliz
+            sage: fsp2.vertices()                                               # optional - pynormaliz
             (A vertex at (-1, -1, 0),
             A vertex at (-1, 1, 0),
             A vertex at (1, -1, 0),
@@ -866,20 +866,20 @@ class Polyhedron_QQ(Polyhedron_base):
         The next example shows that fixed_subpolytope still works for rational polytopes::
 
            sage: P = Polyhedron(vertices = [[0,0],[3/2,0],[3/2,3/2],[0,3/2]], backend ='normaliz') # optional - pynormaliz
-           sage: P.vertices() # optional - pynormaliz
+           sage: P.vertices()                                                   # optional - pynormaliz
            (A vertex at (0, 0),
             A vertex at (0, 3/2),
             A vertex at (3/2, 0),
             A vertex at (3/2, 3/2))
            sage: G = P.restricted_automorphism_group(output = 'permutation');G  # optional - pynormaliz
            Permutation Group with generators [(1,2), (0,1)(2,3), (0,3)]
-           sage: len(G) # optional - pynormaliz
+           sage: len(G)                                                         # optional - pynormaliz
            8
-           sage: G[2] # optional - pynormaliz
+           sage: G[2]                                                           # optional - pynormaliz
            (0,1)(2,3)
-           sage: fixed_set = P.fixed_subpolytope(G[2]); fixed_set # optional - pynormaliz
+           sage: fixed_set = P.fixed_subpolytope(G[2]); fixed_set               # optional - pynormaliz
            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
-           sage: fixed_set.vertices() # optional - pynormaliz
+           sage: fixed_set.vertices()                                           # optional - pynormaliz
            (A vertex at (0, 3/4), A vertex at (3/2, 3/4))
         """
         if self.is_empty():
@@ -1036,23 +1036,23 @@ class Polyhedron_QQ(Polyhedron_base):
         `\pm(0,0,1),\pm(1,0,1), \pm(0,1,1), \pm(1,1,1)` and let
         G = `\mathbb Z / 2\mathbb Z` act on P as follows::
 
-            sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],
-            ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')           # optional - pynormaliz
-            sage: K = P.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
-            sage: G = K.subgroup(gens = [K[6]]); G                            # optional - pynormaliz
+            sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],   # optional - pynormaliz
+            ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')                      # optional - pynormaliz
+            sage: K = P.restricted_automorphism_group(output = 'permutation')            # optional - pynormaliz
+            sage: G = K.subgroup(gens = [K[6]]); G                                       # optional - pynormaliz
             Subgroup generated by [(0,2)(1,3)(4,6)(5,7)] of (Permutation Group with generators [(2,4)(3,5), (1,2)(5,6), (0,1)(2,3)(4,5)(6,7), (0,7)(1,3)(2,5)(4,6)])
-            sage: conj_reps = G.conjugacy_classes_representatives()           # optional - pynormaliz
+            sage: conj_reps = G.conjugacy_classes_representatives()                      # optional - pynormaliz
             sage: Dict = P.match_permutations_to_matrices(conj_reps, acting_group = G)   # optional - pynormaliz
-            sage: list(Dict.keys())[0]                                        # optional - pynormaliz
+            sage: list(Dict.keys())[0]                                                   # optional - pynormaliz
             (0,2)(1,3)(4,6)(5,7)
-            sage: list(Dict.values())[0]                                      # optional - pynormaliz
+            sage: list(Dict.values())[0]                                                 # optional - pynormaliz
             [-1  0  1  0]
             [ 0  1  0  0]
             [ 0  0  1  0]
             [ 0  0  0  1]
-            sage: len(G)                                                      # optional - pynormaliz
+            sage: len(G)                                                                 # optional - pynormaliz
             2
-            sage: G.character_table()                                         # optional - pynormaliz
+            sage: G.character_table()                                                    # optional - pynormaliz
             [ 1  1]
             [ 1 -1]
 
@@ -1115,6 +1115,10 @@ class Polyhedron_QQ(Polyhedron_base):
 
         Boolean. Whether the `H^*` series is effective.
 
+        .. SEEALSO::
+
+            :meth:`Hstar_function`
+
         EXAMPLES:
 
         The `H^*` series of the two-dimensional permutahedron under the action
@@ -1132,14 +1136,14 @@ class Polyhedron_QQ(Polyhedron_base):
         The `H^*` series must be a polynomial in order to be effective. If it is
         not polynomial, a value error is returned::
 
-            sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],
-            ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')           # optional - pynormaliz
-            sage: G = P.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
-            sage: H = G.subgroup(gens = [G[6]])                               # optional - pynormaliz
-            sage: Hstar = P.Hstar_function(H); Hstar                          # optional - pynormaliz
+            sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1], # optional - pynormaliz
+            ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')                    # optional - pynormaliz
+            sage: G = P.restricted_automorphism_group(output = 'permutation')          # optional - pynormaliz
+            sage: H = G.subgroup(gens = [G[6]])                                        # optional - pynormaliz
+            sage: Hstar = P.Hstar_function(H); Hstar                                   # optional - pynormaliz
             (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
-            sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb') # optional - pynormaliz
-            sage: P.Hstar_is_effective(Hstar, Hstar_lin)  # optional - pynormaliz
+            sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb')        # optional - pynormaliz
+            sage: P.Hstar_is_effective(Hstar, Hstar_lin)                               # optional - pynormaliz
             Traceback (most recent call last):
             ...
             ValueError: The Hstar vector must be polynomial
@@ -1158,9 +1162,9 @@ class Polyhedron_QQ(Polyhedron_base):
         TESTS::
 
             sage: p1 = Polyhedron(vertices = [[0],[1/2]]);
-            sage: p2 = Polyhedron(vertices = [[0],[1/2]], backend='normaliz')
-            sage: [Hstar,Hstarlin] = [p2.Hstar_function(),p2.Hstar_function(output='Hstar_as_lin_comb')]
-            sage: p1._Hstar_is_effective_normaliz(Hstar,Hstarlin)
+            sage: p2 = Polyhedron(vertices = [[0],[1/2]], backend='normaliz')  # optional - pynormaliz
+            sage: [Hstar,Hstarlin] = [p2.Hstar_function(),p2.Hstar_function(output='Hstar_as_lin_comb')] # optional - pynormaliz
+            sage: p1._Hstar_is_effective_normaliz(Hstar,Hstarlin)              # optional - pynormaliz
             Traceback (most recent call last):
             ...
             TypeError: The backend of the polyhedron should be 'normaliz'

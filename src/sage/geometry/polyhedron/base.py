@@ -9725,7 +9725,7 @@ class Polyhedron_base(Element):
             sage: square = Polyhedron(vertices=[[1,1],[-1,1],[-1,-1],[1,-1]], backend='normaliz') # optional - pynormaliz
             sage: aut_square = square.restricted_automorphism_group(output = 'permutation')       # optional - pynormaliz
             sage: conj_reps = aut_square.conjugacy_classes_representatives()                      # optional - pynormaliz
-            sage: gens_dict = square.match_permutations_to_matrices(conj_reps); gens_dict                    # optional - pynormaliz
+            sage: gens_dict = square.match_permutations_to_matrices(conj_reps); gens_dict         # optional - pynormaliz
             {(): [1 0 0]
              [0 1 0]
              [0 0 1],
@@ -9829,20 +9829,20 @@ class Polyhedron_base(Element):
 
         This example shows a reflection across the x-axis::
 
-            sage: cross = polytopes.cross_polytope(2, backend = 'normaliz') # optional - pynormaliz
-            sage: cross.vertices() # optional - pynormaliz
+            sage: cross = polytopes.cross_polytope(2, backend = 'normaliz')          # optional - pynormaliz
+            sage: cross.vertices()                                                   # optional - pynormaliz
             (A vertex at (-1, 0),
              A vertex at (0, -1),
              A vertex at (0, 1),
              A vertex at (1, 0))
-            sage: G = cross.restricted_automorphism_group(output = 'permutation') # optional - pynormaliz
-            sage: flip = G.gens()[0]; flip   # optional - pynormaliz
+            sage: G = cross.restricted_automorphism_group(output = 'permutation')    # optional - pynormaliz
+            sage: flip = G.gens()[0]; flip                                           # optional - pynormaliz
             (1,2)
-            sage: V = [v.homogeneous_vector() for v in cross.Vrepresentation()]   # optional - pynormaliz
-            sage: Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()    # optional - pynormaliz
-            sage: Vplus = list(matrix(V) * Qplus)   # optional - pynormaliz
+            sage: V = [v.homogeneous_vector() for v in cross.Vrepresentation()]      # optional - pynormaliz
+            sage: Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()       # optional - pynormaliz
+            sage: Vplus = list(matrix(V) * Qplus)                                    # optional - pynormaliz
             sage: W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V))) # optional - pynormaliz
-            sage: cross._match_permutation_to_matrix(flip, V, Vplus, W)   # optional - pynormaliz
+            sage: cross._match_permutation_to_matrix(flip, V, Vplus, W)              # optional - pynormaliz
             [ 1  0  0]
             [ 0 -1  0]
             [ 0  0  1]

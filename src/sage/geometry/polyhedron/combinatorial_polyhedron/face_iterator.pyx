@@ -252,7 +252,12 @@ cdef class FaceIterator_base(SageObject):
             self.atoms = C.bitrep_Vrep()
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
+        self._n_facets = C.bitrep_facets().n_faces()
         self._equations = C.equations()
+        if self._equations:
+            self._n_equations = len(self._equations)
+        else:
+            self._n_equations = 0
         self._bounded = C.is_bounded()
 
         self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
@@ -482,7 +487,7 @@ cdef class FaceIterator_base(SageObject):
             raise ValueError("only possible when in dual mode")
         self.ignore_subsets()
 
-    def meet_of_facets(self, *indices):
+    def meet_of_Hrep(self, *indices):
         r"""
         Construct the meet of the facets indicated by the indices.
 
@@ -494,36 +499,36 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.cube()
             sage: it = P.face_generator()
-            sage: it.meet_of_facets(1,2)
+            sage: it.meet_of_Hrep(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
-            sage: it.meet_of_facets(1,2).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
             (1, 2)
-            sage: it.meet_of_facets(1,3).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,3).ambient_H_indices()
             (1, 3)
-            sage: it.meet_of_facets(1,5).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,5).ambient_H_indices()
             (0, 1, 2, 3, 4, 5)
 
             sage: P = polytopes.cross_polytope(4)
             sage: it = P.face_generator()
-            sage: it.meet_of_facets().ambient_H_indices()
+            sage: it.meet_of_Hrep().ambient_H_indices()
             ()
-            sage: it.meet_of_facets(1,3).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,3).ambient_H_indices()
             (1, 2, 3, 4)
-            sage: it.meet_of_facets(1,2).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
             (1, 2)
-            sage: it.meet_of_facets(1,6).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,6).ambient_H_indices()
             (1, 6)
-            sage: it.meet_of_facets(1,2,6).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2,6).ambient_H_indices()
             (1, 2, 6, 7)
-            sage: it.meet_of_facets(1,2,5,6).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2,5,6).ambient_H_indices()
             (0, 1, 2, 3, 4, 5, 6, 7)
 
             sage: s = cones.schur(4)
             sage: C = CombinatorialPolyhedron(s)
             sage: it = C.face_iter()
-            sage: it.meet_of_facets(1,2).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
             (1, 2)
-            sage: it.meet_of_facets(1,2,3).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2,3).ambient_H_indices()
             Traceback (most recent call last):
             ...
             IndexError: coatoms out of range
@@ -535,15 +540,18 @@ cdef class FaceIterator_base(SageObject):
             sage: _ = next(it), next(it)
             sage: next(it).ambient_V_indices()
             (15, 16, 17, 18, 19)
-            sage: it.meet_of_facets(9,11)
+            sage: it.meet_of_Hrep(9,11)
             Traceback (most recent call last):
             ...
             ValueError: please reset the face iterator
             sage: it.reset()
-            sage: it.meet_of_facets(9,11).ambient_H_indices()
+            sage: it.meet_of_Hrep(9,11).ambient_H_indices()
             (9, 11)
 
         """
+        # Ignore equations.
+        indices = [i for i in indices
+                   if not (self._n_facets <= i < self._n_facets + self._n_equations)]
         if self.dual:
             return self._join_of_atoms(*indices)
         else:
@@ -651,7 +659,7 @@ cdef class FaceIterator_base(SageObject):
 
         .. SEEALSO::
 
-            :meth:`meet_of_facets`,
+            :meth:`meet_of_Hrep`,
             :meth:`join_of_Vrep`.
 
         EXAMPLES:
@@ -759,7 +767,7 @@ cdef class FaceIterator_base(SageObject):
 
         .. SEEALSO::
 
-            :meth:`meet_of_facets`,
+            :meth:`meet_of_Hrep`,
             :meth:`join_of_Vrep`.
 
         EXAMPLES:

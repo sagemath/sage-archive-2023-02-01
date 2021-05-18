@@ -2285,32 +2285,32 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self.face_iter().join_of_Vrep(*indices)
 
-    def meet_of_facets(self, *indices):
+    def meet_of_Hrep(self, *indices):
         r"""
         Return the largest face contained in all facets indicated by the indices.
 
         .. SEEALSO::
 
-            :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator_base.meet_of_facets`.
+            :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator_base.meet_of_Hrep`.
 
         EXAMPLES::
 
             sage: P = polytopes.dodecahedron()
             sage: C = CombinatorialPolyhedron(P)
-            sage: C.meet_of_facets(0)
+            sage: C.meet_of_Hrep(0)
             A 2-dimensional face of a 3-dimensional combinatorial polyhedron
-            sage: C.meet_of_facets(0).ambient_H_indices()
+            sage: C.meet_of_Hrep(0).ambient_H_indices()
             (0,)
-            sage: C.meet_of_facets(0,1).ambient_H_indices()
+            sage: C.meet_of_Hrep(0,1).ambient_H_indices()
             (0, 1)
-            sage: C.meet_of_facets(0,2).ambient_H_indices()
+            sage: C.meet_of_Hrep(0,2).ambient_H_indices()
             (0, 2)
-            sage: C.meet_of_facets(0,2,3).ambient_H_indices()
+            sage: C.meet_of_Hrep(0,2,3).ambient_H_indices()
             (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-            sage: C.meet_of_facets().ambient_H_indices()
+            sage: C.meet_of_Hrep().ambient_H_indices()
             ()
         """
-        return self.face_iter().meet_of_facets(*indices)
+        return self.face_iter().meet_of_Hrep(*indices)
 
     def face_iter(self, dimension=None, dual=None):
         r"""

@@ -7007,6 +7007,15 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: not a Vrepresentative of ``self``
+
+        TESTS:
+
+        ``least_common_superface_of_Vrep`` is an alias::
+
+            sage: P.least_common_superface_of_Vrep(v)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: P.least_common_superface_of_Vrep == P.join_of_Vrep
+            True
         """
         from sage.geometry.polyhedron.representation import Vrepresentation
         from sage.geometry.polyhedron.face import PolyhedronFace
@@ -7028,13 +7037,15 @@ class Polyhedron_base(Element):
 
         return self.face_generator().join_of_Vrep(*new_indices)
 
-    def meet_of_facets(self, *facets):
+    least_common_superface_of_Vrep = join_of_Vrep
+
+    def meet_of_Hrep(self, *Hrepresentatives):
         r"""
         Return the largest face that is contained in ``facets``.
 
         INPUT:
 
-        - ``facets`` -- facets or indices of facets of ``self``;
+        - ``Hrepresentatives`` -- facets or indices of Hrepresentatives;
           the indices are assumed to be the indices of the Hrepresentation
 
         OUTPUT: a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`
@@ -7042,45 +7053,43 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: P = polytopes.permutahedron(5)
-            sage: P.meet_of_facets()
+            sage: P.meet_of_Hrep()
             A 4-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 120 vertices
-            sage: P.meet_of_facets(1)
+            sage: P.meet_of_Hrep(1)
             A 3-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 24 vertices
-            sage: P.meet_of_facets(4)
+            sage: P.meet_of_Hrep(4)
             A 3-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 12 vertices
-            sage: P.meet_of_facets(1,3,7)
+            sage: P.meet_of_Hrep(1,3,7)
             A 1-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 2 vertices
-            sage: P.meet_of_facets(1,3,7).ambient_H_indices()
+            sage: P.meet_of_Hrep(1,3,7).ambient_H_indices()
             (0, 1, 3, 7)
 
         The indices are the indices of the Hrepresentation.
-        ``0`` corresponds to an equation and is not permitted as input::
+        ``0`` corresponds to an equation and is ignored::
 
-            sage: P.meet_of_facets(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: 0 is the index of an equation and not of an inequality
+            sage: P.meet_of_Hrep(0)
+            A 4-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 120 vertices
 
         The input is flexible::
 
-            sage: P.meet_of_facets(P.facets()[-1], P.inequalities()[2], 7)
+            sage: P.meet_of_Hrep(P.facets()[-1], P.inequalities()[2], 7)
             A 1-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 2 vertices
 
-        The facets must be facets of ``self``::
+        The ``Hrepresentatives`` must belong to ``self``::
 
             sage: P = polytopes.cube(backend='ppl')
             sage: Q = polytopes.cube(backend='field')
             sage: f = P.facets()[0]
-            sage: P.meet_of_facets(f)
+            sage: P.meet_of_Hrep(f)
             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
-            sage: Q.meet_of_facets(f)
+            sage: Q.meet_of_Hrep(f)
             Traceback (most recent call last):
             ...
             ValueError: not a facet of ``self``
             sage: f = P.inequalities()[0]
-            sage: P.meet_of_facets(f)
+            sage: P.meet_of_Hrep(f)
             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
-            sage: Q.meet_of_facets(f)
+            sage: Q.meet_of_Hrep(f)
             Traceback (most recent call last):
             ...
             ValueError: not a facet of ``self``
@@ -7099,7 +7108,7 @@ class Polyhedron_base(Element):
              An inequality (1, 0, 1) x - 3 >= 0,
              An inequality (1, 1, 0) x - 3 >= 0,
              An equation (1, 1, 1) x - 6 == 0)
-            sage: P.meet_of_facets(0).ambient_Hrepresentation()
+            sage: P.meet_of_Hrep(0).ambient_Hrepresentation()
             (An equation (1, 1, 1) x - 6 == 0, An inequality (0, 0, 1) x - 1 >= 0)
 
             sage: P = polytopes.permutahedron(3, backend='ppl')
@@ -7111,10 +7120,17 @@ class Polyhedron_base(Element):
              An inequality (-1, 0, 0) x + 3 >= 0,
              An inequality (1, 0, 0) x - 1 >= 0,
              An inequality (0, -1, 0) x + 3 >= 0)
-            sage: P.meet_of_facets(1).ambient_Hrepresentation()
+            sage: P.meet_of_Hrep(1).ambient_Hrepresentation()
             (An equation (1, 1, 1) x - 6 == 0, An inequality (1, 1, 0) x - 3 >= 0)
+
+        ``greatest_common_subface_of_Hrep`` is an alias::
+
+            sage: P.greatest_common_subface_of_Hrep(1).ambient_Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0, An inequality (1, 1, 0) x - 3 >= 0)
+            sage: P.greatest_common_subface_of_Hrep == P.meet_of_Hrep
+            True
         """
-        from sage.geometry.polyhedron.representation import Inequality
+        from sage.geometry.polyhedron.representation import Inequality, Equation
         from sage.geometry.polyhedron.face import PolyhedronFace
 
         # Equations are ignored by combinatorial polyhedron for indexing.
@@ -7122,8 +7138,8 @@ class Polyhedron_base(Element):
         if self.n_equations() and self.Hrepresentation(0).is_equation():
             offset = self.n_equations()
 
-        new_indices = [0]*len(facets)
-        for i, facet in enumerate(facets):
+        new_indices = []
+        for i, facet in enumerate(Hrepresentatives):
             if isinstance(facet, PolyhedronFace) and facet.dim() + 1 == self.dim():
                 if facet.polyhedron() is not self:
                     raise ValueError("not a facet of ``self``")
@@ -7131,15 +7147,25 @@ class Polyhedron_base(Element):
                 facet = H_indices[0] if H_indices[0] >= offset else H_indices[-1]
 
             if facet in ZZ and facet >= offset:
-                new_indices[i] = facet - offset
+                # Note that ``CombinatorialPolyhedron`` ignores indices of equations
+                # and has equations last.
+                new_indices.append(facet - offset)
             elif isinstance(facet, Inequality):
                 if facet.polyhedron() is not self:
                     raise ValueError("not a facet of ``self``")
-                new_indices[i] = facet.index() - offset
+                new_indices.append(facet.index() - offset)
+            elif isinstance(facet, Equation):
+                # Ignore equations.
+                continue
+            elif facet in ZZ and 0 <= facet < offset:
+                # Ignore equations.
+                continue
             else:
                 raise ValueError("{} is the index of an equation and not of an inequality".format(facet))
 
-        return self.face_generator().meet_of_facets(*new_indices)
+        return self.face_generator().meet_of_Hrep(*new_indices)
+
+    greatest_common_subface_of_Hrep = meet_of_Hrep
 
     @cached_method(do_pickle=True)
     def f_vector(self):

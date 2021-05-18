@@ -181,8 +181,9 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_dimension = it.structure.dimension
             self._ambient_Vrep      = it._Vrep
             self._ambient_facets    = it._facet_names
+            self._n_ambient_facets  = it._n_facets
             self._equations         = it._equations
-            self._n_equations       = len(self._equations) if self._equations else 0
+            self._n_equations       = it._n_equations
             self._hash_index        = it.structure._index
 
             self._initialized_from_face_lattice = False
@@ -209,6 +210,10 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_facets    = all_faces._facet_names
             self._equations         = all_faces._equations
             self._n_equations       = len(self._equations) if self._equations else 0
+            if self._dual:
+                self._n_ambient_facets = self.atoms.n_faces()
+            else:
+                self._n_ambient_facets = self.coatoms.n_faces()
 
             self._initialized_from_face_lattice = True
 
@@ -227,10 +232,6 @@ cdef class CombinatorialFace(SageObject):
         if self._dual:
             # Reverse the hash index in dual mode to respect inclusion of faces.
             self._hash_index = -self._hash_index - 1
-
-            self._n_ambient_facets = self.atoms.n_faces()
-        else:
-            self._n_ambient_facets = self.coatoms.n_faces()
 
     def _repr_(self):
         r"""

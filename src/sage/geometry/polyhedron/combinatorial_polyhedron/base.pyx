@@ -689,13 +689,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: P = polytopes.permutahedron(3)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.Hrepresentation()
-            (An equation (1, 1, 1) x - 6 == 0,
-             An inequality (1, 1, 0) x - 3 >= 0,
+            (An inequality (1, 1, 0) x - 3 >= 0,
              An inequality (-1, -1, 0) x + 5 >= 0,
              An inequality (0, 1, 0) x - 1 >= 0,
              An inequality (-1, 0, 0) x + 3 >= 0,
              An inequality (1, 0, 0) x - 1 >= 0,
-             An inequality (0, -1, 0) x + 3 >= 0)
+             An inequality (0, -1, 0) x + 3 >= 0,
+             An equation (1, 1, 1) x - 6 == 0)
 
             sage: points = [(1,0,0), (0,1,0), (0,0,1),
             ....: (-1,0,0), (0,-1,0), (0,0,-1)]
@@ -716,7 +716,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             (M(0, 1), M(1, 0))
         """
         if self.facet_names() is not None:
-            return self.equations() + self.facet_names()
+            return self.facet_names() + self.equations()
         else:
             return tuple(smallInteger(i) for i in range(self.n_Hrepresentation()))
 
@@ -1041,7 +1041,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         ::
 
-            sage: P = polytopes.permutahedron(5)
+            sage: P = polytopes.permutahedron(5, backend='field')
             sage: C = P.combinatorial_polyhedron()
             sage: C.incidence_matrix.clear_cache()
             sage: C.incidence_matrix() == P.incidence_matrix()
@@ -1091,17 +1091,17 @@ cdef class CombinatorialPolyhedron(SageObject):
             incidence_matrix.set_immutable()
             return incidence_matrix
 
-        # If equations are present, we add them as first columns.
-        n_equations = 0
+        # If equations are present, we add them as last columns.
+        n_facets = self.n_facets()
         if self.facet_names() is not None:
             n_equations = len(self.equations())
-            for Hindex in range(n_equations):
+            for Hindex in range(n_facets, n_facets + n_equations):
                 for Vindex in range(self.n_Vrepresentation()):
                     incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
 
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)
         for facet in facet_iter:
-            Hindex = facet.ambient_H_indices()[0] + n_equations
+            Hindex = facet.ambient_H_indices()[0]
             for Vindex in facet.ambient_V_indices():
                 incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
 

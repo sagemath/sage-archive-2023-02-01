@@ -258,7 +258,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p = Polyhedron(vertices=[(0,0),(1,1),(a,3),(-1,a**2)], rays=[(-1,-a)], backend='normaliz') # optional - pynormaliz
             sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz
             [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
-            sage: sorted(p._nmz_result(p._normaliz_cone, 'TriangulationGenerators')) # optional - pynormaliz
+            sage: triangulation_generators = p._nmz_result(p._normaliz_cone, 'Triangulation')[1]  # optional - pynormaliz
+            sage: sorted(triangulation_generators)                                                # optional - pynormaliz
             [[-a^2, -3, 0], [-1, a^2, 1], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
             sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz
             True
@@ -1592,19 +1593,18 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         # Compute the triangulation.
         assert cone
-        nmz_triangulation = self._nmz_result(cone, "Triangulation")
 
         # Normaliz does not guarantee that the order of generators is kept during
         # computation of the triangulation.
         # Those are the generators that the indices of the triangulation correspond to:
-        nmz_new_generators = self._nmz_result(cone, "TriangulationGenerators")
+        nmz_triangulation, nmz_triangulation_generators = self._nmz_result(cone, "Triangulation")
 
         base_ring = self.base_ring()
         v_list = self.vertices_list()
         r_list = self.rays_list()
 
         new_to_old = {}
-        for i, g in enumerate(nmz_new_generators):
+        for i, g in enumerate(nmz_triangulation_generators):
             if self.is_compact():
                 d = base_ring(g[-1])
                 vertex = [base_ring(x) / d for x in g[:-1]]

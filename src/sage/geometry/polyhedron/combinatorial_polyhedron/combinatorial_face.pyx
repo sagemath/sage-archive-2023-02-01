@@ -670,8 +670,13 @@ cdef class CombinatorialFace(SageObject):
 
         Add the indices of the equation::
 
-            sage: face.ambient_H_indices(add_equations=True)
-            (4, 5, 7)
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(2)
+            sage: next(it).ambient_H_indices(add_equations=True)
+            (28, 29, 30)
+            sage: next(it).ambient_H_indices(add_equations=False)
+            (25, 29)
 
         .. SEEALSO::
 

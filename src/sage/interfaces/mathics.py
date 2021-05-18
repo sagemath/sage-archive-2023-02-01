@@ -200,10 +200,10 @@ Note that this agrees with what the PARI interpreter gp produces::
 Next we find the minimum of a polynomial using the two different
 ways of accessing Mathics::
 
-    sage: mathics('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')  # optional - mathics not tested function doesn't seem to be available
+    sage: mathics('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')  # optional - mathics
     {0.6150998205402516, {x -> 2.5773502699629733}}
     sage: f = mathics('x^3 - 6x^2 + 11x - 5')                  # optional - mathics
-    sage: f.FindMinimum(['x', 3])                              # optional - mathics not tested
+    sage: f.FindMinimum(['x', 3])                              # optional - mathics
     {0.6150998205402516, {x -> 2.5773502699629733}}
 
 Polynomial and Integer Factorization
@@ -344,6 +344,12 @@ OTHER Examples::
 AUTHORS:
 
 - Sebastian Oehms (2021): first version from a copy of the Mathematica interface (see :trac:`31778`).
+
+
+Thanks to Rocky Bernstein and Juan Mauricio Matera for their support. For further acknowledgments see `this list <https://github.com/mathics/Mathics/blob/master/AUTHORS.txt>`__.
+
+
+
 
 TESTS:
 

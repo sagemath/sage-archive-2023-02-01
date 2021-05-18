@@ -181,7 +181,7 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_dimension = it.structure.dimension
             self._ambient_Vrep      = it._Vrep
             self._ambient_facets    = it._facet_names
-            self._equalities        = it._equalities
+            self._equations         = it._equations
             self._hash_index        = it.structure._index
 
             self._initialized_from_face_lattice = False
@@ -206,7 +206,7 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_dimension = all_faces.dimension
             self._ambient_Vrep      = all_faces._Vrep
             self._ambient_facets    = all_faces._facet_names
-            self._equalities        = all_faces._equalities
+            self._equations         = all_faces._equations
 
             self._initialized_from_face_lattice = True
 
@@ -580,7 +580,7 @@ cdef class CombinatorialFace(SageObject):
         defining the face.
 
         It consists of the facets/inequalities that contain the face
-        and the equalities defining the ambient polyhedron.
+        and the equations defining the ambient polyhedron.
 
         EXAMPLES::
 
@@ -626,12 +626,12 @@ cdef class CombinatorialFace(SageObject):
             # if not dual, the facet-representation corresponds to the coatom-representation
             length = self.set_coatom_rep()  # fill self.coatom_repr_face
             return tuple(self._ambient_facets[self.coatom_rep[i]]
-                         for i in range(length)) + self._equalities
+                         for i in range(length)) + self._equations
         else:
             # if dual, the facet-representation corresponds to the atom-representation
             length = self.set_atom_rep()  # fill self.atom_repr_face
             return tuple(self._ambient_facets[self.atom_rep[i]]
-                         for i in range(length)) + self._equalities
+                         for i in range(length)) + self._equations
 
     def ambient_H_indices(self):
         r"""
@@ -694,7 +694,7 @@ cdef class CombinatorialFace(SageObject):
         and equations of the face.
 
         The facet-representation consists of the facets
-        that contain the face and of the equalities of the polyhedron.
+        that contain the face and of the equations of the polyhedron.
 
         INPUT:
 

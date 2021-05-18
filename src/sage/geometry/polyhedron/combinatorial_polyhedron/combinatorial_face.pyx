@@ -653,10 +653,21 @@ cdef class CombinatorialFace(SageObject):
             sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(2)
-            sage: next(it).ambient_H_indices(add_equations=False)
+            sage: face = next(it)
+            sage: face.ambient_H_indices(add_equations=False)
             (28, 29)
-            sage: next(it).ambient_H_indices(add_equations=False)
+            sage: face2 = next(it)
+            sage: face2.ambient_H_indices(add_equations=False)
             (25, 29)
+
+        Add the indices of the equation::
+
+            sage: face.ambient_H_indices(add_equations=True)
+            (28, 29, 30)
+            sage: face2.ambient_H_indices(add_equations=True)
+            (25, 29, 30)
+
+        Another example::
 
             sage: P = polytopes.cyclic_polytope(4,6)
             sage: C = CombinatorialPolyhedron(P)
@@ -674,22 +685,11 @@ cdef class CombinatorialFace(SageObject):
             sage: face.ambient_H_indices()
             (4, 5, 7)
 
-        Add the indices of the equation::
-
-            sage: P = polytopes.permutahedron(5)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter(2)
-            sage: next(it).ambient_H_indices(add_equations=True)
-            (28, 29, 30)
-            sage: next(it).ambient_H_indices(add_equations=False)
-            (25, 29)
-
         .. SEEALSO::
 
             :meth:`ambient_Hrepresentation`.
         """
         cdef size_t length, i
-        cdef size_t n_facets, n_equations
         cdef tuple equations
 
         if add_equations and self._equations:

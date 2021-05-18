@@ -845,8 +845,8 @@ cdef class MPolynomial(CommutativeRingElement):
              {0: 1, 1: a, 3: c, 5: a^2*c + b*c, 6: a^6 + b^3}
         """
         from collections import defaultdict
-        d = defaultdict(self.parent())
-        for c,m in self:
+        d = defaultdict(self.parent().zero)
+        for c, m in self:
             d[m.degree()] += c*m
         return dict(d)
 

@@ -1334,37 +1334,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
-
-        Implicit codomain: If no codomain is specified, one is built from images of the 
-        canonical basis. A ``ValueError`` is raised if one gives vectors defined 
-        over a smaller ring than the domain.
-
-            sage: V = QQ^3; [a, b, c] = V.basis()                                           
-            sage: V.hom([b, c, a])                                                          
-            Vector space morphism represented by the matrix:
-            [0 1 0]
-            [0 0 1]
-            [1 0 0]
-            Domain: Vector space of dimension 3 over Rational Field
-            Codomain: Vector space of dimension 3 over Rational Field
-            sage: V.hom(identity_matrix(3))                                                 
-            Traceback (most recent call last):
-            ...
-            ValueError: The image of basis vectors must be defined over a ring containing the base ring of the domain
-            sage: V.hom(identity_matrix(QQ, 3))                                             
-            Vector space morphism represented by the matrix:
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-            Domain: Vector space of dimension 3 over Rational Field
-            Codomain: Vector space of dimension 3 over Rational Field
-            sage: V.hom(identity_matrix(3), V)                                              
-            Vector space morphism represented by the matrix:
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-            Domain: Vector space of dimension 3 over Rational Field
-            Codomain: Vector space of dimension 3 over Rational Field
         """
         if isinstance(im_gens, Parent):
             return self.Hom(im_gens).natural_map()
@@ -1372,8 +1341,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if codomain is None:
             im_gens = Sequence(im_gens)
             codomain = im_gens.universe()
-        if not(self.base_ring().is_subring(codomain.base_ring())):
-            raise ValueError("The base ring of the domain must be contained in the base ring of the codomain")
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
         # Not all homsets accept category/check/base_map as arguments

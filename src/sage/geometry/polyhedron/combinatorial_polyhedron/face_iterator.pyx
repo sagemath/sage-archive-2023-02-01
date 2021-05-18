@@ -469,7 +469,8 @@ cdef class FaceIterator_base(SageObject):
             sage: it = C.face_iter(dual=True)
             sage: n_faces_with_non_simplex_quotient = 1
             sage: for face in it:
-            ....:     if face.n_ambient_Hrepresentation() > C.dimension() - face.dimension() + 1:
+            ....:     n_facets = face.n_ambient_Hrepresentation(add_equations=False)
+            ....:     if n_facets > C.dimension() - face.dimension() + 1:
             ....:         n_faces_with_non_simplex_quotient += 1
             ....:     else:
             ....:         it.ignore_supfaces()

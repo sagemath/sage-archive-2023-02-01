@@ -2253,7 +2253,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         vertex_iter = self._face_iter(True, 0)
         n_facets = self.n_facets()
         for vertex in vertex_iter:
-            if vertex.n_ambient_Hrepresentation() == n_facets - 1:
+            if vertex.n_ambient_Hrepresentation(add_equations=False) == n_facets - 1:
                 if certificate:
                     return (True, vertex.ambient_Vrepresentation()[0])
                 return True
@@ -2310,11 +2310,11 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
             sage: face.ambient_H_indices()
-            (25, 29)
+            (25, 29, 30)
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.ambient_H_indices()
-            (24, 29)
+            (24, 29, 30)
             sage: face.ambient_V_indices()
             (32, 89, 90, 94)
 

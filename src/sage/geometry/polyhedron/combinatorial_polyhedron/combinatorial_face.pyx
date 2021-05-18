@@ -633,19 +633,23 @@ cdef class CombinatorialFace(SageObject):
             return tuple(self._ambient_facets[self.atom_rep[i]]
                          for i in range(length)) + self._equations
 
-    def ambient_H_indices(self):
+    def ambient_H_indices(self, add_equations=True):
         r"""
         Return the indices of the Hrepresentation objects
         of the ambient polyhedron defining the face.
+
+        INPUT:
+
+        - ``add_equations`` -- boolean (default: ``True``); whether or not to include the equations
 
         EXAMPLES::
 
             sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(2)
-            sage: next(it).ambient_H_indices()
+            sage: next(it).ambient_H_indices(add_equations=False)
             (28, 29)
-            sage: next(it).ambient_H_indices()
+            sage: next(it).ambient_H_indices(add_equations=False)
             (25, 29)
 
             sage: P = polytopes.cyclic_polytope(4,6)
@@ -664,21 +668,37 @@ cdef class CombinatorialFace(SageObject):
             sage: face.ambient_H_indices()
             (4, 5, 7)
 
+        Add the indices of the equation::
+
+            sage: face.ambient_H_indices(add_equations=True)
+            (4, 5, 7)
+
         .. SEEALSO::
 
             :meth:`ambient_Hrepresentation`.
         """
-        cdef size_t length
+        cdef size_t length, i
+        cdef size_t n_facets, n_equations
+        cdef tuple equations
+
+        if add_equations and self._ambient_facets:
+            n_facets = len(self._ambient_facets)
+            n_equations = len(self._equations)
+            equations = tuple(smallInteger(i)
+                              for i in range(n_facets, n_facets + n_equations))
+        else:
+            equations = ()
+
         if not self._dual:
             # if not dual, the facet-representation corresponds to the coatom-representation
             length = self.set_coatom_rep()  # fill self.coatom_repr_face
             return tuple(smallInteger(self.coatom_rep[i])
-                         for i in range(length))
+                         for i in range(length)) + equations
         else:
             # if dual, the facet-representation corresponds to the atom-representation
             length = self.set_atom_rep()  # fill self.atom_repr_face
             return tuple(smallInteger(self.atom_rep[i])
-                         for i in range(length))
+                         for i in range(length)) + equations
 
     def Hrepr(self, names=True):
         r"""
@@ -720,11 +740,15 @@ cdef class CombinatorialFace(SageObject):
         else:
             return self.ambient_H_indices()
 
-    def n_ambient_Hrepresentation(self):
+    def n_ambient_Hrepresentation(self, add_equations=True):
         r"""
         Return the length of the :meth:`CombinatorialFace.ambient_H_indices`.
 
         Might be faster than then using ``len``.
+
+        INPUT:
+
+        - ``add_equations`` -- boolean (default: ``True``); whether or not to count the equations
 
         EXAMPLES::
 
@@ -733,6 +757,17 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter()
             sage: all(face.n_ambient_Hrepresentation() == len(face.ambient_Hrepresentation()) for face in it)
             True
+
+        Specifying whether to count the equations or not::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(2)
+            sage: f = next(it)
+            sage: f.n_ambient_Hrepresentation(add_equations=True)
+            3
+            sage: f.n_ambient_Hrepresentation(add_equations=False)
+            2
 
         TESTS::
 
@@ -744,10 +779,11 @@ cdef class CombinatorialFace(SageObject):
             doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
             See https://trac.sagemath.org/28614 for details.
         """
+        cdef size_t n_equations = len(self._equations) if add_equations else 0
         if not self._dual:
-            return smallInteger(self.set_coatom_rep())
+            return smallInteger(self.set_coatom_rep() + n_equations)
         else:
-            return smallInteger(self.n_atom_rep())
+            return smallInteger(self.n_atom_rep() + n_equations)
 
     n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 

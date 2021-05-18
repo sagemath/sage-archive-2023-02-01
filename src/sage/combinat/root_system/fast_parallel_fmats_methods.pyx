@@ -25,7 +25,6 @@ from sage.rings.polynomial.polydict cimport ETuple
 
 from ctypes import cast, py_object
 from itertools import product
-from multiprocessing import shared_memory
 from sage.rings.ideal import Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

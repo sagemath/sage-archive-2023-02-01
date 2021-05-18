@@ -1268,13 +1268,31 @@ class FMatrix():
         which may be used e.g. to set up defining equations using
         :meth:`get_defining_equations`.
 
-        This method creates the attribute ``self.pool``, and the worker
+        This method sets ``self``'s ``pool`` attribute. The worker
         pool may be used time and again. Upon initialization, each process
-        in the pool is attached to the necessary shared memory resources.
+        in the pool attaches to the necessary shared memory resources.
 
         When you are done using the worker pool, use
         :meth:`shutdown_worker_pool` to close the pool and properly dispose
         of shared memory resources.
+
+        .. NOTE::
+
+            Python 3.8+ is required, since the ``multiprocessing.shared_memory``
+            module must be imported. If we fail to import the ``shared_memory``
+            module, ``self.pool`` is set to ``None``, no worker pool is created,
+            and all subsequent calculations will run serially.
+
+        INPUT::
+
+        - ``processes`` -- an integer indicating the number of workers
+          in the pool. If left unspecified, the number of workers is
+          equals the number of processors available.
+
+        OUTPUT::
+
+        Returns a boolean indicating whether a worker pool was successfully
+        initialized.
 
         EXAMPLES::
 
@@ -1303,17 +1321,13 @@ class FMatrix():
             Failure to call :meth:`shutdown_worker_pool` may result in a memory
             leak, since shared memory resources outlive the process that created
             them.
-
-        .. WARNING::
-
-            Python 3.8+ is required. This method will raise an ``ImportError``
-            if your system does not meet the version requirement.
         """
         #Try to import module requiring Python 3.8+ locally
         try:
             from multiprocessing import shared_memory
         except ImportError:
-            raise ImportError("Failed to import shared_memory module. Requires Python 3.8+")
+            self.pool = None
+            return False
         try:
             set_start_method('fork')
         except RuntimeError:
@@ -1345,6 +1359,7 @@ class FMatrix():
             fmats_obj._ks = KSHandler(n,fmats_obj._field,name=ks_names,use_mp=True)
 
         self.pool = Pool(processes=n,initializer=init,initargs=args)
+        return True
 
     def shutdown_worker_pool(self):
         """
@@ -2104,9 +2119,10 @@ class FMatrix():
         - ``use_mp`` -- (default: ``True``) a boolean indicating whether to use
           multiprocessing to speed up calculation. The default value
           ``True`` is highly recommended, since parallel processing yields
-          results much more quickly. Python 3.8+ is required. This method will
-          raise an error if it cannot import the necessary components
-          (``shared_memory`` sub-module of ``multiprocessing``).
+          results much more quickly. Python 3.8+ is required, since the
+          ``multiprocessing.shared_memory`` module must be imported. If we
+          fail to import the ``shared_memory`` module, the solver runs
+          serially.
 
         - ``verbose`` -- (default: ``True``) a boolean indicating whether the
           solver should print out intermediate progress reports.
@@ -2169,7 +2185,9 @@ class FMatrix():
             #Loading from a pickle with solved F-symbols
             if self._chkpt_status > 5:
                 return
-        if use_mp: self.start_worker_pool()
+        loads_shared_memory = False
+        if use_mp:
+            loads shared_memory = self.start_worker_pool()
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, self._poly_ring.ngens()))
 
@@ -2187,7 +2205,7 @@ class FMatrix():
                 self.test_fvars[k] = v
             else:
                 self.test_fvars[k] = poly_to_tup(v)
-        if use_mp:
+        if use_mp and loads_shared_memory:
             self._fvars = self._shared_fvars
         else:
             n = self._poly_ring.ngens()

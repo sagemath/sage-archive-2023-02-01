@@ -318,7 +318,7 @@ cdef class KSHandler:
             Index: 25, sq: 1
             Index: 26, sq: 1
         """
-        cdef unsigned int i
+        cdef Py_ssize_t i
         for i in range(self.ks_dat.size):
             if self.ks_dat['known'][i]:
                 yield i, self.get(i)
@@ -505,7 +505,7 @@ cdef class FvarsHandler:
         #     else:
         #         return self.obj_cache[idx]
         cdef ETuple e, exp
-        cdef int nnz
+        cdef int count, nnz
         cdef Integer d, num
         cdef list poly_tup, rats
         cdef NumberFieldElement_absolute cyc_coeff
@@ -520,7 +520,9 @@ cdef class FvarsHandler:
         e = ETuple({}, self.ngens)
         poly_tup = list()
         cum = 0
-        for i in range(np.count_nonzero(ticks)):
+        # for i in range(np.count_nonzero(ticks)):
+        count = np.count_nonzero(ticks)
+        for i in range(count):
             #Construct new ETuple for each monomial
             exp = e._new()
             #Handle constant coeff

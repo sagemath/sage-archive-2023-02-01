@@ -330,7 +330,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: b == CC(a)
             True
 
-        TESTS::
+        TESTS:
 
         Check that :trac:`31836` is fixed::
 

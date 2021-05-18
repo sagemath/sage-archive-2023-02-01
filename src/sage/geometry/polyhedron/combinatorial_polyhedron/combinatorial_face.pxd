@@ -24,6 +24,7 @@ cdef class CombinatorialFace(SageObject):
 
     # some copies from ``CombinatorialPolyhedron``
     cdef tuple _ambient_Vrep, _ambient_facets, _equations
+    cdef size_t _n_equations, _n_ambient_facets
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.

@@ -182,6 +182,7 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_Vrep      = it._Vrep
             self._ambient_facets    = it._facet_names
             self._equations         = it._equations
+            self._n_equations       = len(self._equations) if self._equations else 0
             self._hash_index        = it.structure._index
 
             self._initialized_from_face_lattice = False
@@ -207,6 +208,7 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_Vrep      = all_faces._Vrep
             self._ambient_facets    = all_faces._facet_names
             self._equations         = all_faces._equations
+            self._n_equations       = len(self._equations) if self._equations else 0
 
             self._initialized_from_face_lattice = True
 
@@ -225,6 +227,10 @@ cdef class CombinatorialFace(SageObject):
         if self._dual:
             # Reverse the hash index in dual mode to respect inclusion of faces.
             self._hash_index = -self._hash_index - 1
+
+            self._n_ambient_facets = self.atoms.n_faces()
+        else:
+            self._n_ambient_facets = self.coatoms.n_faces()
 
     def _repr_(self):
         r"""
@@ -686,11 +692,10 @@ cdef class CombinatorialFace(SageObject):
         cdef size_t n_facets, n_equations
         cdef tuple equations
 
-        if add_equations and self._ambient_facets:
-            n_facets = len(self._ambient_facets)
-            n_equations = len(self._equations)
+        if add_equations and self._equations:
             equations = tuple(smallInteger(i)
-                              for i in range(n_facets, n_facets + n_equations))
+                              for i in range(self._n_ambient_facets,
+                                             self._n_ambient_facets + self._n_equations))
         else:
             equations = ()
 
@@ -784,7 +789,7 @@ cdef class CombinatorialFace(SageObject):
             doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
             See https://trac.sagemath.org/28614 for details.
         """
-        cdef size_t n_equations = len(self._equations) if add_equations else 0
+        cdef size_t n_equations = self._n_equations if add_equations else 0
         if not self._dual:
             return smallInteger(self.set_coatom_rep() + n_equations)
         else:

@@ -548,6 +548,26 @@ cdef class FaceIterator_base(SageObject):
             sage: it.meet_of_Hrep(9,11).ambient_H_indices()
             (9, 11)
 
+        TESTS:
+
+        Check that things work fine, if the face iterator was never properly initialized::
+
+            sage: P = Polyhedron()
+            sage: P.meet_of_Hrep()
+            A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: P = Polyhedron([[0,0]])
+            sage: P.meet_of_Hrep()
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P.meet_of_Hrep(0)
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P = Polyhedron(lines=[[1]])
+            sage: P.meet_of_Hrep()
+            A 1-dimensional face of a Polyhedron in ZZ^1 defined as the convex hull of 1 vertex and 1 line
+            sage: P = Polyhedron(lines=[[1, 1]])
+            sage: P.meet_of_Hrep()
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: P.meet_of_Hrep(0)
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
         """
         # Ignore equations.
         indices = [i for i in indices
@@ -645,6 +665,33 @@ cdef class FaceIterator_base(SageObject):
             A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
             sage: it.join_of_Vrep(1,2)
             A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 rays
+
+        TESTS:
+
+        Check that things work fine, if the face iterator was never properly initialized::
+
+            sage: P = Polyhedron()
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: P = Polyhedron([[0,0]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.join_of_Vrep(0)
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P = Polyhedron(lines=[[1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^1
+            sage: P.join_of_Vrep(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the join is not well-defined
+            sage: P = Polyhedron(lines=[[1, 1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.join_of_Vrep(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the join is not well-defined
         """
         if not self.dual:
             return self._join_of_atoms(*indices)
@@ -750,7 +797,10 @@ cdef class FaceIterator_base(SageObject):
                 raise IndexError("coatoms out of range")
             face_intersection(face, face, coatoms.data.faces[i])
 
-        if not self._bounded and face_issubset(face, self.structure.visited_all[self.structure.dimension-1].faces[0]):
+        if not self.coatoms.n_faces():
+            # Prevent segmentation fault.
+            pass
+        elif not self._bounded and face_issubset(face, self.structure.visited_all[self.structure.dimension-1].faces[0]):
             # The meet is contained in the far face and therefore is the empty face.
             face_clear(face)
 
@@ -866,6 +916,11 @@ cdef class FaceIterator_base(SageObject):
         if not indices:
             # The neutral element of the join.
             face_clear(face)
+        elif not self._bounded and not self.coatoms.n_faces():
+            # Note: It is important to catch this and not to run ``face_issubset`` to prevent a segmentation fault.
+            if face_len_atoms(face):
+                # Contained in the far face, if it contains anything.
+                raise ValueError("the join is not well-defined")
         elif not self._bounded and face_issubset(face, self.structure.visited_all[self.structure.dimension-1].faces[0]):
             # The join is not well-defined.
             # We allow for unbounded polyhedra to compute the join, even with rays.

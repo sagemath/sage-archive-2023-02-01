@@ -751,7 +751,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it._meet_of_coatoms(-1)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to size_t
+            IndexError: coatoms out of range
             sage: it._meet_of_coatoms(100)
             Traceback (most recent call last):
             ...
@@ -786,11 +786,12 @@ cdef class FaceIterator_base(SageObject):
 
         cdef ListOfFaces face_mem = ListOfFaces(1, n_atoms, n_coatoms)
         cdef face_t face = face_mem.data.faces[0]
-        cdef size_t i
+        cdef int i
+        cdef size_t j
 
         # Initialize the full polyhedron.
-        for i in range(n_atoms):
-            face_add_atom(face, i)
+        for j in range(n_atoms):
+            face_add_atom(face, j)
 
         for i in indices:
             if not 0 <= i < n_coatoms:
@@ -895,9 +896,10 @@ cdef class FaceIterator_base(SageObject):
         cdef ListOfFaces face_mem = ListOfFaces(2, n_atoms, n_coatoms)
         cdef face_t face = face_mem.data.faces[0]
         cdef face_t pseudo_face = face_mem.data.faces[1]
+        cdef int j
         cdef size_t i
 
-        if not all(i in range(n_atoms) for i in indices):
+        if not all(0 <= j < n_atoms for j in indices):
             raise IndexError("atoms out of range")
 
         # Initialize a pseudo_face as indicated by the indices.

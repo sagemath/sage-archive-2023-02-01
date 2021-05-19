@@ -7016,6 +7016,13 @@ class Polyhedron_base(Element):
             A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
             sage: P.least_common_superface_of_Vrep == P.join_of_Vrep
             True
+
+        Error message for invalid input::
+
+            sage: P.join_of_Vrep('foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: foo is not a Vrepresentative
         """
         from sage.geometry.polyhedron.representation import Vrepresentation
         from sage.geometry.polyhedron.face import PolyhedronFace
@@ -7041,7 +7048,7 @@ class Polyhedron_base(Element):
 
     def meet_of_Hrep(self, *Hrepresentatives):
         r"""
-        Return the largest face that is contained in ``facets``.
+        Return the largest face that is contained in ``Hrepresentatives``.
 
         INPUT:
 
@@ -7109,7 +7116,7 @@ class Polyhedron_base(Element):
              An inequality (1, 1, 0) x - 3 >= 0,
              An equation (1, 1, 1) x - 6 == 0)
             sage: P.meet_of_Hrep(0).ambient_Hrepresentation()
-            (An equation (1, 1, 1) x - 6 == 0, An inequality (0, 0, 1) x - 1 >= 0)
+            (An inequality (0, 0, 1) x - 1 >= 0, An equation (1, 1, 1) x - 6 == 0)
 
             sage: P = polytopes.permutahedron(3, backend='ppl')
             sage: P.Hrepresentation()
@@ -7129,6 +7136,13 @@ class Polyhedron_base(Element):
             (An equation (1, 1, 1) x - 6 == 0, An inequality (1, 1, 0) x - 3 >= 0)
             sage: P.greatest_common_subface_of_Hrep == P.meet_of_Hrep
             True
+
+        Error message for invalid input::
+
+            sage: P.meet_of_Hrep('foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: foo is not a Hrepresentative
         """
         from sage.geometry.polyhedron.representation import Inequality, Equation
         from sage.geometry.polyhedron.face import PolyhedronFace
@@ -7161,7 +7175,7 @@ class Polyhedron_base(Element):
                 # Ignore equations.
                 continue
             else:
-                raise ValueError("{} is the index of an equation and not of an inequality".format(facet))
+                raise ValueError("{} is not a Hrepresentative".format(facet))
 
         return self.face_generator().meet_of_Hrep(*new_indices)
 

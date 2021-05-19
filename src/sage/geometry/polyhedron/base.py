@@ -9684,31 +9684,29 @@ class Polyhedron_base(Element):
         else:
             return MatrixGroup(matrices)
 
-    def match_permutations_to_matrices(polytope, conj_class_reps, acting_group=None, additional_elts=None):
+    def match_permutations_to_matrices(self, conj_class_reps, acting_group=None, additional_elts=None):
         r"""
-        An element of ``polytope``'s ``restricted_autormorphism_group`` may
-        be represented either as a permutation of the vertices of ``polytope``
-        or as a matrix. This function returns a dictionary with permutations
-        as keys and matrices as values.
+        Return a dictionary between different representations of elements in
+        the ``acting_group``, with group elements represented as permutations
+        of the vertices of this polytope (keys) or matrices (values).
 
-        When ``additional_elts`` is ``None``, the dictionary is returned for the
-        generators and conjugacy classes representatives in conj_class_reps of the
-        ``restricted_automorphism_group`` or the ``acting_group``.
-        When ``additional_elts`` is not ``None``, each element in
-        ``additional_elts`` also becomes a key.
+        The dictionary has entries for the generators of the ``acting_group``
+        and the representatives of conjugacy classes in ``conj_class_reps``. By
+        default, the ``acting_group`` is the ``restricted_automorphism_group``
+        of the polytope. Each element in ``additional_elts`` also becomes a key.
 
         INPUT:
 
-        - ``polytope`` -- polyhedron object. a lattice polytope.
+        - ``self`` -- polyhedron object. a lattice polytope.
 
-        - ``conj_class_reps`` -- list. A list of representatives of the conjugacy
-          classes of the ``restricted_automorphism_group``.
+        - ``conj_class_reps`` -- list. A list of representatives of the
+          conjugacy classes of the ``acting_group``.
 
-        - ``acting_group`` -- a subgroup of the ``polytope``'s
+        - ``acting_group`` -- a subgroup of polytope's
           ``restricted_automorphism_group``.
 
         - ``additional_elts`` -- list (default=None). a subset of the
-          ``restricted_automorphism_group`` of ``polytope`` expressed as
+          ``restricted_automorphism_group`` of the polytope expressed as
           permutations.
 
         OUTPUT:
@@ -9780,44 +9778,48 @@ class Polyhedron_base(Element):
              [ 0 -1  0]
              [ 0  0  1]}
         """
-        if polytope.is_empty():
+        if self.is_empty():
             raise NotImplementedError('Empty polyhedra are not supported')
-        if not polytope.is_compact():
+        if not self.is_compact():
             raise NotImplementedError('Unbounded polyhedra are not supported')
-        V = [v.homogeneous_vector() for v in polytope.Vrepresentation()]
+        V = [v.homogeneous_vector() for v in self.Vrepresentation()]
         Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()
         Vplus = list(matrix(V) * Qplus)
         W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V)))
 
-        G = polytope.restricted_automorphism_group(output='permutation')
+        G = self.restricted_automorphism_group(output='permutation')
         if acting_group is not None:
             G = acting_group
 
         group_dict = {}
 
         for perm in G.gens():
-            group_dict[perm] = polytope._match_permutation_to_matrix(perm, V, Vplus, W)
+            group_dict[perm] = self._match_permutation_to_matrix(perm, V, Vplus, W)
 
         for perm in conj_class_reps:
-            group_dict[perm] = polytope._match_permutation_to_matrix(perm, V, Vplus, W)
+            group_dict[perm] = self._match_permutation_to_matrix(perm, V, Vplus, W)
 
         if additional_elts is not None:
             for perm in additional_elts:
-                group_dict[perm] = polytope._match_permutation_to_matrix(perm, V, Vplus, W)
+                group_dict[perm] = self._match_permutation_to_matrix(perm, V, Vplus, W)
         return group_dict
 
-    def _match_permutation_to_matrix(polytope, permutation, V, Vplus, W):
+    def _match_permutation_to_matrix(self, permutation, V, Vplus, W):
         r"""
         Return the matrix representation of a permutation in the
-        ``restricted_autormorphism_group`` of ``polytope``.
+        ``restricted_autormorphism_group`` of this polytope.
 
         INPUT:
 
-        - ``polytope`` -- polyhedron object. A lattice polytope.
+        - ``self`` -- polyhedron object. A lattice polytope.
 
-        - ``V`` -- list. a list of vectors from the ``match_permutations_to_matrices`` function.
+        - ``permutation`` -- a permutation group element.
 
-        - ``Vplus`` -- list. from the ``match_permutations_to_matrices`` function.
+        - ``V`` -- list. a list of vectors from the
+          ``match_permutations_to_matrices`` function.
+
+        - ``Vplus`` -- list. from the ``match_permutations_to_matrices``
+          function.
 
         - ``W`` -- matrix. from the ``match_permutations_to_matrices`` function.
 

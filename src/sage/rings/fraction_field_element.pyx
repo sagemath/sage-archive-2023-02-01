@@ -981,9 +981,10 @@ cdef class FractionFieldElement(FieldElement):
         r"""
         Return ``True`` if this element is an element of the base ring.
 
-        The base ring may be seen as a subset of the fraction field, they are
-        elements whose equivalence classes have representatives (a,1) for
-        a in the base ring. This function tests membership in this subset.
+        The base ring may be seen as a subset of the fraction field. This subset
+        consists of elements whose equivalence classes have representatives
+        (a,1) for a in the base ring. This function tests membership
+        in this subset.
 
         INPUT:
 
@@ -993,7 +994,7 @@ cdef class FractionFieldElement(FieldElement):
 
         Boolean. Whether ``self`` is a polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: F = ZZ['x,y'].fraction_field()
             sage: x,y = F.gens()

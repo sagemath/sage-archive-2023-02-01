@@ -2202,10 +2202,10 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
     def _Hstar_function_normaliz(self, acting_group=None, output=None):
         r"""
         Return `H^*` as a rational function in `t` with coefficients in
-        the ring of class functions of the ``acting_group``
-        of ``self``.
+        the ring of class functions of the ``acting_group`` of the polytope.
 
-        Here, `\H^*(t) = \sum\_{m} \chi\_{m\text{``self``}}t^m det(Id-\rho(t))`.
+        As in [Stap2011]_, when ``self`` is the polytope `P`,
+        `H^*(t) = (\sum_{m \geq 0} \chi\_{mP} t^m)(\det(I-\rho(t)))`.
         The irreducible characters of ``acting_group`` form an orthonormal basis
         for the ring of class functions with values in `\mathbb C`.
         The coefficients of `H^*(t)` are expressed in this basis.
@@ -2399,17 +2399,14 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
     def _express_Hstar_as_polynomial_in_t(self, initial_Hstar):
         r"""
-        Rewrite the vector representing `H^*(t)` given as a linear combination of
-        the irreducible representations as a rational function in `t`.
-
-        The function `H^*` is first calculated as a linear combination of the irreducible
-        representations of ``self.restricted_automorphism_group``. The convention is
-        to express `H^*` as a rational function in `t` with coefficients in the ring of
-        class functions.
+        Rewrite the vector representing `H^*(t)` given as a linear combination
+        of the irreducible representations of the acting group as a rational
+        function in `t`.
 
         INPUT:
 
-        - ``self``
+        - ``self`` -- polyhedron object. A full dimensional lattice polytope
+          with backend='normaliz'.
 
         - ``initial_Hstar`` -- a vector of rational functions in `t`.
 

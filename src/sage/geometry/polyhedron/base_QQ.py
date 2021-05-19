@@ -929,10 +929,10 @@ class Polyhedron_QQ(Polyhedron_base):
         A dictionary with conj_class_reps as keys and the fixed subpolytopes
         as values.
 
-        NOTE:
+        .. NOTE::
 
-        Two elements in the same conjugacy class fix lattice-isomorphic
-        subpolytopes.
+            Two elements in the same conjugacy class fix lattice-isomorphic
+            subpolytopes.
 
         EXAMPLES:
 

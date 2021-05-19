@@ -1283,16 +1283,16 @@ class FMatrix():
             module, ``self.pool`` is set to ``None``, no worker pool is created,
             and all subsequent calculations will run serially.
 
-        INPUT::
+        INPUT:
 
         - ``processes`` -- an integer indicating the number of workers
           in the pool. If left unspecified, the number of workers is
           equals the number of processors available.
 
-        OUTPUT::
+        OUTPUT:
 
-        Returns a boolean indicating whether a worker pool was successfully
-        initialized.
+        This method returns a boolean indicating whether a worker pool
+        was successfully initialized.
 
         EXAMPLES::
 
@@ -2187,7 +2187,7 @@ class FMatrix():
                 return
         loads_shared_memory = False
         if use_mp:
-            loads shared_memory = self.start_worker_pool()
+            loads_shared_memory = self.start_worker_pool()
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, self._poly_ring.ngens()))
 

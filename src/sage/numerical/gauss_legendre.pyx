@@ -53,7 +53,7 @@ def nodes(degree,prec):
 
     A list of (node,weight) pairs.
 
-    EXAMPLES:
+    EXAMPLES::
 
     The nodes for the Gauss-Legendre scheme are roots of Legendre polynomials.
     The weights can be computed by a straightforward formula (note that evaluating
@@ -183,11 +183,11 @@ def integrate_vector(f,prec,epsilon=None):
 
     INPUT:
 
-     - `f` -- callable. Vector-valued integrand.
+     - ``f`` -- callable. Vector-valued integrand.
 
-     - `prec` -- integer. Binary precision to be used.
+     - ``prec`` -- integer. Binary precision to be used.
 
-     - `epsilon` -- Multiprecision float. Target error bound.
+     - ``epsilon`` -- Multiprecision float. Target error bound.
 
     OUTPUT:
 

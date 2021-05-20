@@ -58,6 +58,7 @@ cdef class FaceIterator_base(SageObject):
     cdef tuple _Vrep, _facet_names, _equations
     cdef size_t _n_equations, _n_facets
     cdef bint _bounded
+    cdef face_t _far_face
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.

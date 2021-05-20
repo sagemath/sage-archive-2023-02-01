@@ -1227,6 +1227,10 @@ cdef class FaceIterator_base(SageObject):
         Iterate until the current face is ``face``.
 
         The value can then be obtained with :meth:`current`.
+
+        The iterator is assumed to be newly initialized or reset.
+        See :meth:`FaceIterator_base._join_of_atoms` and
+        :meth:`FaceIterator_base._meet_of_coatoms`.
         """
         cdef size_t n_atoms = face_len_atoms(face)
 

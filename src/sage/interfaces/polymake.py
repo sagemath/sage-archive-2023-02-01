@@ -1929,7 +1929,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
 
             sage: polymake('"foobar"')                          # optional - polymake
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
-            PolymakeError: Can't locate object method "description" via package "1"
+            ...PolymakeError: Can't locate object method "description" via package "1"
             (perhaps you forgot to load "1"?)...>
             sage: Q.typeof()                                    # optional - polymake # random
             ('foobar...', 'Polymake::polytope::Polytope__Rational')
@@ -1952,7 +1952,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             return
         rnd = randrange(2147483647)
         res = str(rnd+1)
-        cmd = 'print 1+{};' + self._expect.linesep
+        cmd = 'print 1+{};' + os.linesep
         self._sendstr(cmd.format(rnd))
         pat = self._expect.expect(self._prompt, timeout=0.5)
         # 0: normal prompt
@@ -1974,7 +1974,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         elif pat == 0:
             # We got the right prompt, but perhaps in a wrong position in the stream
             # The result of the addition should appear *before* our prompt
-            if res not in self._expect.before:
+            if res not in bytes_to_str(self._expect.before):
                 try:
                     warnings.warn("{} seems out of sync: The expected output did not appear before reaching the next prompt.".format(self))
                     while True:

@@ -112,7 +112,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
     but through its subclasses Polymake (Pexpect interface)
     or PolymakeJuPyMake (JuPyMake interface).
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.interfaces.polymake import PolymakeAbstract, polymake_expect, polymake_jupymake
 
@@ -363,9 +363,9 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         """
         Start the polymake interface in the application "polytope".
 
-        NOTE:
+        .. NOTE::
 
-        There should be no need to call this explicitly.
+            There should be no need to call this explicitly.
 
         TESTS::
 
@@ -442,12 +442,12 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         return r'SAGE{}'.format(self.__seq)
 
     def clear(self, var):
-        """
-        Clear the variable named var.
+        r"""
+        Clear the variable named ``var``.
 
-        NOTE:
+        .. NOTE::
 
-        This is implicitly done when deleting an element in the interface.
+            This is implicitly done when deleting an element in the interface.
 
         TESTS::
 
@@ -469,24 +469,24 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         INPUT:
 
-        - ``value``, a string: Polymake command (or value) whose result
+        - ``value`` -- string; Polymake command (or value) whose result
           is to be assigned to a variable
-        - ``name``, optional string: If given, the new variable has this name.
-          Otherwise, the name is automatically generated.
+        - ``name`` -- (optional) string; if given, the new variable has this
+          name; otherwise, the name is automatically generated
 
         RETURN:
 
         The command by which the assigned value can now be retrieved.
 
-        NOTE:
+        .. NOTE::
 
-        In order to overcome problems with the perl programming language,
-        we store *all* data as arrays. If the given value is an array
-        of length different from one, then the new variable contains that
-        array. Otherwise, the new variable is an array of length one whose
-        only entry is the given value, which has to be a scalar (which
-        also includes Perl references). In other words, perl hashes
-        are not suitable.
+            In order to overcome problems with the perl programming language,
+            we store *all* data as arrays. If the given value is an array
+            of length different from one, then the new variable contains that
+            array. Otherwise, the new variable is an array of length one whose
+            only entry is the given value, which has to be a scalar (which
+            also includes Perl references). In other words, perl hashes
+            are not suitable.
 
         EXAMPLES::
 
@@ -666,15 +666,15 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             return H
 
     def _tab_completion(self):
-        """
-        Returns a list of polymake function names.
+        r"""
+        Return a list of polymake function names.
 
-        NOTE:
+        ..NOTE::
 
-        - The list of functions depends on the current application. The
-          result is cached, of course separately for each application.
-        - It is generally not the case that all the returned function names
-          can actually successfully be called.
+            - The list of functions depends on the current application. The
+              result is cached, of course separately for each application.
+            - It is generally not the case that all the returned function
+              names can actually successfully be called.
 
         TESTS::
 
@@ -683,19 +683,18 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             True
             sage: polymake.application('polytope')              # optional - polymake
 
-        Since 'normal_fan' is not defined in the polymake application 'polytope',
-        we now get
-        ::
+        Since ``'normal_fan'`` is not defined in the polymake application
+        ``'polytope'``, we now get::
 
             sage: 'normal_fan' in dir(polymake)                 # optional - polymake
             False
 
-        Global functions from 'core' are available::
+        Global functions from ``'core'`` are available::
 
             sage: 'show_credits' in dir(polymake)               # optional - polymake
             True
 
-        Global functions from 'common' are available::
+        Global functions from ``'common'`` are available::
 
             sage: 'lex_ordered' in dir(polymake)                # optional - polymake
             True
@@ -709,7 +708,9 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         s = self.eval("apropos '';").split('\n')
         out = []
         for name in s:
-            if name.startswith("/common/functions/") or name.startswith("/core/functions") or name.startswith("/" + self._application + "/functions/"):
+            if (name.startswith("/common/functions/")
+                or name.startswith("/core/functions")
+                or name.startswith("/" + self._application + "/functions/")):
                 out.append(name.split("/")[-1])
         self.__tab_completion[self._application] = sorted(out)
         return self.__tab_completion[self._application]
@@ -1040,12 +1041,12 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         List the names of properties that have been computed so far on this element.
 
-        NOTE:
+        .. NOTE::
 
-        This is in many cases equivalent to use polymake's ``list_properties``,
-        which returns a blank separated string representation of the list of properties.
-        However, on some elements, ``list_properties`` would simply result in
-        an error.
+            This is in many cases equivalent to use polymake's
+            ``list_properties``, which returns a blank separated string
+            representation of the list of properties. However, on some
+            elements, ``list_properties`` would simply result in an error.
 
         EXAMPLES::
 
@@ -1173,14 +1174,14 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         Return a list of available function and property names.
 
-        NOTE:
+        .. NOTE::
 
-        This currently returns the names of functions defined in the current
-        application, regardless whether they can be applied to this element
-        or not, together with the list of properties of this element that
-        polymake knows how to compute. It does not contain the list of available
-        member functions of this element. This may change in future versions
-        of polymake.
+            This currently returns the names of functions defined in the current
+            application, regardless whether they can be applied to this element
+            or not, together with the list of properties of this element that
+            polymake knows how to compute. It does not contain the list of available
+            member functions of this element. This may change in future versions
+            of polymake.
 
         EXAMPLES::
 
@@ -1201,16 +1202,16 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         Return a property of this element, or a polymake function with this
         element as first argument, or a member function of this element.
 
-        NOTE:
+        .. NOTE::
 
-        If the attribute name is known as the name of a property, it is
-        interpreted as such. Otherwise, if it is known as a function in
-        the current application, the function is returned with this
-        element inserted as first argument, and potential further arguments,
-        when called. Otherwise, it is assumed that it is a member function
-        of this element, and treated as such. Note that member functions
-        are currently invisible in tab completion, thus, the user has
-        to know the name of the member function.
+            If the attribute name is known as the name of a property, it is
+            interpreted as such. Otherwise, if it is known as a function in
+            the current application, the function is returned with this
+            element inserted as first argument, and potential further arguments,
+            when called. Otherwise, it is assumed that it is a member function
+            of this element, and treated as such. Note that member functions
+            are currently invisible in tab completion, thus, the user has
+            to know the name of the member function.
 
         EXAMPLES:
 
@@ -1265,10 +1266,10 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         Request a member function of this element.
 
-        NOTE:
+        .. NOTE::
 
-        It is not checked whether a member function with the given name
-        exists.
+            It is not checked whether a member function with the given name
+            exists.
 
         EXAMPLES::
 
@@ -1298,11 +1299,11 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         Get a member/property of this element.
 
-        NOTE:
+        .. NOTE::
 
-        Normally, it should be possible to just access the property
-        in the usual Python syntax for attribute access. However, if
-        that fails, one can request the member explicitly.
+            Normally, it should be possible to just access the property
+            in the usual Python syntax for attribute access. However, if
+            that fails, one can request the member explicitly.
 
         EXAMPLES::
 
@@ -1420,11 +1421,12 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
     @cached_method
     def typeof(self):
         """
-        Returns the type of a polymake "big" object, and its underlying Perl type.
+        Return the type of a polymake "big" object, and its
+        underlying Perl type.
 
-        NOTE:
+        .. NOTE::
 
-        This is mainly for internal use.
+            This is mainly for internal use.
 
         EXAMPLES::
 
@@ -1693,10 +1695,10 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
         """
         Return documentation of this function.
 
-        NOTE:
+        .. NOTE::
 
-        For unclear reasons, accessing documentation with `?` sometimes
-        does not include the return value of this method.
+            For unclear reasons, accessing documentation with ``?`` sometimes
+            does not include the return value of this method.
 
         EXAMPLES::
 
@@ -1823,9 +1825,9 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         """
         Start the polymake interface in the application "polytope".
 
-        NOTE:
+        .. NOTE::
 
-        There should be no need to call this explicitly.
+            There should be no need to call this explicitly.
 
         TESTS::
 
@@ -1837,8 +1839,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             sage: polymake._start()                         # optional - polymake
 
         Since 'normal_fan' is not defined in the polymake application 'polytope',
-        we now get
-        ::
+        we now get::
 
             sage: 'normal_fan' in dir(polymake)             # optional - polymake
             False
@@ -1861,13 +1862,13 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         return "exit;"
 
     def _keyboard_interrupt(self):
-        """
-        Interrupt a computation with <Ctrl-c>
+        r"""
+        Interrupt a computation with <Ctrl-c>.
 
         TESTS:
 
         For reasons that are not clear to the author, the following test
-        is very flaky. Therefore, this test is marked as "not tested".
+        is very flaky. Therefore, this test is marked as "not tested". ::
 
             sage: from sage.interfaces.polymake import polymake_expect as polymake
             sage: c = polymake.cube(15)                         # optional - polymake
@@ -1999,24 +2000,26 @@ class PolymakeExpect(PolymakeAbstract, Expect):
 
         INPUT:
 
-        - ``line``, a command (string) to be evaluated
-        - ``allow_use_file`` (optional bool, default ``True``), whether or not
-          to use a file if the line is very long.
-        - ``wait_for_prompt`` (optional, default ``True``), whether or not
-          to wait before polymake returns a prompt. If it is a string, it is considered
-          as alternative prompt to be waited for.
-        - ``restart_if_needed`` (optional bool, default ``True``), whether or
+        - ``line`` -- string; a command to be evaluated
+        - ``allow_use_file`` -- (default: ``True``) bool; whether or not
+          to use a file if the line is very long
+        - ``wait_for_prompt`` -- (default: ``True``) bool; whether or not
+          to wait before polymake returns a prompt. If it is a string, it is
+          considered as alternative prompt to be waited for
+        - ``restart_if_needed`` (default: ``True``) bool; whether or
           not to restart polymake in case something goes wrong
         - further optional arguments (e.g., timeout) that will be passed to
           :meth:`pexpect.pty_spawn.spawn.expect`. Note that they are ignored
           if the line is too long and thus is evaluated via a file. So,
-          if a timeout is defined, it should be accompanied by ``allow_use_file=False``.
+          if a timeout is defined, it should be accompanied by
+          ``allow_use_file=False``.
 
         Different reaction types of polymake, including warnings, comments,
         errors, request for user interaction, and yielding a continuation prompt,
         are taken into account.
 
-        Usually, this method is indirectly called via :meth:`~sage.interfaces.expect.Expect.eval`.
+        Usually, this method is indirectly called via
+        :meth:`~sage.interfaces.expect.Expect.eval`.
 
         EXAMPLES::
 
@@ -2385,7 +2388,6 @@ Polymake = PolymakeExpect
 
 
 class PolymakeJuPyMake(PolymakeAbstract):
-
     r"""
     Interface to the polymake interpreter using JuPyMake.
 
@@ -2433,6 +2435,8 @@ class PolymakeJuPyMake(PolymakeAbstract):
     To obtain Perl strings, use strings containing double-quote characters.
     Python dicts are translated to Perl hashes.
 
+    ::
+
          sage: L = polymake.db_query({'"_id"': '"F.4D.0047"'},    # long time, optional - jupymake internet perl_mongodb
          ....:                       db='"LatticePolytopes"',
          ....:                       collection='"SmoothReflexive"'); L
@@ -2453,7 +2457,7 @@ class PolymakeJuPyMake(PolymakeAbstract):
         INPUT:
 
         - ``verbose`` -- boolean (default: ``False``); whether to print the
-        commands passed to polymake.
+          commands passed to polymake
 
         TESTS::
 
@@ -2468,7 +2472,7 @@ class PolymakeJuPyMake(PolymakeAbstract):
 
     def is_running(self):
         """
-        Return True if self is currently running.
+        Return ``True`` if ``self`` is currently running.
 
         TESTS::
 
@@ -2514,7 +2518,7 @@ class PolymakeJuPyMake(PolymakeAbstract):
 
         INPUT:
 
-        - ``code``, a command (string) to be evaluated
+        - ``code`` -- a command (string) to be evaluated
 
         Different reaction types of polymake, including warnings, comments,
         errors, request for user interaction, and yielding a continuation prompt,
@@ -2565,7 +2569,8 @@ class PolymakeJuPyMake(PolymakeAbstract):
         When requesting help, polymake sometimes expect the user to choose
         from a list. In that situation, we abort with a warning, and show
         the list from which the user can choose; we could demonstrate this using
-        the :meth:`help` method, but here we use an explicit code evaluation::
+        the :meth:`~sage.interfaces.polymake.PolymakeAbstract.help` method,
+        but here we use an explicit code evaluation::
 
             sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - jupymake # random
             doctest:warning
@@ -2590,7 +2595,8 @@ class PolymakeJuPyMake(PolymakeAbstract):
             ...
             RuntimeError: Polymake fails to respond timely
 
-        We verify that after the timeout, polymake is still able to give answers::
+        We verify that after the timeout, polymake is still able
+        to give answers::
 
             sage: c                                 # optional - jupymake
             cube of dimension 15
@@ -2601,7 +2607,6 @@ class PolymakeJuPyMake(PolymakeAbstract):
         It may happen that in some situation the interface collapses and
         thus polymake would automatically be restarted, thereby losing all
         data that have been computed before.
-
         """
         if not self.is_running():
             self._start()
@@ -2624,8 +2629,8 @@ class PolymakeJuPyMake(PolymakeAbstract):
 
 
 def reduce_load_Polymake():
-    """
-    Returns the polymake interface object defined in :mod:`sage.interfaces.polymake`.
+    r"""
+    Return the polymake interface object defined in :mod:`sage.interfaces.polymake`.
 
     EXAMPLES::
 
@@ -2645,3 +2650,4 @@ if PythonModule("JuPyMake").is_present():
     polymake = polymake_jupymake
 else:
     polymake = polymake_expect
+

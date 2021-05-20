@@ -97,7 +97,7 @@ class Polyhedron_polymake(Polyhedron_base):
 
         sage: V = polytopes.dodecahedron().vertices_list()
         sage: Polyhedron(vertices=V, backend='polymake')                   # optional - polymake
-        A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+        A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
 
     TESTS:
 
@@ -272,9 +272,9 @@ class Polyhedron_polymake(Polyhedron_base):
         polymake_field = polymake(self.base_ring().fraction_field())
         p = polymake.new_object("Polytope<{}>".format(polymake_field),
                                 CONE_AMBIENT_DIM=1+self.parent().ambient_dim(),
-                                POINTS=  [ [1] + v for v in vertices ] \
-                                       + [ [0] + r for r in rays ],
-                                INPUT_LINEALITY=[ [0] + l for l in lines ])
+                                POINTS=  [ [1] + list(v) for v in vertices ] \
+                                       + [ [0] + list(r) for r in rays ],
+                                INPUT_LINEALITY=[ [0] + list(l) for l in lines ])
         self._init_from_polymake_polytope(p)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):

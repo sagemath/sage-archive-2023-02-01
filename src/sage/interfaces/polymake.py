@@ -32,7 +32,7 @@ import time
 
 from .expect import Expect
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement)
-from sage.cpython.string import bytes_to_str
+from sage.cpython.string import bytes_to_str, str_to_bytes
 from sage.misc.verbose import get_verbose
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -2231,12 +2231,12 @@ class PolymakeExpect(PolymakeAbstract, Expect):
                         warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self, self))
                         i = pat
                         while i:
-                            self._expect.send(chr(3))
+                            self._expect.sendline(chr(3))
                             sleep(0.1)
                             i = self._expect.expect(self._prompt, timeout=0.1)
                         # User interaction is expected to happen when requesting help
                         if line.startswith('help'):
-                            out = os.linesep.join(out.split(os.linesep)[:-1])
+                            out = str_to_bytes(os.linesep).join(out.split(str_to_bytes(os.linesep))[:-1])
                             break
                         else:
                             RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
@@ -2273,9 +2273,9 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             self._keyboard_interrupt()
             raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
         for w in p_warnings:
-            warnings.warn(w, RuntimeWarning)
+            warnings.warn(bytes_to_str(w), RuntimeWarning)
         for e in p_errors:
-            raise PolymakeError(e)
+            raise PolymakeError(bytes_to_str(e))
         return bytes_to_str(out)
 
     def application(self, app):

@@ -491,15 +491,14 @@ cdef class FaceIterator_base(SageObject):
             ...
             ValueError: only possible when not in dual mode
 
-        Cannot run ``ignore_subfaces`` after ``only_subfaces::
+        Ignoring the same face as was requested to visit only consumes the iterator::
 
             sage: it = C.face_iter(dual=False)
             sage: _ = next(it)
             sage: it.only_subfaces()
             sage: it.ignore_subfaces()
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot ignore a face after setting iterator to only visit subsets
+            sage: list(it)
+            []
 
         Face iterator must be set to a face first::
 
@@ -1009,7 +1008,10 @@ cdef class FaceIterator_base(SageObject):
         if unlikely(self.structure.face_status == 0):
             raise ValueError("iterator not set to a face yet")
         if unlikely(self.structure.face_status == 3):
-            raise ValueError("cannot ignore a face after setting iterator to only visit subsets")
+            # The iterator is consumed, if it was just set to visit only subsets
+            # next thing to ignore subsets.
+            self.structure.current_dimension = self.structure.dimension
+            return 0
         if unlikely(self.structure.face_status == 2):
             # Nothing to do.
             return 0

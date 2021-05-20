@@ -185,8 +185,7 @@ from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 from .face_list_data_structure cimport *
 
-from cython.parallel cimport prange
-cimport openmp
+from cython.parallel cimport prange, threadid
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -1368,9 +1367,9 @@ cdef int parallel_f_vector(iter_t* structures, size_t num_threads, size_t parall
 
     for i in prange(n_jobs, schedule='dynamic', chunksize=1,
                     num_threads=num_threads, nogil=True):
-        _parallel_f_vector(structures[openmp.omp_get_thread_num()],
+        _parallel_f_vector(structures[threadid()],
                            parallelization_depth,
-                           parallel_structs[openmp.omp_get_thread_num()],
+                           parallel_structs[threadid()],
                            i)
 
     # Gather the results.

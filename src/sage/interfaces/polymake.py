@@ -32,7 +32,7 @@ import time
 
 from .expect import Expect
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement)
-
+from sage.cpython.string import bytes_to_str
 from sage.misc.verbose import get_verbose
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -2176,27 +2176,27 @@ class PolymakeExpect(PolymakeAbstract, Expect):
                     if self._terminal_echo:
                         out = E.before
                     else:
-                        out = E.before.rstrip('\n\r')
+                        out = E.before.rstrip(b'\n\r')
                     if self._terminal_echo and first:
-                        i = out.find("\n")
-                        j = out.rfind("\r")
-                        out = out[i + 1:j].replace('\r\n', '\n')
+                        i = out.find(b"\n")
+                        j = out.rfind(b"\r")
+                        out = out[i + 1:j].replace(b'\r\n', b'\n')
                     else:
-                        out = out.strip().replace('\r\n', '\n')
+                        out = out.strip().replace(b'\r\n', b'\n')
                     first = False
                     if have_error:
                         p_errors.append(out)
                         have_error = False
-                        out = ""
+                        out = b""
                     elif have_warning:
                         p_warnings.append(out)
                         have_warning = False
-                        out = ""
+                        out = b""
                     elif have_log:
                         if get_verbose() > 0:
                             print(out)
                         have_log = False
-                        out = ""
+                        out = b""
                     # 0: normal prompt
                     # 1: continuation prompt
                     # 2: user input expected when requestion "help"
@@ -2268,7 +2268,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
                             sleep(0.1)
                         raise RuntimeError("Polymake {}".format(_available_polymake_answers[pat]))
             else:
-                out = ''
+                out = b''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
             raise KeyboardInterrupt("Ctrl-c pressed while running {}".format(self))
@@ -2276,7 +2276,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             warnings.warn(w, RuntimeWarning)
         for e in p_errors:
             raise PolymakeError(e)
-        return out
+        return bytes_to_str(out)
 
     def application(self, app):
         """
@@ -2378,7 +2378,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
                     pexpect.EOF,                    # 7: unexpected end of the stream
                     pexpect.TIMEOUT]                # 8: timeout
         self._change_prompt(self._expect.compile_pattern_list(patterns))
-        self._sendstr('application "{}";{}'.format(app, self._expect.linesep))
+        self._sendstr('application "{}";{}'.format(app, os.linesep))
         pat = self._expect.expect_list(self._prompt)
         if pat:
             raise RuntimeError("When changing the application, polymake unexpectedly {}".format(_available_polymake_answers[pat]))

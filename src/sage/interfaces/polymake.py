@@ -1683,7 +1683,7 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
             sage: p.get_schedule('"VERTICES"')                    # optional - polymake  # random
             sensitivity check for VertexPerm
             cdd.convex_hull.canon: POINTED, RAYS, LINEALITY_SPACE : INPUT_RAYS
-            sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - polymake
+            sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - polymake # not tested
             13 33 22
 
         """

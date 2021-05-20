@@ -2194,7 +2194,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
                         out = b""
                     elif have_log:
                         if get_verbose() > 0:
-                            print(out)
+                            print(bytes_to_str(out))
                         have_log = False
                         out = b""
                     # 0: normal prompt

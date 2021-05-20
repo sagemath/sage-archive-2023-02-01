@@ -208,13 +208,12 @@ class FMatrix():
 
         ::
 
-            sage: f.get_defining_equations("pentagons")[1:3]
-            [fx9*fx12 - fx2*fx13, fx3*fx8 - fx4*fx9]
-            sage: f.get_defining_equations("hexagons")[1:3]
-            [fx11*fx12 + (-zeta128^32)*fx13^2 + (-zeta128^48)*fx13,
-             fx10*fx11 + (-zeta128^32)*fx11*fx13 + (-zeta128^16)*fx11]
-            sage: f.get_orthogonality_constraints()[1:3]
-            [fx1^2 - 1, fx2^2 - 1]
+            sage: sorted(f.get_defining_equations("pentagons"))[1:3]
+            [fx9*fx12 - fx2*fx13, fx4*fx11 - fx2*fx13]
+            sage: sorted(f.get_defining_equations("hexagons"))[1:3]
+            [fx6 - 1, fx2 + 1]
+            sage: sorted(f.get_orthogonality_constraints())[1:3]
+            [fx10*fx11 + fx12*fx13, fx10*fx11 + fx12*fx13]
 
         There are two methods available to compute an F-matrix.
         The first, :meth:`find_cyclotomic_solution` uses only
@@ -1297,8 +1296,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",1))
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: he = f.get_defining_equations('hexagons')
             sage: sorted(he)
             [fx0 - 1,
@@ -1376,8 +1374,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("A1",3))
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: he = f.get_defining_equations('hexagons')
             sage: f.shutdown_worker_pool()
         """
@@ -1416,9 +1413,11 @@ class FMatrix():
             sage: f._reset_solver_state()
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1,False)]))
             11
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
-            sage: mp_params = [(i,f.pool._processes,True) for i in range(f.pool._processes)]
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: if is_shared_memory_available:
+            ....:     mp_params = [(i,f.pool._processes,True) for i in range(f.pool._processes)]
+            ....: else:
+            ....:     mp_params = [(0,1,True)]
             sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=f.pool,chunksize=1,mp_thresh=0))
             33
             sage: f.shutdown_worker_pool()
@@ -1578,8 +1577,7 @@ class FMatrix():
 
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: f = FMatrix(FusionRing("C3",1))
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: he = f.get_defining_equations('hexagons')
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
             True
@@ -1596,14 +1594,14 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("A1",3))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: f.get_defining_equations('hexagons',output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f.mp_thresh = 0
-            sage: f._fvars = f._shared_fvars
+            sage: if is_shared_memory_available:
+            ....:     f._fvars = f._shared_fvars
             sage: f._triangular_elim(verbose=False)  # indirect doctest
             sage: f.ideal_basis
             []
@@ -1826,8 +1824,7 @@ class FMatrix():
             sage: f = FMatrix(FusionRing("F4",1))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: f.get_defining_equations('hexagons',output=False)
             sage: gb = f._par_graph_gb()
             Partitioned 10 equations into 2 components of size:
@@ -1883,8 +1880,7 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2",2))
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
+            sage: is_shared_memory_available = f.start_worker_pool()                     # Requires Python 3.8+
             sage: f.get_defining_equations('hexagons',output=False)                      # long time
             sage: f.shutdown_worker_pool()
             sage: partition = f._partition_eqns()                                        # long time

@@ -53,7 +53,10 @@ cdef class KSHandler:
         - ``n_slots`` -- The total number of F-symbols.
         - ``field`` -- F-matrix factory's base cyclotomic field.
         - ``use_mp`` -- a boolean indicating whether to construct a shared
-          memory block to back ``self``.
+          memory block to back ``self``. Requires Python 3.8+, since we
+          must import the ``multiprocessing.shared_memory`` module. Attempting
+          to initialize when ``multiprocessing.shared_memory`` is not available
+          results in an ``ImportError``.
         - ``name`` -- the name of a shared memory object
           (used by child processes for attaching).
         - ``init_data`` -- a dictionary or :class:`KSHandler` object containing
@@ -77,9 +80,12 @@ cdef class KSHandler:
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: n = f._poly_ring.ngens()
-            sage: ks = KSHandler(n,f._field,use_mp=True)
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: ks2 = KSHandler(n,f._field,name=ks.shm.name,use_mp=True)
+            sage: ks2 = KSHandler(n,f._field,name=ks.shm.name,use_mp=is_shared_memory_available)
+            sage: if not is_shared_memory_available:
+            ....:     ks2 = ks
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
             sage: ks.update([poly_to_tup(p) for p in eqns])
@@ -89,6 +95,7 @@ cdef class KSHandler:
             Index: 1, square: 4
             Index: 3, square: -zeta32^4 + 1/19*zeta32^2
             sage: ks.shm.unlink()
+            sage: f.shutdown_worker_pool()
         """
         cdef int n, d
         self.field = field
@@ -267,12 +274,16 @@ cdef class KSHandler:
             sage: f.get_orthogonality_constraints(output=False)
             sage: from sage.combinat.root_system.shm_managers import KSHandler
             sage: n = f._poly_ring.ngens()
-            sage: ks = KSHandler(n,f._field,use_mp=True,init_data=f._ks)
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available,init_data=f._ks)
             sage: #In the same shell or in a different one, attach to shared memory handler
-            sage: k2 = KSHandler(n,f._field,name=ks.shm.name)
+            sage: k2 = KSHandler(n,f._field,name=ks.shm.name,use_mp=is_shared_memory_available)
+            sage: if not is_shared_memory_available:
+            ....:     k2 = ks
             sage: ks == k2
             True
             sage: ks.shm.unlink()
+            sage: f.shutdown_worker_pool()
         """
         ret = True
         for idx, sq in self.items():
@@ -377,18 +388,32 @@ cdef class FvarsHandler:
         - ``max_terms`` -- maximum number of terms in each entry. Since
           we use contiguous C-style memory blocks, the size of the block
           must be known in advance.
+        - ``use_mp`` -- a boolean indicating whether the array backing
+          ``self`` should be placed in shared memory. This requires
+          Python 3.8+, since we must import the
+          ``multiprocessing.shared_memory`` module. Attempting to initialize
+          when ``multiprocessing.shared_memory`` is not available results in
+          an ``ImportError``.
+        - ``n_bytes`` -- the number of bytes that should be allocated for
+          each numerator and each denominator stored by the structure.
 
         .. NOTE::
 
             To properly dispose of shared memory resources,
             ``self.shm.unlink()`` must be called before exiting.
 
+        .. NOTE::
+
+            If you ever encounter an ``OverflowError`` when running the
+            :meth:`FMatrix.find_orthogonal_solution`` solver, consider
+            increasing the parameter ``n_bytes``.
+
         .. WARNING::
 
             The current data structure supports up to 2**16 entries,
             with each monomial in each entry having at most 254
             nonzero terms. On average, each of the ``max_terms`` monomials
-            can have at most 50 terms.
+            can have at most 30 terms.
 
         EXAMPLES::
 
@@ -397,15 +422,19 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
-            sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=True)
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=is_shared_memory_available)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name,use_mp=True)
+            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name,use_mp=is_shared_memory_available)
+            sage: if not is_shared_memory_available:
+            ....:     fvars2 = fvars
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(fx5**5))
             sage: fvars[f2, f1, f2, f2, f0, f0] = rhs
             sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
             fx5^5
             sage: fvars.shm.unlink()
+            sage: f.shutdown_worker_pool()
         """
         self.field = field
         self.obj_cache = dict()
@@ -473,7 +502,8 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("B7", 1), inject_variables=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
-            sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple,use_mp=True)
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple,use_mp=is_shared_memory_available)
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10))
             sage: fvars[(f1, f2, f1, f2, f2, f2)] = rhs
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
@@ -488,6 +518,7 @@ cdef class FvarsHandler:
             sage: f._tup_to_fpoly(fvars[r]) == -1/19
             True
             sage: fvars.shm.unlink()
+            sage: f.shutdown_worker_pool()
 
         .. NOTE::
 
@@ -562,7 +593,8 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
-            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple,use_mp=True)
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple,use_mp=is_shared_memory_available)
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10))
             sage: fvars[(f3, f2, f1, f2, f1, f3)] = rhs
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
@@ -577,6 +609,7 @@ cdef class FvarsHandler:
             sage: f._tup_to_fpoly(fvars[r]) == -1/19
             True
             sage: fvars.shm.unlink()
+            sage: f.shutdown_worker_pool()
         """
         cdef ETuple exp
         cdef Integer num, denom
@@ -638,11 +671,13 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("F4",1))
             sage: from sage.combinat.root_system.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
-            sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=True)
+            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=is_shared_memory_available)
             sage: for s, fvar in loads(dumps(fvars)).items():
             ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
             ....:
             sage: fvars.shm.unlink()
+            sage: f.shutdown_worker_pool()
         """
         n = self.fvars.size
         idx_map = {i: s for s, i in self.sext_to_idx.items()}
@@ -662,14 +697,13 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("G2", 1), inject_variables=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
-            sage: if sys.version_info.minor >= 8:
-            ....:     f.start_worker_pool()      # Python 3.8+ is required
-            sage: for sextuple, fvar in f._shared_fvars.items():
+            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: shared_fvars = FvarsHandler(5,f._field,f._idx_to_sextuple,init_data=f._fvars)
+            sage: for sextuple, fvar in shared_fvars.items():
             ....:     if sextuple == (f1, f1, f1, f1, f1, f1):
             ....:         f._tup_to_fpoly(fvar)
             ....:
             fx4
-            sage: f.shutdown_worker_pool()
         """
         for sextuple in self.sext_to_idx:
             yield sextuple, self[sextuple]
@@ -683,10 +717,12 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: f = FMatrix(FusionRing("G2",1))
         sage: from sage.combinat.root_system.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
-        sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=True)
-        sage: for s, fvar in loads(dumps(fvars)).items():        # indirect doctest
+        sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+        sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=is_shared_memory_available)
+        sage: for s, fvar in loads(dumps(fvars)).items():            # indirect doctest
         ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
         ....:
         sage: fvars.shm.unlink()
+        sage: f.shutdown_worker_pool()
     """
     return FvarsHandler(n,field,idx_map,init_data=init_data)

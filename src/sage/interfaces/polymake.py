@@ -173,8 +173,8 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: polymake.version()               # optional - polymake
-            '3...'
+            sage: polymake.version()               # optional - polymake # random
+            '4...'
 
         TESTS::
 

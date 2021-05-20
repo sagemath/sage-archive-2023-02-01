@@ -844,11 +844,17 @@ cdef class MPolynomial(CommutativeRingElement):
              sage: (a^6 + b^3 + b*c + a^2*c + c + a + 1).homogeneous_components()
              {0: 1, 1: a, 3: c, 5: a^2*c + b*c, 6: a^6 + b^3}
         """
+        cdef ETuple e
         from collections import defaultdict
-        d = defaultdict(self.parent().zero)
-        for c, m in self:
-            d[m.degree()] += c*m
-        return dict(d)
+        d = defaultdict(dict)
+        if self._parent.term_order()._weights:
+            for c, m in self:
+                d[m.degree()][m.exponents()[0]] = c
+        else:
+            # Otherwise it is unweighted, so we use a faster implementation
+            for e, c in self.iterator_exp_coeff():
+               d[e.unweighted_degree()][e] = c
+        return {k: self._parent(d[k]) for k in d}
 
     cpdef _mod_(self, other):
         """

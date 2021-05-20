@@ -108,21 +108,14 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     fi
     AC_SUBST(CXX)
 
-    AC_LANG_PUSH(C)
     if test -z "$CC"; then
         SAGE_MUST_INSTALL_GCC([a C compiler is missing])
     fi
 
-    # Save compiler before checking for C99 support
-    save_CC=$CC
-    # Check that we can compile C99 code
-    AC_PROG_CC_C99()
+    # Check for C99 support detected by the AC_PROG_CC macro.
     if test "x$ac_cv_prog_cc_c99" = xno; then
         SAGE_MUST_INSTALL_GCC([your C compiler cannot compile C99 code])
     fi
-    # restore original CC
-    CC=$save_CC
-    AC_LANG_POP()
 
     if test x$GXX != xyes; then
         SAGE_SHOULD_INSTALL_GCC([your C++ compiler isn't GCC (GNU C++)])

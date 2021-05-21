@@ -3446,7 +3446,8 @@ class WordMorphism(SageObject):
 
         if w is None:
             w = self._morph
-        f = self.restrict_domain(self.reach(w))
+        reach = self._language_naive(2, self._domain(w))
+        f = self.restrict_domain([x[0] for x in reach])
         f._codomain = f._domain
         g, _, k, _ = f.simplify_injective()
         g._codomain = g._domain
@@ -3502,7 +3503,8 @@ class WordMorphism(SageObject):
         """
         if w is None:
             w = self._morph
-        f = self.restrict_domain(self.reach(w))
+        reach = self._language_naive(2, self._domain(w))
+        f = self.restrict_domain([x[0] for x in reach])
         f._codomain = f._domain
         g, _, k, _ = f.simplify_injective()
         g._codomain = g._domain
@@ -3539,32 +3541,6 @@ class WordMorphism(SageObject):
                 result.add(k(v).primitive().minimal_conjugate())
 
         return result
-
-    def reach(self, w):
-        r"""
-        Return the set of letters which occur in words of
-        `\{m^n(w) | n \ge 0\}`, where `m` is this morphism and `w` is a word
-        (finite iterable is enough) inputted as a parameter.
-
-        Requires this morphism to be an endomorphism.
-
-        EXAMPLES::
-
-            sage: sorted(WordMorphism('a->ac,b->ce,c->bd,d->d,e->').reach('c'))
-            ['b', 'c', 'd', 'e']
-        """
-        if not self.is_endomorphism():
-            raise TypeError(f'self ({self}) is not an endomorphism')
-
-        visited = set(w)
-        todo = list(visited)
-        while todo:
-            a = todo.pop()
-            for b in self.image(a):
-                if b not in visited:
-                    visited.add(b)
-                    todo.append(b)
-        return visited
 
     def simplify(self, Z=None):
         r"""

@@ -73,13 +73,7 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
     cdef FvarsHandler fvars = factory._fvars
     cdef NumberFieldElement_absolute coeff, other
     cdef tuple rhs_coeff
-    fvars.clear_modified()
     for eq_tup in eqns:
-        # Only unflatten relevant polynomials
-        # if len(eq_tup) > 2:
-        #     continue
-        # eq_tup = _unflatten_coeffs(factory._field, eq_tup)
-
         if len(eq_tup) == 1:
             vars = variables(eq_tup)
             if len(vars) == 1 and not factory._solved[vars[0]]:
@@ -99,7 +93,6 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
             max_var = exp._data[0]
             if not factory._solved[max_var]:
                 rhs_exp = eq_tup[(idx+1) % 2][0]
-                # rhs_coeff = -eq_tup[(idx+1) % 2][1] / eq_tup[idx][1]
                 coeff = factory._field(list(eq_tup[(idx+1) % 2][1]))
                 other = factory._field(list(eq_tup[idx][1]))
                 rhs_coeff = tuple((-coeff / other)._coefficients())
@@ -279,7 +272,6 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     _ks = factory._ks
 
     #Computation loop
-    # for i, sextuple in enumerate(product(basis, repeat=6)):
     it = product(basis, repeat=6)
     for i in range(len(basis)**6):
         sextuple = next(it)

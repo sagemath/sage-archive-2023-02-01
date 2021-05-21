@@ -22,7 +22,7 @@ from ctypes import cast, py_object
 from itertools import product, zip_longest
 from multiprocessing import cpu_count, Pool, set_start_method
 import numpy as np
-from os import remove
+from os import getpid, remove
 
 from sage.combinat.root_system.fast_parallel_fmats_methods import (
     _backward_subs, _solve_for_linear_terms,
@@ -1333,6 +1333,9 @@ class FMatrix():
         if not hasattr(self, '_nnz'):
             self._reset_solver_state()
         #Set up shared memory resource handlers
+        n_proc = cpu_count() if processes is None else processes
+        self._pid_list = shared_memory.ShareableList([0]*(n_proc+1))
+        pids_name = self._pid_list.shm.name
         self._solved = shared_memory.ShareableList(self._solved)
         s_name = self._solved.shm.name
         self._var_degs = shared_memory.ShareableList(self._var_degs)
@@ -1340,12 +1343,11 @@ class FMatrix():
         n = self._poly_ring.ngens()
         self._ks = KSHandler(n,self._field,use_mp=True,init_data=self._ks)
         ks_names = self._ks.shm.name
-        self._shared_fvars = FvarsHandler(n,self._field,self._idx_to_sextuple,use_mp=True,init_data=self._fvars)
+        self._shared_fvars = FvarsHandler(n,self._field,self._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name,init_data=self._fvars)
         fvar_names = self._shared_fvars.shm.name
         #Initialize worker pool processes
-        args = (id(self), s_name, vd_name, ks_names, fvar_names)
-        n = cpu_count() if processes is None else processes
-        def init(fmats_id, solved_name, vd_name, ks_names, fvar_names):
+        args = (id(self), s_name, vd_name, ks_names, fvar_names, n_proc, pids_name)
+        def init(fmats_id, solved_name, vd_name, ks_names, fvar_names, n_proc, pids_name):
             """
             Connect worker process to shared memory resources
             """
@@ -1353,10 +1355,14 @@ class FMatrix():
             fmats_obj._solved = shared_memory.ShareableList(name=solved_name)
             fmats_obj._var_degs = shared_memory.ShareableList(name=vd_name)
             n = fmats_obj._poly_ring.ngens()
-            fmats_obj._fvars = FvarsHandler(n,fmats_obj._field,fmats_obj._idx_to_sextuple,name=fvar_names,use_mp=True)
-            fmats_obj._ks = KSHandler(n,fmats_obj._field,name=ks_names,use_mp=True)
+            K = fmats_obj._field
+            fmats_obj._fvars = FvarsHandler(n,K,fmats_obj._idx_to_sextuple,name=fvar_names,use_mp=n_proc,pids_name=pids_name)
+            fmats_obj._ks = KSHandler(n,K,name=ks_names,use_mp=True)
 
-        self.pool = Pool(processes=n,initializer=init,initargs=args)
+        self.pool = Pool(processes=n_proc,initializer=init,initargs=args)
+        self._pid_list[0] = getpid()
+        for i, p in enumerate(self.pool._pool):
+            self._pid_list[i+1] = p.pid
         return True
 
     def shutdown_worker_pool(self):
@@ -1385,6 +1391,7 @@ class FMatrix():
             self._var_degs.shm.unlink()
             self._ks.shm.unlink()
             self._shared_fvars.shm.unlink()
+            self._pid_list.shm.unlink()
             del self.__dict__['_shared_fvars']
 
     def _map_triv_reduce(self,mapper,input_iter,worker_pool=None,chunksize=None,mp_thresh=None):
@@ -1660,18 +1667,18 @@ class FMatrix():
         if eqns is None:
             eqns = self.ideal_basis
             ret = False
-        using_mp = self.pool is not None
+        # using_mp = self.pool is not None
         while True:
             linear_terms_exist = _solve_for_linear_terms(self,eqns)
             if not linear_terms_exist:
                 break
             _backward_subs(self)
 
-            #Compute new reduction params, send to child processes if any, and update eqns
+            #Compute new reduction params and update eqns
             self._update_reduction_params(eqns=eqns)
             # n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
             # eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
-            if using_mp and len(eqns) > self.mp_thresh:
+            if self.pool is not None and len(eqns) > self.mp_thresh:
                 n = self.pool._processes
                 chunks = [[] for i in range(n)]
                 for i, eq_tup in enumerate(eqns):

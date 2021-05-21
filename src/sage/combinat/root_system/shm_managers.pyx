@@ -24,6 +24,7 @@ from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libs
 from sage.rings.polynomial.polydict cimport ETuple
 
 import numpy as np
+from os import getpid
 
 cdef class KSHandler:
     def __init__(self, n_slots, field, use_mp=False, init_data={}, name=None):
@@ -351,7 +352,7 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=False,name=None,init_data={},max_terms=20,n_bytes=32):
+    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=0,pids_name=None,name=None,init_data={},max_terms=20,n_bytes=32):
         """
         Return a shared memory backed dict-like structure to manage the
         ``_fvars`` attribute of an F-matrix factory object.
@@ -388,12 +389,15 @@ cdef class FvarsHandler:
         - ``max_terms`` -- maximum number of terms in each entry. Since
           we use contiguous C-style memory blocks, the size of the block
           must be known in advance.
-        - ``use_mp`` -- a boolean indicating whether the array backing
-          ``self`` should be placed in shared memory. This requires
-          Python 3.8+, since we must import the
+        - ``use_mp`` -- an integer indicating the number of child processes
+          used for multiprocessing. If running serially, use 0.
+          Multiprocessing requires Python 3.8+, since we must import the
           ``multiprocessing.shared_memory`` module. Attempting to initialize
           when ``multiprocessing.shared_memory`` is not available results in
           an ``ImportError``.
+        - ``pids_name`` -- the name of a ``ShareableList`` contaning the
+          process ``pid``'s for every process in the pool (including the
+          parent process).
         - ``n_bytes`` -- the number of bytes that should be allocated for
           each numerator and each denominator stored by the structure.
 
@@ -423,9 +427,15 @@ cdef class FvarsHandler:
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
-            sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=is_shared_memory_available)
+            sage: if is_shared_memory_available:
+            ....:     n_proc = f.pool._processes
+            ....:     pids_name = f._pid_list.shm.name
+            ....: else:
+            ....:     n_proc = 0
+            ....:     pids_name = None
+            sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name,use_mp=is_shared_memory_available)
+            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name,use_mp=n_proc,pids_name=pids_name)
             sage: if not is_shared_memory_available:
             ....:     fvars2 = fvars
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
@@ -441,8 +451,9 @@ cdef class FvarsHandler:
         cdef int d = self.field.degree()
         self.bytes = n_bytes
         cdef int slots = self.bytes // 8
+        cdef int n_proc = use_mp + 1
         self.fvars_t = np.dtype([
-            ('modified','bool',(1,)),
+            ('modified',np.int8,(n_proc,)),
             ('ticks', 'u1', (max_terms,)),
             ('exp_data', 'u2', (max_terms*30,)),
             ('coeff_nums',np.int64,(max_terms,d,slots)),
@@ -461,8 +472,11 @@ cdef class FvarsHandler:
             else:
                 self.shm = shared_memory.SharedMemory(name=name)
             self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
+            self.pid_list = shared_memory.ShareableList(name=pids_name)
+            self.child_id = -1
         else:
             self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t)
+            self.child_id = 0
         #Populate with initialziation data
         for sextuple, fvar in init_data.items():
             if isinstance(fvar, MPolynomial_libsingular):
@@ -478,14 +492,9 @@ cdef class FvarsHandler:
                     fvar = tuple(transformed)
             self[sextuple] = fvar
 
-    cdef clear_modified(self):
-        """
-        Reset tagged entries modified by parent process.
-        """
-        self.fvars['modified'][:] = False
-
     @cython.nonecheck(False)
     @cython.wraparound(False)
+    @cython.boundscheck(False)
     def __getitem__(self, sextuple):
         """
         Retrieve a record from the shared memory data structure by
@@ -503,7 +512,13 @@ cdef class FvarsHandler:
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
-            sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple,use_mp=is_shared_memory_available)
+            sage: if is_shared_memory_available:
+            ....:     n_proc = f.pool._processes
+            ....:     pids_name = f._pid_list.shm.name
+            ....: else:
+            ....:     n_proc = 0
+            ....:     pids_name = None
+            sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10))
             sage: fvars[(f1, f2, f1, f2, f2, f2)] = rhs
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
@@ -530,11 +545,17 @@ cdef class FvarsHandler:
         if not sextuple in self.sext_to_idx:
             raise KeyError('Invalid sextuple {}'.format(sextuple))
         cdef Py_ssize_t idx = self.sext_to_idx[sextuple]
-        # if idx in self.obj_cache:
-        #     if self.fvars['modified'][idx]:
-        #         del self.obj_cache[idx]
-        #     else:
-        #         return self.obj_cache[idx]
+        #Each process builds its own cache, so each process must know
+        #whether the entry it wants to retrieve has been modified.
+        #Each process needs to know where to look, so we use an index
+        #every process agrees on. The pid_list[0] belongs to the main process.
+        if self.child_id < 0:
+            self.child_id = self.pid_list.index(getpid())
+        if idx in self.obj_cache:
+            if self.fvars['modified'][idx,self.child_id]:
+                del self.obj_cache[idx]
+            else:
+                return self.obj_cache[idx]
         cdef ETuple e, exp
         cdef int count, nnz
         cdef Integer d, num
@@ -548,10 +569,10 @@ cdef class FvarsHandler:
         cdef np.ndarray[np.uint16_t,ndim=1] exp_data = self.fvars['exp_data'][idx]
         cdef np.ndarray[np.int64_t,ndim=3] nums = self.fvars['coeff_nums'][idx]
         cdef np.ndarray[np.uint64_t,ndim=3] denoms = self.fvars['coeff_denom'][idx]
+        cdef np.ndarray[np.int8_t,ndim=1] modified = self.fvars['modified'][idx]
         e = ETuple({}, self.ngens)
         poly_tup = list()
         cum = 0
-        # for i in range(np.count_nonzero(ticks)):
         count = np.count_nonzero(ticks)
         for i in range(count):
             #Construct new ETuple for each monomial
@@ -575,7 +596,9 @@ cdef class FvarsHandler:
             cyc_coeff = self.field(rats)
             poly_tup.append((exp, cyc_coeff))
         ret = tuple(poly_tup)
-        # self.obj_cache[idx] = ret
+        #Cache object and reset modified
+        self.obj_cache[idx] = ret
+        modified[self.child_id] = 0
         return ret
 
     @cython.nonecheck(False)
@@ -594,7 +617,13 @@ cdef class FvarsHandler:
             creating variables fx1..fx27
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
-            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple,use_mp=is_shared_memory_available)
+            sage: if is_shared_memory_available:
+            ....:     n_proc = f.pool._processes
+            ....:     pids_name = f._pid_list.shm.name
+            ....: else:
+            ....:     n_proc = 0
+            ....:     pids_name = None
+            sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10))
             sage: fvars[(f3, f2, f1, f2, f1, f3)] = rhs
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
@@ -624,6 +653,7 @@ cdef class FvarsHandler:
         cdef np.ndarray[np.uint16_t,ndim=1] exp_data = self.fvars['exp_data'][idx]
         cdef np.ndarray[np.int64_t,ndim=3] nums = self.fvars['coeff_nums'][idx]
         cdef np.ndarray[np.uint64_t,ndim=3] denoms = self.fvars['coeff_denom'][idx]
+        cdef np.ndarray[np.int8_t,ndim=1] modified = self.fvars['modified'][idx]
         cdef list digits
         #Initialize denominators to 1
         denoms[:,:,0] = 1
@@ -660,7 +690,7 @@ cdef class FvarsHandler:
                         denoms[i,k,t] = <np.uint64_t>digits[t]
                 k += 1
             i += 1
-        self.fvars['modified'][idx] = True
+        modified[:] = 1
 
     def __reduce__(self):
         """
@@ -672,7 +702,13 @@ cdef class FvarsHandler:
             sage: from sage.combinat.root_system.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
-            sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=is_shared_memory_available)
+            sage: if is_shared_memory_available:
+            ....:     n_proc = f.pool._processes
+            ....:     pids_name = f._pid_list.shm.name
+            ....: else:
+            ....:     n_proc = 0
+            ....:     pids_name = None
+            sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=n_proc,pids_name=pids_name)
             sage: for s, fvar in loads(dumps(fvars)).items():
             ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
             ....:
@@ -718,7 +754,13 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: from sage.combinat.root_system.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
         sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
-        sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=is_shared_memory_available)
+        sage: if is_shared_memory_available:
+        ....:     n_proc = f.pool._processes
+        ....:     pids_name = f._pid_list.shm.name
+        ....: else:
+        ....:     n_proc = 0
+        ....:     pids_name = None
+        sage: fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars,use_mp=n_proc,pids_name=pids_name)
         sage: for s, fvar in loads(dumps(fvars)).items():            # indirect doctest
         ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
         ....:

@@ -16,12 +16,9 @@ cdef class KSHandler:
 
 cdef class FvarsHandler:
     cdef dict sext_to_idx, obj_cache
-    cdef list modified_cache
-    cdef unsigned int ngens, bytes
-    cdef object fvars_t
+    cdef int bytes, ngens
     cdef np.ndarray fvars
     cdef NumberField field
+    cdef object fvars_t, pid_list
+    cdef Py_ssize_t child_id
     cdef public object shm
-
-    cdef clear_modified(self)
-    # cdef update_cache(self)

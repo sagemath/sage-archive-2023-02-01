@@ -302,8 +302,8 @@ class FMatrix():
         self.pool = None
 
         #TESTS
-        self.test_fvars = dict()
-        self.test_ks = dict()
+        # self.test_fvars = dict()
+        # self.test_ks = dict()
 
     #######################
     ### Class utilities ###
@@ -1254,7 +1254,7 @@ class FMatrix():
             return
         self._fvars, self._solved, self._ks, self.ideal_basis, self._chkpt_status = state
         #TESTS:
-        self.test_ks = {i: sq for i, sq in self._ks.items()}
+        # self.test_ks = {i: sq for i, sq in self._ks.items()}
         self._update_reduction_params()
 
     #################
@@ -1535,18 +1535,18 @@ class FMatrix():
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("B2",1))
-            sage: f.get_defining_equations('hexagons')
-            [fx0 - 1,
-             fx10^2 + (-zeta32^8)*fx11*fx12 + (-zeta32^12)*fx10,
-             fx11*fx12 + (-zeta32^8)*fx13^2 + (zeta32^12)*fx13,
-             fx2 + 1,
-             fx7 + 1,
-             fx3*fx8 - fx6,
-             fx1*fx5 + fx2,
+            sage: sorted(f.get_defining_equations('hexagons'))
+            [fx7 + 1,
              fx6 - 1,
-             fx4*fx9 + fx7,
+             fx2 + 1,
+             fx0 - 1,
+             fx11*fx12 + (-zeta32^8)*fx13^2 + (zeta32^12)*fx13,
+             fx10*fx12 + (-zeta32^8)*fx12*fx13 + (zeta32^4)*fx12,
              fx10*fx11 + (-zeta32^8)*fx11*fx13 + (zeta32^4)*fx11,
-             fx10*fx12 + (-zeta32^8)*fx12*fx13 + (zeta32^4)*fx12]
+             fx10^2 + (-zeta32^8)*fx11*fx12 + (-zeta32^12)*fx10,
+             fx4*fx9 + fx7,
+             fx3*fx8 - fx6,
+             fx1*fx5 + fx2]
             sage: pe = f.get_defining_equations('pentagons')
             sage: len(pe)
             33
@@ -1609,6 +1609,9 @@ class FMatrix():
             sage: f.mp_thresh = 0
             sage: if is_shared_memory_available:
             ....:     f._fvars = f._shared_fvars
+            ....: else:
+            ....:     from sage.combinat.root_system.shm_managers import FvarsHandler
+            ....:     f._fvars = FvarsHandler(f._poly_ring.ngens(),f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)  # indirect doctest
             sage: f.ideal_basis
             []
@@ -1619,13 +1622,13 @@ class FMatrix():
         self._ks.update(eqns)
 
         #TESTS:
-        for i in range(len(eqns)):
-            eq_tup = eqns[i]
-            if tup_fixes_sq(eq_tup):
-                rhs = [-v for v in eq_tup[-1][1]]
-                self.test_ks[variables(eq_tup)[0]] = rhs
-        for i, sq in self._ks.items():
-            assert sq == self._field(self.test_ks[i]), "{}: OG sq {}, shared sq {}".format(i, sq, self.test_ks[i])
+        # for i in range(len(eqns)):
+        #     eq_tup = eqns[i]
+        #     if tup_fixes_sq(eq_tup):
+        #         rhs = [-v for v in eq_tup[-1][1]]
+        #         self.test_ks[variables(eq_tup)[0]] = rhs
+        # for i, sq in self._ks.items():
+        #     assert sq == self._field(self.test_ks[i]), "{}: OG sq {}, shared sq {}".format(i, sq, self.test_ks[i])
 
         degs = get_variables_degrees(eqns)
         if degs:
@@ -2203,11 +2206,11 @@ class FMatrix():
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
         #Unzip _fvars and link to shared_memory structure if using multiprocessing
         #TESTS:
-        for k, v in self._fvars.items():
-            if isinstance(v, tuple):
-                self.test_fvars[k] = v
-            else:
-                self.test_fvars[k] = poly_to_tup(v)
+        # for k, v in self._fvars.items():
+        #     if isinstance(v, tuple):
+        #         self.test_fvars[k] = v
+        #     else:
+        #         self.test_fvars[k] = poly_to_tup(v)
         if use_mp and loads_shared_memory:
             self._fvars = self._shared_fvars
         else:

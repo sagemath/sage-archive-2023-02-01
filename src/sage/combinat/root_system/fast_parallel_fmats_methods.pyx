@@ -81,10 +81,10 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
                 factory._solved[vars[0]] = True
                 linear_terms_exist = True
 
-                #TEST:
-                s = factory._idx_to_sextuple[vars[0]]
-                factory.test_fvars[s] = tuple()
-                assert factory.test_fvars[s] == fvars[s], "OG value {}, Shared: {}".format(fvars[s],factory.test_fvars[s])
+                #TESTS:
+                # s = factory._idx_to_sextuple[vars[0]]
+                # factory.test_fvars[s] = tuple()
+                # assert factory.test_fvars[s] == fvars[s], "OG value {}, Shared: {}".format(fvars[s],factory.test_fvars[s])
         if len(eq_tup) == 2:
             idx = has_appropriate_linear_term(eq_tup)
             if idx < 0: continue
@@ -100,10 +100,10 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
                 factory._solved[max_var] = True
                 linear_terms_exist = True
 
-                #TEST:
-                s = factory._idx_to_sextuple[max_var]
-                factory.test_fvars[s] = ((rhs_exp,rhs_coeff),)
-                assert _unflatten_coeffs(factory._field,factory.test_fvars[s]) == fvars[s], "OG value {}, Shared: {}".format(factory.test_fvars[s],fvars[s])
+                #TESTS:
+                # s = factory._idx_to_sextuple[max_var]
+                # factory.test_fvars[s] = ((rhs_exp,rhs_coeff),)
+                # assert _unflatten_coeffs(factory._field,factory.test_fvars[s]) == fvars[s], "OG value {}, Shared: {}".format(factory.test_fvars[s],fvars[s])
     return linear_terms_exist
 
 cpdef _backward_subs(factory, bint flatten=True):

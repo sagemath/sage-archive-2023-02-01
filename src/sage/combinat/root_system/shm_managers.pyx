@@ -84,7 +84,8 @@ cdef class KSHandler:
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: ks2 = KSHandler(n,f._field,name=ks.shm.name,use_mp=is_shared_memory_available)
+            sage: name = ks.shm.name if is_shared_memory_available else None
+            sage: ks2 = KSHandler(n,f._field,name=name,use_mp=is_shared_memory_available)
             sage: if not is_shared_memory_available:
             ....:     ks2 = ks
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
@@ -95,7 +96,7 @@ cdef class KSHandler:
             ....:
             Index: 1, square: 4
             Index: 3, square: -zeta32^4 + 1/19*zeta32^2
-            sage: ks.shm.unlink()
+            sage: if is_shared_memory_available: ks.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
         cdef int n, d
@@ -278,12 +279,13 @@ cdef class KSHandler:
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available,init_data=f._ks)
             sage: #In the same shell or in a different one, attach to shared memory handler
-            sage: k2 = KSHandler(n,f._field,name=ks.shm.name,use_mp=is_shared_memory_available)
+            sage: name = ks.shm.name if is_shared_memory_available else None
+            sage: k2 = KSHandler(n,f._field,name=name,use_mp=is_shared_memory_available)
             sage: if not is_shared_memory_available:
             ....:     k2 = ks
             sage: ks == k2
             True
-            sage: ks.shm.unlink()
+            sage: if is_shared_memory_available: ks.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
         ret = True
@@ -352,7 +354,7 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self,n_slots,field,idx_to_sextuple,use_mp=0,pids_name=None,name=None,init_data={},max_terms=20,n_bytes=32):
+    def __init__(self,n_slots,field,idx_to_sextuple,init_data={},use_mp=0,pids_name=None,name=None,max_terms=20,n_bytes=32):
         """
         Return a shared memory backed dict-like structure to manage the
         ``_fvars`` attribute of an F-matrix factory object.
@@ -435,7 +437,8 @@ cdef class FvarsHandler:
             ....:     pids_name = None
             sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
             sage: #In the same shell or in a different shell, attach to fvars
-            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=fvars.shm.name,use_mp=n_proc,pids_name=pids_name)
+            sage: name = fvars.shm.name if is_shared_memory_available else None
+            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=name,use_mp=n_proc,pids_name=pids_name)
             sage: if not is_shared_memory_available:
             ....:     fvars2 = fvars
             sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
@@ -443,7 +446,7 @@ cdef class FvarsHandler:
             sage: fvars[f2, f1, f2, f2, f0, f0] = rhs
             sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
             fx5^5
-            sage: fvars.shm.unlink()
+            sage: if is_shared_memory_available: fvars.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
         self.field = field
@@ -532,7 +535,7 @@ cdef class FvarsHandler:
             True
             sage: f._tup_to_fpoly(fvars[r]) == -1/19
             True
-            sage: fvars.shm.unlink()
+            sage: if is_shared_memory_available: fvars.shm.unlink()
             sage: f.shutdown_worker_pool()
 
         .. NOTE::
@@ -637,7 +640,7 @@ cdef class FvarsHandler:
             True
             sage: f._tup_to_fpoly(fvars[r]) == -1/19
             True
-            sage: fvars.shm.unlink()
+            sage: if is_shared_memory_available: fvars.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
         cdef ETuple exp
@@ -671,21 +674,21 @@ cdef class FvarsHandler:
             k = 0
             for r in coeff_tup:
                 num, denom = r.as_integer_ratio()
-                assert denom != 0, "zero denominator error"
+                # assert denom != 0, "zero denominator error"
                 if abs(num) > 2**63 or denom > 2**63:
                     print("Large integers encountered in FvarsHandler", num, denom)
                 if abs(num) < 2**63:
                     nums[i,k,0] = num
                 else:
                     digits = num.digits(2**63)
-                    assert len(digits) <= self.bytes // 8, "Numerator {} is too large for shared FvarsHandler. Use at least {} bytes...".format(num,num.nbits()//8+1)
+                    # assert len(digits) <= self.bytes // 8, "Numerator {} is too large for shared FvarsHandler. Use at least {} bytes...".format(num,num.nbits()//8+1)
                     for t in range(len(digits)):
                         nums[i,k,t] = <np.int64_t>digits[t]
                 if denom < 2**64:
                     denoms[i,k,0] = denom
                 else:
                     digits = denom.digits(2**64)
-                    assert len(digits) <= self.bytes // 8, "Denominator {} is too large for shared FvarsHandler. Use at least {} bytes...".format(denom,denom.nbits()//8+1)
+                    # assert len(digits) <= self.bytes // 8, "Denominator {} is too large for shared FvarsHandler. Use at least {} bytes...".format(denom,denom.nbits()//8+1)
                     for t in range(len(digits)):
                         denoms[i,k,t] = <np.uint64_t>digits[t]
                 k += 1
@@ -712,7 +715,7 @@ cdef class FvarsHandler:
             sage: for s, fvar in loads(dumps(fvars)).items():
             ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
             ....:
-            sage: fvars.shm.unlink()
+            sage: if is_shared_memory_available: fvars.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
         n = self.fvars.size
@@ -764,7 +767,7 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: for s, fvar in loads(dumps(fvars)).items():            # indirect doctest
         ....:     assert f._fvars[s] == f._tup_to_fpoly(fvar)
         ....:
-        sage: fvars.shm.unlink()
+        sage: if is_shared_memory_available: fvars.shm.unlink()
         sage: f.shutdown_worker_pool()
     """
     return FvarsHandler(n,field,idx_map,init_data=init_data)

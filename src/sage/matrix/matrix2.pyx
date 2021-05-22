@@ -2386,14 +2386,14 @@ cdef class Matrix(Matrix1):
         r"""
         Computes the Pfaffian of ``self`` using the Baer-Faddeev-LeVerrier
         algorithm.
-        
+
         .. WARNING::
-        
+
             This method assumes that the base ring is an `\QQ`-algebra.
 
         OUTPUT:
 
-        - an element (possibly coerced) originated from the base ring of 
+        - an element (possibly coerced) originated from the base ring of
           ``self`` representing the Pfaffian
 
         EXAMPLES:
@@ -2409,7 +2409,7 @@ cdef class Matrix(Matrix1):
             ....:             (1/2, -3/2, -1, -5/2, -1/2, 0)])
             sage: A.pfaffian(algorithm='bfl')
             -1/2
-            
+
         TESTS::
 
             sage: A = random_matrix(ZZ[x], 6)
@@ -15313,7 +15313,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t i = 0
         cdef Py_ssize_t j = 0
 
-        cdef Py_ssize_t k, l
+        cdef Py_ssize_t k, l, c
 
         if transformation:
             from sage.matrix.constructor import identity_matrix
@@ -15349,9 +15349,9 @@ cdef class Matrix(Matrix1):
                             U.set_unsafe(k, c, p * Ukc + q * Ulc)
                             U.set_unsafe(l, c, (-f) * Ukc + e * Ulc)
                 if i != k:
-                    A.swap_rows(i,k)
+                    A.swap_rows_c(i,k)
                     if transformation:
-                        U.swap_rows(i,k)
+                        U.swap_rows_c(i,k)
                 pivot_cols.append(j)
                 i += 1
             j += 1
@@ -15366,9 +15366,9 @@ cdef class Matrix(Matrix1):
                 coeff = normalization(pivot)
                 for c in range(j,n):
                     A.set_unsafe(i, c, A.get_unsafe(i,c) * coeff)
-                    if transformation:
-                        for c in range(m):
-                            U.set_unsafe(i, c, U.get_unsafe(i,c) * coeff)
+                if transformation:
+                    for c in range(m):
+                        U.set_unsafe(i, c, U.get_unsafe(i,c) * coeff)
 
             pivot = A.get_unsafe(i,j)
             for k in range(i):

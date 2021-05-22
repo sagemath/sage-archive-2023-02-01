@@ -355,8 +355,6 @@ cdef class CombinatorialFace(SageObject):
 
             sage: P = polytopes.cube()
             sage: C = P.combinatorial_polyhedron()
-            sage: P = polytopes.cube()
-            sage: C = P.combinatorial_polyhedron()
             sage: it = C.face_iter()
             sage: face = next(it)
             sage: face.ambient_V_indices()

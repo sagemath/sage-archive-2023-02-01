@@ -347,7 +347,7 @@ cdef class CombinatorialFace(SageObject):
                 # They are faces of the same polyhedron obtained in the same way.
                 return hash(self) < hash(other)
 
-    def is_subface(self, other):
+    def is_subface(self, CombinatorialFace other):
         r"""
         Return whether ``self`` is contained in ``other``.
 
@@ -423,26 +423,21 @@ cdef class CombinatorialFace(SageObject):
             ...
             NotImplementedError: is_subface only implemented for faces of the same polyhedron
         """
-        cdef CombinatorialFace other_face
-        if isinstance(other, CombinatorialFace):
-            other_face = other
-            if self._dual == other_face._dual:
-                if self.atoms is other_face.atoms:
-                    if not self._dual:
-                        return face_issubset(self.face, other_face.face)
-                    else:
-                        return face_issubset(other_face.face, self.face)
+        if self._dual == other._dual:
+            if self.atoms is other.atoms:
+                if not self._dual:
+                    return face_issubset(self.face, other.face)
                 else:
-                    raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
+                    return face_issubset(other.face, self.face)
             else:
-                if self.atoms is other_face.coatoms:
-                    self_indices = self.ambient_V_indices()
-                    other_indices = other.ambient_V_indices()
-                    return all(i in other_indices for i in self_indices)
-                else:
-                    raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
+                raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
         else:
-            raise ValueError("other must be a face")
+            if self.atoms is other.coatoms:
+                self_indices = self.ambient_V_indices()
+                other_indices = other.ambient_V_indices()
+                return all(i in other_indices for i in self_indices)
+            else:
+                raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
 
     def dimension(self):
         r"""

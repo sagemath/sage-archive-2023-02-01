@@ -1533,17 +1533,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             return matrix([x.sage() for x in self])
         elif T1 == 'Polytope':
             from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
-            from sage.geometry.polyhedron.parent import Polyhedra
-            from sage.rings.rational_field import QQ
-            from sage.rings.qqbar import AA
-            if self.typeof()[0] == 'Polymake::polytope::Polytope__Rational':
-                base_ring = QQ
-            else:
-                # We could try to find out a more specific field.
-                base_ring = AA
-            ambient_dim = self.AMBIENT_DIM()
-            parent = Polyhedra(base_ring, ambient_dim, backend='polymake')
-            return Polyhedron_polymake._from_polymake_polytope(parent, self)
+            return Polyhedron_polymake._from_polymake_polytope(None, self)
         else:
             return super(PolymakeElement, self)._sage_()
 

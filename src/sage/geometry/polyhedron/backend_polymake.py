@@ -22,6 +22,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
 
 from sage.structure.element import Element
 
@@ -447,6 +448,25 @@ class Polyhedron_polymake(Polyhedron_base):
             sage: parent = Polyhedra(QQ, 2, backend='polymake')   # optional - polymake
             sage: Q=Polyhedron_polymake._from_polymake_polytope(parent, PP)   # optional - polymake
         """
+        if parent is None:
+            from .parent import Polyhedra
+            from sage.rings.rational_field import QQ
+            from sage.rings.qqbar import AA
+            if polymake_polytope.typeof()[0] == 'Polymake::polytope::Polytope__Rational':
+                base_ring = QQ
+            else:
+                from sage.structure.element import coercion_model
+                data = [g.sage()
+                        for g in itertools.chain(polymake_polytope.VERTICES,
+                                                 polymake_polytope.LINEALITY_SPACE,
+                                                 polymake_polytope.FACETS,
+                                                 polymake_polytope.AFFINE_HULL)]
+                if data:
+                    base_ring = coercion_model.common_parent(*data).base_ring()
+                else:
+                    base_ring = QQ
+            ambient_dim = polymake_polytope.AMBIENT_DIM()
+            parent = Polyhedra(base_ring=base_ring, ambient_dim=ambient_dim, backend='polymake')
         return cls(parent, None, None, polymake_polytope=polymake_polytope)
 
     def _polymake_(self, polymake):

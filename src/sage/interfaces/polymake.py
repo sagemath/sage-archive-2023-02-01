@@ -1502,7 +1502,9 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             sage: polymake.cube(3).sage() # optional - polymake
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
             sage: polymake.icosahedron().sage() # optional - polymake
-            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 12 vertices
+            A 3-dimensional polyhedron in
+             (Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?)^3
+             defined as the convex hull of 12 vertices
 
         """
         T1, T2 = self.typeof()

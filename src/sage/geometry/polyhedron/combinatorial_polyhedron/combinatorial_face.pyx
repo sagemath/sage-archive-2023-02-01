@@ -423,6 +423,10 @@ cdef class CombinatorialFace(SageObject):
             ...
             NotImplementedError: is_subface only implemented for faces of the same polyhedron
         """
+        cdef size_t length_self, length_other, counter_self, counter_other
+        cdef size_t* self_v_indices
+        cdef size_t* other_v_indices
+
         if self._dual == other._dual:
             if self.atoms is other.atoms:
                 if not self._dual:
@@ -433,13 +437,37 @@ cdef class CombinatorialFace(SageObject):
                 raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
         else:
             if self.atoms is other.coatoms:
-                self_indices = self.ambient_V_indices()
-                other_indices = other.ambient_V_indices()
-                return all(i in other_indices for i in self_indices)
+                if self.dimension() > other.dimension():
+                    return False
+                if self._dual:
+                    length_self = self.set_coatom_rep()
+                    self_v_indices = self.coatom_rep
+                    length_other = other.set_atom_rep()
+                    other_v_indices = other.atom_rep
+                else:
+                    length_self = self.set_atom_rep()
+                    self_v_indices = self.atom_rep
+                    length_other = other.set_coatom_rep()
+                    other_v_indices = other.coatom_rep
+                if length_self > length_other:
+                    return False
+
+                # Check if every element in self_v_indices is contained in other_v_indices.
+                counter_self = 0
+                counter_other = 0
+                while counter_self < length_self and counter_other < length_other:
+                    if self_v_indices[counter_self] > other_v_indices[counter_other]:
+                        counter_other += 1
+                    elif self_v_indices[counter_self] == other_v_indices[counter_other]:
+                        counter_self += 1
+                        counter_other += 1
+                    else:
+                        return False
+                return counter_self == length_self
             else:
                 raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
 
-    def dimension(self):
+    cpdef dimension(self):
         r"""
         Return the dimension of the face.
 

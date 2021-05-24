@@ -619,6 +619,9 @@ class PolynomialRing_general(ring.Algebra):
             return IdentityMorphism(self)
 
     def construction(self):
+        """
+        Return the construction functor.
+        """
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
@@ -1951,6 +1954,15 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
         s = PolynomialRing_commutative._repr_(self)
         return s + self._implementation_repr
 
+    def construction(self):
+        """
+        Return the construction functor.
+        """
+        implementation = None
+        if 'NTL' in self._implementation_repr:
+            implementation = 'NTL'
+        return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.is_sparse(),
+                                                    implementation=implementation), self.base_ring()
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            ring.PrincipalIdealDomain):

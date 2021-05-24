@@ -119,13 +119,18 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
     We test the verbosity management with very early doctests
     because messages will not be repeated.
 
-    Testing the Pexpect interface::
+    Testing the deprecated pexpect-based interface::
 
         sage: type(polymake_expect)
         <...sage.interfaces.polymake.PolymakeExpect...
         sage: isinstance(polymake_expect, PolymakeAbstract)
         True
         sage: p = polymake_expect.rand_sphere(4, 20, seed=5)       # optional - polymake
+        doctest...: DeprecationWarning: the pexpect-based interface to
+        polymake is deprecated.
+        Install package jupymake so that Sage can use the more robust
+        jupymake-based interface to polymake
+        See https://trac.sagemath.org/27745 for details.
         sage: p                                             # optional - polymake
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
@@ -1829,6 +1834,11 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             True
             sage: polymake.quit()                           # optional - polymake
             sage: polymake._start()                         # optional - polymake
+            doctest...: DeprecationWarning: the pexpect-based interface to
+            polymake is deprecated.
+            Install package jupymake so that Sage can use the more robust
+            jupymake-based interface to polymake
+            See https://trac.sagemath.org/27745 for details.
 
         Since 'normal_fan' is not defined in the polymake application 'polytope',
         we now get::
@@ -1837,6 +1847,9 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             False
 
         """
+        from sage.misc.superseded import deprecation
+        deprecation(27745, "the pexpect-based interface to polymake is deprecated. Install package jupymake so that Sage can use the more robust jupymake-based interface to polymake")
+
         if not self.is_running():
             self._change_prompt("polytope > ")
             Expect._start(self, alt_message=None)
